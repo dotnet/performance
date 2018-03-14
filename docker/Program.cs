@@ -57,6 +57,9 @@ namespace DockerHarness
                     }
                 }
             }
+            string reportText = report.ToString();
+            Console.WriteLine(reportText);
+            File.WriteAllText("report.csv", reportText);
         }
     }
 }

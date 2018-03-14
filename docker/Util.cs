@@ -205,7 +205,7 @@ namespace DockerHarness
                     FileName = executable,
                     Arguments = args,
                     RedirectStandardOutput = true,
-                    RedirectStandardError = false,
+                    RedirectStandardError = true,
                     WorkingDirectory = workingDir?.FullName ?? ""
                 }
             );
