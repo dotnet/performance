@@ -72,78 +72,111 @@ namespace DockerHarness
         }
     }
 
-    public struct Reference<T> {
-        public T Value { get; set; }
-        public int Count { get; set; }
-
-        public Reference(T val)
-        {
-            Value = val;
-            Count = 1;
-        }
-    }
-
-    public class Git : IDisposable, IEquatable<Git>
+    public class Git : IDisposable
     {
         public string Url { get; private set; }
-        public string Branch { get; private set; }
-        public string Commit { get; private set; }
+        public string Branch {
+            get => branch;
+            set {
+                if (branch != value)
+                {
+                    branch = value;
+                    if (Location != null) {
+                        Fetch();
+                    }
+                }
+            }
+        }
+        public string Commit {
+            get => commit;
+            set {
+                if (commit != value)
+                {
+                    commit = value;
+                    if (Location != null) {
+                        Checkout();
+                    }
+                }
+            }
+        }
         public DirectoryInfo Location { get; private set; }
 
-        private static Dictionary<Git, Reference<DirectoryInfo>> clones = new Dictionary<Git, Reference<DirectoryInfo>>();
+        private List<string> fetched = new List<string>();
 
         public Git(string url, string branch=null, string commit=null)
         {
+            if (url == null)
+            {
+                throw new ArgumentNullException(nameof(url));
+            }
             Url = url;
             Branch = branch;
             Commit = commit;
         }
 
-        public DirectoryInfo Checkout()
+        public DirectoryInfo Clone()
         {
             if (Location == null)
             {
-                if (clones.TryGetValue(this, out var reference))
+                Location = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "git-repos", Util.RandomString(16)));
+                using (var command = Util.Command("git", $"clone {Url} {Location}"))
                 {
-                    Location = reference.Value;
-                    reference.Count++;
+                    command.WaitForExit();
                 }
-                else
+
+                if (Branch != null)
                 {
-                    Location = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Util.RandomString(16)));
-                    using (var command = Util.Command("git", $"clone {Url} {Location}"))
+                    Fetch();
+                }
+
+                if (Commit != null)
+                {
+                    using (var command = Util.Command("git", $"checkout {Commit}", Location))
                     {
                         command.WaitForExit();
                     }
-
-                    if (Branch != null)
-                    {
-                        using (var command = Util.Command("git", $"fetch origin {Branch}", Location))
-                        {
-                            command.WaitForExit();
-                        }
-
-                        if (Commit == null) {
-                            using (var command = Util.Command("git", $"checkout {Branch}", Location))
-                            {
-                                command.WaitForExit();
-                            }
-                        }
-                    }
-
-                    if (Commit != null)
-                    {
-                        using (var command = Util.Command("git", $"checkout {Commit}", Location))
-                        {
-                            command.WaitForExit();
-                        }
-                    }
-
-                    clones.Add(this, new Reference<DirectoryInfo>(Location));
                 }
             }
 
             return Location;
+        }
+
+        private void Fetch()
+        {
+            if (Branch != null)
+            {
+                if (!fetched.Contains(Branch));
+                using (var command = Util.Command("git", $"fetch origin {Branch}", Location))
+                {
+                    command.WaitForExit();
+                }
+                fetched.Add(Branch);
+            }
+        }
+
+        private void Checkout()
+        {
+            if (Commit != null)
+            {
+                using (var command = Util.Command("git", $"checkout {Commit}", Location))
+                {
+                    command.WaitForExit();
+                }
+            }
+            else if (Branch != null)
+            {
+                using (var command = Util.Command("git", $"checkout {Branch}", Location))
+                {
+                    command.WaitForExit();
+                }
+            }
+            else
+            {
+                using (var command = Util.Command("git", $"checkout master", Location))
+                {
+                    command.WaitForExit();
+                }
+            }
         }
 
         public void Dispose()
@@ -157,40 +190,14 @@ namespace DockerHarness
             if (disposing) {
                 if (Location == null)
                 {
-                    if (clones.TryGetValue(this, out var reference))
-                    {
-                        Debug.Assert(this.Location.FullName == reference.Value.FullName);
-                        reference.Count--;
-                        if (reference.Count <= 0) {
-                            Util.DeleteDirectory(reference.Value);
-                            clones.Remove(this);
-                        }
-                        Location = null;
-                    }
+                    Util.DeleteDirectory(Location);
+                    Location = null;
                 }
             }
         }
 
-        public bool Equals(Git other)
-        {
-            return (
-                other != null &&
-                other.Url == this.Url &&
-                other.Branch == this.Branch &&
-                other.Commit == this.Commit
-            );
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked {
-                return (
-                    ((Url?.GetHashCode() ?? 0) * 29) ^
-                    ((Branch?.GetHashCode() ?? 0) * 83) ^
-                    ((Commit?.GetHashCode() ?? 0) * 131)
-                );
-            }
-        }
+        private string branch;
+        private string commit;
     }
 
     public class Repository
@@ -212,7 +219,26 @@ namespace DockerHarness
     public class DockerHarness : IDisposable
     {
         private HashSet<Identifier> pulledImages = new HashSet<Identifier>();
-        private List<Git> gitRepos = new List<Git>();
+        private Dictionary<string, Git> gitCache = new Dictionary<string, Git>();
+
+        private Git GitCache(Git git)
+        {
+            if (gitCache.TryGetValue(git.Url, out var cached))
+            {
+                // The cached Git repo has been cloned,
+                // but may be on the wrong branch/commit
+                cached.Branch = git.Branch;
+                cached.Commit = git.Commit;
+                return cached;
+            }
+            else
+            {
+                // Clone this repo and add it to the cache
+                git.Clone();
+                gitCache.Add(git.Url, git);
+                return git;
+            }
+        }
 
         private Repository ParseManifest(string manifest, Git git) {
             // Read the manifest into a JSON object and pull out the repo
@@ -300,22 +326,30 @@ namespace DockerHarness
                 Name = name,
             };
 
-            string defaultUrl = null;
-            string defaultBranch = null;
-            string defaultCommit = null;
-            blocks[0].TryGetValue("GitRepo", out defaultBranch);
+            string defaultUrl, defaultBranch, defaultCommit;
+            blocks[0].TryGetValue("GitRepo", out defaultUrl);
             blocks[0].TryGetValue("GitFetch", out defaultBranch);
             blocks[0].TryGetValue("GitCommit", out defaultCommit);
 
             foreach (var block in blocks.Skip(1))
             {
                 // Tags is mandatory
-                var tags = block["Tags"].Split(new char[]{',', ' '});
-                List<Platform> platforms = null;
-                if (!block.TryGetValue("Architectures", out var platStrs))
+                var tags = block["Tags"].Split(new[]{',', ' '}, StringSplitOptions.RemoveEmptyEntries);
+                
+                // Ignore shared tags unless code is written to resolve constraints
+                // This means shared tags won't apear in the final output
+                /*if (block.TryGetValue("SharedTags", out var sharedTags))
                 {
-                    platforms = platStrs.Split(new char[]{',', ' '}).Select(platStr => {
-                        var split = platStr.Split(new char[]{'-'});
+                    tags = tags.Union(
+                        sharedTags.Split(new[]{',', ' '}, StringSplitOptions.RemoveEmptyEntries)
+                    ).ToArray();
+                }*/
+                
+                List<Platform> platforms = null;
+                if (block.TryGetValue("Architectures", out var platStrs))
+                {
+                    platforms = platStrs.Split(new[]{',', ' '}, StringSplitOptions.RemoveEmptyEntries).Select(platStr => {
+                        var split = platStr.Split(new[]{'-'});
                         if (split.Length == 1)
                         {
                             return new Platform {
@@ -342,19 +376,32 @@ namespace DockerHarness
                     string url, branch, commit;
                     if (!block.TryGetValue(PlatformKeyCombine(platform, "GitRepo"), out url))
                     {
-                        url = defaultUrl;
+                        if (!block.TryGetValue("GitRepo", out url))
+                        {
+                            url = defaultUrl;
+                        }
                     }
                     if (!block.TryGetValue(PlatformKeyCombine(platform, "GitFetch"), out branch))
                     {
-                        branch = defaultBranch;
+                        if (!block.TryGetValue("GitFetch", out branch))
+                        {
+                            branch = defaultBranch;
+                        }
                     }
                     if (!block.TryGetValue(PlatformKeyCombine(platform, "GitCommit"), out commit))
                     {
-                        commit = defaultCommit;
+                        if (!block.TryGetValue("GitCommit", out commit))
+                        {
+                            commit = defaultCommit;
+                        }
                     }
 
                     string dockerfile = "Dockerfile";
                     if (block.TryGetValue(PlatformKeyCombine(platform, "Directory"), out var dir))
+                    {
+                        dockerfile = Path.Combine(dir, "Dockerfile");
+                    }
+                    else if (block.TryGetValue("Directory", out dir))
                     {
                         dockerfile = Path.Combine(dir, "Dockerfile");
                     }
@@ -369,7 +416,8 @@ namespace DockerHarness
                     foreach (var tag in tags)
                     {
                         image.Tags.Add(tag);
-                        repo.Images.Add(new Identifier(repo.Name, tag, platform), image);
+                        var id = new Identifier(repo.Name, tag, platform);
+                        repo.Images.Add(id, image);
                     }
                 }
             }
@@ -377,19 +425,32 @@ namespace DockerHarness
             return repo;
         }
 
-        public Repository LoadRepository(Git git, string manifestPath = "manifest.json")
+        public Repository LoadRepository(string gitUrl, string manifestPath = "manifest.json")
         {
-            var gitDir = git.Checkout();
-            gitRepos.Add(git);
+            var git = GitCache(new Git(gitUrl));
 
-            // Create a Repository object from a manifest
-            var repo = ParseManifest(File.ReadAllText(Path.Combine(gitDir.FullName, manifestPath)), git);
+            Repository repo = null;
+            var manifest = File.ReadAllText(Path.Combine(git.Location.FullName, manifestPath));
+            if (Path.GetExtension(manifestPath) == ".json")
+            {
+                repo = ParseManifest(manifest, git);
+            }
+            else if (Path.GetExtension(manifestPath) == String.Empty)
+            {
+                repo = ParseLibrary(manifest, Path.GetFileName(manifestPath));
+            }
+            else
+            {
+                throw new InvalidOperationException("Unrecognized file format");
+            }
 
             // Parse each Dockerfile to extract the base image tag
             // This will result in a form of tree with root nodes being a out-of-repo images (including 'scratch')
             foreach (var image in repo.Images.Values)
             {
-                string filename = Path.Combine(gitDir.FullName, image.Dockerfile);
+                var dir = GitCache(image.Git).Location;
+
+                string filename = Path.Combine(dir.FullName, image.Dockerfile);
                 if (File.GetAttributes(filename).HasFlag(FileAttributes.Directory))
                 {
                     filename = Path.Combine(filename, "Dockerfile");
@@ -506,7 +567,7 @@ namespace DockerHarness
         protected virtual void Dispose(bool disposing)
         {
             if (disposing) {
-                foreach (var git in gitRepos)
+                foreach (var git in gitCache.Values)
                 {
                     git.Dispose();
                 }
