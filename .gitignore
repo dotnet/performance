@@ -1,4 +1,4 @@
-**/bin
-**/obj
-
+**/bin/
+**/obj/
+**/packages/
 src/docker/reports/
