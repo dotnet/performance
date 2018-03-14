@@ -12,7 +12,7 @@ description = 'Tool to get job status'
 parser = argparse.ArgumentParser(description=description)
 
 parser.add_argument('-os', dest='operatingSystem', default='Windows', choices=['Windows', 'Linux'])
-parser.add_argument('-jobType', dest='jobType', default='all', choices=['all','perf','illink','scenarios','throughput'])
+parser.add_argument('-jobType', dest='jobType', default='all', choices=['all','perf','size','rwc','throughput'])
 parser.add_argument('-arch', dest='arch', default='all', choices=['all','x86','x64'])
 parser.add_argument('-repo', dest='repo', default='', choices=['coreclr','corefx'])
 
@@ -65,9 +65,13 @@ def main(args):
 
     coreclrJobs = {
             'Windows' : {
-                'illink' : {
+                'size' : {
                     'x64' : [
-                        'perf_illink_Windows_NT_x64_full_opt_ryujit'
+                        'perf_illink_Windows_NT_x64_full_opt_ryujit',
+                        'sizeondisk_x64'
+                    ],
+                    'x86' : [
+                        'sizeondisk_x86'
                     ]
                 },
                 'perf' : {
@@ -129,7 +133,6 @@ def main(args):
 
     overallStatus = "passing"
 
-
     if repo == 'coreclr' or repo == '':
         urlRepo = 'dotnet_coreclr'
         for jobChoice in coreclrJobs[operatingSystem]:
@@ -150,7 +153,7 @@ def main(args):
                 overallStatus = 'failing'
 
 
-    print(overallStatus)
+    print('%s %s %s %s jobs are %s' % (repo, operatingSystem, arch, jobType, overallStatus))
     if overallStatus == 'failing':
         return -1
     return 0
