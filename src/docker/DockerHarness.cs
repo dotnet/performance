@@ -118,7 +118,7 @@ namespace DockerHarness
         {
             if (Location == null)
             {
-                Location = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "docker-benchmark", Util.RandomString(16)));
+                Location = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "git-repos", Util.RandomString(16)));
                 using (var command = Util.Command("git", $"clone {Url} {Location}"))
                 {
                     command.WaitForExit();
@@ -225,14 +225,17 @@ namespace DockerHarness
         {
             if (gitCache.TryGetValue(git.Url, out var cached))
             {
+                // The cached Git repo has been cloned,
+                // but may be on the wrong branch/commit
                 cached.Branch = git.Branch;
                 cached.Commit = git.Commit;
                 return cached;
             }
             else
             {
-                gitCache.Add(git.Url, git);
+                // Clone this repo and add it to the cache
                 git.Clone();
+                gitCache.Add(git.Url, git);
                 return git;
             }
         }
@@ -414,7 +417,6 @@ namespace DockerHarness
                     {
                         image.Tags.Add(tag);
                         var id = new Identifier(repo.Name, tag, platform);
-                        Console.WriteLine($"{id.Name}:{id.Tag} for {id.Platform.OS}/{id.Platform.Architecture}");
                         repo.Images.Add(id, image);
                     }
                 }

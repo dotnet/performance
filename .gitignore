@@ -1,2 +1,4 @@
 **/bin
 **/obj
+
+src/docker/reports/
