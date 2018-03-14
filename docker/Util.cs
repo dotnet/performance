@@ -199,7 +199,7 @@ namespace DockerHarness
 
         internal static Process Command(string executable, string args, DirectoryInfo workingDir=null)
         {
-            Console.WriteLine(String.Join(" ", executable, args));
+            Console.WriteLine($"[{workingDir?.FullName ?? Directory.GetCurrentDirectory()}] {executable} {args}");
             return Process.Start(
                 new ProcessStartInfo {
                     FileName = executable,
