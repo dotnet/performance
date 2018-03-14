@@ -189,3 +189,38 @@
 [rel2.0_TP_x86_win_min_pgo]:           https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.0.0/job/perf_throughput_perflab_Windows_NT_x86_min_opt/lastCompletedBuild/
 [rel2.0_TP_x86_win_min_pgo_icon]:      https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.0.0/job/perf_throughput_perflab_Windows_NT_x86_min_opt/lastCompletedBuild/badge/icon
 
+### IlLink / Release / Ryujit
+
+| Branch      | OS=[Windows_NT]<br>arch=[x64]<br>OptLevel=[full]                             |
+| :---------- | :--------------------------------------------------------------------------: |
+| master      | [![Run Status][master_illink_x64_win_full_icon]][master_illink_x64_win_full] |
+| release/2.1 | [![Run Status][rel2.1_illink_x64_win_full_icon]][rel2.1_illink_x64_win_full] |
+
+[//]: # (These are the x64 links)
+[master_illink_x64_win_full]:          https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_illink_Windows_NT_x64_full_opt_ryujit/lastCompletedBuild/
+[master_illink_x64_win_full_icon]:     https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_illink_Windows_NT_x64_full_opt_ryujit/lastCompletedBuild/badge/icon
+
+[rel2.1_illink_x64_win_full]:          https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.1/job/perf_illink_Windows_NT_x64_full_opt_ryujit/lastCompletedBuild/
+[rel2.1_illink_x64_win_full_icon]:     https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.1/job/perf_illink_Windows_NT_x64_full_opt_ryujit/lastCompletedBuild/badge/icon
+
+### Size on disk / Release
+
+| Branch      | OS=[Windows_NT]<br>arch=[x64]<br>                            | OS=[Windows_NT]<br>arch=[x86]                                |
+| :---------- | :----------------------------------------------------------: | :----------------------------------------------------------: |
+| master      | [![Run Status][master_sod_x64_win_icon]][master_sod_x64_win] | [![Run Status][master_sod_x86_win_icon]][master_sod_x86_win] |
+| release/2.1 | [![Run Status][rel2.1_sod_x64_win_icon]][rel2.1_sod_x64_win] | [![Run Status][rel2.1_sod_x86_win_icon]][rel2.1_sod_x86_win] |
+
+[//]: # (These are the x64 links)
+[master_sod_x64_win]:          https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/sizeondisk_x64/lastCompletedBuild/
+[master_sod_x64_win_icon]:     https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/sizeondisk_x64/lastCompletedBuild/badge/icon
+
+[rel2.1_sod_x64_win]:          https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.1/job/sizeondisk_x64/lastCompletedBuild/
+[rel2.1_sod_x64_win_icon]:     https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.1/job/sizeondisk_x64/lastCompletedBuild/badge/icon
+
+[//]: # (These are the x86 links)
+[master_sod_x86_win]:          https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/sizeondisk_x86/lastCompletedBuild/
+[master_sod_x86_win_icon]:     https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/sizeondisk_x86/lastCompletedBuild/badge/icon
+
+[rel2.1_sod_x86_win]:          https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.1/job/sizeondisk_x86/lastCompletedBuild/
+[rel2.1_sod_x86_win_icon]:     https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.1/job/sizeondisk_x86/lastCompletedBuild/badge/icon
+
