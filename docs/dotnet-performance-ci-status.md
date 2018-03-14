@@ -2,9 +2,9 @@
 
 ## [CoreCLR](https://github.com/dotnet/coreclr)
 
-### Code Quality / Release / PGO / Ryujit
+### Code Quality / Release
 
-#### Code Quality / Release / PGO / Ryujit / Windows_NT
+#### Code Quality / Release / Windows
 
 | Branch        | arch=[x64]<br>OptLevel=[full]                                  | arch=[x64]<br>OptLevel=[min]                                 | arch=[x86]<br>OptLevel=[full]                                  | arch=[x86]<br>OptLevel=[min]                                 |
 | :------------ | :------------------------------------------------------------: | :----------------------------------------------------------: | :------------------------------------------------------------: | :----------------------------------------------------------: |
@@ -13,7 +13,7 @@
 | release/2.0.0 | [![Run Status][rel2.0_x64_win_full_icon]][rel2.0_x64_win_full] | N/A                                                          | [![Run Status][rel2.0_x86_win_full_icon]][rel2.0_x86_win_full] | N/A                                                          |
 | release/1.1.0 | [![Run Status][rel1.1_x64_win_full_icon]][rel1.1_x64_win_full] | N/A                                                          | [![Run Status][rel1.1_x86_win_full_icon]][rel1.1_x86_win_full] | N/A                                                          |
 
-#### Code Quality / Release / PGO / Ryujit / Ubuntu 16.04
+#### Code Quality / Release / Ubuntu 16.04
 
 | Branch        | arch=[x64]<br>OptLevel=[full]                                  |
 | :------------ | :------------------------------------------------------------: |
@@ -64,11 +64,11 @@
 [rel1.1_x86_win_full]:         https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_1.1.0/job/perf_perflab_Windows_NT_x86/lastCompletedBuild/
 [rel1.1_x86_win_full_icon]:    https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_1.1.0/job/perf_perflab_Windows_NT_x86/lastCompletedBuild/badge/icon
 
-### Real World Code / Release / PGO / Ryujit
+### End-to-End / Release
 
-#### Real World Code / Release / PGO / Ryujit / Windows_NT
+#### End-to-End / Release / Windows
 
-| Branch      | OS=[Windows_NT]<br>arch=[x64]<br>OptLevel=[full]                                 | OS=[Windows_NT]<br>arch=[x64]<br>OptLevel=[min]                                | OS=[Windows_NT]<br>arch=[x64]<br>OptLevel=[tiered]                                   | OS=[Windows_NT]<br>arch=[x86]<br>OptLevel=[full]                                 | OS=[Windows_NT]<br>arch=[x86]<br>OptLevel=[min]                                | OS=[Windows_NT]<br>arch=[x86]<br>OptLevel=[tiered]                                   |
+| Branch      | arch=[x64]<br>OptLevel=[full]                                                    | arch=[x64]<br>OptLevel=[min]                                                   | arch=[x64]<br>OptLevel=[tiered]                                                      | arch=[x86]<br>OptLevel=[full]                                                    | arch=[x86]<br>OptLevel=[min]                                                   | arch=[x86]<br>OptLevel=[tiered]                                                      |
 | :---------- | :------------------------------------------------------------------------------: | :----------------------------------------------------------------------------: | :----------------------------------------------------------------------------------: | :------------------------------------------------------------------------------: | :----------------------------------------------------------------------------: | :----------------------------------------------------------------------------------: |
 | master      | [![Run Status][master_scenario_x64_win_full_icon]][master_scenario_x64_win_full] | [![Run Status][master_scenario_x64_win_min_icon]][master_scenario_x64_win_min] | [![Run Status][master_scenario_x64_win_tiered_icon]][master_scenario_x64_win_tiered] | [![Run Status][master_scenario_x86_win_full_icon]][master_scenario_x86_win_full] | [![Run Status][master_scenario_x86_win_min_icon]][master_scenario_x86_win_min] | [![Run Status][master_scenario_x86_win_tiered_icon]][master_scenario_x86_win_tiered] |
 | release/2.1 | [![Run Status][rel2.1_scenario_x64_win_full_icon]][rel2.1_scenario_x64_win_full] | [![Run Status][rel2.1_scenario_x64_win_min_icon]][rel2.1_scenario_x64_win_min] | [![Run Status][rel2.1_scenario_x64_win_tiered_icon]][rel2.1_scenario_x64_win_tiered] | [![Run Status][rel2.1_scenario_x86_win_full_icon]][rel2.1_scenario_x86_win_full] | [![Run Status][rel2.1_scenario_x86_win_min_icon]][rel2.1_scenario_x86_win_min] | [![Run Status][rel2.1_scenario_x86_win_tiered_icon]][rel2.1_scenario_x86_win_tiered] |
@@ -103,9 +103,9 @@
 [rel2.1_scenario_x86_win_tiered]:        https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.1/job/perf_scenarios_Windows_NT_x86_tiered_ryujit/lastCompletedBuild/
 [rel2.1_scenario_x86_win_tiered_icon]:   https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.1/job/perf_scenarios_Windows_NT_x86_tiered_ryujit/lastCompletedBuild/badge/icon
 
-### Throughput / Release / Ryujit
+### Throughput / Release
 
-#### Throughput / Release / Ryujit / Windows_NT / x64
+#### Throughput / Release / Windows / x64
 
 | Branch        | OptLevel=[full]<br>PGO=[nopgo]                                                   | OptLevel=[full]<br>PGO=[pgo]                                                 | OptLevel=[min]<br>PGO=[nopgo]                                                  | OptLevel=[min]<br>PGO=[pgo]                                                |
 | :------------ | :------------------------------------------------------------------------------: | :--------------------------------------------------------------------------: | :----------------------------------------------------------------------------: | :------------------------------------------------------------------------: |
@@ -113,7 +113,7 @@
 | release/2.1   | [![Run Status][rel2.1_TP_x64_win_full_nopgo_icon]][rel2.1_TP_x64_win_full_nopgo] | [![Run Status][rel2.1_TP_x64_win_full_pgo_icon]][rel2.1_TP_x64_win_full_pgo] | [![Run Status][rel2.1_TP_x64_win_min_nopgo_icon]][rel2.1_TP_x64_win_min_nopgo] | [![Run Status][rel2.1_TP_x64_win_min_pgo_icon]][rel2.1_TP_x64_win_min_pgo] |
 | release/2.0.0 | N/A                                                                              | [![Run Status][rel2.0_TP_x64_win_full_pgo_icon]][rel2.0_TP_x64_win_full_pgo] | N/A                                                                            | [![Run Status][rel2.0_TP_x64_win_min_pgo_icon]][rel2.0_TP_x64_win_min_pgo] |
 
-#### Throughput / Release / Ryujit / Ubuntu 16.04 / x64
+#### Throughput / Release / Ubuntu 16.04 / x64
 
 | Branch        | OptLevel=[full]<br>PGO=[nopgo] | OptLevel=[full]<br>PGO=[pgo]                                                 | OptLevel=[min]<br>PGO=[nopgo] | OptLevel=[min]<br>PGO=[pgo]                                                |
 | :------------ | :----------------------------: | :--------------------------------------------------------------------------: | :---------------------------: | :------------------------------------------------------------------------: |
@@ -157,7 +157,7 @@
 [rel2.0_TP_x64_win_min_pgo]:           https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.0.0/job/perf_throughput_perflab_Windows_NT_x64_min_opt/lastCompletedBuild/
 [rel2.0_TP_x64_win_min_pgo_icon]:      https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.0.0/job/perf_throughput_perflab_Windows_NT_x64_min_opt/lastCompletedBuild/badge/icon
 
-#### Throughput / Release / Ryujit / Windows_NT / x86
+#### Throughput / Release / Windows / x86
 
 | Branch        | OptLevel=[full]<br>PGO=[nopgo]                                                   | OptLevel=[full]<br>PGO=[pgo]                                                 | OptLevel=[min]<br>PGO=[nopgo]                                                  | OptLevel=[min]<br>PGO=[pgo]                                                |
 | :------------ | :------------------------------------------------------------------------------: | :--------------------------------------------------------------------------: | :----------------------------------------------------------------------------: | :------------------------------------------------------------------------: |
@@ -189,9 +189,9 @@
 [rel2.0_TP_x86_win_min_pgo]:           https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.0.0/job/perf_throughput_perflab_Windows_NT_x86_min_opt/lastCompletedBuild/
 [rel2.0_TP_x86_win_min_pgo_icon]:      https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.0.0/job/perf_throughput_perflab_Windows_NT_x86_min_opt/lastCompletedBuild/badge/icon
 
-### IlLink / Release / Ryujit
+### IlLink / Release / Windows
 
-| Branch      | OS=[Windows_NT]<br>arch=[x64]<br>OptLevel=[full]                             |
+| Branch      | arch=[x64]<br>OptLevel=[full]                                                |
 | :---------- | :--------------------------------------------------------------------------: |
 | master      | [![Run Status][master_illink_x64_win_full_icon]][master_illink_x64_win_full] |
 | release/2.1 | [![Run Status][rel2.1_illink_x64_win_full_icon]][rel2.1_illink_x64_win_full] |
@@ -203,9 +203,9 @@
 [rel2.1_illink_x64_win_full]:          https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.1/job/perf_illink_Windows_NT_x64_full_opt_ryujit/lastCompletedBuild/
 [rel2.1_illink_x64_win_full_icon]:     https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.1/job/perf_illink_Windows_NT_x64_full_opt_ryujit/lastCompletedBuild/badge/icon
 
-### Size on disk / Release
+### Size on disk / Release / Windows
 
-| Branch      | OS=[Windows_NT]<br>arch=[x64]<br>                            | OS=[Windows_NT]<br>arch=[x86]                                |
+| Branch      | arch=[x64]<br>                                               | arch=[x86]                                                   |
 | :---------- | :----------------------------------------------------------: | :----------------------------------------------------------: |
 | master      | [![Run Status][master_sod_x64_win_icon]][master_sod_x64_win] | [![Run Status][master_sod_x86_win_icon]][master_sod_x86_win] |
 | release/2.1 | [![Run Status][rel2.1_sod_x64_win_icon]][rel2.1_sod_x64_win] | [![Run Status][rel2.1_sod_x86_win_icon]][rel2.1_sod_x86_win] |
@@ -226,7 +226,7 @@
 
 ## [CoreFX](https://github.com/dotnet/corefx)
 
-#### Code Quality / Release / Windows_NT
+#### Code Quality / Release / Windows
 
 | Branch        | Configuration |
 | :------------ | :----------------------------: |
