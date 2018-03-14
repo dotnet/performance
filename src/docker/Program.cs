@@ -19,24 +19,26 @@ namespace DockerHarness
             var report = new StringBuilder();
             using (var harness = new DockerHarness())
             {
-                var repos = new List<Repository> {
-                    harness.LoadRepository("https://github.com/dotnet/dotnet-docker"),
-                    harness.LoadRepository("https://github.com/docker-library/official-images/", "library/openjdk")
-                };
-                
-                report.AppendCsvRow("Name","Tag","BaseName","BaseTag","Size","DiffSize","NumPackages","Packages");
-                    
-                var seen = new HashSet<Image>(new IdentityEqualityComparer<Image>());
-                var os = harness.SupportedOS();
+                harness.LoadManifest("https://github.com/dotnet/dotnet-docker");
+                harness.LoadManifest("https://github.com/aspnet/aspnet-docker");
+                harness.LoadManifest("https://github.com/docker-library/official-images/", "library/openjdk");
+                harness.LoadManifest("https://github.com/docker-library/official-images/", "library/mono");
+                harness.LoadManifest("https://github.com/docker-library/official-images/", "library/python");
+                harness.LoadManifest("https://github.com/docker-library/official-images/", "library/golang");
+                harness.LoadManifest("https://github.com/docker-library/official-images/", "library/ruby");
+                harness.LoadManifest("https://github.com/docker-library/official-images/", "library/php");
 
-                foreach (var repo in repos)
+                var seen = new HashSet<Image>(new IdentityEqualityComparer<Image>());
+
+                report.AppendCsvRow("Name","Tag","BaseName","BaseTag","Size","DiffSize","NumPackages","Packages");
+                foreach (var repo in harness.Repositories)
                 {
                     foreach (var image in repo.Images.Values)
                     {
                         if (!seen.Contains(image))
                         {
                             seen.Add(image);
-                            if (image.Platform.OS == os && image.Platform.Architecture == "amd64")
+                            if (image.Platform.Equals(harness.Platform))
                             {
                                 var id = new Identifier(repo.Name, image.Tags.OrderBy(tag => tag.Length).First(), image.Platform);
                                 var imageInfo = harness.Inspect(id)[0];
@@ -45,7 +47,7 @@ namespace DockerHarness
                                 var baseSize = Int64.Parse(baseInfo["Size"].ToString());
 
                                 var foundation = id;
-                                while (repo.Images.TryGetValue(foundation, out var img)) {
+                                while (harness.Images.TryGetValue(foundation, out var img)) {
                                     foundation = img.Base;
                                 }
 
@@ -57,9 +59,10 @@ namespace DockerHarness
                     }
                 }
             }
+
             string reportText = report.ToString();
             Console.WriteLine(reportText);
-            File.WriteAllText("report.csv", reportText);
+            File.WriteAllText("reports/report.csv", reportText);
         }
     }
 }
