@@ -88,7 +88,6 @@ def main(args):
                 },
                 'e2e' : {
                     'x64' : [
-                        'perf_illink_Windows_NT_x64_full_opt_ryujit'
                         'perf_scenarios_Windows_NT_x64_full_opt_ryujit',
                         'perf_scenarios_Windows_NT_x64_min_opt_ryujit',
                         'perf_scenarios_Windows_NT_x64_tiered_ryujit'
