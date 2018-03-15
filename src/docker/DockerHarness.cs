@@ -276,7 +276,7 @@ namespace DockerHarness
             {
                 // Parse each Dockerfile to extract the base image tag
                 // This will result in a form of tree with root nodes being a out-of-repo images (including 'scratch')
-                foreach (var image in repo.Images.Values)
+                foreach (var image in repo.Images.Values.OrderBy(img => img.Git.Commit))
                 {
                     var dir = GitCache(image.Git).Location;
 
