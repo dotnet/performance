@@ -20,7 +20,7 @@ parser.add_argument('-repo', dest='repo', default='', choices=['coreclr','corefx
 
 def parseStatusPage(url, job):
     source = 'test.txt'
-    p = subprocess.Popen("powershell [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; [io.file]::WriteAllText(\\\"{}\\\", (Invoke-WebRequest -Uri {}).content)".format(source, url), shell=True)
+    p = subprocess.Popen("powershell [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; [io.file]::WriteAllText(\\\"{}\\\", (Invoke-WebRequest -UseBasicParsing -Uri {}).content)".format(source, url), shell=True)
     p.communicate()
 
     failing = False
@@ -86,7 +86,7 @@ def main(args):
                         'perf_perflab_Windows_NT_x86_min_opt_ryujit'
                     ]
                 },
-                'scenarios' : {
+                'rwc' : {
                     'x64' : [
                         'perf_illink_Windows_NT_x64_full_opt_ryujit'
                         'perf_scenarios_Windows_NT_x64_full_opt_ryujit',
