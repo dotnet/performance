@@ -15,25 +15,6 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
             steps {
                 batchFile("py scripts\\getjenkinsstatus.py -repo coreclr -os ${os} -jobType ${jobType}")
             }
-
-            Utilities.setMachineAffinity(newJob, "Windows_NT", '20170427-elevated')
-            Utilities.standardJobSetup(newJob, project, false, "*/${branch}")
-
-            Utilities.addPeriodicTrigger(newJob, "@hourly", true /*always run*/)
-            newJob.with {
-                wrappers {
-                    timeout {
-                        absolute(240)
-                    }
-                }
-            }
-        }
-    }
-
-    def jobName = "performance_monitoring_corefx_${os}"
-    def newJob = job(Utilities.getFullJobName(project, jobName, false)) {
-        steps {
-            batchFile("py scripts\\getjenkinsstatus.py -repo corefx -os ${os}")
         }
 
         Utilities.setMachineAffinity(newJob, "Windows_NT", '20170427-elevated')
@@ -45,6 +26,25 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
                 timeout {
                     absolute(240)
                 }
+            }
+        }
+    }
+
+    def jobName = "performance_monitoring_corefx_${os}"
+    def newJob = job(Utilities.getFullJobName(project, jobName, false)) {
+        steps {
+            batchFile("py scripts\\getjenkinsstatus.py -repo corefx -os ${os}")
+        }
+    }
+
+    Utilities.setMachineAffinity(newJob, "Windows_NT", '20170427-elevated')
+    Utilities.standardJobSetup(newJob, project, false, "*/${branch}")
+
+    Utilities.addPeriodicTrigger(newJob, "@hourly", true /*always run*/)
+    newJob.with {
+        wrappers {
+            timeout {
+                absolute(240)
             }
         }
     }
