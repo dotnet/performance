@@ -9,7 +9,7 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
 
 ['Windows', 'Linux'].each { os ->
     ['perf','throughput','size','e2e'].each { jobType ->
-        if (!(os == 'Linux' && (jobType == 'size' || jobType == 'e2e')) {
+        if (!(os == 'Linux' && (jobType == 'size' || jobType == 'e2e'))) {
             def jobName = "perf_monitoring_coreclr_${os}_${jobType}"
 
             def newJob = job(InternalUtilities.getFullJobName(project, jobName, false)) {
