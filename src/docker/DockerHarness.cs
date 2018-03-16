@@ -76,7 +76,7 @@ namespace DockerHarness
     {
         public string Name { get; set; }
         public IDictionary<Identifier, Image> Images = new Dictionary<Identifier, Image>();
-        
+
         public bool Equals(Repository other) => other != null && this.Name == other.Name;
         public override int GetHashCode() => this.Name?.GetHashCode() ?? 0;
     }
@@ -90,7 +90,7 @@ namespace DockerHarness
         public ICollection<string> Tags { get; } = new HashSet<string>();
         public Identifier Base { get; set; }
     }
-    
+
     public class DockerHarness : IDisposable
     {
         public ICollection<Repository> Repositories = new List<Repository>();
@@ -101,15 +101,14 @@ namespace DockerHarness
             get {
                 if (plat == null)
                 {
-                    using (var command = Util.Command("docker", "version --format \"{{ .Server.Arch }}\n{{ .Server.Os }}\""))
-                    {
-                        var arch = command.StandardOutput.ReadLine().Trim();
-                        var os = command.StandardOutput.ReadLine().Trim();
-                        plat = new Platform {
-                            Os = os,
-                            Architecture = arch
-                        };
-                    }
+                    var stdout = Util.Command("docker", "version --format \"{{ .Server.Arch }}\n{{ .Server.Os }}\"");
+
+                    var arch = stdout.ReadLine().Trim();
+                    var os = stdout.ReadLine().Trim();
+                    plat = new Platform {
+                        Os = os,
+                        Architecture = arch
+                    };
                 }
 
                 return plat;
@@ -202,35 +201,28 @@ namespace DockerHarness
         {
             if (pulledImages.Add(identifier))
             {
-                using (var command = Util.Command("docker", $"pull {identifier.Name}:{identifier.Tag}"))
-                {
-                    command.WaitForExit();
-                }
+                // TODO: Handle disk full with your fancy LRU cache
+                Util.Command("docker", $"pull {identifier.Name}:{identifier.Tag}");
             }
 
-            using (var command = Util.Command("docker", $"image inspect {identifier.Name}:{identifier.Tag}"))
-            {
-                return JArray.Parse(command.StandardOutput.ReadToEnd());
-            }
+            return JArray.Parse(Util.Command("docker", $"image inspect {identifier.Name}:{identifier.Tag}").ReadToEnd());
         }
 
         public IEnumerable<Identifier> ListImages()
         {
-            using (var command = Util.Command("docker", "image list --no-trunc --format \"{{ json . }}\""))
-            {
-                string line = null;
+            var stdout = Util.Command("docker", "image list --no-trunc --format \"{{ json . }}\"");
 
-                while ((line = command.StandardOutput.ReadLine()) != null)
-                {
-                    var imageJson = JObject.Parse(line);
-                    var identifier = new Identifier (
-                        (imageJson["Repository"] as JValue).Value as string,
-                        (imageJson["Tag"] as JValue).Value as string,
-                        Platform
-                    );
-                    Debug.Assert(identifier.Name != null && identifier.Tag != null);
-                    yield return identifier;
-                }
+            string line = null;
+            while ((line = stdout.ReadLine()) != null)
+            {
+                var imageJson = JObject.Parse(line);
+                var identifier = new Identifier (
+                    (imageJson["Repository"] as JValue).Value as string,
+                    (imageJson["Tag"] as JValue).Value as string,
+                    Platform
+                );
+                Debug.Assert(identifier.Name != null && identifier.Tag != null);
+                yield return identifier;
             }
         }
 
@@ -241,10 +233,11 @@ namespace DockerHarness
             {
                 return result;
             }
-          
+
             string pkgManager = null;
             string listCommand;
             string listFormat;
+            StreamReader stdout;
 
             switch (baseName ?? identifier.Name)
             {
@@ -261,11 +254,9 @@ namespace DockerHarness
                     break;
                 default:
                     // Figure out which package manager this image uses
-                    string path;
-                    using (var command = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} sh -c \"which apk dpkg 2> /dev/null || command -v yum 2> /dev/null\""))
-                    {
-                        path = command.StandardOutput.ReadToEnd().Trim();
-                    }
+                    stdout = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} sh -c \"which apk dpkg 2> /dev/null || command -v yum 2> /dev/null\"");
+                    var path = stdout.ReadToEnd().Trim();
+
                     foreach (var cmd in new[] { "dpkg", "apk", "yum" })
                     {
                         if (path.EndsWith(cmd))
@@ -299,20 +290,18 @@ namespace DockerHarness
                     throw new NotSupportedException($"Unrecognized package manager '{pkgManager}'");
             }
 
-            result = new List<string>();
-            using (var command = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} {listCommand}"))
-            {
-                string line = null;
+            stdout = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} {listCommand}");
 
-                // Read every line because the last ocurrance of 'FROM' determines the base image
-                while ((line = command.StandardOutput.ReadLine()) != null)
-                {
-                    var match = Regex.Match(line, listFormat);
-                    if (match.Success) {
-                        result.Add(match.Groups["name"].Value);
-                    }
+            string line = null;
+            result = new List<string>();
+            while ((line = stdout.ReadLine()) != null)
+            {
+                var match = Regex.Match(line, listFormat);
+                if (match.Success) {
+                    result.Add(match.Groups["name"].Value);
                 }
             }
+
             Debug.Assert(result.Count > 0);
             packageCache.Add(identifier, result);
             return result;

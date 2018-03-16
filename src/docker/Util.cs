@@ -120,6 +120,13 @@ namespace DockerHarness
         }
     }
 
+    internal class CommandException : Exception
+    {
+        public CommandException() { }
+        public CommandException(string msg) : base(msg) { }
+        public CommandException(string msg, Exception inner) : base(msg, inner) { }
+    }
+
     internal static class Util
     {
         public static void DeleteDirectory(DirectoryInfo dir, bool setAttr=false, uint maxWait=10000)
@@ -197,7 +204,7 @@ namespace DockerHarness
                 .Select(s => s[Generator.Next(s.Length)]).ToArray());
         }
 
-        internal static Process Command(string executable, string args, DirectoryInfo workingDir=null)
+        internal static Process Run(string executable, string args, DirectoryInfo workingDir=null)
         {
             Console.WriteLine($"[{workingDir?.FullName ?? Directory.GetCurrentDirectory()}] {executable} {args}");
             return Process.Start(
@@ -209,6 +216,22 @@ namespace DockerHarness
                     WorkingDirectory = workingDir?.FullName ?? ""
                 }
             );
+        }
+
+        internal static StreamReader Command(string executable, string args, DirectoryInfo workingDir=null, Func<Process, bool> handler=null)
+        {
+            using (var process = Run(executable, args, workingDir))
+            {
+                process.WaitForExit();
+
+                // If handler returns true, then the failure is under control
+                if (process.ExitCode != 0 && (handler == null || !handler(process)))
+                {
+                    throw new CommandException($"{executable} {args} returned {process.ExitCode}");
+                }
+
+                return process.StandardOutput;
+            }
         }
     }
 }

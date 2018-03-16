@@ -61,10 +61,7 @@ namespace DockerHarness
             if (Location == null)
             {
                 Location = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "git-repos", Util.RandomString(16)));
-                using (var command = Util.Command("git", $"clone {Url} {Location}"))
-                {
-                    command.WaitForExit();
-                }
+                Util.Command("git", $"clone {Url} {Location}");
 
                 if (Branch != null)
                 {
@@ -73,10 +70,7 @@ namespace DockerHarness
 
                 if (Commit != null)
                 {
-                    using (var command = Util.Command("git", $"checkout {Commit}", Location))
-                    {
-                        command.WaitForExit();
-                    }
+                    Util.Command("git", $"checkout {Commit}", Location);
                 }
             }
 
@@ -89,10 +83,7 @@ namespace DockerHarness
             {
                 if (!fetched.Contains(Branch))
                 {
-                    using (var command = Util.Command("git", $"fetch origin {Branch}", Location))
-                    {
-                        command.WaitForExit();
-                    }
+                    Util.Command("git", $"fetch origin {Branch}", Location);
                     fetched.Add(Branch);
                 }
             }
@@ -102,24 +93,15 @@ namespace DockerHarness
         {
             if (Commit != null)
             {
-                using (var command = Util.Command("git", $"checkout {Commit}", Location))
-                {
-                    command.WaitForExit();
-                }
+                Util.Command("git", $"checkout {Commit}", Location);
             }
             else if (Branch != null)
             {
-                using (var command = Util.Command("git", $"checkout {Branch}", Location))
-                {
-                    command.WaitForExit();
-                }
+                Util.Command("git", $"checkout {Branch}", Location);
             }
             else
             {
-                using (var command = Util.Command("git", $"checkout master", Location))
-                {
-                    command.WaitForExit();
-                }
+                Util.Command("git", $"checkout master", Location);
             }
         }
 
