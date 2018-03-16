@@ -43,22 +43,22 @@ namespace DockerHarness
                             {
                                 var id = new Identifier(repo.Name, image.Tags.OrderBy(tag => tag.Length).First(), image.Platform);
                                 var imageInfo = harness.Inspect(id)[0];
-                                var baseInfo = harness.Inspect(image.Base)[0];
+                                var baseInfo = harness.Inspect(image.Parent)[0];
                                 var imageSize = Int64.Parse(imageInfo["Size"].ToString());
                                 var baseSize = Int64.Parse(baseInfo["Size"].ToString());
 
                                 var foundation = id;
                                 while (harness.Images.TryGetValue(foundation, out var img)) {
-                                    foundation = img.Base;
+                                    foundation = img.Parent;
                                 }
 
                                 var packages = new string[]{};
                                 if (image.Platform.Os == "linux")
                                 {
-                                    packages = harness.InstalledPackages(id, foundation.Name).Except(harness.InstalledPackages(image.Base, foundation.Name)).ToArray();
+                                    packages = harness.InstalledPackages(id, foundation.Name).Except(harness.InstalledPackages(image.Parent, foundation.Name)).ToArray();
                                 }
 
-                                report.AppendCsvRow(id.Name, id.Tag, image.Base.Name, image.Base.Tag, foundation.Name, foundation.Tag, imageSize, imageSize - baseSize, packages.Length, String.Join(" ", packages));
+                                report.AppendCsvRow(id.Name, id.Tag, image.Parent.Name, image.Parent.Tag, foundation.Name, foundation.Tag, imageSize, imageSize - baseSize, packages.Length, String.Join(" ", packages));
                             }
                         }
                     }

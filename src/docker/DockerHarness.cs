@@ -12,10 +12,25 @@ using System.Threading;
 
 namespace DockerHarness
 {
+    /// <summary>
+    ///   Identifier uniqely identifies an image which can be pulled from Dockerhub
+    ///   Multiple Identifiers may point to a single image
+    /// </summary>
     public class Identifier : IEquatable<Identifier>
     {
+        /// <summary>
+        ///   The repository name (e.g. microsoft/dotnet)
+        /// </summary>
         public string Name { get; set; }
+        
+        /// <summary>
+        ///   The image tag (e.g. 2-runtime)
+        /// </summary>
         public string Tag { get; set; }
+        
+        /// <summary>
+        ///   The platform the identified image supports
+        /// </summary>
         public Platform Platform { get; set; }
 
         public Identifier(string name, string tag, Platform platform)
@@ -47,9 +62,22 @@ namespace DockerHarness
         }
     }
 
+    /// <summary>
+    ///   Platform is a combination of hardware and OS combination
+    ///   It is important to uniqely identify images and determine compatability
+    ///   This class uses Golang conventions for OS and arch names (Docker is written in Go)
+    ///   https://gist.github.com/asukakenji/f15ba7e588ac42795f421b48b8aede63
+    /// </summary>
     public class Platform : IEquatable<Platform>
     {
+        /// <summary>
+        ///   The operating system of the host/image (e.g. linux, windows)
+        /// </summary>
         public string Os { get; set; }
+        
+        /// <summary>
+        ///   The architecture of the Docker host (e.g. amd64, arm)
+        /// </summary>
         public string Architecture { get; set; }
 
         public bool Equals(Platform other)
@@ -72,30 +100,81 @@ namespace DockerHarness
         }
     }
 
+    /// <summary>
+    ///   Repository contains information about a Dockerhub repository
+    /// </summary>
     public class Repository : IEquatable<Repository>
     {
+        /// <summary>
+        ///   The name of the repository (e.g. microsoft/dotnet)
+        /// </summary>
         public string Name { get; set; }
+        
+        /// <summary>
+        ///   A dictionary of identifies to Image objects this repository contains
+        ///   Many identifies may map to each Image
+        /// </summary>
         public IDictionary<Identifier, Image> Images = new Dictionary<Identifier, Image>();
 
         public bool Equals(Repository other) => other != null && this.Name == other.Name;
         public override int GetHashCode() => this.Name?.GetHashCode() ?? 0;
     }
 
+    /// <summary>
+    ///   Image is a collection of information about the image
+    /// </summary>
     public class Image
     {
+        /// <summary>
+        ///   The path to the Dockerfile, within the git repo, which built the image
+        /// </summary>
         public string Dockerfile { get; set; }
+        
+        /// <summary>
+        ///   The git repository from which this image is built
+        /// </summary>
         public Git Git { get; set; }
+        
+        /// <summary>
+        ///   The Dockerhub repo which contains this image
+        /// </summary>
         public Repository Repository { get; set; }
+        
+        /// <summary>
+        ///   The platform which this image is built for
+        /// </summary>
         public Platform Platform { get; set; }
+        
+        /// <summary>
+        ///   All tags which refer to this image in it's reposiroty
+        /// </summary>
         public ICollection<string> Tags { get; } = new HashSet<string>();
-        public Identifier Base { get; set; }
+        
+        /// <summary>
+        ///   The uniqe identifier for the image this image is built from
+        /// </summary>
+        public Identifier Parent { get; set; }
     }
 
+    /// <summary>
+    ///   DockerHarness allows analysis of docker repositories, images, and containers
+    /// </summary>
     public class DockerHarness : IDisposable
     {
+        /// <summary>
+        ///   Collection of Dockerhub repositories loaded into this harness
+        /// </summary>
         public ICollection<Repository> Repositories = new List<Repository>();
+        
+        /// <summary>
+        ///   Dictionary of all Images loaded into this harness
+        /// </summary>
         public IDictionary<Identifier, Image> Images = new Dictionary<Identifier, Image>();
 
+        /// <summary>
+        ///   The platform this Docker host currently supports
+        ///   On Windows this may be linux/amd64 or windows/amd64
+        /// </summary>
         public Platform Platform
         {
             get {
@@ -123,6 +202,11 @@ namespace DockerHarness
             }
         }
 
+        /// <summary>
+        ///   Given the url of a git repository and the path to the manifest file
+        ///   (either in official-library format or JSON format) this will parse
+        ///   and load the manifest into this harness
+        /// </summary>
         public void LoadManifest(string gitUrl, string manifestPath = "manifest.json")
         {
             var git = GitCache(new Git(gitUrl));
@@ -183,7 +267,7 @@ namespace DockerHarness
 
                         Debug.Assert(baseName != null && baseTag != null, $"Failed to find the base image from {filename}");
 
-                        image.Base = new Identifier(baseName, baseTag, image.Platform);
+                        image.Parent = new Identifier(baseName, baseTag, image.Platform);
                     }
                 }
 
@@ -197,6 +281,9 @@ namespace DockerHarness
             }
         }
 
+        /// <summary>
+        ///   Returns to output of `docker image inspect` as a parsed JSON array
+        /// </summary>
         public JArray Inspect(Identifier identifier)
         {
             if (pulledImages.Add(identifier))
@@ -208,6 +295,9 @@ namespace DockerHarness
             return JArray.Parse(Util.Command("docker", $"image inspect {identifier.Name}:{identifier.Tag}", block: false).ReadToEnd());
         }
 
+        /// <summary>
+        ///   Returns identifiers for all images currently pulled on this host
+        /// </summary>
         public IEnumerable<Identifier> ListImages()
         {
             var stdout = Util.Command("docker", "image list --no-trunc --format \"{{ json . }}\"", block: false);
@@ -226,6 +316,12 @@ namespace DockerHarness
             }
         }
 
+        /// <summary>
+        ///   Uses the appropriate package manager to get all packages installed in a given image
+        ///   Works for images based on debian, alpine, and centos/rhell
+        ///   The basename parameter provides a hint to which distrobution the image is
+        ///   (Only works for Linux containers)
+        /// </summary>
         public ICollection<string> InstalledPackages(Identifier identifier, string baseName=null)
         {
             ICollection<string> result;

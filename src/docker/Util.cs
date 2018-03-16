@@ -26,9 +26,10 @@ namespace DockerHarness
         }
     }
 
-    // A simple class for escaping strings for CSV writing
-    // https://stackoverflow.com/a/769713
-    // Used instead of a package because only these < 20 lines of code are needed
+    /// <summary>
+    ///   A simple class for escaping strings for CSV writing
+    ///   https://stackoverflow.com/a/769713
+    /// </summary>
     internal static class Csv
     {
         public static string Escape(string s)
