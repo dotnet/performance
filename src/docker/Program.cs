@@ -26,11 +26,12 @@ namespace DockerHarness
                 harness.LoadManifest("https://github.com/docker-library/official-images/", "library/python");
                 harness.LoadManifest("https://github.com/docker-library/official-images/", "library/golang");
                 harness.LoadManifest("https://github.com/docker-library/official-images/", "library/ruby");
-                harness.LoadManifest("https://github.com/docker-library/official-images/", "library/php");
+                harness.LoadManifest("https://github.com/docker-library/official-images/", "library/buildpack-deps");
+                //harness.LoadManifest("https://github.com/docker-library/official-images/", "library/php");
 
                 var seen = new HashSet<Image>(new IdentityEqualityComparer<Image>());
 
-                report.AppendCsvRow("Name","Tag","BaseName","BaseTag","Size","DiffSize","NumPackages","Packages");
+                report.AppendCsvRow("Name","Tag","BaseName","BaseTag","Foundation Name","Foundation Tag","Size","DiffSize","NumPackages","Packages");
                 foreach (var repo in harness.Repositories)
                 {
                     foreach (var image in repo.Images.Values)
@@ -51,9 +52,13 @@ namespace DockerHarness
                                     foundation = img.Base;
                                 }
 
-                                var packages = harness.InstalledPackages(id, foundation.Name).Except(harness.InstalledPackages(image.Base, foundation.Name)).ToList();
+                                var packages = new string[]{};
+                                if (image.Platform.Os == "linux")
+                                {
+                                    packages = harness.InstalledPackages(id, foundation.Name).Except(harness.InstalledPackages(image.Base, foundation.Name)).ToArray();
+                                }
 
-                                report.AppendCsvRow(id.Name, id.Tag, image.Base.Name, image.Base.Tag, imageSize, imageSize - baseSize, packages.Count, String.Join(" ", packages));
+                                report.AppendCsvRow(id.Name, id.Tag, image.Base.Name, image.Base.Tag, foundation.Name, foundation.Tag, imageSize, imageSize - baseSize, packages.Length, String.Join(" ", packages));
                             }
                         }
                     }
