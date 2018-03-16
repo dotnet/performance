@@ -76,7 +76,7 @@ namespace DockerHarness
         }
 
         public ICollection<TKey> Keys { get => dict.Keys; }
-        
+
         public IEnumerable<TValue> Values {
             get {
                 foreach (TKey k in Keys)
@@ -90,7 +90,7 @@ namespace DockerHarness
         {
             Push(new Entry(k, v));
         }
-        
+
         public TValue Remove(TKey k)
         {
             var index = dict[k];
@@ -194,25 +194,25 @@ namespace DockerHarness
 
     class LruSet<T>
     {
-        private LruDictionary<T, byte> dict = new LruDictionary<T, byte>(); 
+        private LruDictionary<T, byte> dict = new LruDictionary<T, byte>();
         private byte dummy = 0xFE;
-        
+
         public int Count { get => dict.Count; }
         public void Clear() => dict.Clear();
         public bool Contains(T item) => dict.ContainsKey(item);
-        
-        public bool Add(T item) 
+
+        public bool Add(T item)
         {
             bool preexisting = dict.ContainsKey(item);
             dict[item] = dummy;
             return !preexisting;
         }
-        
+
         public T Evict()
         {
             return dict.Evict().Key;
         }
-        
+
         public void Remove(T item)
         {
             dict.Remove(item);
