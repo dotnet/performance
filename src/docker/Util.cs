@@ -218,19 +218,39 @@ namespace DockerHarness
             );
         }
 
-        internal static StreamReader Command(string executable, string args, DirectoryInfo workingDir=null, Func<Process, bool> handler=null)
+        internal static StreamReader Command(string executable, string args, DirectoryInfo workingDir=null, bool block=true, Func<Process, bool> handler=null)
         {
-            using (var process = Run(executable, args, workingDir))
-            {
-                process.WaitForExit();
-
-                // If handler returns true, then the failure is under control
-                if (process.ExitCode != 0 && (handler == null || !handler(process)))
+            Action<Process> check = (p) => {
+                if (p.ExitCode != 0 && (handler == null || !handler(p)))
                 {
-                    throw new CommandException($"{executable} {args} returned {process.ExitCode}");
+                    throw new CommandException($"{executable} {args} returned {p.ExitCode}");
                 }
+            };
+          
+            Process process;
+            if (!block)
+            {
+                process = Run(executable, args, workingDir);
+                process.EnableRaisingEvents = true;
+                process.Exited += (sender, e) => {
+                    // If handler returns true, then the failure is under control
+                    using (process)
+                    {
+                        check(process);
+                    }
+                };
 
                 return process.StandardOutput;
+            }
+            else
+            {
+                using (process = Run(executable, args, workingDir))
+                {
+                    process.WaitForExit();
+                    check(process);
+                    
+                    return process.StandardOutput;
+                }
             }
         }
     }

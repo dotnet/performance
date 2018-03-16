@@ -101,7 +101,7 @@ namespace DockerHarness
             get {
                 if (plat == null)
                 {
-                    var stdout = Util.Command("docker", "version --format \"{{ .Server.Arch }}\n{{ .Server.Os }}\"");
+                    var stdout = Util.Command("docker", "version --format \"{{ .Server.Arch }}\n{{ .Server.Os }}\"", block: false);
 
                     var arch = stdout.ReadLine().Trim();
                     var os = stdout.ReadLine().Trim();
@@ -205,12 +205,12 @@ namespace DockerHarness
                 Util.Command("docker", $"pull {identifier.Name}:{identifier.Tag}");
             }
 
-            return JArray.Parse(Util.Command("docker", $"image inspect {identifier.Name}:{identifier.Tag}").ReadToEnd());
+            return JArray.Parse(Util.Command("docker", $"image inspect {identifier.Name}:{identifier.Tag}", block: false).ReadToEnd());
         }
 
         public IEnumerable<Identifier> ListImages()
         {
-            var stdout = Util.Command("docker", "image list --no-trunc --format \"{{ json . }}\"");
+            var stdout = Util.Command("docker", "image list --no-trunc --format \"{{ json . }}\"", block: false);
 
             string line = null;
             while ((line = stdout.ReadLine()) != null)
@@ -254,7 +254,7 @@ namespace DockerHarness
                     break;
                 default:
                     // Figure out which package manager this image uses
-                    stdout = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} sh -c \"which apk dpkg 2> /dev/null || command -v yum 2> /dev/null\"");
+                    stdout = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} sh -c \"which apk dpkg 2> /dev/null || command -v yum 2> /dev/null\"", block: false);
                     var path = stdout.ReadToEnd().Trim();
 
                     foreach (var cmd in new[] { "dpkg", "apk", "yum" })
@@ -290,7 +290,7 @@ namespace DockerHarness
                     throw new NotSupportedException($"Unrecognized package manager '{pkgManager}'");
             }
 
-            stdout = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} {listCommand}");
+            stdout = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} {listCommand}", block: false);
 
             string line = null;
             result = new List<string>();
