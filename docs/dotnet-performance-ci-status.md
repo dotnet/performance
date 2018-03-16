@@ -247,7 +247,7 @@
 
 ## [Optimization](https://github.com/dotnet/optimization)
 
-| Branch        | CoreCLR x86 Windows                              | CoreCLR x64 Windows                              | CoreCLR x64 Linux master                         |
+| Branch        | CoreCLR x86 Windows                              | CoreCLR x64 Windows                              | CoreCLR x64 Linux                                |
 | :------------ | :----------------------------------------------: | :----------------------------------------------: | :----------------------------------------------: |
 | master        | [![CLRx86WINmasPGO Status]][CLRx86WINmasPGO Url] | [![CLRx64WINmasPGO Status]][CLRx64WINmasPGO Url] | [![CLRx64LINmasPGO Status]][CLRx64LINmasPGO Url] |
 | release/2.1   | [![CLRx86WIN2.1PGO Status]][CLRx86WIN2.1PGO Url] | [![CLRx64WIN2.1PGO Status]][CLRx64WIN2.1PGO Url] | [![CLRx64LIN2.1PGO Status]][CLRx64LIN2.1PGO Url] |
