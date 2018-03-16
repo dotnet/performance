@@ -171,7 +171,7 @@ namespace DockerHarness
             {
                 int ai = xi * 2 + 1;
                 int bi = xi * 2 + 2;
-                int ci = bi < Count && comparer.Compare(heap[bi], heap[ai]) > 0 ? ai : bi;
+                int ci = bi < Count && comparer.Compare(heap[bi], heap[ai]) <= 0 ? bi : ai;
                 Entry c = heap[ci];
 
                 if (comparer.Compare(x, c) > 0)
