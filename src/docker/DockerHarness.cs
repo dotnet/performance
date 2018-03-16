@@ -31,7 +31,7 @@ namespace DockerHarness
                 other != null &&
                 other.Name == this.Name &&
                 other.Tag == this.Tag &&
-                (other.Platform?.Equals(this.Platform) ?? false)
+                (other.Platform?.Equals(this.Platform) ?? this.Platform == null)
             );
         }
 
@@ -72,142 +72,13 @@ namespace DockerHarness
         }
     }
 
-    public class Git : IDisposable
-    {
-        public string Url { get; private set; }
-        public string Branch
-        {
-            get => branch;
-            set {
-                if (branch != value)
-                {
-                    branch = value;
-                    if (Location != null) {
-                        Fetch();
-                    }
-                }
-            }
-        }
-        public string Commit
-        {
-            get => commit;
-            set {
-                if (commit != value)
-                {
-                    commit = value;
-                    if (Location != null) {
-                        Checkout();
-                    }
-                }
-            }
-        }
-        public DirectoryInfo Location { get; private set; }
-
-        private ISet<string> fetched = new HashSet<string>();
-
-        public Git(string url, string branch=null, string commit=null)
-        {
-            if (url == null)
-            {
-                throw new ArgumentNullException(nameof(url));
-            }
-            Url = url;
-            Branch = branch;
-            Commit = commit;
-        }
-
-        public DirectoryInfo Clone()
-        {
-            if (Location == null)
-            {
-                Location = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "git-repos", Util.RandomString(16)));
-                using (var command = Util.Command("git", $"clone {Url} {Location}"))
-                {
-                    command.WaitForExit();
-                }
-
-                if (Branch != null)
-                {
-                    Fetch();
-                }
-
-                if (Commit != null)
-                {
-                    using (var command = Util.Command("git", $"checkout {Commit}", Location))
-                    {
-                        command.WaitForExit();
-                    }
-                }
-            }
-
-            return Location;
-        }
-
-        private void Fetch()
-        {
-            if (Branch != null)
-            {
-                if (!fetched.Contains(Branch))
-                {
-                    using (var command = Util.Command("git", $"fetch origin {Branch}", Location))
-                    {
-                        command.WaitForExit();
-                    }
-                    fetched.Add(Branch);
-                }
-            }
-        }
-
-        private void Checkout()
-        {
-            if (Commit != null)
-            {
-                using (var command = Util.Command("git", $"checkout {Commit}", Location))
-                {
-                    command.WaitForExit();
-                }
-            }
-            else if (Branch != null)
-            {
-                using (var command = Util.Command("git", $"checkout {Branch}", Location))
-                {
-                    command.WaitForExit();
-                }
-            }
-            else
-            {
-                using (var command = Util.Command("git", $"checkout master", Location))
-                {
-                    command.WaitForExit();
-                }
-            }
-        }
-
-        public void Dispose()
-        {
-           Dispose(true);
-           GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing) {
-                if (Location == null)
-                {
-                    Util.DeleteDirectory(Location);
-                    Location = null;
-                }
-            }
-        }
-
-        private string branch;
-        private string commit;
-    }
-
-    public class Repository
+    public class Repository : IEquatable<Repository>
     {
         public string Name { get; set; }
         public IDictionary<Identifier, Image> Images = new Dictionary<Identifier, Image>();
+        
+        public bool Equals(Repository other) => other != null && this.Name == other.Name;
+        public override int GetHashCode() => this.Name?.GetHashCode() ?? 0;
     }
 
     public class Image
@@ -216,10 +87,10 @@ namespace DockerHarness
         public Git Git { get; set; }
         public Repository Repository { get; set; }
         public Platform Platform { get; set; }
-        public ISet<string> Tags { get; } = new HashSet<string>();
+        public ICollection<string> Tags { get; } = new HashSet<string>();
         public Identifier Base { get; set; }
     }
-
+    
     public class DockerHarness : IDisposable
     {
         public ICollection<Repository> Repositories = new List<Repository>();
@@ -329,13 +200,12 @@ namespace DockerHarness
 
         public JArray Inspect(Identifier identifier)
         {
-            if (!pulledImages.Contains(identifier))
+            if (pulledImages.Add(identifier))
             {
                 using (var command = Util.Command("docker", $"pull {identifier.Name}:{identifier.Tag}"))
                 {
                     command.WaitForExit();
                 }
-                pulledImages.Add(identifier);
             }
 
             using (var command = Util.Command("docker", $"image inspect {identifier.Name}:{identifier.Tag}"))
@@ -392,7 +262,7 @@ namespace DockerHarness
                 default:
                     // Figure out which package manager this image uses
                     string path;
-                    using (var command = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} sh -c \"which apk yum dpkg 2> /dev/null || command -v yum 2> /dev/null\""))
+                    using (var command = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} sh -c \"which apk dpkg 2> /dev/null || command -v yum 2> /dev/null\""))
                     {
                         path = command.StandardOutput.ReadToEnd().Trim();
                     }
@@ -449,7 +319,7 @@ namespace DockerHarness
         }
 
 #region private
-        private ISet<Identifier> pulledImages = new HashSet<Identifier>();
+        private LruSet<Identifier> pulledImages = new LruSet<Identifier>();
         private IDictionary<Identifier, ICollection<string>> packageCache = new Dictionary<Identifier, ICollection<string>>();
         private IDictionary<string, Git> gitCache = new Dictionary<string, Git>();
         private Platform plat = null;
