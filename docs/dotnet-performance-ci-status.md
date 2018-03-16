@@ -254,24 +254,24 @@
 | release/2.0.0 | [![CLRx86WIN2.0PGO Status]][CLRx86WIN2.0PGO Url] | [![CLRx64WIN2.0PGO Status]][CLRx64WIN2.0PGO Url] | [![CLRx64LIN2.0PGO Status]][CLRx64LIN2.0PGO Url] |
 | release/1.1.0 | N/A                                              | [![CLRx64WIN1.1PGO Status]][CLRx64WIN1.1PGO Url] | N/A                                              |
 
-[CLRx86WINmasPGO Status]:   https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx86WINmasPGO/lastCompletedBuild/badge/icon/  (Run Status)
-[CLRx64WINmasPGO Status]:   https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64WINmasPGO/lastCompletedBuild/badge/icon/  (Run Status)
-[CLRx64LINmasPGO Status]:   https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64LINmasPGO/lastCompletedBuild/badge/icon/  (Run Status)
-[CLRx86WIN2.1PGO Status]:   https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx86WIN2.1PGO/lastCompletedBuild/badge/icon/  (Run Status)
-[CLRx64WIN2.1PGO Status]:   https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64WIN2.1PGO/lastCompletedBuild/badge/icon/  (Run Status)
-[CLRx64LIN2.1PGO Status]:   https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64LIN2.1PGO/lastCompletedBuild/badge/icon/  (Run Status)
-[CLRx86WIN2.0PGO Status]:   https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx86WIN2.0PGO/lastCompletedBuild/badge/icon/  (Run Status)
-[CLRx64WIN2.0PGO Status]:   https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64WIN2.0PGO/lastCompletedBuild/badge/icon/  (Run Status)
-[CLRx64LIN2.0PGO Status]:   https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64LIN2.0PGO/lastCompletedBuild/badge/icon/  (Run Status)
-[CLRx64WIN1.1PGO Status]:   https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64WIN1.1PGO/lastCompletedBuild/badge/icon/  (Run Status)
+[CLRx86WINmasPGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx86WINmasPGO  (Run Status)
+[CLRx64WINmasPGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx64WINmasPGO  (Run Status)
+[CLRx64LINmasPGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx64LINmasPGO  (Run Status)
+[CLRx86WIN2.1PGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx86WIN2.1PGO  (Run Status)
+[CLRx64WIN2.1PGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx64WIN2.1PGO  (Run Status)
+[CLRx64LIN2.1PGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx64LIN2.1PGO  (Run Status)
+[CLRx86WIN2.0PGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx86WIN2.0PGO  (Run Status)
+[CLRx64WIN2.0PGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx64WIN2.0PGO  (Run Status)
+[CLRx64LIN2.0PGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx64LIN2.0PGO  (Run Status)
+[CLRx64WIN1.1PGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx64WIN1.1PGO  (Run Status)
 
-[CLRx86WINmasPGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx86WINmasPGO/lastCompletedBuild/
-[CLRx64WINmasPGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64WINmasPGO/lastCompletedBuild/
-[CLRx64LINmasPGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64LINmasPGO/lastCompletedBuild/
-[CLRx86WIN2.1PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx86WIN2.1PGO/lastCompletedBuild/
-[CLRx64WIN2.1PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64WIN2.1PGO/lastCompletedBuild/
-[CLRx64LIN2.1PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64LIN2.1PGO/lastCompletedBuild/
-[CLRx86WIN2.0PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx86WIN2.0PGO/lastCompletedBuild/
-[CLRx64WIN2.0PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64WIN2.0PGO/lastCompletedBuild/
-[CLRx64LIN2.0PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64LIN2.0PGO/lastCompletedBuild/
-[CLRx64WIN1.1PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64WIN1.1PGO/lastCompletedBuild/
+[CLRx86WINmasPGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx86WINmasPGO/
+[CLRx64WINmasPGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64WINmasPGO/
+[CLRx64LINmasPGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64LINmasPGO/
+[CLRx86WIN2.1PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx86WIN2.1PGO/
+[CLRx64WIN2.1PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64WIN2.1PGO/
+[CLRx64LIN2.1PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64LIN2.1PGO/
+[CLRx86WIN2.0PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx86WIN2.0PGO/
+[CLRx64WIN2.0PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64WIN2.0PGO/
+[CLRx64LIN2.0PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64LIN2.0PGO/
+[CLRx64WIN1.1PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64WIN1.1PGO/
