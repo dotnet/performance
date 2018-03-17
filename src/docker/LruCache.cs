@@ -208,6 +208,16 @@ namespace DockerHarness
             return !preexisting;
         }
 
+        public bool Refresh(T item)
+        {
+            if (dict.ContainsKey(item))
+            {
+                dict[item] = dummy;
+                return true;
+            }
+            return false;
+        }
+
         public T Evict()
         {
             return dict.Evict().Key;

@@ -227,7 +227,7 @@ namespace DockerHarness
                     throw new CommandException($"{executable} {args} returned {p.ExitCode}");
                 }
             };
-          
+
             Process process;
             if (!block)
             {
@@ -249,7 +249,7 @@ namespace DockerHarness
                 {
                     process.WaitForExit();
                     check(process);
-                    
+
                     return process.StandardOutput;
                 }
             }

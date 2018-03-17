@@ -22,12 +22,12 @@ namespace DockerHarness
         ///   The repository name (e.g. microsoft/dotnet)
         /// </summary>
         public string Name { get; set; }
-        
+
         /// <summary>
         ///   The image tag (e.g. 2-runtime)
         /// </summary>
         public string Tag { get; set; }
-        
+
         /// <summary>
         ///   The platform the identified image supports
         /// </summary>
@@ -74,7 +74,7 @@ namespace DockerHarness
         ///   The operating system of the host/image (e.g. linux, windows)
         /// </summary>
         public string Os { get; set; }
-        
+
         /// <summary>
         ///   The architecture of the Docker host (e.g. amd64, arm)
         /// </summary>
@@ -109,7 +109,7 @@ namespace DockerHarness
         ///   The name of the repository (e.g. microsoft/dotnet)
         /// </summary>
         public string Name { get; set; }
-        
+
         /// <summary>
         ///   A dictionary of identifies to Image objects this repository contains
         ///   Many identifies may map to each Image
@@ -129,27 +129,27 @@ namespace DockerHarness
         ///   The path to the Dockerfile, within the git repo, which built the image
         /// </summary>
         public string Dockerfile { get; set; }
-        
+
         /// <summary>
         ///   The git repository from which this image is built
         /// </summary>
         public Git Git { get; set; }
-        
+
         /// <summary>
         ///   The Dockerhub repo which contains this image
         /// </summary>
         public Repository Repository { get; set; }
-        
+
         /// <summary>
         ///   The platform which this image is built for
         /// </summary>
         public Platform Platform { get; set; }
-        
+
         /// <summary>
         ///   All tags which refer to this image in it's reposiroty
         /// </summary>
         public ICollection<string> Tags { get; } = new HashSet<string>();
-        
+
         /// <summary>
         ///   The uniqe identifier for the image this image is built from
         /// </summary>
@@ -165,7 +165,7 @@ namespace DockerHarness
         ///   Collection of Dockerhub repositories loaded into this harness
         /// </summary>
         public ICollection<Repository> Repositories = new List<Repository>();
-        
+
         /// <summary>
         ///   Dictionary of all Images loaded into this harness
         /// </summary>
@@ -286,10 +286,27 @@ namespace DockerHarness
         /// </summary>
         public JArray Inspect(Identifier identifier)
         {
-            if (pulledImages.Add(identifier))
+            // Pull the docker image. If there is not enough space on disk, evict some images and try again
+            while (!pulledImages.Refresh(identifier))
             {
-                // TODO: Handle disk full with your fancy LRU cache
-                Util.Command("docker", $"pull {identifier.Name}:{identifier.Tag}");
+                using (var process = Util.Run("docker", $"pull {identifier.Name}:{identifier.Tag}"))
+                {
+                    process.WaitForExit();
+
+                    if (process.ExitCode != 0)
+                    {
+                        if (process.StandardError.ReadToEnd().Contains("no space left on device"))
+                        {
+                            EvictImages();
+                            continue;
+                        }
+                        throw new CommandException($"Docker image pull exitted with code {process.ExitCode}");
+                    }
+                    else
+                    {
+                        pulledImages.Add(identifier);
+                    }
+                }
             }
 
             return JArray.Parse(Util.Command("docker", $"image inspect {identifier.Name}:{identifier.Tag}", block: false).ReadToEnd());
@@ -408,6 +425,17 @@ namespace DockerHarness
         private IDictionary<Identifier, ICollection<string>> packageCache = new Dictionary<Identifier, ICollection<string>>();
         private IDictionary<string, Git> gitCache = new Dictionary<string, Git>();
         private Platform plat = null;
+
+        private void EvictImages()
+        {
+            int count = pulledImages.Count / 5;
+            for (int i=0; i < count; i++)
+            {
+                var evicted = pulledImages.Evict();
+                // TODO: This may fail under certain conditions. Consider how to handle it
+                Util.Command("docker", $"image rm {evicted.Name}:{evicted.Tag}");
+            }
+        }
 
         private Git GitCache(Git git)
         {
