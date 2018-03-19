@@ -116,7 +116,7 @@ namespace DockerHarness
 
         private void Push(Entry x)
         {
-            dict.Add(x.Key, Count - 1);
+            dict.Add(x.Key, Count);
             heap.Add(x);
             Bubble(Count - 1);
         }
@@ -124,7 +124,9 @@ namespace DockerHarness
         private Entry Pop(int i=0)
         {
             Entry result = heap[i];
-            heap[i] = heap[Count - 1];
+            Entry replacement = heap[Count - 1];
+            heap[i] = replacement;
+            dict[replacement.Key] = i;
             heap.RemoveAt(Count - 1);
             dict.Remove(result.Key);
 
