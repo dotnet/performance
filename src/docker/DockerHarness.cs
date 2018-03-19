@@ -155,6 +155,13 @@ namespace DockerHarness
         /// </summary>
         public Identifier Parent { get; set; }
     }
+    
+    internal class DockerException : CommandException
+    {
+        public DockerException() { }
+        public DockerException(string msg) : base(msg) { }
+        public DockerException(string msg, Exception inner) : base(msg, inner) { }
+    }
 
     /// <summary>
     ///   DockerHarness allows analysis of docker repositories, images, and containers
@@ -286,29 +293,7 @@ namespace DockerHarness
         /// </summary>
         public JArray Inspect(Identifier identifier)
         {
-            // Pull the docker image. If there is not enough space on disk, evict some images and try again
-            while (!pulledImages.Refresh(identifier))
-            {
-                using (var process = Util.Run("docker", $"pull {identifier.Name}:{identifier.Tag}"))
-                {
-                    process.WaitForExit();
-
-                    if (process.ExitCode != 0)
-                    {
-                        if (process.StandardError.ReadToEnd().Contains("no space left on device"))
-                        {
-                            EvictImages();
-                            continue;
-                        }
-                        throw new CommandException($"Docker image pull exitted with code {process.ExitCode}");
-                    }
-                    else
-                    {
-                        pulledImages.Add(identifier);
-                    }
-                }
-            }
-
+            PullImage(identifier);
             return JArray.Parse(Util.Command("docker", $"image inspect {identifier.Name}:{identifier.Tag}", block: false).ReadToEnd());
         }
 
@@ -346,6 +331,11 @@ namespace DockerHarness
             {
                 return result;
             }
+            
+            // Ensure the image is on disk
+            // Not strictly needed because `run` will do this automatically,
+            // but we do this explicily it will be tracked in our cache
+            PullImage(identifier);
 
             string pkgManager = null;
             string listCommand;
@@ -426,14 +416,50 @@ namespace DockerHarness
         private IDictionary<string, Git> gitCache = new Dictionary<string, Git>();
         private Platform plat = null;
 
+        /// <summary>
+        ///   Removes some of portion of pulled image tags from disk (cache)
+        ///   The images are removed in least-recently-used (LRU) order and
+        ///   1/5 of pulled images are deleted each time
+        /// </summary>
         private void EvictImages()
         {
-            int count = pulledImages.Count / 5;
+            int count = pulledImages.Count / 5; // This ratio is more or less arbitrary
             for (int i=0; i < count; i++)
             {
                 var evicted = pulledImages.Evict();
                 // TODO: This may fail under certain conditions. Consider how to handle it
                 Util.Command("docker", $"image rm {evicted.Name}:{evicted.Tag}");
+            }
+        }
+        
+        /// <summary>
+        ///   Ensures that the identified image resides on this server
+        ///   The image will be pulled if the tag is not in a set of known pulled images
+        ///   Images may be removed to make space on the disk by calling EvictImages
+        /// </summary>
+        private void PullImage(Identifier identifier)
+        {
+            // Pull the docker image. If there is not enough space on disk, evict some images and try again
+            while (!pulledImages.Refresh(identifier))
+            {
+                using (var process = Util.Run("docker", $"pull {identifier.Name}:{identifier.Tag}"))
+                {
+                    process.WaitForExit();
+
+                    if (process.ExitCode != 0)
+                    {
+                        if (process.StandardError.ReadToEnd().Contains("no space left on device"))
+                        {
+                            EvictImages();
+                            continue;
+                        }
+                        throw new DockerException($"Docker image pull exited with code {process.ExitCode}. Error output follows:\n{process.StandardError.ReadToEnd()}");
+                    }
+                    else
+                    {
+                        pulledImages.Add(identifier);
+                    }
+                }
             }
         }
 
@@ -456,7 +482,8 @@ namespace DockerHarness
             }
         }
 
-        private IEnumerable<Repository> ParseManifest(string manifest, Git git) {
+        private IEnumerable<Repository> ParseManifest(string manifest, Git git)
+        {
             // Read the manifest into a JSON object and pull out the repo
             var manifestJson = JObject.Parse(manifest);
             foreach (var repoJson in manifestJson["repos"])

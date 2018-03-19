@@ -42,30 +42,37 @@ namespace DockerHarness
                             if (image.Platform.Equals(harness.Platform))
                             {
                                 var id = new Identifier(repo.Name, image.Tags.OrderBy(tag => tag.Length).First(), image.Platform);
-                                var imageInfo = harness.Inspect(id)[0];
-                                var parentInfo = harness.Inspect(image.Parent)[0];
-                                var imageSize = Int64.Parse(imageInfo["Size"].ToString());
-                                var parentSize = Int64.Parse(parentInfo["Size"].ToString());
-
-                                var foundation = id;
-                                while (harness.Images.TryGetValue(foundation, out var img)) {
-                                    foundation = img.Parent;
-                                }
-
-                                var packages = new string[]{};
-                                if (image.Platform.Os == "linux")
+                                try
                                 {
-                                    packages = harness.InstalledPackages(id, foundation.Name).Except(harness.InstalledPackages(image.Parent, foundation.Name)).ToArray();
-                                }
+                                    var imageInfo = harness.Inspect(id)[0];
+                                    var parentInfo = harness.Inspect(image.Parent)[0];
+                                    var imageSize = Int64.Parse(imageInfo["Size"].ToString());
+                                    var parentSize = Int64.Parse(parentInfo["Size"].ToString());
 
-                                report.AppendCsvRow(
-                                    id.Name, id.Tag,
-                                    image.Parent.Name, image.Parent.Tag,
-                                    foundation.Name, foundation.Tag,
-                                    imageSize, imageSize - parentSize,
-                                    packages.Length, String.Join(" ", packages),
-                                    imageInfo.ToString(), String.Join(" ", image.Tags)
-                                );
+                                    var foundation = id;
+                                    while (harness.Images.TryGetValue(foundation, out var img)) {
+                                        foundation = img.Parent;
+                                    }
+
+                                    var packages = new string[]{};
+                                    if (image.Platform.Os == "linux")
+                                    {
+                                        packages = harness.InstalledPackages(id, foundation.Name).Except(harness.InstalledPackages(image.Parent, foundation.Name)).ToArray();
+                                    }
+
+                                    report.AppendCsvRow(
+                                        id.Name, id.Tag,
+                                        image.Parent.Name, image.Parent.Tag,
+                                        foundation.Name, foundation.Tag,
+                                        imageSize, imageSize - parentSize,
+                                        packages.Length, String.Join(" ", packages),
+                                        imageInfo.ToString(), String.Join(" ", image.Tags)
+                                    );
+                                }
+                                catch (DockerException e)
+                                {
+                                    Console.Error.WriteLine($"Failed to gather information on {id.Name}:{id.Tag} due to {e}");
+                                }
                             }
                         }
                     }
