@@ -367,7 +367,7 @@ namespace DockerHarness
                     break;
                 default:
                     // Figure out which package manager this image uses
-                    stdout = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} sh -c \"which apk dpkg 2> /dev/null || command -v yum 2> /dev/null\"", block: false);
+                    stdout = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} sh -c \"which apk dpkg 2> /dev/null || command -v yum 2> /dev/null\"", block: false, handler: (p) => p.ExitCode == 127);
                     var path = stdout.ReadToEnd().Trim();
 
                     foreach (var cmd in new[] { "dpkg", "apk", "yum" })
