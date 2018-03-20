@@ -12,7 +12,10 @@ using System.Threading;
 
 namespace DockerHarness
 {
-    // https://stackoverflow.com/a/8946825
+    /// <summary>
+    /// An IEqualityComparer implementaion which uses reference equality
+    /// https://stackoverflow.com/a/8946825
+    /// </summary>
     internal sealed class IdentityEqualityComparer<T> : IEqualityComparer<T> where T : class
     {
         public int GetHashCode(T value)
@@ -26,9 +29,10 @@ namespace DockerHarness
         }
     }
 
-    // A simple class for escaping strings for CSV writing
-    // https://stackoverflow.com/a/769713
-    // Used instead of a package because only these < 20 lines of code are needed
+    /// <summary>
+    ///   A simple class for escaping strings for CSV writing
+    ///   https://stackoverflow.com/a/769713
+    /// </summary>
     internal static class Csv
     {
         public static string Escape(string s)
@@ -95,13 +99,15 @@ namespace DockerHarness
                         block[key] = val;
                         lastKey = key;
                     }
-                    else {
+                    else
+                    {
                         Debug.Assert(split.Length == 1);
                         if (lastKey != null) {
                             // This line is a continuation
                             block[lastKey] += split[0];
                         }
-                        else {
+                        else
+                        {
                             throw new InvalidOperationException($"RFC2822 syntax error. Line {lineNum} is has no key and is not a continuation");
                         }
                     }
@@ -118,6 +124,14 @@ namespace DockerHarness
 
             return blocks;
         }
+    }
+
+    internal class CommandException : Exception
+    {
+        public CommandException() { }
+        public CommandException(string msg) : base(msg) { }
+        public CommandException(string msg, Exception inner) : base(msg, inner) { }
+        protected CommandException(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
     }
 
     internal static class Util
@@ -197,7 +211,7 @@ namespace DockerHarness
                 .Select(s => s[Generator.Next(s.Length)]).ToArray());
         }
 
-        internal static Process Command(string executable, string args, DirectoryInfo workingDir=null)
+        internal static Process Run(string executable, string args, DirectoryInfo workingDir=null)
         {
             Console.WriteLine($"[{workingDir?.FullName ?? Directory.GetCurrentDirectory()}] {executable} {args}");
             return Process.Start(
@@ -209,6 +223,42 @@ namespace DockerHarness
                     WorkingDirectory = workingDir?.FullName ?? ""
                 }
             );
+        }
+
+        internal static StreamReader Command(string executable, string args, DirectoryInfo workingDir=null, bool block=true, Func<Process, bool> handler=null)
+        {
+            Action<Process> check = (p) => {
+                if (p.ExitCode != 0 && (handler == null || !handler(p)))
+                {
+                    throw new CommandException($"{executable} {args} returned {p.ExitCode}");
+                }
+            };
+
+            Process process;
+            if (!block)
+            {
+                process = Run(executable, args, workingDir);
+                process.EnableRaisingEvents = true;
+                process.Exited += (sender, e) => {
+                    // If handler returns true, then the failure is under control
+                    using (process)
+                    {
+                        check(process);
+                    }
+                };
+
+                return process.StandardOutput;
+            }
+            else
+            {
+                using (process = Run(executable, args, workingDir))
+                {
+                    process.WaitForExit();
+                    check(process);
+
+                    return process.StandardOutput;
+                }
+            }
         }
     }
 }

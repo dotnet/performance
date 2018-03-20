@@ -9,13 +9,29 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Runtime.Serialization;
 
 namespace DockerHarness
 {
+    /// <summary>
+    ///   Identifier uniqely identifies an image which can be pulled from Dockerhub
+    ///   Multiple Identifiers may point to a single image
+    /// </summary>
     public class Identifier : IEquatable<Identifier>
     {
+        /// <summary>
+        ///   The repository name (e.g. microsoft/dotnet)
+        /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        ///   The image tag (e.g. 2-runtime)
+        /// </summary>
         public string Tag { get; set; }
+
+        /// <summary>
+        ///   The platform the identified image supports
+        /// </summary>
         public Platform Platform { get; set; }
 
         public Identifier(string name, string tag, Platform platform)
@@ -31,13 +47,19 @@ namespace DockerHarness
                 other != null &&
                 other.Name == this.Name &&
                 other.Tag == this.Tag &&
-                (other.Platform?.Equals(this.Platform) ?? false)
+                (other.Platform?.Equals(this.Platform) ?? this.Platform == null)
             );
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Identifier);
         }
 
         public override int GetHashCode()
         {
-            unchecked {
+            unchecked
+            {
                 return (
                     ((Name?.GetHashCode() ?? 0) * 29) ^
                     ((Tag?.GetHashCode() ?? 0) * 83) ^
@@ -47,179 +69,418 @@ namespace DockerHarness
         }
     }
 
+    /// <summary>
+    ///   Platform is a combination of hardware and OS combination
+    ///   It is important to uniqely identify images and determine compatability
+    ///   This class uses Golang conventions for OS and arch names (Docker is written in Go)
+    ///   https://gist.github.com/asukakenji/f15ba7e588ac42795f421b48b8aede63
+    /// </summary>
     public class Platform : IEquatable<Platform>
     {
-        public string OS { get; set; }
+        /// <summary>
+        ///   The operating system of the host/image (e.g. linux, windows)
+        /// </summary>
+        public string Os { get; set; }
+
+        /// <summary>
+        ///   The architecture of the Docker host (e.g. amd64, arm)
+        /// </summary>
         public string Architecture { get; set; }
 
         public bool Equals(Platform other)
         {
             return (
                 other != null &&
-                other.OS == this.OS &&
+                other.Os == this.Os &&
                 other.Architecture == this.Architecture
             );
         }
 
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Platform);
+        }
+
         public override int GetHashCode()
         {
-            unchecked {
+            unchecked
+            {
                 return (
-                    ((OS?.GetHashCode() ?? 0) * 163) ^
+                    ((Os?.GetHashCode() ?? 0) * 163) ^
                     ((Architecture?.GetHashCode() ?? 0) * 197)
                 );
             }
         }
     }
 
-    public class Git : IDisposable
+    /// <summary>
+    ///   Repository contains information about a Dockerhub repository
+    /// </summary>
+    public class Repository : IEquatable<Repository>
     {
-        public string Url { get; private set; }
-        public string Branch {
-            get => branch;
-            set {
-                if (branch != value)
-                {
-                    branch = value;
-                    if (Location != null) {
-                        Fetch();
-                    }
-                }
-            }
-        }
-        public string Commit {
-            get => commit;
-            set {
-                if (commit != value)
-                {
-                    commit = value;
-                    if (Location != null) {
-                        Checkout();
-                    }
-                }
-            }
-        }
-        public DirectoryInfo Location { get; private set; }
+        /// <summary>
+        ///   The name of the repository (e.g. microsoft/dotnet)
+        /// </summary>
+        public string Name { get; set; }
 
-        private List<string> fetched = new List<string>();
+        /// <summary>
+        ///   A dictionary of identifies to Image objects this repository contains
+        ///   Many identifies may map to each Image
+        /// </summary>
+        public IDictionary<Identifier, Image> Images = new Dictionary<Identifier, Image>();
 
-        public Git(string url, string branch=null, string commit=null)
+        public bool Equals(Repository other) => other != null && this.Name == other.Name;
+        public override bool Equals(object obj) => Equals(obj as Repository);
+        public override int GetHashCode() => this.Name?.GetHashCode() ?? 0;
+    }
+
+    /// <summary>
+    ///   Image is a collection of information about the image
+    /// </summary>
+    public class Image
+    {
+        /// <summary>
+        ///   The path to the Dockerfile, within the git repo, which built the image
+        /// </summary>
+        public string Dockerfile { get; set; }
+
+        /// <summary>
+        ///   The git repository from which this image is built
+        /// </summary>
+        public Git Git { get; set; }
+
+        /// <summary>
+        ///   The Dockerhub repo which contains this image
+        /// </summary>
+        public Repository Repository { get; set; }
+
+        /// <summary>
+        ///   The platform which this image is built for
+        /// </summary>
+        public Platform Platform { get; set; }
+
+        /// <summary>
+        ///   All tags which refer to this image in it's reposiroty
+        /// </summary>
+        public ICollection<string> Tags { get; } = new HashSet<string>();
+
+        /// <summary>
+        ///   The uniqe identifier for the image this image is built from
+        /// </summary>
+        public Identifier Parent { get; set; }
+    }
+
+    [Serializable()]
+    internal class DockerException : CommandException
+    {
+        public DockerException() { }
+        public DockerException(string msg) : base(msg) { }
+        public DockerException(string msg, Exception inner) : base(msg, inner) { }
+        protected DockerException(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
+    }
+
+    /// <summary>
+    ///   DockerHarness allows analysis of docker repositories, images, and containers
+    /// </summary>
+    public class DockerHarness : IDisposable
+    {
+        /// <summary>
+        ///   Collection of Dockerhub repositories loaded into this harness
+        /// </summary>
+        public ICollection<Repository> Repositories = new List<Repository>();
+
+        /// <summary>
+        ///   Dictionary of all Images loaded into this harness
+        /// </summary>
+        public IDictionary<Identifier, Image> Images = new Dictionary<Identifier, Image>();
+
+        /// <summary>
+        ///   The platform this Docker host currently supports
+        ///   On Windows this may be linux/amd64 or windows/amd64
+        /// </summary>
+        public Platform Platform
         {
-            if (url == null)
+            get
             {
-                throw new ArgumentNullException(nameof(url));
-            }
-            Url = url;
-            Branch = branch;
-            Commit = commit;
-        }
-
-        public DirectoryInfo Clone()
-        {
-            if (Location == null)
-            {
-                Location = new DirectoryInfo(Path.Combine(Path.GetTempPath(), "git-repos", Util.RandomString(16)));
-                using (var command = Util.Command("git", $"clone {Url} {Location}"))
+                if (plat == null)
                 {
-                    command.WaitForExit();
+                    var stdout = Util.Command("docker", "version --format \"{{ .Server.Arch }}\n{{ .Server.Os }}\"", block: false);
+
+                    var arch = stdout.ReadLine().Trim();
+                    var os = stdout.ReadLine().Trim();
+                    plat = new Platform {
+                        Os = os,
+                        Architecture = arch
+                    };
                 }
 
-                if (Branch != null)
-                {
-                    Fetch();
-                }
-
-                if (Commit != null)
-                {
-                    using (var command = Util.Command("git", $"checkout {Commit}", Location))
-                    {
-                        command.WaitForExit();
-                    }
-                }
-            }
-
-            return Location;
-        }
-
-        private void Fetch()
-        {
-            if (Branch != null)
-            {
-                if (!fetched.Contains(Branch));
-                using (var command = Util.Command("git", $"fetch origin {Branch}", Location))
-                {
-                    command.WaitForExit();
-                }
-                fetched.Add(Branch);
+                return plat;
             }
         }
 
-        private void Checkout()
+        public DockerHarness()
         {
-            if (Commit != null)
+            foreach (var identifier in ListImages())
             {
-                using (var command = Util.Command("git", $"checkout {Commit}", Location))
-                {
-                    command.WaitForExit();
-                }
+                pulledImages.Add(identifier);
             }
-            else if (Branch != null)
+        }
+
+        /// <summary>
+        ///   Given the url of a git repository and the path to the manifest file
+        ///   (either in official-library format or JSON format) this will parse
+        ///   and load the manifest into this harness
+        /// </summary>
+        public void LoadManifest(string gitUrl, string manifestPath = "manifest.json")
+        {
+            var git = GitCache(new Git(gitUrl));
+
+            IEnumerable<Repository> repos = null;
+            var manifest = File.ReadAllText(Path.Combine(git.Location.FullName, manifestPath));
+            if (Path.GetExtension(manifestPath) == ".json")
             {
-                using (var command = Util.Command("git", $"checkout {Branch}", Location))
-                {
-                    command.WaitForExit();
-                }
+                repos = ParseManifest(manifest, git);
+            }
+            else if (Path.GetExtension(manifestPath) == String.Empty)
+            {
+                repos = new Repository[]{ ParseLibrary(manifest, Path.GetFileName(manifestPath)) };
             }
             else
             {
-                using (var command = Util.Command("git", $"checkout master", Location))
+                throw new InvalidOperationException("Unrecognized file format");
+            }
+
+            foreach (var repo in repos)
+            {
+                // Parse each Dockerfile to extract the base image tag
+                // This will result in a form of tree with root nodes being a out-of-repo images (including 'scratch')
+                foreach (var image in repo.Images.Values.OrderBy(img => img.Git.Commit))
                 {
-                    command.WaitForExit();
+                    var dir = GitCache(image.Git).Location;
+
+                    string filename = Path.Combine(dir.FullName, image.Dockerfile);
+                    if (File.GetAttributes(filename).HasFlag(FileAttributes.Directory))
+                    {
+                        filename = Path.Combine(filename, "Dockerfile");
+                    }
+
+                    using (var dockerfile = new StreamReader(filename))
+                    {
+                        // Regex to match a 'FROM' line and pull out the image name and tag
+                        // Assumption: The base image is not specified in any ARG options
+                        var pattern = new Regex(@"^FROM\s+(?<name>(?:\S+/)?(?:[^:\s]+))(?::(?<tag>\S+))?");
+                        string baseName = null;
+                        string baseTag = null;
+                        string line = null;
+
+                        // Read every line because the last ocurrance of 'FROM' determines the base image
+                        while ((line = dockerfile.ReadLine()) != null)
+                        {
+                            var match = pattern.Match(line);
+                            if (match.Success)
+                            {
+                                baseName = match.Groups["name"].Value;
+                                if (match.Groups["tag"].Success) {
+                                    baseTag = match.Groups["tag"].Value;
+                                }
+                                else
+                                {
+                                    baseTag = "latest";
+                                }
+                            }
+                        }
+
+                        Debug.Assert(baseName != null && baseTag != null, $"Failed to find the base image from {filename}");
+
+                        image.Parent = new Identifier(baseName, baseTag, image.Platform);
+                    }
                 }
+
+                foreach (var kv in repo.Images)
+                {
+                    // Add image to harness for harness-level lookup
+                    // Will throw if a repo is loaded twice
+                    this.Images.Add(kv.Key, kv.Value);
+                }
+                Repositories.Add(repo);
             }
         }
 
-        public void Dispose()
+        /// <summary>
+        ///   Returns to output of `docker image inspect` as a parsed JSON array
+        /// </summary>
+        public JArray Inspect(Identifier identifier)
         {
-           Dispose(true);
-           GC.SuppressFinalize(this);
+            PullImage(identifier);
+            return JArray.Parse(Util.Command("docker", $"image inspect {identifier.Name}:{identifier.Tag}", block: false).ReadToEnd());
         }
 
-        protected virtual void Dispose(bool disposing)
+        /// <summary>
+        ///   Returns identifiers for all images currently pulled on this host
+        /// </summary>
+        public IEnumerable<Identifier> ListImages()
         {
-            if (disposing) {
-                if (Location == null)
-                {
-                    Util.DeleteDirectory(Location);
-                    Location = null;
-                }
+            var stdout = Util.Command("docker", "image list --no-trunc --format \"{{ json . }}\"", block: false);
+
+            string line = null;
+            while ((line = stdout.ReadLine()) != null)
+            {
+                var imageJson = JObject.Parse(line);
+                var identifier = new Identifier (
+                    (imageJson["Repository"] as JValue).Value as string,
+                    (imageJson["Tag"] as JValue).Value as string,
+                    Platform
+                );
+                Debug.Assert(identifier.Name != null && identifier.Tag != null);
+                yield return identifier;
             }
         }
 
-        private string branch;
-        private string commit;
-    }
+        /// <summary>
+        ///   Uses the appropriate package manager to get all packages installed in a given image
+        ///   Works for images based on debian, alpine, and centos/rhell
+        ///   The basename parameter provides a hint to which distrobution the image is
+        ///   (Only works for Linux containers)
+        /// </summary>
+        public ICollection<string> InstalledPackages(Identifier identifier, string baseName=null)
+        {
+            ICollection<string> result;
+            if (packageCache.TryGetValue(identifier, out result))
+            {
+                return result;
+            }
 
-    public class Repository
-    {
-        public string Name { get; set; }
-        public Dictionary<Identifier, Image> Images = new Dictionary<Identifier, Image>();
-    }
+            // Ensure the image is on disk
+            // Not strictly needed because `run` will do this automatically,
+            // but we do this explicily it will be tracked in our cache
+            PullImage(identifier);
 
-    public class Image
-    {
-        public string Dockerfile { get; set; }
-        public Git Git { get; set; }
-        public Repository Repository { get; set; }
-        public Platform Platform { get; set; }
-        public HashSet<string> Tags { get; } = new HashSet<string>();
-        public Identifier Base { get; set; }
-    }
+            string pkgManager = null;
+            string listCommand;
+            string listFormat;
+            StreamReader stdout;
 
-    public class DockerHarness : IDisposable
-    {
-        private HashSet<Identifier> pulledImages = new HashSet<Identifier>();
-        private Dictionary<string, Git> gitCache = new Dictionary<string, Git>();
+            switch (baseName ?? identifier.Name)
+            {
+                case "debian":
+                case "ubuntu":
+                case "buildpack-deps":
+                    pkgManager = "dpkg";
+                    break;
+                case "alpine":
+                    pkgManager = "apk";
+                    break;
+                case "centos":
+                    pkgManager = "yum";
+                    break;
+                default:
+                    // Figure out which package manager this image uses
+                    stdout = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} sh -c \"which apk dpkg 2> /dev/null || command -v yum 2> /dev/null\"", block: false, handler: (p) => p.ExitCode == 127);
+                    var path = stdout.ReadToEnd().Trim();
+
+                    foreach (var cmd in new[] { "dpkg", "apk", "yum" })
+                    {
+                        if (path.EndsWith(cmd))
+                        {
+                            pkgManager = cmd;
+                            break;
+                        }
+                    }
+                    if (pkgManager == null)
+                    {
+                        throw new NotSupportedException($"Could not determine package manager for '{identifier.Name}:{identifier.Tag}'");
+                    }
+                    break;
+            }
+
+            switch (pkgManager)
+            {
+                case "dpkg":
+                    listCommand = "dpkg -l";
+                    listFormat = @"^\w{2,3}\s+(?<name>[^:\s]+)*";
+                    break;
+                case "apk":
+                    listCommand = "apk info";
+                    listFormat = @"^(?<name>\S+)";
+                    break;
+                case "yum":
+                    listCommand = "yum list installed";
+                    listFormat = @"^(?<name>[^.\s]+).*@";
+                    break;
+                default:
+                    throw new NotSupportedException($"Unrecognized package manager '{pkgManager}'");
+            }
+
+            stdout = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} {listCommand}", block: false);
+
+            string line = null;
+            result = new List<string>();
+            while ((line = stdout.ReadLine()) != null)
+            {
+                var match = Regex.Match(line, listFormat);
+                if (match.Success) {
+                    result.Add(match.Groups["name"].Value);
+                }
+            }
+
+            Debug.Assert(result.Count > 0);
+            packageCache.Add(identifier, result);
+            return result;
+        }
+
+#region private
+        private LruSet<Identifier> pulledImages = new LruSet<Identifier>();
+        private IDictionary<Identifier, ICollection<string>> packageCache = new Dictionary<Identifier, ICollection<string>>();
+        private IDictionary<string, Git> gitCache = new Dictionary<string, Git>();
+        private Platform plat = null;
+
+        /// <summary>
+        ///   Removes some of portion of pulled image tags from disk (cache)
+        ///   The images are removed in least-recently-used (LRU) order and
+        ///   1/5 of pulled images are deleted each time
+        /// </summary>
+        private void EvictImages()
+        {
+            int count = pulledImages.Count / 5; // This ratio is more or less arbitrary
+            for (int i=0; i < count; i++)
+            {
+                var evicted = pulledImages.Evict();
+                // TODO: This may fail under certain conditions. Consider how to handle it
+                // NOTE: `image rm` removes the tag. The image will only be delted when all of it's tags are deleted
+                Util.Command("docker", $"image rm {evicted.Name}:{evicted.Tag}");
+            }
+        }
+
+        /// <summary>
+        ///   Ensures that the identified image resides on this server
+        ///   The image will be pulled if the tag is not in a set of known pulled images
+        ///   Images may be removed to make space on the disk by calling EvictImages
+        /// </summary>
+        private void PullImage(Identifier identifier)
+        {
+            // Pull the docker image. If there is not enough space on disk, evict some images and try again
+            while (!pulledImages.Refresh(identifier))
+            {
+                using (var process = Util.Run("docker", $"pull {identifier.Name}:{identifier.Tag}"))
+                {
+                    process.WaitForExit();
+
+                    if (process.ExitCode != 0)
+                    {
+                        if (process.StandardError.ReadToEnd().Contains("no space left on device"))
+                        {
+                            EvictImages();
+                            continue;
+                        }
+                        throw new DockerException($"Docker image pull exited with code {process.ExitCode}. Error output follows:\n{process.StandardError.ReadToEnd()}");
+                    }
+                    else
+                    {
+                        pulledImages.Add(identifier);
+                    }
+                }
+            }
+        }
 
         private Git GitCache(Git git)
         {
@@ -240,64 +501,67 @@ namespace DockerHarness
             }
         }
 
-        private Repository ParseManifest(string manifest, Git git) {
+        private IEnumerable<Repository> ParseManifest(string manifest, Git git)
+        {
             // Read the manifest into a JSON object and pull out the repo
-            var repoJson = JObject.Parse(manifest)["repos"][0];
-
-            var repo = new Repository {
-                Name = repoJson["name"].ToString()
-            };
-
-            // Parse the manifest to pull out image information
-            foreach (var imageJson in repoJson["images"])
+            var manifestJson = JObject.Parse(manifest);
+            foreach (var repoJson in manifestJson["repos"])
             {
-                foreach (var platformJson in imageJson["platforms"])
+                var repo = new Repository {
+                    Name = repoJson["name"].ToString()
+                };
+
+                // Parse the manifest to pull out image information
+                foreach (var imageJson in repoJson["images"])
                 {
-                    // Get the platform specification
-                    var plat = new Platform {
-                        OS = platformJson["os"].ToString(),
-                        Architecture = platformJson["architecture"]?.ToString() ?? "amd64"
-                    };
-
-                    // If there is more specification on OS or Arch add it after a ':'
-                    if (platformJson["osVersion"] != null) {
-                        plat.OS = String.Join(":", plat.OS, platformJson["osVersion"].ToString());
-                    }
-                    if (platformJson["variant"] != null) {
-                        plat.Architecture = String.Join(":", plat.Architecture, platformJson["variant"].ToString());
-                    }
-
-                    var img = new Image {
-                        Platform = plat,
-                        Dockerfile = platformJson["dockerfile"].ToString(),
-                        Repository = repo,
-                        Git = git
-                    };
-
-                    // Assign all the tags that map to this image
-                    foreach (var tag in (platformJson["tags"] as JObject).Properties())
+                    foreach (var platformJson in imageJson["platforms"])
                     {
-                        img.Tags.Add(tag.Name);
-                        repo.Images.Add(new Identifier(repo.Name, tag.Name, plat), img);
-                    }
+                        // Get the platform specification
+                        var plat = new Platform {
+                            Os = platformJson["os"].ToString(),
+                            Architecture = platformJson["architecture"]?.ToString() ?? "amd64"
+                        };
 
-                    if (imageJson["sharedTags"] != null)
-                    {
-                        foreach (var tag in (imageJson["sharedTags"] as JObject).Properties())
+                        // If there is more specification on OS or Arch add it after a ':'
+                        if (platformJson["osVersion"] != null) {
+                            plat.Os = String.Join(":", plat.Os, platformJson["osVersion"].ToString());
+                        }
+                        if (platformJson["variant"] != null) {
+                            plat.Architecture = String.Join(":", plat.Architecture, platformJson["variant"].ToString());
+                        }
+
+                        var img = new Image {
+                            Platform = plat,
+                            Dockerfile = platformJson["dockerfile"].ToString(),
+                            Repository = repo,
+                            Git = git
+                        };
+
+                        // Assign all the tags that map to this image
+                        foreach (var tag in (platformJson["tags"] as JObject).Properties())
                         {
                             img.Tags.Add(tag.Name);
                             repo.Images.Add(new Identifier(repo.Name, tag.Name, plat), img);
                         }
+
+                        if (imageJson["sharedTags"] != null)
+                        {
+                            foreach (var tag in (imageJson["sharedTags"] as JObject).Properties())
+                            {
+                                img.Tags.Add(tag.Name);
+                                repo.Images.Add(new Identifier(repo.Name, tag.Name, plat), img);
+                            }
+                        }
                     }
                 }
-            }
 
-            return repo;
+                yield return repo;
+            }
         }
 
         private string PlatformKeyCombine(Platform platform, string key)
         {
-            if (platform.OS == "linux")
+            if (platform.Os == "linux")
             {
                 if (platform.Architecture == "amd64")
                 {
@@ -310,7 +574,7 @@ namespace DockerHarness
             }
             else
             {
-                return String.Join("-", platform.OS, platform.Architecture, key);
+                return String.Join("-", platform.Os, platform.Architecture, key);
             }
         }
 
@@ -335,7 +599,7 @@ namespace DockerHarness
             {
                 // Tags is mandatory
                 var tags = block["Tags"].Split(new[]{',', ' '}, StringSplitOptions.RemoveEmptyEntries);
-                
+
                 // Ignore shared tags unless code is written to resolve constraints
                 // This means shared tags won't apear in the final output
                 /*if (block.TryGetValue("SharedTags", out var sharedTags))
@@ -344,7 +608,7 @@ namespace DockerHarness
                         sharedTags.Split(new[]{',', ' '}, StringSplitOptions.RemoveEmptyEntries)
                     ).ToArray();
                 }*/
-                
+
                 List<Platform> platforms = null;
                 if (block.TryGetValue("Architectures", out var platStrs))
                 {
@@ -353,7 +617,7 @@ namespace DockerHarness
                         if (split.Length == 1)
                         {
                             return new Platform {
-                                OS = "linux",
+                                Os = "linux",
                                 Architecture = split[0]
                             };
                         }
@@ -361,7 +625,7 @@ namespace DockerHarness
                         {
                             Debug.Assert(split.Length == 2);
                             return new Platform {
-                                OS = split[0],
+                                Os = split[0],
                                 Architecture = split[1]
                             };
                         }
@@ -369,7 +633,7 @@ namespace DockerHarness
                 }
                 else
                 {
-                    platforms = new List<Platform> { new Platform { OS = "linux", Architecture = "arm64" } };
+                    platforms = new List<Platform> { new Platform { Os = "linux", Architecture = "arm64" } };
                 }
 
                 foreach (var platform in platforms) {
@@ -424,139 +688,7 @@ namespace DockerHarness
 
             return repo;
         }
-
-        public Repository LoadRepository(string gitUrl, string manifestPath = "manifest.json")
-        {
-            var git = GitCache(new Git(gitUrl));
-
-            Repository repo = null;
-            var manifest = File.ReadAllText(Path.Combine(git.Location.FullName, manifestPath));
-            if (Path.GetExtension(manifestPath) == ".json")
-            {
-                repo = ParseManifest(manifest, git);
-            }
-            else if (Path.GetExtension(manifestPath) == String.Empty)
-            {
-                repo = ParseLibrary(manifest, Path.GetFileName(manifestPath));
-            }
-            else
-            {
-                throw new InvalidOperationException("Unrecognized file format");
-            }
-
-            // Parse each Dockerfile to extract the base image tag
-            // This will result in a form of tree with root nodes being a out-of-repo images (including 'scratch')
-            foreach (var image in repo.Images.Values)
-            {
-                var dir = GitCache(image.Git).Location;
-
-                string filename = Path.Combine(dir.FullName, image.Dockerfile);
-                if (File.GetAttributes(filename).HasFlag(FileAttributes.Directory))
-                {
-                    filename = Path.Combine(filename, "Dockerfile");
-                }
-
-                using (var dockerfile = new StreamReader(filename))
-                {
-                    // Regex to match a 'FROM' line and pull out the image name and tag
-                    // Assumption: The base image is not specified in any ARG options
-                    var pattern = new Regex(@"^FROM\s+(?<name>(?:\S+/)?(?:[^:\s]+))(?::(?<tag>\S+))?");
-                    string baseName = null;
-                    string baseTag = null;
-                    string line = null;
-
-                    // Read every line because the last ocurrance of 'FROM' determines the base image
-                    while ((line = dockerfile.ReadLine()) != null)
-                    {
-                        var match = pattern.Match(line);
-                        if (match.Success)
-                        {
-                            baseName = match.Groups["name"].Value;
-                            if (match.Groups["tag"].Success) {
-                                baseTag = match.Groups["tag"].Value;
-                            }
-                            else {
-                                baseTag = "latest";
-                            }
-                        }
-                    }
-
-                    Debug.Assert(baseName != null && baseTag != null, $"Failed to find the base image from {filename}");
-
-                    image.Base = new Identifier(baseName, baseTag, image.Platform);
-                }
-            }
-
-            return repo;
-        }
-
-        public string SupportedOS()
-        {
-            using (var command = Util.Command("docker", "info --format \"{{ .OSType }}\""))
-            {
-                return command.StandardOutput.ReadToEnd().Trim();
-            }
-        }
-
-        public JArray Inspect(Identifier identifier)
-        {
-            if (!pulledImages.Contains(identifier))
-            {
-                using (var command = Util.Command("docker", $"pull {identifier.Name}:{identifier.Tag}"))
-                {
-                    command.WaitForExit();
-                }
-                pulledImages.Add(identifier);
-            }
-
-            using (var command = Util.Command("docker", $"image inspect {identifier.Name}:{identifier.Tag}"))
-            {
-                return JArray.Parse(command.StandardOutput.ReadToEnd());
-            }
-        }
-
-        public IEnumerable<string> InstalledPackages(Identifier identifier, string baseName=null)
-        {
-            string listCommand;
-            string listFormat;
-
-            switch (baseName ?? identifier.Name)
-            {
-                case "debian":
-                case "ubuntu":
-                case "buildpack-deps":
-                    listCommand = "dpkg -l";
-                    listFormat = @"^\w{2,3}\s+(?<name>[^:\s]+)*";
-                    break;
-                case "alpine":
-                    listCommand = "apk info";
-                    listFormat = @"^(?<name>\S+)";
-                    break;
-                case "centos":
-                    listCommand = "yum list installed";
-                    listFormat = @"^(?<name>[^.\s]+).*@";
-                    break;
-                default:
-                    throw new NotSupportedException($"Unable to list packages for {identifier.Name}");
-            }
-
-            using (var command = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} {listCommand}"))
-            {
-                string line = null;
-                bool yielded = false;
-
-                // Read every line because the last ocurrance of 'FROM' determines the base image
-                while ((line = command.StandardOutput.ReadLine()) != null)
-                {
-                    var match = Regex.Match(line, listFormat);
-                    if (match.Success) {
-                        yield return match.Groups["name"].Value;
-                        yielded = true;
-                    }
-                }
-                Debug.Assert(yielded);
-            }
-        }
+#endregion
 
         public void Dispose()
         {
