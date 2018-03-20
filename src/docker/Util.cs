@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Runtime.Serialization;
 
 namespace DockerHarness
 {
@@ -126,6 +127,7 @@ namespace DockerHarness
         }
     }
 
+    [Serializable()]
     internal class CommandException : Exception
     {
         public CommandException() { }
