@@ -18,7 +18,8 @@ namespace DockerHarness
         public string Branch
         {
             get => branch;
-            set {
+            set
+            {
                 if (branch != value)
                 {
                     branch = value;
@@ -31,7 +32,8 @@ namespace DockerHarness
         public string Commit
         {
             get => commit;
-            set {
+            set
+            {
                 if (commit != value)
                 {
                     commit = value;

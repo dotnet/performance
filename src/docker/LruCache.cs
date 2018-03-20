@@ -8,12 +8,15 @@ namespace DockerHarness
     {
         private class Entry
         {
-            public TValue Value {
-                get {
+            public TValue Value
+            {
+                get
+                {
                     LastUsed = Stopwatch.GetTimestamp();
                     return val;
                 }
-                set {
+                set
+                {
                     LastUsed = Stopwatch.GetTimestamp();
                     val = value;
                 }
@@ -56,13 +59,15 @@ namespace DockerHarness
         public int Count { get => heap.Count; }
 
         public TValue this[TKey k] {
-            get {
+            get
+            {
                 var index = dict[k];
                 var result = heap[index].Value;
                 Sink(index);
                 return result;
             }
-            set {
+            set
+            {
                 if (dict.TryGetValue(k, out var index))
                 {
                     heap[index].Value = value;
@@ -77,8 +82,10 @@ namespace DockerHarness
 
         public ICollection<TKey> Keys { get => dict.Keys; }
 
-        public IEnumerable<TValue> Values {
-            get {
+        public IEnumerable<TValue> Values
+        {
+            get
+            {
                 foreach (TKey k in Keys)
                 {
                     yield return this[k];

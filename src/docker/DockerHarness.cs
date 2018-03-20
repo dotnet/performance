@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Runtime.Serialization;
 
 namespace DockerHarness
 {
@@ -50,9 +51,15 @@ namespace DockerHarness
             );
         }
 
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Identifier);
+        }
+
         public override int GetHashCode()
         {
-            unchecked {
+            unchecked
+            {
                 return (
                     ((Name?.GetHashCode() ?? 0) * 29) ^
                     ((Tag?.GetHashCode() ?? 0) * 83) ^
@@ -89,9 +96,15 @@ namespace DockerHarness
             );
         }
 
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Platform);
+        }
+
         public override int GetHashCode()
         {
-            unchecked {
+            unchecked
+            {
                 return (
                     ((Os?.GetHashCode() ?? 0) * 163) ^
                     ((Architecture?.GetHashCode() ?? 0) * 197)
@@ -117,6 +130,7 @@ namespace DockerHarness
         public IDictionary<Identifier, Image> Images = new Dictionary<Identifier, Image>();
 
         public bool Equals(Repository other) => other != null && this.Name == other.Name;
+        public override bool Equals(object obj) => Equals(obj as Repository);
         public override int GetHashCode() => this.Name?.GetHashCode() ?? 0;
     }
 
@@ -155,12 +169,14 @@ namespace DockerHarness
         /// </summary>
         public Identifier Parent { get; set; }
     }
-    
+
+    [Serializable()]
     internal class DockerException : CommandException
     {
         public DockerException() { }
         public DockerException(string msg) : base(msg) { }
         public DockerException(string msg, Exception inner) : base(msg, inner) { }
+        protected DockerException(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
     }
 
     /// <summary>
@@ -184,7 +200,8 @@ namespace DockerHarness
         /// </summary>
         public Platform Platform
         {
-            get {
+            get
+            {
                 if (plat == null)
                 {
                     var stdout = Util.Command("docker", "version --format \"{{ .Server.Arch }}\n{{ .Server.Os }}\"", block: false);
@@ -266,7 +283,8 @@ namespace DockerHarness
                                 if (match.Groups["tag"].Success) {
                                     baseTag = match.Groups["tag"].Value;
                                 }
-                                else {
+                                else
+                                {
                                     baseTag = "latest";
                                 }
                             }
@@ -331,7 +349,7 @@ namespace DockerHarness
             {
                 return result;
             }
-            
+
             // Ensure the image is on disk
             // Not strictly needed because `run` will do this automatically,
             // but we do this explicily it will be tracked in our cache
@@ -428,10 +446,11 @@ namespace DockerHarness
             {
                 var evicted = pulledImages.Evict();
                 // TODO: This may fail under certain conditions. Consider how to handle it
+                // NOTE: `image rm` removes the tag. The image will only be delted when all of it's tags are deleted
                 Util.Command("docker", $"image rm {evicted.Name}:{evicted.Tag}");
             }
         }
-        
+
         /// <summary>
         ///   Ensures that the identified image resides on this server
         ///   The image will be pulled if the tag is not in a set of known pulled images

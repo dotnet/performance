@@ -12,7 +12,10 @@ using System.Threading;
 
 namespace DockerHarness
 {
-    // https://stackoverflow.com/a/8946825
+    /// <summary>
+    /// An IEqualityComparer implementaion which uses reference equality
+    /// https://stackoverflow.com/a/8946825
+    /// </summary>
     internal sealed class IdentityEqualityComparer<T> : IEqualityComparer<T> where T : class
     {
         public int GetHashCode(T value)
@@ -96,13 +99,15 @@ namespace DockerHarness
                         block[key] = val;
                         lastKey = key;
                     }
-                    else {
+                    else
+                    {
                         Debug.Assert(split.Length == 1);
                         if (lastKey != null) {
                             // This line is a continuation
                             block[lastKey] += split[0];
                         }
-                        else {
+                        else
+                        {
                             throw new InvalidOperationException($"RFC2822 syntax error. Line {lineNum} is has no key and is not a continuation");
                         }
                     }
@@ -126,6 +131,7 @@ namespace DockerHarness
         public CommandException() { }
         public CommandException(string msg) : base(msg) { }
         public CommandException(string msg, Exception inner) : base(msg, inner) { }
+        protected CommandException(SerializationInfo info, StreamingContext ctx) : base(info, ctx) { }
     }
 
     internal static class Util
