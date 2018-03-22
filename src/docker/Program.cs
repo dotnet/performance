@@ -44,51 +44,41 @@ namespace DockerHarness
         public static string KustoReport(DockerHarness harness)
         {
             var report = new StringBuilder();
-            var seen = new HashSet<Image>(new IdentityEqualityComparer<Image>());
 
             report.AppendCsvRow("Name","Tag","ParentName","ParentTag","BaseName","BaseTag","Size","AddedSize","NumAddedPackages","AddedPackages","Inspect", "AllTags");
-            foreach (var repo in harness.Repositories)
+            foreach (var image in harness.SupportedImages())
             {
-                foreach (var image in repo.Images.Values)
+                // Pick a tag to identify this image with. They all work, but the shortest is the most stable across builds
+                var id = new Identifier(image.Repository.Name, image.Tags.OrderBy(tag => tag.Length).First(), image.Platform);
+
+                try
                 {
-                    if (seen.Add(image))
+                    var imageInfo = harness.Inspect(id)[0];
+                    var parentInfo = harness.Inspect(image.Parent)[0];
+                    var imageSize = Int64.Parse(imageInfo["Size"].ToString());
+                    var parentSize = Int64.Parse(parentInfo["Size"].ToString());
+
+                    var baseId = harness.Base(image);
+
+                    // Get packages if we are on Linux
+                    var packages = new string[]{};
+                    if (image.Platform.Os == "linux")
                     {
-                        if (image.Platform.Equals(harness.Platform))
-                        {
-                            var id = new Identifier(repo.Name, image.Tags.OrderBy(tag => tag.Length).First(), image.Platform);
-                            try
-                            {
-                                var imageInfo = harness.Inspect(id)[0];
-                                var parentInfo = harness.Inspect(image.Parent)[0];
-                                var imageSize = Int64.Parse(imageInfo["Size"].ToString());
-                                var parentSize = Int64.Parse(parentInfo["Size"].ToString());
-
-                                var foundation = id;
-                                while (harness.Images.TryGetValue(foundation, out var img)) {
-                                    foundation = img.Parent;
-                                }
-
-                                var packages = new string[]{};
-                                if (image.Platform.Os == "linux")
-                                {
-                                    packages = harness.InstalledPackages(id, foundation.Name).Except(harness.InstalledPackages(image.Parent, foundation.Name)).ToArray();
-                                }
-
-                                report.AppendCsvRow(
-                                    id.Name, id.Tag,
-                                    image.Parent.Name, image.Parent.Tag,
-                                    foundation.Name, foundation.Tag,
-                                    imageSize, imageSize - parentSize,
-                                    packages.Length, String.Join(" ", packages),
-                                    imageInfo.ToString(), String.Join(" ", image.Tags)
-                                );
-                            }
-                            catch (DockerException e)
-                            {
-                                Console.Error.WriteLine($"Failed to gather information on {id.Name}:{id.Tag} due to {e}");
-                            }
-                        }
+                        packages = harness.InstalledPackages(id, baseId.Name).Except(harness.InstalledPackages(image.Parent, baseId.Name)).ToArray();
                     }
+
+                    report.AppendCsvRow(
+                        id.Name, id.Tag,
+                        image.Parent.Name, image.Parent.Tag,
+                        baseId.Name, baseId.Tag,
+                        imageSize, imageSize - parentSize,
+                        packages.Length, String.Join(" ", packages),
+                        imageInfo.ToString(), String.Join(" ", image.Tags)
+                    );
+                }
+                catch (DockerException e)
+                {
+                    Console.Error.WriteLine($"Failed to gather information on {id.Name}:{id.Tag} due to {e}");
                 }
             }
 

@@ -158,7 +158,7 @@ namespace DockerHarness
         ///   The platform which this image is built for
         /// </summary>
         public Platform Platform { get; set; }
-
+        
         /// <summary>
         ///   All tags which refer to this image in it's reposiroty
         /// </summary>
@@ -227,7 +227,7 @@ namespace DockerHarness
         }
 
         /// <summary>
-        ///   Returns identifiers for all images currently pulled on this host
+        ///   Yields identifiers for all images currently pulled on this host
         /// </summary>
         public IEnumerable<Identifier> ListImages()
         {
@@ -245,6 +245,36 @@ namespace DockerHarness
                 Debug.Assert(identifier.Name != null && identifier.Tag != null);
                 yield return identifier;
             }
+        }
+
+        /// <summary>
+        ///   Yields all images which are compatible with this host
+        ///   An image is compatible if it is built for the same OS / Architecture
+        /// </summary>
+        public IEnumerable<Image> SupportedImages()
+        {
+            var seen = new HashSet<Image>(new IdentityEqualityComparer<Image>());
+
+            foreach (var image in Images.Values)
+            {
+                if (seen.Add(image) && image.Platform.Equals(Platform))
+                {
+                    yield return image;
+                }
+            }
+        }
+
+        /// <summary>
+        ///   Walks the image tree to identify the root image (e.g. debian, alpine)
+        ///   Returns the first identifier this harness does not recognize
+        /// </summary>
+        public Identifier Base(Image image)
+        {
+            var baseId = image.Parent;
+            while (baseId != null && Images.TryGetValue(baseId, out var img)) {
+                baseId = img.Parent;
+            }
+            return baseId;
         }
 
         /// <summary>
