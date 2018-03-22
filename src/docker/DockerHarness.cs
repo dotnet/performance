@@ -227,6 +227,27 @@ namespace DockerHarness
         }
 
         /// <summary>
+        ///   Returns identifiers for all images currently pulled on this host
+        /// </summary>
+        public IEnumerable<Identifier> ListImages()
+        {
+            var stdout = Util.Command("docker", "image list --no-trunc --format \"{{ json . }}\"", block: false);
+
+            string line = null;
+            while ((line = stdout.ReadLine()) != null)
+            {
+                var imageJson = JObject.Parse(line);
+                var identifier = new Identifier (
+                    (imageJson["Repository"] as JValue).Value as string,
+                    (imageJson["Tag"] as JValue).Value as string,
+                    Platform
+                );
+                Debug.Assert(identifier.Name != null && identifier.Tag != null);
+                yield return identifier;
+            }
+        }
+
+        /// <summary>
         ///   Given the url of a git repository and the path to the manifest file
         ///   (either in official-library format or JSON format) this will parse
         ///   and load the manifest into this harness
@@ -313,27 +334,6 @@ namespace DockerHarness
         {
             PullImage(identifier);
             return JArray.Parse(Util.Command("docker", $"image inspect {identifier.Name}:{identifier.Tag}", block: false).ReadToEnd());
-        }
-
-        /// <summary>
-        ///   Returns identifiers for all images currently pulled on this host
-        /// </summary>
-        public IEnumerable<Identifier> ListImages()
-        {
-            var stdout = Util.Command("docker", "image list --no-trunc --format \"{{ json . }}\"", block: false);
-
-            string line = null;
-            while ((line = stdout.ReadLine()) != null)
-            {
-                var imageJson = JObject.Parse(line);
-                var identifier = new Identifier (
-                    (imageJson["Repository"] as JValue).Value as string,
-                    (imageJson["Tag"] as JValue).Value as string,
-                    Platform
-                );
-                Debug.Assert(identifier.Name != null && identifier.Tag != null);
-                yield return identifier;
-            }
         }
 
         /// <summary>
