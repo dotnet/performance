@@ -158,7 +158,7 @@ namespace DockerHarness
         ///   The platform which this image is built for
         /// </summary>
         public Platform Platform { get; set; }
-        
+
         /// <summary>
         ///   All tags which refer to this image in it's reposiroty
         /// </summary>
@@ -265,16 +265,14 @@ namespace DockerHarness
         }
 
         /// <summary>
-        ///   Walks the image tree to identify the root image (e.g. debian, alpine)
-        ///   Returns the first identifier this harness does not recognize
+        ///   Iterates up the image tree yielding identifiers for ancestors
         /// </summary>
-        public Identifier Base(Image image)
+        public IEnumerable<Identifier> Ancestors(Image image)
         {
-            var baseId = image.Parent;
-            while (baseId != null && Images.TryGetValue(baseId, out var img)) {
-                baseId = img.Parent;
-            }
-            return baseId;
+            do
+            {
+                yield return image.Parent;
+            } while (Images.TryGetValue(image.Parent, out image) && image != null);
         }
 
         /// <summary>
@@ -374,7 +372,7 @@ namespace DockerHarness
         /// </summary>
         public ICollection<string> InstalledPackages(Identifier identifier, string baseName=null)
         {
-            ICollection<string> result;
+            ICollection<string> result = null;
             if (packageCache.TryGetValue(identifier, out result))
             {
                 return result;

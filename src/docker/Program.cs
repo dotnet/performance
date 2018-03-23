@@ -16,6 +16,7 @@ namespace DockerHarness
     {
         public static string RepositoriesJsonPath = Environment.GetEnvironmentVariable("REPOS_JSON_PATH") ?? "repositories.json";
         public static string KustoReportPath = Environment.GetEnvironmentVariable("KUSTO_REPORT_PATH") ?? "reports/kusto.csv";
+        public static string BenchviewReportPath = Environment.GetEnvironmentVariable("BV_REPORT_PATH") ?? "reports/benchview.csv";
 
         static void Main(string[] args)
         {
@@ -38,6 +39,7 @@ namespace DockerHarness
                 }
 
                 File.WriteAllText(KustoReportPath, KustoReport(harness));
+                File.WriteAllText(BenchviewReportPath, BenchviewReport(harness));
             }
         }
 
@@ -58,7 +60,7 @@ namespace DockerHarness
                     var imageSize = Int64.Parse(imageInfo["Size"].ToString());
                     var parentSize = Int64.Parse(parentInfo["Size"].ToString());
 
-                    var baseId = harness.Base(image);
+                    var baseId = harness.Ancestors(image).Last();
 
                     // Get packages if we are on Linux
                     var packages = new string[]{};
@@ -82,6 +84,45 @@ namespace DockerHarness
                 }
             }
 
+            return report.ToString();
+        }
+
+        public static string BenchviewReport(DockerHarness harness)
+        {
+            var lines = new List<string>();
+
+            foreach (var image in harness.SupportedImages())
+            {
+                foreach (var tag in image.Tags)
+                {
+                    var id = new Identifier(image.Repository.Name, tag, image.Platform);
+                    try
+                    {
+                        var size = harness.Inspect(id)[0]["Size"].ToString();
+                        var ancestors = harness.Ancestors(image).Reverse().Select(i => i.Name);
+
+                        var line = new List<string>();
+                        line.Add($"{image.Platform.Os}/{image.Platform.Architecture}");
+                        line.AddRange(ancestors);
+                        line.Add(id.Name);
+                        line.Add(id.Tag);
+                        line.Add(size);
+
+                        lines.Add(String.Join(",", line.Select(s => Csv.Escape(s))));
+                    }
+                    catch (DockerException e)
+                    {
+                        Console.Error.WriteLine($"Failed to gather information on {id.Name}:{id.Tag} due to {e}");
+                    }
+                }
+            }
+
+            var report = new StringBuilder();
+            lines.Sort();
+            foreach (var line in lines)
+            {
+                report.AppendLine(line);
+            }
             return report.ToString();
         }
     }
