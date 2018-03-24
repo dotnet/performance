@@ -90,38 +90,57 @@ namespace DockerHarness
         public static string BenchviewReport(DockerHarness harness)
         {
             var lines = new List<string>();
+            var unknowns = new HashSet<Identifier>();
+
+            Func<Identifier, Image, string> generateLine = (id, image) =>
+            {
+                try
+                {
+                    var size = harness.Inspect(id)[0]["Size"].ToString();
+
+                    var line = new List<string>();
+                    line.Add($"{id.Platform.Os}/{id.Platform.Architecture}");
+                    if (image != null)
+                    {
+                        var ancestors = harness.Ancestors(image).Reverse().Select(i => i.Name);
+                        line.AddRange(ancestors);
+                    }
+                    line.Add(id.Name);
+                    line.Add(id.Tag);
+                    line.Add(size);
+
+                    return String.Join(",", line.Select(s => Csv.Escape(s)));
+                }
+                catch (DockerException e)
+                {
+                    Console.Error.WriteLine($"Failed to gather information on {id.Name}:{id.Tag} due to {e}");
+                    return null;
+                }
+            };
 
             foreach (var image in harness.SupportedImages())
             {
                 foreach (var tag in image.Tags)
                 {
                     var id = new Identifier(image.Repository.Name, tag, image.Platform);
-                    try
-                    {
-                        var size = harness.Inspect(id)[0]["Size"].ToString();
-                        var ancestors = harness.Ancestors(image).Reverse().Select(i => i.Name);
-
-                        var line = new List<string>();
-                        line.Add($"{image.Platform.Os}/{image.Platform.Architecture}");
-                        line.AddRange(ancestors);
-                        line.Add(id.Name);
-                        line.Add(id.Tag);
-                        line.Add(size);
-
-                        lines.Add(String.Join(",", line.Select(s => Csv.Escape(s))));
-                    }
-                    catch (DockerException e)
-                    {
-                        Console.Error.WriteLine($"Failed to gather information on {id.Name}:{id.Tag} due to {e}");
-                    }
+                    unknowns.UnionWith(harness.Ancestors(image).Except(harness.Images.Keys));
+                    lines.Add(generateLine(id, image));
                 }
+            }
+
+            foreach (var id in unknowns)
+            {
+                lines.Add(generateLine(id, null));
             }
 
             var report = new StringBuilder();
             lines.Sort();
             foreach (var line in lines)
             {
-                report.AppendLine(line);
+                if (line != null)
+                {
+                    report.AppendLine(line);
+                }
             }
             return report.ToString();
         }
