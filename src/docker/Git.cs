@@ -12,9 +12,25 @@ using System.Threading;
 
 namespace DockerHarness
 {
+    /// <summary>
+    ///   A class to identify and clone git repositories
+    ///   It identifies a git repo as the combination of Url, Branch, and Commit
+    ///   It also contains functions to clone and checkout git repos
+    /// </summary>
     public class Git : IDisposable
     {
+        /// <summary>
+        ///   The URL where this repository lives
+        ///   It may be any string acceptable to `git clone`
+        ///   Generally this is a GitHub HTTPS URL
+        /// </summary>
         public string Url { get; private set; }
+
+        /// <summary>
+        ///   The branch within the repo this object refers to
+        ///   Setting this will ensure a branch is fetched for a cloned repo
+        ///   If left null, it is assumed to be the deafault branch for the repo
+        /// </summary>
         public string Branch
         {
             get => branch;
@@ -25,10 +41,19 @@ namespace DockerHarness
                     branch = value;
                     if (Location != null) {
                         Fetch();
+                        if (Commit == null)
+                        {
+                            Checkout();
+                        }
                     }
                 }
             }
         }
+
+        /// <summary>
+        ///   The specific commit in the repo thiw object refers to
+        ///   If null, it is assumed to be the branch HEAD
+        /// </summary>
         public string Commit
         {
             get => commit;
@@ -43,8 +68,16 @@ namespace DockerHarness
                 }
             }
         }
+
+        /// <summary>
+        ///   DirectoryInfo pointing to the location on disk this repo is cloned
+        ///   Will be null if the repo has not been cloned
+        /// </summary>
         public DirectoryInfo Location { get; private set; }
 
+        /// <summary>
+        ///   A set of branches which have been fetched
+        /// </summary>
         private ISet<string> fetched = new HashSet<string>();
 
         public Git(string url, string branch=null, string commit=null)
@@ -58,6 +91,11 @@ namespace DockerHarness
             Commit = commit;
         }
 
+        /// <summary>
+        ///   Clones the repository, fetching and checking out the appropriate
+        ///   commit as needed
+        ///   Returns the DirectoryInfo of pointing to the directory where it landed
+        /// </summary>
         public DirectoryInfo Clone()
         {
             if (Location == null)
@@ -79,6 +117,9 @@ namespace DockerHarness
             return Location;
         }
 
+        /// <summary>
+        ///   Ensures the current Branch has been fetched
+        /// </summary>
         private void Fetch()
         {
             if (Branch != null)
@@ -91,6 +132,10 @@ namespace DockerHarness
             }
         }
 
+        /// <summary>
+        ///   Ensures the correct commit or branch is checked out
+        ///   If Commit and Branch are null, this assumes "master"
+        /// </summary>
         private void Checkout()
         {
             if (Commit != null)
@@ -113,6 +158,10 @@ namespace DockerHarness
            GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        ///   Cleans up unmanaged resources
+        ///   This Git object may have cloned a repo which should be deleted
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing) {

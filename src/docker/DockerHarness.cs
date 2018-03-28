@@ -170,6 +170,9 @@ namespace DockerHarness
         public Identifier Parent { get; set; }
     }
 
+    /// <summary>
+    ///   Thrown when a docker command fails
+    /// </summary>
     [Serializable()]
     internal class DockerException : CommandException
     {
@@ -204,7 +207,7 @@ namespace DockerHarness
             {
                 if (plat == null)
                 {
-                    var stdout = Util.Command("docker", "version --format \"{{ .Server.Arch }}\n{{ .Server.Os }}\"", block: false);
+                    var stdout = Util.Command("docker", "version --format \"{{ .Server.Arch }}\n{{ .Server.Os }}\"", block: false, handler: DefaultDockerErrorHandler);
 
                     var arch = stdout.ReadLine().Trim();
                     var os = stdout.ReadLine().Trim();
@@ -231,7 +234,7 @@ namespace DockerHarness
         /// </summary>
         public IEnumerable<Identifier> ListImages()
         {
-            var stdout = Util.Command("docker", "image list --no-trunc --format \"{{ json . }}\"", block: false);
+            var stdout = Util.Command("docker", "image list --no-trunc --format \"{{ json . }}\"", block: false, handler: DefaultDockerErrorHandler);
 
             string line = null;
             while ((line = stdout.ReadLine()) != null)
@@ -357,11 +360,18 @@ namespace DockerHarness
 
         /// <summary>
         ///   Returns to output of `docker image inspect` as a parsed JSON array
+        ///   Each element of the array pertains to an image
+        ///   The is likely a single element
         /// </summary>
         public JArray Inspect(Identifier identifier)
         {
             PullImage(identifier);
-            return JArray.Parse(Util.Command("docker", $"image inspect {identifier.Name}:{identifier.Tag}", block: false).ReadToEnd());
+            return JArray.Parse(
+                Util.Command("docker", $"image inspect {identifier.Name}:{identifier.Tag}",
+                    block: false,
+                    handler: DefaultDockerErrorHandler
+                ).ReadToEnd()
+            );
         }
 
         /// <summary>
@@ -403,8 +413,11 @@ namespace DockerHarness
                     break;
                 default:
                     // Figure out which package manager this image uses
-                    stdout = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} sh -c \"which apk dpkg 2> /dev/null || command -v yum 2> /dev/null\"", block: false, handler: (p) => p.ExitCode == 127);
-                    var path = stdout.ReadToEnd().Trim();
+                    var path = Util.Command(
+                        "docker", $"run --rm {identifier.Name}:{identifier.Tag} sh -c \"which apk dpkg 2> /dev/null || command -v yum 2> /dev/null\"", 
+                        block: false,
+                        handler: (p) => p.ExitCode == 127
+                    ).ReadToEnd().Trim();
 
                     foreach (var cmd in new[] { "dpkg", "apk", "yum" })
                     {
@@ -439,7 +452,7 @@ namespace DockerHarness
                     throw new NotSupportedException($"Unrecognized package manager '{pkgManager}'");
             }
 
-            stdout = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} {listCommand}", block: false);
+            stdout = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} {listCommand}", block: false, handler: DefaultDockerErrorHandler);
 
             string line = null;
             result = new List<string>();
@@ -459,8 +472,17 @@ namespace DockerHarness
 #region private
         private LruSet<Identifier> pulledImages = new LruSet<Identifier>();
         private IDictionary<Identifier, ICollection<string>> packageCache = new Dictionary<Identifier, ICollection<string>>();
-        private IDictionary<string, Git> gitCache = new Dictionary<string, Git>();
+        private IDictionary<string, Git> clonedGitRepos = new Dictionary<string, Git>();
         private Platform plat = null;
+        
+        /// <summary>
+        ///   The default when a Docker command returns non-zero
+        ///   Exists to allow for catching Docker command failures higher up
+        /// </summary>
+        private bool DefaultDockerErrorHandler(Process p)
+        {
+            throw new DockerException($"docker {p.Arguments} returned {p.ExitCode}");
+        }
 
         /// <summary>
         ///   Removes some of portion of pulled image tags from disk (cache)
@@ -500,7 +522,9 @@ namespace DockerHarness
                             EvictImages();
                             continue;
                         }
-                        throw new DockerException($"Docker image pull exited with code {process.ExitCode}. Error output follows:\n{process.StandardError.ReadToEnd()}");
+                        throw new DockerException(
+                            $"Docker image pull exited with code {process.ExitCode}. Error output follows:\n{process.StandardError.ReadToEnd()}"
+                        );
                     }
                     else
                     {
@@ -510,9 +534,14 @@ namespace DockerHarness
             }
         }
 
+        /// <summary>
+        ///   Enures that a git repo is cached and cloned onto this host
+        ///   If it is cloned, ensure it is on the right branch/commit
+        ///   If it is not cloned, clone it and add it to the cache
+        /// </summary>
         private Git GitCache(Git git)
         {
-            if (gitCache.TryGetValue(git.Url, out var cached))
+            if (clonedGitRepos.TryGetValue(git.Url, out var cached))
             {
                 // The cached Git repo has been cloned,
                 // but may be on the wrong branch/commit
@@ -524,11 +553,15 @@ namespace DockerHarness
             {
                 // Clone this repo and add it to the cache
                 git.Clone();
-                gitCache.Add(git.Url, git);
+                clonedGitRepos.Add(git.Url, git);
                 return git;
             }
         }
 
+        /// <summary>
+        ///   Parse a manifest of the "Image Manifest v2" schema https://docs.docker.com/registry/spec/manifest-v2-2/
+        ///   This manifest may contain multiple repositories, as is true for https://github.com/aspnet/aspnet-docker
+        /// </summary>
         private IEnumerable<Repository> ParseManifest(string manifest, Git git)
         {
             // Read the manifest into a JSON object and pull out the repo
@@ -587,6 +620,11 @@ namespace DockerHarness
             }
         }
 
+        /// <summary>
+        ///   Combines platform information (OS and/or Architecture) with a key
+        ///   to get the correct key for accessing the Rfc2822 dictionary block
+        ///   Utility function for ParseLibrary
+        /// </summary>
         private string PlatformKeyCombine(Platform platform, string key)
         {
             if (platform.Os == "linux")
@@ -606,6 +644,11 @@ namespace DockerHarness
             }
         }
 
+        /// <summary>
+        ///   Parse a docker manifest formatted as an Rfc2822 document
+        ///   This is the format used by docker official-library images
+        ///   https://github.com/docker-library/official-images/tree/master/library
+        /// </summary>
         private Repository ParseLibrary(string library, string name)
         {
             var blocks = Rfc2822.Parse(library);
@@ -724,10 +767,14 @@ namespace DockerHarness
            GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        ///   Method for disposing of unmanaged resources
+        ///   DockerHarness clones git repos which should be deleted
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing) {
-                foreach (var git in gitCache.Values)
+                foreach (var git in clonedGitRepos.Values)
                 {
                     git.Dispose();
                 }
