@@ -116,8 +116,8 @@
 [master_TP_x64_win_min_nopgo_icon]:     https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_perflab_Windows_NT_x64_min_opt_ryujit_nopgo/lastCompletedBuild/badge/icon (Run Status)
 [master_TP_x64_win_min_pgo]:            https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_perflab_Windows_NT_x64_min_opt_ryujit_pgo/lastCompletedBuild/
 [master_TP_x64_win_min_pgo_icon]:       https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_perflab_Windows_NT_x64_min_opt_ryujit_pgo/lastCompletedBuild/badge/icon (Run Status)
-[rel2.1_TP_x64_nix_full_pgo]:           https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.1/job/perf_throughput_Ubuntu14.04_full_opt/lastCompletedBuild/
-[rel2.1_TP_x64_nix_full_pgo_icon]:      https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.1/job/perf_throughput_Ubuntu14.04_full_opt/lastCompletedBuild/badge/icon (Run Status)
+[rel2.1_TP_x64_nix_full_pgo]:           https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.1/job/perf_throughput_Ubuntu16.04_full_opt/lastCompletedBuild/
+[rel2.1_TP_x64_nix_full_pgo_icon]:      https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.1/job/perf_throughput_Ubuntu16.04_full_opt/lastCompletedBuild/badge/icon (Run Status)
 [rel2.1_TP_x64_win_full_nopgo]:         https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.1/job/perf_throughput_perflab_Windows_NT_x64_full_opt_ryujit_nopgo/lastCompletedBuild/
 [rel2.1_TP_x64_win_full_nopgo_icon]:    https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.1/job/perf_throughput_perflab_Windows_NT_x64_full_opt_ryujit_nopgo/lastCompletedBuild/badge/icon (Run Status)
 [rel2.1_TP_x64_win_full_pgo]:           https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/release_2.1/job/perf_throughput_perflab_Windows_NT_x64_full_opt_ryujit_pgo/lastCompletedBuild/
