@@ -1,4 +1,15 @@
+# Ignore built binaries
 **/bin/
 **/obj/
+
+# Ignore downloaded tools and packages
 **/packages/
+**/tools/
+
+# Ignore the report directory
 src/docker/reports/
+
+# Python files
+**/__pycache__/
+*.pyc
+
