@@ -481,7 +481,7 @@ namespace DockerHarness
         /// </summary>
         private bool DefaultDockerErrorHandler(Process p)
         {
-            throw new DockerException($"docker {p.Arguments} returned {p.ExitCode}");
+            throw new DockerException($"{p.ProcessName} returned {p.ExitCode}");
         }
 
         /// <summary>
