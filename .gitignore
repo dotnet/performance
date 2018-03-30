@@ -2,12 +2,10 @@
 **/bin/
 **/obj/
 
-# Ignore downloaded tools and packages
+# Folders to ignore
 **/packages/
 **/tools/
-
-# Ignore the report directory
-src/docker/reports/
+**/reports/
 
 # Python files
 **/__pycache__/
