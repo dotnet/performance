@@ -203,6 +203,20 @@ namespace DockerHarness
 
             Directory.Delete(dir.FullName);
         }
+        
+        public static void EnsurePathExists(string path)
+        {
+            // If it is not sematically a directory path
+            if (!path.EndsWith(Path.PathSeparator))
+            {
+                path = Path.GetDirectoryName(path);
+            }
+            
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+        }
 
         private static Random Generator = new Random();
         internal static string RandomString(int length)
