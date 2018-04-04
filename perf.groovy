@@ -52,8 +52,8 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
     }
     
     if (os == 'Windows') {
-        def jobName = "container_benchmarks_static_${os}_amd64"
-        def newJob = job(InternalUtilities.getFullJobName(project, jobName, false)) {
+        jobName = "container_benchmarks_static_${os}_amd64"
+        newJob = job(InternalUtilities.getFullJobName(project, jobName, false)) {
             wrappers {
                 credentialsBinding {
                     string('BV_UPLOAD_SAS_TOKEN', 'Container_Perf_BenchView_Sas')
@@ -63,9 +63,10 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
             steps {
                 batchFile("py -3 scripts\\container_benchmarks_ci.py")
             }
+            
+            label("windows_container_perf")
         }
 
-        Utilities.setMachineAffinity(newJob, "Windows_NT", '20170427-elevated')
         InternalUtilities.standardJobSetup(newJob, project, false, "*/${branch}")
 
         Utilities.addPeriodicTrigger(newJob, "@daily", true /*always run*/)
