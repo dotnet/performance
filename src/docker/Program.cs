@@ -15,11 +15,14 @@ namespace DockerHarness
     class Program
     {
         public static string RepositoriesJsonPath = Environment.GetEnvironmentVariable("REPOS_JSON_PATH") ?? "repositories.json";
-        public static string KustoReportPath = Environment.GetEnvironmentVariable("KUSTO_REPORT_PATH") ?? "reports/kusto.csv";
-        public static string BenchviewReportPath = Environment.GetEnvironmentVariable("BV_REPORT_PATH") ?? "reports/benchview.csv";
+        public static string KustoReportPath = Environment.GetEnvironmentVariable("KUSTO_REPORT_PATH") ?? Path.Combine("reports", "kusto.csv");
+        public static string BenchviewReportPath = Environment.GetEnvironmentVariable("BV_REPORT_PATH") ?? Path.Combine("reports", "benchview.csv");
 
         static void Main(string[] args)
         {
+            Util.EnsurePathExists(KustoReportPath);
+            Util.EnsurePathExists(BenchviewReportPath);
+          
             using (var harness = new DockerHarness())
             {
                 // Load repository urls from JSON file
