@@ -1,0 +1,12 @@
+[
+    { "url": "https://github.com/dotnet/dotnet-docker" },
+    { "url": "https://github.com/aspnet/aspnet-docker" },
+    { "url": "https://github.com/docker-library/official-images/", "path": "library/openjdk" },
+    { "url": "https://github.com/docker-library/official-images/", "path": "library/mono" },
+    { "url": "https://github.com/docker-library/official-images/", "path": "library/python" },
+    { "url": "https://github.com/docker-library/official-images/", "path": "library/pypy" },
+    { "url": "https://github.com/docker-library/official-images/", "path": "library/golang" },
+    { "url": "https://github.com/docker-library/official-images/", "path": "library/ruby" },
+    { "url": "https://github.com/docker-library/official-images/", "path": "library/buildpack-deps" },
+    { "url": "https://github.com/docker-library/official-images/", "path": "library/php" }
+]

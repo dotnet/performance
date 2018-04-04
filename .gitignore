@@ -1,4 +1,13 @@
+# Ignore built binaries
 **/bin/
 **/obj/
+
+# Folders to ignore
 **/packages/
-src/docker/reports/
+**/tools/
+**/reports/
+
+# Python files
+**/__pycache__/
+*.pyc
+

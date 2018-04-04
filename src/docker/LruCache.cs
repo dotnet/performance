@@ -4,48 +4,13 @@ using System.Diagnostics;
 
 namespace DockerHarness
 {
+    /// <summary>
+    ///   A dictionary-like class with support for evicting the least-recently-used value
+    ///   Values are stored in a Heap and a dictionary exists to map keys to indecies
+    ///   Note that becuase any access can force reordering, access time is O(log n)
+    /// </summary>
     class LruDictionary<TKey, TValue>
     {
-        private class Entry
-        {
-            public TValue Value
-            {
-                get
-                {
-                    LastUsed = Stopwatch.GetTimestamp();
-                    return val;
-                }
-                set
-                {
-                    LastUsed = Stopwatch.GetTimestamp();
-                    val = value;
-                }
-            }
-            public TKey Key { get; private set; }
-            public long LastUsed { get; private set; }
-
-            private TValue val { get; set; }
-
-            public Entry(TKey k, TValue v)
-            {
-                Key = k;
-                val = v;
-                LastUsed = Stopwatch.GetTimestamp();
-            }
-        }
-
-        private class LruComparer : IComparer<Entry>
-        {
-            public int Compare(Entry a, Entry b)
-            {
-                return a.LastUsed.CompareTo(b.LastUsed);
-            }
-        }
-
-        private IDictionary<TKey, int> dict = new Dictionary<TKey, int>();
-        private IList<Entry> heap = new List<Entry>();
-        private IComparer<Entry> comparer = new LruComparer();
-
         public LruDictionary() { }
 
         public LruDictionary(IEnumerable<KeyValuePair<TKey, TValue>> enumerable)
@@ -56,8 +21,15 @@ namespace DockerHarness
             }
         }
 
+        /// <summary>
+        ///   Returns a count of items in the dictionary
+        /// </summary>
         public int Count { get => heap.Count; }
 
+        /// <summary>
+        ///   Gets or sets a key in the dictionary to a value
+        ///   O(log n) time complexity
+        /// </summary>
         public TValue this[TKey k] {
             get
             {
@@ -80,8 +52,17 @@ namespace DockerHarness
             }
         }
 
+        /// <summary>
+        ///   Returns a collection of keys in the dictionary
+        ///   O(1) time complexity
+        /// </summary>
         public ICollection<TKey> Keys { get => dict.Keys; }
 
+        /// <summary>
+        ///   Yields all values in the dictionary
+        ///   The access time of each value is adjusted when yielded
+        ///   O(nlog n) time complexity
+        /// </summary>
         public IEnumerable<TValue> Values
         {
             get
@@ -93,33 +74,116 @@ namespace DockerHarness
             }
         }
 
+        /// <summary>
+        ///   Adds a new key and value to the dictionary
+        ///   Throws an exception if the key already exists in the dictionary
+        ///   O(log n) time complexity
+        /// </summary>
         public void Add(TKey k, TValue v)
         {
             Push(new Entry(k, v));
         }
 
+        /// <summary>
+        ///   Removes a key from the dictionary and returns it's value
+        ///   Throws an exception if the key does not exist in the dictionary
+        ///   O(log n) time complexity
+        /// </summary>
         public TValue Remove(TKey k)
         {
             var index = dict[k];
             return Pop(index).Value;
         }
 
+        /// <summary>
+        ///   Removes and returns least-recently-used item in the dictionary
+        ///   O(log n) time complexity
+        /// </summary>
         public KeyValuePair<TKey, TValue> Evict()
         {
             Entry entry = Pop();
             return new KeyValuePair<TKey, TValue>(entry.Key, entry.Value);
         }
 
+        /// <summary>
+        ///   Removes all items from the dictionary
+        /// </summary>
         public void Clear()
         {
             heap.Clear();
             dict.Clear();
         }
 
+        /// <summary>
+        ///   Returns true if the dictionary contains the key
+        ///   O(1) time complexity
+        /// </summary>
         public bool ContainsKey(TKey k)
         {
             return dict.ContainsKey(k);
         }
+
+#region private
+        /// <summary>
+        ///   An Entry class which holds the stored Value and fills the Heap
+        ///   Tracks the Key, Value, and LastUsed time
+        /// </summary>
+        private class Entry
+        {
+            /// <summary>
+            ///   The value that is held in this entry
+            ///   Any access, get or set, will update the LastUsed time
+            /// </summary>
+            public TValue Value
+            {
+                get
+                {
+                    LastUsed = Stopwatch.GetTimestamp();
+                    return val;
+                }
+                set
+                {
+                    LastUsed = Stopwatch.GetTimestamp();
+                    val = value;
+                }
+            }
+            
+            /// <summary>
+            ///   The key which is mapped to this entry's Value from the users perspective
+            /// </summary>
+            public TKey Key { get; private set; }
+            
+            /// <summary>
+            ///   A millisecond percision timestamp of the last access time
+            ///   Used in eviction decisions
+            /// </summary>
+            public long LastUsed { get; private set; }
+
+            private TValue val { get; set; }
+
+            public Entry(TKey k, TValue v)
+            {
+                Key = k;
+                val = v;
+                LastUsed = Stopwatch.GetTimestamp();
+            }
+        }
+
+        /// <summary>
+        ///   A comparer to establish ordering in the Heap for Entries
+        ///   Only looks at the LastUsed time
+        /// </summary>
+        private class LruComparer : IComparer<Entry>
+        {
+            public int Compare(Entry a, Entry b)
+            {
+                return a.LastUsed.CompareTo(b.LastUsed);
+            }
+        }
+
+        private IDictionary<TKey, int> dict = new Dictionary<TKey, int>();
+        private IList<Entry> heap = new List<Entry>();
+        private IComparer<Entry> comparer = new LruComparer();
 
         private void Push(Entry x)
         {
@@ -172,7 +236,7 @@ namespace DockerHarness
             }
         }
 
-        public void Sink(int xi)
+        private void Sink(int xi)
         {
             Entry x = heap[xi];
             bool modified = false;
@@ -199,17 +263,40 @@ namespace DockerHarness
                 dict[x.Key] = xi;
             }
         }
+#endregion
     }
 
+    /// <summary>
+    ///   A set-like class with support for evicting the least-recently-used value
+    ///   This class is built as an LruDictionary with dummy values
+    /// </summary>
     class LruSet<T>
     {
         private LruDictionary<T, byte> dict = new LruDictionary<T, byte>();
         private byte dummy = 0xFE;
 
+        /// <summary>
+        ///   Returns the number of items in the set
+        /// </summary>
         public int Count { get => dict.Count; }
+        
+        /// <summary>
+        ///   Removes all elements from the set
+        /// </summary>
         public void Clear() => dict.Clear();
+
+        /// <summary>
+        ///   Returned true if the item is in the set
+        ///   Does not update the item's access time
+        ///   O(1) time complexity
+        /// </summary>
         public bool Contains(T item) => dict.ContainsKey(item);
 
+        /// <summary>
+        ///   Adds and item to the set or updates the access time
+        ///   Returns true if the item was not already in the set
+        ///   O(log n) time complexity
+        /// </summary>
         public bool Add(T item)
         {
             bool preexisting = dict.ContainsKey(item);
@@ -217,6 +304,11 @@ namespace DockerHarness
             return !preexisting;
         }
 
+        /// <summary>
+        ///   If an item is in the set, sets the access time to now
+        ///   Returns true if the item is in the set
+        ///   O(log n) time complexity
+        /// </summary>
         public bool Refresh(T item)
         {
             if (dict.ContainsKey(item))
@@ -227,14 +319,28 @@ namespace DockerHarness
             return false;
         }
 
+        /// <summary>
+        ///   Removes and returns the least-recently-used value
+        ///   O(log n) time complexity
+        /// </summary>
         public T Evict()
         {
             return dict.Evict().Key;
         }
 
-        public void Remove(T item)
+        /// <summary>
+        ///   Removes an item from the set
+        ///   Returns true if the item was in the set
+        ///   O(log n) time complexity
+        /// </summary>
+        public bool Remove(T item)
         {
-            dict.Remove(item);
+            if (dict.ContainsKey(item))
+            {
+                dict.Remove(item);
+                return true;
+            }
+            return false;  
         }
     }
 }
