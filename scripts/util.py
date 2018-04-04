@@ -1,4 +1,4 @@
-from os import path, stat, listdir, name as os_name, makedirs
+from os import path, stat, listdir, name as os_name, makedirs, environ
 from urllib.request import urlopen
 import subprocess
 import time
@@ -197,19 +197,22 @@ def generate_submission(group, type, config_name, config, arch, machinepool, dat
 def upload(container, sas_token_env=None, account=None, *submissions):
     if _bvtools_dir is None:
         aquire_bvtools()
-
+        
     sas_opt = ['--sas-token-env', sas_token_env] if sas_token_env is not None else []
     account_opt = ['--storage-account-uri', account] if account is not None else []
+    
+    if not submissions:
+        submissions = [path.join(_reports_dir, 'submission.json')]
 
     cmd(_py_prefix + [
         path.join(_bvtools_dir, 'upload.py'),
-    ] + submissions + sas_opt + account_opt + [
+    ] + list(submissions) + sas_opt + account_opt + [
         '--container', container
     ])
 
 def docker_info(*fields):
     proc = cmd(["docker", "info", "-f", "{{ json . }}"])
-    info = json.loads(proc.stdout.read())
+    info = json.loads(proc.stdout.decode('utf-8'))
     if fields:
         return {field: info[field] for field in fields}
     else:
