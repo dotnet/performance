@@ -13,6 +13,10 @@ _dotnet_exe = None
 _is_windows = os_name == 'nt'
 _py_prefix = ['py', '-3'] if _is_windows else []
 
+def ensure_directory_exists(dirpath):
+    if not path.isdir(dirpath):
+        makedirs(dirpath)
+
 def cmd(cmdargs, handler=None, **kwargs):
     defaults = {
         'check': True,
@@ -45,9 +49,7 @@ def dotnet(args, handler=None, **kwargs):
 
 def aquire_bvtools():
     global _bvtools_dir
-    
-    if not path.isdir(_tools_dir):
-        makedirs(_tools_dir)
+    ensure_directory_exists(_tools_dir)
 
     cmd([
         'nuget', 'install',
@@ -75,9 +77,7 @@ def aquire_bvtools():
 
 def aquire_dotnet():
     global _dotnet_exe
-    
-    if not path.isdir(_tools_dir):
-        makedirs(_tools_dir)
+    ensure_directory_exists(_tools_dir)
 
     script_name = 'dotnet-install' + ('.ps1' if _is_windows else '.sh')
     script_path = path.join(_tools_dir, script_name)
@@ -100,8 +100,7 @@ def generate_metadata(name, user_email, outfile=None):
         aquire_bvtools()
 
     if outfile is None:
-        if not path.isdir(_reports_dir):
-            makedirs(_reports_dir)
+        ensure_directory_exists(_reports_dir)
 
         outfile = path.join(_reports_dir, "submission-metadata.json")
 
@@ -117,8 +116,7 @@ def generate_machinedata(outfile=None):
         aquire_bvtools()
 
     if outfile is None:
-        if not path.isdir(_reports_dir):
-            makedirs(_reports_dir)
+        ensure_directory_exists(_reports_dir)
 
         outfile = path.join(_reports_dir, "machinedata.json")
 
@@ -132,8 +130,7 @@ def generate_build(branch, number, timestamp, type, repository, outfile=None):
         aquire_bvtools()
 
     if outfile is None:
-        if not path.isdir(_reports_dir):
-            makedirs(_reports_dir)
+        ensure_directory_exists(_reports_dir)
 
         outfile = path.join(_reports_dir, "build.json")
 
@@ -152,8 +149,7 @@ def generate_measurement_csv(datafile, metric, unit, ascending, outfile=None):
         aquire_bvtools()
 
     if outfile is None:
-        if not path.isdir(_reports_dir):
-            makedirs(_reports_dir)
+        ensure_directory_exists(_reports_dir)
 
         outfile = path.join(_reports_dir, "measurement.json")
 
@@ -179,8 +175,7 @@ def generate_submission(group, type, config_name, config, arch, machinepool, dat
     if metadata is None:
         metadata = path.join(_reports_dir, "submission-metadata.json")
     if outfile is None:
-        if not path.isdir(_reports_dir):
-            makedirs(_reports_dir)
+        ensure_directory_exists(_reports_dir)
 
         outfile = path.join(_reports_dir, "submission.json")
 
