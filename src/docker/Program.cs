@@ -50,7 +50,7 @@ namespace DockerHarness
         {
             var report = new StringBuilder();
 
-            report.AppendCsvRow("Name","Tag","ParentName","ParentTag","BaseName","BaseTag","Size","AddedSize","NumAddedPackages","AddedPackages","Inspect", "AllTags");
+            report.AppendCsvRow("Name","Tag","ParentName","ParentTag","Size","AddedSize","NumAddedPackages","AddedPackages","Inspect", "AllTags");
             foreach (var image in harness.SupportedImages())
             {
                 // Pick a tag to identify this image with. They all work, but the shortest is the most stable across builds
@@ -59,23 +59,25 @@ namespace DockerHarness
                 try
                 {
                     var imageInfo = harness.Inspect(id)[0];
-                    var parentInfo = harness.Inspect(image.Parent)[0];
                     var imageSize = Int64.Parse(imageInfo["Size"].ToString());
-                    var parentSize = Int64.Parse(parentInfo["Size"].ToString());
-
-                    var baseId = harness.Ancestors(image).Last();
+                    
+                    long parentSize = 0;
+                    if (image.Parent.Name != "scratch")
+                    {
+                        var parentInfo = harness.Inspect(image.Parent)[0];
+                        parentSize = Int64.Parse(parentInfo["Size"].ToString());
+                    }
 
                     // Get packages if we are on Linux
                     var packages = new string[]{};
                     if (image.Platform.Os == "linux")
                     {
-                        packages = harness.InstalledPackages(id, baseId.Name).Except(harness.InstalledPackages(image.Parent, baseId.Name)).ToArray();
+                        packages = harness.InstalledPackages(id).Except(harness.InstalledPackages(image.Parent)).ToArray();
                     }
 
                     report.AppendCsvRow(
                         id.Name, id.Tag,
                         image.Parent.Name, image.Parent.Tag,
-                        baseId.Name, baseId.Tag,
                         imageSize, imageSize - parentSize,
                         packages.Length, String.Join(" ", packages),
                         imageInfo.ToString(), String.Join(" ", image.Tags)
@@ -133,7 +135,10 @@ namespace DockerHarness
 
             foreach (var id in unknowns)
             {
-                lines.Add(generateLine(id, null));
+                if (id.Name != "scratch")
+                {
+                    lines.Add(generateLine(id, null));
+                }
             }
 
             var report = new StringBuilder();

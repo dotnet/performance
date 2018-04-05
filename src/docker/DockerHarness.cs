@@ -380,7 +380,7 @@ namespace DockerHarness
         ///   The basename parameter provides a hint to which distrobution the image is
         ///   (Only works for Linux containers)
         /// </summary>
-        public ICollection<string> InstalledPackages(Identifier identifier, string baseName=null)
+        public ICollection<string> InstalledPackages(Identifier identifier)
         {
             ICollection<string> result = null;
             if (packageCache.TryGetValue(identifier, out result))
@@ -398,40 +398,52 @@ namespace DockerHarness
             string listFormat;
             StreamReader stdout;
 
-            switch (baseName ?? identifier.Name)
+            // Walk up the tree to attempt to find a image we know the package manager for
+            var currId = identifier;
+            while (pkgManager == null)
             {
-                case "debian":
-                case "ubuntu":
-                case "buildpack-deps":
-                    pkgManager = "dpkg";
-                    break;
-                case "alpine":
-                    pkgManager = "apk";
-                    break;
-                case "centos":
-                    pkgManager = "yum";
-                    break;
-                default:
-                    // Figure out which package manager this image uses
-                    var path = Util.Command(
-                        "docker", $"run --rm {identifier.Name}:{identifier.Tag} sh -c \"which apk dpkg 2> /dev/null || command -v yum 2> /dev/null\"", 
-                        block: false,
-                        handler: (p) => p.ExitCode == 127
-                    ).ReadToEnd().Trim();
+                switch (currId.Name)
+                {
+                    case "debian":
+                    case "ubuntu":
+                        pkgManager = "dpkg";
+                        break;
+                    case "alpine":
+                        pkgManager = "apk";
+                        break;
+                    case "centos":
+                        pkgManager = "yum";
+                        break;
+                }
+                
+                if (pkgManager == null && Images.TryGetValue(currId, out var image))
+                {
+                    currId = image.Parent;
+                }
+                else break;
+            } 
+                    
+            // Use the backup method for finding the package manager
+            if (pkgManager == null)
+            {
+                var path = Util.Command(
+                    "docker", $"run --rm {identifier.Name}:{identifier.Tag} sh -c \"which apk dpkg 2> /dev/null || command -v yum 2> /dev/null\"", 
+                    block: false,
+                    handler: (p) => p.ExitCode == 127
+                ).ReadToEnd().Trim();
 
-                    foreach (var cmd in new[] { "dpkg", "apk", "yum" })
+                foreach (var cmd in new[] { "dpkg", "apk", "yum" })
+                {
+                    if (path.EndsWith(cmd))
                     {
-                        if (path.EndsWith(cmd))
-                        {
-                            pkgManager = cmd;
-                            break;
-                        }
+                        pkgManager = cmd;
+                        break;
                     }
-                    if (pkgManager == null)
-                    {
-                        throw new NotSupportedException($"Could not determine package manager for '{identifier.Name}:{identifier.Tag}'");
-                    }
-                    break;
+                }
+                if (pkgManager == null)
+                {
+                    throw new NotSupportedException($"Could not determine package manager for '{identifier.Name}:{identifier.Tag}'");
+                }
             }
 
             switch (pkgManager)
@@ -621,27 +633,30 @@ namespace DockerHarness
         }
 
         /// <summary>
-        ///   Combines platform information (OS and/or Architecture) with a key
-        ///   to get the correct key for accessing the Rfc2822 dictionary block
-        ///   Utility function for ParseLibrary
+        /// Tries to extract from the dictionary block the four different possible keys based on the platform target
+        /// Returns true on the first successful attempt, or false if all attempts fail
         /// </summary>
-        private string PlatformKeyCombine(Platform platform, string key)
+        private bool TryGetPlatformValue(Dictionary<string, string> block, Platform platform, string key, out string value)
         {
-            if (platform.Os == "linux")
+            // The key could be any one of four combinations....
+            // these library files are a format only in the loosest sense of the term
+            if (block.TryGetValue(String.Join("-", platform.Os, platform.Architecture, key), out value))
             {
-                if (platform.Architecture == "amd64")
-                {
-                    return key;
-                }
-                else
-                {
-                    return String.Join("-", platform.Architecture, key);
-                }
+                return true;
             }
-            else
+            if (block.TryGetValue(String.Join("-", platform.Os, key), out value))
             {
-                return String.Join("-", platform.Os, platform.Architecture, key);
+                return true;
             }
+            if (block.TryGetValue(String.Join("-", platform.Architecture, key), out value))
+            {
+                return true;
+            }
+            if (block.TryGetValue(key, out value))
+            {
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -661,10 +676,7 @@ namespace DockerHarness
                 Name = name,
             };
 
-            string defaultUrl, defaultBranch, defaultCommit;
-            blocks[0].TryGetValue("GitRepo", out defaultUrl);
-            blocks[0].TryGetValue("GitFetch", out defaultBranch);
-            blocks[0].TryGetValue("GitCommit", out defaultCommit);
+            var defaults = blocks[0];
 
             foreach (var block in blocks.Skip(1))
             {
@@ -709,34 +721,25 @@ namespace DockerHarness
 
                 foreach (var platform in platforms) {
                     string url, branch, commit;
-                    if (!block.TryGetValue(PlatformKeyCombine(platform, "GitRepo"), out url))
+                    if (!TryGetPlatformValue(block, platform, "GitRepo", out url))
                     {
-                        if (!block.TryGetValue("GitRepo", out url))
-                        {
-                            url = defaultUrl;
-                        }
+                        TryGetPlatformValue(defaults, platform, "GitRepo", out url);
                     }
-                    if (!block.TryGetValue(PlatformKeyCombine(platform, "GitFetch"), out branch))
+                    if (!TryGetPlatformValue(block, platform, "GitFetch", out branch))
                     {
-                        if (!block.TryGetValue("GitFetch", out branch))
-                        {
-                            branch = defaultBranch;
-                        }
+                        TryGetPlatformValue(defaults, platform, "GitFetch", out branch);
                     }
-                    if (!block.TryGetValue(PlatformKeyCombine(platform, "GitCommit"), out commit))
+                    if (!TryGetPlatformValue(block, platform, "GitCommit", out commit))
                     {
-                        if (!block.TryGetValue("GitCommit", out commit))
-                        {
-                            commit = defaultCommit;
-                        }
+                        TryGetPlatformValue(defaults, platform, "GitCommit", out commit);
                     }
 
                     string dockerfile = "Dockerfile";
-                    if (block.TryGetValue(PlatformKeyCombine(platform, "Directory"), out var dir))
+                    if (TryGetPlatformValue(block, platform, "Directory", out var dir))
                     {
                         dockerfile = Path.Combine(dir, "Dockerfile");
                     }
-                    else if (block.TryGetValue("Directory", out dir))
+                    else if(TryGetPlatformValue(defaults, platform, "Directory", out dir))
                     {
                         dockerfile = Path.Combine(dir, "Dockerfile");
                     }
