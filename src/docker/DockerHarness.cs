@@ -380,7 +380,7 @@ namespace DockerHarness
         ///   The basename parameter provides a hint to which distrobution the image is
         ///   (Only works for Linux containers)
         /// </summary>
-        public ICollection<string> InstalledPackages(Identifier identifier, string baseName=null)
+        public ICollection<string> InstalledPackages(Identifier identifier)
         {
             ICollection<string> result = null;
             if (packageCache.TryGetValue(identifier, out result))
@@ -398,40 +398,52 @@ namespace DockerHarness
             string listFormat;
             StreamReader stdout;
 
-            switch (baseName ?? identifier.Name)
+            // Walk up the tree to attempt to find a image we know the package manager for
+            var currId = identifier;
+            while (pkgManager == null)
             {
-                case "debian":
-                case "ubuntu":
-                case "buildpack-deps":
-                    pkgManager = "dpkg";
-                    break;
-                case "alpine":
-                    pkgManager = "apk";
-                    break;
-                case "centos":
-                    pkgManager = "yum";
-                    break;
-                default:
-                    // Figure out which package manager this image uses
-                    var path = Util.Command(
-                        "docker", $"run --rm {identifier.Name}:{identifier.Tag} sh -c \"which apk dpkg 2> /dev/null || command -v yum 2> /dev/null\"", 
-                        block: false,
-                        handler: (p) => p.ExitCode == 127
-                    ).ReadToEnd().Trim();
+                switch (currId.Name)
+                {
+                    case "debian":
+                    case "ubuntu":
+                        pkgManager = "dpkg";
+                        break;
+                    case "alpine":
+                        pkgManager = "apk";
+                        break;
+                    case "centos":
+                        pkgManager = "yum";
+                        break;
+                }
+                
+                if (pkgManager == null && Images.TryGetValue(currId, out var image))
+                {
+                    currId = image.Parent;
+                }
+                else break;
+            } 
+                    
+            // Use the backup method for finding the package manager
+            if (pkgManager == null)
+            {
+                var path = Util.Command(
+                    "docker", $"run --rm {identifier.Name}:{identifier.Tag} sh -c \"which apk dpkg 2> /dev/null || command -v yum 2> /dev/null\"", 
+                    block: false,
+                    handler: (p) => p.ExitCode == 127
+                ).ReadToEnd().Trim();
 
-                    foreach (var cmd in new[] { "dpkg", "apk", "yum" })
+                foreach (var cmd in new[] { "dpkg", "apk", "yum" })
+                {
+                    if (path.EndsWith(cmd))
                     {
-                        if (path.EndsWith(cmd))
-                        {
-                            pkgManager = cmd;
-                            break;
-                        }
+                        pkgManager = cmd;
+                        break;
                     }
-                    if (pkgManager == null)
-                    {
-                        throw new NotSupportedException($"Could not determine package manager for '{identifier.Name}:{identifier.Tag}'");
-                    }
-                    break;
+                }
+                if (pkgManager == null)
+                {
+                    throw new NotSupportedException($"Could not determine package manager for '{identifier.Name}:{identifier.Tag}'");
+                }
             }
 
             switch (pkgManager)
