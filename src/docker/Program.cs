@@ -135,7 +135,10 @@ namespace DockerHarness
 
             foreach (var id in unknowns)
             {
-                lines.Add(generateLine(id, null));
+                if (id.Name != "scratch")
+                {
+                    lines.Add(generateLine(id, null));
+                }
             }
 
             var report = new StringBuilder();
