@@ -45,6 +45,9 @@ def dotnet(args, handler=None, **kwargs):
 
 def aquire_bvtools():
     global _bvtools_dir
+    
+    if not path.isdir(_tools_dir):
+        makedirs(_tools_dir)
 
     cmd([
         'nuget', 'install',
@@ -72,6 +75,9 @@ def aquire_bvtools():
 
 def aquire_dotnet():
     global _dotnet_exe
+    
+    if not path.isdir(_tools_dir):
+        makedirs(_tools_dir)
 
     script_name = 'dotnet-install' + ('.ps1' if _is_windows else '.sh')
     script_path = path.join(_tools_dir, script_name)
