@@ -621,27 +621,30 @@ namespace DockerHarness
         }
 
         /// <summary>
-        ///   Combines platform information (OS and/or Architecture) with a key
-        ///   to get the correct key for accessing the Rfc2822 dictionary block
-        ///   Utility function for ParseLibrary
+        /// Tries to extract from the dictionary block the four different possible keys based on the platform target
+        /// Returns true on the first successful attempt, or false if all attempts fail
         /// </summary>
-        private string PlatformKeyCombine(Platform platform, string key)
+        private bool TryGetPlatformValue(Dictionary<string, string> block, Platform platform, string key, out string value)
         {
-            if (platform.Os == "linux")
+            // The key could be any one of four combinations....
+            // these library files are a format only in the loosest sense of the term
+            if (block.TryGetValue(String.Join("-", platform.Os, platform.Architecture, key), out value))
             {
-                if (platform.Architecture == "amd64")
-                {
-                    return key;
-                }
-                else
-                {
-                    return String.Join("-", platform.Architecture, key);
-                }
+                return true;
             }
-            else
+            if (block.TryGetValue(String.Join("-", platform.Os, key), out value))
             {
-                return String.Join("-", platform.Os, platform.Architecture, key);
+                return true;
             }
+            if (block.TryGetValue(String.Join("-", platform.Architecture, key), out value))
+            {
+                return true;
+            }
+            if (block.TryGetValue(key, out value))
+            {
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -661,10 +664,7 @@ namespace DockerHarness
                 Name = name,
             };
 
-            string defaultUrl, defaultBranch, defaultCommit;
-            blocks[0].TryGetValue("GitRepo", out defaultUrl);
-            blocks[0].TryGetValue("GitFetch", out defaultBranch);
-            blocks[0].TryGetValue("GitCommit", out defaultCommit);
+            var defaults = blocks[0];
 
             foreach (var block in blocks.Skip(1))
             {
@@ -709,34 +709,25 @@ namespace DockerHarness
 
                 foreach (var platform in platforms) {
                     string url, branch, commit;
-                    if (!block.TryGetValue(PlatformKeyCombine(platform, "GitRepo"), out url))
+                    if (!TryGetPlatformValue(block, platform, "GitRepo", out url))
                     {
-                        if (!block.TryGetValue("GitRepo", out url))
-                        {
-                            url = defaultUrl;
-                        }
+                        TryGetPlatformValue(defaults, platform, "GitRepo", out url);
                     }
-                    if (!block.TryGetValue(PlatformKeyCombine(platform, "GitFetch"), out branch))
+                    if (!TryGetPlatformValue(block, platform, "GitFetch", out branch))
                     {
-                        if (!block.TryGetValue("GitFetch", out branch))
-                        {
-                            branch = defaultBranch;
-                        }
+                        TryGetPlatformValue(defaults, platform, "GitFetch", out branch);
                     }
-                    if (!block.TryGetValue(PlatformKeyCombine(platform, "GitCommit"), out commit))
+                    if (!TryGetPlatformValue(block, platform, "GitCommit", out commit))
                     {
-                        if (!block.TryGetValue("GitCommit", out commit))
-                        {
-                            commit = defaultCommit;
-                        }
+                        TryGetPlatformValue(defaults, platform, "GitCommit", out commit);
                     }
 
                     string dockerfile = "Dockerfile";
-                    if (block.TryGetValue(PlatformKeyCombine(platform, "Directory"), out var dir))
+                    if (TryGetPlatformValue(block, platform, "Directory", out var dir))
                     {
                         dockerfile = Path.Combine(dir, "Dockerfile");
                     }
-                    else if (block.TryGetValue("Directory", out dir))
+                    else if(TryGetPlatformValue(defaults, platform, "Directory", out dir))
                     {
                         dockerfile = Path.Combine(dir, "Dockerfile");
                     }

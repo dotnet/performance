@@ -7,6 +7,9 @@
     { "url": "https://github.com/docker-library/official-images/", "path": "library/pypy" },
     { "url": "https://github.com/docker-library/official-images/", "path": "library/golang" },
     { "url": "https://github.com/docker-library/official-images/", "path": "library/ruby" },
+    { "url": "https://github.com/docker-library/official-images/", "path": "library/php" },
     { "url": "https://github.com/docker-library/official-images/", "path": "library/buildpack-deps" },
-    { "url": "https://github.com/docker-library/official-images/", "path": "library/php" }
+    { "url": "https://github.com/docker-library/official-images/", "path": "library/alpine" },
+    { "url": "https://github.com/docker-library/official-images/", "path": "library/debian" },
+    { "url": "https://github.com/docker-library/official-images/", "path": "library/ubuntu" }
 ]
