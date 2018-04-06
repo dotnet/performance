@@ -12,11 +12,8 @@ if __name__ == "__main__":
     benchmark_dir = path.normpath(path.join(script_dir, '..', 'src', 'docker'))
     benchmark_reports_dir = path.normpath(path.join(benchmark_dir, 'reports'))
 
-    logger.info("Installing dotnet cli")
-    dotnet_exe = util.aquire_dotnet()
-
     logger.info("Running dotnet containers benchmark")
-    util.cmd([dotnet_exe, 'run'], cwd=benchmark_dir, stdout=None, stderr=None)
+    util.dotnet(['run'], cwd=benchmark_dir, stdout=None, stderr=None)
 
     logger.info("Generating submission metadata")
     util.generate_metadata(
