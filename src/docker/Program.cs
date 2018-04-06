@@ -72,7 +72,12 @@ namespace DockerHarness
                     var packages = new string[]{};
                     if (image.Platform.Os == "linux")
                     {
-                        packages = harness.InstalledPackages(id).Except(harness.InstalledPackages(image.Parent)).ToArray();
+                        var parentPakages = Enumerable.Empty<string>();
+                        if (image.Parent.Name != "scratch")
+                        {
+                            parentPakages = harness.InstalledPackages(image.Parent);
+                        }
+                        packages = harness.InstalledPackages(id).Except(parentPakages).ToArray();
                     }
 
                     report.AppendCsvRow(
