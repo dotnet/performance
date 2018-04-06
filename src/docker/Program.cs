@@ -50,27 +50,48 @@ namespace DockerHarness
         {
             var report = new StringBuilder();
 
-            report.AppendCsvRow("Name","Tag","ParentName","ParentTag","Size","AddedSize","NumAddedPackages","AddedPackages","Inspect", "AllTags");
+            report.AppendCsvRow("Name","Tag","ParentName","ParentTag","Size","AddedSize","NumAddedPackages","AddedPackages","Inspect", "AllTags", "Id");
             foreach (var image in harness.SupportedImages())
             {
-                // Pick a tag to identify this image with. They all work, but the shortest is the most stable across builds
-                var id = new Identifier(image.Repository.Name, image.Tags.OrderBy(tag => tag.Length).First(), image.Platform);
-
-                try
+                foreach (var tag in image.Tags)
                 {
-                    var imageInfo = harness.Inspect(id)[0];
-                    var imageSize = Int64.Parse(imageInfo["Size"].ToString());
-                    
-                    long parentSize = 0;
-                    if (image.Parent.Name != "scratch")
-                    {
-                        var parentInfo = harness.Inspect(image.Parent)[0];
-                        parentSize = Int64.Parse(parentInfo["Size"].ToString());
-                    }
+                    var id = new Identifier(image.Repository.Name, tag, image.Platform);
 
-                    // Get packages if we are on Linux
-                    var packages = new string[]{};
-                    if (image.Platform.Os == "linux")
+                    try
+                    {
+                        var imageInfo = harness.Inspect(id);
+                        var imageSize = Int64.Parse(imageInfo["Size"].ToString());
+                        var shaId = imageInfo["Id"].ToString();
+                        
+                        long parentSize = 0;
+                        if (image.Parent.Name != "scratch")
+                        {
+                            var parentInfo = harness.Inspect(image.Parent);
+                            parentSize = Int64.Parse(parentInfo["Size"].ToString());
+                        }
+
+                        // Get packages if we are on Linux
+                        var packages = new string[]{};
+                        if (image.Platform.Os == "linux")
+                        {
+                            var parentPakages = Enumerable.Empty<string>();
+                            if (image.Parent.Name != "scratch")
+                            {
+                                parentPakages = harness.InstalledPackages(image.Parent);
+                            }
+                            packages = harness.InstalledPackages(id).Except(parentPakages).ToArray();
+                        }
+
+                        report.AppendCsvRow(
+                            id.Name, id.Tag,
+                            image.Parent.Name, image.Parent.Tag,
+                            imageSize, imageSize - parentSize,
+                            packages.Length, String.Join(" ", packages),
+                            imageInfo.ToString(), String.Join(" ", image.Tags),
+                            shaId
+                        );
+                    }
+                    catch (DockerException e)
                     {
                         var parentPakages = Enumerable.Empty<string>();
                         if (image.Parent.Name != "scratch")
@@ -79,18 +100,6 @@ namespace DockerHarness
                         }
                         packages = harness.InstalledPackages(id).Except(parentPakages).ToArray();
                     }
-
-                    report.AppendCsvRow(
-                        id.Name, id.Tag,
-                        image.Parent.Name, image.Parent.Tag,
-                        imageSize, imageSize - parentSize,
-                        packages.Length, String.Join(" ", packages),
-                        imageInfo.ToString(), String.Join(" ", image.Tags)
-                    );
-                }
-                catch (DockerException e)
-                {
-                    Console.Error.WriteLine($"Failed to gather information on {id.Name}:{id.Tag} due to {e}");
                 }
             }
 
@@ -106,7 +115,7 @@ namespace DockerHarness
             {
                 try
                 {
-                    var size = harness.Inspect(id)[0]["Size"].ToString();
+                    var size = harness.Inspect(id)["Size"].ToString();
 
                     var line = new List<string>();
                     line.Add($"{id.Platform.Os}/{id.Platform.Architecture}");
