@@ -44,7 +44,7 @@ namespace AzDataMovementBenchmark
             foreach (var i in Enumerable.Range(0, iterations))
             {
                 var recorder = DownloadTest<HashStream>();
-                File.AppendAllText(reportPath, $"Az Data Movement Library Benchmark,{recorder.AvgMbps:F2}\n");
+                File.AppendAllText(reportPath, $"Azue Data Movement Library Benchmark,{recorder.AvgMbps:F2}\n");
             }
         }
         

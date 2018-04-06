@@ -105,6 +105,15 @@ def aquire_dotnet(channel='2.0'):
 
     return path.join(_tools_dir, 'dotnet-' + version, 'dotnet' + ('.exe' if _is_windows else ''))
 
+def dotnet_commit(dotnet_exe):
+    proc = cmd([dotnet_exe, '--info'])
+
+    for line in proc.stdout.decode('utf-8').split('\n'):
+        if "Commit" in line:
+            return line.split(':')[-1].strip()
+    else:
+        raise RuntimeError("Failed to determine dotnet commit sha")
+
 def generate_metadata(name, user_email, outfile=None):
     if _bvtools_dir is None:
         aquire_bvtools()
