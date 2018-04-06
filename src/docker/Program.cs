@@ -93,7 +93,12 @@ namespace DockerHarness
                     }
                     catch (DockerException e)
                     {
-                        Console.Error.WriteLine($"Failed to gather information on {id.Name}:{id.Tag} due to {e}");
+                        var parentPakages = Enumerable.Empty<string>();
+                        if (image.Parent.Name != "scratch")
+                        {
+                            parentPakages = harness.InstalledPackages(image.Parent);
+                        }
+                        packages = harness.InstalledPackages(id).Except(parentPakages).ToArray();
                     }
                 }
             }
