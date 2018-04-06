@@ -168,6 +168,18 @@ namespace DockerHarness
         ///   The uniqe identifier for the image this image is built from
         /// </summary>
         public Identifier Parent { get; set; }
+        
+        /// <summary>
+        ///   A JObject which the parse JSON returned by inspect
+        ///   This property is provided to cache the output of the inspect call
+        /// </summary>
+        public JObject Inspect { get; set; }
+        
+        /// <summary>
+        ///   A collection of strings listing all packages installed as returned by it's package manager
+        ///   This property is provided to cache the output of the inspect call
+        /// </summary>
+        public ICollection<string> Packages { get; set; }
     }
 
     /// <summary>
@@ -363,15 +375,28 @@ namespace DockerHarness
         ///   Each element of the array pertains to an image
         ///   The is likely a single element
         /// </summary>
-        public JArray Inspect(Identifier identifier)
+        public JObject Inspect(Identifier identifier)
         {
+            // Check the cache
+            if (Images.TryGetValue(identifier, out var image) && image.Inspect != null)
+            {
+                return image.Inspect;
+            }
+            
             PullImage(identifier);
-            return JArray.Parse(
-                Util.Command("docker", $"image inspect {identifier.Name}:{identifier.Tag}",
-                    block: false,
-                    handler: DefaultDockerErrorHandler
-                ).ReadToEnd()
-            );
+            
+            var json = Util.Command(
+                "docker", $"image inspect {identifier.Name}:{identifier.Tag}",
+                block: false,
+                handler: DefaultDockerErrorHandler
+            ).ReadToEnd();
+            var result = JArray.Parse(json)[0] as JObject;
+            
+            if (image != null)
+            {
+                image.Inspect = result;
+            }
+            return result;
         }
 
         /// <summary>
@@ -382,10 +407,10 @@ namespace DockerHarness
         /// </summary>
         public ICollection<string> InstalledPackages(Identifier identifier)
         {
-            ICollection<string> result = null;
-            if (packageCache.TryGetValue(identifier, out result))
+            // Check the cache
+            if (Images.TryGetValue(identifier, out var image) && image.Packages != null)
             {
-                return result;
+                return image.Packages;
             }
 
             // Ensure the image is on disk
@@ -416,9 +441,9 @@ namespace DockerHarness
                         break;
                 }
                 
-                if (pkgManager == null && Images.TryGetValue(currId, out var image))
+                if (pkgManager == null && Images.TryGetValue(currId, out var img))
                 {
-                    currId = image.Parent;
+                    currId = img.Parent;
                 }
                 else break;
             } 
@@ -467,7 +492,7 @@ namespace DockerHarness
             stdout = Util.Command("docker", $"run --rm {identifier.Name}:{identifier.Tag} {listCommand}", block: false, handler: DefaultDockerErrorHandler);
 
             string line = null;
-            result = new List<string>();
+            ICollection<string> result = new List<string>();
             while ((line = stdout.ReadLine()) != null)
             {
                 var match = Regex.Match(line, listFormat);
@@ -477,13 +502,15 @@ namespace DockerHarness
             }
 
             Debug.Assert(result.Count > 0);
-            packageCache.Add(identifier, result);
+            if (image != null)
+            {
+                image.Packages = result;
+            }
             return result;
         }
 
 #region private
         private LruSet<Identifier> pulledImages = new LruSet<Identifier>();
-        private IDictionary<Identifier, ICollection<string>> packageCache = new Dictionary<Identifier, ICollection<string>>();
         private IDictionary<string, Git> clonedGitRepos = new Dictionary<string, Git>();
         private Platform plat = null;
         
