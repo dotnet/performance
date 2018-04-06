@@ -13,3 +13,4 @@
 
 
 **/.vs/**
+**/BenchmarkDotNet.Artifacts/**
