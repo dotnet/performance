@@ -77,32 +77,32 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
                 }
             }
         }
-    }
         
-    jobName = "dmlib_${os}_amd64"
-    newJob = job(InternalUtilities.getFullJobName(project, jobName, false)) {
-        wrappers {
-            credentialsBinding {
-                string('BV_UPLOAD_SAS_TOKEN', 'Container_Perf_BenchView_Sas')
-                string('BENCHMARK_SAS_TOKEN', 'Dmlib_Benchmark_Sas')
-                string('BENCHMARK_ACCOUNT', 'Dmlib_Benchmark_Account')
+        jobName = "dmlib_${os}_amd64"
+        newJob = job(InternalUtilities.getFullJobName(project, jobName, false)) {
+            wrappers {
+                credentialsBinding {
+                    string('BV_UPLOAD_SAS_TOKEN', 'Container_Perf_BenchView_Sas')
+                    string('BENCHMARK_SAS_TOKEN', 'Dmlib_Benchmark_Sas')
+                    string('BENCHMARK_ACCOUNT', 'Dmlib_Benchmark_Account')
+                }
             }
+            
+            steps {
+                batchFile("py -3 scripts\\dmlib_benchmark_ci.py")
+            }
+            
+            label("windows_container_perf")
         }
-        
-        steps {
-            batchFile("py -3 scripts\\dmlib_benchmark_ci.py")
-        }
-        
-        label("windows_container_perf")
-    }
 
-    InternalUtilities.standardJobSetup(newJob, project, false, "*/${branch}")
+        InternalUtilities.standardJobSetup(newJob, project, false, "*/${branch}")
 
-    Utilities.addPeriodicTrigger(newJob, "@daily", true /*always run*/)
-    newJob.with {
-        wrappers {
-            timeout {
-                absolute(240)
+        Utilities.addPeriodicTrigger(newJob, "@daily", true /*always run*/)
+        newJob.with {
+            wrappers {
+                timeout {
+                    absolute(240)
+                }
             }
         }
     }
