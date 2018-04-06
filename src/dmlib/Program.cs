@@ -16,7 +16,6 @@ using Microsoft.WindowsAzure.Storage.File;
 using System.Linq;
 using System.Text;
 using System.Net;
-using Tracing;
 
 namespace AzDataMovementTest
 {

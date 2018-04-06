@@ -7,6 +7,7 @@ namespace AzDataMovementTest
 {
     using System;
     using Microsoft.WindowsAzure.Storage;
+    using Microsoft.WindowsAzure.Storage.Auth;
     using Microsoft.WindowsAzure.Storage.Blob;
     using Microsoft.WindowsAzure.Storage.File;
     using System.Threading.Tasks;
@@ -128,24 +129,64 @@ namespace AzDataMovementTest
             return Util.fileClient;
         }
 
-        private static string LoadConnectionStringFromConfigration()
+        private static CloudStorageAccount LoadAccountFromConfigration()
         {
             // How to create a storage connection string: http://msdn.microsoft.com/en-us/library/azure/ee758697.aspx
 #if DOTNET5_4
-            //For .Net Core,  will get Storage Connection string from Config.json file
-            return JObject.Parse(File.ReadAllText("Config.json"))["StorageConnectionString"].ToString();
+            string connectionString = null;
+            try
+            {
+                //For .Net Core,  will get Storage Connection string from Config.json file
+                connectionString = JObject.Parse(File.ReadAllText("Config.json"))["StorageConnectionString"].ToString();
+            }
+            catch (FileNotFoundException) { }
 #else
             //For .net, will get Storage Connection string from App.Config file
-            return System.Configuration.ConfigurationManager.AppSettings["StorageConnectionString"];
+            string connectionString = System.Configuration.ConfigurationManager.AppSettings["StorageConnectionString"];
 #endif
-        }
+            if (connectionString == null)
+            {
+                return null;
+            }
 
+            return CloudStorageAccount.Parse(connectionString);
+        }
+        
+        private static CloudStorageAccount LoadAccountFromEnvironment()
+        {
+            string sasToken = Environment.GetEnvironmentVariable("BENCHMARK_SAS_TOKEN");
+            string accountName = Environment.GetEnvironmentVariable("BENCHMARK_ACCOUNT");
+            string suffix = Environment.GetEnvironmentVariable("BENCHMARK_URL_SUFFIX") ?? "core.windows.net";
+            bool useHttps = Boolean.Parse(Environment.GetEnvironmentVariable("BENCHMARK_USE_HTTPS") ?? "false");
+            
+            if (sasToken == null || accountName == null)
+            {
+                return null;
+            }
+            
+            return new CloudStorageAccount(
+                new StorageCredentials(sasToken),
+                accountName,
+                suffix,
+                useHttps
+            );
+        }
+        
         private static CloudStorageAccount GetStorageAccount()
         {
             if (Util.storageAccount == null)
             {
-                string connectionString = LoadConnectionStringFromConfigration();
-                Util.storageAccount = CloudStorageAccount.Parse(connectionString);
+                Util.storageAccount = LoadAccountFromEnvironment();
+                
+                if (Util.storageAccount == null)
+                {
+                    LoadAccountFromConfigration();
+                }
+                
+                if (Util.storageAccount == null)
+                {
+                    throw new ArgumentException("Storage account must be specified in environment variables or config file");
+                }
             }
 
             return Util.storageAccount;
