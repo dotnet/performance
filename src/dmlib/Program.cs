@@ -32,98 +32,55 @@ namespace AzDataMovementBenchmark
             ServicePointManager.Expect100Continue = false;
             TransferManager.Configurations.ParallelOperations = Environment.ProcessorCount * 8;
             
+            // Upload blobs and ensure the report destination is clean
             PrepareBlobs();
-
-            RunTests(
-                new Test[] {
-                    new Test($"Baseline", () => {
-                        return DownloadTest<HashStream>();
-                    })
-                }
-            );
-        }
-
-        public class Test
-        {
-            public string Name { get; set; }
-            public Func<PerformanceRecorder> Function { get; set; }
-
-            public Test(string name, Func<PerformanceRecorder> func) {
-                Name = name;
-                Function = func;
+            Directory.CreateDirectory(Path.GetDirectoryName(reportPath));
+            if (File.Exists(reportPath))
+            {
+                File.Delete(reportPath);
+            }
+            
+            // Download the blobs $ITERATIONS times and record the average throughput for each
+            foreach (var i in Enumerable.Range(0, iterations))
+            {
+                var recorder = DownloadTest<HashStream>();
+                File.AppendAllText(reportPath, $"Az Data Movement Library Benchmark,{recorder.AvgMbps:F2}\n");
             }
         }
-
+        
         /// <summary>
-        /// Container name used in this sample.
+        ///   Container name used in this sample.
         /// </summary>
         private static readonly string ContainerName = Environment.GetEnvironmentVariable("BENCHMARK_CONTAINER") ?? "benchmark-data";
 
         /// <summary>
-        /// Temporary folder used to store test data files
+        ///   Temporary folder used to store test data files
         /// </summary>
         private static readonly string TempFolderPath = Path.Combine(Path.GetTempPath(), "storage-benchmark");
 
         /// <summary>
-        /// The place where, if set, the output file will be written. Controled by env variable NET_SDK_BENCHMARK_FILE
+        ///   The place to output a BenchView formatted report file
         /// </summary>
-        private static readonly string benchmarkOutputPath = Environment.GetEnvironmentVariable("NET_SDK_BENCHMARK_FILE");
+        private static readonly string reportPath = Environment.GetEnvironmentVariable("BV_REPORT_PATH") ?? Path.Combine("reports", "benchview.csv");
 
+        /// <summary>
+        ///   The size in bytes of the files to use for benchmarking
+        /// </summary>
         private static readonly long fileSize = Int64.Parse(Environment.GetEnvironmentVariable("FILE_SIZE") ?? "104857600" /* 100MB */);
-        private static readonly int numFiles = Int32.Parse(Environment.GetEnvironmentVariable("NUM_FILES") ?? "100");
-        private static readonly int iterations = Int32.Parse(Environment.GetEnvironmentVariable("ITERATIONS") ?? "50");
+        
+        /// <summary>
+        ///   The number of files to transfer in the benchmark
+        /// </summary>
+        private static readonly int numFiles = Int32.Parse(Environment.GetEnvironmentVariable("NUM_FILES") ?? "50");
+        
+        /// <summary>
+        ///   The number of transfer iterations
+        /// </summary>
+        private static readonly int iterations = Int32.Parse(Environment.GetEnvironmentVariable("ITERATIONS") ?? "20");
 
-        public static void RunTests(Test[] tests, uint period=100, uint window=500, int intermission=0, bool reportEarly=true)
-        {
-            PerformanceRecorder.DefaultPeriod = TimeSpan.FromMilliseconds(period);
-            int maxrow = 0;
-
-            // Create a list of reports
-            var reports = new List<StringBuilder>(tests.Length);
-            foreach (var j in Enumerable.Range(0, tests.Length)) {
-                reports.Add(new StringBuilder());
-            }
-
-            foreach (var i in Enumerable.Range(1,iterations)) {
-                foreach (var j in Enumerable.Range(0, tests.Length)) {
-                    if (intermission > 0) {
-                        Thread.Sleep(intermission);
-                    }
-
-                    var row = tests[j].Function().ThroughputMovingAverage(period, window);
-                    reports[j].AppendLine(String.Join("\t", row));
-                    maxrow = maxrow > row.Count ? maxrow : row.Count;
-                }
-
-                if (reportEarly) {
-                    Clear();
-                    Record(String.Join("\t", Enumerable.Range(1, maxrow).Select(x => x * period)) + "\n");
-                    foreach (var j in Enumerable.Range(0, tests.Length)) {
-                        Record($"# {tests[j].Name}\n");
-                        Record(reports[j].ToString());
-                    }
-                }
-            }
-
-            if (!reportEarly) {
-                Clear();
-                Record(String.Join("\t", Enumerable.Range(1, maxrow).Select(x => x * period)) + "\n");
-                foreach (var j in Enumerable.Range(0, tests.Length)) {
-                    Record($"# {tests[j].Name}\n");
-                    Record(reports[j].ToString());
-                }
-            }
-        }
-
-        public static void Record(string str) {
-            if (benchmarkOutputPath != null) {
-                File.AppendAllText(benchmarkOutputPath, str);
-            }
-        }
-
-        public static void Clear() {
-            if (benchmarkOutputPath != null) {
-                File.CreateText(benchmarkOutputPath);
+        private static void Record(string str) {
+            if (reportPath != null) {
+                File.AppendAllText(reportPath, str);
             }
         }
 
