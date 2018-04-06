@@ -3,7 +3,7 @@
 //    Copyright (c) Microsoft Corporation
 // </copyright>
 //------------------------------------------------------------------------------
-namespace AzDataMovementTest
+namespace AzDataMovementBenchmark
 {
     using System;
     using Microsoft.WindowsAzure.Storage;

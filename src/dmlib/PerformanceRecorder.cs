@@ -1,3 +1,8 @@
+//------------------------------------------------------------------------------
+// <copyright file="PerformanceRecorder.cs" company="Microsoft">
+//    Copyright (c) Microsoft Corporation
+// </copyright>
+//------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -5,7 +10,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AzDataMovementTest
+namespace AzDataMovementBenchmark
 {
     public class PerformanceRecorder
     {

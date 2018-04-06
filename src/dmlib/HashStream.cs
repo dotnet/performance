@@ -1,10 +1,15 @@
+//------------------------------------------------------------------------------
+// <copyright file="HashStream.cs" company="Microsoft">
+//    Copyright (c) Microsoft Corporation
+// </copyright>
+//------------------------------------------------------------------------------
 using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using Newtonsoft.Json.Linq;
 
-namespace AzDataMovementTest
+namespace AzDataMovementBenchmark
 {
     internal class HashStream : Stream
     {

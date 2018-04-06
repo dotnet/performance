@@ -1,9 +1,13 @@
+//------------------------------------------------------------------------------
+// <copyright file="TempFileStream.cs" company="Microsoft">
+//    Copyright (c) Microsoft Corporation
+// </copyright>
+//------------------------------------------------------------------------------
 using System;
 using System.IO;
 using System.Linq;
 
-
-namespace AzDataMovementTest
+namespace AzDataMovementBenchmark
 {
 
     internal class TempFileStream : FileStream

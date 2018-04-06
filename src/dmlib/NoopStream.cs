@@ -1,10 +1,12 @@
+//------------------------------------------------------------------------------
+// <copyright file="NoopStream.cs" company="Microsoft">
+//    Copyright (c) Microsoft Corporation
+// </copyright>
+//------------------------------------------------------------------------------
 using System;
 using System.IO;
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using Newtonsoft.Json.Linq;
 
-namespace AzDataMovementTest
+namespace AzDataMovementBenchmark
 {
     internal class NoopStream : Stream
     {

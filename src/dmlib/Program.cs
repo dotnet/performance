@@ -1,3 +1,8 @@
+//------------------------------------------------------------------------------
+// <copyright file="Program.cs" company="Microsoft">
+//    Copyright (c) Microsoft Corporation
+// </copyright>
+//------------------------------------------------------------------------------
 ﻿using System;
 using System.Diagnostics;
 using System.Collections.Generic;
@@ -17,7 +22,7 @@ using System.Linq;
 using System.Text;
 using System.Net;
 
-namespace AzDataMovementTest
+namespace AzDataMovementBenchmark
 {
     class Program
     {
@@ -26,6 +31,8 @@ namespace AzDataMovementTest
             // Constant between tests
             ServicePointManager.Expect100Continue = false;
             TransferManager.Configurations.ParallelOperations = Environment.ProcessorCount * 8;
+            
+            PrepareBlobs();
 
             RunTests(
                 new Test[] {
@@ -50,7 +57,7 @@ namespace AzDataMovementTest
         /// <summary>
         /// Container name used in this sample.
         /// </summary>
-        private static readonly string ContainerName = Environment.GetEnvironmentVariable("CONTAINER_NAME");
+        private static readonly string ContainerName = Environment.GetEnvironmentVariable("BENCHMARK_CONTAINER") ?? "benchmark-data";
 
         /// <summary>
         /// Temporary folder used to store test data files
@@ -61,11 +68,6 @@ namespace AzDataMovementTest
         /// The place where, if set, the output file will be written. Controled by env variable NET_SDK_BENCHMARK_FILE
         /// </summary>
         private static readonly string benchmarkOutputPath = Environment.GetEnvironmentVariable("NET_SDK_BENCHMARK_FILE");
-
-        /// <summary>
-        /// The interface to use
-        /// </summary>
-        private static readonly string interfaceName = Environment.GetEnvironmentVariable("BENCHMARK_INTERFACE");
 
         private static readonly long fileSize = Int64.Parse(Environment.GetEnvironmentVariable("FILE_SIZE") ?? "104857600" /* 100MB */);
         private static readonly int numFiles = Int32.Parse(Environment.GetEnvironmentVariable("NUM_FILES") ?? "100");
@@ -210,6 +212,48 @@ namespace AzDataMovementTest
             }
 
             return recorder;
+        }
+        
+        private static void PrepareBlobs()
+        {
+            var tasks = new List<Task<byte[]>>();
+            foreach (var n in Enumerable.Range(0, numFiles))
+            {
+                var blobName = $"{n}.dat";
+                tasks.Add(UploadRandomBlob(blobName, fileSize));
+            }
+            
+            Directory.CreateDirectory(TempFolderPath);
+            
+            foreach (var n in Enumerable.Range(0, numFiles))
+            {
+                File.WriteAllBytes(Path.Combine(TempFolderPath, $"{n}-md5.dat"), tasks[n].Result);
+            }
+        }
+        
+        /// <summary>
+        ///   Uploads a random data blob of the chosen size and yields the MD5 hash value
+        ///   TODO: Store the hash value on write a verify the hash value instead of overwriting each time
+        /// </summary>
+        private static async Task<byte[]> UploadRandomBlob(string blobName, long size)
+        {
+            Console.WriteLine($"Starting upload of {blobName}");
+            var blob = await Util.GetCloudBlobAsync(ContainerName, blobName, BlobType.BlockBlob);
+            
+            using (var stream = new RandomStream(size))
+            {
+                await TransferManager.UploadAsync(
+                    stream,
+                    blob,
+                    new UploadOptions { },
+                    new SingleTransferContext {
+                        ShouldOverwriteCallback = (src, dst) => { return true; }
+                    }
+                );
+                
+                Console.WriteLine($"Done uploading of {blobName}");
+                return stream.Hash;
+            }
         }
     }
 }
