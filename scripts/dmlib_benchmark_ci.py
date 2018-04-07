@@ -39,8 +39,8 @@ if __name__ == "__main__":
     logger.info("Running dmlib benchmark")
     env = dict(environ)
     env.update({
-        'NUM_FILES': '10',
-        'ITERATIONS': '5',
+        'NUM_FILES': '50',
+        'ITERATIONS': '10',
         'FILE_SIZE': '104857600',
         'BENCHMARK_ACCOUNT': environ['BENCHMARK_ACCOUNT'],
         'BENCHMARK_SAS_TOKEN': environ['BENCHMARK_SAS_TOKEN']
