@@ -1,7 +1,7 @@
 ﻿using System;
 using ProtoBuf;
 
-namespace Definitions.Serializers.Helpers
+namespace Benchmarks.Serializers.Helpers
 {
     [ProtoContract]
     public class DateTimeOffsetSurrogate

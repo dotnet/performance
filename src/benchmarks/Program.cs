@@ -11,9 +11,9 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.CsProj;
 using BenchmarkDotNet.Toolchains.DotNetCli;
-using Definitions.Serializers;
+using Benchmarks.Serializers;
 
-namespace Runner
+namespace Benchmarks
 {
     class Program
     {

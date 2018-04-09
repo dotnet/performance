@@ -2,9 +2,9 @@
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using BenchmarkDotNet.Attributes;
-using Definitions.Serializers.Helpers;
+using Benchmarks.Serializers.Helpers;
 
-namespace Definitions.Serializers
+namespace Benchmarks.Serializers
 {
     public class Binary_FromStream<T> where T : IVerifiable
     {

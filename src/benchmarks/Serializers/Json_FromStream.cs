@@ -3,7 +3,7 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using BenchmarkDotNet.Attributes;
 
-namespace Definitions.Serializers
+namespace Benchmarks.Serializers
 {
     public class Json_FromStream<T>
     {

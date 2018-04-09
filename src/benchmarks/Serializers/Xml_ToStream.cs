@@ -8,7 +8,7 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.CsProj;
 using BenchmarkDotNet.Toolchains.DotNetCli;
 
-namespace Definitions.Serializers
+namespace Benchmarks.Serializers
 {
     //[Config(typeof(SgenConfig))] // currently blocked https://github.com/dotnet/corefx/issues/27281#issuecomment-367533728
     public class Xml_ToStream<T>

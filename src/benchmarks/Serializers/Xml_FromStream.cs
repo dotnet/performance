@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using BenchmarkDotNet.Attributes;
 
-namespace Definitions.Serializers
+namespace Benchmarks.Serializers
 {
     public class Xml_FromStream<T>
     {
