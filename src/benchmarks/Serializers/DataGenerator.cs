@@ -5,14 +5,6 @@ using MessagePack;
 using ProtoBuf;
 using ZeroFormatter;
 
-#if SGEN
-// the new SGEN tool fails to load some of the dependencies, so we need to replace the problematic dependencies for this particular build configuration
-// see https://github.com/dotnet/corefx/issues/27281#issuecomment-367449130 fore more
-using Benchmarks.Serializers.Helpers;
-#else
-
-#endif
-
 namespace Benchmarks.Serializers
 {
     internal static class DataGenerator
