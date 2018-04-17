@@ -5,14 +5,14 @@ This folder contains benchmarks of the most popular serializers.
 ## Serializers used (latest stable versions)
 
 * XML
-  * System.Xml.XmlSerializer `4.3.0`
+  * [XmlSerializer](https://docs.microsoft.com/en-us/dotnet/api/system.xml.serialization.xmlserializer) `4.3.0`
 * JSON
-    * System.Runtime.Serialization.Json `4.3.0`
+    * [DataContractJsonSerializer](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.serialization.json.datacontractjsonserializer) `4.3.0`
     * [Jil](https://github.com/kevin-montrose/Jil) `2.15.4` 
     * [JSON.NET](https://github.com/JamesNK/Newtonsoft.Json) `11.0.1` 
     * [Utf8Json](https://github.com/neuecc/Utf8Json) `1.3.7` 
 * Binary
-    * BinaryFormatter
+    * [BinaryFormatter](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.serialization.formatters.binary.binaryformatter) `4.3.0`
     * [MessagePack](https://github.com/neuecc/MessagePack-CSharp) `1.7.3.4` 
     * [protobuff-net](https://github.com/mgravell/protobuf-net) `2.3.7`
     * [ZeroFormatter](https://github.com/neuecc/ZeroFormatter) `1.6.4` 
