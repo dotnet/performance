@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
@@ -23,15 +24,12 @@ namespace Benchmarks
     {
         static void Main(string[] args)
             => Parser.Default.ParseArguments<Options>(args)
-                .WithParsed(RunOptionsAndReturnExitCode)
+                .WithParsed(RunBenchmarks)
                 .WithNotParsed(errors => { }); // ignore the errors, the parser prints nice error message
 
-        private static void RunOptionsAndReturnExitCode(Options options)
+        private static void RunBenchmarks(Options options)
             => BenchmarkSwitcher
-                .FromTypes
-                (
-                    SerializerBenchmarks.GetTypes()
-                )
+                .FromAssemblyAndTypes(typeof(Program).Assembly, SerializerBenchmarks.GetTypes())
                 .Run(config: GetConfig(options));
 
         private static IConfig GetConfig(Options options)
@@ -71,7 +69,17 @@ namespace Benchmarks
             if (options.RunCoreRt)
                 yield return baseJob.With(Runtime.CoreRT).With(CoreRtToolchain.LatestMyGetBuild);
             if (!string.IsNullOrEmpty(options.CoreRtVersion))
-                yield return baseJob.With(Runtime.CoreRT).With(CoreRtToolchain.CreateBuilder().UseCoreRtNuGet(options.CoreRtVersion).ToToolchain());
+                yield return baseJob.With(Runtime.CoreRT)
+                    .With(CoreRtToolchain.CreateBuilder()
+                        .UseCoreRtNuGet(options.CoreRtVersion)
+                        .AdditionalNuGetFeed("benchmarkdotnet ci", "https://ci.appveyor.com/nuget/benchmarkdotnet")
+                        .ToToolchain());
+            if (!string.IsNullOrEmpty(options.CoreRtPath))
+                yield return baseJob.With(Runtime.CoreRT)
+                    .With(CoreRtToolchain.CreateBuilder()
+                        .UseCoreRtLocal(options.CoreRtPath)
+                        .AdditionalNuGetFeed("benchmarkdotnet ci", "https://ci.appveyor.com/nuget/benchmarkdotnet")
+                        .ToToolchain());
 
             if (options.RunCore)
                 yield return baseJob.With(Runtime.Core).With(CsProjCoreToolchain.Current.Value);
@@ -100,6 +108,8 @@ namespace Benchmarks
 
                 if (!string.IsNullOrEmpty(options.CliPath))
                     builder.DotNetCli(options.CliPath);
+
+                builder.AdditionalNuGetFeed("benchmarkdotnet ci", "https://ci.appveyor.com/nuget/benchmarkdotnet");
 
                 yield return baseJob.With(Runtime.Core).With(builder.ToToolchain());
             }
@@ -137,6 +147,9 @@ namespace Benchmarks
 
         [Option("coreRtVersion", Required = false, HelpText = "Optional version of Microsoft.DotNet.ILCompiler which should be used to run with CoreRT. Example: \"1.0.0-alpha-26414-01\"")]
         public string CoreRtVersion { get; set; }
+
+        [Option("ilcPath", Required = false, HelpText = "Optional IlcPath which should be used to run with private CoreRT build. Example: \"1.0.0-alpha-26414-01\"")]
+        public string CoreRtPath { get; set; }
 
         [Option("core", Required = false, Default = false, HelpText = "Run benchmarks for .NET Core")]
         public bool RunCore { get; set; }
