@@ -11,3 +11,6 @@
 **/__pycache__/
 *.pyc
 
+
+**/.vs/**
+**/BenchmarkDotNet.Artifacts/**
