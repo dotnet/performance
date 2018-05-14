@@ -5,7 +5,7 @@ JitBench is a collection of scenario benchmarks that were originally designed to
 
 ## Running the test (ad-hoc) ##
 
-Execute 'dotnet run' in this directory. The test should eventually produce output like this:
+Execute 'dotnet run -c Release -- --netcoreapp-version $netCoreAppVersion' in this directory. The test should eventually produce output like this:
 
  
  
@@ -44,11 +44,11 @@ Examples of more customized ways the benchmark can be run (see the command line 
 
 **Run with a private CoreCLR build instead of a downloaded one**
 
-    dotnet.exe run --  --coreclr-bin-dir F:\github\coreclr\bin\Product\Windows_NT.x64.Release
+    dotnet.exe run --  --netcoreapp-version 2.1.0-preview3-26416-01 --coreclr-bin-dir F:\github\coreclr\bin\Product\Windows_NT.x64.Release
 
 **Run multiple configurations for comparison**
 
-    dotnet.exe run -- --configs Default,Tiering,Minopts
+    dotnet.exe run -- --netcoreapp-version 2.1.0-preview3-26416-01 --configs Default,Tiering,Minopts
 
     ...
       === RESULTS ===
@@ -64,7 +64,7 @@ Examples of more customized ways the benchmark can be run (see the command line 
 
 **Run only a specific benchmark**
 
-    dotnet.exe run -- --benchmark Dotnet_Build_HelloWorld
+    dotnet.exe run -- --netcoreapp-version 2.1.0-preview3-26416-01 --benchmark Dotnet_Build_HelloWorld
 
     ...
       === RESULTS ===
@@ -75,21 +75,21 @@ Examples of more customized ways the benchmark can be run (see the command line 
 
 **Run with ETW collection enabled**
 
-    dotnet.exe run -- --perf:collect BranchMispredictions+CacheMisses+InstructionRetired
+    dotnet.exe run -- --perf:collect BranchMispredictions+CacheMisses+InstructionRetired --netcoreapp-version 2.1.0-preview3-26416-01
 
 ETL traces will show up in the output directory here: <run\_id\>-JitBench-<benchmark\_name\>-<config\_name\>-traces\\<run\_id\>-JitBench-<benchmark\_name\>-<config\_name\>(#).etl
 
 **Run without repeating all the setup steps (for a faster inner dev loop)**
 
-    dotnet.exe run -- --use-existing-setup
+    dotnet.exe run -- --use-existing-setup --netcoreapp-version 2.1.0-preview3-26416-01
 
 **Run with fewer iterations (faster inner dev loop but error bounds increase)**
 
-    dotnet.exe run -- --iterations 3
+    dotnet.exe run -- --iterations 3 --netcoreapp-version 2.1.0-preview3-26416-01
 
 **Run with a specific output directory**
 
-    dotnet.exe run -- --perf:outputdir C:\temp\JitBench\_results
+    dotnet.exe run -- --perf:outputdir C:\temp\JitBench\_results --netcoreapp-version 2.1.0-preview3-26416-01
 
 ## Adding a new Benchmark ##
 
@@ -107,9 +107,9 @@ This how we currently setup to run the test in CI and then retrieve its results.
 **Setup:**
 
 1. Create a directory with all the runtime and framework binaries in it (currently called the sandbox directory)
-2. Build the JitBench executable with msbuild (this occurs as part of test build)
+2. Build the JitBench executable with dotnet cli
 3. Set any COMPLUS variables that will modify the run
-4. Invoke the test with commandline _sandbox\_dir_\\corerun.exe --perf:outputdir _output\_dir_ --perf:runid _run\_id_ --target-architecture x64 --perf:collect _metrics_
+4. Invoke the test with commandline _sandbox\_dir_\\corerun.exe --perf:outputdir _output\_dir_ --perf:runid _run\_id_ --target-architecture x64 --perf:collect _metrics_ --netcoreapp-version 2.1.0-preview3-26416-01
 
 
 **Results:**
@@ -178,11 +178,3 @@ The result files use standard XUnitPerformanceHarness formatting. Typical metric
     MusicStore/First Request											Duration				ms		2			872			24.04163056	855			889
     MusicStore/Median Response											Duration				ms		2			88.8		0			88.8		88.8
     MusicStore/Startup													Duration				ms		2			887			35.35533906	862			912
-
-## Why is this project in a folder marked 'unofficial'?
-
-CoreCLR CI machines don't currently support building netcoreapp2.0 projects authored with the new msbuild SDK authoring style so the repo build uses the JitBench.csproj one directory higher, not the one in this directory. If you try to build the project in this directory in CI you get this error:
-
-    C:\Program Files\dotnet\sdk\1.1.0\Sdks\Microsoft.NET.Sdk\build\Microsoft.NET.TargetFrameworkInference.targets(112,5): error : The current .NET SDK does not support targeting .NET Core 2.0.  Either target .NET Core 1.1 or lower, or use a version of the .NET SDK that supports .NET Core 2.0. [D:\j\workspace\x64_checked_w---eac6a79c\tests\src\performance\Scenario\JitBench\JitBench.csproj]
-
-I assume the CI machines have fairly old SDK tools installed but I didn't have enough time to keep investigating these build issues. From I can tell if you have .Net Core 2.0+ SDK installed on your machine this build works fine from the command line and from VS.
