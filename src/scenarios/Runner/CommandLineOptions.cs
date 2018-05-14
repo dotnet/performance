@@ -20,6 +20,9 @@ namespace JitBench
     internal sealed class CommandLineOptions
     {
         public CommandLineOptions() { }
+		
+        [Option("netcoreapp-version", Required = true, HelpText = "Microsoft.NETCore.App version, used to be expressed with BaselineMicrosoftNetCoreAppPackageVersion in CoreCLR repo")]
+        public string MicrosoftNetCoreAppPackageVersion { get; set; }
 
         [Option("use-existing-setup", Required = false, HelpText = "Use existing setup for all benchmarks.")]
         public Boolean UseExistingSetup { get; set; }

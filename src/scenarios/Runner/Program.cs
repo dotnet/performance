@@ -37,7 +37,7 @@ namespace JitBench
             TestRun run = new TestRun()
             {
                 OutputDir = GetInitialWorkingDir(),
-                DotnetFrameworkVersion = JitBench.VersioningConstants.MicrosoftNetCoreAppPackageVersion,
+                DotnetFrameworkVersion = options.MicrosoftNetCoreAppPackageVersion,
                 Iterations = 11
             };
 
