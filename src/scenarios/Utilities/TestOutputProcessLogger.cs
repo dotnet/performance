@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 
-namespace JitBench
+namespace Scenarios
 {
     public class TestOutputProcessLogger : IProcessLogger
     {

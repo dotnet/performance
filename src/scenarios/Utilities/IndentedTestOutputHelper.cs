@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace JitBench
+namespace Scenarios
 {
     /// <summary>
     /// An implementation of ITestOutputHelper that adds one indent level to

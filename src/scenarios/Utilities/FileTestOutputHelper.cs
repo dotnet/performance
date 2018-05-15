@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace JitBench
+namespace Scenarios
 {
     /// <summary>
     /// An ITestOutputHelper implementation that logs to a file

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace JitBench
+namespace Scenarios
 {
     /// <summary>
     /// Executes a process and logs the output

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Xunit.Performance.Api;
 
-namespace JitBench
+namespace Scenarios
 {
     public static class BenchviewResultExporter
     {

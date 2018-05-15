@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace JitBench
+namespace Scenarios
 {
     /// <summary>
     /// Diverts console output into a ITestOutputHelper

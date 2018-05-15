@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace JitBench
+namespace Scenarios
 {
     public class ConsoleTestOutputHelper : ITestOutputHelper
     {

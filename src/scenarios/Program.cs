@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace JitBench
+namespace Scenarios
 {
     class Program
     {
@@ -17,7 +17,7 @@ namespace JitBench
             TestRun testRun = ConfigureTestRun(options);
 
             ConsoleTestOutputHelper console = new ConsoleTestOutputHelper();
-            string logPath = Path.Combine(testRun.OutputDir, "JitBench_log.txt");
+            string logPath = Path.Combine(testRun.OutputDir, "Scenarios_log.txt");
             FileTestOutputHelper logOutput = new FileTestOutputHelper(logPath);
 
             testRun.WriteConfiguration(console);
@@ -132,7 +132,7 @@ namespace JitBench
         static string GetInitialWorkingDir()
         {
             string timestamp = DateTime.Now.ToString("yyyy\\_MM\\_dd\\_hh\\_mm\\_ss\\_ffff");
-            return Path.Combine(Path.GetTempPath(), "JitBench_" + timestamp);
+            return Path.Combine(Path.GetTempPath(), "Scenarios_" + timestamp);
         }
 
         static IEnumerable<Benchmark> GetBenchmarkSelection(CommandLineOptions options)

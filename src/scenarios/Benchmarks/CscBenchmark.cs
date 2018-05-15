@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace JitBench
+namespace Scenarios
 {
     public abstract class CscBenchmark : Benchmark
     {

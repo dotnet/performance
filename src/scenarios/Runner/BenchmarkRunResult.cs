@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace JitBench
+namespace Scenarios
 {
     public class BenchmarkRunResult
     {

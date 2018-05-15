@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Xunit.Performance.Api;
 
-namespace JitBench
+namespace Scenarios
 {
     class MusicStoreBenchmark : WebAppBenchmark
     {

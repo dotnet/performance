@@ -1,6 +1,6 @@
-# JitBench #
+# End To End Scenarios #
 
-JitBench is a collection of scenario benchmarks that were originally designed to do performance testing of the tiered jitting feature. They can be easily run for ad-hoc investigation or as part of automated performance testing
+End To End Scenarios is a collection of scenario benchmarks that were originally designed to do performance testing of the tiered jitting feature. They can be easily run for ad-hoc investigation or as part of automated performance testing
 
 
 ## Running the test (ad-hoc) ##
@@ -11,18 +11,18 @@ Execute 'dotnet run -c Release -- --netcoreapp-version $netCoreAppVersion' in th
  
       === CONFIGURATION ===
 
-    DotnetFrameworkVersion: 2.1.0-preview2-26131-06
+    DotnetFrameworkVersion: 2.1.0-preview3-26416-01
     DotnetSdkVersion:       2.2.0-preview1-007558
     PrivateCoreCLRBinDir:
     Architecture:           X64
-    OutputDir:              C:\Users\noahfalk\AppData\Local\Temp\JitBench_2018_02_12_05_16_34_0611
+    OutputDir:              C:\Users\adsitnik\AppData\Local\Temp\Scenarios_2018_05_15_12_45_21_0445
     Iterations:             3
-    UseExistingSetup:       True
+    UseExistingSetup:       False
     Configurations:         Default
 
 
     Benchmark run in progress...
-    Verbose log: C:\Users\noahfalk\AppData\Local\Temp\JitBench_2018_02_12_05_16_34_0611\JitBench_log.txt
+    Verbose log: C:\Users\adsitnik\AppData\Local\Temp\Scenarios_2018_05_15_12_45_21_0445\Scenarios_log.txt
 
 
       === RESULTS ===
@@ -44,13 +44,12 @@ Examples of more customized ways the benchmark can be run (see the command line 
 
 **Run with a private CoreCLR build instead of a downloaded one**
 
-    dotnet.exe run --  --netcoreapp-version 2.1.0-preview3-26416-01 --coreclr-bin-dir F:\github\coreclr\bin\Product\Windows_NT.x64.Release
+    dotnet.exe run -- --coreclr-bin-dir F:\github\coreclr\bin\Product\Windows_NT.x64.Release --netcoreapp-version 2.1.0-preview3-26416-01 
 
 **Run multiple configurations for comparison**
 
-    dotnet.exe run -- --netcoreapp-version 2.1.0-preview3-26416-01 --configs Default,Tiering,Minopts
+    dotnet.exe run -- --configs Default,Tiering,Minopts --netcoreapp-version 2.1.0-preview3-26416-01 
 
-    ...
       === RESULTS ===
 
            Benchmark                Metric          Default     Tiering    Minopts
@@ -64,9 +63,8 @@ Examples of more customized ways the benchmark can be run (see the command line 
 
 **Run only a specific benchmark**
 
-    dotnet.exe run -- --netcoreapp-version 2.1.0-preview3-26416-01 --benchmark Dotnet_Build_HelloWorld
+    dotnet.exe run -- --benchmark Dotnet_Build_HelloWorld --netcoreapp-version 2.1.0-preview3-26416-01 
 
-    ...
       === RESULTS ===
 
            Benchmark            Metric      Default
@@ -77,7 +75,7 @@ Examples of more customized ways the benchmark can be run (see the command line 
 
     dotnet.exe run -- --perf:collect BranchMispredictions+CacheMisses+InstructionRetired --netcoreapp-version 2.1.0-preview3-26416-01
 
-ETL traces will show up in the output directory here: <run\_id\>-JitBench-<benchmark\_name\>-<config\_name\>-traces\\<run\_id\>-JitBench-<benchmark\_name\>-<config\_name\>(#).etl
+ETL traces will show up in the output directory here: <run\_id\>-Scenarios-<benchmark\_name\>-<config\_name\>-traces\\<run\_id\>-Scenarios-<benchmark\_name\>-<config\_name\>(#).etl
 
 **Run without repeating all the setup steps (for a faster inner dev loop)**
 
@@ -89,17 +87,17 @@ ETL traces will show up in the output directory here: <run\_id\>-JitBench-<bench
 
 **Run with a specific output directory**
 
-    dotnet.exe run -- --perf:outputdir C:\temp\JitBench\_results --netcoreapp-version 2.1.0-preview3-26416-01
+    dotnet.exe run -- --perf:outputdir C:\temp\Scenarios\_results --netcoreapp-version 2.1.0-preview3-26416-01
 
 ## Adding a new Benchmark ##
 
-In the Benchmarks folder create a new .cs file that implements a class deriving from Benchmark. Provide a name for the benchmark in the constructor and implement the abstract Setup() method. In Setup do whatever you need to do to acquire files specific to your benchmark and then set the properties
+In the Benchmarks folder create a new `.cs` file that implements a class deriving from Benchmark. Provide a name for the benchmark in the constructor and implement the abstract `Setup()` method. In `Setup` do whatever you need to do to acquire files specific to your benchmark and then set the properties
 
 - ExePath
 - WorkingDirPath
 - EnvironmentVariables (optional) 
 
-to determine what process will be invoked later when the benchmark runs. BuildHelloWorldBenchmark.cs is a simple example if you need a template to copy. MusicStore is a bit more sophisticated and shows gathering custom metrics + customizing the Benchview output.
+to determine what process will be invoked later when the benchmark runs. `BuildHelloWorldBenchmark.cs` is a simple example if you need a template to copy. MusicStore is a bit more sophisticated and shows gathering custom metrics + customizing the Benchview output.
 
 ## Automation
 This how we currently setup to run the test in CI and then retrieve its results. 
@@ -107,7 +105,7 @@ This how we currently setup to run the test in CI and then retrieve its results.
 **Setup:**
 
 1. Create a directory with all the runtime and framework binaries in it (currently called the sandbox directory)
-2. Build the JitBench executable with dotnet cli
+2. Build the Scenarios executable with dotnet cli
 3. Set any COMPLUS variables that will modify the run
 4. Invoke the test with commandline _sandbox\_dir_\\corerun.exe --perf:outputdir _output\_dir_ --perf:runid _run\_id_ --target-architecture x64 --perf:collect _metrics_ --netcoreapp-version 2.1.0-preview3-26416-01
 
@@ -116,9 +114,9 @@ This how we currently setup to run the test in CI and then retrieve its results.
 
 For each benchmark in the benchmark suite the test will write out a set of result files in the _output\_dir_:
 
-- <run\_id\>-JitBench-<benchmark\_name\>-<config\_name\>.csv
-- <run\_id\>-JitBench-<benchmark\_name\>-<config\_name\>.md
-- <run\_id\>-JitBench-<benchmark\_name\>-<config\_name\>.xml
+- <run\_id\>-Scenarios-<benchmark\_name\>-<config\_name\>.csv
+- <run\_id\>-Scenarios-<benchmark\_name\>-<config\_name\>.md
+- <run\_id\>-Scenarios-<benchmark\_name\>-<config\_name\>.xml
 
 If ETW was enabled there will also be a set of ETW traces for each process execution in the test:
 
@@ -126,26 +124,26 @@ If ETW was enabled there will also be a set of ETW traces for each process execu
 
 For example:
 
-    02/15/2018  09:07 PM    <DIR>          Perf-On-JitBench-Csc_Hello_World-Default-traces
-    02/15/2018  09:07 PM             2,766 Perf-On-JitBench-Csc_Hello_World-Default.csv
-    02/15/2018  09:07 PM             3,801 Perf-On-JitBench-Csc_Hello_World-Default.md
-    02/15/2018  09:07 PM            11,610 Perf-On-JitBench-Csc_Hello_World-Default.xml
-    02/15/2018  09:08 PM    <DIR>          Perf-On-JitBench-Csc_Roslyn_Source-Default-traces
-    02/15/2018  09:08 PM             2,856 Perf-On-JitBench-Csc_Roslyn_Source-Default.csv
-    02/15/2018  09:08 PM             3,851 Perf-On-JitBench-Csc_Roslyn_Source-Default.md
-    02/15/2018  09:08 PM            11,716 Perf-On-JitBench-Csc_Roslyn_Source-Default.xml
-    02/15/2018  08:48 PM    <DIR>          Perf-On-JitBench-Dotnet_Build_HelloWorld_Default-traces
-    02/15/2018  08:48 PM             2,901 Perf-On-JitBench-Dotnet_Build_HelloWorld_Default.csv
-    02/15/2018  08:48 PM             4,001 Perf-On-JitBench-Dotnet_Build_HelloWorld_Default.md
-    02/15/2018  08:48 PM            11,777 Perf-On-JitBench-Dotnet_Build_HelloWorld_Default.xml
-    02/15/2018  09:08 PM    <DIR>          Perf-On-JitBench-MusicStore-Default-traces
-    02/15/2018  09:09 PM             3,511 Perf-On-JitBench-MusicStore-Default.csv
-    02/15/2018  09:09 PM             5,543 Perf-On-JitBench-MusicStore-Default.md
-    02/15/2018  09:09 PM            15,965 Perf-On-JitBench-MusicStore-Default.xml
+    02/15/2018  09:07 PM    <DIR>          Perf-On-Scenarios-Csc_Hello_World-Default-traces
+    02/15/2018  09:07 PM             2,766 Perf-On-Scenarios-Csc_Hello_World-Default.csv
+    02/15/2018  09:07 PM             3,801 Perf-On-Scenarios-Csc_Hello_World-Default.md
+    02/15/2018  09:07 PM            11,610 Perf-On-Scenarios-Csc_Hello_World-Default.xml
+    02/15/2018  09:08 PM    <DIR>          Perf-On-Scenarios-Csc_Roslyn_Source-Default-traces
+    02/15/2018  09:08 PM             2,856 Perf-On-Scenarios-Csc_Roslyn_Source-Default.csv
+    02/15/2018  09:08 PM             3,851 Perf-On-Scenarios-Csc_Roslyn_Source-Default.md
+    02/15/2018  09:08 PM            11,716 Perf-On-Scenarios-Csc_Roslyn_Source-Default.xml
+    02/15/2018  08:48 PM    <DIR>          Perf-On-Scenarios-Dotnet_Build_HelloWorld_Default-traces
+    02/15/2018  08:48 PM             2,901 Perf-On-Scenarios-Dotnet_Build_HelloWorld_Default.csv
+    02/15/2018  08:48 PM             4,001 Perf-On-Scenarios-Dotnet_Build_HelloWorld_Default.md
+    02/15/2018  08:48 PM            11,777 Perf-On-Scenarios-Dotnet_Build_HelloWorld_Default.xml
+    02/15/2018  09:08 PM    <DIR>          Perf-On-Scenarios-MusicStore-Default-traces
+    02/15/2018  09:09 PM             3,511 Perf-On-Scenarios-MusicStore-Default.csv
+    02/15/2018  09:09 PM             5,543 Perf-On-Scenarios-MusicStore-Default.md
+    02/15/2018  09:09 PM            15,965 Perf-On-Scenarios-MusicStore-Default.xml
 
 The result files use standard XUnitPerformanceHarness formatting. Typical metrics content from the csv when ETW is enabled looks like this:
 
-    JitBench															Metric					Unit	Iterations	Average		STDEV.S		Min			Max
+    Scenarios					        								Metric					Unit	Iterations	Average		STDEV.S		Min			Max
     MusicStore															Duration				ms		2			2146		4.242640687	2143		2149
     MusicStore/dotnet.exe												Duration				ms		2			2136.8458	3.163030054	2134.6092	2139.0824
     MusicStore/dotnet.exe												BranchMispredictions	count	2			57272320	147711.7782	57167872	57376768

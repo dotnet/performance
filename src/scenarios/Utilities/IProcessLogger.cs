@@ -1,4 +1,4 @@
-﻿namespace JitBench
+﻿namespace Scenarios
 {
     public enum ProcessStream
     {

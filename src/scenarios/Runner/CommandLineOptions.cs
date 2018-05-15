@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace JitBench
+namespace Scenarios
 {
     // Licensed to the .NET Foundation under one or more agreements.
     // The .NET Foundation licenses this file to you under the MIT license.
@@ -15,7 +15,7 @@ namespace JitBench
 
 
     /// <summary>
-    /// Provides an interface to parse the command line arguments passed to the TieredJitBench harness.
+    /// Provides an interface to parse the command line arguments passed to the End-To-End Scenario harness.
     /// </summary>
     internal sealed class CommandLineOptions
     {
@@ -173,7 +173,7 @@ namespace JitBench
                 AddDashesToOption = true,
                 AddEnumValuesToHelpText = true,
                 AdditionalNewLineAfterOption = false,
-                Heading = "JitBench",
+                Heading = "End-To-End Scenarios",
                 MaximumDisplayWidth = 80,
             }.AddOptions(parser.ParseArguments<CommandLineOptions>(new string[] { "--help" })).ToString();
             return helpTextString;

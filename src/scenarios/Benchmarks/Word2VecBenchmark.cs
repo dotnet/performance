@@ -7,7 +7,7 @@ using Microsoft.Xunit.Performance.Api;
 using System.Runtime.InteropServices;
 using System.Globalization;
 
-namespace JitBench
+namespace Scenarios
 {
     class Word2VecBenchmark : Benchmark
     {

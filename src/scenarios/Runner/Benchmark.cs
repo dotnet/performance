@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Xunit.Performance.Api;
 using Microsoft.Xunit.Performance.Api.Profilers.Etw;
 
-namespace JitBench
+namespace Scenarios
 {
     public abstract class Benchmark
     {
@@ -95,7 +95,7 @@ namespace JitBench
                     {
                         //XUnitPerformanceHarness writes files to disk starting with {runid}-{ScenarioBenchmarkName}-{TestName}
                         TestName = (Name + "-" + config.Name).Replace(' ', '_'),
-                        Scenario = new ScenarioBenchmark("JitBench"),
+                        Scenario = new ScenarioBenchmark("EndToEnd"),
                         Iterations = run.Iterations,
                         PreIterationDelegate = scenario =>
                         {
