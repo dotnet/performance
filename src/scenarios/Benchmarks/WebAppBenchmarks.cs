@@ -20,8 +20,6 @@ namespace Scenarios
 
         protected override string GetSrcDirectory(string outputDir) => Path.Combine(GetRepoRootDir(outputDir), "src", "MusicStore");
 
-        protected override string GetPathToStoreScript(string outputDir) => Path.Combine(GetRepoRootDir(outputDir), "AspNet-GenerateStore.ps1");
-
         protected override string GetWebAppStoreDir(string outputDir) => Path.Combine(GetSrcDirectory(outputDir), StoreDirName);
     }
 
@@ -31,13 +29,11 @@ namespace Scenarios
 
         protected override string RepoUrl => "https://github.com/adamsitnik/allReady";
 
-        protected override string CommitSha1Id => "dcaba9caa8a1fdf4d4b44241321723097d78102c";
+        protected override string CommitSha1Id => "1a104daa024bd09c5d2dddd4219a778f4d72cfcb";
 
         protected override string GetRepoRootDir(string outputDir) => Path.Combine(outputDir, "A");
 
         protected override string GetSrcDirectory(string outputDir) => Path.Combine(GetRepoRootDir(outputDir), "AllReadyApp", "Web-App", "AllReady");
-
-        protected override string GetPathToStoreScript(string outputDir) => Path.Combine(GetRepoRootDir(outputDir), "harness", "AspNet-GenerateStore.ps1");
 
         protected override string GetWebAppStoreDir(string outputDir) => Path.Combine(GetSrcDirectory(outputDir), StoreDirName);
     }
@@ -59,8 +55,6 @@ namespace Scenarios
         protected abstract string GetRepoRootDir(string outputDir);
 
         protected abstract string GetSrcDirectory(string outputDir);
-
-        protected abstract string GetPathToStoreScript(string outputDir);
 
         protected abstract string GetWebAppStoreDir(string outputDir);
 
@@ -84,11 +78,11 @@ namespace Scenarios
         async Task CloneWebAppRepo(string outputDir, ITestOutputHelper output)
         {
             // If the repo already exists, we delete it and extract it again.
-            string jitBenchRepoRootDir = GetRepoRootDir(outputDir);
-            FileTasks.DeleteDirectory(jitBenchRepoRootDir, output);
+            string repoRootDir = GetRepoRootDir(outputDir);
+            FileTasks.DeleteDirectory(repoRootDir, output);
 
-            await GitTasks.Clone(RepoUrl, jitBenchRepoRootDir, output);
-            await GitTasks.Checkout(CommitSha1Id, output, jitBenchRepoRootDir);
+            await GitTasks.Clone(RepoUrl, repoRootDir, output);
+            await GitTasks.Checkout(CommitSha1Id, output, repoRootDir);
         }
 
         private async Task CreateStore(DotNetInstallation dotNetInstall, string outputDir, ITestOutputHelper output)
@@ -96,12 +90,12 @@ namespace Scenarios
             string tfm = DotNetSetup.GetTargetFrameworkMonikerForFrameworkVersion(dotNetInstall.FrameworkVersion);
             string rid = $"win7-{dotNetInstall.Architecture}";
             string storeDirName = ".store";
-            await new ProcessRunner("powershell.exe", $"{GetPathToStoreScript(outputDir)} -InstallDir {storeDirName} -Architecture {dotNetInstall.Architecture} -Runtime {rid}")
+            await new ProcessRunner("powershell.exe", $"{GetPathToStoreScript()} -InstallDir {storeDirName} -Architecture {dotNetInstall.Architecture} -Runtime {rid} -CreateStoreProjPath {GetPathToCreateStoreProj()}")
                 .WithWorkingDirectory(GetSrcDirectory(outputDir))
                 .WithEnvironmentVariable("PATH", $"{dotNetInstall.DotNetDir};{Environment.GetEnvironmentVariable("PATH")}")
                 .WithEnvironmentVariable("DOTNET_MULTILEVEL_LOOKUP", "0")
-                .WithEnvironmentVariable("JITBENCH_TARGET_FRAMEWORK_MONIKER", tfm)
-                .WithEnvironmentVariable("JITBENCH_FRAMEWORK_VERSION", dotNetInstall.FrameworkVersion)
+                .WithEnvironmentVariable("SCENARIOS_TARGET_FRAMEWORK_MONIKER", tfm)
+                .WithEnvironmentVariable("SCENARIOS_FRAMEWORK_VERSION", dotNetInstall.FrameworkVersion)
                 .WithLog(output)
                 .Run();
         }
@@ -119,9 +113,9 @@ namespace Scenarios
             await new ProcessRunner(dotNetExePath, $"publish -c Release -f {tfm} --manifest {manifestPath}")
                 .WithWorkingDirectory(GetSrcDirectory(outputDir))
                 .WithEnvironmentVariable("DOTNET_MULTILEVEL_LOOKUP", "0")
-                .WithEnvironmentVariable("JITBENCH_ASPNET_VERSION", "2.0")
-                .WithEnvironmentVariable("JITBENCH_TARGET_FRAMEWORK_MONIKER", tfm)
-                .WithEnvironmentVariable("JITBENCH_FRAMEWORK_VERSION", dotNetInstall.FrameworkVersion)
+                .WithEnvironmentVariable("SCENARIOS_ASPNET_VERSION", "2.0")
+                .WithEnvironmentVariable("SCENARIOS_TARGET_FRAMEWORK_MONIKER", tfm)
+                .WithEnvironmentVariable("SCENARIOS_FRAMEWORK_VERSION", dotNetInstall.FrameworkVersion)
                 .WithEnvironmentVariable("UseSharedCompilation", "false")
                 .WithLog(output)
                 .Run();
@@ -240,6 +234,10 @@ namespace Scenarios
             newMetric = Metric.ElapsedTimeMilliseconds;
             return true;
         }
+
+        string GetPathToStoreScript() => Path.Combine(Path.GetDirectoryName(typeof(WebAppBenchmark).Assembly.Location), "Store", "AspNet-GenerateStore.ps1"); // the script is a content copied to output dir
+
+        string GetPathToCreateStoreProj() => Path.Combine(Path.GetDirectoryName(typeof(WebAppBenchmark).Assembly.Location), "Store", "CreateStore", "CreateStore._proj_"); // the proj is a content copied to output dir
 
         string GetWebAppPublishDirectory(DotNetInstallation dotNetInstall, string outputDir, string tfm)
         {
