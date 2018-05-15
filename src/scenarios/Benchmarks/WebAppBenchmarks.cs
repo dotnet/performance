@@ -19,29 +19,25 @@ namespace Scenarios
         protected override string GetRepoRootDir(string outputDir) => Path.Combine(outputDir, "M");
 
         protected override string GetSrcDirectory(string outputDir) => Path.Combine(GetRepoRootDir(outputDir), "src", "MusicStore");
-
-        protected override string GetWebAppStoreDir(string outputDir) => Path.Combine(GetSrcDirectory(outputDir), StoreDirName);
     }
 
     class AllReadyBenchmark : WebAppBenchmark
     {
         public AllReadyBenchmark() : base("AllReady", "AllReady.dll") { }
 
-        protected override string RepoUrl => "https://github.com/adamsitnik/allReady";
+        protected override string RepoUrl => "https://github.com/dotnet-perf-bot/allReady";
 
-        protected override string CommitSha1Id => "1a104daa024bd09c5d2dddd4219a778f4d72cfcb";
+        protected override string CommitSha1Id => "15e97148c0aa4ef4b0dd02f646665c55e8b820df";
 
         protected override string GetRepoRootDir(string outputDir) => Path.Combine(outputDir, "A");
 
         protected override string GetSrcDirectory(string outputDir) => Path.Combine(GetRepoRootDir(outputDir), "AllReadyApp", "Web-App", "AllReady");
 
-        protected override string GetWebAppStoreDir(string outputDir) => Path.Combine(GetSrcDirectory(outputDir), StoreDirName);
     }
 
     abstract class WebAppBenchmark : Benchmark
     {
-        protected const string StoreDirName = ".store";
-
+        private const string StoreDirName = ".store";
         private readonly Metric StartupMetric = new Metric("Startup", "ms");
         private readonly Metric FirstRequestMetric = new Metric("First Request", "ms");
         private readonly Metric MedianResponseMetric = new Metric("Median Response", "ms");
@@ -55,8 +51,6 @@ namespace Scenarios
         protected abstract string GetRepoRootDir(string outputDir);
 
         protected abstract string GetSrcDirectory(string outputDir);
-
-        protected abstract string GetWebAppStoreDir(string outputDir);
 
         public override async Task Setup(DotNetInstallation dotNetInstall, string outputDir, bool useExistingSetup, ITestOutputHelper output)
         {
@@ -235,11 +229,13 @@ namespace Scenarios
             return true;
         }
 
-        string GetPathToStoreScript() => Path.Combine(Path.GetDirectoryName(typeof(WebAppBenchmark).Assembly.Location), "Store", "AspNet-GenerateStore.ps1"); // the script is a content copied to output dir
+        private string GetPathToStoreScript() => Path.Combine(Path.GetDirectoryName(typeof(WebAppBenchmark).Assembly.Location), "Store", "AspNet-GenerateStore.ps1"); // the script is a content copied to output dir
 
-        string GetPathToCreateStoreProj() => Path.Combine(Path.GetDirectoryName(typeof(WebAppBenchmark).Assembly.Location), "Store", "CreateStore", "CreateStore._proj_"); // the proj is a content copied to output dir
+        private string GetPathToCreateStoreProj() => Path.Combine(Path.GetDirectoryName(typeof(WebAppBenchmark).Assembly.Location), "Store", "CreateStore", "CreateStore._proj_"); // the proj is a content copied to output dir
 
-        string GetWebAppPublishDirectory(DotNetInstallation dotNetInstall, string outputDir, string tfm)
+        private string GetWebAppStoreDir(string outputDir) => Path.Combine(GetSrcDirectory(outputDir), StoreDirName);
+
+        private string GetWebAppPublishDirectory(DotNetInstallation dotNetInstall, string outputDir, string tfm)
         {
             string dir = Path.Combine(GetSrcDirectory(outputDir), "bin", dotNetInstall.Architecture, "Release", tfm, "publish");
             if (Directory.Exists(dir))
@@ -255,7 +251,5 @@ namespace Scenarios
 
             return null;
         }
-
-        
     }
 }
