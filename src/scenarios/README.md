@@ -5,7 +5,7 @@ End To End Scenarios is a collection of scenario benchmarks that were originally
 
 ## Running the test (ad-hoc) ##
 
-Execute 'dotnet run -c Release -- --netcoreapp-version $netCoreAppVersion' in this directory. The test should eventually produce output like this:
+Execute `dotnet run -c Release -- --netcoreapp-version $netCoreAppVersion` in this directory. The test should eventually produce output like this:
 
  
  
