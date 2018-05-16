@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Xunit.Performance.Api;
 using System.Runtime.InteropServices;
 using System.Globalization;
+using Scenarios.Utilities;
 
 namespace Scenarios
 {
@@ -54,16 +55,8 @@ namespace Scenarios
             string word2VecNetRepoRootDir = GetWord2VecNetRepoRootDir(outputDir);
             FileTasks.DeleteDirectory(word2VecNetRepoRootDir, output);
 
-            await ExecuteGitCommand($"clone {Word2VecNetRepoUrl} {word2VecNetRepoRootDir}", output);
-            await ExecuteGitCommand($"checkout {Word2VecNetCommitSha1Id}", output, workingDirectory: word2VecNetRepoRootDir);
-        }
-
-        async Task ExecuteGitCommand(string arguments, ITestOutputHelper output, string workingDirectory = null)
-        {
-            int exitCode = await new ProcessRunner("git", arguments).WithLog(output).WithWorkingDirectory(workingDirectory).Run();
-
-            if (!DefaultExitCodes.Contains(exitCode))
-                throw new Exception($"git {arguments} has failed, the exit code was {exitCode}");
+            await GitTasks.Clone(Word2VecNetRepoUrl, word2VecNetRepoRootDir, output);
+            await GitTasks.Checkout(Word2VecNetCommitSha1Id, output, word2VecNetRepoRootDir);
         }
 
         async Task DownloadAndExtractTextCorpus(DotNetInstallation dotNetInstall, string outputDir, ITestOutputHelper output)
