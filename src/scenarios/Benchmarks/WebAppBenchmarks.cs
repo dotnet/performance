@@ -12,13 +12,13 @@ namespace Scenarios
     {
         public MusicStoreBenchmark() : base("MusicStore", "MusicStore.dll") { }
 
-        protected override string RepoUrl => "https://github.com/aspnet/JitBench";
+        protected override string RepoUrl => "https://github.com/dotnet-perf-bot/MusicStore";
 
-        protected override string CommitSha1Id => "6bee730486f272d31f23f1033225090511f856f3";
+        protected override string CommitSha1Id => "4de93ebb831404d3db3457142c629b7b0b3eda1b";
 
         protected override string GetRepoRootDir(string outputDir) => Path.Combine(outputDir, "M");
 
-        protected override string GetSrcDirectory(string outputDir) => Path.Combine(GetRepoRootDir(outputDir), "src", "MusicStore");
+        protected override string GetSrcDirectory(string outputDir) => Path.Combine(GetRepoRootDir(outputDir), "samples", "MusicStore");
     }
 
     class AllReadyBenchmark : WebAppBenchmark
@@ -32,7 +32,6 @@ namespace Scenarios
         protected override string GetRepoRootDir(string outputDir) => Path.Combine(outputDir, "A");
 
         protected override string GetSrcDirectory(string outputDir) => Path.Combine(GetRepoRootDir(outputDir), "AllReadyApp", "Web-App", "AllReady");
-
     }
 
     abstract class WebAppBenchmark : Benchmark
