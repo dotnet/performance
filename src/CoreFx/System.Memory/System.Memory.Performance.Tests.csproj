@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>library</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Xunit" Version="2.3.0-beta1-build3642" />
+    <PackageReference Include="Microsoft.xunit.netcore.extensions" Version="2.2.0-preview1-02804-04" />
+    <PackageReference Include="xunit.performance.api" Version="1.0.0-beta-build0019" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="*" />
+    </ItemGroup>
+
+
+  <!-- <ItemGroup>  
+    <Compile Include="..\CommonUtils\System.Buffers.Memory\IMemoryOwner.cs" Link="IMemoryOwner.cs" />
+  </ItemGroup>
+    <ItemGroup>  
+    <Compile Include="..\CommonUtils\System.Buffers.Memory\IPinnable.cs" Link="IPinnable.cs" />
+  </ItemGroup>
+    <ItemGroup>  
+    <Compile Include="..\CommonUtils\System.Buffers.Memory\MemoryHandle.cs" Link="MemoryHandle.cs" />
+  </ItemGroup>
+    <ItemGroup>  
+    <Compile Include="..\CommonUtils\System.Buffers.Memory\MemoryManager.cs" Link="MemoryManager.cs" />
+  </ItemGroup> -->
+
+
+</Project>

@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>library</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Xunit" Version="2.3.0-beta1-build3642" />
+    <PackageReference Include="Microsoft.xunit.netcore.extensions" Version="2.2.0-preview1-02804-04" />
+    <PackageReference Include="xunit.performance.api" Version="1.0.0-beta-build0019" />
+    <PackageReference Include="System.IO.Compression.TestData" Version="1.0.6-prerelease" />
+  </ItemGroup>
+
+  <ItemGroup>  
+    <Compile Include="..\System.IO.Compression\CompressionStreamPerfTestBase.cs" Link="CompressionStreamPerfTestBase.cs" />
+    <Compile Include="..\System.IO.Compression\CompressionStreamTestBase.cs" Link="CompressionStreamTestBase.cs" />
+    <Compile Include="..\System.IO.Compression\StreamHelpers.cs" Link="StreamHelpers.cs" />
+  </ItemGroup>  
+
+  <Target Name="RestoreTestData" BeforeTargets="Build">
+    <Exec Command="dotnet restore --packages $(MSBuildProjectDirectory)\..\packages" />
+  </Target>
+
+</Project>

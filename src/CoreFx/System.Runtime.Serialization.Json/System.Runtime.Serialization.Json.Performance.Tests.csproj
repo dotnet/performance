@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>library</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Xunit" Version="2.3.0-beta1-build3642" />
+    <PackageReference Include="Microsoft.xunit.netcore.extensions" Version="2.2.0-preview1-02804-04" />
+    <PackageReference Include="xunit.performance.api" Version="1.0.0-beta-build0019" />
+    <PackageReference Include="Newtonsoft.JSON" Version="*" />
+  </ItemGroup>
+
+  <ItemGroup>  
+    <Compile Include="..\System.Runtime.Serialization.Xml\SerializationTypes.CoreCLR.cs" Link="SerializationTypes.CoreCLR.cs" />
+    <Compile Include="..\System.Runtime.Serialization.Xml\SerializationTypes.cs" Link="SerializationTypes.cs" />
+    <Compile Include="..\System.Runtime.Serialization.Xml\SerializationTypes.RuntimeOnly.cs" Link="SerializationTypes.RuntimeOnly.cs" />
+    <Compile Include="..\CommonUtils\System.Runtime.Serialization.Xml\PerformanceTestsCommon.cs" Link="PerformanceTestsCommon.cs" />
+    <Compile Include="..\CommonUtils\System.Runtime.Serialization.Common\Utils.cs" Link="Utils.cs" />
+  </ItemGroup>  
+
+</Project>
