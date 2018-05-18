@@ -1,0 +1,103 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), common.props))\common.props" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>netcoreapp1.1;netcoreapp2.0;netcoreapp2.1;net461</TargetFrameworks>
+    <AssemblyName>$(MSBuildProjectName)</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BenchmarksGame\binarytrees\binarytrees-2\binarytrees-2.csproj" />
+    <ProjectReference Include="..\BenchmarksGame\binarytrees\binarytrees-5\binarytrees-5.csproj" />
+    <ProjectReference Include="..\BenchmarksGame\fannkuch-redux\fannkuch-redux-2\fannkuch-redux-2.csproj" />
+    <ProjectReference Include="..\BenchmarksGame\fannkuch-redux\fannkuch-redux-5\fannkuch-redux-5.csproj" />
+    <ProjectReference Include="..\BenchmarksGame\fasta\fasta-1\fasta-1.csproj" />
+    <ProjectReference Include="..\BenchmarksGame\fasta\fasta-2\fasta-2.csproj" />
+    <ProjectReference Include="..\BenchmarksGame\k-nucleotide\k-nucleotide-1\k-nucleotide-1.csproj" />
+    <ProjectReference Include="..\BenchmarksGame\k-nucleotide\k-nucleotide-9\k-nucleotide-9.csproj" />
+    <ProjectReference Include="..\BenchmarksGame\mandelbrot\mandelbrot-2\mandelbrot-2.csproj" />
+    <ProjectReference Include="..\BenchmarksGame\mandelbrot\mandelbrot-7\mandelbrot-7.csproj" />
+    <ProjectReference Include="..\BenchmarksGame\n-body\n-body-3.csproj" />
+    <ProjectReference Include="..\BenchmarksGame\pidigits\pidigits-3.csproj" />
+    <ProjectReference Include="..\BenchmarksGame\regex-redux\regex-redux-1\regex-redux-1.csproj" />
+    <ProjectReference Include="..\BenchmarksGame\regex-redux\regex-redux-5\regex-redux-5.csproj" />
+    <ProjectReference Include="..\BenchmarksGame\reverse-complement\reverse-complement-1\reverse-complement-1.csproj" />
+    <ProjectReference Include="..\BenchmarksGame\reverse-complement\reverse-complement-6\reverse-complement-6.csproj" />
+    <ProjectReference Include="..\BenchmarksGame\spectralnorm\spectralnorm-1\spectralnorm-1.csproj" />
+    <ProjectReference Include="..\BenchmarksGame\spectralnorm\spectralnorm-3\spectralnorm-3.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\Adams\Adams.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\BenchMk2\BenchMk2.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\BenchMrk\BenchMrk.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\Bisect\Bisect.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\DMath\DMath.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\FFT\FFT.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\InProd\InProd.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\InvMt\InvMt.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\LLoops\LLoops.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\Lorenz\Lorenz.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\MatInv4\MatInv4.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\NewtE\NewtE.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\NewtR\NewtR.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\Regula\Regula.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\Romber\Romber.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\Secant\Secant.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\Simpsn\Simpsn.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\SqMtx\SqMtx.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\Trap\Trap.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchF\Whetsto\Whetsto.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\8Queens\8Queens.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\Ackermann\Ackermann.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\AddArray\AddArray.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\AddArray2\AddArray2.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\Array1\Array1.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\Array2\Array2.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\BenchE\BenchE.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\BubbleSort\BubbleSort.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\BubbleSort2\BubbleSort2.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\CSieve\CSieve.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\Fib\Fib.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\HeapSort\HeapSort.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\IniArray\IniArray.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\LogicArray\LogicArray.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\Midpoint\Midpoint.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\MulMatrix\MulMatrix.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\NDhrystone\NDhrystone.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\Permutate\Permutate.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\Pi\Pi.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\Puzzle\Puzzle.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\QuickSort\QuickSort.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\TreeInsert\TreeInsert.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\TreeSort\TreeSort.csproj" />
+    <ProjectReference Include="..\Benchstones\BenchI\XposMatrix\XposMatrix.csproj" />
+    <ProjectReference Include="..\Burgers\Burgers.csproj" />
+    <ProjectReference Include="..\Bytemark\Bytemark.csproj" />
+    <ProjectReference Include="..\Devirtualization\DefaultEqualityComparerPerf.csproj" />
+    <ProjectReference Include="..\FractalPerf\FractalPerf.csproj" />
+    <ProjectReference Include="..\Inlining\InlineGCStruct\InlineGCStruct.csproj" />
+    <ProjectReference Include="..\Inlining\NoThrowInline\NoThrowInline.csproj" />
+    <ProjectReference Include="..\Layout\SearchLoops.csproj" />
+    <ProjectReference Include="..\Linq\Linq.csproj" />
+    <ProjectReference Include="..\perflab\PerfLab.csproj" />
+    <ProjectReference Include="..\SciMark\SciMark.csproj" />
+    <ProjectReference Include="..\Serialization\Deserialize\Deserialize.csproj" />
+    <ProjectReference Include="..\Serialization\Serialize\Serialize.csproj" />
+    <ProjectReference Include="..\SIMD\ConsoleMandel\ConsoleMandel.csproj" />
+    <ProjectReference Include="..\SIMD\RayTracer\RayTracer.csproj" />
+    <ProjectReference Include="..\SIMD\SeekUnroll\SeekUnroll.csproj" />
+    <ProjectReference Include="..\V8\Crypto\Crypto.csproj" />
+    <ProjectReference Include="..\V8\Richards\Richards.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'!='net461'">
+    <ProjectReference Include="..\Roslyn\CscBench.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)'!='netcoreapp1.1' and '$(TargetFramework)'!='net461'">
+    <ProjectReference Include="..\Math\Functions\Functions.csproj" />
+    <ProjectReference Include="..\Span\Indexer\Indexer.csproj" />
+    <ProjectReference Include="..\Span\SpanBench\SpanBench.csproj" />
+  </ItemGroup>
+
+</Project>

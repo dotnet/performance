@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), common.props))\common.props" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>netcoreapp2.0;netcoreapp2.1</TargetFrameworks>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Functions.cs" />
+    <Compile Include="MathTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Double\AbsDouble.cs" Link="AbsDouble.cs" />
+    <Compile Include="Double\AcosDouble.cs" Link="AcosDouble.cs" />
+    <Compile Include="Double\AsinDouble.cs" Link="AsinDouble.cs" />
+    <Compile Include="Double\Atan2Double.cs" Link="Atan2Double.cs" />
+    <Compile Include="Double\AtanDouble.cs" Link="AtanDouble.cs" />
+    <Compile Include="Double\CeilingDouble.cs" Link="CeilingDouble.cs" />
+    <Compile Include="Double\CosDouble.cs" Link="CosDouble.cs" />
+    <Compile Include="Double\CoshDouble.cs" Link="CoshDouble.cs" />
+    <Compile Include="Double\ExpDouble.cs" Link="ExpDouble.cs" />
+    <Compile Include="Double\FloorDouble.cs" Link="FloorDouble.cs" />
+    <Compile Include="Double\Log10Double.cs" Link="Log10Double.cs" />
+    <Compile Include="Double\LogDouble.cs" Link="LogDouble.cs" />
+    <Compile Include="Double\PowDouble.cs" Link="PowDouble.cs" />
+    <Compile Include="Double\RoundDouble.cs" Link="RoundDouble.cs" />
+    <Compile Include="Double\SinDouble.cs" Link="SinDouble.cs" />
+    <Compile Include="Double\SinhDouble.cs" Link="SinhDouble.cs" />
+    <Compile Include="Double\SqrtDouble.cs" Link="SqrtDouble.cs" />
+    <Compile Include="Double\TanDouble.cs" Link="TanDouble.cs" />
+    <Compile Include="Double\TanhDouble.cs" Link="TanhDouble.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Single\AbsSingle.cs" Link="AbsSingle.cs" />
+    <Compile Include="Single\AcosSingle.cs" Link="AcosSingle.cs" />
+    <Compile Include="Single\AsinSingle.cs" Link="AsinSingle.cs" />
+    <Compile Include="Single\Atan2Single.cs" Link="Atan2Single.cs" />
+    <Compile Include="Single\AtanSingle.cs" Link="AtanSingle.cs" />
+    <Compile Include="Single\CeilingSingle.cs" Link="CeilingSingle.cs" />
+    <Compile Include="Single\CoshSingle.cs" Link="CoshSingle.cs" />
+    <Compile Include="Single\CosSingle.cs" Link="CosSingle.cs" />
+    <Compile Include="Single\ExpSingle.cs" Link="ExpSingle.cs" />
+    <Compile Include="Single\FloorSingle.cs" Link="FloorSingle.cs" />
+    <Compile Include="Single\Log10Single.cs" Link="Log10Single.cs" />
+    <Compile Include="Single\LogSingle.cs" Link="LogSingle.cs" />
+    <Compile Include="Single\PowSingle.cs" Link="PowSingle.cs" />
+    <Compile Include="Single\RoundSingle.cs" Link="RoundSingle.cs" />
+    <Compile Include="Single\SinhSingle.cs" Link="SinhSingle.cs" />
+    <Compile Include="Single\SinSingle.cs" Link="SinSingle.cs" />
+    <Compile Include="Single\SqrtSingle.cs" Link="SqrtSingle.cs" />
+    <Compile Include="Single\TanhSingle.cs" Link="TanhSingle.cs" />
+    <Compile Include="Single\TanSingle.cs" Link="TanSingle.cs" />
+  </ItemGroup>
+
+</Project>

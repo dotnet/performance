@@ -1,0 +1,42 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)/version.props" />
+
+  <PropertyGroup Label="Repository information">
+    <Product>Microsoft .NET Core Performance</Product>
+    <RepositoryUrl>https://github.com/dotnet/performance</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Common build properties">
+    <LangVersion>latest</LangVersion>
+    <CodeAnalysisGenerateSuccessFile>false</CodeAnalysisGenerateSuccessFile>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AssemblyName>DotNetBenchmark-$(MSBuildProjectName)</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Label="NuGet package information">
+    <PackageIconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</PackageIconUrl>
+    <PackageProjectUrl>$RepositoryUrl</PackageProjectUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="$(MicrosoftDiagnosticsTracingLibraryVersion)">
+      <IncludeAssets>All</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.performance.api" Version="$(XunitPerformanceApiVersion)" />
+  </ItemGroup>
+
+  <ItemGroup  Condition="'$(TargetFramework)'=='net461'">
+    <!--
+    Found conflicts between different versions of
+    "System.Reflection.TypeExtensions" that could not be resolved.
+    These reference conflicts are listed in the build log when log verbosity is
+    set to detailed
+    -->
+    <PackageReference Include="System.Reflection.TypeExtensions" Version="4.4.0" />
+  </ItemGroup>
+</Project>
