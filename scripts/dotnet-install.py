@@ -11,7 +11,7 @@ import stat
 # Argument Parser
 ##########################################################################
 
-description = 'Tool to get job status'
+description = 'Downloads dotnet'
 
 parser = argparse.ArgumentParser(description=description)
 
