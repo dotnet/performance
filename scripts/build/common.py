@@ -38,7 +38,7 @@ def get_script_path() -> str:
 
 def get_repo_root_path() -> str:
     '''Gets repository root directory.'''
-    return get_script_path()
+    return os.path.abspath(os.path.join(get_script_path(), '..'))
 
 
 @contextmanager
