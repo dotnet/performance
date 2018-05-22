@@ -287,10 +287,10 @@ def process_arguments():
         '-c', '--configuration',
         metavar='CONFIGURATION',
         required=False,
-        default='Debug',
+        default='release',
         choices=['debug', 'release'],
         type=str.casefold,
-        help='Configuration use for building the project (default "Debug").',
+        help='Configuration use for building the project (default "release").',
     )
     parser.add_argument(
         '-f', '--frameworks',
