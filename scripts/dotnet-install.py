@@ -37,6 +37,7 @@ def main(args):
     dotnetInstallInterpreter = ['powershell', '.\\%s' % (dotnetInstallScriptName)] if sys.platform == 'win32' else ['./%s' % (dotnetInstallScriptName)]
 
     runArgs = dotnetInstallInterpreter + ['-SharedRuntime',
+            '-NoProfile',
             '-Architecture',
             arch,
             '-InstallDir',
@@ -48,7 +49,8 @@ def main(args):
     p = subprocess.Popen(' '.join(runArgs), shell=True)
     p.communicate()
 
-    runArgs =  dotnetInstallInterpreter + ['-Architecture',
+    runArgs =  dotnetInstallInterpreter + ['-NoProfile',
+            '-Architecture',
             arch,
             '-InstallDir',
             installDir,
