@@ -15,10 +15,7 @@
 */
 
 using System;
-using Microsoft.Xunit.Performance;
-
-[assembly: OptimizeForBenchmarks]
-[assembly: MeasureGCCounts]
+using BenchmarkDotNet.Attributes;
 
 namespace BenchmarksGame
 {
@@ -26,25 +23,9 @@ namespace BenchmarksGame
     {
         const int minDepth = 4;
 
-        public static int Main(String[] args)
-        {
-            int n = 0;
-            if (args.Length > 0) n = Int32.Parse(args[0]);
-
-            int check = Bench(n, true);
-            int expected = 4398;
-
-            // Return 100 on success, anything else on failure.
-            return check - expected + 100;
-        }
-
-        [Benchmark(InnerIterationCount = 7)]
-        public static void RunBench()
-        {
-            Benchmark.Iterate(() => Bench(16, false));
-        }
-
-        static int Bench(int n, bool verbose)
+        [Benchmark]
+        [Arguments(10, false)]
+        public int Bench(int n, bool verbose)
         {
             int maxDepth = Math.Max(minDepth + 2, n);
             int stretchDepth = maxDepth + 1;

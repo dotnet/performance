@@ -17,29 +17,15 @@
 using System;
 using System.IO;
 using System.Text;
-using Microsoft.Xunit.Performance;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace BenchmarksGame
 {
     public class Fasta_2
     {
-        static int Main(string[] args)
-        {
-            int n = args.Length > 0 ? Int32.Parse(args[0]) : 1000;
-
-            Bench(n, true);
-            return 100;
-        }
-
-        [Benchmark(InnerIterationCount = 2500)]
-        public static void RunBench()
-        {
-            Benchmark.Iterate(() => Bench(5000, false));
-        }
-
-        static void Bench(int n, bool verbose)
+        [Benchmark]
+        [Arguments(5000, false)]
+        public void Bench(int n, bool verbose)
         {
             MakeCumulative(HomoSapiens);
             MakeCumulative(IUB);

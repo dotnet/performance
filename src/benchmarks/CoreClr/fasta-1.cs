@@ -24,9 +24,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Xunit.Performance;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace BenchmarksGame
 {
@@ -39,21 +37,9 @@ namespace BenchmarksGame
         const int IC = 29573;
         static int seed = 42;
 
-        public static int Main(string[] args)
-        {
-            int n = args.Length > 0 ? Int32.Parse(args[0]) : 1000;
-
-            Bench(n, true);
-            return 100;
-        }
-
-        [Benchmark(InnerIterationCount = 4000)]
-        public static void RunBench()
-        {
-            Benchmark.Iterate(() => Bench(5000, false));
-        }
-
-        static void Bench(int n, bool verbose)
+        [Benchmark]
+        [Arguments(5000, false)]
+        public void Bench(int n, bool verbose)
         {
             MakeCumulative(IUB);
             MakeCumulative(HomoSapiens);

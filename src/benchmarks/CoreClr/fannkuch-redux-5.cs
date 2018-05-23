@@ -18,14 +18,11 @@
 using System;
 using System.Threading;
 using System.Runtime.CompilerServices;
-using Microsoft.Xunit.Performance;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace BenchmarksGame
 {
-    public static class FannkuchRedux_5
+    public class FannkuchRedux_5
     {
         static int[] fact, chkSums, maxFlips;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -103,29 +100,9 @@ namespace BenchmarksGame
             maxFlips[taskId] = maxflips;
         }
 
-        public static int Main(string[] args)
-        {
-            int n = args.Length > 0 ? int.Parse(args[0]) : 7;
-            int sum = Bench(n, true);
-
-            int expected = 16;
-
-            // Return 100 on success, anything else on failure.
-            return sum - expected + 100;
-        }
-
-        [Benchmark(InnerIterationCount = 20)]
-        [InlineData(10, 38)]
-        public static void RunBench(int n, int expectedSum)
-        {
-            Benchmark.Iterate(() =>
-            {
-                int sum = Bench(n, false);
-                Assert.Equal(expectedSum, sum);
-            });
-        }
-
-        static int Bench(int n, bool verbose)
+        [Benchmark]
+        [Arguments(10, false)]
+        public int Bench(int n, bool verbose)
         {
             fact = new int[n + 1];
             fact[0] = 1;
