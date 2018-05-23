@@ -15,38 +15,16 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using Microsoft.Xunit.Performance;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace BenchmarksGame
 {
     public class SpectralNorm_1
     {
-        public static int Main(String[] args)
-        {
-            int n = 100;
-            if (args.Length > 0) n = Int32.Parse(args[0]);
+        SpectralNorm_1 obj = new SpectralNorm_1();
 
-            double norm = new SpectralNorm_1().Bench(n);
-            Console.WriteLine("{0:f9}", norm);
-
-            double expected = 1.274219991;
-            bool result = Math.Abs(norm - expected) < 1e-4;
-            return (result ? 100 : -1);
-        }
-
-        [Benchmark(InnerIterationCount = 700)]
-        public static void RunBench()
-        {
-            var obj = new SpectralNorm_1();
-            double norm = 0.0;
-            Benchmark.Iterate(() => { norm = obj.Bench(100); });
-
-            double expected = 1.274219991;
-            Assert.True(Math.Abs(norm - expected) < 1e-4);
-        }
+        [Benchmark]
+        public double RunBench() => obj.Bench(100);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         double Bench(int n)

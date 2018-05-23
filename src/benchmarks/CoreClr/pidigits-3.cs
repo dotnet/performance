@@ -21,14 +21,11 @@
 using System;
 using System.Numerics;
 using System.Text;
-using Microsoft.Xunit.Performance;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
 
 namespace BenchmarksGame
 {
-
     public class pidigits
     {
         BigInteger q = new BigInteger(), r = new BigInteger(), s = new BigInteger(), t = new BigInteger();
@@ -127,17 +124,6 @@ namespace BenchmarksGame
             }
         }
 
-        public static int Main(String[] args)
-        {
-            int n = (args.Length > 0 ? Int32.Parse(args[0]) : 10);
-            string result = Bench(n, true).ToString();
-            if (result != "3141592653\t:10")
-            {
-                return -1;
-            }
-            return 100;
-        }
-
         public static StringBuilder Bench(int n, bool verbose)
         {
             pidigits m = new pidigits(n);
@@ -149,12 +135,7 @@ namespace BenchmarksGame
     public class PiDigits_3
     {
         [Benchmark]
-        [InlineData(3000, "8649423196\t:3000")]
-        public static void RunBench(int n, string expected)
-        {
-            StringBuilder result = null;
-            Benchmark.Iterate(() => result = pidigits.Bench(n, false));
-            Assert.Equal(expected, result.ToString());
-        }
+        [Arguments(3000, "8649423196\t:3000")]
+        public StringBuilder RunBench(int n, string expected) => pidigits.Bench(n, false);
     }
 }
