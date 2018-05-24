@@ -1,14 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), common.props))\common.props" />
+  
   <PropertyGroup>
     <OutputType>library</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Xunit" Version="2.3.0-beta1-build3642" />
-    <PackageReference Include="Microsoft.xunit.netcore.extensions" Version="2.2.0-preview1-02804-04" />
-    <PackageReference Include="xunit.performance.api" Version="1.0.0-beta-build0019" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="*" />
   </ItemGroup>
 
