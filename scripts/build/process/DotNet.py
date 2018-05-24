@@ -70,7 +70,7 @@ class DotNet(object):
     @property
     def bin_path(self) -> str:
         '''Gets the directory in which the built binaries will be placed.'''
-        return os.path.join(get_repo_root_path(), 'bin{}'.format(os.path.sep))
+        return os.path.join(get_repo_root_path(), 'bin')
 
     def restore(self) -> None:
         '''
@@ -83,16 +83,24 @@ class DotNet(object):
         RunCommand(self.log_file, cmdline, verbose=self.verbose).run(
             'dotnet-restore', self.working_directory)
 
-    def publish(self, configuration: str, framework: str) -> None:
+    def publish(self,
+                configuration: str,
+                framework: str,
+                product: str) -> None:
         '''
         Calls dotnet to pack the specified application and its dependencies
         into the repo bin folder for deployment to a hosting system.
         '''
+        if not product:
+            raise TypeError('Unspecified product name.')
+        base_output_path = '{}{}'.format(
+            os.path.join(self.bin_path, product), os.path.sep)
+
         cmdline = ['dotnet', 'publish',
                    '--no-restore',
                    '--configuration', configuration,
                    '--framework', framework,
                    self.csproj_file,
-                   '/p:BaseOutputPath={}'.format(self.bin_path)]
+                   '/p:BaseOutputPath={}'.format(base_output_path)]
         RunCommand(self.log_file, cmdline, verbose=self.verbose).run(
             'dotnet-publish', self.working_directory)

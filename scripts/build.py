@@ -127,7 +127,7 @@ def build_coreclr(
     dotnet = DotNet(log_file, working_directory, csproj_file, verbose)
     dotnet.restore()
     for framework in frameworks:
-        dotnet.publish(configuration, framework)
+        dotnet.publish(configuration, framework, 'CoreClr-Benchmarks')
 
 
 def main() -> int:

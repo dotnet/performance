@@ -66,8 +66,7 @@ class RunCommand(object):
 
     def run(self, suffix: str = None, working_directory: str = None) -> None:
         '''
-        This is a function wrapper around `subprocess.Popen` with an additional
-        set of logging features.
+        Executes specified shell command.
         '''
         should_pipe = self.verbose
         with push_dir(working_directory):
@@ -100,22 +99,24 @@ class RunCommand(object):
             exe_logger.addHandler(console_handler)
 
             with open(os.devnull) as devnull:
-                proc = subprocess.Popen(
+                with subprocess.Popen(
                     self.cmdline,
                     stdout=subprocess.PIPE if should_pipe else devnull,
                     stderr=subprocess.STDOUT,
                     universal_newlines=True,
-                )
+                ) as proc:
 
-                if proc.stdout is not None:
-                    for line in iter(proc.stdout.readline, ''):
-                        line = line.rstrip()
-                        exe_logger.info(line)
-                    proc.stdout.close()
+                    if proc.stdout is not None:
+                        with proc.stdout:
+                            for line in iter(proc.stdout.readline, ''):
+                                line = line.rstrip()
+                                exe_logger.info(line)
 
-                proc.wait()
-                if proc.returncode not in self.success_exit_codes:
-                    exe_logger.error(
-                        "Process exited with status %s", proc.returncode)
-                    raise subprocess.CalledProcessError(
-                        proc.returncode, quoted_cmdline)
+                    proc.wait()
+                    # FIXME: dotnet child processes are still running.
+
+                    if proc.returncode not in self.success_exit_codes:
+                        exe_logger.error(
+                            "Process exited with status %s", proc.returncode)
+                        raise subprocess.CalledProcessError(
+                            proc.returncode, quoted_cmdline)
