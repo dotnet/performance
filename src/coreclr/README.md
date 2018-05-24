@@ -4,6 +4,7 @@ This is a collection of micro benchmarks, ported from [CoreClr](https://github.c
 
 ## Supported target frameworks ##
 
+- net461
 - netcoreapp1.1
 - netcoreapp2.0
 - netcoreapp2.1
@@ -77,3 +78,21 @@ REM WARNING! The command below will run all the CoreClr benchmarks.
 cd PerformanceHarness/bin/x64/Release/netcoreapp2.0/publish
 dotnet PerformanceHarness.dll --perf:collect stopwatch+gcapi
 ```
+
+### Example 4: Running with CoreClr's CoreRun.exe ###
+
+For this you will need to patch Core_Root with few assemblies:
+
+Managed (the assemblies used by the benchmarks are newer than the ones on Core_Root):
+
+- Microsoft.CodeAnalysis*.dll
+- Newtonsoft.Json*.dll
+
+**Affected benchmarks: Serialization, and Roslyn.
+
+Native (assemblies used by TraceEvent not deployed with Core_Root):
+
+- <PUBLISH_DIRECTORY>\amd64\*.*
+- <PUBLISH_DIRECTORY>\x86\*.*
+
+This [batch script](run-with-coreclr-corerun.cmd) is an example of the steps needed to run the CoreClr benchmarks with CoreRun.
