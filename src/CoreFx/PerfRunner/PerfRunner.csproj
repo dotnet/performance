@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="2.0.5" />
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="$(TraceEventPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -46,9 +46,9 @@
 
   <Target Name="CopyLinkedContentFiles" AfterTargets="Build">
     <ItemGroup>
-      <Content Include="..\packages\system.io.compression.testdata\1.0.6-prerelease\content\**\*" />
-      <Content Include="..\packages\system.net.testdata\1.0.0-prerelease\content\**\*" />
-      <Content Include="..\packages\system.text.regularexpressions.testdata\1.0.2\content\**\*" />
+      <Content Include="..\packages\system.io.compression.testdata\$(CompressionTestDataPackageVersion)\content\**\*" />
+      <Content Include="..\packages\system.net.testdata\$(NetworkTestDataPackageVersion)\content\**\*" />
+      <Content Include="..\packages\system.text.regularexpressions.testdata\$(RegularExpressionTestDataPackageVersion)\content\**\*" />
     </ItemGroup>
     <Copy SourceFiles="@(Content)" 
             DestinationFolder="$(OutputPath)\%(RecursiveDir)" 

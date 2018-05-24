@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CoreFx.Private.TestUtilities" Version="4.6.0-*" />
+    <PackageReference Include="CoreFx.Private.TestUtilities" Version="$(CoreFxPrivatePackageVersion)" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(OS)'=='Windows_NT'">  

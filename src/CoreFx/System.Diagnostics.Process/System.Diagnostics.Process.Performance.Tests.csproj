@@ -6,9 +6,9 @@
     <OutputType>library</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
-  
+
   <ItemGroup>
-    <PackageReference Include="CoreFx.Private.TestUtilities" Version="4.6.0-*" />
+    <PackageReference Include="CoreFx.Private.TestUtilities" Version="$(CoreFxPrivatePackageVersion)" />
   </ItemGroup>
 
 </Project>

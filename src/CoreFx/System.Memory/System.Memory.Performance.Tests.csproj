@@ -9,22 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="*" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="$(UnsafePackageVersion)" />
   </ItemGroup>
-
-
-  <!-- <ItemGroup>  
-    <Compile Include="..\CommonUtils\System.Buffers.Memory\IMemoryOwner.cs" Link="IMemoryOwner.cs" />
-  </ItemGroup>
-    <ItemGroup>  
-    <Compile Include="..\CommonUtils\System.Buffers.Memory\IPinnable.cs" Link="IPinnable.cs" />
-  </ItemGroup>
-    <ItemGroup>  
-    <Compile Include="..\CommonUtils\System.Buffers.Memory\MemoryHandle.cs" Link="MemoryHandle.cs" />
-  </ItemGroup>
-    <ItemGroup>  
-    <Compile Include="..\CommonUtils\System.Buffers.Memory\MemoryManager.cs" Link="MemoryManager.cs" />
-  </ItemGroup> -->
-
 
 </Project>

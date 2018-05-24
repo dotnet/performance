@@ -3,5 +3,12 @@
     <NetCoreExtensionsPackageVersion>2.2.0-preview1-02804-04</NetCoreExtensionsPackageVersion>
     <XunitPackageVersion>2.3.0-beta1-build3642</XunitPackageVersion>
     <XunitPerformanceApiVersion>1.0.0-beta-build0019</XunitPerformanceApiVersion>
+    <TraceEventPackageVersion>2.0.5</TraceEventPackageVersion>
+    <UnsafePackageVersion>4.5.0</UnsafePackageVersion>
+    <NewtonsoftJSONPackageVersion>11.0.2</NewtonsoftJSONPackageVersion>
+    <CoreFxPrivatePackageVersion>4.6.0-preview1-26524-04</CoreFxPrivatePackageVersion>
+    <CompressionTestDataPackageVersion>1.0.6-prerelease</CompressionTestDataPackageVersion>
+    <NetworkTestDataPackageVersion>1.0.0-prerelease</NetworkTestDataPackageVersion>
+    <RegularExpressionTestDataPackageVersion>1.0.2</RegularExpressionTestDataPackageVersion>
   </PropertyGroup>
 </Project>

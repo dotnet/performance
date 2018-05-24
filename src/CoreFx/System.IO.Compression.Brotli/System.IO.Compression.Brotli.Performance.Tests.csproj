@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Compression.TestData" Version="1.0.6-prerelease" />
+    <PackageReference Include="System.IO.Compression.TestData" Version="$(CompressionTestDataPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>  

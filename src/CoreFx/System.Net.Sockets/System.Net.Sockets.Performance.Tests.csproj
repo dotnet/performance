@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="system.net.testdata" Version="1.0.0-prerelease" />
+    <PackageReference Include="system.net.testdata" Version="$(NetworkTestDataPackageVersion)" />
     </ItemGroup>
 
   <ItemGroup>  

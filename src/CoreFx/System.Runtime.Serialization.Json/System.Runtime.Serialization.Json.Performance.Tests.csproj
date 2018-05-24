@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.JSON" Version="*" />
+    <PackageReference Include="Newtonsoft.JSON" Version="$(NewtonsoftJSONPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>  
