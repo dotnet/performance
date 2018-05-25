@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), common.props))\common.props" />
+
+  <PropertyGroup>
+    <OutputType>library</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.JSON" Version="$(NewtonsoftJSONPackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>  
+    <Compile Include="..\System.Runtime.Serialization.Xml\SerializationTypes.CoreCLR.cs" Link="SerializationTypes.CoreCLR.cs" />
+    <Compile Include="..\System.Runtime.Serialization.Xml\SerializationTypes.cs" Link="SerializationTypes.cs" />
+    <Compile Include="..\System.Runtime.Serialization.Xml\SerializationTypes.RuntimeOnly.cs" Link="SerializationTypes.RuntimeOnly.cs" />
+    <Compile Include="..\CommonUtils\System.Runtime.Serialization.Xml\PerformanceTestsCommon.cs" Link="PerformanceTestsCommon.cs" />
+    <Compile Include="..\CommonUtils\System.Runtime.Serialization.Common\Utils.cs" Link="Utils.cs" />
+  </ItemGroup>  
+
+</Project>
