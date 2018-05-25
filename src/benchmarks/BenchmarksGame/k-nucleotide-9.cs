@@ -254,12 +254,12 @@ namespace BenchmarksGame
             return string.Concat(n.ToString(), "\t", fragment);
         }
         
-        NucleotideHarnessHelpers helpers = new NucleotideHarnessHelpers(bigInput: true);
+        NucleotideHelpers helpers = new NucleotideHelpers(bigInput: true);
 
         [Benchmark]
         public bool RunBench() => Bench(helpers, false);
 
-        static bool Bench(NucleotideHarnessHelpers helpers, bool verbose)
+        static bool Bench(NucleotideHelpers helpers, bool verbose)
         {
             // Reset static state
             threeBlocks.Clear();

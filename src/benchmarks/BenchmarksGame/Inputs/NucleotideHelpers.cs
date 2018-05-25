@@ -11,7 +11,7 @@ using System.Text;
 
 namespace BenchmarksGame
 {
-    class NucleotideHarnessHelpers
+    class NucleotideHelpers
     {
         public string InputFile;
         public int[] expectedCountLetter;
@@ -19,7 +19,7 @@ namespace BenchmarksGame
         public int[] expectedCountFragments;
         public int[][] expectedFrequencies;
 
-        public NucleotideHarnessHelpers(bool bigInput)
+        public NucleotideHelpers(bool bigInput)
         {
             if (bigInput)
             {

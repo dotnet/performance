@@ -20,10 +20,7 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Threading;
-using Microsoft.Xunit.Performance;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace BenchmarksGame
 {
@@ -34,7 +31,7 @@ namespace BenchmarksGame
         public Thread ReverseThread;
     }
 
-    public static class ReverseComplement_6
+    public class ReverseComplement_6
     {
         const int READER_BUFFER_SIZE = 1024 * 1024;
         const byte LF = 10, GT = (byte)'>', SP = 32;
@@ -232,39 +229,17 @@ namespace BenchmarksGame
             }
         }
 
-        static int Main(string[] args)
+        static ReverseComplementHelpers helpers = new ReverseComplementHelpers(bigInput: true);
+        byte[] outBytes = new byte[helpers.FileLength];
+        
+        [Benchmark]
+        public void RunBench()
         {
-            var helpers = new TestHarnessHelpers(bigInput: false);
-            var outBytes = new byte[helpers.FileLength];
-            using (var input = new FileStream(helpers.InputFile, FileMode.Open))
-            using (var output = new MemoryStream(outBytes))
+            var input = new FileStream(helpers.InputFile, FileMode.Open);
+            var output = new MemoryStream(outBytes);
             {
                 Bench(input, output);
             }
-            Console.WriteLine(System.Text.Encoding.UTF8.GetString(outBytes));
-            if (!MatchesChecksum(outBytes, helpers.CheckSum))
-            {
-                return -1;
-            }
-            return 100;
-        }
-
-        [Benchmark(InnerIterationCount = 33)]
-        public static void RunBench()
-        {
-            var helpers = new TestHarnessHelpers(bigInput: true);
-            var outBytes = new byte[helpers.FileLength];
-
-            Benchmark.Iterate(() =>
-            {
-                var input = new FileStream(helpers.InputFile, FileMode.Open);
-                var output = new MemoryStream(outBytes);
-                {
-                    Bench(input, output);
-                }
-            });
-
-            Assert.True(MatchesChecksum(outBytes, helpers.CheckSum));
         }
 
         static bool MatchesChecksum(byte[] bytes, string checksum)

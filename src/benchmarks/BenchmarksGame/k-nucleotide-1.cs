@@ -83,7 +83,7 @@ namespace BenchmarksGame
 
     public class KNucleotide_1
     {
-        private NucleotideHarnessHelpers _nucleotideHarnessHelpers = new NucleotideHarnessHelpers(bigInput: true);
+        private NucleotideHelpers _nucleotideHarnessHelpers = new NucleotideHelpers(bigInput: true);
 
         [Benchmark]
         public bool RunBench()
@@ -92,7 +92,7 @@ namespace BenchmarksGame
                 return Bench(inputFile, _nucleotideHarnessHelpers, false);
         }
 
-        static bool Bench(Stream inputStream, NucleotideHarnessHelpers helpers, bool verbose)
+        static bool Bench(Stream inputStream, NucleotideHelpers helpers, bool verbose)
         {
             string line;
             StreamReader source = new StreamReader(inputStream);

@@ -16,15 +16,11 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Security.Cryptography;
-using Microsoft.Xunit.Performance;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace BenchmarksGame
 {
-    public static class ReverseComplement_1
+    public class ReverseComplement_1
     {
         struct Block
         {
@@ -48,48 +44,17 @@ namespace BenchmarksGame
 
         const byte Gt = (byte)'>';
         const byte Lf = (byte)'\n';
-
-        static int Main(string[] args)
+        
+        static ReverseComplementHelpers helpers = new ReverseComplementHelpers(bigInput: true);
+        byte[] outBytes = new byte[helpers.FileLength];
+        
+        [Benchmark]
+        public void RunBench()
         {
-            var helpers = new TestHarnessHelpers(bigInput: false);
-            var outBytes = new byte[helpers.FileLength];
             using (var input = new FileStream(helpers.InputFile, FileMode.Open))
             using (var output = new MemoryStream(outBytes))
             {
                 Bench(input, output);
-            }
-            Console.WriteLine(System.Text.Encoding.UTF8.GetString(outBytes));
-            if (!MatchesChecksum(outBytes, helpers.CheckSum))
-            {
-                return -1;
-            }
-            return 100;
-        }
-
-        [Benchmark(InnerIterationCount = 1500)]
-        public static void RunBench()
-        {
-            var helpers = new TestHarnessHelpers(bigInput: true);
-            var outBytes = new byte[helpers.FileLength];
-
-            Benchmark.Iterate(() =>
-            {
-                using (var input = new FileStream(helpers.InputFile, FileMode.Open))
-                using (var output = new MemoryStream(outBytes))
-                {
-                    Bench(input, output);
-                }
-            });
-
-            Assert.True(MatchesChecksum(outBytes, helpers.CheckSum));
-        }
-
-        static bool MatchesChecksum(byte[] bytes, string checksum)
-        {
-            using (var md5 = MD5.Create())
-            {
-                byte[] hash = md5.ComputeHash(bytes);
-                return (checksum == BitConverter.ToString(hash));
             }
         }
 
@@ -125,13 +90,13 @@ namespace BenchmarksGame
                                 end = b.IndexOf(Gt, start.InBlock(b) ? start.Pos : 0);
                                 if (end.Pos < 0) break;
                             }
-                            w.Reverse(start.Pos, end.Pos, seq);
+                            Reverse(w, start.Pos, end.Pos, seq);
                             if (seq.Count > 1) seq.RemoveRange(0, seq.Count - 1);
                             line = end; end = Index.None; start = Index.None;
                         }
                     }
                     if (start.Pos >= 0 && end.Pos < 0)
-                        w.Reverse(start.Pos, seq[seq.Count - 1].Length, seq);
+                        Reverse(w, start.Pos, seq[seq.Count - 1].Length, seq);
                 }
             }
         }
@@ -152,7 +117,7 @@ namespace BenchmarksGame
         const int BufSize = LineLen * 269;
         static byte[] buf = new byte[BufSize];
 
-        static void Reverse(this Stream w, int si, int ei, List<byte[]> bl)
+        static void Reverse(Stream w, int si, int ei, List<byte[]> bl)
         {
             int bi = 0, line = LineLen - 1;
             for (int ri = bl.Count - 1; ri >= 0; ri--)
