@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="system.net.testdata" Version="$(NetworkTestDataPackageVersion)" />
-    </ItemGroup>
+  </ItemGroup>
 
   <ItemGroup>  
     <Compile Include="..\CommonUtils\System.Net.Http.Common\Configuration.Certificates.cs" Link="Configuration.Certificates.cs" />
