@@ -21,10 +21,8 @@ namespace BenchmarksGame
 {
     public class SpectralNorm_1
     {
-        SpectralNorm_1 obj = new SpectralNorm_1();
-
         [Benchmark]
-        public double RunBench() => obj.Bench(100);
+        public double RunBench() => Bench(100);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         double Bench(int n)
