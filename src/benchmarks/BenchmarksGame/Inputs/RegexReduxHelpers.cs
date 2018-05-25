@@ -20,22 +20,14 @@ namespace BenchmarksGame
         {
             if (bigInput)
             {
-                InputFile = FindInputFile(Path.Combine(@"BenchmarksGame\Inputs\", "regexdna-input25000.txt"));
+                InputFile = InputFileHelper.FindInputFile("regexdna-input25000.txt");
                 ExpectedLength = 136381;
             }
             else
             {
-                InputFile = FindInputFile(Path.Combine(@"BenchmarksGame\Inputs\", "regexdna-input25.txt"));
+                InputFile = InputFileHelper.FindInputFile("regexdna-input25.txt");
                 ExpectedLength = 152;
             }
-        }
-
-        public string FindInputFile(string inputFile)
-        {
-            // Input file will end up next to the assembly
-            if (inputFile is null || !File.Exists(inputFile))
-                throw new FileNotFoundException("Unable to find input file.", inputFile);
-            return inputFile;
         }
     }
 }

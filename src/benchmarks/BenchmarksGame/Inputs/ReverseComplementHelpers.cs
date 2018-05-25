@@ -21,24 +21,16 @@ namespace BenchmarksGame
         {
             if (bigInput)
             {
-                InputFile = FindInputFile(Path.Combine(@"BenchmarksGame\Inputs\", "revcomp-input25000.txt"));
+                InputFile = InputFileHelper.FindInputFile( "revcomp-input25000.txt");
                 FileLength = 254245;
                 CheckSum = "61-A4-CC-6D-15-8D-26-77-88-93-4F-E2-29-A2-8D-FB";
             }
             else
             {
-                InputFile = FindInputFile(Path.Combine(@"BenchmarksGame\Inputs\", "revcomp-input25.txt"));
+                InputFile = InputFileHelper.FindInputFile("revcomp-input25.txt");
                 FileLength = 333;
                 CheckSum = "62-45-8E-09-2E-89-A0-69-8C-17-F5-D8-C7-63-5B-50";
             }
-        }
-
-        public string FindInputFile(string inputFile)
-        {
-            // Input file will end up next to the assembly
-            if (inputFile is null || !File.Exists(inputFile))
-                throw new FileNotFoundException("Unable to find input file.", inputFile);
-            return inputFile;
         }
     }
 }

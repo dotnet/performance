@@ -31,10 +31,7 @@
     <PackageReference Include="ZeroFormatter.Analyzer" Version="1.1.1" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="BenchmarksGame\Inputs\knucleotide-input-big.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="BenchmarksGame\Inputs\knucleotide-input.txt">
+    <None Update="BenchmarksGame\Inputs\*.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
