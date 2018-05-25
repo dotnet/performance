@@ -21,16 +21,12 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Runtime.CompilerServices;
-using Microsoft.Xunit.Performance;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
-[assembly: MeasureGCCounts]
+using BenchmarkDotNet.Attributes;
 
 namespace BenchmarksGame
 {
     class Wrapper { public int v = 1; }
-    public static class KNucleotide_9
+    public class KNucleotide_9
     {
         const int BLOCK_SIZE = 1024 * 1024 * 8;
         static List<byte[]> threeBlocks = new List<byte[]>();
@@ -257,29 +253,13 @@ namespace BenchmarksGame
             ok &= (n == expected);
             return string.Concat(n.ToString(), "\t", fragment);
         }
+        
+        NucleotideHarnessHelpers helpers = new NucleotideHarnessHelpers(bigInput: true);
 
-        public static int Main(string[] args)
-        {
-            var helpers = new TestHarnessHelpers(bigInput: false);
-            bool ok = Bench(helpers, true);
+        [Benchmark]
+        public bool RunBench() => Bench(helpers, false);
 
-            return (ok ? 100 : -1);
-        }
-
-        [Benchmark(InnerIterationCount = 10)]
-        public static void RunBench()
-        {
-            var helpers = new TestHarnessHelpers(bigInput: true);
-            bool ok = true;
-
-            Benchmark.Iterate(() =>
-            {
-                ok &= Bench(helpers, false);
-            });
-            Assert.True(ok);
-        }
-
-        static bool Bench(TestHarnessHelpers helpers, bool verbose)
+        static bool Bench(NucleotideHarnessHelpers helpers, bool verbose)
         {
             // Reset static state
             threeBlocks.Clear();

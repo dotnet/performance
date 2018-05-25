@@ -17,15 +17,11 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Text;
-using Microsoft.Xunit.Performance;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
-[assembly: MeasureGCCounts]
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
 
 namespace BenchmarksGame
 {
-
     public struct ByteString : IEquatable<ByteString>
     {
         public byte[] Array;
@@ -87,39 +83,16 @@ namespace BenchmarksGame
 
     public class KNucleotide_1
     {
+        private NucleotideHarnessHelpers _nucleotideHarnessHelpers = new NucleotideHarnessHelpers(bigInput: true);
 
-        public static int Main(string[] args)
+        [Benchmark]
+        public bool RunBench()
         {
-            var helpers = new TestHarnessHelpers(bigInput: false);
-
-            using (var inputFile = new FileStream(helpers.InputFile, FileMode.Open))
-            {
-                if (!Bench(inputFile, helpers, true))
-                {
-                    return -1;
-                }
-            }
-
-            return 100;
+            using (var inputFile = new FileStream(_nucleotideHarnessHelpers.InputFile, FileMode.Open))
+                return Bench(inputFile, _nucleotideHarnessHelpers, false);
         }
 
-        [Benchmark(InnerIterationCount = 3)]
-        public static void RunBench()
-        {
-            var helpers = new TestHarnessHelpers(bigInput: true);
-            bool ok = true;
-
-            Benchmark.Iterate(() =>
-            {
-                using (var inputFile = new FileStream(helpers.InputFile, FileMode.Open))
-                {
-                    ok &= Bench(inputFile, helpers, false);
-                }
-            });
-            Assert.True(ok);
-        }
-
-        static bool Bench(Stream inputStream, TestHarnessHelpers helpers, bool verbose)
+        static bool Bench(Stream inputStream, NucleotideHarnessHelpers helpers, bool verbose)
         {
             string line;
             StreamReader source = new StreamReader(inputStream);

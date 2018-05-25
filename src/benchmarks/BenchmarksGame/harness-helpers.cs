@@ -11,7 +11,7 @@ using System.Text;
 
 namespace BenchmarksGame
 {
-    class TestHarnessHelpers
+    class NucleotideHarnessHelpers
     {
         public string InputFile;
         public int[] expectedCountLetter;
@@ -19,18 +19,18 @@ namespace BenchmarksGame
         public int[] expectedCountFragments;
         public int[][] expectedFrequencies;
 
-        public TestHarnessHelpers(bool bigInput, [System.Runtime.CompilerServices.CallerFilePath] string csFileName = "")
+        public NucleotideHarnessHelpers(bool bigInput)
         {
             if (bigInput)
             {
-                InputFile = FindInputFile("knucleotide-input-big.txt", csFileName);
+                InputFile = FindInputFile("knucleotide-input-big.txt");
                 expectedCountLetter = new int[] { 302923, 301375, 198136, 197566 };
                 expectedCountPairs = new int[] { 91779, 91253, 91225, 90837, 60096, 60030, 59889, 59795, 59756, 59713, 59572, 59557, 39203, 39190, 39081, 39023 };
                 expectedCountFragments = new int[] { 11765, 3572, 380, 7, 7 };
             }
             else
             {
-                InputFile = FindInputFile("knucleotide-input.txt", csFileName);
+                InputFile = FindInputFile("knucleotide-input.txt");
                 expectedCountLetter = new int[] { 1576, 1480, 974, 970 };
                 expectedCountPairs = new int[] { 496, 480, 470, 420, 316, 315, 310, 302, 298, 292, 273, 272, 202, 201, 185, 167 };
                 expectedCountFragments = new int[] { 54, 24, 4, 0, 0 };
@@ -38,7 +38,7 @@ namespace BenchmarksGame
             expectedFrequencies = new int[][] { expectedCountLetter, expectedCountPairs };
         }
 
-        public string FindInputFile(string inputFile, string csFileName)
+        public string FindInputFile(string inputFile)
         {
             // Input file will end up next to the assembly
             if (inputFile is null || !File.Exists(inputFile))
