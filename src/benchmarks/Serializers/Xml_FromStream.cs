@@ -20,14 +20,14 @@ namespace Benchmarks.Serializers
             memoryStream = new MemoryStream(capacity: short.MaxValue);
         }
 
-        [IterationSetup(Target = nameof(XmlSerializer_))]
+        [GlobalSetup(Target = nameof(XmlSerializer_))]
         public void SetupXmlSerializer()
         {
             memoryStream.Position = 0;
             xmlSerializer.Serialize(memoryStream, value);
         }
 
-        [IterationSetup(Target = nameof(DataContractSerializer_))]
+        [GlobalSetup(Target = nameof(DataContractSerializer_))]
         public void SetupDataContractSerializer()
         {
             memoryStream.Position = 0;

@@ -25,7 +25,7 @@ namespace Benchmarks.Serializers
             newtonSoftJsonSerializer = new Newtonsoft.Json.JsonSerializer();
         }
 
-        [IterationSetup(Target = nameof(Jil_))]
+        [GlobalSetup(Target = nameof(Jil_))]
         public void SetupJil_()
         {
             memoryStream.Position = 0;
@@ -37,7 +37,7 @@ namespace Benchmarks.Serializers
             }
         }
 
-        [IterationSetup(Target = nameof(JsonNet_))]
+        [GlobalSetup(Target = nameof(JsonNet_))]
         public void SetupJsonNet_()
         {
             memoryStream.Position = 0;
@@ -49,14 +49,14 @@ namespace Benchmarks.Serializers
             }
         }
 
-        [IterationSetup(Target = nameof(Utf8Json_))]
+        [GlobalSetup(Target = nameof(Utf8Json_))]
         public void SetupUtf8Json_()
         {
             memoryStream.Position = 0;
             Utf8Json.JsonSerializer.Serialize<T>(memoryStream, value);
         }
 
-        [IterationSetup(Target = nameof(DataContractJsonSerializer_))]
+        [GlobalSetup(Target = nameof(DataContractJsonSerializer_))]
         public void SetupDataContractJsonSerializer_()
         {
             memoryStream.Position = 0;

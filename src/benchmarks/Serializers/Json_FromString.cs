@@ -9,13 +9,13 @@ namespace Benchmarks.Serializers
 
         public Json_FromString() => value = DataGenerator.Generate<T>();
 
-        [IterationSetup(Target = nameof(Jil_))]
+        [GlobalSetup(Target = nameof(Jil_))]
         public void SerializeJil() => serialized = Jil.JSON.Serialize<T>(value);
 
-        [IterationSetup(Target = nameof(JsonNet_))]
+        [GlobalSetup(Target = nameof(JsonNet_))]
         public void SerializeJsonNet() => serialized = Newtonsoft.Json.JsonConvert.SerializeObject(value);
 
-        [IterationSetup(Target = nameof(Utf8Json_))]
+        [GlobalSetup(Target = nameof(Utf8Json_))]
         public void SerializeUtf8Json_() => serialized = Utf8Json.JsonSerializer.ToJsonString(value);
 
         [Benchmark(Description = "Jil")]
