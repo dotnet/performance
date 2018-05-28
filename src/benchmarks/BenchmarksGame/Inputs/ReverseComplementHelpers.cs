@@ -21,16 +21,16 @@ namespace BenchmarksGame
         {
             if (bigInput)
             {
-                InputFile = InputFileHelper.FindInputFile( "revcomp-input25000.txt");
-                FileLength = 254245;
+                InputFile = InputFileHelper.FindInputFile("revcomp-input25000.txt");
                 CheckSum = "61-A4-CC-6D-15-8D-26-77-88-93-4F-E2-29-A2-8D-FB";
             }
             else
             {
                 InputFile = InputFileHelper.FindInputFile("revcomp-input25.txt");
-                FileLength = 333;
                 CheckSum = "62-45-8E-09-2E-89-A0-69-8C-17-F5-D8-C7-63-5B-50";
             }
+            
+            FileLength = InputFileHelper.GetFileLength(InputFile);
         }
     }
 }

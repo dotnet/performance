@@ -17,6 +17,8 @@ namespace BenchmarksGame
             return fullPath;
         }
 
+        internal static int GetFileLength(string filePath) => (int) new FileInfo(filePath).Length;
+
         private static string GetFullPath(string fileName)
             => Path.Combine(Path.GetDirectoryName(typeof(InputFileHelper).Assembly.Location), "BenchmarksGame", "Inputs", fileName);
     }
