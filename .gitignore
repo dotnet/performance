@@ -14,4 +14,10 @@
 
 
 **/.vs/**
+
+# BenchmarkDotNet results
 **/BenchmarkDotNet.Artifacts/**
+
+# Resharper files
+**/*.DotSettings.user
+**/.idea/**
