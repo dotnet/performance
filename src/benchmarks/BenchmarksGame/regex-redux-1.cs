@@ -26,7 +26,7 @@ namespace BenchmarksGame
     {
         RegexReduxHelpers helpers = new RegexReduxHelpers(bigInput: true);
         
-        [Benchmark]
+        [Benchmark(Description = nameof(RegexRedux_1))]
         public int RunBench()
         {
             using (var inputStream = new FileStream(helpers.InputFile, FileMode.Open))

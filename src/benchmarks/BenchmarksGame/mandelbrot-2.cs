@@ -24,7 +24,7 @@ namespace BenchmarksGame
     {
         // Commented out data left in source to provide checksums for each case
 
-        [Benchmark]
+        [Benchmark(Description = nameof(Mandelbrot_2))]
         //[InlineData(1000, "B2-13-51-CE-B0-29-2C-4E-75-5E-91-19-18-E4-0C-D9")]
         //[InlineData(2000, "5A-21-55-9B-7B-18-2F-34-9B-33-C5-F9-B5-2C-40-56")]
         //[InlineData(3000, "E5-82-85-0A-3C-89-69-B1-A8-21-63-52-75-B3-C8-33")]

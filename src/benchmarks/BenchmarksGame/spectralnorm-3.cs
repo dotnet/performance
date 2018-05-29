@@ -24,7 +24,7 @@ namespace BenchmarksGame
 {
     public class SpectralNorm_3
     {
-        [Benchmark]
+        [Benchmark(Description = nameof(SpectralNorm_3))]
         public double RunBench() => Bench(100);
 
         [MethodImpl(MethodImplOptions.NoInlining)]

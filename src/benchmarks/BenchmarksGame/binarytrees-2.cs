@@ -23,7 +23,7 @@ namespace BenchmarksGame
     {
         const int minDepth = 4;
 
-        [Benchmark]
+        [Benchmark(Description = nameof(BinaryTrees_2))]
         [Arguments(10, false)]
         public int Bench(int n, bool verbose)
         {

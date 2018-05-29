@@ -100,7 +100,7 @@ namespace BenchmarksGame
             maxFlips[taskId] = maxflips;
         }
 
-        [Benchmark]
+        [Benchmark(Description = nameof(FannkuchRedux_5))]
         [Arguments(10, false)]
         public int Bench(int n, bool verbose)
         {

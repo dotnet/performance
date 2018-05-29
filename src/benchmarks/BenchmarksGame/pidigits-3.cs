@@ -134,7 +134,7 @@ namespace BenchmarksGame
 
     public class PiDigits_3
     {
-        [Benchmark]
+        [Benchmark(Description = nameof(PiDigits_3))]
         [Arguments(3000, "8649423196\t:3000")]
         public StringBuilder RunBench(int n, string expected) => pidigits.Bench(n, false);
     }

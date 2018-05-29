@@ -48,7 +48,7 @@ namespace BenchmarksGame
         static ReverseComplementHelpers helpers = new ReverseComplementHelpers(bigInput: true);
         byte[] outBytes = new byte[helpers.FileLength];
         
-        [Benchmark]
+        [Benchmark(Description = nameof(ReverseComplement_1))]
         public void RunBench()
         {
             using (var input = new FileStream(helpers.InputFile, FileMode.Open))

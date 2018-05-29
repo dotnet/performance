@@ -21,7 +21,7 @@ namespace BenchmarksGame
 {
     public class NBody_3
     {
-        [Benchmark]
+        [Benchmark(Description = nameof(NBody_3))]
         public bool RunBench() => Bench(5000000, false);
 
         static bool Bench(int n, bool verbose)

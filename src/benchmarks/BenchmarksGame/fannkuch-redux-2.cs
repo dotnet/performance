@@ -19,7 +19,7 @@ namespace BenchmarksGame
 {
     public class FannkuchRedux_2
     {
-        [Benchmark]
+        [Benchmark(Description = nameof(FannkuchRedux_2))]
         [Arguments(10)]
         public int[] fannkuch(int n)
         {

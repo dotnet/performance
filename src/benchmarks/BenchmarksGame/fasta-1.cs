@@ -37,7 +37,7 @@ namespace BenchmarksGame
         const int IC = 29573;
         static int seed = 42;
 
-        [Benchmark]
+        [Benchmark(Description = nameof(Fasta_1))]
         [Arguments(5000, false)]
         public void Bench(int n, bool verbose)
         {
@@ -51,8 +51,6 @@ namespace BenchmarksGame
                 MakeRandomFasta("THREE", "Homo sapiens frequency", HomoSapiens, n * 5, s);
             }
         }
-
-
 
         public static IEnumerable<R> TransformQueue<T, R>(BlockingCollection<T> queue,
             Func<T, R> transform, int threadCount)

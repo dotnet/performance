@@ -23,7 +23,7 @@ namespace BenchmarksGame
 {
     public class Fasta_2
     {
-        [Benchmark]
+        [Benchmark(Description = nameof(Fasta_2))]
         [Arguments(5000, false)]
         public void Bench(int n, bool verbose)
         {
