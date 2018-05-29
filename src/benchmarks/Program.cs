@@ -61,6 +61,10 @@ namespace Benchmarks
 
             if (options.RunClr)
                 yield return baseJob.With(Runtime.Clr);
+            if (options.RunLegacyJitX64)
+                yield return baseJob.With(Runtime.Clr).With(Jit.LegacyJit).With(Platform.X64);
+            if (options.RunLegacyJitX86)
+                yield return baseJob.With(Runtime.Clr).With(Jit.LegacyJit).With(Platform.X86);
             if (!string.IsNullOrEmpty(options.ClrVersion))
                 yield return baseJob.With(new ClrRuntime(options.ClrVersion));
 
@@ -135,6 +139,12 @@ namespace Benchmarks
 
         [Option("clr", Required = false, Default = false, HelpText = "Run benchmarks for Clr")]
         public bool RunClr { get; set; }
+        
+        [Option("legacyJitx64", Required = false, Default = false, HelpText = "Run benchmarks for Legacy JIT x64")]
+        public bool RunLegacyJitX64 { get; set; }
+        
+        [Option("legacyJitx86", Required = false, Default = false, HelpText = "Run benchmarks for Legacy JIT x86")]
+        public bool RunLegacyJitX86 { get; set; }
 
         [Option("clrVersion", Required = false, HelpText = "Optional version of private CLR build used as the value of COMPLUS_Version env var.")]
         public string ClrVersion { get; set; }
