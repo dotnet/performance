@@ -34,7 +34,10 @@ namespace Benchmarks
 
         private static IConfig GetConfig(Options options)
         {
-            var baseJob = Job.ShortRun; // let's use the Short Run for better first user experience ;)
+            var baseJob = Job.Default
+                .WithWarmupCount(1) // 1 warmup is enough for our purpose
+                .WithMaxTargetIterationCount(20);  // we don't want to run more that 20 iterations
+
             var jobs = GetJobs(options, baseJob).ToArray();
 
             var config = DefaultConfig.Instance
