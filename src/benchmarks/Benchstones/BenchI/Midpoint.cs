@@ -3,23 +3,13 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class Midpoint
+public class Midpoint
 {
-
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 70000;
-#endif
 
     static T[][] AllocArray<T>(int n1, int n2) {
         T[][] a = new T[n1][];
@@ -62,8 +52,8 @@ public static class Midpoint
         return (mid);
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    static bool Bench() {
+    [Benchmark(Description = nameof(Midpoint))]
+    public bool Test() {
         int[][] a = AllocArray<int>(2001, 4);
         int[] mid = new int[2001];
         int j = 99999;
@@ -82,25 +72,6 @@ public static class Midpoint
         }
 
         return (mid[2000] == 17018);
-    }
-
-    [Benchmark]
-    public static void Test() {
-        foreach (var iteration in Benchmark.Iterations) {
-            using (iteration.StartMeasurement()) {
-                Bench();
-            }
-        }
-    }
-
-    static bool TestBase() {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main() {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

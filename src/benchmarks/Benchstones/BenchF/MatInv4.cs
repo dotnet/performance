@@ -2,22 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchF
 {
-public static class MatInv4
+public class MatInv4
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 60;
-#endif
 
     private static float s_det;
 
@@ -30,8 +21,8 @@ public static class MatInv4
         }
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool Bench()
+    [Benchmark(Description = nameof(MatInv4))]
+    public bool Test()
     {
         X a = new X(Iterations * Iterations);
         float[] b = new float[Iterations * Iterations];
@@ -468,30 +459,6 @@ public static class MatInv4
             }
         }
         return;
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                Bench();
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

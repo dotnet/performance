@@ -4,25 +4,16 @@
 //
 // Integration by corrected trapezoid rule adapted from Conte and de Boor
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchF
 {
-public static class Trap
+public class Trap
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 240000;
-#endif
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool Bench()
+    [Benchmark(Description = nameof(Trap))]
+    public bool Test()
     {
         int nm1, idbg;
         double t2, cortrp, trap, a, b, h;
@@ -69,30 +60,6 @@ public static class Trap
     private static double FPrime(double x)
     {
         return ((-2) * (x) * (F(x)));
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                Bench();
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

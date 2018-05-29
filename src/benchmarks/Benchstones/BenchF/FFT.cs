@@ -5,22 +5,14 @@
 // FFT benchmark adapted from a Fortran routine from the book
 // Digital Signal Analysis, Samuel Stearns, Hayden Book Co.
 
-using Microsoft.Xunit.Performance;
-using System;
+using BenchmarkDotNet.Attributes;
 using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
 
 namespace Benchstone.BenchF
 {
-public static class FFT
+public class FFT
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 300000;
-#endif
 
     private static readonly int s_points = 16;
     public static volatile object VolatileObject;
@@ -31,8 +23,8 @@ public static class FFT
         VolatileObject = obj;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool Bench()
+    [Benchmark(Description = nameof(FFT))]
+    public bool Test()
     {
         double[] fr = new double[17];
         double[] fi = new double[17];
@@ -126,30 +118,6 @@ public static class FFT
                 ++m;
             } while (m <= l);
         }
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                Bench();
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

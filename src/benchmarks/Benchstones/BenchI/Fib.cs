@@ -3,24 +3,12 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class Fib
+public class Fib
 {
-
-#if DEBUG
-    public const int Iterations = 1;
-#else
-    public const int Iterations = 3500;
-#endif
-
     const int Number = 24;
 
     static int Fibonacci(int x) {
@@ -32,34 +20,10 @@ public static class Fib
         }
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    static bool Bench() {
+    [Benchmark(Description = nameof(Fib))]
+    public bool Bench() {
         int fib = Fibonacci(Number);
         return (fib == 46368);
-    }
-
-    [Benchmark]
-    public static void Test() {
-        foreach (var iteration in Benchmark.Iterations) {
-            using (iteration.StartMeasurement()) {
-                for (int i = 0; i < Iterations; i++) {
-                    Bench();
-                }
-            }
-        }
-    }
-
-    static bool TestBase() {
-        bool result = true;
-        for (int i = 0; i < Iterations; i++) {
-            result &= Bench();
-        }
-        return result;
-    }
-
-    public static int Main() {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

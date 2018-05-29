@@ -52,22 +52,18 @@
  ************************************************************************
  */
 
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 using System;
 using System.Runtime.CompilerServices;
-using Xunit;
 
-[assembly: OptimizeForBenchmarks]
+
+
 
 namespace Benchstone.BenchF
 {
 public class LLoops
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 4000;
-#endif
 
     private const double MaxErr = 1.0e-6;
 
@@ -141,8 +137,8 @@ public class LLoops
         return a;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private bool Bench()
+    [Benchmark(Description = nameof(LLoops))]
+    public bool Test()
     {
         _px = AllocArray<double>(16, 101);
         _cx = AllocArray<double>(16, 101);
@@ -621,32 +617,6 @@ public class LLoops
             _xx[j] = 0.001;
             _grd[j] = (double)(j / 8 + 3);
         }
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        var lloops = new LLoops();
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                lloops.Bench();
-            }
-        }
-    }
-
-    private bool TestBase()
-    {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        var lloops = new LLoops();
-        bool result = lloops.TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

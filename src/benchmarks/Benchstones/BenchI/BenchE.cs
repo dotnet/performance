@@ -3,22 +3,13 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class BenchE
+public class BenchE
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 5000000;
-#endif
 
     private static int s_position;
 
@@ -74,8 +65,8 @@ public static class BenchE
         s_position = Strsch(s, k, ns, nk);
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool Bench()
+    [Benchmark(Description = nameof(BenchE))]
+    public bool Test()
     {
         char[] s = {
             '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', 'H', 'E', 'R', 'E', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0',
@@ -90,30 +81,6 @@ public static class BenchE
         }
 
         return (s_position == 91);
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                Bench();
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

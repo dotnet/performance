@@ -4,22 +4,14 @@
 //
 // The secant algorithm adapted from Conte and DeBoor
 
-using Microsoft.Xunit.Performance;
-using System;
+using BenchmarkDotNet.Attributes;
 using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
 
 namespace Benchstone.BenchF
 {
-public static class Secant
+public class Secant
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 3000000;
-#endif
 
     public static volatile object VolatileObject;
 
@@ -29,8 +21,8 @@ public static class Secant
         VolatileObject = obj;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool Bench()
+    [Benchmark(Description = nameof(Secant))]
+    public bool Test()
     {
         int idbg, iflag;
         double x0, x1, fx1;
@@ -115,30 +107,6 @@ public static class Secant
     L88:
         {
         }
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                Bench();
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

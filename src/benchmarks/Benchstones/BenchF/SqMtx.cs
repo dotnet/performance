@@ -3,22 +3,13 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchF
 {
-public static class SqMtx
+public class SqMtx
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 4000;
-#endif
 
     private const int MatrixSize = 40;
 
@@ -32,8 +23,8 @@ public static class SqMtx
         return a;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool Bench()
+    [Benchmark(Description = nameof(SqMtx))]
+    public bool Test()
     {
         double[][] a = AllocArray<double>(41, 41);
         double[][] c = AllocArray<double>(41, 41);
@@ -76,30 +67,6 @@ public static class SqMtx
                 }
             }
         }
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                Bench();
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

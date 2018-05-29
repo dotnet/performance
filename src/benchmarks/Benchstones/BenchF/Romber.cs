@@ -4,22 +4,13 @@
 //
 // Integration by romberg method adapted from Conte and de Boor
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchF
 {
-public static class Romber
+public class Romber
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 640000;
-#endif
 
     private static T[][] AllocArray<T>(int n1, int n2)
     {
@@ -31,8 +22,8 @@ public static class Romber
         return a;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool Bench()
+    [Benchmark(Description = nameof(Romber))]
+    public bool Test()
     {
         double[][] r = AllocArray<double>(11, 11);
         double[][] t = AllocArray<double>(11, 11);
@@ -142,30 +133,6 @@ public static class Romber
     private static double F(double x)
     {
         return (System.Math.Exp((-(x)) * (x)));
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                Bench();
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

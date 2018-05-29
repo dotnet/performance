@@ -4,22 +4,13 @@
 //
 // C# translation of Whetstone Double Precision Benchmark
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchF
 {
-public static class Whetsto
+public class Whetsto
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 50000;
-#endif
 
     private static int s_j, s_k, s_l;
     private static double s_t, s_t2;
@@ -37,8 +28,8 @@ public static class Whetsto
         Volatile_out = (int)x4;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool Bench()
+    [Benchmark(Description = nameof(Whetsto))]
+    public bool Test()
     {
         double[] e1 = new double[4];
         double x1, x2, x3, x4, x, y, z, t1;
@@ -215,30 +206,6 @@ public static class Whetsto
         e1[s_j] = e1[s_k];
         e1[s_k] = e1[s_l];
         e1[s_l] = e1[s_j];
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                Bench();
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

@@ -3,24 +3,14 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using System.Collections.Generic;
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class XposMatrix
+public class XposMatrix
 {
     public const int ArraySize = 100;
-
-#if DEBUG
-    public const int Iterations = 1;
-#else
-    public const int Iterations = 25000;
-#endif
 
     static T[][] AllocArray<T>(int n1, int n2) {
         T[][] a = new T[n1][];
@@ -40,8 +30,9 @@ public static class XposMatrix
         }
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    static bool Bench(int[][] matrix) {
+    [Benchmark(Description = nameof(XposMatrix))]
+    [ArgumentsSource(nameof(CreateMatrix))]
+    public bool Bench(int[][] matrix) {
 
         int n = ArraySize;
         for (int i = 1; i <= n; i++) {
@@ -63,30 +54,9 @@ public static class XposMatrix
         return true;
     }
 
-    [Benchmark]
-    public static void Test() {
-        int[][] matrix = AllocArray<int>(ArraySize + 1, ArraySize + 1);
-        foreach (var iteration in Benchmark.Iterations) {
-            using (iteration.StartMeasurement()) {
-                for (int i = 0; i < Iterations; i++) {
-                    Bench(matrix);
-                }
-            }
-        }
-    }
-
-    static bool TestBase() {
-        int[][] matrix = AllocArray<int>(ArraySize + 1, ArraySize + 1);
-        bool result = true;
-        for (int i = 0; i < Iterations; i++) {
-            result &= Bench(matrix);
-        }
-        return result;
-    }
-
-    public static int Main() {
-        bool result = TestBase();
-        return (result ? 100 : -1);
+    public IEnumerable<object> CreateMatrix()
+    {
+        yield return AllocArray<int>(ArraySize + 1, ArraySize + 1);
     }
 }
 }

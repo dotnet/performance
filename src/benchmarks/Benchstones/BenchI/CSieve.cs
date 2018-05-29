@@ -4,28 +4,18 @@
 //
 // Based on Eratosthenes Sieve Prime Number Program in C, Byte Magazine, January 1983.
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class CSieve
+public class CSieve
 {
-
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 200;
-#endif
 
     const int Size = 8190;
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    static bool Bench() {
+    [Benchmark(Description = nameof(CSieve))]
+    public bool Test() {
         bool[] flags = new bool[Size + 1];
         int count = 0;
         for (int iter = 1; iter <= Iterations; iter++)
@@ -55,30 +45,6 @@ public static class CSieve
         }
 
         return (count == 1027);
-    }
-
-    [Benchmark]
-    public static void Test() {
-        foreach (var iteration in Benchmark.Iterations) {
-            using (iteration.StartMeasurement()) {
-                for (int i = 0; i < Iterations; i++) {
-                    Bench();
-                }
-            }
-        }
-    }
-
-    static bool TestBase() {
-        bool result = true;
-        for (int i = 0; i < Iterations; i++) {
-            result &= Bench();
-        }
-        return result;
-    }
-
-    public static int Main() {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

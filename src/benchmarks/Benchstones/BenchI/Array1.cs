@@ -10,24 +10,14 @@
 //
 // This is adapted from a benchmark in BYTE Magazine, August 1984.
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class Array1
+public class Array1
 {
-#if DEBUG
-    private const int Iterations = 1;
-    private const int Maxnum = 100;
-#else
     private const int Iterations = 125;
     private const int Maxnum = 1000;
-#endif
 
     private const int Modulus = ((int)0x20000);
     private const int C = 13849;
@@ -96,8 +86,8 @@ public static class Array1
         return true;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool Bench()
+    [Benchmark(Description = nameof(Array1))]
+    public bool Test()
     {
         int[] buffer = new int[Maxnum + 1];
 
@@ -120,37 +110,6 @@ public static class Array1
         bool result = VerifySort(buffer);
 
         return result;
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                for (int i = 0; i < Iterations; i++)
-                {
-                    Bench();
-                }
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        bool result = true;
-        for (int i = 0; i < Iterations; i++)
-        {
-            result &= Bench();
-        }
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

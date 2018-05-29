@@ -3,22 +3,13 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
 public class Permutate
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 20000;
-#endif
 
     private int[] _permArray = new int[11];
     private static int s_pctr;
@@ -73,8 +64,8 @@ public class Permutate
         return (k == 7);
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private bool Bench()
+    [Benchmark(Description = nameof(Permutate))]
+    public bool Test()
     {
         Initialize();
 
@@ -87,32 +78,6 @@ public class Permutate
         bool result = Validate();
 
         return result;
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        Permutate P = new Permutate();
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                P.Bench();
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        Permutate P = new Permutate();
-        bool result = P.Bench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

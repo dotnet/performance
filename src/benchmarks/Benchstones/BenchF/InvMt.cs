@@ -4,22 +4,13 @@
 //
 // Solution of linear algebraic equations and matrix inversion.
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchF
 {
-public static class InvMt
+public class InvMt
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 80;
-#endif
 
     private const int MatSize = Iterations;
 
@@ -33,8 +24,8 @@ public static class InvMt
         return a;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool Bench()
+    [Benchmark(Description = nameof(InvMt))]
+    public bool Test()
     {
         double[][] t = AllocArray<double>(MatSize + 1, (MatSize + 1) * 2);
 
@@ -110,30 +101,6 @@ public static class InvMt
                 }
             }
         }
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                Bench();
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

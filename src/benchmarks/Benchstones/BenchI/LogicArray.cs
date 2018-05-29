@@ -3,25 +3,13 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class LogicArray
+public class LogicArray
 {
-
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 3000;
-#endif
-
-    const int ArraySize = 50;
 
     struct Workarea
     {
@@ -62,8 +50,8 @@ public static class LogicArray
         }
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    static bool Bench() {
+    [Benchmark(Description = nameof(LogicArray))]
+    public bool Test() {
         Workarea cmn = new Workarea();
         cmn.X = 0;
         cmn.A = AllocArray<int>(51, 51);
@@ -75,25 +63,6 @@ public static class LogicArray
         }
 
         return true;
-    }
-
-    [Benchmark]
-    public static void Test() {
-        foreach (var iteration in Benchmark.Iterations) {
-            using (iteration.StartMeasurement()) {
-                Bench();
-            }
-        }
-    }
-
-    static bool TestBase() {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main() {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

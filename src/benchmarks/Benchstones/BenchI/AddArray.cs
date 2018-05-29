@@ -3,24 +3,13 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
 using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class AddArray
+public class AddArray
 {
-
-#if DEBUG
-    public const int Iterations = 1;
-#else
-    public const int Iterations = 15000;
-#endif
-
     const int Size = 6000;
 
     public static volatile object VolatileObject;
@@ -30,8 +19,8 @@ public static class AddArray
         VolatileObject = obj;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    static bool Bench() {
+    [Benchmark(Description = nameof(AddArray))]
+    public bool Test() {
 
         int[] flags1 = new int[Size + 1];
         int[] flags2 = new int[Size + 1];
@@ -64,30 +53,6 @@ public static class AddArray
         Escape(flags4);
 
         return true;
-    }
-
-    [Benchmark]
-    public static void Test() {
-        foreach (var iteration in Benchmark.Iterations) {
-            using (iteration.StartMeasurement()) {
-                for (int i = 0; i < Iterations; i++) {
-                    Bench();
-                }
-            }
-        }
-    }
-
-    static bool TestBase() {
-        bool result = true;
-        for (int i = 0; i < Iterations; i++) {
-            result &= Bench();
-        }
-        return result;
-    }
-
-    public static int Main() {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

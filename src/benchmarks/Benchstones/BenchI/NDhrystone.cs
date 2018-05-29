@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+ // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 //
@@ -8,23 +8,13 @@
 // Reinhold P. Weicker
 // Communications of the ACM, Volume 27 Issue 10, Oct 1984, Pages 1013-1030
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class NDhrystone
+public class NDhrystone
 {
-
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 7000000;
-#endif
 
     static T[][] AllocArray<T>(int n1, int n2) {
         T[][] a = new T[n1][];
@@ -259,30 +249,11 @@ public static class NDhrystone
         return false;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    static bool Bench() {
+    [Benchmark(Description = nameof(NDhrystone))]
+    public bool Test() {
         m_array2Glob = AllocArray<int>(51, 51);
         Proc0();
         return true;
-    }
-
-    [Benchmark]
-    public static void Test() {
-        foreach (var iteration in Benchmark.Iterations) {
-            using (iteration.StartMeasurement()) {
-                Bench();
-            }
-        }
-    }
-
-    static bool TestBase() {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main() {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

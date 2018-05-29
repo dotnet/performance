@@ -3,24 +3,12 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class HeapSort
+public class HeapSort
 {
-
-#if DEBUG
-    public const int Iterations = 1;
-#else
-    public const int Iterations = 2500;
-#endif
-
     const int ArraySize = 5500;
 
     static void Inner(int[] x, int n) {
@@ -81,8 +69,8 @@ public static class HeapSort
         } while (i >= 2);
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    static bool Bench() {
+    [Benchmark(Description = nameof(HeapSort))]
+    public bool Test() {
         int[] x = new int[ArraySize + 1];
         for (int i = 1; i <= ArraySize; i++) {
             x[i] = ArraySize - i + 1;
@@ -94,30 +82,6 @@ public static class HeapSort
             }
         }
         return true;
-    }
-
-    [Benchmark]
-    public static void Test() {
-        foreach (var iteration in Benchmark.Iterations) {
-            using (iteration.StartMeasurement()) {
-                for (int i = 0; i < Iterations; i++) {
-                    Bench();
-                }
-            }
-        }
-    }
-
-    static bool TestBase() {
-        bool result = true;
-        for (int i = 0; i < Iterations; i++) {
-            result &= Bench();
-        }
-        return result;
-    }
-
-    public static int Main() {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

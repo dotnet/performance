@@ -3,23 +3,13 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using System.Collections.Generic;
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class AddArray2
+public class AddArray2
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
-    public const int Iterations = 50;
-#endif
-
     private const int Dim = 200;
 
     private static T[][] AllocArray<T>(int n1, int n2)
@@ -78,8 +68,9 @@ public static class AddArray2
         }
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool Bench(int[][] a)
+    [Benchmark(Description = nameof(AddArray2))]
+    [ArgumentsSource(nameof(CreateArray))]
+    public bool Test(int[][] a)
     {
         int n = Dim;
         for (int i = 1; i <= n; i++)
@@ -97,37 +88,9 @@ public static class AddArray2
         return true;
     }
 
-    [Benchmark]
-    public static void Test()
+    public IEnumerable<object> CreateArray()
     {
-        int[][] array = AllocArray<int>(Dim + 1, Dim + 1);
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                for (int i = 1; i <= Iterations; i++)
-                {
-                    Bench(array);
-                }
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        int[][] array = AllocArray<int>(Dim + 1, Dim + 1);
-        bool result = true;
-        for (int i = 1; i <= Iterations; i++)
-        {
-            result &= Bench(array);
-        }
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
+        yield return AllocArray<int>(Dim + 1, Dim + 1);
     }
 }
 }

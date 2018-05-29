@@ -3,24 +3,12 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class QuickSort
+public class QuickSort
 {
-
-#if DEBUG
-    public const int Iterations = 1;
-#else
-    public const int Iterations = 80000;
-#endif
-
     const int MAXNUM = 200;
     const int MODULUS = 0x20000;
     const int C = 13849;
@@ -67,8 +55,8 @@ public static class QuickSort
         }
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    static bool Bench() {
+    [Benchmark(Description = nameof(QuickSort))]
+    public bool Test() {
 
         int[] buffer = new int[MAXNUM];
 
@@ -89,30 +77,6 @@ public static class QuickSort
         }
 
         return true;
-    }
-
-    [Benchmark]
-    public static void Test() {
-        foreach (var iteration in Benchmark.Iterations) {
-            using (iteration.StartMeasurement()) {
-                for (int i = 0; i < Iterations; i++) {
-                    Bench();
-                }
-            }
-        }
-    }
-
-    static bool TestBase() {
-        bool result = true;
-        for (int i = 0; i < Iterations; i++) {
-            result &= Bench();
-        }
-        return result;
-    }
-
-    public static int Main() {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

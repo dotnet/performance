@@ -3,22 +3,14 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
 
 namespace Benchstone.BenchF
 {
-public static class DMath
+public class DMath
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 100000;
-#endif
 
     private const double Deg2Rad = 57.29577951;
     private static volatile object s_volatileObject;
@@ -54,8 +46,9 @@ public static class DMath
         return res;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool Bench(int loop)
+    [Benchmark(Description = nameof(DMath))]
+    [Arguments(Iterations)]
+    public bool Test(int loop)
     {
         double[] sines = new double[91];
         double angle, radians, sine, worksine, temp, k;
@@ -85,30 +78,6 @@ public static class DMath
         Escape(sines);
 
         return true;
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                Bench(Iterations);
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        bool result = Bench(Iterations);
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

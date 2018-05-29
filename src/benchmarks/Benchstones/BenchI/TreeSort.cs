@@ -3,24 +3,12 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class TreeSort
+public class TreeSort
 {
-
-#if DEBUG
-    public const int Iterations = 1;
-#else
-    public const int Iterations = 1200;
-#endif
-
     const int SortElements = 5000;
     const int Modulus = 65536;
 
@@ -119,35 +107,11 @@ public static class TreeSort
         return result;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    static bool Bench() {
+    [Benchmark(Description = nameof(TreeSort))]
+    public bool Test() {
         int[] sortList = new int[SortElements + 1];
         bool result = Trees(sortList);
         return result;
-    }
-
-    [Benchmark]
-    public static void Test() {
-        foreach (var iteration in Benchmark.Iterations) {
-            using (iteration.StartMeasurement()) {
-                for (int i = 0; i < Iterations; i++) {
-                    Bench();
-                }
-            }
-        }
-    }
-
-    static bool TestBase() {
-        bool result = true;
-        for (int i = 0; i < Iterations; i++) {
-            result &= Bench();
-        }
-        return result;
-    }
-
-    public static int Main() {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

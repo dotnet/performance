@@ -3,30 +3,15 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class MulMatrix
+public class MulMatrix
 {
-
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 100;
-#endif
 
     const int Size = 75;
-    static volatile object VolatileObject;
-
-    static void Escape(object obj) {
-        VolatileObject = obj;
-    }
 
     static T[][] AllocArray<T>(int n1, int n2) {
         T[][] a = new T[n1][];
@@ -106,8 +91,8 @@ public static class MulMatrix
         return;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    static bool Bench() {
+    [Benchmark(Description = nameof(MulMatrix))]
+    public int[][] Test() {
         int[][] a = AllocArray<int>(Size, Size);
         int[][] b = AllocArray<int>(Size, Size);
         int[][] c = AllocArray<int>(Size, Size);
@@ -115,28 +100,8 @@ public static class MulMatrix
         for (int i = 0; i < Iterations; ++i) {
             Inner(a, b, c);
         }
-
-        Escape(c);
-        return true;
-    }
-
-    [Benchmark]
-    public static void Test() {
-        foreach (var iteration in Benchmark.Iterations) {
-            using (iteration.StartMeasurement()) {
-                Bench();
-            }
-        }
-    }
-
-    static bool TestBase() {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main() {
-        bool result = TestBase();
-        return (result ? 100 : -1);
+        
+        return c;
     }
 }
 }

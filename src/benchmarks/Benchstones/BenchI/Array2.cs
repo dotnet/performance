@@ -3,23 +3,13 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class Array2
+public class Array2
 {
-
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 500000;
-#endif
 
     static T[][][] AllocArray<T>(int n1, int n2, int n3) {
         T[][][] a = new T[n1][][];
@@ -57,8 +47,9 @@ public static class Array2
         return true;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    static bool Bench(int loop) {
+    [Benchmark(Description = nameof(Array2))]
+    [Arguments(Iterations)]
+    public bool Test(int loop) {
 
         int[][][] s = AllocArray<int>(10, 10, 10);
         int[][][] d = AllocArray<int>(10, 10, 10);
@@ -78,25 +69,6 @@ public static class Array2
         bool result = VerifyCopy(s, d);
 
         return result;
-    }
-
-    [Benchmark]
-    public static void Test() {
-        foreach (var iteration in Benchmark.Iterations) {
-            using (iteration.StartMeasurement()) {
-                Bench(Iterations);
-            }
-        }
-    }
-
-    static bool TestBase() {
-        bool result = Bench(Iterations);
-        return result;
-    }
-
-    public static int Main() {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

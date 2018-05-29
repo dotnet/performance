@@ -4,22 +4,14 @@
 //
 // The modified regula-falsi routine adapted from Conte and De Boor
 
-using Microsoft.Xunit.Performance;
-using System;
+using BenchmarkDotNet.Attributes;
 using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
 
 namespace Benchstone.BenchF
 {
-public static class Regula
+public class Regula
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 4000000;
-#endif
 
     public static volatile object VolatileObject;
 
@@ -29,8 +21,8 @@ public static class Regula
         VolatileObject = obj;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool Bench()
+    [Benchmark(Description = nameof(Regula))]
+    public bool Test()
     {
         double error, fxi;
         double a, b, xi;
@@ -166,30 +158,6 @@ public static class Regula
     L99:
         {
         }
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                Bench();
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

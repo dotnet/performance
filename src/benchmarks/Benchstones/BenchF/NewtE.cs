@@ -5,25 +5,16 @@
 // Simultaneous equations by Newton's method adapted from Conte and De Boor
 // to solve F(X,Y)=0 and G(X,Y)=0
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchF
 {
-public static class NewtE
+public class NewtE
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 1000000;
-#endif
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool Bench()
+    [Benchmark(Description = nameof(NewtE))]
+    public bool Test()
     {
         double idgb, a, b, x, y, deltaX, deltaY;
         a = 0;
@@ -108,30 +99,6 @@ public static class NewtE
     private static double GY(double x, double y)
     {
         return (-(x));
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                Bench();
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

@@ -4,29 +4,14 @@
 //
 // The Adams-Moulton Predictor Corrector Method adapted from Conte and de Boor
 // original source: adams_d.c
-#define XUNIT_PERF
-using System;
-using System.Runtime.CompilerServices;
-using System.Diagnostics;
-#if XUNIT_PERF
-using Xunit;
-using Microsoft.Xunit.Performance;
-#endif // XUNIT_PERF
 
-#if XUNIT_PERF
-[assembly: OptimizeForBenchmarks]
-#endif // XUNIT_PERF
+using System.Runtime.CompilerServices;
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchF
 {
-public static class Adams
+public class Adams
 {
-#if DEBUG
-    public static int Iterations = 1;
-#else
-    public static int Iterations = 200000;
-#endif // DEBUG
-
     static double g_xn, g_yn, g_dn, g_en;
     const double g_xn_base = 0.09999999E+01;
     const double g_yn_base = 0.71828180E+00;
@@ -100,65 +85,7 @@ public static class Adams
         return (System.Math.Exp(x) - 1.0 - (x));
     }
 
-    [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
-    private static void TestBench()
-    {
-        for (int l = 1; l <= Iterations; l++)
-        {
-            Bench();
-        }
-    }
-
-#if XUNIT_PERF
-    [Benchmark]
-    public static void Test()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                TestBench();
-            }
-        }
-    }
-#endif // XUNIT_PERF
-
-    [MethodImpl(MethodImplOptions.NoOptimization)]
-    public static int Main(string[] argv)
-    {
-        if (argv.Length > 0)
-        {
-            Iterations = Int32.Parse(argv[0]);
-        }
-
-        Stopwatch sw = Stopwatch.StartNew();
-        TestBench();
-        sw.Stop();
-
-        bool result = true;
-        // Note: we can't check xn or yn better because of the precision
-        // with which original results are given
-        result &= System.Math.Abs(g_xn_base - g_xn) <= 1.5e-7;
-        result &= System.Math.Abs(g_yn_base - g_yn) <= 1.5e-7;
-        result &= System.Math.Abs(g_dn) <= 2.5e-9;
-        // Actual error is much bigger than base error;
-        // this is likely due to the fact that the original program was written in Fortran
-        // and was running on a mainframe with a non-IEEE floating point arithmetic
-        // (it's still beyond the published precision of yn)
-        result &= System.Math.Abs(g_en) <= 5.5e-8;
-        Console.WriteLine(result ? "Passed" : "Failed");
-
-        Console.WriteLine(" BASE.....P1 1/4 (ADAMS-MOULTON), XN = {0}", g_xn_base);
-        Console.WriteLine(" VERIFY...P1 1/4 (ADAMS-MOULTON), XN = {0}\n", g_xn);
-        Console.WriteLine(" BASE.....P1 2/4 (ADAMS-MOULTON), YN = {0}", g_yn_base);
-        Console.WriteLine(" VERIFY...P1 2/4 (ADAMS-MOULTON), YN = {0}\n", g_yn);
-        Console.WriteLine(" BASE.....P1 3/4 (ADAMS-MOULTON), DN = {0}", g_dn_base);
-        Console.WriteLine(" VERIFY...P1 3/4 (ADAMS-MOULTON), DN = {0}\n", g_dn);
-        Console.WriteLine(" BASE.....P1 4/4 (ADAMS-MOULTON), EN = {0}", g_en_base);
-        Console.WriteLine(" VERIFY...P1 4/4 (ADAMS-MOULTON), EN = {0}\n", g_en);
-
-        Console.WriteLine("Test iterations: {0}; Total time: {1} sec", Iterations, sw.Elapsed.TotalSeconds);
-        return (result ? 100 : -1);
-    }
+    [Benchmark(Description = nameof(Adams))]
+    public static void Test() => Bench();
 }
 }

@@ -3,23 +3,12 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
 public class TreeInsert
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
-    public const int Iterations = 15000;
-#endif
-
     private struct Node
     {
         public int A;
@@ -85,8 +74,8 @@ public class TreeInsert
     }
 
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private bool Bench()
+    [Benchmark(Description = nameof(TreeInsert))]
+    public bool Test()
     {
         _s.Root = 1;
         _s.NextAvail = 2;
@@ -102,39 +91,6 @@ public class TreeInsert
         }
 
         return (_s.Nodes[500].A == 441);
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        TreeInsert T = new TreeInsert();
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                for (int i = 1; i <= Iterations; i++)
-                {
-                    T.Bench();
-                }
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        TreeInsert T = new TreeInsert();
-        bool result = true;
-        for (int i = 1; i <= Iterations; i++)
-        {
-            result &= T.Bench();
-        }
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

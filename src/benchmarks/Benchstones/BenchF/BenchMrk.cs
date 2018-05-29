@@ -3,28 +3,20 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
 
 namespace Benchstone.BenchF
 {
-public static class BenchMrk
+public class BenchMrk
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 4000000;
-#endif
-
+    
     private static int s_i, s_n;
     private static float s_p, s_a, s_x, s_f, s_e;
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool Bench()
+    [Benchmark(Description = nameof(BenchMrk))]
+    public bool Test()
     {
         s_p = (float)Math.Acos(-1.0);
         s_a = 0.0F;
@@ -39,30 +31,6 @@ public static class BenchMrk
         }
 
         return true;
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                Bench();
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

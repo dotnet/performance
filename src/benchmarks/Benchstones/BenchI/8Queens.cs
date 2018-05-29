@@ -3,24 +3,12 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class EightQueens
+public class EightQueens
 {
-
-#if DEBUG
-    public const int Iterations = 1;
-#else
-    public const int Iterations = 100000;
-#endif
-
     static int[] m_c = new int[15];
     static int[] m_x = new int[9];
 
@@ -51,8 +39,8 @@ public static class EightQueens
         }
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    static bool Bench() {
+    [Benchmark(Description = nameof(EightQueens))]
+    public bool Test() {
         int[] a = new int[9];
         int[] b = new int[17];
         int q = 0;
@@ -73,30 +61,6 @@ public static class EightQueens
         TryMe(1, ref q, b, a);
 
         return (q == 1);
-    }
-
-    [Benchmark]
-    public static void Test() {
-        foreach (var iteration in Benchmark.Iterations) {
-            using (iteration.StartMeasurement()) {
-                for (int i = 0; i < Iterations; i++) {
-                    Bench();
-                }
-            }
-        }
-    }
-
-    static bool TestBase() {
-        bool result = true;
-        for (int i = 0; i < Iterations; i++) {
-            result &= Bench();
-        }
-        return result;
-    }
-
-    public static int Main() {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

@@ -3,22 +3,13 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchF
 {
-public static class InProd
+public class InProd
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 70;
-#endif
 
     private const int RowSize = 10 * Iterations;
 
@@ -34,8 +25,8 @@ public static class InProd
         return a;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool Bench()
+    [Benchmark(Description = nameof(InProd))]
+    public bool Test()
     {
         double[][] rma = AllocArray<double>(RowSize, RowSize);
         double[][] rmb = AllocArray<double>(RowSize, RowSize);
@@ -107,30 +98,6 @@ public static class InProd
                 InnerProduct(out rmr[i][j], rma, rmb, i, j);
             }
         }
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                Bench();
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

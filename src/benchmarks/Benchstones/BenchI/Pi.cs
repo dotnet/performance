@@ -3,24 +3,13 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using System.Collections.Generic;
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class Pi
+public class Pi
 {
-
-#if DEBUG
-    public const int Iterations = 1;
-#else
-    public const int Iterations = 100;
-#endif
-
     static int[] ComputePi(int[] a) {
 
         int d = 4;
@@ -53,36 +42,16 @@ public static class Pi
         return digits;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    static bool Bench(int[] a) {
+    [Benchmark]
+    [ArgumentsSource(nameof(CreateArray))]
+    public bool Test(int[] a) {
         int[] digits = ComputePi(a);
         return (digits[0] == 3 && digits[1] == 1415 && digits[2] == 9265 && digits[250] == 1989);
     }
 
-    [Benchmark]
-    public static void Test() {
-        int[] a = new int[3340];
-        foreach (var iteration in Benchmark.Iterations) {
-            using (iteration.StartMeasurement()) {
-                for (int i = 0; i < Iterations; i++) {
-                    Bench(a);
-                }
-            }
-        }
-    }
-
-    static bool TestBase() {
-        bool result = true;
-        int[] a = new int[3340];
-        for (int i = 0; i < Iterations; i++) {
-            result &= Bench(a);
-        }
-        return result;
-    }
-
-    public static int Main() {
-        bool result = TestBase();
-        return (result ? 100 : -1);
+    public IEnumerable<object> CreateArray()
+    {
+        yield return new int[3340];
     }
 }
 }

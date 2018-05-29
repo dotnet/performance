@@ -3,23 +3,14 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
 public class Puzzle
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 400;
-#endif
-
+    
     private const int PuzzleSize = 511;
     private const int ClassMax = 3;
     private const int TypeMax = 12;
@@ -351,8 +342,8 @@ public class Puzzle
         return result;
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private bool Bench()
+    [Benchmark(Description = nameof(Puzzle))]
+    public bool Test()
     {
         _p = AllocArray<bool>(TypeMax + 1, PuzzleSize + 1);
 
@@ -364,32 +355,6 @@ public class Puzzle
         }
 
         return result;
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        Puzzle P = new Puzzle();
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                P.Bench();
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        Puzzle P = new Puzzle();
-        bool result = P.Bench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

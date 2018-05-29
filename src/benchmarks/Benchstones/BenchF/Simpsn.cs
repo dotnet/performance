@@ -4,25 +4,16 @@
 //
 // Integration by Simpson's rule adapted from Conte and de Boor
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchF
 {
-public static class Simpsn
+public class Simpsn
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
     public const int Iterations = 90000;
-#endif
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private static bool Bench()
+    [Benchmark(Description = nameof(Simpsn))]
+    public bool Bench()
     {
         double a, b, x, s, c, h, hov2, half, t1;
         int idbg, n, nm1;
@@ -66,30 +57,6 @@ public static class Simpsn
     private static double F(double x)
     {
         return (System.Math.Exp((-(x)) * 2));
-    }
-
-    [Benchmark]
-    public static void Test()
-    {
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                Bench();
-            }
-        }
-    }
-
-    private static bool TestBase()
-    {
-        bool result = Bench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }

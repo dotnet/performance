@@ -3,25 +3,13 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
-using System;
-using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Benchstone.BenchI
 {
-public static class BubbleSort2
+public class BubbleSort2
 {
-
-#if DEBUG
-    public const int Iterations = 1;
-    public const int Bound = 5 * Iterations;
-#else
-    public const int Iterations = 15;
-    public const int Bound = 500 * Iterations;
-#endif
+    public const int Bound = 500 * 15;
 
     static void Inner(int[] x) {
         int limit1 = Bound - 1;
@@ -36,8 +24,9 @@ public static class BubbleSort2
         }
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    static bool Bench() {
+    // this benchmark is BAD, it should not allocate the array and check the order, but I am porting "as is"
+    [Benchmark(Description = nameof(BubbleSort2))]
+    public bool Test() {
         int[] x = new int[Bound + 1];
         int i, j;
         int limit;
@@ -63,30 +52,6 @@ public static class BubbleSort2
         }
 
         return true;
-    }
-
-    [Benchmark]
-    public static void Test() {
-        foreach (var iteration in Benchmark.Iterations) {
-            using (iteration.StartMeasurement()) {
-                for (int i = 0; i < Iterations; i++) {
-                    Bench();
-                }
-            }
-        }
-    }
-
-    static bool TestBase() {
-        bool result = true;
-        for (int i = 0; i < Iterations; i++) {
-            result &= Bench();
-        }
-        return result;
-    }
-
-    public static int Main() {
-        bool result = TestBase();
-        return (result ? 100 : -1);
     }
 }
 }
