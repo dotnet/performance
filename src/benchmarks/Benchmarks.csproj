@@ -6,6 +6,7 @@
     <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="img\**" />
@@ -13,7 +14,7 @@
     <None Remove="img\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.10.14.564" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.10.14.565" />
     <PackageReference Include="CommandLineParser" Version="2.2.1" />
     <PackageReference Include="Jil" Version="2.15.4" />
     <PackageReference Include="MessagePack" Version="1.7.3.4" />

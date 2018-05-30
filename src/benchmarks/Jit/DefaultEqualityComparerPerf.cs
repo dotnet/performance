@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 // Performance tests for optimizations related to EqualityComparer<T>.Default
 
@@ -57,151 +54,43 @@ namespace Devirtualization
         {
             return Wrapped().Equals(x, y);
         }
-
-        public bool BenchCompareNoOpt(ref T t, long count)
-        {
-            bool result = true;
-            for (int i = 0; i < count; i++)
-            {
-                result &= CompareNoOpt(ref t, ref t);
-            }
-            return result;
-        }
-
-        public bool BenchCompare(ref T t, long count)
-        {
-            bool result = true;
-            for (int i = 0; i < count; i++)
-            {
-                result &= Compare(ref t, ref t);
-            }
-            return result;
-        }
-
-        public bool BenchCompareCached(ref T t, long count)
-        {
-            bool result = true;
-            for (int i = 0; i < count; i++)
-            {
-                result &= CompareCached(ref t, ref t);
-            }
-            return result;
-        }
-
-        public bool BenchCompareWrapped(ref T t, long count)
-        {
-            bool result = true;
-            for (int i = 0; i < count; i++)
-            {
-                result &= CompareWrapped(ref t, ref t);
-            }
-            return result;
-        }
     }
 
     public class EqualityComparer
     {
-
-#if DEBUG
-        public const int Iterations = 1;
-#else
-        public const int Iterations = 150 * 1000 * 1000;
-#endif
-
         public enum E
         {
             RED = 1,
             BLUE = 2
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        static void Consume(bool b) { }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        public bool ValueTupleCompareNoOpt(EqualityComparerFixture<ValueTuple<byte, E, int>> valueTupleFixture, ref ValueTuple<byte, E, int> v0)
+            => valueTupleFixture.CompareNoOpt(ref v0, ref v0);
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        public static void ValueTupleCompareNoOpt()
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        public bool ValueTupleCompare(EqualityComparerFixture<ValueTuple<byte, E, int>> valueTupleFixture, ref ValueTuple<byte, E, int> v0)
+            => valueTupleFixture.Compare(ref v0, ref v0);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        public bool ValueTupleCompareCached(EqualityComparerFixture<ValueTuple<byte, E, int>> valueTupleFixture, ref ValueTuple<byte, E, int> v0)
+            => valueTupleFixture.CompareCached(ref v0, ref v0);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        public bool ValueTupleCompareWrapped(EqualityComparerFixture<ValueTuple<byte, E, int>> valueTupleFixture, ref ValueTuple<byte, E, int> v0)
+            => valueTupleFixture.CompareWrapped(ref v0, ref v0);
+
+        public IEnumerable<object[]> GetInputData()
         {
-            var valueTupleFixture = new EqualityComparerFixture<ValueTuple<byte, E, int>>();
-            var v0 = new ValueTuple<byte, E, int>(3, E.RED, 11);
-            var result = true;
-
-            foreach (var iteration in Benchmark.Iterations)
+            yield return new object[]
             {
-                using (iteration.StartMeasurement())
-                {
-                    result &= valueTupleFixture.BenchCompareNoOpt(ref v0, Benchmark.InnerIterationCount);
-                }
-            }
-
-            Consume(result);
-        }
-
-        [Benchmark(InnerIterationCount = Iterations)]
-        public static void ValueTupleCompare()
-        {
-            var valueTupleFixture = new EqualityComparerFixture<ValueTuple<byte, E, int>>();
-            var v0 = new ValueTuple<byte, E, int>(3, E.RED, 11);
-            var result = true;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    result &= valueTupleFixture.BenchCompare(ref v0, Benchmark.InnerIterationCount);
-                }
-            }
-
-            Consume(result);
-        }
-
-        [Benchmark(InnerIterationCount = Iterations)]
-        public static void ValueTupleCompareCached()
-        {
-            var valueTupleFixture = new EqualityComparerFixture<ValueTuple<byte, E, int>>();
-            var v0 = new ValueTuple<byte, E, int>(3, E.RED, 11);
-            var result = true;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    result &= valueTupleFixture.BenchCompareCached(ref v0, Benchmark.InnerIterationCount);
-                }
-            }
-
-            Consume(result);
-        }
-
-        [Benchmark(InnerIterationCount = Iterations)]
-        public static void ValueTupleCompareWrapped()
-        {
-            var valueTupleFixture = new EqualityComparerFixture<ValueTuple<byte, E, int>>();
-            var v0 = new ValueTuple<byte, E, int>(3, E.RED, 11);
-            var result = true;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    result &= valueTupleFixture.BenchCompareWrapped(ref v0, Benchmark.InnerIterationCount);
-                }
-            }
-
-            Consume(result);
-        }
-
-        public static int Main()
-        {
-            var valueTupleFixture = new EqualityComparerFixture<ValueTuple<byte, E, int>>();
-            var v0 = new ValueTuple<byte, E, int>(3, E.RED, 11);
-
-            bool vtCompare = valueTupleFixture.Compare(ref v0, ref v0);
-            bool vtCompareNoOpt = valueTupleFixture.CompareNoOpt(ref v0, ref v0);
-            bool vtCompareCached = valueTupleFixture.CompareCached(ref v0, ref v0);
-            bool vtCompareWrapped = valueTupleFixture.CompareWrapped(ref v0, ref v0);
-
-            bool vtOk = vtCompare & vtCompareNoOpt & vtCompareCached & vtCompareWrapped;
-
-            return vtOk ? 100 : 0;
+                new EqualityComparerFixture<ValueTuple<byte, E, int>>(),
+                new ValueTuple<byte, E, int>(3, E.RED, 11)
+            };
         }
     }
 }
