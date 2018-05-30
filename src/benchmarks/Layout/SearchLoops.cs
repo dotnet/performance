@@ -2,13 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
-using Microsoft.Xunit.Performance.Api;
 using System;
-using System.Reflection;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
 
 // Test code taken directly from GitHub issue #9692 (https://github.com/dotnet/coreclr/issues/9692)
 // Laying the loop's early return path in-line can cost 30% on this micro-benchmark.
@@ -17,24 +13,6 @@ namespace Layout
 {
     public unsafe class SearchLoops
     {
-        public static int Main(string[] args)
-        {
-            // Make sure equal strings compare as such
-            if (!LoopReturn("hello", "hello") || !LoopGoto("goodbye", "goodbye"))
-            {
-                return -1;
-            }
-
-            // Make sure not-equal strings compare as such
-            if (LoopReturn("hello", "goodbye") || LoopGoto("goodbye", "hello"))
-            {
-                return -1;
-            }
-
-            // Success
-            return 100;
-        }
-
         public int length = 100;
 
         private string test1;
@@ -46,17 +24,11 @@ namespace Layout
             test2 = new string('A', length);
         }
 
-        [Benchmark(InnerIterationCount = 20000000)]
-        public void LoopReturn()
-        {
-            Benchmark.Iterate(() => LoopReturn(test1, test2));
-        }
+        [Benchmark]
+        public bool LoopReturn() => LoopReturn(test1, test2);
 
-        [Benchmark(InnerIterationCount = 20000000)]
-        public void LoopGoto()
-        {
-            Benchmark.Iterate(() => LoopGoto(test1, test2));
-        }
+        [Benchmark]
+        public bool LoopGoto() => LoopGoto(test1, test2);
 
         // Variant with code written naturally -- need JIT to lay this out
         // with return path out of loop for best performance.
