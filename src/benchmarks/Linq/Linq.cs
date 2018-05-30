@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.CompilerServices;
-using Microsoft.Xunit.Performance;
 using System.Collections.Generic;
 using System.Linq;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 public class Product
 {
@@ -115,62 +112,22 @@ public class Product
 
 public class LinqBenchmarks
 {
-#if DEBUG
-    public const int IterationsWhere00 = 1;
-    public const int IterationsWhere01 = 1;
-    public const int IterationsCount00 = 1;
-    public const int IterationsOrder00 = 1;
-#else
     public const int IterationsWhere00 = 1000000;
     public const int IterationsWhere01 = 250000;
     public const int IterationsCount00 = 1000000;
     public const int IterationsOrder00 = 25000;
-#endif
-
+    
     private static volatile object s_volatileObject;
 
     private static void Escape(object obj)
     {
         s_volatileObject = obj;
     }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    private bool Bench()
-    {
-        bool result = true;
-        result &= Where00();
-        result &= Where01();
-        result &= Count00();
-        result &= Order00();
-        return result;
-    }
-
+    
     #region Where00
-    private bool Where00()
-    {
-        bool result = true;
-        result &= Where00For();
-        result &= Where00LinqMethod();
-        result &= Where00LinqQuery();
-        return result;
-    }
 
     [Benchmark]
-    private bool Where00LinqQueryX()
-    {
-        bool result = true;
-
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                result &= Where00LinqQuery();
-            }
-        }
-        return result;
-    }
-
-    private bool Where00LinqQuery()
+    public bool Where00LinqQueryX()
     {
         List<Product> products = Product.GetProductList();
         int count = 0;
@@ -191,21 +148,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
-    private bool Where00LinqMethodX()
-    {
-        bool result = true;
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                result &= Where00LinqMethod();
-            }
-        }
-
-        return result;
-    }
-
-    private bool Where00LinqMethod()
+    public bool Where00LinqMethodX()
     {
         List<Product> products = Product.GetProductList();
         int count = 0;
@@ -223,21 +166,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
-    private bool Where00ForX()
-    {
-        bool result = true;
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                result &= Where00For();
-            }
-        }
-
-        return result;
-    }
-
-    private bool Where00For()
+    public bool Where00ForX()
     {
         List<Product> products = Product.GetProductList();
         int count = 0;
@@ -264,31 +193,9 @@ public class LinqBenchmarks
     #endregion
 
     #region Where01
-    private bool Where01()
-    {
-        bool result = true;
-        result &= Where01For();
-        result &= Where01LinqMethod();
-        result &= Where01LinqQuery();
-        return result;
-    }
 
     [Benchmark]
-    private bool Where01LinqQueryX()
-    {
-        bool result = true;
-
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                result &= Where01LinqQuery();
-            }
-        }
-        return result;
-    }
-
-    private bool Where01LinqQuery()
+    public bool Where01LinqQueryX()
     {
         List<Product> products = Product.GetProductList();
         int count = 0;
@@ -309,21 +216,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
-    private bool Where01LinqMethodX()
-    {
-        bool result = true;
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                result &= Where01LinqMethod();
-            }
-        }
-
-        return result;
-    }
-
-    private bool Where01LinqMethod()
+    public bool Where01LinqMethodX()
     {
         List<Product> products = Product.GetProductList();
         int count = 0;
@@ -341,21 +234,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
-    private bool Where01LinqMethodNestedX()
-    {
-        bool result = true;
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                result &= Where01LinqMethodNested();
-            }
-        }
-
-        return result;
-    }
-
-    private bool Where01LinqMethodNested()
+    public bool Where01LinqMethodNestedX()
     {
         List<Product> products = Product.GetProductList();
         int count = 0;
@@ -373,21 +252,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
-    private bool Where01ForX()
-    {
-        bool result = true;
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                result &= Where01For();
-            }
-        }
-
-        return result;
-    }
-
-    private bool Where01For()
+    public bool Where01ForX()
     {
         List<Product> products = Product.GetProductList();
         int count = 0;
@@ -414,30 +279,9 @@ public class LinqBenchmarks
     #endregion
 
     #region Count00
-    private bool Count00()
-    {
-        bool result = true;
-        result &= Count00For();
-        result &= Count00LinqMethod();
-        return result;
-    }
 
     [Benchmark]
-    private bool Count00LinqMethodX()
-    {
-        bool result = true;
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                result &= Count00LinqMethod();
-            }
-        }
-
-        return result;
-    }
-
-    private bool Count00LinqMethod()
+    public bool Count00LinqMethodX()
     {
         List<Product> products = Product.GetProductList();
         int count = 0;
@@ -450,21 +294,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
-    private bool Count00ForX()
-    {
-        bool result = true;
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                result &= Count00For();
-            }
-        }
-
-        return result;
-    }
-
-    private bool Count00For()
+    public bool Count00ForX()
     {
         List<Product> products = Product.GetProductList();
         int count = 0;
@@ -484,31 +314,9 @@ public class LinqBenchmarks
     #endregion
 
     #region Order00
-    private bool Order00()
-    {
-        bool result = true;
-        result &= Order00Manual();
-        result &= Order00LinqMethod();
-        result &= Order00LinqQuery();
-        return result;
-    }
 
     [Benchmark]
-    private bool Order00LinqQueryX()
-    {
-        bool result = true;
-
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                result &= Order00LinqQuery();
-            }
-        }
-        return result;
-    }
-
-    private bool Order00LinqQuery()
+    public bool Order00LinqQueryX()
     {
         List<Product> products = Product.GetProductList();
         Product medianPricedProduct = null;
@@ -524,21 +332,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
-    private bool Order00LinqMethodX()
-    {
-        bool result = true;
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                result &= Order00LinqMethod();
-            }
-        }
-
-        return result;
-    }
-
-    private bool Order00LinqMethod()
+    public bool Order00LinqMethodX()
     {
         List<Product> products = Product.GetProductList();
         Product medianPricedProduct = null;
@@ -554,21 +348,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
-    private bool Order00ManualX()
-    {
-        bool result = true;
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                result &= Order00Manual();
-            }
-        }
-
-        return result;
-    }
-
-    private bool Order00Manual()
+    public bool Order00ManualX()
     {
         List<Product> products = Product.GetProductList();
         Product medianPricedProduct = null;
@@ -584,11 +364,4 @@ public class LinqBenchmarks
         return (medianPricedProduct.ProductID == 57);
     }
     #endregion
-
-    public static int Main()
-    {
-        var tests = new LinqBenchmarks();
-        bool result = tests.Bench();
-        return result ? 100 : -1;
-    }
 }
