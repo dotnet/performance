@@ -2,8 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using PerfLabTests.CastingPerf2;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace PerfLabTests.CastingPerf2
 {
@@ -95,158 +94,77 @@ namespace PerfLabTests.CastingPerf2
         public static IFoo ifo, ifo1, ifo2, ifo3, ifo4, ifo5, ifo6, ifo7, ifo8, ifo9;
         public static IFoo_5 if_0, if_1, if_2, if_3, if_4, if_5, if_6, if_7, if_8, if_9;
 
-        [Benchmark(InnerIterationCount = 200000)]
-        public static void ObjFooIsObj()
+        [Benchmark]
+        public void ObjFooIsObj() => o = foo;
+
+        [GlobalSetup(Target = nameof(FooObjIsFoo))]
+        public void SetupFooObjIsFoo() => o = foo;
+        
+        [Benchmark]
+        public void FooObjIsFoo() => f = (Foo)o;
+
+        [Benchmark]
+        public void FooObjIsNull() => o = (Foo)n;
+        
+        [GlobalSetup(Target = nameof(FooObjIsDescendant))]
+        public void SetupFooObjIsDescendant() => o = foo_5;
+
+        [Benchmark]
+        public void FooObjIsDescendant() => f = (Foo)o;
+
+        [Benchmark]
+        public void IFooFooIsIFoo() =>  ifo = foo;
+
+        [GlobalSetup(Target = nameof(IFooObjIsIFoo))]
+        public void SetupIFooObjIsIFoo() => o = foo;
+        
+        [Benchmark] 
+        public void IFooObjIsIFoo() => ifo = (IFoo)o;
+
+        [GlobalSetup(Target = nameof(IFooObjIsIFooInterAlia))]
+        public void SetupIFooObjIsIFooInterAlia() => o = foo2;
+        
+        [Benchmark]
+        public void IFooObjIsIFooInterAlia() => if_0 = (IFoo_5)o;
+
+        [GlobalSetup(Target = nameof(IFooObjIsDescendantOfIFoo))]
+        public void SetupIFooObjIsDescendantOfIFoo() => o = foo_5;
+        
+        [Benchmark]
+        public void IFooObjIsDescendantOfIFoo() => ifo = (IFoo)o;
+
+        [Benchmark]
+        public void ObjInt() => o = (Object)j;
+
+        [Benchmark]
+        public void IntObj() => j = (int)o;
+
+        [Benchmark]
+        public void ObjScalarValueType() => o = svt;
+
+        [GlobalSetup(Target = nameof(ScalarValueTypeObj))]
+        public void SetupScalarValueTypeObj() => o = svt;
+        
+        [Benchmark]
+        public void ScalarValueTypeObj() => svt = (FooSVT)o;
+
+        [Benchmark]
+        public void ObjObjrefValueType() => o = (Object)orvt;
+
+        [GlobalSetup(Target = nameof(ObjrefValueTypeObj))]
+        public void SetupObjrefValueTypeObj() => o = (Object)orvt;
+        
+        [Benchmark]
+        public void ObjrefValueTypeObj() => orvt = (FooORVT)o;
+
+        [GlobalSetup(Target = nameof(FooObjCastIfIsa))]
+        public void SetupFooObjCastIfIsa() => o = foo;
+        
+        [Benchmark]
+        public void FooObjCastIfIsa()
         {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        o = foo;
-        }
-
-        [Benchmark(InnerIterationCount = 200000)]
-        public static void FooObjIsFoo()
-        {
-            o = foo;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        f = (Foo)o;
-        }
-
-        [Benchmark(InnerIterationCount = 200000)]
-        public static void FooObjIsNull()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        o = (Foo)n;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void FooObjIsDescendant()
-        {
-            o = foo_5;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        f = (Foo)o;
-        }
-
-        [Benchmark(InnerIterationCount = 200000)]
-        public static void IFooFooIsIFoo()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        ifo = foo;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void IFooObjIsIFoo()
-        {
-            o = foo;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        ifo = (IFoo)o;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void IFooObjIsIFooInterAlia()
-        {
-            o = foo2;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        if_0 = (IFoo_5)o;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void IFooObjIsDescendantOfIFoo()
-        {
-            o = foo_5;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        ifo = (IFoo)o;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void ObjInt()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        o = (Object)j;
-        }
-
-        [Benchmark(InnerIterationCount = 200000)]
-        public static void IntObj()
-        {
-            o = (Object)1;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        j = (int)o;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void ObjScalarValueType()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        o = svt;
-        }
-
-        [Benchmark(InnerIterationCount = 300000)]
-        public static void ScalarValueTypeObj()
-        {
-            o = svt;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        svt = (FooSVT)o;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void ObjObjrefValueType()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        o = (Object)orvt;
-        }
-
-        [Benchmark(InnerIterationCount = 200000)]
-        public static void ObjrefValueTypeObj()
-        {
-            o = (Object)orvt;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        orvt = (FooORVT)o;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void FooObjCastIfIsa()
-        {
-            o = foo;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        if (o is Foo)
-                            f = (Foo)o;
+            if (o is Foo)
+                f = (Foo)o;
         }
     }
 }
