@@ -14,10 +14,10 @@ namespace PerfLabTests
         public int NumElements;
 
         [GlobalSetup]
-        public void Setup(int numElements)
+        public void Setup()
         {
-            bytes = new byte[numElements * 2];
-            Buffer.BlockCopy(bytes, 0, bytes, numElements, numElements);
+            bytes = new byte[NumElements * 2];
+            Buffer.BlockCopy(bytes, 0, bytes, NumElements, NumElements);
         }
 
         [Benchmark]

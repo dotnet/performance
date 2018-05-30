@@ -136,6 +136,9 @@ namespace PerfLabTests.CastingPerf2
         [Benchmark]
         public void ObjInt() => o = (Object)j;
 
+        [GlobalSetup(Target = nameof(IntObj))]
+        public void SetupIntObj() => o = (Object)1;
+
         [Benchmark]
         public void IntObj() => j = (int)o;
 
