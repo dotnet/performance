@@ -3,16 +3,8 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using Microsoft.Xunit.Performance;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace FractalPerf
 {
@@ -131,46 +123,15 @@ namespace FractalPerf
 
     public class Launch
     {
-
-#if DEBUG
-        public const int Iterations = 1;
-#else
-        public const int Iterations = 5;
-#endif
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        static bool Bench()
+        [Benchmark(Description = nameof(FractalPerf))]
+        public double Test()
         {
             Mandelbrot m = new Mandelbrot();
             Julia j = new Julia(-0.62, 0.41);
             double mResult = m.Render();
             double jResult = j.Render();
 
-            return true;
-        }
-
-        [Benchmark]
-        public static void Test() {
-            foreach (var iteration in Benchmark.Iterations) {
-                using (iteration.StartMeasurement()) {
-                    for (int i = 0; i < Iterations; i++) {
-                        Bench();
-                    }
-                }
-            }
-        }
-
-        static bool TestBase() {
-            bool result = true;
-            for (int i = 0; i < Iterations; i++) {
-                result &= Bench();
-            }
-            return result;
-        }
-
-        public static int Main() {
-            bool result = TestBase();
-            return (result ? 100 : -1);
+            return mResult + jResult;
         }
     }
 }
