@@ -8,13 +8,10 @@
 // https://github.com/taumuon/SIMD-Vectorisation-Burgers-Equation-CSharp
 // http://www.taumuon.co.uk/2014/10/net-simd-to-solve-burgers-equation.html
 
-using Microsoft.Xunit.Performance;
 using System;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.CompilerServices;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 public class Burgers
 {
@@ -166,174 +163,33 @@ public class Burgers
         return un;
     }
 
-    public static int Main()
+
+    const int nx = 10001;
+    const int nt = 10000;
+    const double nu = 0.07;
+    
+    double dx, dt;
+    double[] x, initial;
+    
+    [GlobalSetup]
+    public void Setup()
     {
-        if (!Vector.IsHardwareAccelerated)
-        {
-            Console.WriteLine("Not hardware accelerated!");
-        }
-        else
-        {
-            Console.WriteLine("Vector<double>.Length: " + Vector<double>.Count);
-        }
-
-        int nx = 10001;
-
-#if DEBUG
-        int nt = 10;
-#else
-        int nt = 10000;
-#endif
-
-        double dx = 2.0 * Math.PI / (nx - 1.0);
-        double nu = 0.07;
-        double dt = dx * nu;
-        double[] x = linspace(0.0, 2.0 * Math.PI, nx);
-        double[] initial = GetAnalytical(x, 0.0, nu);
-
-        // Warmup
-
-        GetCalculated0(1, nx, dx, dt, nu, initial);
-        GetCalculated1(1, nx, dx, dt, nu, initial);
-        GetCalculated2(1, nx, dx, dt, nu, initial);
-        GetCalculated3(1, nx, dx, dt, nu, initial);
-
-        double[][] results = new double[4][];
-
-        var stopwatch = new System.Diagnostics.Stopwatch();
-
-        stopwatch.Start();
-        results[0] = GetCalculated0(nt, nx, dx, dt, nu, initial);
-        stopwatch.Stop();
-        Console.WriteLine("Baseline: " + stopwatch.ElapsedMilliseconds);
-        stopwatch.Reset();
-
-        stopwatch.Start();
-        results[1] = GetCalculated1(nt, nx, dx, dt, nu, initial);
-        stopwatch.Stop();
-        Console.WriteLine("Reduce copy: " + stopwatch.ElapsedMilliseconds);
-        stopwatch.Reset();
-
-        stopwatch.Start();
-        results[2] = GetCalculated2(nt, nx, dx, dt, nu, initial);
-        stopwatch.Stop();
-        Console.WriteLine("CSE of Math.Pow: " + stopwatch.ElapsedMilliseconds);
-        stopwatch.Reset();
-
-        stopwatch.Start();
-        results[3] = GetCalculated3(nt, nx, dx, dt, nu, initial);
-        stopwatch.Stop();
-        Console.WriteLine("SIMD: " + stopwatch.ElapsedMilliseconds);
-        stopwatch.Reset();
-
-        for (int i = 0; i < x.Length; i += 33)
-        {
-            double expected = results[0][i];
-            for (int j = 1; j < results.Length; j++)
-            {
-                bool valid = Math.Abs(expected - results[j][i]) < 1e-4;
-                if (!valid)
-                {
-                    Console.WriteLine("Failed to validate");
-                    return -1;
-                }
-            }
-        }
-
-        return 100;
+        dx = 2.0 * Math.PI / (nx - 1.0);
+        dt = dx * nu;
+        x = linspace(0.0, 2.0 * Math.PI, nx);
+        initial = GetAnalytical(x, 0.0, nu);
     }
 
-    static volatile object VolatileObject;
+    [Benchmark(Description = "Burgers_0")]
+    public double[] Test0() => GetCalculated0(nt, nx, dx, dt, nu, initial);
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    static void Escape(object obj)
-    {
-        VolatileObject = obj;
-    }
+    [Benchmark(Description = "Burgers_1")]
+    public double[] Test1() => GetCalculated1(nt, nx, dx, dt, nu, initial);
 
-    [Benchmark]
-    public static void Test0()
-    {
-        int nx = 10001;
-        int nt = 10000;
-        double dx = 2.0 * Math.PI / (nx - 1.0);
-        double nu = 0.07;
-        double dt = dx * nu;
-        double[] x = linspace(0.0, 2.0 * Math.PI, nx);
-        double[] initial = GetAnalytical(x, 0.0, nu);
+    [Benchmark(Description = "Burgers_2")]
+    public double[] Test2() => GetCalculated2(nt, nx, dx, dt, nu, initial);
 
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                double[] results = GetCalculated0(nt, nx, dx, dt, nu, initial);
-                Escape(results);
-            }
-        }
-    }
-
-    [Benchmark]
-    public static void Test1()
-    {
-        int nx = 10001;
-        int nt = 10000;
-        double dx = 2.0 * Math.PI / (nx - 1.0);
-        double nu = 0.07;
-        double dt = dx * nu;
-        double[] x = linspace(0.0, 2.0 * Math.PI, nx);
-        double[] initial = GetAnalytical(x, 0.0, nu);
-
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                double[] results = GetCalculated1(nt, nx, dx, dt, nu, initial);
-                Escape(results);
-            }
-        }
-    }
-
-    [Benchmark]
-    public static void Test2()
-    {
-        int nx = 10001;
-        int nt = 10000;
-        double dx = 2.0 * Math.PI / (nx - 1.0);
-        double nu = 0.07;
-        double dt = dx * nu;
-        double[] x = linspace(0.0, 2.0 * Math.PI, nx);
-        double[] initial = GetAnalytical(x, 0.0, nu);
-
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                double[] results = GetCalculated2(nt, nx, dx, dt, nu, initial);
-                Escape(results);
-            }
-        }
-    }
-
-    [Benchmark]
-    public static void Test3()
-    {
-        // Make SIMD version work a bit harder....
-        int nx = 10001;
-        int nt = 2 * 10000;
-        double dx = 2.0 * Math.PI / (nx - 1.0);
-        double nu = 0.07;
-        double dt = dx * nu;
-        double[] x = linspace(0.0, 2.0 * Math.PI, nx);
-        double[] initial = GetAnalytical(x, 0.0, nu);
-
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                double[] results = GetCalculated3(nt, nx, dx, dt, nu, initial);
-                Escape(results);
-            }
-        }
-    }
+    [Benchmark(Description = "Burgers_3")]
+    public double[] Test3() => GetCalculated3(nt, nx, dx, dt, nu, initial);
 }
 
