@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Microsoft.Xunit.Performance;
 using System;
 using System.Collections.Generic;
+using BenchmarkDotNet.Attributes;
 
 namespace PerfLabTests
 {
@@ -105,6 +105,12 @@ namespace PerfLabTests
         public static Foo[] f;
         public static IFoo[] ifo;
         public static IFoo_5[] if_5;
+        public static object myClass1;
+        public static object myClass2;
+        public static Object myClass4;
+
+        public static Object[] myClass1Arr;
+        public static Object[] myClass2Arr;
 
         static CastingPerf()
         {
@@ -133,261 +139,131 @@ namespace PerfLabTests
             orvt = new FooORVT[NUM_ARRAY_ELEMENTS];
         }
 
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void ObjFooIsObj()
+        [Benchmark]
+        public void ObjFooIsObj() => o = foo;
+
+        [Benchmark]
+        public void ObjFooIsObj2() => o_ar = foo;
+
+        [GlobalSetup(Target = nameof(ObjObjIsFoo))]
+        public void SetupObjObjIsFoo() => o = foo;
+        
+        [Benchmark]
+        public void ObjObjIsFoo() => o_ar = (Object[])o;
+
+        [GlobalSetup(Target = nameof(FooObjIsFoo))]
+        public void SetupFooObjIsFoo() => o = foo;
+        
+        [Benchmark]
+        public void FooObjIsFoo() => f = (Foo[])o;
+
+        [GlobalSetup(Target = nameof(FooObjIsFoo2))]
+        public void SetupFooObjIsFoo2() => o_ar = foo;
+        
+        [Benchmark]
+        public void FooObjIsFoo2() => f = (Foo[])o_ar;
+
+        [Benchmark]
+        public void FooObjIsNull() => o = (Foo[])n;
+
+        [GlobalSetup(Target = nameof(FooObjIsDescendant))]
+        public void SetupFooObjIsDescendant() => o = foo_5;
+        
+        [Benchmark]
+        public void FooObjIsDescendant() => f = (Foo[])o;
+
+        [Benchmark]
+        public void IFooFooIsIFoo() => ifo = foo;
+        
+        [GlobalSetup(Target = nameof(IFooObjIsIFoo))]
+        public void SetupIFooObjIsIFoo() => o = foo;
+
+        [Benchmark]
+        public void IFooObjIsIFoo() => ifo = (IFoo[])o;
+
+        [GlobalSetup(Target = nameof(IFooObjIsIFooInterAlia))]
+        public void SetupIFooObjIsIFooInterAlia() => o = foo2;
+        
+        [Benchmark]
+        public void IFooObjIsIFooInterAlia() => if_5 = (IFoo_5[])o;
+
+        [GlobalSetup(Target = nameof(IFooObjIsDescendantOfIFoo))]
+        public void SetupIFooObjIsDescendantOfIFoo() => o = foo_5;
+        
+        [Benchmark]
+        public void IFooObjIsDescendantOfIFoo() => ifo = (IFoo[])o;
+
+        [Benchmark]
+        public void ObjInt() => o = (Object)j;
+
+        [GlobalSetup(Target = nameof(IntObj))]
+        public void SetupIntObj() => o = (Object)j;
+        
+        [Benchmark]
+        public void IntObj() => k = (int[])o;
+
+        [Benchmark]
+        public void ObjScalarValueType() => o = svt;
+        
+        [GlobalSetup(Target = nameof(ScalarValueTypeObj))]
+        public void SetupScalarValueTypeObj() => o = svt;
+
+        [Benchmark]
+        public void ScalarValueTypeObj() => svt = (FooSVT[])o;
+
+        [Benchmark]
+        public void ObjObjrefValueType() => o = (Object)orvt;
+
+        [GlobalSetup(Target = nameof(ObjrefValueTypeObj))]
+        public void SetupObjrefValueTypeObj() => o = (Object)orvt;
+        
+        [Benchmark]
+        public void ObjrefValueTypeObj() => orvt = (FooORVT[])o;
+        
+        [GlobalSetup(Target = nameof(FooObjCastIfIsa))]
+        public void SetupFooObjCastIfIsa() => o = foo;
+
+        [Benchmark]
+        public void FooObjCastIfIsa()
         {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        o = foo;
+            if (o is Foo[])
+                f = (Foo[])o;
         }
 
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void ObjFooIsObj2()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        o_ar = foo;
-        }
+        [GlobalSetup(Target = nameof(CheckObjIsInterfaceYes))]
+        public void SetupCheckObjIsInterfaceYes() => myClass1 = new MyClass1();
+        
+        [Benchmark]
+        public bool CheckObjIsInterfaceYes() => myClass1 is IMyInterface1;
 
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void ObjObjIsFoo()
-        {
-            o = foo;
+        [GlobalSetup(Target = nameof(CheckObjIsInterfaceNo))]
+        public void SetupCheckObjIsInterfaceNo() => myClass2 = new MyClass2();
+        
+        [Benchmark]
+        public bool CheckObjIsInterfaceNo() => myClass2 is IMyInterface1;
 
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        o_ar = (Object[])o;
-        }
+        [GlobalSetup(Target = nameof(CheckIsInstAnyIsInterfaceYes))]
+        public void SetupCheckIsInstAnyIsInterfaceYes() => myClass4 = new MyClass4<List<string>>();
+        
+        [Benchmark]
+        public bool CheckIsInstAnyIsInterfaceYes() => myClass4 is IMyInterface1;
 
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void FooObjIsFoo()
-        {
-            o = foo;
+        [GlobalSetup(Target = nameof(CheckIsInstAnyIsInterfaceNo))]
+        public void SetupCheckIsInstAnyIsInterfaceNo() => myClass4 = new MyClass4<List<string>>();
+        
+        [Benchmark]
+        public bool CheckIsInstAnyIsInterfaceNo() => myClass4 is IMyInterface2;
 
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        f = (Foo[])o;
-        }
+        [GlobalSetup(Target = nameof(CheckArrayIsInterfaceYes))]
+        public void SetupCheckArrayIsInterfaceYes() => myClass1Arr = new MyClass1[5];
+        
+        [Benchmark]
+        public bool CheckArrayIsInterfaceYes() => myClass1Arr is IMyInterface1[];
 
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void FooObjIsFoo2()
-        {
-            o_ar = foo;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        f = (Foo[])o_ar;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void FooObjIsNull()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        o = (Foo[])n;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void FooObjIsDescendant()
-        {
-            o = foo_5;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        f = (Foo[])o;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void IFooFooIsIFoo()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        ifo = foo;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void IFooObjIsIFoo()
-        {
-            o = foo;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        ifo = (IFoo[])o;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void IFooObjIsIFooInterAlia()
-        {
-            o = foo2;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        if_5 = (IFoo_5[])o;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void IFooObjIsDescendantOfIFoo()
-        {
-            o = foo_5;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        ifo = (IFoo[])o;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void ObjInt()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        o = (Object)j;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void IntObj()
-        {
-            o = (Object)j;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        k = (int[])o;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void ObjScalarValueType()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        o = svt;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void ScalarValueTypeObj()
-        {
-            o = svt;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        svt = (FooSVT[])o;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void ObjObjrefValueType()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        o = (Object)orvt;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void ObjrefValueTypeObj()
-        {
-            o = (Object)orvt;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        orvt = (FooORVT[])o;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static void FooObjCastIfIsa()
-        {
-            o = foo;
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        if (o is Foo[])
-                            f = (Foo[])o;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static bool CheckObjIsInterfaceYes()
-        {
-            bool res = false;
-            Object obj = new MyClass1();
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        res = obj is IMyInterface1;
-            return res;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static bool CheckObjIsInterfaceNo()
-        {
-            bool res = false;
-            Object obj = new MyClass2();
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        res = obj is IMyInterface1;
-            return res;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static bool CheckIsInstAnyIsInterfaceYes()
-        {
-            bool res = false;
-            Object obj = new MyClass4<List<string>>();
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        res = obj is IMyInterface1;
-            return res;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static bool CheckIsInstAnyIsInterfaceNo()
-        {
-            bool res = false;
-            Object obj = new MyClass4<List<string>>();
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        res = obj is IMyInterface2;
-            return res;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static bool CheckArrayIsInterfaceYes()
-        {
-            bool res = false;
-            Object[] arr = new MyClass1[5];
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        res = arr is IMyInterface1[];
-            return res;
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        public static bool CheckArrayIsInterfaceNo()
-        {
-            bool res = false;
-            Object[] arr = new MyClass2[5];
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        res = arr is IMyInterface1[];
-            return res;
-        }
+        [GlobalSetup(Target = nameof(CheckArrayIsInterfaceNo))]
+        public void SetupCheckArrayIsInterfaceNo() => myClass2Arr = new MyClass2[5];
+        
+        [Benchmark]
+        public bool CheckArrayIsInterfaceNo() => myClass2Arr is IMyInterface1[];
     }
 }
