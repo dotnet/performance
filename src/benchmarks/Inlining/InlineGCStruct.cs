@@ -14,23 +14,14 @@
 //
 // See https://github.com/dotnet/coreclr/issues/7569 for context.
 
-using Microsoft.Xunit.Performance;
 using System;
 using System.Runtime.CompilerServices;
-using Xunit;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Inlining
 {
 public class InlineGCStruct
 {
-#if DEBUG
-    public const int Iterations = 1;
-#else
-    public const int Iterations = 350000000;
-#endif
-
     [MethodImpl(MethodImplOptions.NoInlining)]
     public static int FastFunctionNotCallingStringFormat(int param)
     {
@@ -73,75 +64,11 @@ public class InlineGCStruct
         return param * 2;
     }
 
-    [Benchmark(InnerIterationCount = Iterations)]
-    public static bool WithFormat()
-    {
-        int result = 0;
+    [Benchmark]
+    public int WithFormat() => FastFunctionNotCallingStringFormat(11);
 
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                {
-                    result |= FastFunctionNotCallingStringFormat(11);
-                }
-            }
-        }
-
-        return (result == 22);
-    }
-
-    [Benchmark(InnerIterationCount = Iterations)]
-    public static bool WithoutFormat()
-    {
-        int result = 0;
-
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                {
-                    result |= FastFunctionNotHavingStringFormat(11);
-                }
-            }
-        }
-
-        return (result == 22);
-    }
-
-    public static bool WithoutFormatBase()
-    {
-        int result = 0;
-
-        for (int i = 0; i < Iterations; i++)
-        {
-            result |= FastFunctionNotHavingStringFormat(11);
-        }
-
-        return (result == 22);
-    }
-
-    public static bool WithFormatBase()
-    {
-        int result = 0;
-
-        for (int i = 0; i < Iterations; i++)
-        {
-            result |= FastFunctionNotCallingStringFormat(11);
-        }
-
-        return (result == 22);
-    }
-
-    public static int Main()
-    {
-        bool withFormat = WithFormatBase();
-        bool withoutFormat = WithoutFormatBase();
-
-        return (withFormat && withoutFormat ? 100 : -1);
-    }
+    [Benchmark]
+    public int WithoutFormat() => FastFunctionNotHavingStringFormat(11);
 }
 }
 
