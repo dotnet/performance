@@ -1,16 +1,16 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Microsoft.Xunit.Performance;
 using System;
 using System.Runtime.CompilerServices;
+using BenchmarkDotNet.Attributes;
 
 namespace PerfLabTests
 {
-    public static class StackWalk
+    public class StackWalk
     {
-        [Benchmark(InnerIterationCount = 1000)]
-        public static void Walk()
+        [Benchmark]
+        public void Walk()
         {
             A(5);
         }
@@ -68,10 +68,7 @@ namespace PerfLabTests
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static int Z(int a)
         {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        GC.Collect(0);
+            GC.Collect(0);
 
             return 55;
         }
