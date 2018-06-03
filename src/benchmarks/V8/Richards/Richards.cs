@@ -10,11 +10,8 @@
 
 #define INTF_FOR_TASK
 
-using Microsoft.Xunit.Performance;
 using System;
-using System.Collections.Generic;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 // using System.Diagnostics;
 // using System.Text.RegularExpressions;
@@ -106,48 +103,8 @@ namespace V8.Richards
 
         public const int DATA_SIZE = 4;
 
-        public static int Main(String[] args)
-        {
-            int n = 1;
-            if (args.Length > 0)
-            {
-                n = Int32.Parse(args[0]);
-            }
-            bool result = Measure(n);
-            return (result ? 100 : -1);
-        }
-
-        public static bool Measure(int n)
-        {
-            DateTime start = DateTime.Now;
-            bool result = true;
-            for (int i = 0; i < n; i++)
-            {
-                result &= runRichards();
-            }
-            DateTime end = DateTime.Now;
-            TimeSpan dur = end - start;
-            Console.WriteLine("Doing {0} iters of Richards takes {1} ms; {2} us/iter.",
-                              n, dur.TotalMilliseconds, (1000.0 * dur.TotalMilliseconds) / n);
-            return result;
-        }
-
-        [Benchmark]
-        public static void Bench()
-        {
-            const int Iterations = 5000;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Iterations; i++)
-                    {
-                        runRichards();
-                    }
-                }
-            }
-        }
+        [Benchmark(Description = nameof(Richards))]
+        public bool Bench() => runRichards();
     }
 
     internal class Scheduler
