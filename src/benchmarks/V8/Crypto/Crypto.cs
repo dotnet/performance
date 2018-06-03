@@ -38,12 +38,10 @@
 
 // The code has been adapted for use as a benchmark by Microsoft.
 
-using Microsoft.Xunit.Performance;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace V8.Crypto
 {
@@ -51,76 +49,18 @@ namespace V8.Crypto
     {
         private const string INPUT = "The quick brown fox jumped over the extremely lazy frogs!";
 
-        public static int Main(String[] args)
+        [Benchmark(Description = nameof(Crypto))]
+        public void Bench()
         {
-            int n = 1;
-
-            if (args.Length > 0)
-            {
-                n = Int32.Parse(args[0]);
-            }
-
-            bool verbose = false;
-
-            if (args.Length > 1)
-            {
-                switch (args[1])
-                {
-                    case "verbose":
-                        verbose = true;
-                        break;
-                    default:
-                        Console.WriteLine("Bad arg: '{0}'.\n", args[1]);
-                        return -1;
-                }
-            }
-
-            Measure(n, verbose);
-
-            bool result = s_TEXT.Equals(INPUT);
-
-            return (result ? 100 : -1);
-        }
-
-        [Benchmark]
-        public static void Bench()
-        {
-            const int Iterations = 10;
-            const int n = 8;
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Iterations; i++)
-                    {
-                        Measure(n, false);
-                    }
-                }
-            }
-        }
-
-        public static void Measure(int n, bool verbose)
-        {
-            DateTime start = DateTime.Now;
-            Setup();
-            for (int i = 0; i < n; i++)
-            {
-                runEncrypt(verbose);
-                runDecrypt(verbose);
-            }
-            DateTime end = DateTime.Now;
-            TimeSpan dur = end - start;
-            if (verbose)
-            {
-                Console.WriteLine("Doing {0} iters of Crytpo takes {1} ms; {2} usec/iter.",
-                                  n, dur.TotalMilliseconds, dur.TotalMilliseconds * 1000 / n);
-            }
+            runEncrypt(false);
+            runDecrypt(false);
         }
 
         private static RSAKey s_RSA;
         private static String s_TEXT;
 
-        private static void Setup()
+        [GlobalSetup]
+        public void Setup()
         {
             String nValue = "a5261939975948bb7a58dffe5ff54e65f0498f9175f5a09288810b8975871e99af3b5dd94057b0fc07535f5f97444504fa35169d461d0d30cf0192e307727c065168c788771c561a9400fb49175e9e6aa4e23fe11af69e9412dd23b0cb6684c4c2429bce139e848ab26d0829073351f4acd36074eafd036a5eb83359d2a698d3";
             String eValue = "10001";
