@@ -4,20 +4,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
-using Xunit;
-using Microsoft.Xunit.Performance;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace Span
 {
-    class Sink
+    public class Sink
     {
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static Sink NewSink() { return new Sink(); }
@@ -26,43 +19,24 @@ namespace Span
         public int i;
     }
 
-    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
-    class CategoryAttribute : Attribute
-    {
-        public CategoryAttribute(string name)
-        {
-            _name = name;
-        }
-        string _name;
-        public string Name => _name;
-    }
-
     public class IndexerBench
     {
-        const int Iterations = 1000000;
         const int DefaultLength = 1024;
-        const byte Expected = 70;
-        static bool HasFailure = false;
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Indexer in-loop bounds check elimination")]
-        public static void Ref(int length)
+        public IEnumerable<object> GetInputData()
         {
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                Span<byte> s = new Span<byte>(a);
-                byte result = 0;
-                for (int i = 0; i < innerIterationCount; ++i)
-                {
-                    result = TestRef(s);
-                }
-                return result;
-            },
-            "Ref({0})", length);
+            yield return GetData(DefaultLength);
         }
+        
+        public IEnumerable<object[]> GetInputDataWithSink()
+        {
+            yield return new object[] { GetData(DefaultLength), Sink.NewSink() };
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Indexer in-loop bounds check elimination")]
+        public byte Ref(byte[] a) => TestRef(a);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestRef(Span<byte> data)
@@ -79,25 +53,10 @@ namespace Span
             return x;
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Indexer in-loop bounds check elimination")]
-        public static void Fixed1(int length)
-        {
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                Span<byte> s = new Span<byte>(a);
-                byte result = 0;
-                for (int i = 0; i < innerIterationCount; ++i)
-                {
-                    result = TestFixed1(s);
-                }
-                return result;
-            },
-            "Fixed1({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Indexer in-loop bounds check elimination")]
+        public byte Fixed1(byte[] a) => TestFixed1(a);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static unsafe byte TestFixed1(Span<byte> data)
@@ -117,25 +76,10 @@ namespace Span
             }
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Indexer in-loop bounds check elimination")]
-        public static void Fixed2(int length)
-        {
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                Span<byte> s = new Span<byte>(a);
-                byte result = 0;
-                for (int i = 0; i < innerIterationCount; ++i)
-                {
-                    result = TestFixed2(s);
-                }
-                return result;
-            },
-            "Fixed2({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Indexer in-loop bounds check elimination")]
+        public byte Fixed2(byte[] a) => TestFixed2(a);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static unsafe byte TestFixed2(Span<byte> data)
@@ -154,25 +98,10 @@ namespace Span
             }
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Indexer in-loop bounds check elimination")]
-        public static void Indexer1(int length)
-        {
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                Span<byte> s = new Span<byte>(a);
-                byte result = 0;
-                for (int i = 0; i < innerIterationCount; ++i)
-                {
-                    result = TestIndexer1(s);
-                }
-                return result;
-            },
-            "Indexer1({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Indexer in-loop bounds check elimination")]
+        public byte Indexer1(byte[] a) => TestIndexer1(a);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestIndexer1(Span<byte> data)
@@ -188,25 +117,10 @@ namespace Span
             return x;
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Indexer in-loop bounds check elimination")]
-        public static void Indexer2(int length)
-        {
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                Span<byte> s = new Span<byte>(a);
-                byte result = 0;
-                for (int i = 0; i < innerIterationCount; ++i)
-                {
-                    result = TestIndexer2(s);
-                }
-                return result;
-            },
-            "Indexer2({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Indexer in-loop bounds check elimination")]
+        public byte Indexer2(byte[] a) => TestIndexer2(a);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestIndexer2(Span<byte> data)
@@ -221,25 +135,10 @@ namespace Span
             return x;
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Indexer in-loop bounds check elimination")]
-        public static void Indexer3(int length)
-        {
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                Span<byte> s = new Span<byte>(a);
-                byte result = 0;
-                for (int i = 0; i < innerIterationCount; ++i)
-                {
-                    result = TestIndexer3(s);
-                }
-                return result;
-            },
-            "Indexer3({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Indexer in-loop bounds check elimination")]
+        public byte Indexer3(byte[] a) => TestIndexer3(a);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestIndexer3(Span<byte> data)
@@ -256,26 +155,10 @@ namespace Span
             return x;
         }
 
-        [Benchmark(InnerIterationCount=Iterations / 10)]
-        [InlineData(DefaultLength)]
-        [Category("Indexer in-loop bounds check elimination")]
-        public static void Indexer4(int length)
-        {
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                Span<byte> s = new Span<byte>(a);
-                byte result = 0;
-                int inner = Math.Max(1, innerIterationCount);
-                for (int i = 0; i < inner ; ++i)
-                {
-                    result = TestIndexer4(s, 10);
-                }
-                return result;
-            },
-            "Indexer4({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Indexer in-loop bounds check elimination")]
+        public byte Indexer4(byte[] a) => TestIndexer4(a, 10);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestIndexer4(Span<byte> data, int iterations)
@@ -298,26 +181,10 @@ namespace Span
             return x;
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Indexer in-loop bounds check elimination")]
-        public static void Indexer5(int length)
-        {
-            byte[] a = GetData(length);
-            int z = 0;
-
-            Invoke((int innerIterationCount) =>
-            {
-                Span<byte> s = new Span<byte>(a);
-                byte result = 0;
-                for (int i = 0; i < innerIterationCount; ++i)
-                {
-                    result = TestIndexer5(s, out z);
-                }
-                return result;
-            },
-            "Indexer5({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Indexer in-loop bounds check elimination")]
+        public byte Indexer5(byte[] a) => TestIndexer5(a, out int z);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestIndexer5(Span<byte> data, out int z)
@@ -336,31 +203,15 @@ namespace Span
             return x;
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Indexer in-loop bounds check elimination")]
-        public static void Indexer6(int length)
-        {
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                Span<byte> s = new Span<byte>(a);
-                byte result = 0;
-                for (int i = 0; i < innerIterationCount; ++i)
-                {
-                    result = TestIndexer6(s);
-                }
-                return result;
-            },
-            "Indexer6({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputDataWithSink))]
+        [BenchmarkCategory("Indexer in-loop bounds check elimination")]
+        public byte Indexer6(byte[] a, Sink s) => TestIndexer6(a, s);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        static byte TestIndexer6(Span<byte> data)
+        static byte TestIndexer6(Span<byte> data, Sink s)
         {
             byte x = 0;
-            Sink s = Sink.NewSink();
 
             // Write to s.i here should not be able to modify
             // the span.
@@ -373,25 +224,10 @@ namespace Span
             return x;
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Indexer in-loop bounds check elimination")]
-        public static void ReadOnlyIndexer1(int length)
-        {
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                ReadOnlySpan<byte> s = new ReadOnlySpan<byte>(a);
-                byte result = 0;
-                for (int i = 0; i < innerIterationCount; ++i)
-                {
-                    result = TestReadOnlyIndexer1(s);
-                }
-                return result;
-            },
-            "ReadOnlyIndexer1({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Indexer in-loop bounds check elimination")]
+        public byte ReadOnlyIndexer1(byte[] a) => TestReadOnlyIndexer1(a);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestReadOnlyIndexer1(ReadOnlySpan<byte> data)
@@ -407,25 +243,10 @@ namespace Span
             return x;
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Indexer in-loop bounds check elimination")]
-        public static void ReadOnlyIndexer2(int length)
-        {
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                ReadOnlySpan<byte> s = new ReadOnlySpan<byte>(a);
-                byte result = 0;
-                for (int i = 0; i < innerIterationCount; ++i)
-                {
-                    result = TestReadOnlyIndexer2(s);
-                }
-                return result;
-            },
-            "ReadOnlyIndexer2({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Indexer in-loop bounds check elimination")]
+        public byte ReadOnlyIndexer2(byte[] a) => TestReadOnlyIndexer2(a);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestReadOnlyIndexer2(ReadOnlySpan<byte> data)
@@ -440,25 +261,10 @@ namespace Span
             return x;
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Indexer in-loop bounds check elimination w/ writes")]
-        public static void WriteViaIndexer1(int length)
-        {
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                Span<byte> s = new Span<byte>(a);
-                byte result = 0;
-                for (int i = 0; i < innerIterationCount; ++i)
-                {
-                    result = TestWriteViaIndexer1(s);
-                }
-                return result;
-            },
-            "WriteViaIndexer1({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Indexer in-loop bounds check elimination w/ writes")]
+        public byte WriteViaIndexer1(byte[] a) => TestWriteViaIndexer1(a);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestWriteViaIndexer1(Span<byte> data)
@@ -476,25 +282,10 @@ namespace Span
             return x;
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Indexer in-loop bounds check elimination w/ writes")]
-        public static void WriteViaIndexer2(int length)
-        {
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                Span<byte> s = new Span<byte>(a);
-                byte result = 0;
-                for (int i = 0; i < innerIterationCount; ++i)
-                {
-                    result = TestWriteViaIndexer2(s, 0, length);
-                }
-                return result;
-            },
-            "WriteViaIndexer2({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Indexer in-loop bounds check elimination w/ writes")]
+        public byte WriteViaIndexer2(byte[] a) => TestWriteViaIndexer2(a, 0, a.Length);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestWriteViaIndexer2(Span<byte> data, int start, int end)
@@ -512,144 +303,70 @@ namespace Span
             return x;
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Span known size bounds check elimination")]
-        public static void KnownSizeArray(int length)
-        {
-            if (length != 1024)
-            {
-                throw new Exception("test requires 1024 byte length");
-            }
-
-            Invoke((int innerIterationCount) =>
-            {
-                byte result = TestKnownSizeArray(innerIterationCount);
-                return result;
-            },
-            "KnownSizeArray({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Span known size bounds check elimination")]
+        public byte KnownSizeArray(byte[] a) => TestKnownSizeArray(a);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        static byte TestKnownSizeArray(int innerIterationCount)
+        static byte TestKnownSizeArray(Span<byte> data)
         {
-            byte[] a = new byte[1024];
-            SetData(a);
-            Span<byte> data = new Span<byte>(a);
             byte x = 0;
-
-            for (int i = 0; i < innerIterationCount; i++)
+            for (var idx = 0; idx < data.Length; idx++)
             {
-                x = 0;
-                for (var idx = 0; idx < data.Length; idx++)
-                {
-                    x ^= data[idx];
-                }
+                x ^= data[idx];
             }
 
             return x;
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Span known size bounds check elimination")]
-        public static void KnownSizeCtor(int length)
-        {
-            if (length < 1024)
-            {
-                throw new Exception("test requires at least 1024 byte length");
-            }
-
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                byte result = TestKnownSizeCtor(a, innerIterationCount);
-                return result;
-            },
-            "KnownSizeCtor({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Span known size bounds check elimination")]
+        public byte KnownSizeCtor(byte[] a) => TestKnownSizeCtor(a);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        static byte TestKnownSizeCtor(byte[] a, int innerIterationCount)
+        static byte TestKnownSizeCtor(byte[] a)
         {
             Span<byte> data = new Span<byte>(a, 0, 1024);
-            byte x = 0;
 
-            for (int i = 0; i < innerIterationCount; i++)
+            byte x = 0;
+            for (var idx = 0; idx < data.Length; idx++)
             {
-                x = 0;
-                for (var idx = 0; idx < data.Length; idx++)
-                {
-                    x ^= data[idx];
-                }
+                x ^= data[idx];
             }
 
             return x;
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Span known size bounds check elimination")]
-        public static void KnownSizeCtor2(int length)
-        {
-            if (length < 1024)
-            {
-                throw new Exception("test requires at least 1024 byte length");
-            }
-
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                byte result = TestKnownSizeCtor2(a, innerIterationCount);
-                return result;
-            },
-            "KnownSizeCtor2({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Span known size bounds check elimination")]
+        public byte KnownSizeCtor2(byte[] a) => TestKnownSizeCtor2(a);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        static byte TestKnownSizeCtor2(byte[] a, int innerIterationCount)
+        static byte TestKnownSizeCtor2(byte[] a)
         {
             Span<byte> data1 = new Span<byte>(a, 0, 512);
             Span<byte> data2 = new Span<byte>(a, 512, 512);
             byte x = 0;
 
-            for (int i = 0; i < innerIterationCount; i++)
+            for (var idx = 0; idx < data1.Length; idx++)
             {
-                x = 0;
-                for (var idx = 0; idx < data1.Length; idx++)
-                {
-                    x ^= data1[idx];
-                }
-                for (var idx = 0; idx < data2.Length; idx++)
-                {
-                    x ^= data2[idx];
-                }
+                x ^= data1[idx];
+            }
+            for (var idx = 0; idx < data2.Length; idx++)
+            {
+                x ^= data2[idx];
             }
 
             return x;
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Same index in-loop redundant bounds check elimination")]
-        public static void SameIndex1(int length)
-        {
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                Span<byte> s = new Span<byte>(a);
-                byte result = 0;
-                for (int i = 0; i < innerIterationCount; ++i)
-                {
-                    result = TestSameIndex1(s, 0, length);
-                }
-                return result;
-            },
-            "SameIndex1({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Same index in-loop redundant bounds check elimination")]
+        public byte SameIndex1(byte[] a) => TestSameIndex1(a, 0, a.Length);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestSameIndex1(Span<byte> data, int start, int end)
@@ -668,25 +385,10 @@ namespace Span
             return t;
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Same index in-loop redundant bounds check elimination")]
-        public static void SameIndex2(int length)
-        {
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                Span<byte> s = new Span<byte>(a);
-                byte result = 0;
-                for (int i = 0; i < innerIterationCount; ++i)
-                {
-                    result = TestSameIndex2(s, ref s[0], 0, length);
-                }
-                return result;
-            },
-            "SameIndex2({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Same index in-loop redundant bounds check elimination")]
+        public byte SameIndex2(byte[] a) => TestSameIndex2(a, ref a[0], 0, a.Length);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestSameIndex2(Span<byte> data, ref byte b, int start, int end)
@@ -710,30 +412,10 @@ namespace Span
             return t;
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Covered index in-loop redundant bounds check elimination")]
-        public static void CoveredIndex1(int length)
-        {
-            if (length < 100)
-            {
-                throw new Exception("test requires at least 100 byte length");
-            }
-
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                Span<byte> s = new Span<byte>(a);
-                byte result = 0;
-                for (int i = 0; i < innerIterationCount; ++i)
-                {
-                    result = TestCoveredIndex1(s, 0, length);
-                }
-                return result;
-            },
-            "CoveredIndex1({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Covered index in-loop redundant bounds check elimination")]
+        public byte CoveredIndex1(byte[] a) => TestCoveredIndex1(a, 0, a.Length);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestCoveredIndex1(Span<byte> data, int start, int end)
@@ -758,25 +440,10 @@ namespace Span
             return r;
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Covered index in-loop redundant bounds check elimination")]
-        public static void CoveredIndex2(int length)
-        {
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                Span<byte> s = new Span<byte>(a);
-                byte result = 0;
-                for (int i = 0; i < innerIterationCount; ++i)
-                {
-                    result = TestCoveredIndex2(s, 0, length);
-                }
-                return result;
-            },
-            "CoveredIndex2({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Covered index in-loop redundant bounds check elimination")]
+        public byte CoveredIndex2(byte[] a) => TestCoveredIndex2(a, 0, a.Length);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestCoveredIndex2(Span<byte> data, int start, int end)
@@ -800,30 +467,10 @@ namespace Span
             return r;
         }
 
-        [Benchmark(InnerIterationCount = Iterations)]
-        [InlineData(DefaultLength)]
-        [Category("Covered index in-loop redundant bounds check elimination")]
-        public static void CoveredIndex3(int length)
-        {
-            if (length < 50)
-            {
-                throw new Exception("test requires at least 100 byte length");
-            }
-
-            byte[] a = GetData(length);
-
-            Invoke((int innerIterationCount) =>
-            {
-                Span<byte> s = new Span<byte>(a);
-                byte result = 0;
-                for (int i = 0; i < innerIterationCount; ++i)
-                {
-                    result = TestCoveredIndex3(s, 0, length);
-                }
-                return result;
-            },
-            "CoveredIndex3({0})", length);
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(GetInputData))]
+        [BenchmarkCategory("Covered index in-loop redundant bounds check elimination")]
+        public byte CoveredIndex3(byte[] a) => TestCoveredIndex3(a, 0, a.Length);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestCoveredIndex3(Span<byte> data, int start, int end)
@@ -849,48 +496,6 @@ namespace Span
             return r;
         }
 
-        // Invoke routine to abstract away the difference between running under xunit-perf vs running from the
-        // command line.  Inner loop to be measured is taken as an Func<int, byte>, and invoked passing the number
-        // of iterations that the inner loop should execute.
-        static void Invoke(Func<int, byte> innerLoop, string nameFormat, params object[] nameArgs)
-        {
-            if (IsXunitInvocation)
-            {
-                foreach (var iteration in Benchmark.Iterations)
-                    using (iteration.StartMeasurement())
-                        innerLoop((int)Benchmark.InnerIterationCount);
-            }
-            else
-            {
-                if (DoWarmUp)
-                {
-                    // Run some warm-up iterations before measuring
-                    innerLoop(CommandLineInnerIterationCount);
-                    // Clear the flag since we're now warmed up (caller will
-                    // reset it before calling new code)
-                    DoWarmUp = false;
-                }
-
-                // Now do the timed run of the inner loop.
-                Stopwatch sw = Stopwatch.StartNew();
-                byte check = innerLoop(CommandLineInnerIterationCount);
-                sw.Stop();
-
-                // Print result.
-                string name = String.Format(nameFormat, nameArgs);
-                double timeInMs = sw.Elapsed.TotalMilliseconds;
-                Console.Write("{0,25}: {1,7:F2}ms", name, timeInMs);
-
-                bool failed = (check != Expected);
-                if (failed)
-                {
-                    Console.Write(" -- failed to validate, got {0} expected {1}", check, Expected);
-                    HasFailure = true;
-                }
-                Console.WriteLine();
-            }
-        }
-
         static byte[] GetData(int size)
         {
             byte[] data = new byte[size];
@@ -902,119 +507,6 @@ namespace Span
         {
             Random Rnd = new Random(42);
             Rnd.NextBytes(data);
-        }
-
-        static bool IsXunitInvocation = true;
-        static int CommandLineInnerIterationCount = 1;
-        static bool DoWarmUp;
-
-        public static void Usage()
-        {
-            Console.WriteLine("   pass -bench for benchmark mode w/default iterations");
-            Console.WriteLine("   pass [#iterations] for benchmark mode w/iterations");
-            Console.WriteLine();
-        }
-
-        public static int Main(string[] args)
-        {
-            if (args.Length > 0)
-            {
-                if (args[0].Equals("-bench"))
-                {
-                    CommandLineInnerIterationCount = Iterations;
-                }
-                else
-                {
-                    bool parsed = Int32.TryParse(args[0], out CommandLineInnerIterationCount);
-                    if (!parsed)
-                    {
-                        Usage();
-                        return -1;
-                    }
-                }
-
-                Console.WriteLine("Running as command line perf test: {0} iterations",
-                    CommandLineInnerIterationCount);
-                Console.WriteLine();
-            }
-            else
-            {
-                Console.WriteLine("Running as correctness test: {0} iterations",
-                    CommandLineInnerIterationCount);
-                Usage();
-            }
-
-            // When we call into Invoke, it'll need to know this isn't xunit-perf running
-            IsXunitInvocation = false;
-
-            // Discover what tests to run via reflection
-            TypeInfo t = typeof(IndexerBench).GetTypeInfo();
-
-            var testsByCategory = new Dictionary<string, List<MethodInfo>>();
-
-            // Do a first pass to find out what categories of benchmarks we have.
-            foreach(MethodInfo m in t.DeclaredMethods)
-            {
-                BenchmarkAttribute benchAttr = m.GetCustomAttribute<BenchmarkAttribute>();
-                if (benchAttr != null)
-                {
-                    string category = "none";
-                    CategoryAttribute categoryAttr = m.GetCustomAttribute<CategoryAttribute>();
-                    if (categoryAttr != null)
-                    {
-                        category = categoryAttr.Name;
-                    }
-
-                    List<MethodInfo> tests = null;
-
-                    if (!testsByCategory.ContainsKey(category))
-                    {
-                        tests = new List<MethodInfo>();
-                        testsByCategory.Add(category, tests);
-                    }
-                    else
-                    {
-                        tests = testsByCategory[category];
-                    }
-
-                    tests.Add(m);
-                }
-            }
-
-            foreach(string categoryName in testsByCategory.Keys)
-            {
-                Console.WriteLine("**** {0} ****", categoryName);
-
-                foreach(MethodInfo m in testsByCategory[categoryName])
-                {
-                    // Request a warm-up iteration before measuring this benchmark method.
-                    DoWarmUp = true;
-
-                    // Get the benchmark to measure as a delegate taking the number of inner-loop iterations to run
-                    var invokeMethod = m.CreateDelegate(typeof(Action<int>)) as Action<int>;
-
-                    // All the benchmarks methods in this test use [InlineData] to specify how many times and with
-                    // what arguments they should be run.
-                    foreach (InlineDataAttribute dataAttr in m.GetCustomAttributes<InlineDataAttribute>())
-                    {
-                        foreach (object[] data in dataAttr.GetData(m))
-                        {
-                            // All the benchmark methods in this test take a single int parameter
-                            invokeMethod((int)data[0]);
-                        }
-                    }
-                }
-
-                Console.WriteLine();
-            }
-
-            if (HasFailure)
-            {
-                Console.WriteLine("Some tests failed validation");
-                return -1;
-            }
-
-            return 100;
         }
     }
 }
