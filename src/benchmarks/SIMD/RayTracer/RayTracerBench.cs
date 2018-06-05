@@ -10,8 +10,8 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Concurrent;
 using BenchmarkDotNet.Attributes;
+using Benchmarks.SIMD.RayTracer;
 
 namespace SIMD
 {

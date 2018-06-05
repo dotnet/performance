@@ -3,11 +3,14 @@
 // See the LICENSE file in the project root for more information.
 //
 
-internal struct Ray
+namespace Benchmarks.SIMD.RayTracer
 {
-    public Vector Start;
-    public Vector Dir;
+    internal struct Ray
+    {
+        public Vector Start;
+        public Vector Dir;
 
-    public Ray(Vector start, Vector dir) { Start = start; Dir = dir; }
+        public Ray(Vector start, Vector dir) { Start = start; Dir = dir; }
+    }
 }
 

@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 //
 
-internal abstract class SceneObject
+namespace Benchmarks.SIMD.RayTracer
 {
-    public Surface Surface;
-    public abstract ISect Intersect(Ray ray);
-    public abstract Vector Normal(Vector pos);
+    internal abstract class SceneObject
+    {
+        public Surface Surface;
+        public abstract ISect Intersect(Ray ray);
+        public abstract Vector Normal(Vector pos);
 
-    public SceneObject(Surface surface) { Surface = surface; }
+        public SceneObject(Surface surface) { Surface = surface; }
+    }
 }
 

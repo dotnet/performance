@@ -5,19 +5,22 @@
 
 using System.Collections.Generic;
 
-internal class Scene
+namespace Benchmarks.SIMD.RayTracer
 {
-    public SceneObject[] Things;
-    public Light[] Lights;
-    public Camera Camera;
-
-    public Scene(SceneObject[] things, Light[] lights, Camera camera) { Things = things; Lights = lights; Camera = camera; }
-
-    public IEnumerable<ISect> Intersect(Ray r)
+    internal class Scene
     {
-        foreach (SceneObject obj in Things)
+        public SceneObject[] Things;
+        public Light[] Lights;
+        public Camera Camera;
+
+        public Scene(SceneObject[] things, Light[] lights, Camera camera) { Things = things; Lights = lights; Camera = camera; }
+
+        public IEnumerable<ISect> Intersect(Ray r)
         {
-            yield return obj.Intersect(r);
+            foreach (SceneObject obj in Things)
+            {
+                yield return obj.Intersect(r);
+            }
         }
     }
 }

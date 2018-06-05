@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 //
 
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace System.Collections.Concurrent
+namespace Benchmarks.SIMD.RayTracer
 {
     /// <summary>Provides a thread-safe object pool.</summary>
     /// <typeparam name="T">Specifies the type of the elements stored in the pool.</typeparam>

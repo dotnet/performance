@@ -3,11 +3,14 @@
 // See the LICENSE file in the project root for more information.
 //
 
-internal class Light
+namespace Benchmarks.SIMD.RayTracer
 {
-    public Vector Pos;
-    public Color Color;
+    internal class Light
+    {
+        public Vector Pos;
+        public Color Color;
 
-    public Light(Vector pos, Color color) { Pos = pos; Color = color; }
+        public Light(Vector pos, Color color) { Pos = pos; Color = color; }
+    }
 }
 
