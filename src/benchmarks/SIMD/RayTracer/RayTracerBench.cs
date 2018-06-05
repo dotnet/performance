@@ -6,36 +6,20 @@
 // Samples for Parallel Programming with the .NET Framework
 // https://code.msdn.microsoft.com/windowsdesktop/Samples-for-Parallel-b4b76364
 
-using Microsoft.Xunit.Performance;
 using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
-
-[assembly: OptimizeForBenchmarks]
+using BenchmarkDotNet.Attributes;
 
 namespace SIMD
 {
 public class RayTracerBench
 {
-#if DEBUG
-
-    private const int RunningTime = 200;
-    private const int Width = 100;
-    private const int Height = 100;
-    private const int Iterations = 1;
-    private const int MaxIterations = 1000;
-
-#else
-
-    private const int RunningTime = 1000;
     private const int Width = 250;
     private const int Height = 250;
     private const int Iterations = 7;
-    private const int MaxIterations = 1000;
-
-#endif
 
     public RayTracerBench()
     {
@@ -46,7 +30,6 @@ public class RayTracerBench
         _freeBuffers = new ObjectPool<int[]>(() => new int[_width * _height]);
     }
 
-    private double _framesPerSecond;
     private bool _parallel;
     private bool _showThreads;
     private int _width, _height;
@@ -54,12 +37,6 @@ public class RayTracerBench
     private int _frames;
     private CancellationTokenSource _cancellation;
     private ObjectPool<int[]> _freeBuffers;
-
-    private void RenderTest()
-    {
-        _cancellation = new CancellationTokenSource(RunningTime);
-        RenderLoop(MaxIterations);
-    }
 
     private void RenderBench()
     {
@@ -109,38 +86,11 @@ public class RayTracerBench
             else rayTracer.RenderParallel(scene, rgb, options);
             renderingTime.Stop();
 
-            _framesPerSecond = (1000.0 / renderingTime.ElapsedMilliseconds);
             _freeBuffers.PutObject(rgb);
         }
     }
 
-    [Benchmark]
-    public static void Bench()
-    {
-        var m = new RayTracerBench();
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                m.RenderBench();
-            }
-        }
-    }
-
-    public bool Run()
-    {
-        RenderTest();
-        Console.WriteLine("{0} frames, {1} frames/sec",
-            _frames,
-            _framesPerSecond.ToString("F2"));
-        return true;
-    }
-
-    public static int Main(string[] args)
-    {
-        var r = new RayTracerBench();
-        bool result = r.Run();
-        return (result ? 100 : -1);
-    }
+    [Benchmark(Description = nameof(RayTracerBench))]
+    public void Bench() => RenderBench();
 }
 }
