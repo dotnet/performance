@@ -6,25 +6,17 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.Xunit.Performance;
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using BenchmarkDotNet.Attributes;
 
-[assembly: OptimizeForBenchmarks]
-
-public static class CscBench
+public class CscBench
 {
-
-#if DEBUG
-    public const int CompileIterations = 1;
-    public const int DataflowIterations = 1;
-#else
     public const int CompileIterations = 1500;
     public const int DataflowIterations = 10000;
-#endif
 
     public static string MscorlibPath;
 
@@ -37,7 +29,8 @@ public static class CscBench
             })?.Location;
     }
 
-    private static void SetMscorlib()
+    [GlobalSetup]
+    public void SetMscorlib()
     {
         var runtimeDirectory = new FileInfo(GetLoadedAssemblyLocation("System.Runtime.dll"))
             .DirectoryName;
@@ -55,7 +48,6 @@ public static class CscBench
             throw new FileNotFoundException("System.Private.CoreLib is not present with the System.Runtime");
 
         MscorlibPath = corlib;
-        return;
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
@@ -84,18 +76,7 @@ public static class CscBench
     }
 
     [Benchmark]
-    public static void CompileTest()
-    {
-        SetMscorlib();
-
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                CompileBench();
-            }
-        }
-    }
+    public bool CompileTest() => CompileBench();
 
     public static TextSpan GetSpanBetweenMarkers(SyntaxTree tree)
     {
@@ -169,30 +150,5 @@ class C {
     }
 
     [Benchmark]
-    public static void DatflowTest()
-    {
-        SetMscorlib();
-
-        foreach (var iteration in Benchmark.Iterations)
-        {
-            using (iteration.StartMeasurement())
-            {
-                DataflowBench();
-            }
-        }
-    }
-
-    static bool Bench()
-    {
-        bool result = true;
-        result &= CompileBench();
-        result &= DataflowBench();
-        return result;
-    }
-
-    public static int Main()
-    {
-        SetMscorlib();
-        return Bench() ? 100 : -1;
-    }
+    public bool DatflowTest() => DataflowBench();
 }
