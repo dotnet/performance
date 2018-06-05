@@ -14,16 +14,16 @@
     <None Remove="img\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.10.14.569" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.10.14.580" />
     <PackageReference Include="CommandLineParser" Version="2.2.1" />
     <PackageReference Include="Jil" Version="2.15.4" />
     <PackageReference Include="MessagePack" Version="1.7.3.4" />
     <PackageReference Include="MessagePackAnalyzer" Version="1.6.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="protobuf-net" Version="2.3.7" />
-    <PackageReference Include="System.Memory" Version="4.5.0-rc1" />
-    <PackageReference Include="System.Numerics.Vectors" Version="4.5.0-rc1" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.0-rc1" />
+    <PackageReference Include="System.Memory" Version="4.5.0" />
+    <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.0" />
     <PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Serialization.Json" Version="4.3.0" />
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />

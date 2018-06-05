@@ -11,7 +11,6 @@ using BenchmarkDotNet.Attributes;
 
 namespace Span
 {
-    [KeepBenchmarkFiles()]
     public class SpanBench
     {
         // Default length for arrays of mock input data
