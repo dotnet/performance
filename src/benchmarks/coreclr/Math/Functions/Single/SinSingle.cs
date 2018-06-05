@@ -3,31 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // Tests MathF.Sin(float) over 5000 iterations for the domain -PI/2, +PI/2
 
         private const float sinSingleDelta = 0.000628318531f;
         private const float sinSingleExpectedResult = 1.03592682f;
 
-        [Benchmark(InnerIterationCount = SinSingleIterations)]
-        public static void SinSingleBenchmark()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        SinSingleTest();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public void SinSingleBenchmark() => SinSingleTest();
 
         public static void SinSingleTest()
         {

@@ -3,31 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // Tests MathF.Round(float) over 5000 iterations for the domain -PI/2, +PI/2
 
         private const float roundSingleDelta = 0.000628318531f;
         private const float roundSingleExpectedResult = 2.0f;
 
-        [Benchmark(InnerIterationCount = RoundSingleIterations)]
-        public static void RoundSingleBenchmark()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        RoundSingleTest();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public void RoundSingleBenchmark() => RoundSingleTest();
 
         public static void RoundSingleTest()
         {

@@ -3,31 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // Tests MathF.Tanh(float) over 5000 iterations for the domain -1, +1
 
         private const float tanhSingleDelta = 0.0004f;
         private const float tanhSingleExpectedResult = 0.816701353f;
 
-        [Benchmark(InnerIterationCount = TanhSingleIterations)]
-        public static void TanhSingleBenchmark()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        TanhSingleTest();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public void TanhSingleBenchmark() => TanhSingleTest();
 
         public static void TanhSingleTest()
         {

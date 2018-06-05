@@ -3,31 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // Tests MathF.Ceiling(float) over 5000 iterations for the domain -1, +1
 
         private const float ceilingSingleDelta = 0.0004f;
         private const float ceilingSingleExpectedResult = 2502.0f;
 
-        [Benchmark(InnerIterationCount = CeilingSingleIterations)]
-        public static void CeilingSingleBenchmark()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        CeilingSingleTest();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public void CeilingSingleBenchmark() => CeilingSingleTest();
 
         public static void CeilingSingleTest()
         {

@@ -3,31 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // Tests Math.Sinh(double) over 5000 iterations for the domain -1, +1
 
         private const double sinhDoubleDelta = 0.0004;
         private const double sinhDoubleExpectedResult = 1.17520119337903;
 
-        [Benchmark(InnerIterationCount = SinhDoubleIterations)]
-        public static void SinhDoubleBenchmark()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        SinhDoubleTest();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public void SinhDoubleBenchmark() => SinhDoubleTest();
 
         public static void SinhDoubleTest()
         {

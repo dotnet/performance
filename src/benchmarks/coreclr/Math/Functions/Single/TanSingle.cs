@@ -3,31 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // Tests MathF.Tan(float) over 5000 iterations for the domain -PI/2, +PI/2
 
         private const float tanSingleDelta = 0.0004f;
         private const float tanSingleExpectedResult = 1.66717815f;
 
-        [Benchmark(InnerIterationCount = TanSingleIterations)]
-        public static void TanSingleBenchmark()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        TanSingleTest();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public void TanSingleBenchmark() => TanSingleTest();
 
         public static void TanSingleTest()
         {

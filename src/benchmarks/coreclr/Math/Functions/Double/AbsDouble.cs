@@ -3,31 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // Tests Math.Abs(double) over 5000 iterations for the domain -1, +1
 
         private const double absDoubleDelta = 0.0004;
         private const double absDoubleExpectedResult = 2499.9999999999659;
 
-        [Benchmark(InnerIterationCount=AbsDoubleIterations)]
-        public static void AbsDoubleBenchmark()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        AbsDoubleTest();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public void AbsDoubleBenchmark() => AbsDoubleTest();
 
         public static void AbsDoubleTest()
         {

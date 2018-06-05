@@ -3,31 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // Tests MathF.Acos(float) over 5000 iterations for the domain -1, +1
 
         private const float acosSingleDelta = 0.0004f;
         private const float acosSingleExpectedResult = 7852.41084f;
 
-        [Benchmark(InnerIterationCount = AcosSingleIterations)]
-        public static void AcosSingleBenchmark()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        AcosSingleTest();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public void AcosSingleBenchmark() => AcosSingleTest();
 
         public static void AcosSingleTest()
         {

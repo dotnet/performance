@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // Tests MathF.Pow(float, float) over 5000 iterations for the domain x: +2, +1; y: -2, -1
 
@@ -15,20 +15,8 @@ namespace Functions
         private const float powSingleDeltaY = 0.0004f;
         private const float powSingleExpectedResult = 4659.30762f;
 
-        [Benchmark(InnerIterationCount = PowSingleIterations)]
-        public static void PowSingleBenchmark()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        PowSingleTest();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public void PowSingleBenchmark() => PowSingleTest();
 
         public static void PowSingleTest()
         {

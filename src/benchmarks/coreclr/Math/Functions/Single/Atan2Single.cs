@@ -3,11 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // Tests MathF.Atan2(float, float) over 5000 iterations for the domain y: -1, +1; x: +1, -1
 
@@ -15,20 +15,8 @@ namespace Functions
         private const float atan2SingleDeltaY = 0.0004f;
         private const float atan2SingleExpectedResult = 3930.14282f;
 
-        [Benchmark(InnerIterationCount = Atan2SingleIterations)]
-        public static void Atan2SingleBenchmark()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        Atan2SingleTest();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public void Atan2SingleBenchmark() => Atan2SingleTest();
 
         public static void Atan2SingleTest()
         {

@@ -3,31 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // Tests MathF.Exp(float) over 5000 iterations for the domain -1, +1
 
         private const float expSingleDelta = 0.0004f;
         private const float expSingleExpectedResult = 5877.28564f;
 
-        [Benchmark(InnerIterationCount = ExpSingleIterations)]
-        public static void ExpSingleBenchmark()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        ExpSingleTest();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public void ExpSingleBenchmark() => ExpSingleTest();
 
         public static void ExpSingleTest()
         {

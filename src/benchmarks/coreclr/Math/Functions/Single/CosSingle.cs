@@ -3,31 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // Tests MathF.Cos(float) over 5000 iterations for the domain 0, PI
 
         private const float cosSingleDelta = 0.000628318531f;
         private const float cosSingleExpectedResult = -0.993487537f;
 
-        [Benchmark(InnerIterationCount = CosSingleIterations)]
-        public static void CosSingleBenchmark()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        CosSingleTest();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public void CosSingleBenchmark() => CosSingleTest();
 
         public static void CosSingleTest()
         {

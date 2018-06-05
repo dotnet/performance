@@ -3,31 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // Tests MathF.Cosh(float) over 5000 iterations for the domain -1, +1
 
         private const float coshSingleDelta = 0.0004f;
         private const float coshSingleExpectedResult = 5876.02588f;
 
-        [Benchmark(InnerIterationCount = CoshSingleIterations)]
-        public static void CoshSingleBenchmark()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        CoshSingleTest();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public void CoshSingleBenchmark() => CoshSingleTest();
 
         public static void CoshSingleTest()
         {

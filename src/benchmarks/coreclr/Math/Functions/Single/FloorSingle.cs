@@ -3,31 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // Tests MathF.Floor(float) over 5000 iterations for the domain -1, +1
 
         private const float floorSingleDelta = 0.0004f;
         private const float floorSingleExpectedResult = -2498.0f;
 
-        [Benchmark(InnerIterationCount = FloorSingleIterations)]
-        public static void FloorSingleBenchmark()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        FloorSingleTest();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public void FloorSingleBenchmark() => FloorSingleTest();
 
         public static void FloorSingleTest()
         {

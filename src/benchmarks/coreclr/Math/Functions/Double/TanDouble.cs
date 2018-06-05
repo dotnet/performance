@@ -3,31 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // Tests Math.Tan(double) over 5000 iterations for the domain -PI/2, +PI/2
 
         private const double tanDoubleDelta = 0.0004;
         private const double tanDoubleExpectedResult = 1.5574077243051505;
 
-        [Benchmark(InnerIterationCount = TanDoubleIterations)]
-        public static void TanDoubleBenchmark()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        TanDoubleTest();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public void TanDoubleBenchmark() => TanDoubleTest();
 
         public static void TanDoubleTest()
         {

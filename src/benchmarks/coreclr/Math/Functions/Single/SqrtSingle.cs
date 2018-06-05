@@ -3,31 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // Tests MathF.Sqrt(float) over 5000 iterations for the domain 0, PI
 
         private const float sqrtSingleDelta = 0.000628318531f;
         private const float sqrtSingleExpectedResult = 5909.03027f;
 
-        [Benchmark(InnerIterationCount = SqrtSingleIterations)]
-        public static void SqrtSingleBenchmark()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        SqrtSingleTest();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public void SqrtSingleBenchmark() => SqrtSingleTest();
 
         public static void SqrtSingleTest()
         {

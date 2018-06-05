@@ -3,31 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // Tests MathF.Log10(float) over 5000 iterations for the domain -1, +1
 
         private const float log10SingleDelta = 0.0004f;
         private const float log10SingleExpectedResult = -664.094971f;
 
-        [Benchmark(InnerIterationCount = Log10SingleIterations)]
-        public static void Log10SingleBenchmark()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        Log10SingleTest();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public void Log10SingleBenchmark() => Log10SingleTest();
 
         public static void Log10SingleTest()
         {

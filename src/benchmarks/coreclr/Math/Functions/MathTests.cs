@@ -4,7 +4,7 @@
 
 namespace Functions
 {
-    public static partial class MathTests
+    public partial class MathTests
     {
         // double has a machine epsilon of approx: 2.22e-16. However, due to floating-point precision
         // errors, this is too accurate when aggregating values of a set of iterations. Using the
