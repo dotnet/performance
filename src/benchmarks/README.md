@@ -134,11 +134,33 @@ Add(Job.Default.With(Runtime.Core).With(CsProjCoreToolchain.From(NetCoreAppSetti
 | CompactLoopBodyLayout | Core 2.0 | .NET Core 2.0 |       True | 36.72 ns | 0.1583 ns | 0.1481 ns |   1.00 |
 | CompactLoopBodyLayout | Core 2.1 | .NET Core 2.1 |    Default | 30.47 ns | 0.1731 ns | 0.1619 ns |   0.83 |
 
+## Benchmarking private CoreCLR build using CoreRun
+
+It's possible to benchmark a private build of CoreCLR using CoreRun. You just need to pass the path to CoreRun to BenchmarkDotNet. You can do that by either using `--coreRun $thePath` as an arugment or `job.With(new CoreRunToolchain(coreRunPath: "$thePath"))` in the code.
+
+So if you made a change in CoreCLR and want to measure the difference with .NET Core 2.1, you can run the benchmarks with `dotnet run -c Release -f netcoreapp2.1 -- --core21 --coreRun $thePath`.
+
+**Note:** If `CoreRunToolchain` detects that you have some older version of dependencies required to run the benchmarks in CoreRun folder, it's going to overwrite them with newer versions from the published app.
+
+If you are not sure which assemblies gets loaded and used you can use following code to find out:
+
+```cs
+[GlobalSetup]
+public void PrintInfo()
+{
+	var coreFxAssemblyInfo = FileVersionInfo.GetVersionInfo(typeof(Regex).GetTypeInfo().Assembly.Location);
+	var coreClrAssemblyInfo = FileVersionInfo.GetVersionInfo(typeof(object).GetTypeInfo().Assembly.Location);
+
+	Console.WriteLine($"// CoreFx version: {coreFxAssemblyInfo.FileVersion}, location {typeof(Regex).GetTypeInfo().Assembly.Location}, product version {coreFxAssemblyInfo.ProductVersion}");
+	Console.WriteLine($"// CoreClr version {coreClrAssemblyInfo.FileVersion}, location {typeof(object).GetTypeInfo().Assembly.Location}, product version {coreClrAssemblyInfo.ProductVersion}");
+}
+```
+
 ## Benchmarking private CLR build
 
 It's possible to benchmark a private build of .NET Runtime. You just need to pass the value of `COMPLUS_Version` to BenchmarkDotNet. You can do that by either using `--clrVersion $theVersion` as an arugment or `Job.ShortRun.With(new ClrRuntime(version: "$theVersiong"))` in the code.
 
-So if you made a change in CLR and want to measure the difference, you can run the benchmarks with `dotnet run -c Release -f net46 --clr --clrVersion $theVersion`. More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/706).
+So if you made a change in CLR and want to measure the difference, you can run the benchmarks with `dotnet run -c Release -f net46 -- --clr --clrVersion $theVersion`. More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/706).
 
 ## Any CoreCLR and CoreFX
 

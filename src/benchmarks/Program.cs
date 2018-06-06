@@ -16,6 +16,7 @@ using BenchmarkDotNet.Toolchains.CustomCoreClr;
 using BenchmarkDotNet.Toolchains.DotNetCli;
 using BenchmarkDotNet.Toolchains.InProcess;
 using Benchmarks.Serializers;
+using Benchmarks.Toolchains;
 using CommandLine;
 
 namespace Benchmarks
@@ -87,6 +88,9 @@ namespace Benchmarks
                 yield return baseJob.With(Runtime.Core).With(CsProjCoreToolchain.NetCoreApp20);
             if (options.RunCore21)
                 yield return baseJob.With(Runtime.Core).With(CsProjCoreToolchain.NetCoreApp21);
+
+            if (!string.IsNullOrEmpty(options.CoreRunPath))
+                yield return baseJob.With(Runtime.Core).With(new CoreRunToolchain(coreRunPath: options.CoreRunPath, customDotNetCliPath: options.CliPath));
 
             if (!string.IsNullOrEmpty(options.CoreFxVersion) || !string.IsNullOrEmpty(options.CoreClrVersion))
             {
@@ -162,6 +166,9 @@ namespace Benchmarks
 
         [Option("cli", Required = false, HelpText = "Optional path to dotnet cli which should be used for running benchmarks.")]
         public string CliPath { get; set; }
+
+        [Option("coreRun", Required = false, HelpText = "Optional path to CoreRun which should be used for running benchmarks.")]
+        public string CoreRunPath { get; set; }
 
         [Option("coreClrVersion", Required = false, HelpText = "Optional version of Microsoft.NETCore.Runtime which should be used. Example: \"2.1.0-preview2-26305-0\"")]
         public string CoreClrVersion { get; set; }
