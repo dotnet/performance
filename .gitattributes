@@ -7,3 +7,10 @@ src/coreclr/BenchmarksGame/regex-redux/regexdna-input25.txt text eol=lf
 src/coreclr/BenchmarksGame/regex-redux/regexdna-input25000.txt text eol=lf
 src/coreclr/BenchmarksGame/reverse-complement/revcomp-input25.txt text eol=lf
 src/coreclr/BenchmarksGame/reverse-complement/revcomp-input25000.txt text eol=lf
+
+src/benchmarks/coreclr/BenchmarksGame/Inputs/knucleotide-input-big.txt text eol=lf
+src/benchmarks/coreclr/BenchmarksGame/Inputs/knucleotide-input.txt text eol=lf
+src/benchmarks/coreclr/BenchmarksGame/Inputs/regexdna-input25.txt text eol=lf
+src/benchmarks/coreclr/BenchmarksGame/Inputs/regexdna-input25000.txt text eol=lf
+src/benchmarks/coreclr/BenchmarksGame/Inputs/revcomp-input25.txt text eol=lf
+src/benchmarks/coreclr/BenchmarksGame/Inputs/revcomp-input25000.txt text eol=lf
