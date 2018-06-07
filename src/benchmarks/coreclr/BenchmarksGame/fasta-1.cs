@@ -25,9 +25,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace BenchmarksGame
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class Fasta_1
     {
         const int LineLength = 60;

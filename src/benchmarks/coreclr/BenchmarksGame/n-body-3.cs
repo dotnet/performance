@@ -16,9 +16,11 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace BenchmarksGame
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class NBody_3
     {
         [Benchmark(Description = nameof(NBody_3))]

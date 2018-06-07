@@ -5,10 +5,11 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
-
+using Benchmarks;
 
 namespace SIMD
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.SIMD)]
     public class ConsoleMandel
     {
         private static void DoNothing(int x, int y, int count) { }

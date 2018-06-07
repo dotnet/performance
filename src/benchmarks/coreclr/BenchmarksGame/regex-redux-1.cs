@@ -19,9 +19,11 @@ using System;
 using System.IO;
 using System.Text.RegularExpressions;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace BenchmarksGame
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class RegexRedux_1
     {
         RegexReduxHelpers helpers = new RegexReduxHelpers(bigInput: true);

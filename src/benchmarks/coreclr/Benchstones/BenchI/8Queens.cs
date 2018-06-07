@@ -4,9 +4,11 @@
 //
 
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace Benchstone.BenchI
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchI)]
 public class EightQueens
 {
     static int[] m_c = new int[15];

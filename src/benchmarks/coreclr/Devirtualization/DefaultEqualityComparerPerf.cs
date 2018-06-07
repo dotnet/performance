@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 // Performance tests for optimizations related to EqualityComparer<T>.Default
 
@@ -56,6 +57,7 @@ namespace Devirtualization
         }
     }
 
+    [BenchmarkCategory(Categories.CoreCLR)]
     public class EqualityComparer
     {
         public enum E

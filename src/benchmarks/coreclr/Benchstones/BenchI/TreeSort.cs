@@ -4,9 +4,11 @@
 //
 
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace Benchstone.BenchI
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchI)]
 public class TreeSort
 {
     const int SortElements = 5000;

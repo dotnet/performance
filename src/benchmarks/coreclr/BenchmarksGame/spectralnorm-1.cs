@@ -16,9 +16,11 @@
 using System;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace BenchmarksGame
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class SpectralNorm_1
     {
         [Benchmark(Description = nameof(SpectralNorm_1))]

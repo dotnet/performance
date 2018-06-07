@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 public class Product
 {
@@ -110,6 +111,7 @@ public class Product
     }
 }
 
+[BenchmarkCategory(Categories.CoreCLR)]
 public class LinqBenchmarks
 {
     public const int IterationsWhere00 = 1000000;

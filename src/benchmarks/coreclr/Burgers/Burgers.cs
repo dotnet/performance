@@ -12,7 +12,9 @@ using System;
 using System.Linq;
 using System.Numerics;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
+[BenchmarkCategory(Categories.CoreCLR)]
 public class Burgers
 {
     private static double BurgersAnalytical(double t, double x, double nu)

@@ -2,8 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using BenchmarkDotNet.Attributes;
+using Benchmarks;
+
 namespace Functions
 {
+    [BenchmarkCategory(Categories.CoreCLR)]
     public partial class MathTests
     {
         // double has a machine epsilon of approx: 2.22e-16. However, due to floating-point precision

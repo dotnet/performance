@@ -5,9 +5,11 @@
 
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace Benchstone.BenchI
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchI)]
 public class XposMatrix
 {
     public const int ArraySize = 100;

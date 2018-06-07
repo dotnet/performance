@@ -8,9 +8,11 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace Span
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.Span)]
     public class SpanBench
     {
         // Default length for arrays of mock input data

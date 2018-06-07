@@ -14,9 +14,11 @@
 
 
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace SciMark2
 {
+    [BenchmarkCategory(Categories.CoreCLR)]
     public class kernel 
     {
         double[] inputFFT;

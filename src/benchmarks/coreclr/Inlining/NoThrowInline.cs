@@ -5,9 +5,11 @@
 using System;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace Inlining
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.Inlining)]
 public class NoThrowInline
 {
     static void ThrowIfNull(string s)

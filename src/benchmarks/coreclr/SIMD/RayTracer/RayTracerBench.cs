@@ -11,10 +11,12 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 using Benchmarks.SIMD.RayTracer;
 
 namespace SIMD
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.SIMD)]
 public class RayTracerBench
 {
     private const int Width = 250;

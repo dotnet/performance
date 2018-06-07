@@ -4,9 +4,11 @@
 //
 
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace Benchstone.BenchF
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchF)]
 public class InProd
 {
     public const int Iterations = 70;

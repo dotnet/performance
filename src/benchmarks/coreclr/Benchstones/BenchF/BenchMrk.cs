@@ -5,9 +5,11 @@
 
 using BenchmarkDotNet.Attributes;
 using System;
+using Benchmarks;
 
 namespace Benchstone.BenchF
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchF)]
 public class BenchMrk
 {
     public const int Iterations = 4000000;

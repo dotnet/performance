@@ -6,9 +6,11 @@
 
 using BenchmarkDotNet.Attributes;
 using System.Runtime.CompilerServices;
+using Benchmarks;
 
 namespace Benchstone.BenchF
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchF)]
 public class Secant
 {
     public const int Iterations = 3000000;

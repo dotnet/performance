@@ -19,9 +19,11 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace BenchmarksGame
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class RegexRedux_5
     {
         static Regex regex(string re)

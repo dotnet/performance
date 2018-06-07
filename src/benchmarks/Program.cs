@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
@@ -7,6 +8,7 @@ using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Environments;
 using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Exporters.Csv;
+using BenchmarkDotNet.Filters;
 using BenchmarkDotNet.Horology;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
@@ -30,7 +32,10 @@ namespace Benchmarks
         private static void RunBenchmarks(Options options)
             => BenchmarkSwitcher
                 .FromAssemblyAndTypes(typeof(Program).Assembly, SerializerBenchmarks.GetTypes())
-                .Run(config: GetConfig(options));
+                .Run(GetArgs(options), GetConfig(options));
+
+        private static string[] GetArgs(Options options)
+            => options.Join ? new[] {"--join"} : Array.Empty<string>(); 
 
         private static IConfig GetConfig(Options options)
         {
@@ -52,6 +57,17 @@ namespace Benchmarks
             if (options.DisplayAllStatistics)
                 config = config.With(StatisticColumn.AllStatistics);
 
+            if (options.AllCategories.Any())
+                config = config.With(new AllCategoriesFilter(options.AllCategories.ToArray()));
+            if (options.AnyCategories.Any())
+                config = config.With(new AnyCategoriesFilter(options.AnyCategories.ToArray()));
+            if (options.Namespaces.Any())
+                config = config.With(new NamespacesFilter(options.Namespaces.ToArray()));
+            if (options.MethodNames.Any())
+                config = config.With(new MethodNamesFilter(options.MethodNames.ToArray()));
+            if (options.TypeNames.Any())
+                config = config.With(new TypeNamesFilter(options.TypeNames.ToArray()));
+            
             return config;
         }
 
@@ -191,6 +207,24 @@ namespace Benchmarks
 
         [Option("coreFxBin", Required = false, HelpText = @"Optional path to folder with CoreFX NuGet packages, Example: ""C:\Projects\forks\corefx\bin\packages\Release""")]
         public string CoreFxBinPackagesPath { get; set; }
+        
+        [Option("categories", Required = false, HelpText = "All Categories to run")]
+        public IEnumerable<string> AllCategories { get; set; }
+        
+        [Option("anyCategories", Required = false, HelpText = "Any Categories to run")]
+        public IEnumerable<string> AnyCategories { get; set; }
+        
+        [Option("namespaces", Required = false, HelpText = "Namespaces to run")]
+        public IEnumerable<string> Namespaces { get; set; }
+        
+        [Option("methods", Required = false, HelpText = "Methods to run")]
+        public IEnumerable<string> MethodNames { get; set; }
+        
+        [Option("classes", Required = false, HelpText = "Types with benchmarks to run")]
+        public IEnumerable<string> TypeNames { get; set; }
+        
+        [Option("join", Required = false, Default = false, HelpText = "Prints single table with results for all benchmarks")]
+        public bool Join { get; set; }
     }
 
     /// <summary>

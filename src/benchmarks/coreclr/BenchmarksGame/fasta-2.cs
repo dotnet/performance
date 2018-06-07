@@ -18,9 +18,11 @@ using System;
 using System.IO;
 using System.Text;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace BenchmarksGame
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class Fasta_2
     {
         [Benchmark(Description = nameof(Fasta_2))]

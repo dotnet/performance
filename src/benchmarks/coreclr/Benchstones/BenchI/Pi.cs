@@ -5,9 +5,11 @@
 
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace Benchstone.BenchI
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchI)]
 public class Pi
 {
     static int[] ComputePi(int[] a) {

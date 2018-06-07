@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Text;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
+using Benchmarks;
 
 namespace BenchmarksGame
 {
@@ -81,6 +82,7 @@ namespace BenchmarksGame
         }
     }
 
+    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class KNucleotide_1
     {
         private NucleotideHelpers _nucleotideHarnessHelpers = new NucleotideHelpers(bigInput: true);

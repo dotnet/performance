@@ -4,11 +4,12 @@
 
 using System;
 using System.Numerics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
+[BenchmarkCategory(Categories.CoreCLR, Categories.SIMD)]
 public class SeekUnroll
 {
     // The purpose of this micro-benchmark is to measure the effect of unrolling

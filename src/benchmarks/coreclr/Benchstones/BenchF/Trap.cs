@@ -5,9 +5,11 @@
 // Integration by corrected trapezoid rule adapted from Conte and de Boor
 
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace Benchstone.BenchF
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchF)]
 public class Trap
 {
     public const int Iterations = 240000;

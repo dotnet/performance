@@ -12,7 +12,9 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
+[BenchmarkCategory(Categories.CoreCLR)]
 public class CscBench
 {
     public const int CompileIterations = 1500;

@@ -17,9 +17,11 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace BenchmarksGame
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class Mandelbrot_2
     {
         // Commented out data left in source to provide checksums for each case

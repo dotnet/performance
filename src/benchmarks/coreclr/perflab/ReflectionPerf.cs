@@ -3,11 +3,13 @@
 
 using System.Reflection;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 #pragma warning disable 67
 
 namespace PerfLabTests
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
     public class GetMember
     {
         // all these fields will be initialized in init, so that they can be used directly in invocation

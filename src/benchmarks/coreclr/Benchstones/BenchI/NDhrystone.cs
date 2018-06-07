@@ -9,9 +9,11 @@
 // Communications of the ACM, Volume 27 Issue 10, Oct 1984, Pages 1013-1030
 
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace Benchstone.BenchI
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchI)]
 public class NDhrystone
 {
     public const int Iterations = 7000000;

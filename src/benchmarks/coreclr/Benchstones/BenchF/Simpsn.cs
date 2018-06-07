@@ -5,9 +5,11 @@
 // Integration by Simpson's rule adapted from Conte and de Boor
 
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace Benchstone.BenchF
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchF)]
 public class Simpsn
 {
     public const int Iterations = 90000;

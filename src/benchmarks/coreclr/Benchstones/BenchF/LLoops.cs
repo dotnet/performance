@@ -55,12 +55,12 @@
 using BenchmarkDotNet.Attributes;
 using System;
 using System.Runtime.CompilerServices;
-
-
+using Benchmarks;
 
 
 namespace Benchstone.BenchF
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchF)]
 public class LLoops
 {
     public const int Iterations = 4000;

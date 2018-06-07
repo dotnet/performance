@@ -5,9 +5,11 @@
 // This program solves the "lorenz" equations using Runge-Kutta 4
 
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace Benchstone.BenchF
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchF)]
 public class Lorenz
 {
     public const int Iterations = 8000000;

@@ -6,9 +6,11 @@
 // to solve F(X,Y)=0 and G(X,Y)=0
 
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace Benchstone.BenchF
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchF)]
 public class NewtE
 {
     public const int Iterations = 1000000;

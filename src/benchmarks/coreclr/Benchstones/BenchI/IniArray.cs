@@ -4,14 +4,11 @@
 //
 
 using BenchmarkDotNet.Attributes;
-using System;
-using System.Runtime.CompilerServices;
-
-
-
+using Benchmarks;
 
 namespace Benchstone.BenchI
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchI)]
 public  class IniArray
 {
     public const int Iterations = 10000000;

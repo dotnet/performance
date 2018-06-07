@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace PerfLabTests
 {
@@ -87,6 +88,7 @@ namespace PerfLabTests
     public class MyClass2 : IMyInterface2 { }
     public class MyClass4<T> : IMyInterface1 { }
 
+    [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
     public class CastingPerf
     {
         public const int NUM_ARRAY_ELEMENTS = 100;

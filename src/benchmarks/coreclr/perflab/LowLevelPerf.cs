@@ -7,9 +7,11 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
+using Benchmarks;
 
 namespace PerfLabTests
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
     public class LowLevelPerf
     {
         Class aClassFiled;

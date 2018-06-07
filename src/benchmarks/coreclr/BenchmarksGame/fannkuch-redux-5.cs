@@ -19,9 +19,11 @@ using System;
 using System.Threading;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace BenchmarksGame
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class FannkuchRedux_5
     {
         static int[] fact, chkSums, maxFlips;

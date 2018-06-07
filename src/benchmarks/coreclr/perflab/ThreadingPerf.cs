@@ -3,9 +3,11 @@
 
 using System.Threading;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace PerfLabTests
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
     public class JITIntrinsics
     {
         private static int s_i;

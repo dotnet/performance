@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace Span
 {
@@ -19,6 +20,7 @@ namespace Span
         public int i;
     }
 
+    [BenchmarkCategory(Categories.CoreCLR, Categories.Span)]
     public class IndexerBench
     {
         const int DefaultLength = 1024;

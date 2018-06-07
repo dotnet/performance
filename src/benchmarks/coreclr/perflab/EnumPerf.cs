@@ -3,6 +3,7 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace PerfLabTests
 {
@@ -17,6 +18,7 @@ namespace PerfLabTests
         Orange
     }
 
+    [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
     public class EnumPerf
     {
         [Benchmark]

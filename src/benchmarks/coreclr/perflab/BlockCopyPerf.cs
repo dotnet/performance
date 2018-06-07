@@ -3,9 +3,11 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace PerfLabTests
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
     public class BlockCopyPerf
     {
         private byte[] bytes;

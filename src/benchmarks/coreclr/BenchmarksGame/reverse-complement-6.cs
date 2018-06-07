@@ -21,6 +21,7 @@ using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Threading;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace BenchmarksGame
 {
@@ -31,6 +32,7 @@ namespace BenchmarksGame
         public Thread ReverseThread;
     }
 
+    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class ReverseComplement_6
     {
         const int READER_BUFFER_SIZE = 1024 * 1024;

@@ -5,6 +5,7 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace FractalPerf
 {
@@ -121,6 +122,7 @@ namespace FractalPerf
         }
     }
 
+    [BenchmarkCategory(Categories.CoreCLR)]
     public class Launch
     {
         [Benchmark(Description = nameof(FractalPerf))]

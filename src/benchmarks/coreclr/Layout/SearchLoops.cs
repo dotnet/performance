@@ -5,12 +5,14 @@
 using System;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
+using Benchmarks;
 
 // Test code taken directly from GitHub issue #9692 (https://github.com/dotnet/coreclr/issues/9692)
 // Laying the loop's early return path in-line can cost 30% on this micro-benchmark.
 
 namespace Layout
 {
+    [BenchmarkCategory(Categories.CoreCLR)]
     public unsafe class SearchLoops
     {
         public int length = 100;

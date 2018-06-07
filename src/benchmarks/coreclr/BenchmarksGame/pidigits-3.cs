@@ -23,9 +23,11 @@ using System.Numerics;
 using System.Text;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
+using Benchmarks;
 
 namespace BenchmarksGame
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class pidigits
     {
         BigInteger q = new BigInteger(), r = new BigInteger(), s = new BigInteger(), t = new BigInteger();

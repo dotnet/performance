@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace PerfLabTests
 {
@@ -12,6 +13,7 @@ namespace PerfLabTests
 
     internal delegate int SerializeDelegate();
 
+    [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
     public class DelegatePerf
     {
         [Benchmark]

@@ -5,9 +5,11 @@
 // Based on Eratosthenes Sieve Prime Number Program in C, Byte Magazine, January 1983.
 
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace Benchstone.BenchI
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchI)]
 public class CSieve
 {
     public const int Iterations = 200;

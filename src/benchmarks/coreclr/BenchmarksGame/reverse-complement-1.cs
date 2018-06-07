@@ -17,9 +17,11 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace BenchmarksGame
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class ReverseComplement_1
     {
         struct Block

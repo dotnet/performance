@@ -25,9 +25,11 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
+using Benchmarks;
 
 namespace BenchmarksGame
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class MandelBrot_7
     {
         // Vector<double>.Count is treated as a constant by the JIT, don't bother

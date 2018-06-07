@@ -14,9 +14,11 @@
 */
 
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace BenchmarksGame
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class FannkuchRedux_2
     {
         [Benchmark(Description = nameof(FannkuchRedux_2))]

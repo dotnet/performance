@@ -34,6 +34,7 @@
 using System;
 using System.IO;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 #pragma warning disable CS0649, CS0169
 
@@ -249,6 +250,7 @@ public abstract class EmFloatStruct : HarnessTest
     }
 }
 
+[BenchmarkCategory(Categories.CoreCLR)]
 public class ByteMark
 {
     private static int[] s_randw;

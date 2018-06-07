@@ -5,9 +5,11 @@
 // C# translation of Whetstone Double Precision Benchmark
 
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace Benchstone.BenchF
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchF)]
 public class Whetsto
 {
     public const int Iterations = 50000;
