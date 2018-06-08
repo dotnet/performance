@@ -140,7 +140,7 @@ It's possible to benchmark a private build of CoreCLR using CoreRun. You just ne
 
 So if you made a change in CoreCLR and want to measure the difference with .NET Core 2.1, you can run the benchmarks with `dotnet run -c Release -f netcoreapp2.1 -- --core21 --coreRun $thePath`.
 
-**Note:** If `CoreRunToolchain` detects that you have some older version of dependencies required to run the benchmarks in CoreRun folder, it's going to overwrite them with newer versions from the published app.
+**Note:** If `CoreRunToolchain` detects that you have some older version of dependencies required to run the benchmarks in CoreRun folder, it's going to overwrite them with newer versions from the published app. It's going to do that in a shadow copy of the folder with CorRun, so your configuration remains untouched.
 
 If you are not sure which assemblies gets loaded and used you can use following code to find out:
 
