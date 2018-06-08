@@ -12,13 +12,13 @@ namespace Benchmarks.Toolchains
 {
     public class CoreRunPublisher : IBuilder
     {
-        public CoreRunPublisher(string coreRunPath, string customDotNetCliPath = null)
+        public CoreRunPublisher(FileInfo coreRun, FileInfo customDotNetCliPath = null)
         {
-            CoreRunPath = coreRunPath;
-            DotNetCliPublisher = new DotNetCliPublisher(customDotNetCliPath);
+            CoreRun = coreRun;
+            DotNetCliPublisher = new DotNetCliPublisher(customDotNetCliPath?.FullName);
         }
 
-        private string CoreRunPath { get; }
+        private FileInfo CoreRun { get; }
 
         private DotNetCliPublisher DotNetCliPublisher { get; }
 
@@ -38,7 +38,7 @@ namespace Benchmarks.Toolchains
         private void UpdateDuplicatedDependencies(ArtifactsPaths artifactsPaths, ILogger logger)
         {
             var publishedDirectory = new DirectoryInfo(artifactsPaths.BinariesDirectoryPath);
-            var coreRunDirectory =  new FileInfo(CoreRunPath).Directory;
+            var coreRunDirectory =  CoreRun.Directory;
 
             foreach (var publishedDependency in publishedDirectory
                 .EnumerateFileSystemInfos()

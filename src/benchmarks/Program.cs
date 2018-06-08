@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
@@ -89,8 +89,8 @@ namespace Benchmarks
             if (options.RunCore21)
                 yield return baseJob.With(Runtime.Core).With(CsProjCoreToolchain.NetCoreApp21);
 
-            if (!string.IsNullOrEmpty(options.CoreRunPath))
-                yield return baseJob.With(Runtime.Core).With(new CoreRunToolchain(coreRunPath: options.CoreRunPath, customDotNetCliPath: options.CliPath));
+            if (options.CoreRunPath != null && options.CoreRunPath.Exists)
+                yield return baseJob.With(Runtime.Core).With(new CoreRunToolchain(options.CoreRunPath, createCopy: true, customDotNetCliPath: options.CliPath));
 
             if (!string.IsNullOrEmpty(options.CoreFxVersion) || !string.IsNullOrEmpty(options.CoreClrVersion))
             {
@@ -110,8 +110,8 @@ namespace Benchmarks
                 else
                     builder.UseCoreClrDefault();
 
-                if (!string.IsNullOrEmpty(options.CliPath))
-                    builder.DotNetCli(options.CliPath);
+                if (options.CliPath != null && options.CliPath.Exists)
+                    builder.DotNetCli(options.CliPath.FullName);
 
                 builder.AdditionalNuGetFeed("benchmarkdotnet ci", "https://ci.appveyor.com/nuget/benchmarkdotnet");
 
@@ -165,10 +165,10 @@ namespace Benchmarks
         public bool RunCore21 { get; set; }
 
         [Option("cli", Required = false, HelpText = "Optional path to dotnet cli which should be used for running benchmarks.")]
-        public string CliPath { get; set; }
+        public FileInfo CliPath { get; set; }
 
         [Option("coreRun", Required = false, HelpText = "Optional path to CoreRun which should be used for running benchmarks.")]
-        public string CoreRunPath { get; set; }
+        public FileInfo CoreRunPath { get; set; }
 
         [Option("coreClrVersion", Required = false, HelpText = "Optional version of Microsoft.NETCore.Runtime which should be used. Example: \"2.1.0-preview2-26305-0\"")]
         public string CoreClrVersion { get; set; }
