@@ -3,5 +3,6 @@
         "DavidAnson.vscode-markdownlint",
         "ms-python.python",
         "ms-vscode.csharp",
+        "ms-vscode.powershell",
     ]
 }
