@@ -67,6 +67,8 @@ namespace Benchmarks
                 config = config.With(new TypeNamesFilter(options.TypeNames.ToArray()));
 
             config = config.With(JsonExporter.Full); // make sure we export to Json (for BenchView integration purpose)
+
+            config = config.With(StatisticColumn.Min, StatisticColumn.Max);
             
             return config;
         }
