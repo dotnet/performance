@@ -8,6 +8,7 @@ using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Environments;
 using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Exporters.Csv;
+using BenchmarkDotNet.Exporters.Json;
 using BenchmarkDotNet.Filters;
 using BenchmarkDotNet.Horology;
 using BenchmarkDotNet.Jobs;
@@ -39,10 +40,7 @@ namespace Benchmarks
 
         private static IConfig GetConfig(Options options)
         {
-            var baseJob = Job.Default
-                .WithIterationTime(TimeInterval.FromSeconds(0.25)) // the default is 0.5s per iteration, which is slighlty too much for us
-                .WithWarmupCount(1) // 1 warmup is enough for our purpose
-                .WithMaxTargetIterationCount(20);  // we don't want to run more that 20 iterations
+            var baseJob = GetBaseJob(options);
 
             var jobs = GetJobs(options, baseJob).ToArray();
 
@@ -67,10 +65,32 @@ namespace Benchmarks
                 config = config.With(new MethodNamesFilter(options.MethodNames.ToArray()));
             if (options.TypeNames.Any())
                 config = config.With(new TypeNamesFilter(options.TypeNames.ToArray()));
+
+            config = config.With(JsonExporter.Full); // make sure we export to Json (for BenchView integration purpose)
             
             return config;
         }
 
+        private static Job GetBaseJob(Options options)
+        {
+            switch (options.BaseJob.ToLowerInvariant())
+            {
+                case "dry":
+                    return Job.Dry;
+                case "short":
+                    return Job.ShortRun;
+                case "medium":
+                    return Job.MediumRun;
+                case "long":
+                    return Job.LongRun;
+                default: // the recommended settings
+                    return Job.Default
+                        .WithIterationTime(TimeInterval.FromSeconds(0.25)) // the default is 0.5s per iteration, which is slighlty too much for us
+                        .WithWarmupCount(1) // 1 warmup is enough for our purpose
+                        .WithMaxTargetIterationCount(20);  // we don't want to run more that 20 iterations
+            }
+        }
+        
         private static IEnumerable<Job> GetJobs(Options options, Job baseJob)
         {
             if (options.RunInProcess)
@@ -225,6 +245,9 @@ namespace Benchmarks
         
         [Option("join", Required = false, Default = false, HelpText = "Prints single table with results for all benchmarks")]
         public bool Join { get; set; }
+        
+        [Option("baseJob", Required = false, Default = "Default", HelpText = "Dry/Short/Medium/Long or Default (which is actually default value)")]
+        public string BaseJob { get; set; }
     }
 
     /// <summary>
