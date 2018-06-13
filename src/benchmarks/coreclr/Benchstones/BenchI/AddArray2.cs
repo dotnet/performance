@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 //
 
-using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
 
@@ -13,6 +13,8 @@ namespace Benchstone.BenchI
 public class AddArray2
 {
     private const int Dim = 200;
+    
+    int[][] array = AllocArray<int>(Dim + 1, Dim + 1);
 
     private static T[][] AllocArray<T>(int n1, int n2)
     {
@@ -69,10 +71,9 @@ public class AddArray2
             }
         }
     }
-
-    [Benchmark(Description = nameof(AddArray2))]
-    [ArgumentsSource(nameof(CreateArray))]
-    public bool Test(int[][] a)
+    
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static bool Bench(int[][] a)
     {
         int n = Dim;
         for (int i = 1; i <= n; i++)
@@ -90,9 +91,7 @@ public class AddArray2
         return true;
     }
 
-    public IEnumerable<object> CreateArray()
-    {
-        yield return AllocArray<int>(Dim + 1, Dim + 1);
-    }
+    [Benchmark(Description = nameof(AddArray2))]
+    public bool Test() => Bench(array);
 }
 }
