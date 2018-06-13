@@ -27,7 +27,6 @@ using Benchmarks;
 
 namespace BenchmarksGame
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class pidigits
     {
         BigInteger q = new BigInteger(), r = new BigInteger(), s = new BigInteger(), t = new BigInteger();
@@ -134,6 +133,7 @@ namespace BenchmarksGame
         }
     }
 
+    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class PiDigits_3
     {
         [Benchmark(Description = nameof(PiDigits_3))]
