@@ -192,6 +192,6 @@ public class Burgers
     public double[] Test2() => GetCalculated2(nt, nx, dx, dt, nu, initial);
 
     [Benchmark(Description = "Burgers_3")]
-    public double[] Test3() => GetCalculated3(nt, nx, dx, dt, nu, initial);
+    public double[] Test3() => GetCalculated3(nt * 2, nx, dx, dt, nu, initial);
 }
 
