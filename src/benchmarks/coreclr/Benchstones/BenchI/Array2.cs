@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 //
 
+using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
 
@@ -48,10 +49,9 @@ public class Array2
 
         return true;
     }
-
-    [Benchmark(Description = nameof(Array2))]
-    [Arguments(Iterations)]
-    public bool Test(int loop) {
+    
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    static bool Bench(int loop) {
 
         int[][][] s = AllocArray<int>(10, 10, 10);
         int[][][] d = AllocArray<int>(10, 10, 10);
@@ -72,5 +72,8 @@ public class Array2
 
         return result;
     }
+
+    [Benchmark(Description = nameof(Array2))]
+    public bool Test() => Bench(Iterations);
 }
 }
