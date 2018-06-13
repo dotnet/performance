@@ -88,6 +88,6 @@ public class Adams
     }
 
     [Benchmark(Description = nameof(Adams))]
-    public static void Test() => Bench();
+    public void Test() => Bench();
 }
 }
