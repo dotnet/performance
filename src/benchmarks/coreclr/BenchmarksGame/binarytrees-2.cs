@@ -26,8 +26,9 @@ namespace BenchmarksGame
         const int minDepth = 4;
 
         [Benchmark(Description = nameof(BinaryTrees_2))]
-        [Arguments(10, false)]
-        public int Bench(int n, bool verbose)
+        public int RunBench() => Bench(16, false);
+        
+        static int Bench(int n, bool verbose)
         {
             int maxDepth = Math.Max(minDepth + 2, n);
             int stretchDepth = maxDepth + 1;
