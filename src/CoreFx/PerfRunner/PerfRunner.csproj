@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), common.props))\common.props" />
+
+  <PropertyGroup>
+    <OutputType>exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="$(TraceEventPackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\System.Collections\System.Collections.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Collections.Concurrent\System.Collections.Concurrent.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Collections.NonGeneric\System.Collections.NonGeneric.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.ComponentModel.TypeConverter\System.ComponentModel.TypeConverter.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Console\System.Console.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Diagnostics.Process\System.Diagnostics.Process.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Globalization\System.Globalization.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.IO.Compression\System.IO.Compression.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.IO.Compression.Brotli\System.IO.Compression.Brotli.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.IO.FileSystem\System.IO.FileSystem.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.IO.MemoryMappedFiles\System.IO.MemoryMappedFiles.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.IO.Pipes\System.IO.Pipes.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Linq\System.Linq.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Memory\System.Memory.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Net.Http\System.Net.Http.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Net.Primitives\System.Net.Primitives.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Net.Sockets\System.Net.Sockets.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Numerics.Vectors\System.Numerics.Vectors.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Private.Xml\System.Xml.XmlDocument.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Runtime\System.Runtime.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Runtime.Extensions\System.Runtime.Extensions.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Runtime.Numerics\System.Runtime.Numerics.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Runtime.Serialization.Json\System.Runtime.Serialization.Json.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Runtime.Serialization.Xml\System.Runtime.Serialization.Xml.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Security.Cryptography.Primitives\System.Security.Cryptography.Primitives.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Text.Encoding\System.Text.Encoding.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Text.RegularExpressions\System.Text.RegularExpressions.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Threading\System.Threading.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Threading.Channels\System.Threading.Channels.Performance.Tests.csproj" />
+    <ProjectReference Include="..\System.Threading.Tasks.Extensions\System.Threading.Tasks.Extensions.Performance.Tests.csproj" />
+  </ItemGroup>
+
+  <Target Name="CopyLinkedContentFiles" AfterTargets="Build">
+    <ItemGroup>
+      <Content Include="..\packages\system.io.compression.testdata\$(CompressionTestDataPackageVersion)\content\**\*" />
+      <Content Include="..\packages\system.net.testdata\$(NetworkTestDataPackageVersion)\content\**\*" />
+      <Content Include="..\packages\system.text.regularexpressions.testdata\$(RegularExpressionTestDataPackageVersion)\content\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(Content)" 
+            DestinationFolder="$(OutputPath)\%(RecursiveDir)" 
+            OverwriteReadOnlyFiles="true" />
+  </Target>
+
+</Project>

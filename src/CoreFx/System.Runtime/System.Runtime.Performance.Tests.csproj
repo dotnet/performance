@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), common.props))\common.props" />
+
+  <PropertyGroup>
+    <OutputType>library</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>  
+    <Compile Include="..\CommonUtils\PerfUtils.cs" Link="PerfUtils.cs" />
+  </ItemGroup>  
+
+</Project>

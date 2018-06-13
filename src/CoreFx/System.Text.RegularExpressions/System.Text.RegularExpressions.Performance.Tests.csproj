@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), common.props))\common.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), restore.targets))\restore.targets" />
+
+  <PropertyGroup>
+    <OutputType>library</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="system.text.regularexpressions.testdata" Version="$(RegularExpressionTestDataPackageVersion)" />
+  </ItemGroup>
+
+</Project>

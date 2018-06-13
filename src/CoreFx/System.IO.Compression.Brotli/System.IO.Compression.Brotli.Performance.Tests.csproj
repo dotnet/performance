@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), common.props))\common.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), restore.targets))\restore.targets" />
+
+  <PropertyGroup>
+    <OutputType>library</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Compression.TestData" Version="$(CompressionTestDataPackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>  
+    <Compile Include="..\System.IO.Compression\CompressionStreamPerfTestBase.cs" Link="CompressionStreamPerfTestBase.cs" />
+    <Compile Include="..\System.IO.Compression\CompressionStreamTestBase.cs" Link="CompressionStreamTestBase.cs" />
+    <Compile Include="..\System.IO.Compression\StreamHelpers.cs" Link="StreamHelpers.cs" />
+  </ItemGroup>  
+
+</Project>

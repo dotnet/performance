@@ -1,0 +1,5 @@
+<Project>
+    <Target Name="RestoreTestData" BeforeTargets="Build">
+        <Exec Command="dotnet restore --packages $(MSBuildProjectDirectory)\..\packages" />
+    </Target>
+</Project>
