@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -15,50 +14,45 @@ namespace Span
     [BenchmarkCategory(Categories.CoreCLR, Categories.Span)]
     public class SpanBench
     {
-        // Default length for arrays of mock input data
-        const int DefaultLength = 1024;
-        
-        public IEnumerable<object> GetArrayOfBytes()
+        [Params(1024)]
+        public static int length; // the field must be called length (starts with lowercase) to keep old benchmark id in BenchView, do NOT change it
+
+        private byte[] bytes;
+        private int[] ints;
+        private string[] strings;
+        private string randomString;
+
+        private TestClass<byte> testClassByte; 
+        private TestClass<string> testClassString; 
+
+        [GlobalSetup]
+        public void Setup()
         {
-            yield return new byte[DefaultLength];
-        }
-        
-        public IEnumerable<object> GetArrayOfInts()
-        {
-            yield return new int[DefaultLength];
+            bytes = new byte[length];
+            ints = new int[length];
+            strings = new string[length];
+            randomString = GetRandomString();
+            testClassByte = CreateTestClass<byte>();
+            testClassString = CreateTestClass<string>();
         }
 
-        public IEnumerable<object> GetArrayOfStrings()
-        {
-            yield return new string[DefaultLength];
-        }
-
-        public IEnumerable<object> GetTestClassOfBytes()
-        {
-            yield return CreateTestClass<byte>();
-        }
-        
-        public IEnumerable<object> GetTestClassOfString()
-        {
-            yield return CreateTestClass<string>();
-        }
-
-        private static TestClass<T> CreateTestClass<T>()
+        private TestClass<T> CreateTestClass<T>()
         {
             TestClass<T> testClass = new TestClass<T>();
-            testClass.C0 = new T[DefaultLength];
+            testClass.C0 = new T[length];
             return testClass;
         }
 
         class Destination<T>
         {
-            public T[] array = new T[DefaultLength];
+            public T[] array = new T[SpanBench.length]; // always more than length
             
             public static Destination<T> Instance = new Destination<T>();
         }
 
         // Helpers
         #region Helpers
+        
         [StructLayout(LayoutKind.Sequential)]
         public sealed class TestClass<T>
         {
@@ -77,6 +71,21 @@ namespace Span
             }
             return unsortedData;
         }
+        
+        private string GetRandomString()
+        {
+            StringBuilder sb = new StringBuilder();
+            Random rand = new Random(42);
+            char[] c = new char[1];
+            for (int i = 0; i < length; i++)
+            {
+                c[0] = (char)rand.Next(32, 126);
+                sb.Append(new string(c));
+            }
+            string s = sb.ToString();
+
+            return s;
+        }
         #endregion // helpers
 
         // Tests that implement some vary basic algorithms (fill/sort) over spans and arrays
@@ -84,8 +93,7 @@ namespace Span
 
         #region TestFillAllSpan
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfBytes))]
-        public void FillAllSpan(byte[] a) => TestFillAllSpan(a);
+        public void FillAllSpan() => TestFillAllSpan(bytes);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static void TestFillAllSpan(Span<byte> span)
@@ -100,8 +108,7 @@ namespace Span
         #region TestFillAllArray
         
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfBytes))]
-        public void FillAllArray(byte[] a) => TestFillAllArray(a);
+        public void FillAllArray() => TestFillAllArray(bytes);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static void TestFillAllArray(byte[] data)
@@ -116,8 +123,7 @@ namespace Span
         #region TestFillAllReverseSpan
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfBytes))]
-        public void FillAllReverseSpan(byte[] a) => TestFillAllReverseSpan(a);
+        public void FillAllReverseSpan() => TestFillAllReverseSpan(bytes);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static void TestFillAllReverseSpan(Span<byte> span)
@@ -131,8 +137,7 @@ namespace Span
 
         #region TestFillAllReverseArray
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfBytes))]
-        public void FillAllReverseArray(byte[] a) => TestFillAllReverseArray(a);
+        public void FillAllReverseArray() => TestFillAllReverseArray(bytes);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static void TestFillAllReverseArray(byte[] data)
@@ -149,7 +154,7 @@ namespace Span
         int[] _unsortedData;
         
         [IterationSetup(Target = nameof(QuickSortSpan) + "," + nameof(BubbleSortSpan) + "," + nameof(QuickSortArray) + "," + nameof(BubbleSortArray))]
-        public void SetupSort() => _unsortedData = GetUnsortedData(DefaultLength); 
+        public void SetupSort() => _unsortedData = GetUnsortedData(length); 
         
         [Benchmark]
         public void QuickSortSpan() => TestQuickSortSpan(_unsortedData);
@@ -298,192 +303,84 @@ namespace Span
 
         #endregion // Algorithm tests
 
-        // TestSpanAPIs (For comparison with Array and Slow Span)
-        #region TestSpanAPIs
-
-        #region TestSpanConstructor<T>
+        [Benchmark]
+        public Span<byte> TestSpanConstructorByte() => new Span<byte>(bytes);
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfBytes))]
-        public Span<byte> TestSpanConstructorByte(byte[] a) => new Span<byte>(a);
-
-        [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfStrings))]
-        public Span<string> TestSpanConstructorString(string[] a) => new Span<string>(a);
-        
-        #endregion
+        public Span<string> TestSpanConstructorString() => new Span<string>(strings);
 
 #if NETCOREAPP2_1 // netcoreapp specific API https://github.com/dotnet/coreclr/issues/16126
-        #region TestSpanCreate<T>
         [Benchmark]
-        [ArgumentsSource(nameof(GetTestClassOfBytes))]
-        public Span<byte> TestSpanCreateByte(TestClass<byte> testClass) => MemoryMarshal.CreateSpan<byte>(ref testClass.C0[0], testClass.C0.Length);
+        public Span<byte> TestSpanCreateByte() => MemoryMarshal.CreateSpan<byte>(ref testClassByte.C0[0], testClassByte.C0.Length);
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetTestClassOfString))]
-        public Span<string> TestSpanCreateString(TestClass<string> testClass) => MemoryMarshal.CreateSpan<string>(ref testClass.C0[0], testClass.C0.Length);
-
-        #endregion
+        public Span<string> TestSpanCreateString() => MemoryMarshal.CreateSpan<string>(ref testClassString.C0[0], testClassString.C0.Length);
 #endif
 
-        #region TestMemoryMarshalGetReference<T>
+        [Benchmark]
+        public ref byte TestMemoryMarshalGetReferenceByte() => ref MemoryMarshal.GetReference(new Span<byte>(bytes));
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfBytes))]
-        public ref byte TestMemoryMarshalGetReferenceByte(byte[] a) => ref MemoryMarshal.GetReference(new Span<byte>(a));
+        public ref string TestMemoryMarshalGetReferenceString() => ref MemoryMarshal.GetReference(new Span<string>(strings));
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfStrings))]
-        public ref string TestMemoryMarshalGetReferenceString(string[] a) => ref MemoryMarshal.GetReference(new Span<string>(a));
-
-        #endregion
-
-        #region TestSpanIndexHoistable<T>
-        // benchmarks removed => we have plenty of indexer benchmarks in Indexer.cs
-        #endregion
-
-        #region TestArrayIndexHoistable<T>
-        // benchmarks removed => we have plenty of indexer benchmarks in Indexer.cs
-        #endregion
-
-        #region TestSpanIndexVariant<T>
-        // benchmarks removed => we have plenty of indexer benchmarks in Indexer.cs
-        #endregion
-
-        #region TestArrayIndexVariant<T>
-        // benchmarks removed => we have plenty of indexer benchmarks in Indexer.cs
-        #endregion
-
-        #region TestSpanSlice<T>
+        public Span<byte> TestSpanSliceByte() => new Span<byte>(bytes).Slice(bytes.Length / 2);
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfBytes))]
-        public Span<byte> TestSpanSliceByte(byte[] a) => new Span<byte>(a).Slice(a.Length / 2);
+        public Span<string> TestSpanSliceString() => new Span<string>(strings).Slice(strings.Length / 2);
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfStrings))]
-        public Span<string> TestSpanSliceString(string[]a) => new Span<string>(a).Slice(a.Length / 2);
-        
-        #endregion
-
-        #region TestSpanToArray<T>
+        public byte[] TestSpanToArrayByte() => new Span<byte>(bytes).ToArray();
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfBytes))]
-        public byte[] TestSpanToArrayByte(byte[] a) => new Span<byte>(a).ToArray();
+        public string[] TestSpanToArrayString()=> new Span<string>(strings).ToArray();
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfStrings))]
-        public string[] TestSpanToArrayString(string[] a)=> new Span<string>(a).ToArray();
-        
-        #endregion
-
-        #region TestSpanCopyTo<T>
-        [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfBytes))]
-        public void TestSpanCopyToByte(byte[] a) => new Span<byte>(a).CopyTo(Destination<byte>.Instance.array);
+        public void TestSpanCopyToByte() => new Span<byte>(bytes).CopyTo(Destination<byte>.Instance.array);
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfStrings))]
-        public void TestSpanCopyToString(string[] a) => new Span<string>(a).CopyTo(Destination<string>.Instance.array);
-        #endregion
-
-        #region TestArrayCopyTo<T>
+        public void TestSpanCopyToString() => new Span<string>(strings).CopyTo(Destination<string>.Instance.array);
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfBytes))]
-        public void TestArrayCopyToByte(byte[] a) => a.CopyTo(Destination<byte>.Instance.array, 0);
+        public void TestArrayCopyToByte() => bytes.CopyTo(Destination<byte>.Instance.array, 0);
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfStrings))]
-        public void TestArrayCopyToString(string[] a) => a.CopyTo(Destination<string>.Instance.array, 0);
-        #endregion
-
-        #region TestSpanFill<T>
+        public void TestArrayCopyToString() => strings.CopyTo(Destination<string>.Instance.array, 0);
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfBytes))]
-        public void TestSpanFillByte(byte[] a) => new Span<byte>(a).Fill(default(byte));
+        public void TestSpanFillByte() => new Span<byte>(bytes).Fill(default(byte));
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfStrings))]
-        public void TestSpanFillString(string[] a) => new Span<string>(a).Fill(default(string));
-        #endregion
-
-        #region TestSpanClear<T>
+        public void TestSpanFillString() => new Span<string>(strings).Fill(default(string));
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfBytes))]
-        public void TestSpanClearByte(byte[] a) => TestSpanClear<byte>(a);
+        public void TestSpanClearByte() => TestSpanClear<byte>(bytes);
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfStrings))]
-        public void TestSpanClearString(string[] a) => TestSpanClear<string>(a);
+        public void TestSpanClearString() => TestSpanClear<string>(strings);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static void TestSpanClear<T>(Span<T> span) => span.Clear();
 
-        #endregion
-
-        #region TestArrayClear<T>
+        [Benchmark]
+        public void TestArrayClearByte() => Array.Clear(bytes, 0, bytes.Length);
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfBytes))]
-        public void TestArrayClearByte(byte[] a) => Array.Clear(a, 0, a.Length);
+        public void TestArrayClearString() => Array.Clear(strings, 0, strings.Length);
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfStrings))]
-        public void TestArrayClearString(string[] a) => Array.Clear(a, 0, a.Length);
-
-        #endregion
-
-        #region TestSpanAsBytes<T>
+        public Span<byte> TestSpanAsBytesByte() => MemoryMarshal.AsBytes(new Span<byte>(bytes));
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfBytes))]
-        public Span<byte> TestSpanAsBytesByte(byte[] a) => MemoryMarshal.AsBytes(new Span<byte>(a));
+        public Span<byte> TestSpanAsBytesInt() => MemoryMarshal.AsBytes(new Span<int>(ints));
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfInts))]
-        public Span<byte> TestSpanAsBytesInt(int[] a) => MemoryMarshal.AsBytes(new Span<int>(a));
-
-        #endregion
-
-        #region TestSpanCast<T>
+        public void TestSpanCastFromByteToInt() => MemoryMarshal.Cast<byte, int>(bytes);
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfBytes))]
-        public void TestSpanCastFromByteToInt(byte[] a) => MemoryMarshal.Cast<byte, int>(a);
+        public void TestSpanCastFromIntToByte() => MemoryMarshal.Cast<int, byte>(ints);
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetArrayOfInts))]
-        public void TestSpanCastFromIntToByte(int[] a) => MemoryMarshal.Cast<int, byte>(a);
-
-        #endregion
-
-        #region TestSpanAsSpanStringChar<T>
-
-        public IEnumerable<string> GetRandomString()
-        {
-            StringBuilder sb = new StringBuilder();
-            Random rand = new Random(42);
-            char[] c = new char[1];
-            for (int i = 0; i < DefaultLength; i++)
-            {
-                c[0] = (char)rand.Next(32, 126);
-                sb.Append(new string(c));
-            }
-            string s = sb.ToString();
-
-            yield return s;
-        }
-
-        [Benchmark]
-        [ArgumentsSource(nameof(GetRandomString))]
-        public ReadOnlySpan<char> TestSpanAsSpanStringCharWrapper(string s) => s.AsSpan();
-
-        #endregion
-
-        #endregion // TestSpanAPIs
+        public ReadOnlySpan<char> TestSpanAsSpanStringCharWrapper() => randomString.AsSpan();
     }
 }
