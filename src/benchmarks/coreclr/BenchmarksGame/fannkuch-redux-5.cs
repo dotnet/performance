@@ -103,8 +103,10 @@ namespace BenchmarksGame
         }
 
         [Benchmark(Description = nameof(FannkuchRedux_5))]
-        [Arguments(10, false)]
-        public int Bench(int n, bool verbose)
+        [Arguments(10, 38)]
+        public int RunBench(int n, int expectedSum) => Bench(n, false); // expectedSum argument needs to remain to keep old benchmark id in BenchView, do NOT remove it
+
+        static int Bench(int n, bool verbose)
         {
             fact = new int[n + 1];
             fact[0] = 1;
