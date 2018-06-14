@@ -5,9 +5,11 @@
 // Solution of linear algebraic equations and matrix inversion.
 
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace Benchstone.BenchF
 {
+[BenchmarkCategory(Categories.CoreCLR, Categories.BenchF)]
 public class InvMt
 {
     public const int Iterations = 80;
