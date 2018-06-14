@@ -26,8 +26,9 @@ namespace BenchmarksGame
     public class Fasta_2
     {
         [Benchmark(Description = nameof(Fasta_2))]
-        [Arguments(5000, false)]
-        public void Bench(int n, bool verbose)
+        public void RunBench() => Bench(5000, false);
+
+        static void Bench(int n, bool verbose)
         {
             MakeCumulative(HomoSapiens);
             MakeCumulative(IUB);

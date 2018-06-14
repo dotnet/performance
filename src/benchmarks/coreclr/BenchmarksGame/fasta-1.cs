@@ -40,8 +40,9 @@ namespace BenchmarksGame
         static int seed = 42;
 
         [Benchmark(Description = nameof(Fasta_1))]
-        [Arguments(5000, false)]
-        public void Bench(int n, bool verbose)
+        public void RunBench() => Bench(5000, false);
+
+        static void Bench(int n, bool verbose)
         {
             MakeCumulative(IUB);
             MakeCumulative(HomoSapiens);
