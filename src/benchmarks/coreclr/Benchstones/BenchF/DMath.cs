@@ -5,6 +5,7 @@
 
 using BenchmarkDotNet.Attributes;
 using System;
+using System.Runtime.CompilerServices;
 using Benchmarks;
 
 namespace Benchstone.BenchF
@@ -49,8 +50,10 @@ public class DMath
     }
 
     [Benchmark(Description = nameof(DMath))]
-    [Arguments(Iterations)]
-    public bool Test(int loop)
+    public bool Test() => Bench(Iterations);
+    
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static bool Bench(int loop)
     {
         double[] sines = new double[91];
         double angle, radians, sine, worksine, temp, k;
