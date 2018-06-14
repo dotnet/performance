@@ -66,33 +66,19 @@ namespace Devirtualization
             BLUE = 2
         }
 
-        [Benchmark]
-        [ArgumentsSource(nameof(GetInputData))]
-        public bool ValueTupleCompareNoOpt(EqualityComparerFixture<ValueTuple<byte, E, int>> valueTupleFixture, ref ValueTuple<byte, E, int> v0)
-            => valueTupleFixture.CompareNoOpt(ref v0, ref v0);
+        private EqualityComparerFixture<ValueTuple<byte, E, int>> valueTupleFixture = new EqualityComparerFixture<ValueTuple<byte, E, int>>();
+        private ValueTuple<byte, E, int> v0 = new ValueTuple<byte, E, int>(3, E.RED, 11);
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetInputData))]
-        public bool ValueTupleCompare(EqualityComparerFixture<ValueTuple<byte, E, int>> valueTupleFixture, ref ValueTuple<byte, E, int> v0)
-            => valueTupleFixture.Compare(ref v0, ref v0);
+        public bool ValueTupleCompareNoOpt() => valueTupleFixture.CompareNoOpt(ref v0, ref v0);
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetInputData))]
-        public bool ValueTupleCompareCached(EqualityComparerFixture<ValueTuple<byte, E, int>> valueTupleFixture, ref ValueTuple<byte, E, int> v0)
-            => valueTupleFixture.CompareCached(ref v0, ref v0);
+        public bool ValueTupleCompare() => valueTupleFixture.Compare(ref v0, ref v0);
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetInputData))]
-        public bool ValueTupleCompareWrapped(EqualityComparerFixture<ValueTuple<byte, E, int>> valueTupleFixture, ref ValueTuple<byte, E, int> v0)
-            => valueTupleFixture.CompareWrapped(ref v0, ref v0);
+        public bool ValueTupleCompareCached() => valueTupleFixture.CompareCached(ref v0, ref v0);
 
-        public IEnumerable<object[]> GetInputData()
-        {
-            yield return new object[]
-            {
-                new EqualityComparerFixture<ValueTuple<byte, E, int>>(),
-                new ValueTuple<byte, E, int>(3, E.RED, 11)
-            };
-        }
+        [Benchmark]
+        public bool ValueTupleCompareWrapped() => valueTupleFixture.CompareWrapped(ref v0, ref v0);
     }
 }
