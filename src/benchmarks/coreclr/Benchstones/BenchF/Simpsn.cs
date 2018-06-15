@@ -15,7 +15,7 @@ public class Simpsn
     public const int Iterations = 90000;
 
     [Benchmark(Description = nameof(Simpsn))]
-    public bool Bench()
+    public bool Test()
     {
         double a, b, x, s, c, h, hov2, half, t1;
         int idbg, n, nm1;

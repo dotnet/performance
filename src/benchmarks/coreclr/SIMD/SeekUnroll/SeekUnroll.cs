@@ -58,8 +58,9 @@ public class SeekUnroll
 
     [Benchmark(Description = nameof(SeekUnroll))]
     [ArgumentsSource(nameof(ArrayedBoxedIndicesToTest))]
-    public bool Test(int index)
+    public bool Test(int boxedIndex) // the argument must be called boxedIndex to keep old benchmark id in BenchView, do NOT change it
     {
+        int index = boxedIndex;
         if (index >= Vector<Byte>.Count)
         {
             // FindByte assumes index is in range

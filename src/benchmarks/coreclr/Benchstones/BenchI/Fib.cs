@@ -23,7 +23,7 @@ public class Fib
     }
 
     [Benchmark(Description = nameof(Fib))]
-    public bool Bench() {
+    public bool Test() {
         int fib = Fibonacci(Number);
         return (fib == 46368);
     }

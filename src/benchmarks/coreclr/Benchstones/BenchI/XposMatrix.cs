@@ -13,6 +13,8 @@ namespace Benchstone.BenchI
 public class XposMatrix
 {
     public const int ArraySize = 100;
+    
+    int[][] matrixField = AllocArray<int>(ArraySize + 1, ArraySize + 1);
 
     static T[][] AllocArray<T>(int n1, int n2) {
         T[][] a = new T[n1][];
@@ -33,9 +35,9 @@ public class XposMatrix
     }
 
     [Benchmark(Description = nameof(XposMatrix))]
-    [ArgumentsSource(nameof(CreateMatrix))]
-    public bool Bench(int[][] matrix) {
-
+    public bool Test() {
+        int[][] matrix = matrixField;
+        
         int n = ArraySize;
         for (int i = 1; i <= n; i++) {
             for (int j = 1; j <= n; j++) {
@@ -54,11 +56,6 @@ public class XposMatrix
         }
 
         return true;
-    }
-
-    public IEnumerable<object> CreateMatrix()
-    {
-        yield return AllocArray<int>(ArraySize + 1, ArraySize + 1);
     }
 }
 }

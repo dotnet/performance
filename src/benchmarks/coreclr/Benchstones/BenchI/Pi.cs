@@ -12,6 +12,8 @@ namespace Benchstone.BenchI
 [BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchI)]
 public class Pi
 {
+    private int[] a = new int[3340];
+    
     static int[] ComputePi(int[] a) {
 
         int d = 4;
@@ -45,15 +47,9 @@ public class Pi
     }
 
     [Benchmark]
-    [ArgumentsSource(nameof(CreateArray))]
-    public bool Test(int[] a) {
+    public bool Test() {
         int[] digits = ComputePi(a);
         return (digits[0] == 3 && digits[1] == 1415 && digits[2] == 9265 && digits[250] == 1989);
-    }
-
-    public IEnumerable<object> CreateArray()
-    {
-        yield return new int[3340];
     }
 }
 }
