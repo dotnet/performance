@@ -11,6 +11,8 @@ namespace PerfLabTests
     [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
     public class StackWalk
     {
+        public static int InnerIterationCount = 1000; // do not change the value and keep it public static NOT-readonly, ported "as is" from CoreCLR repo
+        
         [Benchmark]
         public void Walk()
         {
@@ -70,7 +72,8 @@ namespace PerfLabTests
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static int Z(int a)
         {
-            GC.Collect(0);
+            for (int i = 0; i < InnerIterationCount; i++)
+                GC.Collect(0);
 
             return 55;
         }

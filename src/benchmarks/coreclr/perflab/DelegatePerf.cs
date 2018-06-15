@@ -16,69 +16,106 @@ namespace PerfLabTests
     [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
     public class DelegatePerf
     {
-        [Benchmark]
-        [ArgumentsSource(nameof(DelegateInvokeArguments))]
-        public void DelegateInvoke(DelegateLong dl, Object obj) => dl(obj, 100, 100);
-
-        public IEnumerable<object[]> DelegateInvokeArguments()
+        public static int InnerIterationCount200000 = 200000; // do not change the value and keep it public static NOT-readonly, ported "as is" from CoreCLR repo
+        public static int InnerIterationCount1000 = 1000; // do not change the value and keep it public static NOT-readonly, ported "as is" from CoreCLR repo
+        public static int InnerIterationCount10000 = 10000; // do not change the value and keep it public static NOT-readonly, ported "as is" from CoreCLR repo
+        
+        DelegateLong dlField;
+        Object objField;
+        MultiDelegate md1Field, md2Field, md3Field, md4Field, md5Field, md6Field, md7Field, md8Field, md9Field, md10Field;
+        MultiDelegate md100Field, md1000Field;
+        
+        [GlobalSetup(Target = nameof(DelegateInvoke))]
+        public void SetupDelegateInvoke()
         {
-            yield return new object[] { new DelegateLong(this.Invocable1), new Object() };
+            dlField = new DelegateLong(this.Invocable1);
+            objField = new Object();
+        }
+        
+        [Benchmark]
+        public long DelegateInvoke()
+        {
+            DelegateLong dl = dlField;
+            Object obj = objField;
+
+            long ret = 0;
+
+            for (int i = 0; i < InnerIterationCount200000; i++)
+                ret = dl(obj, 100, 100);
+
+            return ret;
+        }
+        
+        [IterationSetup(Target = nameof(MulticastDelegateCombineInvoke))]
+        public void SetupMulticastDelegateCombineInvoke()
+        {
+            md1Field = new MultiDelegate(this.Invocable2);
+            md2Field = new MultiDelegate(this.Invocable2);
+            md3Field = new MultiDelegate(this.Invocable2);
+            md4Field = new MultiDelegate(this.Invocable2);
+            md5Field = new MultiDelegate(this.Invocable2);
+            md6Field = new MultiDelegate(this.Invocable2);
+            md7Field = new MultiDelegate(this.Invocable2);
+            md8Field = new MultiDelegate(this.Invocable2);
+            md9Field = new MultiDelegate(this.Invocable2);
+            md10Field = new MultiDelegate(this.Invocable2);
         }
 
         [Benchmark]
-        [ArgumentsSource(nameof(MulticastDelegateCombineInvokerAguments))]
-        public MultiDelegate MulticastDelegateCombineInvoke(MultiDelegate md1, MultiDelegate md2, MultiDelegate md3, MultiDelegate md4, MultiDelegate md5, 
-            MultiDelegate md6, MultiDelegate md7, MultiDelegate md8, MultiDelegate md9, MultiDelegate md10)
+        public MultiDelegate MulticastDelegateCombineInvoke()
         {
-            MultiDelegate md = null;
+            MultiDelegate md1 =  md1Field;
+            MultiDelegate md2 =  md2Field;
+            MultiDelegate md3 =  md3Field;
+            MultiDelegate md4 =  md4Field;
+            MultiDelegate md5 =  md5Field;
+            MultiDelegate md6 =  md6Field;
+            MultiDelegate md7 =  md7Field;
+            MultiDelegate md8 =  md8Field;
+            MultiDelegate md9 =  md9Field;
+            MultiDelegate md10 = md10Field;
             
-            md = (MultiDelegate)Delegate.Combine(md1, md);
-            md = (MultiDelegate)Delegate.Combine(md2, md);
-            md = (MultiDelegate)Delegate.Combine(md3, md);
-            md = (MultiDelegate)Delegate.Combine(md4, md);
-            md = (MultiDelegate)Delegate.Combine(md5, md);
-            md = (MultiDelegate)Delegate.Combine(md6, md);
-            md = (MultiDelegate)Delegate.Combine(md7, md);
-            md = (MultiDelegate)Delegate.Combine(md8, md);
-            md = (MultiDelegate)Delegate.Combine(md9, md);
-            md = (MultiDelegate)Delegate.Combine(md10, md);
+            MultiDelegate md = null;
+
+            for (int i = 0; i < InnerIterationCount1000; i++)
+            {
+                md = (MultiDelegate)Delegate.Combine(md1, md);
+                md = (MultiDelegate)Delegate.Combine(md2, md);
+                md = (MultiDelegate)Delegate.Combine(md3, md);
+                md = (MultiDelegate)Delegate.Combine(md4, md);
+                md = (MultiDelegate)Delegate.Combine(md5, md);
+                md = (MultiDelegate)Delegate.Combine(md6, md);
+                md = (MultiDelegate)Delegate.Combine(md7, md);
+                md = (MultiDelegate)Delegate.Combine(md8, md);
+                md = (MultiDelegate)Delegate.Combine(md9, md);
+                md = (MultiDelegate)Delegate.Combine(md10, md);
+            }
 
             return md;
         }
-        
-        public IEnumerable<object[]> MulticastDelegateCombineInvokerAguments()
+
+        [GlobalSetup(Target = nameof(MulticastDelegateInvoke))]
+        public void SetupMulticastDelegateInvoke()
         {
-            yield return new object[]
-            {
-                new MultiDelegate(this.Invocable2), 
-                new MultiDelegate(this.Invocable2), 
-                new MultiDelegate(this.Invocable2), 
-                new MultiDelegate(this.Invocable2), 
-                new MultiDelegate(this.Invocable2), 
-                new MultiDelegate(this.Invocable2), 
-                new MultiDelegate(this.Invocable2),
-                new MultiDelegate(this.Invocable2), 
-                new MultiDelegate(this.Invocable2), 
-                new MultiDelegate(this.Invocable2)
-            };
+            objField = new Object();
+            
+            for (long i = 0; i < 100; i++)
+                md100Field = (MultiDelegate)Delegate.Combine(new MultiDelegate(this.Invocable2), md100Field);
+            
+            for (long i = 0; i < 1000; i++)
+                md1000Field = (MultiDelegate)Delegate.Combine(new MultiDelegate(this.Invocable2), md1000Field);
         }
 
         [Benchmark]
-        [ArgumentsSource(nameof(MulticastDelegateInvokeArguments))]
-        public void MulticastDelegateInvoke(int length, MultiDelegate md, Object obj) => md(obj, 100, 100);
-        
-        public IEnumerable<object[]> MulticastDelegateInvokeArguments()
+        [Arguments(100)]
+        [Arguments(1000)]
+        public void MulticastDelegateInvoke(int length)
         {
-            foreach (var length in new[] { 100, 1000 })
-            {
-                MultiDelegate md = null;
-                Object obj = new Object();
+            MultiDelegate md = length == 100 ? md100Field : md1000Field;
+            Object obj = objField;
 
-                for (long i = 0; i < length; i++)
-                    md = (MultiDelegate)Delegate.Combine(new MultiDelegate(this.Invocable2), md);
-                
-                yield return new object[] { length, md, obj };
-            }
+            for (int i = 0; i < InnerIterationCount10000; i++)
+                md(obj, 100, 100);
         }
 
         internal virtual long Invocable1(Object obj, long x, long y)

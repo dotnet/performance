@@ -8,7 +8,6 @@ using Benchmarks;
 
 namespace PerfLabTests
 {
-
     public interface IFoo
     {
     }
@@ -93,6 +92,8 @@ namespace PerfLabTests
     {
         public const int NUM_ARRAY_ELEMENTS = 100;
 
+        public static int InnerIterationCount = 100000; // do not change the value and keep it public static NOT-readonly, ported "as is" from CoreCLR repo
+
         public static int[] j;
         public static int[] k;
         public static Foo[] foo;
@@ -142,85 +143,153 @@ namespace PerfLabTests
         }
 
         [Benchmark]
-        public void ObjFooIsObj() => o = foo;
+        public void ObjFooIsObj()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                o = foo;
+        }
 
         [Benchmark]
-        public void ObjFooIsObj2() => o_ar = foo;
+        public void ObjFooIsObj2()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                o_ar = foo;
+        }
 
         [GlobalSetup(Target = nameof(ObjObjIsFoo))]
         public void SetupObjObjIsFoo() => o = foo;
         
         [Benchmark]
-        public void ObjObjIsFoo() => o_ar = (Object[])o;
+        public void ObjObjIsFoo()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                o_ar = (Object[]) o;
+        }
 
         [GlobalSetup(Target = nameof(FooObjIsFoo))]
         public void SetupFooObjIsFoo() => o = foo;
         
         [Benchmark]
-        public void FooObjIsFoo() => f = (Foo[])o;
+        public void FooObjIsFoo()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                f = (Foo[]) o;
+        }
 
         [GlobalSetup(Target = nameof(FooObjIsFoo2))]
         public void SetupFooObjIsFoo2() => o_ar = foo;
-        
-        [Benchmark]
-        public void FooObjIsFoo2() => f = (Foo[])o_ar;
 
         [Benchmark]
-        public void FooObjIsNull() => o = (Foo[])n;
+        public void FooObjIsFoo2()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                f = (Foo[]) o_ar;
+        }
+
+        [Benchmark]
+        public void FooObjIsNull()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                o = (Foo[]) n;
+        }
 
         [GlobalSetup(Target = nameof(FooObjIsDescendant))]
         public void SetupFooObjIsDescendant() => o = foo_5;
         
         [Benchmark]
-        public void FooObjIsDescendant() => f = (Foo[])o;
+        public void FooObjIsDescendant()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                f = (Foo[]) o;
+        }
 
         [Benchmark]
-        public void IFooFooIsIFoo() => ifo = foo;
-        
+        public void IFooFooIsIFoo()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                ifo = foo;
+        }
+
         [GlobalSetup(Target = nameof(IFooObjIsIFoo))]
         public void SetupIFooObjIsIFoo() => o = foo;
 
         [Benchmark]
-        public void IFooObjIsIFoo() => ifo = (IFoo[])o;
+        public void IFooObjIsIFoo()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                ifo = (IFoo[]) o;
+        }
 
         [GlobalSetup(Target = nameof(IFooObjIsIFooInterAlia))]
         public void SetupIFooObjIsIFooInterAlia() => o = foo2;
         
         [Benchmark]
-        public void IFooObjIsIFooInterAlia() => if_5 = (IFoo_5[])o;
+        public void IFooObjIsIFooInterAlia()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                if_5 = (IFoo_5[]) o;
+        }
 
         [GlobalSetup(Target = nameof(IFooObjIsDescendantOfIFoo))]
         public void SetupIFooObjIsDescendantOfIFoo() => o = foo_5;
         
         [Benchmark]
-        public void IFooObjIsDescendantOfIFoo() => ifo = (IFoo[])o;
+        public void IFooObjIsDescendantOfIFoo()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                ifo = (IFoo[]) o;
+        }
 
         [Benchmark]
-        public void ObjInt() => o = (Object)j;
+        public void ObjInt()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                o = (Object) j;
+        }
 
         [GlobalSetup(Target = nameof(IntObj))]
         public void SetupIntObj() => o = (Object)j;
-        
-        [Benchmark]
-        public void IntObj() => k = (int[])o;
 
         [Benchmark]
-        public void ObjScalarValueType() => o = svt;
+        public void IntObj()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                k = (int[]) o;
+        }
+
+        [Benchmark]
+        public void ObjScalarValueType()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                o = svt;
+        }
         
         [GlobalSetup(Target = nameof(ScalarValueTypeObj))]
         public void SetupScalarValueTypeObj() => o = svt;
+        
+        [Benchmark]
+        public void ScalarValueTypeObj()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                svt = (FooSVT[]) o;
+        }
 
         [Benchmark]
-        public void ScalarValueTypeObj() => svt = (FooSVT[])o;
-
-        [Benchmark]
-        public void ObjObjrefValueType() => o = (Object)orvt;
+        public void ObjObjrefValueType()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                o = (Object) orvt;
+        }
 
         [GlobalSetup(Target = nameof(ObjrefValueTypeObj))]
         public void SetupObjrefValueTypeObj() => o = (Object)orvt;
         
         [Benchmark]
-        public void ObjrefValueTypeObj() => orvt = (FooORVT[])o;
+        public void ObjrefValueTypeObj()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                orvt = (FooORVT[]) o;
+        }
         
         [GlobalSetup(Target = nameof(FooObjCastIfIsa))]
         public void SetupFooObjCastIfIsa() => o = foo;
@@ -228,44 +297,81 @@ namespace PerfLabTests
         [Benchmark]
         public void FooObjCastIfIsa()
         {
-            if (o is Foo[])
-                f = (Foo[])o;
+            for (int i = 0; i < InnerIterationCount; i++)
+                if (o is Foo[])
+                    f = (Foo[]) o;
         }
 
         [GlobalSetup(Target = nameof(CheckObjIsInterfaceYes))]
         public void SetupCheckObjIsInterfaceYes() => myClass1 = new MyClass1();
         
         [Benchmark]
-        public bool CheckObjIsInterfaceYes() => myClass1 is IMyInterface1;
+        public bool CheckObjIsInterfaceYes()
+        {
+            bool res = false;
+            for (int i = 0; i < InnerIterationCount; i++)
+                res = myClass1 is IMyInterface1;
+            return res;
+        }
 
         [GlobalSetup(Target = nameof(CheckObjIsInterfaceNo))]
         public void SetupCheckObjIsInterfaceNo() => myClass2 = new MyClass2();
         
         [Benchmark]
-        public bool CheckObjIsInterfaceNo() => myClass2 is IMyInterface1;
+        public bool CheckObjIsInterfaceNo()
+        {
+            bool res = false;
+            for (int i = 0; i < InnerIterationCount; i++)
+                res = myClass2 is IMyInterface1;
+            return res;
+        }
 
         [GlobalSetup(Target = nameof(CheckIsInstAnyIsInterfaceYes))]
         public void SetupCheckIsInstAnyIsInterfaceYes() => myClass4 = new MyClass4<List<string>>();
         
         [Benchmark]
-        public bool CheckIsInstAnyIsInterfaceYes() => myClass4 is IMyInterface1;
+        public bool CheckIsInstAnyIsInterfaceYes()
+        {
+            bool res = false;
+            for (int i = 0; i < InnerIterationCount; i++)
+                res = myClass4 is IMyInterface1;
+            return res;
+        }
 
         [GlobalSetup(Target = nameof(CheckIsInstAnyIsInterfaceNo))]
         public void SetupCheckIsInstAnyIsInterfaceNo() => myClass4 = new MyClass4<List<string>>();
         
         [Benchmark]
-        public bool CheckIsInstAnyIsInterfaceNo() => myClass4 is IMyInterface2;
+        public bool CheckIsInstAnyIsInterfaceNo()
+        {
+            bool res = false;
+            for (int i = 0; i < InnerIterationCount; i++)
+                res = myClass4 is IMyInterface2;
+            return res;
+        }
 
         [GlobalSetup(Target = nameof(CheckArrayIsInterfaceYes))]
         public void SetupCheckArrayIsInterfaceYes() => myClass1Arr = new MyClass1[5];
         
         [Benchmark]
-        public bool CheckArrayIsInterfaceYes() => myClass1Arr is IMyInterface1[];
+        public bool CheckArrayIsInterfaceYes()
+        {
+            bool res = false;
+            for (int i = 0; i < InnerIterationCount; i++)
+                res = myClass1Arr is IMyInterface1[];
+            return res;
+        }
 
         [GlobalSetup(Target = nameof(CheckArrayIsInterfaceNo))]
         public void SetupCheckArrayIsInterfaceNo() => myClass2Arr = new MyClass2[5];
         
         [Benchmark]
-        public bool CheckArrayIsInterfaceNo() => myClass2Arr is IMyInterface1[];
+        public bool CheckArrayIsInterfaceNo()
+        {
+            bool res = false;
+            for (int i = 0; i < InnerIterationCount; i++)
+                res = myClass2Arr is IMyInterface1[];
+            return res;
+        }
     }
 }

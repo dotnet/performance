@@ -3,6 +3,7 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
 using Benchmarks;
 
 namespace PerfLabTests
@@ -21,20 +22,54 @@ namespace PerfLabTests
     [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
     public class EnumPerf
     {
+        public static int InnerIterationCount = 300000; // do not change the value and keep it public static NOT-readonly, ported "as is" from CoreCLR repo
+        
         [Benchmark]
-        [Arguments(Color.Red, Color.White)]
-        public int EnumCompareTo(Color red, Color white) => red.CompareTo(white);
+        [Arguments(Color.Red)]
+        public void EnumCompareTo(Color color)
+        {
+            Color white = Color.White;
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                color.CompareTo(white);
+        }
 
         [Benchmark]
-        [Arguments(Color.Black)]
-        public Type ObjectGetType(Color @enum) => @enum.GetType();
+        public Type ObjectGetType()
+        {
+            Type tmp = null;
+            Color black = Color.Black;
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                tmp = black.GetType();
+
+            return tmp;
+        }
 
         [Benchmark]
-        [Arguments(Color.Black)]
-        public Type ObjectGetTypeNoBoxing(Object @object) => @object.GetType();
+        public Type ObjectGetTypeNoBoxing()
+        {
+            Type tmp = null;
+            object black = Color.Black;
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                tmp = black.GetType();
+
+            return tmp;
+        }
 
         [Benchmark]
-        [Arguments(Color.Black, Color.White)]
-        public bool EnumEquals(Color black, Color white) => black.Equals(white);
+        public bool EnumEquals()
+        {
+            Color black = Color.Black;
+            Color white = Color.White;
+            bool tmp = false;
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                tmp = black.Equals(white);
+
+            return tmp;
+        }
     }
+
 }

@@ -10,6 +10,8 @@ namespace PerfLabTests
     [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
     public class BlockCopyPerf
     {
+        public static int InnerIterationCount = 1000000; // do not change the value and keep it public static NOT-readonly, ported "as is" from CoreCLR repo
+        
         private byte[] bytes;
 
         [Params(0, 10, 100, 1000)]
@@ -23,6 +25,10 @@ namespace PerfLabTests
         }
 
         [Benchmark]
-        public void CallBlockCopy() => Buffer.BlockCopy(bytes, 0, bytes, numElements, numElements);
+        public void CallBlockCopy()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                Buffer.BlockCopy(bytes, 0, bytes, numElements, numElements);   
+        }
     }
 }

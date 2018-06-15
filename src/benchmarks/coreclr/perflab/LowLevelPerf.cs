@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
 using Benchmarks;
 
 namespace PerfLabTests
@@ -14,6 +13,8 @@ namespace PerfLabTests
     [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
     public class LowLevelPerf
     {
+        public static int InnerIterationCount = 100000; // do not change the value and keep it public static NOT-readonly, ported "as is" from CoreCLR repo
+        
         Class aClassFiled;
         LongHierarchyChildClass aLongHierarchyChildClassField;
         SealedClass aSealedClassField;
@@ -21,75 +22,92 @@ namespace PerfLabTests
         StructWithInterface aStructWithInterfaceField;
         AnInterface aInterfaceField;
         AnInterface aInterfaceField1;
-
-        [Benchmark(OperationsPerInvoke = 10)]
+        string stringField;
+        MyDelegate aInstanceDelegateField;
+        MyDelegate aStaticDelegateField;
+        GenericClass<int> aGenericClassWithIntField;
+        GenericClass<string> aGenericClassWithStringField; 
+        
+        [Benchmark]
         public void EmptyStaticFunction()
         {
-            Class.EmptyStaticFunction();
-            Class.EmptyStaticFunction();
-            Class.EmptyStaticFunction();
-            Class.EmptyStaticFunction();
-            Class.EmptyStaticFunction();
-            Class.EmptyStaticFunction();
-            Class.EmptyStaticFunction();
-            Class.EmptyStaticFunction();
-            Class.EmptyStaticFunction();
-            Class.EmptyStaticFunction();
+            for (int i = 0; i < InnerIterationCount; i++)
+            {
+                Class.EmptyStaticFunction();
+                Class.EmptyStaticFunction();
+                Class.EmptyStaticFunction();
+                Class.EmptyStaticFunction();
+                Class.EmptyStaticFunction();
+                Class.EmptyStaticFunction();
+                Class.EmptyStaticFunction();
+                Class.EmptyStaticFunction();
+                Class.EmptyStaticFunction();
+                Class.EmptyStaticFunction();
+            }
         }
 
-        [Benchmark(OperationsPerInvoke = 10)]
+        [Benchmark]
         public void EmptyStaticFunction5Arg()
         {
-            Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
-            Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
-            Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
-            Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
-            Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
-            Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
-            Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
-            Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
-            Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
-            Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
+            for (int i = 0; i < InnerIterationCount; i++)
+            {
+                Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
+                Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
+                Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
+                Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
+                Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
+                Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
+                Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
+                Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
+                Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
+                Class.EmptyStaticFunction5Arg(1, 2, 3, 4, 5);
+            }
         }
 
         [GlobalSetup(Target = nameof(EmptyInstanceFunction))]
         public void SetupEmptyInstanceFunction() => aClassFiled = new Class();
 
-        [Benchmark(OperationsPerInvoke = 10)]
+        [Benchmark]
         public void EmptyInstanceFunction()
         {
             Class aClass = aClassFiled;
 
-            aClass.EmptyInstanceFunction();
-            aClass.EmptyInstanceFunction();
-            aClass.EmptyInstanceFunction();
-            aClass.EmptyInstanceFunction();
-            aClass.EmptyInstanceFunction();
-            aClass.EmptyInstanceFunction();
-            aClass.EmptyInstanceFunction();
-            aClass.EmptyInstanceFunction();
-            aClass.EmptyInstanceFunction();
-            aClass.EmptyInstanceFunction();
+            for (int i = 0; i < InnerIterationCount; i++)
+            {
+                aClass.EmptyInstanceFunction();
+                aClass.EmptyInstanceFunction();
+                aClass.EmptyInstanceFunction();
+                aClass.EmptyInstanceFunction();
+                aClass.EmptyInstanceFunction();
+                aClass.EmptyInstanceFunction();
+                aClass.EmptyInstanceFunction();
+                aClass.EmptyInstanceFunction();
+                aClass.EmptyInstanceFunction();
+                aClass.EmptyInstanceFunction();
+            }
         }
 
         [GlobalSetup(Target = nameof(InterfaceInterfaceMethod))]
         public void SetupInterfaceInterfaceMethod() => aClassFiled = new Class();
         
-        [Benchmark(OperationsPerInvoke = 10)]
+        [Benchmark]
         public void InterfaceInterfaceMethod()
         {
             AnInterface aInterface = aClassFiled;
             
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
+            for (int i = 0; i < InnerIterationCount; i++)
+            {
+                CallInterfaceMethod(aInterface);
+                CallInterfaceMethod(aInterface);
+                CallInterfaceMethod(aInterface);
+                CallInterfaceMethod(aInterface);
+                CallInterfaceMethod(aInterface);
+                CallInterfaceMethod(aInterface);
+                CallInterfaceMethod(aInterface);
+                CallInterfaceMethod(aInterface);
+                CallInterfaceMethod(aInterface);
+                CallInterfaceMethod(aInterface);
+            }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -117,21 +135,13 @@ namespace PerfLabTests
             CallInterfaceMethod(new LongHierarchyClass12());
         }
 
-        [Benchmark(OperationsPerInvoke = 10)]
+        [Benchmark]
         public void InterfaceInterfaceMethodLongHierarchy()
         {
             var aInterface = aLongHierarchyChildClassField;
 
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
-            CallInterfaceMethod(aInterface);
+            for (int i = 0; i < InnerIterationCount; i++)
+                CallInterfaceMethod(aInterface);
         }
 
         [GlobalSetup(Target = nameof(InterfaceInterfaceMethodSwitchCallType))]
@@ -141,44 +151,31 @@ namespace PerfLabTests
             aInterfaceField1 = new LongHierarchyClass1();
         }
         
-        [Benchmark(OperationsPerInvoke = 10)]
+        [Benchmark]
         public void InterfaceInterfaceMethodSwitchCallType()
         {
             AnInterface aInterface = aInterfaceField;
             AnInterface aInterface1 = aInterfaceField1;
             
-            CallInterfaceMethod(aInterface); CallInterfaceMethod(aInterface1);
-            CallInterfaceMethod(aInterface); CallInterfaceMethod(aInterface1);
-            CallInterfaceMethod(aInterface); CallInterfaceMethod(aInterface1);
-            CallInterfaceMethod(aInterface); CallInterfaceMethod(aInterface1);
-            CallInterfaceMethod(aInterface); CallInterfaceMethod(aInterface1);
-            CallInterfaceMethod(aInterface); CallInterfaceMethod(aInterface1);
-            CallInterfaceMethod(aInterface); CallInterfaceMethod(aInterface1);
-            CallInterfaceMethod(aInterface); CallInterfaceMethod(aInterface1);
-            CallInterfaceMethod(aInterface); CallInterfaceMethod(aInterface1);
-            CallInterfaceMethod(aInterface); CallInterfaceMethod(aInterface1);
+            for (int i = 0; i < InnerIterationCount; i++)
+            {
+                CallInterfaceMethod(aInterface);
+                CallInterfaceMethod(aInterface1);
+            }
         }
         
         [GlobalSetup(Target = nameof(ClassVirtualMethod))]
         public void SetupClassVirtualMethod() => aClassFiled = new Class();
 
-        [Benchmark(OperationsPerInvoke = 10)]
+        [Benchmark]
         public int ClassVirtualMethod()
         {
             SuperClass aClass = aClassFiled;
 
             int x = 0;
-            
-            x = aClass.VirtualMethod();
-            x = aClass.VirtualMethod();
-            x = aClass.VirtualMethod();
-            x = aClass.VirtualMethod();
-            x = aClass.VirtualMethod();
-            x = aClass.VirtualMethod();
-            x = aClass.VirtualMethod();
-            x = aClass.VirtualMethod();
-            x = aClass.VirtualMethod();
-            x = aClass.VirtualMethod();
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                x = aClass.VirtualMethod();
             
             return x;
         }
@@ -186,23 +183,15 @@ namespace PerfLabTests
         [GlobalSetup(Target = nameof(SealedClassInterfaceMethod))]
         public void SetupSealedClassInterfaceMethod() => aSealedClassField = new SealedClass();
 
-        [Benchmark(OperationsPerInvoke = 10)]
+        [Benchmark]
         public int SealedClassInterfaceMethod()
         {
             SealedClass aSealedClass = aSealedClassField;
             
             int x = 0;
             
-            x = aSealedClass.InterfaceMethod();
-            x = aSealedClass.InterfaceMethod();
-            x = aSealedClass.InterfaceMethod();
-            x = aSealedClass.InterfaceMethod();
-            x = aSealedClass.InterfaceMethod();
-            x = aSealedClass.InterfaceMethod();
-            x = aSealedClass.InterfaceMethod();
-            x = aSealedClass.InterfaceMethod();
-            x = aSealedClass.InterfaceMethod();
-            x = aSealedClass.InterfaceMethod();
+            for (int i = 0; i < InnerIterationCount; i++)
+                x = aSealedClass.InterfaceMethod();
             
             return x;
         }
@@ -217,16 +206,8 @@ namespace PerfLabTests
 
             int x = 0;
             
-            x = aStructWithInterface.InterfaceMethod();
-            x = aStructWithInterface.InterfaceMethod();
-            x = aStructWithInterface.InterfaceMethod();
-            x = aStructWithInterface.InterfaceMethod();
-            x = aStructWithInterface.InterfaceMethod();
-            x = aStructWithInterface.InterfaceMethod();
-            x = aStructWithInterface.InterfaceMethod();
-            x = aStructWithInterface.InterfaceMethod();
-            x = aStructWithInterface.InterfaceMethod();
-            x = aStructWithInterface.InterfaceMethod();
+            for (int i = 0; i < InnerIterationCount; i++)
+                x = aStructWithInterface.InterfaceMethod();
             
             return x;
         }
@@ -235,95 +216,168 @@ namespace PerfLabTests
         public void SetupStaticIntPlus() => aClassFiled = new Class(); // it's goint to call static ctor
 
         [Benchmark]
-        public void StaticIntPlus() => Class.aStaticInt += 1;
+        public void StaticIntPlus()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                Class.aStaticInt += 1; // TODO: reconsider the design, the cost of inner loop iteration is as big as the benchmarked thing
+        }
+        
+        [GlobalSetup(Target = nameof(ObjectStringIsString))]
+        public void SetupObjectStringIsString() => stringField = "aString1";
 
         [Benchmark]
-        [Arguments("aString1")]
-        public bool ObjectStringIsString(object aObjectString) => aObjectString is String;
+        public bool ObjectStringIsString()
+        {
+            object aObjectString = stringField;
+            bool b = false;
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                b = aObjectString is String;
+
+            return b;
+        }
 
         [GlobalSetup(Target = nameof(NewDelegateClassEmptyInstanceFn))]
         public void SetupNewDelegateClassEmptyInstanceFn() => aClassFiled = new Class();
+
+        [Benchmark]
+        public void NewDelegateClassEmptyInstanceFn()
+        {
+            Class aClass = aClassFiled;
+            MyDelegate aMyDelegate;
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                aMyDelegate = new MyDelegate(aClass.EmptyInstanceFunction);
+        }
+
+        [Benchmark]
+        public void NewDelegateClassEmptyStaticFn()
+        {
+            MyDelegate aMyDelegate;
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                aMyDelegate = new MyDelegate(Class.EmptyStaticFunction);
+        }
         
-        [Benchmark]
-        public MyDelegate NewDelegateClassEmptyInstanceFn() => new MyDelegate(aClassFiled.EmptyInstanceFunction);
-
-        [Benchmark]
-        public MyDelegate NewDelegateClassEmptyStaticFn() => new MyDelegate(Class.EmptyStaticFunction);
-
-        public IEnumerable<object> GetInstanceDelegateArguments()
+        [GlobalSetup(Target = nameof(InstanceDelegate))]
+        public void SetupInstanceDelegate()
         {
             Class aClass = new Class();
-            MyDelegate aInstanceDelegate = new MyDelegate(aClass.EmptyInstanceFunction);
-
-            yield return aInstanceDelegate;
+            aInstanceDelegateField = new MyDelegate(aClass.EmptyInstanceFunction);
         }
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetInstanceDelegateArguments))]
-        public int InstanceDelegate(MyDelegate aInstanceDelegate) => aInstanceDelegate();
-        
-        public IEnumerable<object> GetStaticDelegateArguments()
+        public void InstanceDelegate()
         {
-            yield return new MyDelegate(Class.EmptyStaticFunction);
+            MyDelegate aInstanceDelegate = aInstanceDelegateField;
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                aInstanceDelegate();
         }
         
-        [Benchmark]
-        [ArgumentsSource(nameof(GetStaticDelegateArguments))]
-        public void StaticDelegate(MyDelegate aStaticDelegate) => aStaticDelegate();
+        [GlobalSetup(Target = nameof(StaticDelegate))]
+        public void SetupStaticDelegate() => aStaticDelegateField = new MyDelegate(Class.EmptyStaticFunction);
 
-        public IEnumerable<object> GetMeasureEventsArguments()
+        [Benchmark]
+        public void StaticDelegate()
+        {
+            MyDelegate aStaticDelegate = aStaticDelegateField;
+            
+            for (int i = 0; i < InnerIterationCount; i++)
+                aStaticDelegate();
+        }
+
+        [GlobalSetup(Target = nameof(MeasureEvents))]
+        public void SetupMeasureEvents()
         {
             Class aClass = new Class();
             aClass.AnEvent += new MyDelegate(aClass.EmptyInstanceFunction);
 
-            yield return aClass;
+            aClassFiled = aClass;
         }
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetMeasureEventsArguments))]
-        public void MeasureEvents(Class aClass) => aClass.MeasureFire100();
-
-        public IEnumerable<object> GetGenericClassWithIntGenericInstanceFieldArguments()
+        public void MeasureEvents()
         {
-            yield return new GenericClass<int>();
-        }
-        
-        [Benchmark]
-        [ArgumentsSource(nameof(GetGenericClassWithIntGenericInstanceFieldArguments))]
-        public void GenericClassWithIntGenericInstanceField(GenericClass<int> aGenericClassWithInt) 
-            => aGenericClassWithInt.aGenericInstanceFieldT = 1;
-
-        [Benchmark]
-        public void GenericClassGenericStaticField() => GenericClass<int>.aGenericStaticFieldT = 1;
-
-        public IEnumerable<object> GetGenericClassGenericInstanceMethodArguments()
-        {
-            yield return new GenericClass<int>();
-        }
-
-        [Benchmark]
-        [ArgumentsSource(nameof(GetGenericClassGenericInstanceMethodArguments))]
-        public int GenericClassGenericInstanceMethod(GenericClass<int> aGenericClassWithInt)
-            => aGenericClassWithInt.ClassGenericInstanceMethod();
-
-        [Benchmark]
-        public int GenericClassGenericStaticMethod() => GenericClass<int>.ClassGenericStaticMethod();
-
-        [Benchmark]
-        public int GenericGenericMethod() => Class.GenericMethod<int>();
-
-        public IEnumerable<object[]> GetGenericClassWithSTringGenericInstanceMethodArguments()
-        {
-            GenericClass<string> aGenericClassWithString = new GenericClass<string>();
-            string aString = "foo";
+            Class aClass = aClassFiled;
             
-            yield return new object[2] { aGenericClassWithString, aString };
+            for (int i = 0; i < InnerIterationCount; i++)
+                aClass.MeasureFire100();
+        }
+
+        [GlobalSetup(Target = nameof(GenericClassWithIntGenericInstanceField))]
+        public void SetupGenericClassWithIntGenericInstanceField() => aGenericClassWithIntField = new GenericClass<int>();
+
+        [Benchmark]
+        public void GenericClassWithIntGenericInstanceField()
+        {
+            GenericClass<int> aGenericClassWithInt = aGenericClassWithIntField;
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                aGenericClassWithInt.aGenericInstanceFieldT = 1;
         }
 
         [Benchmark]
-        [ArgumentsSource(nameof(GetGenericClassWithSTringGenericInstanceMethodArguments))]
-        public void GenericClassWithSTringGenericInstanceMethod(GenericClass<string> aGenericClassWithString, string aString)
-            => aGenericClassWithString.aGenericInstanceFieldT = aString;
+        public void GenericClassGenericStaticField()
+        {
+            for (int i = 0; i < InnerIterationCount; i++)
+                GenericClass<int>.aGenericStaticFieldT = 1;
+        }
+
+        [GlobalSetup(Target = nameof(GenericClassGenericInstanceMethod))]
+        public void SetupGenericClassGenericInstanceMethod() => aGenericClassWithIntField = new GenericClass<int>();
+
+        [Benchmark]
+        public int GenericClassGenericInstanceMethod()
+        {
+            GenericClass<int> aGenericClassWithInt = aGenericClassWithIntField;
+
+            int x = 0;
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                x = aGenericClassWithInt.ClassGenericInstanceMethod();
+
+            return x;
+        }
+
+        [Benchmark]
+        public int GenericClassGenericStaticMethod()
+        {
+            int x = 0;
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                x = GenericClass<int>.ClassGenericStaticMethod();
+
+            return x;
+        }
+
+        [Benchmark]
+        public int GenericGenericMethod()
+        {
+            int x = 0;
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                x = Class.GenericMethod<int>();
+
+            return x;
+        }
+
+        [GlobalSetup(Target = nameof(GenericClassWithSTringGenericInstanceMethod))]
+        public void SetupGenericClassWithSTringGenericInstanceMethod()
+        {
+            aGenericClassWithStringField = new GenericClass<string>();
+            stringField = "foo";
+        }
+
+        [Benchmark]
+        public void GenericClassWithSTringGenericInstanceMethod()
+        {
+            GenericClass<string> aGenericClassWithString = aGenericClassWithStringField;
+            string aString = stringField;
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                aGenericClassWithString.aGenericInstanceFieldT = aString;
+        }
 
         [GlobalSetup(Target = nameof(ForeachOverList100Elements))]
         public void SetupForeachOverList100Elements() => iListField = Enumerable.Range(0, 100).ToList();
@@ -334,24 +388,52 @@ namespace PerfLabTests
             List<int> iList = iListField;
 
             int iResult = 0;
-            
-            foreach (int j in iList)
-                iResult = j;
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                foreach (int j in iList)
+                    iResult = j;
 
             return iResult;
         }
+        
+        [GlobalSetup(Target = nameof(TypeReflectionObjectGetType))]
+        public void SetupTypeReflectionObjectGetType() => stringField = "aString";
 
         [Benchmark]
-        [Arguments("aString")]
-        public Type TypeReflectionObjectGetType(object anObject) => anObject.GetType();
+        public Type TypeReflectionObjectGetType()
+        {
+            Type type = null;
+            object anObject= stringField;
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                type = anObject.GetType();
+            
+            return type;
+        }
 
         [Benchmark]
-        [Arguments(new object[1] { new string[0] })] // arguments accept "params object[]", when we pass just a string[] it's recognized as an array of params
-        public Type TypeReflectionArrayGetType(object anArray) => anArray.GetType();
+        public Type TypeReflectionArrayGetType()
+        {
+            Type type = null;
+            object anArray = Array.Empty<string>();
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                type = anArray.GetType();
+
+            return type;
+        }
 
         [Benchmark]
-        [Arguments(Int32.MaxValue)]
-        public string IntegerFormatting(int number) => number.ToString();
+        public string IntegerFormatting()
+        {
+            int number = Int32.MaxValue;
+            string result = null;
+
+            for (int i = 0; i < InnerIterationCount; i++)
+                result = number.ToString();
+
+            return result;
+        }
     }
 
     #region Support Classes
