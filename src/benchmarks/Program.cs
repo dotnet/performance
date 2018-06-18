@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,6 +12,7 @@ using BenchmarkDotNet.Exporters.Json;
 using BenchmarkDotNet.Filters;
 using BenchmarkDotNet.Horology;
 using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Mathematics;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.CoreRt;
 using BenchmarkDotNet.Toolchains.CsProj;
@@ -81,15 +82,16 @@ namespace Benchmarks
                 case "dry":
                     return Job.Dry;
                 case "short":
-                    return Job.ShortRun;
+                    return Job.ShortRun.WithOutlierMode(options.Outliers);
                 case "medium":
-                    return Job.MediumRun;
+                    return Job.MediumRun.WithOutlierMode(options.Outliers);
                 case "long":
                     return Job.LongRun;
                 default: // the recommended settings
                     return Job.Default
                         .WithIterationTime(TimeInterval.FromSeconds(0.25)) // the default is 0.5s per iteration, which is slighlty too much for us
                         .WithWarmupCount(1) // 1 warmup is enough for our purpose
+                        .WithOutlierMode(options.Outliers)
                         .WithMaxTargetIterationCount(20);  // we don't want to run more that 20 iterations
             }
         }
@@ -257,6 +259,9 @@ namespace Benchmarks
         
         [Option("baseJob", Required = false, Default = "Default", HelpText = "Dry/Short/Medium/Long or Default (which is actually default value)")]
         public string BaseJob { get; set; }
+        
+        [Option("outliers", Required = false, Default = OutlierMode.OnlyUpper, HelpText = "None/OnlyUpper/OnlyLower/All (OnlyUpper is default value)")]
+        public OutlierMode Outliers { get; set; }
     }
 
     /// <summary>
