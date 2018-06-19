@@ -70,7 +70,7 @@ namespace Benchmarks
 
             config = config.With(JsonExporter.Full); // make sure we export to Json (for BenchView integration purpose)
 
-            config = config.With(StatisticColumn.Min, StatisticColumn.Max);
+            config = config.With(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max);
             
             return config;
         }
