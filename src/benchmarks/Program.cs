@@ -44,11 +44,11 @@ namespace Benchmarks
         {
             var baseJob = GetBaseJob(options);
 
-            var jobs = GetJobs(options, baseJob).ToArray();
+            var baseJobPermutations = GetBaseJobPermutations(baseJob, options).ToArray(); 
+            var jobs = baseJobPermutations.SelectMany(job => GetJobs(options, job)).ToArray();
 
-            var config = DefaultConfig.Instance
-                .With(jobs.Any() ? jobs : new[] { baseJob });
-
+            var config = DefaultConfig.Instance.With(jobs.Any() ? jobs : baseJobPermutations);
+            
             if (options.UseMemoryDiagnoser)
                 config = config.With(MemoryDiagnoser.Default);
             if (options.UseDisassemblyDiagnoser)
@@ -77,25 +77,62 @@ namespace Benchmarks
 
         private static Job GetBaseJob(Options options)
         {
+            Job baseJob = null;
+            
             switch (options.BaseJob.ToLowerInvariant())
             {
                 case "dry":
-                    return Job.Dry;
+                    baseJob = Job.Dry;
+                    break;
                 case "short":
-                    return Job.ShortRun.WithOutlierMode(options.Outliers);
+                    baseJob = Job.ShortRun;
+                    break;
                 case "medium":
-                    return Job.MediumRun.WithOutlierMode(options.Outliers);
+                    baseJob = Job.MediumRun.WithOutlierMode(options.Outliers);
+                    break;
                 case "long":
-                    return Job.LongRun;
+                    baseJob = Job.LongRun;
+                    break;
                 default: // the recommended settings
-                    return Job.Default
+                    baseJob = Job.Default
                         .WithIterationTime(TimeInterval.FromSeconds(0.25)) // the default is 0.5s per iteration, which is slighlty too much for us
                         .WithWarmupCount(1) // 1 warmup is enough for our purpose
                         .WithOutlierMode(options.Outliers)
                         .WithMaxTargetIterationCount(20);  // we don't want to run more that 20 iterations
+                    break;
             }
+
+            baseJob = baseJob.WithOutlierMode(options.Outliers);
+            
+            if (options.Affinity.HasValue)
+                baseJob = baseJob.WithAffinity((IntPtr) options.Affinity.Value);
+
+            return baseJob;
         }
-        
+
+        private static IEnumerable<Job> GetBaseJobPermutations(Job baseJob, Options options)
+        {
+            IEnumerable<Job> CreateLoopAligmentPermutations(Job job)
+            {
+                yield return job.With(new[] {new EnvironmentVariable("COMPlus_JitAlignLoops", "1")});
+                yield return job.With(new[] {new EnvironmentVariable("COMPlus_JitAlignLoops", "0")});
+            }
+            
+            IEnumerable<Job> CreateAffinityPermutations(Job job)
+            {
+                yield return job;
+                yield return job.WithAffinity((IntPtr)options.Affinity.Value);
+            }
+
+            Job[] jobs = { baseJob };
+            if (options.TestAlignLoops)
+                jobs = jobs.SelectMany(CreateLoopAligmentPermutations).ToArray();
+            if (options.TestAffinity && options.Affinity.HasValue)
+                jobs = jobs.SelectMany(CreateAffinityPermutations).ToArray();
+
+            return jobs;
+        }
+
         private static IEnumerable<Job> GetJobs(Options options, Job baseJob)
         {
             if (options.RunInProcess)
@@ -262,6 +299,15 @@ namespace Benchmarks
         
         [Option("outliers", Required = false, Default = OutlierMode.OnlyUpper, HelpText = "None/OnlyUpper/OnlyLower/All (OnlyUpper is default value)")]
         public OutlierMode Outliers { get; set; }
+        
+        [Option("testAlignment", Required = false, Default = false, HelpText = "Test COMPlus_JitAlignLoop 0 vs 1")]
+        public bool TestAlignLoops { get; set; }
+        
+        [Option("testAffinity", Required = false, Default = false, HelpText = "Test affinity set vs no affinity")]
+        public bool TestAffinity { get; set; }
+        
+        [Option("affinity", Required = false, HelpText = "Affinity mask to set for the benchmark process")]
+        public int? Affinity { get; set; }
     }
 
     /// <summary>
