@@ -15,18 +15,21 @@ namespace PerfLabTests
     {
         public static int InnerIterationCount = 100000; // do not change the value and keep it public static NOT-readonly, ported "as is" from CoreCLR repo
         
-        Class aClassFiled;
-        LongHierarchyChildClass aLongHierarchyChildClassField;
-        SealedClass aSealedClassField;
-        List<int> iListField;
-        StructWithInterface aStructWithInterfaceField;
-        AnInterface aInterfaceField;
-        AnInterface aInterfaceField1;
-        string stringField;
-        MyDelegate aInstanceDelegateField;
-        MyDelegate aStaticDelegateField;
-        GenericClass<int> aGenericClassWithIntField;
-        GenericClass<string> aGenericClassWithStringField; 
+    // following fields are static public on purpose! to make sure JIT does not optimize the benchmarks to constants, do NOT change it
+        public static Class aClassFiled;
+        public static LongHierarchyChildClass aLongHierarchyChildClassField;
+        public static SealedClass aSealedClassField;
+        public static List<int> iListField;
+        public static StructWithInterface aStructWithInterfaceField;
+        public static AnInterface aInterfaceField;
+        public static AnInterface aInterfaceField1;
+        public static string stringField;
+        public static MyDelegate aInstanceDelegateField;
+        public static MyDelegate aStaticDelegateField;
+        public static GenericClass<int> aGenericClassWithIntField;
+        public static GenericClass<string> aGenericClassWithStringField;
+        public static object aObjectStringField;
+        public static object aObjectArrayOfStringField;
         
         [Benchmark]
         public void EmptyStaticFunction()
@@ -223,16 +226,15 @@ namespace PerfLabTests
         }
         
         [GlobalSetup(Target = nameof(ObjectStringIsString))]
-        public void SetupObjectStringIsString() => stringField = "aString1";
+        public void SetupObjectStringIsString() => aObjectStringField = "aString1";
 
         [Benchmark]
         public bool ObjectStringIsString()
         {
-            object aObjectString = stringField;
             bool b = false;
 
             for (int i = 0; i < InnerIterationCount; i++)
-                b = aObjectString is String;
+                b = aObjectStringField is String;
 
             return b;
         }
@@ -311,10 +313,8 @@ namespace PerfLabTests
         [Benchmark]
         public void GenericClassWithIntGenericInstanceField()
         {
-            GenericClass<int> aGenericClassWithInt = aGenericClassWithIntField;
-
             for (int i = 0; i < InnerIterationCount; i++)
-                aGenericClassWithInt.aGenericInstanceFieldT = 1;
+                aGenericClassWithIntField.aGenericInstanceFieldT = 1;
         }
 
         [Benchmark]
@@ -403,22 +403,23 @@ namespace PerfLabTests
         public Type TypeReflectionObjectGetType()
         {
             Type type = null;
-            object anObject= stringField;
 
             for (int i = 0; i < InnerIterationCount; i++)
-                type = anObject.GetType();
+                type = stringField.GetType();
             
             return type;
         }
+
+        [GlobalSetup(Target = nameof(TypeReflectionArrayGetType))]
+        public void Setup() => aObjectArrayOfStringField = new string[0];
 
         [Benchmark]
         public Type TypeReflectionArrayGetType()
         {
             Type type = null;
-            object anArray = Array.Empty<string>();
 
             for (int i = 0; i < InnerIterationCount; i++)
-                type = anArray.GetType();
+                type = aObjectArrayOfStringField.GetType();
 
             return type;
         }
