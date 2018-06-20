@@ -104,7 +104,7 @@ namespace Benchmarks
 
             baseJob = baseJob.WithOutlierMode(options.Outliers);
             
-            if (options.Affinity.HasValue)
+            if (options.Affinity.HasValue && !options.TestAffinity)
                 baseJob = baseJob.WithAffinity((IntPtr) options.Affinity.Value);
 
             return baseJob;

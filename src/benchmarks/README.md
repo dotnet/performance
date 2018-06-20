@@ -239,3 +239,35 @@ var config = DefaultConfig.Instance
             .ToToolchain()));
 ```
 
+## Testing how Processor Affinity and Loop Alignment affect results
+
+To run the benchmarks with specific Processor Affinity, you need to provide the processor mask as an argument called `--affinity`.
+
+Example: `dotnet run -c Release -f netcoreapp2.1 -- --affinity=8`
+
+To run same benchmarks with and without specific Processor Affinity you need to use `--testAffinity` and also provide the mask with `--affinity`
+
+Example: `dotnet run -c Release -f netcoreapp2.1 -- --class=BinaryTrees_2 --affinity=8 --testAffinity`
+
+|        Method |     Affinity |
+|-------------- |------------- |
+| BinaryTrees_2 | 000000001000 |
+| BinaryTrees_2 | 111111111111 |
+
+To test how loop alignment affects the results, you can use `--testAlignment` which is going to run the benchmarks with env var `COMPlus_JitAlignLoops` set to `0` and `1`
+
+Example: `dotnet run -c Release -f netcoreapp2.1 -- --class=BinaryTrees_2 --testAlignment`
+
+|        Method |    EnvironmentVariables |
+|-------------- |------------------------ |
+| BinaryTrees_2 | COMPlus_JitAlignLoops=0 |
+| BinaryTrees_2 | COMPlus_JitAlignLoops=1 |
+
+**Note:** You can combine `--testAlignment` with `--testAffinity` which will results in 4 different benchmark runs:
+
+|        Method |     Affinity |    EnvironmentVariables |
+|-------------- |------------- |------------------------ |
+| BinaryTrees_2 | 000000001000 | COMPlus_JitAlignLoops=0 |
+| BinaryTrees_2 | 000000001000 | COMPlus_JitAlignLoops=1 |
+| BinaryTrees_2 | 111111111111 | COMPlus_JitAlignLoops=0 |
+| BinaryTrees_2 | 111111111111 | COMPlus_JitAlignLoops=1 |
