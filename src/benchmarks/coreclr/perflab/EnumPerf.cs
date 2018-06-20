@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using Benchmarks;
@@ -24,6 +25,9 @@ namespace PerfLabTests
     {
         public static int InnerIterationCount = 300000; // do not change the value and keep it public static NOT-readonly, ported "as is" from CoreCLR repo
         
+        public static Color blackColor;
+        public static object blackObject;
+        
         [Benchmark]
         [Arguments(Color.Red)]
         public void EnumCompareTo(Color color)
@@ -34,26 +38,30 @@ namespace PerfLabTests
                 color.CompareTo(white);
         }
 
-        [Benchmark]
+        [GlobalSetup(Target = nameof(ObjectGetType))]
+        public void SetupObjectGetType() => blackColor = Color.Black;
+
+        // [Benchmark] disabled for now -> is optimized by JIT to an empty loop, #42
         public Type ObjectGetType()
         {
             Type tmp = null;
-            Color black = Color.Black;
-
+        
             for (int i = 0; i < InnerIterationCount; i++)
-                tmp = black.GetType();
-
+                tmp = blackColor.GetType();
+        
             return tmp;
         }
+
+        [GlobalSetup(Target = nameof(ObjectGetTypeNoBoxing))]
+        public void SetupObjectGetTypeNoBoxing() => blackObject = Color.Black;
 
         [Benchmark]
         public Type ObjectGetTypeNoBoxing()
         {
             Type tmp = null;
-            object black = Color.Black;
 
             for (int i = 0; i < InnerIterationCount; i++)
-                tmp = black.GetType();
+                tmp = blackObject.GetType();
 
             return tmp;
         }
