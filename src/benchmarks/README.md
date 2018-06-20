@@ -56,13 +56,13 @@ BenchmarkDotNet by default exports the results to GitHub markdown, so you can ju
 You can filter the benchmarks by namespace, category, type name and method name. Examples:
 
 * `dotnet run -c Release -f netcoreapp2.1 -- --categories CoreCLR Span` - will run all the benchmarks that belong to CoreCLR **AND** Span category
-* `dotnet run -c Release -f netcoreapp2.1 -- --categories CoreCLR CoreFX` - will run all the benchmarks that belong to CoreCLR **OR** CoreFX category
-* `dotnet run -c Release -f netcoreapp2.1 -- --namespaces=BenchmarksGame` - will run all the benchmarks from BenchmarksGame namespace
-* `dotnet run -c Release -f netcoreapp2.1 -- --methods=ToStream` - will run all the benchmarks with method name ToStream
-* `dotnet run -c Release -f netcoreapp2.1 -- --classes=Richards` - will run all the benchmarks with type name Richards
+* `dotnet run -c Release -f netcoreapp2.1 -- --anyCategories CoreCLR CoreFX` - will run all the benchmarks that belong to CoreCLR **OR** CoreFX category
+* `dotnet run -c Release -f netcoreapp2.1 -- --namespace=BenchmarksGame` - will run all the benchmarks from BenchmarksGame namespace
+* `dotnet run -c Release -f netcoreapp2.1 -- --method=ToStream` - will run all the benchmarks with method name ToStream
+* `dotnet run -c Release -f netcoreapp2.1 -- --class=Richards` - will run all the benchmarks with type name Richards
 
 **Note:** To print a single summary for all of the benchmarks, use `--join`. 
-Example: `dotnet run -c Release -f netcoreapp2.1 -- --join --namespaces=BenchmarksGame` - will run all of the benchmarks from BenchmarksGame namespace and print a single summary.
+Example: `dotnet run -c Release -f netcoreapp2.1 -- --join --namespace=BenchmarksGame` - will run all of the benchmarks from BenchmarksGame namespace and print a single summary.
 
 ## All Statistics
 

@@ -276,28 +276,28 @@ namespace Benchmarks
         [Option("coreFxBin", Required = false, HelpText = @"Optional path to folder with CoreFX NuGet packages, Example: ""C:\Projects\forks\corefx\bin\packages\Release""")]
         public string CoreFxBinPackagesPath { get; set; }
         
-        [Option("categories", Required = false, HelpText = "All Categories to run")]
+        [Option("categories", Required = false, HelpText = "Categories to run. If few are provided, only the benchmarks which belong to all of them are going to be executed")]
         public IEnumerable<string> AllCategories { get; set; }
         
         [Option("anyCategories", Required = false, HelpText = "Any Categories to run")]
         public IEnumerable<string> AnyCategories { get; set; }
         
-        [Option("namespaces", Required = false, HelpText = "Namespaces to run")]
+        [Option("namespace", Required = false, HelpText = "Namespace(s) to run")]
         public IEnumerable<string> Namespaces { get; set; }
         
-        [Option("methods", Required = false, HelpText = "Methods to run")]
+        [Option("method", Required = false, HelpText = "Method(s) to run")]
         public IEnumerable<string> MethodNames { get; set; }
         
-        [Option("classes", Required = false, HelpText = "Types with benchmarks to run")]
+        [Option("class", Required = false, HelpText = "Class(es) with benchmarks to run")]
         public IEnumerable<string> TypeNames { get; set; }
         
         [Option("join", Required = false, Default = false, HelpText = "Prints single table with results for all benchmarks")]
         public bool Join { get; set; }
         
-        [Option("baseJob", Required = false, Default = "Default", HelpText = "Dry/Short/Medium/Long or Default (which is actually default value)")]
+        [Option("baseJob", Required = false, Default = "Default", HelpText = "Dry/Short/Medium/Long or Default")]
         public string BaseJob { get; set; }
         
-        [Option("outliers", Required = false, Default = OutlierMode.OnlyUpper, HelpText = "None/OnlyUpper/OnlyLower/All (OnlyUpper is default value)")]
+        [Option("outliers", Required = false, Default = OutlierMode.OnlyUpper, HelpText = "None/OnlyUpper/OnlyLower/All")]
         public OutlierMode Outliers { get; set; }
         
         [Option("testAlignment", Required = false, Default = false, HelpText = "Test COMPlus_JitAlignLoop 0 vs 1")]
