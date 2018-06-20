@@ -98,7 +98,7 @@ namespace Benchmarks
                         .WithIterationTime(TimeInterval.FromSeconds(0.25)) // the default is 0.5s per iteration, which is slighlty too much for us
                         .WithWarmupCount(1) // 1 warmup is enough for our purpose
                         .WithOutlierMode(options.Outliers)
-                        .WithMaxTargetIterationCount(20);  // we don't want to run more that 20 iterations
+                        .WithMaxIterationCount(20);  // we don't want to run more that 20 iterations
                     break;
             }
 
