@@ -58,7 +58,7 @@ namespace Benchmarks
 	    {
 		    using(StreamWriter writer = new StreamWriter("results.csv"))
 		    {
-			    writer.WriteLine("Id;XunitAllocated;BdnAllocated;GuessedScaleFactor;xUnitMin;bdntMin;xUnitAvg;bdnAvg;xUnitMax;bdnMax");
+			    writer.WriteLine("Id;ScaleFactor;XunitAllocated;BdnAllocated;xUnitMin;xUnitAvg;xUnitMax;bdnMin;bdnAvg;bdnMax");
 		    
 				foreach (var xUnitResult in xUnitResults)
 					if (bdnResults.TryGetValue(xUnitResult.Key, out var bdnResult))
@@ -70,7 +70,7 @@ namespace Benchmarks
 	
 						long guessedScaleFactor = bdnAllocated != 0 ? xunitAllocated / bdnAllocated : -1; 
 						
-						writer.Write($"\"{xUnitResult.Key}\";{xunitAllocated};{bdnAllocated};{guessedScaleFactor}");
+						writer.Write($"\"{xUnitResult.Key}\";{guessedScaleFactor};{xunitAllocated};{bdnAllocated}");
 	
 						var unit = xUnitResult.Value.Metrics.Duration.Unit;
 						var xunitMin = ToNanoseconds(xUnitResult.Value.Iterations.Iteration.Min(r => r.Duration), unit);
@@ -81,7 +81,7 @@ namespace Benchmarks
 						var bdnAvg = bdnResult.Statistics.Mean;
 						var bdnMax = bdnResult.Statistics.Max;
 						
-						writer.WriteLine($";{xunitMin};{bdnMin};{xunitAvg};{bdnAvg};{xunitMax};{bdnMax}");
+						writer.WriteLine($";{xunitMin};{xunitAvg};{xunitMax};{bdnMin};{bdnAvg};{bdnMax}");
 					}
 			}
 	    }
