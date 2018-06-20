@@ -14,6 +14,9 @@ namespace Functions
         private const float log10SingleDelta = 0.0004f;
         private const float log10SingleExpectedResult = -664.094971f;
 
+        /// <summary>
+        /// this benchmark is dependent on loop alignment
+        /// </summary>
         [Benchmark]
         public void Log10SingleBenchmark() => Log10SingleTest();
 

@@ -14,6 +14,9 @@ namespace Functions
         private const double log10DoubleDelta = 0.0004;
         private const double log10DoubleExpectedResult = -664.07384902184072;
 
+        /// <summary>
+        /// this benchmark is dependent on loop alignment
+        /// </summary>
         [Benchmark]
         public void Log10DoubleBenchmark() => Log10DoubleTest();
 

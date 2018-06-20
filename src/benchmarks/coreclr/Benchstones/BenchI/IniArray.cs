@@ -15,6 +15,9 @@ public  class IniArray
 
     const int Allotted = 16;
 
+    /// <summary>
+    /// this benchmark is very dependent on loop alignment
+    /// </summary>
     [Benchmark(Description = nameof(IniArray))]
     public char[] Test() {
         char[] workarea = new char[Allotted];

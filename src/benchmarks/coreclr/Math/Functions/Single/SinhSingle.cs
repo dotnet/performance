@@ -14,6 +14,9 @@ namespace Functions
         private const float sinhSingleDelta = 0.0004f;
         private const float sinhSingleExpectedResult = 1.26028216f;
 
+        /// <summary>
+        /// this benchmark is dependent on loop alignment
+        /// </summary>
         [Benchmark]
         public void SinhSingleBenchmark() => SinhSingleTest();
 
