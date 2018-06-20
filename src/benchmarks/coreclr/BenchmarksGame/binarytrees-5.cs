@@ -24,6 +24,7 @@ using Benchmarks;
 
 namespace BenchmarksGame
 {
+    [MaxIterationCount(40)] // the default 20 is not enough, the benchmark has multimodal distribution and needs more runs
     [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class BinaryTrees_5
     {
