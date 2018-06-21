@@ -10,10 +10,12 @@ BenchmarkDotNet will protect you from the common pitfalls (even for experienced 
 * it generates an isolated project per runtime
 * it builds the project in `Release`
 * it runs every benchmark in a stand-alone process (to achieve process isolation and avoid side effects)
-* it estimates the perfect invocation count per iteration
+* it estimates the perfect invocation count per iteration (based on `IterationTime`)
 * it warms-up the code
 * it evaluates the overhead
-* it runs multiple iterations of the method until the requested level of precision is met.
+* it runs multiple iterations of the method until the requested level of precision is met
+* it consumes the benchmark result to avoid dead code elimination
+* it prevents from inlining of the benchmark by wrapping it with a delegate.
 
 A few useful links for you:
 
@@ -48,6 +50,19 @@ BenchmarkDotNet will build the executables, run the benchmarks, print the result
 ![Exported results](./img/exportedResults.png)
 
 BenchmarkDotNet by default exports the results to GitHub markdown, so you can just find the right `.md` file in `results` folder and copy-paste the markdown to GitHub.
+
+## Filtering
+
+You can filter the benchmarks by namespace, category, type name and method name. Examples:
+
+* `dotnet run -c Release -f netcoreapp2.1 -- --categories CoreCLR Span` - will run all the benchmarks that belong to CoreCLR **AND** Span category
+* `dotnet run -c Release -f netcoreapp2.1 -- --anyCategories CoreCLR CoreFX` - will run all the benchmarks that belong to CoreCLR **OR** CoreFX category
+* `dotnet run -c Release -f netcoreapp2.1 -- --namespace=BenchmarksGame` - will run all the benchmarks from BenchmarksGame namespace
+* `dotnet run -c Release -f netcoreapp2.1 -- --method=ToStream` - will run all the benchmarks with method name ToStream
+* `dotnet run -c Release -f netcoreapp2.1 -- --class=Richards` - will run all the benchmarks with type name Richards
+
+**Note:** To print a single summary for all of the benchmarks, use `--join`. 
+Example: `dotnet run -c Release -f netcoreapp2.1 -- --join --namespace=BenchmarksGame` - will run all of the benchmarks from BenchmarksGame namespace and print a single summary.
 
 ## All Statistics
 
@@ -224,3 +239,35 @@ var config = DefaultConfig.Instance
             .ToToolchain()));
 ```
 
+## Testing how Processor Affinity and Loop Alignment affect results
+
+To run the benchmarks with specific Processor Affinity, you need to provide the processor mask as an argument called `--affinity`.
+
+Example: `dotnet run -c Release -f netcoreapp2.1 -- --affinity=8`
+
+To run same benchmarks with and without specific Processor Affinity you need to use `--testAffinity` and also provide the mask with `--affinity`
+
+Example: `dotnet run -c Release -f netcoreapp2.1 -- --class=BinaryTrees_2 --affinity=8 --testAffinity`
+
+|        Method |     Affinity |
+|-------------- |------------- |
+| BinaryTrees_2 | 000000001000 |
+| BinaryTrees_2 | 111111111111 |
+
+To test how loop alignment affects the results, you can use `--testAlignment` which is going to run the benchmarks with env var `COMPlus_JitAlignLoops` set to `0` and `1`
+
+Example: `dotnet run -c Release -f netcoreapp2.1 -- --class=BinaryTrees_2 --testAlignment`
+
+|        Method |    EnvironmentVariables |
+|-------------- |------------------------ |
+| BinaryTrees_2 | COMPlus_JitAlignLoops=0 |
+| BinaryTrees_2 | COMPlus_JitAlignLoops=1 |
+
+**Note:** You can combine `--testAlignment` with `--testAffinity` which will results in 4 different benchmark runs:
+
+|        Method |     Affinity |    EnvironmentVariables |
+|-------------- |------------- |------------------------ |
+| BinaryTrees_2 | 000000001000 | COMPlus_JitAlignLoops=0 |
+| BinaryTrees_2 | 000000001000 | COMPlus_JitAlignLoops=1 |
+| BinaryTrees_2 | 111111111111 | COMPlus_JitAlignLoops=0 |
+| BinaryTrees_2 | 111111111111 | COMPlus_JitAlignLoops=1 |

@@ -51,7 +51,7 @@ namespace Benchmarks.Toolchains
 
         private FileInfo CustomDotNetCliPath { get; }
 
-        public bool IsSupported(Benchmark benchmark, ILogger logger, IResolver resolver)
+        public bool IsSupported(BenchmarkCase benchmark, ILogger logger, IResolver resolver)
         {
             if (!SourceCoreRun.Exists)
             {

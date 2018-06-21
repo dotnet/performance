@@ -23,28 +23,28 @@ namespace Benchmarks.Serializers
             ProtoBuf.Meta.RuntimeTypeModel.Default.Add(typeof(DateTimeOffset), false).SetSurrogate(typeof(DateTimeOffsetSurrogate)); // https://stackoverflow.com/a/7046868
         }
 
-        [IterationSetup(Target = nameof(BinaryFormatter_))]
+        [GlobalSetup(Target = nameof(BinaryFormatter_))]
         public void SetupBinaryFormatter()
         {
             memoryStream.Position = 0;
             binaryFormatter.Serialize(memoryStream, value);
         }
 
-        [IterationSetup(Target = nameof(ProtoBuffNet))]
+        [GlobalSetup(Target = nameof(ProtoBuffNet))]
         public void SetupProtoBuffNet()
         {
             memoryStream.Position = 0;
             ProtoBuf.Serializer.Serialize(memoryStream, value);
         }
 
-        [IterationSetup(Target = nameof(ZeroFormatter_Naive) + "," + nameof(ZeroFormatter_Real))]
+        [GlobalSetup(Target = nameof(ZeroFormatter_Naive) + "," + nameof(ZeroFormatter_Real))]
         public void SetupZeroFormatter_()
         {
             memoryStream.Position = 0;
             ZeroFormatter.ZeroFormatterSerializer.Serialize<T>(memoryStream, value);
         }
 
-        [IterationSetup(Target = nameof(MessagePack_))]
+        [GlobalSetup(Target = nameof(MessagePack_))]
         public void SetupMessagePack()
         {
             memoryStream.Position = 0;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BenchmarkDotNet.Columns;
@@ -7,8 +8,11 @@ using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Environments;
 using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Exporters.Csv;
+using BenchmarkDotNet.Exporters.Json;
+using BenchmarkDotNet.Filters;
 using BenchmarkDotNet.Horology;
 using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Mathematics;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.CoreRt;
 using BenchmarkDotNet.Toolchains.CsProj;
@@ -31,16 +35,20 @@ namespace Benchmarks
         private static void RunBenchmarks(Options options)
             => BenchmarkSwitcher
                 .FromAssemblyAndTypes(typeof(Program).Assembly, SerializerBenchmarks.GetTypes())
-                .Run(config: GetConfig(options));
+                .Run(GetArgs(options), GetConfig(options));
+
+        private static string[] GetArgs(Options options)
+            => options.Join ? new[] {"--join"} : Array.Empty<string>(); 
 
         private static IConfig GetConfig(Options options)
         {
-            var baseJob = Job.ShortRun; // let's use the Short Run for better first user experience ;)
-            var jobs = GetJobs(options, baseJob).ToArray();
+            var baseJob = GetBaseJob(options);
 
-            var config = DefaultConfig.Instance
-                .With(jobs.Any() ? jobs : new[] { baseJob });
+            var baseJobPermutations = GetBaseJobPermutations(baseJob, options).ToArray(); 
+            var jobs = baseJobPermutations.SelectMany(job => GetJobs(options, job)).ToArray();
 
+            var config = DefaultConfig.Instance.With(jobs.Any() ? jobs : baseJobPermutations);
+            
             if (options.UseMemoryDiagnoser)
                 config = config.With(MemoryDiagnoser.Default);
             if (options.UseDisassemblyDiagnoser)
@@ -49,7 +57,80 @@ namespace Benchmarks
             if (options.DisplayAllStatistics)
                 config = config.With(StatisticColumn.AllStatistics);
 
+            if (options.AllCategories.Any())
+                config = config.With(new AllCategoriesFilter(options.AllCategories.ToArray()));
+            if (options.AnyCategories.Any())
+                config = config.With(new AnyCategoriesFilter(options.AnyCategories.ToArray()));
+            if (options.Namespaces.Any())
+                config = config.With(new NamespacesFilter(options.Namespaces.ToArray()));
+            if (options.MethodNames.Any())
+                config = config.With(new MethodNamesFilter(options.MethodNames.ToArray()));
+            if (options.TypeNames.Any())
+                config = config.With(new TypeNamesFilter(options.TypeNames.ToArray()));
+
+            config = config.With(JsonExporter.Full); // make sure we export to Json (for BenchView integration purpose)
+
+            config = config.With(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max);
+            
             return config;
+        }
+
+        private static Job GetBaseJob(Options options)
+        {
+            Job baseJob = null;
+            
+            switch (options.BaseJob.ToLowerInvariant())
+            {
+                case "dry":
+                    baseJob = Job.Dry;
+                    break;
+                case "short":
+                    baseJob = Job.ShortRun;
+                    break;
+                case "medium":
+                    baseJob = Job.MediumRun.WithOutlierMode(options.Outliers);
+                    break;
+                case "long":
+                    baseJob = Job.LongRun;
+                    break;
+                default: // the recommended settings
+                    baseJob = Job.Default
+                        .WithIterationTime(TimeInterval.FromSeconds(0.25)) // the default is 0.5s per iteration, which is slighlty too much for us
+                        .WithWarmupCount(1) // 1 warmup is enough for our purpose
+                        .WithOutlierMode(options.Outliers)
+                        .WithMaxIterationCount(20);  // we don't want to run more that 20 iterations
+                    break;
+            }
+
+            baseJob = baseJob.WithOutlierMode(options.Outliers);
+            
+            if (options.Affinity.HasValue && !options.TestAffinity)
+                baseJob = baseJob.WithAffinity((IntPtr) options.Affinity.Value);
+
+            return baseJob;
+        }
+
+        private static IEnumerable<Job> GetBaseJobPermutations(Job baseJob, Options options)
+        {
+            IEnumerable<Job> CreateLoopAligmentPermutations(Job job)
+            {
+                yield return job.With(new[] {new EnvironmentVariable("COMPlus_JitAlignLoops", "1")});
+                yield return job.With(new[] {new EnvironmentVariable("COMPlus_JitAlignLoops", "0")});
+            }
+            
+            IEnumerable<Job> CreateAffinityPermutations(Job job)
+            {
+                yield return job;
+                yield return job.WithAffinity((IntPtr)options.Affinity.Value);
+            }
+
+            Job[] jobs = { baseJob };
+            if (options.TestAlignLoops)
+                jobs = jobs.SelectMany(CreateLoopAligmentPermutations).ToArray();
+            if (options.TestAffinity && options.Affinity.HasValue)
+                jobs = jobs.SelectMany(CreateAffinityPermutations).ToArray();
+
+            return jobs;
         }
 
         private static IEnumerable<Job> GetJobs(Options options, Job baseJob)
@@ -59,6 +140,10 @@ namespace Benchmarks
 
             if (options.RunClr)
                 yield return baseJob.With(Runtime.Clr);
+            if (options.RunLegacyJitX64)
+                yield return baseJob.With(Runtime.Clr).With(Jit.LegacyJit).With(Platform.X64);
+            if (options.RunLegacyJitX86)
+                yield return baseJob.With(Runtime.Clr).With(Jit.LegacyJit).With(Platform.X86);
             if (!string.IsNullOrEmpty(options.ClrVersion))
                 yield return baseJob.With(new ClrRuntime(options.ClrVersion));
 
@@ -136,6 +221,12 @@ namespace Benchmarks
 
         [Option("clr", Required = false, Default = false, HelpText = "Run benchmarks for Clr")]
         public bool RunClr { get; set; }
+        
+        [Option("legacyJitx64", Required = false, Default = false, HelpText = "Run benchmarks for Legacy JIT x64")]
+        public bool RunLegacyJitX64 { get; set; }
+        
+        [Option("legacyJitx86", Required = false, Default = false, HelpText = "Run benchmarks for Legacy JIT x86")]
+        public bool RunLegacyJitX86 { get; set; }
 
         [Option("clrVersion", Required = false, HelpText = "Optional version of private CLR build used as the value of COMPLUS_Version env var.")]
         public string ClrVersion { get; set; }
@@ -184,6 +275,39 @@ namespace Benchmarks
 
         [Option("coreFxBin", Required = false, HelpText = @"Optional path to folder with CoreFX NuGet packages, Example: ""C:\Projects\forks\corefx\bin\packages\Release""")]
         public string CoreFxBinPackagesPath { get; set; }
+        
+        [Option("categories", Required = false, HelpText = "Categories to run. If few are provided, only the benchmarks which belong to all of them are going to be executed")]
+        public IEnumerable<string> AllCategories { get; set; }
+        
+        [Option("anyCategories", Required = false, HelpText = "Any Categories to run")]
+        public IEnumerable<string> AnyCategories { get; set; }
+        
+        [Option("namespace", Required = false, HelpText = "Namespace(s) to run")]
+        public IEnumerable<string> Namespaces { get; set; }
+        
+        [Option("method", Required = false, HelpText = "Method(s) to run")]
+        public IEnumerable<string> MethodNames { get; set; }
+        
+        [Option("class", Required = false, HelpText = "Class(es) with benchmarks to run")]
+        public IEnumerable<string> TypeNames { get; set; }
+        
+        [Option("join", Required = false, Default = false, HelpText = "Prints single table with results for all benchmarks")]
+        public bool Join { get; set; }
+        
+        [Option("baseJob", Required = false, Default = "Default", HelpText = "Dry/Short/Medium/Long or Default")]
+        public string BaseJob { get; set; }
+        
+        [Option("outliers", Required = false, Default = OutlierMode.OnlyUpper, HelpText = "None/OnlyUpper/OnlyLower/All")]
+        public OutlierMode Outliers { get; set; }
+        
+        [Option("testAlignment", Required = false, Default = false, HelpText = "Test COMPlus_JitAlignLoop 0 vs 1")]
+        public bool TestAlignLoops { get; set; }
+        
+        [Option("testAffinity", Required = false, Default = false, HelpText = "Test affinity set vs no affinity")]
+        public bool TestAffinity { get; set; }
+        
+        [Option("affinity", Required = false, HelpText = "Affinity mask to set for the benchmark process")]
+        public int? Affinity { get; set; }
     }
 
     /// <summary>
