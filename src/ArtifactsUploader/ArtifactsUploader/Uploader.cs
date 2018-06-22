@@ -1,0 +1,48 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.DataMovement;
+using Serilog;
+
+namespace ArtifactsUploader
+{
+    public static class Uploader
+    {
+        public static async Task Upload(FileInfo archive, CommandLineOptions options, ILogger log)
+        {
+            log.Information($"Starting the upload to {options.StorageUrl}");
+            
+            var storageConnectionString = GetConnectionString(options);
+            var account = CloudStorageAccount.Parse(storageConnectionString);
+            var blobClient = account.CreateCloudBlobClient();
+
+            var containerName = options.ProjectName; // we use project name (CoreFX/CoreCLR etc) as a container name
+            var projectBlobContainer = blobClient.GetContainerReference(containerName);
+            var containerExistedBefore = await projectBlobContainer.CreateIfNotExistsAsync();
+            log.Information($"blobContainer.CreateIfNotExistsAsync returned {containerExistedBefore} for {containerName}");
+            
+            TransferManager.Configurations.ParallelOperations = 64; // value taken from https://github.com/Azure/azure-storage-net-data-movement
+
+            var context = new SingleTransferContext
+            {
+                ProgressHandler = new Progress<TransferStatus>(progress => log.Information("Bytes uploaded: {0}", progress.BytesTransferred))
+            };
+
+            var destinationBlob = projectBlobContainer.GetBlockBlobReference(GetDestinationBlobName(options, archive));
+            
+            await TransferManager.UploadAsync(archive.FullName, destinationBlob, null, context, CancellationToken.None);
+        }
+
+        private static string GetConnectionString(CommandLineOptions options)
+            => $"BlobEndpoint={options.StorageUrl};SharedAccessSignature={options.SasToken}";
+
+        private static string GetDestinationBlobName(CommandLineOptions options, FileInfo archive) 
+            => archive.Name; // todo: is this enough?
+    }
+}

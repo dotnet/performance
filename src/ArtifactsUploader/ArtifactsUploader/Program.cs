@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Threading.Tasks;
 using Serilog;
 using Serilog.Core;
 
@@ -10,7 +11,7 @@ namespace ArtifactsUploader
 {
     public class Program
     {
-        public static int Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
             using (var log = CreateLogger())
             {
@@ -31,6 +32,8 @@ namespace ArtifactsUploader
                 }
 
                 Compressor.Compress(archive, fileToArchive, log);
+
+                await Uploader.Upload(archive, commandLineOptions, log);
 
                 return 0;
             }
