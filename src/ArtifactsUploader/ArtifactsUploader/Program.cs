@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Serilog;
 using Serilog.Core;
 
@@ -19,6 +20,17 @@ namespace ArtifactsUploader
                 {
                     return -1;
                 }
+
+                var archive = FilesHelper.GetNonExistingArchiveFile(commandLineOptions);
+                var fileToArchive = FilesHelper.GetFilesToArchive(commandLineOptions);
+
+                if (!fileToArchive.Any())
+                {
+                    log.Warning("Nothing to compress and upload");
+                    return -1;
+                }
+
+                Compressor.Compress(archive, fileToArchive, log);
 
                 return 0;
             }
