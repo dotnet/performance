@@ -21,3 +21,4 @@
 # Resharper files
 **/*.DotSettings.user
 **/.idea/**
+/src/ArtifactsUploader/**/*log*.txt
