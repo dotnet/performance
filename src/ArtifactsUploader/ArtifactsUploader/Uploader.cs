@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
@@ -18,6 +19,10 @@ namespace ArtifactsUploader
         public static async Task Upload(FileInfo archive, CommandLineOptions options, ILogger log, CancellationToken cancellationToken)
         {
             log.Information($"Starting the upload to {options.StorageUrl}");
+
+            // following settings are recommended best practices https://github.com/Azure/azure-storage-net-data-movement#best-practice
+            ServicePointManager.DefaultConnectionLimit = Environment.ProcessorCount * 8;
+            ServicePointManager.Expect100Continue = false;
 
             var storageConnectionString = GetConnectionString(options);
             var account = CloudStorageAccount.Parse(storageConnectionString);
