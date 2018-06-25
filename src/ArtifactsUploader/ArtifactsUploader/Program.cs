@@ -15,7 +15,9 @@ namespace ArtifactsUploader
     {
         public static async Task<int> Main(string[] args)
         {
-            using (var log = CreateLogger())
+            var log = CreateLogger();
+
+            try
             {
                 var (isSuccess, commandLineOptions) = CommandLineOptions.Parse(args, log);
 
@@ -33,14 +35,24 @@ namespace ArtifactsUploader
                     return -1;
                 }
 
-                Compressor.Compress(archive, fileToArchive, log);
-
                 using (var tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(commandLineOptions.TimeoutInMinutes)))
                 {
+                    Compressor.Compress(archive, fileToArchive, log);
+
                     await Uploader.Upload(archive, commandLineOptions, log, tokenSource.Token);
                 }
 
                 return 0;
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex, "Unhandled exception during upload!");
+
+                return -1;
+            }
+            finally
+            {
+                log?.Dispose();
             }
         }
 
