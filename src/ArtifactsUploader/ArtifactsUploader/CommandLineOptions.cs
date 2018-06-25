@@ -32,7 +32,7 @@ namespace ArtifactsUploader
         [Option("storageUrl", Required = false, Default = @"https://dotnetperfciblobs.blob.core.windows.net", HelpText = "Url to Azure Blob Storage")]
         public string StorageUrl { get; set; }
 
-        [Option("token", Required = false, HelpText = "SAS Token. NOT KEY!!")]
+        [Option("token", Required = false, HelpText = "SAS Token. NOT KEY!! If not provided, env var `AZ_BLOB_LOGS_SAS_TOKEN` will be used")]
         public string SasToken { get; set; }
 
         [Option("timeoutMinutes", Required = false, Default = 10, HelpText = "Timout for upload, in minutes")]
