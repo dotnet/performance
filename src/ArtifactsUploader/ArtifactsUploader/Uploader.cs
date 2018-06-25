@@ -25,8 +25,12 @@ namespace ArtifactsUploader
 
             var containerName = options.ProjectName; // we use project name (CoreFX/CoreCLR etc) as a container name
             var projectBlobContainer = blobClient.GetContainerReference(containerName);
-            var containerExistedBefore = await projectBlobContainer.CreateIfNotExistsAsync(BlobContainerPublicAccessType.Off, null, null, cancellationToken);
-            log.Information($"blobContainer.CreateIfNotExistsAsync returned {containerExistedBefore} for {containerName}");
+            var containerCreated = await projectBlobContainer.CreateIfNotExistsAsync(BlobContainerPublicAccessType.Off, null, null, cancellationToken);
+
+            if (containerCreated)
+            {
+                log.Warning($"Container {containerName} did not exist before, was created now");
+            }
 
             TransferManager.Configurations.ParallelOperations = 64; // value taken from https://github.com/Azure/azure-storage-net-data-movement
 

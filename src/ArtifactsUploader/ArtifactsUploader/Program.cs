@@ -42,6 +42,8 @@ namespace ArtifactsUploader
                     await Uploader.Upload(archive, commandLineOptions, log, tokenSource.Token);
                 }
 
+                log.Information("Done!");
+
                 return 0;
             }
             catch (Exception ex)
