@@ -18,7 +18,7 @@ namespace ArtifactsUploader
         public static async Task Upload(FileInfo archive, CommandLineOptions options, ILogger log, CancellationToken cancellationToken)
         {
             log.Information($"Starting the upload to {options.StorageUrl}");
-            
+
             var storageConnectionString = GetConnectionString(options);
             var account = CloudStorageAccount.Parse(storageConnectionString);
             var blobClient = account.CreateCloudBlobClient();
@@ -27,26 +27,26 @@ namespace ArtifactsUploader
             var projectBlobContainer = blobClient.GetContainerReference(containerName);
             var containerExistedBefore = await projectBlobContainer.CreateIfNotExistsAsync(BlobContainerPublicAccessType.Off, null, null, cancellationToken);
             log.Information($"blobContainer.CreateIfNotExistsAsync returned {containerExistedBefore} for {containerName}");
-            
+
             TransferManager.Configurations.ParallelOperations = 64; // value taken from https://github.com/Azure/azure-storage-net-data-movement
 
             var context = new SingleTransferContext
             {
-                ProgressHandler = new Progress<TransferStatus>(progress => log.Information("Bytes uploaded: {0}", progress.BytesTransferred))
+                ProgressHandler = new Progress<TransferStatus>(progress => log.Information("Bytes uploaded: {0}", progress.BytesTransferred)),
             };
 
             var destinationBlob = projectBlobContainer.GetBlockBlobReference(GetDestinationBlobName(options, archive));
-            
+
             await TransferManager.UploadAsync(archive.FullName, destinationBlob, null, context, cancellationToken);
         }
 
         private static string GetConnectionString(CommandLineOptions options)
             => $"BlobEndpoint={options.StorageUrl};SharedAccessSignature={GetSasToken(options)}";
 
-        private static string GetSasToken(CommandLineOptions options) 
+        private static string GetSasToken(CommandLineOptions options)
             => options.SasToken ?? Environment.GetEnvironmentVariable("AZ_BLOB_LOGS_SAS_TOKEN"); // Jenkin secret manager plugin spawns the process with this env var configured;
 
-        private static string GetDestinationBlobName(CommandLineOptions options, FileInfo archive) 
+        private static string GetDestinationBlobName(CommandLineOptions options, FileInfo archive)
             => archive.Name; // todo: is this enough?
     }
 }
