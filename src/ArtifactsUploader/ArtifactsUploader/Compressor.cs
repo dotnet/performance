@@ -12,8 +12,8 @@ namespace ArtifactsUploader
 {
     public static class Compressor
     {
-        public static string FileExtension
-            => RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+        public static readonly string FileExtension
+            = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? ".zip"
                 : ".tar";
 

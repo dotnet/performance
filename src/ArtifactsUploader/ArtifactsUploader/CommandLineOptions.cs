@@ -29,14 +29,17 @@ namespace ArtifactsUploader
         [Option("searchPatterns", Required = true, HelpText = "Search patterns", Min = 1)]
         public IEnumerable<string> SearchPatterns { get; set; }
 
-        [Option("storageUrl", Required = false, Default = @"https://dotnetperfciblobs.blob.core.windows.net", HelpText = "Url to Azure Blob Storage")]
+        [Option("storageUrl", Required = true, HelpText = "Url to Azure Blob Storage")]
         public string StorageUrl { get; set; }
 
-        [Option("token", Required = false, HelpText = "SAS Token. NOT KEY!! If not provided, env var `AZ_BLOB_LOGS_SAS_TOKEN` will be used")]
+        [Option("token", Required = false, HelpText = "SAS Token. NOT KEY!!")]
         public string SasToken { get; set; }
 
         [Option("timeoutMinutes", Required = false, Default = 10, HelpText = "Timout for upload, in minutes")]
         public int TimeoutInMinutes { get; set; }
+
+        [Option("workplace", Required = true, HelpText = "Path to workplace directory where compressed artifacts will be stored")]
+        public DirectoryInfo Workplace { get; set; }
 
         public static (bool isSuccess, CommandLineOptions options) Parse(string[] args, ILogger log)
         {
@@ -58,6 +61,12 @@ namespace ArtifactsUploader
             if (!options.ArtifactsDirectory.Exists)
             {
                 log.Error($"Provided directory, [{options.ArtifactsDirectory.FullName}] does NOT exist. Unable to upload the artifacts!");
+                return false;
+            }
+
+            if (!options.Workplace.Exists)
+            {
+                log.Error($"Provided directory, [{options.Workplace.FullName}] does NOT exist. Unable to upload the artifacts!");
                 return false;
             }
 

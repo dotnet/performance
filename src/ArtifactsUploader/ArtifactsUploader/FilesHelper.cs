@@ -10,12 +10,12 @@ namespace ArtifactsUploader
 {
     internal static class FilesHelper
     {
-        public static FileInfo GetNonExistingArchiveFile(CommandLineOptions options)
+        public static FileInfo GetNonExistingArchiveFile(DirectoryInfo workplace, string jobName)
         {
             var fileInfo = new FileInfo(
                 Path.Combine(
-                    Directory.GetCurrentDirectory(), // I assume that I can create file here and CI is going to cleanup everything for me
-                    $"{options.JobName}{Compressor.FileExtension}")); // I assume that job name is unique
+                    workplace.FullName,
+                    $"{jobName}{Compressor.FileExtension}")); // I assume that job name is unique
 
             if (fileInfo.Exists)
             {
@@ -25,8 +25,8 @@ namespace ArtifactsUploader
             return fileInfo;
         }
 
-        public static IEnumerable<FileInfo> GetFilesToArchive(CommandLineOptions options)
-            => options.SearchPatterns.SelectMany(searchPattern =>
-                    options.ArtifactsDirectory.EnumerateFiles(searchPattern, SearchOption.AllDirectories));
+        public static IEnumerable<FileInfo> GetFilesToArchive(DirectoryInfo artifactsDirectory, IEnumerable<string> searchPatterns)
+            => searchPatterns.SelectMany(searchPattern =>
+                    artifactsDirectory.EnumerateFiles(searchPattern, SearchOption.AllDirectories));
     }
 }

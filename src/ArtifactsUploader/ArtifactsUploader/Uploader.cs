@@ -30,12 +30,6 @@ namespace ArtifactsUploader
 
             var containerName = options.ProjectName; // we use project name (CoreFX/CoreCLR etc) as a container name
             var projectBlobContainer = blobClient.GetContainerReference(containerName);
-            var containerCreated = await projectBlobContainer.CreateIfNotExistsAsync(BlobContainerPublicAccessType.Off, null, null, cancellationToken);
-
-            if (containerCreated)
-            {
-                log.Warning($"Container {containerName} did not exist before, was created now");
-            }
 
             TransferManager.Configurations.ParallelOperations = 64; // value taken from https://github.com/Azure/azure-storage-net-data-movement
 
@@ -53,7 +47,7 @@ namespace ArtifactsUploader
             => $"BlobEndpoint={options.StorageUrl};SharedAccessSignature={GetSasToken(options)}";
 
         private static string GetSasToken(CommandLineOptions options)
-            => options.SasToken ?? Environment.GetEnvironmentVariable("AZ_BLOB_LOGS_SAS_TOKEN"); // Jenkin secret manager plugin spawns the process with this env var configured
+            => options.SasToken ?? Environment.GetEnvironmentVariable("AZ_BLOB_LOGS_SAS_TOKEN");
 
         private static string GetDestinationBlobName(CommandLineOptions options, FileInfo archive)
             => Path.Combine(options.BranchName, archive.Name);

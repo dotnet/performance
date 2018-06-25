@@ -26,8 +26,8 @@ namespace ArtifactsUploader
                     return -1;
                 }
 
-                var archive = FilesHelper.GetNonExistingArchiveFile(commandLineOptions);
-                var fileToArchive = FilesHelper.GetFilesToArchive(commandLineOptions);
+                var archive = FilesHelper.GetNonExistingArchiveFile(commandLineOptions.Workplace, commandLineOptions.JobName);
+                var fileToArchive = FilesHelper.GetFilesToArchive(commandLineOptions.ArtifactsDirectory, commandLineOptions.SearchPatterns);
 
                 if (!fileToArchive.Any())
                 {

@@ -16,6 +16,8 @@ namespace ArtifactsUploader.Tests
             "--branch=master", 
             "--job=veryNiceCiJobName",
             "--isPr=false", 
+            "--workplace=.",
+            "--storageUrl=https://portal.azure.com/",
             $"--artifacts={Directory.GetCurrentDirectory()}", 
             "--searchPatterns", "*.log", "*.txt"
         };
@@ -61,12 +63,14 @@ namespace ArtifactsUploader.Tests
             LoggerMockHelpers.AssertNothingWasWrittenToLog(loggerMock);
         }
 
-        [Fact]
-        public void NonExistingArtifactsDirectoryIsReportedAsError()
+        [Theory]
+        [InlineData("artifacts", "--artifacts=\"Z:\\not\\existing\\I\\hope\"")]
+        [InlineData("workplace", "--workplace=\"Z:\\not\\existing\\I\\hope\"")]
+        public void NonExistingDirectoriesAreReportedAsErrors(string argumentName, string invalidValue)
         {
             var loggerMock = LoggerMockHelpers.CreateLoggerMock();
             
-            var withUppercaseArgument = CorrectArguments.Select(arg => arg.StartsWith("--artifacts=") ? $"--artifacts={@"Z:\not\existing\I\hope"}" : arg).ToArray();
+            var withUppercaseArgument = CorrectArguments.Select(arg => arg.StartsWith($"--{argumentName}=") ? invalidValue : arg).ToArray();
             
             var result = CommandLineOptions.Parse(withUppercaseArgument, loggerMock.Object);
             
