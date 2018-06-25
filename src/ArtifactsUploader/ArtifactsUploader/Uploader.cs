@@ -48,9 +48,9 @@ namespace ArtifactsUploader
             => $"BlobEndpoint={options.StorageUrl};SharedAccessSignature={GetSasToken(options)}";
 
         private static string GetSasToken(CommandLineOptions options)
-            => options.SasToken ?? Environment.GetEnvironmentVariable("AZ_BLOB_LOGS_SAS_TOKEN"); // Jenkin secret manager plugin spawns the process with this env var configured;
+            => options.SasToken ?? Environment.GetEnvironmentVariable("AZ_BLOB_LOGS_SAS_TOKEN"); // Jenkin secret manager plugin spawns the process with this env var configured
 
         private static string GetDestinationBlobName(CommandLineOptions options, FileInfo archive)
-            => archive.Name; // todo: is this enough?
+            => Path.Combine(options.BranchName, archive.Name);
     }
 }
