@@ -35,6 +35,9 @@ namespace ArtifactsUploader
         [Option("token", Required = false, HelpText = "SAS Token. NOT KEY!!")]
         public string SasToken { get; set; }
 
+        [Option("timeoutMinutes", Required = false, Default = 10, HelpText = "Timout for upload, in minutes")]
+        public int TimeoutInMinutes { get; set; }
+
         public static (bool isSuccess, CommandLineOptions options) Parse(string[] args, ILogger log)
         {
             (bool isSuccess, CommandLineOptions options) result = default;
@@ -55,6 +58,12 @@ namespace ArtifactsUploader
             if (!options.ArtifactsDirectory.Exists)
             {
                 log.Error($"Provided directory, [{options.ArtifactsDirectory.FullName}] does NOT exist. Unable to upload the artifacts!");
+                return false;
+            }
+
+            if (options.TimeoutInMinutes <= 0)
+            {
+                log.Error($"Provided timeout, [{options.TimeoutInMinutes}] is not a positive number. Unable to upload the artifacts!");
                 return false;
             }
 

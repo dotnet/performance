@@ -4,6 +4,7 @@ using Moq;
 using Serilog;
 using Serilog.Events;
 using Xunit;
+using Xunit.Sdk;
 
 namespace ArtifactsUploader.Tests
 {
@@ -70,6 +71,22 @@ namespace ArtifactsUploader.Tests
             var result = CommandLineOptions.Parse(withUppercaseArgument, loggerMock.Object);
             
             Assert.False(result.isSuccess);
+            LoggerMockHelpers.AssertAtLeastOneErrorWasWrittenToLog(loggerMock);
+        }
+        
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public void TimoutMustBePositiveNumber(int timeout)
+        {
+            var loggerMock = LoggerMockHelpers.CreateLoggerMock();
+            
+            var withNonPositiveTimeout = CorrectArguments.Concat(new[] {$"--timeoutMinutes={timeout}"}).ToArray();
+            
+            var result = CommandLineOptions.Parse(withNonPositiveTimeout, loggerMock.Object);
+            
+            Assert.False(result.isSuccess);
+            
             LoggerMockHelpers.AssertAtLeastOneErrorWasWrittenToLog(loggerMock);
         }
     }

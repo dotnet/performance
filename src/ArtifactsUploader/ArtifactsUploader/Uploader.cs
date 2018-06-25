@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.DataMovement;
 using Serilog;
 
@@ -14,7 +15,7 @@ namespace ArtifactsUploader
 {
     public static class Uploader
     {
-        public static async Task Upload(FileInfo archive, CommandLineOptions options, ILogger log)
+        public static async Task Upload(FileInfo archive, CommandLineOptions options, ILogger log, CancellationToken cancellationToken)
         {
             log.Information($"Starting the upload to {options.StorageUrl}");
             
@@ -24,7 +25,7 @@ namespace ArtifactsUploader
 
             var containerName = options.ProjectName; // we use project name (CoreFX/CoreCLR etc) as a container name
             var projectBlobContainer = blobClient.GetContainerReference(containerName);
-            var containerExistedBefore = await projectBlobContainer.CreateIfNotExistsAsync();
+            var containerExistedBefore = await projectBlobContainer.CreateIfNotExistsAsync(BlobContainerPublicAccessType.Off, null, null, cancellationToken);
             log.Information($"blobContainer.CreateIfNotExistsAsync returned {containerExistedBefore} for {containerName}");
             
             TransferManager.Configurations.ParallelOperations = 64; // value taken from https://github.com/Azure/azure-storage-net-data-movement
@@ -36,7 +37,7 @@ namespace ArtifactsUploader
 
             var destinationBlob = projectBlobContainer.GetBlockBlobReference(GetDestinationBlobName(options, archive));
             
-            await TransferManager.UploadAsync(archive.FullName, destinationBlob, null, context, CancellationToken.None);
+            await TransferManager.UploadAsync(archive.FullName, destinationBlob, null, context, cancellationToken);
         }
 
         private static string GetConnectionString(CommandLineOptions options)
