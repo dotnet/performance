@@ -5,11 +5,12 @@
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Sources;
 using System.Threading.Tasks.Tests;
-using BdnDtos;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Threading.Tasks
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class ValueTaskPerfTest
     {
         [Benchmark]
