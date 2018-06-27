@@ -12,10 +12,7 @@ namespace ArtifactsUploader
     {
         public static FileInfo GetNonExistingArchiveFile(DirectoryInfo workplace, string jobName)
         {
-            var fileInfo = new FileInfo(
-                Path.Combine(
-                    workplace.FullName,
-                    $"{jobName}{Compressor.FileExtension}")); // I assume that job name is unique
+            var fileInfo = new FileInfo(Path.Combine(workplace.FullName, $"{jobName}.zip")); // I assume that job name is unique
 
             if (fileInfo.Exists)
             {

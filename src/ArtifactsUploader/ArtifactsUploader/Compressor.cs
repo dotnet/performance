@@ -5,18 +5,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Runtime.InteropServices;
 using Serilog;
 
 namespace ArtifactsUploader
 {
     public static class Compressor
     {
-        public static readonly string FileExtension
-            = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? ".zip"
-                : ".tar";
-
         public static void Compress(FileInfo archive, IEnumerable<FileInfo> filesToCompress, ILogger log)
         {
             log.Information($"Creating {archive.FullName}");
