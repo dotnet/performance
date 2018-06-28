@@ -6,11 +6,14 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Sources;
 using System.Threading.Tasks.Tests;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Jobs;
 using Benchmarks;
 
 namespace System.Threading.Tasks
 {
     [BenchmarkCategory(Categories.CoreFX)]
+    [MinWarmupCount(2, forceAutoWarmup: true)] // these benchmarks require more warmups than in our default config
+    [MaxWarmupCount(10, forceAutoWarmup: true)]
     public class ValueTaskPerfTest
     {
         [Benchmark]
