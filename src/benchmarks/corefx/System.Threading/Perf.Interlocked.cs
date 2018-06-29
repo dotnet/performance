@@ -7,7 +7,7 @@ using Benchmarks;
 
 namespace System.Threading.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.CoreFX, Categories.CoreCLR)]
     public class Perf_Interlocked
     {
         private const int IterationCount = 10_000_000;
@@ -121,6 +121,32 @@ namespace System.Threading.Tests
             long newValue = 1;
             long comparand = 0;
             
+            for (int i = 0; i < IterationCount; i++)
+            {
+                Interlocked.CompareExchange(ref location, newValue, comparand);
+            }
+        }
+
+        [Benchmark]
+        public void CompareExchange_object_Match()
+        {
+            string location = "What?";
+            string newValue = "World";
+            string comparand = "What?";
+
+            for (int i = 0; i < IterationCount; i++)
+            {
+                Interlocked.CompareExchange(ref location, newValue, comparand);
+            }
+        }
+
+        [Benchmark]
+        public void CompareExchange_object_NoMatch()
+        {
+            string location = "Hello";
+            string newValue = "World";
+            string comparand = "What?";
+
             for (int i = 0; i < IterationCount; i++)
             {
                 Interlocked.CompareExchange(ref location, newValue, comparand);
