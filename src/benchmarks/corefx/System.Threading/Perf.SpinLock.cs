@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace System.Threading.Tests
 {
@@ -10,43 +10,33 @@ namespace System.Threading.Tests
     {
         private const int IterationCount = 1_000_000;
 
-        [Benchmark(InnerIterationCount = IterationCount)]
+        SpinLock _spinLock = new SpinLock();
+
+        [Benchmark]
         public void EnterExit()
         {
-            SpinLock spinLock = new SpinLock();
+            SpinLock spinLock = _spinLock;
 
-            foreach (var iteration in Benchmark.Iterations)
+            for (int i = 0; i < IterationCount; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < IterationCount; i++)
-                    {
-                        bool lockTaken = false;
+                bool lockTaken = false;
 
-                        spinLock.Enter(ref lockTaken);
-                        spinLock.Exit();
-                    }
-                }
+                spinLock.Enter(ref lockTaken);
+                spinLock.Exit();
             }
         }
 
-        [Benchmark(InnerIterationCount = IterationCount)]
+        [Benchmark]
         public void TryEnterExit()
         {
-            SpinLock spinLock = new SpinLock();
+            SpinLock spinLock = _spinLock;
 
-            foreach (var iteration in Benchmark.Iterations)
+            for (int i = 0; i < IterationCount; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < IterationCount; i++)
-                    {
-                        bool lockTaken = false;
+                bool lockTaken = false;
 
-                        spinLock.TryEnter(0, ref lockTaken);
-                        spinLock.Exit();
-                    }
-                }
+                spinLock.TryEnter(0, ref lockTaken);
+                spinLock.Exit();
             }
         }
     }

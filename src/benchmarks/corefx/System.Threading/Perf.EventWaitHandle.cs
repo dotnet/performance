@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.IO;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace System.Threading.Tests
 {
@@ -11,22 +10,23 @@ namespace System.Threading.Tests
     {
         private const int IterationCount = 100_000;
 
-        [Benchmark(InnerIterationCount = IterationCount)]
+        private EventWaitHandle _are;
+
+        [GlobalSetup]
+        public void Setup() => _are = new EventWaitHandle(false, EventResetMode.AutoReset);
+
+        [GlobalCleanup]
+        public void Dispose() => _are.Dispose();
+
+        [Benchmark]
         public void Set_Reset()
         {
-            using (EventWaitHandle are = new EventWaitHandle(false, EventResetMode.AutoReset))
+            EventWaitHandle are = _are;
+
+            for (int i = 0; i < IterationCount; i++)
             {
-                foreach (var iteration in Benchmark.Iterations)
-                {
-                    using (iteration.StartMeasurement())
-                    {
-                        for (int i = 0; i < IterationCount; i++)
-                        {
-                            are.Set();
-                            are.Reset();
-                        }
-                    }
-                }
+                are.Set();
+                are.Reset();
             }
         }
     }

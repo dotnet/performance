@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace System.Threading.Tests
 {
@@ -10,39 +10,29 @@ namespace System.Threading.Tests
     {
         private const int IterationCount = 4_000_000;
 
-        [Benchmark(InnerIterationCount = IterationCount)]
-        public static void EnterExit()
-        {
-            object sync = new object();
+        object _sync = new object();
 
-            foreach (var iteration in Benchmark.Iterations)
+        [Benchmark]
+        public void EnterExit()
+        {
+            object sync = _sync;
+
+            for (int i = 0; i < IterationCount; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < IterationCount; i++)
-                    {
-                        Monitor.Enter(sync);
-                        Monitor.Exit(sync);
-                    }
-                }
+                Monitor.Enter(sync);
+                Monitor.Exit(sync);
             }
         }
 
-        [Benchmark(InnerIterationCount = IterationCount)]
-        public static void TryEnterExit()
+        [Benchmark]
+        public void TryEnterExit()
         {
-            object sync = new object();
+            object sync = _sync;
 
-            foreach (var iteration in Benchmark.Iterations)
+            for (int i = 0; i < IterationCount; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < IterationCount; i++)
-                    {
-                        Monitor.TryEnter(sync, 0);
-                        Monitor.Exit(sync);
-                    }
-                }
+                Monitor.TryEnter(sync, 0);
+                Monitor.Exit(sync);
             }
         }
     }

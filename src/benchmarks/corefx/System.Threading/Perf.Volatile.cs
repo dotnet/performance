@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace System.Threading.Tests
 {
@@ -10,38 +10,26 @@ namespace System.Threading.Tests
     {
         private const int IterationCount = 100_000_000;
 
-        [Benchmark(InnerIterationCount = IterationCount)]
+        [Benchmark]
         public void Read_double()
         {
             double location = 0;
 
-            foreach (var iteration in Benchmark.Iterations)
+            for (int i = 0; i < IterationCount; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < IterationCount; i++)
-                    {
-                        Volatile.Read(ref location);
-                    }
-                }
+                Volatile.Read(ref location);
             }
         }
 
-        [Benchmark(InnerIterationCount = IterationCount)]
+        [Benchmark]
         public void Write_double()
         {
             double location = 0;
             double newValue = 1;
 
-            foreach (var iteration in Benchmark.Iterations)
+            for (int i = 0; i < IterationCount; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < IterationCount; i++)
-                    {
-                        Volatile.Write(ref location, newValue);
-                    }
-                }
+                Volatile.Write(ref location, newValue);
             }
         }
     }

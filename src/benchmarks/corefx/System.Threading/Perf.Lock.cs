@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.IO;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace System.Threading.Tests
 {
@@ -11,20 +10,17 @@ namespace System.Threading.Tests
     {
         private const int IterationCount = 2_000_000;
 
-        [Benchmark(InnerIterationCount = IterationCount)]
-        public static void ReaderWriterLockSlimPerf()
+        ReaderWriterLockSlim _rwLock = new ReaderWriterLockSlim();
+
+        [Benchmark]
+        public void ReaderWriterLockSlimPerf()
         {
-            ReaderWriterLockSlim rwLock = new ReaderWriterLockSlim();
-            foreach (var iteration in Benchmark.Iterations)
+            ReaderWriterLockSlim rwLock = _rwLock;
+
+            for (int i = 0; i < IterationCount; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < IterationCount; i++)
-                    {
-                        rwLock.EnterReadLock();
-                        rwLock.ExitReadLock();
-                    }
-                }
+                rwLock.EnterReadLock();
+                rwLock.ExitReadLock();
             }
         }
     }
