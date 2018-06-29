@@ -12,5 +12,7 @@
             public const string Span = "Span";
             public const string V8 = "V8";
             public const string Perflab = "Perflab";
+        
+        public const string CoreFX = "CoreFX";
     }
 }
