@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Threading.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Monitor
     {
         private const int IterationCount = 4_000_000;
