@@ -21,8 +21,7 @@ namespace System.Threading.Tasks
         {
             ValueTask<int> vt = new ValueTask<int>(42);
 
-            long iters = 10_000_000;
-            for (long i = 0; i < iters; i++)
+            for (long i = 0; i < 10_000_000L; i++)
             {
                 await vt;
             }
@@ -33,8 +32,7 @@ namespace System.Threading.Tasks
         {
             ValueTask<int> vt = new ValueTask<int>(Task.FromResult(42));
 
-            long iters = 10_000_000;
-            for (long i = 0; i < iters; i++)
+            for (long i = 0; i < 10_000_000L; i++)
             {
                 await vt;
             }
@@ -45,8 +43,7 @@ namespace System.Threading.Tasks
         {
             ValueTask<int> vt = new ValueTask<int>(ManualResetValueTaskSourceFactory.Completed<int>(42), 0);
 
-            long iters = 10_000_000;
-            for (long i = 0; i < iters; i++)
+            for (long i = 0; i < 10_000_000L; i++)
             {
                 await vt;
             }
@@ -55,8 +52,7 @@ namespace System.Threading.Tasks
         [Benchmark]
         public async Task CreateAndAwait_FromResult()
         {
-            long iters = 10_000_000;
-            for (long i = 0; i < iters; i++)
+            for (long i = 0; i < 10_000_000L; i++)
             {
                 await new ValueTask<int>((int) i);
             }
@@ -65,8 +61,7 @@ namespace System.Threading.Tasks
         [Benchmark]
         public async Task CreateAndAwait_FromResult_ConfigureAwait()
         {
-            long iters = 10_000_000;
-            for (long i = 0; i < iters; i++)
+            for (long i = 0; i < 10_000_000L; i++)
             {
                 await new ValueTask<int>((int) i).ConfigureAwait(false);
             }
@@ -77,8 +72,7 @@ namespace System.Threading.Tasks
         {
             Task<int> t = Task.FromResult(42);
 
-            long iters = 10_000_000;
-            for (long i = 0; i < iters; i++)
+            for (long i = 0; i < 10_000_000L; i++)
             {
                 await new ValueTask<int>(t);
             }
@@ -89,8 +83,7 @@ namespace System.Threading.Tasks
         {
             Task<int> t = Task.FromResult(42);
 
-            long iters = 10_000_000;
-            for (long i = 0; i < iters; i++)
+            for (long i = 0; i < 10_000_000L; i++)
             {
                 await new ValueTask<int>(t).ConfigureAwait(false);
             }
@@ -101,9 +94,7 @@ namespace System.Threading.Tasks
         {
             IValueTaskSource<int> vts = ManualResetValueTaskSourceFactory.Completed(42);
 
-            long iters = 10_000_000;
-
-            for (long i = 0; i < iters; i++)
+            for (long i = 0; i < 10_000_000L; i++)
             {
                 await new ValueTask<int>(vts, 0);
             }
@@ -114,8 +105,7 @@ namespace System.Threading.Tasks
         {
             IValueTaskSource<int> vts = ManualResetValueTaskSourceFactory.Completed(42);
 
-            long iters = 10_000_000;
-            for (long i = 0; i < iters; i++)
+            for (long i = 0; i < 10_000_000L; i++)
             {
                 await new ValueTask<int>(vts, 0).ConfigureAwait(false);
             }
@@ -124,8 +114,7 @@ namespace System.Threading.Tasks
         [Benchmark]
         public async Task CreateAndAwait_FromYieldingAsyncMethod()
         {
-            long iters = 1_000_000;
-            for (long i = 0; i < iters; i++)
+            for (long i = 0; i < 1_000_000L; i++)
             {
                 await new ValueTask<int>(YieldOnce());
             }
@@ -134,8 +123,7 @@ namespace System.Threading.Tasks
         [Benchmark]
         public async Task CreateAndAwait_FromDelayedTCS()
         {
-            long iters = 1_000_000;
-            for (long i = 0; i < iters; i++)
+            for (long i = 0; i < 1_000_000L; i++)
             {
                 var tcs = new TaskCompletionSource<int>();
                 ValueTask<int> vt = AwaitTcsAsValueTask(tcs);
@@ -149,8 +137,7 @@ namespace System.Threading.Tasks
         {
             ValueTask<int> vt = new ValueTask<int>(42);
 
-            long iters = 10_000_000;
-            for (long i = 0; i < iters; i++)
+            for (long i = 0; i < 10_000_000L; i++)
             {
                 vt = ReturnValueTask(vt);
             }
@@ -161,8 +148,7 @@ namespace System.Threading.Tasks
         {
             ValueTask<int> vt = new ValueTask<int>(Task.FromResult(42));
 
-            long iters = 10_000_000;
-            for (long i = 0; i < iters; i++)
+            for (long i = 0; i < 10_000_000L; i++)
             {
                 vt = ReturnValueTask(vt);
             }
@@ -173,8 +159,7 @@ namespace System.Threading.Tasks
         {
             ValueTask<int> vt = new ValueTask<int>(ManualResetValueTaskSourceFactory.Completed(42), 0);
 
-            long iters = 10_000_000;
-            for (long i = 0; i < iters; i++)
+            for (long i = 0; i < 10_000_000L; i++)
             {
                 vt = ReturnValueTask(vt);
             }
