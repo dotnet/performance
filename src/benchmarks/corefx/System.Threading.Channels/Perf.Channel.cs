@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Threading.Channels.Tests
 {
@@ -22,6 +23,7 @@ namespace System.Threading.Channels.Tests
         public sealed override Channel<int> CreateChannel() => Channel.CreateBounded<int>(10);
     }
 
+    [BenchmarkCategory(Categories.CoreFX)]
     public abstract class PerfTests
     {
         private Channel<int> _channel, _channel1, _channel2;
