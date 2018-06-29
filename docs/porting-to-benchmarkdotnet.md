@@ -140,6 +140,8 @@ public int Size { get; set; }
 public void PrepareArray() => array = new int[Size];
 ```
 
+However, `[Params]` are applied to all the benchmarks in given type. So if few benchmarks require different `[Params]` values you have to split them into separate types (I am not very proud of it, but this is how it works, at least for now).
+
 ## Method Result
 
 BenchmarkDotNet consumes the result returned from a benchmark and writes it to a `volatile` field ([code](https://github.com/dotnet/BenchmarkDotNet/blob/94863ab4d024eca04d061423e5aad498feff386b/src/BenchmarkDotNet/Engines/Consumer.cs)).
@@ -168,7 +170,7 @@ You should remove the `Escape` method and just return the result from benchmark.
 
 ```cs
 [Benchmark]
-public void Test() => Bench();
+public object Test() => Bench(); // object is just an example return type, you don't have to return object
 ````
 
 ## Method inlining
@@ -179,7 +181,7 @@ So if any benchmark has `[MethodImpl(MethodImplOptions.NoInlining)]` attribute, 
 
 ## Derived type
 
-BenchmarkDotNet creates a type which derives from type with benchmarks. So the type with benchmarks must not be **sealed** and it can not be **static** and it has to be **public**.
+BenchmarkDotNet creates a type which derives from type with benchmarks. So the type with benchmarks must **not** be **sealed** and it can **not** be **static** and it has to be **public**.
 
 ## Preserving IDs
 
