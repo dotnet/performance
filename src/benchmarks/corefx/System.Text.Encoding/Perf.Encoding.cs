@@ -29,19 +29,23 @@ namespace System.Text.Tests
         }
 
         [Benchmark]
-        public void GetBytes()
+        public byte[] GetBytes()
         {
             const int innerIterations = 100;
             
             Encoding enc = _enc;
             string toEncode = _toEncode;
+            
+            byte[] result = default;
 
             for (int i = 0; i < innerIterations; i++)
             {
-                enc.GetBytes(toEncode); enc.GetBytes(toEncode); enc.GetBytes(toEncode);
-                enc.GetBytes(toEncode); enc.GetBytes(toEncode); enc.GetBytes(toEncode);
-                enc.GetBytes(toEncode); enc.GetBytes(toEncode); enc.GetBytes(toEncode);
+                result = enc.GetBytes(toEncode); result = enc.GetBytes(toEncode); result = enc.GetBytes(toEncode);
+                result = enc.GetBytes(toEncode); result = enc.GetBytes(toEncode); result = enc.GetBytes(toEncode);
+                result = enc.GetBytes(toEncode); result = enc.GetBytes(toEncode); result = enc.GetBytes(toEncode);
             }
+
+            return result;
         }
         
         [GlobalSetup(Target = nameof(GetString) + "," + nameof(GetChars))]
@@ -52,52 +56,64 @@ namespace System.Text.Tests
         }
 
         [Benchmark]
-        public void GetString()
+        public string GetString()
         {
             const int innerIterations = 100;
             
             Encoding enc = _enc;
             byte[] bytes = _bytes;
+            
+            string result = default;
 
             for (int i = 0; i < innerIterations; i++)
             {
-                enc.GetString(bytes); enc.GetString(bytes); enc.GetString(bytes);
-                enc.GetString(bytes); enc.GetString(bytes); enc.GetString(bytes);
-                enc.GetString(bytes); enc.GetString(bytes); enc.GetString(bytes);
+                result = enc.GetString(bytes); result = enc.GetString(bytes); result = enc.GetString(bytes);
+                result = enc.GetString(bytes); result = enc.GetString(bytes); result = enc.GetString(bytes);
+                result = enc.GetString(bytes); result = enc.GetString(bytes); result = enc.GetString(bytes);
             }
+
+            return result;
         }
 
         [Benchmark]
-        public void GetChars()
+        public char[] GetChars()
         {
             const int innerIterations = 100;
             
             Encoding enc = _enc;
             byte[] bytes = _bytes;
+            
+            char[] result = default;
 
             for (int i = 0; i < innerIterations; i++)
             {
-                enc.GetChars(bytes); enc.GetChars(bytes); enc.GetChars(bytes);
-                enc.GetChars(bytes); enc.GetChars(bytes); enc.GetChars(bytes);
-                enc.GetChars(bytes); enc.GetChars(bytes); enc.GetChars(bytes);
+                result = enc.GetChars(bytes); result = enc.GetChars(bytes); result = enc.GetChars(bytes);
+                result = enc.GetChars(bytes); result = enc.GetChars(bytes); result = enc.GetChars(bytes);
+                result = enc.GetChars(bytes); result = enc.GetChars(bytes); result = enc.GetChars(bytes);
             }
+
+            return result;
         }
 
         [GlobalSetup(Target = nameof(GetEncoder))]
         public void SetupGenEncoder() => _enc = Encoding.GetEncoding(encName);
 
         [Benchmark]
-        public void GetEncoder()
+        public Encoder GetEncoder()
         {
             const int innerIterations = 10000;
-            var enc = _enc;
+            Encoding enc = _enc;
+
+            Encoder result = default;
             
             for (int i = 0; i < innerIterations; i++)
             {
-                enc.GetEncoder(); enc.GetEncoder(); enc.GetEncoder();
-                enc.GetEncoder(); enc.GetEncoder(); enc.GetEncoder();
-                enc.GetEncoder(); enc.GetEncoder(); enc.GetEncoder();
+                result = enc.GetEncoder(); result = enc.GetEncoder(); result = enc.GetEncoder();
+                result = enc.GetEncoder(); result = enc.GetEncoder(); result = enc.GetEncoder();
+                result = enc.GetEncoder(); result = enc.GetEncoder(); result = enc.GetEncoder();
             }
+
+            return result;
         }
 
         [GlobalSetup(Target = nameof(GetByteCount))]
@@ -108,19 +124,23 @@ namespace System.Text.Tests
         }
 
         [Benchmark]
-        public void GetByteCount()
+        public int GetByteCount()
         {
             const int innerIterations = 100;
             
             Encoding enc = _enc;
             char[] chars = _chars;
             
+            int result = default;
+            
             for (int i = 0; i < innerIterations; i++)
             {
-                enc.GetByteCount(chars); enc.GetByteCount(chars); enc.GetByteCount(chars);
-                enc.GetByteCount(chars); enc.GetByteCount(chars); enc.GetByteCount(chars);
-                enc.GetByteCount(chars); enc.GetByteCount(chars); enc.GetByteCount(chars);
+                result = enc.GetByteCount(chars); result = enc.GetByteCount(chars); result = enc.GetByteCount(chars);
+                result = enc.GetByteCount(chars); result = enc.GetByteCount(chars); result = enc.GetByteCount(chars);
+                result = enc.GetByteCount(chars); result = enc.GetByteCount(chars); result = enc.GetByteCount(chars);
             }
+
+            return result;
         }
     }
 }
