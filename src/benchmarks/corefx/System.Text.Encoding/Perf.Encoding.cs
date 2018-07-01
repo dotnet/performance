@@ -8,7 +8,7 @@ namespace System.Text.Tests
 {
     public class Perf_Encoding
     {
-        [Params(16, 32, 64, 128, 256, 512, 10000, 1000000)]
+        [Params(16, 512)]
         public int size; // the field must be called length (starts with lowercase) to keep old benchmark id in BenchView, do NOT change it
         
         [Params("utf-8", "ascii")]
