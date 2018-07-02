@@ -3,20 +3,8 @@
 // See the LICENSE file in the project root for more information.
 #define PERFORMANCE_TESTS
 
-using System.Collections;
-
 namespace System.ComponentModel.Tests
 {
-    public class MyTypeDescriptorContext : ITypeDescriptorContext
-    {
-        public IContainer Container => null;
-        public object Instance { get { return null; } }
-        public PropertyDescriptor PropertyDescriptor { get { return null; } }
-        public bool OnComponentChanging() { return true; }
-        public void OnComponentChanged() { }
-        public object GetService(Type serviceType) { return null; }
-    }
-
     public struct SomeValueType
     {
         public int a;
@@ -27,59 +15,6 @@ namespace System.ComponentModel.Tests
         Add,
         Sub,
         Mul
-    }
-
-    [Flags]
-    public enum SomeFlagsEnum
-    {
-        Option1 = 1,
-        Option2 = 2,
-        Option3 = 4
-    }
-
-    public class FormattableClass : IFormattable
-    {
-        public string ToString(string format, IFormatProvider formatProvider)
-        {
-            return FormattableClass.Token;
-        }
-        public const string Token = "Formatted class.";
-    }
-
-    public class Collection1 : ICollection
-    {
-        public void CopyTo(Array array, int index)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int Count
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public bool IsSynchronized
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public object SyncRoot
-        {
-            get { throw new NotImplementedException(); }
-        }
-
-        public IEnumerator GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class MyTypeListConverter : TypeListConverter
-    {
-        public MyTypeListConverter(Type[] types)
-            : base(types)
-        {
-        }
     }
 
     [TypeConverter("System.ComponentModel.Tests.BaseClassConverter, Benchmarks, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")]
@@ -242,15 +177,6 @@ namespace System.ComponentModel.Tests
         int DerivedInterfaceProperty { get; set; }
     }
 
-    public class ClassIBase : IBase
-    {
-        public ClassIBase()
-        {
-            InterfaceProperty = 10;
-        }
-        public int InterfaceProperty { get; set; }
-    }
-
     public class ClassIDerived : IDerived
     {
         public ClassIDerived()
@@ -287,21 +213,6 @@ namespace System.ComponentModel.Tests
             }
             return base.ConvertTo(context, culture, value, destinationType);
         }
-    }
-
-    [TypeConverter("System.ComponentModel.Tests.InvalidConverter")]
-    internal class ClassWithInvalidConverter : BaseClass
-    {
-    }
-
-    public class InvalidConverter : TypeConverter
-    {
-        public InvalidConverter(string someString)
-        {
-            throw new InvalidOperationException("This constructor should not be invoked by TypeDescriptor.GetConverter.");
-        }
-        // Default constructor is missing, we expect the following exception when getting a converter:
-        // System.MissingMethodException: No parameterless constructor defined for this object.
     }
 
     // TypeDescriptor should default to the TypeConverter in this case.
