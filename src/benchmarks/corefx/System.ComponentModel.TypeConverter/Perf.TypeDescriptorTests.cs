@@ -44,7 +44,7 @@ namespace System.ComponentModel.Tests
         [Arguments(typeof(ClassIBase), typeof(IBaseConverter))]
         [Arguments(typeof(ClassIDerived), typeof(IBaseConverter))]
         [Arguments(typeof(Uri), typeof(UriTypeConverter))]
-        public TypeConverter GetConverter(Type typeToConvert, Type expectedConverter)
+        public TypeConverter GetConverter(Type typeToConvert, Type expectedConverter) // the expectedConverter argument is not used anymore, but kept to remain BenchView ID, do NOT remove
         {
             TypeConverter converter = default;
             
