@@ -3,60 +3,57 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections;
-using Xunit;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace System.ComponentModel.Tests
 {
     public class Perf_TypeDescriptorTests
     {
         [Benchmark]
-        [InlineData(typeof(bool), typeof(BooleanConverter))]
-        [InlineData(typeof(byte), typeof(ByteConverter))]
-        [InlineData(typeof(SByte), typeof(SByteConverter))]
-        [InlineData(typeof(char), typeof(CharConverter))]
-        [InlineData(typeof(double), typeof(DoubleConverter))]
-        [InlineData(typeof(string), typeof(StringConverter))]
-        [InlineData(typeof(short), typeof(Int16Converter))]
-        [InlineData(typeof(int), typeof(Int32Converter))]
-        [InlineData(typeof(long), typeof(Int64Converter))]
-        [InlineData(typeof(float), typeof(SingleConverter))]
-        [InlineData(typeof(UInt16), typeof(UInt16Converter))]
-        [InlineData(typeof(UInt32), typeof(UInt32Converter))]
-        [InlineData(typeof(UInt64), typeof(UInt64Converter))]
-        [InlineData(typeof(object), typeof(TypeConverter))]
-        [InlineData(typeof(void), typeof(TypeConverter))]
-        [InlineData(typeof(DateTime), typeof(DateTimeConverter))]
-        [InlineData(typeof(DateTimeOffset), typeof(DateTimeOffsetConverter))]
-        [InlineData(typeof(Decimal), typeof(DecimalConverter))]
-        [InlineData(typeof(TimeSpan), typeof(TimeSpanConverter))]
-        [InlineData(typeof(Guid), typeof(GuidConverter))]
-        [InlineData(typeof(Array), typeof(ArrayConverter))]
-        [InlineData(typeof(ICollection), typeof(CollectionConverter))]
-        [InlineData(typeof(Enum), typeof(EnumConverter))]
-        [InlineData(typeof(SomeEnum), typeof(EnumConverter))]
-        [InlineData(typeof(SomeValueType?), typeof(NullableConverter))]
-        [InlineData(typeof(int?), typeof(NullableConverter))]
-        [InlineData(typeof(ClassWithNoConverter), typeof(TypeConverter))]
-        [InlineData(typeof(BaseClass), typeof(BaseClassConverter))]
-        [InlineData(typeof(DerivedClass), typeof(DerivedClassConverter))]
-        [InlineData(typeof(IBase), typeof(IBaseConverter))]
-        [InlineData(typeof(IDerived), typeof(IBaseConverter))]
-        [InlineData(typeof(ClassIBase), typeof(IBaseConverter))]
-        [InlineData(typeof(ClassIDerived), typeof(IBaseConverter))]
-        [InlineData(typeof(Uri), typeof(UriTypeConverter))]
-        public static void GetConverter(Type typeToConvert, Type expectedConverter)
+        [Arguments(typeof(bool), typeof(BooleanConverter))]
+        [Arguments(typeof(byte), typeof(ByteConverter))]
+        [Arguments(typeof(SByte), typeof(SByteConverter))]
+        [Arguments(typeof(char), typeof(CharConverter))]
+        [Arguments(typeof(double), typeof(DoubleConverter))]
+        [Arguments(typeof(string), typeof(StringConverter))]
+        [Arguments(typeof(short), typeof(Int16Converter))]
+        [Arguments(typeof(int), typeof(Int32Converter))]
+        [Arguments(typeof(long), typeof(Int64Converter))]
+        [Arguments(typeof(float), typeof(SingleConverter))]
+        [Arguments(typeof(UInt16), typeof(UInt16Converter))]
+        [Arguments(typeof(UInt32), typeof(UInt32Converter))]
+        [Arguments(typeof(UInt64), typeof(UInt64Converter))]
+        [Arguments(typeof(object), typeof(TypeConverter))]
+        [Arguments(typeof(void), typeof(TypeConverter))]
+        [Arguments(typeof(DateTime), typeof(DateTimeConverter))]
+        [Arguments(typeof(DateTimeOffset), typeof(DateTimeOffsetConverter))]
+        [Arguments(typeof(Decimal), typeof(DecimalConverter))]
+        [Arguments(typeof(TimeSpan), typeof(TimeSpanConverter))]
+        [Arguments(typeof(Guid), typeof(GuidConverter))]
+        [Arguments(typeof(Array), typeof(ArrayConverter))]
+        [Arguments(typeof(ICollection), typeof(CollectionConverter))]
+        [Arguments(typeof(Enum), typeof(EnumConverter))]
+        [Arguments(typeof(SomeEnum), typeof(EnumConverter))]
+        [Arguments(typeof(SomeValueType?), typeof(NullableConverter))]
+        [Arguments(typeof(int?), typeof(NullableConverter))]
+        [Arguments(typeof(ClassWithNoConverter), typeof(TypeConverter))]
+        [Arguments(typeof(BaseClass), typeof(BaseClassConverter))]
+        [Arguments(typeof(DerivedClass), typeof(DerivedClassConverter))]
+        [Arguments(typeof(IBase), typeof(IBaseConverter))]
+        [Arguments(typeof(IDerived), typeof(IBaseConverter))]
+        [Arguments(typeof(ClassIBase), typeof(IBaseConverter))]
+        [Arguments(typeof(ClassIDerived), typeof(IBaseConverter))]
+        [Arguments(typeof(Uri), typeof(UriTypeConverter))]
+        public TypeConverter GetConverter(Type typeToConvert, Type expectedConverter)
         {
-            const int innerIterations = 100;
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < innerIterations; i++)
-                    {
-                        TypeConverter converter = TypeDescriptor.GetConverter(typeToConvert);
-                        Assert.NotNull(converter);
-                        Assert.Equal(expectedConverter, converter.GetType());
-                        Assert.True(converter.CanConvertTo(typeof(string)));
-                    }
+            TypeConverter converter = default;
+            
+            for (int i = 0; i < 100; i++)
+            {
+                converter = TypeDescriptor.GetConverter(typeToConvert);
+            }
+
+            return converter;
         }
     }
 }

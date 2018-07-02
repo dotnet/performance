@@ -4,7 +4,6 @@
 #define PERFORMANCE_TESTS
 
 using System.Collections;
-using Xunit;
 
 namespace System.ComponentModel.Tests
 {
@@ -83,13 +82,7 @@ namespace System.ComponentModel.Tests
         }
     }
 
-#if FUNCTIONAL_TESTS
-    [TypeConverter("System.ComponentModel.Tests.BaseClassConverter, System.ComponentModel.TypeConverter.Tests, Version=9.9.9.9, Culture=neutral, PublicKeyToken=9d77cc7ad39b68eb")]
-#elif PERFORMANCE_TESTS
-    [TypeConverter("System.ComponentModel.Tests.BaseClassConverter, System.ComponentModel.TypeConverter.Performance.Tests, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9d77cc7ad39b68eb")]
-#else
-#error Define FUNCTIONAL_TESTS or PERFORMANCE_TESTS
-#endif
+    [TypeConverter("System.ComponentModel.Tests.BaseClassConverter, Benchmarks, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")]
     public class BaseClass
     {
         public BaseClass()
@@ -161,7 +154,7 @@ namespace System.ComponentModel.Tests
     }
 
     [TypeConverter("System.ComponentModel.Tests.DerivedClassConverter")]
-    internal class DerivedClass : BaseClass
+    public class DerivedClass : BaseClass
     {
         public DerivedClass()
             : base()
@@ -193,7 +186,7 @@ namespace System.ComponentModel.Tests
         public int DerivedProperty;
     }
 
-    internal class DerivedClassConverter : TypeConverter
+    public class DerivedClassConverter : TypeConverter
     {
         public DerivedClassConverter() { }
 
