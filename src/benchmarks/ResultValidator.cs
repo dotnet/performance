@@ -56,7 +56,12 @@ namespace Benchmarks
 
 	    private static void WriteResultsToCSV(Dictionary<string, Performance> xUnitResults, Dictionary<string, Benchmark> bdnResults)
 	    {
-		    using(StreamWriter writer = new StreamWriter("results.csv"))
+		    const string path = "results.csv";
+		    
+		    if (File.Exists(path))
+			    File.Delete(path);
+		    
+		    using(StreamWriter writer = new StreamWriter(path))
 		    {
 			    writer.WriteLine("Id;ScaleFactor;XunitAllocated;BdnAllocated;xUnitMin;xUnitAvg;xUnitMax;bdnMin;bdnAvg;bdnMax");
 		    

@@ -46,6 +46,13 @@ namespace System.Text.Tests
             return result;
         }
 
+        [GlobalSetup(Target = nameof(GetString) + "," + nameof(GetChars))]
+        public void SetupGetStringAndGetChars()
+        {
+            _enc = Encoding.GetEncoding(encName);
+            _bytes = _enc.GetBytes(_utils.CreateString(size));;
+        }
+
         [Benchmark]
         public string GetString()
         {
@@ -62,13 +69,6 @@ namespace System.Text.Tests
             }
 
             return result;
-        }
-
-        [GlobalSetup(Target = nameof(GetString) + "," + nameof(GetChars))]
-        public void SetupGetString()
-        {
-            _enc = Encoding.GetEncoding(encName);
-            _bytes = _enc.GetBytes(_utils.CreateString(size));;
         }
 
         [Benchmark]
