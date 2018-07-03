@@ -26,6 +26,8 @@ namespace System.Threading.Channels.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public abstract class PerfTests
     {
+        private const int InnerIterationCount = 1_000_000;
+
         private Channel<int> _channel, _channel1, _channel2;
         private ChannelReader<int> _reader;
         private ChannelWriter<int> _writer;
@@ -46,7 +48,7 @@ namespace System.Threading.Channels.Tests
             ChannelReader<int> reader = _reader;
             ChannelWriter<int> writer = _writer;
 
-            for (int i = 0; i < 1_000_000; i++)
+            for (int i = 0; i < InnerIterationCount; i++)
             {
                 writer.TryWrite(i);
                 reader.TryRead(out _);
@@ -59,7 +61,7 @@ namespace System.Threading.Channels.Tests
             ChannelReader<int> reader = _reader;
             ChannelWriter<int> writer = _writer;
 
-            for (int i = 0; i < 1_000_000; i++)
+            for (int i = 0; i < InnerIterationCount; i++)
             {
                 await writer.WriteAsync(i);
                 await reader.ReadAsync();
@@ -72,7 +74,7 @@ namespace System.Threading.Channels.Tests
             ChannelReader<int> reader = _reader;
             ChannelWriter<int> writer = _writer;
 
-            for (int i = 0; i < 1_000_000; i++)
+            for (int i = 0; i < InnerIterationCount; i++)
             {
                 ValueTask<int> r = reader.ReadAsync();
                 await writer.WriteAsync(42);
@@ -98,7 +100,7 @@ namespace System.Threading.Channels.Tests
                 {
                     ChannelReader<int> reader = channel1.Reader;
                     ChannelWriter<int> writer = channel2.Writer;
-                    for (int i = 0; i < 1_000_000; i++)
+                    for (int i = 0; i < InnerIterationCount; i++)
                     {
                         await writer.WriteAsync(i);
                         await reader.ReadAsync();
@@ -108,7 +110,7 @@ namespace System.Threading.Channels.Tests
                 {
                     ChannelWriter<int> writer = channel1.Writer;
                     ChannelReader<int> reader = channel2.Reader;
-                    for (int i = 0; i < 1_000_000; i++)
+                    for (int i = 0; i < InnerIterationCount; i++)
                     {
                         await reader.ReadAsync();
                         await writer.WriteAsync(i);
