@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace System.Text.RegularExpressions.Tests
 {
@@ -12,31 +12,26 @@ namespace System.Text.RegularExpressions.Tests
     /// </summary>
     public class Perf_Regex
     {
+        private int _cacheSizeOld;
         private const int InnerIterations = 100;
 
+        [GlobalSetup]
+        public void Setup()
+        {
+            _cacheSizeOld = Regex.CacheSize;
+            Regex.CacheSize = 0; // disable cache to get clearer results
+        }
+        
+        [GlobalCleanup]
+        public void Cleanup() => Regex.CacheSize = _cacheSizeOld;
+
         [Benchmark]
-        [MeasureGCAllocations]
         public void Match()
         {
-            var cacheSizeOld = Regex.CacheSize;
-            try
+            for (int i = 0; i < InnerIterations; i++)
             {
-                Regex.CacheSize = 0; // disable cache to get clearer results
-                foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-                {
-                    using (iteration.StartMeasurement())
-                    {
-                        for (int i = 0; i < InnerIterations; i++)
-                        {
-                            foreach (var test in Match_TestData())
-                                Regex.Match((string)test[1], (string)test[0], (RegexOptions)test[2]);
-                        }
-                    }
-                }
-            }
-            finally
-            {
-                Regex.CacheSize = cacheSizeOld;
+                foreach (var test in Match_TestData())
+                    Regex.Match((string) test[1], (string) test[0], (RegexOptions) test[2]);
             }
         }
 
