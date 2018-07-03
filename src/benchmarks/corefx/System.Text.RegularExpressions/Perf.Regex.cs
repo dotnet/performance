@@ -5,13 +5,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Text.RegularExpressions.Tests
 {
     /// <summary>
     /// Performance tests for Regular Expressions
     /// </summary>
-    public class Perf_Regex
+    [BenchmarkCategory(Categories.CoreFX)]
+    public class Perf_Regex2
     {
         private const int InnerIterations = 100;
 

@@ -5,9 +5,11 @@
 using System.IO;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Text.RegularExpressions.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class RegexRedux
     {
         static readonly string input = File.ReadAllText(

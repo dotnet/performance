@@ -5,9 +5,11 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Text.RegularExpressions.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Regex_Cache
     {
         private const int MaxConcurrency = 4;
