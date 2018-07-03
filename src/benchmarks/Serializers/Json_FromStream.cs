@@ -72,7 +72,7 @@ namespace Benchmarks.Serializers
                 return Jil.JSON.Deserialize<T>(reader);
         }
 
-        [BenchmarkCategory(Categories.CoreFX)]
+        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX)]
         [Benchmark(Description = "JSON.NET")]
         public T JsonNet_()
         {
@@ -89,7 +89,7 @@ namespace Benchmarks.Serializers
             return Utf8Json.JsonSerializer.Deserialize<T>(memoryStream);
         }
 
-        [BenchmarkCategory(Categories.CoreFX)]
+        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX)]
         [Benchmark(Description = "DataContractJsonSerializer")]
         public T DataContractJsonSerializer_()
         {
