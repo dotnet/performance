@@ -42,4 +42,10 @@
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">
     <Compile Remove="coreclr\Math\Functions\Single\**" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(NuGetPackageRoot)\system.text.regularexpressions.testdata\1.0.2\content\regexredux\*.*">
+      <Link>corefx\System.Text.RegularExpressions\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>
