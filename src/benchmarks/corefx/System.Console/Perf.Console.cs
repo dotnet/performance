@@ -13,6 +13,7 @@ namespace System.ConsoleTests
     /// - OpenStandardInput, OpenStandardOutput, OpenStandardError
     /// - ForegroundColor, BackgroundColor, ResetColor
     /// </summary>
+    [GcForce(true)] // forces full GC cleanup after every iteration, so streams allocated in OpenStandard* benchmarks are going to be finalized
     public class Perf_Console
     {
         const int StreamInnerIterations = 50;
