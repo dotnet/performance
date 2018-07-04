@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
+using System.Security.Cryptography;
+using BenchmarkDotNet.Attributes;
 using Test.Cryptography;
-using Xunit;
 
 namespace System.Security.Cryptography.Primitives.Tests.Performance
 {
@@ -12,77 +12,72 @@ namespace System.Security.Cryptography.Primitives.Tests.Performance
     {
         private const int IterationCountFor256Bit = 300000;
 
-        [Benchmark(InnerIterationCount = IterationCountFor256Bit)]
-        public static void FixedTimeEquals_256Bit_Equal()
-        {
-            MeasureFixedTimeEquals(
+        byte[] baseValue, errorVector;
+
+        [GlobalSetup(Target = nameof(FixedTimeEquals_256Bit_Equal))]
+        public void Setup_Equal()
+            => Setup(
                 "741202531e19d673ad7fff334594549e7c81a285dd02865ddd12530612a96336",
                 "0000000000000000000000000000000000000000000000000000000000000000");
-        }
 
-        [Benchmark(InnerIterationCount = IterationCountFor256Bit)]
-        public static void FixedTimeEquals_256Bit_LastBitDifferent()
-        {
-            MeasureFixedTimeEquals(
+        [Benchmark]
+        public void FixedTimeEquals_256Bit_Equal() => MeasureFixedTimeEquals(baseValue, errorVector);
+
+        
+        [GlobalSetup(Target = nameof(FixedTimeEquals_256Bit_LastBitDifferent))]
+        public void Setup_LastBitDifferent()
+            => Setup(
                 "741202531e19d673ad7fff334594549e7c81a285dd02865ddd12530612a96336",
                 "0000000000000000000000000000000000000000000000000000000000000001");
-        }
 
-        [Benchmark(InnerIterationCount = IterationCountFor256Bit)]
-        public static void FixedTimeEquals_256Bit_FirstBitDifferent()
-        {
-            MeasureFixedTimeEquals(
+        [Benchmark]
+        public void FixedTimeEquals_256Bit_LastBitDifferent() => MeasureFixedTimeEquals(baseValue, errorVector);
+
+        
+        [GlobalSetup(Target = nameof(FixedTimeEquals_256Bit_FirstBitDifferent))]
+        public void Setup_FirstBitDifferent()
+            => Setup(
                 "741202531e19d673ad7fff334594549e7c81a285dd02865ddd12530612a96336",
                 "8000000000000000000000000000000000000000000000000000000000000000");
-        }
+        
+        [Benchmark]
+        public void FixedTimeEquals_256Bit_FirstBitDifferent() => MeasureFixedTimeEquals(baseValue, errorVector);
 
-        [Benchmark(InnerIterationCount = IterationCountFor256Bit)]
-        public static void FixedTimeEquals_256Bit_CascadingErrors()
-        {
-            MeasureFixedTimeEquals(
+        [GlobalSetup(Target = nameof(FixedTimeEquals_256Bit_CascadingErrors))]
+        public void Setup_CascadingErrors()
+            => Setup(
                 "741202531e19d673ad7fff334594549e7c81a285dd02865ddd12530612a96336",
                 "0102040810204080112244880000000000000000000000000000000000000000");
-        }
+        
+        [Benchmark]
+        public void FixedTimeEquals_256Bit_CascadingErrors() => MeasureFixedTimeEquals(baseValue, errorVector);
 
-        [Benchmark(InnerIterationCount = IterationCountFor256Bit)]
-        public static void FixedTimeEquals_256Bit_AllBitsDifferent()
-        {
-            MeasureFixedTimeEquals(
+        [GlobalSetup(Target = nameof(FixedTimeEquals_256Bit_AllBitsDifferent))]
+        public void Setup_AllBitsDifferent()
+            => Setup(
                 "741202531e19d673ad7fff334594549e7c81a285dd02865ddd12530612a96336",
                 "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
-        }
+        
+        [Benchmark]
+        public void FixedTimeEquals_256Bit_AllBitsDifferent() => MeasureFixedTimeEquals(baseValue, errorVector);
 
-        [Benchmark(InnerIterationCount = IterationCountFor256Bit)]
-        public static void FixedTimeEquals_256Bit_VersusZero()
-        {
-            MeasureFixedTimeEquals(
+        [GlobalSetup(Target = nameof(FixedTimeEquals_256Bit_VersusZero))]
+        public void Setup_VersusZero()
+            => Setup(
                 "741202531e19d673ad7fff334594549e7c81a285dd02865ddd12530612a96336",
                 "741202531e19d673ad7fff334594549e7c81a285dd02865ddd12530612a96336");
-        }
+        
+        [Benchmark]
+        public void FixedTimeEquals_256Bit_VersusZero() => MeasureFixedTimeEquals(baseValue, errorVector);
+        
+        [GlobalSetup(Target = nameof(FixedTimeEquals_256Bit_SameReference))]
+        public void Setup_SameReference()
+            => baseValue = "741202531e19d673ad7fff334594549e7c81a285dd02865ddd12530612a96336".HexToByteArray();
 
-        [Benchmark(InnerIterationCount = IterationCountFor256Bit)]
-        public static void FixedTimeEquals_256Bit_SameReference()
-        {
-            byte[] test = "741202531e19d673ad7fff334594549e7c81a285dd02865ddd12530612a96336".HexToByteArray();
+        [Benchmark]
+        public void FixedTimeEquals_256Bit_SameReference() => MeasureFixedTimeEquals(baseValue, baseValue);
 
-            Span<byte> left = test;
-            Span<byte> right = test;
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        CryptographicOperations.FixedTimeEquals(left, right);
-                    }
-                }
-            }
-        }
-
-        // The important statistics from these perf runs aren't the mean, but the t-test for
-        // every set of the same length being the same as when it was equal.
-        private static void MeasureFixedTimeEquals(string baseValueHex, string errorVectorHex)
+        private void Setup(string baseValueHex, string errorVectorHex)
         {
             if (errorVectorHex.Length != baseValueHex.Length)
             {
@@ -97,18 +92,20 @@ namespace System.Security.Cryptography.Primitives.Tests.Performance
                 b[i] ^= a[i];
             }
 
+            baseValue = a;
+            errorVector = b;
+        }
+
+        // The important statistics from these perf runs aren't the mean, but the t-test for
+        // every set of the same length being the same as when it was equal.
+        private static void MeasureFixedTimeEquals(byte[] a, byte[] b)
+        {
             Span<byte> left = a;
             Span<byte> right = b;
 
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
+            for (int i = 0; i < IterationCountFor256Bit; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        CryptographicOperations.FixedTimeEquals(left, right);
-                    }
-                }
+                CryptographicOperations.FixedTimeEquals(left, right);
             }
         }
     }
