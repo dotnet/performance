@@ -22,7 +22,6 @@ namespace System.Security.Cryptography.Primitives.Tests.Performance
 
         [Benchmark]
         public void FixedTimeEquals_256Bit_Equal() => MeasureFixedTimeEquals(baseValue, errorVector);
-
         
         [GlobalSetup(Target = nameof(FixedTimeEquals_256Bit_LastBitDifferent))]
         public void Setup_LastBitDifferent()
@@ -32,7 +31,6 @@ namespace System.Security.Cryptography.Primitives.Tests.Performance
 
         [Benchmark]
         public void FixedTimeEquals_256Bit_LastBitDifferent() => MeasureFixedTimeEquals(baseValue, errorVector);
-
         
         [GlobalSetup(Target = nameof(FixedTimeEquals_256Bit_FirstBitDifferent))]
         public void Setup_FirstBitDifferent()
