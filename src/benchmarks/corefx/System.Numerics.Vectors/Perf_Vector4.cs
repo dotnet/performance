@@ -2,37 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using BdnDtos;
 using BenchmarkDotNet.Attributes;
-using Microsoft.Xunit.Performance;
 
 namespace System.Numerics.Tests
 {
-    public static class Perf_Vector4
+    public class Perf_Vector4
     {
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void AddFunctionBenchmark()
-        {
-            var expectedResult = VectorTests.Vector4Value;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                Vector4 actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = AddFunctionTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static Vector4 AddFunctionTest()
+        [Benchmark]
+        public Vector4 AddFunctionBenchmark()
         {
             var result = VectorTests.Vector4Value;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 result = Vector4.Add(result, VectorTests.Vector4Delta);
             }
@@ -40,29 +21,12 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void SubtractOperatorBenchmark()
-        {
-            var expectedResult = VectorTests.Vector4Value;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                Vector4 actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = SubtractOperatorTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static Vector4 SubtractOperatorTest()
+        [Benchmark]
+        public Vector4 SubtractOperatorBenchmark()
         {
             var result = VectorTests.Vector4Value;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 result -= VectorTests.Vector4Delta;
             }
@@ -70,29 +34,12 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void DistanceSquaredBenchmark()
-        {
-            const float expectedResult = 16.0f;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                float actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = DistanceSquaredTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static float DistanceSquaredTest()
+        [Benchmark]
+        public float DistanceSquaredBenchmark()
         {
             var result = 0.0f;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 // The inputs aren't being changed and the output is being reset with each iteration, so a future
                 // optimization could potentially throw away everything except for the final call. This would break
@@ -103,30 +50,13 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void DistanceSquaredJitOptimizeCanaryBenchmark()
-        {
-            const float expectedResult = 268435456.0f;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                float actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = DistanceSquaredJitOptimizeCanaryTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static float DistanceSquaredJitOptimizeCanaryTest()
+        [Benchmark]
+        public float DistanceSquaredJitOptimizeCanaryBenchmark()
         {
             var result = 0.0f;
             var value = VectorTests.Vector4Value;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 value += VectorTests.Vector4Delta;
                 result += Vector4.DistanceSquared(value, VectorTests.Vector4ValueInverted);
@@ -135,29 +65,12 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void MultiplyOperatorBenchmark()
-        {
-            var expectedResult = Vector4.Zero;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                Vector4 actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = MultiplyOperatorTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static Vector4 MultiplyOperatorTest()
+        [Benchmark]
+        public Vector4 MultiplyOperatorBenchmark()
         {
             var result = VectorTests.Vector4Value;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 result *= VectorTests.Vector4Delta;
             }
@@ -165,29 +78,12 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void SubtractFunctionBenchmark()
-        {
-            var expectedResult = VectorTests.Vector4Value;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                Vector4 actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = SubtractFunctionTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static Vector4 SubtractFunctionTest()
+        [Benchmark]
+        public Vector4 SubtractFunctionBenchmark()
         {
             var result = VectorTests.Vector4Value;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 result = Vector4.Subtract(result, VectorTests.Vector4Delta);
             }
@@ -195,29 +91,12 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void MultiplyFunctionBenchmark()
-        {
-            var expectedResult = Vector4.Zero;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                Vector4 actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = MultiplyFunctionTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static Vector4 MultiplyFunctionTest()
+        [Benchmark]
+        public Vector4 MultiplyFunctionBenchmark()
         {
             var result = VectorTests.Vector4Value;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 result = Vector4.Multiply(result, VectorTests.Vector4Delta);
             }
@@ -225,29 +104,12 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void LengthSquaredBenchmark()
-        {
-            const float expectedResult = 4.0f;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                float actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = LengthSquaredTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static float LengthSquaredTest()
+        [Benchmark]
+        public float LengthSquaredBenchmark()
         {
             var result = 0.0f;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 // The inputs aren't being changed and the output is being reset with each iteration, so a future
                 // optimization could potentially throw away everything except for the final call. This would break
@@ -258,30 +120,13 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void LengthSquaredJitOptimizeCanaryBenchmark()
-        {
-            const float expectedResult = 67108864.0f;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                float actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = LengthSquaredJitOptimizeCanaryTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static float LengthSquaredJitOptimizeCanaryTest()
+        [Benchmark]
+        public float LengthSquaredJitOptimizeCanaryBenchmark()
         {
             var result = 0.0f;
             var value = VectorTests.Vector4Value;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 value += VectorTests.Vector4Delta;
                 result += value.LengthSquared();
@@ -290,29 +135,12 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void GetHashCodeBenchmark()
-        {
-            const int expectedResult = 536896558;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                int actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = GetHashCodeTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static int GetHashCodeTest()
+        [Benchmark]
+        public int GetHashCodeBenchmark()
         {
             var result = 0;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 // The inputs aren't being changed and the output is being reset with each iteration, so a future
                 // optimization could potentially throw away everything except for the final call. This would break
@@ -323,30 +151,13 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void GetHashCodeJitOptimizeCanaryBenchmark()
-        {
-            const int expectedResult = 504524288;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                int actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = GetHashCodeJitOptimizeCanaryTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static int GetHashCodeJitOptimizeCanaryTest()
+        [Benchmark]
+        public int GetHashCodeJitOptimizeCanaryBenchmark()
         {
             var result = 0;
             var value = VectorTests.Vector4Value;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 value += VectorTests.Vector4Delta;
                 result += value.GetHashCode();
@@ -355,29 +166,12 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void AddOperatorBenchmark()
-        {
-            var expectedResult = VectorTests.Vector4Value;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                Vector4 actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = AddOperatorTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static Vector4 AddOperatorTest()
+        [Benchmark]
+        public Vector4 AddOperatorBenchmark()
         {
             var result = VectorTests.Vector4Value;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 result += VectorTests.Vector4Delta;
             }
@@ -385,29 +179,12 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void SquareRootBenchmark()
-        {
-            var expectedResult = new Vector4(float.NaN, 1.0f, float.NaN, 1.0f);
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                Vector4 actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = SquareRootTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static Vector4 SquareRootTest()
+        [Benchmark]
+        public Vector4 SquareRootBenchmark()
         {
             var result = VectorTests.Vector4Value;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 // The inputs aren't being changed and the output is being reset with each iteration, so a future
                 // optimization could potentially throw away everything except for the final call. This would break
@@ -418,29 +195,12 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void SquareRootJitOptimizeCanaryBenchmark()
-        {
-            var expectedResult = new Vector4(float.NaN, 2.81474977e+14f, float.NaN, 2.81474977e+14f);
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                Vector4 actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = SquareRootJitOptimizeCanaryTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static Vector4 SquareRootJitOptimizeCanaryTest()
+        [Benchmark]
+        public Vector4 SquareRootJitOptimizeCanaryBenchmark()
         {
             var result = VectorTests.Vector4Value;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 result += Vector4.SquareRoot(result);
             }
@@ -448,29 +208,12 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void NormalizeBenchmark()
-        {
-            var expectedResult = new Vector4(-0.5f, 0.5f, -0.5f, 0.5f);
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                Vector4 actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = NormalizeTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static Vector4 NormalizeTest()
+        [Benchmark]
+        public Vector4 NormalizeBenchmark()
         {
             var result = VectorTests.Vector4Value;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 // The inputs aren't being changed and the output is being reset with each iteration, so a future
                 // optimization could potentially throw away everything except for the final call. This would break
@@ -481,29 +224,12 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void NormalizeJitOptimizeCanaryBenchmark()
-        {
-            var expectedResult = new Vector4(-8388608.0f, 8388608.0f, -8388608.0f, 8388608.0f);
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                Vector4 actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = NormalizeJitOptimizeCanaryTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static Vector4 NormalizeJitOptimizeCanaryTest()
+        [Benchmark]
+        public Vector4 NormalizeJitOptimizeCanaryBenchmark()
         {
             var result = VectorTests.Vector4Value;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 result += Vector4.Normalize(result);
             }
@@ -511,29 +237,12 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void DistanceBenchmark()
-        {
-            const float expectedResult = 4.0f;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                float actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = DistanceTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static float DistanceTest()
+        [Benchmark]
+        public float DistanceBenchmark()
         {
             var result = 0.0f;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 // The inputs aren't being changed and the output is being reset with each iteration, so a future
                 // optimization could potentially throw away everything except for the final call. This would break
@@ -544,30 +253,13 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void DistanceJitOptimizeCanaryBenchmark()
-        {
-            const float expectedResult = 67108864.0f;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                float actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = DistanceJitOptimizeCanaryTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static float DistanceJitOptimizeCanaryTest()
+        [Benchmark]
+        public float DistanceJitOptimizeCanaryBenchmark()
         {
             var result = 0.0f;
             var value = VectorTests.Vector4Value;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 value += VectorTests.Vector4Delta;
                 result += Vector4.Distance(value, VectorTests.Vector4ValueInverted);
@@ -576,29 +268,12 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void LengthBenchmark()
-        {
-            const float expectedResult = 2.0f;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                float actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = LengthTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static float LengthTest()
+        [Benchmark]
+        public float LengthBenchmark()
         {
             var result = 0.0f;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 // The inputs aren't being changed and the output is being reset with each iteration, so a future
                 // optimization could potentially throw away everything except for the final call. This would break
@@ -609,30 +284,13 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void LengthJitOptimizeCanaryBenchmark()
-        {
-            const float expectedResult = 33554432.0f;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                float actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = LengthJitOptimizeCanaryTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static float LengthJitOptimizeCanaryTest()
+        [Benchmark]
+        public float LengthJitOptimizeCanaryBenchmark()
         {
             var result = 0.0f;
             var value = VectorTests.Vector4Value;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 value += VectorTests.Vector4Delta;
                 result += value.Length();
@@ -641,29 +299,12 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void DotBenchmark()
-        {
-            const float expectedResult = -4.0f;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                float actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = DotTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static float DotTest()
+        [Benchmark]
+        public float DotBenchmark()
         {
             var result = 0.0f;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 // The inputs aren't being changed and the output is being reset with each iteration, so a future
                 // optimization could potentially throw away everything except for the final call. This would break
@@ -674,30 +315,13 @@ namespace System.Numerics.Tests
             return result;
         }
 
-        [Benchmark(InnerIterationCount = VectorTests.DefaultInnerIterationsCount)]
-        public static void DotJitOptimizeCanaryBenchmark()
-        {
-            const float expectedResult = -67108864.0f;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                float actualResult;
-
-                using (iteration.StartMeasurement())
-                {
-                    actualResult = DotJitOptimizeCanaryTest();
-                }
-
-                VectorTests.AssertEqual(expectedResult, actualResult);
-            }
-        }
-
-        public static float DotJitOptimizeCanaryTest()
+        [Benchmark]
+        public float DotJitOptimizeCanaryBenchmark()
         {
             var result = 0.0f;
             var value = VectorTests.Vector4Value;
 
-            for (var iteration = 0; iteration < Benchmark.InnerIterationCount; iteration++)
+            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
             {
                 value += VectorTests.Vector4Delta;
                 result += Vector4.Dot(value, VectorTests.Vector4ValueInverted);
