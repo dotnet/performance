@@ -8,7 +8,7 @@ using Benchmarks;
 
 namespace System.Numerics.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.CoreFX, Categories.SIMD)]
     public class Constructor
     {
         public const int DefaultInnerIterationsCount = 100000000;
@@ -25,7 +25,6 @@ namespace System.Numerics.Tests
         Double[] _arrValues_Double = GenerateRandomValuesForVector<Double>(Int32.MinValue, Int32.MaxValue);
 
 #if NETCOREAPP2_1 // Vector(Span) available in .NET Core 2.1+
-
         [Benchmark]
         public void ConstructorBenchmark_Byte() => Construct(new Span<Byte>(_arrValues_Byte));
 
@@ -63,7 +62,6 @@ namespace System.Numerics.Tests
                 Vector<T> vect = new Vector<T>(values);
             }
         }
-
 #endif // NETCOREAPP2_1
 
         [Benchmark]
@@ -95,7 +93,6 @@ namespace System.Numerics.Tests
 
         [Benchmark]
         public void SpanCastBenchmark_Double() => SpanCast(new ReadOnlySpan<Double>(_arrValues_Double));
-
 
         public static void SpanCast<T>(ReadOnlySpan<T> values) where T : struct
         {

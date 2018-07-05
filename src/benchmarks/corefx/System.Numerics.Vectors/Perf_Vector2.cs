@@ -4,9 +4,11 @@
 
 
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Numerics.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX, Categories.SIMD)]
     public class Perf_Vector2
     {
         [Benchmark]

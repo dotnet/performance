@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Numerics.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX, Categories.SIMD)]
     public class Perf_Vector3
     {
         [Benchmark]
