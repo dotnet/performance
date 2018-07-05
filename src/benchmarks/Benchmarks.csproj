@@ -41,6 +41,8 @@
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">
     <Compile Remove="coreclr\Math\Functions\Single\**" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' != 'netcoreapp2.1' ">
     <Compile Remove="corefx\System.Security.Cryptography.Primitives\**" />
   </ItemGroup>
 </Project>
