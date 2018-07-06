@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Xml;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace XmlDocumentTests.XmlDocumentTests
 {
@@ -12,52 +11,56 @@ namespace XmlDocumentTests.XmlDocumentTests
     {
         private const int innerIterations = 10000;
 
+        private XmlDocument _doc;
+        
         [Benchmark]
-        public void Create()
+        public XmlDocument Create()
         {
-            foreach (var iteration in Benchmark.Iterations)
+            XmlDocument doc = default;
+            
+            for (int i = 0; i < innerIterations; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < innerIterations; i++)
-                    {
-                        new XmlDocument(); new XmlDocument(); new XmlDocument();
-                        new XmlDocument(); new XmlDocument(); new XmlDocument();
-                        new XmlDocument(); new XmlDocument(); new XmlDocument();
-                    }
-                }
+                doc = new XmlDocument(); doc =new XmlDocument(); doc = new XmlDocument();
+                doc = new XmlDocument(); doc =new XmlDocument(); doc = new XmlDocument();
+                doc = new XmlDocument(); doc =new XmlDocument(); doc = new XmlDocument();
             }
+
+            return doc;
         }
+        
+        [GlobalSetup(Target = nameof(LoadXml))]
+        public void SetupLoadXml() => _doc = new XmlDocument();
 
         [Benchmark]
         public void LoadXml()
         {
-            XmlDocument doc = new XmlDocument();
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < innerIterations; i++)
-                        doc.LoadXml("<elem1 child1='' child2='duu' child3='e1;e2;' child4='a1' child5='goody'> text node two e1; text node three </elem1>");
+            XmlDocument doc = _doc;
+            
+            for (int i = 0; i < innerIterations; i++)
+                doc.LoadXml("<elem1 child1='' child2='duu' child3='e1;e2;' child4='a1' child5='goody'> text node two e1; text node three </elem1>");
+        }
+
+        [GlobalSetup(Target = nameof(GetDocumentElement))]
+        public void SetupGetDocumentElement()
+        {
+            _doc = new XmlDocument();
+            _doc.LoadXml("<elem1 child1='' child2='duu' child3='e1;e2;' child4='a1' child5='goody'> text node two e1; text node three </elem1>");
         }
 
         [Benchmark]
-        public void GetDocumentElement()
+        public XmlNode GetDocumentElement()
         {
-            XmlNode element;
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml("<elem1 child1='' child2='duu' child3='e1;e2;' child4='a1' child5='goody'> text node two e1; text node three </elem1>");
+            XmlNode element = default;
+            XmlDocument doc = _doc;
 
-            foreach (var iteration in Benchmark.Iterations)
+            for (int i = 0; i < innerIterations; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < innerIterations; i++)
-                    {
-                        element = doc.DocumentElement; element = doc.DocumentElement; element = doc.DocumentElement;
-                        element = doc.DocumentElement; element = doc.DocumentElement; element = doc.DocumentElement;
-                        element = doc.DocumentElement; element = doc.DocumentElement; element = doc.DocumentElement;
-                    }
-                }
+                element = doc.DocumentElement; element = doc.DocumentElement; element = doc.DocumentElement;
+                element = doc.DocumentElement; element = doc.DocumentElement; element = doc.DocumentElement;
+                element = doc.DocumentElement; element = doc.DocumentElement; element = doc.DocumentElement;
             }
+
+            return element;
         }
     }
 }
