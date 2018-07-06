@@ -111,7 +111,7 @@ public class Product
     }
 }
 
-[BenchmarkCategory(Categories.CoreCLR)]
+[BenchmarkCategory(Categories.CoreCLR, Categories.LINQ)]
 public class LinqBenchmarks
 {
     public const int IterationsWhere00 = 1000000;

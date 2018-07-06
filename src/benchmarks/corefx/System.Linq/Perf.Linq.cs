@@ -4,9 +4,11 @@
 
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Linq.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX, Categories.LINQ)]
     public class Perf_Linq
     {
         private const int DefaultSize = 100;
