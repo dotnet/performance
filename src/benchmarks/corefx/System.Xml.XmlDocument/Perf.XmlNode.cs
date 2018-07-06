@@ -4,9 +4,11 @@
 
 using System.Xml;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace XmlDocumentTests.XmlNodeTests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_XmlNode
     {
         private const int innerIterations = 10000;
