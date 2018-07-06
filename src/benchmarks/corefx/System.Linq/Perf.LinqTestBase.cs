@@ -2,19 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using Xunit;
-using System.Diagnostics;
-using Microsoft.Xunit.Performance;
 
 namespace System.Linq.Tests
 {
     /// <summary>
     /// Classes and methods to unify performance testing logic
     /// </summary>
-    public partial class Perf_LinqTestBase
+    public class Perf_LinqTestBase
     {
         public class EnumerableWrapper<T> : IEnumerable<T>
         {
@@ -107,94 +102,7 @@ namespace System.Linq.Tests
             public IEnumerator<T> GetEnumerator() { return ((IEnumerable<T>)_array).GetEnumerator(); }
             Collections.IEnumerator Collections.IEnumerable.GetEnumerator() { return ((IEnumerable<T>)_array).GetEnumerator(); }
         }
-
-        // =============
-
-        /// <summary>
-        /// Measures the time of iteration over IEnumerable sequence
-        /// </summary>
-        /// <typeparam name="T">Elements type</typeparam>
-        /// <param name="source">Sequence</param>
-        /// <param name="iterationCount">Number of passes</param>
-        public static void MeasureIteration<T>(IEnumerable<T> source, int iterationCount)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < iterationCount; i++)
-                    {
-                        foreach (var item in source)
-                        { }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Measures the time of materialization of IEnumerable sequence to Array
-        /// </summary>
-        /// <typeparam name="T">Elements type</typeparam>
-        /// <param name="source">Sequence</param>
-        /// <param name="iterationCount">Number of passes</param>
-        public static void MeasureMaterializationToArray<T>(IEnumerable<T> source, int iterationCount)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < iterationCount; i++)
-                    {
-                        source.ToArray();
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Measures the time of materialization of IEnumerable sequence to List
-        /// </summary>
-        /// <typeparam name="T">Elements type</typeparam>
-        /// <param name="source">Sequence</param>
-        /// <param name="iterationCount">Number of passes</param>
-        /// <returns>Measured time</returns>
-        public static void MeasureMaterializationToList<T>(IEnumerable<T> source, int iterationCount)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < iterationCount; i++)
-                    {
-                        source.ToList();
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Measures the time of materialization of IEnumerable sequence to Dictionary
-        /// </summary>
-        /// <typeparam name="T">Elements type</typeparam>
-        /// <param name="source">Sequence</param>
-        /// <param name="iterationCount">Number of passes</param>
-        public static void MeasureMaterializationToDictionary<T>(IEnumerable<T> source, int iterationCount)
-        {
-            int count = 0;
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < iterationCount; i++)
-                    {
-                        source.ToDictionary(key => count++);
-                    }
-                }
-            }
-        }
-
-        // ===============
-
+        
         public enum WrapperType
         {
             NoWrap,
@@ -233,28 +141,15 @@ namespace System.Linq.Tests
         /// Main method to measure performance.
         /// Creates array of Int32 with length 'elementCount', wraps it by one of the wrapper, applies LINQ and measures materialization to Array
         /// </summary>
-        public static void Measure<TElement>(int elementCount, int iterationCount, WrapperType wrapperKind, Func<IEnumerable<int>, IEnumerable<TElement>> applyLINQ)
+        public static int[] Measure(int[] data, int iterationCount, WrapperType wrapperKind, Func<IEnumerable<int>, IEnumerable<int>> applyLINQ)
         {
-            int[] data = Enumerable.Range(0, elementCount).ToArray();
+            int[] result = default;
             IEnumerable<int> wrapper = Wrap(data, wrapperKind);
 
-            IEnumerable<TElement> linqExpr = applyLINQ(wrapper);
-            MeasureMaterializationToArray(linqExpr, iterationCount);
+            for (int i = 0; i < iterationCount; i++)
+                 result = applyLINQ(wrapper).ToArray();
+
+            return result;
         }
-
-        /// <summary>
-        /// Main method to measure performance.
-        /// Creates array of TSource with length 'elementCount', wraps it by one of the wrapper, applies LINQ and measures materialization to Array
-        /// </summary>
-        public static void Measure<TSource, TElement>(int elementCount, int iterationCount, TSource defaultValue, WrapperType wrapperKind, Func<IEnumerable<TSource>, IEnumerable<TElement>> applyLINQ)
-        {
-            TSource[] data = Enumerable.Repeat(defaultValue, elementCount).ToArray();
-            IEnumerable<TSource> wrapper = Wrap(data, wrapperKind);
-
-            IEnumerable<TElement> linqExpr = applyLINQ(wrapper);
-            MeasureMaterializationToArray(linqExpr, iterationCount);
-        }
-
-        // ===========
     }
 }
