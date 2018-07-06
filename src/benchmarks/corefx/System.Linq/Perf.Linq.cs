@@ -63,7 +63,7 @@ namespace System.Linq.Tests
             => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], iteration, wrapType, col => col.Where(o => o >= 0).Select(o => o + 1));
 
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))] // for some reason the size and iteration arguments are ignored for this benchmark
         public BaseClass[] Cast_ToBaseClass(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
         {
             BaseClass[] baseClasses = default;
@@ -76,7 +76,7 @@ namespace System.Linq.Tests
         }
 
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))] // for some reason the size and iteration arguments are ignored for this benchmark
         public int[] Cast_SameType(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
         {
             int[] sameType = default;
