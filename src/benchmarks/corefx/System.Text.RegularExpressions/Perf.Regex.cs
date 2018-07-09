@@ -13,7 +13,7 @@ namespace System.Text.RegularExpressions.Tests
     /// Performance tests for Regular Expressions
     /// </summary>
     [BenchmarkCategory(Categories.CoreFX)]
-    public class Perf_Regex2
+    public class Perf_Regex
     {
         private const int InnerIterations = 100;
 
