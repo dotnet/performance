@@ -17,5 +17,7 @@
         public const string SIMD = "SIMD";
         public const string Span = "Span";
         public const string Collections = "Collections";
+        public const string GenericCollections = "GenericCollections";
+        public const string NonGenericCollections = "NonGenericCollections";
     }
 }

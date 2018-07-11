@@ -1,7 +1,9 @@
 ﻿using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Collections
 {
+    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.NonGenericCollections)]
     public class CtorDefaultSizeNonGeneric
     {
         [Benchmark]

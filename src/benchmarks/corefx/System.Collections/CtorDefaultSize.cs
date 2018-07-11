@@ -6,7 +6,7 @@ using Benchmarks;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections)]
+    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int), typeof(int))] // value type
     [GenericTypeArguments(typeof(string), typeof(string))] // reference type
     public class CtorDefaultSize<TKey, TValue>
