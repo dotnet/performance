@@ -1,9 +1,11 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Xml.Serialization;
 using BdnDtos;
 using Newtonsoft.Json;
@@ -56,7 +58,7 @@ namespace Benchmarks
 
 	    private static void WriteResultsToCSV(Dictionary<string, Performance> xUnitResults, Dictionary<string, Benchmark> bdnResults)
 	    {
-		    using(StreamWriter writer = new StreamWriter("results.csv"))
+		    using(StreamWriter writer = new StreamWriter("results.csv", append: false))
 		    {
 			    writer.WriteLine("Id;ScaleFactor;XunitAllocated;BdnAllocated;xUnitMin;xUnitAvg;xUnitMax;bdnMin;bdnAvg;bdnMax");
 		    
