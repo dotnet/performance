@@ -4,7 +4,7 @@ using Helpers;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.NonGenericCollections)]
     public class IterateForEachNonGeneric
     {
         [Params(100)]
