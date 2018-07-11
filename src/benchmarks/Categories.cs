@@ -16,5 +16,6 @@
         public const string LINQ = "LINQ";
         public const string SIMD = "SIMD";
         public const string Span = "Span";
+        public const string Collections = "Collections";
     }
 }
