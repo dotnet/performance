@@ -17,13 +17,13 @@ namespace System.Collections
 
         [GlobalSetup]
         public void Setup() => _values = UniqueValuesGenerator.GenerateArray<T>(Count);
-        
+
         [Benchmark]
         public List<T> List()
         {
             var result = new List<T>(Count);
             var values = _values;
-            for(int i = 0; i < values.Length; i++)
+            for (int i = 0; i < values.Length; i++)
                 result.Add(values[i]);
             return result;
         }
@@ -38,14 +38,14 @@ namespace System.Collections
                 result.Add(values[i]);
             return result;
         }
-#endif    
+#endif
 
         [Benchmark]
         public Dictionary<T, T> Dictionary()
         {
             var result = new Dictionary<T, T>(Count);
             var values = _values;
-            for(int i = 0; i < values.Length; i++)
+            for (int i = 0; i < values.Length; i++)
                 result.Add(values[i], values[i]);
             return result;
         }
@@ -55,8 +55,28 @@ namespace System.Collections
         {
             var result = new SortedList<T, T>(Count);
             var values = _values;
-            for(int i = 0; i < values.Length; i++)
+            for (int i = 0; i < values.Length; i++)
                 result.Add(values[i], values[i]);
+            return result;
+        }
+
+        [Benchmark]
+        public Queue<T> Queue()
+        {
+            var result = new Queue<T>(Count);
+            var values = _values;
+            for (int i = 0; i < values.Length; i++)
+                result.Enqueue(values[i]);
+            return result;
+        }
+
+        [Benchmark]
+        public Stack<T> Stack()
+        {
+            var result = new Stack<T>(Count);
+            var values = _values;
+            for (int i = 0; i < values.Length; i++)
+                result.Push(values[i]);
             return result;
         }
     }

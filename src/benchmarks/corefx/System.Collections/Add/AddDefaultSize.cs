@@ -18,13 +18,13 @@ namespace System.Collections
 
         [GlobalSetup]
         public void Setup() => _values = UniqueValuesGenerator.GenerateArray<T>(Count);
-        
+
         [Benchmark]
         public List<T> List()
         {
             var result = new List<T>();
             var values = _values;
-            for(int i = 0; i < values.Length; i++)
+            for (int i = 0; i < values.Length; i++)
                 result.Add(values[i]);
             return result;
         }
@@ -34,7 +34,7 @@ namespace System.Collections
         {
             var result = new HashSet<T>();
             var values = _values;
-            for(int i = 0; i < values.Length; i++)
+            for (int i = 0; i < values.Length; i++)
                 result.Add(values[i]);
             return result;
         }
@@ -44,7 +44,7 @@ namespace System.Collections
         {
             var result = new Dictionary<T, T>();
             var values = _values;
-            for(int i = 0; i < values.Length; i++)
+            for (int i = 0; i < values.Length; i++)
                 result.Add(values[i], values[i]);
             return result;
         }
@@ -54,7 +54,7 @@ namespace System.Collections
         {
             var result = new SortedList<T, T>();
             var values = _values;
-            for(int i = 0; i < values.Length; i++)
+            for (int i = 0; i < values.Length; i++)
                 result.Add(values[i], values[i]);
             return result;
         }
@@ -64,7 +64,7 @@ namespace System.Collections
         {
             var result = new SortedSet<T>();
             var values = _values;
-            for(int i = 0; i < values.Length; i++)
+            for (int i = 0; i < values.Length; i++)
                 result.Add(values[i]);
             return result;
         }
@@ -74,7 +74,7 @@ namespace System.Collections
         {
             var result = new SortedDictionary<T, T>();
             var values = _values;
-            for(int i = 0; i < values.Length; i++)
+            for (int i = 0; i < values.Length; i++)
                 result.Add(values[i], values[i]);
             return result;
         }
@@ -84,8 +84,48 @@ namespace System.Collections
         {
             var result = new ConcurrentBag<T>();
             var values = _values;
-            for(int i = 0; i < values.Length; i++)
+            for (int i = 0; i < values.Length; i++)
                 result.Add(values[i]);
+            return result;
+        }
+
+        [Benchmark]
+        public Queue<T> Queue()
+        {
+            var result = new Queue<T>();
+            var values = _values;
+            for (int i = 0; i < values.Length; i++)
+                result.Enqueue(values[i]);
+            return result;
+        }
+
+        [Benchmark]
+        public Stack<T> Stack()
+        {
+            var result = new Stack<T>();
+            var values = _values;
+            for (int i = 0; i < values.Length; i++)
+                result.Push(values[i]);
+            return result;
+        }
+
+        [Benchmark]
+        public ConcurrentQueue<T> ConcurrentQueue()
+        {
+            var result = new ConcurrentQueue<T>();
+            var values = _values;
+            for (int i = 0; i < values.Length; i++)
+                result.Enqueue(values[i]);
+            return result;
+        }
+
+        [Benchmark]
+        public ConcurrentStack<T> ConcurrentStack()
+        {
+            var result = new ConcurrentStack<T>();
+            var values = _values;
+            for (int i = 0; i < values.Length; i++)
+                result.Push(values[i]);
             return result;
         }
     }
