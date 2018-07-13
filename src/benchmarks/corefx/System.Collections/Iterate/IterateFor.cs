@@ -9,79 +9,79 @@ namespace System.Collections
     [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
-    public class IterateFor<TValue>
+    public class IterateFor<T>
     {
-        [Params(100)]
+        [Params(Utils.DefaultCollectionSize)]
         public int Size;
 
-        private TValue[] _array;
-        private List<TValue> _list;
-        private ImmutableArray<TValue> _immutablearray;
-        private ImmutableList<TValue> _immutablelist;
-        private ImmutableSortedSet<TValue> _immutablesortedset;
+        private T[] _array;
+        private List<T> _list;
+        private ImmutableArray<T> _immutablearray;
+        private ImmutableList<T> _immutablelist;
+        private ImmutableSortedSet<T> _immutablesortedset;
 
         [GlobalSetup(Target = nameof(Array))]
-        public void SetupArray() => _array = UniqueValuesGenerator.GenerateArray<TValue>(Size);
+        public void SetupArray() => _array = UniqueValuesGenerator.GenerateArray<T>(Size);
 
         [Benchmark]
-        public TValue Array()
+        public T Array()
         {
-            TValue result = default;
-            var local = _array;
-            for (int i = 0; i < local.Length; i++)
-                result = local[i];
+            T result = default;
+            var collection = _array;
+            for (int i = 0; i < collection.Length; i++)
+                result = collection[i];
             return result;
         }
 
         [GlobalSetup(Target = nameof(List))]
-        public void SetupList() => _list = new List<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupList() => _list = new List<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue List()
+        public T List()
         {
-            TValue result = default;
-            var local = _list;
-            for(int i = 0; i < local.Count; i++)
-                result = local[i];
+            T result = default;
+            var collection = _list;
+            for(int i = 0; i < collection.Count; i++)
+                result = collection[i];
             return result;;
         }
 
         [GlobalSetup(Target = nameof(ImmutableArray))]
-        public void SetupImmutableArray() => _immutablearray = Immutable.ImmutableArray.CreateRange<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupImmutableArray() => _immutablearray = Immutable.ImmutableArray.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue ImmutableArray()
+        public T ImmutableArray()
         {
-            TValue result = default;
-            var local = _immutablearray;
-            for(int i = 0; i < local.Length; i++)
-                result = local[i];
+            T result = default;
+            var collection = _immutablearray;
+            for(int i = 0; i < collection.Length; i++)
+                result = collection[i];
             return result;
         }
 
         [GlobalSetup(Target = nameof(ImmutableList))]
-        public void SetupImmutableList() => _immutablelist = Immutable.ImmutableList.CreateRange<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupImmutableList() => _immutablelist = Immutable.ImmutableList.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue ImmutableList()
+        public T ImmutableList()
         {
-            TValue result = default;
-            var local = _immutablelist;
-            for(int i = 0; i < local.Count; i++)
-                result = local[i];
+            T result = default;
+            var collection = _immutablelist;
+            for(int i = 0; i < collection.Count; i++)
+                result = collection[i];
             return result;
         }
 
         [GlobalSetup(Target = nameof(ImmutableSortedSet))]
-        public void SetupImmutableSortedSet() => _immutablesortedset = Immutable.ImmutableSortedSet.CreateRange<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupImmutableSortedSet() => _immutablesortedset = Immutable.ImmutableSortedSet.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue ImmutableSortedSet()
+        public T ImmutableSortedSet()
         {
-            TValue result = default;
-            var local = _immutablesortedset;
-            for(int i = 0; i < local.Count; i++)
-                result = local[i];
+            T result = default;
+            var collection = _immutablesortedset;
+            for(int i = 0; i < collection.Count; i++)
+                result = collection[i];
             return result;
         }
     }

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
 using Helpers;
@@ -13,9 +12,9 @@ namespace System.Collections
     [InvocationCount(InvocationsPerIteration)]
     public class Clear<T>
     {
-        private const int InvocationsPerIteration = 20000;
+        private const int InvocationsPerIteration = 1000;
 
-        [Params(100)]
+        [Params(Utils.DefaultCollectionSize)]
         public int Size;
 
         private int _iterationIndex = 0;
@@ -41,74 +40,74 @@ namespace System.Collections
         public void CleanupIteration() => _iterationIndex = 0; // after every iteration end we set the index to 0
 
         [IterationSetup(Target = nameof(List))]
-        public void SetupListIteration() => _lists = Enumerable.Range(0, InvocationsPerIteration).Select(_ => new List<T>(_keys)).ToArray();
+        public void SetupListIteration() => Utils.FillCollections(ref _lists, InvocationsPerIteration, _keys);
 
         [Benchmark]
         public void List() => _lists[_iterationIndex++].Clear();
 
         [IterationSetup(Target = nameof(LinkedList))]
-        public void SetupLinkedListIteration() => _linkedLists = Enumerable.Range(0, InvocationsPerIteration).Select(_ => new LinkedList<T>(_keys)).ToArray();
+        public void SetupLinkedListIteration() => Utils.FillCollections(ref _linkedLists, InvocationsPerIteration, _keys);
 
         [Benchmark]
         public void LinkedList() => _linkedLists[_iterationIndex++].Clear();
 
         [IterationSetup(Target = nameof(HashSet))]
-        public void SetupHashSetIteration() => _hashSets = Enumerable.Range(0, InvocationsPerIteration).Select(_ => new HashSet<T>(_keys)).ToArray();
+        public void SetupHashSetIteration() => Utils.FillCollections(ref _hashSets, InvocationsPerIteration, _keys);
 
         [Benchmark]
         public void HashSet() => _hashSets[_iterationIndex++].Clear();
 
         [IterationSetup(Target = nameof(Dictionary))]
-        public void SetupDictionaryIteration() => _dictionaries = Enumerable.Range(0, InvocationsPerIteration).Select(_ => new Dictionary<T, T>(_keys.ToDictionary(i => i, i => i))).ToArray();
+        public void SetupDictionaryIteration() => Utils.FillDictionaries(ref _dictionaries, InvocationsPerIteration, _keys);
 
         [Benchmark]
         public void Dictionary() => _dictionaries[_iterationIndex++].Clear();
 
         [IterationSetup(Target = nameof(SortedList))]
-        public void SetupSortedListIteration() => _sortedLists = Enumerable.Range(0, InvocationsPerIteration).Select(_ => new SortedList<T, T>(_keys.ToDictionary(i => i, i => i))).ToArray();
+        public void SetupSortedListIteration() => Utils.FillDictionaries(ref _sortedLists, InvocationsPerIteration, _keys);
 
         [Benchmark]
         public void SortedList() => _sortedLists[_iterationIndex++].Clear();
 
         [IterationSetup(Target = nameof(SortedSet))]
-        public void SetupSortedSetIteration() => _sortedSets = Enumerable.Range(0, InvocationsPerIteration).Select(_ => new SortedSet<T>(_keys)).ToArray();
+        public void SetupSortedSetIteration() => Utils.FillCollections(ref _sortedSets, InvocationsPerIteration, _keys);
 
         [Benchmark]
         public void SortedSet() => _sortedSets[_iterationIndex++].Clear();
 
         [IterationSetup(Target = nameof(SortedDictionary))]
-        public void SetupSortedDictionaryIteration() => _sortedDictionaries = Enumerable.Range(0, InvocationsPerIteration).Select(_ => new SortedDictionary<T, T>(_keys.ToDictionary(i => i, i => i))).ToArray();
+        public void SetupSortedDictionaryIteration() =>  Utils.FillDictionaries(ref _sortedDictionaries, InvocationsPerIteration, _keys);
 
         [Benchmark]
         public void SortedDictionary() => _sortedDictionaries[_iterationIndex++].Clear();
 
         [IterationSetup(Target = nameof(ConcurrentDictionary))]
-        public void SetupConcurrentDictionaryIteration() => _concurrentDictionaries = Enumerable.Range(0, InvocationsPerIteration).Select(_ => new ConcurrentDictionary<T, T>(_keys.ToDictionary(i => i, i => i))).ToArray();
+        public void SetupConcurrentDictionaryIteration() => Utils.FillDictionaries(ref _concurrentDictionaries, InvocationsPerIteration, _keys);
 
         [Benchmark]
         public void ConcurrentDictionary() => _concurrentDictionaries[_iterationIndex++].Clear();
         
         [IterationSetup(Target = nameof(Stack))]
-        public void SetupStackIteration() => _stacks = Enumerable.Range(0, InvocationsPerIteration).Select(_ => new Stack<T>(_keys)).ToArray();
+        public void SetupStackIteration() => Utils.FillStacks(ref _stacks, InvocationsPerIteration, _keys);
 
         [Benchmark]
         public void Stack() => _stacks[_iterationIndex++].Clear();
         
         [IterationSetup(Target = nameof(ConcurrentStack))]
-        public void SetupConcurrentStackIteration() => _concurrentStacks = Enumerable.Range(0, InvocationsPerIteration).Select(_ => new ConcurrentStack<T>(_keys)).ToArray();
+        public void SetupConcurrentStackIteration() => Utils.FillProducerConsumerCollection(ref _concurrentStacks, InvocationsPerIteration, _keys);
 
         [Benchmark]
         public void ConcurrentStack() => _concurrentStacks[_iterationIndex++].Clear();
-        
+
         [IterationSetup(Target = nameof(Queue))]
-        public void SetupQueueIteration() => _queues = Enumerable.Range(0, InvocationsPerIteration).Select(_ => new Queue<T>(_keys)).ToArray();
+        public void SetupQueueIteration() => Utils.FillQueues(ref _queues, InvocationsPerIteration, _keys);
 
         [Benchmark]
         public void Queue() => _queues[_iterationIndex++].Clear();
 
 #if !NET461 // API added in .NET Core 2.0
         [IterationSetup(Target = nameof(ConcurrentQueue))]
-        public void SetupConcurrentQueueIteration() => _concurrentQueues = Enumerable.Range(0, InvocationsPerIteration).Select(_ => new ConcurrentQueue<T>(_keys)).ToArray();
+        public void SetupConcurrentQueueIteration() => Utils.FillProducerConsumerCollection(ref _concurrentQueues, InvocationsPerIteration, _keys);
 
         [Benchmark]
         public void ConcurrentQueue() => _concurrentQueues[_iterationIndex++].Clear();

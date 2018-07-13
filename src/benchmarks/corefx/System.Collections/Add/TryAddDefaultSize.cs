@@ -11,34 +11,34 @@ namespace System.Collections
     [GenericTypeArguments(typeof(string))] // reference type
     public class TryAddDefaultSize<T>
     {
-        private T[] _values;
+        private T[] _uniqueValues;
 
-        [Params(100)]
+        [Params(Utils.DefaultCollectionSize)]
         public int Count;
 
         [GlobalSetup]
-        public void Setup() => _values = UniqueValuesGenerator.GenerateArray<T>(Count);
+        public void Setup() => _uniqueValues = UniqueValuesGenerator.GenerateArray<T>(Count);
 
 #if !NET461 // API added in .NET Core 2.0
         [Benchmark]
         public Dictionary<T, T> Dictionary()
         {
-            var result = new Dictionary<T, T>();
-            var values = _values;
-            for(int i = 0; i < values.Length; i++)
-                result.TryAdd(values[i], values[i]);
-            return result;
+            var collection = new Dictionary<T, T>();
+            var uniqueValues = _uniqueValues;
+            for(int i = 0; i < uniqueValues.Length; i++)
+                collection.TryAdd(uniqueValues[i], uniqueValues[i]);
+            return collection;
         }
 #endif
 
         [Benchmark]
         public ConcurrentDictionary<T, T> ConcurrentDictionary()
         {
-            var result = new ConcurrentDictionary<T, T>();
-            var values = _values;
-            for(int i = 0; i < values.Length; i++)
-                result.TryAdd(values[i], values[i]);
-            return result;
+            var collection = new ConcurrentDictionary<T, T>();
+            var uniqueValues = _uniqueValues;
+            for(int i = 0; i < uniqueValues.Length; i++)
+                collection.TryAdd(uniqueValues[i], uniqueValues[i]);
+            return collection;
         }
     }
 }

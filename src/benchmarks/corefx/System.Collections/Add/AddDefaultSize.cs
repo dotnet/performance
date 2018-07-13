@@ -11,122 +11,122 @@ namespace System.Collections
     [GenericTypeArguments(typeof(string))] // reference type
     public class AddDefaultSize<T>
     {
-        private T[] _values;
+        private T[] _uniqueValues;
 
-        [Params(100)]
+        [Params(Utils.DefaultCollectionSize)]
         public int Count;
 
         [GlobalSetup]
-        public void Setup() => _values = UniqueValuesGenerator.GenerateArray<T>(Count);
+        public void Setup() => _uniqueValues = UniqueValuesGenerator.GenerateArray<T>(Count);
 
         [Benchmark]
         public List<T> List()
         {
-            var result = new List<T>();
-            var values = _values;
-            for (int i = 0; i < values.Length; i++)
-                result.Add(values[i]);
-            return result;
+            var collection = new List<T>();
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.Add(uniqueValues[i]);
+            return collection;
         }
 
         [Benchmark]
         public HashSet<T> HashSet()
         {
-            var result = new HashSet<T>();
-            var values = _values;
-            for (int i = 0; i < values.Length; i++)
-                result.Add(values[i]);
-            return result;
+            var collection = new HashSet<T>();
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.Add(uniqueValues[i]);
+            return collection;
         }
 
         [Benchmark]
         public Dictionary<T, T> Dictionary()
         {
-            var result = new Dictionary<T, T>();
-            var values = _values;
-            for (int i = 0; i < values.Length; i++)
-                result.Add(values[i], values[i]);
-            return result;
+            var collection = new Dictionary<T, T>();
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.Add(uniqueValues[i], uniqueValues[i]);
+            return collection;
         }
 
         [Benchmark]
         public SortedList<T, T> SortedList()
         {
-            var result = new SortedList<T, T>();
-            var values = _values;
-            for (int i = 0; i < values.Length; i++)
-                result.Add(values[i], values[i]);
-            return result;
+            var collection = new SortedList<T, T>();
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.Add(uniqueValues[i], uniqueValues[i]);
+            return collection;
         }
 
         [Benchmark]
         public SortedSet<T> SortedSet()
         {
-            var result = new SortedSet<T>();
-            var values = _values;
-            for (int i = 0; i < values.Length; i++)
-                result.Add(values[i]);
-            return result;
+            var collection = new SortedSet<T>();
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.Add(uniqueValues[i]);
+            return collection;
         }
 
         [Benchmark]
         public SortedDictionary<T, T> SortedDictionary()
         {
-            var result = new SortedDictionary<T, T>();
-            var values = _values;
-            for (int i = 0; i < values.Length; i++)
-                result.Add(values[i], values[i]);
-            return result;
+            var collection = new SortedDictionary<T, T>();
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.Add(uniqueValues[i], uniqueValues[i]);
+            return collection;
         }
 
         [Benchmark]
         public ConcurrentBag<T> ConcurrentBag()
         {
-            var result = new ConcurrentBag<T>();
-            var values = _values;
-            for (int i = 0; i < values.Length; i++)
-                result.Add(values[i]);
-            return result;
+            var collection = new ConcurrentBag<T>();
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.Add(uniqueValues[i]);
+            return collection;
         }
 
         [Benchmark]
         public Queue<T> Queue()
         {
-            var result = new Queue<T>();
-            var values = _values;
-            for (int i = 0; i < values.Length; i++)
-                result.Enqueue(values[i]);
-            return result;
+            var collection = new Queue<T>();
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.Enqueue(uniqueValues[i]);
+            return collection;
         }
 
         [Benchmark]
         public Stack<T> Stack()
         {
-            var result = new Stack<T>();
-            var values = _values;
-            for (int i = 0; i < values.Length; i++)
-                result.Push(values[i]);
-            return result;
+            var collection = new Stack<T>();
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.Push(uniqueValues[i]);
+            return collection;
         }
 
         [Benchmark]
         public ConcurrentQueue<T> ConcurrentQueue()
         {
-            var result = new ConcurrentQueue<T>();
-            var values = _values;
-            for (int i = 0; i < values.Length; i++)
-                result.Enqueue(values[i]);
-            return result;
+            var collection = new ConcurrentQueue<T>();
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.Enqueue(uniqueValues[i]);
+            return collection;
         }
 
         [Benchmark]
         public ConcurrentStack<T> ConcurrentStack()
         {
-            var result = new ConcurrentStack<T>();
-            var values = _values;
-            for (int i = 0; i < values.Length; i++)
-                result.Push(values[i]);
-            return result;
+            var collection = new ConcurrentStack<T>();
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.Push(uniqueValues[i]);
+            return collection;
         }
     }
 }

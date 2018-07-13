@@ -10,9 +10,9 @@ namespace System.Collections
     [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
-    public class Set<T>
+    public class IndexerSet<T>
     {
-        [Params(100)] 
+        [Params(Utils.DefaultCollectionSize)] 
         public int Size;
 
         private T[] _keys;

@@ -23,7 +23,7 @@ namespace System.Collections
         private ImmutableDictionary<TKey, TValue> _immutabledictionary;
         private ImmutableSortedDictionary<TKey, TValue> _immutablesorteddictionary;
 
-        [Params(100)]
+        [Params(Utils.DefaultCollectionSize)]
         public int Size;
 
         [GlobalSetup]

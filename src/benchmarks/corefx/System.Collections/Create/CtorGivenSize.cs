@@ -6,38 +6,36 @@ using Benchmarks;
 namespace System.Collections
 {
     [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
-    [GenericTypeArguments(typeof(int), typeof(int))] // value type
-    [GenericTypeArguments(typeof(string), typeof(string))] // reference type
-    public class CtorGiventSize<TKey, TValue>
+    [GenericTypeArguments(typeof(int))] // value type
+    [GenericTypeArguments(typeof(string))] // reference type
+    public class CtorGiventSize<T>
     {
-        private const int ConcurrencyLevel = 4;
-        
-        [Params(100)]
+        [Params(Utils.DefaultCollectionSize)]
         public int Size;
         
         [Benchmark]
-        public TKey[] Array() => new TKey[Size];
+        public T[] Array() => new T[Size];
 
         [Benchmark]
-        public List<TKey> List() => new List<TKey>(Size);
+        public List<T> List() => new List<T>(Size);
 
 #if !NET461 // API added in .NET Core 2.0
         [Benchmark]
-        public HashSet<TKey> HashSet() => new HashSet<TKey>(Size);
+        public HashSet<T> HashSet() => new HashSet<T>(Size);
 #endif
         [Benchmark]
-        public Dictionary<TKey, TValue> Dictionary() => new Dictionary<TKey, TValue>(Size);
+        public Dictionary<T, T> Dictionary() => new Dictionary<T, T>(Size);
 
         [Benchmark]
-        public Queue<TKey> Queue() => new Queue<TKey>(Size);
+        public Queue<T> Queue() => new Queue<T>(Size);
 
         [Benchmark]
-        public Stack<TKey> Stack() => new Stack<TKey>(Size);
+        public Stack<T> Stack() => new Stack<T>(Size);
 
         [Benchmark]
-        public SortedList<TKey, TValue> SortedList() => new SortedList<TKey, TValue>(Size);
+        public SortedList<T, T> SortedList() => new SortedList<T, T>(Size);
 
         [Benchmark]
-        public ConcurrentDictionary<TKey, TValue> ConcurrentDictionary() => new ConcurrentDictionary<TKey, TValue>(ConcurrencyLevel, Size);
+        public ConcurrentDictionary<T, T> ConcurrentDictionary() => new ConcurrentDictionary<T, T>(Utils.ConcurrencyLevel, Size);
     }
 }

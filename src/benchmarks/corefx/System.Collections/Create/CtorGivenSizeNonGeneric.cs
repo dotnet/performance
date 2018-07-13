@@ -3,10 +3,10 @@ using Benchmarks;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.NonGenericCollections)]
     public class CtorGivenSizeNonGeneric
     {
-        [Params(100)]
+        [Params(Utils.DefaultCollectionSize)]
         public int Size;
         
         [Benchmark]

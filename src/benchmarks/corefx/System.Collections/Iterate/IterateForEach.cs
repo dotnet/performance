@@ -8,318 +8,318 @@ using Helpers;
 namespace System.Collections
 {
     [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
-    [GenericTypeArguments(typeof(int), typeof(int))] // value type
-    [GenericTypeArguments(typeof(string), typeof(string))] // reference type
-    public class IterateForEach<TKey, TValue>
+    [GenericTypeArguments(typeof(int))] // value type
+    [GenericTypeArguments(typeof(string))] // reference type
+    public class IterateForEach<T>
     {
-        [Params(100)]
+        [Params(Utils.DefaultCollectionSize)]
         public int Size;
 
-        private TValue[] _array;
-        private List<TValue> _list;
-        private LinkedList<TValue> _linkedlist;
-        private HashSet<TValue> _hashset;
-        private Dictionary<TKey, TValue> _dictionary;
-        private Queue<TValue> _queue;
-        private Stack<TValue> _stack;
-        private SortedList<TKey, TValue> _sortedlist;
-        private SortedSet<TValue> _sortedset;
-        private SortedDictionary<TKey, TValue> _sorteddictionary;
-        private ConcurrentDictionary<TKey, TValue> _concurrentdictionary;
-        private ConcurrentQueue<TValue> _concurrentqueue;
-        private ConcurrentStack<TValue> _concurrentstack;
-        private ConcurrentBag<TValue> _concurrentbag;
-        private ImmutableArray<TValue> _immutablearray;
-        private ImmutableDictionary<TKey, TValue> _immutabledictionary;
-        private ImmutableHashSet<TValue> _immutablehashset;
-        private ImmutableList<TValue> _immutablelist;
-        private ImmutableQueue<TValue> _immutablequeue;
-        private ImmutableStack<TValue> _immutablestack;
-        private ImmutableSortedDictionary<TKey, TValue> _immutablesorteddictionary;
-        private ImmutableSortedSet<TValue> _immutablesortedset;
+        private T[] _array;
+        private List<T> _list;
+        private LinkedList<T> _linkedlist;
+        private HashSet<T> _hashset;
+        private Dictionary<T, T> _dictionary;
+        private Queue<T> _queue;
+        private Stack<T> _stack;
+        private SortedList<T, T> _sortedlist;
+        private SortedSet<T> _sortedset;
+        private SortedDictionary<T, T> _sorteddictionary;
+        private ConcurrentDictionary<T, T> _concurrentdictionary;
+        private ConcurrentQueue<T> _concurrentqueue;
+        private ConcurrentStack<T> _concurrentstack;
+        private ConcurrentBag<T> _concurrentbag;
+        private ImmutableArray<T> _immutablearray;
+        private ImmutableDictionary<T, T> _immutabledictionary;
+        private ImmutableHashSet<T> _immutablehashset;
+        private ImmutableList<T> _immutablelist;
+        private ImmutableQueue<T> _immutablequeue;
+        private ImmutableStack<T> _immutablestack;
+        private ImmutableSortedDictionary<T, T> _immutablesorteddictionary;
+        private ImmutableSortedSet<T> _immutablesortedset;
 
         [GlobalSetup(Target = nameof(Array))]
-        public void SetupArray() => _array = UniqueValuesGenerator.GenerateArray<TValue>(Size);
+        public void SetupArray() => _array = UniqueValuesGenerator.GenerateArray<T>(Size);
 
         [Benchmark]
-        public TValue Array()
+        public T Array()
         {
-            TValue result = default;
-            var local = _array;
-            foreach (var item in local)
+            T result = default;
+            var collection = _array;
+            foreach (var item in collection)
                 result = item;
             return result;
         }
         
         [GlobalSetup(Target = nameof(List))]
-        public void SetupList() => _list = new List<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupList() => _list = new List<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue List()
+        public T List()
         {
-            TValue result = default;
-            var local = _list;
-            foreach (var item in local)
+            T result = default;
+            var collection = _list;
+            foreach (var item in collection)
                 result = item;
             return result;
         }
 
         [GlobalSetup(Target = nameof(LinkedList))]
-        public void SetupLinkedList() => _linkedlist = new LinkedList<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupLinkedList() => _linkedlist = new LinkedList<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue LinkedList()
+        public T LinkedList()
         {
-            TValue result = default;
-            var local = _linkedlist;
-            foreach (var item in local)
+            T result = default;
+            var collection = _linkedlist;
+            foreach (var item in collection)
                 result = item;
             return result;
         }
 
         [GlobalSetup(Target = nameof(HashSet))]
-        public void SetupHashSet() => _hashset = new HashSet<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupHashSet() => _hashset = new HashSet<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue HashSet()
+        public T HashSet()
         {
-            TValue result = default;
-            var local = _hashset;
-            foreach (var item in local)
+            T result = default;
+            var collection = _hashset;
+            foreach (var item in collection)
                 result = item;
             return result;
         }
 
         [GlobalSetup(Target = nameof(Dictionary))]
-        public void SetupDictionary() => _dictionary = new Dictionary<TKey, TValue>(UniqueValuesGenerator.GenerateDictionary<TKey, TValue>(Size));
+        public void SetupDictionary() => _dictionary = new Dictionary<T, T>(UniqueValuesGenerator.GenerateDictionary<T, T>(Size));
 
         [Benchmark]
-        public TValue Dictionary()
+        public T Dictionary()
         {
-            TValue result = default;
-            var local = _dictionary;
-            foreach (var item in local)
+            T result = default;
+            var collection = _dictionary;
+            foreach (var item in collection)
                 result = item.Value;
             return result;
         }
 
         [GlobalSetup(Target = nameof(Queue))]
-        public void SetupQueue() => _queue = new Queue<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupQueue() => _queue = new Queue<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue Queue()
+        public T Queue()
         {
-            TValue result = default;
-            var local = _queue;
-            foreach (var item in local)
+            T result = default;
+            var collection = _queue;
+            foreach (var item in collection)
                 result = item;
             return result;
         }
 
         [GlobalSetup(Target = nameof(Stack))]
-        public void SetupStack() => _stack = new Stack<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupStack() => _stack = new Stack<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue Stack()
+        public T Stack()
         {
-            TValue result = default;
-            var local = _stack;
-            foreach (var item in local)
+            T result = default;
+            var collection = _stack;
+            foreach (var item in collection)
                 result = item;
             return result;
         }
 
         [GlobalSetup(Target = nameof(SortedList))]
-        public void SetupSortedList() => _sortedlist = new SortedList<TKey, TValue>(UniqueValuesGenerator.GenerateDictionary<TKey, TValue>(Size));
+        public void SetupSortedList() => _sortedlist = new SortedList<T, T>(UniqueValuesGenerator.GenerateDictionary<T, T>(Size));
 
         [Benchmark]
-        public TValue SortedList()
+        public T SortedList()
         {
-            TValue result = default;
-            var local = _sortedlist;
-            foreach (var item in local)
+            T result = default;
+            var collection = _sortedlist;
+            foreach (var item in collection)
                 result = item.Value;
             return result;
         }
 
         [GlobalSetup(Target = nameof(SortedSet))]
-        public void SetupSortedSet() => _sortedset = new SortedSet<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupSortedSet() => _sortedset = new SortedSet<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue SortedSet()
+        public T SortedSet()
         {
-            TValue result = default;
-            var local = _sortedset;
-            foreach (var item in local)
+            T result = default;
+            var collection = _sortedset;
+            foreach (var item in collection)
                 result = item;
             return result;
         }
 
         [GlobalSetup(Target = nameof(SortedDictionary))]
-        public void SetupSortedDictionary() => _sorteddictionary = new SortedDictionary<TKey, TValue>(UniqueValuesGenerator.GenerateDictionary<TKey, TValue>(Size));
+        public void SetupSortedDictionary() => _sorteddictionary = new SortedDictionary<T, T>(UniqueValuesGenerator.GenerateDictionary<T, T>(Size));
 
         [Benchmark]
-        public TValue SortedDictionary()
+        public T SortedDictionary()
         {
-            TValue result = default;
-            var local = _sorteddictionary;
-            foreach (var item in local)
+            T result = default;
+            var collection = _sorteddictionary;
+            foreach (var item in collection)
                 result = item.Value;
             return result;
         }
 
         [GlobalSetup(Target = nameof(ConcurrentDictionary))]
-        public void SetupConcurrentDictionary() => _concurrentdictionary = new ConcurrentDictionary<TKey, TValue>(UniqueValuesGenerator.GenerateDictionary<TKey, TValue>(Size));
+        public void SetupConcurrentDictionary() => _concurrentdictionary = new ConcurrentDictionary<T, T>(UniqueValuesGenerator.GenerateDictionary<T, T>(Size));
 
         [Benchmark]
-        public TValue ConcurrentDictionary()
+        public T ConcurrentDictionary()
         {
-            TValue result = default;
-            var local = _concurrentdictionary;
-            foreach (var item in local)
+            T result = default;
+            var collection = _concurrentdictionary;
+            foreach (var item in collection)
                 result = item.Value;
             return result;
         }
 
         [GlobalSetup(Target = nameof(ConcurrentQueue))]
-        public void SetupConcurrentQueue() => _concurrentqueue = new ConcurrentQueue<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupConcurrentQueue() => _concurrentqueue = new ConcurrentQueue<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue ConcurrentQueue()
+        public T ConcurrentQueue()
         {
-            TValue result = default;
-            var local = _concurrentqueue;
-            foreach (var item in local)
+            T result = default;
+            var collection = _concurrentqueue;
+            foreach (var item in collection)
                 result = item;
             return result;
         }
 
         [GlobalSetup(Target = nameof(ConcurrentStack))]
-        public void SetupConcurrentStack() => _concurrentstack = new ConcurrentStack<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupConcurrentStack() => _concurrentstack = new ConcurrentStack<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue ConcurrentStack()
+        public T ConcurrentStack()
         {
-            TValue result = default;
-            var local = _concurrentstack;
-            foreach (var item in local)
+            T result = default;
+            var collection = _concurrentstack;
+            foreach (var item in collection)
                 result = item;
             return result;
         }
 
         [GlobalSetup(Target = nameof(ConcurrentBag))]
-        public void SetupConcurrentBag() => _concurrentbag = new ConcurrentBag<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupConcurrentBag() => _concurrentbag = new ConcurrentBag<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue ConcurrentBag()
+        public T ConcurrentBag()
         {
-            TValue result = default;
-            var local = _concurrentbag;
-            foreach (var item in local)
+            T result = default;
+            var collection = _concurrentbag;
+            foreach (var item in collection)
                 result = item;
             return result;
         }
 
         [GlobalSetup(Target = nameof(ImmutableArray))]
-        public void SetupImmutableArray() => _immutablearray = Immutable.ImmutableArray.CreateRange<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupImmutableArray() => _immutablearray = Immutable.ImmutableArray.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue ImmutableArray()
+        public T ImmutableArray()
         {
-            TValue result = default;
-            var local = _immutablearray;
-            foreach (var item in local)
+            T result = default;
+            var collection = _immutablearray;
+            foreach (var item in collection)
                 result = item;
             return result;
         }
 
         [GlobalSetup(Target = nameof(ImmutableDictionary))]
-        public void SetupImmutableDictionary() => _immutabledictionary = Immutable.ImmutableDictionary.CreateRange<TKey, TValue>(UniqueValuesGenerator.GenerateDictionary<TKey, TValue>(Size));
+        public void SetupImmutableDictionary() => _immutabledictionary = Immutable.ImmutableDictionary.CreateRange<T, T>(UniqueValuesGenerator.GenerateDictionary<T, T>(Size));
 
         [Benchmark]
-        public TValue ImmutableDictionary()
+        public T ImmutableDictionary()
         {
-            TValue result = default;
-            var local = _immutabledictionary;
-            foreach (var item in local)
+            T result = default;
+            var collection = _immutabledictionary;
+            foreach (var item in collection)
                 result = item.Value;
             return result;
         }
 
         [GlobalSetup(Target = nameof(ImmutableHashSet))]
-        public void SetupImmutableHashSet() => _immutablehashset = Immutable.ImmutableHashSet.CreateRange<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupImmutableHashSet() => _immutablehashset = Immutable.ImmutableHashSet.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue ImmutableHashSet()
+        public T ImmutableHashSet()
         {
-            TValue result = default;
-            var local = _immutablehashset;
-            foreach (var item in local)
+            T result = default;
+            var collection = _immutablehashset;
+            foreach (var item in collection)
                 result = item;
             return result;
         }
 
         [GlobalSetup(Target = nameof(ImmutableList))]
-        public void SetupImmutableList() => _immutablelist = Immutable.ImmutableList.CreateRange<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupImmutableList() => _immutablelist = Immutable.ImmutableList.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue ImmutableList()
+        public T ImmutableList()
         {
-            TValue result = default;
-            var local = _immutablelist;
-            foreach (var item in local)
+            T result = default;
+            var collection = _immutablelist;
+            foreach (var item in collection)
                 result = item;
             return result;
         }
 
         [GlobalSetup(Target = nameof(ImmutableQueue))]
-        public void SetupImmutableQueue() => _immutablequeue = Immutable.ImmutableQueue.CreateRange<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupImmutableQueue() => _immutablequeue = Immutable.ImmutableQueue.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue ImmutableQueue()
+        public T ImmutableQueue()
         {
-            TValue result = default;
-            var local = _immutablequeue;
-            foreach (var item in local)
+            T result = default;
+            var collection = _immutablequeue;
+            foreach (var item in collection)
                 result = item;
             return result;
         }
 
         [GlobalSetup(Target = nameof(ImmutableStack))]
-        public void SetupImmutableStack() => _immutablestack = Immutable.ImmutableStack.CreateRange<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupImmutableStack() => _immutablestack = Immutable.ImmutableStack.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue ImmutableStack()
+        public T ImmutableStack()
         {
-            TValue result = default;
-            var local = _immutablestack;
-            foreach (var item in local)
+            T result = default;
+            var collection = _immutablestack;
+            foreach (var item in collection)
                 result = item;
             return result;
         }
 
         [GlobalSetup(Target = nameof(ImmutableSortedDictionary))]
-        public void SetupImmutableSortedDictionary() => _immutablesorteddictionary = Immutable.ImmutableSortedDictionary.CreateRange<TKey, TValue>(UniqueValuesGenerator.GenerateDictionary<TKey, TValue>(Size));
+        public void SetupImmutableSortedDictionary() => _immutablesorteddictionary = Immutable.ImmutableSortedDictionary.CreateRange<T, T>(UniqueValuesGenerator.GenerateDictionary<T, T>(Size));
 
         [Benchmark]
-        public TValue ImmutableSortedDictionary()
+        public T ImmutableSortedDictionary()
         {
-            TValue result = default;
-            var local = _immutablesorteddictionary;
-            foreach (var item in local)
+            T result = default;
+            var collection = _immutablesorteddictionary;
+            foreach (var item in collection)
                 result = item.Value;
             return result;
         }
 
         [GlobalSetup(Target = nameof(ImmutableSortedSet))]
-        public void SetupImmutableSortedSet() => _immutablesortedset = Immutable.ImmutableSortedSet.CreateRange<TValue>(UniqueValuesGenerator.GenerateArray<TValue>(Size));
+        public void SetupImmutableSortedSet() => _immutablesortedset = Immutable.ImmutableSortedSet.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
         [Benchmark]
-        public TValue ImmutableSortedSet()
+        public T ImmutableSortedSet()
         {
-            TValue result = default;
-            var local = _immutablesortedset;
-            foreach (var item in local)
+            T result = default;
+            var collection = _immutablesortedset;
+            foreach (var item in collection)
                 result = item;
             return result;
         }

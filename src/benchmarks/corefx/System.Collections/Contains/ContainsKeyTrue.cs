@@ -13,7 +13,7 @@ namespace System.Collections
     [GenericTypeArguments(typeof(string), typeof(string))] // reference type
     public class ContainsKeyTrue<TKey, TValue>
     {
-        private TKey[] _array;
+        private TKey[] _found;
         private Dictionary<TKey, TValue> _source;
         
         private Dictionary<TKey, TValue> _dictionary;
@@ -23,14 +23,14 @@ namespace System.Collections
         private ImmutableDictionary<TKey, TValue> _immutabledictionary;
         private ImmutableSortedDictionary<TKey, TValue> _immutablesorteddictionary;
 
-        [Params(100)]
+        [Params(Utils.DefaultCollectionSize)]
         public int Size;
 
         [GlobalSetup]
         public void Setup()
         {
-            _array = UniqueValuesGenerator.GenerateArray<TKey>(Size);
-            _source = _array.ToDictionary(item => item, item => (TValue)(object)item);
+            _found = UniqueValuesGenerator.GenerateArray<TKey>(Size);
+            _source = _found.ToDictionary(item => item, item => (TValue)(object)item);
             _dictionary = new Dictionary<TKey, TValue>(_source);
             _sortedlist = new SortedList<TKey, TValue>(_source);
             _sorteddictionary = new SortedDictionary<TKey, TValue>(_source);
@@ -44,7 +44,7 @@ namespace System.Collections
         {
             bool result = default;
             var collection = _dictionary;
-            var found = _array;
+            var found = _found;
             for (int i = 0; i < found.Length; i++)
                 result = collection.ContainsKey(found[i]);
             return result;
@@ -55,7 +55,7 @@ namespace System.Collections
         {
             bool result = default;
             var collection = _sortedlist;
-            var found = _array;
+            var found = _found;
             for (int i = 0; i < found.Length; i++)
                 result = collection.ContainsKey(found[i]);
             return result;
@@ -66,7 +66,7 @@ namespace System.Collections
         {
             bool result = default;
             var collection = _sorteddictionary;
-            var found = _array;
+            var found = _found;
             for (int i = 0; i < found.Length; i++)
                 result = collection.ContainsKey(found[i]);
             return result;
@@ -77,7 +77,7 @@ namespace System.Collections
         {
             bool result = default;
             var collection = _concurrentdictionary;
-            var found = _array;
+            var found = _found;
             for (int i = 0; i < found.Length; i++)
                 result = collection.ContainsKey(found[i]);
             return result;
@@ -88,7 +88,7 @@ namespace System.Collections
         {
             bool result = default;
             var collection = _immutabledictionary;
-            var found = _array;
+            var found = _found;
             for (int i = 0; i < found.Length; i++)
                 result = collection.ContainsKey(found[i]);
             return result;
@@ -99,7 +99,7 @@ namespace System.Collections
         {
             bool result = default;
             var collection = _immutablesorteddictionary;
-            var found = _array;
+            var found = _found;
             for (int i = 0; i < found.Length; i++)
                 result = collection.ContainsKey(found[i]);
             return result;

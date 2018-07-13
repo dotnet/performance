@@ -5,23 +5,25 @@ using Helpers;
 namespace System.Collections
 {
     [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.NonGenericCollections)]
-    public class IterateForNonGeneric
+    [GenericTypeArguments(typeof(int))] // value type (it shows how bad idea is to use non-generic collections for value types)
+    [GenericTypeArguments(typeof(string))] // reference type
+    public class IterateForNonGeneric<T>
     {
-        [Params(100)]
+        [Params(Utils.DefaultCollectionSize)]
         public int Size;
         
         private ArrayList _arraylist;
 
         [GlobalSetup(Target = nameof(ArrayList))]
-        public void SetupArrayList() => _arraylist = new ArrayList(UniqueValuesGenerator.GenerateArray<string>(Size));
+        public void SetupArrayList() => _arraylist = new ArrayList(UniqueValuesGenerator.GenerateArray<T>(Size));
         
         [Benchmark]
         public object ArrayList()
         {
             object result = default;
-            var local = _arraylist;
-            for(int i = 0; i < local.Count; i++)
-                result = local[i];
+            var collection = _arraylist;
+            for(int i = 0; i < collection.Count; i++)
+                result = collection[i];
             return result;
         }
     }

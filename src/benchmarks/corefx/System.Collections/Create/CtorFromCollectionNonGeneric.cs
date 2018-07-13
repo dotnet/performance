@@ -4,20 +4,22 @@ using Helpers;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
-    public class CtorFromCollectionNonGeneric
+    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.NonGenericCollections)]
+    [GenericTypeArguments(typeof(int))] // value type (it shows how bad idea is to use non-generic collections for value types)
+    [GenericTypeArguments(typeof(string))] // reference type
+    public class CtorFromCollectionNonGeneric<T>
     {
         private ICollection _collection;
         private IDictionary _dictionary;
         
-        [Params(100)]
+        [Params(Utils.DefaultCollectionSize)]
         public int Size;
 
         [GlobalSetup]
         public void Setup()
         {
-            _collection = UniqueValuesGenerator.GenerateArray<string>(Size);
-            _dictionary = UniqueValuesGenerator.GenerateDictionary<string, string>(Size);
+            _collection = UniqueValuesGenerator.GenerateArray<T>(Size);
+            _dictionary = UniqueValuesGenerator.GenerateDictionary<T, T>(Size);
         }
         
         [Benchmark]
