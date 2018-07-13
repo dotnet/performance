@@ -128,5 +128,15 @@ namespace System.Collections
                 collection.Push(uniqueValues[i]);
             return collection;
         }
+
+        [Benchmark]
+        public ConcurrentDictionary<T, T> ConcurrentDictionary()
+        {
+            var collection = new ConcurrentDictionary<T, T>();
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.TryAdd(uniqueValues[i], uniqueValues[i]);
+            return collection;
+        }
     }
 }

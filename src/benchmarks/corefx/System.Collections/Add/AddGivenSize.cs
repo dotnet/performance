@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
 using Helpers;
@@ -77,6 +78,16 @@ namespace System.Collections
             var uniqueValues = _uniqueValues;
             for (int i = 0; i < uniqueValues.Length; i++)
                 collection.Push(uniqueValues[i]);
+            return collection;
+        }
+
+        [Benchmark]
+        public ConcurrentDictionary<T, T> ConcurrentDictionary()
+        {
+            var collection = new ConcurrentDictionary<T, T>(Utils.ConcurrencyLevel, Count);
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.TryAdd(uniqueValues[i], uniqueValues[i]);
             return collection;
         }
     }
