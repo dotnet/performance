@@ -8,7 +8,7 @@ namespace System.Collections
     [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
-    public class CtorGiventSize<T>
+    public class CtorGivenSize<T>
     {
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
