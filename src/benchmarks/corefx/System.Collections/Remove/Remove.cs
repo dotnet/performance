@@ -33,6 +33,7 @@ namespace System.Collections
         private Queue<T>[] _queues;
         private ConcurrentStack<T>[] _concurrentStacks;
         private ConcurrentQueue<T>[] _concurrentQueues;
+        private ConcurrentBag<T>[] _concurrentBags;
 
         [GlobalSetup]
         public void Setup() => _keys = UniqueValuesGenerator.GenerateArray<T>(Size);
@@ -182,6 +183,18 @@ namespace System.Collections
             var keys = _keys;
             foreach (var key in keys) // we don't need to iterate over keys but to compare apples to apples we do
                 queue.TryDequeue(out _);
+        }
+
+        [IterationSetup(Target = nameof(ConcurrentBag))]
+        public void SetupConcurrentBagIteration() => Utils.FillProducerConsumerCollection(ref _concurrentBags, InvocationsPerIteration, _keys);
+        
+        [Benchmark]
+        public void ConcurrentBag()
+        {
+            var bag = _concurrentBags[_iterationIndex++];
+            var keys = _keys;
+            foreach (var key in keys) // we don't need to iterate over keys but to compare apples to apples we do
+                bag.TryTake(out _);
         }
     }
 }
