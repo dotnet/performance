@@ -6,9 +6,11 @@ namespace Helpers
 {
     internal static class UniqueValuesGenerator
     {
+        private const int Seed = 12345; // we always use the same seed to have repeatable results!
+
         internal static T[] GenerateArray<T>(int count)
         {
-            var random = new Random(12345); // we always use the same seed to have repeatable results!
+            var random = new Random(Seed); 
 
             var uniqueValues = new HashSet<T>();
 
@@ -25,7 +27,7 @@ namespace Helpers
 
         internal static Dictionary<TKey, TValue> GenerateDictionary<TKey, TValue>(int count)
         {
-            var random = new Random(12345); // we always use the same seed to have repeatable results!
+            var random = new Random(Seed);
 
             var dictionary = new Dictionary<TKey, TValue>();
 

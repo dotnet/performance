@@ -17,15 +17,15 @@ namespace System.Collections
         
         private T[] _array;
         private List<T> _list;
-        private LinkedList<T> _linkedlist;
-        private HashSet<T> _hashset;
+        private LinkedList<T> _linkedList;
+        private HashSet<T> _hashSet;
         private Queue<T> _queue;
         private Stack<T> _stack;
-        private SortedSet<T> _sortedset;
-        private ImmutableArray<T> _immutablearray;
-        private ImmutableHashSet<T> _immutablehashset;
-        private ImmutableList<T> _immutablelist;
-        private ImmutableSortedSet<T> _immutablesortedset;
+        private SortedSet<T> _sortedSet;
+        private ImmutableArray<T> _immutableArray;
+        private ImmutableHashSet<T> _immutableHashSet;
+        private ImmutableList<T> _immutableList;
+        private ImmutableSortedSet<T> _immutableSortedSet;
 
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
@@ -36,15 +36,15 @@ namespace System.Collections
             _found = UniqueValuesGenerator.GenerateArray<T>(Size);
             _array = _found.ToArray();
             _list = new List<T>(_found);
-            _linkedlist = new LinkedList<T>(_found);
-            _hashset = new HashSet<T>(_found);
+            _linkedList = new LinkedList<T>(_found);
+            _hashSet = new HashSet<T>(_found);
             _queue = new Queue<T>(_found);
             _stack = new Stack<T>(_found);
-            _sortedset = new SortedSet<T>(_found);
-            _immutablearray = Immutable.ImmutableArray.CreateRange<T>(_found);
-            _immutablehashset = Immutable.ImmutableHashSet.CreateRange<T>(_found);
-            _immutablelist = Immutable.ImmutableList.CreateRange<T>(_found);
-            _immutablesortedset = Immutable.ImmutableSortedSet.CreateRange<T>(_found);
+            _sortedSet = new SortedSet<T>(_found);
+            _immutableArray = Immutable.ImmutableArray.CreateRange<T>(_found);
+            _immutableHashSet = Immutable.ImmutableHashSet.CreateRange<T>(_found);
+            _immutableList = Immutable.ImmutableList.CreateRange<T>(_found);
+            _immutableSortedSet = Immutable.ImmutableSortedSet.CreateRange<T>(_found);
         }
         
         [Benchmark]
@@ -54,7 +54,7 @@ namespace System.Collections
             var collection = _array;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.Contains(found[i]);
+                result ^= collection.Contains(found[i]);
             return result;
         }
         
@@ -65,7 +65,7 @@ namespace System.Collections
             var collection = _list;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.Contains(found[i]);
+                result ^= collection.Contains(found[i]);
             return result;
         }
 
@@ -79,7 +79,7 @@ namespace System.Collections
             bool result = default;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.Contains(found[i]);
+                result ^= collection.Contains(found[i]);
             return result;
         }
 
@@ -87,10 +87,10 @@ namespace System.Collections
         public bool LinkedList()
         {
             bool result = default;
-            var collection = _linkedlist;
+            var collection = _linkedList;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.Contains(found[i]);
+                result ^= collection.Contains(found[i]);
             return result;
         }
 
@@ -98,10 +98,10 @@ namespace System.Collections
         public bool HashSet()
         {
             bool result = default;
-            var collection = _hashset;
+            var collection = _hashSet;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.Contains(found[i]);
+                result ^= collection.Contains(found[i]);
             return result;
         }
 
@@ -112,7 +112,7 @@ namespace System.Collections
             var collection = _queue;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.Contains(found[i]);
+                result ^= collection.Contains(found[i]);
             return result;
         }
 
@@ -123,7 +123,7 @@ namespace System.Collections
             var collection = _stack;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.Contains(found[i]);
+                result ^= collection.Contains(found[i]);
             return result;
         }
 
@@ -131,10 +131,10 @@ namespace System.Collections
         public bool SortedSet()
         {
             bool result = default;
-            var collection = _sortedset;
+            var collection = _sortedSet;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.Contains(found[i]);
+                result ^= collection.Contains(found[i]);
             return result;
         }
 
@@ -142,10 +142,10 @@ namespace System.Collections
         public bool ImmutableArray()
         {
             bool result = default;
-            var collection = _immutablearray;
+            var collection = _immutableArray;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.Contains(found[i]);
+                result ^= collection.Contains(found[i]);
             return result;
         }
 
@@ -153,10 +153,10 @@ namespace System.Collections
         public bool ImmutableHashSet()
         {
             bool result = default;
-            var collection = _immutablehashset;
+            var collection = _immutableHashSet;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.Contains(found[i]);
+                result ^= collection.Contains(found[i]);
             return result;
         }
 
@@ -164,10 +164,10 @@ namespace System.Collections
         public bool ImmutableList()
         {
             bool result = default;
-            var collection = _immutablelist;
+            var collection = _immutableList;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.Contains(found[i]);
+                result ^= collection.Contains(found[i]);
             return result;
         }
 
@@ -175,10 +175,10 @@ namespace System.Collections
         public bool ImmutableSortedSet()
         {
             bool result = default;
-            var collection = _immutablesortedset;
+            var collection = _immutableSortedSet;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.Contains(found[i]);
+                result ^= collection.Contains(found[i]);
             return result;
         }
     }

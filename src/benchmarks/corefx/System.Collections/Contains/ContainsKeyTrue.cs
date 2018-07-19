@@ -18,11 +18,11 @@ namespace System.Collections
         private Dictionary<TKey, TValue> _source;
         
         private Dictionary<TKey, TValue> _dictionary;
-        private SortedList<TKey, TValue> _sortedlist;
-        private SortedDictionary<TKey, TValue> _sorteddictionary;
-        private ConcurrentDictionary<TKey, TValue> _concurrentdictionary;
-        private ImmutableDictionary<TKey, TValue> _immutabledictionary;
-        private ImmutableSortedDictionary<TKey, TValue> _immutablesorteddictionary;
+        private SortedList<TKey, TValue> _sortedList;
+        private SortedDictionary<TKey, TValue> _sortedDictionary;
+        private ConcurrentDictionary<TKey, TValue> _concurrentDictionary;
+        private ImmutableDictionary<TKey, TValue> _immutableDictionary;
+        private ImmutableSortedDictionary<TKey, TValue> _immutableSortedDictionary;
 
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
@@ -33,11 +33,11 @@ namespace System.Collections
             _found = UniqueValuesGenerator.GenerateArray<TKey>(Size);
             _source = _found.ToDictionary(item => item, item => (TValue)(object)item);
             _dictionary = new Dictionary<TKey, TValue>(_source);
-            _sortedlist = new SortedList<TKey, TValue>(_source);
-            _sorteddictionary = new SortedDictionary<TKey, TValue>(_source);
-            _concurrentdictionary = new ConcurrentDictionary<TKey, TValue>(_source);
-            _immutabledictionary = Immutable.ImmutableDictionary.CreateRange<TKey, TValue>(_source);
-            _immutablesorteddictionary = Immutable.ImmutableSortedDictionary.CreateRange<TKey, TValue>(_source);
+            _sortedList = new SortedList<TKey, TValue>(_source);
+            _sortedDictionary = new SortedDictionary<TKey, TValue>(_source);
+            _concurrentDictionary = new ConcurrentDictionary<TKey, TValue>(_source);
+            _immutableDictionary = Immutable.ImmutableDictionary.CreateRange<TKey, TValue>(_source);
+            _immutableSortedDictionary = Immutable.ImmutableSortedDictionary.CreateRange<TKey, TValue>(_source);
         }
 
         [Benchmark]
@@ -47,7 +47,7 @@ namespace System.Collections
             var collection = _dictionary;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.ContainsKey(found[i]);
+                result ^= collection.ContainsKey(found[i]);
             return result;
         }
 
@@ -61,7 +61,7 @@ namespace System.Collections
             bool result = default;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.ContainsKey(found[i]);
+                result ^= collection.ContainsKey(found[i]);
             return result;
         }
 
@@ -69,10 +69,10 @@ namespace System.Collections
         public bool SortedList()
         {
             bool result = default;
-            var collection = _sortedlist;
+            var collection = _sortedList;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.ContainsKey(found[i]);
+                result ^= collection.ContainsKey(found[i]);
             return result;
         }
 
@@ -80,10 +80,10 @@ namespace System.Collections
         public bool SortedDictionary()
         {
             bool result = default;
-            var collection = _sorteddictionary;
+            var collection = _sortedDictionary;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.ContainsKey(found[i]);
+                result ^= collection.ContainsKey(found[i]);
             return result;
         }
 
@@ -91,10 +91,10 @@ namespace System.Collections
         public bool ConcurrentDictionary()
         {
             bool result = default;
-            var collection = _concurrentdictionary;
+            var collection = _concurrentDictionary;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.ContainsKey(found[i]);
+                result ^= collection.ContainsKey(found[i]);
             return result;
         }
 
@@ -102,10 +102,10 @@ namespace System.Collections
         public bool ImmutableDictionary()
         {
             bool result = default;
-            var collection = _immutabledictionary;
+            var collection = _immutableDictionary;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.ContainsKey(found[i]);
+                result ^= collection.ContainsKey(found[i]);
             return result;
         }
 
@@ -113,10 +113,10 @@ namespace System.Collections
         public bool ImmutableSortedDictionary()
         {
             bool result = default;
-            var collection = _immutablesorteddictionary;
+            var collection = _immutableSortedDictionary;
             var found = _found;
             for (int i = 0; i < found.Length; i++)
-                result = collection.ContainsKey(found[i]);
+                result ^= collection.ContainsKey(found[i]);
             return result;
         }
     }
