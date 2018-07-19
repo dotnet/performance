@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
 using Helpers;
@@ -65,6 +66,20 @@ namespace System.Collections
         {
             bool result = default;
             var collection = _list;
+            var notFound = _notFound;
+            for (int i = 0; i < notFound.Length; i++)
+                result = collection.Contains(notFound[i]);
+            return result;
+        }
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        public bool ICollection() => Contains(_list);
+        
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private bool Contains(ICollection<T> collection)
+        {
+            bool result = default;
             var notFound = _notFound;
             for (int i = 0; i < notFound.Length; i++)
                 result = collection.Contains(notFound[i]);

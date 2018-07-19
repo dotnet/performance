@@ -10,6 +10,7 @@
             public const string Inlining = "Inlining";
             public const string V8 = "V8";
             public const string Perflab = "Perflab";
+            public const string Virtual = "Virtual";
         
         public const string CoreFX = "CoreFX";
 

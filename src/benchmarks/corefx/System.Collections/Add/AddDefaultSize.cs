@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
 using Helpers;
@@ -30,6 +31,19 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        public ICollection<T> ICollection() => AddToICollection(new List<T>());
+
+        [MethodImpl(MethodImplOptions.NoInlining)] // we want to prevent from inlining this particular method to make sure that JIT does not find out that ICollection is always List
+        private ICollection<T> AddToICollection(ICollection<T> collection)
+        {
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.Add(uniqueValues[i]);
+            return collection;
+        }
+
+        [Benchmark]
         public HashSet<T> HashSet()
         {
             var collection = new HashSet<T>();
@@ -43,6 +57,19 @@ namespace System.Collections
         public Dictionary<T, T> Dictionary()
         {
             var collection = new Dictionary<T, T>();
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.Add(uniqueValues[i], uniqueValues[i]);
+            return collection;
+        }
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        public IDictionary<T, T> IDictionary() => AddToIDictionary(new Dictionary<T, T>());
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private IDictionary<T, T> AddToIDictionary(IDictionary<T, T> collection)
+        {
             var uniqueValues = _uniqueValues;
             for (int i = 0; i < uniqueValues.Length; i++)
                 collection.Add(uniqueValues[i], uniqueValues[i]);

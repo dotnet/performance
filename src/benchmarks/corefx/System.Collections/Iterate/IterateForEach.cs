@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
 using Helpers;
@@ -16,6 +17,7 @@ namespace System.Collections
         public int Size;
 
         private T[] _array;
+        private IEnumerable<T> _ienumerable;
         private List<T> _list;
         private LinkedList<T> _linkedlist;
         private HashSet<T> _hashset;
@@ -46,6 +48,22 @@ namespace System.Collections
         {
             T result = default;
             var collection = _array;
+            foreach (var item in collection)
+                result = item;
+            return result;
+        }
+        
+        [GlobalSetup(Target = nameof(IEnumerable))]
+        public void SetupIEnumerable() => _ienumerable = UniqueValuesGenerator.GenerateArray<T>(Size);
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        public T IEnumerable() => Get(_ienumerable);
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private T Get(IEnumerable<T> collection)
+        {
+            T result = default;
             foreach (var item in collection)
                 result = item;
             return result;

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
 using Helpers;
@@ -16,6 +17,7 @@ namespace System.Collections
 
         private T[] _array;
         private List<T> _list;
+        private IList<T> _ilist;
         private ImmutableArray<T> _immutablearray;
         private ImmutableList<T> _immutablelist;
         private ImmutableSortedSet<T> _immutablesortedset;
@@ -44,6 +46,22 @@ namespace System.Collections
             for(int i = 0; i < collection.Count; i++)
                 result = collection[i];
             return result;;
+        }
+
+        [GlobalSetup(Target = nameof(IList))]
+        public void SetupIList() => _ilist = new List<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        public T IList() => Get(_ilist);
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private T Get(IList<T> collection)
+        {
+            T result = default;
+            for (int i = 0; i < collection.Count; i++)
+                result = collection[i];
+            return result;
         }
 
         [GlobalSetup(Target = nameof(ImmutableArray))]

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
 using Helpers;
@@ -14,15 +15,28 @@ namespace System.Collections
         private T[] _uniqueValues;
 
         [Params(Utils.DefaultCollectionSize)]
-        public int Count;
+        public int Size;
 
         [GlobalSetup]
-        public void Setup() => _uniqueValues = UniqueValuesGenerator.GenerateArray<T>(Count);
+        public void Setup() => _uniqueValues = UniqueValuesGenerator.GenerateArray<T>(Size);
 
         [Benchmark]
         public List<T> List()
         {
-            var collection = new List<T>(Count);
+            var collection = new List<T>(Size);
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.Add(uniqueValues[i]);
+            return collection;
+        }
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        public ICollection<T> ICollection() => AddToICollection(new List<T>(Size));
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private ICollection<T> AddToICollection(ICollection<T> collection)
+        {
             var uniqueValues = _uniqueValues;
             for (int i = 0; i < uniqueValues.Length; i++)
                 collection.Add(uniqueValues[i]);
@@ -33,7 +47,7 @@ namespace System.Collections
         [Benchmark]
         public HashSet<T> HashSet()
         {
-            var collection = new HashSet<T>(Count);
+            var collection = new HashSet<T>(Size);
             var uniqueValues = _uniqueValues;
             for(int i = 0; i < uniqueValues.Length; i++)
                 collection.Add(uniqueValues[i]);
@@ -44,7 +58,20 @@ namespace System.Collections
         [Benchmark]
         public Dictionary<T, T> Dictionary()
         {
-            var collection = new Dictionary<T, T>(Count);
+            var collection = new Dictionary<T, T>(Size);
+            var uniqueValues = _uniqueValues;
+            for (int i = 0; i < uniqueValues.Length; i++)
+                collection.Add(uniqueValues[i], uniqueValues[i]);
+            return collection;
+        }
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        public IDictionary<T, T> IDictionary() => AddToIDictionary(new Dictionary<T, T>(Size));
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private IDictionary<T, T> AddToIDictionary(IDictionary<T, T> collection)
+        {
             var uniqueValues = _uniqueValues;
             for (int i = 0; i < uniqueValues.Length; i++)
                 collection.Add(uniqueValues[i], uniqueValues[i]);
@@ -54,7 +81,7 @@ namespace System.Collections
         [Benchmark]
         public SortedList<T, T> SortedList()
         {
-            var collection = new SortedList<T, T>(Count);
+            var collection = new SortedList<T, T>(Size);
             var uniqueValues = _uniqueValues;
             for (int i = 0; i < uniqueValues.Length; i++)
                 collection.Add(uniqueValues[i], uniqueValues[i]);
@@ -64,7 +91,7 @@ namespace System.Collections
         [Benchmark]
         public Queue<T> Queue()
         {
-            var collection = new Queue<T>(Count);
+            var collection = new Queue<T>(Size);
             var uniqueValues = _uniqueValues;
             for (int i = 0; i < uniqueValues.Length; i++)
                 collection.Enqueue(uniqueValues[i]);
@@ -74,7 +101,7 @@ namespace System.Collections
         [Benchmark]
         public Stack<T> Stack()
         {
-            var collection = new Stack<T>(Count);
+            var collection = new Stack<T>(Size);
             var uniqueValues = _uniqueValues;
             for (int i = 0; i < uniqueValues.Length; i++)
                 collection.Push(uniqueValues[i]);
@@ -84,7 +111,7 @@ namespace System.Collections
         [Benchmark]
         public ConcurrentDictionary<T, T> ConcurrentDictionary()
         {
-            var collection = new ConcurrentDictionary<T, T>(Utils.ConcurrencyLevel, Count);
+            var collection = new ConcurrentDictionary<T, T>(Utils.ConcurrencyLevel, Size);
             var uniqueValues = _uniqueValues;
             for (int i = 0; i < uniqueValues.Length; i++)
                 collection.TryAdd(uniqueValues[i], uniqueValues[i]);

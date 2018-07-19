@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
 using Helpers;
@@ -53,6 +54,18 @@ namespace System.Collections
             for (int i = 0; i < list.Count; i++)
                 list[i] = default;
             return list;
+        }
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        public IList<T> IList() => Set(_list);
+        
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private IList<T> Set(IList<T> collection)
+        {
+            for (int i = 0; i < collection.Count; i++)
+                collection[i] = default;
+            return collection;
         }
 
         [Benchmark]

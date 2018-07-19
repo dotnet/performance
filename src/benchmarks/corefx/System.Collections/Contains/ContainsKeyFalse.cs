@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
 using Helpers;
@@ -46,6 +47,20 @@ namespace System.Collections
         {
             bool result = default;
             var collection = _dictionary;
+            var notFound = _notFound;
+            for (int i = 0; i < notFound.Length; i++)
+                result = collection.ContainsKey(notFound[i]);
+            return result;
+        }
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        public bool IDictionary() => ContainsKey(_dictionary);
+        
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public bool ContainsKey(IDictionary<TKey, TValue> collection)
+        {
+            bool result = default;
             var notFound = _notFound;
             for (int i = 0; i < notFound.Length; i++)
                 result = collection.ContainsKey(notFound[i]);

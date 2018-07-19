@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
 using Helpers;
@@ -41,7 +42,7 @@ namespace System.Collections
         [IterationCleanup]
         public void CleanupIteration() => _iterationIndex = 0; // after every iteration end we set the index to 0
 
-        [IterationSetup(Target = nameof(List))]
+        [IterationSetup(Targets = new []{ nameof(List), nameof(ICollection) })]
         public void SetupListIteration() => Utils.FillCollections(ref _lists, InvocationsPerIteration, _keys);
 
         [Benchmark]
@@ -51,6 +52,18 @@ namespace System.Collections
             var keys = _keys;
             foreach (var key in keys)
                 list.Remove(key);
+        }
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        public void ICollection() => RemoveFromCollection(_lists[_iterationIndex++]);
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void RemoveFromCollection(ICollection<T> collection)
+        {
+            var keys = _keys;
+            foreach (var key in keys)
+                collection.Remove(key);
         }
 
         [IterationSetup(Target = nameof(LinkedList))]
