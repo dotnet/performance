@@ -304,20 +304,6 @@ namespace Span
         #endregion // Algorithm tests
 
         [Benchmark]
-        public Span<byte> TestSpanConstructorByte() => new Span<byte>(bytes);
-
-        [Benchmark]
-        public Span<string> TestSpanConstructorString() => new Span<string>(strings);
-
-#if NETCOREAPP2_1 // netcoreapp specific API https://github.com/dotnet/coreclr/issues/16126
-        [Benchmark]
-        public Span<byte> TestSpanCreateByte() => MemoryMarshal.CreateSpan<byte>(ref testClassByte.C0[0], testClassByte.C0.Length);
-
-        [Benchmark]
-        public Span<string> TestSpanCreateString() => MemoryMarshal.CreateSpan<string>(ref testClassString.C0[0], testClassString.C0.Length);
-#endif
-
-        [Benchmark]
         public ref byte TestMemoryMarshalGetReferenceByte() => ref MemoryMarshal.GetReference(new Span<byte>(bytes));
 
         [Benchmark]
