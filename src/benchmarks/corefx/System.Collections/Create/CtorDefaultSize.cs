@@ -11,9 +11,6 @@ namespace System.Collections
     [GenericTypeArguments(typeof(string))] // reference type
     public class CtorDefaultSize<T>
     {
-        [Benchmark] // we keep this benchmark to compare the cost of creating array vs cost of array wrappers (List, Queue, Stack)
-        public T[] Array() => new T[4]; // array has no default size, List has = 4 so I decided to use 4 here
-
         [Benchmark]
         public List<T> List() => new List<T>();
 
