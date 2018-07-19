@@ -43,7 +43,7 @@ namespace System.Collections
             return collection;
         }
 
-#if !NET461 // API added in .NET Core 2.0
+#if !NETFRAMEWORK // API added in .NET Core 2.0
         [Benchmark]
         public HashSet<T> HashSet()
         {

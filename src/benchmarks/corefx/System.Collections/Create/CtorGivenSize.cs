@@ -19,7 +19,7 @@ namespace System.Collections
         [Benchmark]
         public List<T> List() => new List<T>(Size);
 
-#if !NET461 // API added in .NET Core 2.0
+#if !NETFRAMEWORK // API added in .NET Core 2.0
         [Benchmark]
         public HashSet<T> HashSet() => new HashSet<T>(Size);
 #endif

@@ -105,7 +105,7 @@ namespace System.Collections
         [Benchmark]
         public void Queue() => _queues[_iterationIndex++].Clear();
 
-#if !NET461 // API added in .NET Core 2.0
+#if !NETFRAMEWORK // API added in .NET Core 2.0
         [IterationSetup(Target = nameof(ConcurrentQueue))]
         public void SetupConcurrentQueueIteration() => Utils.FillProducerConsumerCollection(ref _concurrentQueues, InvocationsPerIteration, _keys);
 
