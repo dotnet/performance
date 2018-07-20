@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
-using Helpers;
 
 namespace System.Collections
 {

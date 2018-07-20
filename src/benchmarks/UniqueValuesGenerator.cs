@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
-namespace Helpers
+namespace Benchmarks
 {
-    internal static class UniqueValuesGenerator
+    public static class UniqueValuesGenerator
     {
         private const int Seed = 12345; // we always use the same seed to have repeatable results!
 
-        internal static T[] GenerateArray<T>(int count)
+        public static T[] GenerateArray<T>(int count)
         {
             var random = new Random(Seed); 
 
@@ -25,7 +26,7 @@ namespace Helpers
             return uniqueValues.ToArray();
         }
 
-        internal static Dictionary<TKey, TValue> GenerateDictionary<TKey, TValue>(int count)
+        public static Dictionary<TKey, TValue> GenerateDictionary<TKey, TValue>(int count)
         {
             var random = new Random(Seed);
 
@@ -49,9 +50,20 @@ namespace Helpers
             if (typeof(T) == typeof(double))
                 return (T)(object)random.NextDouble();
             if (typeof(T) == typeof(string))
-                return (T)(object)Guid.NewGuid().ToString(); // I am open to better ideas!
+                return (T) (object) GenerateRandomString(random, 1, 50);
             
             throw new NotImplementedException($"{typeof(T).Name} is not implemented");
+        }
+
+        private static string GenerateRandomString(Random random, int minLength, int maxLength)
+        {
+            var length = random.Next(minLength, maxLength);
+
+            var builder = new StringBuilder(length);
+            for (int i = 0; i < length; i++)
+                builder.Append((char) random.Next(char.MinValue, char.MaxValue));
+
+            return builder.ToString();
         }
     }
 }
