@@ -281,21 +281,6 @@ namespace Span
         public void TestSpanFillString() => new Span<string>(strings).Fill(default(string));
 
         [Benchmark]
-        public void TestSpanClearByte() => TestSpanClear<byte>(bytes);
-
-        [Benchmark]
-        public void TestSpanClearString() => TestSpanClear<string>(strings);
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        static void TestSpanClear<T>(Span<T> span) => span.Clear();
-
-        [Benchmark]
-        public void TestArrayClearByte() => Array.Clear(bytes, 0, bytes.Length);
-
-        [Benchmark]
-        public void TestArrayClearString() => Array.Clear(strings, 0, strings.Length);
-
-        [Benchmark]
         public Span<byte> TestSpanAsBytesByte() => MemoryMarshal.AsBytes(new Span<byte>(bytes));
 
         [Benchmark]

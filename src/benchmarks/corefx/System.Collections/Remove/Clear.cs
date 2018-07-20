@@ -20,6 +20,7 @@ namespace System.Collections
         private int _iterationIndex = 0;
         private T[] _keys;
 
+        private T[][] _arrays;
         private List<T>[] _lists;
         private LinkedList<T>[] _linkedLists;
         private HashSet<T>[] _hashSets;
@@ -38,6 +39,20 @@ namespace System.Collections
 
         [IterationCleanup]
         public void CleanupIteration() => _iterationIndex = 0; // after every iteration end we set the index to 0
+
+        [IterationSetup(Target = nameof(Array))]
+        public void SetupArrayIteration() => Utils.FillArrays(ref _arrays, InvocationsPerIteration, _keys);
+
+        [BenchmarkCategory(Categories.CoreCLR)]
+        [Benchmark]
+        public void Array() => System.Array.Clear(_arrays[_iterationIndex++], 0, Size);
+
+        [IterationSetup(Target = nameof(Span))]
+        public void SetupSpanIteration() => Utils.FillArrays(ref _arrays, InvocationsPerIteration, _keys);
+
+        [BenchmarkCategory(Categories.CoreCLR, Categories.Span)]
+        [Benchmark]
+        public void Span() => new Span<T>(_arrays[_iterationIndex++]).Clear();
 
         [IterationSetup(Target = nameof(List))]
         public void SetupListIteration() => Utils.FillCollections(ref _lists, InvocationsPerIteration, _keys);
