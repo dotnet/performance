@@ -1,4 +1,5 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿using System.Collections.Generic;
+using BenchmarkDotNet.Attributes;
 using Benchmarks;
 
 namespace System.Memory
@@ -10,5 +11,57 @@ namespace System.Memory
 
         [Benchmark]
         public ReadOnlySpan<char> StringAsSpan() => _sampeString.AsSpan();
+        
+        [Benchmark(OperationsPerInvoke = 16)]
+        [ArgumentsSource(nameof(IndexOfStringArguments))]
+        public int IndexOfString(string input, string value, StringComparison comparisonType)
+        {
+            ReadOnlySpan<char> inputSpan = input.AsSpan();
+            ReadOnlySpan<char> valueSpan = value.AsSpan();
+
+            int result = 0;
+            
+            result ^= inputSpan.IndexOf(valueSpan, comparisonType); result ^= inputSpan.IndexOf(valueSpan, comparisonType);
+            result ^= inputSpan.IndexOf(valueSpan, comparisonType); result ^= inputSpan.IndexOf(valueSpan, comparisonType);
+            result ^= inputSpan.IndexOf(valueSpan, comparisonType); result ^= inputSpan.IndexOf(valueSpan, comparisonType);
+            result ^= inputSpan.IndexOf(valueSpan, comparisonType); result ^= inputSpan.IndexOf(valueSpan, comparisonType);
+            result ^= inputSpan.IndexOf(valueSpan, comparisonType); result ^= inputSpan.IndexOf(valueSpan, comparisonType);
+            result ^= inputSpan.IndexOf(valueSpan, comparisonType); result ^= inputSpan.IndexOf(valueSpan, comparisonType);
+            result ^= inputSpan.IndexOf(valueSpan, comparisonType); result ^= inputSpan.IndexOf(valueSpan, comparisonType);
+            result ^= inputSpan.IndexOf(valueSpan, comparisonType); result ^= inputSpan.IndexOf(valueSpan, comparisonType);
+
+            return result;
+        }
+        
+        public static IEnumerable<object[]> IndexOfStringArguments => new List<object[]>
+        {
+            new object[] { "string1", "string2", StringComparison.InvariantCulture },
+            new object[] { "foobardzsdzs", "rddzs", StringComparison.InvariantCulture },
+            new object[] { "StrIng", "string", StringComparison.OrdinalIgnoreCase },
+            new object[] { "\u3060", "\u305F", StringComparison.InvariantCulture },
+            new object[] { "ABCDE", "c", StringComparison.InvariantCultureIgnoreCase },
+            new object[] { "More Test's", "Tests", StringComparison.OrdinalIgnoreCase },
+            new object[] { "Hello WorldbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbareallyreallylongHello WorldbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbareallyreallylongHello Worldbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbareallyreallylong!xyz", "~", StringComparison.Ordinal },
+            new object[] { "Hello WorldbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbareallyreallylongHello WorldbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbareallyreallylongHello Worldbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbareallyreallylong!xyz", "w", StringComparison.OrdinalIgnoreCase },
+            new object[] { "Hello Worldbbbbbbbbbbbbbbcbbbbbbbbbbbbbbbbbbba!", "y", StringComparison.Ordinal },
+            new object[] { GenerateInputString('A', 10, '5', 5), "5", StringComparison.InvariantCulture },
+            new object[] { GenerateInputString('A', 100, 'X', 70), "x", StringComparison.InvariantCultureIgnoreCase },
+            new object[] { GenerateInputString('A', 100, 'X', 70), "x", StringComparison.OrdinalIgnoreCase },
+            new object[] { GenerateInputString('A', 1000, 'X', 500), "X", StringComparison.Ordinal },
+            new object[] { GenerateInputString('\u3060', 1000, 'x', 500), "x", StringComparison.Ordinal },
+            new object[] { GenerateInputString('\u3060', 100, '\u3059', 50), "\u3059", StringComparison.Ordinal }
+        };
+        
+        private static string GenerateInputString(char source, int count, char replaceChar, int replacePos)
+        {
+            char[] str = new char[count];
+            for (int i = 0; i < count; i++)
+            {
+                str[i] = replaceChar;
+            }
+            str[replacePos] = replaceChar;
+
+            return new string(str);
+        }
     }
 }
