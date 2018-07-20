@@ -9,6 +9,8 @@ namespace Benchmarks
     {
         private const int Seed = 12345; // we always use the same seed to have repeatable results!
 
+        public static T GetNonDefaultValue<T>() => ArrayOfUniqueValues<T>(2).First(value => !value.Equals(default)); 
+
         public static T[] ArrayOfUniqueValues<T>(int count)
         {
             var random = new Random(Seed); 
@@ -66,6 +68,8 @@ namespace Benchmarks
 
         private static T GenerateValue<T>(Random random)
         {
+            if (typeof(T) == typeof(char))
+                return (T)(object)(char)random.Next(char.MinValue, char.MaxValue);
             if (typeof(T) == typeof(int))
                 return (T)(object)random.Next();
             if (typeof(T) == typeof(double))

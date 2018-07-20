@@ -22,7 +22,7 @@ namespace System.Memory
         }
 
         [Benchmark]
-        public ref T MemoryMarshalGetReference() => ref MemoryMarshal.GetReference(new System.Span<T>(_array));
+        public ref T GetReference() => ref MemoryMarshal.GetReference(new System.Span<T>(_array));
         
         [Benchmark]
         public System.Span<byte> AsBytes() => MemoryMarshal.AsBytes(new System.Span<T>(_array));
