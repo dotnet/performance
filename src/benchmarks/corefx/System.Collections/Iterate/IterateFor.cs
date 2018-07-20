@@ -7,7 +7,7 @@ using Helpers;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
     public class IterateFor<T>
@@ -30,6 +30,20 @@ namespace System.Collections
         {
             T result = default;
             var collection = _array;
+            for (int i = 0; i < collection.Length; i++)
+                result = collection[i];
+            return result;
+        }
+
+        [GlobalSetup(Target = nameof(Span))]
+        public void SetupSpan() => _array = UniqueValuesGenerator.GenerateArray<T>(Size);
+
+        [BenchmarkCategory(Categories.Span)]
+        [Benchmark]
+        public T Span()
+        {
+            T result = default;
+            var collection = new Span<T>(_array);
             for (int i = 0; i < collection.Length; i++)
                 result = collection[i];
             return result;

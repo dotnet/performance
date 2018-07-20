@@ -90,65 +90,6 @@ namespace Span
 
         // Tests that implement some vary basic algorithms (fill/sort) over spans and arrays
         #region Algorithm tests
-
-        #region TestFillAllSpan
-        [Benchmark]
-        public void FillAllSpan() => TestFillAllSpan(bytes);
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        static void TestFillAllSpan(Span<byte> span)
-        {
-            for (int i = 0; i < span.Length; ++i)
-            {
-                span[i] = unchecked((byte)i);
-            }
-        }
-        #endregion
-
-        #region TestFillAllArray
-        
-        [Benchmark]
-        public void FillAllArray() => TestFillAllArray(bytes);
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        static void TestFillAllArray(byte[] data)
-        {
-            for (int i = 0; i < data.Length; ++i)
-            {
-                data[i] = unchecked((byte)i);
-            }
-        }
-        #endregion
-
-        #region TestFillAllReverseSpan
-
-        [Benchmark]
-        public void FillAllReverseSpan() => TestFillAllReverseSpan(bytes);
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        static void TestFillAllReverseSpan(Span<byte> span)
-        {
-            for (int i = span.Length; --i >= 0;)
-            {
-                span[i] = unchecked((byte)i);
-            }
-        }
-        #endregion
-
-        #region TestFillAllReverseArray
-        [Benchmark]
-        public void FillAllReverseArray() => TestFillAllReverseArray(bytes);
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        static void TestFillAllReverseArray(byte[] data)
-        {
-            for (int i = data.Length; --i >= 0;)
-            {
-                data[i] = unchecked((byte)i);
-            }
-        }
-        #endregion
-
         #region TestQuickSortSpan
         
         int[] _unsortedData;

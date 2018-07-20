@@ -8,7 +8,7 @@ using Helpers;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
     public class IndexerSet<T>
@@ -45,6 +45,17 @@ namespace System.Collections
             for (int i = 0; i < array.Length; i++)
                 array[i] = default;
             return array;
+        }
+
+        [BenchmarkCategory(Categories.Span)]
+        [Benchmark]
+        public T Span()
+        {
+            T result = default;
+            var collection = new Span<T>(_array);
+            for (int i = 0; i < collection.Length; i++)
+                collection[i] = default;
+            return result;
         }
 
         [Benchmark]
