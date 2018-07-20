@@ -26,37 +26,37 @@ namespace System.Memory
         }
 
         [Benchmark(Baseline = true)]
-        public Span<T> SpanFromArray() => new Span<T>(_nonEmptyArray);
+        public System.Span<T> SpanFromArray() => new System.Span<T>(_nonEmptyArray);
 
         [Benchmark]
-        public ReadOnlySpan<T> ReadOnlySpanFromArray() => new ReadOnlySpan<T>(_nonEmptyArray);
+        public System.ReadOnlySpan<T> ReadOnlySpanFromArray() => new System.ReadOnlySpan<T>(_nonEmptyArray);
 
         [Benchmark]
-        public Span<T> SpanFromArrayStartLength() => new Span<T>(_nonEmptyArray, start: 0, length: Size);
+        public System.Span<T> SpanFromArrayStartLength() => new System.Span<T>(_nonEmptyArray, start: 0, length: Size);
 
         [Benchmark]
-        public ReadOnlySpan<T> ReadOnlySpanFromArrayStartLength() => new ReadOnlySpan<T>(_nonEmptyArray, start: 0, length: Size);
+        public System.ReadOnlySpan<T> ReadOnlySpanFromArrayStartLength() => new System.ReadOnlySpan<T>(_nonEmptyArray, start: 0, length: Size);
 
         [Benchmark]
-        public unsafe Span<T> SpanFromPointerLength() => new Span<T>(_validPointer.ToPointer(), Size);
+        public unsafe System.Span<T> SpanFromPointerLength() => new System.Span<T>(_validPointer.ToPointer(), Size);
 
         [Benchmark]
-        public unsafe ReadOnlySpan<T> ReadOnlyFromPointerLength() => new ReadOnlySpan<T>(_validPointer.ToPointer(), Size);
+        public unsafe System.ReadOnlySpan<T> ReadOnlyFromPointerLength() => new System.ReadOnlySpan<T>(_validPointer.ToPointer(), Size);
 
         [Benchmark]
-        public Span<T> SpanImplicitCastFromArray() => _nonEmptyArray;
+        public System.Span<T> SpanImplicitCastFromArray() => _nonEmptyArray;
 
         [Benchmark]
-        public ReadOnlySpan<T> ReadOnlySpanImplicitCastFromArray() => _nonEmptyArray;
+        public System.ReadOnlySpan<T> ReadOnlySpanImplicitCastFromArray() => _nonEmptyArray;
 
         [Benchmark]
-        public Span<T> SpanImplicitCastFromArraySegment() => _arraySegment;
+        public System.Span<T> SpanImplicitCastFromArraySegment() => _arraySegment;
 
         [Benchmark]
-        public ReadOnlySpan<T> ReadOnlySpanImplicitCastFromArraySegment() => _arraySegment;
+        public System.ReadOnlySpan<T> ReadOnlySpanImplicitCastFromArraySegment() => _arraySegment;
 
         [Benchmark]
-        public ReadOnlySpan<T> ReadOnlySpanImplicitCastFromSpan() => Span<T>.Empty;
+        public System.ReadOnlySpan<T> ReadOnlySpanImplicitCastFromSpan() => System.Span<T>.Empty;
 
         [Benchmark]
         public Memory<T> MemoryFromArray() => new Memory<T>(_nonEmptyArray);
@@ -72,10 +72,10 @@ namespace System.Memory
 
 #if NETCOREAPP2_1 // netcoreapp specific API https://github.com/dotnet/coreclr/issues/16126
         [Benchmark]
-        public Span<T> MemoryMarshalCreateSpan() => MemoryMarshal.CreateSpan<T>(ref _field, Size);
+        public System.Span<T> MemoryMarshalCreateSpan() => MemoryMarshal.CreateSpan<T>(ref _field, Size);
     
         [Benchmark]
-        public ReadOnlySpan<T> MemoryMarshalCreateReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan<T>(ref _field, Size);
+        public System.ReadOnlySpan<T> MemoryMarshalCreateReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan<T>(ref _field, Size);
 #endif
     }
 }
