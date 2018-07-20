@@ -61,12 +61,8 @@ namespace Benchmarks
                 config = config.With(new AllCategoriesFilter(options.AllCategories.ToArray()));
             if (options.AnyCategories.Any())
                 config = config.With(new AnyCategoriesFilter(options.AnyCategories.ToArray()));
-            if (options.Namespaces.Any())
-                config = config.With(new NamespacesFilter(options.Namespaces.ToArray()));
-            if (options.MethodNames.Any())
-                config = config.With(new MethodNamesFilter(options.MethodNames.ToArray()));
-            if (options.TypeNames.Any())
-                config = config.With(new TypeNamesFilter(options.TypeNames.ToArray()));
+            if (options.Filters.Any())
+                config = config.With(new GlobFilter(options.Filters.ToArray()));
 
             config = config.With(JsonExporter.Full); // make sure we export to Json (for BenchView integration purpose)
 
@@ -282,14 +278,8 @@ namespace Benchmarks
         [Option("anyCategories", Required = false, HelpText = "Any Categories to run")]
         public IEnumerable<string> AnyCategories { get; set; }
         
-        [Option("namespace", Required = false, HelpText = "Namespace(s) to run")]
-        public IEnumerable<string> Namespaces { get; set; }
-        
-        [Option("method", Required = false, HelpText = "Method(s) to run")]
-        public IEnumerable<string> MethodNames { get; set; }
-        
-        [Option("class", Required = false, HelpText = "Class(es) with benchmarks to run")]
-        public IEnumerable<string> TypeNames { get; set; }
+        [Option('f', "filters", Required = false, HelpText = "Filter(s) to apply, globs that operate on namespace.typename.methodname")]
+        public IEnumerable<string> Filters { get; set; }
         
         [Option("join", Required = false, Default = false, HelpText = "Prints single table with results for all benchmarks")]
         public bool Join { get; set; }
