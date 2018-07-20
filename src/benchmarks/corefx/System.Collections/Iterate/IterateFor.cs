@@ -48,6 +48,20 @@ namespace System.Collections
             return result;
         }
 
+        [GlobalSetup(Target = nameof(ReadOnlySpan))]
+        public void SetupReadOnlySpan() => _array = UniqueValuesGenerator.GenerateArray<T>(Size);
+
+        [BenchmarkCategory(Categories.Span)]
+        [Benchmark]
+        public T ReadOnlySpan()
+        {
+            T result = default;
+            var collection = new ReadOnlySpan<T>(_array);
+            for (int i = 0; i < collection.Length; i++)
+                result = collection[i];
+            return result;
+        }
+
         [GlobalSetup(Target = nameof(List))]
         public void SetupList() => _list = new List<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
 
