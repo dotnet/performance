@@ -263,18 +263,6 @@ namespace Span
         public string[] TestSpanToArrayString()=> new Span<string>(strings).ToArray();
 
         [Benchmark]
-        public void TestSpanCopyToByte() => new Span<byte>(bytes).CopyTo(Destination<byte>.Instance.array);
-
-        [Benchmark]
-        public void TestSpanCopyToString() => new Span<string>(strings).CopyTo(Destination<string>.Instance.array);
-
-        [Benchmark]
-        public void TestArrayCopyToByte() => bytes.CopyTo(Destination<byte>.Instance.array, 0);
-
-        [Benchmark]
-        public void TestArrayCopyToString() => strings.CopyTo(Destination<string>.Instance.array, 0);
-
-        [Benchmark]
         public void TestSpanFillByte() => new Span<byte>(bytes).Fill(default(byte));
 
         [Benchmark]
