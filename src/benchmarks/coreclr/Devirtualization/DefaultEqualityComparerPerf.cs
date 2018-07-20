@@ -57,7 +57,7 @@ namespace Devirtualization
         }
     }
 
-    [BenchmarkCategory(Categories.CoreCLR)]
+    [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
     public class EqualityComparer
     {
         public enum E
