@@ -16,7 +16,7 @@ namespace System.Memory
         private T[] _array;
 
         [GlobalSetup]
-        public void Setup() => _array = UniqueValuesGenerator.GenerateArray<T>(Size);
+        public void Setup() => _array = ValuesGenerator.Array<T>(Size);
         
         [Benchmark]
         public System.Span<T> Slice() => new System.Span<T>(_array).Slice(Size / 2);

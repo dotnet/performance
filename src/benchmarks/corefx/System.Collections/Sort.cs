@@ -23,7 +23,7 @@ namespace System.Collections
         private List<T>[] _lists;
 
         [GlobalSetup]
-        public void Setup() => _values = UniqueValuesGenerator.GenerateArray<T>(Size);
+        public void Setup() => _values = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
         
         [IterationCleanup]
         public void CleanupIteration() => _iterationIndex = 0; // after every iteration end we set the index to 0

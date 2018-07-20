@@ -14,7 +14,7 @@ namespace System.Collections
         private ArrayList _arraylist;
 
         [GlobalSetup(Target = nameof(ArrayList))]
-        public void SetupArrayList() => _arraylist = new ArrayList(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupArrayList() => _arraylist = new ArrayList(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
         
         [Benchmark]
         public object ArrayList()

@@ -5,11 +5,11 @@ using System.Text;
 
 namespace Benchmarks
 {
-    public static class UniqueValuesGenerator
+    public static class ValuesGenerator
     {
         private const int Seed = 12345; // we always use the same seed to have repeatable results!
 
-        public static T[] GenerateArray<T>(int count)
+        public static T[] ArrayOfUniqueValues<T>(int count)
         {
             var random = new Random(Seed); 
 
@@ -25,8 +25,29 @@ namespace Benchmarks
 
             return uniqueValues.ToArray();
         }
+        
+        public static T[] Array<T>(int count)
+        {
+            var random = new Random(Seed); 
 
-        public static Dictionary<TKey, TValue> GenerateDictionary<TKey, TValue>(int count)
+            var result = new T[count];
+
+            if (typeof(T) == typeof(byte))
+            {
+                random.NextBytes((byte[])(object)result);
+            }
+            else
+            {
+                for (int i = 0; i < result.Length; i++)
+                {
+                    result[i] = GenerateValue<T>(random);
+                }
+            }
+
+            return result;
+        }
+
+        public static Dictionary<TKey, TValue> Dictionary<TKey, TValue>(int count)
         {
             var random = new Random(Seed);
 

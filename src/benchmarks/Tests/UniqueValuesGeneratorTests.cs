@@ -9,7 +9,7 @@ namespace Tests
     {
         [Fact]
         public void UnsupportedTypesThrow() 
-            => Assert.Throws<NotImplementedException>(() => UniqueValuesGenerator.GenerateArray<UniqueValuesGeneratorTests>(1));
+            => Assert.Throws<NotImplementedException>(() => ValuesGenerator.ArrayOfUniqueValues<UniqueValuesGeneratorTests>(1));
         
         [Fact]
         public void GeneratedArraysContainOnlyUniqueValues()
@@ -20,7 +20,7 @@ namespace Tests
 
         private void AssertGeneratedArraysContainOnlyUniqueValues<T>(int size)
         {
-            var generatedArray = UniqueValuesGenerator.GenerateArray<T>(size);
+            var generatedArray = ValuesGenerator.ArrayOfUniqueValues<T>(size);
 
             var distinct = generatedArray.Distinct().ToArray();
             
@@ -36,11 +36,11 @@ namespace Tests
         
         private void AssertGeneratedArraysContainAlwaysSameValues<T>(int size)
         {
-            var generatedArray = UniqueValuesGenerator.GenerateArray<T>(size);
+            var generatedArray = ValuesGenerator.ArrayOfUniqueValues<T>(size);
             
             for (int i = 0; i < 10; i++)
             {
-                var anotherGeneratedArray = UniqueValuesGenerator.GenerateArray<T>(size);
+                var anotherGeneratedArray = ValuesGenerator.ArrayOfUniqueValues<T>(size);
                 
                 Assert.Equal(generatedArray, anotherGeneratedArray);
             }

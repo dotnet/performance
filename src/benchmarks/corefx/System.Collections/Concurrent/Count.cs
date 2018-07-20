@@ -20,7 +20,7 @@ namespace System.Collections.Concurrent
         [GlobalSetup]
         public void Setup()
         {
-            var values = UniqueValuesGenerator.GenerateArray<T>(Size);
+            var values = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
             
             _dictionary = new ConcurrentDictionary<T, T>(values.ToDictionary(v => v, v => v));
             _queue = new ConcurrentQueue<T>(values);

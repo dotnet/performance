@@ -21,7 +21,7 @@ namespace Span
         private int[][] _arrays;
         
         [GlobalSetup]
-        public void Setup() => _values = UniqueValuesGenerator.GenerateArray<int>(Size);
+        public void Setup() => _values = ValuesGenerator.ArrayOfUniqueValues<int>(Size);
         
         [IterationSetup]
         public void SetupSpanIteration() => Utils.FillArrays(ref _arrays, InvocationsPerIteration, _values);

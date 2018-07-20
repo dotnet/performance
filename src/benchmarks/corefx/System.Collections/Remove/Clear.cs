@@ -34,7 +34,7 @@ namespace System.Collections
         private ConcurrentQueue<T>[] _concurrentQueues;
 
         [GlobalSetup]
-        public void Setup() => _keys = UniqueValuesGenerator.GenerateArray<T>(Size);
+        public void Setup() => _keys = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
         [IterationCleanup]
         public void CleanupIteration() => _iterationIndex = 0; // after every iteration end we set the index to 0

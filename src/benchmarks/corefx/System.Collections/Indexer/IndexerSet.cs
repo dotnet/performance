@@ -27,7 +27,7 @@ namespace System.Collections
         [GlobalSetup]
         public void Setup()
         {
-            _keys = UniqueValuesGenerator.GenerateArray<T>(Size);
+            _keys = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
             _array = _keys.ToArray();
             _list = new List<T>(_keys);

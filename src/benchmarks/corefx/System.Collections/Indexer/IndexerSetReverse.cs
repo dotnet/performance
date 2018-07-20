@@ -19,7 +19,7 @@ namespace System.Collections
         [GlobalSetup]
         public void Setup()
         {
-            _array = UniqueValuesGenerator.GenerateArray<T>(Size);
+            _array = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
             _list = new List<T>(_array);
         }
 

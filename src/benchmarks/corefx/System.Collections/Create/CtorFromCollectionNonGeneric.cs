@@ -17,8 +17,8 @@ namespace System.Collections
         [GlobalSetup]
         public void Setup()
         {
-            _collection = UniqueValuesGenerator.GenerateArray<T>(Size);
-            _dictionary = UniqueValuesGenerator.GenerateDictionary<T, T>(Size);
+            _collection = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _dictionary = ValuesGenerator.Dictionary<T, T>(Size);
         }
         
         [Benchmark]
