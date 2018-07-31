@@ -16,6 +16,8 @@ namespace System.Memory
         private ArraySegment<T> _arraySegment;
         private IntPtr _validPointer;
         private T _field;
+        private Memory<T> _memory;
+        private ReadOnlyMemory<T> _readOnlyMemory;
 
         public unsafe Constructors()
         {
@@ -23,6 +25,8 @@ namespace System.Memory
             _arraySegment = new ArraySegment<T>(_nonEmptyArray, 0, Size);
             _field = _nonEmptyArray[0];
             _validPointer = (IntPtr) Unsafe.AsPointer(ref _field);
+            _memory = new Memory<T>(_nonEmptyArray);
+            _readOnlyMemory = new ReadOnlyMemory<T>(_nonEmptyArray);
         }
 
         [Benchmark(Baseline = true)]
@@ -42,6 +46,12 @@ namespace System.Memory
 
         [Benchmark]
         public unsafe System.ReadOnlySpan<T> ReadOnlyFromPointerLength() => new System.ReadOnlySpan<T>(_validPointer.ToPointer(), Size);
+
+        [Benchmark]
+        public System.Span<T> SpanFromMemory() => _memory.Span;
+
+        [Benchmark]
+        public System.ReadOnlySpan<T> ReadOnlySpanFromMemory() => _readOnlyMemory.Span;
 
         [Benchmark]
         public System.Span<T> SpanImplicitCastFromArray() => _nonEmptyArray;
