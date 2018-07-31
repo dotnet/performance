@@ -39,7 +39,7 @@ namespace System.Collections
         private ImmutableSortedDictionary<T, T> _immutablesorteddictionary;
         private ImmutableSortedSet<T> _immutablesortedset;
 
-        [GlobalSetup(Target = nameof(Array))]
+        [GlobalSetup(Targets = new [] { nameof(Array), nameof(Span), nameof(ReadOnlySpan)})]
         public void SetupArray() => _array = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
         [Benchmark]
@@ -47,6 +47,28 @@ namespace System.Collections
         {
             T result = default;
             var collection = _array;
+            foreach (var item in collection)
+                result = item;
+            return result;
+        }
+        
+        [BenchmarkCategory(Categories.Span)]
+        [Benchmark]
+        public T Span()
+        {
+            T result = default;
+            var collection = new System.Span<T>(_array);
+            foreach (var item in collection)
+                result = item;
+            return result;
+        }
+        
+        [BenchmarkCategory(Categories.Span)]
+        [Benchmark]
+        public T ReadOnlySpan()
+        {
+            T result = default;
+            var collection = new System.ReadOnlySpan<T>(_array);
             foreach (var item in collection)
                 result = item;
             return result;
