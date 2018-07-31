@@ -26,9 +26,6 @@ namespace System.Memory
         }
         
         [Benchmark]
-        public System.Span<T> Slice() => new System.Span<T>(_array).Slice(Size / 2);
-
-        [Benchmark]
         public void Clear() => new System.Span<T>(_array).Clear();
         
         [Benchmark]
