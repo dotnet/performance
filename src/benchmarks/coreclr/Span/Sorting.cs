@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
 using System.Collections;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
@@ -24,7 +28,7 @@ namespace Span
         public void Setup() => _values = ValuesGenerator.ArrayOfUniqueValues<int>(Size);
         
         [IterationSetup]
-        public void SetupSpanIteration() => Utils.FillArrays(ref _arrays, InvocationsPerIteration, _values);
+        public void SetupIteration() => Utils.FillArrays(ref _arrays, InvocationsPerIteration, _values);
         
         [IterationCleanup]
         public void CleanupIteration() => _iterationIndex = 0; // after every iteration end we set the index to 0
