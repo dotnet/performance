@@ -28,7 +28,7 @@ namespace System.Memory
             _array = ValuesGenerator.Array<T>(Size);
             _same = _array.ToArray();
         }
-        
+
         [Benchmark]
         public void Clear() => new System.Span<T>(_array).Clear();
         

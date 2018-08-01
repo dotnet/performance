@@ -20,8 +20,8 @@ namespace System.Memory
         private ArraySegment<T> _arraySegment;
         private IntPtr _validPointer;
         private T _field;
-        private Memory<T> _memory;
-        private ReadOnlyMemory<T> _readOnlyMemory;
+        private System.Memory<T> _memory;
+        private System.ReadOnlyMemory<T> _readOnlyMemory;
 
         public unsafe Constructors()
         {
@@ -29,8 +29,8 @@ namespace System.Memory
             _arraySegment = new ArraySegment<T>(_nonEmptyArray, 0, Size);
             _field = _nonEmptyArray[0];
             _validPointer = (IntPtr) Unsafe.AsPointer(ref _field);
-            _memory = new Memory<T>(_nonEmptyArray);
-            _readOnlyMemory = new ReadOnlyMemory<T>(_nonEmptyArray);
+            _memory = new System.Memory<T>(_nonEmptyArray);
+            _readOnlyMemory = new System.ReadOnlyMemory<T>(_nonEmptyArray);
         }
 
         [Benchmark(Baseline = true)]
@@ -73,16 +73,16 @@ namespace System.Memory
         public System.ReadOnlySpan<T> ReadOnlySpanImplicitCastFromSpan() => System.Span<T>.Empty;
 
         [Benchmark]
-        public Memory<T> MemoryFromArray() => new Memory<T>(_nonEmptyArray);
+        public System.Memory<T> MemoryFromArray() => new System.Memory<T>(_nonEmptyArray);
 
         [Benchmark]
-        public ReadOnlyMemory<T> ReadOnlyMemoryFromArray() => new ReadOnlyMemory<T>(_nonEmptyArray);
+        public System.ReadOnlyMemory<T> ReadOnlyMemoryFromArray() => new System.ReadOnlyMemory<T>(_nonEmptyArray);
 
         [Benchmark]
-        public Memory<T> MemoryFromArrayStartLength() => new Memory<T>(_nonEmptyArray, start: 0, length: Size);
+        public System.Memory<T> MemoryFromArrayStartLength() => new System.Memory<T>(_nonEmptyArray, start: 0, length: Size);
 
         [Benchmark]
-        public ReadOnlyMemory<T> ReadOnlyMemoryFromArrayStartLength() => new ReadOnlyMemory<T>(_nonEmptyArray, start: 0, length: Size);
+        public System.ReadOnlyMemory<T> ReadOnlyMemoryFromArrayStartLength() => new System.ReadOnlyMemory<T>(_nonEmptyArray, start: 0, length: Size);
 
 #if NETCOREAPP2_1 // netcoreapp specific API https://github.com/dotnet/coreclr/issues/16126
         [Benchmark]

@@ -17,12 +17,12 @@ namespace System.Memory
         where T : struct
     {
         private T[] _array;
-        private ReadOnlyMemory<T> _memory;
+        private System.ReadOnlyMemory<T> _memory;
 
         public MemoryMarshal()
         {
             _array = ValuesGenerator.Array<T>(Utils.DefaultCollectionSize);
-            _memory = new ReadOnlyMemory<T>(_array);
+            _memory = new System.ReadOnlyMemory<T>(_array);
         }
 
         [Benchmark]
