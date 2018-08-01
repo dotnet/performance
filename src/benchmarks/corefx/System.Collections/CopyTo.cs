@@ -29,14 +29,26 @@ namespace System.Collections
 
         [Benchmark(Baseline = true)]
         public void Array() => System.Array.Copy(_array, _destination, Size);
-        
+
         [BenchmarkCategory(Categories.Span)]
         [Benchmark]
         public void Span() => new Span<T>(_array).CopyTo(new Span<T>(_destination));
 
+        [BenchmarkCategory(Categories.Span)]
+        [Benchmark]
+        public void ReadOnlySpan() => new ReadOnlySpan<T>(_array).CopyTo(new Span<T>(_destination));
+
+        [BenchmarkCategory(Categories.Span)]
+        [Benchmark]
+        public void Memory() => new Memory<T>(_array).CopyTo(new Memory<T>(_destination));
+
+        [BenchmarkCategory(Categories.Span)]
+        [Benchmark]
+        public void ReadOnlyMemory() => new ReadOnlyMemory<T>(_array).CopyTo(new Memory<T>(_destination));
+
         [Benchmark]
         public void List() => _list.CopyTo(_destination);
-        
+
         [Benchmark]
         public void ImmutableArray() => _immutablearray.CopyTo(_destination);
     }
