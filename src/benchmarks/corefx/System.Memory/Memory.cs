@@ -27,6 +27,9 @@ namespace System.Memory
                 Consume(in pinned);
             }
         }
+
+        [Benchmark] 
+        public T[] ToArray() => _memory.ToArray();
         
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void Consume(in MemoryHandle _) { }
