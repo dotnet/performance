@@ -20,145 +20,137 @@ namespace System.Memory
         [Benchmark(OperationsPerInvoke = 16)]
         public System.Span<T> SpanStart()
         {
-            System.Span<T> span, slice;
-            span = new System.Span<T>(_nonEmptyArray);
+            System.Span<T> span = new System.Span<T>(_nonEmptyArray);
 
-            slice = span.Slice(Size / 2); Consume(in slice); slice = span.Slice(Size / 2); Consume(in slice);
-            slice = span.Slice(Size / 2); Consume(in slice); slice = span.Slice(Size / 2); Consume(in slice);
-            slice = span.Slice(Size / 2); Consume(in slice); slice = span.Slice(Size / 2); Consume(in slice);
-            slice = span.Slice(Size / 2); Consume(in slice); slice = span.Slice(Size / 2); Consume(in slice);
-            slice = span.Slice(Size / 2); Consume(in slice); slice = span.Slice(Size / 2); Consume(in slice);
-            slice = span.Slice(Size / 2); Consume(in slice); slice = span.Slice(Size / 2); Consume(in slice);
-            slice = span.Slice(Size / 2); Consume(in slice); slice = span.Slice(Size / 2); Consume(in slice);
-            slice = span.Slice(Size / 2); Consume(in slice); slice = span.Slice(Size / 2); Consume(in slice);
+            Consume(span.Slice(Size / 2)); Consume(span.Slice(Size / 2));
+            Consume(span.Slice(Size / 2)); Consume(span.Slice(Size / 2));
+            Consume(span.Slice(Size / 2)); Consume(span.Slice(Size / 2));
+            Consume(span.Slice(Size / 2)); Consume(span.Slice(Size / 2));
+            Consume(span.Slice(Size / 2)); Consume(span.Slice(Size / 2));
+            Consume(span.Slice(Size / 2)); Consume(span.Slice(Size / 2));
+            Consume(span.Slice(Size / 2)); Consume(span.Slice(Size / 2));
+            Consume(span.Slice(Size / 2)); Consume(span.Slice(Size / 2));
 
-            return slice;
+            return span;
         }
         
         [Benchmark(OperationsPerInvoke = 16)]
         public System.Span<T> SpanStartLength()
         {
-            System.Span<T> span, slice;
-            span = new System.Span<T>(_nonEmptyArray);
+            System.Span<T> span = new System.Span<T>(_nonEmptyArray);
 
-            slice = span.Slice(Size / 2, 1); Consume(in slice); slice = span.Slice(Size / 2, 1); Consume(in slice);
-            slice = span.Slice(Size / 2, 1); Consume(in slice); slice = span.Slice(Size / 2, 1); Consume(in slice);
-            slice = span.Slice(Size / 2, 1); Consume(in slice); slice = span.Slice(Size / 2, 1); Consume(in slice);
-            slice = span.Slice(Size / 2, 1); Consume(in slice); slice = span.Slice(Size / 2, 1); Consume(in slice);
-            slice = span.Slice(Size / 2, 1); Consume(in slice); slice = span.Slice(Size / 2, 1); Consume(in slice);
-            slice = span.Slice(Size / 2, 1); Consume(in slice); slice = span.Slice(Size / 2, 1); Consume(in slice);
-            slice = span.Slice(Size / 2, 1); Consume(in slice); slice = span.Slice(Size / 2, 1); Consume(in slice);
-            slice = span.Slice(Size / 2, 1); Consume(in slice); slice = span.Slice(Size / 2, 1); Consume(in slice);
+            Consume(span.Slice(Size / 2, 1)); Consume(span.Slice(Size / 2, 1));
+            Consume(span.Slice(Size / 2, 1)); Consume(span.Slice(Size / 2, 1));
+            Consume(span.Slice(Size / 2, 1)); Consume(span.Slice(Size / 2, 1));
+            Consume(span.Slice(Size / 2, 1)); Consume(span.Slice(Size / 2, 1));
+            Consume(span.Slice(Size / 2, 1)); Consume(span.Slice(Size / 2, 1));
+            Consume(span.Slice(Size / 2, 1)); Consume(span.Slice(Size / 2, 1));
+            Consume(span.Slice(Size / 2, 1)); Consume(span.Slice(Size / 2, 1));
+            Consume(span.Slice(Size / 2, 1)); Consume(span.Slice(Size / 2, 1));
 
-            return slice;
+            return span;
         }
         
         [Benchmark(OperationsPerInvoke = 16)]
         public System.ReadOnlySpan<T> ReadOnlySpanStart()
         {
-            System.ReadOnlySpan<T> span, slice;
-            span = new System.ReadOnlySpan<T>(_nonEmptyArray);
+            System.ReadOnlySpan<T> span = new System.ReadOnlySpan<T>(_nonEmptyArray);
+            
+            Consume(span.Slice(Size / 2)); Consume(span.Slice(Size / 2));
+            Consume(span.Slice(Size / 2)); Consume(span.Slice(Size / 2));
+            Consume(span.Slice(Size / 2)); Consume(span.Slice(Size / 2));
+            Consume(span.Slice(Size / 2)); Consume(span.Slice(Size / 2));
+            Consume(span.Slice(Size / 2)); Consume(span.Slice(Size / 2));
+            Consume(span.Slice(Size / 2)); Consume(span.Slice(Size / 2));
+            Consume(span.Slice(Size / 2)); Consume(span.Slice(Size / 2));
+            Consume(span.Slice(Size / 2)); Consume(span.Slice(Size / 2));
 
-            slice = span.Slice(Size / 2); Consume(in slice); slice = span.Slice(Size / 2); Consume(in slice);
-            slice = span.Slice(Size / 2); Consume(in slice); slice = span.Slice(Size / 2); Consume(in slice);
-            slice = span.Slice(Size / 2); Consume(in slice); slice = span.Slice(Size / 2); Consume(in slice);
-            slice = span.Slice(Size / 2); Consume(in slice); slice = span.Slice(Size / 2); Consume(in slice);
-            slice = span.Slice(Size / 2); Consume(in slice); slice = span.Slice(Size / 2); Consume(in slice);
-            slice = span.Slice(Size / 2); Consume(in slice); slice = span.Slice(Size / 2); Consume(in slice);
-            slice = span.Slice(Size / 2); Consume(in slice); slice = span.Slice(Size / 2); Consume(in slice);
-            slice = span.Slice(Size / 2); Consume(in slice); slice = span.Slice(Size / 2); Consume(in slice);
-
-            return slice;
+            return span;
         }
         
         [Benchmark(OperationsPerInvoke = 16)]
         public System.ReadOnlySpan<T> ReadOnlySpanStartLength()
         {
-            System.ReadOnlySpan<T> span, slice;
-            span = new System.ReadOnlySpan<T>(_nonEmptyArray);
+            System.ReadOnlySpan<T> span = new System.ReadOnlySpan<T>(_nonEmptyArray);
+            
+            Consume(span.Slice(Size / 2, 1)); Consume(span.Slice(Size / 2, 1));
+            Consume(span.Slice(Size / 2, 1)); Consume(span.Slice(Size / 2, 1));
+            Consume(span.Slice(Size / 2, 1)); Consume(span.Slice(Size / 2, 1));
+            Consume(span.Slice(Size / 2, 1)); Consume(span.Slice(Size / 2, 1));
+            Consume(span.Slice(Size / 2, 1)); Consume(span.Slice(Size / 2, 1));
+            Consume(span.Slice(Size / 2, 1)); Consume(span.Slice(Size / 2, 1));
+            Consume(span.Slice(Size / 2, 1)); Consume(span.Slice(Size / 2, 1));
+            Consume(span.Slice(Size / 2, 1)); Consume(span.Slice(Size / 2, 1));
 
-            slice = span.Slice(Size / 2, 1); Consume(in slice); slice = span.Slice(Size / 2, 1); Consume(in slice);
-            slice = span.Slice(Size / 2, 1); Consume(in slice); slice = span.Slice(Size / 2, 1); Consume(in slice);
-            slice = span.Slice(Size / 2, 1); Consume(in slice); slice = span.Slice(Size / 2, 1); Consume(in slice);
-            slice = span.Slice(Size / 2, 1); Consume(in slice); slice = span.Slice(Size / 2, 1); Consume(in slice);
-            slice = span.Slice(Size / 2, 1); Consume(in slice); slice = span.Slice(Size / 2, 1); Consume(in slice);
-            slice = span.Slice(Size / 2, 1); Consume(in slice); slice = span.Slice(Size / 2, 1); Consume(in slice);
-            slice = span.Slice(Size / 2, 1); Consume(in slice); slice = span.Slice(Size / 2, 1); Consume(in slice);
-            slice = span.Slice(Size / 2, 1); Consume(in slice); slice = span.Slice(Size / 2, 1); Consume(in slice);
-
-            return slice;
+            return span;
         }
         
         [Benchmark(OperationsPerInvoke = 16)]
         public System.Memory<T> MemoryStart()
         {
-            System.Memory<T> memory, slice;
-            memory = new System.Memory<T>(_nonEmptyArray);
+            System.Memory<T> memory = new System.Memory<T>(_nonEmptyArray);
 
-            slice = memory.Slice(Size / 2); Consume(in slice); slice = memory.Slice(Size / 2); Consume(in slice);
-            slice = memory.Slice(Size / 2); Consume(in slice); slice = memory.Slice(Size / 2); Consume(in slice);
-            slice = memory.Slice(Size / 2); Consume(in slice); slice = memory.Slice(Size / 2); Consume(in slice);
-            slice = memory.Slice(Size / 2); Consume(in slice); slice = memory.Slice(Size / 2); Consume(in slice);
-            slice = memory.Slice(Size / 2); Consume(in slice); slice = memory.Slice(Size / 2); Consume(in slice);
-            slice = memory.Slice(Size / 2); Consume(in slice); slice = memory.Slice(Size / 2); Consume(in slice);
-            slice = memory.Slice(Size / 2); Consume(in slice); slice = memory.Slice(Size / 2); Consume(in slice);
-            slice = memory.Slice(Size / 2); Consume(in slice); slice = memory.Slice(Size / 2); Consume(in slice);
+            Consume(memory.Slice(Size / 2)); Consume(memory.Slice(Size / 2));
+            Consume(memory.Slice(Size / 2)); Consume(memory.Slice(Size / 2));
+            Consume(memory.Slice(Size / 2)); Consume(memory.Slice(Size / 2));
+            Consume(memory.Slice(Size / 2)); Consume(memory.Slice(Size / 2));
+            Consume(memory.Slice(Size / 2)); Consume(memory.Slice(Size / 2));
+            Consume(memory.Slice(Size / 2)); Consume(memory.Slice(Size / 2));
+            Consume(memory.Slice(Size / 2)); Consume(memory.Slice(Size / 2));
+            Consume(memory.Slice(Size / 2)); Consume(memory.Slice(Size / 2));
 
-            return slice;
+            return memory;
         }
         
         [Benchmark(OperationsPerInvoke = 16)]
         public System.Memory<T> MemoryStartLength()
         {
-            System.Memory<T> memory, slice;
-            memory = new System.Memory<T>(_nonEmptyArray);
+            System.Memory<T> memory = new System.Memory<T>(_nonEmptyArray);
 
-            slice = memory.Slice(Size / 2, 1); Consume(in slice); slice = memory.Slice(Size / 2, 1); Consume(in slice);
-            slice = memory.Slice(Size / 2, 1); Consume(in slice); slice = memory.Slice(Size / 2, 1); Consume(in slice);
-            slice = memory.Slice(Size / 2, 1); Consume(in slice); slice = memory.Slice(Size / 2, 1); Consume(in slice);
-            slice = memory.Slice(Size / 2, 1); Consume(in slice); slice = memory.Slice(Size / 2, 1); Consume(in slice);
-            slice = memory.Slice(Size / 2, 1); Consume(in slice); slice = memory.Slice(Size / 2, 1); Consume(in slice);
-            slice = memory.Slice(Size / 2, 1); Consume(in slice); slice = memory.Slice(Size / 2, 1); Consume(in slice);
-            slice = memory.Slice(Size / 2, 1); Consume(in slice); slice = memory.Slice(Size / 2, 1); Consume(in slice);
-            slice = memory.Slice(Size / 2, 1); Consume(in slice); slice = memory.Slice(Size / 2, 1); Consume(in slice);
+            Consume(memory.Slice(Size / 2, 1)); Consume(memory.Slice(Size / 2, 1));
+            Consume(memory.Slice(Size / 2, 1)); Consume(memory.Slice(Size / 2, 1));
+            Consume(memory.Slice(Size / 2, 1)); Consume(memory.Slice(Size / 2, 1));
+            Consume(memory.Slice(Size / 2, 1)); Consume(memory.Slice(Size / 2, 1));
+            Consume(memory.Slice(Size / 2, 1)); Consume(memory.Slice(Size / 2, 1));
+            Consume(memory.Slice(Size / 2, 1)); Consume(memory.Slice(Size / 2, 1));
+            Consume(memory.Slice(Size / 2, 1)); Consume(memory.Slice(Size / 2, 1));
+            Consume(memory.Slice(Size / 2, 1)); Consume(memory.Slice(Size / 2, 1));
 
-            return slice;
+            return memory;
         }
         
         [Benchmark(OperationsPerInvoke = 16)]
         public System.ReadOnlyMemory<T> ReadOnlyMemoryStart()
         {
-            System.ReadOnlyMemory<T> memory, slice;
-            memory = new System.ReadOnlyMemory<T>(_nonEmptyArray);
+            System.ReadOnlyMemory<T> memory = new System.ReadOnlyMemory<T>(_nonEmptyArray);
 
-            slice = memory.Slice(Size / 2); Consume(in slice); slice = memory.Slice(Size / 2); Consume(in slice);
-            slice = memory.Slice(Size / 2); Consume(in slice); slice = memory.Slice(Size / 2); Consume(in slice);
-            slice = memory.Slice(Size / 2); Consume(in slice); slice = memory.Slice(Size / 2); Consume(in slice);
-            slice = memory.Slice(Size / 2); Consume(in slice); slice = memory.Slice(Size / 2); Consume(in slice);
-            slice = memory.Slice(Size / 2); Consume(in slice); slice = memory.Slice(Size / 2); Consume(in slice);
-            slice = memory.Slice(Size / 2); Consume(in slice); slice = memory.Slice(Size / 2); Consume(in slice);
-            slice = memory.Slice(Size / 2); Consume(in slice); slice = memory.Slice(Size / 2); Consume(in slice);
-            slice = memory.Slice(Size / 2); Consume(in slice); slice = memory.Slice(Size / 2); Consume(in slice);
+            Consume(memory.Slice(Size / 2)); Consume(memory.Slice(Size / 2));
+            Consume(memory.Slice(Size / 2)); Consume(memory.Slice(Size / 2));
+            Consume(memory.Slice(Size / 2)); Consume(memory.Slice(Size / 2));
+            Consume(memory.Slice(Size / 2)); Consume(memory.Slice(Size / 2));
+            Consume(memory.Slice(Size / 2)); Consume(memory.Slice(Size / 2));
+            Consume(memory.Slice(Size / 2)); Consume(memory.Slice(Size / 2));
+            Consume(memory.Slice(Size / 2)); Consume(memory.Slice(Size / 2));
+            Consume(memory.Slice(Size / 2)); Consume(memory.Slice(Size / 2));
 
-            return slice;
+            return memory;
         }
         
         [Benchmark(OperationsPerInvoke = 16)]
         public System.ReadOnlyMemory<T> ReadOnlyMemoryStartLength()
         {
-            System.ReadOnlyMemory<T> memory, slice;
-            memory = new System.ReadOnlyMemory<T>(_nonEmptyArray);
+            System.ReadOnlyMemory<T> memory = new System.ReadOnlyMemory<T>(_nonEmptyArray);
 
-            slice = memory.Slice(Size / 2, 1); Consume(in slice); slice = memory.Slice(Size / 2, 1); Consume(in slice);
-            slice = memory.Slice(Size / 2, 1); Consume(in slice); slice = memory.Slice(Size / 2, 1); Consume(in slice);
-            slice = memory.Slice(Size / 2, 1); Consume(in slice); slice = memory.Slice(Size / 2, 1); Consume(in slice);
-            slice = memory.Slice(Size / 2, 1); Consume(in slice); slice = memory.Slice(Size / 2, 1); Consume(in slice);
-            slice = memory.Slice(Size / 2, 1); Consume(in slice); slice = memory.Slice(Size / 2, 1); Consume(in slice);
-            slice = memory.Slice(Size / 2, 1); Consume(in slice); slice = memory.Slice(Size / 2, 1); Consume(in slice);
-            slice = memory.Slice(Size / 2, 1); Consume(in slice); slice = memory.Slice(Size / 2, 1); Consume(in slice);
-            slice = memory.Slice(Size / 2, 1); Consume(in slice); slice = memory.Slice(Size / 2, 1); Consume(in slice);
+            Consume(memory.Slice(Size / 2, 1)); Consume(memory.Slice(Size / 2, 1));
+            Consume(memory.Slice(Size / 2, 1)); Consume(memory.Slice(Size / 2, 1));
+            Consume(memory.Slice(Size / 2, 1)); Consume(memory.Slice(Size / 2, 1));
+            Consume(memory.Slice(Size / 2, 1)); Consume(memory.Slice(Size / 2, 1));
+            Consume(memory.Slice(Size / 2, 1)); Consume(memory.Slice(Size / 2, 1));
+            Consume(memory.Slice(Size / 2, 1)); Consume(memory.Slice(Size / 2, 1));
+            Consume(memory.Slice(Size / 2, 1)); Consume(memory.Slice(Size / 2, 1));
+            Consume(memory.Slice(Size / 2, 1)); Consume(memory.Slice(Size / 2, 1));
 
-            return slice;
+            return memory;
         }
         
         [MethodImpl(MethodImplOptions.NoInlining)]
