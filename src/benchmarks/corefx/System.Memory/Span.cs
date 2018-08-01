@@ -4,6 +4,7 @@
 
 using System.Collections;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
 
@@ -80,5 +81,19 @@ namespace System.Memory
         
         [Benchmark]
         public int BinarySearch() => new System.Span<T>(_emptyWithSingleValue).BinarySearch(_notDefaultValue);
+
+        [Benchmark(OperationsPerInvoke = 16)]
+        public void GetPinnableReference()
+        {
+            var span = new System.Span<T>(_array);
+
+            Consume(span.GetPinnableReference()); Consume(span.GetPinnableReference()); Consume(span.GetPinnableReference()); Consume(span.GetPinnableReference());
+            Consume(span.GetPinnableReference()); Consume(span.GetPinnableReference()); Consume(span.GetPinnableReference()); Consume(span.GetPinnableReference());
+            Consume(span.GetPinnableReference()); Consume(span.GetPinnableReference()); Consume(span.GetPinnableReference()); Consume(span.GetPinnableReference());
+            Consume(span.GetPinnableReference()); Consume(span.GetPinnableReference()); Consume(span.GetPinnableReference()); Consume(span.GetPinnableReference());
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void Consume(in T _) { }
     }
 }

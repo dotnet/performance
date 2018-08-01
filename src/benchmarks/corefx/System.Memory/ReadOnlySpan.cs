@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
+using Consumer = BenchmarkDotNet.Engines.Consumer;
 
 namespace System.Memory
 {
@@ -12,9 +13,26 @@ namespace System.Memory
     public class ReadOnlySpan
     {
         private readonly string _sampeString = "this is a very nice sample string";
+        private readonly Consumer _consumer = new Consumer();
 
         [Benchmark]
         public ReadOnlySpan<char> StringAsSpan() => _sampeString.AsSpan();
+        
+        [Benchmark(OperationsPerInvoke = 16)]
+        public void GetPinnableReference()
+        {
+            ReadOnlySpan<char> span = _sampeString.AsSpan();
+            var consumer = _consumer;
+            
+            consumer.Consume(span.GetPinnableReference()); consumer.Consume(span.GetPinnableReference());
+            consumer.Consume(span.GetPinnableReference()); consumer.Consume(span.GetPinnableReference());
+            consumer.Consume(span.GetPinnableReference()); consumer.Consume(span.GetPinnableReference());
+            consumer.Consume(span.GetPinnableReference()); consumer.Consume(span.GetPinnableReference());
+            consumer.Consume(span.GetPinnableReference()); consumer.Consume(span.GetPinnableReference());
+            consumer.Consume(span.GetPinnableReference()); consumer.Consume(span.GetPinnableReference());
+            consumer.Consume(span.GetPinnableReference()); consumer.Consume(span.GetPinnableReference());
+            consumer.Consume(span.GetPinnableReference()); consumer.Consume(span.GetPinnableReference());
+        }
         
         [Benchmark(OperationsPerInvoke = 16)]
         [ArgumentsSource(nameof(IndexOfStringArguments))]
