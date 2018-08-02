@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import json
 import argparse
 import os
@@ -6,6 +8,8 @@ import subprocess
 import sys
 import glob
 from sys import version_info
+from build.common import is_supported_version
+from build.common import get_repo_root_path
 
 ##########################################################################
 # Argument Parser
@@ -18,17 +22,11 @@ parser = argparse.ArgumentParser(description=description)
 parser.add_argument('-framework', dest='framework', default='netcoreapp3.0', required=False, choices=['netcoreapp3.0', 'netcoreapp2.1', 'netcoreapp2.0', 'netcoreapp1.1', 'net461'])
 parser.add_argument('-arch', dest='arch', default='x64', required=False, choices=['x64', 'x86'])
 parser.add_argument('-uploadToBenchview', dest='uploadToBenchview', action='store_true', default=False)
+parser.add_argument('-gitBranch', dest='gitBranch', required=True)
 
 ##########################################################################
 # Helper Functions
 ##########################################################################
-
-def is_supported_version() -> bool:
-    """ Checkes that the version of python is at least 3.5
-    Returns:
-        bool : true if python version is 3.5 or higher
-    """
-    return version_info.major > 2 and version_info.minor > 4
 
 def log(message):
     """ Print logging information
@@ -161,11 +159,15 @@ def main(args):
         log("Python 3.5 or newer is required")
         return 1
 
+    if not sys.platform == 'win32':
+        log("Script is not compatible with %s" % sys.platform)
+        return 2
+
     python = 'py'
     runEnv = dict(os.environ)
     runEnv['DOTNET_MULTILEVEL_LOOKUP'] = '0'
     runEnv['UseSharedCompilation'] = 'false'
-    workspace = runEnv["WORKSPACE"]
+    workspace = get_repo_root_path()
 
     # Download dotnet
     runArgs = ['py', os.path.join(workspace, 'scripts', 'dotnet-install.py'), '-arch', args.arch, '-installDir', '.dotnet']
@@ -189,7 +191,7 @@ def main(args):
     # Run the tests
     benchmarkOutputDir = os.path.join(coreclrTestDir, 'PerformanceHarness', 'bin', 'Release', args.framework, 'publish')
     os.chdir(benchmarkOutputDir)
-    
+
     runArgs = [dotnetPath, 'PerformanceHarness.dll', '--perf:collect', 'stopwatch+gcapi']
     run_command(runArgs, runEnv, 'Failed to run PerformanceHarness.dll')
 
@@ -207,7 +209,7 @@ def main(args):
         run_command(runArgs, runEnv, 'Failed to download Microsoft.BenchView.JSONFormat')
 
         benchviewName = 'performance rolling %s' % dotnetVersion
-        branchWithoutOrigin = runEnv['GIT_BRANCH'].replace('origin/','')
+        branchWithoutOrigin = args.gitBranch.replace('origin/','')
 
         # Generate submission-metadata.json
         benchviewPath = os.path.join(benchviewPath, 'tools')
