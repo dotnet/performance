@@ -119,6 +119,19 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
                 steps {
                     batchFile("py scripts\\coreclr_perf_ci.py -arch ${arch} -framework netcoreapp3.0 -uploadToBenchview")
                 }
+
+                label("windows_server_2016_clr_perf")
+            }
+
+            InternalUtilities.standardJobSetup(newJob, project, false, "*/${branch}")
+
+            Utilities.addPeriodicTrigger(newJob, "@daily", true /*always run*/)
+            newJob.with {
+                wrappers {
+                    timeout {
+                        absolute(240)
+                    }
+                }
             }
         }
     }
