@@ -193,7 +193,7 @@ def main(args):
     benchmarkOutputDir = os.path.join(coreclrTestDir, 'PerformanceHarness', 'bin', 'Release', args.framework, 'publish')
     os.chdir(benchmarkOutputDir)
 
-    runArgs = [dotnetPath, 'PerformanceHarness.dll', '--perf:collect', 'stopwatch+gcapi']
+    runArgs = [dotnetPath, 'PerformanceHarness.dll', '--perf:collect', 'stopwatch']
     run_command(runArgs, runEnv, 'Failed to run PerformanceHarness.dll')
 
     if args.uploadToBenchview:
