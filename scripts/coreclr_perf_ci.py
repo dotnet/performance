@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import urllib.request
 import argparse
 import os
 import shutil
@@ -218,8 +219,16 @@ def main(args):
         run_command(runArgs, runEnv, '%s failed to run' % runScript)
 
         # Generate build.json
+        r = urllib.request.urlopen('https://api.github.com/repos/dotnet/core-setup/commits/%s' % dotnetVersion)
+        repoItem = json.loads(r.read())
+        buildTimestamp = repoItem['commit']['committer']['date']
+
+        if buildTimestamp == '' or buildTimestamp is None:
+            log('Could not get timestamp for commit %s' % dotnetVersion)
+            return 3
+
         runScript = 'build.py'
-        runArgs = [python, os.path.join(benchviewPath, runScript), 'git', '--branch', branchWithoutOrigin, '--type', 'rolling']
+        runArgs = [python, os.path.join(benchviewPath, runScript), 'git', '--branch', branchWithoutOrigin, '--source-timestamp', buildTimestamp, '--type', 'rolling']
         run_command(runArgs, runEnv, '%s failed to run' % runScript)
 
         # Generate machinedata.json
