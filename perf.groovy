@@ -117,7 +117,7 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
                 }
 
                 steps {
-                    batchFile("py scripts\\coreclr_perf_ci.py -arch ${arch} -framework netcoreapp3.0 -uploadToBenchview -gitBranch %GIT_BRANCH%")
+                    batchFile("py scripts\\coreclr_perf_ci.py -arch ${arch} -framework netcoreapp3.0 -uploadToBenchview -branch master")
                 }
 
                 label("windows_server_2016_clr_perf")

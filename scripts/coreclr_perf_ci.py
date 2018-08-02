@@ -23,7 +23,7 @@ parser = argparse.ArgumentParser(description=description)
 parser.add_argument('-framework', dest='framework', default='netcoreapp3.0', required=False, choices=['netcoreapp3.0', 'netcoreapp2.1', 'netcoreapp2.0', 'netcoreapp1.1', 'net461'])
 parser.add_argument('-arch', dest='arch', default='x64', required=False, choices=['x64', 'x86'])
 parser.add_argument('-uploadToBenchview', dest='uploadToBenchview', action='store_true', default=False)
-parser.add_argument('-gitBranch', dest='gitBranch', required=True)
+parser.add_argument('-branch', dest='branch', required=True)
 
 ##########################################################################
 # Helper Functions
@@ -171,7 +171,7 @@ def main(args):
     workspace = get_repo_root_path()
 
     # Download dotnet
-    runArgs = ['py', os.path.join(workspace, 'scripts', 'dotnet-install.py'), '-arch', args.arch, '-installDir', '.dotnet']
+    runArgs = ['py', os.path.join(workspace, 'scripts', 'dotnet-install.py'), '-arch', args.arch, '-installDir', '.dotnet', '-branch', args.branch]
     run_command(runArgs, runEnv, 'Failed to install dotnet')
 
     # Get the dotnet sha
@@ -210,7 +210,6 @@ def main(args):
         run_command(runArgs, runEnv, 'Failed to download Microsoft.BenchView.JSONFormat')
 
         benchviewName = 'performance rolling %s' % dotnetVersion
-        branchWithoutOrigin = args.gitBranch.replace('origin/','')
 
         # Generate submission-metadata.json
         benchviewPath = os.path.join(benchviewPath, 'tools')
@@ -228,7 +227,7 @@ def main(args):
             return 3
 
         runScript = 'build.py'
-        runArgs = [python, os.path.join(benchviewPath, runScript), 'git', '--branch', branchWithoutOrigin, '--source-timestamp', buildTimestamp, '--type', 'rolling']
+        runArgs = [python, os.path.join(benchviewPath, runScript), 'git', '--branch', args.branch, '--source-timestamp', buildTimestamp, '--type', 'rolling']
         run_command(runArgs, runEnv, '%s failed to run' % runScript)
 
         # Generate machinedata.json

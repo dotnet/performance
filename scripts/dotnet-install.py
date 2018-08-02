@@ -18,6 +18,7 @@ parser = argparse.ArgumentParser(description=description)
 parser.add_argument('-arch', dest='arch', default='x64', choices=['x86','x64'])
 parser.add_argument('-runtimeId', dest='runtimeId', default=None)
 parser.add_argument('-installDir', dest='installDir', default='.dotnet')
+parser.add_argument('-branch', dest='branch', default='master', choices=['master', 'release/2.1.3xx', 'release/2.0.0', 'release/1.1.0'])
 
 def main(args):
     arch = args.arch
@@ -42,7 +43,7 @@ def main(args):
             '-InstallDir',
             installDir,
             '-Channel',
-            'master'] + rid
+            args.branch] + rid
 
 
     p = subprocess.Popen(' '.join(runArgs), shell=True)
