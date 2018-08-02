@@ -98,13 +98,13 @@ def generate_results_for_benchview(python, better, hasWarmupRun, benchmarkOutput
         runArgs = [python, os.path.join(benchviewPath, 'measurement.py')] + lvMeasurementArgs + [filename]
         run_command(runArgs, os.environ, 'Call to %s failed' % runArgs[1])
 
-def upload_to_benchview(python, benchviewPath, operatingSystem, etwCollection, architecture):
+def upload_to_benchview(python, benchviewPath, operatingSystem, collectionFlags, architecture):
     """ Upload results to benchview
     Args:
         python (str): python executable
         benchviewPath (str): path to benchview tools
         operatingSystem (str): operating system of the run
-        etwCollection (str): collection type (On or Off)
+        collectionFlags (str): collection flags
         architecture (str): architecture of the run (x86, x64)
     """
     measurementJson = os.path.join(os.getcwd(), 'measurement.json')
@@ -116,6 +116,7 @@ def upload_to_benchview(python, benchviewPath, operatingSystem, etwCollection, a
         if not os.path.isfile(jsonFile):
             raise Exception('%s does not exist. There is no data to be uploaded.' % jsonFile)
 
+    etwCollection = 'Off' if collectionFlags == 'stopwatch' else 'On'
     runArgs = [python,
             os.path.join(benchviewPath, 'submission.py'),
             measurementJson,
