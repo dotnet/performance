@@ -4,69 +4,50 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Xunit.Performance;
-using Xunit;
+using BenchmarkDotNet.Attributes;
 
 namespace System.Numerics.Tests
 {
-    public partial class Perf_BigInteger
+    public class Perf_BigInteger
     {
-        public static IEnumerable<object[]> NumberStrings()
+        public class BigIntegerDataWrapper
         {
-            yield return new object[] { "123" };
-            yield return new object[] { int.MinValue.ToString() };
-            yield return new object[] { string.Concat(Enumerable.Repeat("1234567890", 20)) };
+            public string Text { get; }
+            public byte[] Bytes { get; }
+            public BigInteger Value { get; }
+
+            public BigIntegerDataWrapper(string numberString)
+            {
+                Text = numberString;
+                Value = BigInteger.Parse(numberString);
+                Bytes = Value.ToByteArray();
+            }
+
+            public override string ToString() => Text;
+        }
+
+        public static IEnumerable<object> NumberStrings()
+        {
+            yield return new BigIntegerDataWrapper("123");
+            yield return new BigIntegerDataWrapper(int.MinValue.ToString());
+            yield return new BigIntegerDataWrapper(string.Concat(Enumerable.Repeat("1234567890", 20)));
         }
 
         // TODO #18249: Port disabled perf tests from tests\BigInteger\PerformanceTests.cs
 
         [Benchmark]
-        [MemberData(nameof(NumberStrings))]
-        public void Ctor_ByteArray(string numberString)
-        {
-            byte[] input = BigInteger.Parse(numberString).ToByteArray();
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < 1000000; i++)
-                    {
-                        var bi = new BigInteger(input);
-                    }
-                }
-            }
-        }
+        [ArgumentsSource(nameof(NumberStrings))]
+        public BigInteger Ctor_ByteArray(BigIntegerDataWrapper numberString) // the argument name is "numberString" to preserve the benchmark ID
+            => new BigInteger(numberString.Bytes);
 
         [Benchmark]
-        [MemberData(nameof(NumberStrings))]
-        public void ToByteArray(string numberString)
-        {
-            BigInteger bi = BigInteger.Parse(numberString);
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < 1000000; i++)
-                    {
-                        bi.ToByteArray();
-                    }
-                }
-            }
-        }
+        [ArgumentsSource(nameof(NumberStrings))]
+        public byte[] ToByteArray(BigIntegerDataWrapper numberString) 
+            => numberString.Value.ToByteArray();
+
         [Benchmark]
-        [MemberData(nameof(NumberStrings))]
-        public void Parse(string numberString)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < 100000; i++)
-                    {
-                        BigInteger.Parse(numberString);
-                    }
-                }
-            }
-        }
+        [ArgumentsSource(nameof(NumberStrings))]
+        public BigInteger Parse(BigIntegerDataWrapper numberString) 
+            => BigInteger.Parse(numberString.Text);
     }
 }
