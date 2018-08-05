@@ -33,8 +33,6 @@ namespace System.Numerics.Tests
             yield return new BigIntegerDataWrapper(string.Concat(Enumerable.Repeat("1234567890", 20)));
         }
 
-        // TODO #18249: Port disabled perf tests from tests\BigInteger\PerformanceTests.cs
-
         [Benchmark]
         [ArgumentsSource(nameof(NumberStrings))]
         public BigInteger Ctor_ByteArray(BigIntegerDataWrapper numberString) // the argument name is "numberString" to preserve the benchmark ID
