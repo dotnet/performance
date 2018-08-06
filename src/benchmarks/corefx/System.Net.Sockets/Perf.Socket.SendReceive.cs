@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if NETCOREAPP2_1
+// following benchmarks consume .NET Core 2.1 APIs and are disabled for other frameworks in .csproj file
 
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -175,5 +175,3 @@ namespace System.Net.Sockets.Tests
         }
     }
 }
-
-#endif
