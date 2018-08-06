@@ -3,8 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.Xunit.Performance;
-using Xunit;
+using System.Linq;
+using BenchmarkDotNet.Attributes;
 
 namespace System.IO.Compression
 {
@@ -21,24 +21,30 @@ namespace System.IO.Compression
             }
         }
 
+        private IReadOnlyDictionary<string, byte[]> _uncompressedTestFiles;
+        private MemoryStream _compressedDataStream;
+
+        [GlobalSetup(Target = nameof(Compress_Canterbury))]
+        public void SetupCompress_Canterbury()
+        {
+            _uncompressedTestFiles = UncompressedTestFileNames().ToDictionary(fileName => fileName, File.ReadAllBytes);
+            _compressedDataStream = new MemoryStream(_uncompressedTestFiles.Values.Max(content => content.Length));
+        }
+
         /// <summary>
         /// Benchmark tests to measure the performance of individually compressing each file in the
         /// Canterbury Corpus
         /// </summary>
-        [Benchmark(InnerIterationCount=10)] // limits the max iterations to 100
-        [MemberData(nameof(UncompressedTestFiles_WithCompressionLevel))]
+        [Benchmark]
+        [ArgumentsSource(nameof(UncompressedTestFiles_WithCompressionLevel))]
         public void Compress_Canterbury(string uncompressedFileName, CompressionLevel compressLevel)
         {
-            byte[] bytes = File.ReadAllBytes(uncompressedFileName);
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                // resizing a memory stream during compression will throw off our results, so pre-size it to the
-                // size of our input
-                using (MemoryStream compressedDataStream = new MemoryStream(bytes.Length))
-                using (iteration.StartMeasurement())
-                using (Stream compressor = CreateStream(compressedDataStream, compressLevel))
-                    compressor.Write(bytes, 0, bytes.Length);
-            }
+            byte[] bytes = _uncompressedTestFiles[uncompressedFileName];
+
+            _compressedDataStream.Position = 0;
+
+            using (Stream compressor = CreateStream(_compressedDataStream, compressLevel))
+                compressor.Write(bytes, 0, bytes.Length);
         }
 
         /// <summary>
@@ -46,7 +52,7 @@ namespace System.IO.Compression
         /// Canterbury Corpus
         /// </summary>
         [Benchmark(InnerIterationCount=100)]
-        [MemberData(nameof(UncompressedTestFiles))]
+        [ArgumentsSource(nameof(UncompressedTestFiles))]
         public void Decompress_Canterbury(string uncompressedFilePath)
         {
             int innerIterations = (int)Benchmark.InnerIterationCount;

@@ -47,5 +47,6 @@
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' != 'netcoreapp2.1' ">
     <Compile Remove="corefx\System.Security.Cryptography.Primitives\**" />
+    <Compile Remove="corefx\System.IO.Compression\CompressionStreamPerfTests.Brotli.cs" />
   </ItemGroup>
 </Project>
