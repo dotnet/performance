@@ -21,6 +21,7 @@
     <PackageReference Include="MessagePackAnalyzer" Version="1.6.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="protobuf-net" Version="2.3.7" />
+    <PackageReference Include="System.IO.Compression.TestData" Version="1.0.6-prerelease" />
     <PackageReference Include="System.Memory" Version="4.5.0" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.0" />
@@ -51,11 +52,15 @@
     <Compile Remove="corefx\System.Net.Http\Perf.SocketsHttpHandler.cs" />
     <Compile Remove="corefx\System.Net.Sockets\Perf.Socket.SendReceive.cs" />
     <Compile Remove="corefx\System.Numerics.Vectors\GenericVectorFromSpanConstructorTests.cs" />
-    <Compile Remove="corefx\System.IO.Compression\CompressionStreamPerfTests.Brotli.cs" />
+    <Compile Remove="corefx\System.IO.Compression\*Brotli*.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="$(NuGetPackageRoot)\system.text.regularexpressions.testdata\1.0.2\content\regexredux\*.*">
       <Link>corefx\System.Text.RegularExpressions\content\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="$(NuGetPackageRoot)\system.io.compression.testdata\1.0.6-prerelease\content\**\*.*">
+      <Link>corefx\System.IO.Compression\TestData\%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
