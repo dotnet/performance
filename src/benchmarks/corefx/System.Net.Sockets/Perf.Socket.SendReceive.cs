@@ -2,147 +2,129 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if NETCOREAPP2_1
+
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Xunit.Performance;
-using Xunit;
+using BenchmarkDotNet.Attributes;
 
 namespace System.Net.Sockets.Tests
 {
     public class SocketSendReceivePerfTest
     {
-        [Benchmark(InnerIterationCount = 10_000), MeasureGCAllocations]
+        private const int InnerIterationCount = 10_000;
+
+        private Socket _listener, _client, _server;
+
+        [GlobalSetup]
+        public void Setup() => OpenLoopbackConnectionAsync().GetAwaiter().GetResult(); // BenchmarkDotNet does not support async Setup https://github.com/dotnet/BenchmarkDotNet/issues/521
+
+        [GlobalCleanup]
+        public void Cleanup()
+        {
+            _server.Dispose();
+            _client.Dispose();
+            _listener.Dispose();
+        }
+        
+        [Benchmark]
         public async Task SendAsyncThenReceiveAsync_Task()
         {
-            await OpenLoopbackConnectionAsync(async (client, server) =>
+            Socket client = _client, server = _server;
+            
+            ReadOnlyMemory<byte> clientBuffer = new byte[1];
+            Memory<byte> serverBuffer = new byte[1];
+            
+            for (int i = 0; i < InnerIterationCount; i++)
             {
-                ReadOnlyMemory<byte> clientBuffer = new byte[1];
-                Memory<byte> serverBuffer = new byte[1];
-                foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-                {
-                    long iters = Benchmark.InnerIterationCount;
-                    using (iteration.StartMeasurement())
-                    {
-                        for (int i = 0; i < iters; i++)
-                        {
-                            await client.SendAsync(clientBuffer, SocketFlags.None);
-                            await server.ReceiveAsync(serverBuffer, SocketFlags.None);
-                        }
-                    }
-                }
-            });
+                await client.SendAsync(clientBuffer, SocketFlags.None);
+                await server.ReceiveAsync(serverBuffer, SocketFlags.None);
+            }
         }
 
-        [Benchmark(InnerIterationCount = 10_000), MeasureGCAllocations]
+        [Benchmark]
         public async Task ReceiveAsyncThenSendAsync_Task()
         {
-            await OpenLoopbackConnectionAsync(async (client, server) =>
+            Socket client = _client, server = _server;
+            
+            ReadOnlyMemory<byte> clientBuffer = new byte[1];
+            Memory<byte> serverBuffer = new byte[1];
+            
+            for (int i = 0; i < InnerIterationCount; i++)
             {
-                ReadOnlyMemory<byte> clientBuffer = new byte[1];
-                Memory<byte> serverBuffer = new byte[1];
-                foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-                {
-                    long iters = Benchmark.InnerIterationCount;
-                    using (iteration.StartMeasurement())
-                    {
-                        for (int i = 0; i < iters; i++)
-                        {
-                            ValueTask<int> r = server.ReceiveAsync(serverBuffer, SocketFlags.None);
-                            await client.SendAsync(clientBuffer, SocketFlags.None);
-                            await r;
-                        }
-                    }
-                }
-            });
+                ValueTask<int> r = server.ReceiveAsync(serverBuffer, SocketFlags.None);
+                await client.SendAsync(clientBuffer, SocketFlags.None);
+                await r;
+            }
         }
 
-        [Benchmark(InnerIterationCount = 10_000), MeasureGCAllocations]
+        [Benchmark]
         public async Task SendAsyncThenReceiveAsync_SocketAsyncEventArgs()
         {
-            await OpenLoopbackConnectionAsync(async (client, server) =>
+            Socket client = _client, server = _server;
+            
+            var clientSaea = new AwaitableSocketAsyncEventArgs();
+            var serverSaea = new AwaitableSocketAsyncEventArgs();
+            
+            clientSaea.SetBuffer(new byte[1], 0, 1);
+            serverSaea.SetBuffer(new byte[1], 0, 1);
+            
+            for (int i = 0; i < InnerIterationCount; i++)
             {
-                var clientSaea = new AwaitableSocketAsyncEventArgs();
-                var serverSaea = new AwaitableSocketAsyncEventArgs();
-
-                clientSaea.SetBuffer(new byte[1], 0, 1);
-                serverSaea.SetBuffer(new byte[1], 0, 1);
-
-                foreach (BenchmarkIteration iteration in Benchmark.Iterations)
+                if (client.SendAsync(clientSaea))
                 {
-                    long iters = Benchmark.InnerIterationCount;
-                    using (iteration.StartMeasurement())
-                    {
-                        for (int i = 0; i < iters; i++)
-                        {
-                            if (client.SendAsync(clientSaea))
-                            {
-                                await clientSaea;
-                            }
-                            if (server.ReceiveAsync(serverSaea))
-                            {
-                                await serverSaea;
-                            }
-                        }
-                    }
+                    await clientSaea;
                 }
-            });
-        }
-
-        [Benchmark(InnerIterationCount = 10_000), MeasureGCAllocations]
-        public async Task ReceiveAsyncThenSendAsync_SocketAsyncEventArgs()
-        {
-            await OpenLoopbackConnectionAsync(async (client, server) =>
-            {
-                var clientSaea = new AwaitableSocketAsyncEventArgs();
-                var serverSaea = new AwaitableSocketAsyncEventArgs();
-
-                clientSaea.SetBuffer(new byte[1], 0, 1);
-                serverSaea.SetBuffer(new byte[1], 0, 1);
-
-                foreach (BenchmarkIteration iteration in Benchmark.Iterations)
+                if (server.ReceiveAsync(serverSaea))
                 {
-                    long iters = Benchmark.InnerIterationCount;
-                    using (iteration.StartMeasurement())
-                    {
-                        for (int i = 0; i < iters; i++)
-                        {
-                            bool pendingServer = server.ReceiveAsync(serverSaea);
-
-                            if (client.SendAsync(clientSaea))
-                            {
-                                await clientSaea;
-                            }
-
-                            if (pendingServer)
-                            {
-                                await serverSaea;
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        private static async Task OpenLoopbackConnectionAsync(Func<Socket, Socket, Task> func)
-        {
-            using (var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
-            using (var client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
-            {
-                listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
-                listener.Listen(1);
-
-                Task<Socket> acceptTask = listener.AcceptAsync();
-                Task connectTask = client.ConnectAsync(listener.LocalEndPoint);
-
-                await await Task.WhenAny(acceptTask, connectTask);
-                await Task.WhenAll(acceptTask, connectTask);
-
-                using (Socket server = await acceptTask)
-                {
-                    await func(client, server);
+                    await serverSaea;
                 }
             }
+        }
+
+        [Benchmark]
+        public async Task ReceiveAsyncThenSendAsync_SocketAsyncEventArgs()
+        {
+            Socket client = _client, server = _server;
+
+            var clientSaea = new AwaitableSocketAsyncEventArgs();
+            var serverSaea = new AwaitableSocketAsyncEventArgs();
+
+            clientSaea.SetBuffer(new byte[1], 0, 1);
+            serverSaea.SetBuffer(new byte[1], 0, 1);
+
+            for (int i = 0; i < InnerIterationCount; i++)
+            {
+                bool pendingServer = server.ReceiveAsync(serverSaea);
+
+                if (client.SendAsync(clientSaea))
+                {
+                    await clientSaea;
+                }
+
+                if (pendingServer)
+                {
+                    await serverSaea;
+                }
+            }
+        }
+
+        private async Task OpenLoopbackConnectionAsync()
+        {
+            _listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            _client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            
+            _listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+            _listener.Listen(1);
+
+            Task<Socket> acceptTask = _listener.AcceptAsync();
+            Task connectTask = _client.ConnectAsync(_listener.LocalEndPoint);
+
+            await await Task.WhenAny(acceptTask, connectTask);
+            await Task.WhenAll(acceptTask, connectTask);
+
+            _server = await acceptTask;
         }
 
         internal sealed class AwaitableSocketAsyncEventArgs : SocketAsyncEventArgs, ICriticalNotifyCompletion
@@ -193,3 +175,5 @@ namespace System.Net.Sockets.Tests
         }
     }
 }
+
+#endif
