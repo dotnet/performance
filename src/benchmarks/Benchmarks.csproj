@@ -38,6 +38,9 @@
     <None Update="coreclr\BenchmarksGame\Inputs\*.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="corefx\System.Net.Http\*.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">
     <Compile Remove="coreclr\Math\Functions\Single\**" />
