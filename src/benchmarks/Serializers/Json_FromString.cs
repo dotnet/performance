@@ -21,6 +21,7 @@ namespace Benchmarks.Serializers
         [Benchmark(Description = "Jil")]
         public T Jil_() => Jil.JSON.Deserialize<T>(serialized);
 
+        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX)]
         [Benchmark(Description = "JSON.NET")]
         public T JsonNet_() => Newtonsoft.Json.JsonConvert.DeserializeObject<T>(serialized);
 
