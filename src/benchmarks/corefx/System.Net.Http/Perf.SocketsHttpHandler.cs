@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if NETCOREAPP2_1 // the benchmark uses .NET Core 2.1 APIs (which consume ReadOnlySpan)
+// following benchmarks consume .NET Core 2.1 APIs and are disabled for other frameworks in .csproj file
 
 using System.IO;
 using System.Net.Security;
@@ -119,4 +119,3 @@ namespace System.Net.Http.Tests
         }
     }
 }
-#endif
