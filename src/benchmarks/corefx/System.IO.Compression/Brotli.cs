@@ -8,14 +8,16 @@ namespace System.IO.Compression
 {
     public class Brotli : CompressionStreamPerfTestBase
     {
+        private const int Window = 22;
+
         public override Stream CreateStream(Stream stream, CompressionMode mode) => new BrotliStream(stream, mode);
         public override Stream CreateStream(Stream stream, CompressionLevel level) => new BrotliStream(stream, level);
 
         [Benchmark]
         [ArgumentsSource(nameof(Arguments))]
-        public Span<byte> Compress_WithState(CompressedFile file)
+        public Span<byte> Compress_WithState(CompressedFile file, CompressionLevel level)
         {
-            using (BrotliEncoder encoder = new BrotliEncoder())
+            using (BrotliEncoder encoder = new BrotliEncoder(GetQuality(level), Window))
             {
                 Span<byte> output = new Span<byte>(file.UncompressedData);
                 ReadOnlySpan<byte> input = file.CompressedData;
@@ -33,7 +35,7 @@ namespace System.IO.Compression
 
         [Benchmark]
         [ArgumentsSource(nameof(Arguments))]
-        public Span<byte> Decompress_WithState(CompressedFile file)
+        public Span<byte> Decompress_WithState(CompressedFile file, CompressionLevel level) // the level argument is not used here, but it describes how the data was compressed
         {
             using (BrotliDecoder decoder = new BrotliDecoder())
             {
@@ -52,8 +54,8 @@ namespace System.IO.Compression
 
         [Benchmark]
         [ArgumentsSource(nameof(Arguments))]
-        public bool Compress_WithoutState(CompressedFile file)
-            => BrotliEncoder.TryCompress(file.UncompressedData, file.UncompressedData, out int bytesWritten, GetLevelRepresentation(file.CompressionLevel), 22);
+        public bool Compress_WithoutState(CompressedFile file, CompressionLevel level)
+            => BrotliEncoder.TryCompress(file.UncompressedData, file.UncompressedData, out int bytesWritten, GetQuality(level), Window);
 
         /// <summary>
         /// The perf tests for the instant decompression aren't exactly indicative of real-world scenarios since they require you to know 
@@ -61,10 +63,10 @@ namespace System.IO.Compression
         /// </summary>
         [Benchmark]
         [ArgumentsSource(nameof(Arguments))]
-        public bool Decompress_WithoutState(CompressedFile file)
+        public bool Decompress_WithoutState(CompressedFile file, CompressionLevel level) // the level argument is not used here, but it describes how the data was compressed
             => BrotliDecoder.TryDecompress(file.CompressedData, file.UncompressedData, out int bytesWritten);
         
-        private static int GetLevelRepresentation(CompressionLevel compressLevel)
+        private static int GetQuality(CompressionLevel compressLevel)
             => compressLevel == CompressionLevel.Optimal ? 11 : compressLevel == CompressionLevel.Fastest ? 1 : 0;
     }
 }

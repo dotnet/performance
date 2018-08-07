@@ -26,12 +26,12 @@ namespace System.IO.Compression
         public abstract Stream CreateStream(Stream stream, CompressionMode mode);
         public abstract Stream CreateStream(Stream stream, CompressionLevel level);
 
-        public IEnumerable<object> Arguments()
+        public IEnumerable<object[]> Arguments()
         {
             foreach (string testFile in UncompressedTestFileNames())
             {
-                yield return new CompressedFile(testFile, CompressionLevel.Optimal, CreateStream);
-                yield return new CompressedFile(testFile, CompressionLevel.Fastest, CreateStream);
+                yield return new object[] { new CompressedFile(testFile, CompressionLevel.Optimal, CreateStream), CompressionLevel.Optimal };
+                yield return new object[] { new CompressedFile(testFile, CompressionLevel.Fastest, CreateStream), CompressionLevel.Fastest };
                 // we don't test the performance of CompressionLevel.NoCompression on purpose
             }
         }
@@ -57,17 +57,17 @@ namespace System.IO.Compression
 
         [Benchmark]
         [ArgumentsSource(nameof(Arguments))]
-        public void Compress(CompressedFile file)
+        public void Compress(CompressedFile file, CompressionLevel level)
         {
             file.CompressedDataStream.Position = 0; // all benchmarks invocation reuse the same stream, we set Postion to 0 to start at the beginning
 
-            var compressor = CreateStream(file.CompressedDataStream, file.CompressionLevel);
+            var compressor = CreateStream(file.CompressedDataStream, level);
             compressor.Write(file.UncompressedData, 0, file.UncompressedData.Length);
         }
 
         [Benchmark]
         [ArgumentsSource(nameof(Arguments))]
-        public int Decompress(CompressedFile file)
+        public int Decompress(CompressedFile file, CompressionLevel level) // the level argument is not used here, but it describes how the data was compressed
         {
             file.CompressedDataStream.Position = 0;
 

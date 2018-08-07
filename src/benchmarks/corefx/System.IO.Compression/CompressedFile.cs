@@ -26,7 +26,7 @@
             CompressedData = CompressedDataStream.ToArray();
         }
 
-        public override string ToString() => $"{Name} {CompressionLevel}";
+        public override string ToString() => Name;
 
         private static string GetFilePath(string fileName) 
             => Path.Combine(
