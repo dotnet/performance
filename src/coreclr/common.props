@@ -12,7 +12,7 @@
     <CodeAnalysisGenerateSuccessFile>false</CodeAnalysisGenerateSuccessFile>
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
-
+    <UseSharedCompilation>false</UseSharedCompilation>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AssemblyName>DotNetBenchmark-$(MSBuildProjectName)</AssemblyName>
