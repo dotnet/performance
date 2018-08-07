@@ -13,6 +13,5 @@ namespace System.IO.Compression
         public override Stream BaseStream(Stream stream) => ((BrotliStream)stream).BaseStream;
         public override bool FlushCompletes { get => false; }
         public override int BufferSize { get => 65520; }
-        protected override string CompressedTestFile(string uncompressedPath) => Path.Combine("BrotliTestData", Path.GetFileName(uncompressedPath) + ".br");
     }
 }

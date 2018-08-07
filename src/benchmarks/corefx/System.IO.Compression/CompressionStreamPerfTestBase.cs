@@ -14,14 +14,15 @@ namespace System.IO.Compression
         {
             foreach (CompressionLevel compressionLevel in Enum.GetValues(typeof(CompressionLevel)))
             {
-                foreach (object[] testFile in UncompressedTestFiles())
+                foreach (string testFile in UncompressedTestFileNames())
                 {
-                    yield return new object[] { testFile[0], compressionLevel };
+                    yield return new object[] { testFile, compressionLevel };
                 }
             }
         }
 
         private IReadOnlyDictionary<string, byte[]> _uncompressedTestFiles;
+        private IReadOnlyDictionary<string, (MemoryStream compressedStream, byte[] bytes)> _compressedTestFiles;
         private MemoryStream _compressedDataStream;
 
         [GlobalSetup(Target = nameof(Compress_Canterbury))]
@@ -43,35 +44,49 @@ namespace System.IO.Compression
 
             _compressedDataStream.Position = 0;
 
-            using (Stream compressor = CreateStream(_compressedDataStream, compressLevel))
-                compressor.Write(bytes, 0, bytes.Length);
+            Stream compressor = CreateStream(_compressedDataStream, compressLevel);
+            compressor.Write(bytes, 0, bytes.Length);
+        }
+
+        [GlobalCleanup(Target = nameof(Compress_Canterbury))]
+        public void CleanupCompress_Canterbury() => _compressedDataStream.Dispose();
+
+        [GlobalSetup(Target = nameof(Decompress_Canterbury))]
+        public void SetupDecompress_Canterbury()
+        {
+            _compressedTestFiles = UncompressedTestFileNames()
+                .ToDictionary(fileName => fileName, fileName =>
+                {
+                    var bytes = File.ReadAllBytes(fileName);
+                    var compressedStream = new MemoryStream(bytes.Length);
+                    
+                    var compressor = CreateStream(compressedStream, CompressionMode.Compress, leaveOpen: true);
+                    compressor.Write(bytes, 0, bytes.Length);
+
+                    return (compressedStream, bytes);
+                });
         }
 
         /// <summary>
         /// Benchmark tests to measure the performance of individually compressing each file in the
         /// Canterbury Corpus
         /// </summary>
-        [Benchmark(InnerIterationCount=100)]
+        [Benchmark]
         [ArgumentsSource(nameof(UncompressedTestFiles))]
         public void Decompress_Canterbury(string uncompressedFilePath)
         {
-            int innerIterations = (int)Benchmark.InnerIterationCount;
-            string compressedFilePath = CompressedTestFile(uncompressedFilePath);
-            byte[] outputRead = new byte[new FileInfo(uncompressedFilePath).Length];
-            MemoryStream[] memories = new MemoryStream[innerIterations];
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                for (int i = 0; i < innerIterations; i++)
-                    memories[i] = new MemoryStream(File.ReadAllBytes(compressedFilePath));
+            var (compressedStream, bytes) = _compressedTestFiles[uncompressedFilePath];
+            compressedStream.Position = 0;
+            
+            Stream decompressor = CreateStream(compressedStream, CompressionMode.Decompress);
+            decompressor.Read(bytes, 0, bytes.Length);
+        }
 
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < innerIterations; i++)
-                        using (Stream decompressor = CreateStream(memories[i], CompressionMode.Decompress))
-                            decompressor.Read(outputRead, 0, outputRead.Length);
-
-                for (int i = 0; i < innerIterations; i++)
-                    memories[i].Dispose();
-            }
+        [GlobalCleanup(Target = nameof(Decompress_Canterbury))]
+        public void CleanupDecompress_Canterbury()
+        {
+            foreach (var item in _compressedTestFiles.Values)
+                item.compressedStream.Dispose();
         }
     }
 }
