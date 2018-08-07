@@ -3,90 +3,76 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Linq;
 using BenchmarkDotNet.Attributes;
 
 namespace System.IO.Compression
 {
-    public abstract class CompressionStreamPerfTestBase : CompressionStreamTestBase
+    public class Gzip : CompressionStreamPerfTestBase
     {
-        public static IEnumerable<object[]> UncompressedTestFiles_WithCompressionLevel()
+        public override Stream CreateStream(Stream stream, CompressionMode mode) => new GZipStream(stream, mode);
+        public override Stream CreateStream(Stream stream, CompressionLevel level) => new GZipStream(stream, level);
+    }
+    
+    public class Deflate : CompressionStreamPerfTestBase
+    {
+        public override Stream CreateStream(Stream stream, CompressionMode mode) => new DeflateStream(stream, mode);
+        public override Stream CreateStream(Stream stream, CompressionLevel level) => new DeflateStream(stream, level);
+    }
+    
+    // Brotli has a dedicated file with more benchmarks
+    
+    public abstract class CompressionStreamPerfTestBase
+    {
+        public abstract Stream CreateStream(Stream stream, CompressionMode mode);
+        public abstract Stream CreateStream(Stream stream, CompressionLevel level);
+
+        public IEnumerable<object> Arguments()
         {
-            foreach (CompressionLevel compressionLevel in Enum.GetValues(typeof(CompressionLevel)))
+            foreach (string testFile in UncompressedTestFileNames())
             {
-                foreach (string testFile in UncompressedTestFileNames())
-                {
-                    yield return new object[] { testFile, compressionLevel };
-                }
+                yield return new CompressedFile(testFile, CompressionLevel.Optimal, CreateStream);
+                yield return new CompressedFile(testFile, CompressionLevel.Fastest, CreateStream);
+                // we don't test the performance of CompressionLevel.NoCompression on purpose
             }
         }
 
-        private IReadOnlyDictionary<string, byte[]> _uncompressedTestFiles;
-        private IReadOnlyDictionary<string, (MemoryStream compressedStream, byte[] bytes)> _compressedTestFiles;
-        private MemoryStream _compressedDataStream;
-
-        [GlobalSetup(Target = nameof(Compress_Canterbury))]
-        public void SetupCompress_Canterbury()
+        private IEnumerable<string> UncompressedTestFileNames()
         {
-            _uncompressedTestFiles = UncompressedTestFileNames().ToDictionary(fileName => fileName, fileName => File.ReadAllBytes(GetFilePath(fileName)));
-            _compressedDataStream = new MemoryStream(_uncompressedTestFiles.Values.Max(content => content.Length));
+            yield return "TestDocument.doc"; // 44.5 KB small test document with repeated paragraph
+            yield return "TestDocument.docx"; // 17.2 KB small test document with repeated paragraph
+            yield return "TestDocument.pdf"; // 199 KB small test document with repeated paragraph
+            yield return "TestDocument.txt"; // 21.1 KB small test document with repeated paragraph
+            yield return "alice29.txt"; // 145 KB, copy of "ALICE'S ADVENTURES IN WONDERLAND" book
+            yield return "asyoulik.txt"; // 122 KB, copy if "As You Like It" by William Shakespeare
+            yield return "cp.html"; // 24 KB, small HTML file
+            yield return "fields.c"; // 10.8 KB, 430 lines of C code
+            yield return "grammar.lsp"; // 3.63 KB, 90 lines of Lisp code
+            yield return "kennedy.xls"; // 0.98 MB, invalid excel file..
+            yield return "lcet10.txt"; // 409 KB, "The Project Gutenberg Etext of LOC WORKSHOP ON ELECTRONIC TEXTS", 7500 lines of text
+            yield return "plrabn12.txt"; // 460 KB, "Paradise Lost by John Milton", 10700 lines of text
+            yield return "ptt5"; // 501 KB, some binary content
+            yield return "sum"; // 37.3 KB, some binary content
+            yield return "xargs.1"; // 4.12 KB, output of --help of some Linux tool
         }
 
-        /// <summary>
-        /// Benchmark tests to measure the performance of individually compressing each file in the
-        /// Canterbury Corpus
-        /// </summary>
         [Benchmark]
-        [ArgumentsSource(nameof(UncompressedTestFiles_WithCompressionLevel))]
-        public void Compress_Canterbury(string uncompressedFileName, CompressionLevel compressLevel)
+        [ArgumentsSource(nameof(Arguments))]
+        public void Compress(CompressedFile file)
         {
-            byte[] bytes = _uncompressedTestFiles[uncompressedFileName];
+            file.CompressedDataStream.Position = 0; // all benchmarks invocation reuse the same stream, we set Postion to 0 to start at the beginning
 
-            _compressedDataStream.Position = 0;
-
-            Stream compressor = CreateStream(_compressedDataStream, compressLevel);
-            compressor.Write(bytes, 0, bytes.Length);
+            var compressor = CreateStream(file.CompressedDataStream, file.CompressionLevel);
+            compressor.Write(file.UncompressedData, 0, file.UncompressedData.Length);
         }
 
-        [GlobalCleanup(Target = nameof(Compress_Canterbury))]
-        public void CleanupCompress_Canterbury() => _compressedDataStream.Dispose();
-
-        [GlobalSetup(Target = nameof(Decompress_Canterbury))]
-        public void SetupDecompress_Canterbury()
-        {
-            _compressedTestFiles = UncompressedTestFileNames()
-                .ToDictionary(fileName => fileName, fileName =>
-                {
-                    var bytes = File.ReadAllBytes(GetFilePath(fileName));
-                    var compressedStream = new MemoryStream(bytes.Length);
-                    
-                    var compressor = CreateStream(compressedStream, CompressionMode.Compress, leaveOpen: true);
-                    compressor.Write(bytes, 0, bytes.Length);
-
-                    return (compressedStream, bytes);
-                });
-        }
-
-        /// <summary>
-        /// Benchmark tests to measure the performance of individually compressing each file in the
-        /// Canterbury Corpus
-        /// </summary>
         [Benchmark]
-        [ArgumentsSource(nameof(UncompressedTestFiles))]
-        public void Decompress_Canterbury(string uncompressedFilePath)
+        [ArgumentsSource(nameof(Arguments))]
+        public int Decompress(CompressedFile file)
         {
-            var (compressedStream, bytes) = _compressedTestFiles[uncompressedFilePath];
-            compressedStream.Position = 0;
-            
-            Stream decompressor = CreateStream(compressedStream, CompressionMode.Decompress);
-            decompressor.Read(bytes, 0, bytes.Length);
-        }
+            file.CompressedDataStream.Position = 0;
 
-        [GlobalCleanup(Target = nameof(Decompress_Canterbury))]
-        public void CleanupDecompress_Canterbury()
-        {
-            foreach (var item in _compressedTestFiles.Values)
-                item.compressedStream.Dispose();
+            var compressor = CreateStream(file.CompressedDataStream, CompressionMode.Decompress);
+            return compressor.Read(file.UncompressedData, 0, file.UncompressedData.Length);
         }
     }
 }
