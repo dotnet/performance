@@ -25,8 +25,8 @@
 | release/1.1.0 | [![rel1.1_x64_nix_full_icon]][rel1.1_x64_nix_full] |
 
 [//]: # (These are the x64 links)
-[master_x64_nix_full]:                  https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_Ubuntu16.04/lastCompletedBuild/
-[master_x64_nix_full_icon]:             https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_Ubuntu16.04/lastCompletedBuild/badge/icon (Run Status)
+[master_x64_nix_full]:                  https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_Ubuntu16.04_x64/lastCompletedBuild/
+[master_x64_nix_full_icon]:             https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_Ubuntu16.04_x64/lastCompletedBuild/badge/icon (Run Status)
 [master_x64_win_full]:                  https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_perflab_Windows_NT_x64_full_opt_ryujit/lastCompletedBuild/
 [master_x64_win_full_icon]:             https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_perflab_Windows_NT_x64_full_opt_ryujit/lastCompletedBuild/badge/icon (Run Status)
 [master_x64_win_min]:                   https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_perflab_Windows_NT_x64_min_opt_ryujit/lastCompletedBuild/
@@ -97,17 +97,27 @@
 
 #### Throughput / Ubuntu 16.04 / x64
 
+| Branch        | OptLevel=[full]<br>PGO=[pgo]                                     | OptLevel=[min]<br>PGO=[pgo]                                    |
+| :------------ | :--------------------------------------------------------------: | :------------------------------------------------------------: |
+| master        | [![master_TP_x64_nix_full_pgo_icon]][master_TP_x64_nix_full_pgo] | [![master_TP_x64_nix_min_pgo_icon]][master_TP_x64_nix_min_pgo] |
+| release/2.1   | [![rel2.1_TP_x64_nix_full_pgo_icon]][rel2.1_TP_x64_nix_full_pgo] | N/A                                                            |
+| release/2.0.0 | [![rel2.0_TP_x64_nix_full_pgo_icon]][rel2.0_TP_x64_nix_full_pgo] | [![rel2.0_TP_x64_nix_min_pgo_icon]][rel2.0_TP_x64_nix_min_pgo] |
+
+#### Throughput / Ubuntu 14.04 / arm
+
 | Branch        | OptLevel=[full]<br>PGO=[pgo]                                     |  OptLevel=[min]<br>PGO=[pgo]                                    |
 | :------------ | :--------------------------------------------------------------: |  :------------------------------------------------------------: |
-| master        | [![master_TP_x64_nix_full_pgo_icon]][master_TP_x64_nix_full_pgo] |  [![master_TP_x64_nix_min_pgo_icon]][master_TP_x64_nix_min_pgo] |
-| release/2.1   | [![rel2.1_TP_x64_nix_full_pgo_icon]][rel2.1_TP_x64_nix_full_pgo] |  N/A                                                            |
-| release/2.0.0 | [![rel2.0_TP_x64_nix_full_pgo_icon]][rel2.0_TP_x64_nix_full_pgo] |  [![rel2.0_TP_x64_nix_min_pgo_icon]][rel2.0_TP_x64_nix_min_pgo] |
+| master        | [![master_TP_arm_nix_full_pgo_icon]][master_TP_arm_nix_full_pgo] |  [![master_TP_arm_nix_min_pgo_icon]][master_TP_arm_nix_min_pgo] |
 
 [//]: # (These are the x64 links)
-[master_TP_x64_nix_full_pgo]:           https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_Ubuntu14.04_full_opt/lastCompletedBuild/
-[master_TP_x64_nix_full_pgo_icon]:      https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_Ubuntu14.04_full_opt/lastCompletedBuild/badge/icon (Run Status)
-[master_TP_x64_nix_min_pgo]:            https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_Ubuntu14.04_min_opt/lastCompletedBuild/
-[master_TP_x64_nix_min_pgo_icon]:       https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_Ubuntu14.04_min_opt/lastCompletedBuild/badge/icon (Run Status)
+[master_TP_x64_nix_full_pgo]:           https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_Ubuntu16.04_full_opt_x64/lastCompletedBuild/
+[master_TP_x64_nix_full_pgo_icon]:      https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_Ubuntu16.04_full_opt_x64/lastCompletedBuild/badge/icon (Run Status)
+[master_TP_x64_nix_min_pgo]:            https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_Ubuntu16.04_min_opt_x64/lastCompletedBuild/
+[master_TP_x64_nix_min_pgo_icon]:       https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_Ubuntu16.04_min_opt_x64/lastCompletedBuild/badge/icon (Run Status)
+[master_TP_arm_nix_full_pgo]:           https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_Ubuntu14.04_full_opt_arm/lastCompletedBuild/
+[master_TP_arm_nix_full_pgo_icon]:      https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_Ubuntu14.04_full_opt_arm/lastCompletedBuild/badge/icon (Run Status)
+[master_TP_arm_nix_min_pgo]:            https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_Ubuntu14.04_min_opt_arm/lastCompletedBuild/
+[master_TP_arm_nix_min_pgo_icon]:       https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_Ubuntu14.04_min_opt_arm/lastCompletedBuild/badge/icon (Run Status)
 [master_TP_x64_win_full_nopgo]:         https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_perflab_Windows_NT_x64_full_opt_ryujit_nopgo/lastCompletedBuild/
 [master_TP_x64_win_full_nopgo_icon]:    https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_perflab_Windows_NT_x64_full_opt_ryujit_nopgo/lastCompletedBuild/badge/icon (Run Status)
 [master_TP_x64_win_full_pgo]:           https://ci2.dot.net/job/dotnet_coreclr/job/perf/job/master/job/perf_throughput_perflab_Windows_NT_x64_full_opt_ryujit_pgo/lastCompletedBuild/
