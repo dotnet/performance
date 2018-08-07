@@ -28,7 +28,7 @@ namespace System.IO.Compression
         [GlobalSetup(Target = nameof(Compress_Canterbury))]
         public void SetupCompress_Canterbury()
         {
-            _uncompressedTestFiles = UncompressedTestFileNames().ToDictionary(fileName => fileName, File.ReadAllBytes);
+            _uncompressedTestFiles = UncompressedTestFileNames().ToDictionary(fileName => fileName, fileName => File.ReadAllBytes(GetFilePath(fileName)));
             _compressedDataStream = new MemoryStream(_uncompressedTestFiles.Values.Max(content => content.Length));
         }
 
@@ -57,7 +57,7 @@ namespace System.IO.Compression
             _compressedTestFiles = UncompressedTestFileNames()
                 .ToDictionary(fileName => fileName, fileName =>
                 {
-                    var bytes = File.ReadAllBytes(fileName);
+                    var bytes = File.ReadAllBytes(GetFilePath(fileName));
                     var compressedStream = new MemoryStream(bytes.Length);
                     
                     var compressor = CreateStream(compressedStream, CompressionMode.Compress, leaveOpen: true);
