@@ -9,17 +9,8 @@ namespace System.IO.Tests
     public class Perf_FileInfo
     {
         private readonly string _path = FileUtils.GetTestFilePath();
-        
+
         [Benchmark]
-        public void ctor_str()
-        {
-            string path = _path;
-            for (int i = 0; i < 20000; i++)
-            {
-                new FileInfo(path); new FileInfo(path); new FileInfo(path);
-                new FileInfo(path); new FileInfo(path); new FileInfo(path);
-                new FileInfo(path); new FileInfo(path); new FileInfo(path);
-            }
-        }
+        public FileInfo ctor_str() => new FileInfo(_path);
     }
 }

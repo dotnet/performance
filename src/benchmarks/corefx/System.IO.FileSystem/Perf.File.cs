@@ -9,6 +9,8 @@ namespace System.IO.Tests
 {
     public class Perf_File
     {
+        private const int DeleteteInnerIterations = 10;
+        
         private string _testFilePath;
         private string[] _filesToRemove;
 
@@ -20,17 +22,7 @@ namespace System.IO.Tests
         }
         
         [Benchmark]
-        public void Exists()
-        {
-            bool result = default;
-            var testFile = _testFilePath;
-            for (int i = 0; i < 200; i++)
-            {
-                result ^= File.Exists(testFile); result ^= File.Exists(testFile); result ^= File.Exists(testFile);
-                result ^= File.Exists(testFile); result ^= File.Exists(testFile); result ^= File.Exists(testFile);
-                result ^= File.Exists(testFile); result ^= File.Exists(testFile); result ^= File.Exists(testFile);
-            }
-        }
+        public void Exists() => File.Exists(_testFilePath); 
         
         [GlobalCleanup(Target = nameof(Exists))]
         public void CleanupExists() => File.Delete(_testFilePath);
@@ -39,12 +31,12 @@ namespace System.IO.Tests
         public void SetupDeleteIteration()
         {
             var testFile = FileUtils.GetTestFilePath();
-            _filesToRemove = Enumerable.Range(1, 100).Select(index => testFile + index).ToArray();
+            _filesToRemove = Enumerable.Range(1, DeleteteInnerIterations).Select(index => testFile + index).ToArray();
             foreach (var file in _filesToRemove)
                 File.Create(file).Dispose();
         }
         
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = DeleteteInnerIterations)]
         public void Delete()
         {
             var filesToRemove = _filesToRemove;

@@ -12,6 +12,8 @@ namespace System.IO.Tests
 {
     public class Perf_Directory
     {
+        private const int CreateInnerIterations = 10;
+        
         private readonly string _testFile = FileUtils.GetTestFilePath();
         private readonly IReadOnlyDictionary<int, string> _testDeepFilePaths = new Dictionary<int, string>
         {
@@ -28,10 +30,10 @@ namespace System.IO.Tests
         public void SetupCreateDirectory()
         {
             var testFile = FileUtils.GetTestFilePath();
-            _directoriesToCreate = Enumerable.Range(1, 200).Select(index => testFile + index).ToArray();
+            _directoriesToCreate = Enumerable.Range(1, CreateInnerIterations).Select(index => testFile + index).ToArray();
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = CreateInnerIterations)]
         public void CreateDirectory()
         {
             var directoriesToCreate = _directoriesToCreate;
@@ -74,10 +76,7 @@ namespace System.IO.Tests
         [ArgumentsSource(nameof(RecursiveDepthData))]
         public void RecursiveCreateDeleteDirectory(int depth)
         {
-            string rootDirectory = _testFile;
-            string path = _testDeepFilePaths[depth];
-
-            var name = rootDirectory + Path.DirectorySeparatorChar + path;
+            var name = _testFile + Path.DirectorySeparatorChar + _testDeepFilePaths[depth];
 
             Directory.CreateDirectory(name);
             Directory.Delete(name);
