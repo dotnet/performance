@@ -2,47 +2,42 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
-using Xunit;
+using BenchmarkDotNet.Attributes;
 
 namespace System.IO.MemoryMappedFiles.Tests
 {
     /// <summary>
     /// Performance tests for the construction and disposal of MemoryMappedFiles of varying sizes
     /// </summary>
-    public class Perf_MemoryMappedFile : MemoryMappedFilesTestBase
+    public class Perf_MemoryMappedFile
     {
+        private TempFile _file;
+        
+        [Params(10000, 
+                100000, 
+                1000000,
+                10000000)]
+        public int capacity; // the field must be called length (starts with lowercase) to keep old benchmark id in BenchView, do NOT change it
+        
         [Benchmark]
-        [InlineData(10000)]
-        [InlineData(100000)]
-        [InlineData(1000000)]
-        [InlineData(10000000)]
-        public void CreateNew(int capacity)
-        {
-            const int InnerIterations = 1000;
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < InnerIterations; i++)
-                        MemoryMappedFile.CreateNew(null, capacity).Dispose();
-            }
-        }
+        public void CreateNew() => MemoryMappedFile.CreateNew(null, capacity).Dispose();
 
+        [GlobalSetup(Target = nameof(CreateFromFile))]
+        public void SetupCreateFromFile() => _file = new TempFile(GetTestFilePath(), capacity);
+        
         [Benchmark]
-        [InlineData(10000)]
-        [InlineData(100000)]
-        [InlineData(1000000)]
-        [InlineData(10000000)]
-        public void CreateFromFile(int capacity)
+        public void CreateFromFile()
         {
             // Note that the test results will include the disposal overhead of both the MemoryMappedFile
             // as well as the Accessor for it
-            foreach (var iteration in Benchmark.Iterations)
-                using (TempFile file = new TempFile(GetTestFilePath(), capacity))
-                using (iteration.StartMeasurement())
-                using (MemoryMappedFile mmfile = MemoryMappedFile.CreateFromFile(file.Path))
-                using (mmfile.CreateViewAccessor(capacity / 4, capacity / 2))
-                { }
+            using (MemoryMappedFile mmfile = MemoryMappedFile.CreateFromFile(_file.Path))
+            using (mmfile.CreateViewAccessor(capacity / 4, capacity / 2))
+            { }
         }
+        
+        [GlobalCleanup(Target = nameof(CreateFromFile))]
+        public void CleanupCreateFromFile() => _file.Dispose();
+        
+        private string GetTestFilePath() => Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
     }
 }
