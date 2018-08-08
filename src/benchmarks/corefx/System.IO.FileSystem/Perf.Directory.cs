@@ -71,7 +71,6 @@ namespace System.IO.Tests
             }
         }
 
-        /// <remarks>Takes a lot of time to finish</remarks>
         [Benchmark]
         [ArgumentsSource(nameof(RecursiveDepthData))]
         public void RecursiveCreateDeleteDirectory(int depth)
