@@ -15,8 +15,6 @@ namespace System.Net.Test.Common
             private const string CertificatePassword = "testcertificate";
             private const string TestDataFolder = @"corefx\System.Net.Http";
 
-            private static readonly Mutex s_importPfxMutex;
-
             public static X509Certificate2 GetServerCertificate() => GetCertificate("testservereku.contoso.com.pfx");
 
             public static X509Certificate2 GetClientCertificate() => GetCertificate("testclienteku.contoso.com.pfx");
