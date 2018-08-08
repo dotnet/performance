@@ -2,52 +2,55 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
+using System.Linq;
+using BenchmarkDotNet.Attributes;
 
 namespace System.IO.Tests
 {
-    public class Perf_File : FileSystemTest
+    public class Perf_File
     {
+        private string _testFilePath;
+        private string[] _filesToRemove;
+
+        [GlobalSetup(Target = nameof(Exists))]
+        public void SetupExists()
+        {
+            _testFilePath = FileUtils.GetTestFilePath();
+            File.Create(_testFilePath).Dispose();
+        }
+        
         [Benchmark]
         public void Exists()
         {
-            // Setup
-            string testFile = GetTestFilePath();
-            File.Create(testFile).Dispose();
-
-            foreach (var iteration in Benchmark.Iterations)
+            bool result = default;
+            var testFile = _testFilePath;
+            for (int i = 0; i < 20000; i++)
             {
-                // Actual perf testing
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < 20000; i++)
-                    {
-                        File.Exists(testFile); File.Exists(testFile); File.Exists(testFile);
-                        File.Exists(testFile); File.Exists(testFile); File.Exists(testFile);
-                        File.Exists(testFile); File.Exists(testFile); File.Exists(testFile);
-                    }
-                }
+                result ^= File.Exists(testFile); result ^= File.Exists(testFile); result ^= File.Exists(testFile);
+                result ^= File.Exists(testFile); result ^= File.Exists(testFile); result ^= File.Exists(testFile);
+                result ^= File.Exists(testFile); result ^= File.Exists(testFile); result ^= File.Exists(testFile);
             }
-
-            // Teardown
-            File.Delete(testFile);
         }
+        
+        [GlobalCleanup(Target = nameof(Exists))]
+        public void CleanupExists() => File.Delete(_testFilePath);
 
+        [IterationSetup(Target = nameof(Delete))]
+        public void SetupDeleteIteration()
+        {
+            var testFile = FileUtils.GetTestFilePath();
+            _filesToRemove = Enumerable.Range(1, 10000).Select(index => testFile + index).ToArray();
+            foreach (var file in _filesToRemove)
+                File.Create(file).Dispose();
+        }
+        
         [Benchmark]
         public void Delete()
         {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                // Setup
-                string testFile = GetTestFilePath();
-                for (int i = 0; i < 10000; i++)
-                    File.Create(testFile + 1).Dispose();
+            var filesToRemove = _filesToRemove;
 
-                // Actual perf testing
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < 10000; i++)
-                        File.Delete(testFile + 1);
-            }
+            foreach (var file in filesToRemove)
+                File.Delete(file);
         }
     }
 }

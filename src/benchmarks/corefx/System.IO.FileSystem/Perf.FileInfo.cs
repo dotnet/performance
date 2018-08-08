@@ -2,27 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
 
 namespace System.IO.Tests
 {
-    public class Perf_FileInfo : FileSystemTest
+    public class Perf_FileInfo
     {
+        private readonly string _path = FileUtils.GetTestFilePath();
+        
         [Benchmark]
         public void ctor_str()
         {
-            string path = GetTestFilePath();
-            foreach (var iteration in Benchmark.Iterations)
+            string path = _path;
+            for (int i = 0; i < 20000; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < 20000; i++)
-                    {
-                        new FileInfo(path); new FileInfo(path); new FileInfo(path);
-                        new FileInfo(path); new FileInfo(path); new FileInfo(path);
-                        new FileInfo(path); new FileInfo(path); new FileInfo(path);
-                    }
-                }
+                new FileInfo(path); new FileInfo(path); new FileInfo(path);
+                new FileInfo(path); new FileInfo(path); new FileInfo(path);
+                new FileInfo(path); new FileInfo(path); new FileInfo(path);
             }
         }
     }
