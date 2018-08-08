@@ -17,7 +17,7 @@ namespace System.IO.MemoryMappedFiles.Tests
                 100000, 
                 1000000,
                 10000000)]
-        public int capacity; // the field must be called length (starts with lowercase) to keep old benchmark id in BenchView, do NOT change it
+        public int capacity; // the field must be called capacity (starts with lowercase) to keep old benchmark id in BenchView, do NOT change it
         
         [Benchmark]
         public void CreateNew() => MemoryMappedFile.CreateNew(null, capacity).Dispose();
