@@ -47,7 +47,7 @@ namespace System.IO.Tests
         }
         
         [Benchmark]
-        public byte[] Read()
+        public int Read()
         {
             byte[] buffer = _buffer;
             int bytesRead = 0;

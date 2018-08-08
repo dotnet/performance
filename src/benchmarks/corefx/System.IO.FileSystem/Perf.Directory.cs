@@ -7,13 +7,11 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Engines;
 
 namespace System.IO.Tests
 {
     public class Perf_Directory
     {
-        private readonly Consumer _consumer = new Consumer();
         private readonly string _testFile = FileUtils.GetTestFilePath();
         private readonly IReadOnlyDictionary<int, string> _testDeepFilePaths = new Dictionary<int, string>
         {
@@ -24,22 +22,13 @@ namespace System.IO.Tests
         private string[] _directoriesToCreate;
 
         [Benchmark]
-        public void GetCurrentDirectory()
-        {
-            var consumer = _consumer;
-            for (int i = 0; i < 20000; i++)
-            {
-                consumer.Consume(Directory.GetCurrentDirectory()); consumer.Consume(Directory.GetCurrentDirectory()); consumer.Consume(Directory.GetCurrentDirectory());
-                consumer.Consume(Directory.GetCurrentDirectory()); consumer.Consume(Directory.GetCurrentDirectory()); consumer.Consume(Directory.GetCurrentDirectory());
-                consumer.Consume(Directory.GetCurrentDirectory()); consumer.Consume(Directory.GetCurrentDirectory()); consumer.Consume(Directory.GetCurrentDirectory());
-            }
-        }
+        public string GetCurrentDirectory() => Directory.GetCurrentDirectory();
         
         [GlobalSetup(Target = nameof(CreateDirectory))]
         public void SetupCreateDirectory()
         {
             var testFile = FileUtils.GetTestFilePath();
-            _directoriesToCreate = Enumerable.Range(1, 20000).Select(index => testFile + index).ToArray();
+            _directoriesToCreate = Enumerable.Range(1, 200).Select(index => testFile + index).ToArray();
         }
 
         [Benchmark]
@@ -61,69 +50,40 @@ namespace System.IO.Tests
         public void SetupExists() => Directory.CreateDirectory(_testFile);
 
         [Benchmark]
-        public bool Exists()
-        {
-            bool result = default;
-            var testFile = _testFile;
-
-            for (int i = 0; i < 20000; i++)
-            {
-                result ^= Directory.Exists(testFile); result ^= Directory.Exists(testFile); result ^= Directory.Exists(testFile);
-                result ^= Directory.Exists(testFile); result ^= Directory.Exists(testFile); result ^= Directory.Exists(testFile);
-                result ^= Directory.Exists(testFile); result ^= Directory.Exists(testFile); result ^= Directory.Exists(testFile);
-            }
-
-            return result;
-        }
+        public bool Exists() => Directory.Exists(_testFile);
         
         [GlobalCleanup(Target = nameof(Exists))]
         public void CleanupExists() => Directory.Delete(_testFile);
 
-        public IEnumerable<object[]> RecursiveDepthData()
+        public IEnumerable<object> RecursiveDepthData()
         {
-            yield return new object[] { 10, 100 };
+            yield return 10;
 
             // Length of the path can be 260 characters on netfx.
             if (PathFeatures.AreAllLongPathsAvailable())
             {
-                yield return new object[] { 100, 10 };
+                yield return 100;
                 // Most Unix distributions have a maximum path length of 1024 characters (1024 UTF-8 bytes). 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    yield return new object[] { 1000, 1 };
+                    yield return 1000;
             }
         }
 
         /// <remarks>Takes a lot of time to finish</remarks>
         [Benchmark]
         [ArgumentsSource(nameof(RecursiveDepthData))]
-        public void RecursiveCreateDirectoryTest(int depth, int times)
+        public void RecursiveCreateDeleteDirectory(int depth)
         {
             string rootDirectory = _testFile;
             string path = _testDeepFilePaths[depth];
 
-            for (int i = 0; i < times; i++)
-                Directory.CreateDirectory(rootDirectory + Path.DirectorySeparatorChar + i + path);
+            var name = rootDirectory + Path.DirectorySeparatorChar + path;
+
+            Directory.CreateDirectory(name);
+            Directory.Delete(name);
         }
         
-        [IterationCleanup(Target = nameof(RecursiveCreateDirectoryTest))]
-        public void RecursiveCreateDirectoryTestIterationCleanup() => Directory.Delete(_testFile, recursive: true);
-
-        /// <remarks>Takes a lot of time to finish</remarks>
-        [Benchmark]
-        [ArgumentsSource(nameof(RecursiveDepthData))]
-        public void RecursiveDeleteDirectoryTest(int depth, int times)
-        {
-            string rootDirectory = _testFile;
-            string path = _testDeepFilePaths[depth];
-
-            for (int i = 0; i < times; i++)
-            {
-                Directory.CreateDirectory(rootDirectory + Path.DirectorySeparatorChar + i + path);
-                Directory.Delete(rootDirectory + Path.DirectorySeparatorChar + i, recursive: true);
-            }
-        }
-        
-        [GlobalCleanup(Target = nameof(RecursiveDeleteDirectoryTest))]
+        [GlobalCleanup(Target = nameof(RecursiveCreateDeleteDirectory))]
         public void CleanupRecursiveDeleteDirectoryTest() => Directory.Delete(_testFile, recursive: true);
 
         private static string GetTestDeepFilePath(int depth)

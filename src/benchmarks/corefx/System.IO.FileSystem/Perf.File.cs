@@ -24,7 +24,7 @@ namespace System.IO.Tests
         {
             bool result = default;
             var testFile = _testFilePath;
-            for (int i = 0; i < 20000; i++)
+            for (int i = 0; i < 200; i++)
             {
                 result ^= File.Exists(testFile); result ^= File.Exists(testFile); result ^= File.Exists(testFile);
                 result ^= File.Exists(testFile); result ^= File.Exists(testFile); result ^= File.Exists(testFile);
@@ -39,7 +39,7 @@ namespace System.IO.Tests
         public void SetupDeleteIteration()
         {
             var testFile = FileUtils.GetTestFilePath();
-            _filesToRemove = Enumerable.Range(1, 10000).Select(index => testFile + index).ToArray();
+            _filesToRemove = Enumerable.Range(1, 100).Select(index => testFile + index).ToArray();
             foreach (var file in _filesToRemove)
                 File.Create(file).Dispose();
         }
