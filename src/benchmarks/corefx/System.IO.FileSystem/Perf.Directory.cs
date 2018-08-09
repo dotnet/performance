@@ -75,14 +75,12 @@ namespace System.IO.Tests
         [ArgumentsSource(nameof(RecursiveDepthData))]
         public void RecursiveCreateDeleteDirectory(int depth)
         {
-            var name = _testFile + Path.DirectorySeparatorChar + _testDeepFilePaths[depth];
+            var root = _testFile;
+            var name = root + Path.DirectorySeparatorChar + _testDeepFilePaths[depth];
 
             Directory.CreateDirectory(name);
-            Directory.Delete(name);
+            Directory.Delete(root, recursive: true);
         }
-        
-        [GlobalCleanup(Target = nameof(RecursiveCreateDeleteDirectory))]
-        public void CleanupRecursiveDeleteDirectoryTest() => Directory.Delete(_testFile, recursive: true);
 
         private static string GetTestDeepFilePath(int depth)
         {
