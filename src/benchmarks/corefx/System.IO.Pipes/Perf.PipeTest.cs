@@ -8,6 +8,7 @@ using Benchmarks;
 
 namespace System.IO.Pipes.Tests
 {
+    [AllowedOperatingSystems("Hangs on non-Windows, dotnet/corefx#18290", OS.Windows)]
     [BenchmarkCategory(Categories.CoreFX)]
     public abstract class Perf_PipeTest : PipeTestBase
     {

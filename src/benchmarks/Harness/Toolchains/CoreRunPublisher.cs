@@ -8,7 +8,7 @@ using BenchmarkDotNet.Toolchains;
 using BenchmarkDotNet.Toolchains.DotNetCli;
 using BenchmarkDotNet.Toolchains.Results;
 
-namespace Benchmarks.Toolchains
+namespace Benchmarks
 {
     public class CoreRunPublisher : IBuilder
     {

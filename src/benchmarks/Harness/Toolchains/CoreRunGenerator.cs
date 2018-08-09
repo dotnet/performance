@@ -5,7 +5,7 @@ using BenchmarkDotNet.Environments;
 using BenchmarkDotNet.Toolchains;
 using BenchmarkDotNet.Toolchains.CsProj;
 
-namespace Benchmarks.Toolchains
+namespace Benchmarks
 {
     public class CoreRunGenerator : CsProjGenerator
     {
