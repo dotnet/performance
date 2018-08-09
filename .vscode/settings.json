@@ -1,0 +1,6 @@
+{
+    "files.exclude": {
+        "**/.dotnet/": true,
+        "**/__pycache__/": true
+    }
+}
