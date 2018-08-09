@@ -5,9 +5,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Numerics.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_BigInteger
     {
         public IEnumerable<object> NumberStrings()

@@ -4,9 +4,11 @@
 
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.IO.Pipes.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public abstract class Perf_PipeTest : PipeTestBase
     {
         [Params(1000000)]

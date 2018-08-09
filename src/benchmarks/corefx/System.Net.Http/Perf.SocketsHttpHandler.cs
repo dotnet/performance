@@ -12,9 +12,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Net.Http.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class SocketsHttpHandlerPerfTest
     {
         const int InnerIterationCount = 1000;
