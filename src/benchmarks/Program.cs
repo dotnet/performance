@@ -20,7 +20,6 @@ using BenchmarkDotNet.Toolchains.CustomCoreClr;
 using BenchmarkDotNet.Toolchains.DotNetCli;
 using BenchmarkDotNet.Toolchains.InProcess;
 using Benchmarks.Serializers;
-using Benchmarks.Toolchains;
 using CommandLine;
 
 namespace Benchmarks
@@ -42,6 +41,8 @@ namespace Benchmarks
 
         private static IConfig GetConfig(Options options)
         {
+            IConfig AddFilter(IConfig c, IFilter f) => c.With(new UnionFilter(f, new OperatingSystemFilter()));
+
             var baseJob = GetBaseJob(options);
 
             var baseJobPermutations = GetBaseJobPermutations(baseJob, options).ToArray(); 
@@ -58,11 +59,11 @@ namespace Benchmarks
                 config = config.With(StatisticColumn.AllStatistics);
 
             if (options.AllCategories.Any())
-                config = config.With(new AllCategoriesFilter(options.AllCategories.ToArray()));
+                config = AddFilter(config, new AllCategoriesFilter(options.AllCategories.ToArray()));
             if (options.AnyCategories.Any())
-                config = config.With(new AnyCategoriesFilter(options.AnyCategories.ToArray()));
+                config = AddFilter(config, new AnyCategoriesFilter(options.AnyCategories.ToArray()));
             if (options.Filters.Any())
-                config = config.With(new GlobFilter(options.Filters.ToArray()));
+                config = AddFilter(config, new GlobFilter(options.Filters.ToArray()));
 
             config = config.With(JsonExporter.Full); // make sure we export to Json (for BenchView integration purpose)
 

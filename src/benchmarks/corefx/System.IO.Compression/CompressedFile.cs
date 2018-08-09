@@ -31,7 +31,7 @@
         private static string GetFilePath(string fileName) 
             => Path.Combine(
                 Path.GetDirectoryName(typeof(CompressedFile).Assembly.Location), 
-                @"corefx\System.IO.Compression\TestData",
+                "corefx", "System.IO.Compression", "TestData",
                 fileName);
     }
 }

@@ -57,12 +57,12 @@ You can filter the benchmarks by namespace, category, type name and method name.
 
 * `dotnet run -c Release -f netcoreapp2.1 -- --categories CoreCLR Span` - will run all the benchmarks that belong to CoreCLR **AND** Span category
 * `dotnet run -c Release -f netcoreapp2.1 -- --anyCategories CoreCLR CoreFX` - will run all the benchmarks that belong to CoreCLR **OR** CoreFX category
-* `dotnet run -c Release -f netcoreapp2.1 -- --namespace=BenchmarksGame` - will run all the benchmarks from BenchmarksGame namespace
-* `dotnet run -c Release -f netcoreapp2.1 -- --method=ToStream` - will run all the benchmarks with method name ToStream
-* `dotnet run -c Release -f netcoreapp2.1 -- --class=Richards` - will run all the benchmarks with type name Richards
+* `dotnet run -c Release -f netcoreapp2.1 -- --filter BenchmarksGame*` - will run all the benchmarks from BenchmarksGame namespace
+* `dotnet run -c Release -f netcoreapp2.1 -- --filter *.ToStream` - will run all the benchmarks with method name ToStream
+* `dotnet run -c Release -f netcoreapp2.1 -- --filter *.Richards.*` - will run all the benchmarks with type name Richards
 
 **Note:** To print a single summary for all of the benchmarks, use `--join`. 
-Example: `dotnet run -c Release -f netcoreapp2.1 -- --join --namespace=BenchmarksGame` - will run all of the benchmarks from BenchmarksGame namespace and print a single summary.
+Example: `dotnet run -c Release -f netcoreapp2.1 -- --join -f BenchmarksGame*` - will run all of the benchmarks from BenchmarksGame namespace and print a single summary.
 
 ## All Statistics
 
@@ -247,7 +247,7 @@ Example: `dotnet run -c Release -f netcoreapp2.1 -- --affinity=8`
 
 To run same benchmarks with and without specific Processor Affinity you need to use `--testAffinity` and also provide the mask with `--affinity`
 
-Example: `dotnet run -c Release -f netcoreapp2.1 -- --class=BinaryTrees_2 --affinity=8 --testAffinity`
+Example: `dotnet run -c Release -f netcoreapp2.1 -- -f *BinaryTrees_2* --affinity=8 --testAffinity`
 
 |        Method |     Affinity |
 |-------------- |------------- |
@@ -256,7 +256,7 @@ Example: `dotnet run -c Release -f netcoreapp2.1 -- --class=BinaryTrees_2 --affi
 
 To test how loop alignment affects the results, you can use `--testAlignment` which is going to run the benchmarks with env var `COMPlus_JitAlignLoops` set to `0` and `1`
 
-Example: `dotnet run -c Release -f netcoreapp2.1 -- --class=BinaryTrees_2 --testAlignment`
+Example: `dotnet run -c Release -f netcoreapp2.1 -- -f *BinaryTrees_2* --testAlignment`
 
 |        Method |    EnvironmentVariables |
 |-------------- |------------------------ |
@@ -271,3 +271,12 @@ Example: `dotnet run -c Release -f netcoreapp2.1 -- --class=BinaryTrees_2 --test
 | BinaryTrees_2 | 000000001000 | COMPlus_JitAlignLoops=1 |
 | BinaryTrees_2 | 111111111111 | COMPlus_JitAlignLoops=0 |
 | BinaryTrees_2 | 111111111111 | COMPlus_JitAlignLoops=1 |
+
+## Enabling given benchmark(s) for selected Operating System(s)
+
+This is possible with the `AllowedOperatingSystemsAttribute`. You need to provide a mandatory comment and OS(es) which benchmark(s) can run on.
+
+```cs
+[AllowedOperatingSystems("Hangs on non-Windows, dotnet/corefx#18290", OS.Windows)]
+public class Perf_PipeTest
+```
