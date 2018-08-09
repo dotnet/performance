@@ -5,6 +5,7 @@ using BenchmarkDotNet.Attributes;
 
 namespace Benchmarks.Serializers
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Xml_FromStream<T>
     {
         private readonly T value;
