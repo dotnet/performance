@@ -396,38 +396,22 @@ namespace Benchmarks.Serializers
     
     public class ClassImplementingIXmlSerialiable : IXmlSerializable
     {
-        public static bool WriteXmlInvoked = false;
-        public static bool ReadXmlInvoked = false;
-
         public string StringValue { get; set; }
         private bool BoolValue { get; set; }
 
-        public ClassImplementingIXmlSerialiable()
-        {
-            BoolValue = true;
-        }
+        public ClassImplementingIXmlSerialiable() => BoolValue = true;
 
-        public bool GetPrivateMember()
-        {
-            return BoolValue;
-        }
+        public System.Xml.Schema.XmlSchema GetSchema() => null;
 
-        public System.Xml.Schema.XmlSchema GetSchema()
+        public void ReadXml(XmlReader reader)
         {
-            return null;
-        }
-
-        public void ReadXml(System.Xml.XmlReader reader)
-        {
-            ReadXmlInvoked = true;
             reader.MoveToContent();
             StringValue = reader.GetAttribute("StringValue");
             BoolValue = bool.Parse(reader.GetAttribute("BoolValue"));
         }
 
-        public void WriteXml(System.Xml.XmlWriter writer)
+        public void WriteXml(XmlWriter writer)
         {
-            WriteXmlInvoked = true;
             writer.WriteAttributeString("StringValue", StringValue);
             writer.WriteAttributeString("BoolValue", BoolValue.ToString());
         }
