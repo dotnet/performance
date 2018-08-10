@@ -19,7 +19,6 @@ using BenchmarkDotNet.Toolchains.CsProj;
 using BenchmarkDotNet.Toolchains.CustomCoreClr;
 using BenchmarkDotNet.Toolchains.DotNetCli;
 using BenchmarkDotNet.Toolchains.InProcess;
-using Benchmarks.Serializers;
 using Benchmarks.Toolchains;
 using CommandLine;
 
@@ -34,7 +33,7 @@ namespace Benchmarks
 
         private static void RunBenchmarks(Options options)
             => BenchmarkSwitcher
-                .FromAssemblyAndTypes(typeof(Program).Assembly, SerializerBenchmarks.GetTypes())
+                .FromAssembly(typeof(Program).Assembly)
                 .Run(GetArgs(options), GetConfig(options));
 
         private static string[] GetArgs(Options options)

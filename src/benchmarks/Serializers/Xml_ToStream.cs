@@ -6,7 +6,12 @@ using BenchmarkDotNet.Attributes;
 
 namespace Benchmarks.Serializers
 {
-    [GenericTypeArguments(typeof(XmlElement))] // more types are provided in SerializerBenchmarks.cs
+    [GenericTypeArguments(typeof(LoginViewModel))]
+    [GenericTypeArguments(typeof(Location))]
+    [GenericTypeArguments(typeof(IndexViewModel))]
+    [GenericTypeArguments(typeof(MyEventsListerViewModel))]
+    [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
+    [GenericTypeArguments(typeof(XmlElement))]
     [GenericTypeArguments(typeof(SimpleStructWithProperties))]
     [GenericTypeArguments(typeof(ClassImplementingIXmlSerialiable))]
     [BenchmarkCategory(Categories.CoreFX)]
