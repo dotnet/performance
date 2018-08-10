@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.IO.Compression
 {
@@ -21,6 +22,7 @@ namespace System.IO.Compression
     
     // Brotli has a dedicated file with more benchmarks
     
+    [BenchmarkCategory(Categories.CoreFX)]
     public abstract class CompressionStreamPerfTestBase
     {
         public abstract Stream CreateStream(Stream stream, CompressionMode mode);

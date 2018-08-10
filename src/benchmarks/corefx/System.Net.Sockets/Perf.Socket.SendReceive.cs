@@ -8,9 +8,11 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Net.Sockets.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class SocketSendReceivePerfTest
     {
         private const int InnerIterationCount = 10_000;

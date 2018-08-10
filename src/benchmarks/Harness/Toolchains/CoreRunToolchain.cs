@@ -8,7 +8,7 @@ using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains;
 using BenchmarkDotNet.Toolchains.DotNetCli;
 
-namespace Benchmarks.Toolchains
+namespace Benchmarks
 {
     public class CoreRunToolchain : IToolchain
     {
