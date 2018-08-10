@@ -42,20 +42,33 @@ namespace System.Diagnostics
         }
         
         [Benchmark]
-        public void StartAndKillDotnetInfo()
+        public void StartAndWaitForExitDotNetVersion()
         {
-            using (var dotnetInfo = Process.Start(CreateStartInfo()))
+            using (var dotnet = Process.Start(CreateStartInfo()))
             {
-                dotnetInfo.Kill();
+                dotnet.WaitForExit();
+            }
+        }
+        
+        [Benchmark]
+        public void StartAndKillDotNetVersion()
+        {
+            using (var dotnet = Process.Start(CreateStartInfo()))
+            {
+                dotnet.Kill();
             }
         }
 
-        private ProcessStartInfo CreateStartInfo()
+        private static ProcessStartInfo CreateStartInfo()
         {
-            var processStartInfo = new ProcessStartInfo()
+            var processStartInfo = new ProcessStartInfo
             {
                 FileName = "dotnet",
-                Arguments = "--info"
+                Arguments = "--version",
+                RedirectStandardOutput = false,
+                RedirectStandardError = false,
+                RedirectStandardInput = false,
+                CreateNoWindow = true
             };
 
             // this benchmark will run on CI machines where there is no dotnet in PATH
