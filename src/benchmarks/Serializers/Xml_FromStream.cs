@@ -1,10 +1,14 @@
 ﻿using System.IO;
 using System.Runtime.Serialization;
+using System.Xml;
 using System.Xml.Serialization;
 using BenchmarkDotNet.Attributes;
 
 namespace Benchmarks.Serializers
 {
+    [GenericTypeArguments(typeof(XmlElement))] // more types are provided in SerializerBenchmarks.cs
+    [GenericTypeArguments(typeof(SimpleStructWithProperties))]
+    [GenericTypeArguments(typeof(ClassImplementingIXmlSerialiable))]
     [BenchmarkCategory(Categories.CoreFX)]
     public class Xml_FromStream<T>
     {

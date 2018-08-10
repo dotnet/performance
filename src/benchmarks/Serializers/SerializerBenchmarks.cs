@@ -29,7 +29,8 @@ namespace Benchmarks.Serializers
                 typeof(LoginViewModel),
                 typeof(Location),
                 typeof(IndexViewModel),
-                typeof(MyEventsListerViewModel)
+                typeof(MyEventsListerViewModel),
+                typeof(CollectionsOfPrimitives)
             };
     }
 }
