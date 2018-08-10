@@ -21,7 +21,7 @@ namespace Benchmarks.Serializers
                 return (T)(object)CreateIndexViewModel();
             if (typeof(T) == typeof(MyEventsListerViewModel))
                 return (T)(object)CreateMyEventsListerViewModel();
-            if (typeof(T) == typeof(CollectionsOfPrimitives[]))
+            if (typeof(T) == typeof(CollectionsOfPrimitives))
                 return (T)(object)CreateCollectionsOfPrimitives(1024); // 1024 values was copied from CoreFX benchmarks
             if (typeof(T) == typeof(XmlElement))
                 return (T)(object)CreateXmlElement();
@@ -379,7 +379,10 @@ namespace Benchmarks.Serializers
     {
         [ProtoMember(1)] [Index(0)] [Key(0)] public virtual byte[] ByteArray { get; set; }
         [ProtoMember(2)] [Index(1)] [Key(1)] public virtual DateTime[] DateTimeArray { get; set; }
+        
+        [XmlIgnore] // xml serializer does not support anything that implements IDictionary..
         [ProtoMember(3)] [Index(2)] [Key(2)] public virtual Dictionary<int, string> Dictionary { get; set; }
+        
         [ProtoMember(4)] [Index(3)] [Key(3)] public virtual List<int> ListOfInt { get; set; }
         
         public long TouchEveryProperty() => ByteArray.Length + DateTimeArray.Length + ListOfInt.Count + Dictionary.Count;
