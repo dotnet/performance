@@ -106,7 +106,7 @@ BenchmarkDotNet allows you to run benchmarks for multiple runtimes. By using thi
 
 * for .NET pass `--clr` to the app or use `Job.Default.With(Runtime.Clr)` in the code.
 * for .NET Core 2.0 pass `--core20` to the app or use `Job.Default.With(Runtime.Core).With(CsProjCoreToolchain.NetCoreApp20)` in the code.
-* for .NET Core 2.1 pass `--core21` to the app or use `Job.Default.With(Runtime.Core).With(CsProjCoreToolchain.NetCoreApp20)` in the code.
+* for .NET Core 2.1 pass `--core21` to the app or use `Job.Default.With(Runtime.Core).With(CsProjCoreToolchain.NetCoreApp21)` in the code.
 * for the latest CoreRT pass `--coreRt` to the app or use `Job.Default.With(Runtime.CoreRT).With(CoreRtToolchain.LatestMyGetBuild)` in the code. **Be warned!** Downloading latest CoreRT with all the dependencies takes a lot of time. It is recommended to choose one version and use it for comparisions, more info [here](https://github.com/dotnet/BenchmarkDotNet/blob/600e5fa81bd8e7a1d32a60b2bea830e1f46106eb/docs/guide/Configs/Toolchains.md#corert). To use explicit CoreRT version please use `coreRtVersion` argument. Example: `dotnet run -c Release -f netcoreapp2.1 --coreRtVersion 1.0.0-alpha-26414-0`
 * for Mono pass `--mono` to the app or use `Job.Default.With(Runtime.Mono)` in the code.
 
