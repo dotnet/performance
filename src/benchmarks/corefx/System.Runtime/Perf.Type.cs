@@ -2,40 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Type
     {
+        RuntimeTypeHandle TypeHandle = typeof(int).TypeHandle;
+        Type Type1 = typeof(int);
+        Type Type2 = typeof(string);
+        
         [Benchmark]
-        public void GetTypeFromHandle()
-        {
-            RuntimeTypeHandle type1 = typeof(int).TypeHandle;
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < 100000; i++)
-                    {
-                        Type.GetTypeFromHandle(type1); Type.GetTypeFromHandle(type1); Type.GetTypeFromHandle(type1);
-                        Type.GetTypeFromHandle(type1); Type.GetTypeFromHandle(type1); Type.GetTypeFromHandle(type1);
-                        Type.GetTypeFromHandle(type1); Type.GetTypeFromHandle(type1); Type.GetTypeFromHandle(type1);
-                    }
-        }
+        public Type GetTypeFromHandle() => Type.GetTypeFromHandle(TypeHandle);
 
         [Benchmark]
-        public void op_Equality()
-        {
-            bool result;
-            Type type1 = typeof(int);
-            Type type2 = typeof(string);
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < 100000; i++)
-                    {
-                        result = type1 == type2; result = type1 == type2; result = type1 == type2;
-                        result = type1 == type2; result = type1 == type2; result = type1 == type2;
-                        result = type1 == type2; result = type1 == type2; result = type1 == type2;
-                    }
-        }
+        public bool op_Equality() => Type1 == Type2;
     }
 }

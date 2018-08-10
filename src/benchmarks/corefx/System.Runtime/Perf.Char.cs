@@ -4,63 +4,28 @@
 
 using System.Collections.Generic;
 using System.Globalization;
-using Microsoft.Xunit.Performance;
-using Xunit;
+using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Char
     {
-        private const int InnerIterations = 1_000_000;
-
         public static IEnumerable<object[]> Char_ChangeCase_MemberData()
         {
-            yield return new object[] { 'A', "en-US" }; // ASCII upper case
-            yield return new object[] { 'a', "en-US" }; // ASCII lower case
-            yield return new object[] { '\u0130', "en-US" }; // non-ASCII, English
-            yield return new object[] { '\u4F60', "zh-Hans" }; // non-ASCII, Chinese
+            yield return new object[] { 'A', new CultureInfo("en-US") }; // ASCII upper case
+            yield return new object[] { 'a', new CultureInfo("en-US") }; // ASCII lower case
+            yield return new object[] { '\u0130', new CultureInfo("en-US") }; // non-ASCII, English
+            yield return new object[] { '\u4F60', new CultureInfo("zh-Hans") }; // non-ASCII, Chinese
         }
 
-        [Benchmark(InnerIterationCount = InnerIterations)]
-        [MemberData(nameof(Char_ChangeCase_MemberData))]
-        public static char Char_ToLower(char c, string cultureName)
-        {
-            char ret = default(char);
-            CultureInfo culture = new CultureInfo(cultureName);
+        [Benchmark]
+        [ArgumentsSource(nameof(Char_ChangeCase_MemberData))]
+        public char Char_ToLower(char c, CultureInfo cultureName) => char.ToLower(c, cultureName); // the argument is called "cultureName" instead of "culture" to keep benchmark ID in BenchView, do NOT rename it
 
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < InnerIterations; i++)
-                    {
-                        ret = char.ToLower(c, culture);
-                    }
-                }
-            }
-
-            return ret;
-        }
-
-        [Benchmark(InnerIterationCount = InnerIterations)]
-        [MemberData(nameof(Char_ChangeCase_MemberData))]
-        public static char Char_ToUpper(char c, string cultureName)
-        {
-            char ret = default(char);
-            CultureInfo culture = new CultureInfo(cultureName);
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < InnerIterations; i++)
-                    {
-                        ret = char.ToUpper(c, culture);
-                    }
-                }
-            }
-
-            return ret;
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(Char_ChangeCase_MemberData))]
+        public char Char_ToUpper(char c, CultureInfo cultureName)=> char.ToUpper(c, cultureName);
     }
 }

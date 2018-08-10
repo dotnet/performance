@@ -53,6 +53,7 @@
     <Compile Remove="corefx\System.Net.Sockets\Perf.Socket.SendReceive.cs" />
     <Compile Remove="corefx\System.Numerics.Vectors\GenericVectorFromSpanConstructorTests.cs" />
     <Compile Remove="corefx\System.IO.Compression\Brotli.cs" />
+    <Compile Remove="corefx\System.Runtime\Perf.HashCode.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="$(NuGetPackageRoot)\system.text.regularexpressions.testdata\1.0.2\content\regexredux\*.*">

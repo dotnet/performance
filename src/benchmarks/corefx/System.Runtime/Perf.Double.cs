@@ -2,62 +2,41 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using Microsoft.Xunit.Performance;
-using Xunit;
+using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Double
     {
-        private volatile string _string;
-
+        decimal decimalNum = new decimal(1.23456789E+5);
+        
         [Benchmark]
-        [InlineData(104234.343, 1_000_000)]
-        [InlineData(double.MaxValue, 100_000)]
-        [InlineData(double.MinValue, 100_000)]
-        [InlineData(double.MinValue / 2, 100_000)]
-        [InlineData(double.NaN, 10_000_000)]
-        [InlineData(double.PositiveInfinity, 10_000_000)]
-        [InlineData(2.2250738585072009E-308, 100_000)]
-        public void DefaultToString(double number, int innerIterations)
+        [Arguments(104234.343, 1_000_000)]
+        [Arguments(double.MaxValue, 100_000)]
+        [Arguments(double.MinValue, 100_000)]
+        [Arguments(double.MinValue / 2, 100_000)]
+        [Arguments(double.NaN, 10_000_000)]
+        [Arguments(double.PositiveInfinity, 10_000_000)]
+        [Arguments(2.2250738585072009E-308, 100_000)]
+        public string DefaultToString(double number, int innerIterations) // innerIterations argument is not used anymore but kept to preserve benchmark ID, do NOT remove it 
+            => number.ToString(); 
+
+        public static IEnumerable<object[]> ToStringWithCultureInfoArguments()
         {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < innerIterations; i++)
-                    {
-                        _string = number.ToString();
-                    }
-                }
-            }
+            yield return new object[] {new CultureInfo("zh"), 104234.343, 1_000_000};
+            yield return new object[] {new CultureInfo("zh"), double.MaxValue, 100_000};
+            yield return new object[] {new CultureInfo("zh"), double.MinValue, 100_000};
+            yield return new object[] {new CultureInfo("zh"), double.NaN, 20_000_000};
         }
 
         [Benchmark]
-        [InlineData("zh", 104234.343, 1_000_000)]
-        [InlineData("zh", double.MaxValue, 100_000)]
-        [InlineData("zh", double.MinValue, 100_000)]
-        [InlineData("zh", double.NaN, 20_000_000)]
-        [InlineData("zh", double.PositiveInfinity, 20_000_000)]
-        [InlineData("zh", 0.0, 4_000_000)]
-        public void ToStringWithCultureInfo(string cultureName, double number, int innerIterations)
-        {
-            CultureInfo cultureInfo = new CultureInfo(cultureName);
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < innerIterations; i++)
-                    {
-                        _string = number.ToString(cultureInfo);
-                    }
-                }
-            }
-        }
+        [ArgumentsSource(nameof(ToStringWithCultureInfoArguments))]
+        public string ToStringWithCultureInfo(CultureInfo cultureName, double number, int innerIterations) // the argument is called "cultureName" instead of "culture" to keep benchmark ID in BenchView, do NOT rename it
+            => number.ToString(cultureName);
 
         public static IEnumerable<object[]> ToStringWithFormat_TestData()
         {
@@ -87,49 +66,25 @@ namespace System.Tests
             {
                 foreach (double testValue in normalTestValues)
                 {
-                    yield return new object[] { format, testValue, 2_000_000 };
+                    yield return new object[] {format, testValue, 2_000_000};
                 }
 
                 foreach (double testValue in edgeTestValues)
                 {
-                    yield return new object[] { format, testValue, 100_000 };
+                    yield return new object[] {format, testValue, 100_000};
                 }
             }
 
-            yield return new object[] { "G", double.PositiveInfinity, 20_000_000 };
-            yield return new object[] { "G", double.NaN, 20_000_000 };
+            yield return new object[] {"G", double.PositiveInfinity, 20_000_000};
+            yield return new object[] {"G", double.NaN, 20_000_000};
         }
 
         [Benchmark]
-        [MemberData(nameof(ToStringWithFormat_TestData))]
-        public void ToStringWithFormat(string format, double number, int innerIterations)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < innerIterations; i++)
-                    {
-                        _string = number.ToString(format);
-                    }
-                }
-            }
-        }
+        [ArgumentsSource(nameof(ToStringWithFormat_TestData))]
+        public string ToStringWithFormat(string format, double number, int innerIterations) // innerIterations argument is not used anymore but kept to preserve benchmark ID, do NOT remove it  
+            => number.ToString(format);
 
-        [Benchmark(InnerIterationCount = 4_000_000)]
-        public static void Decimal_ToString()
-        {
-            decimal decimalNum = new decimal(1.23456789E+5);
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        decimalNum.ToString();
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        public string Decimal_ToString() => decimalNum.ToString();
     }
 }

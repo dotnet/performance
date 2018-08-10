@@ -2,37 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Boolean
     {
-        [Benchmark]
-        public void Parse_str()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < 10000; i++)
-                    {
-                        bool.Parse("True"); bool.Parse("True"); bool.Parse("True");
-                        bool.Parse("True"); bool.Parse("True"); bool.Parse("True");
-                        bool.Parse("True"); bool.Parse("True"); bool.Parse("True");
-                    }
-        }
+        [Benchmark(Description = "Parse")]
+        public bool Parse_str() => bool.Parse(bool.TrueString); 
 
-        [Benchmark]
-        public void ToString_()
-        {
-            bool boo = true;
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < 10000; i++)
-                    {
-                        boo.ToString(); boo.ToString(); boo.ToString();
-                        boo.ToString(); boo.ToString(); boo.ToString();
-                        boo.ToString(); boo.ToString(); boo.ToString();
-                    }
-        }
+        [Benchmark(Description = "ToString")]
+        public string ToString_() => true.ToString();
     }
 }

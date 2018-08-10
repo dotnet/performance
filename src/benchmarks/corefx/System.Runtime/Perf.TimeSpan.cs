@@ -2,36 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_TimeSpan
     {
         [Benchmark]
-        public void ctor_int_int_int()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < 10000; i++)
-                    {
-                        new TimeSpan(7, 8, 10); new TimeSpan(7, 8, 10); new TimeSpan(7, 8, 10);
-                        new TimeSpan(7, 8, 10); new TimeSpan(7, 8, 10); new TimeSpan(7, 8, 10);
-                        new TimeSpan(7, 8, 10); new TimeSpan(7, 8, 10); new TimeSpan(7, 8, 10);
-                    }
-        }
+        public TimeSpan ctor_int_int_int() => new TimeSpan(7, 8, 10);
 
         [Benchmark]
-        public void FromSeconds()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < 10000; i++)
-                    {
-                        TimeSpan.FromSeconds(50); TimeSpan.FromSeconds(50); TimeSpan.FromSeconds(50);
-                        TimeSpan.FromSeconds(50); TimeSpan.FromSeconds(50); TimeSpan.FromSeconds(50);
-                        TimeSpan.FromSeconds(50); TimeSpan.FromSeconds(50); TimeSpan.FromSeconds(50);
-                    }
-        }
+        public TimeSpan FromSeconds() => TimeSpan.FromSeconds(50);
     }
 }

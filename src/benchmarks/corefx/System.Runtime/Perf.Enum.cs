@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Enum
     {
         private enum testEnum
@@ -15,16 +17,9 @@ namespace System.Tests
         }
 
         [Benchmark]
-        public void Parse()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < 10000; i++)
-                    {
-                        Enum.Parse(typeof(testEnum), "Red"); Enum.Parse(typeof(testEnum), "Red"); Enum.Parse(typeof(testEnum), "Red");
-                        Enum.Parse(typeof(testEnum), "Red"); Enum.Parse(typeof(testEnum), "Red"); Enum.Parse(typeof(testEnum), "Red");
-                        Enum.Parse(typeof(testEnum), "Red"); Enum.Parse(typeof(testEnum), "Red"); Enum.Parse(typeof(testEnum), "Red");
-                    }
-        }
+        public object Parse() => Enum.Parse(typeof(testEnum), "Red");
+        
+        [Benchmark]
+        public bool TryParseGeneric() => Enum.TryParse<testEnum>("Red", out _);
     }
 }

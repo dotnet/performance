@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.CompilerServices;
-using Microsoft.Xunit.Performance;
+using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_HashCode
     {
         private static volatile int _valueStorage;
@@ -27,41 +29,26 @@ namespace System.Tests
         }
 
         [Benchmark]
-        public void Add()
+        public int Add()
         { 
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            { 
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < 100; i++)
-                    { 
-                        var hc = new HashCode();
-                        for (int j = 0; j < 100; j++)
-                        {
-                            hc.Add(i); hc.Add(i); hc.Add(i);
-                            hc.Add(i); hc.Add(i); hc.Add(i);
-                            hc.Add(i); hc.Add(i); hc.Add(i);
-                        }
-                        DontDiscard(hc.ToHashCode());
-                    }
-                }
+            var hc = new HashCode();
+            for (int j = 0; j < 100; j++)
+            {
+                hc.Add(j); hc.Add(j); hc.Add(j);
+                hc.Add(j); hc.Add(j); hc.Add(j);
+                hc.Add(j); hc.Add(j); hc.Add(j);
             }
+            return hc.ToHashCode();
         }
 
         
         [Benchmark]
         public void Combine_1()
         { 
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
+            for (int i = 0; i < 10000; i++)
             { 
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < 10000; i++)
-                    { 
-                        DontDiscard(HashCode.Combine(
-                            DontFold(i)));
-                    }
-                }
+                DontDiscard(HashCode.Combine(
+                    DontFold(i)));
             }
         }
 
@@ -69,140 +56,98 @@ namespace System.Tests
         [Benchmark]
         public void Combine_2()
         {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
+            for (int i = 0; i < 10000; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < 10000; i++)
-                    {
-                        DontDiscard(HashCode.Combine(
-                            DontFold(i),
-                            DontFold(i)));
-                    }
-                }
+                DontDiscard(HashCode.Combine(
+                    DontFold(i),
+                    DontFold(i)));
             }
         }
 
         [Benchmark]
         public void Combine_3()
         {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
+            for (int i = 0; i < 10000; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < 10000; i++)
-                    {
-                        DontDiscard(HashCode.Combine(
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i)));
-                    }
-                }
+                DontDiscard(HashCode.Combine(
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i)));
             }
         }
 
         [Benchmark]
         public void Combine_4()
         {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
+            for (int i = 0; i < 10000; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < 10000; i++)
-                    {
-                        DontDiscard(HashCode.Combine(
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i)));
-                    }
-                }
+                DontDiscard(HashCode.Combine(
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i)));
             }
         }
 
         [Benchmark]
         public void Combine_5()
         {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
+            for (int i = 0; i < 10000; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < 10000; i++)
-                    {
-                        DontDiscard(HashCode.Combine(
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i)));
-                    }
-                }
+                DontDiscard(HashCode.Combine(
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i)));
             }
         }
 
         [Benchmark]
         public void Combine_6()
         {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
+            for (int i = 0; i < 10000; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < 10000; i++)
-                    {
-                        DontDiscard(HashCode.Combine(
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i)));
-                    }
-                }
+                DontDiscard(HashCode.Combine(
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i)));
             }
         }
 
         [Benchmark]
         public void Combine_7()
         {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
+            for (int i = 0; i < 10000; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < 10000; i++)
-                    {
-                        DontDiscard(HashCode.Combine(
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i)));
-                    }
-                }
+                DontDiscard(HashCode.Combine(
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i)));
             }
         }
 
         [Benchmark]
         public void Combine_8()
         {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
+            for (int i = 0; i < 10000; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < 10000; i++)
-                    {
-                        DontDiscard(HashCode.Combine(
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i),
-                            DontFold(i)));
-                    }
-                }
+                DontDiscard(HashCode.Combine(
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i),
+                    DontFold(i)));
             }
         }
     }

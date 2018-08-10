@@ -2,79 +2,45 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
-using Xunit;
+using System.Collections.Generic;
+using System.Linq;
+using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Int32
     {
-        private const int InnerCount = 500_000;
-
-        private static string s_resultString;
-        private static int s_resultInt32;
-
-        public static object[][] Int32Values => new[]
+        private char[] _destination = new char[int.MinValue.ToString().Length];
+        
+        public IEnumerable<object> Int32Values => new object[]
         {
-            new object[] { 0 },
-            new object[] { -1 },
-            new object[] { 1 },
-            new object[] { -1283 },
-            new object[] { 1283 },
-            new object[] { -12837467 },
-            new object[] { 12837467 },
-            new object[] { -2147483648 },
-            new object[] { 2147483647 },
+            0,
+            -1,
+            1,
+            -1283,
+            1283,
+            -12837467,
+            12837467,
+            -2147483648,
+            2147483647,
         };
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [MemberData(nameof(Int32Values))]
-        public void ToString(int value)
-        {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < InnerCount; i++)
-                    {
-                        s_resultString = value.ToString();
-                    }
-                }
-            }
-        }
+        public IEnumerable<object> StringValues => Int32Values.Select(value => value.ToString()).ToArray();
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [MemberData(nameof(Int32Values))]
-        public void TryFormat(int value)
-        {
-            Span<char> destination = new char[value.ToString().Length];
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < InnerCount; i++)
-                    {
-                        value.TryFormat(destination, out s_resultInt32);
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(Int32Values))]
+        public string ToString(int value) => value.ToString();
+        
+#if NETCOREAPP2_1
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public int Parse(string value) => int.Parse(value.AsSpan());
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [MemberData(nameof(Int32Values))]
-        public void Parse(int value)
-        {
-            ReadOnlySpan<char> valueSpan = value.ToString();
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < InnerCount; i++)
-                    {
-                        s_resultInt32 = int.Parse(valueSpan);
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(Int32Values))]
+        public bool TryFormat(int value) => value.TryFormat(new Span<char>(_destination), out _);
+#endif
     }
 }
