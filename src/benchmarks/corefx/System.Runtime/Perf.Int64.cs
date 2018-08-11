@@ -73,7 +73,7 @@ namespace System.Tests
         public bool TryFormat(long value) => value.TryFormat(new Span<char>(_destination), out _);
 
         [Benchmark]
-        [ArgumentsSource(nameof(Int64Values))]
+        [ArgumentsSource(nameof(StringValues))]
         public long Parse(string value) => long.Parse(value.AsSpan());
 #endif
     }
