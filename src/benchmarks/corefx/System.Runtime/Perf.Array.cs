@@ -252,24 +252,6 @@ namespace System.Tests
         }
 
         [Benchmark]
-        public static void ArrayCopy1D()
-        {
-            Array dummy = Array.CreateInstance(typeof(int), s_DIM_1);
-            s_arr1 = Array.CreateInstance(typeof(int), s_DIM_1);
-
-            for (int i = 0; i < s_DIM_1; i++)
-                s_arr1.SetValue(i, i);
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    Array.Copy(s_arr1, dummy, MAX_ARRAY_SIZE);
-                }
-            }
-        }
-
-        [Benchmark]
         public static void ArrayCopy2D()
         {
             int arrayLen = (int)Math.Pow(s_DIM_2, 2);
