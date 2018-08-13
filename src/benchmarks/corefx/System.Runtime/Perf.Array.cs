@@ -20,27 +20,6 @@ namespace System.Tests
         private static readonly int s_DIM_3 = (int)(Math.Pow(MAX_ARRAY_SIZE, (1.0 / 3.0)) + .001);
 
         [Benchmark]
-        public static void ArrayCopy()
-        {
-            int[] dummy = new int[s_DIM_1];
-            s_arr = new int[s_DIM_1];
-
-            for (int i = 0; i < s_DIM_1; i++)
-                s_arr[i] = i;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int j = 0; j < s_DIM_1; j++)
-                    {
-                        dummy[j] = s_arr[j];
-                    }
-                }
-            }
-        }
-
-        [Benchmark]
         public static void ArrayAssign()
         {
             s_arr = new int[s_DIM_1];
