@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
-using System;
+using BenchmarkDotNet.Attributes;
 
 namespace System.Tests
 {
@@ -19,14 +18,6 @@ namespace System.Tests
         private static readonly int s_DIM_1 = MAX_ARRAY_SIZE;
         private static readonly int s_DIM_2 = (int)Math.Pow(MAX_ARRAY_SIZE, (1.0 / 2.0));
         private static readonly int s_DIM_3 = (int)(Math.Pow(MAX_ARRAY_SIZE, (1.0 / 3.0)) + .001);
-
-        [Benchmark]
-        public static void ArrayCreate()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s_arr = new int[s_DIM_1];
-        }
 
         [Benchmark]
         public static void ArrayCopy()
