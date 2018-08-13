@@ -3,31 +3,24 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.Xunit.Performance;
-using Xunit;
+using BenchmarkDotNet.Attributes;
 
 namespace System.Tests
 {
     public partial class Perf_String
     {
-        private static readonly object[] s_testStringSizes = new object[]
-        {
-            10, 100, 1000
-        };
+        private static readonly int[] s_testStringSizes = { 10, 100, 1000 };
 
-        public static IEnumerable<object[]> ContainsStringComparisonArgs => Permutations(s_compareOptions, s_testStringSizes);
+        public static IEnumerable<object[]> ContainsStringComparisonArgs()
+        {
+            foreach (var compareOption in s_compareOptions)
+                foreach (var size in s_testStringSizes)
+                    yield return new object[] { compareOption, new StringArguments(size) };
+        }
 
         [Benchmark]
-        [MemberData(nameof(ContainsStringComparisonArgs))]
-        public void Contains(StringComparison comparisonType, int size)
-        {
-            PerfUtils utils = new PerfUtils();
-            string testString = utils.CreateString(size);
-            string subString = testString.Substring(testString.Length / 2, testString.Length / 4);
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < 10000; i++)
-                        testString.Contains(subString, comparisonType);
-        }
+        [ArgumentsSource(nameof(ContainsStringComparisonArgs))]
+        public bool Contains(StringComparison comparisonType, StringArguments size) // the argument is called "size" to keep the old benchmark ID, do NOT rename it
+            => size.TestString1.Contains(size.Q3, comparisonType);
     }
 }

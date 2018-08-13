@@ -4,107 +4,53 @@
 
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Collections.Generic;
-using BdnDtos;
 using BenchmarkDotNet.Attributes;
 
 namespace System.Tests
 {
     public partial class Perf_String
     {
-        public static IEnumerable<object[]> TestStringSizes()
+        public static IEnumerable<object> TestStringSizes()
         {
-            yield return new object[] { 10 };
-            yield return new object[] { 100 };
-            yield return new object[] { 1000 };
+            yield return new StringArguments(10);
+            yield return new StringArguments(100);
+            yield return new StringArguments(1000);
         }
 
         [Benchmark]
         [ArgumentsSource(nameof(TestStringSizes))]
-        public void GetChars(int size)
-        {
-            PerfUtils utils = new PerfUtils();
-            string testString = utils.CreateString(size);
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < 10000; i++)
-                    {
-                        testString.ToCharArray(); testString.ToCharArray(); testString.ToCharArray();
-                        testString.ToCharArray(); testString.ToCharArray(); testString.ToCharArray();
-                        testString.ToCharArray(); testString.ToCharArray(); testString.ToCharArray();
-                    }
-        }
-
-        [Benchmark]
-        [ArgumentsSource(nameof(TestStringSizes))]
-        public void Concat_str_str(int size)
-        {
-            PerfUtils utils = new PerfUtils();
-            string testString1 = utils.CreateString(size);
-            string testString2 = utils.CreateString(size);
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < 10000; i++)
-                        string.Concat(testString1, testString2);
-        }
-
-        [Benchmark]
-        [ArgumentsSource(nameof(TestStringSizes))]
-        public void Concat_str_str_str(int size)
-        {
-            PerfUtils utils = new PerfUtils();
-            string testString1 = utils.CreateString(size);
-            string testString2 = utils.CreateString(size);
-            string testString3 = utils.CreateString(size);
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < 10000; i++)
-                        string.Concat(testString1, testString2, testString3);
-        }
-
-        [Benchmark]
-        [ArgumentsSource(nameof(TestStringSizes))]
-        public void Concat_str_str_str_str(int size)
-        {
-            PerfUtils utils = new PerfUtils();
-            string testString1 = utils.CreateString(size);
-            string testString2 = utils.CreateString(size);
-            string testString3 = utils.CreateString(size);
-            string testString4 = utils.CreateString(size);
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < 10000; i++)
-                        string.Concat(testString1, testString2, testString3, testString4);
-        }
-
-        [Benchmark]
-        [ArgumentsSource(nameof(TestStringSizes))]
-        public void Contains(int size)
-        {
-            PerfUtils utils = new PerfUtils();
-            string testString = utils.CreateString(size);
-            string subString = testString.Substring(testString.Length / 2, testString.Length / 4);
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < 10000; i++)
-                        testString.Contains(subString);
-        }
+        public char[] GetChars(StringArguments size) // the argument is called "size" to keep the old benchmark ID, do NOT rename it
+            => size.TestString1.ToCharArray();
         
         [Benchmark]
         [ArgumentsSource(nameof(TestStringSizes))]
-        public void StartsWith(int size)
-        {
-            PerfUtils utils = new PerfUtils();
-            string testString = utils.CreateString(size);
-            string subString = testString.Substring(0, testString.Length / 4);
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < 10000; i++)
-                        testString.StartsWith(subString);
-        }
+        public string Concat_str_str(StringArguments size)
+            => string.Concat(size.TestString1, size.TestString2);
 
-        private static readonly string s_longString = "<param name=\"source\" value=\"ClientBin/OlympicsModule.xap\"><param name=\"onError\" value=\"OlySLErr\"><param name=\"background\" value=\"#00000000\"><param name=\"EnableHtmlAccess\" value=\"true\"><param name=\"windowless\" value=\"true\"><param name=\"initparams\" value=\"featurestorydivid=fsd,imagecarouseldivid=icdiv,nbcresultsdivid=nbcrd,marqueedivid=mdiv,menudivid=menudiv,resultsmessagedivid=sspo,sidebannerdivid=imgtitle\"><param name=\"maxFrameRate\" value=\"24\">\n<div id=\"olympics\" class=\"parent chrome1 triple1 cf\"><div id=\"imgtitle\" class=\"child c1\"><div class=\"child c1\"><div class=\"linkedimg\"><a href=\"http://www.nbcolympics.com/\"><img src=\"http://stb.msn.com/i/2F/B52A4C747D7C3DD651A56484793236.gif\" alt=\"Beijing 2008 Olympic Games\" width=\"42\" height=\"154\"></a></div></div></div><div id=\"hdlines\" class=\"child c1\"><div id=\"fsd\" class=\"child c1\"><div style=\"display: block;\" id=\"oslide1\" class=\"slide first\"><div class=\"photolistset\"><div class=\"photo\" id=\"ophotohalf1\"><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\"><img src=\"http://stb.msn.com/i/6A/CAA38651B85C2F342E8915D33893E.jpg\" alt=\"Ian Crocker (L) &amp; Michael Phelps (\u00A9 Al Bello/Getty \r\nImages)\" width=\"122\" height=\"110\"></a></div><div class=\"list\" id=\"olisthalf1\"><h4><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\">Familiar \nFoes</a></h4><div><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\">Phelps \nfaces rival Crocker in tonight's 100m butterfly final</a></div><ul class=\"linklist16 lstBlk\"><li class=\"first\"><a href=\"http://www.nbcolympics.com/swimming/news/newsid=219455.html?GT1=39003\">Phelps \ndenies doping allegations</a></li><li class=\"last\"><a href=\"http://www.nbcolympics.com/video/share.html?videoid=0815_hd_swb_hl_l0567&amp;GT1=39003\">Video: \nSixth gold for Phelps</a></li></ul></div></div></div><div id=\"oslide2\" class=\"slide\"><div class=\"photolistset\"><div class=\"photo\" id=\"ophotohalf2\"><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\"><img src=\"http://stc.msn.com/br/hp/en-us/css/55/i/t.gif?http://stb.msn.com/i/FE/9EE79458BEFB2816B24E639497C.jpg\" alt=\"Crocker (L) &amp; Phelps (\u00A9 Al Bello/Getty \r\nImages)\" width=\"206\" height=\"155\"></a></div><div class=\"list\" id=\"olisthalf2\"><h4><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\">Familiar \nFoes</a></h4><div><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\">Michael \nPhelps, right, will face world-record holder Ian Crocker in the 100-meter \nbutterfly final in Beijing.</a></div><ul class=\"linklist16 lstBlk\"><li class=\"first\"><a href=\"http://www.nbcolympics.com/newscenter/index.html?GT1=39003\">Latest \nnews</a></li><li class=\"last\"><a href=\"http://www.nbcolympics.com/video/index.html?GT1=39003\">Video \nhighlights</a></li></ul></div></div></div><div style=\"display: none;\" id=\"oslide3\" class=\"slide\"><div class=\"photolistset\"><div class=\"photo\" id=\"ophotohalf3\"><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\"><img src=\"http://stb.msn.com/i/6A/CAA38651B85C2F342E8915D33893E.jpg\" alt=\"Ian Crocker (L) &amp; Michael Phelps (\u00A9 Al Bello/Getty \r\nImages)\" width=\"122\" height=\"110\"></a></div><div class=\"list\" id=\"olisthalf3\"><h4><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\">Familiar \nFoes</a></h4><div><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\">Phelps \nfaces rival Crocker in tonight's 100m butterfly final</a></div><ul class=\"linklist16 lstBlk\"><li class=\"first\"><a href=\"http://www.nbcolympics.com/swimming/news/newsid=219455.html?GT1=39003\">Phelps \ndenies doping allegations</a></li><li class=\"last\"><a href=\"http://www.nbcolympics.com/video/share.html?videoid=0815_hd_swb_hl_l0567&amp;GT1=39003\">Video: \nSixth gold for Phelps</a></li></ul></div></div></div><div id=\"oslide4\" class=\"slide\"><div class=\"photolistset\"><div class=\"photo\" id=\"ophotohalf4\"><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\"><img src=\"http://stc.msn.com/br/hp/en-us/css/55/i/t.gif?http://stb.msn.com/i/FE/9EE79458BEFB2816B24E639497C.jpg\" alt=\"Crocker (L) &amp; Phelps (\u00A9 Al Bello/Getty \r\nImages)\" width=\"206\" height=\"155\"></a></div><div class=\"list\" id=\"olisthalf4\"><h4><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\">Familiar \nFoes</a></h4><div><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\">Michael \nPhelps, right, will face world-record holder Ian Crocker in the 100-meter \nbutterfly final in Beijing.</a></div><ul class=\"linklist16 lstBlk\"><li class=\"first\"><a href=\"http://www.nbcolympics.com/newscenter/index.html?GT1=39003\">Latest \nnews</a></li><li class=\"last\"><a href=\"http://www.nbcolympics.com/video/index.html?GT1=39003\">Video \nhighlights</a></li></ul></div></div></div></div></div><div style=\"display: block;\" id=\"hspo\" class=\"child c3\"><input class=\"button\" value=\"Hide Results\" type=\"submit\"><div class=\"results\" id=\"nbcrd\"><h3>Latest News From NBCOlympics.com</h3><ul class=\"linklist16\"><li class=\"first\"><a href=\"http://www.nbcolympics.com/trackandfield/news/newsid=218940.html?_source=rss&amp;cid=\">Surprise \nU.S. medal as track begins</a></li><li><a href=\"http://www.nbcolympics.com/gymnastics/news/newsid=216969.html?_source=rss&amp;cid=\">Inside \nthe art of Liukin's epic gold</a></li><li><a href=\"http://www.nbcolympics.com/tennis/news/newsid=217846.html?_source=rss&amp;cid=\">Blake \nloses, blasts opponent's ethics</a></li><li class=\"last\"><a href=\"http://www.nbcolympics.com/baseball/news/newsid=216758.html?_source=rss&amp;cid=\">U.S. \nfumes after loss to Cuba</a></li></ul></div></div><div style=\"display: none;\" id=\"sspo\" class=\"child c4\"><div><form action=\"#\" method=\"get\"><p>#</p><div><input class=\"button\" value=\"Show Results\" type=\"submit\"><span>Click to see up-to-the-minute news \n&amp; results from NBCOlympics.com</span></div></form></div></div><div id=\"icdiv\" class=\"child c5\"><h3><a href=\"http://www.nbcolympics.com/video/index.html?GT1=39003\">Exclusive \nVideo</a></h3><ul class=\"imglinkabslist1 cf\"><li class=\"first\"><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0815_hd_gaw_hl_l1664&amp;channelcode=sportga&amp;GT1=39003\" class=\"first\"><img src=\"http://stb.msn.com/i/DF/BBBDB250C038121B9A33A96EE85B.jpg\" alt=\"Nastia Liukin (\u00A9 NBCOlympics.com)\" width=\"60\" height=\"60\"></a><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0815_hd_gaw_hl_l1664&amp;channelcode=sportga&amp;GT1=39003\">Nastia \nNails It</a><p><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0815_hd_gaw_hl_l1664&amp;channelcode=sportga&amp;GT1=39003\">See \nLiukin's routines</a></p></li><li><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0815_hd_bvb_hl_l0516&amp;channelcode=sportbv&amp;GT1=39003\" class=\"first\"><img src=\"http://stb.msn.com/i/F7/4DB97952CB66E84B51FF71F59B8E2.jpg\" alt=\"Kerri Walsh (\u00A9 Carlos Barria/Reuters)\" width=\"60\" height=\"60\"></a><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0815_hd_bvb_hl_l0516&amp;channelcode=sportbv&amp;GT1=39003\">Beach \nVolleyball</a><p><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0815_hd_bvb_hl_l0516&amp;channelcode=sportbv&amp;GT1=39003\">Misty, \nKerri survive scare</a></p></li><li class=\"last\"><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0814_sd_bxb_mn_l0425&amp;GT1=39003\" class=\"first\"><img src=\"http://stb.msn.com/i/D9/289343F9138E28F969B58799CD.jpg\" alt=\"Demetrius Andrade (\u00A9 Murad Sezer/AP)\" width=\"60\" height=\"60\"></a><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0814_sd_bxb_mn_l0425&amp;GT1=39003\">Boxing</a><p><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0814_sd_bxb_mn_l0425&amp;GT1=39003\">Biggest \nhits from Day 6</a></p></li></ul></div><div id=\"upsell\" class=\"child c6\"><div class=\"link\"><a href=\"http://www.microsoft.com/silverlight/resources/install.aspx?v=2.0%20\">For an \nenhanced Olympics experience, download Microsoft Silverlight \n2</a></div></div></div><div id=\"olyrl\" class=\"child c2 double2\"><div id=\"menudiv\" class=\"child c1\"><ul class=\"linklist1\"><li class=\"first\"><a href=\"http://www.nbcolympics.com/resultsandschedules/index.html?GT1=39003\">Schedule</a></li><li><a href=\"http://www.nbcolympics.com/medals/index.html?GT1=39003\">Medal \nCount</a></li><li><a href=\"http://www.nbcolympics.com/video/index.html?GT1=39003\">Video</a></li><li><a href=\"http://www.nbcolympics.com/athletes/index.html?GT1=39003\">Athletes</a></li><li class=\"last\"><a href=\"http://www.nbcolympics.com/photos/index.html?GT1=39003\">Photos</a></li></ul></div><div id=\"mdiv\" class=\"child c2\"><ul class=\"linklist1\"><li class=\"first\"><a href=\"http://www.nbcolympics.com/tv_and_online_listings/index.html?GT1=39003\">Olympics \nTV listings</a></li><li><a href=\"http://www.nbcolympics.com/medals/alltime/index.html?GT1=39003\">All-time \nmedal standings</a></li><li><a href=\"http://www.nbcolympics.com/photos/mostpopular/index.html?GT1=39003\">Photos: \nMost popular galleries</a></li><li><a href=\"http://www.nbcolympics.com/video/highlights/index.html?GT1=39003\">Video: \nLatest Olympic highlights</a></li><li><a href=\"http://www.nbcolympics.com/tv_and_online_listings/index.html?GT1=39003\">Olympics \nTV listings</a></li><li><a href=\"http://www.nbcolympics.com/medals/alltime/index.html?GT1=39003\">All-time \nmedal standings</a></li><li><a href=\"http://www.nbcolympics.com/photos/mostpopular/index.html?GT1=39003\">Photos: \nMost popular galleries</a></li><li><a href=\"http://www.nbcolympics.com/video/highlights/index.html?GT1=39003\">Video: \nLatest Olympic highlights</a></li><li><a href=\"http://www.nbcolympics.com/tv_and_online_listings/index.html?GT1=39003\">Olympics \nTV listings</a></li><li><a href=\"http://www.nbcolympics.com/medals/alltime/index.html?GT1=39003\">All-time \nmedal standings</a></li><li><a href=\"http://www.nbcolympics.com/photos/mostpopular/index.html?GT1=39003\">Photos: \nMost popular galleries</a></li><li class=\"last\"><a href=\"http://www.nbcolympics.com/video/highlights/index.html?GT1=39003\">Video: \nLatest Olympic highlights</a></li></ul></div></div>";
+        [Benchmark]
+        [ArgumentsSource(nameof(TestStringSizes))]
+        public string Concat_str_str_str(StringArguments size)
+            => string.Concat(size.TestString1, size.TestString2, size.TestString3);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(TestStringSizes))]
+        public string Concat_str_str_str_str(StringArguments size)
+            => string.Concat(size.TestString1, size.TestString2, size.TestString3, size.TestString4);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(TestStringSizes))]
+        public bool Contains(StringArguments size)
+            => size.TestString1.Contains(size.Q3);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(TestStringSizes))]
+        public bool StartsWith(StringArguments size)
+            => size.TestString1.StartsWith(size.Q1);
+
+        private static readonly string s_longString =
+            "<param name=\"source\" value=\"ClientBin/OlympicsModule.xap\"><param name=\"onError\" value=\"OlySLErr\"><param name=\"background\" value=\"#00000000\"><param name=\"EnableHtmlAccess\" value=\"true\"><param name=\"windowless\" value=\"true\"><param name=\"initparams\" value=\"featurestorydivid=fsd,imagecarouseldivid=icdiv,nbcresultsdivid=nbcrd,marqueedivid=mdiv,menudivid=menudiv,resultsmessagedivid=sspo,sidebannerdivid=imgtitle\"><param name=\"maxFrameRate\" value=\"24\">\n<div id=\"olympics\" class=\"parent chrome1 triple1 cf\"><div id=\"imgtitle\" class=\"child c1\"><div class=\"child c1\"><div class=\"linkedimg\"><a href=\"http://www.nbcolympics.com/\"><img src=\"http://stb.msn.com/i/2F/B52A4C747D7C3DD651A56484793236.gif\" alt=\"Beijing 2008 Olympic Games\" width=\"42\" height=\"154\"></a></div></div></div><div id=\"hdlines\" class=\"child c1\"><div id=\"fsd\" class=\"child c1\"><div style=\"display: block;\" id=\"oslide1\" class=\"slide first\"><div class=\"photolistset\"><div class=\"photo\" id=\"ophotohalf1\"><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\"><img src=\"http://stb.msn.com/i/6A/CAA38651B85C2F342E8915D33893E.jpg\" alt=\"Ian Crocker (L) &amp; Michael Phelps (\u00A9 Al Bello/Getty \r\nImages)\" width=\"122\" height=\"110\"></a></div><div class=\"list\" id=\"olisthalf1\"><h4><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\">Familiar \nFoes</a></h4><div><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\">Phelps \nfaces rival Crocker in tonight's 100m butterfly final</a></div><ul class=\"linklist16 lstBlk\"><li class=\"first\"><a href=\"http://www.nbcolympics.com/swimming/news/newsid=219455.html?GT1=39003\">Phelps \ndenies doping allegations</a></li><li class=\"last\"><a href=\"http://www.nbcolympics.com/video/share.html?videoid=0815_hd_swb_hl_l0567&amp;GT1=39003\">Video: \nSixth gold for Phelps</a></li></ul></div></div></div><div id=\"oslide2\" class=\"slide\"><div class=\"photolistset\"><div class=\"photo\" id=\"ophotohalf2\"><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\"><img src=\"http://stc.msn.com/br/hp/en-us/css/55/i/t.gif?http://stb.msn.com/i/FE/9EE79458BEFB2816B24E639497C.jpg\" alt=\"Crocker (L) &amp; Phelps (\u00A9 Al Bello/Getty \r\nImages)\" width=\"206\" height=\"155\"></a></div><div class=\"list\" id=\"olisthalf2\"><h4><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\">Familiar \nFoes</a></h4><div><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\">Michael \nPhelps, right, will face world-record holder Ian Crocker in the 100-meter \nbutterfly final in Beijing.</a></div><ul class=\"linklist16 lstBlk\"><li class=\"first\"><a href=\"http://www.nbcolympics.com/newscenter/index.html?GT1=39003\">Latest \nnews</a></li><li class=\"last\"><a href=\"http://www.nbcolympics.com/video/index.html?GT1=39003\">Video \nhighlights</a></li></ul></div></div></div><div style=\"display: none;\" id=\"oslide3\" class=\"slide\"><div class=\"photolistset\"><div class=\"photo\" id=\"ophotohalf3\"><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\"><img src=\"http://stb.msn.com/i/6A/CAA38651B85C2F342E8915D33893E.jpg\" alt=\"Ian Crocker (L) &amp; Michael Phelps (\u00A9 Al Bello/Getty \r\nImages)\" width=\"122\" height=\"110\"></a></div><div class=\"list\" id=\"olisthalf3\"><h4><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\">Familiar \nFoes</a></h4><div><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\">Phelps \nfaces rival Crocker in tonight's 100m butterfly final</a></div><ul class=\"linklist16 lstBlk\"><li class=\"first\"><a href=\"http://www.nbcolympics.com/swimming/news/newsid=219455.html?GT1=39003\">Phelps \ndenies doping allegations</a></li><li class=\"last\"><a href=\"http://www.nbcolympics.com/video/share.html?videoid=0815_hd_swb_hl_l0567&amp;GT1=39003\">Video: \nSixth gold for Phelps</a></li></ul></div></div></div><div id=\"oslide4\" class=\"slide\"><div class=\"photolistset\"><div class=\"photo\" id=\"ophotohalf4\"><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\"><img src=\"http://stc.msn.com/br/hp/en-us/css/55/i/t.gif?http://stb.msn.com/i/FE/9EE79458BEFB2816B24E639497C.jpg\" alt=\"Crocker (L) &amp; Phelps (\u00A9 Al Bello/Getty \r\nImages)\" width=\"206\" height=\"155\"></a></div><div class=\"list\" id=\"olisthalf4\"><h4><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\">Familiar \nFoes</a></h4><div><a href=\"http://www.nbcolympics.com/swimming/news/newsid=105694.html?GT1=39003\">Michael \nPhelps, right, will face world-record holder Ian Crocker in the 100-meter \nbutterfly final in Beijing.</a></div><ul class=\"linklist16 lstBlk\"><li class=\"first\"><a href=\"http://www.nbcolympics.com/newscenter/index.html?GT1=39003\">Latest \nnews</a></li><li class=\"last\"><a href=\"http://www.nbcolympics.com/video/index.html?GT1=39003\">Video \nhighlights</a></li></ul></div></div></div></div></div><div style=\"display: block;\" id=\"hspo\" class=\"child c3\"><input class=\"button\" value=\"Hide Results\" type=\"submit\"><div class=\"results\" id=\"nbcrd\"><h3>Latest News From NBCOlympics.com</h3><ul class=\"linklist16\"><li class=\"first\"><a href=\"http://www.nbcolympics.com/trackandfield/news/newsid=218940.html?_source=rss&amp;cid=\">Surprise \nU.S. medal as track begins</a></li><li><a href=\"http://www.nbcolympics.com/gymnastics/news/newsid=216969.html?_source=rss&amp;cid=\">Inside \nthe art of Liukin's epic gold</a></li><li><a href=\"http://www.nbcolympics.com/tennis/news/newsid=217846.html?_source=rss&amp;cid=\">Blake \nloses, blasts opponent's ethics</a></li><li class=\"last\"><a href=\"http://www.nbcolympics.com/baseball/news/newsid=216758.html?_source=rss&amp;cid=\">U.S. \nfumes after loss to Cuba</a></li></ul></div></div><div style=\"display: none;\" id=\"sspo\" class=\"child c4\"><div><form action=\"#\" method=\"get\"><p>#</p><div><input class=\"button\" value=\"Show Results\" type=\"submit\"><span>Click to see up-to-the-minute news \n&amp; results from NBCOlympics.com</span></div></form></div></div><div id=\"icdiv\" class=\"child c5\"><h3><a href=\"http://www.nbcolympics.com/video/index.html?GT1=39003\">Exclusive \nVideo</a></h3><ul class=\"imglinkabslist1 cf\"><li class=\"first\"><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0815_hd_gaw_hl_l1664&amp;channelcode=sportga&amp;GT1=39003\" class=\"first\"><img src=\"http://stb.msn.com/i/DF/BBBDB250C038121B9A33A96EE85B.jpg\" alt=\"Nastia Liukin (\u00A9 NBCOlympics.com)\" width=\"60\" height=\"60\"></a><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0815_hd_gaw_hl_l1664&amp;channelcode=sportga&amp;GT1=39003\">Nastia \nNails It</a><p><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0815_hd_gaw_hl_l1664&amp;channelcode=sportga&amp;GT1=39003\">See \nLiukin's routines</a></p></li><li><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0815_hd_bvb_hl_l0516&amp;channelcode=sportbv&amp;GT1=39003\" class=\"first\"><img src=\"http://stb.msn.com/i/F7/4DB97952CB66E84B51FF71F59B8E2.jpg\" alt=\"Kerri Walsh (\u00A9 Carlos Barria/Reuters)\" width=\"60\" height=\"60\"></a><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0815_hd_bvb_hl_l0516&amp;channelcode=sportbv&amp;GT1=39003\">Beach \nVolleyball</a><p><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0815_hd_bvb_hl_l0516&amp;channelcode=sportbv&amp;GT1=39003\">Misty, \nKerri survive scare</a></p></li><li class=\"last\"><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0814_sd_bxb_mn_l0425&amp;GT1=39003\" class=\"first\"><img src=\"http://stb.msn.com/i/D9/289343F9138E28F969B58799CD.jpg\" alt=\"Demetrius Andrade (\u00A9 Murad Sezer/AP)\" width=\"60\" height=\"60\"></a><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0814_sd_bxb_mn_l0425&amp;GT1=39003\">Boxing</a><p><a href=\"http://www.nbcolympics.com/video/player.html?assetid=0814_sd_bxb_mn_l0425&amp;GT1=39003\">Biggest \nhits from Day 6</a></p></li></ul></div><div id=\"upsell\" class=\"child c6\"><div class=\"link\"><a href=\"http://www.microsoft.com/silverlight/resources/install.aspx?v=2.0%20\">For an \nenhanced Olympics experience, download Microsoft Silverlight \n2</a></div></div></div><div id=\"olyrl\" class=\"child c2 double2\"><div id=\"menudiv\" class=\"child c1\"><ul class=\"linklist1\"><li class=\"first\"><a href=\"http://www.nbcolympics.com/resultsandschedules/index.html?GT1=39003\">Schedule</a></li><li><a href=\"http://www.nbcolympics.com/medals/index.html?GT1=39003\">Medal \nCount</a></li><li><a href=\"http://www.nbcolympics.com/video/index.html?GT1=39003\">Video</a></li><li><a href=\"http://www.nbcolympics.com/athletes/index.html?GT1=39003\">Athletes</a></li><li class=\"last\"><a href=\"http://www.nbcolympics.com/photos/index.html?GT1=39003\">Photos</a></li></ul></div><div id=\"mdiv\" class=\"child c2\"><ul class=\"linklist1\"><li class=\"first\"><a href=\"http://www.nbcolympics.com/tv_and_online_listings/index.html?GT1=39003\">Olympics \nTV listings</a></li><li><a href=\"http://www.nbcolympics.com/medals/alltime/index.html?GT1=39003\">All-time \nmedal standings</a></li><li><a href=\"http://www.nbcolympics.com/photos/mostpopular/index.html?GT1=39003\">Photos: \nMost popular galleries</a></li><li><a href=\"http://www.nbcolympics.com/video/highlights/index.html?GT1=39003\">Video: \nLatest Olympic highlights</a></li><li><a href=\"http://www.nbcolympics.com/tv_and_online_listings/index.html?GT1=39003\">Olympics \nTV listings</a></li><li><a href=\"http://www.nbcolympics.com/medals/alltime/index.html?GT1=39003\">All-time \nmedal standings</a></li><li><a href=\"http://www.nbcolympics.com/photos/mostpopular/index.html?GT1=39003\">Photos: \nMost popular galleries</a></li><li><a href=\"http://www.nbcolympics.com/video/highlights/index.html?GT1=39003\">Video: \nLatest Olympic highlights</a></li><li><a href=\"http://www.nbcolympics.com/tv_and_online_listings/index.html?GT1=39003\">Olympics \nTV listings</a></li><li><a href=\"http://www.nbcolympics.com/medals/alltime/index.html?GT1=39003\">All-time \nmedal standings</a></li><li><a href=\"http://www.nbcolympics.com/photos/mostpopular/index.html?GT1=39003\">Photos: \nMost popular galleries</a></li><li class=\"last\"><a href=\"http://www.nbcolympics.com/video/highlights/index.html?GT1=39003\">Video: \nLatest Olympic highlights</a></li></ul></div></div>";
+
         private static readonly string s_tagName = "<foobar";
 
         private static IEnumerable<object[]> Permutations(params IEnumerable<object>[] values)
@@ -193,13 +139,13 @@ namespace System.Tests
         private static readonly object[] s_trimCharArrays = new object[]
         {
             null,
-            new char[] { 'T' },
-            new char[] { 'T', 'T', 'T', 'T', 'T' },
-            new char[] { 'a' },
-            new char[] { 'T', (char)192 },
-            new char[] { ' ', (char)8197 },
-            new char[] { "\u0400"[0] },
-            new char[] { '1', 'a', ' ', '0', 'd', 'e', 's', 't', "\u0400"[0] },
+            new char[] {'T'},
+            new char[] {'T', 'T', 'T', 'T', 'T'},
+            new char[] {'a'},
+            new char[] {'T', (char) 192},
+            new char[] {' ', (char) 8197},
+            new char[] {"\u0400"[0]},
+            new char[] {'1', 'a', ' ', '0', 'd', 'e', 's', 't', "\u0400"[0]},
         };
 
         private static readonly object[] s_equalityStrings = new object[]
@@ -217,12 +163,12 @@ namespace System.Tests
 
         private static readonly string[][] s_comparePairs = new string[][]
         {
-            new string[] { "The quick brown fox", "THE QUICK BROWN FOX" },
-            new string[] { "The quick brown fox", "THE QUICK BROWN FOX J" },
-            new string[] { "Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick BROWN f\u00f2x" },
-            new string[] { "Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick BROWN f\u00f2x jumped" },
-            new string[] { "A\u0300A\u0300A\u0300", "\u00e0\u00e0\u00e0" },
-            new string[] { "A\u0300A\u0300A\u0300", "\u00e0\u00e0 Z" },
+            new string[] {"The quick brown fox", "THE QUICK BROWN FOX"},
+            new string[] {"The quick brown fox", "THE QUICK BROWN FOX J"},
+            new string[] {"Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick BROWN f\u00f2x"},
+            new string[] {"Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick BROWN f\u00f2x jumped"},
+            new string[] {"A\u0300A\u0300A\u0300", "\u00e0\u00e0\u00e0"},
+            new string[] {"A\u0300A\u0300A\u0300", "\u00e0\u00e0 Z"},
         };
 
         private static readonly object[] s_compareOptions = new object[]
@@ -237,12 +183,12 @@ namespace System.Tests
             new char[] {' ', 'T'},
             new char[] {'T', 'd'},
             new char[] {'d', 'a'},
-            new char[] {'a', (char)192},
-            new char[] {(char)192, (char)8197},
-            new char[] {(char)8197, "\u0400"[0]},
+            new char[] {'a', (char) 192},
+            new char[] {(char) 192, (char) 8197},
+            new char[] {(char) 8197, "\u0400"[0]},
             new char[] {"\u0400"[0], '\t'},
-            new char[] {'\t', (char)768},
-            new char[] {(char)768, ' '},
+            new char[] {'\t', (char) 768},
+            new char[] {(char) 768, ' '},
         };
 
         private static readonly string[][] s_replaceStringPairs = new string[][]
@@ -264,7 +210,9 @@ namespace System.Tests
             StringSplitOptions.RemoveEmptyEntries,
         };
 
-        private static string _s1 = "ddsz dszdsz \t  dszdsz  a\u0300\u00C0 \t Te st \u0400Te \u0400st\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005";
+        private static string _s1 =
+            "ddsz dszdsz \t  dszdsz  a\u0300\u00C0 \t Te st \u0400Te \u0400st\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005";
+
         private static CultureInfo _cultureInfo;
 
         public static IEnumerable<object[]> CaseArgs => Permutations(s_caseStrings);
@@ -322,25 +270,26 @@ namespace System.Tests
         [ArgumentsSource(nameof(EqualityArgs))]
         public bool Equality(string s1, string s2)
             => s1 == s2;
-        
+
         [Benchmark]
         [ArgumentsSource(nameof(EqualityArgs))]
         public bool Equals(string s1, string s2)
             => s1.Equals(s2);
 
         public static IEnumerable<object[]> FormatArgs1 => Permutations(
-            new object[] { "Testing {0}, {0:C}, {0:D5}, {0:E} - {0:F4}{0:G}{0:N}  {0:X} !!" },
-            new object[] { 8, 0 }
+            new object[] {"Testing {0}, {0:C}, {0:D5}, {0:E} - {0:F4}{0:G}{0:N}  {0:X} !!"},
+            new object[] {8, 0}
         );
 
         public static IEnumerable<object[]> FormatArgs2 => Permutations(
-            new object[] { "Testing {0}, {0:C}, {0:E} - {0:F4}{0:G}{0:N} , !!" },
-            new object[] { 0, -2, 3.14159, 11000000 }
+            new object[] {"Testing {0}, {0:C}, {0:E} - {0:F4}{0:G}{0:N} , !!"},
+            new object[] {0, -2, 3.14159, 11000000}
         );
 
         public static IEnumerable<object[]> FormatArgs3 => Permutations(
-            new object[] { "More testing: {0}" },
-            new object[] { 0, -2, 3.14159, 11000000, "Foo", 'a', "Testing {0}, {0:C}, {0:D5}, {0:E} - {0:F4}{0:G}{0:N}  {0:X} !!" }
+            new object[] {"More testing: {0}"},
+            new object[]
+                {0, -2, 3.14159, 11000000, "Foo", 'a', "Testing {0}, {0:C}, {0:D5}, {0:E} - {0:F4}{0:G}{0:N}  {0:X} !!"}
         );
 
         public static IEnumerable<object[]> AllFormatArgs => FormatArgs1.Concat(FormatArgs2).Concat(FormatArgs3);
@@ -352,7 +301,8 @@ namespace System.Tests
 
         [Benchmark]
         public string Format_MultipleArgs()
-            => string.Format("More testing: {0} {1} {2} {3} {4} {5}{6} {7}", '1', "Foo", "Foo", "Foo", "Foo", "Foo", "Foo", "Foo");
+            => string.Format("More testing: {0} {1} {2} {3} {4} {5}{6} {7}", '1', "Foo", "Foo", "Foo", "Foo", "Foo",
+                "Foo", "Foo");
 
         [Benchmark]
         [ArgumentsSource(nameof(GetHashCodeArgs))]
@@ -416,13 +366,16 @@ namespace System.Tests
         [Arguments("Test", 2, " Test")]
         [Arguments(" Test", 2, "Test ")]
         [Arguments("Test ", 2, " Te st  ")]
-        [Arguments(" Te st  ", 3, "\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005")]
-        [Arguments("\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005", 3, " \u0400Te \u0400st")]
+        [Arguments(" Te st  ", 3,
+            "\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005")]
+        [Arguments(
+            "\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005",
+            3, " \u0400Te \u0400st")]
         [Arguments(" \u0400Te \u0400st", 3, " a\u0300\u00C0")]
         [Arguments(" a\u0300\u00C0", 3, " a \u0300 \u00C0 ")]
         [Arguments(" a \u0300 \u00C0 ", 4, "     ddsz dszdsz \t  dszdsz  \t        ")]
         [Arguments("     ddsz dszdsz \t  dszdsz  \t        ", 5, "")]
-        public string Insert(string s1, int i, string s2) 
+        public string Insert(string s1, int i, string s2)
             => s1.Insert(i, s2);
 
         [Benchmark]
@@ -431,7 +384,7 @@ namespace System.Tests
         [Arguments(5)]
         [Arguments(18)]
         [Arguments(2142)]
-        public string PadLeft(int n) 
+        public string PadLeft(int n)
             => "a".PadLeft(n);
 
         [Benchmark]
@@ -502,12 +455,12 @@ namespace System.Tests
         [Arguments("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x jumped")]
         [Arguments("a\u0300a\u0300a\u0300", "\u00e0\u00e0\u00e0")]
         [Arguments("a\u0300a\u0300a\u0300", "\u00c0\u00c0\u00c0")]
-        public int Compare_Culture_invariant(string s1, string s2) 
+        public int Compare_Culture_invariant(string s1, string s2)
             => CultureInfo.InvariantCulture.CompareInfo.Compare(s1, s2, CompareOptions.None);
-        
+
         [GlobalSetup(Target = nameof(Compare_Culture_en_us))]
         public void SetupCompare_Culture_en_us() => _cultureInfo = new CultureInfo("en-us");
-        
+
         [Benchmark]
         [Arguments("The quick brown fox", "The quick brown fox")]
         [Arguments("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x")]
@@ -610,5 +563,31 @@ namespace System.Tests
         [ArgumentsSource(nameof(IndexOfArgs))]
         public int LastIndexOf(StringComparison options)
             => s_longString.LastIndexOf(s_tagName, options);
+    }
+
+    public class StringArguments
+    {
+        public int Size { get; }
+
+        public string TestString1 { get; }
+        public string TestString2 { get; }
+        public string TestString3 { get; }
+        public string TestString4 { get; }
+
+        public string Q1 { get; }
+        public string Q3 { get; }
+
+        public StringArguments(int size)
+        {
+            Size = size;
+
+            PerfUtils utils = new PerfUtils();
+            TestString1 = utils.CreateString(size);
+            TestString2 = utils.CreateString(size);
+            TestString3 = utils.CreateString(size);
+            TestString4 = utils.CreateString(size);
+
+            Q3 = TestString1.Substring(TestString1.Length / 2, TestString1.Length / 4);
+        }
     }
 }
