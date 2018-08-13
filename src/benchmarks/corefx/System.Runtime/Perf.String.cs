@@ -6,8 +6,8 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Collections.Generic;
-using Xunit;
-using Microsoft.Xunit.Performance;
+using BdnDtos;
+using BenchmarkDotNet.Attributes;
 
 namespace System.Tests
 {
@@ -21,7 +21,7 @@ namespace System.Tests
         }
 
         [Benchmark]
-        [MemberData(nameof(TestStringSizes))]
+        [ArgumentsSource(nameof(TestStringSizes))]
         public void GetChars(int size)
         {
             PerfUtils utils = new PerfUtils();
@@ -37,7 +37,7 @@ namespace System.Tests
         }
 
         [Benchmark]
-        [MemberData(nameof(TestStringSizes))]
+        [ArgumentsSource(nameof(TestStringSizes))]
         public void Concat_str_str(int size)
         {
             PerfUtils utils = new PerfUtils();
@@ -50,7 +50,7 @@ namespace System.Tests
         }
 
         [Benchmark]
-        [MemberData(nameof(TestStringSizes))]
+        [ArgumentsSource(nameof(TestStringSizes))]
         public void Concat_str_str_str(int size)
         {
             PerfUtils utils = new PerfUtils();
@@ -64,7 +64,7 @@ namespace System.Tests
         }
 
         [Benchmark]
-        [MemberData(nameof(TestStringSizes))]
+        [ArgumentsSource(nameof(TestStringSizes))]
         public void Concat_str_str_str_str(int size)
         {
             PerfUtils utils = new PerfUtils();
@@ -79,7 +79,7 @@ namespace System.Tests
         }
 
         [Benchmark]
-        [MemberData(nameof(TestStringSizes))]
+        [ArgumentsSource(nameof(TestStringSizes))]
         public void Contains(int size)
         {
             PerfUtils utils = new PerfUtils();
@@ -92,7 +92,7 @@ namespace System.Tests
         }
 
         [Benchmark]
-        [MemberData(nameof(TestStringSizes))]
+        [ArgumentsSource(nameof(TestStringSizes))]
         public void Equals(int size)
         {
             PerfUtils utils = new PerfUtils();
@@ -105,11 +105,11 @@ namespace System.Tests
         }
 
         [Benchmark]
-        [InlineData(1)]
-        [InlineData(2)]
-        [InlineData(3)]
-        [InlineData(10)]
-        [InlineData(100)]
+        [Arguments(1)]
+        [Arguments(2)]
+        [Arguments(3)]
+        [Arguments(10)]
+        [Arguments(100)]
         public void Format(int numberOfObjects)
         {
             PerfUtils utils = new PerfUtils();
@@ -132,7 +132,7 @@ namespace System.Tests
         }
 
         [Benchmark]
-        [MemberData(nameof(TestStringSizes))]
+        [ArgumentsSource(nameof(TestStringSizes))]
         public void GetLength(int size)
         {
             PerfUtils utils = new PerfUtils();
@@ -149,7 +149,7 @@ namespace System.Tests
         }
 
         [Benchmark]
-        [MemberData(nameof(TestStringSizes))]
+        [ArgumentsSource(nameof(TestStringSizes))]
         public void op_Equality(int size)
         {
             PerfUtils utils = new PerfUtils();
@@ -167,7 +167,7 @@ namespace System.Tests
         }
 
         [Benchmark]
-        [MemberData(nameof(TestStringSizes))]
+        [ArgumentsSource(nameof(TestStringSizes))]
         public void Replace(int size)
         {
             PerfUtils utils = new PerfUtils();
@@ -180,7 +180,7 @@ namespace System.Tests
         }
 
         [Benchmark]
-        [MemberData(nameof(TestStringSizes))]
+        [ArgumentsSource(nameof(TestStringSizes))]
         public void Split(int size)
         {
             PerfUtils utils = new PerfUtils();
@@ -194,7 +194,7 @@ namespace System.Tests
         }
 
         [Benchmark]
-        [MemberData(nameof(TestStringSizes))]
+        [ArgumentsSource(nameof(TestStringSizes))]
         public void StartsWith(int size)
         {
             PerfUtils utils = new PerfUtils();
@@ -207,7 +207,7 @@ namespace System.Tests
         }
 
         [Benchmark]
-        [MemberData(nameof(TestStringSizes))]
+        [ArgumentsSource(nameof(TestStringSizes))]
         public void Substring_int(int size)
         {
             PerfUtils utils = new PerfUtils();
@@ -220,7 +220,7 @@ namespace System.Tests
         }
 
         [Benchmark]
-        [MemberData(nameof(TestStringSizes))]
+        [ArgumentsSource(nameof(TestStringSizes))]
         public void Substring_int_int(int size)
         {
             PerfUtils utils = new PerfUtils();
@@ -244,7 +244,7 @@ namespace System.Tests
             AllDifferentCase = 0x8,
         }
 
-        public static IEnumerable<object[]> ChangeCaseMemberData() =>
+        public static IEnumerable<object[]> ChangeCaseArgumentsSource() =>
             from size in new[] { 1, 10, 500 }
             from culture in new[] { "en-US" }
             from options in new[]
@@ -282,7 +282,7 @@ namespace System.Tests
         }
 
         [Benchmark, MeasureGCAllocations]
-        [MemberData(nameof(ChangeCaseMemberData))]
+        [ArgumentsSource(nameof(ChangeCaseArgumentsSource))]
         public void ToLower(int size, ChangeCaseOptions options, string cultureName)
         {
             const int Iters = 10_000;
@@ -308,7 +308,7 @@ namespace System.Tests
         }
 
         [Benchmark, MeasureGCAllocations]
-        [MemberData(nameof(ChangeCaseMemberData))]
+        [ArgumentsSource(nameof(ChangeCaseArgumentsSource))]
         public void ToUpper(int size, ChangeCaseOptions options, string cultureName)
         {
             const int Iters = 10_000;
@@ -334,7 +334,7 @@ namespace System.Tests
         }
 
         [Benchmark]
-        [MemberData(nameof(TestStringSizes))]
+        [ArgumentsSource(nameof(TestStringSizes))]
         public void Trim_WithWhitespace(int size)
         {
             PerfUtils utils = new PerfUtils();
@@ -346,7 +346,7 @@ namespace System.Tests
         }
 
         [Benchmark]
-        [MemberData(nameof(TestStringSizes))]
+        [ArgumentsSource(nameof(TestStringSizes))]
         public void Trim_NothingToDo(int size)
         {
             PerfUtils utils = new PerfUtils();
@@ -517,6 +517,9 @@ namespace System.Tests
             StringSplitOptions.RemoveEmptyEntries,
         };
 
+        private static string _s1 = "ddsz dszdsz \t  dszdsz  a\u0300\u00C0 \t Te st \u0400Te \u0400st\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005";
+        private static CultureInfo _cultureInfo;
+
         public static IEnumerable<object[]> CaseArgs => Permutations(s_caseStrings);
         public static IEnumerable<object[]> TrimArgs => Permutations(s_trimStrings);
         public static IEnumerable<object[]> TrimCharArrayArgs => Permutations(s_trimStrings, s_trimCharArrays);
@@ -529,87 +532,49 @@ namespace System.Tests
         public static IEnumerable<object[]> IndexOfArgs => Permutations(s_compareOptions);
 
         [Benchmark]
-        [MemberData(nameof(CaseArgs))]
-        public static void ToUpper(string s)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s.ToUpper();
-        }
+        [ArgumentsSource(nameof(CaseArgs))]
+        public string ToUpper(string s)
+            => s.ToUpper();
 
         [Benchmark]
-        [MemberData(nameof(CaseArgs))]
-        public static void ToUpperInvariant(string s)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s.ToUpperInvariant();
-        }
+        [ArgumentsSource(nameof(CaseArgs))]
+        public string ToUpperInvariant(string s)
+            => s.ToUpperInvariant();
 
         [Benchmark]
-        [MemberData(nameof(TrimArgs))]
-        public static void Trim(string s)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s.Trim();
-        }
+        [ArgumentsSource(nameof(TrimArgs))]
+        public string Trim(string s)
+            => s.Trim();
 
         [Benchmark]
-        [MemberData(nameof(TrimCharArrayArgs))]
-        public static void Trim_CharArr(string s, char[] c)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s.Trim(c);
-        }
+        [ArgumentsSource(nameof(TrimCharArrayArgs))]
+        public string Trim_CharArr(string s, char[] c)
+            => s.Trim(c);
 
         [Benchmark]
-        [MemberData(nameof(TrimArgs))]
-        public static void TrimStart(string s)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s.TrimStart();
-        }
+        [ArgumentsSource(nameof(TrimArgs))]
+        public string TrimStart(string s)
+            => s.TrimStart();
 
         [Benchmark]
-        [MemberData(nameof(TrimCharArrayArgs))]
-        public static void TrimStart_CharArr(string s, char[] c)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s.TrimStart(c);
-        }
+        [ArgumentsSource(nameof(TrimCharArrayArgs))]
+        public string TrimStart_CharArr(string s, char[] c)
+            => s.TrimStart(c);
 
         [Benchmark]
-        [MemberData(nameof(TrimArgs))]
-        public static void TrimEnd(string s)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s.TrimEnd();
-        }
+        [ArgumentsSource(nameof(TrimArgs))]
+        public string TrimEnd(string s)
+            => s.TrimEnd();
 
         [Benchmark]
-        [MemberData(nameof(TrimCharArrayArgs))]
-        public static void TrimEnd_CharArr(string s, char[] c)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s.TrimEnd(c);
-        }
+        [ArgumentsSource(nameof(TrimCharArrayArgs))]
+        public string TrimEnd_CharArr(string s, char[] c)
+            => s.TrimEnd(c);
 
         [Benchmark]
-        [MemberData(nameof(EqualityArgs))]
-        public static bool Equality(string s1, string s2)
-        {
-            bool b = false;
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    b |= (s1 == s2);
-            return b;
-        }
+        [ArgumentsSource(nameof(EqualityArgs))]
+        public bool Equality(string s1, string s2)
+            => s1 == s2;
 
         public static IEnumerable<object[]> FormatArgs1 => Permutations(
             new object[] { "Testing {0}, {0:C}, {0:D5}, {0:E} - {0:F4}{0:G}{0:N}  {0:X} !!" },
@@ -626,93 +591,61 @@ namespace System.Tests
             new object[] { 0, -2, 3.14159, 11000000, "Foo", 'a', "Testing {0}, {0:C}, {0:D5}, {0:E} - {0:F4}{0:G}{0:N}  {0:X} !!" }
         );
 
-        [Benchmark]
-        [MemberData(nameof(FormatArgs1))]
-        [MemberData(nameof(FormatArgs2))]
-        [MemberData(nameof(FormatArgs3))]
-        public static void Format_OneArg(string s, object o)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    string.Format(s, o);
-        }
+        public static IEnumerable<object[]> AllFormatArgs => FormatArgs1.Concat(FormatArgs2).Concat(FormatArgs3);
 
         [Benchmark]
-        public static void Format_MultipleArgs()
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    string.Format("More testing: {0} {1} {2} {3} {4} {5}{6} {7}", '1', "Foo", "Foo", "Foo", "Foo", "Foo", "Foo", "Foo");
-        }
+        [ArgumentsSource(nameof(AllFormatArgs))]
+        public string Format_OneArg(string s, object o)
+            => string.Format(s, o);
 
         [Benchmark]
-        [MemberData(nameof(GetHashCodeArgs))]
-        public static void GetHashCode(string s)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s.GetHashCode();
-        }
+        public string Format_MultipleArgs()
+            => string.Format("More testing: {0} {1} {2} {3} {4} {5}{6} {7}", '1', "Foo", "Foo", "Foo", "Foo", "Foo", "Foo", "Foo");
+
+        [Benchmark]
+        [ArgumentsSource(nameof(GetHashCodeArgs))]
+        public int GetHashCode(string s)
+            => s.GetHashCode();
 
         [Benchmark]
         public static int IndexerCheckBoundCheckHoist()
         {
-            string s1 = "ddsz dszdsz \t  dszdsz  a\u0300\u00C0 \t Te st \u0400Te \u0400st\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005";
+            string s1 = _s1;
             int counter = 0;
 
-            int strLength = s1.Length;
+            int strLength = _s1.Length;
 
-            foreach (var iteration in Benchmark.Iterations)
+            for (int j = 0; j < strLength; j++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int j = 0; j < strLength; j++)
-                    {
-                        counter += s1[j];
-                    }
-                }
+                counter += s1[j];
             }
 
             return counter;
         }
 
         [Benchmark]
-        public static int IndexerCheckLengthHoisting()
+        public int IndexerCheckLengthHoisting()
         {
-            string s1 = "ddsz dszdsz \t  dszdsz  a\u0300\u00C0 \t Te st \u0400Te \u0400st\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005";
-
+            string s1 = _s1;
             int counter = 0;
 
-            foreach (var iteration in Benchmark.Iterations)
+            for (int j = 0; j < s1.Length; j++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int j = 0; j < s1.Length; j++)
-                    {
-                        counter += s1[j];
-                    }
-                }
+                counter += s1[j];
             }
 
             return counter;
         }
 
         [Benchmark]
-        public static int IndexerCheckPathLength()
+        public int IndexerCheckPathLength()
         {
-            string s1 = "ddsz dszdsz \t  dszdsz  a\u0300\u00C0 \t Te st \u0400Te \u0400st\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005";
-
+            string s1 = _s1;
             int counter = 0;
 
-            foreach (var iteration in Benchmark.Iterations)
+            for (int j = 0; j < s1.Length; j++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int j = 0; j < s1.Length; j++)
-                    {
-                        counter += getStringCharNoInline(s1, j);
-                    }
-                }
+                counter += getStringCharNoInline(s1, j);
             }
 
             return counter;
@@ -725,283 +658,205 @@ namespace System.Tests
         }
 
         [Benchmark]
-        [InlineData("", 0, " ")]
-        [InlineData(" ", 1, "    ")]
-        [InlineData("    ", 1, "Test")]
-        [InlineData("Test", 2, " Test")]
-        [InlineData(" Test", 2, "Test ")]
-        [InlineData("Test ", 2, " Te st  ")]
-        [InlineData(" Te st  ", 3, "\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005")]
-        [InlineData("\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005", 3, " \u0400Te \u0400st")]
-        [InlineData(" \u0400Te \u0400st", 3, " a\u0300\u00C0")]
-        [InlineData(" a\u0300\u00C0", 3, " a \u0300 \u00C0 ")]
-        [InlineData(" a \u0300 \u00C0 ", 4, "     ddsz dszdsz \t  dszdsz  \t        ")]
-        [InlineData("     ddsz dszdsz \t  dszdsz  \t        ", 5, "")]
-        public static void Insert(string s1, int i, string s2)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s1.Insert(i, s2);
-        }
+        [Arguments("", 0, " ")]
+        [Arguments(" ", 1, "    ")]
+        [Arguments("    ", 1, "Test")]
+        [Arguments("Test", 2, " Test")]
+        [Arguments(" Test", 2, "Test ")]
+        [Arguments("Test ", 2, " Te st  ")]
+        [Arguments(" Te st  ", 3, "\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005")]
+        [Arguments("\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005", 3, " \u0400Te \u0400st")]
+        [Arguments(" \u0400Te \u0400st", 3, " a\u0300\u00C0")]
+        [Arguments(" a\u0300\u00C0", 3, " a \u0300 \u00C0 ")]
+        [Arguments(" a \u0300 \u00C0 ", 4, "     ddsz dszdsz \t  dszdsz  \t        ")]
+        [Arguments("     ddsz dszdsz \t  dszdsz  \t        ", 5, "")]
+        public string Insert(string s1, int i, string s2) 
+            => s1.Insert(i, s2);
 
         [Benchmark]
-        [InlineData(0)]
-        [InlineData(1)]
-        [InlineData(5)]
-        [InlineData(18)]
-        [InlineData(2142)]
-        public static void PadLeft(int n)
-        {
-            string s1 = "a";
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s1.PadLeft(n);
-        }
+        [Arguments(0)]
+        [Arguments(1)]
+        [Arguments(5)]
+        [Arguments(18)]
+        [Arguments(2142)]
+        public string PadLeft(int n) 
+            => "a".PadLeft(n);
 
         [Benchmark]
-        [InlineData("a", 0)]
-        [InlineData("  ", 0)]
-        [InlineData("  ", 1)]
-        [InlineData("TeSt!", 0)]
-        [InlineData("TeSt!", 2)]
-        [InlineData("TeSt!", 3)]
-        [InlineData("I think Turkish i \u0131s TROUBL\u0130NG", 0)]
-        [InlineData("I think Turkish i \u0131s TROUBL\u0130NG", 18)]
-        [InlineData("I think Turkish i \u0131s TROUBL\u0130NG", 22)]
-        [InlineData("dzsdzsDDZSDZSDZSddsz", 0)]
-        [InlineData("dzsdzsDDZSDZSDZSddsz", 7)]
-        [InlineData("dzsdzsDDZSDZSDZSddsz", 10)]
-        [InlineData("a\u0300\u00C0A\u0300A", 0)]
-        [InlineData("a\u0300\u00C0A\u0300A", 3)]
-        [InlineData("a\u0300\u00C0A\u0300A", 4)]
-        [InlineData("Foo\u0400Bar!", 0)]
-        [InlineData("Foo\u0400Bar!", 3)]
-        [InlineData("Foo\u0400Bar!", 4)]
-        [InlineData("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 0)]
-        [InlineData("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 3)]
-        [InlineData("\u4e33\u4e65 Testing... \u4EE8", 0)]
-        [InlineData("\u4e33\u4e65 Testing... \u4EE8", 4)]
-        public static void Remove_Int(string s, int i)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s.Remove(i);
-        }
+        [Arguments("a", 0)]
+        [Arguments("  ", 0)]
+        [Arguments("  ", 1)]
+        [Arguments("TeSt!", 0)]
+        [Arguments("TeSt!", 2)]
+        [Arguments("TeSt!", 3)]
+        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 0)]
+        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 18)]
+        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 22)]
+        [Arguments("dzsdzsDDZSDZSDZSddsz", 0)]
+        [Arguments("dzsdzsDDZSDZSDZSddsz", 7)]
+        [Arguments("dzsdzsDDZSDZSDZSddsz", 10)]
+        [Arguments("a\u0300\u00C0A\u0300A", 0)]
+        [Arguments("a\u0300\u00C0A\u0300A", 3)]
+        [Arguments("a\u0300\u00C0A\u0300A", 4)]
+        [Arguments("Foo\u0400Bar!", 0)]
+        [Arguments("Foo\u0400Bar!", 3)]
+        [Arguments("Foo\u0400Bar!", 4)]
+        [Arguments("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 0)]
+        [Arguments("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 3)]
+        [Arguments("\u4e33\u4e65 Testing... \u4EE8", 0)]
+        [Arguments("\u4e33\u4e65 Testing... \u4EE8", 4)]
+        public string Remove_Int(string s, int i)
+            => s.Remove(i);
 
         [Benchmark]
-        [InlineData("a", 0, 0)]
-        [InlineData("  ", 0, 1)]
-        [InlineData("  ", 1, 0)]
-        [InlineData("TeSt!", 0, 2)]
-        [InlineData("TeSt!", 2, 1)]
-        [InlineData("TeSt!", 3, 0)]
-        [InlineData("I think Turkish i \u0131s TROUBL\u0130NG", 0, 3)]
-        [InlineData("I think Turkish i \u0131s TROUBL\u0130NG", 18, 3)]
-        [InlineData("I think Turkish i \u0131s TROUBL\u0130NG", 22, 1)]
-        [InlineData("dzsdzsDDZSDZSDZSddsz", 0, 8)]
-        [InlineData("dzsdzsDDZSDZSDZSddsz", 7, 4)]
-        [InlineData("dzsdzsDDZSDZSDZSddsz", 10, 1)]
-        [InlineData("a\u0300\u00C0A\u0300A", 0, 2)]
-        [InlineData("a\u0300\u00C0A\u0300A", 3, 1)]
-        [InlineData("a\u0300\u00C0A\u0300A", 4, 0)]
-        [InlineData("Foo\u0400Bar!", 0, 4)]
-        [InlineData("Foo\u0400Bar!", 3, 2)]
-        [InlineData("Foo\u0400Bar!", 4, 1)]
-        [InlineData("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 0, 2)]
-        [InlineData("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 3, 3)]
-        [InlineData("\u4e33\u4e65 Testing... \u4EE8", 0, 3)]
-        [InlineData("\u4e33\u4e65 Testing... \u4EE8", 4, 1)]
-        public static void Remove_IntInt(string s, int i1, int i2)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s.Remove(i1, i2);
-        }
+        [Arguments("a", 0, 0)]
+        [Arguments("  ", 0, 1)]
+        [Arguments("  ", 1, 0)]
+        [Arguments("TeSt!", 0, 2)]
+        [Arguments("TeSt!", 2, 1)]
+        [Arguments("TeSt!", 3, 0)]
+        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 0, 3)]
+        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 18, 3)]
+        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 22, 1)]
+        [Arguments("dzsdzsDDZSDZSDZSddsz", 0, 8)]
+        [Arguments("dzsdzsDDZSDZSDZSddsz", 7, 4)]
+        [Arguments("dzsdzsDDZSDZSDZSddsz", 10, 1)]
+        [Arguments("a\u0300\u00C0A\u0300A", 0, 2)]
+        [Arguments("a\u0300\u00C0A\u0300A", 3, 1)]
+        [Arguments("a\u0300\u00C0A\u0300A", 4, 0)]
+        [Arguments("Foo\u0400Bar!", 0, 4)]
+        [Arguments("Foo\u0400Bar!", 3, 2)]
+        [Arguments("Foo\u0400Bar!", 4, 1)]
+        [Arguments("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 0, 2)]
+        [Arguments("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 3, 3)]
+        [Arguments("\u4e33\u4e65 Testing... \u4EE8", 0, 3)]
+        [Arguments("\u4e33\u4e65 Testing... \u4EE8", 4, 1)]
+        public string Remove_IntInt(string s, int i1, int i2)
+            => s.Remove(i1, i2);
 
         [Benchmark]
-        [MemberData(nameof(ReplaceCharArgs))]
-        public static void Replace_Char(string s, char[] chars)
-        {
-            char c1 = chars[0];
-            char c2 = chars[1];
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s.Replace(c1, c2);
-        }
+        [ArgumentsSource(nameof(ReplaceCharArgs))]
+        public string Replace_Char(string s, char[] chars)
+            => s.Replace(chars[0], chars[1]);
 
         [Benchmark]
-        [MemberData(nameof(ReplaceStringArgs))]
-        public static void Replace_String(string s0, string[] strings)
-        {
-            string s1 = strings[0];
-            string s2 = strings[1];
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s0.Replace(s1, s2);
-        }
+        [ArgumentsSource(nameof(ReplaceStringArgs))]
+        public string Replace_String(string s0, string[] strings)
+            => s0.Replace(strings[0], strings[1]);
 
         [Benchmark]
-        [InlineData("The quick brown fox", "The quick brown fox")]
-        [InlineData("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x")]
-        [InlineData("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x jumped")]
-        [InlineData("a\u0300a\u0300a\u0300", "\u00e0\u00e0\u00e0")]
-        [InlineData("a\u0300a\u0300a\u0300", "\u00c0\u00c0\u00c0")]
-        public static void Compare_Culture_invariant(string s1, string s2)
-        {
-            CultureInfo cultureInfo = CultureInfo.InvariantCulture;
+        [Arguments("The quick brown fox", "The quick brown fox")]
+        [Arguments("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x")]
+        [Arguments("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x jumped")]
+        [Arguments("a\u0300a\u0300a\u0300", "\u00e0\u00e0\u00e0")]
+        [Arguments("a\u0300a\u0300a\u0300", "\u00c0\u00c0\u00c0")]
+        public int Compare_Culture_invariant(string s1, string s2) 
+            => CultureInfo.InvariantCulture.CompareInfo.Compare(s1, s2, CompareOptions.None);
+        
+        [GlobalSetup(Target = nameof(Compare_Culture_en_us))]
+        public void SetupCompare_Culture_en_us() => _cultureInfo = new CultureInfo("en-us");
+        
+        [Benchmark]
+        [Arguments("The quick brown fox", "The quick brown fox")]
+        [Arguments("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x")]
+        [Arguments("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x jumped")]
+        [Arguments("a\u0300a\u0300a\u0300", "\u00e0\u00e0\u00e0")]
+        [Arguments("a\u0300a\u0300a\u0300", "\u00c0\u00c0\u00c0")]
+        public int Compare_Culture_en_us(string s1, string s2)
+            => _cultureInfo.CompareInfo.Compare(s1, s2, CompareOptions.None);
 
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    cultureInfo.CompareInfo.Compare(s1, s2, CompareOptions.None);
-        }
+        [GlobalSetup(Target = nameof(Compare_Culture_ja_jp))]
+        public void SetupCompare_Culture_ja_jp() => _cultureInfo = new CultureInfo("ja-jp");
 
         [Benchmark]
-        [InlineData("The quick brown fox", "The quick brown fox")]
-        [InlineData("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x")]
-        [InlineData("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x jumped")]
-        [InlineData("a\u0300a\u0300a\u0300", "\u00e0\u00e0\u00e0")]
-        [InlineData("a\u0300a\u0300a\u0300", "\u00c0\u00c0\u00c0")]
-        public static void Compare_Culture_en_us(string s1, string s2)
-        {
-            CultureInfo cultureInfo = new CultureInfo("en-us");
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    cultureInfo.CompareInfo.Compare(s1, s2, CompareOptions.None);
-        }
+        [Arguments("The quick brown fox", "The quick brown fox")]
+        [Arguments("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x")]
+        [Arguments("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x jumped")]
+        [Arguments("a\u0300a\u0300a\u0300", "\u00e0\u00e0\u00e0")]
+        [Arguments("a\u0300a\u0300a\u0300", "\u00c0\u00c0\u00c0")]
+        public int Compare_Culture_ja_jp(string s1, string s2)
+            => _cultureInfo.CompareInfo.Compare(s1, s2, CompareOptions.None);
 
         [Benchmark]
-        [InlineData("The quick brown fox", "The quick brown fox")]
-        [InlineData("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x")]
-        [InlineData("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x jumped")]
-        [InlineData("a\u0300a\u0300a\u0300", "\u00e0\u00e0\u00e0")]
-        [InlineData("a\u0300a\u0300a\u0300", "\u00c0\u00c0\u00c0")]
-        public static void Compare_Culture_ja_jp(string s1, string s2)
-        {
-            CultureInfo cultureInfo = new CultureInfo("ja-jp");
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    cultureInfo.CompareInfo.Compare(s1, s2, CompareOptions.None);
-        }
-
-        [Benchmark]
-        [InlineData("", 0)]
-        [InlineData(" ", 0)]
-        [InlineData(" ", 1)]
-        [InlineData("TeSt", 0)]
-        [InlineData("TeSt", 2)]
-        [InlineData("TeSt", 3)]
-        [InlineData("I think Turkish i \u0131s TROUBL\u0130NG", 0)]
-        [InlineData("I think Turkish i \u0131s TROUBL\u0130NG", 18)]
-        [InlineData("I think Turkish i \u0131s TROUBL\u0130NG", 22)]
-        [InlineData("dzsdzsDDZSDZSDZSddsz", 0)]
-        [InlineData("dzsdzsDDZSDZSDZSddsz", 7)]
-        [InlineData("dzsdzsDDZSDZSDZSddsz", 10)]
-        [InlineData("a\u0300\u00C0A\u0300", 0)]
-        [InlineData("a\u0300\u00C0A\u0300", 3)]
-        [InlineData("a\u0300\u00C0A\u0300", 4)]
-        [InlineData("Foo\u0400Bar", 0)]
-        [InlineData("Foo\u0400Bar", 3)]
-        [InlineData("Foo\u0400Bar", 4)]
-        [InlineData("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 0)]
-        [InlineData("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 3)]
-        [InlineData("\u4e33\u4e65 Testing... \u4EE8", 0)]
-        [InlineData("\u4e33\u4e65 Testing... \u4EE8", 4)]
-        public static void Substring_Int(string s, int i)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s.Substring(i);
-        }
+        [Arguments("", 0)]
+        [Arguments(" ", 0)]
+        [Arguments(" ", 1)]
+        [Arguments("TeSt", 0)]
+        [Arguments("TeSt", 2)]
+        [Arguments("TeSt", 3)]
+        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 0)]
+        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 18)]
+        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 22)]
+        [Arguments("dzsdzsDDZSDZSDZSddsz", 0)]
+        [Arguments("dzsdzsDDZSDZSDZSddsz", 7)]
+        [Arguments("dzsdzsDDZSDZSDZSddsz", 10)]
+        [Arguments("a\u0300\u00C0A\u0300", 0)]
+        [Arguments("a\u0300\u00C0A\u0300", 3)]
+        [Arguments("a\u0300\u00C0A\u0300", 4)]
+        [Arguments("Foo\u0400Bar", 0)]
+        [Arguments("Foo\u0400Bar", 3)]
+        [Arguments("Foo\u0400Bar", 4)]
+        [Arguments("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 0)]
+        [Arguments("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 3)]
+        [Arguments("\u4e33\u4e65 Testing... \u4EE8", 0)]
+        [Arguments("\u4e33\u4e65 Testing... \u4EE8", 4)]
+        public string Substring_Int(string s, int i)
+            => s.Substring(i);
 
         [Benchmark]
-        [InlineData("", 0, 0)]
-        [InlineData(" ", 0, 1)]
-        [InlineData(" ", 1, 0)]
-        [InlineData("TeSt", 0, 2)]
-        [InlineData("TeSt", 2, 1)]
-        [InlineData("TeSt", 3, 0)]
-        [InlineData("I think Turkish i \u0131s TROUBL\u0130NG", 0, 3)]
-        [InlineData("I think Turkish i \u0131s TROUBL\u0130NG", 18, 3)]
-        [InlineData("I think Turkish i \u0131s TROUBL\u0130NG", 22, 1)]
-        [InlineData("dzsdzsDDZSDZSDZSddsz", 0, 8)]
-        [InlineData("dzsdzsDDZSDZSDZSddsz", 7, 4)]
-        [InlineData("dzsdzsDDZSDZSDZSddsz", 10, 1)]
-        [InlineData("a\u0300\u00C0A\u0300", 0, 2)]
-        [InlineData("a\u0300\u00C0A\u0300", 3, 1)]
-        [InlineData("a\u0300\u00C0A\u0300", 4, 0)]
-        [InlineData("Foo\u0400Bar", 0, 4)]
-        [InlineData("Foo\u0400Bar", 3, 2)]
-        [InlineData("Foo\u0400Bar", 4, 1)]
-        [InlineData("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 0, 2)]
-        [InlineData("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 3, 3)]
-        [InlineData("\u4e33\u4e65 Testing... \u4EE8", 0, 3)]
-        [InlineData("\u4e33\u4e65 Testing... \u4EE8", 4, 1)]
-        public static void Substring_IntInt(string s, int i1, int i2)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s.Substring(i1, i2);
-        }
+        [Arguments("", 0, 0)]
+        [Arguments(" ", 0, 1)]
+        [Arguments(" ", 1, 0)]
+        [Arguments("TeSt", 0, 2)]
+        [Arguments("TeSt", 2, 1)]
+        [Arguments("TeSt", 3, 0)]
+        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 0, 3)]
+        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 18, 3)]
+        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 22, 1)]
+        [Arguments("dzsdzsDDZSDZSDZSddsz", 0, 8)]
+        [Arguments("dzsdzsDDZSDZSDZSddsz", 7, 4)]
+        [Arguments("dzsdzsDDZSDZSDZSddsz", 10, 1)]
+        [Arguments("a\u0300\u00C0A\u0300", 0, 2)]
+        [Arguments("a\u0300\u00C0A\u0300", 3, 1)]
+        [Arguments("a\u0300\u00C0A\u0300", 4, 0)]
+        [Arguments("Foo\u0400Bar", 0, 4)]
+        [Arguments("Foo\u0400Bar", 3, 2)]
+        [Arguments("Foo\u0400Bar", 4, 1)]
+        [Arguments("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 0, 2)]
+        [Arguments("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 3, 3)]
+        [Arguments("\u4e33\u4e65 Testing... \u4EE8", 0, 3)]
+        [Arguments("\u4e33\u4e65 Testing... \u4EE8", 4, 1)]
+        public string Substring_IntInt(string s, int i1, int i2)
+            => s.Substring(i1, i2);
 
         [Benchmark]
-        [MemberData(nameof(SplitArgs))]
-        public static void Split(string s, char[] arr, StringSplitOptions options)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s.Split(arr, options);
-        }
+        [ArgumentsSource(nameof(SplitArgs))]
+        public string[] Split(string s, char[] arr, StringSplitOptions options)
+            => s.Split(arr, options);
 
         [Benchmark]
-        [MemberData(nameof(CaseArgs))]
-        public static void ToLower(string s)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s.ToLower();
-        }
+        [ArgumentsSource(nameof(CaseArgs))]
+        public string ToLower(string s)
+            => s.ToLower();
 
         [Benchmark]
-        [MemberData(nameof(CaseArgs))]
-        public static void ToLowerInvariant(string s)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s.ToLowerInvariant();
-        }
+        [ArgumentsSource(nameof(CaseArgs))]
+        public string ToLowerInvariant(string s)
+            => s.ToLowerInvariant();
 
         [Benchmark]
-        [MemberData(nameof(CompareArgs))]
-        public static void Compare(string[] strings, StringComparison comparison)
-        {
-            string s1 = strings[0];
-            string s2 = strings[1];
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    string.Compare(s1, s2, comparison);
-        }
+        [ArgumentsSource(nameof(CompareArgs))]
+        public int Compare(string[] strings, StringComparison comparison)
+            => string.Compare(strings[0], strings[1], comparison);
 
         [Benchmark]
-        [MemberData(nameof(IndexOfArgs))]
-        public static void IndexOf(StringComparison options)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s_longString.IndexOf(s_tagName, options);
-        }
+        [ArgumentsSource(nameof(IndexOfArgs))]
+        public int IndexOf(StringComparison options)
+            => s_longString.IndexOf(s_tagName, options);
 
         [Benchmark]
-        [MemberData(nameof(IndexOfArgs))]
-        public static void LastIndexOf(StringComparison options)
-        {
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    s_longString.LastIndexOf(s_tagName, options);
-        }
+        [ArgumentsSource(nameof(IndexOfArgs))]
+        public int LastIndexOf(StringComparison options)
+            => s_longString.LastIndexOf(s_tagName, options);
     }
 }
