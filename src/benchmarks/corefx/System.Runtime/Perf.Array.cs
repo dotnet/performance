@@ -19,34 +19,6 @@ namespace System.Tests
         private static readonly int s_DIM_2 = (int)Math.Pow(MAX_ARRAY_SIZE, (1.0 / 2.0));
         private static readonly int s_DIM_3 = (int)(Math.Pow(MAX_ARRAY_SIZE, (1.0 / 3.0)) + .001);
 
-        [Benchmark]
-        public static void ArrayAssign()
-        {
-            s_arr = new int[s_DIM_1];
-
-            for (int j = 0; j < s_DIM_1; j++)
-                s_arr[j] = j;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int j = 0; j < s_DIM_1; j++)
-                    {
-                        s_arr[j] = j;
-                        s_arr[j] = j;
-                        s_arr[j] = j;
-                        s_arr[j] = j;
-                        s_arr[j] = j;
-                        s_arr[j] = j;
-                        s_arr[j] = j;
-                        s_arr[j] = j;
-                        s_arr[j] = j;
-                        s_arr[j] = j;
-                    }
-                }
-            }
-        }
 
         [Benchmark]
         public static void ArrayRetrieve()
