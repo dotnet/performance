@@ -92,7 +92,7 @@ namespace System.Tests
             }
         }
 
-        private static readonly object[] s_caseStrings = new object[]
+        private static readonly string[] s_caseStrings = new string[]
         {
             "",
             " ",
@@ -123,7 +123,7 @@ namespace System.Tests
             "     ddsz dszdsz \t  dszdsz  \t        ",
         };
 
-        private static readonly object[] s_getHashCodeStrings = new object[]
+        private static readonly string[] s_getHashCodeStrings = new string[]
         {
             string.Empty,
             "  ",
@@ -215,16 +215,16 @@ namespace System.Tests
 
         private static CultureInfo _cultureInfo;
 
-        public static IEnumerable<object[]> CaseArgs => Permutations(s_caseStrings);
-        public static IEnumerable<object[]> TrimArgs => Permutations(s_trimStrings);
+        public static IEnumerable<object> CaseArgs => s_caseStrings;
+        public static IEnumerable<object> TrimArgs => s_trimStrings;
         public static IEnumerable<object[]> TrimCharArrayArgs => Permutations(s_trimStrings, s_trimCharArrays);
         public static IEnumerable<object[]> EqualityArgs => Permutations(s_equalityStrings, s_equalityStrings);
-        public static IEnumerable<object[]> GetHashCodeArgs => Permutations(s_getHashCodeStrings);
+        public static IEnumerable<object> GetHashCodeArgs => s_getHashCodeStrings;
         public static IEnumerable<object[]> ReplaceCharArgs => Permutations(s_trimStrings, s_replaceCharPairs);
         public static IEnumerable<object[]> ReplaceStringArgs => Permutations(s_trimStrings, s_replaceStringPairs);
         public static IEnumerable<object[]> SplitArgs => Permutations(s_trimStrings, s_trimCharArrays, s_splitOptions);
         public static IEnumerable<object[]> CompareArgs => Permutations(s_comparePairs, s_compareOptions);
-        public static IEnumerable<object[]> IndexOfArgs => Permutations(s_compareOptions);
+        public static IEnumerable<object> IndexOfArgs => s_compareOptions;
 
         [Benchmark]
         [ArgumentsSource(nameof(CaseArgs))]
