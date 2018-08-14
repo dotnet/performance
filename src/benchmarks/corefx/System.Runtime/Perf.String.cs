@@ -11,7 +11,6 @@ namespace System.Tests
     {
         public static IEnumerable<object> TestStringSizes()
         {
-            yield return new StringArguments(10);
             yield return new StringArguments(100);
             yield return new StringArguments(1000);
         }
@@ -46,155 +45,50 @@ namespace System.Tests
         public bool StartsWith(StringArguments size)
             => size.TestString1.StartsWith(size.Q1);
 
-        private static readonly string[] s_getHashCodeStrings = new string[]
-        {
-            string.Empty,
-            "  ",
-            "TeSt!",
-            "I think Turkish i \u0131s TROUBL\u0130NG",
-            "dzsdzsDDZSDZSDZSddsz",
-            "a\u0300\u00C0A\u0300A",
-            "Foo\u0400Bar!",
-            "a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a",
-            "\u4e33\u4e65 Testing... \u4EE8",
-        };
-        
-        public static IEnumerable<object> GetHashCodeArgs => s_getHashCodeStrings;
-        
         [Benchmark]
-        [ArgumentsSource(nameof(GetHashCodeArgs))]
+        [Arguments("")]
+        [Arguments("TeSt!")]
+        [Arguments("dzsdzsDDZSDZSDZSddsz")]
         public int GetHashCode(string s)
             => s.GetHashCode();
         
         [Benchmark]
-        [Arguments("", 0, " ")]
-        [Arguments(" ", 1, "    ")]
-        [Arguments("    ", 1, "Test")]
         [Arguments("Test", 2, " Test")]
-        [Arguments(" Test", 2, "Test ")]
-        [Arguments("Test ", 2, " Te st  ")]
-        [Arguments(" Te st  ", 3,
-            "\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005")]
-        [Arguments(
-            "\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005\t Te\t \tst \t\r\n\u0020\u00A0\u2000\u2001\u2002\u2003\u2004\u2005",
-            3, " \u0400Te \u0400st")]
-        [Arguments(" \u0400Te \u0400st", 3, " a\u0300\u00C0")]
-        [Arguments(" a\u0300\u00C0", 3, " a \u0300 \u00C0 ")]
-        [Arguments(" a \u0300 \u00C0 ", 4, "     ddsz dszdsz \t  dszdsz  \t        ")]
-        [Arguments("     ddsz dszdsz \t  dszdsz  \t        ", 5, "")]
+        [Arguments("dzsdzsDDZSDZSDZSddsz", 7, "Test")]
         public string Insert(string s1, int i, string s2)
             => s1.Insert(i, s2);
 
         [Benchmark]
-        [Arguments(0)]
-        [Arguments(1)]
-        [Arguments(5)]
         [Arguments(18)]
         [Arguments(2142)]
         public string PadLeft(int n)
             => "a".PadLeft(n);
 
         [Benchmark]
-        [Arguments("a", 0)]
-        [Arguments("  ", 0)]
-        [Arguments("  ", 1)]
-        [Arguments("TeSt!", 0)]
-        [Arguments("TeSt!", 2)]
-        [Arguments("TeSt!", 3)]
-        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 0)]
-        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 18)]
-        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 22)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 0)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 7)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 10)]
-        [Arguments("a\u0300\u00C0A\u0300A", 0)]
-        [Arguments("a\u0300\u00C0A\u0300A", 3)]
-        [Arguments("a\u0300\u00C0A\u0300A", 4)]
-        [Arguments("Foo\u0400Bar!", 0)]
-        [Arguments("Foo\u0400Bar!", 3)]
-        [Arguments("Foo\u0400Bar!", 4)]
-        [Arguments("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 0)]
-        [Arguments("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 3)]
-        [Arguments("\u4e33\u4e65 Testing... \u4EE8", 0)]
-        [Arguments("\u4e33\u4e65 Testing... \u4EE8", 4)]
         public string Remove_Int(string s, int i)
             => s.Remove(i);
 
         [Benchmark]
-        [Arguments("a", 0, 0)]
-        [Arguments("  ", 0, 1)]
-        [Arguments("  ", 1, 0)]
-        [Arguments("TeSt!", 0, 2)]
-        [Arguments("TeSt!", 2, 1)]
-        [Arguments("TeSt!", 3, 0)]
-        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 0, 3)]
-        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 18, 3)]
-        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 22, 1)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 0, 8)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 7, 4)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 10, 1)]
-        [Arguments("a\u0300\u00C0A\u0300A", 0, 2)]
-        [Arguments("a\u0300\u00C0A\u0300A", 3, 1)]
-        [Arguments("a\u0300\u00C0A\u0300A", 4, 0)]
-        [Arguments("Foo\u0400Bar!", 0, 4)]
-        [Arguments("Foo\u0400Bar!", 3, 2)]
-        [Arguments("Foo\u0400Bar!", 4, 1)]
-        [Arguments("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 0, 2)]
-        [Arguments("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 3, 3)]
-        [Arguments("\u4e33\u4e65 Testing... \u4EE8", 0, 3)]
-        [Arguments("\u4e33\u4e65 Testing... \u4EE8", 4, 1)]
         public string Remove_IntInt(string s, int i1, int i2)
             => s.Remove(i1, i2);
 
         [Benchmark]
-        [Arguments("", 0)]
-        [Arguments(" ", 0)]
-        [Arguments(" ", 1)]
-        [Arguments("TeSt", 0)]
-        [Arguments("TeSt", 2)]
-        [Arguments("TeSt", 3)]
-        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 0)]
-        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 18)]
-        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 22)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 0)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 7)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 10)]
-        [Arguments("a\u0300\u00C0A\u0300", 0)]
-        [Arguments("a\u0300\u00C0A\u0300", 3)]
-        [Arguments("a\u0300\u00C0A\u0300", 4)]
-        [Arguments("Foo\u0400Bar", 0)]
-        [Arguments("Foo\u0400Bar", 3)]
-        [Arguments("Foo\u0400Bar", 4)]
-        [Arguments("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 0)]
-        [Arguments("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 3)]
-        [Arguments("\u4e33\u4e65 Testing... \u4EE8", 0)]
-        [Arguments("\u4e33\u4e65 Testing... \u4EE8", 4)]
         public string Substring_Int(string s, int i)
             => s.Substring(i);
 
         [Benchmark]
-        [Arguments("", 0, 0)]
-        [Arguments(" ", 0, 1)]
-        [Arguments(" ", 1, 0)]
-        [Arguments("TeSt", 0, 2)]
-        [Arguments("TeSt", 2, 1)]
-        [Arguments("TeSt", 3, 0)]
-        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 0, 3)]
-        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 18, 3)]
-        [Arguments("I think Turkish i \u0131s TROUBL\u0130NG", 22, 1)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 0, 8)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 7, 4)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 10, 1)]
-        [Arguments("a\u0300\u00C0A\u0300", 0, 2)]
-        [Arguments("a\u0300\u00C0A\u0300", 3, 1)]
-        [Arguments("a\u0300\u00C0A\u0300", 4, 0)]
-        [Arguments("Foo\u0400Bar", 0, 4)]
-        [Arguments("Foo\u0400Bar", 3, 2)]
-        [Arguments("Foo\u0400Bar", 4, 1)]
-        [Arguments("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 0, 2)]
-        [Arguments("a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a", 3, 3)]
-        [Arguments("\u4e33\u4e65 Testing... \u4EE8", 0, 3)]
-        [Arguments("\u4e33\u4e65 Testing... \u4EE8", 4, 1)]
         public string Substring_IntInt(string s, int i1, int i2)
             => s.Substring(i1, i2);
         
