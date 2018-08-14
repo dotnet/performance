@@ -12,9 +12,6 @@ namespace System.Tests
         [Benchmark]
         [Arguments("The quick brown fox", "The quick brown fox")]
         [Arguments("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x")]
-        [Arguments("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x jumped")]
-        [Arguments("a\u0300a\u0300a\u0300", "\u00e0\u00e0\u00e0")]
-        [Arguments("a\u0300a\u0300a\u0300", "\u00c0\u00c0\u00c0")]
         public int Compare_Culture_invariant(string s1, string s2)
             => CultureInfo.InvariantCulture.CompareInfo.Compare(s1, s2, CompareOptions.None);
 
@@ -24,9 +21,6 @@ namespace System.Tests
         [Benchmark]
         [Arguments("The quick brown fox", "The quick brown fox")]
         [Arguments("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x")]
-        [Arguments("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x jumped")]
-        [Arguments("a\u0300a\u0300a\u0300", "\u00e0\u00e0\u00e0")]
-        [Arguments("a\u0300a\u0300a\u0300", "\u00c0\u00c0\u00c0")]
         public int Compare_Culture_en_us(string s1, string s2)
             => _cultureInfo.CompareInfo.Compare(s1, s2, CompareOptions.None);
 
@@ -36,35 +30,17 @@ namespace System.Tests
         [Benchmark]
         [Arguments("The quick brown fox", "The quick brown fox")]
         [Arguments("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x")]
-        [Arguments("Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick brown f\u00f2x jumped")]
-        [Arguments("a\u0300a\u0300a\u0300", "\u00e0\u00e0\u00e0")]
-        [Arguments("a\u0300a\u0300a\u0300", "\u00c0\u00c0\u00c0")]
         public int Compare_Culture_ja_jp(string s1, string s2)
             => _cultureInfo.CompareInfo.Compare(s1, s2, CompareOptions.None);
-        
-        
-        private static readonly object[] s_compareOptions = new object[]
-        {
-            StringComparison.CurrentCultureIgnoreCase,
-            StringComparison.Ordinal,
-            StringComparison.OrdinalIgnoreCase,
-        };
-        
-        private static readonly string[][] s_comparePairs = new string[][]
-        {
-            new string[] {"The quick brown fox", "THE QUICK BROWN FOX"},
-            new string[] {"The quick brown fox", "THE QUICK BROWN FOX J"},
-            new string[] {"Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick BROWN f\u00f2x"},
-            new string[] {"Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick BROWN f\u00f2x jumped"},
-            new string[] {"A\u0300A\u0300A\u0300", "\u00e0\u00e0\u00e0"},
-            new string[] {"A\u0300A\u0300A\u0300", "\u00e0\u00e0 Z"},
-        };
-        
-        public static IEnumerable<object[]> CompareArgs => Permutations(s_comparePairs, s_compareOptions);
-        
+
         [Benchmark]
-        [ArgumentsSource(nameof(CompareArgs))]
-        public int Compare(string[] strings, StringComparison comparison)
+        [Arguments(new [] {"The quick brown fox", "THE QUICK BROWN FOX"}, StringComparison.CurrentCultureIgnoreCase)]
+        [Arguments(new [] {"The quick brown fox", "THE QUICK BROWN FOX"}, StringComparison.Ordinal)]
+        [Arguments(new [] {"The quick brown fox", "THE QUICK BROWN FOX"}, StringComparison.OrdinalIgnoreCase)]
+        [Arguments(new [] {"Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick BROWN f\u00f2x"}, StringComparison.CurrentCultureIgnoreCase)]
+        [Arguments(new [] {"Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick BROWN f\u00f2x"}, StringComparison.Ordinal)]
+        [Arguments(new [] {"Th\u00e9 quick brown f\u00f2x", "Th\u00e9 quick BROWN f\u00f2x"}, StringComparison.OrdinalIgnoreCase)]
+        public int Compare(string[] strings, StringComparison comparison) // we should have two separate string arguments but we keep it that way to don't change the ID of the benchmark
             => string.Compare(strings[0], strings[1], comparison);
         
         [Benchmark]

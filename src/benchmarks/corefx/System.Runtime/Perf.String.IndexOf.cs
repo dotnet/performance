@@ -12,15 +12,17 @@ namespace System.Tests
 
         private static readonly string s_tagName = "<foobar";
         
-        public static IEnumerable<object> IndexOfArgs => s_compareOptions;
-
         [Benchmark]
-        [ArgumentsSource(nameof(IndexOfArgs))]
+        [Arguments(StringComparison.CurrentCultureIgnoreCase)]
+        [Arguments(StringComparison.Ordinal)]
+        [Arguments(StringComparison.OrdinalIgnoreCase)]
         public int IndexOf(StringComparison options)
             => s_longString.IndexOf(s_tagName, options);
 
         [Benchmark]
-        [ArgumentsSource(nameof(IndexOfArgs))]
+        [Arguments(StringComparison.CurrentCultureIgnoreCase)]
+        [Arguments(StringComparison.Ordinal)]
+        [Arguments(StringComparison.OrdinalIgnoreCase)]
         public int LastIndexOf(StringComparison options)
             => s_longString.LastIndexOf(s_tagName, options);
     }

@@ -17,6 +17,12 @@ namespace System.Tests
                 foreach (var size in s_testStringSizes)
                     yield return new object[] { compareOption, new StringArguments(size) };
         }
+        
+        private static readonly object[] s_compareOptions = {
+            StringComparison.CurrentCultureIgnoreCase,
+            StringComparison.Ordinal,
+            StringComparison.OrdinalIgnoreCase,
+        };
 
         [Benchmark]
         [ArgumentsSource(nameof(ContainsStringComparisonArgs))]
