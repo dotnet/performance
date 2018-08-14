@@ -198,57 +198,13 @@ namespace System.Tests
         public string Substring_IntInt(string s, int i1, int i2)
             => s.Substring(i1, i2);
         
-        private static readonly object[] s_splitOptions = new object[]
-        {
-            StringSplitOptions.None,
-            StringSplitOptions.RemoveEmptyEntries,
-        };
-        
-        public static IEnumerable<object[]> SplitArgs => Permutations(s_trimStrings, s_trimCharArrays, s_splitOptions);
-
         [Benchmark]
-        [ArgumentsSource(nameof(SplitArgs))]
+        [Arguments("A B C D E F G H I J K L M N O P Q R S T U V W X Y Z", new char[] { ' ' }, StringSplitOptions.None)]
+        [Arguments("A B C D E F G H I J K L M N O P Q R S T U V W X Y Z", new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)]
+        [Arguments("ABCDEFGHIJKLMNOPQRSTUVWXYZ", new char[]{' '}, StringSplitOptions.None)]
+        [Arguments("ABCDEFGHIJKLMNOPQRSTUVWXYZ", new char[]{' '}, StringSplitOptions.RemoveEmptyEntries)]
         public string[] Split(string s, char[] arr, StringSplitOptions options)
             => s.Split(arr, options);
-        
-        private static IEnumerable<object[]> Permutations(params IEnumerable<object>[] values)
-        {
-            IEnumerator<object>[] enumerators = new IEnumerator<object>[values.Length];
-            try
-            {
-                while (true)
-                {
-                    for (int i = 0; i < enumerators.Length; i++)
-                    {
-                        if (enumerators[i] != null)
-                        {
-                            if (enumerators[i].MoveNext())
-                                break;
-
-                            if (i == enumerators.Length - 1)
-                                yield break;
-                        }
-
-                        enumerators[i] = values[i].GetEnumerator();
-                        if (!enumerators[i].MoveNext())
-                            throw new ArgumentException("all arguments must have one or more elements", "values");
-                    }
-
-                    object[] result = new object[values.Length];
-
-                    for (int i = 0; i < enumerators.Length; i++)
-                        result[i] = enumerators[i].Current;
-
-                    yield return result;
-                }
-            }
-            finally
-            {
-                foreach (var enumerator in enumerators)
-                    if (enumerator != null)
-                        enumerator.Dispose();
-            }
-        }
     }
 
     public class StringArguments
