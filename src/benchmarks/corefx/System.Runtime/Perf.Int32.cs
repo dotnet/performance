@@ -16,15 +16,9 @@ namespace System.Tests
         
         public IEnumerable<object> Int32Values => new object[]
         {
-            0,
-            -1,
-            1,
-            -1283,
-            1283,
-            -12837467,
-            12837467,
-            -2147483648,
-            2147483647,
+            int.MinValue,
+            (int)12345, // same value used by other tests to compare the perf
+            int.MaxValue
         };
 
         public IEnumerable<object> StringValues => Int32Values.Select(value => value.ToString()).ToArray();

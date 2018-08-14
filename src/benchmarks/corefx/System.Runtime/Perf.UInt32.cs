@@ -18,11 +18,9 @@ namespace System.Tests
         
         public IEnumerable<object> UInt32Values => new object[]
         {
-            0u,
-            1u,
-            1283u,
-            12837467u,
-            4294967295u
+            uint.MinValue,
+            (uint)12345, // same value used by other tests to compare the perf
+            uint.MaxValue,
         };
 
         [Benchmark]

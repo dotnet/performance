@@ -18,30 +18,9 @@ namespace System.Tests
         
         public static object[] UInt64Values => new object[]
         {
-            214748364LU,
-            2LU,
-            21474836LU,
-            21474LU,
-            214LU,
-            2147LU,
-            214748LU,
-            21LU,
-            2147483LU,
-            922337203685477580LU,
-            92233720368547758LU,
-            9223372036854775LU,
-            922337203685477LU,
-            92233720368547LU,
-            9223372036854LU,
-            922337203685LU,
-            92233720368LU,
-            0LU, // min value
-            18446744073709551615LU, // max value
-            2147483647LU, // int32 max value
-            9223372036854775807LU, // int64 max value
-            1000000000000000000LU, // quintillion
-            4294967295000000000LU, // uint.MaxValue * Billion
-            4294967295000000001LU // uint.MaxValue * Billion + 1
+            ulong.MinValue,
+            (ulong)12345, // same value used by other tests to compare the perf
+            ulong.MaxValue,
         };
 
         [Benchmark]
