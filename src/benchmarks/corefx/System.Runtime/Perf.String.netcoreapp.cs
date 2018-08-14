@@ -9,24 +9,14 @@ namespace System.Tests
 {
     public partial class Perf_String
     {
-        private static readonly int[] s_testStringSizes = { 10, 100, 1000 };
-
-        public static IEnumerable<object[]> ContainsStringComparisonArgs()
-        {
-            foreach (var compareOption in s_compareOptions)
-                foreach (var size in s_testStringSizes)
-                    yield return new object[] { compareOption, new StringArguments(size) };
-        }
-        
-        private static readonly object[] s_compareOptions = {
-            StringComparison.CurrentCultureIgnoreCase,
-            StringComparison.Ordinal,
-            StringComparison.OrdinalIgnoreCase,
-        };
-
         [Benchmark]
-        [ArgumentsSource(nameof(ContainsStringComparisonArgs))]
-        public bool Contains(StringComparison comparisonType, StringArguments size) // the argument is called "size" to keep the old benchmark ID, do NOT rename it
-            => size.TestString1.Contains(size.Q3, comparisonType);
+        [Arguments("This is a very nice sentence", "bad", StringComparison.CurrentCultureIgnoreCase)]
+        [Arguments("This is a very nice sentence", "bad", StringComparison.Ordinal)]
+        [Arguments("This is a very nice sentence", "bad", StringComparison.OrdinalIgnoreCase)]
+        [Arguments("This is a very nice sentence", "nice", StringComparison.CurrentCultureIgnoreCase)]
+        [Arguments("This is a very nice sentence", "nice", StringComparison.Ordinal)]
+        [Arguments("This is a very nice sentence", "nice", StringComparison.OrdinalIgnoreCase)]
+        public bool Contains(String text, String value, StringComparison comparisonType)
+            => text.Contains(value, comparisonType);
     }
 }
