@@ -105,7 +105,6 @@ namespace System.Tests
 
             _bigStringBuilder = sb;
         }
-        
 
         [Benchmark]
         public string StringBuilderToString() => _bigStringBuilder.ToString();

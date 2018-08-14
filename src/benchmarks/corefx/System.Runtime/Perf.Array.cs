@@ -122,16 +122,16 @@ namespace System.Tests
 
             for (int j = 0; j < s_DIM_1; j++)
             {
-                value = (int) s_arr1.GetValue(j);
-                value = (int) s_arr1.GetValue(j);
-                value = (int) s_arr1.GetValue(j);
-                value = (int) s_arr1.GetValue(j);
-                value = (int) s_arr1.GetValue(j);
-                value = (int) s_arr1.GetValue(j);
-                value = (int) s_arr1.GetValue(j);
-                value = (int) s_arr1.GetValue(j);
-                value = (int) s_arr1.GetValue(j);
-                value = (int) s_arr1.GetValue(j);
+                value += (int) s_arr1.GetValue(j);
+                value += (int) s_arr1.GetValue(j);
+                value += (int) s_arr1.GetValue(j);
+                value += (int) s_arr1.GetValue(j);
+                value += (int) s_arr1.GetValue(j);
+                value += (int) s_arr1.GetValue(j);
+                value += (int) s_arr1.GetValue(j);
+                value += (int) s_arr1.GetValue(j);
+                value += (int) s_arr1.GetValue(j);
+                value += (int) s_arr1.GetValue(j);
             }
 
             return value;
@@ -158,16 +158,16 @@ namespace System.Tests
             {
                 for (int k = 0; k < s_DIM_2; k++)
                 {
-                    value = (int) s_arr2.GetValue(j, k);
-                    value = (int) s_arr2.GetValue(j, k);
-                    value = (int) s_arr2.GetValue(j, k);
-                    value = (int) s_arr2.GetValue(j, k);
-                    value = (int) s_arr2.GetValue(j, k);
-                    value = (int) s_arr2.GetValue(j, k);
-                    value = (int) s_arr2.GetValue(j, k);
-                    value = (int) s_arr2.GetValue(j, k);
-                    value = (int) s_arr2.GetValue(j, k);
-                    value = (int) s_arr2.GetValue(j, k);
+                    value += (int) s_arr2.GetValue(j, k);
+                    value += (int) s_arr2.GetValue(j, k);
+                    value += (int) s_arr2.GetValue(j, k);
+                    value += (int) s_arr2.GetValue(j, k);
+                    value += (int) s_arr2.GetValue(j, k);
+                    value += (int) s_arr2.GetValue(j, k);
+                    value += (int) s_arr2.GetValue(j, k);
+                    value += (int) s_arr2.GetValue(j, k);
+                    value += (int) s_arr2.GetValue(j, k);
+                    value += (int) s_arr2.GetValue(j, k);
                 }
             }
 
@@ -200,17 +200,17 @@ namespace System.Tests
                 {
                     for (int l = 0; l < s_DIM_3; l++)
                     {
-                        value = (int) s_arr3.GetValue(j, k, l);
-                        value = (int) s_arr3.GetValue(j, k, l);
-                        value = (int) s_arr3.GetValue(j, k, l);
-                        value = (int) s_arr3.GetValue(j, k, l);
-                        value = (int) s_arr3.GetValue(j, k, l);
-                        value = (int) s_arr3.GetValue(j, k, l);
-                        value = (int) s_arr3.GetValue(j, k, l);
-                        value = (int) s_arr3.GetValue(j, k, l);
-                        value = (int) s_arr3.GetValue(j, k, l);
-                        value = (int) s_arr3.GetValue(j, k, l);
-                        value = (int) s_arr3.GetValue(j, k, l);
+                        value += (int) s_arr3.GetValue(j, k, l);
+                        value += (int) s_arr3.GetValue(j, k, l);
+                        value += (int) s_arr3.GetValue(j, k, l);
+                        value += (int) s_arr3.GetValue(j, k, l);
+                        value += (int) s_arr3.GetValue(j, k, l);
+                        value += (int) s_arr3.GetValue(j, k, l);
+                        value += (int) s_arr3.GetValue(j, k, l);
+                        value += (int) s_arr3.GetValue(j, k, l);
+                        value += (int) s_arr3.GetValue(j, k, l);
+                        value += (int) s_arr3.GetValue(j, k, l);
+                        value += (int) s_arr3.GetValue(j, k, l);
                     }
                 }
             }
