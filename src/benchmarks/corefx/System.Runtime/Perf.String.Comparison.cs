@@ -67,28 +67,13 @@ namespace System.Tests
         public int Compare(string[] strings, StringComparison comparison)
             => string.Compare(strings[0], strings[1], comparison);
         
-        private static readonly object[] s_equalityStrings = new object[]
-        {
-            "a",
-            "  ",
-            "TeSt!",
-            "I think Turkish i \u0131s TROUBL\u0130NG",
-            "dzsdzsDDZSDZSDZSddsz",
-            "a\u0300\u00C0A\u0300A",
-            "Foo\u0400Bar!",
-            "a\u0020a\u00A0A\u2000a\u2001a\u2002A\u2003a\u2004a\u2005a",
-            "\u4e33\u4e65 Testing... \u4EE8",
-        };
-        
-        public static IEnumerable<object[]> EqualityArgs => Permutations(s_equalityStrings, s_equalityStrings);
-
         [Benchmark]
-        [ArgumentsSource(nameof(EqualityArgs))]
+        [Arguments("dzsdzsDDZSDZSDZSddsz", "dzsdzsDDZSDZSDZSddsz")]
         public bool Equality(string s1, string s2)
             => s1 == s2;
 
         [Benchmark]
-        [ArgumentsSource(nameof(EqualityArgs))]
+        [Arguments("dzsdzsDDZSDZSDZSddsz", "dzsdzsDDZSDZSDZSddsz")]
         public bool Equals(string s1, string s2)
             => s1.Equals(s2);
     }
