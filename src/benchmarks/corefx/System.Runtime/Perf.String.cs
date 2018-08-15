@@ -225,6 +225,11 @@ namespace System.Tests
             => string.Format("More testing: {0} {1} {2} {3} {4} {5}{6} {7}", '1', "Foo", "Foo", "Foo", "Foo", "Foo", "Foo", "Foo");
 
         [Benchmark]
+        [Arguments('1', "Foo")]
+        public string Interpolation_MultipleArgs(char c, string s)
+            => $"More testing: {c} {s} {s} {s} {s} {s}{s} {s}"; 
+
+        [Benchmark]
         [Arguments("TeSt")]
         [Arguments("TEST")]
         [Arguments("test")]
