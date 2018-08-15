@@ -18,6 +18,6 @@ namespace System
         public void Setup() => _string = new string(Enumerable.Repeat('a', BytesCount / (sizeof(char)/ sizeof(byte))).ToArray());
 
         [Benchmark]
-        public int ComputeHash() => _string.GetHashCode();
+        public int GetStringHashCode() => _string.GetHashCode();
     }
 }
