@@ -14,7 +14,7 @@
     <None Remove="img\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.10.14.683" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.11.0.723" />
     <PackageReference Include="CommandLineParser" Version="2.2.1" />
     <PackageReference Include="Jil" Version="2.15.4" />
     <PackageReference Include="MessagePack" Version="1.7.3.4" />
@@ -53,6 +53,7 @@
     <Compile Remove="corefx\System.Net.Sockets\Perf.Socket.SendReceive.cs" />
     <Compile Remove="corefx\System.Numerics.Vectors\GenericVectorFromSpanConstructorTests.cs" />
     <Compile Remove="corefx\System.IO.Compression\Brotli.cs" />
+    <Compile Remove="corefx\System.Runtime\Perf.HashCode.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="$(NuGetPackageRoot)\system.text.regularexpressions.testdata\1.0.2\content\regexredux\*.*">
