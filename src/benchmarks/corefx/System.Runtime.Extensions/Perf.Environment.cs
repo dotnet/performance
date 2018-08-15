@@ -3,158 +3,38 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections;
-using Microsoft.Xunit.Performance;
-using System.Runtime.InteropServices;
-using Xunit;
+using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Environment
     {
-        private volatile string str;
-        private volatile string[] arr;
-        private volatile IDictionary dict;
+        private const string Key = "7efd538f-dcab-4806-839a-972bc463a90c";
+        private const string ExpandedKey = "%" + Key + "%";
+        
+        [GlobalSetup]
+        public void Setup() => Environment.SetEnvironmentVariable(Key, "value");
 
-        [Benchmark(InnerIterationCount = 40000)]
-        public void GetEnvironmentVariable()
-        {
-            PerfUtils utils = new PerfUtils();
-            string env = utils.CreateString(15);
-            try
-            {
-                // setup the environment variable so we can read it
-                Environment.SetEnvironmentVariable(env, "value");
+        [GlobalCleanup]
+        public void Cleanup() => Environment.SetEnvironmentVariable(Key, null);
+        
+        [Benchmark]
+        public string GetEnvironmentVariable() => Environment.GetEnvironmentVariable(Key);
 
-                // warmup
-                for (int i = 0; i < 100; i++)
-                {
-                    str = Environment.GetEnvironmentVariable(env);
-                }
+        [Benchmark]
+        public string ExpandEnvironmentVariables() => Environment.ExpandEnvironmentVariables(ExpandedKey);
 
-                // read the valid environment variable for the test
-                foreach (var iteration in Benchmark.Iterations)
-                    using (iteration.StartMeasurement())
-                        for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        {
-                            str = Environment.GetEnvironmentVariable(env); str = Environment.GetEnvironmentVariable(env); str = Environment.GetEnvironmentVariable(env);
-                            str = Environment.GetEnvironmentVariable(env); str = Environment.GetEnvironmentVariable(env); str = Environment.GetEnvironmentVariable(env);
-                            str = Environment.GetEnvironmentVariable(env); str = Environment.GetEnvironmentVariable(env); str = Environment.GetEnvironmentVariable(env);
-                        }
-            }
-            finally
-            {
-                // clear the variable that we set
-                Environment.SetEnvironmentVariable(env, null);
-            }
-        }
+        [Benchmark]
+        public IDictionary GetEnvironmentVariables() => Environment.GetEnvironmentVariables();
 
-        [Benchmark(InnerIterationCount = 40000)]
-        public void ExpandEnvironmentVariables()
-        {
-            PerfUtils utils = new PerfUtils();
-            string env = utils.CreateString(15);
-            string inputEnv = "%" + env + "%";
-
-            try
-            {
-                // setup the environment variable so we can read it
-                Environment.SetEnvironmentVariable(env, "value");
-
-                // warmup
-                for (int i = 0; i < 100; i++)
-                {
-                    str = Environment.ExpandEnvironmentVariables(inputEnv);
-                }
-
-                // read the valid environment variable
-                foreach (var iteration in Benchmark.Iterations)
-                    using (iteration.StartMeasurement())
-                        for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        {
-                            str = Environment.ExpandEnvironmentVariables(inputEnv); str = Environment.ExpandEnvironmentVariables(inputEnv);
-                            str = Environment.ExpandEnvironmentVariables(inputEnv); str = Environment.ExpandEnvironmentVariables(inputEnv);
-                            str = Environment.ExpandEnvironmentVariables(inputEnv); str = Environment.ExpandEnvironmentVariables(inputEnv);
-                            str = Environment.ExpandEnvironmentVariables(inputEnv); str = Environment.ExpandEnvironmentVariables(inputEnv);
-                            str = Environment.ExpandEnvironmentVariables(inputEnv); str = Environment.ExpandEnvironmentVariables(inputEnv);
-                        }
-            }
-            finally
-            {
-                // clear the variable that we set
-                Environment.SetEnvironmentVariable(env, null);
-            }
-        }
-
-        [Benchmark(InnerIterationCount = 2000)]
-        public void GetEnvironmentVariables()
-        {
-            PerfUtils utils = new PerfUtils();
-            string env = utils.CreateString(15);
-            try
-            {
-                // setup the environment variable so we can read it
-                Environment.SetEnvironmentVariable(env, "value");
-
-                // warmup
-                for (int i = 0; i < 100; i++)
-                {
-                    dict = Environment.GetEnvironmentVariables();
-                }
-
-                // read the valid environment variable for the test
-                foreach (var iteration in Benchmark.Iterations)
-                    using (iteration.StartMeasurement())
-                        for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        {
-                            dict = Environment.GetEnvironmentVariables(); dict = Environment.GetEnvironmentVariables(); dict = Environment.GetEnvironmentVariables();
-                            dict = Environment.GetEnvironmentVariables(); dict = Environment.GetEnvironmentVariables(); dict = Environment.GetEnvironmentVariables();
-                            dict = Environment.GetEnvironmentVariables(); dict = Environment.GetEnvironmentVariables(); dict = Environment.GetEnvironmentVariables();
-                        }
-            }
-            finally
-            {
-                // clear the variable that we set
-                Environment.SetEnvironmentVariable(env, null);
-            }
-        }
-
-        [Benchmark(InnerIterationCount = 20000)]
-        [InlineData(Environment.SpecialFolder.System, Environment.SpecialFolderOption.None)]
+        [Benchmark]
+        [Arguments(Environment.SpecialFolder.System, Environment.SpecialFolderOption.None)]
         public void GetFolderPath(Environment.SpecialFolder folder, Environment.SpecialFolderOption option)
-        {
-            // warmup
-            for (int i = 0; i < 100; i++)
-            {
-                str = Environment.GetFolderPath(folder, option);
-            }
+            => Environment.GetFolderPath(folder, option);
 
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        str = Environment.GetFolderPath(folder, option); str = Environment.GetFolderPath(folder, option); str = Environment.GetFolderPath(folder, option);
-                        str = Environment.GetFolderPath(folder, option); str = Environment.GetFolderPath(folder, option); str = Environment.GetFolderPath(folder, option);
-                        str = Environment.GetFolderPath(folder, option); str = Environment.GetFolderPath(folder, option); str = Environment.GetFolderPath(folder, option);
-                    }
-        }
-
-        [Benchmark(InnerIterationCount = 40000)]
-        public void GetLogicalDrives()
-        {
-            // warmup
-            for (int i = 0; i < 100; i++)
-            {
-                arr = Environment.GetLogicalDrives();
-            }
-
-            foreach (var iteration in Benchmark.Iterations)
-                using (iteration.StartMeasurement())
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        arr = Environment.GetLogicalDrives(); arr = Environment.GetLogicalDrives(); arr = Environment.GetLogicalDrives();
-                        arr = Environment.GetLogicalDrives(); arr = Environment.GetLogicalDrives(); arr = Environment.GetLogicalDrives();
-                        arr = Environment.GetLogicalDrives(); arr = Environment.GetLogicalDrives(); arr = Environment.GetLogicalDrives();
-                    }
-        }
+        [Benchmark]
+        public string[] GetLogicalDrives() => Environment.GetLogicalDrives();
     }
 }

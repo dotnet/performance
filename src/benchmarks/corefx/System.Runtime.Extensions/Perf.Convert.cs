@@ -2,14 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
-using Xunit;
+using BenchmarkDotNet.Attributes;
+using Benchmarks;
 
 namespace System
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Convert
     {
-        private byte[] InitializeBinaryDataCollection(int size)
+        private static byte[] InitializeBinaryDataCollection(int size)
         {
             var random = new Random(30000);
             byte[] binaryData = new byte[size];
@@ -18,105 +19,46 @@ namespace System
             return binaryData;
         }
 
-        [Benchmark(InnerIterationCount = 20000000)]
-        public void GetTypeCode()
+        private const int Size = 1024;
+        
+        private object _stringValue = "Hello World!";
+        private object _intValue = 1000;
+        private byte[] _binaryData = InitializeBinaryDataCollection(Size);
+        private char[] _base64CharArray;
+
+        [Benchmark]
+        public TypeCode GetTypeCode() => Convert.GetTypeCode(_stringValue);
+
+        [Benchmark]
+        public object ChangeType() => Convert.ChangeType(_intValue, typeof(string));
+
+        [GlobalSetup(Target = nameof(ToBase64CharArray))]
+        public void SetupToBase64CharArray()
         {
-            int innerIterationCount = (int)Benchmark.InnerIterationCount;
-            object value = "Hello World!";
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < innerIterationCount; i++)
-                    {
-                        Convert.GetTypeCode(value);
-                    }
-                }
-            }
+            int insertLineBreaksArraySize = Convert.ToBase64String(_binaryData, Base64FormattingOptions.InsertLineBreaks).Length;
+            int noneArraySize = Convert.ToBase64String(_binaryData, Base64FormattingOptions.None).Length;
+            _base64CharArray = new char[Math.Max(noneArraySize, insertLineBreaksArraySize)];
         }
+        
+        [Benchmark]
+        [Arguments(Size, Base64FormattingOptions.InsertLineBreaks)]
+        [Arguments(Size, Base64FormattingOptions.None)]
+        public int ToBase64CharArray(int binaryDataSize, Base64FormattingOptions formattingOptions)
+            => Convert.ToBase64CharArray(_binaryData, 0, binaryDataSize, _base64CharArray, 0, formattingOptions);
 
-        [Benchmark(InnerIterationCount = 6000000)]
-        public void ChangeType()
-        {
-            int innerIterationCount = (int)Benchmark.InnerIterationCount;
-            object value = 1000;
-            Type type = typeof(string);
+        [Benchmark]
+        [Arguments(Base64FormattingOptions.InsertLineBreaks)]
+        [Arguments(Base64FormattingOptions.None)]
+        public string ToBase64String(Base64FormattingOptions formattingOptions)
+            => Convert.ToBase64String(_binaryData, formattingOptions);
 
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < innerIterationCount; i++)
-                    {
-                        Convert.ChangeType(value, type);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        [InlineData(1024, Base64FormattingOptions.InsertLineBreaks)]
-        [InlineData(1024, Base64FormattingOptions.None)]
-        public void ToBase64CharArray(int binaryDataSize, Base64FormattingOptions formattingOptions)
-        {
-            int innerIterationCount = (int)Benchmark.InnerIterationCount;
-            byte[] binaryData = InitializeBinaryDataCollection(binaryDataSize);
-            int arraySize = Convert.ToBase64String(binaryData, formattingOptions).Length;
-            char[] base64CharArray = new char[arraySize];
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < innerIterationCount; i++)
-                    {
-                        Convert.ToBase64CharArray(binaryData, 0, binaryDataSize, base64CharArray, 0, formattingOptions);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = 100000)]
-        [InlineData(Base64FormattingOptions.InsertLineBreaks)]
-        [InlineData(Base64FormattingOptions.None)]
-        public void ToBase64String(Base64FormattingOptions formattingOptions)
-        {
-            int innerIterationCount = (int)Benchmark.InnerIterationCount;
-            byte[] binaryData = InitializeBinaryDataCollection(1024);
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < innerIterationCount; i++)
-                    {
-                        Convert.ToBase64String(binaryData, formattingOptions);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = 400000)]
-        [InlineData("Fri, 27 Feb 2009 03:11:21 GMT")]
-        [InlineData("Thursday, February 26, 2009")]
-        [InlineData("February 26, 2009")]
-        [InlineData("12/12/1999 11:59:59 PM")]
-        [InlineData("12/12/1999")]
-        public void ToDateTime_String(string value)
-        {
-            int innerIterationCount = (int)Benchmark.InnerIterationCount;
-
-            foreach (var iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < innerIterationCount; i++)
-                    {
-                        Convert.ToDateTime(value);
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        [Arguments("Fri, 27 Feb 2009 03:11:21 GMT")]
+        [Arguments("Thursday, February 26, 2009")]
+        [Arguments("February 26, 2009")]
+        [Arguments("12/12/1999 11:59:59 PM")]
+        [Arguments("12/12/1999")]
+        public DateTime ToDateTime_String(string value) 
+            => Convert.ToDateTime(value);
     }
 }
