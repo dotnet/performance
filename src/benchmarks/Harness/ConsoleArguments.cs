@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.ConsoleArguments;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Environments;
 using BenchmarkDotNet.Exporters.Json;
@@ -16,6 +17,7 @@ using BenchmarkDotNet.Toolchains.CsProj;
 using BenchmarkDotNet.Toolchains.DotNetCli;
 using BenchmarkDotNet.Toolchains.InProcess;
 using CommandLine;
+using CommandLine.Text;
 
 namespace Benchmarks
 {
@@ -247,14 +249,14 @@ namespace Benchmarks
         [Option('d', "disassm", Required = false, Default = false, HelpText = "Gets diassembly for benchmarked code")]
         public bool UseDisassemblyDiagnoser { get; set; }
 
-        [Option('a', "allStats", Required = false, Default = false, HelpText = "Displays all statistics (min, max & more")]
-        public bool DisplayAllStatistics { get; set; }
-
         [Option('i', "inProcess", Required = false, Default = false, HelpText = "Run benchmarks in Process")]
         public bool RunInProcess { get; set; }
 
         [Option('j', "job", Required = false, Default = "Default", HelpText = "Dry/Short/Medium/Long or Default")]
         public string Job { get; set; }
+
+        [Option("allStats", Required = false, Default = false, HelpText = "Displays all statistics (min, max & more")]
+        public bool DisplayAllStatistics { get; set; }
 
         [Option("categories", Required = false, HelpText = "Categories to run. If few are provided, only the benchmarks which belong to all of them are going to be executed")]
         public IEnumerable<string> AllCategories { get; set; }
@@ -267,6 +269,24 @@ namespace Benchmarks
 
         [Option("affinity", Required = false, HelpText = "Affinity mask to set for the benchmark process")]
         public int? Affinity { get; set; }
+        
+        [Usage(ApplicationAlias = "")]
+        public static IEnumerable<Example> Examples
+        {
+            get
+            {
+                var style = new UnParserSettings { PreferShortName = true };
+
+                yield return new Example("Run benchmarks in process", style, new Options { RunInProcess = true });
+                yield return new Example("Use MemoryDiagnoser to get GC stats", style, new Options { UseMemoryDiagnoser = true });
+                yield return new Example("Use DisassemblyDiagnoser to get disassembly", style, new Options { UseDisassemblyDiagnoser = true });
+                yield return new Example("Run all benchmarks exactly once", style, new Options { Job = "Dry", Filters = new[] { "*" } });
+                yield return new Example("Run all benchmarks from System.Memory namespace", style, new Options { Filters = new[] { "System.Memory*" } });
+                yield return new Example("Run all benchmarks from ClassA and ClassB using patterns", style, new Options { Filters = new[] { "*.ClassA.*", "*.ClassB.*" } });
+                yield return new Example("Run all benchmarks called `BenchmarkName` and show the results in single summary", style, new Options { Join = true, Filters = new[] { "*.BenchmarkName" } });
+                yield return new Example("Use Job.ShortRun for running the benchmarks", style, new Options { Job = "short" });
+            }
+        }
     }
 
     public enum Framework : byte
@@ -280,10 +300,10 @@ namespace Benchmarks
 
     public class RuntimeOptions
     {
-        [Value(0, Required = true)]
+        [Value(0, Required = true, HelpText = ".NET Framework: Clr/Core/Mono/CoreRT")]
         public Framework Framework { get; set; }
 
-        [Option("moniker", Required = false, HelpText = "Target Framework Moniker (optional).")]
+        [Option("tfm", Required = false, HelpText = "Target Framework Moniker (optional).")]
         public string TargetFrameworkMoniker { get; set; }
 
         [Option("cli", Required = false, HelpText = "Path to dotnet cli (optional).")]
@@ -295,13 +315,13 @@ namespace Benchmarks
         [Option("clrVersion", Required = false, HelpText = "Version of private CLR build used as the value of COMPLUS_Version env var (optional).")]
         public string ClrVersion { get; set; }
 
-        [Option("jit", Required = false, Default = Jit.Default, HelpText = "Jit (optional).")]
+        [Option("jit", Required = false, Default = Jit.Default, HelpText = "Jit: RyuJit/LegacyJit/Llvm (optional).")]
         public Jit Jit { get; set; }
 
-        [Option("platform", Required = false, Default = Platform.AnyCpu, HelpText = "Platform (optional).")]
+        [Option("platform", Required = false, Default = Platform.AnyCpu, HelpText = "Platform: AnyCpu, x86, x64 (optional).")]
         public Platform Platform { get; set; }
 
-        [Option("monoPath", Required = false, HelpText = "Optional path to Mono which should be used for running benchmarks.")]
+        [Option("monoPath", Required = false, HelpText = "Path to Mono which should be used for running benchmarks (optional.")]
         public FileInfo MonoPath { get; set; }
 
         [Option("coreRtVersion", Required = false, HelpText = "Version of Microsoft.DotNet.ILCompiler which should be used to run with CoreRT. Example: \"1.0.0-alpha-26414-01\" (optional).")]
@@ -309,6 +329,19 @@ namespace Benchmarks
 
         [Option("ilcPath", Required = false, HelpText = "IlcPath which should be used to run with private CoreRT build. Example: \"1.0.0-alpha-26414-01\" (optional).")]
         public FileInfo CoreRtPath { get; set; }
+        
+        [Usage(ApplicationAlias = "")]
+        public static IEnumerable<Example> Examples
+        {
+            get
+            {
+                var style = new UnParserSettings { PreferShortName = false };
+
+                yield return new Example("Run benchmarks with given CoreRun", style, new RuntimeOptions { CoreRunPath = new FileInfo(@"C:\coreclr\bin\CoreRun.exe") });
+                yield return new Example("Run benchmarks with given dotnet cli", style, new RuntimeOptions { CliPath = new FileInfo(@"C:\corefxlab\dotnetcli\dotnet.exe") });
+                yield return new Example("Run benchmarks for LegacyJIT x64", style, new RuntimeOptions { Framework = Framework.Clr, Jit = Jit.LegacyJit, Platform = Platform.X64 });
+            }
+        }
     }
 
     [Verb("base", HelpText = "The settings for base run")]
@@ -318,6 +351,6 @@ namespace Benchmarks
     public class DiffOptions : RuntimeOptions { }
     
     // this class exist only becasue to parse the Verb you need to provide more than 1 generic type argument in CommandLine library...
-    [Verb("ignore")]
+    [Verb("ignore", Hidden = true)]
     public class Workaround { }
 }

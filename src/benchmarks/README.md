@@ -35,7 +35,7 @@ public class Simple
 }
 ```
 
-Any public, non-generic type with public `[Benchmark]` method in this assembly will be auto-detected and added to the benchmarks list.
+Any public, non-sealed type with public `[Benchmark]` method in this assembly will be auto-detected and added to the benchmarks list.
 
 ## Running
 
@@ -63,6 +63,34 @@ You can filter the benchmarks by namespace, category, type name and method name.
 
 **Note:** To print a single summary for all of the benchmarks, use `--join`. 
 Example: `dotnet run -c Release -f netcoreapp2.1 -- --join -f BenchmarksGame*` - will run all of the benchmarks from BenchmarksGame namespace and print a single summary.
+
+## How to compare the performance of two .NET Runtimes.
+
+You can do that by providing `base` and `diff` settings. **Note:** Please keep in mind that after the `base` or `diff` keyword you have to specify the Runtime name: `Core`, `Clr`, `Mono` or `CoreRT`. 
+
+Both `base` and `diff` are described with following arguments:
+
+* `--tfm`              Target Framework Moniker (optional).
+* `--cli`             Path to dotnet cli (optional).
+* `--coreRun`          Path to CoreRun (optional).
+* `--clrVersion`       Version of private CLR build used as the value of COMPLUS_Version env var (optional).
+* `--jit`              (Default: Default) Jit (optional).
+* `--platform`         (Default: AnyCpu) Platform (optional).
+* `--monoPath`         Optional path to Mono which should be used for running benchmarks.
+* `--coreRtVersion`    Version of Microsoft.DotNet.ILCompiler which should be used to run with CoreRT. Example: "1.0.0-alpha-26414-01" (optional).
+* `--ilcPath`          IlcPath which should be used to run with private CoreRT build. Example: "1.0.0-alpha-26414-01" (optional).
+* `--help`             Display the help screen.
+
+ **You don't need to provide diff if you want to run the benchmarks for single runtime!**
+
+Some examples:
+* `base Core diff Clr` - runs the benchmarks for the default .NET Core from your PATH vs latest .NET installed on your box
+* `base Core --cli C:\one\dotnet.exe diff Core --cli C:\two\dotnet.exe` - runs the benchmarks using `C:\one\dotnet.exe` and `C:\two\dotnet.exe`
+* `base Core --tfm netcoreapp2.0 diff Core --tfm netcoreapp2.1` - runs the benchmarks for the default .NET Core 2.0 and 2.1 from your PATH
+* `base Core --coreRun C:\before\coreclr\CoreRun.exe diff Core --coreRun C:\after\coreclr\CoreRun.exe` - runs the benchmarks using two provided CoreRun executables
+* `base Core --tfm netcoreapp3.0  --coreRun C:\CoreRun.exe --cli C:\dotnet.exe` - build benchmarks for .NET Core 3.0 using given dotnet cli and runs them with given CoreRun
+
+All cases are described below with more in-depth details.
 
 ## All Statistics
 
@@ -92,25 +120,30 @@ The project is configured to include managed memory statistics by using [Memory 
 
 If you want to disassemble the benchmarked code, you need to use the [Disassembly Diagnoser](http://adamsitnik.com/Disassembly-Diagnoser/). It allows to disassemble `asm/C#/IL` in recursive way on Windows for .NET and .NET Core (all Jits) and `asm` for Mono on any OS.
 
-You can do that by passing `--disassm` to the app or by using `[DisassemblyDiagnoser(printAsm: true, printSource: true)]` attribute or by adding it to your config with `config.With(DisassemblyDiagnoser.Create(new DisassemblyDiagnoserConfig(printAsm: true, recursiveDepth: 1))`. 
+You can do that by passing `-d` or `--disassm` to the app or by using `[DisassemblyDiagnoser(printAsm: true, printSource: true)]` attribute or by adding it to your config with `config.With(DisassemblyDiagnoser.Create(new DisassemblyDiagnoserConfig(printAsm: true, recursiveDepth: 1))`. 
 
 ![Sample Disassm](./img/sampleDisassm.png)
 
 ## How to run In Process
 
-If you want to run the benchmarks in process, without creating a dedicated executable and process-level isolation, please pass `--inProcess` as an extra argument to the app: `dotnet run -c Release -f netcoreapp2.1 -- --inProcess`. If you build your own config, please use `config.With(Job.Default.With(InProcessToolchain.Instance))`. Please use this option only when you are sure that the benchmarks you want to run have no side effects.
+If you want to run the benchmarks in process, without creating a dedicated executable and process-level isolation, please pass `-i` or `--inProcess` as an extra argument to the app: `dotnet run -c Release -f netcoreapp2.1 -- --inProcess`. If you build your own config, please use `config.With(Job.Default.With(InProcessToolchain.Instance))`. Please use this option only when you are sure that the benchmarks you want to run have no side effects.
 
-## How to compare different Runtimes
+## Processor Affinity
+
+To run the benchmarks with specific Processor Affinity, you need to provide the processor mask as an argument called `--affinity`.
+
+Example: `dotnet run -c Release -f netcoreapp2.1 -- --affinity=8`
+
+## How to compare different .NET Runtimes installed on your machine
 
 BenchmarkDotNet allows you to run benchmarks for multiple runtimes. By using this feature you can compare .NET vs .NET Core vs CoreRT vs Mono or .NET Core 2.0 vs .NET Core 2.1. BDN will compile and run the right stuff for you.
 
-* for .NET pass `--clr` to the app or use `Job.Default.With(Runtime.Clr)` in the code.
-* for .NET Core 2.0 pass `--core20` to the app or use `Job.Default.With(Runtime.Core).With(CsProjCoreToolchain.NetCoreApp20)` in the code.
-* for .NET Core 2.1 pass `--core21` to the app or use `Job.Default.With(Runtime.Core).With(CsProjCoreToolchain.NetCoreApp20)` in the code.
-* for the latest CoreRT pass `--coreRt` to the app or use `Job.Default.With(Runtime.CoreRT).With(CoreRtToolchain.LatestMyGetBuild)` in the code. **Be warned!** Downloading latest CoreRT with all the dependencies takes a lot of time. It is recommended to choose one version and use it for comparisions, more info [here](https://github.com/dotnet/BenchmarkDotNet/blob/600e5fa81bd8e7a1d32a60b2bea830e1f46106eb/docs/guide/Configs/Toolchains.md#corert). To use explicit CoreRT version please use `coreRtVersion` argument. Example: `dotnet run -c Release -f netcoreapp2.1 --coreRtVersion 1.0.0-alpha-26414-0`
-* for Mono pass `--mono` to the app or use `Job.Default.With(Runtime.Mono)` in the code.
+You need to specify the settings for the `base` and for the `diff`. After the `base|diff` keyword you need to provide the Framework name: Clr, Core, Mono, CoreRT. 
 
-An example command for comparing 4 runtimes: `dotnet run -c Release -f netcoreapp2.1 -- --core20 --core21 --mono --clr --coreRt`
+* `base Core diff Clr` - will run the benchmarks for .NET Core vs .NET
+* `base Core diff Mono` - will run the benchmarks for .NET Core vs Mono
+
+Sample results:
 
 ``` ini
 BenchmarkDotNet=v0.10.14.516-nightly, OS=Windows 10.0.16299.309 (1709/FallCreatorsUpdate/Redstone3)
@@ -137,7 +170,11 @@ LaunchCount=1  TargetCount=3  WarmupCount=3
 
 ## .NET Core 2.0 vs .NET Core 2.1
 
-If you want to compare .NET Core 2.0 vs .NET Core 2.1 you can just pass `-- --core20 --core21`. You can also build a custom config and mark selected runtime as baseline, then all the results will be scaled to the baseline.
+If you want to compare .NET Core 2.0 vs .NET Core 2.1 you need to provide the framework monikers:
+
+`base Core --tfm netcoreapp2.0 diff Core --tfm netcoreapp2.1`
+
+Or in the code:
 
 ```cs
 Add(Job.Default.With(Runtime.Core).With(CsProjCoreToolchain.From(NetCoreAppSettings.NetCoreApp20)).WithId("Core 2.0").AsBaseline());
@@ -151,9 +188,11 @@ Add(Job.Default.With(Runtime.Core).With(CsProjCoreToolchain.From(NetCoreAppSetti
 
 ## Benchmarking private CoreCLR build using CoreRun
 
-It's possible to benchmark a private build of CoreCLR using CoreRun. You just need to pass the path to CoreRun to BenchmarkDotNet. You can do that by either using `--coreRun $thePath` as an arugment or `job.With(new CoreRunToolchain(coreRunPath: "$thePath"))` in the code.
+It's possible to benchmark a private build of CoreCLR using CoreRun. You just need to pass the path to CoreRun to BenchmarkDotNet. You can do that by either using `base Core --coreRun $thePath` as an arugment or `job.With(new CoreRunToolchain(coreRunPath: "$thePath"))` in the code.
 
-So if you made a change in CoreCLR and want to measure the difference with .NET Core 2.1, you can run the benchmarks with `dotnet run -c Release -f netcoreapp2.1 -- --core21 --coreRun $thePath`.
+So if you made a change in CoreCLR and want to measure the difference with .NET Core 2.1, you can run the benchmarks with `dotnet run -c Release -f netcoreapp2.1 -- base Core -tfm netcoreapp2.1 diff Core --coreRun $thePath`.
+
+If you want to compare the performance of two local builds of CoreCLR you can do: `dotnet run -c Release -f netcoreapp2.1 -- base Core --coreRun C:\before\coreclr\CoreRun.exe diff Core --coreRun C:\after\coreclr\CoreRun.exe`.
 
 **Note:** If `CoreRunToolchain` detects that you have some older version of dependencies required to run the benchmarks in CoreRun folder, it's going to overwrite them with newer versions from the published app. It's going to do that in a shadow copy of the folder with CorRun, so your configuration remains untouched.
 
@@ -175,51 +214,7 @@ public void PrintInfo()
 
 It's possible to benchmark a private build of .NET Runtime. You just need to pass the value of `COMPLUS_Version` to BenchmarkDotNet. You can do that by either using `--clrVersion $theVersion` as an arugment or `Job.ShortRun.With(new ClrRuntime(version: "$theVersiong"))` in the code.
 
-So if you made a change in CLR and want to measure the difference, you can run the benchmarks with `dotnet run -c Release -f net46 -- --clr --clrVersion $theVersion`. More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/706).
-
-## Any CoreCLR and CoreFX
-
-BenchmarkDotNet allows the users to run their benchmarks against ANY CoreCLR and CoreFX builds. You can compare your local build vs MyGet feed or Debug vs Release or one version vs another.
-
-To avoid problems described [here](https://github.com/dotnet/coreclr/blob/master/Documentation/workflow/UsingDotNetCli.md#update-coreclr-using-runtime-nuget-package) a temporary folder is used when restoring packages for local builds. This is why it takes 20-30s in total to build the benchmarks. 
-
-Entire feature with many examples is described [here](https://github.com/dotnet/BenchmarkDotNet/blob/600e5fa81bd8e7a1d32a60b2bea830e1f46106eb/docs/guide/Configs/Toolchains.md#custom-coreclr-and-corefx).
-
-### Benchmarking private CoreFX build
-
-To run benchmarks with private CoreFX build you need to provide the version of `Microsoft.Private.CoreFx.NETCoreApp` and the path to folder with CoreFX NuGet packages.
-
-Sample arguments: `dotnet run -c Release -f netcoreapp2.1 -- --coreFxBin C:\Projects\forks\corefx\bin\packages\Release --coreFxVersion 4.5.0-preview2-26307-0`
-
-Sample config: 
-
-```cs
-Job.ShortRun.With(
-    CustomCoreClrToolchain.CreateBuilder()
-        .UseCoreFxLocalBuild("4.5.0-preview2-26313-0", @"C:\Projects\forks\corefx\bin\packages\Release")
-        .UseCoreClrDefault()
-        .AdditionalNuGetFeed("benchmarkdotnet ci", "https://ci.appveyor.com/nuget/benchmarkdotnet");
-        .DisplayName("local corefx")
-        .ToToolchain());
-```
-
-### Benchmarking private CoreCLR build
-
-To run benchmarks with private CoreCLR build you need to provide the version of `Microsoft.NETCore.Runtime`, path to folder with CoreCLR NuGet packages and path to `coreclr\packages` folder.
-
-Sample arguments: `dotnet run -c Release -f netcoreapp2.1 -- --coreClrBin C:\coreclr\bin\Product\Windows_NT.x64.Release\.nuget\pkg --coreClrPackages C:\Projects\coreclr\packages --coreClrVersion 2.1.0-preview2-26305-0`
-
-Sample config: 
-
-```cs
-Job.ShortRun.With(
-    CustomCoreClrToolchain.CreateBuilder()
-        .UseCoreClrLocalBuild("2.1.0-preview2-26313-0", @"C:\Projects\forks\coreclr\bin\Product\Windows_NT.x64.Release\.nuget\pkg", @"C:\Projects\coreclr\packages")
-        .UseCoreFxDefault()
-        .AdditionalNuGetFeed("benchmarkdotnet ci", "https://ci.appveyor.com/nuget/benchmarkdotnet");
-        .DisplayName("local builds")
-        .ToToolchain());
-```
+So if you made a change in CLR and want to measure the difference, you can run the benchmarks with `dotnet run -c Release -f net46 -- base Clr diff Clr --clrVersion $theVersion`. More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/706).
 
 ## Benchmarking private CoreRT build
 
@@ -239,44 +234,3 @@ var config = DefaultConfig.Instance
             .ToToolchain()));
 ```
 
-## Testing how Processor Affinity and Loop Alignment affect results
-
-To run the benchmarks with specific Processor Affinity, you need to provide the processor mask as an argument called `--affinity`.
-
-Example: `dotnet run -c Release -f netcoreapp2.1 -- --affinity=8`
-
-To run same benchmarks with and without specific Processor Affinity you need to use `--testAffinity` and also provide the mask with `--affinity`
-
-Example: `dotnet run -c Release -f netcoreapp2.1 -- -f *BinaryTrees_2* --affinity=8 --testAffinity`
-
-|        Method |     Affinity |
-|-------------- |------------- |
-| BinaryTrees_2 | 000000001000 |
-| BinaryTrees_2 | 111111111111 |
-
-To test how loop alignment affects the results, you can use `--testAlignment` which is going to run the benchmarks with env var `COMPlus_JitAlignLoops` set to `0` and `1`
-
-Example: `dotnet run -c Release -f netcoreapp2.1 -- -f *BinaryTrees_2* --testAlignment`
-
-|        Method |    EnvironmentVariables |
-|-------------- |------------------------ |
-| BinaryTrees_2 | COMPlus_JitAlignLoops=0 |
-| BinaryTrees_2 | COMPlus_JitAlignLoops=1 |
-
-**Note:** You can combine `--testAlignment` with `--testAffinity` which will results in 4 different benchmark runs:
-
-|        Method |     Affinity |    EnvironmentVariables |
-|-------------- |------------- |------------------------ |
-| BinaryTrees_2 | 000000001000 | COMPlus_JitAlignLoops=0 |
-| BinaryTrees_2 | 000000001000 | COMPlus_JitAlignLoops=1 |
-| BinaryTrees_2 | 111111111111 | COMPlus_JitAlignLoops=0 |
-| BinaryTrees_2 | 111111111111 | COMPlus_JitAlignLoops=1 |
-
-## Enabling given benchmark(s) for selected Operating System(s)
-
-This is possible with the `AllowedOperatingSystemsAttribute`. You need to provide a mandatory comment and OS(es) which benchmark(s) can run on.
-
-```cs
-[AllowedOperatingSystems("Hangs on non-Windows, dotnet/corefx#18290", OS.Windows)]
-public class Perf_PipeTest
-```
