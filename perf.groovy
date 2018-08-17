@@ -117,6 +117,17 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
                         }
                     }
 
+                    if (isPR) {
+                        parameters {
+                            stringParam('BenchviewCommitName', '\${ghprbPullTitle}', 'The name that you will be used to build the full title of a run in Benchview.  The final name will be of the form <branch> private BenchviewCommitName')
+                        }
+                    }
+
+                    parameters {
+                        stringParam('XUNIT_PERFORMANCE_MAX_ITERATION', '21', 'Sets the number of iterations to twenty one.  We are doing this to limit the amount of data that we upload as 20 iterations is enough to get a good sample')
+                        stringParam('XUNIT_PERFORMANCE_MAX_ITERATION_INNER_SPECIFIED', '21', 'Sets the number of iterations to twenty one.  We are doing this to limit the amount of data that we upload as 20 iterations is enough to get a good sample')
+                    }
+
                     runType = "rolling"
                     if (isPR) {
                         runType = "private"
