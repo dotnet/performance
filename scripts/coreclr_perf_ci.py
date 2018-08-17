@@ -25,6 +25,7 @@ parser.add_argument('-arch', dest='arch', default='x64', required=False, choices
 parser.add_argument('-uploadToBenchview', dest='uploadToBenchview', action='store_true', default=False)
 parser.add_argument('-branch', dest='branch', required=True)
 parser.add_argument('-runType', dest='runType', default='rolling', choices=['rolling', 'private', 'local'])
+parser.add_argument('-maxIterations', dest='maxIterations', type=int, default=None)
 
 ##########################################################################
 # Helper Functions
@@ -169,6 +170,10 @@ def main(args):
     runEnv = dict(os.environ)
     runEnv['DOTNET_MULTILEVEL_LOOKUP'] = '0'
     runEnv['UseSharedCompilation'] = 'false'
+    if not args.maxIterations is None:
+        runEnv['XUNIT_PERFORMANCE_MAX_ITERATION'] = args.maxIterations
+        runEnv['XUNIT_PERFORMANCE_MAX_ITERATION_INNER_SPECIFIED'] = args.maxIterations
+
     workspace = get_repo_root_path()
 
     # Download dotnet
@@ -220,7 +225,10 @@ def main(args):
 
         # Generate build.json
         r = urllib.request.urlopen('https://api.github.com/repos/dotnet/core-setup/commits/%s' % dotnetVersion)
-        repoItem = json.loads(r.read())
+        if sys.version_info.minor >= 6:
+            repoItem = json.loads(r.read())
+        else:
+            repoItem = json.loads(r.read().decode('utf-8'))
         buildTimestamp = repoItem['commit']['committer']['date']
 
         if buildTimestamp == '' or buildTimestamp is None:
