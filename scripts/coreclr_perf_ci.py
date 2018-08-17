@@ -24,6 +24,7 @@ parser.add_argument('-framework', dest='framework', default='netcoreapp3.0', req
 parser.add_argument('-arch', dest='arch', default='x64', required=False, choices=['x64', 'x86'])
 parser.add_argument('-uploadToBenchview', dest='uploadToBenchview', action='store_true', default=False)
 parser.add_argument('-branch', dest='branch', required=True)
+parser.add_argument('-runType', dest='runType', default='rolling', choices=['rolling', 'private', 'local'])
 
 ##########################################################################
 # Helper Functions
@@ -97,7 +98,7 @@ def generate_results_for_benchview(python, better, hasWarmupRun, benchmarkOutput
         runArgs = [python, os.path.join(benchviewPath, 'measurement.py')] + lvMeasurementArgs + [filename]
         run_command(runArgs, os.environ, 'Call to %s failed' % runArgs[1])
 
-def upload_to_benchview(python, benchviewPath, operatingSystem, collectionFlags, architecture):
+def upload_to_benchview(python, benchviewPath, operatingSystem, collectionFlags, architecture, runType):
     """ Upload results to benchview
     Args:
         python (str): python executable
@@ -128,7 +129,7 @@ def upload_to_benchview(python, benchviewPath, operatingSystem, collectionFlags,
             '--group',
             '.Net CoreCLR Performance',
             '--type',
-            'rolling',
+            runType,
             '--config-name',
             'Release',
             '--config',
@@ -237,7 +238,7 @@ def main(args):
 
         # Generate measurement.json and submit to benchview
         generate_results_for_benchview(python, 'desc', True, benchmarkOutputDir, benchviewPath)
-        upload_to_benchview(python, benchviewPath, 'Windows_NT', 'stopwatch', args.arch)
+        upload_to_benchview(python, benchviewPath, 'Windows_NT', 'stopwatch', args.arch, args.runType)
 
 if __name__ == "__main__":
     Args = parser.parse_args(sys.argv[1:])

@@ -117,8 +117,12 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
                         }
                     }
 
+                    runType = "rolling"
+                    if (isPR) {
+                        runType = "private"
+                    }
                     steps {
-                        batchFile("py scripts\\coreclr_perf_ci.py -arch ${arch} -framework netcoreapp3.0 -uploadToBenchview -branch master")
+                        batchFile("py scripts\\coreclr_perf_ci.py -arch ${arch} -framework netcoreapp3.0 -uploadToBenchview -branch master -runType ${runType}")
                     }
 
                     label("windows_server_2016_clr_perf")
