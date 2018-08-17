@@ -224,10 +224,7 @@ def main(args):
 
         # Generate build.json
         r = urllib.request.urlopen('https://api.github.com/repos/dotnet/core-setup/commits/%s' % dotnetVersion)
-        if sys.version_info.minor >= 6:
-            repoItem = json.loads(r.read())
-        else:
-            repoItem = json.loads(r.read().decode('utf-8'))
+        repoItem = json.loads(r.read().decode('utf-8'))
         buildTimestamp = repoItem['commit']['committer']['date']
 
         if buildTimestamp == '' or buildTimestamp is None:
