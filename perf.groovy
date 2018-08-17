@@ -107,29 +107,41 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
         }
 
         // CoreCLR perf jobs
-        ['x64', 'x86'].each { arch ->
-            jobName = "coreclr_perf_${os}_${arch}"
-            newJob = job(InternalUtilities.getFullJobName(project, jobName, false)) {
-                wrappers {
-                    credentialsBinding {
-                        string('BV_UPLOAD_SAS_TOKEN', 'Container_Perf_BenchView_Sas')
+        [true, false].each { isPR ->
+            ['x64', 'x86'].each { arch ->
+                jobName = "coreclr_perf_${os}_${arch}"
+                newJob = job(InternalUtilities.getFullJobName(project, jobName, isPR)) {
+                    wrappers {
+                        credentialsBinding {
+                            string('BV_UPLOAD_SAS_TOKEN', 'Container_Perf_BenchView_Sas')
+                        }
                     }
+
+                    steps {
+                        batchFile("py scripts\\coreclr_perf_ci.py -arch ${arch} -framework netcoreapp3.0 -uploadToBenchview -branch master")
+                    }
+
+                    label("windows_server_2016_clr_perf")
                 }
 
-                steps {
-                    batchFile("py scripts\\coreclr_perf_ci.py -arch ${arch} -framework netcoreapp3.0 -uploadToBenchview -branch master")
+                InternalUtilities.standardJobSetup(newJob, project, isPR, "*/${branch}")
+
+                if (isPR) {
+                    TriggerBuilder builder = TriggerBuilder.triggerOnPullRequest()
+                    builder.setGithubContext("CoreCLR Windows ${arch} Perf Test")
+                    builder.triggerOnlyOnComment()
+                    builder.setCustomTriggerPhrase("(?i).*test\\W+coreclr\\W+${arch}\\W+perf.*")
+                    builder.triggerForBranch(branch)
+                    builder.emitTrigger(newJob)
                 }
-
-                label("windows_server_2016_clr_perf")
-            }
-
-            InternalUtilities.standardJobSetup(newJob, project, false, "*/${branch}")
-
-            Utilities.addPeriodicTrigger(newJob, "@daily", true /*always run*/)
-            newJob.with {
-                wrappers {
-                    timeout {
-                        absolute(240)
+                else {
+                    Utilities.addPeriodicTrigger(newJob, "@daily", true /*always run*/)
+                    newJob.with {
+                        wrappers {
+                            timeout {
+                                absolute(240)
+                            }
+                        }
                     }
                 }
             }
