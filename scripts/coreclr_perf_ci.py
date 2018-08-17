@@ -171,8 +171,8 @@ def main(args):
     runEnv['DOTNET_MULTILEVEL_LOOKUP'] = '0'
     runEnv['UseSharedCompilation'] = 'false'
     if not args.maxIterations is None:
-        runEnv['XUNIT_PERFORMANCE_MAX_ITERATION'] = args.maxIterations
-        runEnv['XUNIT_PERFORMANCE_MAX_ITERATION_INNER_SPECIFIED'] = args.maxIterations
+        runEnv['XUNIT_PERFORMANCE_MAX_ITERATION'] = '%s' % args.maxIterations
+        runEnv['XUNIT_PERFORMANCE_MAX_ITERATION_INNER_SPECIFIED'] = '%s' %args.maxIterations
 
     workspace = get_repo_root_path()
 
