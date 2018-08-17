@@ -25,7 +25,7 @@ parser.add_argument('-arch', dest='arch', default='x64', required=False, choices
 parser.add_argument('-uploadToBenchview', dest='uploadToBenchview', action='store_true', default=False)
 parser.add_argument('-branch', dest='branch', required=True)
 parser.add_argument('-runType', dest='runType', default='rolling', choices=['rolling', 'private', 'local'])
-parser.add_argument('-maxIterations', dest='maxIterations', type=int, default=None)
+parser.add_argument('-maxIterations', dest='maxIterations', type=int, default=21)
 
 ##########################################################################
 # Helper Functions
@@ -170,9 +170,8 @@ def main(args):
     runEnv = dict(os.environ)
     runEnv['DOTNET_MULTILEVEL_LOOKUP'] = '0'
     runEnv['UseSharedCompilation'] = 'false'
-    if not args.maxIterations is None:
-        runEnv['XUNIT_PERFORMANCE_MAX_ITERATION'] = '%s' % args.maxIterations
-        runEnv['XUNIT_PERFORMANCE_MAX_ITERATION_INNER_SPECIFIED'] = '%s' %args.maxIterations
+    runEnv['XUNIT_PERFORMANCE_MAX_ITERATION'] = str(args.maxIterations)
+    runEnv['XUNIT_PERFORMANCE_MAX_ITERATION_INNER_SPECIFIED'] = str(args.maxIterations)
 
     workspace = get_repo_root_path()
 
