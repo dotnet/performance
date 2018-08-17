@@ -144,13 +144,13 @@ def upload_to_benchview(python, benchviewPath, operatingSystem, collectionFlags,
 
     run_command(runArgs, os.environ, 'Call to %s failed' % runArgs[1])
 
-    runArgs = [python,
-            os.path.join(benchviewPath, 'upload.py'),
-            'submission.json',
-            '--container',
-            'coreclr']
+    #runArgs = [python,
+    #        os.path.join(benchviewPath, 'upload.py'),
+    #        'submission.json',
+    #        '--container',
+    #        'coreclr']
 
-    run_command(runArgs, os.environ, 'Call to %s failed' % runArgs[1])
+    #run_command(runArgs, os.environ, 'Call to %s failed' % runArgs[1])
 
 ##########################################################################
 # Main
@@ -214,7 +214,7 @@ def main(args):
         # Generate submission-metadata.json
         benchviewPath = os.path.join(benchviewPath, 'tools')
         runScript = 'submission-metadata.py'
-        runArgs = [python, os.path.join(benchviewPath, runScript), '--name', benchviewName, '--user-email', 'dotnet-bot@microsoft.com']
+        runArgs = [python, os.path.join(benchviewPath, runScript), '--name', '"%s"' % (benchviewName), '--user-email', 'dotnet-bot@microsoft.com']
         run_command(runArgs, runEnv, '%s failed to run' % runScript)
 
         # Generate build.json
