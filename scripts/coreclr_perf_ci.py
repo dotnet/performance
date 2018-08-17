@@ -48,10 +48,9 @@ def run_command(runArgs, environment, errorMessage):
     log(" ".join(runArgs))
 
     try:
-        subprocess.check_output(runArgs, stderr=subprocess.PIPE, env=environment)
+        subprocess.run(runArgs, check=True, env=environment)
     except subprocess.CalledProcessError as e:
         log(errorMessage)
-        log(e.output.decode('utf-8'))
         raise
 
 def get_dotnet_sha(dotnetPath):
