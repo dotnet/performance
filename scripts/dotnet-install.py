@@ -37,7 +37,8 @@ def main(args):
     rid = [] if runtimeId is None else ['--runtime-id',runtimeId]
     dotnetInstallInterpreter = ['powershell', '-NoProfile', '.\\%s' % (dotnetInstallScriptName)] if sys.platform == 'win32' else ['./%s' % (dotnetInstallScriptName)]
 
-    runArgs = dotnetInstallInterpreter + ['-SharedRuntime',
+    runArgs = dotnetInstallInterpreter + ['-Runtime',
+            'dotnet',
             '-Architecture',
             arch,
             '-InstallDir',
@@ -62,4 +63,3 @@ def main(args):
 if __name__ == "__main__":
     Args = parser.parse_args(sys.argv[1:])
     sys.exit(main(Args))
-

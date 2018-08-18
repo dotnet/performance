@@ -107,29 +107,53 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
         }
 
         // CoreCLR perf jobs
-        ['x64', 'x86'].each { arch ->
-            jobName = "coreclr_perf_${os}_${arch}"
-            newJob = job(InternalUtilities.getFullJobName(project, jobName, false)) {
-                wrappers {
-                    credentialsBinding {
-                        string('BV_UPLOAD_SAS_TOKEN', 'Container_Perf_BenchView_Sas')
+        [true, false].each { isPR ->
+            ['x64', 'x86'].each { arch ->
+                jobName = "coreclr_perf_${os}_${arch}"
+                newJob = job(InternalUtilities.getFullJobName(project, jobName, isPR)) {
+                    wrappers {
+                        credentialsBinding {
+                            string('BV_UPLOAD_SAS_TOKEN', 'CoreCLR Perf BenchView Sas')
+                        }
                     }
+
+                    if (isPR) {
+                        parameters {
+                            stringParam('BenchviewCommitName', '\${ghprbPullTitle}', 'The name that you will be used to build the full title of a run in Benchview.  The final name will be of the form <branch> private BenchviewCommitName')
+                        }
+                    }
+
+                    runType = "rolling"
+                    iterations = "21"
+                    if (isPR) {
+                        runType = "private"
+                        iterations = "2"
+                    }
+                    steps {
+                        batchFile("py scripts\\coreclr_perf_ci.py -arch ${arch} -framework netcoreapp3.0 -uploadToBenchview -branch master -runType ${runType} -maxIterations ${iterations}")
+                    }
+
+                    label("windows_server_2016_clr_perf")
                 }
 
-                steps {
-                    batchFile("py scripts\\coreclr_perf_ci.py -arch ${arch} -framework netcoreapp3.0 -uploadToBenchview -branch master")
+                InternalUtilities.standardJobSetup(newJob, project, isPR, "*/${branch}")
+
+                if (isPR) {
+                    TriggerBuilder builder = TriggerBuilder.triggerOnPullRequest()
+                    builder.setGithubContext("CoreCLR Windows ${arch} Perf Test")
+                    builder.triggerOnlyOnComment()
+                    builder.setCustomTriggerPhrase("(?i).*test\\W+coreclr\\W+${arch}\\W+perf.*")
+                    builder.triggerForBranch(branch)
+                    builder.emitTrigger(newJob)
                 }
-
-                label("windows_server_2016_clr_perf")
-            }
-
-            InternalUtilities.standardJobSetup(newJob, project, false, "*/${branch}")
-
-            Utilities.addPeriodicTrigger(newJob, "@daily", true /*always run*/)
-            newJob.with {
-                wrappers {
-                    timeout {
-                        absolute(240)
+                else {
+                    Utilities.addPeriodicTrigger(newJob, "@daily", true /*always run*/)
+                    newJob.with {
+                        wrappers {
+                            timeout {
+                                absolute(240)
+                            }
+                        }
                     }
                 }
             }
