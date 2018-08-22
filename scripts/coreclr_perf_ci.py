@@ -65,10 +65,10 @@ def get_dotnet_sha(dotnetPath):
     foundHost = False
     for line in out.splitlines():
         decodedLine = line.decode('utf-8')
-        
+
         # First look for the host information, since that is the sha we are looking for
         # Then grab the first Commit line we find, which will be the sha of the framework
-        # we are testing 
+        # we are testing
         if 'Host' in decodedLine:
             foundHost = True
         elif foundHost and 'Commit' in decodedLine:
@@ -232,7 +232,15 @@ def main(args):
             return 3
 
         runScript = 'build.py'
-        runArgs = [python, os.path.join(benchviewPath, runScript), 'git', '--branch', args.branch, '--source-timestamp', buildTimestamp, '--type', 'rolling']
+        runArgs = [
+            python,
+            os.path.join(benchviewPath, runScript), 'none',
+            '--repository', 'https://github.com/dotnet/core-setup/',
+            '--branch', args.branch,
+            '--number', dotnetVersion,
+            '--source-timestamp', buildTimestamp,
+            '--type', 'rolling'
+        ]
         run_command(runArgs, runEnv, '%s failed to run' % runScript)
 
         # Generate machinedata.json
