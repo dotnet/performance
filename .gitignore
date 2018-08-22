@@ -13,11 +13,10 @@
 **/__pycache__/
 *.pyc
 
-
-**/.vs/**
+**/.vs/
 
 # BenchmarkDotNet results
-**/BenchmarkDotNet.Artifacts/**
+**/BenchmarkDotNet.Artifacts/
 
 # Resharper files
 **/*.DotSettings.user

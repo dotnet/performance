@@ -8,12 +8,11 @@ namespace System.Tests
 {
     public class Perf_Array
     {
-        private static int[] s_arr;
         private static Array s_arr1;
         private static Array s_arr2;
         private static Array s_arr3;
         private static Array _destinationArray;
-        private byte[][] _byteArrays;  
+        private byte[][] _byteArrays;
 
         private const int MAX_ARRAY_SIZE = 4096;
 
@@ -262,7 +261,7 @@ namespace System.Tests
             for (int i = 0; i < _byteArrays.Length; i++)
                 _byteArrays[i] = new byte[OldSize];
         }
-        
+
         [Benchmark(OperationsPerInvoke = ByteArraysCount)]
         public void ArrayResize()
         {
