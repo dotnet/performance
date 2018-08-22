@@ -15,6 +15,7 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Mathematics;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.CoreRt;
+using BenchmarkDotNet.Toolchains.CoreRun;
 using BenchmarkDotNet.Toolchains.CsProj;
 using BenchmarkDotNet.Toolchains.CustomCoreClr;
 using BenchmarkDotNet.Toolchains.DotNetCli;
