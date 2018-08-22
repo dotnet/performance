@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace System.IO
+﻿namespace System.IO
 {
     public static class FileUtils
     {

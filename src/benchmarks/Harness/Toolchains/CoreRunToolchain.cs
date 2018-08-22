@@ -51,6 +51,8 @@ namespace Benchmarks
 
         private FileInfo CustomDotNetCliPath { get; }
 
+        public override string ToString() => Name;
+
         public bool IsSupported(BenchmarkCase benchmark, ILogger logger, IResolver resolver)
         {
             if (!SourceCoreRun.Exists)
