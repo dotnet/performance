@@ -235,8 +235,9 @@ def main(args):
         runArgs = [
             python,
             os.path.join(benchviewPath, runScript), 'none',
-            '--number', dotnetVersion,
+            '--repository', 'https://github.com/dotnet/core-setup/',
             '--branch', args.branch,
+            '--number', dotnetVersion,
             '--source-timestamp', buildTimestamp,
             '--type', 'rolling'
         ]
