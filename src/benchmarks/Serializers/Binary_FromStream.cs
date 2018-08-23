@@ -6,6 +6,11 @@ using Benchmarks.Serializers.Helpers;
 
 namespace Benchmarks.Serializers
 {
+    [GenericTypeArguments(typeof(LoginViewModel))]
+    [GenericTypeArguments(typeof(Location))]
+    [GenericTypeArguments(typeof(IndexViewModel))]
+    [GenericTypeArguments(typeof(MyEventsListerViewModel))]
+    [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
     public class Binary_FromStream<T> where T : IVerifiable
     {
         private readonly T value;

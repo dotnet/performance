@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
+using System.Xml.Serialization;
 using MessagePack;
 using ProtoBuf;
 using ZeroFormatter;
@@ -19,6 +21,14 @@ namespace Benchmarks.Serializers
                 return (T)(object)CreateIndexViewModel();
             if (typeof(T) == typeof(MyEventsListerViewModel))
                 return (T)(object)CreateMyEventsListerViewModel();
+            if (typeof(T) == typeof(CollectionsOfPrimitives))
+                return (T)(object)CreateCollectionsOfPrimitives(1024); // 1024 values was copied from CoreFX benchmarks
+            if (typeof(T) == typeof(XmlElement))
+                return (T)(object)CreateXmlElement();
+            if (typeof(T) == typeof(SimpleStructWithProperties))
+                return (T)(object)new SimpleStructWithProperties { Num = 1, Text = "Foo" };
+            if (typeof(T) == typeof(ClassImplementingIXmlSerialiable))
+                return (T)(object)new ClassImplementingIXmlSerialiable { StringValue = "Hello world" };
 
             throw new NotImplementedException();
         }
@@ -100,6 +110,66 @@ namespace Benchmarks.Serializers
                         Name = "A very nice task to have"
                     }, 4).ToList()
             };
+
+        private static CollectionsOfPrimitives CreateCollectionsOfPrimitives(int count)
+            => new CollectionsOfPrimitives
+            {
+                ByteArray = CreateByteArray(count),
+                DateTimeArray = CreateDateTimeArray(count),
+                Dictionary = CreateDictionaryOfIntString(count),
+                ListOfInt = CreateListOfInt(count)
+            };
+
+        private static DateTime[] CreateDateTimeArray(int count)
+        {
+            DateTime[] arr = new DateTime[count];
+            int kind = (int)DateTimeKind.Unspecified;
+            int maxDateTimeKind = (int) DateTimeKind.Local;
+            DateTime val = DateTime.Now.AddHours(count/2);
+            for (int i = 0; i < count; i++)
+            {
+                arr[i] = DateTime.SpecifyKind(val, (DateTimeKind)kind);
+                val = val.AddHours(1);
+                kind = (kind + 1)%maxDateTimeKind;
+            }
+
+            return arr;
+        }
+        
+        private static Dictionary<int, string> CreateDictionaryOfIntString(int count)
+        {
+            Dictionary<int, string> dictOfIntString = new Dictionary<int, string>(count);
+            for (int i = 0; i < count; ++i)
+            {
+                dictOfIntString[i] = i.ToString();
+            }
+
+            return dictOfIntString;
+        }
+
+        private static byte[] CreateByteArray(int size)
+        {
+            byte[] obj = new byte[size];
+            for (int i = 0; i < obj.Length; ++i)
+            {
+                unchecked
+                {
+                    obj[i] = (byte)i;
+                }
+            }
+            return obj;
+        }
+
+        private static List<int> CreateListOfInt(int count) => Enumerable.Range(0, count).ToList();
+
+        private static XmlElement CreateXmlElement()
+        {
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(@"<html></html>");
+            XmlElement xmlElement = xmlDoc.CreateElement("Element");
+            xmlElement.InnerText = "Element innertext";
+            return xmlElement;
+        }
     }
 
     /// <summary>
@@ -299,5 +369,51 @@ namespace Benchmarks.Serializers
         }
 
         public long TouchEveryProperty() => Name.Length + StartDate.Value.Ticks + EndDate.Value.Ticks;
+    }
+
+    [Serializable]
+    [ProtoContract]
+    [ZeroFormattable]
+    [MessagePackObject]
+    public class CollectionsOfPrimitives : IVerifiable
+    {
+        [ProtoMember(1)] [Index(0)] [Key(0)] public virtual byte[] ByteArray { get; set; }
+        [ProtoMember(2)] [Index(1)] [Key(1)] public virtual DateTime[] DateTimeArray { get; set; }
+        
+        [XmlIgnore] // xml serializer does not support anything that implements IDictionary..
+        [ProtoMember(3)] [Index(2)] [Key(2)] public virtual Dictionary<int, string> Dictionary { get; set; }
+        
+        [ProtoMember(4)] [Index(3)] [Key(3)] public virtual List<int> ListOfInt { get; set; }
+        
+        public long TouchEveryProperty() => ByteArray.Length + DateTimeArray.Length + ListOfInt.Count + Dictionary.Count;
+    }
+    
+    public struct SimpleStructWithProperties
+    {
+        public int Num { get; set; }
+        public string Text { get; set; }
+    }
+    
+    public class ClassImplementingIXmlSerialiable : IXmlSerializable
+    {
+        public string StringValue { get; set; }
+        private bool BoolValue { get; set; }
+
+        public ClassImplementingIXmlSerialiable() => BoolValue = true;
+
+        public System.Xml.Schema.XmlSchema GetSchema() => null;
+
+        public void ReadXml(XmlReader reader)
+        {
+            reader.MoveToContent();
+            StringValue = reader.GetAttribute("StringValue");
+            BoolValue = bool.Parse(reader.GetAttribute("BoolValue"));
+        }
+
+        public void WriteXml(XmlWriter writer)
+        {
+            writer.WriteAttributeString("StringValue", StringValue);
+            writer.WriteAttributeString("BoolValue", BoolValue.ToString());
+        }
     }
 }
