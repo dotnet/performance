@@ -94,10 +94,11 @@ namespace Benchmarks
                     break;
                 default: // the recommended settings
                     baseJob = Job.Default
-                        .WithIterationTime(TimeInterval.FromSeconds(0.25)) // the default is 0.5s per iteration, which is slighlty too much for us
-                        .WithWarmupCount(1) // 1 warmup is enough for our purpose
+                        .WithIterationTime(TimeInterval.FromMilliseconds(options.IterationTimeInMiliseconds))
+                        .WithWarmupCount(options.WarmupIterationCount)
                         .WithOutlierMode(options.Outliers)
-                        .WithMaxIterationCount(20);  // we don't want to run more that 20 iterations
+                        .WithMinIterationCount(options.MinIterationCount)
+                        .WithMaxIterationCount(options.MaxIterationCount);
                     break;
             }
 
@@ -301,6 +302,18 @@ namespace Benchmarks
         
         [Option("affinity", Required = false, HelpText = "Affinity mask to set for the benchmark process")]
         public int? Affinity { get; set; }
+        
+        [Option("iterationTime", Required = false, Default = 250, HelpText = "How long should a single iteration take, in miliseconds")] // the default is 0.5s per iteration, which is slighlty too much for us
+        public int IterationTimeInMiliseconds { get; set; }
+        
+        [Option("warmupCount", Required = false, Default = 1, HelpText = "Number of Warmup iterations")]  // 1 warmup is enough for our purpose
+        public int WarmupIterationCount { get; set; }
+        
+        [Option("minIterationCount", Required = false, Default = 15, HelpText = "Minimum number of iterations to run")]
+        public int MinIterationCount { get; set; }
+        
+        [Option("maxIterationCount", Required = false, Default = 20, HelpText = "Maximum number of iterations to run")]   // we don't want to run more that 20 iterations
+        public int MaxIterationCount { get; set; }
     }
 
     /// <summary>
