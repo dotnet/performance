@@ -31,7 +31,6 @@ namespace System.Collections
         private Stack<T>[] _stacks;
         private Queue<T>[] _queues;
         private ConcurrentStack<T>[] _concurrentStacks;
-        private ConcurrentQueue<T>[] _concurrentQueues;
 
         [GlobalSetup]
         public void Setup() => _keys = UniqueValuesGenerator.GenerateArray<T>(Size);
@@ -106,6 +105,8 @@ namespace System.Collections
         public void Queue() => _queues[_iterationIndex++].Clear();
 
 #if !NETFRAMEWORK // API added in .NET Core 2.0
+        private ConcurrentQueue<T>[] _concurrentQueues;
+
         [IterationSetup(Target = nameof(ConcurrentQueue))]
         public void SetupConcurrentQueueIteration() => Utils.FillProducerConsumerCollection(ref _concurrentQueues, InvocationsPerIteration, _keys);
 
