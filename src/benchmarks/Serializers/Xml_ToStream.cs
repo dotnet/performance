@@ -1,10 +1,20 @@
 ﻿using System.IO;
 using System.Runtime.Serialization;
+using System.Xml;
 using System.Xml.Serialization;
 using BenchmarkDotNet.Attributes;
 
 namespace Benchmarks.Serializers
 {
+    [GenericTypeArguments(typeof(LoginViewModel))]
+    [GenericTypeArguments(typeof(Location))]
+    [GenericTypeArguments(typeof(IndexViewModel))]
+    [GenericTypeArguments(typeof(MyEventsListerViewModel))]
+    [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
+    [GenericTypeArguments(typeof(XmlElement))]
+    [GenericTypeArguments(typeof(SimpleStructWithProperties))]
+    [GenericTypeArguments(typeof(ClassImplementingIXmlSerialiable))]
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Xml_ToStream<T>
     {
         private readonly T value;

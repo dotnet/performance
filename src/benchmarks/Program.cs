@@ -15,11 +15,11 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Mathematics;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.CoreRt;
+using BenchmarkDotNet.Toolchains.CoreRun;
 using BenchmarkDotNet.Toolchains.CsProj;
 using BenchmarkDotNet.Toolchains.CustomCoreClr;
 using BenchmarkDotNet.Toolchains.DotNetCli;
 using BenchmarkDotNet.Toolchains.InProcess;
-using Benchmarks.Serializers;
 using CommandLine;
 
 namespace Benchmarks
@@ -33,7 +33,7 @@ namespace Benchmarks
 
         private static void RunBenchmarks(Options options)
             => BenchmarkSwitcher
-                .FromAssemblyAndTypes(typeof(Program).Assembly, SerializerBenchmarks.GetTypes())
+                .FromAssembly(typeof(Program).Assembly)
                 .Run(GetArgs(options), GetConfig(options));
 
         private static string[] GetArgs(Options options)
@@ -68,6 +68,8 @@ namespace Benchmarks
             config = config.With(JsonExporter.Full); // make sure we export to Json (for BenchView integration purpose)
 
             config = config.With(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max);
+
+            config = config.With(TooManyTestCasesValidator.FailOnError);
             
             return config;
         }

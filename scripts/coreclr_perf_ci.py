@@ -24,6 +24,8 @@ parser.add_argument('-framework', dest='framework', default='netcoreapp3.0', req
 parser.add_argument('-arch', dest='arch', default='x64', required=False, choices=['x64', 'x86'])
 parser.add_argument('-uploadToBenchview', dest='uploadToBenchview', action='store_true', default=False)
 parser.add_argument('-branch', dest='branch', required=True)
+parser.add_argument('-runType', dest='runType', default='rolling', choices=['rolling', 'private', 'local'])
+parser.add_argument('-maxIterations', dest='maxIterations', type=int, default=21)
 
 ##########################################################################
 # Helper Functions
@@ -48,10 +50,9 @@ def run_command(runArgs, environment, errorMessage):
     log(" ".join(runArgs))
 
     try:
-        subprocess.check_output(runArgs, stderr=subprocess.PIPE, env=environment)
+        subprocess.run(runArgs, check=True, env=environment)
     except subprocess.CalledProcessError as e:
         log(errorMessage)
-        log(e.output.decode('utf-8'))
         raise
 
 def get_dotnet_sha(dotnetPath):
@@ -64,10 +65,10 @@ def get_dotnet_sha(dotnetPath):
     foundHost = False
     for line in out.splitlines():
         decodedLine = line.decode('utf-8')
-        
+
         # First look for the host information, since that is the sha we are looking for
         # Then grab the first Commit line we find, which will be the sha of the framework
-        # we are testing 
+        # we are testing
         if 'Host' in decodedLine:
             foundHost = True
         elif foundHost and 'Commit' in decodedLine:
@@ -98,7 +99,7 @@ def generate_results_for_benchview(python, better, hasWarmupRun, benchmarkOutput
         runArgs = [python, os.path.join(benchviewPath, 'measurement.py')] + lvMeasurementArgs + [filename]
         run_command(runArgs, os.environ, 'Call to %s failed' % runArgs[1])
 
-def upload_to_benchview(python, benchviewPath, operatingSystem, collectionFlags, architecture):
+def upload_to_benchview(python, benchviewPath, operatingSystem, collectionFlags, architecture, runType):
     """ Upload results to benchview
     Args:
         python (str): python executable
@@ -129,7 +130,7 @@ def upload_to_benchview(python, benchviewPath, operatingSystem, collectionFlags,
             '--group',
             '.Net CoreCLR Performance',
             '--type',
-            'rolling',
+            runType,
             '--config-name',
             'Release',
             '--config',
@@ -169,6 +170,9 @@ def main(args):
     runEnv = dict(os.environ)
     runEnv['DOTNET_MULTILEVEL_LOOKUP'] = '0'
     runEnv['UseSharedCompilation'] = 'false'
+    runEnv['XUNIT_PERFORMANCE_MAX_ITERATION'] = str(args.maxIterations)
+    runEnv['XUNIT_PERFORMANCE_MAX_ITERATION_INNER_SPECIFIED'] = str(args.maxIterations)
+
     workspace = get_repo_root_path()
 
     # Download dotnet
@@ -215,12 +219,12 @@ def main(args):
         # Generate submission-metadata.json
         benchviewPath = os.path.join(benchviewPath, 'tools')
         runScript = 'submission-metadata.py'
-        runArgs = [python, os.path.join(benchviewPath, runScript), '--name', benchviewName, '--user-email', 'dotnet-bot@microsoft.com']
+        runArgs = [python, os.path.join(benchviewPath, runScript), '--name', '"%s"' % (benchviewName), '--user-email', 'dotnet-bot@microsoft.com']
         run_command(runArgs, runEnv, '%s failed to run' % runScript)
 
         # Generate build.json
         r = urllib.request.urlopen('https://api.github.com/repos/dotnet/core-setup/commits/%s' % dotnetVersion)
-        repoItem = json.loads(r.read())
+        repoItem = json.loads(r.read().decode('utf-8'))
         buildTimestamp = repoItem['commit']['committer']['date']
 
         if buildTimestamp == '' or buildTimestamp is None:
@@ -228,7 +232,15 @@ def main(args):
             return 3
 
         runScript = 'build.py'
-        runArgs = [python, os.path.join(benchviewPath, runScript), 'git', '--branch', args.branch, '--source-timestamp', buildTimestamp, '--type', 'rolling']
+        runArgs = [
+            python,
+            os.path.join(benchviewPath, runScript), 'none',
+            '--repository', 'https://github.com/dotnet/core-setup/',
+            '--branch', args.branch,
+            '--number', dotnetVersion,
+            '--source-timestamp', buildTimestamp,
+            '--type', 'rolling'
+        ]
         run_command(runArgs, runEnv, '%s failed to run' % runScript)
 
         # Generate machinedata.json
@@ -238,7 +250,7 @@ def main(args):
 
         # Generate measurement.json and submit to benchview
         generate_results_for_benchview(python, 'desc', True, benchmarkOutputDir, benchviewPath)
-        upload_to_benchview(python, benchviewPath, 'Windows_NT', 'stopwatch', args.arch)
+        upload_to_benchview(python, benchviewPath, 'Windows_NT', 'stopwatch', args.arch, args.runType)
 
 if __name__ == "__main__":
     Args = parser.parse_args(sys.argv[1:])

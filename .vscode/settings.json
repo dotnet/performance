@@ -1,6 +1,12 @@
 {
     "files.exclude": {
         "**/.dotnet/": true,
-        "**/__pycache__/": true
+        "**/__pycache__/": true,
+        "**/BenchmarkDotNet.Artifacts/": true,
+        "**/bin/": true,
+        "**/logs/": true,
+        "**/obj/": true,
+        "**/packages/": true,
+        "**/tools/": true,
     }
 }

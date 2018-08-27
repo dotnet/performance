@@ -5,6 +5,11 @@ using BenchmarkDotNet.Attributes;
 
 namespace Benchmarks.Serializers
 {
+    [GenericTypeArguments(typeof(LoginViewModel))]
+    [GenericTypeArguments(typeof(Location))]
+    [GenericTypeArguments(typeof(IndexViewModel))]
+    [GenericTypeArguments(typeof(MyEventsListerViewModel))]
+    [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
     public class Json_ToStream<T>
     {
         private readonly T value;
