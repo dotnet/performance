@@ -15,8 +15,6 @@ namespace System.Text.RegularExpressions.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Regex
     {
-        private const int InnerIterations = 100;
-
         private static readonly (string pattern, string input, RegexOptions options)[] TestData = Match_TestData().ToArray();
 
         private int _cacheSizeOld;
@@ -32,13 +30,14 @@ namespace System.Text.RegularExpressions.Tests
         public void Cleanup() => Regex.CacheSize = _cacheSizeOld;
 
         [Benchmark]
-        public void Match()
+        public bool Match()
         {
-            for (int i = 0; i < InnerIterations; i++)
-            {
-                foreach (var test in TestData)
-                    Regex.Match(test.input, test.pattern, test.options);
-            }
+            bool result = false;
+            
+            foreach (var test in TestData)
+                result ^= Regex.Match(test.input, test.pattern, test.options).Success;
+
+            return result;
         }
 
         // A series of patterns (all valid and non pathological) and inputs (which they may or may not match)
