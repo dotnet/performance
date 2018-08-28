@@ -50,7 +50,6 @@ namespace System.Globalization.Tests
             new object[] { new CultureInfo("en-US"), "StrIng", "string", CompareOptions.OrdinalIgnoreCase },
             new object[] { new CultureInfo(""), "\u3060", "\u305F", CompareOptions.None },
             new object[] { new CultureInfo("ja-JP"), "ABCDE", "c", CompareOptions.None },
-            new object[] { new CultureInfo(""), "$", "&", CompareOptions.IgnoreSymbols },
             new object[] { new CultureInfo(""), "More Test's", "Tests", CompareOptions.IgnoreSymbols },
             new object[] { new CultureInfo("es-ES"), "TestFooBA\u0300R", "FooB\u00C0R", CompareOptions.IgnoreNonSpace },
             new object[] { new CultureInfo("en-US"), "Hello WorldbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbareallyreallylongHello WorldbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbareallyreallylongHello Worldbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbareallyreallylong!xyz", "~", CompareOptions.Ordinal },
