@@ -16,15 +16,16 @@ namespace System.Threading.Tasks
     [MaxWarmupCount(10, forceAutoWarmup: true)]
     public class ValueTaskPerfTest
     {
+        private Task<int> _completedTask = Task.FromResult(42);
+        private IValueTaskSource<int> _completedValueTaskSource = ManualResetValueTaskSourceFactory.Completed(42);
+        private ValueTask<int> _valueTask;
+        
         [Benchmark]
         public async Task Await_FromResult()
         {
             ValueTask<int> vt = new ValueTask<int>(42);
 
-            for (long i = 0; i < 10_000_000L; i++)
-            {
-                await vt;
-            }
+            await vt;
         }
 
         [Benchmark]
@@ -32,10 +33,7 @@ namespace System.Threading.Tasks
         {
             ValueTask<int> vt = new ValueTask<int>(Task.FromResult(42));
 
-            for (long i = 0; i < 10_000_000L; i++)
-            {
-                await vt;
-            }
+            await vt;
         }
 
         [Benchmark]
@@ -43,127 +41,78 @@ namespace System.Threading.Tasks
         {
             ValueTask<int> vt = new ValueTask<int>(ManualResetValueTaskSourceFactory.Completed<int>(42), 0);
 
-            for (long i = 0; i < 10_000_000L; i++)
-            {
-                await vt;
-            }
+            await vt;
         }
 
         [Benchmark]
         public async Task CreateAndAwait_FromResult()
         {
-            for (long i = 0; i < 10_000_000L; i++)
-            {
-                await new ValueTask<int>((int) i);
-            }
+            await new ValueTask<int>((int) 0);
         }
 
         [Benchmark]
         public async Task CreateAndAwait_FromResult_ConfigureAwait()
         {
-            for (long i = 0; i < 10_000_000L; i++)
-            {
-                await new ValueTask<int>((int) i).ConfigureAwait(false);
-            }
+            await new ValueTask<int>((int) 0).ConfigureAwait(false);
         }
 
         [Benchmark]
         public async Task CreateAndAwait_FromCompletedTask()
         {
-            Task<int> t = Task.FromResult(42);
-
-            for (long i = 0; i < 10_000_000L; i++)
-            {
-                await new ValueTask<int>(t);
-            }
+            await new ValueTask<int>(_completedTask);
         }
 
         [Benchmark]
         public async Task CreateAndAwait_FromCompletedTask_ConfigureAwait()
         {
-            Task<int> t = Task.FromResult(42);
-
-            for (long i = 0; i < 10_000_000L; i++)
-            {
-                await new ValueTask<int>(t).ConfigureAwait(false);
-            }
+            await new ValueTask<int>(_completedTask).ConfigureAwait(false);
         }
 
         [Benchmark]
         public async Task CreateAndAwait_FromCompletedValueTaskSource()
         {
-            IValueTaskSource<int> vts = ManualResetValueTaskSourceFactory.Completed(42);
-
-            for (long i = 0; i < 10_000_000L; i++)
-            {
-                await new ValueTask<int>(vts, 0);
-            }
+            await new ValueTask<int>(_completedValueTaskSource, 0);
         }
 
         [Benchmark]
         public async Task CreateAndAwait_FromCompletedValueTaskSource_ConfigureAwait()
         {
-            IValueTaskSource<int> vts = ManualResetValueTaskSourceFactory.Completed(42);
-
-            for (long i = 0; i < 10_000_000L; i++)
-            {
-                await new ValueTask<int>(vts, 0).ConfigureAwait(false);
-            }
+            await new ValueTask<int>(_completedValueTaskSource, 0).ConfigureAwait(false);
         }
 
         [Benchmark]
         public async Task CreateAndAwait_FromYieldingAsyncMethod()
         {
-            for (long i = 0; i < 1_000_000L; i++)
-            {
-                await new ValueTask<int>(YieldOnce());
-            }
+            await new ValueTask<int>(YieldOnce());
         }
 
         [Benchmark]
         public async Task CreateAndAwait_FromDelayedTCS()
         {
-            for (long i = 0; i < 1_000_000L; i++)
-            {
-                var tcs = new TaskCompletionSource<int>();
-                ValueTask<int> vt = AwaitTcsAsValueTask(tcs);
-                tcs.SetResult(42);
-                await vt;
-            }
+            var tcs = new TaskCompletionSource<int>();
+            ValueTask<int> vt = AwaitTcsAsValueTask(tcs);
+            tcs.SetResult(42);
+            await vt;
         }
+
+        [GlobalSetup(Target = nameof(Copy_PassAsArgumentAndReturn_FromResult))]
+        public void Setup_Copy_PassAsArgumentAndReturn_FromResult() => _valueTask = new ValueTask<int>(42);
 
         [Benchmark]
-        public void Copy_PassAsArgumentAndReturn_FromResult()
-        {
-            ValueTask<int> vt = new ValueTask<int>(42);
+        public ValueTask<int> Copy_PassAsArgumentAndReturn_FromResult() => ReturnValueTask(_valueTask);
 
-            for (long i = 0; i < 10_000_000L; i++)
-            {
-                vt = ReturnValueTask(vt);
-            }
-        }
+        [GlobalSetup(Target = nameof(Copy_PassAsArgumentAndReturn_FromTask))]
+        public void Setup_Copy_PassAsArgumentAndReturn_FromTask() => _valueTask = new ValueTask<int>(Task.FromResult(42));
 
         [Benchmark]
-        public void Copy_PassAsArgumentAndReturn_FromTask()
-        {
-            ValueTask<int> vt = new ValueTask<int>(Task.FromResult(42));
+        public ValueTask<int> Copy_PassAsArgumentAndReturn_FromTask() => ReturnValueTask(_valueTask);
 
-            for (long i = 0; i < 10_000_000L; i++)
-            {
-                vt = ReturnValueTask(vt);
-            }
-        }
+        [GlobalSetup(Target = nameof(Copy_PassAsArgumentAndReturn_FromValueTaskSource))]
+        public void Setup_Copy_PassAsArgumentAndReturn_FromValueTaskSource()
+            => _valueTask = new ValueTask<int>(ManualResetValueTaskSourceFactory.Completed(42), 0);
 
         [Benchmark]
-        public void Copy_PassAsArgumentAndReturn_FromValueTaskSource()
-        {
-            ValueTask<int> vt = new ValueTask<int>(ManualResetValueTaskSourceFactory.Completed(42), 0);
-
-            for (long i = 0; i < 10_000_000L; i++)
-            {
-                vt = ReturnValueTask(vt);
-            }
-        }
+        public ValueTask<int> Copy_PassAsArgumentAndReturn_FromValueTaskSource() => ReturnValueTask(_valueTask);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static ValueTask<int> ReturnValueTask(ValueTask<int> vt) => vt;
