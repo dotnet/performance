@@ -10,29 +10,13 @@ namespace System.Threading.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Volatile
     {
-        private const int IterationCount = 100_000_000;
+        private double _location = 0;
+        private double _newValue = 1;
+        
+        [Benchmark]
+        public double Read_double() => Volatile.Read(ref _location);
 
         [Benchmark]
-        public void Read_double()
-        {
-            double location = 0;
-
-            for (int i = 0; i < IterationCount; i++)
-            {
-                Volatile.Read(ref location);
-            }
-        }
-
-        [Benchmark]
-        public void Write_double()
-        {
-            double location = 0;
-            double newValue = 1;
-
-            for (int i = 0; i < IterationCount; i++)
-            {
-                Volatile.Write(ref location, newValue);
-            }
-        }
+        public void Write_double() => Volatile.Write(ref _location, _newValue);
     }
 }
