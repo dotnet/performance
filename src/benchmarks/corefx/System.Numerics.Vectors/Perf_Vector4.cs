@@ -11,325 +11,48 @@ namespace System.Numerics.Tests
     public class Perf_Vector4
     {
         [Benchmark]
-        public Vector4 AddFunctionBenchmark()
-        {
-            var result = VectorTests.Vector4Value;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                result = Vector4.Add(result, VectorTests.Vector4Delta);
-            }
-
-            return result;
-        }
+        public Vector4 AddOperatorBenchmark() => VectorTests.Vector4Value + VectorTests.Vector4Delta;
 
         [Benchmark]
-        public Vector4 SubtractOperatorBenchmark()
-        {
-            var result = VectorTests.Vector4Value;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                result -= VectorTests.Vector4Delta;
-            }
-
-            return result;
-        }
+        public Vector4 AddFunctionBenchmark() => Vector4.Add(VectorTests.Vector4Value, VectorTests.Vector4Delta);
 
         [Benchmark]
-        public float DistanceSquaredBenchmark()
-        {
-            var result = 0.0f;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                // The inputs aren't being changed and the output is being reset with each iteration, so a future
-                // optimization could potentially throw away everything except for the final call. This would break
-                // the perf test. The JitOptimizeCanary code below does modify the inputs and consume each output.
-                result = Vector4.DistanceSquared(VectorTests.Vector4Value, VectorTests.Vector4ValueInverted);
-            }
-
-            return result;
-        }
+        public Vector4 SubtractOperatorBenchmark() => VectorTests.Vector4Value - VectorTests.Vector4Delta;
 
         [Benchmark]
-        public float DistanceSquaredJitOptimizeCanaryBenchmark()
-        {
-            var result = 0.0f;
-            var value = VectorTests.Vector4Value;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                value += VectorTests.Vector4Delta;
-                result += Vector4.DistanceSquared(value, VectorTests.Vector4ValueInverted);
-            }
-
-            return result;
-        }
+        public float DistanceSquaredBenchmark() => Vector4.DistanceSquared(VectorTests.Vector4Value, VectorTests.Vector4ValueInverted);
 
         [Benchmark]
-        public Vector4 MultiplyOperatorBenchmark()
-        {
-            var result = VectorTests.Vector4Value;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                result *= VectorTests.Vector4Delta;
-            }
-
-            return result;
-        }
+        public float DistanceSquaredJitOptimizeCanaryBenchmark() => Vector4.DistanceSquared(VectorTests.Vector4Value, VectorTests.Vector4ValueInverted);
 
         [Benchmark]
-        public Vector4 SubtractFunctionBenchmark()
-        {
-            var result = VectorTests.Vector4Value;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                result = Vector4.Subtract(result, VectorTests.Vector4Delta);
-            }
-
-            return result;
-        }
+        public Vector4 MultiplyOperatorBenchmark() => VectorTests.Vector4Value * VectorTests.Vector4Delta;
 
         [Benchmark]
-        public Vector4 MultiplyFunctionBenchmark()
-        {
-            var result = VectorTests.Vector4Value;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                result = Vector4.Multiply(result, VectorTests.Vector4Delta);
-            }
-
-            return result;
-        }
+        public Vector4 SubtractFunctionBenchmark() => Vector4.Subtract(VectorTests.Vector4Value, VectorTests.Vector4Delta);
 
         [Benchmark]
-        public float LengthSquaredBenchmark()
-        {
-            var result = 0.0f;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                // The inputs aren't being changed and the output is being reset with each iteration, so a future
-                // optimization could potentially throw away everything except for the final call. This would break
-                // the perf test. The JitOptimizeCanary code below does modify the inputs and consume each output.
-                result = VectorTests.Vector4Value.LengthSquared();
-            }
-
-            return result;
-        }
+        public Vector4 MultiplyFunctionBenchmark() => Vector4.Multiply(VectorTests.Vector4Value, VectorTests.Vector4Delta);
 
         [Benchmark]
-        public float LengthSquaredJitOptimizeCanaryBenchmark()
-        {
-            var result = 0.0f;
-            var value = VectorTests.Vector4Value;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                value += VectorTests.Vector4Delta;
-                result += value.LengthSquared();
-            }
-
-            return result;
-        }
+        public float LengthSquaredBenchmark() => VectorTests.Vector4Value.LengthSquared();
 
         [Benchmark]
-        public int GetHashCodeBenchmark()
-        {
-            var result = 0;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                // The inputs aren't being changed and the output is being reset with each iteration, so a future
-                // optimization could potentially throw away everything except for the final call. This would break
-                // the perf test. The JitOptimizeCanary code below does modify the inputs and consume each output.
-                result = VectorTests.Vector4Value.GetHashCode();
-            }
-
-            return result;
-        }
+        public int GetHashCodeBenchmark() => VectorTests.Vector4Value.GetHashCode();
 
         [Benchmark]
-        public int GetHashCodeJitOptimizeCanaryBenchmark()
-        {
-            var result = 0;
-            var value = VectorTests.Vector4Value;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                value += VectorTests.Vector4Delta;
-                result += value.GetHashCode();
-            }
-
-            return result;
-        }
+        public Vector4 SquareRootBenchmark() => Vector4.SquareRoot(VectorTests.Vector4Value);
 
         [Benchmark]
-        public Vector4 AddOperatorBenchmark()
-        {
-            var result = VectorTests.Vector4Value;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                result += VectorTests.Vector4Delta;
-            }
-
-            return result;
-        }
+        public Vector4 NormalizeBenchmark() => Vector4.Normalize(VectorTests.Vector4Value);
 
         [Benchmark]
-        public Vector4 SquareRootBenchmark()
-        {
-            var result = VectorTests.Vector4Value;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                // The inputs aren't being changed and the output is being reset with each iteration, so a future
-                // optimization could potentially throw away everything except for the final call. This would break
-                // the perf test. The JitOptimizeCanary code below does modify the inputs and consume each output.
-                result = Vector4.SquareRoot(result);
-            }
-
-            return result;
-        }
+        public float DistanceBenchmark() => Vector4.Distance(VectorTests.Vector4Value, VectorTests.Vector4ValueInverted);
 
         [Benchmark]
-        public Vector4 SquareRootJitOptimizeCanaryBenchmark()
-        {
-            var result = VectorTests.Vector4Value;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                result += Vector4.SquareRoot(result);
-            }
-
-            return result;
-        }
+        public float LengthBenchmark() => VectorTests.Vector4Value.Length();
 
         [Benchmark]
-        public Vector4 NormalizeBenchmark()
-        {
-            var result = VectorTests.Vector4Value;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                // The inputs aren't being changed and the output is being reset with each iteration, so a future
-                // optimization could potentially throw away everything except for the final call. This would break
-                // the perf test. The JitOptimizeCanary code below does modify the inputs and consume each output.
-                result = Vector4.Normalize(result);
-            }
-
-            return result;
-        }
-
-        [Benchmark]
-        public Vector4 NormalizeJitOptimizeCanaryBenchmark()
-        {
-            var result = VectorTests.Vector4Value;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                result += Vector4.Normalize(result);
-            }
-
-            return result;
-        }
-
-        [Benchmark]
-        public float DistanceBenchmark()
-        {
-            var result = 0.0f;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                // The inputs aren't being changed and the output is being reset with each iteration, so a future
-                // optimization could potentially throw away everything except for the final call. This would break
-                // the perf test. The JitOptimizeCanary code below does modify the inputs and consume each output.
-                result = Vector4.Distance(VectorTests.Vector4Value, VectorTests.Vector4ValueInverted);
-            }
-
-            return result;
-        }
-
-        [Benchmark]
-        public float DistanceJitOptimizeCanaryBenchmark()
-        {
-            var result = 0.0f;
-            var value = VectorTests.Vector4Value;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                value += VectorTests.Vector4Delta;
-                result += Vector4.Distance(value, VectorTests.Vector4ValueInverted);
-            }
-
-            return result;
-        }
-
-        [Benchmark]
-        public float LengthBenchmark()
-        {
-            var result = 0.0f;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                // The inputs aren't being changed and the output is being reset with each iteration, so a future
-                // optimization could potentially throw away everything except for the final call. This would break
-                // the perf test. The JitOptimizeCanary code below does modify the inputs and consume each output.
-                result = VectorTests.Vector4Value.Length();
-            }
-
-            return result;
-        }
-
-        [Benchmark]
-        public float LengthJitOptimizeCanaryBenchmark()
-        {
-            var result = 0.0f;
-            var value = VectorTests.Vector4Value;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                value += VectorTests.Vector4Delta;
-                result += value.Length();
-            }
-
-            return result;
-        }
-
-        [Benchmark]
-        public float DotBenchmark()
-        {
-            var result = 0.0f;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                // The inputs aren't being changed and the output is being reset with each iteration, so a future
-                // optimization could potentially throw away everything except for the final call. This would break
-                // the perf test. The JitOptimizeCanary code below does modify the inputs and consume each output.
-                result = Vector4.Dot(VectorTests.Vector4Value, VectorTests.Vector4ValueInverted);
-            }
-
-            return result;
-        }
-
-        [Benchmark]
-        public float DotJitOptimizeCanaryBenchmark()
-        {
-            var result = 0.0f;
-            var value = VectorTests.Vector4Value;
-
-            for (var iteration = 0; iteration < VectorTests.DefaultInnerIterationsCount; iteration++)
-            {
-                value += VectorTests.Vector4Delta;
-                result += Vector4.Dot(value, VectorTests.Vector4ValueInverted);
-            }
-
-            return result;
-        }
+        public float DotBenchmark() => Vector4.Dot(VectorTests.Vector4Value, VectorTests.Vector4ValueInverted);
     }
 }
