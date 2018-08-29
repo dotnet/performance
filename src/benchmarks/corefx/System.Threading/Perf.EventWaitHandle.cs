@@ -10,8 +10,6 @@ namespace System.Threading.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_EventWaitHandle
     {
-        private const int IterationCount = 100_000;
-
         private EventWaitHandle _are;
 
         [GlobalSetup]
@@ -21,15 +19,11 @@ namespace System.Threading.Tests
         public void Dispose() => _are.Dispose();
 
         [Benchmark]
-        public void Set_Reset()
+        public bool Set_Reset()
         {
             EventWaitHandle are = _are;
-
-            for (int i = 0; i < IterationCount; i++)
-            {
-                are.Set();
-                are.Reset();
-            }
+            
+            return are.Set() && are.Reset();
         }
     }
 }

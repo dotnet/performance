@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using BenchmarkDotNet.Engines;
 
 namespace System.Linq.Tests
 {
@@ -141,15 +142,11 @@ namespace System.Linq.Tests
         /// Main method to measure performance.
         /// Creates array of Int32 with length 'elementCount', wraps it by one of the wrapper, applies LINQ and measures materialization to Array
         /// </summary>
-        public static int[] Measure(int[] data, int iterationCount, WrapperType wrapperKind, Func<IEnumerable<int>, IEnumerable<int>> applyLINQ)
+        public static void Measure(int[] data, WrapperType wrapperKind, Func<IEnumerable<int>, IEnumerable<int>> applyLINQ, Consumer consumer)
         {
-            int[] result = default;
             IEnumerable<int> wrapper = Wrap(data, wrapperKind);
 
-            for (int i = 0; i < iterationCount; i++)
-                 result = applyLINQ(wrapper).ToArray();
-
-            return result;
+            applyLINQ(wrapper).Consume(consumer); // we use BDN utility to consume LINQ query
         }
     }
 }

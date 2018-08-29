@@ -10,147 +10,60 @@ namespace System.Threading.Tests
     [BenchmarkCategory(Categories.CoreFX, Categories.CoreCLR)]
     public class Perf_Interlocked
     {
-        private const int IterationCount = 10_000_000;
+        private int _int = 0;
+        private long _long = 0;
+        private string _location, _newValue, _comparand;
 
         [Benchmark]
-        public void Increment_int()
-        {
-            int location = 0;
-
-            for (int i = 0; i < IterationCount; i++)
-            {
-                Interlocked.Increment(ref location);
-            }
-        }
+        public int Increment_int() => Interlocked.Increment(ref _int);
 
         [Benchmark]
-        public void Decrement_int()
-        {
-            int location = 0;
-            
-            for (int i = 0; i < IterationCount; i++)
-            {
-                Interlocked.Decrement(ref location);
-            }
-        }
+        public int Decrement_int() => Interlocked.Decrement(ref _int);
 
         [Benchmark]
-        public void Increment_long()
-        {
-            long location = 0;
-            for (int i = 0; i < IterationCount; i++)
-            {
-                Interlocked.Increment(ref location);
-            }
-        }
+        public long Increment_long() => Interlocked.Increment(ref _long);
 
         [Benchmark]
-        public void Decrement_long()
-        {
-            long location = 0;
-
-            for (int i = 0; i < IterationCount; i++)
-            {
-                Interlocked.Decrement(ref location);
-            }
-        }
+        public long Decrement_long() => Interlocked.Decrement(ref _long);
 
         [Benchmark]
-        public void Add_int()
-        {
-            int location = 0;
-
-            for (int i = 0; i < IterationCount; i++)
-            {
-                Interlocked.Add(ref location, 2);
-            }
-        }
+        public int Add_int() => Interlocked.Add(ref _int, 2);
 
         [Benchmark]
-        public void Add_long()
-        {
-            long location = 0;
-
-            for (int i = 0; i < IterationCount; i++)
-            {
-                Interlocked.Add(ref location, 2);
-            }
-        }
+        public long Add_long() => Interlocked.Add(ref _long, 2);
 
         [Benchmark]
-        public void Exchange_int()
-        {
-            int location = 0;
-            int newValue = 1;
-            
-            for (int i = 0; i < IterationCount; i++)
-            {
-                Interlocked.Exchange(ref location, newValue);
-            }
-        }
+        public int Exchange_int() => Interlocked.Exchange(ref _int, 1);
 
         [Benchmark]
-        public void Exchange_long()
-        {
-            long location = 0;
-            long newValue = 1;
-            
-            for (int i = 0; i < IterationCount; i++)
-            {
-                Interlocked.Exchange(ref location, newValue);
-            }
-        }
+        public long Exchange_long() => Interlocked.Exchange(ref _long, 1);
 
         [Benchmark]
-        public void CompareExchange_int()
-        {
-            int location = 0;
-            int newValue = 1;
-            int comparand = 0;
-            
-            for (int i = 0; i < IterationCount; i++)
-            {
-                Interlocked.CompareExchange(ref location, newValue, comparand);
-            }
-        }
+        public int CompareExchange_int() => Interlocked.CompareExchange(ref _int, 1, 0);
 
         [Benchmark]
-        public void CompareExchange_long()
-        {
-            long location = 0;
-            long newValue = 1;
-            long comparand = 0;
-            
-            for (int i = 0; i < IterationCount; i++)
-            {
-                Interlocked.CompareExchange(ref location, newValue, comparand);
-            }
-        }
+        public long CompareExchange_long() => Interlocked.CompareExchange(ref _long, 1, 0);
 
+        [GlobalSetup(Target = nameof(CompareExchange_object_Match))]
+        public void Setup_CompareExchange_object_Match()
+        {
+            _location = "What?";
+            _newValue = "World";
+            _comparand = "What?";
+        }
+        
         [Benchmark]
-        public void CompareExchange_object_Match()
+        public string CompareExchange_object_Match() => Interlocked.CompareExchange(ref _location, _newValue, _comparand);
+
+        [GlobalSetup(Target = nameof(CompareExchange_object_NoMatch))]
+        public void Setup_CompareExchange_object_NoMatch()
         {
-            string location = "What?";
-            string newValue = "World";
-            string comparand = "What?";
-
-            for (int i = 0; i < IterationCount; i++)
-            {
-                Interlocked.CompareExchange(ref location, newValue, comparand);
-            }
+            _location = "Hello";
+            _newValue = "World";
+            _comparand = "What?";
         }
-
+        
         [Benchmark]
-        public void CompareExchange_object_NoMatch()
-        {
-            string location = "Hello";
-            string newValue = "World";
-            string comparand = "What?";
-
-            for (int i = 0; i < IterationCount; i++)
-            {
-                Interlocked.CompareExchange(ref location, newValue, comparand);
-            }
-        }
+        public string CompareExchange_object_NoMatch() => Interlocked.CompareExchange(ref _location, _newValue, _comparand);
     }
 }

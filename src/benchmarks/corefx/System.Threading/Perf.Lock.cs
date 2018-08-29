@@ -10,8 +10,6 @@ namespace System.Threading.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Lock
     {
-        private const int IterationCount = 2_000_000;
-
         ReaderWriterLockSlim _rwLock = new ReaderWriterLockSlim();
 
         [Benchmark]
@@ -19,11 +17,8 @@ namespace System.Threading.Tests
         {
             ReaderWriterLockSlim rwLock = _rwLock;
 
-            for (int i = 0; i < IterationCount; i++)
-            {
-                rwLock.EnterReadLock();
-                rwLock.ExitReadLock();
-            }
+            rwLock.EnterReadLock();
+            rwLock.ExitReadLock();
         }
     }
 }

@@ -7,13 +7,13 @@ using System.Runtime.CompilerServices;
 
 namespace System
 {
-    public class PerfUtils
+    public static class PerfUtils
     {
         /// <summary>
         /// Helper method to create a string containing a number of 
         /// characters equal to the specified length
         /// </summary>
-        public string CreateString(int length)
+        public static string CreateString(int length)
         {
             char[] str = new char[length];
 

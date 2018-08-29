@@ -10,8 +10,6 @@ namespace System.Threading.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Monitor
     {
-        private const int IterationCount = 4_000_000;
-
         object _sync = new object();
 
         [Benchmark]
@@ -19,11 +17,8 @@ namespace System.Threading.Tests
         {
             object sync = _sync;
 
-            for (int i = 0; i < IterationCount; i++)
-            {
-                Monitor.Enter(sync);
-                Monitor.Exit(sync);
-            }
+            Monitor.Enter(sync);
+            Monitor.Exit(sync);
         }
 
         [Benchmark]
@@ -31,11 +26,8 @@ namespace System.Threading.Tests
         {
             object sync = _sync;
 
-            for (int i = 0; i < IterationCount; i++)
-            {
-                Monitor.TryEnter(sync, 0);
-                Monitor.Exit(sync);
-            }
+            Monitor.TryEnter(sync, 0);
+            Monitor.Exit(sync);
         }
     }
 }

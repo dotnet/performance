@@ -11,8 +11,6 @@ namespace System.Numerics.Tests
     [BenchmarkCategory(Categories.CoreFX, Categories.SIMD)]
     public partial class Constructor
     {
-        public const int DefaultInnerIterationsCount = 100000000;
-
         Byte[] _arrValues_Byte = GenerateRandomValuesForVector<Byte>(Byte.MinValue, Byte.MaxValue);
         SByte[] _arrValues_SByte = GenerateRandomValuesForVector<SByte>(SByte.MinValue, SByte.MaxValue);
         UInt16[] _arrValues_UInt16 = GenerateRandomValuesForVector<UInt16>(UInt16.MinValue, UInt16.MaxValue);
@@ -25,43 +23,44 @@ namespace System.Numerics.Tests
         Double[] _arrValues_Double = GenerateRandomValuesForVector<Double>(Int32.MinValue, Int32.MaxValue);
 
         [Benchmark]
-        public void SpanCastBenchmark_Byte() => SpanCast(new ReadOnlySpan<Byte>(_arrValues_Byte));
+        public Vector<Byte> SpanCastBenchmark_Byte() 
+            => MemoryMarshal.Cast<byte, Vector<byte>>(new ReadOnlySpan<Byte>(_arrValues_Byte))[0];
 
         [Benchmark]
-        public void SpanCastBenchmark_SByte() => SpanCast(new ReadOnlySpan<SByte>(_arrValues_SByte));
+        public Vector<SByte> SpanCastBenchmark_SByte() 
+            => MemoryMarshal.Cast<sbyte, Vector<sbyte>>(new ReadOnlySpan<SByte>(_arrValues_SByte))[0];
 
         [Benchmark]
-        public void SpanCastBenchmark_UInt16() => SpanCast(new ReadOnlySpan<UInt16>(_arrValues_UInt16));
+        public Vector<UInt16> SpanCastBenchmark_UInt16() 
+            => MemoryMarshal.Cast<ushort, Vector<ushort>>(new ReadOnlySpan<UInt16>(_arrValues_UInt16))[0];
 
         [Benchmark]
-        public void SpanCastBenchmark_Int16() => SpanCast(new ReadOnlySpan<Int16>(_arrValues_Int16));
+        public Vector<Int16> SpanCastBenchmark_Int16()
+            => MemoryMarshal.Cast<short, Vector<short>>(new ReadOnlySpan<Int16>(_arrValues_Int16))[0];
 
         [Benchmark]
-        public void SpanCastBenchmark_UInt32() => SpanCast(new ReadOnlySpan<UInt32>(_arrValues_UInt32));
+        public Vector<UInt32> SpanCastBenchmark_UInt32() 
+            => MemoryMarshal.Cast<uint, Vector<uint>>(new ReadOnlySpan<UInt32>(_arrValues_UInt32))[0];
 
         [Benchmark]
-        public void SpanCastBenchmark_Int32() => SpanCast(new ReadOnlySpan<Int32>(_arrValues_Int32));
+        public Vector<Int32> SpanCastBenchmark_Int32() 
+            => MemoryMarshal.Cast<int, Vector<int>>(new ReadOnlySpan<Int32>(_arrValues_Int32))[0];
 
         [Benchmark]
-        public void SpanCastBenchmark_UInt64() => SpanCast(new ReadOnlySpan<UInt64>(_arrValues_UInt64));
+        public Vector<UInt64> SpanCastBenchmark_UInt64() 
+            => MemoryMarshal.Cast<ulong, Vector<ulong>>(new ReadOnlySpan<UInt64>(_arrValues_UInt64))[0];
 
         [Benchmark]
-        public void SpanCastBenchmark_Int64() => SpanCast(new ReadOnlySpan<Int64>(_arrValues_Int64));
+        public Vector<Int64> SpanCastBenchmark_Int64() 
+            => MemoryMarshal.Cast<long, Vector<long>>(new ReadOnlySpan<Int64>(_arrValues_Int64))[0];
 
         [Benchmark]
-        public void SpanCastBenchmark_Single() => SpanCast(new ReadOnlySpan<Single>(_arrValues_Single));
+        public Vector<Single> SpanCastBenchmark_Single() 
+            => MemoryMarshal.Cast<float, Vector<float>>(new ReadOnlySpan<Single>(_arrValues_Single))[0];
 
         [Benchmark]
-        public void SpanCastBenchmark_Double() => SpanCast(new ReadOnlySpan<Double>(_arrValues_Double));
-
-        public static void SpanCast<T>(ReadOnlySpan<T> values) where T : struct
-        {
-            for (var iteration = 0; iteration < DefaultInnerIterationsCount; iteration++)
-            {
-                ReadOnlySpan<Vector<T>> vectors = MemoryMarshal.Cast<T, Vector<T>>(values);
-                Vector<T> vector = vectors[0];
-            }
-        }
+        public Vector<Double> SpanCastBenchmark_Double() 
+            => MemoryMarshal.Cast<double, Vector<double>>(new ReadOnlySpan<Double>(_arrValues_Double))[0];
 
         private static T[] GenerateRandomValuesForVector<T>(int minValue, int maxValue) where T : struct 
             => Util.GenerateRandomValues<T>(Vector<T>.Count, minValue, maxValue);

@@ -11,8 +11,6 @@ namespace XmlDocumentTests.XmlNodeTests
     [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_XmlNode
     {
-        private const int innerIterations = 10000;
-
         private XmlNode _node; 
 
         [GlobalSetup]
@@ -24,35 +22,9 @@ namespace XmlDocumentTests.XmlNodeTests
         }
         
         [Benchmark]
-        public XmlAttributeCollection GetAttributes()
-        {
-            XmlAttributeCollection attr = default;
-            XmlNode node = _node;
-
-            for (int i = 0; i < innerIterations; i++)
-            {
-                attr = node.Attributes; attr = node.Attributes; attr = node.Attributes;
-                attr = node.Attributes; attr = node.Attributes; attr = node.Attributes;
-                attr = node.Attributes; attr = node.Attributes; attr = node.Attributes;
-            }
-
-            return attr;
-        }
+        public XmlAttributeCollection GetAttributes() => _node.Attributes;
 
         [Benchmark]
-        public string GetValue()
-        {
-            string value = default;
-            XmlNode node = _node;
-
-            for (int i = 0; i < innerIterations; i++)
-            {
-                value = node.Value; value = node.Value; value = node.Value;
-                value = node.Value; value = node.Value; value = node.Value;
-                value = node.Value; value = node.Value; value = node.Value;
-            }
-
-            return value;
-        }
+        public string GetValue() => _node.Value;
     }
 }

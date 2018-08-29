@@ -4,50 +4,40 @@
 
 // following benchmarks consume .NET Core 2.1 APIs and are disabled for other frameworks in .csproj file
 
-using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
-using Benchmarks;
 
 namespace System.Numerics.Tests
 {
     public partial class Constructor
     {
         [Benchmark]
-        public void ConstructorBenchmark_Byte() => Construct(new Span<Byte>(_arrValues_Byte));
+        public Vector<Byte> ConstructorBenchmark_Byte() => new Vector<byte>(new Span<Byte>(_arrValues_Byte));
 
         [Benchmark]
-        public void ConstructorBenchmark_SByte() => Construct(new Span<SByte>(_arrValues_SByte));
+        public Vector<SByte> ConstructorBenchmark_SByte() => new Vector<sbyte>(new Span<SByte>(_arrValues_SByte));
 
         [Benchmark]
-        public void ConstructorBenchmark_UInt16() => Construct(new Span<UInt16>(_arrValues_UInt16));
+        public Vector<UInt16> ConstructorBenchmark_UInt16() => new Vector<ushort>(new Span<UInt16>(_arrValues_UInt16));
 
         [Benchmark]
-        public void ConstructorBenchmark_Int16() => Construct(new Span<Int16>(_arrValues_Int16));
+        public Vector<Int16> ConstructorBenchmark_Int16() => new Vector<short>(new Span<Int16>(_arrValues_Int16));
 
         [Benchmark]
-        public void ConstructorBenchmark_UInt32() => Construct(new Span<UInt32>(_arrValues_UInt32));
+        public Vector<UInt32> ConstructorBenchmark_UInt32() => new Vector<uint>(new Span<UInt32>(_arrValues_UInt32));
 
         [Benchmark]
-        public void ConstructorBenchmark_Int32() => Construct(new Span<Int32>(_arrValues_Int32));
+        public Vector<Int32> ConstructorBenchmark_Int32() => new Vector<int>(new Span<Int32>(_arrValues_Int32));
 
         [Benchmark]
-        public void ConstructorBenchmark_UInt64() => Construct(new Span<UInt64>(_arrValues_UInt64));
+        public Vector<UInt64> ConstructorBenchmark_UInt64() => new Vector<ulong>(new Span<UInt64>(_arrValues_UInt64));
 
         [Benchmark]
-        public void ConstructorBenchmark_Int64() => Construct(new Span<Int64>(_arrValues_Int64));
+        public Vector<Int64> ConstructorBenchmark_Int64() => new Vector<long>(new Span<Int64>(_arrValues_Int64));
 
         [Benchmark]
-        public void ConstructorBenchmark_Single() => Construct(new Span<Single>(_arrValues_Single));
+        public Vector<Single> ConstructorBenchmark_Single() => new Vector<float>(new Span<Single>(_arrValues_Single));
 
         [Benchmark]
-        public void ConstructorBenchmark_Double() => Construct(new Span<Double>(_arrValues_Double));
-
-        public static void Construct<T>(Span<T> values) where T : struct
-        {
-            for (var iteration = 0; iteration < DefaultInnerIterationsCount; iteration++)
-            {
-                Vector<T> vect = new Vector<T>(values);
-            }
-        }
+        public Vector<Double> ConstructorBenchmark_Double() => new Vector<double>(new Span<Double>(_arrValues_Double));
     }
 }
