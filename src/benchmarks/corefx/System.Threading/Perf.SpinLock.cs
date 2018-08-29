@@ -10,36 +10,32 @@ namespace System.Threading.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_SpinLock
     {
-        private const int IterationCount = 1_000_000;
-
         SpinLock _spinLock = new SpinLock();
 
         [Benchmark]
-        public void EnterExit()
+        public bool EnterExit()
         {
             SpinLock spinLock = _spinLock;
 
-            for (int i = 0; i < IterationCount; i++)
-            {
-                bool lockTaken = false;
+            bool lockTaken = false;
 
-                spinLock.Enter(ref lockTaken);
-                spinLock.Exit();
-            }
+            spinLock.Enter(ref lockTaken);
+            spinLock.Exit();
+
+            return lockTaken;
         }
 
         [Benchmark]
-        public void TryEnterExit()
+        public bool TryEnterExit()
         {
             SpinLock spinLock = _spinLock;
 
-            for (int i = 0; i < IterationCount; i++)
-            {
-                bool lockTaken = false;
+            bool lockTaken = false;
 
-                spinLock.TryEnter(0, ref lockTaken);
-                spinLock.Exit();
-            }
+            spinLock.TryEnter(0, ref lockTaken);
+            spinLock.Exit();
+
+            return lockTaken;
         }
     }
 }

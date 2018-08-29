@@ -16,82 +16,42 @@ namespace System.ConsoleTests
     [GcForce(true)] // forces full GC cleanup after every iteration, so streams allocated in OpenStandard* benchmarks are going to be finalized
     public class Perf_Console
     {
-        const int StreamInnerIterations = 50;
-        const int ColorInnerIterations = 1000;
-
-        private Stream[] _streams;
-
-        [GlobalSetup(Target = nameof(OpenStandardInput) + "," + nameof(OpenStandardOutput) + "," + nameof(OpenStandardError))]
-        public void SetupStreams() => _streams = new Stream[StreamInnerIterations * 4];
-
-        [GlobalCleanup(Target = nameof(OpenStandardInput) + "," + nameof(OpenStandardOutput) + "," + nameof(OpenStandardError))]
-        public void CleanupStreams()
-        {
-            foreach (var stream in _streams)
-                stream.Dispose();
-        }
-        
         [Benchmark]
-        public void OpenStandardInput()
-        {
-            Stream[] streams = _streams;
-            
-            for (int i = 0; i < StreamInnerIterations; i++)
-            {
-                streams[0 + i * 4] = Console.OpenStandardInput(); streams[1 + i * 4] = Console.OpenStandardInput();
-                streams[2 + i * 4] = Console.OpenStandardInput(); streams[3 + i * 4] = Console.OpenStandardInput();
-            }
-        }
+        public Stream OpenStandardInput() => Console.OpenStandardInput();
 
         [Benchmark]
-        public void OpenStandardOutput()
-        {
-            Stream[] streams = _streams;
-            
-            for (int i = 0; i < StreamInnerIterations; i++)
-            {
-                streams[0 + i * 4] = Console.OpenStandardOutput(); streams[1 + i * 4] = Console.OpenStandardOutput();
-                streams[2 + i * 4] = Console.OpenStandardOutput(); streams[3 + i * 4] = Console.OpenStandardOutput();
-            }
-        }
+        public Stream OpenStandardOutput() => Console.OpenStandardOutput();
 
         [Benchmark]
-        public void OpenStandardError()
-        {
-            Stream[] streams = _streams;
-            
-            for (int i = 0; i < StreamInnerIterations; i++)
-            {
-                streams[0 + i * 4] = Console.OpenStandardError(); streams[1 + i * 4] = Console.OpenStandardError();
-                streams[2 + i * 4] = Console.OpenStandardError(); streams[3 + i * 4] = Console.OpenStandardError();
-            }
-        }
+        public Stream OpenStandardError() => Console.OpenStandardError();
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = 8)]
         public void ForegroundColor()
         {
-            for (int i = 0; i < ColorInnerIterations; i++)
-            {
-                Console.ForegroundColor = ConsoleColor.Black; Console.ForegroundColor = ConsoleColor.Blue;
-                Console.ForegroundColor = ConsoleColor.Cyan; Console.ForegroundColor = ConsoleColor.DarkBlue;
-                Console.ForegroundColor = ConsoleColor.DarkGray; Console.ForegroundColor = ConsoleColor.Red;
-                Console.ForegroundColor = ConsoleColor.DarkGreen; Console.ForegroundColor = ConsoleColor.White;
-            }
+            Console.ForegroundColor = ConsoleColor.Black;
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.ForegroundColor = ConsoleColor.DarkGreen;
+            Console.ForegroundColor = ConsoleColor.White;
         }
-        
+
         [GlobalCleanup(Target = nameof(ForegroundColor))]
         public void ForegroundColorCleanup() => Console.ResetColor();
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = 8)]
         public void BackgroundColor()
         {
-            for (int i = 0; i < ColorInnerIterations; i++)
-            {
-                Console.BackgroundColor = ConsoleColor.Black; Console.BackgroundColor = ConsoleColor.Blue;
-                Console.BackgroundColor = ConsoleColor.Cyan; Console.BackgroundColor = ConsoleColor.DarkBlue;
-                Console.BackgroundColor = ConsoleColor.DarkGray; Console.BackgroundColor = ConsoleColor.Red;
-                Console.BackgroundColor = ConsoleColor.DarkGreen; Console.BackgroundColor = ConsoleColor.White;
-            }
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.BackgroundColor = ConsoleColor.Blue;
+            Console.BackgroundColor = ConsoleColor.Cyan;
+            Console.BackgroundColor = ConsoleColor.DarkBlue;
+            Console.BackgroundColor = ConsoleColor.DarkGray;
+            Console.BackgroundColor = ConsoleColor.Red;
+            Console.BackgroundColor = ConsoleColor.DarkGreen;
+            Console.BackgroundColor = ConsoleColor.White;
         }
 
         [GlobalCleanup(Target = nameof(BackgroundColor))]
@@ -100,17 +60,9 @@ namespace System.ConsoleTests
         [Benchmark]
         public void ResetColor()
         {
-            for (int i = 0; i < ColorInnerIterations; i++)
-            {
-                Console.ForegroundColor = ConsoleColor.DarkRed; Console.BackgroundColor = ConsoleColor.Cyan;
-                Console.ResetColor();
-                Console.ForegroundColor = ConsoleColor.DarkRed; Console.BackgroundColor = ConsoleColor.Cyan;
-                Console.ResetColor();
-                Console.ForegroundColor = ConsoleColor.DarkRed; Console.BackgroundColor = ConsoleColor.Cyan;
-                Console.ResetColor();
-                Console.ForegroundColor = ConsoleColor.DarkRed; Console.BackgroundColor = ConsoleColor.Cyan;
-                Console.ResetColor();
-            }
+            Console.ForegroundColor = ConsoleColor.DarkRed;
+            Console.BackgroundColor = ConsoleColor.Cyan;
+            Console.ResetColor();
         }
     }
 }

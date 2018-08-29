@@ -11,8 +11,6 @@ namespace PerfLabTests
     public delegate long DelegateLong(Object obj, long x, long y);
     public delegate void MultiDelegate(Object obj, long x, long y);
 
-    internal delegate int SerializeDelegate();
-
     [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
     public class DelegatePerf
     {

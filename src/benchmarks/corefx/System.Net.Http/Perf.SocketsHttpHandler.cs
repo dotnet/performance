@@ -19,8 +19,6 @@ namespace System.Net.Http.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public class SocketsHttpHandlerPerfTest
     {
-        const int InnerIterationCount = 1000;
-
         // the field names start with lowercase to keep to benchmark ID! do not change it
         [Params(false, true)] public bool ssl;
         [Params(false, true)] public bool chunkedResponse;
@@ -100,13 +98,10 @@ namespace System.Net.Http.Tests
             var invoker = _invoker;
             var req = _request;
 
-            for (int i = 0; i < InnerIterationCount; i++)
+            using (HttpResponseMessage resp = await invoker.SendAsync(req, CancellationToken.None))
+            using (Stream respStream = await resp.Content.ReadAsStreamAsync())
             {
-                using (HttpResponseMessage resp = await invoker.SendAsync(req, CancellationToken.None))
-                using (Stream respStream = await resp.Content.ReadAsStreamAsync())
-                {
-                    await respStream.CopyToAsync(Stream.Null);
-                }
+                await respStream.CopyToAsync(Stream.Null);
             }
         }
 

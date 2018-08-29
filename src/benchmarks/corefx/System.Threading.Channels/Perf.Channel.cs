@@ -26,8 +26,6 @@ namespace System.Threading.Channels.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public abstract class PerfTests
     {
-        private const int InnerIterationCount = 1_000_000;
-
         private Channel<int> _channel, _channel1, _channel2;
         private ChannelReader<int> _reader;
         private ChannelWriter<int> _writer;
@@ -45,41 +43,23 @@ namespace System.Threading.Channels.Tests
         [Benchmark]
         public void TryWriteThenTryRead()
         {
-            ChannelReader<int> reader = _reader;
-            ChannelWriter<int> writer = _writer;
-
-            for (int i = 0; i < InnerIterationCount; i++)
-            {
-                writer.TryWrite(i);
-                reader.TryRead(out _);
-            }
+            _writer.TryWrite(default);
+            _reader.TryRead(out _);
         }
 
         [Benchmark]
         public async Task WriteAsyncThenReadAsync()
         {
-            ChannelReader<int> reader = _reader;
-            ChannelWriter<int> writer = _writer;
-
-            for (int i = 0; i < InnerIterationCount; i++)
-            {
-                await writer.WriteAsync(i);
-                await reader.ReadAsync();
-            }
+            await _writer.WriteAsync(default);
+            await _reader.ReadAsync();
         }
 
         [Benchmark]
         public async Task ReadAsyncThenWriteAsync()
         {
-            ChannelReader<int> reader = _reader;
-            ChannelWriter<int> writer = _writer;
-
-            for (int i = 0; i < InnerIterationCount; i++)
-            {
-                ValueTask<int> r = reader.ReadAsync();
-                await writer.WriteAsync(42);
-                await r;
-            }
+            ValueTask<int> r = _reader.ReadAsync();
+            await _writer.WriteAsync(42);
+            await r;
         }
 
         [GlobalSetup(Target = nameof(PingPong))]
@@ -92,6 +72,8 @@ namespace System.Threading.Channels.Tests
         [Benchmark]
         public async Task PingPong()
         {
+            const int PingPongCount = 10_000;
+            
             Channel<int> channel1 = _channel1;
             Channel<int> channel2 = _channel2;
 
@@ -100,7 +82,7 @@ namespace System.Threading.Channels.Tests
                 {
                     ChannelReader<int> reader = channel1.Reader;
                     ChannelWriter<int> writer = channel2.Writer;
-                    for (int i = 0; i < InnerIterationCount; i++)
+                    for (int i = 0; i < PingPongCount; i++)
                     {
                         await writer.WriteAsync(i);
                         await reader.ReadAsync();
@@ -110,7 +92,7 @@ namespace System.Threading.Channels.Tests
                 {
                     ChannelWriter<int> writer = channel1.Writer;
                     ChannelReader<int> reader = channel2.Reader;
-                    for (int i = 0; i < InnerIterationCount; i++)
+                    for (int i = 0; i < PingPongCount; i++)
                     {
                         await reader.ReadAsync();
                         await writer.WriteAsync(i);

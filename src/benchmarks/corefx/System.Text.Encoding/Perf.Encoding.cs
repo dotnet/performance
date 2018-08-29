@@ -19,117 +19,28 @@ namespace System.Text.Tests
         private byte[] _bytes;
         private char[] _chars;
 
-        [GlobalSetup(Target = nameof(GetBytes))]
+        [GlobalSetup]
         public void SetupGetBytes()
         {
             _enc = Encoding.GetEncoding(encName);
             _toEncode = PerfUtils.CreateString(size);
+            _bytes = _enc.GetBytes(_toEncode);
+            _chars = _toEncode.ToCharArray();
         }
 
         [Benchmark]
-        public byte[] GetBytes()
-        {
-            byte[] result = default;
-            
-            Encoding enc = _enc;
-            string toEncode = _toEncode;
-
-            for (int i = 0; i < 100; i++)
-            {
-                result = enc.GetBytes(toEncode); result = enc.GetBytes(toEncode); result = enc.GetBytes(toEncode);
-                result = enc.GetBytes(toEncode); result = enc.GetBytes(toEncode); result = enc.GetBytes(toEncode);
-                result = enc.GetBytes(toEncode); result = enc.GetBytes(toEncode); result = enc.GetBytes(toEncode);
-            }
-
-            return result;
-        }
-
-        [GlobalSetup(Target = nameof(GetString) + "," + nameof(GetChars))]
-        public void SetupGetStringAndGetChars()
-        {
-            _enc = Encoding.GetEncoding(encName);
-            _bytes = _enc.GetBytes(PerfUtils.CreateString(size));;
-        }
+        public byte[] GetBytes() => _enc.GetBytes(_toEncode);
 
         [Benchmark]
-        public string GetString()
-        {
-            string result = default;
-            
-            Encoding enc = _enc;
-            byte[] bytes = _bytes;
-
-            for (int i = 0; i < 100; i++)
-            {
-                result = enc.GetString(bytes); result = enc.GetString(bytes); result = enc.GetString(bytes);
-                result = enc.GetString(bytes); result = enc.GetString(bytes); result = enc.GetString(bytes);
-                result = enc.GetString(bytes); result = enc.GetString(bytes); result = enc.GetString(bytes);
-            }
-
-            return result;
-        }
+        public string GetString() => _enc.GetString(_bytes);
 
         [Benchmark]
-        public char[] GetChars()
-        {
-            char[] result = default;
-            
-            Encoding enc = _enc;
-            byte[] bytes = _bytes;
-
-            for (int i = 0; i < 100; i++)
-            {
-                result = enc.GetChars(bytes); result = enc.GetChars(bytes); result = enc.GetChars(bytes);
-                result = enc.GetChars(bytes); result = enc.GetChars(bytes); result = enc.GetChars(bytes);
-                result = enc.GetChars(bytes); result = enc.GetChars(bytes); result = enc.GetChars(bytes);
-            }
-
-            return result;
-        }
-
-        [GlobalSetup(Target = nameof(GetEncoder))]
-        public void SetupGenEncoder() => _enc = Encoding.GetEncoding(encName);
+        public char[] GetChars() => _enc.GetChars(_bytes);
 
         [Benchmark]
-        public Encoder GetEncoder()
-        {
-            Encoder result = default;
-            
-            Encoding enc = _enc;
-
-            for (int i = 0; i < 10000; i++)
-            {
-                result = enc.GetEncoder(); result = enc.GetEncoder(); result = enc.GetEncoder();
-                result = enc.GetEncoder(); result = enc.GetEncoder(); result = enc.GetEncoder();
-                result = enc.GetEncoder(); result = enc.GetEncoder(); result = enc.GetEncoder();
-            }
-
-            return result;
-        }
-
-        [GlobalSetup(Target = nameof(GetByteCount))]
-        public void SetupGetByteCount()
-        {
-            _enc = Encoding.GetEncoding(encName);
-            _chars = PerfUtils.CreateString(size).ToCharArray();
-        }
+        public Encoder GetEncoder() => _enc.GetEncoder();
 
         [Benchmark]
-        public int GetByteCount()
-        {
-            int result = default;
-            
-            Encoding enc = _enc;
-            char[] chars = _chars;
-
-            for (int i = 0; i < 100; i++)
-            {
-                result = enc.GetByteCount(chars); result = enc.GetByteCount(chars); result = enc.GetByteCount(chars);
-                result = enc.GetByteCount(chars); result = enc.GetByteCount(chars); result = enc.GetByteCount(chars);
-                result = enc.GetByteCount(chars); result = enc.GetByteCount(chars); result = enc.GetByteCount(chars);
-            }
-
-            return result;
-        }
+        public int GetByteCount() => _enc.GetByteCount(_chars);
     }
 }

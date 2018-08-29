@@ -6,11 +6,11 @@ namespace System.Numerics.Tests
 {
     public static class VectorTests
     {
-        public const int DefaultInnerIterationsCount = 100000000;
+        private const int DefaultInnerIterationsCount = 100000000;
 
-        public const float SinglePositiveDelta = 1.0f / DefaultInnerIterationsCount;
+        private const float SinglePositiveDelta = 1.0f / DefaultInnerIterationsCount;
 
-        public const float SingleNegativeDelta = -1.0f / DefaultInnerIterationsCount;
+        private const float SingleNegativeDelta = -1.0f / DefaultInnerIterationsCount;
 
         public static readonly Vector2 Vector2Delta = new Vector2(SinglePositiveDelta, SingleNegativeDelta);
 

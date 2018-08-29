@@ -4,6 +4,7 @@
 
 using System.Xml;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Engines;
 using Benchmarks;
 
 namespace XmlDocumentTests.XmlNodeListTests
@@ -11,8 +12,7 @@ namespace XmlDocumentTests.XmlNodeListTests
     [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_XmlNodeList
     {
-        private const int innerIterations = 10000;
-
+        private readonly Consumer _consumer = new Consumer();
         private XmlNodeList _list;
 
         [GlobalSetup(Target = nameof(Enumerator))]
@@ -27,9 +27,12 @@ namespace XmlDocumentTests.XmlNodeListTests
         public void Enumerator()
         {
             XmlNodeList list = _list;
+            Consumer consumer = _consumer;
 
-            for (int i = 0; i < innerIterations; i++)
-                foreach (var element in list) { }
+            foreach (var element in list)
+            {
+                consumer.Consume(element);
+            }
         }
         
         [GlobalSetup(Target = nameof(GetCount))]
@@ -41,19 +44,6 @@ namespace XmlDocumentTests.XmlNodeListTests
         }
 
         [Benchmark]
-        public int GetCount()
-        {
-            int count = default;
-            XmlNodeList list = _list;
-
-            for (int i = 0; i < innerIterations; i++)
-            {
-                count = list.Count; count = list.Count; count = list.Count;
-                count = list.Count; count = list.Count; count = list.Count;
-                count = list.Count; count = list.Count; count = list.Count;
-            }
-
-            return count;
-        }
+        public int GetCount() => _list.Count;
     }
 }
