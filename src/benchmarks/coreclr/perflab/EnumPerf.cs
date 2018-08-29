@@ -25,7 +25,7 @@ namespace PerfLabTests
         
         [Benchmark]
         [Arguments(Color.Red)]
-        public void EnumCompareTo(Color color) => color.CompareTo(Color.White);
+        public int EnumCompareTo(Color color) => color.CompareTo(Color.White);
 
         [Benchmark]
         public Type ObjectGetType() => Color.Black.GetType();
