@@ -341,11 +341,10 @@ namespace System.Tests
         {
             Size = size;
 
-            PerfUtils utils = new PerfUtils();
-            TestString1 = utils.CreateString(size);
-            TestString2 = utils.CreateString(size);
-            TestString3 = utils.CreateString(size);
-            TestString4 = utils.CreateString(size);
+            TestString1 = PerfUtils.CreateString(size);
+            TestString2 = PerfUtils.CreateString(size);
+            TestString3 = PerfUtils.CreateString(size);
+            TestString4 = PerfUtils.CreateString(size);
 
             Q1 = TestString1.Substring(0, TestString1.Length / 4);
             Q3 = TestString1.Substring(TestString1.Length / 2, TestString1.Length / 4);

@@ -14,8 +14,6 @@ namespace System.Text.Tests
         [Params("utf-8", "ascii")]
         public string encName; // the field must be called length (starts with lowercase) to keep old benchmark id in BenchView, do NOT change it
 
-        private readonly PerfUtils _utils = new PerfUtils();
-        
         private Encoding _enc;
         private string _toEncode;
         private byte[] _bytes;
@@ -25,7 +23,7 @@ namespace System.Text.Tests
         public void SetupGetBytes()
         {
             _enc = Encoding.GetEncoding(encName);
-            _toEncode = _utils.CreateString(size);
+            _toEncode = PerfUtils.CreateString(size);
             _bytes = _enc.GetBytes(_toEncode);
             _chars = _toEncode.ToCharArray();
         }
