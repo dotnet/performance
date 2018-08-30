@@ -167,9 +167,7 @@
 | Branch        | OptLevel=[full]<br>PGO=[nopgo]                                       | OptLevel=[full]<br>PGO=[pgo]                                     | OptLevel=[min]<br>PGO=[nopgo]                                      | OptLevel=[min]<br>PGO=[pgo]                                    |
 | :------------ | :------------------------------------------------------------------: | :--------------------------------------------------------------: | :----------------------------------------------------------------: | :------------------------------------------------------------: |
 | master        | [![master_TP_x86_win_full_nopgo_icon]][master_TP_x86_win_full_nopgo] | [![master_TP_x86_win_full_pgo_icon]][master_TP_x86_win_full_pgo] | [![master_TP_x86_win_min_nopgo_icon]][master_TP_x86_win_min_nopgo] | [![master_TP_x86_win_min_pgo_icon]][master_TP_x86_win_min_pgo] |
-
 | release/2.2   | [![rel2.2_TP_x86_win_full_nopgo_icon]][rel2.2_TP_x86_win_full_nopgo] | [![rel2.2_TP_x86_win_full_pgo_icon]][rel2.2_TP_x86_win_full_pgo] | N/A                                                                | N/A                                                            |
-
 | release/2.1   | [![rel2.1_TP_x86_win_full_nopgo_icon]][rel2.1_TP_x86_win_full_nopgo] | [![rel2.1_TP_x86_win_full_pgo_icon]][rel2.1_TP_x86_win_full_pgo] | N/A                                                                | N/A                                                            |
 | release/2.0.0 | N/A                                                                  | [![rel2.0_TP_x86_win_full_pgo_icon]][rel2.0_TP_x86_win_full_pgo] | N/A                                                                | [![rel2.0_TP_x86_win_min_pgo_icon]][rel2.0_TP_x86_win_min_pgo] |
 
