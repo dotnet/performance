@@ -278,6 +278,7 @@
 | Branch        | CoreCLR x86 Windows                              | CoreCLR x64 Windows                              | CoreCLR x64 Linux                                |
 | :------------ | :----------------------------------------------: | :----------------------------------------------: | :----------------------------------------------: |
 | master        | [![CLRx86WINmasPGO Status]][CLRx86WINmasPGO Url] | [![CLRx64WINmasPGO Status]][CLRx64WINmasPGO Url] | [![CLRx64LINmasPGO Status]][CLRx64LINmasPGO Url] |
+| release/2.2   | [![CLRx86WIN2.2PGO Status]][CLRx86WIN2.2PGO Url] | [![CLRx64WIN2.2PGO Status]][CLRx64WIN2.2PGO Url] | [![CLRx64LIN2.2PGO Status]][CLRx64LIN2.2PGO Url] |
 | release/2.1   | [![CLRx86WIN2.1PGO Status]][CLRx86WIN2.1PGO Url] | [![CLRx64WIN2.1PGO Status]][CLRx64WIN2.1PGO Url] | [![CLRx64LIN2.1PGO Status]][CLRx64LIN2.1PGO Url] |
 | release/2.0.0 | [![CLRx86WIN2.0PGO Status]][CLRx86WIN2.0PGO Url] | [![CLRx64WIN2.0PGO Status]][CLRx64WIN2.0PGO Url] | [![CLRx64LIN2.0PGO Status]][CLRx64LIN2.0PGO Url] |
 | release/1.1.0 | N/A                                              | [![CLRx64WIN1.1PGO Status]][CLRx64WIN1.1PGO Url] | N/A                                              |
@@ -285,6 +286,9 @@
 [CLRx86WINmasPGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx86WINmasPGO  (Run Status)
 [CLRx64WINmasPGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx64WINmasPGO  (Run Status)
 [CLRx64LINmasPGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx64LINmasPGO  (Run Status)
+[CLRx86WIN2.2PGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx86WIN2.2PGO  (Run Status)
+[CLRx64WIN2.2PGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx64WIN2.2PGO  (Run Status)
+[CLRx64LIN2.2PGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx64LIN2.2PGO  (Run Status)
 [CLRx86WIN2.1PGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx86WIN2.1PGO  (Run Status)
 [CLRx64WIN2.1PGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx64WIN2.1PGO  (Run Status)
 [CLRx64LIN2.1PGO Status]:   https://ci2.dot.net/buildStatus/icon?job=Private/dotnet_optimization/master/CLRx64LIN2.1PGO  (Run Status)
@@ -296,6 +300,9 @@
 [CLRx86WINmasPGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx86WINmasPGO/
 [CLRx64WINmasPGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64WINmasPGO/
 [CLRx64LINmasPGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64LINmasPGO/
+[CLRx86WIN2.2PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx86WIN2.2PGO/
+[CLRx64WIN2.2PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64WIN2.2PGO/
+[CLRx64LIN2.2PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64LIN2.2PGO/
 [CLRx86WIN2.1PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx86WIN2.1PGO/
 [CLRx64WIN2.1PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64WIN2.1PGO/
 [CLRx64LIN2.1PGO Url]:      https://ci2.dot.net/job/Private/job/dotnet_optimization/job/master/job/CLRx64LIN2.1PGO/
