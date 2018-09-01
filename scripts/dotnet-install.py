@@ -35,7 +35,7 @@ def main(args):
 
     # run dotnet-install script
     rid = [] if runtimeId is None else ['--runtime-id',runtimeId]
-    dotnetInstallInterpreter = ['powershell', '-NoProfile', '.\\%s' % (dotnetInstallScriptName)] if sys.platform == 'win32' else ['./%s' % (dotnetInstallScriptName)]
+    dotnetInstallInterpreter = ['powershell', '-NoProfile', '-executionpolicy', 'bypass', '.\\%s' % (dotnetInstallScriptName)] if sys.platform == 'win32' else ['./%s' % (dotnetInstallScriptName)]
 
     runArgs = dotnetInstallInterpreter + ['-Runtime',
             'dotnet',
