@@ -169,13 +169,27 @@ namespace Benchmarks
 
             if (options.RunCore)
                 yield return baseJob.With(Runtime.Core).With(CsProjCoreToolchain.Current.Value);
-            if (options.RunCore20)
-                yield return baseJob.With(Runtime.Core).With(CsProjCoreToolchain.NetCoreApp20);
-            if (options.RunCore21)
-                yield return baseJob.With(Runtime.Core).With(CsProjCoreToolchain.NetCoreApp21);
+            
+            if (!string.IsNullOrEmpty(options.TargetFrameworkMoniker))
+            {
+                yield return baseJob.With(Runtime.Core)
+                    .With(CsProjCoreToolchain.From(
+                        new NetCoreAppSettings(
+                            targetFrameworkMoniker: options.TargetFrameworkMoniker, 
+                            runtimeFrameworkVersion: null,
+                            name: options.TargetFrameworkMoniker,
+                            customDotNetCliPath: options.CliPath?.FullName)));
+            }
 
             if (options.CoreRunPath != null && options.CoreRunPath.Exists)
-                yield return baseJob.With(Runtime.Core).With(new CoreRunToolchain(options.CoreRunPath, createCopy: true, customDotNetCliPath: options.CliPath));
+            {
+                yield return baseJob.With(Runtime.Core)
+                    .With(new CoreRunToolchain(
+                        options.CoreRunPath,
+                        targetFrameworkMoniker: options.TargetFrameworkMoniker ?? NetCoreAppSettings.Current.Value.TargetFrameworkMoniker, 
+                        createCopy: true, 
+                        customDotNetCliPath: options.CliPath));
+            }
 
             if (!string.IsNullOrEmpty(options.CoreFxVersion) || !string.IsNullOrEmpty(options.CoreClrVersion))
             {
@@ -248,12 +262,9 @@ namespace Benchmarks
 
         [Option("core", Required = false, Default = false, HelpText = "Run benchmarks for .NET Core")]
         public bool RunCore { get; set; }
-
-        [Option("core20", Required = false, Default = false, HelpText = "Run benchmarks for .NET Core 2.0")]
-        public bool RunCore20 { get; set; }
-
-        [Option("core21", Required = false, Default = false, HelpText = "Run benchmarks for .NET Core 2.1")]
-        public bool RunCore21 { get; set; }
+        
+        [Option("tfm", Required = false, HelpText = "Optional target framework moniker (temporarly required for .NET Core 3.0 cli).")]
+        public string TargetFrameworkMoniker { get; set; }
 
         [Option("cli", Required = false, HelpText = "Optional path to dotnet cli which should be used for running benchmarks.")]
         public FileInfo CliPath { get; set; }
