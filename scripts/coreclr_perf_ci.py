@@ -25,7 +25,7 @@ parser.add_argument('-arch', dest='arch', default='x64', required=False, choices
 parser.add_argument('-uploadToBenchview', dest='uploadToBenchview', action='store_true', default=False)
 parser.add_argument('-branch', dest='branch', required=True)
 parser.add_argument('-runType', dest='runType', default='rolling', choices=['rolling', 'private', 'local'])
-parser.add_argument('-maxIterations', dest='maxIterations', type=int, default=21)
+parser.add_argument('-maxIterations', dest='maxIterations', type=int, default=20)
 
 ##########################################################################
 # Helper Functions
