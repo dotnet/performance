@@ -170,8 +170,6 @@ def main(args):
     runEnv = dict(os.environ)
     runEnv['DOTNET_MULTILEVEL_LOOKUP'] = '0'
     runEnv['UseSharedCompilation'] = 'false'
-    runEnv['XUNIT_PERFORMANCE_MAX_ITERATION'] = str(args.maxIterations)
-    runEnv['XUNIT_PERFORMANCE_MAX_ITERATION_INNER_SPECIFIED'] = str(args.maxIterations)
 
     workspace = get_repo_root_path()
 
@@ -183,11 +181,11 @@ def main(args):
     dotnetPath = os.path.join(workspace, '.dotnet', 'dotnet.exe')
     dotnetVersion = get_dotnet_sha(dotnetPath)
 
-    coreclrTestDir = os.path.join(workspace, 'src', 'coreclr')
-    os.chdir(coreclrTestDir)
+    benchmarksDirectoryPath = os.path.join(workspace, 'src', 'benchmarks')
+    os.chdir(benchmarksDirectoryPath)
 
-    # Build the PerformanceHarness and tests
-    performanceHarnessCsproj = os.path.join('PerformanceHarness', 'PerformanceHarness.csproj')
+    # Build the Benchmarks project
+    performanceHarnessCsproj = os.path.join('Benchmarks.csproj')
     runArgs = [dotnetPath, 'restore', performanceHarnessCsproj]
     run_command(runArgs, runEnv, 'Failed to restore %s' % performanceHarnessCsproj)
 
@@ -195,11 +193,11 @@ def main(args):
     run_command(runArgs, runEnv, 'Failed to publish %s' % performanceHarnessCsproj)
 
     # Run the tests
-    benchmarkOutputDir = os.path.join(coreclrTestDir, 'PerformanceHarness', 'bin', 'Release', args.framework, 'publish')
+    benchmarkOutputDir = os.path.join(benchmarksDirectoryPath, 'bin', 'Release', args.framework, 'publish')
     os.chdir(benchmarkOutputDir)
 
-    runArgs = [dotnetPath, 'PerformanceHarness.dll', '--perf:collect', 'stopwatch']
-    run_command(runArgs, runEnv, 'Failed to run PerformanceHarness.dll')
+    runArgs = [dotnetPath, 'Benchmarks.dll', '--cli', dotnetPath, '--categories', 'CoreCLR', '--maxIterationCount', str(args.maxIterations)]
+    run_command(runArgs, runEnv, 'Failed to run Benchmarks.dll')
 
     if args.uploadToBenchview:
         # Download nuget
