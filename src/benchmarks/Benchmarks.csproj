@@ -14,8 +14,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="img\**" />
+    <Compile Remove="Tests\**" />
     <EmbeddedResource Remove="img\**" />
     <None Remove="img\**" />
+    <None Remove="Tests\**" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.11.1.737" />

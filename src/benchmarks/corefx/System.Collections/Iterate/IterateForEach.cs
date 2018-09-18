@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
-using Helpers;
 
 namespace System.Collections
 {
@@ -40,8 +39,8 @@ namespace System.Collections
         private ImmutableSortedDictionary<T, T> _immutablesorteddictionary;
         private ImmutableSortedSet<T> _immutablesortedset;
 
-        [GlobalSetup(Target = nameof(Array))]
-        public void SetupArray() => _array = UniqueValuesGenerator.GenerateArray<T>(Size);
+        [GlobalSetup(Targets = new [] { nameof(Array), nameof(Span), nameof(ReadOnlySpan)})]
+        public void SetupArray() => _array = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
         [Benchmark]
         public T Array()
@@ -53,8 +52,30 @@ namespace System.Collections
             return result;
         }
         
+        [BenchmarkCategory(Categories.Span)]
+        [Benchmark]
+        public T Span()
+        {
+            T result = default;
+            var collection = new System.Span<T>(_array);
+            foreach (var item in collection)
+                result = item;
+            return result;
+        }
+        
+        [BenchmarkCategory(Categories.Span)]
+        [Benchmark]
+        public T ReadOnlySpan()
+        {
+            T result = default;
+            var collection = new System.ReadOnlySpan<T>(_array);
+            foreach (var item in collection)
+                result = item;
+            return result;
+        }
+        
         [GlobalSetup(Target = nameof(IEnumerable))]
-        public void SetupIEnumerable() => _ienumerable = UniqueValuesGenerator.GenerateArray<T>(Size);
+        public void SetupIEnumerable() => _ienumerable = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
         [Benchmark]
         [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
@@ -70,7 +91,7 @@ namespace System.Collections
         }
         
         [GlobalSetup(Target = nameof(List))]
-        public void SetupList() => _list = new List<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupList() => _list = new List<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T List()
@@ -83,7 +104,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(LinkedList))]
-        public void SetupLinkedList() => _linkedlist = new LinkedList<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupLinkedList() => _linkedlist = new LinkedList<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T LinkedList()
@@ -96,7 +117,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(HashSet))]
-        public void SetupHashSet() => _hashset = new HashSet<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupHashSet() => _hashset = new HashSet<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T HashSet()
@@ -109,7 +130,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(Dictionary))]
-        public void SetupDictionary() => _dictionary = new Dictionary<T, T>(UniqueValuesGenerator.GenerateDictionary<T, T>(Size));
+        public void SetupDictionary() => _dictionary = new Dictionary<T, T>(ValuesGenerator.Dictionary<T, T>(Size));
 
         [Benchmark]
         public T Dictionary()
@@ -122,7 +143,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(Queue))]
-        public void SetupQueue() => _queue = new Queue<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupQueue() => _queue = new Queue<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T Queue()
@@ -135,7 +156,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(Stack))]
-        public void SetupStack() => _stack = new Stack<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupStack() => _stack = new Stack<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T Stack()
@@ -148,7 +169,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(SortedList))]
-        public void SetupSortedList() => _sortedlist = new SortedList<T, T>(UniqueValuesGenerator.GenerateDictionary<T, T>(Size));
+        public void SetupSortedList() => _sortedlist = new SortedList<T, T>(ValuesGenerator.Dictionary<T, T>(Size));
 
         [Benchmark]
         public T SortedList()
@@ -161,7 +182,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(SortedSet))]
-        public void SetupSortedSet() => _sortedset = new SortedSet<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupSortedSet() => _sortedset = new SortedSet<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T SortedSet()
@@ -174,7 +195,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(SortedDictionary))]
-        public void SetupSortedDictionary() => _sorteddictionary = new SortedDictionary<T, T>(UniqueValuesGenerator.GenerateDictionary<T, T>(Size));
+        public void SetupSortedDictionary() => _sorteddictionary = new SortedDictionary<T, T>(ValuesGenerator.Dictionary<T, T>(Size));
 
         [Benchmark]
         public T SortedDictionary()
@@ -187,7 +208,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(ConcurrentDictionary))]
-        public void SetupConcurrentDictionary() => _concurrentdictionary = new ConcurrentDictionary<T, T>(UniqueValuesGenerator.GenerateDictionary<T, T>(Size));
+        public void SetupConcurrentDictionary() => _concurrentdictionary = new ConcurrentDictionary<T, T>(ValuesGenerator.Dictionary<T, T>(Size));
 
         [Benchmark]
         public T ConcurrentDictionary()
@@ -200,7 +221,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(ConcurrentQueue))]
-        public void SetupConcurrentQueue() => _concurrentqueue = new ConcurrentQueue<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupConcurrentQueue() => _concurrentqueue = new ConcurrentQueue<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T ConcurrentQueue()
@@ -213,7 +234,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(ConcurrentStack))]
-        public void SetupConcurrentStack() => _concurrentstack = new ConcurrentStack<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupConcurrentStack() => _concurrentstack = new ConcurrentStack<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T ConcurrentStack()
@@ -226,7 +247,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(ConcurrentBag))]
-        public void SetupConcurrentBag() => _concurrentbag = new ConcurrentBag<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupConcurrentBag() => _concurrentbag = new ConcurrentBag<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T ConcurrentBag()
@@ -239,7 +260,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(ImmutableArray))]
-        public void SetupImmutableArray() => _immutablearray = Immutable.ImmutableArray.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupImmutableArray() => _immutablearray = Immutable.ImmutableArray.CreateRange<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T ImmutableArray()
@@ -252,7 +273,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(ImmutableDictionary))]
-        public void SetupImmutableDictionary() => _immutabledictionary = Immutable.ImmutableDictionary.CreateRange<T, T>(UniqueValuesGenerator.GenerateDictionary<T, T>(Size));
+        public void SetupImmutableDictionary() => _immutabledictionary = Immutable.ImmutableDictionary.CreateRange<T, T>(ValuesGenerator.Dictionary<T, T>(Size));
 
         [Benchmark]
         public T ImmutableDictionary()
@@ -265,7 +286,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(ImmutableHashSet))]
-        public void SetupImmutableHashSet() => _immutablehashset = Immutable.ImmutableHashSet.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupImmutableHashSet() => _immutablehashset = Immutable.ImmutableHashSet.CreateRange<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T ImmutableHashSet()
@@ -278,7 +299,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(ImmutableList))]
-        public void SetupImmutableList() => _immutablelist = Immutable.ImmutableList.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupImmutableList() => _immutablelist = Immutable.ImmutableList.CreateRange<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T ImmutableList()
@@ -291,7 +312,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(ImmutableQueue))]
-        public void SetupImmutableQueue() => _immutablequeue = Immutable.ImmutableQueue.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupImmutableQueue() => _immutablequeue = Immutable.ImmutableQueue.CreateRange<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T ImmutableQueue()
@@ -304,7 +325,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(ImmutableStack))]
-        public void SetupImmutableStack() => _immutablestack = Immutable.ImmutableStack.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupImmutableStack() => _immutablestack = Immutable.ImmutableStack.CreateRange<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T ImmutableStack()
@@ -317,7 +338,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(ImmutableSortedDictionary))]
-        public void SetupImmutableSortedDictionary() => _immutablesorteddictionary = Immutable.ImmutableSortedDictionary.CreateRange<T, T>(UniqueValuesGenerator.GenerateDictionary<T, T>(Size));
+        public void SetupImmutableSortedDictionary() => _immutablesorteddictionary = Immutable.ImmutableSortedDictionary.CreateRange<T, T>(ValuesGenerator.Dictionary<T, T>(Size));
 
         [Benchmark]
         public T ImmutableSortedDictionary()
@@ -330,7 +351,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(ImmutableSortedSet))]
-        public void SetupImmutableSortedSet() => _immutablesortedset = Immutable.ImmutableSortedSet.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupImmutableSortedSet() => _immutablesortedset = Immutable.ImmutableSortedSet.CreateRange<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T ImmutableSortedSet()
