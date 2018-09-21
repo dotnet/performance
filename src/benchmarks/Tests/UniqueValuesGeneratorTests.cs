@@ -45,5 +45,20 @@ namespace Tests
                 Assert.Equal(generatedArray, anotherGeneratedArray);
             }
         }
+
+        [Fact]
+        public void GeneratedStringsContainOnlySimpleLettersAndDigits()
+        {
+            var strings = ValuesGenerator.ArrayOfUniqueValues<string>(1024);
+
+            foreach (var text in strings)
+            {
+                Assert.All(text, character => 
+                    Assert.True(
+                        char.IsDigit(character) 
+                        || (character >= 'a' && character <= 'z') 
+                        || (character >= 'A' && character <= 'Z')));
+            }
+        }
     }
 }
