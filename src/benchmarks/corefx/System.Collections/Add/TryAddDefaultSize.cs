@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
-using Helpers;
 
 namespace System.Collections
 {
@@ -17,7 +16,7 @@ namespace System.Collections
         public int Count;
 
         [GlobalSetup]
-        public void Setup() => _uniqueValues = UniqueValuesGenerator.GenerateArray<T>(Count);
+        public void Setup() => _uniqueValues = ValuesGenerator.ArrayOfUniqueValues<T>(Count);
 
 #if !NETFRAMEWORK // API added in .NET Core 2.0
         [Benchmark]

@@ -1,6 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
 using Benchmarks;
-using Helpers;
 
 namespace System.Collections
 {
@@ -19,7 +18,7 @@ namespace System.Collections
         private SortedList _sortedlist;
 
         [GlobalSetup(Target = nameof(ArrayList))]
-        public void SetupArrayList() => _arraylist = new ArrayList(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupArrayList() => _arraylist = new ArrayList(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public object ArrayList()
@@ -32,7 +31,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(Hashtable))]
-        public void SetupHashtable() => _hashtable = new Hashtable(UniqueValuesGenerator.GenerateDictionary<T, T>(Size));
+        public void SetupHashtable() => _hashtable = new Hashtable(ValuesGenerator.Dictionary<T, T>(Size));
 
         [Benchmark]
         public object Hashtable()
@@ -45,7 +44,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(Queue))]
-        public void SetupQueue() => _queue = new Queue(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupQueue() => _queue = new Queue(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public object Queue()
@@ -58,7 +57,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(Stack))]
-        public void SetupStack() => _stack = new Stack(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupStack() => _stack = new Stack(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public object Stack()
@@ -71,7 +70,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(SortedList))]
-        public void SetupSortedList() => _sortedlist = new SortedList(UniqueValuesGenerator.GenerateDictionary<T, T>(Size));
+        public void SetupSortedList() => _sortedlist = new SortedList(ValuesGenerator.Dictionary<T, T>(Size));
 
         [Benchmark]
         public object SortedList()

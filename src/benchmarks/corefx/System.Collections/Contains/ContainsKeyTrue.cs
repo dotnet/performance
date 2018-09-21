@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
-using Helpers;
 
 namespace System.Collections
 {
@@ -30,7 +29,7 @@ namespace System.Collections
         [GlobalSetup]
         public void Setup()
         {
-            _found = UniqueValuesGenerator.GenerateArray<TKey>(Size);
+            _found = ValuesGenerator.ArrayOfUniqueValues<TKey>(Size);
             _source = _found.ToDictionary(item => item, item => (TValue)(object)item);
             _dictionary = new Dictionary<TKey, TValue>(_source);
             _sortedList = new SortedList<TKey, TValue>(_source);
