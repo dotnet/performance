@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
-using Helpers;
 
 namespace System.Collections
 {
@@ -18,7 +17,7 @@ namespace System.Collections
         public int Size;
 
         [GlobalSetup]
-        public void Setup() => _uniqueValues = UniqueValuesGenerator.GenerateArray<T>(Size);
+        public void Setup() => _uniqueValues = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
         [Benchmark]
         public List<T> List()

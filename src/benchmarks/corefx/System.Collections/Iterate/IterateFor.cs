@@ -3,11 +3,10 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
-using Helpers;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
     public class IterateFor<T>
@@ -23,7 +22,7 @@ namespace System.Collections
         private ImmutableSortedSet<T> _immutablesortedset;
 
         [GlobalSetup(Target = nameof(Array))]
-        public void SetupArray() => _array = UniqueValuesGenerator.GenerateArray<T>(Size);
+        public void SetupArray() => _array = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
         [Benchmark]
         public T Array()
@@ -35,8 +34,36 @@ namespace System.Collections
             return result;
         }
 
+        [GlobalSetup(Target = nameof(Span))]
+        public void SetupSpan() => _array = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+
+        [BenchmarkCategory(Categories.Span)]
+        [Benchmark]
+        public T Span()
+        {
+            T result = default;
+            var collection = new Span<T>(_array);
+            for (int i = 0; i < collection.Length; i++)
+                result = collection[i];
+            return result;
+        }
+
+        [GlobalSetup(Target = nameof(ReadOnlySpan))]
+        public void SetupReadOnlySpan() => _array = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+
+        [BenchmarkCategory(Categories.Span)]
+        [Benchmark]
+        public T ReadOnlySpan()
+        {
+            T result = default;
+            var collection = new ReadOnlySpan<T>(_array);
+            for (int i = 0; i < collection.Length; i++)
+                result = collection[i];
+            return result;
+        }
+
         [GlobalSetup(Target = nameof(List))]
-        public void SetupList() => _list = new List<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupList() => _list = new List<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T List()
@@ -49,7 +76,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(IList))]
-        public void SetupIList() => _ilist = new List<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupIList() => _ilist = new List<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
@@ -65,7 +92,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(ImmutableArray))]
-        public void SetupImmutableArray() => _immutablearray = Immutable.ImmutableArray.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupImmutableArray() => _immutablearray = Immutable.ImmutableArray.CreateRange<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T ImmutableArray()
@@ -78,7 +105,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(ImmutableList))]
-        public void SetupImmutableList() => _immutablelist = Immutable.ImmutableList.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupImmutableList() => _immutablelist = Immutable.ImmutableList.CreateRange<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T ImmutableList()
@@ -91,7 +118,7 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(ImmutableSortedSet))]
-        public void SetupImmutableSortedSet() => _immutablesortedset = Immutable.ImmutableSortedSet.CreateRange<T>(UniqueValuesGenerator.GenerateArray<T>(Size));
+        public void SetupImmutableSortedSet() => _immutablesortedset = Immutable.ImmutableSortedSet.CreateRange<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public T ImmutableSortedSet()

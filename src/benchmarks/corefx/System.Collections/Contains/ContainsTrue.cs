@@ -4,7 +4,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using Benchmarks;
-using Helpers;
 
 namespace System.Collections
 {
@@ -33,7 +32,7 @@ namespace System.Collections
         [GlobalSetup]
         public void Setup()
         {
-            _found = UniqueValuesGenerator.GenerateArray<T>(Size);
+            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
             _array = _found.ToArray();
             _list = new List<T>(_found);
             _linkedList = new LinkedList<T>(_found);

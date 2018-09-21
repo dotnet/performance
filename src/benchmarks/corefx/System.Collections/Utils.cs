@@ -10,6 +10,18 @@ namespace System.Collections
         
         internal const int ConcurrencyLevel = 4;
 
+        internal static void FillArrays<T>(ref T[][] arrays, int collectionsCount, T[] source)
+        {
+            if (arrays == null)
+                arrays = Enumerable.Range(0, collectionsCount).Select(_ => new T[source.Length]).ToArray();
+
+            foreach (var array in arrays)
+                Array.Copy(sourceArray: source, destinationArray: array, length: source.Length);
+            
+            if(arrays.Any(collection => collection.Length != source.Length)) // we dont use Debug.Assert here because this code will be executed mostly in Release
+                throw new InvalidOperationException();
+        }
+
         internal static void FillCollections<TCollection, TValues>(ref TCollection[] collections, int collectionsCount, TValues[] keys)
             where TCollection : ICollection<TValues>, new()
         {
