@@ -20,7 +20,7 @@ description = 'Tool to run coreclr perf tests'
 
 parser = argparse.ArgumentParser(description=description)
 
-parser.add_argument('-framework', dest='framework', default='netcoreapp3.0', required=False, choices=['netcoreapp3.0', 'netcoreapp2.1', 'netcoreapp2.0', 'net461'])
+parser.add_argument('-framework', dest='framework', default='netcoreapp3.0', required=False, choices=['netcoreapp3.0', 'netcoreapp2.2', 'netcoreapp2.1', 'netcoreapp2.0', 'net461'])
 parser.add_argument('-arch', dest='arch', default='x64', required=False, choices=['x64', 'x86'])
 parser.add_argument('-uploadToBenchview', dest='uploadToBenchview', action='store_true', default=False)
 parser.add_argument('-branch', dest='branch', required=True)
