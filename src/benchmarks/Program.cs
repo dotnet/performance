@@ -186,7 +186,7 @@ namespace Benchmarks
                 yield return baseJob.With(Runtime.Core)
                     .With(new CoreRunToolchain(
                         options.CoreRunPath,
-                        targetFrameworkMoniker: options.TargetFrameworkMoniker ?? NetCoreAppSettings.Current.Value.TargetFrameworkMoniker, 
+                        targetFrameworkMoniker: NetCoreAppSettings.Current.Value.TargetFrameworkMoniker, 
                         createCopy: true, 
                         customDotNetCliPath: options.CliPath));
             }
