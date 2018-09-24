@@ -27,4 +27,4 @@ class TargetFrameworkAction(argparse.Action):
     @staticmethod
     def supported_target_frameworks() -> list:
         '''List of supported .NET Core target frameworks.'''
-        return ['netcoreapp1.1', 'netcoreapp2.0', 'netcoreapp2.1', 'net461']
+        return ['netcoreapp2.0', 'netcoreapp2.1', 'netcoreapp2.2', 'netcoreapp3.0', 'net461']
