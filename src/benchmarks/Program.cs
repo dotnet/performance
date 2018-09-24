@@ -170,15 +170,23 @@ namespace Benchmarks
             if (options.RunCore)
                 yield return baseJob.With(Runtime.Core).With(CsProjCoreToolchain.Current.Value);
             
-            if (!string.IsNullOrEmpty(options.TargetFrameworkMoniker))
+            if (options.TargetFrameworkMonikers.Any())
             {
-                yield return baseJob.With(Runtime.Core)
-                    .With(CsProjCoreToolchain.From(
-                        new NetCoreAppSettings(
-                            targetFrameworkMoniker: options.TargetFrameworkMoniker, 
-                            runtimeFrameworkVersion: null,
-                            name: options.TargetFrameworkMoniker,
-                            customDotNetCliPath: options.CliPath?.FullName)));
+                foreach (var targetFrameworkMoniker in options.TargetFrameworkMonikers)
+                {
+                    var job = baseJob.With(Runtime.Core)
+                        .With(CsProjCoreToolchain.From(
+                            new NetCoreAppSettings(
+                                targetFrameworkMoniker: targetFrameworkMoniker,
+                                runtimeFrameworkVersion: null,
+                                name: targetFrameworkMoniker,
+                                customDotNetCliPath: options.CliPath?.FullName)));
+
+                    if (options.TargetFrameworkMonikers.Count() > 1 && options.TargetFrameworkMonikers.First() == targetFrameworkMoniker)
+                        yield return job.AsBaseline(); // the first TFM is the baseline
+                    else
+                        yield return job;
+                }
             }
 
             if (options.CoreRunPath != null && options.CoreRunPath.Exists)
@@ -263,8 +271,8 @@ namespace Benchmarks
         [Option("core", Required = false, Default = false, HelpText = "Run benchmarks for .NET Core")]
         public bool RunCore { get; set; }
         
-        [Option("tfm", Required = false, HelpText = "Optional target framework moniker (temporarly required for .NET Core 3.0 cli).")]
-        public string TargetFrameworkMoniker { get; set; }
+        [Option("tfms", Required = false, HelpText = "Optional target framework monikers to compare. Provide the baseline as first.")]
+        public IEnumerable<string> TargetFrameworkMonikers { get; set; }
 
         [Option("cli", Required = false, HelpText = "Optional path to dotnet cli which should be used for running benchmarks.")]
         public FileInfo CliPath { get; set; }

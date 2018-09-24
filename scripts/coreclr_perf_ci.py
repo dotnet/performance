@@ -196,7 +196,7 @@ def main(args):
     benchmarkOutputDir = os.path.join(benchmarksDirectoryPath, 'bin', 'Release', args.framework, 'publish')
     os.chdir(benchmarkOutputDir)
 
-    runArgs = [dotnetPath, 'Benchmarks.dll', '--cli', dotnetPath, '--tfm', args.framework, '--categories', 'CoreCLR', '--maxIterationCount', str(args.maxIterations)]
+    runArgs = [dotnetPath, 'Benchmarks.dll', '--cli', dotnetPath, '--tfms', args.framework, '--categories', 'CoreCLR', '--maxIterationCount', str(args.maxIterations)]
     run_command(runArgs, runEnv, 'Failed to run Benchmarks.dll')
 
     if args.uploadToBenchview:
