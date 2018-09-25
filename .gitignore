@@ -22,4 +22,3 @@
 **/*.DotSettings.user
 **/.idea/**
 /src/ArtifactsUploader/**/*log*.txt
-/scripts/dotnet-install.ps1
