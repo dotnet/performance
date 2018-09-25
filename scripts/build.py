@@ -78,6 +78,15 @@ def process_arguments() -> Tuple[list, bool]:
         description="Builds the benchmarks.",
     )
     parser.add_argument(
+        '-c', '--configuration',
+        metavar='CONFIGURATION',
+        required=False,
+        default='release',
+        choices=['debug', 'release'],
+        type=str.casefold,
+        help=argparse.SUPPRESS,
+    )
+    parser.add_argument(
         '-f', '--frameworks',
         metavar='FRAMEWORK',
         required=False,
