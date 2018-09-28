@@ -29,13 +29,18 @@ def main(args):
     dotnetInstallScriptExtension = '.ps1' if sys.platform == 'win32' else '.sh'
     dotnetInstallScriptName = 'dotnet-install' + dotnetInstallScriptExtension
     dotnetInstallScriptUrl = 'https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/' + dotnetInstallScriptName
+    
+    dotnetInstallScriptPath = os.path.join(installDir, dotnetInstallScriptName)
 
-    urllib.request.urlretrieve(dotnetInstallScriptUrl, dotnetInstallScriptName)
-    os.chmod(dotnetInstallScriptName, stat.S_IRWXU)
+    if not os.path.exists(args.installDir):
+        os.makedirs(args.installDir)
+        
+    urllib.request.urlretrieve(dotnetInstallScriptUrl, dotnetInstallScriptPath)
+    os.chmod(dotnetInstallScriptPath, stat.S_IRWXU)
 
     # run dotnet-install script
     rid = [] if runtimeId is None else ['--runtime-id',runtimeId]
-    dotnetInstallInterpreter = ['powershell', '-NoProfile', '.\\%s' % (dotnetInstallScriptName)] if sys.platform == 'win32' else ['./%s' % (dotnetInstallScriptName)]
+    dotnetInstallInterpreter = ['powershell', '-NoProfile', '-executionpolicy', 'bypass', dotnetInstallScriptPath] if sys.platform == 'win32' else [dotnetInstallScriptPath]
 
     runArgs = dotnetInstallInterpreter + ['-Runtime',
             'dotnet',

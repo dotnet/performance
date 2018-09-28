@@ -16,16 +16,17 @@ from build.common import get_repo_root_path
 # Argument Parser
 ##########################################################################
 
-description = 'Tool to run coreclr perf tests'
+description = 'Tool to run .NET benchmarks'
 
 parser = argparse.ArgumentParser(description=description)
 
-parser.add_argument('-framework', dest='framework', default='netcoreapp3.0', required=False, choices=['netcoreapp3.0', 'netcoreapp2.1', 'netcoreapp2.0', 'netcoreapp1.1', 'net461'])
+parser.add_argument('-framework', dest='framework', default='netcoreapp3.0', required=False, choices=['netcoreapp3.0', 'netcoreapp2.2', 'netcoreapp2.1', 'netcoreapp2.0', 'net461'])
 parser.add_argument('-arch', dest='arch', default='x64', required=False, choices=['x64', 'x86'])
 parser.add_argument('-uploadToBenchview', dest='uploadToBenchview', action='store_true', default=False)
+parser.add_argument('-category', dest='category', required=True, choices=['coreclr', 'corefx'], type=str.lower)
 parser.add_argument('-branch', dest='branch', required=True)
 parser.add_argument('-runType', dest='runType', default='rolling', choices=['rolling', 'private', 'local'])
-parser.add_argument('-maxIterations', dest='maxIterations', type=int, default=21)
+parser.add_argument('-maxIterations', dest='maxIterations', type=int, default=20)
 
 ##########################################################################
 # Helper Functions
@@ -99,7 +100,7 @@ def generate_results_for_benchview(python, better, hasWarmupRun, benchmarkOutput
         runArgs = [python, os.path.join(benchviewPath, 'measurement.py')] + lvMeasurementArgs + [filename]
         run_command(runArgs, os.environ, 'Call to %s failed' % runArgs[1])
 
-def upload_to_benchview(python, benchviewPath, operatingSystem, collectionFlags, architecture, runType):
+def upload_to_benchview(python, benchviewPath, operatingSystem, collectionFlags, architecture, runType, category):
     """ Upload results to benchview
     Args:
         python (str): python executable
@@ -128,7 +129,7 @@ def upload_to_benchview(python, benchviewPath, operatingSystem, collectionFlags,
             '--metadata',
             submissionMetadataJson,
             '--group',
-            '.Net CoreCLR Performance',
+            '.Net %s Performance' % category,
             '--type',
             runType,
             '--config-name',
@@ -150,7 +151,7 @@ def upload_to_benchview(python, benchviewPath, operatingSystem, collectionFlags,
             os.path.join(benchviewPath, 'upload.py'),
             'submission.json',
             '--container',
-            'coreclr']
+            category]
 
     run_command(runArgs, os.environ, 'Call to %s failed' % runArgs[1])
 
@@ -170,8 +171,6 @@ def main(args):
     runEnv = dict(os.environ)
     runEnv['DOTNET_MULTILEVEL_LOOKUP'] = '0'
     runEnv['UseSharedCompilation'] = 'false'
-    runEnv['XUNIT_PERFORMANCE_MAX_ITERATION'] = str(args.maxIterations)
-    runEnv['XUNIT_PERFORMANCE_MAX_ITERATION_INNER_SPECIFIED'] = str(args.maxIterations)
 
     workspace = get_repo_root_path()
 
@@ -183,11 +182,11 @@ def main(args):
     dotnetPath = os.path.join(workspace, '.dotnet', 'dotnet.exe')
     dotnetVersion = get_dotnet_sha(dotnetPath)
 
-    coreclrTestDir = os.path.join(workspace, 'src', 'coreclr')
-    os.chdir(coreclrTestDir)
+    benchmarksDirectoryPath = os.path.join(workspace, 'src', 'benchmarks')
+    os.chdir(benchmarksDirectoryPath)
 
-    # Build the PerformanceHarness and tests
-    performanceHarnessCsproj = os.path.join('PerformanceHarness', 'PerformanceHarness.csproj')
+    # Build the Benchmarks project
+    performanceHarnessCsproj = os.path.join('Benchmarks.csproj')
     runArgs = [dotnetPath, 'restore', performanceHarnessCsproj]
     run_command(runArgs, runEnv, 'Failed to restore %s' % performanceHarnessCsproj)
 
@@ -195,11 +194,11 @@ def main(args):
     run_command(runArgs, runEnv, 'Failed to publish %s' % performanceHarnessCsproj)
 
     # Run the tests
-    benchmarkOutputDir = os.path.join(coreclrTestDir, 'PerformanceHarness', 'bin', 'Release', args.framework, 'publish')
+    benchmarkOutputDir = os.path.join(benchmarksDirectoryPath, 'bin', 'Release', args.framework, 'publish')
     os.chdir(benchmarkOutputDir)
 
-    runArgs = [dotnetPath, 'PerformanceHarness.dll', '--perf:collect', 'stopwatch']
-    run_command(runArgs, runEnv, 'Failed to run PerformanceHarness.dll')
+    runArgs = [dotnetPath, 'Benchmarks.dll', '--cli', dotnetPath, '--tfms', args.framework, '--categories', args.category, '--maxIterationCount', str(args.maxIterations)]
+    run_command(runArgs, runEnv, 'Failed to run Benchmarks.dll')
 
     if args.uploadToBenchview:
         # Download nuget
@@ -250,7 +249,7 @@ def main(args):
 
         # Generate measurement.json and submit to benchview
         generate_results_for_benchview(python, 'desc', True, benchmarkOutputDir, benchviewPath)
-        upload_to_benchview(python, benchviewPath, 'Windows_NT', 'stopwatch', args.arch, args.runType)
+        upload_to_benchview(python, benchviewPath, 'Windows_NT', 'stopwatch', args.arch, args.runType, args.category)
 
 if __name__ == "__main__":
     Args = parser.parse_args(sys.argv[1:])
