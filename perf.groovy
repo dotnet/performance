@@ -130,7 +130,7 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
                         iterations = "2"
                     }
                     steps {
-                        batchFile("py scripts\\coreclr_perf_ci.py -arch ${arch} -framework netcoreapp3.0 -uploadToBenchview -branch master -runType ${runType} -maxIterations ${iterations}")
+                        batchFile("py scripts\\benchmarks_ci.py -category CoreCLR -arch ${arch} -framework netcoreapp3.0 -uploadToBenchview -branch master -runType ${runType} -maxIterations ${iterations}")
                     }
 
                     label("windows_server_2016_clr_perf")
