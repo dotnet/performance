@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''
-Builds the CoreClr Benchmarks
+Builds the Benchmarks
 '''
 
 from subprocess import CalledProcessError
@@ -59,7 +59,7 @@ def init_logging(verbose: bool) -> str:
 
 def check_requirements(log_file: str, verbose: bool) -> None:
     '''
-    Checks that the requirements needs to build the CoreClr benchmarks are met.
+    Checks that the requirements needs to build the benchmarks are met.
     '''
     logging.getLogger('script').info("Making sure dotnet exists...")
     try:
@@ -69,13 +69,13 @@ def check_requirements(log_file: str, verbose: bool) -> None:
         raise FatalError("Cannot find dotnet.")
 
 
-def process_arguments() -> Tuple[str, list, bool]:
+def process_arguments() -> Tuple[list, bool]:
     '''
     Function used to parse the command line arguments passed to this script
     through the cli.
     '''
     parser = argparse.ArgumentParser(
-        description="Builds the CoreClr benchmarks.",
+        description="Builds the benchmarks.",
     )
     parser.add_argument(
         '-c', '--configuration',
@@ -84,7 +84,7 @@ def process_arguments() -> Tuple[str, list, bool]:
         default='release',
         choices=['debug', 'release'],
         type=str.casefold,
-        help='Configuration use for building the project (default "release").',
+        help=argparse.SUPPRESS,
     )
     parser.add_argument(
         '-f', '--frameworks',
@@ -108,26 +108,25 @@ def process_arguments() -> Tuple[str, list, bool]:
 
     args = parser.parse_args()
     return (
-        args.configuration,
         args.frameworks,
         args.verbose
     )
 
 
-def build_coreclr(
+def build_benchmarks(
         log_file: str,
         configuration: str,
         frameworks: list,
         verbose: bool) -> None:
-    '''Builds the CoreClr set of benchmarks (Code Quality).'''
-    working_directory = os.path.join(
-        get_repo_root_path(), 'src', 'coreclr', 'PerformanceHarness')
-    csproj_file = 'PerformanceHarness.csproj'
+    '''Builds the benchmarks'''
+    workspace = get_repo_root_path()
+    working_directory = os.path.join(workspace, 'src', 'benchmarks')
+    csproj_file = 'Benchmarks.csproj'
 
     dotnet = DotNet(log_file, working_directory, csproj_file, verbose)
     dotnet.restore()
     for framework in frameworks:
-        dotnet.publish(configuration, framework, 'CoreClr-Benchmarks')
+        dotnet.publish(configuration, framework, 'Benchmarks')
 
 
 def main() -> int:
@@ -137,12 +136,12 @@ def main() -> int:
             raise FatalError("Unsupported python version.")
 
         args = process_arguments()
-        configuration, frameworks, verbose = args
+        frameworks, verbose = args
         log_file = init_logging(verbose)
 
         log_start_message('script')
         check_requirements(log_file, verbose)
-        build_coreclr(log_file, configuration, frameworks, verbose)
+        build_benchmarks(log_file, "Release", frameworks, verbose)
 
         return 0
     except FatalError as ex:

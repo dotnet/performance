@@ -169,13 +169,35 @@ namespace Benchmarks
 
             if (options.RunCore)
                 yield return baseJob.With(Runtime.Core).With(CsProjCoreToolchain.Current.Value);
-            if (options.RunCore20)
-                yield return baseJob.With(Runtime.Core).With(CsProjCoreToolchain.NetCoreApp20);
-            if (options.RunCore21)
-                yield return baseJob.With(Runtime.Core).With(CsProjCoreToolchain.NetCoreApp21);
+            
+            if (options.TargetFrameworkMonikers.Any())
+            {
+                foreach (var targetFrameworkMoniker in options.TargetFrameworkMonikers)
+                {
+                    var job = baseJob.With(Runtime.Core)
+                        .With(CsProjCoreToolchain.From(
+                            new NetCoreAppSettings(
+                                targetFrameworkMoniker: targetFrameworkMoniker,
+                                runtimeFrameworkVersion: null,
+                                name: targetFrameworkMoniker,
+                                customDotNetCliPath: options.CliPath?.FullName)));
+
+                    if (options.TargetFrameworkMonikers.Count() > 1 && options.TargetFrameworkMonikers.First() == targetFrameworkMoniker)
+                        yield return job.AsBaseline(); // the first TFM is the baseline
+                    else
+                        yield return job;
+                }
+            }
 
             if (options.CoreRunPath != null && options.CoreRunPath.Exists)
-                yield return baseJob.With(Runtime.Core).With(new CoreRunToolchain(options.CoreRunPath, createCopy: true, customDotNetCliPath: options.CliPath));
+            {
+                yield return baseJob.With(Runtime.Core)
+                    .With(new CoreRunToolchain(
+                        options.CoreRunPath,
+                        targetFrameworkMoniker: NetCoreAppSettings.Current.Value.TargetFrameworkMoniker, 
+                        createCopy: true, 
+                        customDotNetCliPath: options.CliPath));
+            }
 
             if (!string.IsNullOrEmpty(options.CoreFxVersion) || !string.IsNullOrEmpty(options.CoreClrVersion))
             {
@@ -248,12 +270,9 @@ namespace Benchmarks
 
         [Option("core", Required = false, Default = false, HelpText = "Run benchmarks for .NET Core")]
         public bool RunCore { get; set; }
-
-        [Option("core20", Required = false, Default = false, HelpText = "Run benchmarks for .NET Core 2.0")]
-        public bool RunCore20 { get; set; }
-
-        [Option("core21", Required = false, Default = false, HelpText = "Run benchmarks for .NET Core 2.1")]
-        public bool RunCore21 { get; set; }
+        
+        [Option("tfms", Required = false, HelpText = "Optional target framework monikers to compare. Provide the baseline as first.")]
+        public IEnumerable<string> TargetFrameworkMonikers { get; set; }
 
         [Option("cli", Required = false, HelpText = "Optional path to dotnet cli which should be used for running benchmarks.")]
         public FileInfo CliPath { get; set; }

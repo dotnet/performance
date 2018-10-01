@@ -86,7 +86,16 @@ namespace Benchmarks
 
             var builder = new StringBuilder(length);
             for (int i = 0; i < length; i++)
-                builder.Append((char) random.Next(char.MinValue, char.MaxValue));
+            {
+                var rangeSelector = random.Next(0, 3);
+
+                if (rangeSelector == 0)
+                    builder.Append((char) random.Next('a', 'z'));
+                else if (rangeSelector == 1)
+                    builder.Append((char) random.Next('A', 'Z'));
+                else
+                    builder.Append((char) random.Next('0', '9'));
+            }
 
             return builder.ToString();
         }
