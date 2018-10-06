@@ -35,11 +35,11 @@ public class Simple
 }
 ```
 
-Any public, non-generic type with public `[Benchmark]` method in this assembly will be auto-detected and added to the benchmarks list.
+Any public, non-sealed type with public `[Benchmark]` method in this assembly will be auto-detected and added to the benchmarks list.
 
 ## Running
 
-To run the benchmarks you have to execute `dotnet run -c Release -f net46|netcoreapp2.0|netcoreapp2.1` (choose one of the supported frameworks).
+To run the benchmarks you have to execute `dotnet run -c Release -f net46|netcoreapp2.0|netcoreapp2.1|netcoreapp2.2|netcoreapp3.0` (choose one of the supported frameworks).
 
 ![Choose Benchmark](./img/chooseBenchmark.png)
 
@@ -55,7 +55,7 @@ BenchmarkDotNet by default exports the results to GitHub markdown, so you can ju
 
 You can filter the benchmarks by namespace, category, type name and method name. Examples:
 
-* `dotnet run -c Release -f netcoreapp2.1 -- --categories CoreCLR Span` - will run all the benchmarks that belong to CoreCLR **AND** Span category
+* `dotnet run -c Release -f netcoreapp2.1 -- --allCategories CoreCLR Span` - will run all the benchmarks that belong to CoreCLR **AND** Span category
 * `dotnet run -c Release -f netcoreapp2.1 -- --anyCategories CoreCLR CoreFX` - will run all the benchmarks that belong to CoreCLR **OR** CoreFX category
 * `dotnet run -c Release -f netcoreapp2.1 -- --filter BenchmarksGame*` - will run all the benchmarks from BenchmarksGame namespace
 * `dotnet run -c Release -f netcoreapp2.1 -- --filter *.ToStream` - will run all the benchmarks with method name ToStream
@@ -98,7 +98,7 @@ You can do that by passing `--disassm` to the app or by using `[DisassemblyDiagn
 
 ## How to run In Process
 
-If you want to run the benchmarks in process, without creating a dedicated executable and process-level isolation, please pass `--inProcess` as an extra argument to the app: `dotnet run -c Release -f netcoreapp2.1 -- --inProcess`. If you build your own config, please use `config.With(Job.Default.With(InProcessToolchain.Instance))`. Please use this option only when you are sure that the benchmarks you want to run have no side effects.
+If you want to run the benchmarks in process, without creating a dedicated executable and process-level isolation, please pass `--inProcess` (or just `-i`) as an extra argument to the app: `dotnet run -c Release -f netcoreapp2.1 -- --inProcess`. If you build your own config, please use `config.With(Job.Default.With(InProcessToolchain.Instance))`. Please use this option only when you are sure that the benchmarks you want to run have no side effects.
 
 ## How to compare different Runtimes
 
