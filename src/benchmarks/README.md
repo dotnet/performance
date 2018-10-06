@@ -177,50 +177,6 @@ It's possible to benchmark a private build of .NET Runtime. You just need to pas
 
 So if you made a change in CLR and want to measure the difference, you can run the benchmarks with `dotnet run -c Release -f net46 -- --clr --clrVersion $theVersion`. More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/706).
 
-## Any CoreCLR and CoreFX
-
-BenchmarkDotNet allows the users to run their benchmarks against ANY CoreCLR and CoreFX builds. You can compare your local build vs MyGet feed or Debug vs Release or one version vs another.
-
-To avoid problems described [here](https://github.com/dotnet/coreclr/blob/master/Documentation/workflow/UsingDotNetCli.md#update-coreclr-using-runtime-nuget-package) a temporary folder is used when restoring packages for local builds. This is why it takes 20-30s in total to build the benchmarks. 
-
-Entire feature with many examples is described [here](https://github.com/dotnet/BenchmarkDotNet/blob/600e5fa81bd8e7a1d32a60b2bea830e1f46106eb/docs/guide/Configs/Toolchains.md#custom-coreclr-and-corefx).
-
-### Benchmarking private CoreFX build
-
-To run benchmarks with private CoreFX build you need to provide the version of `Microsoft.Private.CoreFx.NETCoreApp` and the path to folder with CoreFX NuGet packages.
-
-Sample arguments: `dotnet run -c Release -f netcoreapp2.1 -- --coreFxBin C:\Projects\forks\corefx\bin\packages\Release --coreFxVersion 4.5.0-preview2-26307-0`
-
-Sample config: 
-
-```cs
-Job.ShortRun.With(
-    CustomCoreClrToolchain.CreateBuilder()
-        .UseCoreFxLocalBuild("4.5.0-preview2-26313-0", @"C:\Projects\forks\corefx\bin\packages\Release")
-        .UseCoreClrDefault()
-        .AdditionalNuGetFeed("benchmarkdotnet ci", "https://ci.appveyor.com/nuget/benchmarkdotnet");
-        .DisplayName("local corefx")
-        .ToToolchain());
-```
-
-### Benchmarking private CoreCLR build
-
-To run benchmarks with private CoreCLR build you need to provide the version of `Microsoft.NETCore.Runtime`, path to folder with CoreCLR NuGet packages and path to `coreclr\packages` folder.
-
-Sample arguments: `dotnet run -c Release -f netcoreapp2.1 -- --coreClrBin C:\coreclr\bin\Product\Windows_NT.x64.Release\.nuget\pkg --coreClrPackages C:\Projects\coreclr\packages --coreClrVersion 2.1.0-preview2-26305-0`
-
-Sample config: 
-
-```cs
-Job.ShortRun.With(
-    CustomCoreClrToolchain.CreateBuilder()
-        .UseCoreClrLocalBuild("2.1.0-preview2-26313-0", @"C:\Projects\forks\coreclr\bin\Product\Windows_NT.x64.Release\.nuget\pkg", @"C:\Projects\coreclr\packages")
-        .UseCoreFxDefault()
-        .AdditionalNuGetFeed("benchmarkdotnet ci", "https://ci.appveyor.com/nuget/benchmarkdotnet");
-        .DisplayName("local builds")
-        .ToToolchain());
-```
-
 ## Benchmarking private CoreRT build
 
 To run benchmarks with private CoreRT build you need to provide the `IlcPath`.

@@ -198,32 +198,6 @@ namespace Benchmarks
                         createCopy: true, 
                         customDotNetCliPath: options.CliPath));
             }
-
-            if (!string.IsNullOrEmpty(options.CoreFxVersion) || !string.IsNullOrEmpty(options.CoreClrVersion))
-            {
-                var builder = CustomCoreClrToolchain.CreateBuilder();
-
-                if (!string.IsNullOrEmpty(options.CoreFxVersion) && !string.IsNullOrEmpty(options.CoreFxBinPackagesPath))
-                    builder.UseCoreFxLocalBuild(options.CoreFxVersion, options.CoreFxBinPackagesPath);
-                else if (!string.IsNullOrEmpty(options.CoreFxVersion))
-                    builder.UseCoreFxNuGet(options.CoreFxVersion);
-                else
-                    builder.UseCoreFxDefault();
-
-                if (!string.IsNullOrEmpty(options.CoreClrVersion) && !string.IsNullOrEmpty(options.CoreClrBinPackagesPath) && !string.IsNullOrEmpty(options.CoreClrPackagesPath))
-                    builder.UseCoreClrLocalBuild(options.CoreClrVersion, options.CoreClrBinPackagesPath, options.CoreClrPackagesPath);
-                else if (!string.IsNullOrEmpty(options.CoreClrVersion))
-                    builder.UseCoreClrNuGet(options.CoreClrVersion);
-                else
-                    builder.UseCoreClrDefault();
-
-                if (options.CliPath != null && options.CliPath.Exists)
-                    builder.DotNetCli(options.CliPath.FullName);
-
-                builder.AdditionalNuGetFeed("benchmarkdotnet ci", "https://ci.appveyor.com/nuget/benchmarkdotnet");
-
-                yield return baseJob.With(Runtime.Core).With(builder.ToToolchain());
-            }
         }
     }
 
@@ -280,21 +254,6 @@ namespace Benchmarks
         [Option("coreRun", Required = false, HelpText = "Optional path to CoreRun which should be used for running benchmarks.")]
         public FileInfo CoreRunPath { get; set; }
 
-        [Option("coreClrVersion", Required = false, HelpText = "Optional version of Microsoft.NETCore.Runtime which should be used. Example: \"2.1.0-preview2-26305-0\"")]
-        public string CoreClrVersion { get; set; }
-
-        [Option("coreClrBin", Required = false, HelpText = @"Optional path to folder with CoreClr NuGet packages. Example: ""C:\coreclr\bin\Product\Windows_NT.x64.Release\.nuget\pkg""")]
-        public string CoreClrBinPackagesPath { get; set; }
-
-        [Option("coreClrPackages", Required = false, HelpText = @"Optional path to folder with NuGet packages restored for CoreClr build. Example: ""C:\Projects\coreclr\packages""")]
-        public string CoreClrPackagesPath { get; set; }
-
-        [Option("coreFxVersion", Required = false, HelpText = "Optional version of Microsoft.Private.CoreFx.NETCoreApp which should be used. Example: \"4.5.0-preview2-26307-0\"")]
-        public string CoreFxVersion { get; set; }
-
-        [Option("coreFxBin", Required = false, HelpText = @"Optional path to folder with CoreFX NuGet packages, Example: ""C:\Projects\forks\corefx\bin\packages\Release""")]
-        public string CoreFxBinPackagesPath { get; set; }
-        
         [Option("categories", Required = false, HelpText = "Categories to run. If few are provided, only the benchmarks which belong to all of them are going to be executed")]
         public IEnumerable<string> AllCategories { get; set; }
         
