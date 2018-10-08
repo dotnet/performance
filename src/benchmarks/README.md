@@ -102,58 +102,19 @@ If you want to run the benchmarks in process, without creating a dedicated execu
 
 ## How to compare different Runtimes
 
-BenchmarkDotNet allows you to run benchmarks for multiple runtimes. By using this feature you can compare .NET vs .NET Core vs CoreRT vs Mono or .NET Core 2.0 vs .NET Core 2.1. BDN will compile and run the right stuff for you.
+The `--runtimes` or just `-r` allows you to run the benchmarks for selected Runtimes. Available options are: Mono, CoreRT, net46, net461, net462, net47, net471, net472, netcoreapp2.0, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0.
 
-* for .NET pass `--clr` to the app or use `Job.Default.With(Runtime.Clr)` in the code.
-* for .NET Core 2.0 pass `--core20` to the app or use `Job.Default.With(Runtime.Core).With(CsProjCoreToolchain.NetCoreApp20)` in the code.
-* for .NET Core 2.1 pass `--core21` to the app or use `Job.Default.With(Runtime.Core).With(CsProjCoreToolchain.NetCoreApp21)` in the code.
-* for the latest CoreRT pass `--coreRt` to the app or use `Job.Default.With(Runtime.CoreRT).With(CoreRtToolchain.LatestMyGetBuild)` in the code. **Be warned!** Downloading latest CoreRT with all the dependencies takes a lot of time. It is recommended to choose one version and use it for comparisions, more info [here](https://github.com/dotnet/BenchmarkDotNet/blob/600e5fa81bd8e7a1d32a60b2bea830e1f46106eb/docs/guide/Configs/Toolchains.md#corert). To use explicit CoreRT version please use `coreRtVersion` argument. Example: `dotnet run -c Release -f netcoreapp2.1 --coreRtVersion 1.0.0-alpha-26414-0`
-* for Mono pass `--mono` to the app or use `Job.Default.With(Runtime.Mono)` in the code.
+Example: run the benchmarks for .NET 4.7.2 and .NET Core 2.1:
 
-An example command for comparing 4 runtimes: `dotnet run -c Release -f netcoreapp2.1 -- --core20 --core21 --mono --clr --coreRt`
-
-``` ini
-BenchmarkDotNet=v0.10.14.516-nightly, OS=Windows 10.0.16299.309 (1709/FallCreatorsUpdate/Redstone3)
-Intel Xeon CPU E5-1650 v4 3.60GHz, 1 CPU, 12 logical and 6 physical cores
-Frequency=3507504 Hz, Resolution=285.1030 ns, Timer=TSC
-.NET Core SDK=2.1.300-preview1-008174
-  [Host]     : .NET Core 2.1.0-preview1-26216-03 (CoreCLR 4.6.26216.04, CoreFX 4.6.26216.02), 64bit RyuJIT
-  Job-GALXOG : .NET Framework 4.7.1 (CLR 4.0.30319.42000), 64bit RyuJIT-v4.7.2633.0
-  Job-DRRTOZ : .NET Core 2.0.6 (CoreCLR 4.6.26212.01, CoreFX 4.6.26212.01), 64bit RyuJIT
-  Job-QQFGIW : .NET Core 2.1.0-preview1-26216-03 (CoreCLR 4.6.26216.04, CoreFX 4.6.26216.02), 64bit RyuJIT
-  Job-GKRDGF : .NET CoreRT 1.0.26412.02, 64bit AOT
-  Job-HNFRHF : Mono 5.10.0 (Visual Studio), 64bit 
-
-LaunchCount=1  TargetCount=3  WarmupCount=3  
+```log
+dotnet run -c Release -- --runtimes net472 netcoreapp2.1
 ```
 
-|   Method | Runtime |                    Toolchain |      Mean |      Error |    StdDev | Allocated |
-|--------- |-------- |----------------------------- |----------:|-----------:|----------:|----------:|
-| ParseInt |     Clr |                      Default |  95.95 ns |   5.354 ns | 0.3025 ns |       0 B |
-| ParseInt |    Core |                .NET Core 2.0 | 104.71 ns | 121.620 ns | 6.8718 ns |       0 B |
-| ParseInt |    Core |                .NET Core 2.1 |  93.16 ns |   6.383 ns | 0.3606 ns |       0 B |
-| ParseInt |  CoreRT | Core RT 1.0.0-alpha-26412-02 | 110.02 ns |  71.947 ns | 4.0651 ns |       0 B |
-| ParseInt |    Mono |                      Default | 133.19 ns | 133.928 ns | 7.5672 ns |       N/A |
+## Benchmarking private CoreCLR and CoreFX builds using CoreRun
 
-## .NET Core 2.0 vs .NET Core 2.1
+It's possible to benchmark a private build of CoreCLR/FX using CoreRun. You just need to pass the path to CoreRun to BenchmarkDotNet. You can do that by either using `--coreRun $thePath` as an arugment or `job.With(new CoreRunToolchain(coreRunPath: "$thePath"))` in the code.
 
-If you want to compare .NET Core 2.0 vs .NET Core 2.1 you can just pass `-- --core20 --core21`. You can also build a custom config and mark selected runtime as baseline, then all the results will be scaled to the baseline.
-
-```cs
-Add(Job.Default.With(Runtime.Core).With(CsProjCoreToolchain.From(NetCoreAppSettings.NetCoreApp20)).WithId("Core 2.0").AsBaseline());
-Add(Job.Default.With(Runtime.Core).With(CsProjCoreToolchain.From(NetCoreAppSettings.NetCoreApp21)).WithId("Core 2.1"));
-```
-
-|                Method |      Job |     Toolchain | IsBaseline |     Mean |     Error |    StdDev | Scaled |
-|---------------------- |--------- |-------------- |----------- |---------:|----------:|----------:|-------:|
-| CompactLoopBodyLayout | Core 2.0 | .NET Core 2.0 |       True | 36.72 ns | 0.1583 ns | 0.1481 ns |   1.00 |
-| CompactLoopBodyLayout | Core 2.1 | .NET Core 2.1 |    Default | 30.47 ns | 0.1731 ns | 0.1619 ns |   0.83 |
-
-## Benchmarking private CoreCLR build using CoreRun
-
-It's possible to benchmark a private build of CoreCLR using CoreRun. You just need to pass the path to CoreRun to BenchmarkDotNet. You can do that by either using `--coreRun $thePath` as an arugment or `job.With(new CoreRunToolchain(coreRunPath: "$thePath"))` in the code.
-
-So if you made a change in CoreCLR and want to measure the difference with .NET Core 2.1, you can run the benchmarks with `dotnet run -c Release -f netcoreapp2.1 -- --core21 --coreRun $thePath`.
+So if you made a change in CoreCLR/FX and want to measure the performance, you can run the benchmarks with `dotnet run -c Release -f netcoreapp3.0 -- --coreRun $thePath`.
 
 **Note:** If `CoreRunToolchain` detects that you have some older version of dependencies required to run the benchmarks in CoreRun folder, it's going to overwrite them with newer versions from the published app. It's going to do that in a shadow copy of the folder with CorRun, so your configuration remains untouched.
 
@@ -171,29 +132,27 @@ public void PrintInfo()
 }
 ```
 
+## dotnet cli
+
+You can also use any dotnet cli to build and run the benchmarks. To do that you need to pass the path to cli as an argument `--cli.`
+
+Example: run the benchmarks for .NET Core 3.0 using dotnet cli from `C:\Projects\performance\.dotnet\dotnet.exe`:
+
+```log
+dotnet run -c Release -- -r netcoreapp3.0 --cli "C:\Projects\performance\.dotnet\dotnet.exe"
+```
+
 ## Benchmarking private CLR build
 
 It's possible to benchmark a private build of .NET Runtime. You just need to pass the value of `COMPLUS_Version` to BenchmarkDotNet. You can do that by either using `--clrVersion $theVersion` as an arugment or `Job.ShortRun.With(new ClrRuntime(version: "$theVersiong"))` in the code.
 
-So if you made a change in CLR and want to measure the difference, you can run the benchmarks with `dotnet run -c Release -f net46 -- --clr --clrVersion $theVersion`. More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/706).
+So if you made a change in CLR and want to measure the difference, you can run the benchmarks with `dotnet run -c Release -f net46 -- -r net472 --clrVersion $theVersion`. More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/706).
 
 ## Benchmarking private CoreRT build
 
 To run benchmarks with private CoreRT build you need to provide the `IlcPath`.
 
 Sample arguments: `dotnet run -c Release -f netcoreapp2.1 -- --ilcPath C:\Projects\corert\bin\Windows_NT.x64.Release`
-
-Sample config: 
-
-```cs
-var config = DefaultConfig.Instance
-    .With(Job.ShortRun
-        .With(Runtime.CoreRT)
-        .With(CoreRtToolchain.CreateBuilder()
-            .UseCoreRtLocal(@"C:\Projects\corert\bin\Windows_NT.x64.Release") // IlcPath
-            .DisplayName("Core RT RyuJit")
-            .ToToolchain()));
-```
 
 ## Enabling given benchmark(s) for selected Operating System(s)
 
