@@ -96,6 +96,12 @@ You can do that by passing `--disassm` to the app or by using `[DisassemblyDiagn
 
 ![Sample Disassm](./img/sampleDisassm.png)
 
+## How to profile benchmarked code using ETW
+
+If you want to profile the benchmarked code, you need to use the [ETW Profiler](https://adamsitnik.com/ETW-Profiler/). It allows to profile the benchmarked .NET code on Windows and exports the data to a trace file which can be opened with PerfView or Windows Performance Analyzer.
+
+You can do that by passing `-p ETW` or `--profiler ETW` to the app. 
+
 ## How to run In Process
 
 If you want to run the benchmarks in process, without creating a dedicated executable and process-level isolation, please pass `--inProcess` (or just `-i`) as an extra argument to the app: `dotnet run -c Release -f netcoreapp2.1 -- --inProcess`. If you build your own config, please use `config.With(Job.Default.With(InProcessToolchain.Instance))`. Please use this option only when you are sure that the benchmarks you want to run have no side effects.
