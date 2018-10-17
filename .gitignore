@@ -12,12 +12,9 @@
 **/__pycache__/
 *.pyc
 
+# Visual Studio files
 **/.vs/
-
-# BenchmarkDotNet results
-**/BenchmarkDotNet.Artifacts/
 
 # Resharper files
 **/*.DotSettings.user
 **/.idea/**
-/src/ArtifactsUploader/**/*log*.txt

@@ -1,60 +1,35 @@
 #!/usr/bin/env python3
 
-import json
-import urllib.request
-import argparse
+"""
+This wraps all the logic of how to build/run the .NET micro benchmarks,
+acquire tools, gather data into BenchView format and upload it, archive
+results, etc.
+
+This is meant to be used on CI runs and available for local runs,
+so developers can easily reproduce what runs in the lab.
+
+The micro benchmarks themselves can be built and run using the DotNet tools.
+"""
+
+from argparse import ArgumentParser
+from glob import iglob
+from itertools import chain
+from logging import getLogger
+
 import os
-import shutil
+import platform
 import subprocess
 import sys
-import glob
-from sys import version_info
-from build.common import is_supported_version
-from build.common import get_repo_root_path
 
-##########################################################################
-# Argument Parser
-##########################################################################
+from performance.common import get_tools_directory
+from performance.common import validate_supported_runtime
+from performance.dotnet import dotnet_info
+from performance.logger import setup_loggers
 
-description = 'Tool to run .NET Micro Benchmarks'
+import benchview
+import dotnet_install
+import micro_benchmarks
 
-parser = argparse.ArgumentParser(description=description)
-
-parser.add_argument('-framework', dest='framework', default='netcoreapp3.0', required=False, choices=['netcoreapp3.0', 'netcoreapp2.2', 'netcoreapp2.1', 'netcoreapp2.0', 'net461'])
-parser.add_argument('-arch', dest='arch', default='x64', required=False, choices=['x64', 'x86'])
-parser.add_argument('-uploadToBenchview', dest='uploadToBenchview', action='store_true', default=False)
-parser.add_argument('-category', dest='category', required=True, choices=['coreclr', 'corefx'], type=str.lower)
-parser.add_argument('-branch', dest='branch', required=True)
-parser.add_argument('-runType', dest='runType', default='rolling', choices=['rolling', 'private', 'local'])
-parser.add_argument('-maxIterations', dest='maxIterations', type=int, default=20)
-
-##########################################################################
-# Helper Functions
-##########################################################################
-
-def log(message):
-    """ Print logging information
-    Args:
-        message (str): message to be printed
-    """
-
-    print('[%s]: %s' % (sys.argv[0], message))
-
-def run_command(runArgs, environment, errorMessage):
-    """ Run command specified by runArgs
-    Args:
-        runargs (str[]): list of arguments for subprocess
-        environment(str{}): dict of environment variable
-        errorMessage(str): message to print if there is an error
-    """
-    log('')
-    log(" ".join(runArgs))
-
-    try:
-        subprocess.run(runArgs, check=True, env=environment)
-    except subprocess.CalledProcessError as e:
-        log(errorMessage)
-        raise
 
 def get_dotnet_sha(dotnetPath):
     """ Discovers the dotnet sha
@@ -67,190 +42,329 @@ def get_dotnet_sha(dotnetPath):
     for line in out.splitlines():
         decodedLine = line.decode('utf-8')
 
-        # First look for the host information, since that is the sha we are looking for
-        # Then grab the first Commit line we find, which will be the sha of the framework
-        # we are testing
+        # First look for the host information, since that is the sha we are
+        # looking for. Then, grab the first Commit line we find, which will be
+        # the sha of the framework we are testing
         if 'Host' in decodedLine:
             foundHost = True
         elif foundHost and 'Commit' in decodedLine:
             return decodedLine.strip().split()[1]
 
-    return ''
+    raise RuntimeError('.NET host commit sha not found.')
 
-def generate_results_for_benchview(python, better, hasWarmupRun, benchmarkOutputDir, benchviewPath):
-    """ Generates results to be uploaded to benchview using measurement.py
-    Args:
-        python (str): python executable
-        better (str): how to order results
-        hasWarmupRun (bool): if there was a warmup run
-        benchmarkOutputDir (str): path to where benchmark results were written
-        benchviewPath (str): path to benchview tools
-    """
-    benchviewMeasurementParser = 'xunit'
-    lvMeasurementArgs = [benchviewMeasurementParser,
-            '--better',
-            better]
-    if hasWarmupRun:
-        lvMeasurementArgs = lvMeasurementArgs + ['--drop-first-value']
 
-    lvMeasurementArgs = lvMeasurementArgs + ['--append']
+def init_tools(
+        architecture: str,
+        channel: str,
+        verbose: bool) -> None:
+    '''
+    Install tools used by this repository into the tools folder.
+    This function writes a semaphore file when tools have been successfully
+    installed in order to avoid reinstalling them on every rerun.
+    '''
+    semaphore_file = os.path.join(get_tools_directory(), 'init_tools.sem')
 
-    files = glob.iglob(os.path.join(benchmarkOutputDir, "*.xml"))
-    for filename in files:
-        runArgs = [python, os.path.join(benchviewPath, 'measurement.py')] + lvMeasurementArgs + [filename]
-        run_command(runArgs, os.environ, 'Call to %s failed' % runArgs[1])
+    if not os.path.isfile(semaphore_file):
+        getLogger().info('Installing tools.')
+        dotnet_install.install(architecture, channel, verbose)
+        benchview.install()
+        with open(semaphore_file, 'w') as sem_file:
+            sem_file.write('done')
+    else:
+        getLogger().info('Tools already installed.')
 
-def upload_to_benchview(python, benchviewPath, operatingSystem, collectionFlags, architecture, runType, category):
-    """ Upload results to benchview
-    Args:
-        python (str): python executable
-        benchviewPath (str): path to benchview tools
-        operatingSystem (str): operating system of the run
-        collectionFlags (str): collection flags
-        architecture (str): architecture of the run (x86, x64)
-    """
-    measurementJson = os.path.join(os.getcwd(), 'measurement.json')
-    buildJson = os.path.join(os.getcwd(), 'build.json')
-    machinedataJson = os.path.join(os.getcwd(), 'machinedata.json')
-    submissionMetadataJson = os.path.join(os.getcwd(), 'submission-metadata.json')
+    # Add installed dotnet cli to PATH
+    os.environ["PATH"] = dotnet_install.get_dotnet_directory() + os.pathsep + \
+        os.environ["PATH"]
 
-    for jsonFile in [measurementJson, buildJson, machinedataJson, submissionMetadataJson]:
-        if not os.path.isfile(jsonFile):
-            raise Exception('%s does not exist. There is no data to be uploaded.' % jsonFile)
 
-    etwCollection = 'Off' if collectionFlags == 'stopwatch' else 'On'
-    runArgs = [python,
-            os.path.join(benchviewPath, 'submission.py'),
-            measurementJson,
-            '--build',
-            buildJson,
-            '--machine-data',
-            machinedataJson,
-            '--metadata',
-            submissionMetadataJson,
-            '--group',
-            '.Net %s Performance' % category,
-            '--type',
-            runType,
-            '--config-name',
-            'Release',
-            '--config',
-            'OS',
-            operatingSystem,
-            '--config',
-            'Profile',
-            etwCollection,
-            '--architecture',
-            architecture,
-            '--machinepool',
-            'PerfSnake']
+def add_arguments(parser: ArgumentParser) -> ArgumentParser:
+    '''Adds new arguments to the specified ArgumentParser object.'''
 
-    run_command(runArgs, os.environ, 'Call to %s failed' % runArgs[1])
+    if not isinstance(parser, ArgumentParser):
+        raise TypeError('Invalid parser.')
 
-    runArgs = [python,
-            os.path.join(benchviewPath, 'upload.py'),
-            'submission.json',
-            '--container',
-            category]
+    # Download DotNet Cli
+    dotnet_install.add_arguments(parser)
 
-    run_command(runArgs, os.environ, 'Call to %s failed' % runArgs[1])
+    # Restore/Build/Run functionality for MicroBenchmarks.csproj
+    micro_benchmarks.add_arguments(parser)
 
-##########################################################################
-# Main
-##########################################################################
-def main(args):
-    if not is_supported_version():
-        log("Python 3.5 or newer is required")
-        return 1
+    # BenchView acquisition, and fuctionality
+    parser.add_argument(
+        '--generate-benchview-data',
+        dest='generate_benchview_data',
+        action='store_true',
+        default=False,
+        help='Flags indicating whether BenchView data should be generated.'
+    )
 
-    if not sys.platform == 'win32':
-        log("Script is not compatible with %s" % sys.platform)
-        return 2
+    parser.add_argument(
+        '--upload-to-benchview-container',
+        dest='upload_to_benchview_container',
+        required=False,
+        type=str,
+        help='Name of the Azure Storage Container to upload to.'
+    )
 
-    python = 'py'
-    runEnv = dict(os.environ)
-    runEnv['DOTNET_MULTILEVEL_LOOKUP'] = '0'
-    runEnv['UseSharedCompilation'] = 'false'
+    # TODO: Make these arguments dependent on `generate_benchview_data`?
+    is_benchview_commit_name_defined = 'BenchviewCommitName' in os.environ
+    default_submission_name = os.environ['BenchviewCommitName'] \
+        if is_benchview_commit_name_defined else None
+    parser.add_argument(
+        '--benchview-submission-name',
+        dest='benchview_submission_name',
+        default=default_submission_name,
+        required=False,
+        type=str,
+        help='BenchView submission name.'
+    )
+    parser.add_argument(
+        '--benchview-run-type',
+        dest='benchview_run_type',
+        default='local',
+        choices=['rolling', 'private', 'local'],
+        type=str.lower,
+        help='BenchView submission type.'
+    )
+    parser.add_argument(
+        '--benchview-config-name',
+        dest='benchview_config_name',  # Uses as default args.configuration
+        required=False,
+        type=str,
+        help="BenchView's (user facing) configuration display name."
+    )
+    parser.add_argument(
+        '--benchview-machinepool',
+        dest='benchview_machinepool',
+        default=platform.processor(),
+        required=False,
+        type=str,
+        help="A logical name that groups test results into a single *machine*."
+    )
+    parser.add_argument(
+        '--benchview-config',
+        dest='benchview_config',
+        metavar=('key', 'value'),
+        action='append',
+        required=False,
+        nargs=2,
+        help='''A configuration property defined as a {key:value} pair.
+        This is used to describe the benchmark results. For example, some
+        types of configurations can be: optimization level (tiered, full opt,
+        min opt), configuration (debug/release), profile (on/off), etc.'''
+    )
 
-    workspace = get_repo_root_path()
+    # Generic arguments.
+    parser.add_argument(
+        '-v', '--verbose',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Turns on verbosity (default "False")',
+    )
 
-    # Download dotnet
-    runArgs = ['py', os.path.join(workspace, 'scripts', 'dotnet-install.py'), '-arch', args.arch, '-installDir', '.dotnet', '-branch', args.branch]
-    run_command(runArgs, runEnv, 'Failed to install dotnet')
+    return parser
 
-    # Get the dotnet sha
-    dotnetPath = os.path.join(workspace, '.dotnet', 'dotnet.exe')
-    dotnetVersion = get_dotnet_sha(dotnetPath)
 
-    benchmarksDirectoryPath = os.path.join(workspace, 'src', 'benchmarks', 'micro')
-    os.chdir(benchmarksDirectoryPath)
+def __process_arguments(args: list):
+    parser = ArgumentParser(
+        description='Tool to run .NET micro benchmarks',
+        allow_abbrev=False)
+    add_arguments(parser)
+    return parser.parse_args(args)
 
-    # Build the MicroBenchmarks project
-    performanceHarnessCsproj = os.path.join('MicroBenchmarks.csproj')
-    runArgs = [dotnetPath, 'restore', performanceHarnessCsproj]
-    run_command(runArgs, runEnv, 'Failed to restore %s' % performanceHarnessCsproj)
 
-    runArgs = [dotnetPath, 'publish', performanceHarnessCsproj, '-c', 'Release', '-f', args.framework]
-    run_command(runArgs, runEnv, 'Failed to publish %s' % performanceHarnessCsproj)
+def __main(args: list) -> int:
+    validate_supported_runtime()
 
-    # Run the tests
-    benchmarkOutputDir = os.path.join(benchmarksDirectoryPath, 'bin', 'Release', args.framework, 'publish')
-    os.chdir(benchmarkOutputDir)
+    # TODO: Enable Linux
+    if sys.platform != 'win32':
+        raise NotImplementedError('Non-Windows platforms have not been tested')
 
-    runArgs = [dotnetPath, 'MicroBenchmarks.dll', '--cli', dotnetPath, '--tfms', args.framework, '--allCategories', args.category, '--maxIterationCount', str(args.maxIterations)]
-    run_command(runArgs, runEnv, 'Failed to run MicroBenchmarks.dll')
+    args = __process_arguments(args)
+    setup_loggers(verbose=args.verbose)
 
-    if args.uploadToBenchview:
-        # Download nuget
-        nugetPath = os.path.join(workspace, 'nuget.exe')
-        runArgs = ['powershell', '-NoProfile', 'wget', 'https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', '-OutFile', '"' + nugetPath + '"', ]
-        run_command(runArgs, runEnv, 'Failed to download nuget.exe')
+    # This validation could be cleaner
+    if args.generate_benchview_data and not args.benchview_submission_name:
+        raise RuntimeError("""In order to generate BenchView data,
+            `--benchview-submission-name` must be provided.""")
 
-        # Download benchview scripts
-        benchviewPath = os.path.join(workspace, 'Microsoft.BenchView.JSONFormat')
-        if os.path.exists(benchviewPath):
-            shutil.rmtree(benchviewPath)
-        runArgs = [nugetPath, 'install', 'Microsoft.BenchView.JSONFormat', '-Source', 'http://benchviewtestfeed.azurewebsites.net/nuget', '-OutputDirectory', workspace, '-Prerelease', '-ExcludeVersion']
-        run_command(runArgs, runEnv, 'Failed to download Microsoft.BenchView.JSONFormat')
+    # Set common environment variables.
+    os.environ['DOTNET_CLI_TELEMETRY_OPTOUT'] = '1'
+    os.environ['DOTNET_MULTILEVEL_LOOKUP'] = '0'
+    os.environ['UseSharedCompilation'] = 'false'
 
-        benchviewName = 'performance rolling %s' % dotnetVersion
+    # Line below due to: https://github.com/dotnet/cli/issues/10196
+    os.environ['DOTNET_ROOT'] = dotnet_install.get_dotnet_directory()
 
-        # Generate submission-metadata.json
-        benchviewPath = os.path.join(benchviewPath, 'tools')
-        runScript = 'submission-metadata.py'
-        runArgs = [python, os.path.join(benchviewPath, runScript), '--name', '"%s"' % (benchviewName), '--user-email', 'dotnet-bot@microsoft.com']
-        run_command(runArgs, runEnv, '%s failed to run' % runScript)
+    init_tools(
+        architecture=args.architecture,
+        channel=args.channel,
+        verbose=args.verbose)
 
-        # Generate build.json
-        r = urllib.request.urlopen('https://api.github.com/repos/dotnet/core-setup/commits/%s' % dotnetVersion)
-        repoItem = json.loads(r.read().decode('utf-8'))
-        buildTimestamp = repoItem['commit']['committer']['date']
+    # dotnet --info
+    dotnet_info(verbose=args.verbose)
 
-        if buildTimestamp == '' or buildTimestamp is None:
-            log('Could not get timestamp for commit %s' % dotnetVersion)
-            return 3
+    # .NET micro-benchmarks
+    # Restore and build micro-benchmarks
+    # micro_benchmarks.build(
+    #     args.configuration,
+    #     args.frameworks,
+    #     args.verbose)
 
-        runScript = 'build.py'
-        runArgs = [
-            python,
-            os.path.join(benchviewPath, runScript), 'none',
-            '--repository', 'https://github.com/dotnet/core-setup/',
-            '--branch', args.branch,
-            '--number', dotnetVersion,
-            '--source-timestamp', buildTimestamp,
-            '--type', 'rolling'
+    # Run micro-benchmarks
+    for framework in args.frameworks:
+        run_args = [
+            '--'
         ]
-        run_command(runArgs, runEnv, '%s failed to run' % runScript)
+        if args.category:
+            run_args += ['--allCategories', args.category]
+        if args.corerun_path:
+            run_args += ['--coreRun', args.corerun_path]
+        if args.dotnet_path:
+            run_args += ['--cli', args.dotnet_path]
+        run_args += [
+            '--maxIterationCount', str(args.max_iteration_count),
+            '--minIterationCount', str(args.min_iteration_count),
+            # '--filter', 'Adams',
+        ]
+        # micro_benchmarks.run(
+        #     args.configuration,
+        #     framework,
+        #     args.verbose,
+        #     *run_args
+        # )
 
-        # Generate machinedata.json
-        runScript = 'machinedata.py'
-        runArgs = [python, os.path.join(benchviewPath, runScript)]
-        run_command(runArgs, runEnv, '%s failed to run' % runScript)
+    # Run BenchView scripts to generate data.
+    if args.generate_benchview_data:
+        # TODO: Delete all existing files from bin before running?
 
-        # Generate measurement.json and submit to benchview
-        generate_results_for_benchview(python, 'desc', True, benchmarkOutputDir, benchviewPath)
-        upload_to_benchview(python, benchviewPath, 'Windows_NT', 'stopwatch', args.arch, args.runType, args.category)
+        # TODO: (Submission-metadata + Build + MachineData) run once.
+        # TODO: (Measurement) for each framework.
+        # TODO: (Submission + Upload) run once.
+
+        # def __find_first_glob_path(pattern: str) -> str:
+        #     for path in iglob(pattern, recursive=True):
+        #         if os.path.isdir(path):
+        #             return path
+        #     raise ValueError(
+        #         'Unable to find directory for the specified pattern.')
+        # pattern = 'bin/**/{Configuration}/{TargetFramework}/'.format(
+        #     Configuration=args.configuration,
+        #     TargetFramework=args.framework
+        # )
+        # benchview_working_directory = __find_first_glob_path(pattern)
+
+        # benchview_files = [
+        #     'submission-metadata.json',
+        #     'build.json',
+        #     'machinedata.json',
+        #     'measurement.json',
+        #     'submission.json',
+        # ]
+
+        benchview_working_directory = os.path.join(
+            micro_benchmarks.BENCHMARKS_CSPROJ.working_directory,
+            'bin',  # TODO: Should probably be bin/{configuration}/{framework}
+            # args.configuration,
+            # args.frameworks
+        )
+        benchview_scripts = benchview.BenchView(
+            benchview_working_directory,
+            args.verbose
+        )
+
+        # BenchView submission-metadata.py
+        benchview_scripts.submission_metadata(
+            name=args.benchview_submission_name)
+
+        # BenchView build.py
+        benchview_scripts.build(args.benchview_run_type)
+
+        # BenchView machinedata.py
+        benchview_scripts.machinedata()
+
+        # BenchView measurement.py
+        # FIXME: Iterate on framework? and add it to configuration?
+        pattern = "{}/**/{}/{}/BenchmarkDotNet.Artifacts/**/*-full.json" \
+            .format(
+                benchview_scripts.working_directory,
+                args.configuration,
+                args.frameworks[0])  # TODO: To be deleted.
+        getLogger().info(
+            'Searching BenchmarkDotNet output files with glob: %s', pattern
+        )
+        for full_json_file in iglob(pattern, recursive=True):
+            benchview_scripts.measurement(
+                bdn_json_path=os.path.abspath(full_json_file))
+
+        # Build the BenchView configuration data
+        benchview_config_name = args.benchview_config_name \
+            if args.benchview_config_name else args.configuration
+        benchview_config = list(chain(args.benchview_config)) \
+            if args.benchview_config else []
+        i = iter(benchview_config)
+        benchview_config = dict(zip(i, i))
+
+        # Configuration
+        if 'Configuration' not in benchview_config:
+            benchview_config['Configuration'] = args.configuration
+
+        # TODO: Generate existing configs.
+        submission_architecture = args.architecture
+        if args.category.casefold() == 'CoreClr'.casefold():
+            # JitName
+            benchview_config['JitName'] = 'ryujit'
+
+            # OS
+            if sys.platform == 'win32':
+                benchview_config['OS'] = 'Windows_NT'
+            elif sys.platform == 'linux':
+                def __linux_distribution():
+                    try:
+                        return platform.linux_distribution()
+                    except:
+                        platform_error_message = \
+                            'Unable to determine OS. ' \
+                            'Time to look into the distro module.'
+                        getLogger().error(platform_error_message)
+                        raise NotImplementedError(platform_error_message)
+                os_name, os_version, _ = __linux_distribution()
+                benchview_config['OS'] = '{}{}'.format(os_name, os_version)
+            else:
+                benchview_config['OS'] = platform.platform()
+
+            #   OptLevel=[full_opt|min_opt|tiered]
+            #   PGO=[pgo|nopogo]
+            #   Profile=[Off|On]
+        elif args.category.casefold() == 'CoreFx'.casefold():
+            submission_architecture = 'AnyCPU'
+
+            # OS
+            if sys.platform == 'win32':
+                benchview_config['OS'] = 'Windows_NT'
+            elif sys.platform == 'linux':
+                benchview_config['OS'] = 'Linux'
+            else:
+                benchview_config['OS'] = platform.platform()
+
+            # RunType
+            #   RunType=[Profile|Diagnostic]
+
+        benchview_scripts.submission(
+            architecture=submission_architecture,
+            config_name=benchview_config_name,
+            configs=benchview_config,
+            machinepool=args.benchview_machinepool,
+            jobgroup=args.category if args.category else '.NET Performance',
+            jobtype=args.benchview_run_type
+        )
+
+        # Upload to a BenchView container.
+        if args.upload_to_benchview_container:
+            benchview_scripts.upload(args.upload_to_benchview_container)
+
 
 if __name__ == "__main__":
-    Args = parser.parse_args(sys.argv[1:])
-    sys.exit(main(Args))
+    __main(sys.argv[1:])
