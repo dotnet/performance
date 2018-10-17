@@ -1,0 +1,24 @@
+<Project>
+
+  <PropertyGroup>
+    <UseSharedCompilation>false</UseSharedCompilation>
+    <TargetFrameworks>netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);net461</TargetFrameworks>
+    <RuntimeFrameworkVersion Condition="'$(TargetFramework)' == 'netcoreapp2.2'">2.2.0-*</RuntimeFrameworkVersion>
+    <LangVersion>latest</LangVersion>
+    <GenerateDocumentationFile>False</GenerateDocumentationFile>
+    <WarningLevel>4</WarningLevel>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--
+      Suppress warnings for using preview SDK:
+      You are working with a preview version of the .NET Core SDK.
+      You can define the SDK version via a global.json file in the current project.
+      More at https://go.microsoft.com/fwlink/?linkid=869452
+    -->
+    <SuppressNETCoreSdkPreviewMessage>True</SuppressNETCoreSdkPreviewMessage>
+  </PropertyGroup>
+
+</Project>
