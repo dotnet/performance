@@ -14,6 +14,15 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
+  <PropertyGroup>
+    <!--
+      Suppress warnings for using preview SDK:
+      You are working with a preview version of the .NET Core SDK.
+      You can define the SDK version via a global.json file in the current project.
+      More at https://go.microsoft.com/fwlink/?linkid=869452
+    -->
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Remove="img\**" />
     <Compile Remove="Tests\**" />
