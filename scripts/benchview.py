@@ -1,29 +1,46 @@
 #!/usr/bin/env python3
 
+'''
+Cross platform way to download latest BenchView scripts without nuget.
+'''
+
+from logging import getLogger
 from os import path
 from urllib.request import urlopen
 from xml.etree import ElementTree
 
-from build.common import download_zip_file
-from build.common import get_benchview_scripts_directory
-from build.common import make_directory
-from build.common import remove_directory
-from build.common import unzip_file
+from performance.common import download_zip_file
+from performance.common import get_benchview_scripts_directory
+from performance.common import make_directory
+from performance.common import remove_directory
+from performance.common import unzip_file
 
 
 def install():
     '''
     Downloads scripts that serialize/upload performance data to BenchView.
     '''
+    __log_script_header()
+
     url_str = __get_latest_benchview_script_version()
     benchview_path = get_benchview_scripts_directory()
+
     if path.isdir(benchview_path):
         remove_directory(benchview_path)
     if not path.exists(benchview_path):
         make_directory(benchview_path)
-    print('{} -> {}'.format(url_str, benchview_path))
+
+    getLogger().info('%s -> %s', url_str, benchview_path)
+
     zipfile_path = download_zip_file(url_str, benchview_path)
     unzip_file(zipfile_path, benchview_path)
+
+
+def __log_script_header():
+    start_msg = "Downloading BenchView scripts"
+    getLogger().info('-' * len(start_msg))
+    getLogger().info(start_msg)
+    getLogger().info('-' * len(start_msg))
 
 
 def __get_latest_benchview_script_version() -> str:
@@ -45,7 +62,6 @@ def __get_latest_benchview_script_version() -> str:
 
 def __main():
     install()
-    # TODO: Add to PATH?
 
 
 if __name__ == "__main__":
