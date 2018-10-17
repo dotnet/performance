@@ -7,7 +7,6 @@
 **/packages/
 /tools/
 **/reports/
-**/.dotnet/
 
 # Python files
 **/__pycache__/
