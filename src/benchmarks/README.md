@@ -1,4 +1,4 @@
-# Benchmarks
+﻿# Benchmarks
 
 This repo contains various .NET benchmarks. It uses BenchmarkDotNet as the benchmarking engine to run benchmarks for .NET, .NET Core, CoreRT and Mono. Including private runtime builds.
 
@@ -41,13 +41,36 @@ Any public, non-sealed type with public `[Benchmark]` method in this assembly wi
 
 To run the benchmarks you have to execute `dotnet run -c Release -f net46|netcoreapp2.0|netcoreapp2.1|netcoreapp2.2|netcoreapp3.0` (choose one of the supported frameworks).
 
-![Choose Benchmark](./img/chooseBenchmark.png)
+```log
+PS C:\Projects\performance\src\benchmarks> dotnet run -c Release -f netcoreapp2.0
+Available Benchmarks:
+  #0   Burgers
+  #1   ByteMark
+  #2   CscBench
+  #3   LinqBenchmarks
+  #4   SeekUnroll
+  #5   Binary_FromStream<LoginViewModel>
+  #6   Binary_FromStream<Location>
+  #7   Binary_FromStream<IndexViewModel>
+  #8   Binary_FromStream<MyEventsListerViewModel>
+  #9   Binary_FromStream<CollectionsOfPrimitives>
+  #10  Binary_ToStream<LoginViewModel>
+  ..... // the list continues
+```
 
 And select one of the benchmarks from the list by either entering it's number or name. To **run all** the benchmarks simply enter `*` to the console.
 
 BenchmarkDotNet will build the executables, run the benchmarks, print the results to console and **export the results** to `.\BenchmarkDotNet.Artifacts\results`. 
 
-![Exported results](./img/exportedResults.png)
+```log
+// ***** BenchmarkRunner: Finish  *****
+
+// * Export *
+  BenchmarkDotNet.Artifacts\results\Burgers-report.csv
+  BenchmarkDotNet.Artifacts\results\Burgers-report-github.md
+  BenchmarkDotNet.Artifacts\results\Burgers-report.html
+  BenchmarkDotNet.Artifacts\results\Burgers-report-full.json
+```
 
 BenchmarkDotNet by default exports the results to GitHub markdown, so you can just find the right `.md` file in `results` folder and copy-paste the markdown to GitHub.
 
@@ -63,6 +86,47 @@ You can filter the benchmarks by namespace, category, type name and method name.
 
 **Note:** To print a single summary for all of the benchmarks, use `--join`. 
 Example: `dotnet run -c Release -f netcoreapp2.1 -- --join -f BenchmarksGame*` - will run all of the benchmarks from BenchmarksGame namespace and print a single summary.
+
+## Printing all available benchmarks
+
+To print the list of all available benchmarks you need to pass `--list [tree/flat]` argument. It can also be combined with `--filter` option.
+
+Example: Show the tree of all the benchmarks which contain "Span" in the name and can be run for .NET Core 2.0: `dotnet run -c Release -f netcoreapp2.0 -- --filter *Span* --list tree`
+
+```log
+System
+ ├─Collections
+ │  ├─Clear<Int32>
+ │  │  └─Span
+ │  ├─Clear<String>
+ │  │  └─Span
+ │  ├─CopyTo<Int32>
+ │  │  ├─Span
+ │  │  └─ReadOnlySpan
+ │  ├─CopyTo<String>
+ │  │  ├─Span
+ │  │  └─ReadOnlySpan
+ │  ├─IndexerSet<Int32>
+ │  │  └─Span
+ │  ├─IndexerSet<String>
+ │  │  └─Span
+ │  ├─IndexerSetReverse<Int32>
+ │  │  └─Span
+ │  ├─IndexerSetReverse<String>
+ │  │  └─Span
+ │  ├─IterateFor<Int32>
+ │  │  ├─Span
+ │  │  └─ReadOnlySpan
+ │  ├─IterateFor<String>
+ │  │  ├─Span
+ │  │  └─ReadOnlySpan
+ │  ├─IterateForEach<Int32>
+ │  │  ├─Span
+ │  │  └─ReadOnlySpan
+ │  └─IterateForEach<String>
+ │     ├─Span
+ │     └─ReadOnlySpan
+```
 
 ## All Statistics
 
@@ -94,7 +158,27 @@ If you want to disassemble the benchmarked code, you need to use the [Disassembl
 
 You can do that by passing `--disassm` to the app or by using `[DisassemblyDiagnoser(printAsm: true, printSource: true)]` attribute or by adding it to your config with `config.With(DisassemblyDiagnoser.Create(new DisassemblyDiagnoserConfig(printAsm: true, recursiveDepth: 1))`. 
 
-![Sample Disassm](./img/sampleDisassm.png)
+Example: `dotnet run -c Release -f netcoreapp2.0 -- --filter System.Memory.Span<Int32>.Reverse -d`
+
+```assembly
+; System.Runtime.InteropServices.MemoryMarshal.GetReference[[System.Byte, System.Private.CoreLib]](System.Span`1<Byte>)
+       sub     rsp,28h
+       cmp     qword ptr [rcx],0
+       jne     M00_L00
+       mov     rcx,qword ptr [rcx+8]
+       call    System.Runtime.CompilerServices.Unsafe.AsRef[[System.Byte, System.Private.CoreLib]](Void*)
+       nop
+       add     rsp,28h
+       ret
+M00_L00:
+       mov     rax,qword ptr [rcx]
+       cmp     dword ptr [rax],eax
+       add     rax,8
+       mov     rdx,qword ptr [rcx+8]
+       add     rax,rdx
+       add     rsp,28h
+       ret
+```
 
 ## How to profile benchmarked code using ETW
 
