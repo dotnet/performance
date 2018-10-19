@@ -16,7 +16,7 @@ from build.common import get_repo_root_path
 # Argument Parser
 ##########################################################################
 
-description = 'Tool to run .NET benchmarks'
+description = 'Tool to run .NET Micro Benchmarks'
 
 parser = argparse.ArgumentParser(description=description)
 
@@ -182,11 +182,11 @@ def main(args):
     dotnetPath = os.path.join(workspace, '.dotnet', 'dotnet.exe')
     dotnetVersion = get_dotnet_sha(dotnetPath)
 
-    benchmarksDirectoryPath = os.path.join(workspace, 'src', 'benchmarks')
+    benchmarksDirectoryPath = os.path.join(workspace, 'src', 'benchmarks', 'micro')
     os.chdir(benchmarksDirectoryPath)
 
-    # Build the Benchmarks project
-    performanceHarnessCsproj = os.path.join('Benchmarks.csproj')
+    # Build the MicroBenchmarks project
+    performanceHarnessCsproj = os.path.join('MicroBenchmarks.csproj')
     runArgs = [dotnetPath, 'restore', performanceHarnessCsproj]
     run_command(runArgs, runEnv, 'Failed to restore %s' % performanceHarnessCsproj)
 
@@ -197,8 +197,8 @@ def main(args):
     benchmarkOutputDir = os.path.join(benchmarksDirectoryPath, 'bin', 'Release', args.framework, 'publish')
     os.chdir(benchmarkOutputDir)
 
-    runArgs = [dotnetPath, 'Benchmarks.dll', '--cli', dotnetPath, '--tfms', args.framework, '--allCategories', args.category, '--maxIterationCount', str(args.maxIterations)]
-    run_command(runArgs, runEnv, 'Failed to run Benchmarks.dll')
+    runArgs = [dotnetPath, 'MicroBenchmarks.dll', '--cli', dotnetPath, '--tfms', args.framework, '--allCategories', args.category, '--maxIterationCount', str(args.maxIterations)]
+    run_command(runArgs, runEnv, 'Failed to run MicroBenchmarks.dll')
 
     if args.uploadToBenchview:
         # Download nuget
