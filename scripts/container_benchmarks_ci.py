@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     script_dir = path.dirname(path.realpath(__file__))
-    benchmark_dir = path.normpath(path.join(script_dir, '..', 'src', 'docker'))
+    benchmark_dir = path.normpath(path.join(script_dir, '..', 'src', 'benchmarks', 'other', 'docker'))
     benchmark_reports_dir = path.normpath(path.join(benchmark_dir, 'reports'))
 
     logger.info("Installing dotnet cli")
