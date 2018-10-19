@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     script_dir = path.dirname(path.realpath(__file__))
-    benchmark_dir = path.normpath(path.join(script_dir, '..', 'src', 'dmlib'))
+    benchmark_dir = path.normpath(path.join(script_dir, '..', 'src', 'benchmarks', 'other', 'dmlib'))
     packages_dir = path.normpath(path.join(script_dir, '..', 'packages'))
     reports_dir = path.normpath(path.join(benchmark_dir, 'reports'))
 

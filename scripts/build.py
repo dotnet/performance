@@ -120,8 +120,8 @@ def build_benchmarks(
         verbose: bool) -> None:
     '''Builds the benchmarks'''
     workspace = get_repo_root_path()
-    working_directory = os.path.join(workspace, 'src', 'benchmarks')
-    csproj_file = 'Benchmarks.csproj'
+    working_directory = os.path.join(workspace, 'src', 'benchmarks', 'micro')
+    csproj_file = 'MicroBenchmarks.csproj'
 
     dotnet = DotNet(log_file, working_directory, csproj_file, verbose)
     dotnet.restore()
