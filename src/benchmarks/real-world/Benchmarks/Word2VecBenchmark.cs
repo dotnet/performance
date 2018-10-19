@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.Xunit.Performance.Api;
 using System.Runtime.InteropServices;
 using System.Globalization;
-using Scenarios.Utilities;
+using RealWorld.Utilities;
 
-namespace Scenarios
+namespace RealWorld
 {
     class Word2VecBenchmark : Benchmark
     {

@@ -4,9 +4,9 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Xunit.Performance.Api;
-using Scenarios.Utilities;
+using RealWorld.Utilities;
 
-namespace Scenarios
+namespace RealWorld
 {
     class MusicStoreBenchmark : WebAppBenchmark
     {

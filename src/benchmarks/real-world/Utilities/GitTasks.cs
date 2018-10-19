@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Scenarios.Utilities
+namespace RealWorld.Utilities
 {
     internal static class GitTasks
     {

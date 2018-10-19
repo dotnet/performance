@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Scenarios
+namespace RealWorld
 {
     public class ConsoleTestOutputHelper : ITestOutputHelper
     {

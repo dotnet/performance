@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Scenarios
+namespace RealWorld
 {
     public static class Statistics
     {

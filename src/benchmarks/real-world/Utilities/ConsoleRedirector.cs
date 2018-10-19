@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Scenarios
+namespace RealWorld
 {
     /// <summary>
     /// Diverts console output into a ITestOutputHelper

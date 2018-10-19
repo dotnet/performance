@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Scenarios
+namespace RealWorld
 {
     public abstract class CscBenchmark : Benchmark
     {

@@ -1,4 +1,4 @@
-﻿namespace Scenarios
+﻿namespace RealWorld
 {
     public interface ITestOutputHelper
     {

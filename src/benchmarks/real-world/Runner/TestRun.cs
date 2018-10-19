@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Diagnostics.Tracing.Session;
 
-namespace Scenarios
+namespace RealWorld
 {
     public class TestRun
     {

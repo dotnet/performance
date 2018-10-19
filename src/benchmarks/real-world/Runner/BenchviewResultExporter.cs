@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.Xunit.Performance.Api;
 
-namespace Scenarios
+namespace RealWorld
 {
     public static class BenchviewResultExporter
     {

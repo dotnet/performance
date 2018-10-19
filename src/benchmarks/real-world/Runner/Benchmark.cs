@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Xunit.Performance.Api;
 using Microsoft.Xunit.Performance.Api.Profilers.Etw;
 
-namespace Scenarios
+namespace RealWorld
 {
     public abstract class Benchmark
     {

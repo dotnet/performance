@@ -1,6 +1,6 @@
-# End To End Scenarios #
+# Real World Scenarios #
 
-End To End Scenarios is a collection of scenario benchmarks that were originally designed to do performance testing of the tiered jitting feature. They can be easily run for ad-hoc investigation or as part of automated performance testing
+Real World Scenarios is a collection of scenario benchmarks that were originally designed to do performance testing of the tiered jitting feature. They can be easily run for ad-hoc investigation or as part of automated performance testing
 
 
 ## Running the test (ad-hoc) ##

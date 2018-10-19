@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 
-namespace Scenarios
+namespace RealWorld
 {
     public class TestOutputProcessLogger : IProcessLogger
     {

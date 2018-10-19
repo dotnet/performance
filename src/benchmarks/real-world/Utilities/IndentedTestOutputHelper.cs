@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Scenarios
+namespace RealWorld
 {
     /// <summary>
     /// An implementation of ITestOutputHelper that adds one indent level to

@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Scenarios
+namespace RealWorld
 {
     class Program
     {
@@ -17,7 +17,7 @@ namespace Scenarios
             TestRun testRun = ConfigureTestRun(options);
 
             ConsoleTestOutputHelper console = new ConsoleTestOutputHelper();
-            string logPath = Path.Combine(testRun.OutputDir, "Scenarios_log.txt");
+            string logPath = Path.Combine(testRun.OutputDir, "RealWorld_log.txt");
             FileTestOutputHelper logOutput = new FileTestOutputHelper(logPath);
 
             testRun.WriteConfiguration(console);
