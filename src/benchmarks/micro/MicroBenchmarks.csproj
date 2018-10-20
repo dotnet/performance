@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.0;netcoreapp2.1</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);net461</TargetFrameworks>
-    <RuntimeFrameworkVersion Condition="'$(TargetFramework)' == 'netcoreapp2.2'">2.2.0-*</RuntimeFrameworkVersion>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
@@ -22,8 +21,8 @@
     <None Remove="Tests\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.11.1.805" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.11.1.805" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.11.1.808" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.11.1.808" />
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="2.0.26" />
     <PackageReference Include="Jil" Version="2.15.4" />
     <PackageReference Include="MessagePack" Version="1.7.3.4" />
