@@ -39,7 +39,7 @@ Any public, non-sealed type with public `[Benchmark]` method in this assembly wi
 
 ## Running
 
-To run the benchmarks you have to execute `dotnet run -c Release -f net46|netcoreapp2.0|netcoreapp2.1|netcoreapp2.2|netcoreapp3.0` (choose one of the supported frameworks).
+To run the benchmarks you have to execute `dotnet run -c Release -f net461|netcoreapp2.0|netcoreapp2.1|netcoreapp2.2|netcoreapp3.0` (choose one of the supported frameworks).
 
 ```log
 PS C:\Projects\performance\src\benchmarks> dotnet run -c Release -f netcoreapp2.0
@@ -192,7 +192,7 @@ If you want to run the benchmarks in process, without creating a dedicated execu
 
 ## How to compare different Runtimes
 
-The `--runtimes` or just `-r` allows you to run the benchmarks for selected Runtimes. Available options are: Mono, CoreRT, net46, net461, net462, net47, net471, net472, netcoreapp2.0, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0.
+The `--runtimes` or just `-r` allows you to run the benchmarks for selected Runtimes. Available options are: Mono, CoreRT, net461, net462, net47, net471, net472, netcoreapp2.0, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0.
 
 Example: run the benchmarks for .NET 4.7.2 and .NET Core 2.1:
 
@@ -236,7 +236,7 @@ dotnet run -c Release -- -r netcoreapp3.0 --cli "C:\Projects\performance\.dotnet
 
 It's possible to benchmark a private build of .NET Runtime. You just need to pass the value of `COMPLUS_Version` to BenchmarkDotNet. You can do that by either using `--clrVersion $theVersion` as an arugment or `Job.ShortRun.With(new ClrRuntime(version: "$theVersiong"))` in the code.
 
-So if you made a change in CLR and want to measure the difference, you can run the benchmarks with `dotnet run -c Release -f net46 -- -r net472 --clrVersion $theVersion`. More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/706).
+So if you made a change in CLR and want to measure the difference, you can run the benchmarks with `dotnet run -c Release -f net472 -- --clrVersion $theVersion`. More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/706).
 
 ## Benchmarking private CoreRT build
 
