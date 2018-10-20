@@ -5,7 +5,7 @@
 # Folders to ignore
 **/logs/
 **/packages/
-**/tools/
+/tools/*
 **/reports/
 **/.dotnet/
 
