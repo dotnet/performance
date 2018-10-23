@@ -22,8 +22,8 @@
     <None Remove="Tests\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.11.1.808" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.11.1.808" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.11.1.812" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.11.1.812" />
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="2.0.26" />
     <PackageReference Include="Jil" Version="2.15.4" />
     <PackageReference Include="MessagePack" Version="1.7.3.4" />
