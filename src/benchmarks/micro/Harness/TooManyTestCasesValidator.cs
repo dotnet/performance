@@ -17,12 +17,12 @@ namespace MicroBenchmarks
 
         public IEnumerable<ValidationError> Validate(ValidationParameters validationParameters)
         {
-            var byDescriptor = validationParameters.Benchmarks.GroupBy(benchmark => benchmark.Descriptor); // descriptor = type + method
+            var byDescriptor = validationParameters.Benchmarks.GroupBy(benchmark => (benchmark.Descriptor, benchmark.Job)); // descriptor = type + method
 
             return byDescriptor.Where(benchmarkCase => benchmarkCase.Count() > Limit).Select(group =>
                 new ValidationError(
                     isCritical: true,
-                    message: $"{group.Key.Type.Name}.{group.Key.WorkloadMethod.Name} has {group.Count()} test cases. It MUST NOT have more than {Limit} test cases. We don't have inifinite amount of time to run all the benchmarks!!",
+                    message: $"{group.Key.Descriptor.Type.Name}.{group.Key.Descriptor.WorkloadMethod.Name} has {group.Count()} test cases. It MUST NOT have more than {Limit} test cases. We don't have inifinite amount of time to run all the benchmarks!!",
                     benchmarkCase: group.First()));
         }
     }
