@@ -60,5 +60,13 @@ namespace Tests
                         || (character >= 'A' && character <= 'Z')));
             }
         }
+
+        [Fact]
+        public void GetNonDefaultValueReturnsNonDefaultValue()
+        {
+            Assert.NotEqual(default(byte), ValuesGenerator.GetNonDefaultValue<byte>());
+            Assert.NotEqual(default(int), ValuesGenerator.GetNonDefaultValue<int>());
+            Assert.NotEqual(default(string), ValuesGenerator.GetNonDefaultValue<string>());
+        }
     }
 }

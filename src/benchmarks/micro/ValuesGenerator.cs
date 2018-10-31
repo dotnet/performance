@@ -9,8 +9,17 @@ namespace MicroBenchmarks
     {
         private const int Seed = 12345; // we always use the same seed to have repeatable results!
 
-        public static T GetNonDefaultValue<T>() => ArrayOfUniqueValues<T>(2).First(value => !value.Equals(default)); 
+        public static T GetNonDefaultValue<T>()
+        {
+            if (typeof(T) == typeof(byte)) // we can't use ArrayOfUniqueValues for byte
+                return Array<T>(byte.MaxValue).First(value => !value.Equals(default));
+            else
+                return ArrayOfUniqueValues<T>(2).First(value => !value.Equals(default));
+        }
 
+        /// <summary>
+        /// does not support byte because there are only 256 unique byte values
+        /// </summary>
         public static T[] ArrayOfUniqueValues<T>(int count)
         {
             var random = new Random(Seed); 
