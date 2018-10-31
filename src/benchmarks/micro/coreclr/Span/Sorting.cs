@@ -42,7 +42,7 @@ namespace Span
         public void BubbleSortSpan() => TestBubbleSortSpan(new Span<int>(_arrays[_iterationIndex++]));
 
         [Benchmark]
-        public void QuickSortArray() => TestQuickSortArray(_arrays[_iterationIndex++], 0, Size);
+        public void QuickSortArray() => TestQuickSortArray(_arrays[_iterationIndex++], 0, Size - 1);
 
         [Benchmark]
         public void BubbleSortArray() => TestBubbleSortArray(_arrays[_iterationIndex++]);
