@@ -27,7 +27,7 @@ namespace System.Tests
         [ArgumentsSource(nameof(Int64Values))]
         public string ToString(long value) => value.ToString();
 
-#if NETCOREAPP2_1
+#if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1
         [Benchmark]
         [ArgumentsSource(nameof(Int64Values))]
         public bool TryFormat(long value) => value.TryFormat(new Span<char>(_destination), out _);

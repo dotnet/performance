@@ -18,17 +18,15 @@ namespace System.Memory
 
         private T[] _nonEmptyArray;
         private ArraySegment<T> _arraySegment;
-        private IntPtr _validPointer;
         private T _field;
         private System.Memory<T> _memory;
         private System.ReadOnlyMemory<T> _readOnlyMemory;
 
-        public unsafe Constructors()
+        public Constructors()
         {
             _nonEmptyArray = new T[Size];
             _arraySegment = new ArraySegment<T>(_nonEmptyArray, 0, Size);
             _field = _nonEmptyArray[0];
-            _validPointer = (IntPtr) Unsafe.AsPointer(ref _field);
             _memory = new System.Memory<T>(_nonEmptyArray);
             _readOnlyMemory = new System.ReadOnlyMemory<T>(_nonEmptyArray);
         }
@@ -44,12 +42,6 @@ namespace System.Memory
 
         [Benchmark]
         public System.ReadOnlySpan<T> ReadOnlySpanFromArrayStartLength() => new System.ReadOnlySpan<T>(_nonEmptyArray, start: 0, length: Size);
-
-        [Benchmark]
-        public unsafe System.Span<T> SpanFromPointerLength() => new System.Span<T>(_validPointer.ToPointer(), Size);
-
-        [Benchmark]
-        public unsafe System.ReadOnlySpan<T> ReadOnlyFromPointerLength() => new System.ReadOnlySpan<T>(_validPointer.ToPointer(), Size);
 
         [Benchmark]
         public System.Span<T> SpanFromMemory() => _memory.Span;
@@ -84,7 +76,7 @@ namespace System.Memory
         [Benchmark]
         public System.ReadOnlyMemory<T> ReadOnlyMemoryFromArrayStartLength() => new System.ReadOnlyMemory<T>(_nonEmptyArray, start: 0, length: Size);
 
-#if NETCOREAPP2_1 // netcoreapp specific API https://github.com/dotnet/coreclr/issues/16126
+#if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1 https://github.com/dotnet/coreclr/issues/16126
         [Benchmark]
         public System.Span<T> MemoryMarshalCreateSpan() => MemoryMarshal.CreateSpan<T>(ref _field, Size);
     
@@ -92,4 +84,30 @@ namespace System.Memory
         public System.ReadOnlySpan<T> MemoryMarshalCreateReadOnlySpan() => MemoryMarshal.CreateReadOnlySpan<T>(ref _field, Size);
 #endif
     }
+
+    [GenericTypeArguments(typeof(byte))]
+    [GenericTypeArguments(typeof(int))]
+    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.Span)]
+    public class Constructors_ValueTypesOnly<T>
+    {
+        private const int Size = 10;
+        
+        private T[] _nonEmptyArray;
+        private IntPtr _validPointer;
+        private T _field;
+        
+        public unsafe Constructors_ValueTypesOnly()
+        {
+            _nonEmptyArray = new T[Size];
+            _field = _nonEmptyArray[0];
+            _validPointer = (IntPtr)Unsafe.AsPointer(ref _field);
+        }
+        
+        [Benchmark]
+        public unsafe System.Span<T> SpanFromPointerLength() => new System.Span<T>(_validPointer.ToPointer(), Size);
+
+        [Benchmark]
+        public unsafe System.ReadOnlySpan<T> ReadOnlyFromPointerLength() => new System.ReadOnlySpan<T>(_validPointer.ToPointer(), Size);
+    }
+    
 }

@@ -38,7 +38,7 @@ namespace System.Net.Primitives.Tests
         public string ToString(IPAddress address)
             => address.ToString();
         
-#if NETCOREAPP2_1
+#if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1
         [Benchmark]
         [ArgumentsSource(nameof(ByteAddresses))]
         public IPAddress Ctor_Span(byte[] address)
