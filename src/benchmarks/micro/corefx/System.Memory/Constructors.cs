@@ -76,7 +76,7 @@ namespace System.Memory
         [Benchmark]
         public System.ReadOnlyMemory<T> ReadOnlyMemoryFromArrayStartLength() => new System.ReadOnlyMemory<T>(_nonEmptyArray, start: 0, length: Size);
 
-#if NETCOREAPP2_1 // netcoreapp specific API https://github.com/dotnet/coreclr/issues/16126
+#if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1 https://github.com/dotnet/coreclr/issues/16126
         [Benchmark]
         public System.Span<T> MemoryMarshalCreateSpan() => MemoryMarshal.CreateSpan<T>(ref _field, Size);
     

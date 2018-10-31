@@ -27,7 +27,7 @@ namespace System.Tests
         [ArgumentsSource(nameof(Int32Values))]
         public string ToString(int value) => value.ToString();
         
-#if NETCOREAPP2_1
+#if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
         public int Parse(string value) => int.Parse(value.AsSpan());
