@@ -208,10 +208,10 @@ def __main(args: list) -> int:
 
     # .NET micro-benchmarks
     # Restore and build micro-benchmarks
-    # micro_benchmarks.build(
-    #     args.configuration,
-    #     args.frameworks,
-    #     args.verbose)
+    micro_benchmarks.build(
+        args.configuration,
+        args.frameworks,
+        args.verbose)
 
     # Run micro-benchmarks
     for framework in args.frameworks:
@@ -229,12 +229,12 @@ def __main(args: list) -> int:
             '--minIterationCount', str(args.min_iteration_count),
             # '--filter', 'Adams',
         ]
-        # micro_benchmarks.run(
-        #     args.configuration,
-        #     framework,
-        #     args.verbose,
-        #     *run_args
-        # )
+        micro_benchmarks.run(
+            args.configuration,
+            framework,
+            args.verbose,
+            *run_args
+        )
 
     # Run BenchView scripts to generate data.
     if args.generate_benchview_data:
