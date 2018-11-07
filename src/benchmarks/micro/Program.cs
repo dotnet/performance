@@ -24,7 +24,7 @@ namespace MicroBenchmarks
                 .With(Job.Default
                     .WithWarmupCount(1) // 1 warmup is enough for our purpose
                     .WithIterationTime(TimeInterval.FromMilliseconds(250)) // the default is 0.5s per iteration, which is slighlty too much for us
-                    .WithMaxIterationCount(15)
+                    .WithMinIterationCount(15)
                     .WithMaxIterationCount(20) // we don't want to run more that 20 iterations
                     .AsDefault()) // tell BDN that this are our default settings
                 .With(MemoryDiagnoser.Default) // MemoryDiagnoser is enabled by default
