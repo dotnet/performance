@@ -4,6 +4,7 @@
 
 using System.IO;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Engines;
 
 namespace System.ConsoleTests
 {
@@ -13,17 +14,36 @@ namespace System.ConsoleTests
     /// - OpenStandardInput, OpenStandardOutput, OpenStandardError
     /// - ForegroundColor, BackgroundColor, ResetColor
     /// </summary>
-    [GcForce(true)] // forces full GC cleanup after every iteration, so streams allocated in OpenStandard* benchmarks are going to be finalized
     public class Perf_Console
     {
-        [Benchmark]
-        public Stream OpenStandardInput() => Console.OpenStandardInput();
+        private readonly Consumer consumer = new Consumer();
 
         [Benchmark]
-        public Stream OpenStandardOutput() => Console.OpenStandardOutput();
+        public void OpenStandardInput()
+        {
+            using (var input = Console.OpenStandardInput())
+            {
+                consumer.Consume(input);
+            };
+        }
 
         [Benchmark]
-        public Stream OpenStandardError() => Console.OpenStandardError();
+        public void OpenStandardOutput()
+        {
+            using (var output = Console.OpenStandardOutput())
+            {
+                consumer.Consume(output);
+            };
+        }
+
+        [Benchmark]
+        public void OpenStandardError()
+        {
+            using (var error = Console.OpenStandardError())
+            {
+                consumer.Consume(error);
+            };
+        }
 
         [Benchmark(OperationsPerInvoke = 8)]
         public void ForegroundColor()
