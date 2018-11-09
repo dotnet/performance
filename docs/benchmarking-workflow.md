@@ -296,4 +296,4 @@ dotnet run -c Release -f netcoreapp2.1 -- -f * --runtimes netcoreapp2.1 netcorea
 
 ### New API
 
-In case you want to add a new method to CoreFX and test it's performance, then you need to follow [CoreFX benchmarking instructions](https://github.com/dotnet/corefx/blob/master/Documentation/project-docs/benchmarking.md).
+In case you want to add a new method to CoreFX and test its performance, then you need to follow [CoreFX benchmarking instructions](https://github.com/dotnet/corefx/blob/master/Documentation/project-docs/benchmarking.md).
