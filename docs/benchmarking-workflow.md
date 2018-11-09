@@ -58,8 +58,8 @@ The project contains few thousands of benchmarks and you most probably don't nee
 
 The benchmarks are:
 
-* groupped into coresponding namespaces. If given .NET class belongs to `System.XYZ` namespace, it's benchmarks do so as well.
-* groupped into categories. CoreCLR benchmarks belong to `CoreCLR` category, CoreFX to `CoreFX` category. Features that are partially implemented in the Runtime and Base Class Library belong to common categories like `Span`, `LINQ`. (See [Categories.cs](../src/benchmarks/micro/Categories.cs) for more).
+* grouped into coresponding namespaces. If given .NET class belongs to `System.XYZ` namespace, it's benchmarks do so as well.
+* grouped into categories. CoreCLR benchmarks belong to `CoreCLR` category, CoreFX to `CoreFX` category. Features that are partially implemented in the Runtime and Base Class Library belong to common categories like `Span`, `LINQ`. (See [Categories.cs](../src/benchmarks/micro/Categories.cs) for more).
 
 The harness (BenchmarkDotNet) allows to:
 
