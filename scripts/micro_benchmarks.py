@@ -4,7 +4,11 @@
 Builds the Benchmarks
 '''
 
-from argparse import ArgumentParser, ArgumentTypeError, SUPPRESS
+from argparse import Action
+from argparse import ArgumentError
+from argparse import ArgumentParser
+from argparse import ArgumentTypeError
+from argparse import SUPPRESS
 from logging import getLogger
 from os import path
 from subprocess import CalledProcessError
@@ -14,11 +18,44 @@ from typing import Tuple
 import sys
 
 from performance.common import get_repo_root_path
-from performance.common import TargetFrameworkAction
 from performance.common import remove_directory
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
-from performance.dotnet import DotNetProject, dotnet_info
+
+import dotnet
+
+
+class TargetFrameworkAction(Action):
+    '''
+    Used by the ArgumentParser to represent the information needed to parse the
+    supported .NET Core target frameworks argument from the command line.
+    '''
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if values:
+            wrong_choices = []
+            supported_target_frameworks = TargetFrameworkAction\
+                .get_supported_target_frameworks()
+
+            for value in values:
+                if value not in supported_target_frameworks:
+                    wrong_choices.append(value)
+            if wrong_choices:
+                message = ', '.join(wrong_choices)
+                message = 'Invalid choice(s): {}'.format(message)
+                raise ArgumentError(self, message)
+            setattr(namespace, self.dest, list(set(values)))
+
+    @staticmethod
+    def get_supported_target_frameworks() -> list:
+        '''List of supported .NET Core target frameworks.'''
+        return [
+            'netcoreapp3.0',
+            'netcoreapp2.2',
+            'netcoreapp2.1',
+            'netcoreapp2.0',
+            'net461'
+        ]
 
 
 def get_supported_configurations() -> list:
@@ -64,6 +101,16 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
     # BenchmarkDotNet
     parser.add_argument(
+        '--enable-hardware-counters',
+        dest='enable_pmc',
+        required=False,
+        default=False,
+        action='store_true',
+        help='''Enables the following performance metric counters:
+            BranchMispredictions+CacheMisses+InstructionRetired'''
+    )
+
+    parser.add_argument(
         '--category',
         required=False,
         choices=['coreclr', 'corefx'],
@@ -79,7 +126,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         type=int,
         default=15)
 
-    def valid_file_path(file_path: str) -> str:
+    def __valid_file_path(file_path: str) -> str:
         '''Verifies that specified file path exists.'''
         file_path = path.abspath(file_path)
         if not path.isfile(file_path):
@@ -90,13 +137,13 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         '--corerun-path',
         dest='corerun_path',
         required=False,
-        type=valid_file_path,
+        type=__valid_file_path,
         help='Path to CoreRun.exe')
     parser.add_argument(
         '--dotnet-path',
         dest='dotnet_path',
         required=False,
-        type=valid_file_path,
+        type=__valid_file_path,
         help='Path to dotnet.exe')
 
     return parser
@@ -165,7 +212,7 @@ def __log_script_header(message: str):
     getLogger().info('-' * len(message))
 
 
-BENCHMARKS_CSPROJ = DotNetProject(
+BENCHMARKS_CSPROJ = dotnet.CSharpProject(
     working_directory=path.join(
         get_repo_root_path(), 'src', 'benchmarks', 'micro'),
     csproj_file='MicroBenchmarks.csproj'
@@ -177,32 +224,36 @@ def __main(args: list) -> int:
         validate_supported_runtime()
         args = __process_arguments(args)
 
-        category = args.category
         configuration = args.configuration
-        corerun_path = args.corerun_path
-        dotnet_path = args.dotnet_path
         frameworks = args.frameworks
         verbose = args.verbose
 
         setup_loggers(verbose=verbose)
 
         # dotnet --info
-        dotnet_info(verbose)
+        dotnet.info(verbose)
 
         # dotnet build
         build(configuration, frameworks, verbose)
 
         for framework in frameworks:
             run_args = [
-                # '--no-restore', '--no-build',  # FIXME: netcoreapp2.1 broken? netcoreapp2.0 builds both 2.0 and 2.1?
+                # FIXME: netcoreapp2.1 broken?
+                # FIXME: netcoreapp2.0 builds both 2.0 and 2.1?
+                # '--no-restore', '--no-build',
                 '--',
             ]
-            if category:
-                run_args += ['--allCategories', category]
-            if corerun_path:
-                run_args += ['--coreRun', corerun_path]
-            if dotnet_path:
-                run_args += ['--cli', dotnet_path]
+            if args.category:
+                run_args += ['--allCategories', args.category]
+            if args.corerun_path:
+                run_args += ['--coreRun', args.corerun_path]
+            if args.dotnet_path:
+                run_args += ['--cli', args.dotnet_path]
+            if args.enable_pmc:
+                run_args += [
+                    '--counters',
+                    'BranchMispredictions+CacheMisses+InstructionRetired',
+                ]
             run_args += [
                 '--maxIterationCount', str(args.max_iteration_count),
                 '--minIterationCount', str(args.min_iteration_count)

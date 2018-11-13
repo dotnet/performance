@@ -5,6 +5,7 @@ Support script around BenchView script.
 '''
 
 from errno import EEXIST
+from glob import iglob
 from logging import getLogger
 from os import path
 from urllib.parse import urlparse
@@ -15,6 +16,7 @@ from zipfile import ZipFile
 from performance.common import get_tools_directory
 from performance.common import get_python_executable
 from performance.common import make_directory
+from performance.common import push_dir
 from performance.common import remove_directory
 from performance.common import RunCommand
 from performance.common import validate_supported_runtime
@@ -27,11 +29,19 @@ class BenchView:
     data.
     '''
 
-    def __init__(self, working_directory: str, verbose: bool):
+    def __init__(self, verbose: bool):
         self.__python = get_python_executable()
         self.__tools = path.join(BenchView.get_scripts_directory(), 'tools')
         self.__verbose = verbose
-        self.__working_directory = working_directory
+
+        # TODO: Fix BenchView scripts to use `loggin` instead of `print`.
+        #   BenchView scripts perform rudimentary logging using `print` and
+        #   this causes `Bad descriptor` error when redirecting output to null.
+        #   At the moment, BenchView scripts only output on error or when it
+        #   has written the generated output file, so setting `verbose=True`
+        #   does not pollute output. In addition, these scripts logging is
+        #   more robust, and this flag on will not pollute overall output.
+        self.__verbose = True
 
     @staticmethod
     def get_scripts_directory() -> str:
@@ -57,24 +67,23 @@ class BenchView:
         '''Enables/Disables verbosity.'''
         return self.__verbose
 
-    @property
-    def working_directory(self) -> str:
-        '''Working directory for invoking BenchView scripts.'''
-        return self.__working_directory
-
     def build(
             self,
+            working_directory: str,
             build_type: str,
-            # subparser: str,  ['none', 'git']
+            subparser: str = None,  # ['none', 'git']
             branch: str = None,
             commit: str = None,
             repository: str = None,
             source_timestamp: str = None) -> None:
         '''Wrapper around BenchView's build.py'''
 
+        if not subparser:
+            subparser = 'none'
+
         cmdline = [
             self.python, path.join(self.tools_directory, 'build.py'),
-            'git',  # TODO: Maybe none?
+            subparser,
             '--type', build_type
         ]
         if branch:
@@ -85,28 +94,37 @@ class BenchView:
             cmdline += ['--repository', repository]
         if source_timestamp:
             cmdline += ['--source-timestamp', source_timestamp]
-        RunCommand(cmdline, verbose=self.verbose).run(self.working_directory)
+        RunCommand(cmdline, verbose=self.verbose).run(working_directory)
 
-    def machinedata(self) -> None:
+    def machinedata(self, working_directory: str) -> None:
         '''Wrapper around BenchView's machinedata.py'''
 
         cmdline = [
             self.python, path.join(self.tools_directory, 'machinedata.py')
         ]
-        RunCommand(cmdline, verbose=self.verbose).run(self.working_directory)
+        RunCommand(cmdline, verbose=self.verbose).run(working_directory)
 
-    def measurement(self, bdn_json_path: str) -> None:
+    def measurement(self, working_directory: str) -> None:
         '''Wrapper around BenchView's measurement.py'''
 
-        cmdline = [
+        common_cmdline = [
             self.python, path.join(self.tools_directory, 'measurement.py'),
             'bdn',
-            bdn_json_path,
             '--append',
         ]
-        RunCommand(cmdline, verbose=self.verbose).run(self.working_directory)
 
-    def submission_metadata(self, name: str) -> None:
+        with push_dir(working_directory):
+            pattern = "BenchmarkDotNet.Artifacts/**/*-full.json"
+            getLogger().info(
+                'Searching BenchmarkDotNet output files with: %s', pattern
+            )
+
+            for full_json_file in iglob(pattern, recursive=True):
+                cmdline = common_cmdline + [full_json_file]
+                RunCommand(cmdline, verbose=self.verbose).run(
+                    working_directory)
+
+    def submission_metadata(self, working_directory: str, name: str) -> None:
         '''Wrapper around BenchView's submission-metadata.py'''
 
         cmdline = [
@@ -115,10 +133,12 @@ class BenchView:
             '--name', name,
             '--user-email', 'dotnet-bot@microsoft.com'
         ]
-        RunCommand(cmdline, verbose=self.verbose).run(self.working_directory)
+        RunCommand(cmdline, verbose=self.verbose).run(working_directory)
 
     def submission(
             self,
+            working_directory: str,
+            measurement_jsons: list,
             architecture: str,
             config_name: str,
             configs: dict,
@@ -127,17 +147,20 @@ class BenchView:
             jobtype: str
     ) -> None:
         '''Wrapper around BenchView's submission.py'''
+        if not measurement_jsons:
+            return
 
         cmdline = [
             self.python, path.join(self.tools_directory, 'submission.py'),
-            path.join(self.working_directory, 'measurement.json'),
+            # path.join(working_directory, 'measurement.json'),
+            ' '.join(measurement_jsons),
 
             '--build', path.join(
-                self.working_directory, 'build.json'),
+                working_directory, 'build.json'),
             '--machine-data', path.join(
-                self.working_directory, 'machinedata.json'),
+                working_directory, 'machinedata.json'),
             '--metadata', path.join(
-                self.working_directory, 'submission-metadata.json'),
+                working_directory, 'submission-metadata.json'),
 
             '--group', jobgroup,
             '--type', jobtype,
@@ -147,9 +170,9 @@ class BenchView:
         ]
         for key, value in configs.items():
             cmdline += ['--config', key, value]
-        RunCommand(cmdline, verbose=self.verbose).run(self.working_directory)
+        RunCommand(cmdline, verbose=self.verbose).run(working_directory)
 
-    def upload(self, container: str) -> None:
+    def upload(self, working_directory: str, container: str) -> None:
         '''Wrapper around BenchView's upload.py'''
 
         cmdline = [
@@ -157,7 +180,7 @@ class BenchView:
             path.join(self.tools_directory, 'upload.py'),
             '--container', container,
         ]
-        RunCommand(cmdline, verbose=self.verbose).run(self.working_directory)
+        RunCommand(cmdline, verbose=self.verbose).run(working_directory)
 
 
 def install():
@@ -205,7 +228,6 @@ def __download_zip_file(url_str: str, output_path: str):
 
 def __unzip_file(file_path: str, output_path: str):
     '''Extract all members from the archive to the specified directory.'''
-    # TODO: Error checking?
     with ZipFile(file_path, 'r') as zipfile:
         zipfile.extractall(output_path)
 

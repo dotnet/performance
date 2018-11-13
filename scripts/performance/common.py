@@ -2,7 +2,6 @@
 Common functionality used by the repository scripts.
 '''
 
-from argparse import Action, ArgumentError
 from contextlib import contextmanager
 from logging import getLogger
 from shutil import rmtree
@@ -130,39 +129,6 @@ def __install_dotnet_cli(architecture: str, branch: str) -> None:
     RunCommand(cmdline=cmdline, verbose=True).run(
         working_directory=get_repo_root_path()
     )
-
-
-class TargetFrameworkAction(Action):
-    '''
-    Used by the ArgumentParser to represent the information needed to parse the
-    supported .NET Core target frameworks argument from the command line.
-    '''
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        if values:
-            wrong_choices = []
-            supported_target_frameworks = TargetFrameworkAction\
-                .get_supported_target_frameworks()
-
-            for value in values:
-                if value not in supported_target_frameworks:
-                    wrong_choices.append(value)
-            if wrong_choices:
-                message = ', '.join(wrong_choices)
-                message = 'Invalid choice(s): {}'.format(message)
-                raise ArgumentError(self, message)
-            setattr(namespace, self.dest, list(set(values)))
-
-    @staticmethod
-    def get_supported_target_frameworks() -> list:
-        '''List of supported .NET Core target frameworks.'''
-        return [
-            'netcoreapp3.0',
-            'netcoreapp2.2',
-            'netcoreapp2.1',
-            'netcoreapp2.0',
-            'net461'
-        ]
 
 
 class RunCommand:
