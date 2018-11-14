@@ -14,10 +14,11 @@ namespace MicroBenchmarks
 {
     class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
             => BenchmarkSwitcher
                 .FromAssembly(typeof(Program).Assembly)
-                .Run(args, GetConfig());
+                .Run(args, GetConfig())
+                .ToExitCode();
 
         private static IConfig GetConfig()
             => DefaultConfig.Instance
