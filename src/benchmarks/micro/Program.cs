@@ -2,22 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Exporters.Json;
 using BenchmarkDotNet.Horology;
 using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
 
 namespace MicroBenchmarks
 {
     class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
             => BenchmarkSwitcher
                 .FromAssembly(typeof(Program).Assembly)
-                .Run(args, GetConfig());
+                .Run(args, GetConfig())
+                .Count(HadIssues);
 
         private static IConfig GetConfig()
             => DefaultConfig.Instance
@@ -32,5 +35,8 @@ namespace MicroBenchmarks
                 .With(JsonExporter.Full) // make sure we export to Json (for BenchView integration purpose)
                 .With(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
                 .With(TooManyTestCasesValidator.FailOnError);
+
+        private static bool HadIssues(Summary summary)
+            => summary.HasCriticalValidationErrors || summary.Reports.Any(report => !report.BuildResult.IsBuildSuccess || !report.ExecuteResults.Any());
     }
 }
