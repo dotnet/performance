@@ -12,6 +12,7 @@ from os import chmod, makedirs, path
 from stat import S_IRWXU
 from subprocess import check_output
 from sys import argv, platform
+from urllib.parse import urlparse
 from urllib.request import urlopen, urlretrieve
 
 from performance.common import get_repo_root_path
@@ -145,7 +146,7 @@ class CSharpProject:
 
 
 def get_host_commit_sha(dotnet_path: str = None) -> str:
-    """ Gets the dotnet Host commit sha from the `dotnet --info` command."""
+    """Gets the dotnet Host commit sha from the `dotnet --info` command."""
     if not dotnet_path:
         dotnet_path = 'dotnet'
 
@@ -166,7 +167,7 @@ def get_host_commit_sha(dotnet_path: str = None) -> str:
     raise RuntimeError('.NET Host Commit sha not found.')
 
 
-def get_commit_date(commit_sha: str) -> str:
+def get_commit_date(commit_sha: str, repository: str = None) -> str:
     '''
     Gets the .NET Core committer date using the GitHub Web API from the
     https://github.com/dotnet/core-setup repository.
@@ -174,8 +175,18 @@ def get_commit_date(commit_sha: str) -> str:
     if not commit_sha:
         raise ValueError('.NET Commit sha was not defined.')
 
-    url_format = 'https://api.github.com/repos/dotnet/core-setup/commits/%s'
-    url = url_format % commit_sha
+    if repository is None:
+        urlformat = 'https://api.github.com/repos/dotnet/core-setup/commits/%s'
+        url = urlformat % commit_sha
+    else:
+        url_path = urlparse(repository).path
+        tokens = url_path.split("/")
+        if len(tokens) != 3:
+            raise ValueError('Unable to determine owner and repo from url.')
+        owner = tokens[1]
+        repo = tokens[2]
+        urlformat = 'https://api.github.com/repos/%s/%s/commits/%s'
+        url = urlformat % (owner, repo, commit_sha)
 
     with urlopen(url) as response:
         item = loads(response.read().decode('utf-8'))
@@ -225,7 +236,7 @@ def __find_build_directory(
         'Unable to determine directory for the specified pattern.')
 
 
-def get_dotnet_directory() -> str:
+def get_directory() -> str:
     '''Gets the default directory where dotnet is to be installed.'''
     return path.join(get_tools_directory(), 'dotnet')
 
@@ -244,7 +255,7 @@ def install(
     getLogger().info('-' * len(start_msg))
 
     if not install_dir:
-        install_dir = get_dotnet_directory()
+        install_dir = get_directory()
     if not path.exists(install_dir):
         makedirs(install_dir)
 
@@ -340,7 +351,7 @@ def __process_arguments(args: list):
         dest='install_dir',
         required=False,
         type=str,
-        default=get_dotnet_directory(),
+        default=get_directory(),
         help='''Path to where to install dotnet. Note that binaries will be
         placed directly in a given directory.'''
     )

@@ -178,6 +178,7 @@ class BenchView:
         cmdline = [
             self.python,
             path.join(self.tools_directory, 'upload.py'),
+            path.join(working_directory, 'submission.json'),
             '--container', container,
         ]
         RunCommand(cmdline, verbose=self.verbose).run(working_directory)

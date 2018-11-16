@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""
+'''
 This wraps all the logic of how to build/run the .NET micro benchmarks,
 acquire tools, gather data into BenchView format and upload it, archive
 results, etc.
@@ -8,16 +8,15 @@ results, etc.
 This is meant to be used on CI runs and available for local runs,
 so developers can easily reproduce what runs in the lab.
 
-The micro benchmarks themselves can be built and run using the DotNet tools.
-"""
+NOTE: The micro benchmarks themselves can be built and run using the DotNet tools.
+'''
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, ArgumentTypeError
+from datetime import datetime
 from glob import iglob
-from io import StringIO
 from itertools import chain
 from logging import getLogger
 
-import csv
 import os
 import platform
 import sys
@@ -32,6 +31,33 @@ import dotnet
 import micro_benchmarks
 
 
+# TODO: Test Linux
+if sys.platform != 'win32':
+    getLogger().error('Non-Windows platforms have not been tested')
+    exit(1)
+
+if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
+    message = '''The `linux_distribution` method is missing from ''' \
+        '''the `platform` module, which is used to find out information ''' \
+        '''about the OS flavor/version we are using.%s''' \
+        '''The Python Docs state that `platform.linux_distribution` is ''' \
+        '''"Deprecated since version 3.5, will be removed in version 3.8: ''' \
+        '''See alternative like the distro package.%s"''' \
+        '''Most systems in the lab have Python versions 3.5 and 3.6 ''' \
+        '''installed, so we are good at the moment.%s''' \
+        '''If we are hitting this issue, then it might be time to look ''' \
+        '''into using the `distro` module, and possibly packaing as part ''' \
+        '''of the dependencies of these scripts/repo.'''
+    getLogger().error(message, os.linesep, os.linesep, os.linesep)
+    exit(1)
+
+PRODUCT_INFO = [
+    'init-tools',  # Default
+    'repo',
+    'cli',
+]
+
+
 def init_tools(
         architecture: str,
         channel: str,
@@ -41,6 +67,11 @@ def init_tools(
     This function writes a semaphore file when tools have been successfully
     installed in order to avoid reinstalling them on every rerun.
     '''
+    # Set common environment variables.
+    os.environ['DOTNET_CLI_TELEMETRY_OPTOUT'] = '1'
+    os.environ['DOTNET_MULTILEVEL_LOOKUP'] = '0'
+    os.environ['UseSharedCompilation'] = 'false'
+
     semaphore_file = os.path.join(get_tools_directory(), 'init_tools.sem')
 
     if not os.path.isfile(semaphore_file):
@@ -53,7 +84,7 @@ def init_tools(
         getLogger().info('Tools already installed.')
 
     # Add installed dotnet cli to PATH
-    os.environ["PATH"] = dotnet.get_dotnet_directory() + os.pathsep + \
+    os.environ["PATH"] = dotnet.get_directory() + os.pathsep + \
         os.environ["PATH"]
 
 
@@ -69,22 +100,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     # Restore/Build/Run functionality for MicroBenchmarks.csproj
     micro_benchmarks.add_arguments(parser)
 
-    def __get_bdn_arguments(user_input: str) -> list:
-        file = StringIO(user_input)
-        reader = csv.reader(file, delimiter=' ')
-        for args in reader:
-            return args
-        return []
-
-    parser.add_argument(
-        '--bdn-arguments',
-        dest='bdn_arguments',
-        required=False,
-        type=__get_bdn_arguments,
-        help='''Command line arguments to be passed to the BenchmarkDotNet
-        harness.'''
-    )
-
     # .NET Runtime Options.
     parser.add_argument(
         '--optimization-level',
@@ -92,6 +107,54 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         required=False,
         default='tiered',
         choices=['tiered', 'full_opt', 'min_opt']
+    )
+
+    parser.add_argument(
+        '--cli-source-info',
+        dest='cli_source_info',
+        required=False,
+        default=PRODUCT_INFO[0],
+        choices=PRODUCT_INFO,
+        help='Specifies where the product information comes from.',
+    )
+    parser.add_argument(
+        '--cli-branch',
+        dest='cli_branch',
+        required=False,
+        type=str,
+        help='Product branch.'
+    )
+    parser.add_argument(
+        '--cli-commit-sha',
+        dest='cli_commit_sha',
+        required=False,
+        type=str,
+        help='Product commit sha.'
+    )
+    parser.add_argument(
+        '--cli-repository',
+        dest='cli_repository',
+        required=False,
+        type=str,
+        help='Product repository.'
+    )
+
+    def __is_valid_datetime(dt: str) -> str:
+        try:
+            datetime.strptime(dt, '%Y-%m-%dT%H:%M:%SZ')
+            return dt
+        except ValueError:
+            raise ArgumentTypeError(
+                'Datetime "{}" is in the wrong format.'.format(dt))
+
+    parser.add_argument(
+        '--cli-source-timestamp',
+        dest='cli_source_timestamp',
+        required=False,
+        type=__is_valid_datetime,
+        help='''Product timestamp of the soruces used to generate this build
+            (date-time from RFC 3339, Section 5.6.
+            "%%Y-%%m-%%dT%%H:%%M:%%SZ").'''
     )
 
     # BenchView acquisition, and fuctionality
@@ -176,7 +239,7 @@ def __process_arguments(args: list):
         description='Tool to run .NET micro benchmarks',
         allow_abbrev=False,
         epilog='''Additional information:
-        ''')
+        %s''' % __doc__)
     add_arguments(parser)
     return parser.parse_args(args)
 
@@ -185,16 +248,7 @@ def __get_coreclr_os_name():
     if sys.platform == 'win32':
         return 'Windows_NT'
     elif sys.platform == 'linux':
-        def __linux_distribution():
-            try:
-                return platform.linux_distribution()
-            except:
-                platform_error_message = \
-                    'Unable to determine OS. ' \
-                    'Time to look into the distro module.'
-                getLogger().error(platform_error_message)
-                raise NotImplementedError(platform_error_message)
-        os_name, os_version, _ = __linux_distribution()
+        os_name, os_version, _ = platform.linux_distribution()
         return '{}{}'.format(os_name, os_version)
     else:
         return platform.platform()
@@ -225,12 +279,36 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
         working_directory=bin_directory,
         name=args.benchview_submission_name)
 
+    subparser = 'none'
+    branch = args.cli_branch
+    commit_sha = args.cli_commit_sha
+    repository = args.cli_repository
+    source_timestamp = args.cli_source_timestamp
+
+    if args.cli_source_info == 'cli':
+        commit_sha = dotnet.get_host_commit_sha(args.cli)
+        source_timestamp = dotnet.get_commit_date(commit_sha, repository)
+    elif args.cli_source_info == 'init-tools':
+        branch = args.channel
+        commit_sha = dotnet.get_host_commit_sha(
+            os.path.join(dotnet.get_directory(), 'dotnet')
+        )
+        repository = 'https://github.com/dotnet/core-setup'
+        source_timestamp = dotnet.get_commit_date(commit_sha)
+    elif args.cli_source_info == 'repo':
+        subparser = 'git'
+    else:
+        raise ValueError('Unknown build source.')
+
     # BenchView build.py
-    # TODO: pass more parameters.
     scripts.build(
         working_directory=bin_directory,
         build_type=args.benchview_run_type,
-        subparser='git')
+        subparser=subparser,
+        branch=branch,
+        commit=commit_sha,
+        repository=repository,
+        source_timestamp=source_timestamp)
 
     # BenchView machinedata.py
     scripts.machinedata(working_directory=bin_directory)
@@ -257,7 +335,7 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
     if 'Configuration' not in benchview_config:
         benchview_config['Configuration'] = args.configuration
 
-    # TODO: Generate existing configs. Maybe this is a good time to unify them?
+    # Generate existing configs. This may be a good time to unify them?
     submission_architecture = args.architecture
     if args.category.casefold() == 'CoreClr'.casefold():
         benchview_config['JitName'] = 'ryujit'  # This is currently fixed.
@@ -297,11 +375,6 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
 
 def __main(args: list) -> int:
     validate_supported_runtime()
-
-    # TODO: Enable Linux
-    if sys.platform != 'win32':
-        raise NotImplementedError('Non-Windows platforms have not been tested')
-
     args = __process_arguments(args)
     verbose = not args.quiet
     setup_loggers(verbose=verbose)
@@ -311,14 +384,6 @@ def __main(args: list) -> int:
         raise RuntimeError("""In order to generate BenchView data,
             `--benchview-submission-name` must be provided.""")
 
-    # Set common environment variables.
-    os.environ['DOTNET_CLI_TELEMETRY_OPTOUT'] = '1'
-    os.environ['DOTNET_MULTILEVEL_LOOKUP'] = '0'
-    os.environ['UseSharedCompilation'] = 'false'
-
-    # Line below due to: https://github.com/dotnet/cli/issues/10196
-    os.environ['DOTNET_ROOT'] = dotnet.get_dotnet_directory()
-
     # Acquire necessary tools (dotnet, and BenchView)
     init_tools(
         architecture=args.architecture,
@@ -326,7 +391,8 @@ def __main(args: list) -> int:
         verbose=verbose)
 
     # Configure .NET Runtime
-    # TODO: Is this still correct?
+    # TODO: Is this still correct across releases?
+    #   Does it belong in the script?
     if args.optimization_level == 'min_opt':
         os.environ['COMPlus_JITMinOpts'] = '1'
         os.environ['COMPlus_TieredCompilation'] = '0'
@@ -352,25 +418,18 @@ def __main(args: list) -> int:
             run_args += ['--allCategories', args.category]
         if args.corerun_path:
             run_args += ['--coreRun', args.corerun_path]
-        if args.dotnet_path:
-            run_args += ['--cli', args.dotnet_path]
+        if args.cli:
+            run_args += ['--cli', args.cli]
         if args.enable_pmc:
             run_args += [
                 '--counters',
                 'BranchMispredictions+CacheMisses+InstructionRetired',
             ]
-        run_args += [
-            '--maxIterationCount', str(args.max_iteration_count),
-            '--minIterationCount', str(args.min_iteration_count),
-            # '--filter', '*Adams*',
-        ]
 
         # Extra BenchmarkDotNet cli arguments.
         if args.bdn_arguments:
             run_args += args.bdn_arguments
 
-        # FIXME: BenchmarkDotNet harness should return non-zero exit code
-        #   when wrong argument is passed!
         micro_benchmarks.run(
             args.configuration,
             framework,

@@ -108,27 +108,14 @@ def push_dir(path: str = None) -> None:
     if path:
         prev = os.getcwd()
         try:
-            getLogger().info('pushd "%s"', path)
+            getLogger().info('$ pushd "%s"', path)
             os.chdir(path)
             yield
         finally:
-            getLogger().info('popd')
+            getLogger().info('$ popd')
             os.chdir(prev)
     else:
         yield
-
-
-def __install_dotnet_cli(architecture: str, branch: str) -> None:
-    dotnet_install_py = os.path.join(
-        get_repo_root_path(), 'scripts', 'dotnet-install.py')
-    cmdline = [
-        get_python_executable(), dotnet_install_py,
-        '-arch', architecture,
-        '-branch', branch
-    ]
-    RunCommand(cmdline=cmdline, verbose=True).run(
-        working_directory=get_repo_root_path()
-    )
 
 
 class RunCommand:
@@ -177,7 +164,8 @@ class RunCommand:
         '''Executes specified shell command.'''
         should_pipe = self.verbose
         with push_dir(working_directory):
-            quoted_cmdline = list2cmdline(self.cmdline)
+            quoted_cmdline = '$ '
+            quoted_cmdline += list2cmdline(self.cmdline)
             quoted_cmdline += ' > {}'.format(
                 os.devnull) if not should_pipe else ''
 
@@ -197,7 +185,6 @@ class RunCommand:
                                 getLogger().info(line)
 
                     proc.wait()
-                    # FIXME: dotnet child processes are still running.
 
                     if proc.returncode not in self.success_exit_codes:
                         getLogger().error(

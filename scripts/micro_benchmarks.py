@@ -9,12 +9,14 @@ from argparse import ArgumentError
 from argparse import ArgumentParser
 from argparse import ArgumentTypeError
 from argparse import SUPPRESS
+from io import StringIO
 from logging import getLogger
 from os import path
 from subprocess import CalledProcessError
 from traceback import format_exc
 from typing import Tuple
 
+import csv
 import sys
 
 from performance.common import get_repo_root_path
@@ -49,13 +51,16 @@ class TargetFrameworkAction(Action):
     @staticmethod
     def get_supported_target_frameworks() -> list:
         '''List of supported .NET Core target frameworks.'''
-        return [
+        # TODO: Can we do better? Read from csproj?
+        frameworks = [
             'netcoreapp3.0',
             'netcoreapp2.2',
             'netcoreapp2.1',
             'netcoreapp2.0',
-            'net461'
         ]
+        if sys.platform == 'win32':
+            frameworks.append('net461')
+        return frameworks
 
 
 def get_supported_configurations() -> list:
@@ -115,16 +120,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         required=False,
         choices=['coreclr', 'corefx'],
         type=str.lower)
-    parser.add_argument(
-        '--max-iteration-count',
-        dest='max_iteration_count',
-        type=int,
-        default=20)
-    parser.add_argument(
-        '--min-iteration-count',
-        dest='min_iteration_count',
-        type=int,
-        default=15)
 
     def __valid_file_path(file_path: str) -> str:
         '''Verifies that specified file path exists.'''
@@ -140,11 +135,27 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         type=__valid_file_path,
         help='Path to CoreRun.exe')
     parser.add_argument(
-        '--dotnet-path',
-        dest='dotnet_path',
+        '--cli',
+        dest='cli',
         required=False,
         type=__valid_file_path,
-        help='Path to dotnet.exe')
+        help='Full path to dotnet.exe')
+
+    def __get_bdn_arguments(user_input: str) -> list:
+        file = StringIO(user_input)
+        reader = csv.reader(file, delimiter=' ')
+        for args in reader:
+            return args
+        return []
+
+    parser.add_argument(
+        '--bdn-arguments',
+        dest='bdn_arguments',
+        required=False,
+        type=__get_bdn_arguments,
+        help='''Command line arguments to be passed to the BenchmarkDotNet
+        harness.'''
+    )
 
     return parser
 
@@ -247,17 +258,18 @@ def __main(args: list) -> int:
                 run_args += ['--allCategories', args.category]
             if args.corerun_path:
                 run_args += ['--coreRun', args.corerun_path]
-            if args.dotnet_path:
-                run_args += ['--cli', args.dotnet_path]
+            if args.cli:
+                run_args += ['--cli', args.cli]
             if args.enable_pmc:
                 run_args += [
                     '--counters',
                     'BranchMispredictions+CacheMisses+InstructionRetired',
                 ]
-            run_args += [
-                '--maxIterationCount', str(args.max_iteration_count),
-                '--minIterationCount', str(args.min_iteration_count)
-            ]
+
+            # Extra BenchmarkDotNet cli arguments.
+            if args.bdn_arguments:
+                run_args += args.bdn_arguments
+
             # dotnet run
             run(configuration, framework, verbose, *run_args)
 
