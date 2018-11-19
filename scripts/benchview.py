@@ -152,8 +152,8 @@ class BenchView:
 
         cmdline = [
             self.python, path.join(self.tools_directory, 'submission.py'),
-            # path.join(working_directory, 'measurement.json'),
-            ' '.join(measurement_jsons),
+
+            *measurement_jsons,
 
             '--build', path.join(
                 working_directory, 'build.json'),
