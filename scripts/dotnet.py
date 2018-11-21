@@ -223,10 +223,16 @@ def __find_build_directory(
     Attempts to get the output directory where the built artifacts are in
     with respect to the current working directory.
     '''
-    pattern = '*/{Configuration}/{TargetFramework}/'.format(
-        Configuration=configuration,
-        TargetFramework=framework
-    )
+    if platform == 'win32':
+        pattern = '*/{Configuration}/{TargetFramework}/'.format(
+            Configuration=configuration,
+            TargetFramework=framework
+        )
+    else:
+        pattern = '*{Configuration}/*{TargetFramework}/'.format(
+            Configuration=configuration,
+            TargetFramework=framework
+        )
 
     for path_name in iglob(pattern, recursive=True):
         if path.isdir(path_name):

@@ -31,11 +31,6 @@ import dotnet
 import micro_benchmarks
 
 
-# TODO: Test Linux
-if sys.platform != 'win32':
-    getLogger().error('Non-Windows platforms have not been tested')
-    exit(1)
-
 if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
     message = '''The `linux_distribution` method is missing from ''' \
         '''the `platform` module, which is used to find out information ''' \
@@ -275,9 +270,29 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
     )
 
     # BenchView submission-metadata.py
+    submission_name = args.benchview_submission_name
+    is_pr = args.benchview_run_type == 'private' and\
+        'BenchviewCommitName' in os.environ
+    rolling_data = args.benchview_run_type == 'rolling' and \
+        'GIT_BRANCH_WITHOUT_ORIGIN' in os.environ and \
+        'GIT_COMMIT' in os.environ
+    if is_pr:
+        submission_name = '%s %s %s' % (
+            args.category,
+            args.benchview_run_type,
+            args.benchview_submission_name
+        )
+    elif rolling_data:
+        submission_name += '%s %s %s %s' % (
+            args.category,
+            args.benchview_run_type,
+            os.environ['GIT_BRANCH_WITHOUT_ORIGIN'],
+            os.environ['GIT_COMMIT']
+        )
+
     scripts.submission_metadata(
         working_directory=bin_directory,
-        name=args.benchview_submission_name)
+        name=submission_name)
 
     subparser = 'none'
     branch = args.cli_branch
@@ -352,25 +367,37 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
     # Find all measurement.json
     measurement_jsons = []
     with push_dir(bin_directory):
-        for measurement_json in iglob('**/measurement.json', recursive=True):
-            measurement_jsons.append(measurement_json)
+        for framework in args.frameworks:
+            glob_format = '**/%s/%s/measurement.json' % (
+                args.configuration,
+                framework
+            )
+            for measurement_json in iglob(glob_format, recursive=False):
+                measurement_jsons.append(measurement_json)
 
-    scripts.submission(
-        working_directory=bin_directory,
-        measurement_jsons=measurement_jsons,
-        architecture=submission_architecture,
-        config_name=benchview_config_name,
-        configs=benchview_config,
-        machinepool=args.benchview_machinepool,
-        jobgroup=args.category if args.category else '.NET Performance',
-        jobtype=args.benchview_run_type
-    )
+            jobGroup = args.category if args.category else '.NET Performance'
+            if len(args.frameworks) > 1:
+                benchview_config['Framework'] = framework
 
-    # Upload to a BenchView container.
-    if args.upload_to_benchview_container:
-        scripts.upload(
-            working_directory=bin_directory,
-            container=args.upload_to_benchview_container)
+            # BenchView submission.py
+            scripts.submission(
+                working_directory=bin_directory,
+                measurement_jsons=measurement_jsons,
+                architecture=submission_architecture,
+                config_name=benchview_config_name,
+                configs=benchview_config,
+                machinepool=args.benchview_machinepool,
+                jobgroup=jobGroup,
+                jobtype=args.benchview_run_type
+            )
+
+            # Upload to a BenchView container (upload.py).
+            # TODO: submission.py does not have an --append option,
+            #   instead upload each build/config separately.
+            if args.upload_to_benchview_container:
+                scripts.upload(
+                    working_directory=bin_directory,
+                    container=args.upload_to_benchview_container)
 
 
 def __main(args: list) -> int:
@@ -404,10 +431,7 @@ def __main(args: list) -> int:
 
     # .NET micro-benchmarks
     # Restore and build micro-benchmarks
-    micro_benchmarks.build(
-        args.configuration,
-        args.frameworks,
-        verbose)
+    micro_benchmarks.build(args.configuration, args.frameworks, verbose)
 
     # Run micro-benchmarks
     for framework in args.frameworks:
@@ -430,12 +454,7 @@ def __main(args: list) -> int:
         if args.bdn_arguments:
             run_args += args.bdn_arguments
 
-        micro_benchmarks.run(
-            args.configuration,
-            framework,
-            verbose,
-            *run_args
-        )
+        micro_benchmarks.run(args.configuration, framework, verbose, *run_args)
 
     __run_benchview_scripts(args, verbose)
     # TODO: Archive artifacts.
