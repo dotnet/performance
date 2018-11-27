@@ -40,9 +40,22 @@ To build the benchmarks you need to have the right `dotnet cli`. This repository
 
 If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) file.
 
-```dif
+```diff
 -     <TargetFrameworks>netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
 +     <TargetFrameworks>netcoreapp2.0;netcoreapp2.1</TargetFrameworks>
+```
+
+Our [Tests.csproj](../src/benchmarks/micro/Tests/Tests.csproj) file targets only .NET Core 2.1. So if you want manually edit the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) file to target .NET Core 3.0 (or any other TFM != netcoreapp2.1) and get error like:
+
+ ```log
+error NU1201: Project MicroBenchmarks is not compatible with netcoreapp2.1 (.NETCoreApp,Version=v2.1). Project MicroBenchmarks supports: netcoreapp3.0 (.NETCoreApp,Version=v3.0)
+```
+
+you need to edit [it](../src/benchmarks/micro/Tests/Tests.csproj) as well:
+
+```diff
+-     <TargetFramework>netcoreapp2.1</TargetFramework>
++     <TargetFramework>netcoreapp3.0</TargetFramework>
 ```
 
 Once you have it, you can build the [MicroBenchmarks](../src/benchmarks/micro/MicroBenchmarks.csproj) project. Please do remember that the default configuration for `dotnet cli` is `Debug`. Running benchmarks in `Debug` makes no sense, so please **always build and run it in `Release` mode**.
@@ -206,13 +219,15 @@ Pass the path to CoreRun using `--coreRun` argument. In both CoreCLR and CoreFX 
 * "C:\Projects\coreclr\bin\tests\Windows_NT.x64.Release\Tests\Core_Root\CoreRun.exe"
 * "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
 
+**Note:** BenchmarkDotNet expects a path to `CoreRun.exe` file (`corerun` on Unix), not to `Core_Root` folder.
+
 Example: Run all CoreCLR benchmarks using "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
 
 ```log
 dotnet run -c Release -f netcoreapp3.0 -- --allCategories CoreCLR --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
 ```
 
-If you want to use some non-default dotnet cli to build the benchmarks pass the path to cli via `--cli`.
+If you want to use some non-default dotnet cli (or you just don't have a default dotnet cli) to build the benchmarks pass the path to cli via `--cli`.
 If you want restore the packages to selected folder, pass it via `--packages`.
 
 Example: Run all CoreCLR benchmarks using "C:\Projects\coreclr\bin\tests\Windows_NT.x64.Release\Tests\Core_Root\CoreRun.exe", restore the packages to C:\Projects\coreclr\packages and use "C:\Projects\coreclr\Tools\dotnetcli\dotnet.exe" for building the benchmarks.
@@ -297,3 +312,18 @@ dotnet run -c Release -f netcoreapp2.1 -- -f * --runtimes netcoreapp2.1 netcorea
 ### New API
 
 In case you want to add a new method to CoreFX and test its performance, then you need to follow [CoreFX benchmarking instructions](https://github.com/dotnet/corefx/blob/master/Documentation/project-docs/benchmarking.md).
+
+
+### Troubleshooting
+
+BenchmarkDotNet uses MSBuild to build the auto-generated project with benchmarks. If you ever get following error:
+
+```log
+/home/username/dotnet30/sdk/3.0.100-preview-009750/Microsoft.Common.CurrentVersion.targets(4551,5): warning MSB3026: Could not copy "/home/username/git/performance/src/benchmarks/micro/obj/Release/netcoreapp3.0/MicroBenchmarks" to "bin/Release/netcoreapp3.0/MicroBenchmarks". Beginning retry 1 in 1000ms. Text file busy  [/home/username/git/performance/src/benchmarks/micro/MicroBenchmarks.csproj]
+```
+
+Please:
+
+1. Try to re-run the command once.
+2. If re-run does not help, please remove `bin` and `obj` folders and try again.
+3. If it still does not work, follow [Troubleshooting guidlines](https://benchmarkdotnet.org/articles/guides/troubleshooting.html)
