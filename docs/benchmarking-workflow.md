@@ -258,17 +258,35 @@ dotnet run -c Release -f netcoreapp3.0 -- --filter *Span* --coreRun "C:\Projects
 8. Compare the results.
 9. Repeat steps 3-8 until you get the desired speedup.
 
-### Checking for regressions
+### Checking for regressions using Statistical Test
 
-1. Run the benchmarks with and without your changes.
-2. Compare the results.
+To perform a Mann–Whitney U Test and display the results in a dedicated column you need to provide the Threshold:
 
-Example: compare the CoreFX located in `C:\Projects\corefx_upstream\` vs `C:\Projects\corefx_fork\` for BenchmarksGame benchmarks.
+* `--statisticalTest` - Threshold for Statistical Test. Examples: 5%, 10ms, 100ns, 1s
+
+Example: run Mann–Whitney U test with an absolute ratio of 3 milliseconds and compare the CoreFX located in `C:\Projects\corefx_upstream\` vs `C:\Projects\corefx_fork\` for BenchmarksGame benchmarks.
+
+The following commands are represented in a few lines to make it easier to read on GitHub. Please remove the new lines when copy-pasting to console.
 
 ```log
-dotnet run -c Release -f netcoreapp3.0 -- --allCategories BenchmarksGame --coreRun "C:\Projects\corefx_upstream\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe" --artifacts "upstream"
-dotnet run -c Release -f netcoreapp3.0 -- --allCategories BenchmarksGame --coreRun "C:\Projects\corefx_fork\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe" --artifacts "fork"
+dotnet run -c Release -f netcoreapp3.0
+    --allCategories BenchmarksGame 
+    --statisticalTest 3ms
+    --coreRun 
+        "C:\Projects\corefx_upstream\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
+        "C:\Projects\corefx_fork\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
 ```
+
+Example: run all benchmarks for .NET Core 2.1 vs 2.2 and use Mann–Whitney U test with a relative ratio of 5%.
+
+```log
+dotnet run -c Release -f netcoreapp2.1 -- 
+    --filter *
+    --statisticalTest 5%
+    --runtimes netcoreapp2.1 netcoreapp2.2
+```
+
+**Note:** some of our benchmarks are dependent on the alignment. You can use `--launchCount` option to specify how many processes BenchmarkDotNet should start to run given benchmarks. BDN does it sequentially. It's recommended to use this feature when releasing a new version of .NET Framework.
 
 **Note:** you don't need two copies of CoreCLR/FX to compare the performance. But in that case you have to run the benchmarks at least once before applying any changes.
 
