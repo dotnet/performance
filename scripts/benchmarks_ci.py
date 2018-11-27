@@ -27,8 +27,6 @@ parser.add_argument('-category', dest='category', required=True, choices=['corec
 parser.add_argument('-branch', dest='branch', required=True)
 parser.add_argument('-runType', dest='runType', default='rolling', choices=['rolling', 'private', 'local'])
 parser.add_argument('-maxIterations', dest='maxIterations', type=int, default=20)
-parser.add_argument('-buildOnly', dest='buildOnly', default=False, action='store_true')
-parser.add_argument('-skipBuild', dest='skipBuild', default=False, action='store_true')
 
 ##########################################################################
 # Helper Functions
@@ -187,22 +185,20 @@ def main(args):
     benchmarksDirectoryPath = os.path.join(workspace, 'src', 'benchmarks', 'micro')
     os.chdir(benchmarksDirectoryPath)
 
-    if not args.skipBuild:
-        # Build the MicroBenchmarks project
-        performanceHarnessCsproj = os.path.join('MicroBenchmarks.csproj')
-        runArgs = [dotnetPath, 'restore', performanceHarnessCsproj]
-        run_command(runArgs, runEnv, 'Failed to restore %s' % performanceHarnessCsproj)
+    # Build the MicroBenchmarks project
+    performanceHarnessCsproj = os.path.join('MicroBenchmarks.csproj')
+    runArgs = [dotnetPath, 'restore', performanceHarnessCsproj]
+    run_command(runArgs, runEnv, 'Failed to restore %s' % performanceHarnessCsproj)
 
-        runArgs = [dotnetPath, 'publish', performanceHarnessCsproj, '-c', 'Release', '-f', args.framework]
-        run_command(runArgs, runEnv, 'Failed to publish %s' % performanceHarnessCsproj)
+    runArgs = [dotnetPath, 'publish', performanceHarnessCsproj, '-c', 'Release', '-f', args.framework]
+    run_command(runArgs, runEnv, 'Failed to publish %s' % performanceHarnessCsproj)
 
-    if not args.buildOnly:
-        # Run the tests
-        benchmarkOutputDir = os.path.join(benchmarksDirectoryPath, 'bin', 'Release', args.framework, 'publish')
-        os.chdir(benchmarkOutputDir)
+    # Run the tests
+    benchmarkOutputDir = os.path.join(benchmarksDirectoryPath, 'bin', 'Release', args.framework, 'publish')
+    os.chdir(benchmarkOutputDir)
 
-        runArgs = [dotnetPath, 'MicroBenchmarks.dll', '--cli', dotnetPath, '--tfms', args.framework, '--allCategories', args.category, '--maxIterationCount', str(args.maxIterations)]
-        run_command(runArgs, runEnv, 'Failed to run MicroBenchmarks.dll')
+    runArgs = [dotnetPath, 'MicroBenchmarks.dll', '--cli', dotnetPath, '--tfms', args.framework, '--allCategories', args.category, '--maxIterationCount', str(args.maxIterations)]
+    run_command(runArgs, runEnv, 'Failed to run MicroBenchmarks.dll')
 
     if args.uploadToBenchview:
         # Download nuget
