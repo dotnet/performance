@@ -219,7 +219,7 @@ Pass the path to CoreRun using `--coreRun` argument. In both CoreCLR and CoreFX 
 * "C:\Projects\coreclr\bin\tests\Windows_NT.x64.Release\Tests\Core_Root\CoreRun.exe"
 * "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
 
-**Note:** BenchmarkDotNet expects a path to `CoreRun` file, not to `Core_Root` folder.
+**Note:** BenchmarkDotNet expects a path to `CoreRun.exe` file (`corerun` on Unix), not to `Core_Root` folder.
 
 Example: Run all CoreCLR benchmarks using "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
 
