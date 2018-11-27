@@ -320,10 +320,10 @@ BenchmarkDotNet uses MSBuild to build the auto-generated project with benchmarks
 
 ```log
 /home/username/dotnet30/sdk/3.0.100-preview-009750/Microsoft.Common.CurrentVersion.targets(4551,5): warning MSB3026: Could not copy "/home/username/git/performance/src/benchmarks/micro/obj/Release/netcoreapp3.0/MicroBenchmarks" to "bin/Release/netcoreapp3.0/MicroBenchmarks". Beginning retry 1 in 1000ms. Text file busy  [/home/username/git/performance/src/benchmarks/micro/MicroBenchmarks.csproj]
-``
+```
 
 Please:
 
 1. Try to re-run the command once.
 2. If re-run does not help, please remove `bin` and `obj` folders and try again.
-3. If it still does not work
+3. If it still does not work, follow [Troubleshooting guidlines](https://benchmarkdotnet.org/articles/guides/troubleshooting.html)
