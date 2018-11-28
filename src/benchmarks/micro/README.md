@@ -252,7 +252,7 @@ To perform a Mann–Whitney U Test and display the results in a dedicated column
 
 Example: run Mann–Whitney U test with relative ratio of 5% for `BinaryTrees_2` for .NET Core 2.1 (base) vs .NET Core 2.2 (diff). .NET Core 2.1 will be baseline because it was first.
 
-```log
+```cmd
 dotnet run -c Release -- --filter *BinaryTrees_2* --runtimes netcoreapp2.1 netcoreapp2.2 --statisticalTest 5%
 ```
 

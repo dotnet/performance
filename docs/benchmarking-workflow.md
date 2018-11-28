@@ -268,7 +268,7 @@ Example: run Mann–Whitney U test with an absolute ratio of 3 milliseconds and 
 
 The following commands are represented in a few lines to make it easier to read on GitHub. Please remove the new lines when copy-pasting to console.
 
-```log
+```cmd
 dotnet run -c Release -f netcoreapp3.0
     --allCategories BenchmarksGame 
     --statisticalTest 3ms
@@ -279,7 +279,7 @@ dotnet run -c Release -f netcoreapp3.0
 
 Example: run all benchmarks for .NET Core 2.1 vs 2.2 and use Mann–Whitney U test with a relative ratio of 5%.
 
-```log
+```cmd
 dotnet run -c Release -f netcoreapp2.1 -- 
     --filter *
     --statisticalTest 5%
