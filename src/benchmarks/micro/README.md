@@ -244,6 +244,23 @@ To run benchmarks with private CoreRT build you need to provide the `IlcPath`.
 
 Sample arguments: `dotnet run -c Release -f netcoreapp2.1 -- --ilcPath C:\Projects\corert\bin\Windows_NT.x64.Release`
 
+## Statistical Test
+
+To perform a Mann–Whitney U Test and display the results in a dedicated column you need to provide the Threshold:
+
+* `--statisticalTest` - Threshold for Statistical Test. Examples: 5%, 10ms, 100ns, 1s
+
+Example: run Mann–Whitney U test with relative ratio of 5% for `BinaryTrees_2` for .NET Core 2.1 (base) vs .NET Core 2.2 (diff). .NET Core 2.1 will be baseline because it was first.
+
+```cmd
+dotnet run -c Release -- --filter *BinaryTrees_2* --runtimes netcoreapp2.1 netcoreapp2.2 --statisticalTest 5%
+```
+
+|        Method |     Toolchain |     Mean | MannWhitney(5%) |
+|-------------- |-------------- |---------:|---------------- |
+| BinaryTrees_2 | netcoreapp2.1 | 124.4 ms |            Base |
+| BinaryTrees_2 | netcoreapp2.2 | 153.7 ms |          Slower |
+
 ## Enabling given benchmark(s) for selected Operating System(s)
 
 This is possible with the `AllowedOperatingSystemsAttribute`. You need to provide a mandatory comment and OS(es) which benchmark(s) can run on.
