@@ -104,6 +104,17 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Target frameworks to publish for.',
     )
 
+    parser.add_argument(
+        '--incremental',
+        required=False,
+        default='yes',
+        choices=['yes', 'no'],
+        type=str,
+        help='''Controls whether previous packages/bin/obj folders should be
+            kept or removed before the dotnet restore/build/run are executed.
+            ''',
+    )
+
     # BenchmarkDotNet
     parser.add_argument(
         '--enable-hardware-counters',
@@ -129,11 +140,11 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         return file_path
 
     parser.add_argument(
-        '--corerun-path',
-        dest='corerun_path',
+        '--corerun',
+        dest='corerun',
         required=False,
         type=__valid_file_path,
-        help='Path to CoreRun.exe')
+        help='Path to CoreRun.exe (corerun on Unix)')
     parser.add_argument(
         '--cli',
         dest='cli',
@@ -180,17 +191,21 @@ def __process_arguments(args: list) -> Tuple[list, bool]:
 def build(
         configuration: str,
         frameworks: list,
+        incremental: str,
         verbose: bool) -> None:
     '''Restores and builds the benchmarks'''
-    __log_script_header("Removing packages, bin and obj folders.")
+
     packages = path.join(get_repo_root_path(), 'packages')
-    binary_folders = [
-        packages,
-        path.join(BENCHMARKS_CSPROJ.working_directory, 'bin'),
-        path.join(BENCHMARKS_CSPROJ.working_directory, 'obj'),
-    ]
-    for binary_folder in binary_folders:
-        remove_directory(path=binary_folder)
+
+    if incremental == 'no':
+        __log_script_header("Removing packages, bin and obj folders.")
+        binary_folders = [
+            packages,
+            path.join(BENCHMARKS_CSPROJ.working_directory, 'bin'),
+            path.join(BENCHMARKS_CSPROJ.working_directory, 'obj'),
+        ]
+        for binary_folder in binary_folders:
+            remove_directory(path=binary_folder)
 
     # dotnet restore
     __log_script_header("Restoring .NET micro benchmarks")
@@ -200,8 +215,7 @@ def build(
     build_title = "Building .NET micro benchmarks for '{}'".format(
         ' '.join(frameworks))
     __log_script_header(build_title)
-    args = ['--no-restore']
-    BENCHMARKS_CSPROJ.build(configuration, frameworks, verbose, *args)
+    BENCHMARKS_CSPROJ.build(configuration, frameworks, verbose)
 
 
 def run(
@@ -237,6 +251,7 @@ def __main(args: list) -> int:
 
         configuration = args.configuration
         frameworks = args.frameworks
+        incremental = args.incremental
         verbose = args.verbose
 
         setup_loggers(verbose=verbose)
@@ -245,19 +260,14 @@ def __main(args: list) -> int:
         dotnet.info(verbose)
 
         # dotnet build
-        build(configuration, frameworks, verbose)
+        build(configuration, frameworks, incremental, verbose)
 
         for framework in frameworks:
-            run_args = [
-                # FIXME: netcoreapp2.1 broken?
-                # FIXME: netcoreapp2.0 builds both 2.0 and 2.1?
-                # '--no-restore', '--no-build',
-                '--',
-            ]
+            run_args = ['--']
             if args.category:
                 run_args += ['--allCategories', args.category]
-            if args.corerun_path:
-                run_args += ['--coreRun', args.corerun_path]
+            if args.corerun:
+                run_args += ['--coreRun', args.corerun]
             if args.cli:
                 run_args += ['--cli', args.cli]
             if args.enable_pmc:

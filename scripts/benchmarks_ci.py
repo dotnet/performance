@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
 
 '''
-This wraps all the logic of how to build/run the .NET micro benchmarks,
+Additional information:
+
+This script wraps all the logic of how to build/run the .NET micro benchmarks,
 acquire tools, gather data into BenchView format and upload it, archive
 results, etc.
 
 This is meant to be used on CI runs and available for local runs,
 so developers can easily reproduce what runs in the lab.
 
-NOTE: The micro benchmarks themselves can be built and run using the DotNet tools.
+Note:
+
+The micro benchmarks themselves can be built and run using the DotNet Cli tool.
+
+For more information refer to:
+
+https://github.com/dotnet/performance/blob/master/docs/benchmarking-workflow.md
 '''
 
 from argparse import ArgumentParser, ArgumentTypeError
@@ -233,8 +241,9 @@ def __process_arguments(args: list):
     parser = ArgumentParser(
         description='Tool to run .NET micro benchmarks',
         allow_abbrev=False,
-        epilog='''Additional information:
-        %s''' % __doc__)
+        # epilog=os.linesep.join(__doc__.splitlines())
+        epilog=__doc__,
+    )
     add_arguments(parser)
     return parser.parse_args(args)
 
@@ -263,7 +272,9 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
     if not args.generate_benchview_data:
         return
 
-    scripts = benchview.BenchView(verbose)
+    # TODO: Delete previously generated BenchView data (*.json)
+
+    benchviewpy = benchview.BenchView(verbose)
     bin_directory = os.path.join(
         micro_benchmarks.BENCHMARKS_CSPROJ.working_directory,
         'bin'
@@ -290,7 +301,7 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
             os.environ['GIT_COMMIT']
         )
 
-    scripts.submission_metadata(
+    benchviewpy.submission_metadata(
         working_directory=bin_directory,
         name=submission_name)
 
@@ -316,7 +327,7 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
         raise ValueError('Unknown build source.')
 
     # BenchView build.py
-    scripts.build(
+    benchviewpy.build(
         working_directory=bin_directory,
         build_type=args.benchview_run_type,
         subparser=subparser,
@@ -326,7 +337,7 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
         source_timestamp=source_timestamp)
 
     # BenchView machinedata.py
-    scripts.machinedata(working_directory=bin_directory)
+    benchviewpy.machinedata(working_directory=bin_directory)
 
     for framework in args.frameworks:
         working_directory = dotnet.get_build_directory(
@@ -336,7 +347,7 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
         )
 
         # BenchView measurement.py
-        scripts.measurement(working_directory=working_directory)
+        benchviewpy.measurement(working_directory=working_directory)
 
     # Build the BenchView configuration data
     benchview_config_name = args.benchview_config_name \
@@ -380,7 +391,7 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
                 benchview_config['Framework'] = framework
 
             # BenchView submission.py
-            scripts.submission(
+            benchviewpy.submission(
                 working_directory=bin_directory,
                 measurement_jsons=measurement_jsons,
                 architecture=submission_architecture,
@@ -395,7 +406,7 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
             # TODO: submission.py does not have an --append option,
             #   instead upload each build/config separately.
             if args.upload_to_benchview_container:
-                scripts.upload(
+                benchviewpy.upload(
                     working_directory=bin_directory,
                     container=args.upload_to_benchview_container)
 
@@ -431,7 +442,12 @@ def __main(args: list) -> int:
 
     # .NET micro-benchmarks
     # Restore and build micro-benchmarks
-    micro_benchmarks.build(args.configuration, args.frameworks, verbose)
+    micro_benchmarks.build(
+        args.configuration,
+        args.frameworks,
+        args.incremental,
+        verbose
+    )
 
     # Run micro-benchmarks
     for framework in args.frameworks:
@@ -440,8 +456,8 @@ def __main(args: list) -> int:
         ]
         if args.category:
             run_args += ['--allCategories', args.category]
-        if args.corerun_path:
-            run_args += ['--coreRun', args.corerun_path]
+        if args.corerun:
+            run_args += ['--coreRun', args.corerun]
         if args.cli:
             run_args += ['--cli', args.cli]
         if args.enable_pmc:

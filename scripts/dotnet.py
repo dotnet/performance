@@ -105,6 +105,7 @@ class CSharpProject:
                 'dotnet', 'build',
                 self.csproj_file,
                 '--configuration', configuration,
+                '--no-restore',
             ]
             if args:
                 cmdline = cmdline + list(args)
@@ -116,7 +117,8 @@ class CSharpProject:
                     'dotnet', 'build',
                     self.csproj_file,
                     '--configuration', configuration,
-                    '--framework', framework
+                    '--framework', framework,
+                    '--no-restore',
                 ]
                 if args:
                     cmdline = cmdline + list(args)
@@ -136,7 +138,8 @@ class CSharpProject:
             'dotnet', 'run',
             '--project', self.csproj_file,
             '--configuration', configuration,
-            '--framework', framework
+            '--framework', framework,
+            '--no-restore', '--no-build',
         ]
 
         if args:

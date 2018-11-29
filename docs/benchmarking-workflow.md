@@ -40,7 +40,7 @@ To build the benchmarks you need to have the right `dotnet cli`. This repository
 - You can get .NET Core 2.0, 2.1 and 2.2 from [https://www.microsoft.com/net/download/archives](https://www.microsoft.com/net/download/archives)
 - The preview of 3.0 is available at [https://github.com/dotnet/core-sdk#installers-and-binaries](https://github.com/dotnet/core-sdk#installers-and-binaries)
 
-If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) file.
+If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [common.props](../src/benchmarks/micro/common.props) file.
 
 ```diff
 -     <TargetFrameworks>netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>

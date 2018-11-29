@@ -109,8 +109,8 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
         // CoreCLR perf jobs
         [true, false].each { isPR ->
             ['x64', 'x86'].each { arch ->
-                jobName = "coreclr_perf_${os}_${arch}"
-                newJob = job(InternalUtilities.getFullJobName(project, jobName, isPR)) {
+                def jobName = "coreclr_perf_${os}_${arch}"
+                def newJob = job(InternalUtilities.getFullJobName(project, jobName, isPR)) {
                     wrappers {
                         credentialsBinding {
                             string('BV_UPLOAD_SAS_TOKEN', 'CoreCLR Perf BenchView Sas')
@@ -123,14 +123,11 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
                         }
                     }
 
-                    runType = "rolling"
-                    iterations = "21"
-                    if (isPR) {
-                        runType = "private"
-                        iterations = "2"
-                    }
+                    def python = "C:\\Python35\\python.exe"
+                    def runType = isPR ? "private" : "rolling"
+
                     steps {
-                        batchFile("py .\\scripts\\benchmarks_ci.py --architecture ${arch} --category CoreClr -f netcoreapp3.0 --generate-benchview-data --upload-to-benchview-container coreclr --benchview-run-type ${runType}")
+                        batchFile("${python} .\\scripts\\benchmarks_ci.py --incremental no --architecture ${arch} --category CoreClr -f netcoreapp3.0 --generate-benchview-data --upload-to-benchview-container coreclr --benchview-run-type ${runType}")
                     }
 
                     label("windows_server_2016_clr_perf")
