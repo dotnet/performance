@@ -101,7 +101,9 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         nargs='*',
         action=TargetFrameworkAction,
         choices=supported_target_frameworks,
-        help='Target frameworks to publish for.',
+        help='''The target framework to build/run for. '''
+             '''The target framework must also be specified in the project '''
+             '''file.''',
     )
 
     parser.add_argument(
@@ -110,9 +112,9 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default='yes',
         choices=['yes', 'no'],
         type=str,
-        help='''Controls whether previous packages/bin/obj folders should be
-            kept or removed before the dotnet restore/build/run are executed.
-            ''',
+        help='''Controls whether previous packages/bin/obj folders should '''
+             '''be kept or removed before the dotnet restore/build/run are '''
+             '''executed (Default yes).''',
     )
 
     # BenchmarkDotNet
@@ -122,8 +124,8 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         required=False,
         default=False,
         action='store_true',
-        help='''Enables the following performance metric counters:
-            BranchMispredictions+CacheMisses+InstructionRetired'''
+        help='''Enables the following performance metric counters: '''
+             '''BranchMispredictions+CacheMisses+InstructionRetired'''
     )
 
     parser.add_argument(
@@ -144,7 +146,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         dest='corerun',
         required=False,
         type=__valid_file_path,
-        help='Path to CoreRun.exe (corerun on Unix)')
+        help='Full path to CoreRun.exe (corerun on Unix)')
     parser.add_argument(
         '--cli',
         dest='cli',

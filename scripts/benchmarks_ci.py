@@ -13,9 +13,10 @@ so developers can easily reproduce what runs in the lab.
 Note:
 
 The micro benchmarks themselves can be built and run using the DotNet Cli tool.
+For more information refer to: benchmarking-workflow.md
 
-For more information refer to:
-
+../docs/benchmarking-workflow.md
+  - or -
 https://github.com/dotnet/performance/blob/master/docs/benchmarking-workflow.md
 '''
 
@@ -24,6 +25,7 @@ from datetime import datetime
 from glob import iglob
 from itertools import chain
 from logging import getLogger
+from shutil import which
 
 import os
 import platform
@@ -70,25 +72,9 @@ def init_tools(
     This function writes a semaphore file when tools have been successfully
     installed in order to avoid reinstalling them on every rerun.
     '''
-    # Set common environment variables.
-    os.environ['DOTNET_CLI_TELEMETRY_OPTOUT'] = '1'
-    os.environ['DOTNET_MULTILEVEL_LOOKUP'] = '0'
-    os.environ['UseSharedCompilation'] = 'false'
-
-    semaphore_file = os.path.join(get_tools_directory(), 'init_tools.sem')
-
-    if not os.path.isfile(semaphore_file):
-        getLogger().info('Installing tools.')
-        dotnet.install(architecture, channel, verbose)
-        benchview.install()
-        with open(semaphore_file, 'w') as sem_file:
-            sem_file.write('done')
-    else:
-        getLogger().info('Tools already installed.')
-
-    # Add installed dotnet cli to PATH
-    os.environ["PATH"] = dotnet.get_directory() + os.pathsep + \
-        os.environ["PATH"]
+    getLogger().info('Installing tools.')
+    dotnet.install(architecture, channel, verbose)
+    benchview.install()
 
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
@@ -316,9 +302,7 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
         source_timestamp = dotnet.get_commit_date(commit_sha, repository)
     elif args.cli_source_info == 'init-tools':
         branch = args.channel
-        commit_sha = dotnet.get_host_commit_sha(
-            os.path.join(dotnet.get_directory(), 'dotnet')
-        )
+        commit_sha = dotnet.get_host_commit_sha(which('dotnet'))
         repository = 'https://github.com/dotnet/core-setup'
         source_timestamp = dotnet.get_commit_date(commit_sha)
     elif args.cli_source_info == 'repo':

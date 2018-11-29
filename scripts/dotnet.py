@@ -8,7 +8,7 @@ from argparse import ArgumentParser
 from glob import iglob
 from json import loads
 from logging import getLogger
-from os import chmod, makedirs, path
+from os import chmod, environ, makedirs, path, pathsep
 from stat import S_IRWXU
 from subprocess import check_output
 from sys import argv, platform
@@ -245,9 +245,9 @@ def __find_build_directory(
         'Unable to determine directory for the specified pattern.')
 
 
-def get_directory() -> str:
+def __get_directory(architecture: str) -> str:
     '''Gets the default directory where dotnet is to be installed.'''
-    return path.join(get_tools_directory(), 'dotnet')
+    return path.join(get_tools_directory(), 'dotnet', architecture)
 
 
 def install(
@@ -264,7 +264,7 @@ def install(
     getLogger().info('-' * len(start_msg))
 
     if not install_dir:
-        install_dir = get_directory()
+        install_dir = __get_directory(architecture)
     if not path.exists(install_dir):
         makedirs(install_dir)
 
@@ -304,6 +304,14 @@ def install(
         RunCommand(cmdline_args, verbose=verbose).run(
             get_repo_root_path()
         )
+
+    # Set DotNet Cli environment variables.
+    environ['DOTNET_CLI_TELEMETRY_OPTOUT'] = '1'
+    environ['DOTNET_MULTILEVEL_LOOKUP'] = '0'
+    environ['UseSharedCompilation'] = 'false'
+
+    # Add installed dotnet cli to PATH
+    environ["PATH"] = install_dir + pathsep + environ["PATH"]
 
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
@@ -360,7 +368,6 @@ def __process_arguments(args: list):
         dest='install_dir',
         required=False,
         type=str,
-        default=get_directory(),
         help='''Path to where to install dotnet. Note that binaries will be
         placed directly in a given directory.'''
     )
