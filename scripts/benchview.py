@@ -4,6 +4,7 @@
 Support script around BenchView script.
 '''
 
+from collections import namedtuple
 from errno import EEXIST
 from glob import iglob
 from logging import getLogger
@@ -182,6 +183,15 @@ class BenchView:
             '--container', container,
         ]
         RunCommand(cmdline, verbose=self.verbose).run(working_directory)
+
+
+BuildInfo = namedtuple('BuildInfo', [
+    'subparser',
+    'branch',
+    'commit_sha',
+    'repository',
+    'source_timestamp',
+])
 
 
 def install():

@@ -252,7 +252,7 @@ def __get_directory(architecture: str) -> str:
 
 def install(
         architecture: str,
-        channel: str,
+        channels: list,
         verbose: bool,
         install_dir: str = None) -> None:
     '''
@@ -273,8 +273,8 @@ def install(
     # Download appropriate dotnet install script
     dotnetInstallScriptExtension = '.ps1' if platform == 'win32' else '.sh'
     dotnetInstallScriptName = 'dotnet-install' + dotnetInstallScriptExtension
-    url = 'https://raw.githubusercontent.com/dotnet/cli/{}/scripts/obtain/'
-    dotnetInstallScriptUrl = url.format(channel) + dotnetInstallScriptName
+    url = 'https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/'
+    dotnetInstallScriptUrl = url + dotnetInstallScriptName
 
     dotnetInstallScriptPath = path.join(install_dir, dotnetInstallScriptName)
 
@@ -291,15 +291,12 @@ def install(
         dotnetInstallScriptPath
     ] if platform == 'win32' else [dotnetInstallScriptPath]
 
-    # TODO: Define what is the user story of this script.
-    SDK_CHANNELS = [channel]
-
     # Install Runtime/SDKs
-    for sdk_channel in SDK_CHANNELS:
+    for channel in channels:
         cmdline_args = dotnetInstallInterpreter + [
             '-InstallDir', install_dir,
             '-Architecture', architecture,
-            '-Channel', sdk_channel
+            '-Channel', channel,
         ]
         RunCommand(cmdline_args, verbose=verbose).run(
             get_repo_root_path()
@@ -332,21 +329,8 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         required=False,
         default=SUPPORTED_ARCHITECTURES[0],
         choices=SUPPORTED_ARCHITECTURES,
-        help='Architecture of DotNet Cli binaries to be installed.')
-
-    SUPPORTED_CHANNELS = [
-        'master',  # Default channel
-        'release/2.2.1xx',
-        'release/2.1',
-        'release/2.0.0',
-    ]
-    parser.add_argument(
-        '--channel',
-        dest='channel',
-        required=False,
-        default=SUPPORTED_CHANNELS[0],
-        choices=SUPPORTED_CHANNELS,
-        help='Download DotNet Cli from the Channel specified.')
+        help='Architecture of DotNet Cli binaries to be installed.'
+    )
 
     return parser
 
@@ -354,12 +338,37 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 def __process_arguments(args: list):
     parser = ArgumentParser(
         description='DotNet Cli wrapper.',
-        allow_abbrev=False)
+        allow_abbrev=False
+    )
     subparsers = parser.add_subparsers(
         title='Subcommands',
-        description='Supported DotNet Cli subcommands')
+        description='Supported DotNet Cli subcommands'
+    )
     install_parser = subparsers.add_parser(
-        'install', help='Installs dotnet cli')
+        'install',
+        allow_abbrev=False,
+        help='Installs dotnet cli',
+    )
+
+    # TODO: Could pull this information from repository.
+    SUPPORTED_CHANNELS = [
+        'master',  # Default channel
+        'release/2.2.2xx',
+        'release/2.2.1xx',
+        'release/2.1',
+        'release/2.0.0',
+        'LTS',
+    ]
+    install_parser.add_argument(
+        '--channels',
+        dest='channels',
+        required=False,
+        nargs='*',
+        default=[SUPPORTED_CHANNELS[0]],
+        choices=SUPPORTED_CHANNELS,
+        help='Download DotNet Cli from the Channel specified.'
+    )
+
     install_parser = add_arguments(install_parser)
 
     # private install arguments.
@@ -368,8 +377,8 @@ def __process_arguments(args: list):
         dest='install_dir',
         required=False,
         type=str,
-        help='''Path to where to install dotnet. Note that binaries will be
-        placed directly in a given directory.'''
+        help='''Path to where to install dotnet. Note that binaries will be '''
+             '''placed directly in a given directory.''',
     )
     install_parser.add_argument(
         '-v', '--verbose',
@@ -387,7 +396,7 @@ def __main(args: list) -> int:
     setup_loggers(verbose=args.verbose)
     install(
         architecture=args.architecture,
-        channel=args.channel,
+        channels=args.channels,
         verbose=args.verbose,
         install_dir=args.install_dir,
     )

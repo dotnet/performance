@@ -31,7 +31,6 @@ import os
 import platform
 import sys
 
-from performance.common import get_tools_directory
 from performance.common import push_dir
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
@@ -56,16 +55,10 @@ if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
     getLogger().error(message, os.linesep, os.linesep, os.linesep)
     exit(1)
 
-PRODUCT_INFO = [
-    'init-tools',  # Default
-    'repo',
-    'cli',
-]
-
 
 def init_tools(
         architecture: str,
-        channel: str,
+        frameworks: str,
         verbose: bool) -> None:
     '''
     Install tools used by this repository into the tools folder.
@@ -73,7 +66,15 @@ def init_tools(
     installed in order to avoid reinstalling them on every rerun.
     '''
     getLogger().info('Installing tools.')
-    dotnet.install(architecture, channel, verbose)
+    channels = [
+        micro_benchmarks.TargetFrameworkAction.get_channel(framework) or 'LTS'
+        for framework in frameworks
+    ]
+    dotnet.install(
+        architecture=architecture,
+        channels=channels,
+        verbose=verbose,
+    )
     benchview.install()
 
 
@@ -98,6 +99,11 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         choices=['tiered', 'full_opt', 'min_opt']
     )
 
+    PRODUCT_INFO = [
+        'init-tools',  # Default
+        'repo',
+        'cli',
+    ]
     parser.add_argument(
         '--cli-source-info',
         dest='cli_source_info',
@@ -253,6 +259,49 @@ def __get_corefx_os_name():
         return platform.platform()
 
 
+def __get_build_info(args, framework: str) -> benchview.BuildInfo:
+    # TODO: Improve complex scenarios.
+    #   Cli arguments could take multiple build info objects?
+    subparser = 'none'
+    branch = args.cli_branch
+    commit_sha = args.cli_commit_sha
+    repository = args.cli_repository
+    source_timestamp = args.cli_source_timestamp
+
+    if args.cli_source_info == 'cli':
+        # Retrieve data from the specified dotnet executable.
+        commit_sha = dotnet.get_host_commit_sha(args.cli)
+        source_timestamp = dotnet.get_commit_date(commit_sha, repository)
+    elif args.cli_source_info == 'init-tools':
+        # Retrieve data from the installed dotnet tools.
+        branch = micro_benchmarks.TargetFrameworkAction.get_channel(
+            framework
+        )
+        if not branch:
+            err_msg = 'Cannot determine build information for "%s"' % framework
+            getLogger().error(err_msg)
+            getLogger().error(
+                "Build information can be provided using the --cli-* options."
+            )
+            raise ValueError(err_msg)
+        commit_sha = dotnet.get_host_commit_sha(which('dotnet'))
+        repository = 'https://github.com/dotnet/core-setup'
+        source_timestamp = dotnet.get_commit_date(commit_sha)
+    elif args.cli_source_info == 'repo':
+        # Retrieve data from current repository.
+        subparser = 'git'
+    else:
+        raise ValueError('Unknown build source.')
+
+    return benchview.BuildInfo(
+        subparser,
+        branch,
+        commit_sha,
+        repository,
+        source_timestamp
+    )
+
+
 def __run_benchview_scripts(args: list, verbose: bool) -> None:
     '''Run BenchView scripts to collect performance data.'''
     if not args.generate_benchview_data:
@@ -291,39 +340,23 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
         working_directory=bin_directory,
         name=submission_name)
 
-    subparser = 'none'
-    branch = args.cli_branch
-    commit_sha = args.cli_commit_sha
-    repository = args.cli_repository
-    source_timestamp = args.cli_source_timestamp
-
-    if args.cli_source_info == 'cli':
-        commit_sha = dotnet.get_host_commit_sha(args.cli)
-        source_timestamp = dotnet.get_commit_date(commit_sha, repository)
-    elif args.cli_source_info == 'init-tools':
-        branch = args.channel
-        commit_sha = dotnet.get_host_commit_sha(which('dotnet'))
-        repository = 'https://github.com/dotnet/core-setup'
-        source_timestamp = dotnet.get_commit_date(commit_sha)
-    elif args.cli_source_info == 'repo':
-        subparser = 'git'
-    else:
-        raise ValueError('Unknown build source.')
-
-    # BenchView build.py
-    benchviewpy.build(
-        working_directory=bin_directory,
-        build_type=args.benchview_run_type,
-        subparser=subparser,
-        branch=branch,
-        commit=commit_sha,
-        repository=repository,
-        source_timestamp=source_timestamp)
-
     # BenchView machinedata.py
     benchviewpy.machinedata(working_directory=bin_directory)
 
     for framework in args.frameworks:
+        buildinfo = __get_build_info(args, framework)
+
+        # BenchView build.py
+        benchviewpy.build(
+            working_directory=bin_directory,
+            build_type=args.benchview_run_type,
+            subparser=buildinfo.subparser,
+            branch=buildinfo.branch,
+            commit=buildinfo.commit_sha,
+            repository=buildinfo.repository,
+            source_timestamp=buildinfo.source_timestamp
+        )
+
         working_directory = dotnet.get_build_directory(
             bin_directory=bin_directory,
             configuration=args.configuration,
@@ -409,8 +442,9 @@ def __main(args: list) -> int:
     # Acquire necessary tools (dotnet, and BenchView)
     init_tools(
         architecture=args.architecture,
-        channel=args.channel,
-        verbose=verbose)
+        frameworks=args.frameworks,
+        verbose=verbose
+    )
 
     # Configure .NET Runtime
     # TODO: Is this still correct across releases?

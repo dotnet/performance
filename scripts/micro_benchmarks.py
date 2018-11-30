@@ -51,16 +51,27 @@ class TargetFrameworkAction(Action):
     @staticmethod
     def get_supported_target_frameworks() -> list:
         '''List of supported .NET Core target frameworks.'''
-        # TODO: Can we do better? Read from csproj?
-        frameworks = [
-            'netcoreapp3.0',
-            'netcoreapp2.2',
-            'netcoreapp2.1',
-            'netcoreapp2.0',
-        ]
+        frameworks = list(
+            TargetFrameworkAction.__get_framework_channel_map().keys()
+        )
         if sys.platform == 'win32':
             frameworks.append('net461')
         return frameworks
+
+    @staticmethod
+    def __get_framework_channel_map() -> dict:
+        # TODO: Can we do better? For example, read it from csproj?
+        return {
+            'netcoreapp3.0': 'master',
+            'netcoreapp2.2': 'release/2.2.2xx',
+            'netcoreapp2.1': 'release/2.1',
+            'netcoreapp2.0': 'release/2.0.0',
+        }
+
+    @staticmethod
+    def get_channel(framework: str) -> str:
+        dct = TargetFrameworkAction.__get_framework_channel_map()
+        return dct[framework] if framework in dct else None
 
 
 def get_supported_configurations() -> list:
@@ -125,7 +136,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default=False,
         action='store_true',
         help='''Enables the following performance metric counters: '''
-             '''BranchMispredictions+CacheMisses+InstructionRetired'''
+             '''BranchMispredictions+CacheMisses+InstructionRetired''',
     )
 
     parser.add_argument(
@@ -146,13 +157,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         dest='corerun',
         required=False,
         type=__valid_file_path,
-        help='Full path to CoreRun.exe (corerun on Unix)')
+        help='Full path to CoreRun.exe (corerun on Unix)',
+    )
     parser.add_argument(
         '--cli',
         dest='cli',
         required=False,
         type=__valid_file_path,
-        help='Full path to dotnet.exe')
+        help='Full path to dotnet.exe',
+    )
 
     def __get_bdn_arguments(user_input: str) -> list:
         file = StringIO(user_input)
@@ -166,8 +179,8 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         dest='bdn_arguments',
         required=False,
         type=__get_bdn_arguments,
-        help='''Command line arguments to be passed to the BenchmarkDotNet
-        harness.'''
+        help='''Command line arguments to be passed to the BenchmarkDotNet '''
+             '''harness.''',
     )
 
     return parser
