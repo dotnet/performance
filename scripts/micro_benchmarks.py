@@ -65,7 +65,7 @@ class TargetFrameworkAction(Action):
             'netcoreapp3.0': 'master',
             'netcoreapp2.2': 'release/2.2.2xx',
             'netcoreapp2.1': '2.1',
-            'netcoreapp2.0': 'release/2.0.0',
+            'netcoreapp2.0': '2.0',
         }
 
     @staticmethod
