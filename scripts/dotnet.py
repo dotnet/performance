@@ -363,7 +363,7 @@ def __process_arguments(args: list):
         '--channels',
         dest='channels',
         required=False,
-        nargs='*',
+        nargs='+',
         default=[SUPPORTED_CHANNELS[0]],
         choices=SUPPORTED_CHANNELS,
         help='Download DotNet Cli from the Channel specified.'

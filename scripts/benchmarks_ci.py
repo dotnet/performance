@@ -483,6 +483,8 @@ def __main(args: list) -> int:
                 '--counters',
                 'BranchMispredictions+CacheMisses+InstructionRetired',
             ]
+        if args.filter:
+            run_args += ['--filter'] + args.filter
 
         # Extra BenchmarkDotNet cli arguments.
         if args.bdn_arguments:

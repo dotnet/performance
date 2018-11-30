@@ -109,7 +109,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument(
         '-f', '--frameworks',
         required=True,
-        nargs='*',
+        nargs='+',
         action=TargetFrameworkAction,
         choices=supported_target_frameworks,
         help='''The target framework to build/run for. '''
@@ -143,7 +143,14 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         '--category',
         required=False,
         choices=['coreclr', 'corefx'],
-        type=str.lower)
+        type=str.lower
+    )
+    parser.add_argument(
+        '--filter',
+        required=False,
+        nargs='+',
+        help='Glob patterns to execute benchmarks that match.',
+    )
 
     def __valid_file_path(file_path: str) -> str:
         '''Verifies that specified file path exists.'''
@@ -290,6 +297,8 @@ def __main(args: list) -> int:
                     '--counters',
                     'BranchMispredictions+CacheMisses+InstructionRetired',
                 ]
+            if args.filter:
+                run_args += ['--filter'] + args.filter
 
             # Extra BenchmarkDotNet cli arguments.
             if args.bdn_arguments:
