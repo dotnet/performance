@@ -70,6 +70,10 @@ class TargetFrameworkAction(Action):
 
     @staticmethod
     def get_channel(framework: str) -> str:
+        '''
+        Attemps to retrieve the channel that can be used to download the
+        DotNet Cli tools.
+        '''
         dct = TargetFrameworkAction.__get_framework_channel_map()
         return dct[framework] if framework in dct else None
 

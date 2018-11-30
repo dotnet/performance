@@ -261,7 +261,8 @@ def __get_corefx_os_name():
 
 def __get_build_info(args, framework: str) -> benchview.BuildInfo:
     # TODO: Improve complex scenarios.
-    #   Cli arguments could take multiple build info objects?
+    #   Could the --cli-* arguments take multiple build info objects from the
+    #   command line interface?
     subparser = 'none'
     branch = args.cli_branch
     commit_sha = args.cli_commit_sha
