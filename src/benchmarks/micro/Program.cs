@@ -9,6 +9,7 @@ using BenchmarkDotNet.Exporters.Json;
 using BenchmarkDotNet.Horology;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
+using System.IO;
 
 namespace MicroBenchmarks
 {
@@ -28,6 +29,8 @@ namespace MicroBenchmarks
                     .WithMinIterationCount(15)
                     .WithMaxIterationCount(20) // we don't want to run more that 20 iterations
                     .AsDefault()) // tell BDN that this are our default settings
+                .WithArtifactsPath(Path.Combine(
+                    Path.GetDirectoryName(typeof(Program).Assembly.Location), "BenchmarkDotNet.Artifacts"))
                 .With(MemoryDiagnoser.Default) // MemoryDiagnoser is enabled by default
                 .With(new OperatingSystemFilter())
                 .With(JsonExporter.Full) // make sure we export to Json (for BenchView integration purpose)

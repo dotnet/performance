@@ -7,18 +7,14 @@
 **/packages/
 /tools/
 **/reports/
-**/.dotnet/
 
 # Python files
 **/__pycache__/
 *.pyc
 
+# Visual Studio files
 **/.vs/
-
-# BenchmarkDotNet results
-**/BenchmarkDotNet.Artifacts/
 
 # Resharper files
 **/*.DotSettings.user
 **/.idea/**
-/src/ArtifactsUploader/**/*log*.txt

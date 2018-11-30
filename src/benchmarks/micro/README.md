@@ -41,7 +41,7 @@ Any public, non-sealed type with public `[Benchmark]` method in this assembly wi
 
 To run the benchmarks you have to execute `dotnet run -c Release -f net461|netcoreapp2.0|netcoreapp2.1|netcoreapp2.2|netcoreapp3.0` (choose one of the supported frameworks).
 
-```log
+```cmd
 PS C:\Projects\performance\src\benchmarks> dotnet run -c Release -f netcoreapp2.0
 Available Benchmarks:
   #0   Burgers
@@ -60,7 +60,7 @@ Available Benchmarks:
 
 And select one of the benchmarks from the list by either entering it's number or name. To **run all** the benchmarks simply enter `*` to the console.
 
-BenchmarkDotNet will build the executables, run the benchmarks, print the results to console and **export the results** to `.\BenchmarkDotNet.Artifacts\results`. 
+BenchmarkDotNet will build the executables, run the benchmarks, print the results to console and **export the results** to `.\BenchmarkDotNet.Artifacts\results`.
 
 ```log
 // ***** BenchmarkRunner: Finish  *****
@@ -84,7 +84,7 @@ You can filter the benchmarks by namespace, category, type name and method name.
 * `dotnet run -c Release -f netcoreapp2.1 -- --filter *.ToStream` - will run all the benchmarks with method name ToStream
 * `dotnet run -c Release -f netcoreapp2.1 -- --filter *.Richards.*` - will run all the benchmarks with type name Richards
 
-**Note:** To print a single summary for all of the benchmarks, use `--join`. 
+**Note:** To print a single summary for all of the benchmarks, use `--join`.
 Example: `dotnet run -c Release -f netcoreapp2.1 -- --join -f BenchmarksGame*` - will run all of the benchmarks from BenchmarksGame namespace and print a single summary.
 
 ## Printing all available benchmarks
@@ -156,7 +156,7 @@ The project is configured to include managed memory statistics by using [Memory 
 
 If you want to disassemble the benchmarked code, you need to use the [Disassembly Diagnoser](http://adamsitnik.com/Disassembly-Diagnoser/). It allows to disassemble `asm/C#/IL` in recursive way on Windows for .NET and .NET Core (all Jits) and `asm` for Mono on any OS.
 
-You can do that by passing `--disassm` to the app or by using `[DisassemblyDiagnoser(printAsm: true, printSource: true)]` attribute or by adding it to your config with `config.With(DisassemblyDiagnoser.Create(new DisassemblyDiagnoserConfig(printAsm: true, recursiveDepth: 1))`. 
+You can do that by passing `--disassm` to the app or by using `[DisassemblyDiagnoser(printAsm: true, printSource: true)]` attribute or by adding it to your config with `config.With(DisassemblyDiagnoser.Create(new DisassemblyDiagnoserConfig(printAsm: true, recursiveDepth: 1))`.
 
 Example: `dotnet run -c Release -f netcoreapp2.0 -- --filter System.Memory.Span<Int32>.Reverse -d`
 
@@ -184,7 +184,7 @@ M00_L00:
 
 If you want to profile the benchmarked code, you need to use the [ETW Profiler](https://adamsitnik.com/ETW-Profiler/). It allows to profile the benchmarked .NET code on Windows and exports the data to a trace file which can be opened with PerfView or Windows Performance Analyzer.
 
-You can do that by passing `-p ETW` or `--profiler ETW` to the app. 
+You can do that by passing `-p ETW` or `--profiler ETW` to the app.
 
 ## How to run In Process
 
@@ -196,7 +196,7 @@ The `--runtimes` or just `-r` allows you to run the benchmarks for selected Runt
 
 Example: run the benchmarks for .NET 4.7.2 and .NET Core 2.1:
 
-```log
+```cmd
 dotnet run -c Release -- --runtimes net472 netcoreapp2.1
 ```
 
@@ -214,11 +214,11 @@ If you are not sure which assemblies gets loaded and used you can use following 
 [GlobalSetup]
 public void PrintInfo()
 {
-	var coreFxAssemblyInfo = FileVersionInfo.GetVersionInfo(typeof(Regex).GetTypeInfo().Assembly.Location);
-	var coreClrAssemblyInfo = FileVersionInfo.GetVersionInfo(typeof(object).GetTypeInfo().Assembly.Location);
+    var coreFxAssemblyInfo = FileVersionInfo.GetVersionInfo(typeof(Regex).GetTypeInfo().Assembly.Location);
+    var coreClrAssemblyInfo = FileVersionInfo.GetVersionInfo(typeof(object).GetTypeInfo().Assembly.Location);
 
-	Console.WriteLine($"// CoreFx version: {coreFxAssemblyInfo.FileVersion}, location {typeof(Regex).GetTypeInfo().Assembly.Location}, product version {coreFxAssemblyInfo.ProductVersion}");
-	Console.WriteLine($"// CoreClr version {coreClrAssemblyInfo.FileVersion}, location {typeof(object).GetTypeInfo().Assembly.Location}, product version {coreClrAssemblyInfo.ProductVersion}");
+    Console.WriteLine($"// CoreFx version: {coreFxAssemblyInfo.FileVersion}, location {typeof(Regex).GetTypeInfo().Assembly.Location}, product version {coreFxAssemblyInfo.ProductVersion}");
+    Console.WriteLine($"// CoreClr version {coreClrAssemblyInfo.FileVersion}, location {typeof(object).GetTypeInfo().Assembly.Location}, product version {coreClrAssemblyInfo.ProductVersion}");
 }
 ```
 
@@ -228,7 +228,7 @@ You can also use any dotnet cli to build and run the benchmarks. To do that you 
 
 Example: run the benchmarks for .NET Core 3.0 using dotnet cli from `C:\Projects\performance\.dotnet\dotnet.exe`:
 
-```log
+```cmd
 dotnet run -c Release -- -r netcoreapp3.0 --cli "C:\Projects\performance\.dotnet\dotnet.exe"
 ```
 

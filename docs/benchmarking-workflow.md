@@ -1,6 +1,6 @@
 ﻿# .NET benchmarking workflow
 
-### Table of Contents
+## Table of Contents
 
 - [Pre-requisites](#Pre-requisites)
   - [Clone](#Clone)
@@ -23,9 +23,11 @@
 
 ### Clone
 
-To run the benchmarks you need to clone the `dotnet/performance` repository first. 
+To run the benchmarks you need to clone the `dotnet/performance` repository first.
 
-> git clone https://github.com/dotnet/performance.git
+```cmd
+git clone https://github.com/dotnet/performance.git
+```
 
 This repository is **independent from CoreFX and CoreCLR build systems!** So you need to do this **only ONCE**, no matter how many .NET Runtimes you want to run the benchmarks against.
 
@@ -33,53 +35,40 @@ We know that having the benchmarks in a separate repository might seem to be sur
 
 ### Build
 
-To build the benchmarks you need to have the right `dotnet cli`. This repository allows to benchmark .NET Core 2.0, 2.1, 2.2 and 3.0 so you need to install all of them:
+To build the benchmarks you need to have the right `dotnet cli`. This repository allows to benchmark .NET Core 2.0, 2.1, 2.2 and 3.0 so you need to install all of them.
 
-* You can get .NET Core 2.0, 2.1 and 2.2 from [https://www.microsoft.com/net/download/archives](https://www.microsoft.com/net/download/archives)
-* The preview of 3.0 is available at [https://github.com/dotnet/core-sdk#installers-and-binaries](https://github.com/dotnet/core-sdk#installers-and-binaries)
+- .NET Core 2.0, 2.1 and 2.2 can be installed from [https://www.microsoft.com/net/download/archives](https://www.microsoft.com/net/download/archives)
+- .NET Core 3.0 preview is available at [https://github.com/dotnet/core-sdk#installers-and-binaries](https://github.com/dotnet/core-sdk#installers-and-binaries)
 
-If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) file.
+If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [common.props](../src/benchmarks/micro/common.props) file.
 
 ```diff
 -     <TargetFrameworks>netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
 +     <TargetFrameworks>netcoreapp2.0;netcoreapp2.1</TargetFrameworks>
 ```
 
-Our [Tests.csproj](../src/benchmarks/micro/Tests/Tests.csproj) file targets only .NET Core 2.1. So if you want manually edit the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) file to target .NET Core 3.0 (or any other TFM != netcoreapp2.1) and get error like:
-
- ```log
-error NU1201: Project MicroBenchmarks is not compatible with netcoreapp2.1 (.NETCoreApp,Version=v2.1). Project MicroBenchmarks supports: netcoreapp3.0 (.NETCoreApp,Version=v3.0)
-```
-
-you need to edit [it](../src/benchmarks/micro/Tests/Tests.csproj) as well:
-
-```diff
--     <TargetFramework>netcoreapp2.1</TargetFramework>
-+     <TargetFramework>netcoreapp3.0</TargetFramework>
-```
-
 Once you have it, you can build the [MicroBenchmarks](../src/benchmarks/micro/MicroBenchmarks.csproj) project. Please do remember that the default configuration for `dotnet cli` is `Debug`. Running benchmarks in `Debug` makes no sense, so please **always build and run it in `Release` mode**.
 
-```log
+```cmd
 cd performance\src\benchmarks\micro
 dotnet build -c Release
 ```
 
 ## Choosing the benchmarks
 
-The project contains few thousands of benchmarks and you most probably don't need to run all of them. 
+The project contains few thousands of benchmarks and you most probably don't need to run all of them.
 
 The benchmarks are:
 
-* grouped into coresponding namespaces. If given .NET class belongs to `System.XYZ` namespace, it's benchmarks do so as well.
-* grouped into categories. CoreCLR benchmarks belong to `CoreCLR` category, CoreFX to `CoreFX` category. Features that are partially implemented in the Runtime and Base Class Library belong to common categories like `Span`, `LINQ`. (See [Categories.cs](../src/benchmarks/micro/Categories.cs) for more).
+- grouped into coresponding namespaces. If given .NET class belongs to `System.XYZ` namespace, it's benchmarks do so as well.
+- grouped into categories. CoreCLR benchmarks belong to `CoreCLR` category, CoreFX to `CoreFX` category. Features that are partially implemented in the Runtime and Base Class Library belong to common categories like `Span`, `LINQ`. (See [Categories.cs](../src/benchmarks/micro/Categories.cs) for more).
 
 The harness (BenchmarkDotNet) allows to:
 
-* filter the benchmarks by using glob expression applied to their full names (`namespace.typeName.methodName(arguments)`). This is exposed by `--filter` or just `-f` command line argument.
-* filter the benchmarks by categories. This is exposed by `--allCategories` and `--anyCategories` command line arguments.
-* print a list of available benchmarks by using `--list flat` or `--list tree` command line arguments.
-* `--list` can be  combined with `--filter` and (`--allCategories` or `--anyCategories`).
+- filter the benchmarks by using glob expression applied to their full names (`namespace.typeName.methodName(arguments)`). This is exposed by `--filter` or just `-f` command line argument.
+- filter the benchmarks by categories. This is exposed by `--allCategories` and `--anyCategories` command line arguments.
+- print a list of available benchmarks by using `--list flat` or `--list tree` command line arguments.
+- `--list` can be  combined with `--filter` and (`--allCategories` or `--anyCategories`).
 
 The best way to find the benchmarks you want to run is either to open [MicroBenchmarks.sln](../src/benchmarks/micro/MicroBenchmarks.sln) in your favourite IDE and search for type usages or use command line arguments to filter. We expect that our users will start with the IDE approach and over the time switch to console line arguments once they got used to exsisting conventions.
 
@@ -87,9 +76,11 @@ The best way to find the benchmarks you want to run is either to open [MicroBenc
 
 Sample commands:
 
-* See the list of all available .NET Core 2.1 System.Linq benchmarks: 
+- See the list of all available .NET Core 2.1 System.Linq benchmarks:
 
-> `dotnet run -c Release -f netcoreapp2.1 -- -f System.Linq* --list flat`
+```cmd
+dotnet run -c Release -f netcoreapp2.1 -- -f System.Linq* --list flat
+```
 
 ```log
 System.Linq.Tests.Perf_Linq.Select
@@ -114,9 +105,11 @@ System.Linq.Tests.Perf_Linq.Contains_FirstElementMatches
 System.Linq.Tests.Perf_Linq.Range
 ```
 
-* See a hierarchy tree of all available .NET Core 3.0 System.IO.Compression benchmarks: 
+- See a hierarchy tree of all available .NET Core 3.0 System.IO.Compression benchmarks:
 
-> dotnet run -c Release -f netcoreapp3.0 -- -f System.IO.Compression* --list tree
+```cmd
+dotnet run -c Release -f netcoreapp3.0 -- -f System.IO.Compression* --list tree
+```
 
 ```log
 System
@@ -137,9 +130,11 @@ System
           └─Decompress
 ```
 
-* See a list of all the benchmarks which belong to BenchmarksGame category:
+- See a list of all the benchmarks which belong to BenchmarksGame category:
 
-> dotnet run -c Release -f netcoreapp2.1 -- --allCategories BenchmarksGame --list flat
+```cmd
+dotnet run -c Release -f netcoreapp2.1 -- --allCategories BenchmarksGame --list flat
+```
 
 ```log
 BenchmarksGame.BinaryTrees_2.RunBench
@@ -174,7 +169,7 @@ Just specify the target framework moniker for `dotnet run`.
 
 Example: run `System.Collections.CopyTo<Int32>.Array` benchmarks against .NET Core 2.1 installed on your machine:
 
-```log
+```cmd
 dotnet run -c Release -f netcoreapp2.1 -- -f System.Collections.CopyTo<Int32>.Array
 ```
 
@@ -184,7 +179,7 @@ You need to specify the target framework monikers via `--runtimes` or just `-r` 
 
 Example: run `System.Collections.CopyTo<Int32>.Array` benchmarks against .NET Core 2.0 and 2.1 installed on your machine:
 
-```log
+```cmd
 dotnet run -c Release -f netcoreapp2.0 -- -f System.Collections.CopyTo<Int32>.Array --runtimes netcoreapp2.0 netcoreapp2.1
 ```
 
@@ -192,13 +187,13 @@ dotnet run -c Release -f netcoreapp2.0 -- -f System.Collections.CopyTo<Int32>.Ar
 
 Example: run benchmarks for APIs available in .NET Core 2.1 using .NET Core 3.0
 
-```log
+```cmd
 dotnet run -c Release -f netcoreapp2.1 -- -r netcoreapp3.0
 ```
 
 Example: run benchmarks for APIs available in .NET Core 3.0 using .NET Core 3.0
 
-```log
+```cmd
 dotnet run -c Release -f netcoreapp3.0
 ```
 
@@ -208,7 +203,7 @@ Specify the target framework moniker for `dotnet run` and the path to `dotnet cl
 
 Example: run `System.Collections.CopyTo<Int32>.Array` benchmarks against .NET Core 3.0 downloaded to a given location:
 
-```log
+```cmd
 dotnet run -c Release -f netcoreapp3.0 -- -f System.Collections.CopyTo<Int32>.Array --cli C:\tmp\dotnetcli\dotnet.exe
 ```
 
@@ -216,14 +211,14 @@ dotnet run -c Release -f netcoreapp3.0 -- -f System.Collections.CopyTo<Int32>.Ar
 
 Pass the path to CoreRun using `--coreRun` argument. In both CoreCLR and CoreFX you are going to find few CoreRun.exe files. **Use the one that has framework assemblies in the same folder**. Examples:
 
-* "C:\Projects\coreclr\bin\tests\Windows_NT.x64.Release\Tests\Core_Root\CoreRun.exe"
-* "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
+- "C:\Projects\coreclr\bin\tests\Windows_NT.x64.Release\Tests\Core_Root\CoreRun.exe"
+- "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
 
 **Note:** BenchmarkDotNet expects a path to `CoreRun.exe` file (`corerun` on Unix), not to `Core_Root` folder.
 
 Example: Run all CoreCLR benchmarks using "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
 
-```log
+```cmd
 dotnet run -c Release -f netcoreapp3.0 -- --allCategories CoreCLR --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
 ```
 
@@ -232,7 +227,7 @@ If you want restore the packages to selected folder, pass it via `--packages`.
 
 Example: Run all CoreCLR benchmarks using "C:\Projects\coreclr\bin\tests\Windows_NT.x64.Release\Tests\Core_Root\CoreRun.exe", restore the packages to C:\Projects\coreclr\packages and use "C:\Projects\coreclr\Tools\dotnetcli\dotnet.exe" for building the benchmarks.
 
-```log
+```cmd
 dotnet run -c Release -f netcoreapp3.0 -- --allCategories CoreCLR --coreRun "C:\Projects\coreclr\bin\tests\Windows_NT.x64.Release\Tests\Core_Root\CoreRun.exe --cli "C:\Projects\coreclr\Tools\dotnetcli\dotnet.exe" --packages "C:\Projects\coreclr\packages"
 ```
 
@@ -244,9 +239,9 @@ Make sure you read [Pre-requisites](#Pre-requisites), [Choosing the benchmarks](
 
 To get the best of available tooling you should also read:
 
-* [How to read the Memory Statistics](../src/benchmarks/micro/README.md#How-to-read-the-Memory-Statistics)
-* [How to get the Disassembly](../src/benchmarks/micro/README.md#How-to-get-the-Disassembly)
-* [How to profile benchmarked code using ETW](../src/benchmarks/micro/README.md#How-to-profile-benchmarked-code-using-ETW)
+- [How to read the Memory Statistics](../src/benchmarks/micro/README.md#How-to-read-the-Memory-Statistics)
+- [How to get the Disassembly](../src/benchmarks/micro/README.md#How-to-get-the-Disassembly)
+- [How to profile benchmarked code using ETW](../src/benchmarks/micro/README.md#How-to-profile-benchmarked-code-using-ETW)
 
 By using the `DisassemblyDiagnoser` and `EtwProfiler` you should be able to get full disassembly and detailed profile information. No code modification is required, every feature is available from command line level!
 
@@ -254,48 +249,52 @@ By using the `DisassemblyDiagnoser` and `EtwProfiler` you should be able to get 
 
 1. [Choose the benchmarks](#Choosing-the-benchmarks) that test given feature.
 2. Run the benchmarks without your changes first
-   1. clone your fork of selected product repo - CoreFX/CoreCLR 
+   1. clone your fork of selected product repo - CoreFX/CoreCLR
    2. build it in release, including tests
    3. locate the path to **right** `CoreRun.exe` (the  one with all framework dependencies next to it)
-   3. go to the folder with benchmarks (`cd dotnet/performance/src/benchmarks/micro`)
-   4. run the benchmarks using given `CoreRun.exe` and save the results to a dedicated folder. An example:
-```log
-dotnet run -c Release -f netcoreapp3.0 -- --filter *Span* --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe" --profiler ETW --artifacts before
-```
+   4. go to the folder with benchmarks (`cd dotnet/performance/src/benchmarks/micro`)
+   5. run the benchmarks using given `CoreRun.exe` and save the results to a dedicated folder. An example:
+
+        ```cmd
+        dotnet run -c Release -f netcoreapp3.0 -- --filter *Span* --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe" --profiler ETW --artifacts before
+        ```
+
 3. Use at least one of the available BenchmarkDotNet features: `MemoryDiagnoser`, `DisassemblyDiagnoser` or `EtwProfiler` to get more performance data.
 4. Analyze the data, identify performance bottlenecks.
 5. Apply your changes to fix the performance bottlenecks.
 6. Rebuild the product and tests in `Release` mode. Verify that the modified files got copied to the folder with `CoreRun`.
 7. Run the benchmarks using given `CoreRun.exe` and save the results to a dedicated folder. **Different one that you used to store results previously!** Example:
-```log
-dotnet run -c Release -f netcoreapp3.0 -- --filter *Span* --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe" --artifacts after
-```
+
+    ```cmd
+    dotnet run -c Release -f netcoreapp3.0 -- --filter *Span* --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe" --artifacts after
+    ```
+
 8. Compare the results.
 9. Repeat steps 3-8 until you get the desired speedup.
 
 ### Checking for regressions using Statistical Test
 
-To perform a Mann–Whitney U Test and display the results in a dedicated column you need to provide the Threshold:
+To perform a Mann–Whitney U Test and display the results in a dedicated column you need to provide the threshold for statistical test (Examples: 5%, 10ms, 100ns, 1s):
 
-* `--statisticalTest` - Threshold for Statistical Test. Examples: 5%, 10ms, 100ns, 1s
+    `--statisticalTest <THRESHOLD>`
 
 Example: run Mann–Whitney U test with an absolute ratio of 3 milliseconds and compare the CoreFX located in `C:\Projects\corefx_upstream\` vs `C:\Projects\corefx_fork\` for BenchmarksGame benchmarks.
 
 The following commands are represented in a few lines to make it easier to read on GitHub. Please remove the new lines when copy-pasting to console.
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0
-    --allCategories BenchmarksGame 
-    --statisticalTest 3ms
-    --coreRun 
-        "C:\Projects\corefx_upstream\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
+dotnet run -c Release -f netcoreapp3.0 \
+    --allCategories BenchmarksGame \
+    --statisticalTest 3ms \
+    --coreRun \
+        "C:\Projects\corefx_upstream\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe" \
         "C:\Projects\corefx_fork\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
 ```
 
 Example: run all benchmarks for .NET Core 2.1 vs 2.2 and use Mann–Whitney U test with a relative ratio of 5%.
 
 ```cmd
-dotnet run -c Release -f netcoreapp2.1 -- 
+dotnet run -c Release -f netcoreapp2.1 --
     --filter *
     --statisticalTest 5%
     --runtimes netcoreapp2.1 netcoreapp2.2
@@ -311,26 +310,25 @@ A must read is [running benchmarks against multiple runtimes](#Against-multiple-
 
 Example: run all `Span` benchmarks for .NET Core 2.1 vs 3.0:
 
-```log
+```cmd
 dotnet run -c Release -f netcoreapp2.1 -- --allCategories Span --runtimes netcoreapp2.1 netcoreapp3.0
 ```
 
 Example: run all `System.IO` benchmarks for .NET 4.7.2 vs .NET Core 3.0 preview using dotnet cli from given location:
 
-```log
+```cmd
 dotnet run -c Release -f net472 -- --filter System.IO* --runtimes net472 netcoreapp3.0 --cli "C:\Downloads\3.0.0-preview1-03129-01\dotnet.exe"
 ```
 
 Example: run all benchmarks for .NET Core 2.1 vs 2.2:
 
-```log
+```cmd
 dotnet run -c Release -f netcoreapp2.1 -- -f * --runtimes netcoreapp2.1 netcoreapp2.2
 ```
 
 ### New API
 
-In case you want to add a new method to CoreFX and test its performance, then you need to follow [CoreFX benchmarking instructions](https://github.com/dotnet/corefx/blob/master/Documentation/project-docs/benchmarking.md).
-
+In case you want to add a new method to CoreFX and test its performance, then you need to follow [Benchmarking .NET Core applications](https://github.com/dotnet/corefx/blob/master/Documentation/project-docs/benchmarking.md).
 
 ### Troubleshooting
 

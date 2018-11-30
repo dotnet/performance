@@ -1,18 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$(MSBuildThisFileDirectory)\common.props" />
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);net461</TargetFrameworks>
-    <RuntimeFrameworkVersion Condition="'$(TargetFramework)' == 'netcoreapp2.2'">2.2.0-*</RuntimeFrameworkVersion>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>latest</LangVersion>
-    <UseSharedCompilation>false</UseSharedCompilation>
-    <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="img\**" />
     <Compile Remove="Tests\**" />
@@ -20,6 +17,7 @@
     <None Remove="img\**" />
     <None Remove="Tests\**" />
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.11.3.886" />
     <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.11.3.886" />
@@ -43,6 +41,7 @@
     <PackageReference Include="ZeroFormatter" Version="1.6.4" />
     <PackageReference Include="ZeroFormatter.Analyzer" Version="1.1.1" />
   </ItemGroup>
+
   <ItemGroup>
     <None Update="coreclr\BenchmarksGame\Inputs\*.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -51,9 +50,11 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">
     <Compile Remove="coreclr\Math\Functions\Single\**" />
   </ItemGroup>
+
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or '$(TargetFramework)' == 'netcoreapp2.0'">
     <Compile Remove="corefx\System.Security.Cryptography.Primitives\**" />
     <Compile Remove="corefx\System.Net.Http\Perf.SocketsHttpHandler.cs" />
@@ -62,6 +63,7 @@
     <Compile Remove="corefx\System.IO.Compression\Brotli.cs" />
     <Compile Remove="corefx\System.Runtime\Perf.HashCode.cs" />
   </ItemGroup>
+
   <ItemGroup>
     <Content Include="$(NuGetPackageRoot)\system.text.regularexpressions.testdata\1.0.2\content\regexredux\*.*">
       <Link>corefx\System.Text.RegularExpressions\content\%(Filename)%(Extension)</Link>
@@ -72,4 +74,5 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+
 </Project>
