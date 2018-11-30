@@ -35,29 +35,16 @@ We know that having the benchmarks in a separate repository might seem to be sur
 
 ### Build
 
-To build the benchmarks you need to have the right `dotnet cli`. This repository allows to benchmark .NET Core 2.0, 2.1, 2.2 and 3.0 so you need to install all of them:
+To build the benchmarks you need to have the right `dotnet cli`. This repository allows to benchmark .NET Core 2.0, 2.1, 2.2 and 3.0 so you need to install all of them.
 
-- You can get .NET Core 2.0, 2.1 and 2.2 from [https://www.microsoft.com/net/download/archives](https://www.microsoft.com/net/download/archives)
-- The preview of 3.0 is available at [https://github.com/dotnet/core-sdk#installers-and-binaries](https://github.com/dotnet/core-sdk#installers-and-binaries)
+- .NET Core 2.0, 2.1 and 2.2 can be installed from [https://www.microsoft.com/net/download/archives](https://www.microsoft.com/net/download/archives)
+- .NET Core 3.0 preview is available at [https://github.com/dotnet/core-sdk#installers-and-binaries](https://github.com/dotnet/core-sdk#installers-and-binaries)
 
 If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [common.props](../src/benchmarks/micro/common.props) file.
 
 ```diff
 -     <TargetFrameworks>netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
 +     <TargetFrameworks>netcoreapp2.0;netcoreapp2.1</TargetFrameworks>
-```
-
-Our [Tests.csproj](../src/benchmarks/micro/Tests/Tests.csproj) file targets only .NET Core 2.1. So if you want manually edit the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) file to target .NET Core 3.0 (or any other TFM != netcoreapp2.1) and get error like:
-
-```log
-error NU1201: Project MicroBenchmarks is not compatible with netcoreapp2.1 (.NETCoreApp,Version=v2.1). Project MicroBenchmarks supports: netcoreapp3.0 (.NETCoreApp,Version=v3.0)
-```
-
-you need to edit [it](../src/benchmarks/micro/Tests/Tests.csproj) as well:
-
-```diff
--     <TargetFramework>netcoreapp2.1</TargetFramework>
-+     <TargetFramework>netcoreapp3.0</TargetFramework>
 ```
 
 Once you have it, you can build the [MicroBenchmarks](../src/benchmarks/micro/MicroBenchmarks.csproj) project. Please do remember that the default configuration for `dotnet cli` is `Debug`. Running benchmarks in `Debug` makes no sense, so please **always build and run it in `Release` mode**.
