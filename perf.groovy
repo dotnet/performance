@@ -12,14 +12,14 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
         if (!(os == 'Linux' && (jobType == 'size' || jobType == 'e2e'))) {
             def jobName = "perf_monitoring_coreclr_${os}_${jobType}"
 
-            def newJob = job(InternalUtilities.getFullJobName(project, jobName, false)) {
+            def newJob = job(Utilities.getFullJobName(project, jobName, false)) {
                 steps {
                     batchFile("py scripts\\getjenkinsstatus.py -repo coreclr -os ${os} -jobType ${jobType}")
                 }
             }
 
             Utilities.setMachineAffinity(newJob, "Windows_NT", '20170427-elevated')
-            InternalUtilities.standardJobSetup(newJob, project, false, "*/${branch}")
+            Utilities.standardJobSetup(newJob, project, false, "*/${branch}")
 
             Utilities.addPeriodicTrigger(newJob, "@hourly", true /*always run*/)
             newJob.with {
@@ -33,14 +33,14 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
     }
 
     def jobName = "performance_monitoring_corefx_${os}"
-    def newJob = job(InternalUtilities.getFullJobName(project, jobName, false)) {
+    def newJob = job(Utilities.getFullJobName(project, jobName, false)) {
         steps {
             batchFile("py scripts\\getjenkinsstatus.py -repo corefx -os ${os}")
         }
     }
 
     Utilities.setMachineAffinity(newJob, "Windows_NT", '20170427-elevated')
-    InternalUtilities.standardJobSetup(newJob, project, false, "*/${branch}")
+    Utilities.standardJobSetup(newJob, project, false, "*/${branch}")
 
     Utilities.addPeriodicTrigger(newJob, "@hourly", true /*always run*/)
     newJob.with {
@@ -53,7 +53,7 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
 
     if (os == 'Windows') {
         jobName = "container_benchmarks_static_${os}_amd64"
-        newJob = job(InternalUtilities.getFullJobName(project, jobName, false)) {
+        newJob = job(Utilities.getFullJobName(project, jobName, false)) {
             wrappers {
                 credentialsBinding {
                     string('BV_UPLOAD_SAS_TOKEN', 'Container_Perf_BenchView_Sas')
@@ -67,7 +67,7 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
             label("windows_container_perf")
         }
 
-        InternalUtilities.standardJobSetup(newJob, project, false, "*/${branch}")
+        Utilities.standardJobSetup(newJob, project, false, "*/${branch}")
 
         Utilities.addPeriodicTrigger(newJob, "@daily", true /*always run*/)
         newJob.with {
@@ -79,7 +79,7 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
         }
 
         jobName = "dmlib_${os}_amd64"
-        newJob = job(InternalUtilities.getFullJobName(project, jobName, false)) {
+        newJob = job(Utilities.getFullJobName(project, jobName, false)) {
             wrappers {
                 credentialsBinding {
                     string('BV_UPLOAD_SAS_TOKEN', 'Container_Perf_BenchView_Sas')
@@ -95,7 +95,7 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
             label("windows_container_perf")
         }
 
-        InternalUtilities.standardJobSetup(newJob, project, false, "*/${branch}")
+        Utilities.standardJobSetup(newJob, project, false, "*/${branch}")
 
         Utilities.addPeriodicTrigger(newJob, "@daily", true /*always run*/)
         newJob.with {
@@ -110,7 +110,7 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
         [true, false].each { isPR ->
             ['x64', 'x86'].each { arch ->
                 jobName = "coreclr_perf_${os}_${arch}"
-                newJob = job(InternalUtilities.getFullJobName(project, jobName, isPR)) {
+                newJob = job(Utilities.getFullJobName(project, jobName, isPR)) {
                     wrappers {
                         credentialsBinding {
                             string('BV_UPLOAD_SAS_TOKEN', 'CoreCLR Perf BenchView Sas')
@@ -133,7 +133,7 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
                     label("windows_server_2016_clr_perf")
                 }
 
-                InternalUtilities.standardJobSetup(newJob, project, isPR, "*/${branch}")
+                Utilities.standardJobSetup(newJob, project, isPR, "*/${branch}")
 
                 if (isPR) {
                     TriggerBuilder builder = TriggerBuilder.triggerOnPullRequest()
