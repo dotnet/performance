@@ -65,6 +65,14 @@
     <Compile Remove="corefx\System.Runtime\Perf.HashCode.cs" />
     <Compile Remove="corefx\System.Security.Cryptography.Primitives\**" />
     <Compile Remove="corefx\System.Security.Cryptography\Perf.Rfc2898DeriveBytes.cs" />
+    <Compile Remove="coreclr\Math\Functions\Double\Acosh.cs" />
+    <Compile Remove="coreclr\Math\Functions\Double\Asinh.cs" />
+    <Compile Remove="coreclr\Math\Functions\Double\Atanh.cs" />
+    <Compile Remove="coreclr\Math\Functions\Double\Cbrt.cs" />
+    <Compile Remove="coreclr\Math\Functions\Single\Acosh.cs" />
+    <Compile Remove="coreclr\Math\Functions\Single\Asinh.cs" />
+    <Compile Remove="coreclr\Math\Functions\Single\Atanh.cs" />
+    <Compile Remove="coreclr\Math\Functions\Single\Cbrt.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
