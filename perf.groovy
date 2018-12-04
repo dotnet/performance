@@ -109,8 +109,8 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
         // CoreCLR perf jobs
         [true, false].each { isPR ->
             ['x64', 'x86'].each { arch ->
-                def jobName = "coreclr_perf_${os}_${arch}"
-                def newJob = job(InternalUtilities.getFullJobName(project, jobName, isPR)) {
+                jobName = "coreclr_perf_${os}_${arch}"
+                newJob = job(InternalUtilities.getFullJobName(project, jobName, isPR)) {
                     wrappers {
                         credentialsBinding {
                             string('BV_UPLOAD_SAS_TOKEN', 'CoreCLR Perf BenchView Sas')
