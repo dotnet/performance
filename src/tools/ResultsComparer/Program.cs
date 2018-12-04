@@ -71,7 +71,7 @@ namespace ResultsComparer
             if (!string.IsNullOrEmpty(args.MergedPath))
             {
                 return GetFilesToParse(args.MergedPath)
-                    .Select(resultFile => JsonConvert.DeserializeObject<BdnResult>(File.ReadAllText(resultFile)))
+                    .Select(ReadFromFile)
                     .SelectMany(result => result.Benchmarks)
                     .GroupBy(result => result.FullName)
                         .SelectMany(sameKey => sameKey
@@ -86,8 +86,8 @@ namespace ResultsComparer
                 if (!baseFiles.Any() || !diffFiles.Any())
                     throw new ArgumentException($"Provided paths contained no {FullBdnJsonFileExtension} files.");
 
-                var baseResults = baseFiles.Select(resultFile => JsonConvert.DeserializeObject<BdnResult>(File.ReadAllText(resultFile)));
-                var diffResults = diffFiles.Select(resultFile => JsonConvert.DeserializeObject<BdnResult>(File.ReadAllText(resultFile)));
+                var baseResults = baseFiles.Select(ReadFromFile);
+                var diffResults = diffFiles.Select(ReadFromFile);
 
                 var benchmarkIdToDiffResults = diffResults.SelectMany(result => result.Benchmarks).ToDictionary(benchmarkResult => benchmarkResult.FullName, benchmarkResult => benchmarkResult);
 
@@ -134,6 +134,20 @@ namespace ResultsComparer
                 return "[can have several modes]";
 
             return null;
+        }
+
+        private static BdnResult ReadFromFile(string resultFilePath)
+        {
+            try
+            {
+                return JsonConvert.DeserializeObject<BdnResult>(File.ReadAllText(resultFilePath));
+            }
+            catch (JsonSerializationException)
+            {
+                Console.WriteLine($"Exception while reading the {resultFilePath} file.");
+
+                throw;
+            }
         }
     }
 }

@@ -19,7 +19,7 @@ namespace ResultsComparer
         [Option("merged", HelpText = "Path to the folder/file with results merged for multiple jobs in the same file.")]
         public string MergedPath { get; set; }
 
-        [Option("treshold", Required = true, HelpText = "Threshold for Statistical Test. Examples: 5%, 10ms, 100ns, 1s.")]
+        [Option("threshold", Required = true, HelpText = "Threshold for Statistical Test. Examples: 5%, 10ms, 100ns, 1s.")]
         public string StatisticalTestThreshold { get; set; }
 
         [Option("top", HelpText = "Filter the diff to top/bottom N results. Optional.")]
