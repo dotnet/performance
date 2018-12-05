@@ -45,7 +45,8 @@ namespace ResultsComparer
 
         private static IEnumerable<(string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion, double ratio)> GetNotSameResults(CommandLineOptions args, Threshold userProvidedThreshold)
         {
-            foreach (var pair in ReadResults(args))
+            foreach (var pair in ReadResults(args)
+                .Where(result => result.baseResult.Statistics != null && result.diffResult.Statistics != null)) // failures
             {
                 var baseValues = pair.baseResult.GetOriginalValues();
                 var diffValues = pair.diffResult.GetOriginalValues();
