@@ -119,9 +119,18 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
 
                     def runType = isPR ? "private" : "rolling"
                     def benchviewCommitNamePrefix = ".NET Performance: CoreClr ${runType}:"
-                    def benchviewCommitName = isPR ? "${benchviewCommitNamePrefix} ${ghprbPullTitle}" : "${benchviewCommitNamePrefix} %GIT_BRANCH% %GIT_COMMIT%"
-                    parameters {
-                        stringParam('BenchviewCommitName', benchviewCommitName, 'The name that you will be used to build the full title of a run in Benchview.')
+                    def benchviewCommitNameComment = "The name that you will be used to build the full title of a run in Benchview."
+
+                    if (isPR) {
+                        // ghprbPullTitle does not seem to be set on non-PR legs.
+                        parameters {
+                            stringParam('BenchviewCommitName', "${benchviewCommitNamePrefix} ${ghprbPullTitle}", benchviewCommitNameComment)
+                        }
+                    }
+                    else {
+                        parameters {
+                            stringParam('BenchviewCommitName', "${benchviewCommitNamePrefix} %GIT_BRANCH% %GIT_COMMIT%", benchviewCommitNameComment)
+                        }
                     }
 
                     def python = "C:\\Python35\\python.exe"
