@@ -22,6 +22,9 @@ namespace ResultsComparer
         [Option("threshold", Required = true, HelpText = "Threshold for Statistical Test. Examples: 5%, 10ms, 100ns, 1s.")]
         public string StatisticalTestThreshold { get; set; }
 
+        [Option("noise", HelpText = "Noise threshold for Statistical Test. The difference for 1.0ns and 1.1ns is 10%, but it's just a noise. Examples: 0.5ns 1ns.", Default = "0.3ns" )]
+        public string NoiseThreshold { get; set; }
+
         [Option("top", HelpText = "Filter the diff to top/bottom N results. Optional.")]
         public int? TopCount { get; set; }
 

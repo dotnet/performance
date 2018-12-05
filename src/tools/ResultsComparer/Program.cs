@@ -19,25 +19,28 @@ namespace ResultsComparer
     {
         private const string FullBdnJsonFileExtension = "full.json";
 
-        private static readonly Threshold NoiseThreshold = Threshold.Create(ThresholdUnit.Nanoseconds, 0.3);
-
         public static void Main(string[] args) => Parser.Default.ParseArguments<CommandLineOptions>(args).WithParsed(Compare);
 
         private static void Compare(CommandLineOptions args)
         {
-            if (!Threshold.TryParse(args.StatisticalTestThreshold, out var userProvidedThreshold))
+            if (!Threshold.TryParse(args.StatisticalTestThreshold, out var testThreshold))
             {
                 Console.WriteLine($"Invalid Threshold {args.StatisticalTestThreshold}. Examples: 5%, 10ms, 100ns, 1s.");
                 return;
             }
+            if (!Threshold.TryParse(args.NoiseThreshold, out var noiseThreshold))
+            {
+                Console.WriteLine($"Invalid Noise Threshold {args.NoiseThreshold}. Examples: 0.3ns 1ns.");
+                return;
+            }
 
-            var notSame = GetNotSameResults(args, userProvidedThreshold).ToArray();
+            var notSame = GetNotSameResults(args, testThreshold, noiseThreshold).ToArray();
 
             PrintTable(notSame, EquivalenceTestConclusion.Slower, args);
             PrintTable(notSame, EquivalenceTestConclusion.Faster, args);
         }
 
-        private static IEnumerable<(string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)> GetNotSameResults(CommandLineOptions args, Threshold userProvidedThreshold)
+        private static IEnumerable<(string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)> GetNotSameResults(CommandLineOptions args, Threshold testThreshold, Threshold noiseThreshold)
         {
             foreach (var pair in ReadResults(args)
                 .Where(result => result.baseResult.Statistics != null && result.diffResult.Statistics != null)) // failures
@@ -45,12 +48,11 @@ namespace ResultsComparer
                 var baseValues = pair.baseResult.GetOriginalValues();
                 var diffValues = pair.diffResult.GetOriginalValues();
 
-                var userTresholdResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, userProvidedThreshold);
+                var userTresholdResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, testThreshold);
                 if (userTresholdResult.Conclusion == EquivalenceTestConclusion.Same)
                     continue;
 
-                // the difference for 1.0ns and 1.1ns is 10%, but it's just a noise. So we test against 0.3ns to filter out the nano-benchmarks noise
-                var noiseResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, NoiseThreshold);
+                var noiseResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, noiseThreshold);
                 if (noiseResult.Conclusion == EquivalenceTestConclusion.Same)
                     continue;
 
