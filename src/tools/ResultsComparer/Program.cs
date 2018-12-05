@@ -10,6 +10,7 @@ using BenchmarkDotNet.Mathematics;
 using BenchmarkDotNet.Mathematics.StatisticalTesting;
 using CommandLine;
 using DataTransferContracts;
+using MarkdownLog;
 using Newtonsoft.Json;
 
 namespace ResultsComparer
@@ -31,19 +32,12 @@ namespace ResultsComparer
             }
 
             var notSame = GetNotSameResults(args, userProvidedThreshold).ToArray();
-            var takeCount = args.TopCount.HasValue ? args.TopCount.Value : int.MaxValue;
 
-            Console.WriteLine("SLOWER:");
-            foreach (var result in notSame.Where(result => result.conclusion == EquivalenceTestConclusion.Slower).OrderBy(pair => pair.ratio).Take(takeCount))
-                PrintResult(result);
-
-            Console.WriteLine();
-            Console.WriteLine("FASTER:");
-            foreach (var result in notSame.Where(result => result.conclusion == EquivalenceTestConclusion.Faster).OrderByDescending(pair => pair.ratio).Take(takeCount))
-                PrintResult(result);
+            PrintTable(notSame, EquivalenceTestConclusion.Slower, args);
+            PrintTable(notSame, EquivalenceTestConclusion.Faster, args);
         }
 
-        private static IEnumerable<(string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion, double ratio)> GetNotSameResults(CommandLineOptions args, Threshold userProvidedThreshold)
+        private static IEnumerable<(string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)> GetNotSameResults(CommandLineOptions args, Threshold userProvidedThreshold)
         {
             foreach (var pair in ReadResults(args)
                 .Where(result => result.baseResult.Statistics != null && result.diffResult.Statistics != null)) // failures
@@ -60,10 +54,31 @@ namespace ResultsComparer
                 if (noiseResult.Conclusion == EquivalenceTestConclusion.Same)
                     continue;
 
-                var ratio = (1.0 - pair.diffResult.Statistics.Median / pair.baseResult.Statistics.Median);
-
-                yield return (pair.id, pair.baseResult, pair.diffResult, userTresholdResult.Conclusion, ratio);
+                yield return (pair.id, pair.baseResult, pair.diffResult, userTresholdResult.Conclusion);
             }
+        }
+
+        private static void PrintTable((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame, EquivalenceTestConclusion conclusion, CommandLineOptions args)
+        {
+            var data = notSame
+                .Where(result => result.conclusion == conclusion)
+                .OrderByDescending(result => GetRatio(conclusion, result.baseResult, result.diffResult))
+                .Take(args.TopCount ?? int.MaxValue)
+                .Select(result => new {
+                    Id = result.id.Length > 100 ? result.id.Substring(0, 100) : result.id,
+                    DisplayValue = GetRatio(conclusion, result.baseResult, result.diffResult),              
+                    BaseMedian = result.baseResult.Statistics.Median,
+                    DiffMedian = result.diffResult.Statistics.Median,
+                    Modality = GetModalInfo(result.baseResult) ?? GetModalInfo(result.diffResult)
+                })
+                .ToArray();
+
+            var table = data.ToMarkdownTable().WithHeaders(conclusion.ToString(), conclusion == EquivalenceTestConclusion.Faster ? "base/diff" : "diff/base", "Base Median (ns)", "Diff Median (ns)", "Modality");
+
+            foreach (var line in table.ToMarkdown().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries))
+                Console.WriteLine($"| {line.TrimStart()}|"); // the table starts with \t and does not end with '|' and it looks bad so we fix it
+
+            Console.WriteLine();
         }
 
         private static IEnumerable<(string id, Benchmark baseResult, Benchmark diffResult)> ReadResults(CommandLineOptions args)
@@ -116,9 +131,6 @@ namespace ResultsComparer
                 throw new FileNotFoundException($"Provided path does NOT exist or is not a {path} file", path);
         }
 
-        private static void PrintResult((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion, double ratio) result)
-            => Console.WriteLine($"{result.ratio:0.00%} {result.id} {GetModalInfo(result.baseResult) ?? GetModalInfo(result.diffResult)}");
-
         // code and magic values taken from BenchmarkDotNet.Analysers.MultimodalDistributionAnalyzer
         // See http://www.brendangregg.com/FrequencyTrails/modes.html
         private static string GetModalInfo(Benchmark benchmark)
@@ -128,14 +140,19 @@ namespace ResultsComparer
 
             double mValue = MathHelper.CalculateMValue(new BenchmarkDotNet.Mathematics.Statistics(benchmark.GetOriginalValues()));
             if (mValue > 4.2)
-                return "[multimodal]";
+                return "multimodal";
             else if (mValue > 3.2)
-                return "[bimodal]";
+                return "bimodal";
             else if (mValue > 2.8)
-                return "[can have several modes]";
+                return "can have several modes";
 
             return null;
         }
+
+        private static double GetRatio(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
+            => conclusion == EquivalenceTestConclusion.Faster
+                ? baseResult.Statistics.Median / diffResult.Statistics.Median
+                : diffResult.Statistics.Median / baseResult.Statistics.Median;
 
         private static BdnResult ReadFromFile(string resultFilePath)
         {
