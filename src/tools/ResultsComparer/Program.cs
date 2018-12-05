@@ -46,6 +46,8 @@ namespace ResultsComparer
 
             PrintTable(notSame, EquivalenceTestConclusion.Slower, args);
             PrintTable(notSame, EquivalenceTestConclusion.Faster, args);
+
+            ExportToCsv(notSame, args.CsvPath);
         }
 
         private static IEnumerable<(string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)> GetNotSameResults(CommandLineOptions args, Threshold testThreshold, Threshold noiseThreshold)
@@ -109,6 +111,26 @@ namespace ResultsComparer
                 .ToDictionary(benchmarkResult => benchmarkResult.FullName, benchmarkResult => benchmarkResult) // we use ToDictionary to make sure the results have unique IDs
                 .Where(baseResult => benchmarkIdToDiffResults.ContainsKey(baseResult.Key))
                 .Select(baseResult => (baseResult.Key, baseResult.Value, benchmarkIdToDiffResults[baseResult.Key]));
+        }
+
+        private static void ExportToCsv((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame, FileInfo csvPath)
+        {
+            if (csvPath == null)
+                return;
+
+            if (csvPath.Exists)
+                csvPath.Delete();
+
+            using (var textWriter = csvPath.CreateText())
+            {
+                foreach (var result in notSame)
+                {
+                    textWriter.WriteLine($"\"{result.id.Replace("\"", "\"\"")}\";base;{result.conclusion};{string.Join(';', result.baseResult.GetOriginalValues())}");
+                    textWriter.WriteLine($"\"{result.id.Replace("\"", "\"\"")}\";diff;{result.conclusion};{string.Join(';', result.diffResult.GetOriginalValues())}");
+                }
+            }
+
+            Console.WriteLine($"CSV results exported to {csvPath.FullName}");
         }
 
         private static string[] GetFilesToParse(string path)

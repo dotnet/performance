@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.IO;
 using CommandLine;
 using CommandLine.Text;
 
@@ -24,6 +25,9 @@ namespace ResultsComparer
 
         [Option("top", HelpText = "Filter the diff to top/bottom N results. Optional.")]
         public int? TopCount { get; set; }
+
+        [Option("csv", HelpText = "Path to exported CSV results. Optional.")]
+        public FileInfo CsvPath { get; set; }
 
         [Usage(ApplicationAlias = "")]
         public static IEnumerable<Example> Examples
