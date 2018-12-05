@@ -4,8 +4,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using BenchmarkDotNet.Mathematics;
 using BenchmarkDotNet.Mathematics.StatisticalTesting;
 using CommandLine;
@@ -19,7 +21,13 @@ namespace ResultsComparer
     {
         private const string FullBdnJsonFileExtension = "full.json";
 
-        public static void Main(string[] args) => Parser.Default.ParseArguments<CommandLineOptions>(args).WithParsed(Compare);
+        public static void Main(string[] args)
+        {
+            // we print a lot of numbers here and we want to make it always in invariant way
+            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+
+            Parser.Default.ParseArguments<CommandLineOptions>(args).WithParsed(Compare);
+        }
 
         private static void Compare(CommandLineOptions args)
         {
