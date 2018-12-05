@@ -117,14 +117,14 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
                         }
                     }
 
-                    if (isPR) {
-                        parameters {
-                            stringParam('BenchviewCommitName', '\${ghprbPullTitle}', 'The name that you will be used to build the full title of a run in Benchview.  The final name will be of the form <branch> private BenchviewCommitName')
-                        }
+                    def runType = isPR ? "private" : "rolling"
+                    def benchviewCommitNamePrefix = ".NET Performance: CoreClr ${runType}:"
+                    def benchviewCommitName = isPR ? "${benchviewCommitNamePrefix} ${ghprbPullTitle}" : "${benchviewCommitNamePrefix} %GIT_BRANCH% %GIT_COMMIT%"
+                    parameters {
+                        stringParam('BenchviewCommitName', benchviewCommitName, 'The name that you will be used to build the full title of a run in Benchview.')
                     }
 
                     def python = "C:\\Python35\\python.exe"
-                    def runType = isPR ? "private" : "rolling"
 
                     steps {
                         batchFile("${python} .\\scripts\\benchmarks_ci.py --incremental no --architecture ${arch} --category CoreClr -f netcoreapp3.0 --generate-benchview-data --upload-to-benchview-container coreclr --benchview-run-type ${runType}")
