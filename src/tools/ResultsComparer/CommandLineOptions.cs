@@ -16,9 +16,6 @@ namespace ResultsComparer
         [Option("diff", HelpText = "Path to the folder/file with diff results.")]
         public string DiffPath { get; set; }
 
-        [Option("merged", HelpText = "Path to the folder/file with results merged for multiple jobs in the same file.")]
-        public string MergedPath { get; set; }
-
         [Option("threshold", Required = true, HelpText = "Threshold for Statistical Test. Examples: 5%, 10ms, 100ns, 1s.")]
         public string StatisticalTestThreshold { get; set; }
 
@@ -35,10 +32,10 @@ namespace ResultsComparer
             {
                 yield return new Example(@"Compare the results stored in 'C:\results\win' (base) vs 'C:\results\unix' (diff) using 5% threshold.",
                     new CommandLineOptions { BasePath = @"C:\results\win", DiffPath = @"C:\results\unix", StatisticalTestThreshold = "5%" });
-                yield return new Example(@"Compare the results stored in 'C:\results\21_vs_22' (multiple jobs per single benchmark run using 1ms threshold.",
-                    new CommandLineOptions { MergedPath = @"C:\results\21_vs_22", StatisticalTestThreshold = "1ms" });
                 yield return new Example(@"Compare the results stored in 'C:\results\win' (base) vs 'C:\results\unix' (diff) using 5% threshold and show only top/bottom 10 results.",
                     new CommandLineOptions { BasePath = @"C:\results\win", DiffPath = @"C:\results\unix", StatisticalTestThreshold = "5%", TopCount = 10 });
+                yield return new Example(@"Compare the results stored in 'C:\results\win' (base) vs 'C:\results\unix' (diff) using 5% threshold and 0.5ns noise filter.",
+                    new CommandLineOptions { BasePath = @"C:\results\win", DiffPath = @"C:\results\unix", StatisticalTestThreshold = "5%", NoiseThreshold = "0.5ns" });
             }
         }
     }

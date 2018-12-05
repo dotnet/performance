@@ -93,42 +93,22 @@ namespace ResultsComparer
 
         private static IEnumerable<(string id, Benchmark baseResult, Benchmark diffResult)> ReadResults(CommandLineOptions args)
         {
-            // this is the case where BDN run one benchmark for multiple jobs, for example for two runtimes using -r netcoreapp2.1 netcoreapp2.2
-            if (!string.IsNullOrEmpty(args.MergedPath))
-            {
-                return GetFilesToParse(args.MergedPath)
-                    .Select(ReadFromFile)
-                    .SelectMany(result => result.Benchmarks)
-                    .GroupBy(result => result.FullName)
-                        .SelectMany(sameKey => sameKey
-                            .Select(group => (group.FullName, sameKey.First(), group)) // first is always the base
-                            .Skip(1)); // we skip the first entry in the group, we want to do 1st vs 2nd, 1st vs 3rd etc..
-            }
-            else if(!string.IsNullOrEmpty(args.BasePath) && !string.IsNullOrEmpty(args.DiffPath))
-            {
-                var baseFiles = GetFilesToParse(args.BasePath);
-                var diffFiles = GetFilesToParse(args.DiffPath);
+            var baseFiles = GetFilesToParse(args.BasePath);
+            var diffFiles = GetFilesToParse(args.DiffPath);
 
-                if (!baseFiles.Any() || !diffFiles.Any())
-                    throw new ArgumentException($"Provided paths contained no {FullBdnJsonFileExtension} files.");
+            if (!baseFiles.Any() || !diffFiles.Any())
+                throw new ArgumentException($"Provided paths contained no {FullBdnJsonFileExtension} files.");
 
-                var baseResults = baseFiles.Select(ReadFromFile);
-                var diffResults = diffFiles.Select(ReadFromFile);
+            var baseResults = baseFiles.Select(ReadFromFile);
+            var diffResults = diffFiles.Select(ReadFromFile);
 
-                var benchmarkIdToDiffResults = diffResults.SelectMany(result => result.Benchmarks).ToDictionary(benchmarkResult => benchmarkResult.FullName, benchmarkResult => benchmarkResult);
+            var benchmarkIdToDiffResults = diffResults.SelectMany(result => result.Benchmarks).ToDictionary(benchmarkResult => benchmarkResult.FullName, benchmarkResult => benchmarkResult);
 
-                return baseResults
-                    .SelectMany(result => result.Benchmarks)
-                    .ToDictionary(benchmarkResult => benchmarkResult.FullName, benchmarkResult => benchmarkResult) // we use ToDictionary to make sure the results have unique IDs
-                    .Where(baseResult => benchmarkIdToDiffResults.ContainsKey(baseResult.Key))
-                    .Select(baseResult => (baseResult.Key, baseResult.Value, benchmarkIdToDiffResults[baseResult.Key]));
-            }
-            else
-            {
-                Console.WriteLine("Invalid parameters, use --help to find out how to use this app");
-
-                return Array.Empty<(string id, Benchmark baseResult, Benchmark diffResult)>();
-            }
+            return baseResults
+                .SelectMany(result => result.Benchmarks)
+                .ToDictionary(benchmarkResult => benchmarkResult.FullName, benchmarkResult => benchmarkResult) // we use ToDictionary to make sure the results have unique IDs
+                .Where(baseResult => benchmarkIdToDiffResults.ContainsKey(baseResult.Key))
+                .Select(baseResult => (baseResult.Key, baseResult.Value, benchmarkIdToDiffResults[baseResult.Key]));
         }
 
         private static string[] GetFilesToParse(string path)
