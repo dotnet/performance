@@ -34,6 +34,7 @@ import sys
 from performance.common import push_dir
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
+from performance.common import get_repo_root_path
 
 import benchview
 import dotnet
@@ -225,6 +226,22 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         action='store_true',
         help='Turns off verbosity.',
     )
+    parser.add_argument(
+        '--build-only',
+        dest='build_only',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Builds the benchmarks but does not run them.',
+    )
+    parser.add_argument(
+        '--run-only',
+        dest='run_only',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Attempts to run the benchmarks without building.',
+    )
 
     return parser
 
@@ -303,7 +320,7 @@ def __get_build_info(args, target_framework_moniker: str) -> benchview.BuildInfo
     )
 
 
-def __run_benchview_scripts(args: list, verbose: bool) -> None:
+def __run_benchview_scripts(args: list, verbose: bool, BENCHMARKS_CSPROJ: dotnet.CSharpProject) -> None:
     '''Run BenchView scripts to collect performance data.'''
     if not args.generate_benchview_data:
         return
@@ -311,7 +328,7 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
     # TODO: Delete previously generated BenchView data (*.json)
 
     benchviewpy = benchview.BenchView(verbose)
-    bin_directory = micro_benchmarks.BENCHMARKS_CSPROJ.bin_path
+    bin_directory = BENCHMARKS_CSPROJ.bin_path
 
     # BenchView submission-metadata.py
     submission_name = args.benchview_submission_name
@@ -468,22 +485,30 @@ def __main(args: list) -> int:
     # dotnet --info
     dotnet.info(verbose=verbose)
 
-    # .NET micro-benchmarks
-    # Restore and build micro-benchmarks
-    micro_benchmarks.build(
-        args.configuration,
-        target_framework_monikers,
-        args.incremental,
-        verbose
+    BENCHMARKS_CSPROJ = dotnet.CSharpProject(
+        working_directory=args.working_directory,
+        bin_directory=args.bin_directory,
+        csproj_file='MicroBenchmarks.csproj'
     )
 
+    if not args.run_only:
+        # .NET micro-benchmarks
+        # Restore and build micro-benchmarks
+        micro_benchmarks.build(
+            BENCHMARKS_CSPROJ,
+            args.configuration,
+            target_framework_monikers,
+            args.incremental,
+            verbose
+        )
+
     # Run micro-benchmarks
-    for framework in args.frameworks:
-        micro_benchmarks.run(args.configuration, framework, verbose, args)
+    if not args.build_only:
+        for framework in args.frameworks:
+            micro_benchmarks.run(BENCHMARKS_CSPROJ, args.configuration, framework, verbose, args)
 
-    __run_benchview_scripts(args, verbose)
-    # TODO: Archive artifacts.
-
+        __run_benchview_scripts(args, verbose, BENCHMARKS_CSPROJ)
+        # TODO: Archive artifacts.
 
 if __name__ == "__main__":
     __main(sys.argv[1:])

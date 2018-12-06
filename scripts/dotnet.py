@@ -42,6 +42,7 @@ class CSharpProject:
     def __init__(
             self,
             working_directory: str,
+            bin_directory: str,
             csproj_file: str):
         if not working_directory:
             raise TypeError('Unspecified working directory.')
@@ -49,6 +50,11 @@ class CSharpProject:
             raise ValueError(
                 'Specified working directory: {}, does not exist.'.format(
                     working_directory))
+
+        if not bin_directory and not path.isdir(bin_directory):
+            raise ValueError(
+                'Specified bin directory: {}, does not exist.'.format(
+                    bin_directory))
 
         if path.isabs(csproj_file) and not path.exists(csproj_file):
             raise ValueError(
@@ -60,6 +66,7 @@ class CSharpProject:
                     csproj_file))
 
         self.__working_directory = working_directory
+        self.__bin_directory = bin_directory
         self.__csproj_file = csproj_file
 
     @property
@@ -75,7 +82,10 @@ class CSharpProject:
     @property
     def bin_path(self) -> str:
         '''Gets the directory in which the built binaries will be placed.'''
-        return path.join(get_artifacts_directory(), 'bin')
+        if not self.__bin_directory:
+            return path.join(get_artifacts_directory(), 'bin')
+        else:
+            return path.join(self.__bin_directory, 'bin')
 
     def restore(self, packages_path: str, verbose: bool) -> None:
         '''

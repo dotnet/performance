@@ -1,8 +1,8 @@
-variables:
-  Build.Repository.Clean: true
-  _BuildConfig: Release
-  _HelixType: build/product
-  
+resources:
+  containers:
+    - container: ubuntu_x64_build_container
+      image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-c103199-20180628134544
+
 trigger:
 - master
 
@@ -13,17 +13,134 @@ pr:
 jobs:
 - template: /eng/common/templates/jobs/jobs.yml
   parameters:
-    enableTelemetry: true
-    enablePublishBuildArtifacts: false
+    enableTelemetry: false
+    enablePublishBuildArtifacts: true
     helixRepo: dotnet/performance
     jobs:
-    - job: sdk_performance
-      pool:
-        name: Hosted VS2017
-      steps:
-      - checkout: self
-        clean: true
-      - script: echo "Hello World"
-        name: echo
-        displayName: Echo
-        condition: succeeded()
+      - job: sdk_performance_windows
+        timeoutInMinutes: 240
+        variables:
+        - ${{ if in(variables['Build.Reason'], 'PullRequest') }}:
+          - name: _RunType
+            value: private
+          - name: BenchviewCommitName
+            value: '.NET Performance - CoreClr $(_RunType) - $(Build.SourceBranchName) $(System.PullRequest.PullRequestNumber)'
+          - name: UploadToBenchview
+            value: ''
+          - name: _HelixQueue
+            value: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
+          - name: IsExternal
+            value: true
+          - name: Creator
+            value: dotnet-performance
+        - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+          - name: _RunType
+            value: rolling
+          - name: BenchviewCommitName
+            value: '.NET Performance - CoreClr $(_RunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
+          - name: UploadToBenchview
+            value: '--upload-to-benchview-container coreclr'
+          - name: _HelixQueue
+            value: Windows.10.Amd64.ClientRS1.Perf
+          - name: IsExternal
+            value: false
+          - name: Creator
+            value: ''
+          - group: DotNet-HelixApi-Access
+        workspace:
+          clean: all
+        pool:
+          name: Hosted VS2017
+        strategy:
+          matrix:
+            x64_CoreCLR_netcoreapp30:
+              _Architecture: x64
+              _Category: CoreCLR
+              _Framework: netcoreapp3.0
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+            x86_CoreCLR_netcoreapp30:
+              _Architecture: x86
+              _Category: CoreCLR
+              _Framework: netcoreapp3.0
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+            x64_CoreFx_netcoreapp30:
+              _Architecture: x64
+              _Category: CoreFx
+              _Framework: netcoreapp3.0
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+            x86_CoreFx_netcoreapp30:
+              _Architecture: x86
+              _Category: CoreFx
+              _Framework: netcoreapp3.0
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+        steps:
+        - checkout: self
+          clean: true
+        - template: /eng/send-to-helix.yml
+          parameters:
+            HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
+            HelixType: 'test/performance_$(_BuildConfig)/'
+            # HelixBuild: $(Build.BuildNumber) -- This property is set by default
+            HelixTargetQueues: $(_HelixQueue) # Windows.Amd64.ClientRS4.DevEx.15.8.Perf # This will be whatever we call our perf pool
+            #HelixAccessToken: $(BotAccount-dotnet-github-anon-kaonashi-bot-helix-token)
+            #HelixPreCommands: eng\common\init-tools-native.cmd -InstallDirectory $(Agent.BuildDirectory)\native-tools -Force
+            # HelixPostCommands: '' -- any commands that you would like to run after running your job
+            WorkItemDirectory: $(Build.SourcesDirectory)\src\benchmarks\micro
+            WorkItemCommand: py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --benchview-submission-name "$(BenchviewCommitName)" --working-directory %HELIX_WORKITEM_PAYLOAD% --bin-directory %HELIX_WORKITEM_PAYLOAD% --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)
+            WorkItemTimeout: 14400 # 4 hours
+            CorrelationPayloadDirectory: $(Build.SourcesDirectory)\scripts
+            EnableXUnitReporter: false # required for reporting out xUnit test results to Mission Control
+            IsExternal: $(IsExternal)
+            Creator: $(Creator)
+            # WaitForWorkItemCompletion: true -- defaults to true
+            # condition: succeeded() - defaults to succeeded()
+            # continueOnError: false -- defaults to false
+      # Only run linux runs on commit
+      - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+        - job: sdk_performance_linux
+          timeoutInMinutes: 240
+          variables:
+            - name: _RunType
+              value: rolling
+            - name: BenchviewCommitName
+              value: '.NET Performance - CoreClr $(_RunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
+            - name: UploadToBenchview
+              value: '--upload-to-benchview-container coreclr'
+            - group: DotNet-HelixApi-Access
+          workspace:
+            clean: all
+          pool:
+            name: Hosted Ubuntu 1604
+          container: ubuntu_x64_build_container
+          strategy:
+            matrix:
+              x64_CoreCLR_netcoreapp30:
+                _Architecture: x64
+                _Category: CoreCLR
+                _Framework: netcoreapp3.0
+                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              x64_CoreFx_netcoreapp30:
+                _Architecture: x64
+                _Category: CoreFx
+                _Framework: netcoreapp3.0
+                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+          steps:
+          - checkout: self
+            clean: true
+          - template: /eng/send-to-helix.yml
+            parameters:
+              HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
+              HelixType: 'test/performance_$(_BuildConfig)/'
+              # HelixBuild: $(Build.BuildNumber) -- This property is set by default
+              HelixTargetQueues: Ubuntu.1604.Amd64.Perf # This will be whatever we call our perf pool
+              #HelixAccessToken: $(BotAccount-dotnet-github-anon-kaonashi-bot-helix-token)
+              #HelixPreCommands: eng\common\init-tools-native.cmd -InstallDirectory $(Agent.BuildDirectory)\native-tools -Force
+              # HelixPostCommands: '' -- any commands that you would like to run after running your job
+              WorkItemDirectory: $(Build.SourcesDirectory)/src/benchmarks/micro
+              WorkItemCommand: python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py --benchview-submission-name "$(BenchviewCommitName)" --working-directory $HELIX_WORKITEM_PAYLOAD --bin-directory $HELIX_WORKITEM_PAYLOAD --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)
+              WorkItemTimeout: 14400 # 4 hours
+              CorrelationPayloadDirectory: $(Build.SourcesDirectory)/scripts
+              EnableXUnitReporter: false # required for reporting out xUnit test results to Mission Control
+              # WaitForWorkItemCompletion: true -- defaults to true
+              # condition: succeeded() - defaults to succeeded()
+              # continueOnError: false -- defaults to false

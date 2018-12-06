@@ -223,6 +223,31 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
              '''harness.''',
     )
 
+    def __valid_dir_path(file_path: str) -> str:
+        '''Verifies that specified file path exists.'''
+        file_path = path.abspath(file_path)
+        if not path.isdir(file_path):
+            raise ArgumentTypeError('{} does not exist.'.format(file_path))
+        return file_path
+
+    parser.add_argument(
+        '--working-directory',
+        dest='working_directory',
+        required=False,
+        default=path.join(get_repo_root_path(), 'src', 'benchmarks', 'micro'),
+        type=__valid_dir_path,
+        help='The directory where MicroBenchmarks.csproj can be found',
+    )
+
+    parser.add_argument(
+        '--bin-directory',
+        dest='bin_directory',
+        required=False,
+        default=None,
+        type=str,
+        help='Root of the bin directory',
+    )
+
     return parser
 
 
@@ -276,6 +301,7 @@ def __getBenchmarkDotNetArguments(
 
 
 def build(
+        BENCHMARKS_CSPROJ: dotnet.CSharpProject,
         configuration: str,
         target_framework_monikers: list,
         incremental: str,
@@ -305,6 +331,7 @@ def build(
 
 
 def run(
+        BENCHMARKS_CSPROJ: dotnet.CSharpProject,
         configuration: str,
         framework: str,
         verbose: bool,
@@ -324,14 +351,6 @@ def __log_script_header(message: str):
     getLogger().info(message)
     getLogger().info('-' * len(message))
 
-
-BENCHMARKS_CSPROJ = dotnet.CSharpProject(
-    working_directory=path.join(
-        get_repo_root_path(), 'src', 'benchmarks', 'micro'),
-    csproj_file='MicroBenchmarks.csproj'
-)
-
-
 def __main(args: list) -> int:
     try:
         validate_supported_runtime()
@@ -348,12 +367,17 @@ def __main(args: list) -> int:
         # dotnet --info
         dotnet.info(verbose)
 
+        BENCHMARKS_CSPROJ = dotnet.CSharpProject(
+            working_directory=args.working_directory,
+            csproj_file='MicroBenchmarks.csproj'
+        )
+
         # dotnet build
-        build(configuration, target_framework_monikers, incremental, verbose)
+        build(BENCHMARKS_CSPROJ, configuration, target_framework_monikers, incremental, verbose)
 
         for framework in frameworks:
             # dotnet run
-            run(configuration, framework, verbose, *args)
+            run(BENCHMARKS_CSPROJ, configuration, framework, verbose, *args)
 
         return 0
     except CalledProcessError as ex:
