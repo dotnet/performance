@@ -226,16 +226,10 @@ def __find_build_directory(
     Attempts to get the output directory where the built artifacts are in
     with respect to the current working directory.
     '''
-    if platform == 'win32':
-        pattern = '*/{Configuration}/{TargetFramework}/'.format(
-            Configuration=configuration,
-            TargetFramework=framework
-        )
-    else:
-        pattern = '*{Configuration}/*{TargetFramework}/'.format(
-            Configuration=configuration,
-            TargetFramework=framework
-        )
+    pattern = '**/{Configuration}/{TargetFramework}'.format(
+        Configuration=configuration,
+        TargetFramework=framework
+    )
 
     for path_name in iglob(pattern, recursive=True):
         if path.isdir(path_name):
@@ -353,10 +347,9 @@ def __process_arguments(args: list):
     # TODO: Could pull this information from repository.
     SUPPORTED_CHANNELS = [
         'master',  # Default channel
-        'release/2.2.2xx',
-        'release/2.2.1xx',
-        'release/2.1',
-        'release/2.0.0',
+        '2.2',
+        '2.1',
+        '2.0',
         'LTS',
     ]
     install_parser.add_argument(

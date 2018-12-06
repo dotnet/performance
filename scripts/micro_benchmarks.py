@@ -63,7 +63,7 @@ class TargetFrameworkAction(Action):
         # TODO: Can we do better? For example, read it from csproj?
         return {
             'netcoreapp3.0': 'master',
-            'netcoreapp2.2': 'release/2.2.2xx',
+            'netcoreapp2.2': '2.2',
             'netcoreapp2.1': '2.1',
             'netcoreapp2.0': '2.0',
         }
