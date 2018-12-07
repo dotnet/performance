@@ -226,6 +226,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Turns off verbosity.',
     )
 
+    parser.add_argument(
+        '--build-only',
+        dest='build_only',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Builds the benchmarks but does not run them.',
+    )
+
     return parser
 
 
@@ -469,32 +478,33 @@ def __main(args: list) -> int:
     )
 
     # Run micro-benchmarks
-    for framework in args.frameworks:
-        run_args = [
-            '--'
-        ]
-        if args.category:
-            run_args += ['--allCategories', args.category]
-        if args.corerun:
-            run_args += ['--coreRun', args.corerun]
-        if args.cli:
-            run_args += ['--cli', args.cli]
-        if args.enable_pmc:
-            run_args += [
-                '--counters',
-                'BranchMispredictions+CacheMisses+InstructionRetired',
+    if not args.build_only:
+        for framework in args.frameworks:
+            run_args = [
+                '--'
             ]
-        if args.filter:
-            run_args += ['--filter'] + args.filter
+            if args.category:
+                run_args += ['--allCategories', args.category]
+            if args.corerun:
+                run_args += ['--coreRun', args.corerun]
+            if args.cli:
+                run_args += ['--cli', args.cli]
+            if args.enable_pmc:
+                run_args += [
+                    '--counters',
+                    'BranchMispredictions+CacheMisses+InstructionRetired',
+                ]
+            if args.filter:
+                run_args += ['--filter'] + args.filter
 
-        # Extra BenchmarkDotNet cli arguments.
-        if args.bdn_arguments:
-            run_args += args.bdn_arguments
+            # Extra BenchmarkDotNet cli arguments.
+            if args.bdn_arguments:
+                run_args += args.bdn_arguments
 
-        micro_benchmarks.run(args.configuration, framework, verbose, *run_args)
+            micro_benchmarks.run(args.configuration, framework, verbose, *run_args)
 
-    __run_benchview_scripts(args, verbose)
-    # TODO: Archive artifacts.
+        __run_benchview_scripts(args, verbose)
+        # TODO: Archive artifacts.
 
 
 if __name__ == "__main__":
