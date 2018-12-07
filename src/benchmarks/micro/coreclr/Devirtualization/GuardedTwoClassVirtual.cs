@@ -60,12 +60,12 @@ public class TestInput
     }
 }
 
+[BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
 public class Virtual
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
     [Benchmark(OperationsPerInvoke=TestInput.N)]
     [ArgumentsSource(nameof(GetInput))]
-    public static long Call(TestInput testInput)
+    public long Call2(TestInput testInput)
     {
         long sum = 0;
         B[] input = testInput.Array;
@@ -79,7 +79,7 @@ public class Virtual
     static int S = 10;
     static double delta = 1.0 / (double) S;
 
-    public IEnumerable<TestInput> GetInput()
+    public static IEnumerable<TestInput> GetInput()
     {
         double pB = 0;
 
