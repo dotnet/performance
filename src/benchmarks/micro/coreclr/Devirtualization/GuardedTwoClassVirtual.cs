@@ -1,0 +1,95 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Generic;
+using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
+
+// Performance test for virtual call dispatch with two
+// possible target classes mixed in varying proportions.
+
+namespace GuardedDevirtualizationTwoClass
+{
+
+public class B
+{
+   public virtual int F() => 33;
+}
+
+public class D : B
+{
+    public override int F() => 44;
+}
+
+public class TestInput
+{
+    public const int N = 1000;
+
+    public TestInput(double pB)
+    {
+        _pB = pB;
+        b = GetArray();
+    }
+
+    static Random r = new Random(42);
+
+    double _pB;
+    B[] b;
+
+    public B[] Array => b;
+    public override string ToString() => $"pB = {_pB:F2}";
+
+    B[] GetArray()
+    {
+        B[] result = new B[N];
+        for (int i = 0; i < N; i++)
+        {
+            double p = r.NextDouble();
+            if (p > _pB)
+            {
+                result[i] = new D();
+            }
+            else
+            {
+                result[i] = new B();
+            }
+        }
+        return result;
+    }
+}
+
+public class Virtual
+{
+    [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+    [Benchmark(OperationsPerInvoke=TestInput.N)]
+    [ArgumentsSource(nameof(GetInput))]
+    public static long Call(TestInput testInput)
+    {
+        long sum = 0;
+        B[] input = testInput.Array;
+        for (int i = 0; i < input.Length; i++)
+        {
+            sum += input[i].F();
+        }
+        return sum;
+    }
+
+    static int S = 10;
+    static double delta = 1.0 / (double) S;
+
+    public IEnumerable<TestInput> GetInput()
+    {
+        double pB = 0;
+
+        for (int i = 0; i <= S; i++, pB += delta)
+        {
+            yield return new TestInput(pB);
+        }
+    }
+}
+
+}
+
+
