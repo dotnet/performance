@@ -394,17 +394,21 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
             'Diagnostic' if args.enable_pmc else 'Profile'
 
     # Find all measurement.json
-    measurement_jsons = []
     with push_dir(bin_directory):
         for framework in args.frameworks:
             glob_format = '**/%s/%s/measurement.json' % (
                 args.configuration,
                 framework
             )
-            for measurement_json in iglob(glob_format, recursive=False):
+
+            measurement_jsons = []
+            for measurement_json in iglob(glob_format, recursive=True):
                 measurement_jsons.append(measurement_json)
 
-            jobGroup = args.category if args.category else '.NET Performance'
+            jobGroup = '.NET Performance (%s)' % args.category \
+                if args.category \
+                else '.NET Performance'
+
             if len(args.frameworks) > 1:
                 benchview_config['Framework'] = framework
 

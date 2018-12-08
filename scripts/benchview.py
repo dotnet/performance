@@ -149,7 +149,7 @@ class BenchView:
     ) -> None:
         '''Wrapper around BenchView's submission.py'''
         if not measurement_jsons:
-            return
+            raise ValueError("No `measurement.json` were specified.")
 
         cmdline = [
             self.python, path.join(self.tools_directory, 'submission.py'),
