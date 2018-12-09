@@ -19,6 +19,7 @@ namespace MicroBenchmarks
         public const string CoreFX = "CoreFX";
 
         public const string LINQ = "LINQ";
+        public const string Reflection = "Reflection";
         public const string SIMD = "SIMD";
         public const string Span = "Span";
         public const string Collections = "Collections";
