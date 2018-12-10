@@ -136,7 +136,7 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
                     def python = "C:\\Python35\\python.exe"
 
                     steps {
-                        batchFile("${python} .\\scripts\\benchmarks_ci.py --incremental no --architecture ${arch} --category CoreClr -f netcoreapp3.0 --generate-benchview-data --upload-to-benchview-container coreclr --benchview-run-type ${runType}")
+                        batchFile("""${python} .\\scripts\\benchmarks_ci.py --incremental no --bdn-arguments="--buildTimeout 300" --architecture ${arch} --category CoreClr -f netcoreapp3.0 --generate-benchview-data --upload-to-benchview-container coreclr --benchview-run-type ${runType}""")
                     }
 
                     label("windows_server_2016_clr_perf")
