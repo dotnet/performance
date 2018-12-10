@@ -460,6 +460,11 @@ def __main(args: list) -> int:
     elif args.optimization_level == 'full_opt':
         os.environ['COMPlus_TieredCompilation'] = '0'
 
+    # The MicroBenchmarks.csproj targets .NET Core 2.0, 2.1, 2.2 and 3.0
+    # to avoid a build failure when using older frameworks (error NETSDK1045: The current .NET SDK does not support targeting .NET Core $XYZ)
+    # we set the TFM to what the user has provided
+    os.environ['PYTHON_SCRIPT_TARGET_FRAMEWORKS'] = ';'.join(args.frameworks)
+
     # dotnet --info
     dotnet.info(verbose=verbose)
 
