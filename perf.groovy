@@ -124,7 +124,7 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
                     if (isPR) {
                         // ghprbPullTitle does not seem to be set on non-PR legs.
                         parameters {
-                            stringParam('BenchviewCommitName', "${benchviewCommitNamePrefix} ${ghprbPullTitle}", benchviewCommitNameComment)
+                            stringParam('BenchviewCommitName', "${benchviewCommitNamePrefix} \${ghprbPullTitle}", benchviewCommitNameComment)
                         }
                     }
                     else {
