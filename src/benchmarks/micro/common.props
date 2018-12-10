@@ -8,6 +8,7 @@
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
 
   <PropertyGroup>

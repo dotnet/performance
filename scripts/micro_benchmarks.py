@@ -20,6 +20,7 @@ import csv
 import sys
 
 from performance.common import get_repo_root_path
+from performance.common import get_artifacts_directory
 from performance.common import remove_directory
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
@@ -221,7 +222,7 @@ def build(
         verbose: bool) -> None:
     '''Restores and builds the benchmarks'''
 
-    packages = path.join(get_repo_root_path(), 'packages')
+    packages = path.join(get_artifacts_directory(), 'packages')
 
     if incremental == 'no':
         __log_script_header("Removing packages, bin and obj folders.")
@@ -229,6 +230,7 @@ def build(
             packages,
             path.join(BENCHMARKS_CSPROJ.working_directory, 'bin'),
             path.join(BENCHMARKS_CSPROJ.working_directory, 'obj'),
+            path.join(BENCHMARKS_CSPROJ.bin_path),
         ]
         for binary_folder in binary_folders:
             remove_directory(path=binary_folder)
