@@ -1,6 +1,5 @@
 variables:
   Build.Repository.Clean: true
-  _HelixSource: pr/dotnet/performance/$(Build.SourceBranch)
   _BuildConfig: Release
   _HelixType: build/product
   

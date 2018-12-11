@@ -9,7 +9,6 @@
     <RestoreSources Condition="'$(DotNetBuildOffline)' != 'true'">
       https://ci.appveyor.com/nuget/benchmarkdotnet;
       https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
-      https://dotnetfeed.blob.core.windows.net/dotnet-tools-internal/index.json;
       $(OverridePackageSource);
       $(RestoreSources)
     </RestoreSources>

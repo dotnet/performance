@@ -228,8 +228,6 @@ def build(
         __log_script_header("Removing packages, bin and obj folders.")
         binary_folders = [
             packages,
-            path.join(BENCHMARKS_CSPROJ.working_directory, 'bin'),
-            path.join(BENCHMARKS_CSPROJ.working_directory, 'obj'),
             path.join(BENCHMARKS_CSPROJ.bin_path),
         ]
         for binary_folder in binary_folders:
