@@ -9,7 +9,7 @@ using BenchmarkDotNet.Validators;
 namespace MicroBenchmarks
 {
     /// <summary>
-    /// we need to tell our users that having more than 20 test cases per benchmark is a VERY BAD idea
+    /// we need to tell our users that having more than 16 test cases per benchmark is a VERY BAD idea
     /// </summary>
     public class TooManyTestCasesValidator : IValidator
     {
