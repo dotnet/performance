@@ -31,7 +31,7 @@ namespace System.Collections
             _destination = new T[Size];
         }
 
-        [Benchmark(Baseline = true)]
+        [Benchmark]
         public void Array() => System.Array.Copy(_array, _destination, Size);
 
         [BenchmarkCategory(Categories.Span)]
