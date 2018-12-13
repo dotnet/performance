@@ -311,10 +311,7 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
     # TODO: Delete previously generated BenchView data (*.json)
 
     benchviewpy = benchview.BenchView(verbose)
-    bin_directory = os.path.join(
-        micro_benchmarks.BENCHMARKS_CSPROJ.working_directory,
-        'bin'
-    )
+    bin_directory = micro_benchmarks.BENCHMARKS_CSPROJ.bin_path
 
     # BenchView submission-metadata.py
     submission_name = args.benchview_submission_name

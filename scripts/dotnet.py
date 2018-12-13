@@ -16,6 +16,7 @@ from urllib.parse import urlparse
 from urllib.request import urlopen, urlretrieve
 
 from performance.common import get_repo_root_path
+from performance.common import get_artifacts_directory
 from performance.common import get_tools_directory
 from performance.common import push_dir
 from performance.common import RunCommand
@@ -74,7 +75,7 @@ class CSharpProject:
     @property
     def bin_path(self) -> str:
         '''Gets the directory in which the built binaries will be placed.'''
-        return path.join(get_repo_root_path(), 'bin')
+        return path.join(get_artifacts_directory(), 'bin')
 
     def restore(self, packages_path: str, verbose: bool) -> None:
         '''
