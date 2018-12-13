@@ -86,6 +86,11 @@ def get_supported_configurations() -> list:
     '''
     return ['Release', 'Debug']
 
+def get_packages_directory() -> str:
+    '''
+    The path to directory where packages should get restored
+    '''
+    return path.join(get_artifacts_directory(), 'packages')
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''
@@ -222,7 +227,7 @@ def build(
         verbose: bool) -> None:
     '''Restores and builds the benchmarks'''
 
-    packages = path.join(get_artifacts_directory(), 'packages')
+    packages = get_packages_directory()
 
     if incremental == 'no':
         __log_script_header("Removing packages, bin and obj folders.")

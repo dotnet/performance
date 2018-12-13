@@ -497,6 +497,11 @@ def __main(args: list) -> int:
         if args.bdn_arguments:
             run_args += args.bdn_arguments
 
+        # we need to tell BenchmarkDotNet where to restore the packages
+        # if we don't it's gonna restore to default global folder
+        run_args += ['--packages', micro_benchmarks.get_packages_directory()]
+        run_args += ['--runtimes', framework] # the --packages requires this argument to work (BDN limitaiton)
+
         micro_benchmarks.run(args.configuration, framework, verbose, *run_args)
 
     __run_benchview_scripts(args, verbose)
