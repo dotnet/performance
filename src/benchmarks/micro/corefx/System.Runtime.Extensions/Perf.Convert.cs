@@ -4,6 +4,7 @@
 
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
+using System.Text;
 
 namespace System
 {
@@ -60,5 +61,14 @@ namespace System
         [Arguments("12/12/1999")]
         public DateTime ToDateTime_String(string value) 
             => Convert.ToDateTime(value);
+
+        private static readonly string s_base64String = Convert.ToBase64String(Encoding.ASCII.GetBytes("This is a test of Convert."));
+        private static readonly char[] s_base64Chars = s_base64String.ToCharArray();
+
+        [Benchmark]
+        public byte[] FromBase64String() => Convert.FromBase64String(s_base64String);
+
+        [Benchmark]
+        public byte[] FromBase64Chars() => Convert.FromBase64CharArray(s_base64Chars, 0, s_base64Chars.Length);
     }
 }

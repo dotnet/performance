@@ -33,7 +33,17 @@ namespace System.Numerics.Tests
         [ArgumentsSource(nameof(NumberStrings))]
         public BigInteger Parse(BigIntegerData numberString) 
             => BigInteger.Parse(numberString.Text);
-        
+
+        [Benchmark]
+        [ArgumentsSource(nameof(NumberStrings))]
+        public string ToStringX(BigIntegerData numberString)
+            => numberString.Value.ToString("X");
+
+        [Benchmark]
+        [ArgumentsSource(nameof(NumberStrings))]
+        public string ToStringD(BigIntegerData numberString)
+            => numberString.Value.ToString("D");
+
         public IEnumerable<object> ValuesSameSize()
         {
             yield return new BigIntegers(new[] { 16, 16 });

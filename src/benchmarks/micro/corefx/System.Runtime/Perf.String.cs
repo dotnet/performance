@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using BenchmarkDotNet.Attributes;
 
 namespace System.Tests
@@ -35,6 +36,12 @@ namespace System.Tests
         [ArgumentsSource(nameof(TestStringSizes))]
         public string Concat_str_str_str_str(StringArguments size)
             => string.Concat(size.TestString1, size.TestString2, size.TestString3, size.TestString4);
+
+        private readonly static IEnumerable<char> s_longCharEnumerable = Enumerable.Range(0, 1000).Select(i => (char)('a' + i % 26));
+
+        [Benchmark]
+        public string Concat_CharEnumerable() =>
+            string.Concat(s_longCharEnumerable);
 
         [Benchmark]
         [ArgumentsSource(nameof(TestStringSizes))]
@@ -171,6 +178,13 @@ namespace System.Tests
         [Arguments(StringComparison.OrdinalIgnoreCase)]
         public int LastIndexOf(StringComparison options)
             => s_longString.LastIndexOf(s_tagName, options);
+
+        private static readonly char[] s_colonAndSemicolon = { ':', ';' };
+
+        [Benchmark]
+        public int IndexOfAny() =>
+            "All the world's a stage, and all the men and women merely players: they have their exits and their entrances; and one man in his time plays many parts, his acts being seven ages."
+            .IndexOfAny(s_colonAndSemicolon);
 
         private CultureInfo _cultureInfo;
         

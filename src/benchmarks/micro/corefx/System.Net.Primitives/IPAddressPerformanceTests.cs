@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 
+#pragma warning disable CS0618 // obsolete
+
 namespace System.Net.Primitives.Tests
 {
     public class IPAddressPerformanceTests
@@ -37,7 +39,12 @@ namespace System.Net.Primitives.Tests
         [ArgumentsSource(nameof(Addresses))]
         public string ToString(IPAddress address)
             => address.ToString();
-        
+
+        private static readonly long s_addr = IPAddress.Loopback.Address;
+
+        [Benchmark]
+        public long NetworkToHostOrder() => IPAddress.NetworkToHostOrder(s_addr);
+
 #if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1
         [Benchmark]
         [ArgumentsSource(nameof(ByteAddresses))]
