@@ -4,6 +4,7 @@
 
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
+using System.Collections.Generic;
 
 namespace System.Tests
 {
@@ -19,8 +20,18 @@ namespace System.Tests
         [Benchmark]
         public DateTime GetUtcNow() => DateTime.UtcNow;
 
-        [Benchmark(Description = "ToString")]
-        public string ToString_str() => date1.ToString("g");
+        public static IEnumerable<string> ToString_MemberData()
+        {
+            yield return null;
+            yield return "G";
+            yield return "s";
+            yield return "r";
+            yield return "o";
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(ToString_MemberData))]
+        public string ToString(string format) => date1.ToString(format);
 
         [Benchmark]
         public TimeSpan op_Subtraction() => date1 - date2;

@@ -79,7 +79,16 @@ namespace System.IO.Tests
 
             return bytesRead;
         }
-        
+
+        [Benchmark]
+        public async Task CopyToAsync()
+        {
+            using (var reader = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, FileOptions.Asynchronous))
+            {
+                await reader.CopyToAsync(Stream.Null);
+            }
+        }
+
         [Benchmark]
         public void WriteByte()
         {

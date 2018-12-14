@@ -18,13 +18,13 @@ namespace System.Collections.Concurrent
         private ConcurrentStack<T> _stack;
         private ConcurrentBag<T> _bag;
 
-        [Params(Utils.DefaultCollectionSize)]
+        [Params(0, Utils.DefaultCollectionSize)] // IsEmpty perf can be significantly impacted by empty vs non-empty
         public int Size;
 
         [GlobalSetup]
         public void Setup()
         {
-            var values = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            T[] values = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
             
             _dictionary = new ConcurrentDictionary<T, T>(values.ToDictionary(v => v, v => v));
             _queue = new ConcurrentQueue<T>(values);

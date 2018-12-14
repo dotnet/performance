@@ -16,6 +16,8 @@ namespace System.Linq.Tests
         private const int DefaulIterationCount = 1000;
         
         private readonly Consumer _consumer = new Consumer();
+        private readonly IEnumerable<int> _range0to10 = Enumerable.Range(0, 10);
+        private readonly IEnumerable<int> _tenMillionToZero = Enumerable.Range(0, 10_000_000).Reverse();
 
         public static IEnumerable<object[]> IterationSizeWrapperData()
         {
@@ -141,11 +143,29 @@ namespace System.Linq.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public int[] SelectToArray(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
+        {
+            IEnumerable<int> source = Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType);
+
+            return source.Select(i => i).ToArray();
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
         public List<int> ToList(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
         {
             IEnumerable<int> source = Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType);
 
             return source.ToList();
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public List<int> SelectToList(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
+        {
+            IEnumerable<int> source = Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType);
+
+            return source.Select(i => i).ToList();
         }
 
         [Benchmark]
@@ -173,6 +193,17 @@ namespace System.Linq.Tests
             IEnumerable<int> source = Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType);
 
             return source.Contains(0);
+        }
+
+        [Benchmark]
+        public int Concat()
+        {
+            IEnumerable<int> result = _range0to10;
+            for (int i = 0; i < 1000; i++)
+            {
+                result = result.Concat(_range0to10);
+            }
+            return result.Sum();
         }
     }
 }

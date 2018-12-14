@@ -10,16 +10,23 @@ namespace System.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Enum
     {
-        private enum testEnum
+        [Flags]
+        public enum Colors
         {
-            Red = 1,
-            Blue = 2
+            Red = 0x1,
+            Orange = 0x2,
+            Yellow = 0x4,
+            Green = 0x8,
+            Blue = 0x10
         }
 
+        [Params("Red", "Red, Orange, Yellow, Green, Blue")] // test both a single value and multiple values
+        public string Text;
+
         [Benchmark]
-        public object Parse() => Enum.Parse(typeof(testEnum), "Red");
-        
+        public Colors Parse() => (Colors)Enum.Parse(typeof(Colors), Text);
+
         [Benchmark]
-        public bool TryParseGeneric() => Enum.TryParse<testEnum>("Red", out _);
+        public bool TryParseGeneric() => Enum.TryParse<Colors>(Text, out _);
     }
 }
