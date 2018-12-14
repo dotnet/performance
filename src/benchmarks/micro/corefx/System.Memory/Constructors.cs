@@ -31,7 +31,7 @@ namespace System.Memory
             _readOnlyMemory = new System.ReadOnlyMemory<T>(_nonEmptyArray);
         }
 
-        [Benchmark(Baseline = true)]
+        [Benchmark]
         public System.Span<T> SpanFromArray() => new System.Span<T>(_nonEmptyArray);
 
         [Benchmark]

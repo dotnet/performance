@@ -311,10 +311,7 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
     # TODO: Delete previously generated BenchView data (*.json)
 
     benchviewpy = benchview.BenchView(verbose)
-    bin_directory = os.path.join(
-        micro_benchmarks.BENCHMARKS_CSPROJ.working_directory,
-        'bin'
-    )
+    bin_directory = micro_benchmarks.BENCHMARKS_CSPROJ.bin_path
 
     # BenchView submission-metadata.py
     submission_name = args.benchview_submission_name
@@ -394,17 +391,21 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
             'Diagnostic' if args.enable_pmc else 'Profile'
 
     # Find all measurement.json
-    measurement_jsons = []
     with push_dir(bin_directory):
         for framework in args.frameworks:
             glob_format = '**/%s/%s/measurement.json' % (
                 args.configuration,
                 framework
             )
-            for measurement_json in iglob(glob_format, recursive=False):
+
+            measurement_jsons = []
+            for measurement_json in iglob(glob_format, recursive=True):
                 measurement_jsons.append(measurement_json)
 
-            jobGroup = args.category if args.category else '.NET Performance'
+            jobGroup = '.NET Performance (%s)' % args.category \
+                if args.category \
+                else '.NET Performance'
+
             if len(args.frameworks) > 1:
                 benchview_config['Framework'] = framework
 
@@ -456,6 +457,11 @@ def __main(args: list) -> int:
     elif args.optimization_level == 'full_opt':
         os.environ['COMPlus_TieredCompilation'] = '0'
 
+    # The MicroBenchmarks.csproj targets .NET Core 2.0, 2.1, 2.2 and 3.0
+    # to avoid a build failure when using older frameworks (error NETSDK1045: The current .NET SDK does not support targeting .NET Core $XYZ)
+    # we set the TFM to what the user has provided
+    os.environ['PYTHON_SCRIPT_TARGET_FRAMEWORKS'] = ';'.join(args.frameworks)
+
     # dotnet --info
     dotnet.info(verbose=verbose)
 
@@ -490,6 +496,11 @@ def __main(args: list) -> int:
         # Extra BenchmarkDotNet cli arguments.
         if args.bdn_arguments:
             run_args += args.bdn_arguments
+
+        # we need to tell BenchmarkDotNet where to restore the packages
+        # if we don't it's gonna restore to default global folder
+        run_args += ['--packages', micro_benchmarks.get_packages_directory()]
+        run_args += ['--runtimes', framework] # the --packages requires this argument to work (BDN limitaiton)
 
         micro_benchmarks.run(args.configuration, framework, verbose, *run_args)
 

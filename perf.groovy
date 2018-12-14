@@ -124,19 +124,20 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
                     if (isPR) {
                         // ghprbPullTitle does not seem to be set on non-PR legs.
                         parameters {
-                            stringParam('BenchviewCommitName', "${benchviewCommitNamePrefix} ${ghprbPullTitle}", benchviewCommitNameComment)
+                            stringParam('BenchviewCommitName', '${benchviewCommitNamePrefix} \${ghprbPullTitle}', benchviewCommitNameComment)
                         }
                     }
                     else {
                         parameters {
-                            stringParam('BenchviewCommitName', "${benchviewCommitNamePrefix} %GIT_BRANCH% %GIT_COMMIT%", benchviewCommitNameComment)
+                            stringParam('BenchviewCommitName', '${benchviewCommitNamePrefix} %GIT_BRANCH% %GIT_COMMIT%', benchviewCommitNameComment)
                         }
                     }
 
                     def python = "C:\\Python35\\python.exe"
+                    def constant_arguments = """--incremental no --benchview-machinepool perfsnake --bdn-arguments="--buildTimeout 300" --category CoreClr -f netcoreapp3.0 --generate-benchview-data --upload-to-benchview-container coreclr"""
 
                     steps {
-                        batchFile("${python} .\\scripts\\benchmarks_ci.py --incremental no --architecture ${arch} --category CoreClr -f netcoreapp3.0 --generate-benchview-data --upload-to-benchview-container coreclr --benchview-run-type ${runType}")
+                        batchFile("""${python} .\\scripts\\benchmarks_ci.py ${constant_arguments} --architecture ${arch} --benchview-run-type ${runType}""")
                     }
 
                     label("windows_server_2016_clr_perf")

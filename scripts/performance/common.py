@@ -98,6 +98,9 @@ def get_tools_directory() -> str:
     '''Gets the default root directory where tools should be installed.'''
     return os.path.join(get_repo_root_path(), 'tools')
 
+def get_artifacts_directory() -> str:
+    '''Gets the default artifacts directory where arcade builds the benchmarks.'''
+    return os.path.join(get_repo_root_path(), 'artifacts')
 
 @contextmanager
 def push_dir(path: str = None) -> None:

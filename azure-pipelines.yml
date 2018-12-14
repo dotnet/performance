@@ -1,6 +1,5 @@
 variables:
   Build.Repository.Clean: true
-  _HelixSource: pr/dotnet/performance/$(Build.SourceBranch)
   _BuildConfig: Release
   _HelixType: build/product
   
@@ -15,7 +14,7 @@ jobs:
 - template: /eng/common/templates/jobs/jobs.yml
   parameters:
     enableTelemetry: true
-    enablePublishBuildArtifacts: true
+    enablePublishBuildArtifacts: false
     helixRepo: dotnet/performance
     jobs:
     - job: sdk_performance
