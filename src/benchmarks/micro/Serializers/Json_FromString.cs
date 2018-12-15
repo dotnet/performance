@@ -27,13 +27,15 @@ namespace MicroBenchmarks.Serializers
         [GlobalSetup(Target = nameof(Utf8Json_))]
         public void SerializeUtf8Json_() => serialized = Utf8Json.JsonSerializer.ToJsonString(value);
 
+        [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]
         public T Jil_() => Jil.JSON.Deserialize<T>(serialized);
 
-        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX)]
+        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.ThirdParty)]
         [Benchmark(Description = "JSON.NET")]
         public T JsonNet_() => Newtonsoft.Json.JsonConvert.DeserializeObject<T>(serialized);
 
+        [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Utf8Json")]
         public T Utf8Json_() => Utf8Json.JsonSerializer.Deserialize<T>(serialized);
     }

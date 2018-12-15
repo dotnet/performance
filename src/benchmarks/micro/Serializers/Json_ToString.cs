@@ -17,13 +17,15 @@ namespace MicroBenchmarks.Serializers
 
         public Json_ToString() => value = DataGenerator.Generate<T>();
 
+        [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]
         public string Jil_() => Jil.JSON.Serialize<T>(value);
 
-        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX)]
+        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.ThirdParty)]
         [Benchmark(Description = "JSON.NET")]
         public string JsonNet_() => Newtonsoft.Json.JsonConvert.SerializeObject(value);
 
+        [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Utf8Json")]
         public string Utf8Json_() => Utf8Json.JsonSerializer.ToJsonString(value);
 

@@ -40,6 +40,7 @@ namespace MicroBenchmarks.Serializers
             binaryFormatter.Serialize(memoryStream, value);
         }
 
+        [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "protobuf-net")]
         public void ProtoBuffNet()
         {
@@ -47,6 +48,7 @@ namespace MicroBenchmarks.Serializers
             ProtoBuf.Serializer.Serialize(memoryStream, value);
         }
 
+        [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "ZeroFormatter")]
         public void ZeroFormatter_()
         {
@@ -54,6 +56,7 @@ namespace MicroBenchmarks.Serializers
             ZeroFormatter.ZeroFormatterSerializer.Serialize<T>(memoryStream, value);
         }
 
+        [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "MessagePack")]
         public void MessagePack_()
         {
