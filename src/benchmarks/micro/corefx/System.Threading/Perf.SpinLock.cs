@@ -10,7 +10,16 @@ namespace System.Threading.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_SpinLock
     {
-        SpinLock _spinLock = new SpinLock();
+        private SpinLock _spinLock = new SpinLock(enableThreadOwnerTracking: false);
+        private SpinLock _acquiredSpinLock;
+
+        [GlobalSetup(Target = nameof(TryEnter_Fail))]
+        public void AcquireAcquiredSpinLock()
+        {
+            _acquiredSpinLock = new SpinLock(enableThreadOwnerTracking: false);
+            bool lockTaken = false;
+            _acquiredSpinLock.Enter(ref lockTaken);
+        }
 
         [Benchmark]
         public bool EnterExit()
@@ -35,6 +44,14 @@ namespace System.Threading.Tests
             spinLock.TryEnter(0, ref lockTaken);
             spinLock.Exit();
 
+            return lockTaken;
+        }
+
+        [Benchmark]
+        public bool TryEnter_Fail()
+        {
+            bool lockTaken = false;
+            _acquiredSpinLock.TryEnter(0, ref lockTaken);
             return lockTaken;
         }
     }

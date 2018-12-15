@@ -34,8 +34,19 @@ namespace System.Text.RegularExpressions.Tests
         {
             bool result = false;
             
-            foreach (var test in TestData)
+            foreach ((string pattern, string input, RegexOptions options) test in TestData)
                 result ^= Regex.Match(test.input, test.pattern, test.options).Success;
+
+            return result;
+        }
+
+        [Benchmark]
+        public bool IsMatch()
+        {
+            bool result = false;
+
+            foreach ((string pattern, string input, RegexOptions options) test in TestData)
+                result ^= Regex.IsMatch(test.input, test.pattern, test.options);
 
             return result;
         }
