@@ -130,11 +130,11 @@ System
 
 ## Categories
 
-Every benchmark should belong to either CoreCLR, CoreFX or ThirdParty library. It allows us for proper filtering for CI runs:
+Every benchmark should belong to either CoreCLR, CoreFX or ThirdParty library. It allows for proper filtering for CI runs:
 
 * CoreCLR - benchmarks belonging to this category are executed for CoreCLR CI jobs
 * CoreFX - benchmarks belonging to this category are executed for CoreFX CI jobs
-* ThirdParty - benchmarks belonging to this category are not going to be executed as part of our daily CI runs. We are going to run them before every .NET Framework release to make sure we don't regress any of the most popular 3rd party libraries.
+* ThirdParty - benchmarks belonging to this category are not going to be executed as part of our daily CI runs. We are going to run them periodically to make sure we don't regress any of the most popular 3rd party libraries.
 
 Adding given type/method to particular category requires using a `[BenchmarkCategory]` attribute:
 

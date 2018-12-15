@@ -8,7 +8,7 @@ namespace MicroBenchmarks
     {
         /// <summary>
         /// benchmarks belonging to this category are not going to be executed as part of our daily CI runs
-        /// but we are going to run them before every .NET Framework release to make sure we don't regress 3rd party libraries
+        /// we are going to run them periodically to make sure we don't regress any of the most popular 3rd party libraries.
         /// </summary>
         public const string ThirdParty = "ThirdParty";
         
