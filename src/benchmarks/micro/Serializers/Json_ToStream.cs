@@ -36,6 +36,7 @@ namespace MicroBenchmarks.Serializers
             newtonSoftJsonSerializer = new Newtonsoft.Json.JsonSerializer();
         }
 
+        [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]
         public void Jil_()
         {
@@ -43,7 +44,7 @@ namespace MicroBenchmarks.Serializers
             Jil.JSON.Serialize<T>(value, streamWriter);
         }
 
-        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX)]
+        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.ThirdParty)]
         [Benchmark(Description = "JSON.NET")]
         public void JsonNet_()
         {
@@ -51,6 +52,7 @@ namespace MicroBenchmarks.Serializers
             newtonSoftJsonSerializer.Serialize(streamWriter, value);
         }
 
+        [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Utf8Json")]
         public void Utf8Json_()
         {

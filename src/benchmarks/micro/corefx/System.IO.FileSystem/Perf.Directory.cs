@@ -7,9 +7,11 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace System.IO.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Directory
     {
         private const int CreateInnerIterations = 10;

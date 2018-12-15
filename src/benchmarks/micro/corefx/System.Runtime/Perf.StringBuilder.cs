@@ -5,9 +5,11 @@
 using System.Linq;
 using System.Text;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace System.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX, Categories.CoreCLR)]
     public class Perf_StringBuilder
     {
         private readonly string _string0 = "";

@@ -32,6 +32,7 @@ namespace MicroBenchmarks.Serializers
             ProtoBuf.Meta.RuntimeTypeModel.Default.Add(typeof(DateTimeOffset), false).SetSurrogate(typeof(DateTimeOffsetSurrogate)); // https://stackoverflow.com/a/7046868
         }
 
+        [BenchmarkCategory(Categories.CoreFX)]
         [Benchmark(Description = nameof(BinaryFormatter))]
         public void BinaryFormatter_()
         {
@@ -39,6 +40,7 @@ namespace MicroBenchmarks.Serializers
             binaryFormatter.Serialize(memoryStream, value);
         }
 
+        [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "protobuf-net")]
         public void ProtoBuffNet()
         {
@@ -46,6 +48,7 @@ namespace MicroBenchmarks.Serializers
             ProtoBuf.Serializer.Serialize(memoryStream, value);
         }
 
+        [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "ZeroFormatter")]
         public void ZeroFormatter_()
         {
@@ -53,6 +56,7 @@ namespace MicroBenchmarks.Serializers
             ZeroFormatter.ZeroFormatterSerializer.Serialize<T>(memoryStream, value);
         }
 
+        [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "MessagePack")]
         public void MessagePack_()
         {

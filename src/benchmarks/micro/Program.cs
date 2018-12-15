@@ -35,6 +35,7 @@ namespace MicroBenchmarks
                 .With(new OperatingSystemFilter())
                 .With(JsonExporter.Full) // make sure we export to Json (for BenchView integration purpose)
                 .With(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
-                .With(TooManyTestCasesValidator.FailOnError);
+                .With(TooManyTestCasesValidator.FailOnError)
+                .With(MandatoryCategoryValidator.FailOnError);
     }
 }

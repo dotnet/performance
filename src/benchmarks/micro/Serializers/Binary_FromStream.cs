@@ -60,6 +60,7 @@ namespace MicroBenchmarks.Serializers
             MessagePack.MessagePackSerializer.Serialize<T>(memoryStream, value);
         }
 
+        [BenchmarkCategory(Categories.CoreFX)]
         [Benchmark(Description = nameof(BinaryFormatter))]
         public T BinaryFormatter_()
         {
@@ -67,6 +68,7 @@ namespace MicroBenchmarks.Serializers
             return (T)binaryFormatter.Deserialize(memoryStream);
         }
 
+        [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "protobuf-net")]
         public T ProtoBuffNet()
         {
@@ -74,6 +76,7 @@ namespace MicroBenchmarks.Serializers
             return ProtoBuf.Serializer.Deserialize<T>(memoryStream);
         }
 
+        [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "ZeroFormatter_Naive")]
         public T ZeroFormatter_Naive()
         {
@@ -86,6 +89,7 @@ namespace MicroBenchmarks.Serializers
         /// they are deserialized for real when they are used for the first time
         /// if we don't touch the properites, they are not being deserialized and the result is skewed
         /// </summary>
+        [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "ZeroFormatter_Real")]
         public long ZeroFormatter_Real()
         {
@@ -96,6 +100,7 @@ namespace MicroBenchmarks.Serializers
             return deserialized.TouchEveryProperty();
         }
 
+        [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "MessagePack")]
         public T MessagePack_()
         {

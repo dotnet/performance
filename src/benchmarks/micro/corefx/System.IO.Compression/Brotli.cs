@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace System.IO.Compression
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Brotli : CompressionStreamPerfTestBase
     {
         private const int Window = 22;

@@ -6,6 +6,20 @@ namespace MicroBenchmarks
 {
     public static class Categories
     {
+        /// <summary>
+        /// benchmarks belonging to this category are not going to be executed as part of our daily CI runs
+        /// we are going to run them periodically to make sure we don't regress any of the most popular 3rd party libraries.
+        /// </summary>
+        public const string ThirdParty = "ThirdParty";
+        
+        /// <summary>
+        /// benchmarks belonging to this category are executed for CoreFX CI jobs
+        /// </summary>
+        public const string CoreFX = "CoreFX";
+        
+        /// <summary>
+        /// benchmarks belonging to this category are executed for CoreCLR CI jobs
+        /// </summary>
         public const string CoreCLR = "CoreCLR";
             public const string BenchmarksGame = "BenchmarksGame";
             public const string Benchstones = "Benchstones";
@@ -15,8 +29,6 @@ namespace MicroBenchmarks
             public const string V8 = "V8";
             public const string Perflab = "Perflab";
             public const string Virtual = "Virtual";
-        
-        public const string CoreFX = "CoreFX";
 
         public const string LINQ = "LINQ";
         public const string Reflection = "Reflection";

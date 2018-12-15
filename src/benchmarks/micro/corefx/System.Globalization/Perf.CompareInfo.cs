@@ -4,9 +4,11 @@
 
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace System.Globalization.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_CompareInfo
     {
         private static string GenerateInputString(char source, int count, char replaceChar, int replacePos)

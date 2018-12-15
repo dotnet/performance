@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace System.Tests
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX)]
     public class Perf_Array
     {
         private static Array s_arr1;

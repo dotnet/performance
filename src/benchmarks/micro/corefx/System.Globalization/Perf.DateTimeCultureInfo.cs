@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace System.Globalization.Tests
 {
@@ -12,6 +13,7 @@ namespace System.Globalization.Tests
     /// 
     /// Primary methods affected: Parse, ToString
     /// </summary>
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_DateTimeCultureInfo
     {
         private readonly DateTime _time = DateTime.Now;

@@ -4,9 +4,11 @@
 
 using System.Linq;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace System
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX)]
     public class Hashing
     {
         private string _string;

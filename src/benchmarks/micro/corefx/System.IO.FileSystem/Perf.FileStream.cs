@@ -4,9 +4,11 @@
 
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace System.IO.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_FileStream
     {
         private const int DefaultBufferSize = 4096;
