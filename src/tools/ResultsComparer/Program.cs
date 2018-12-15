@@ -77,7 +77,7 @@ namespace ResultsComparer
                 .OrderByDescending(result => GetRatio(conclusion, result.baseResult, result.diffResult))
                 .Take(args.TopCount ?? int.MaxValue)
                 .Select(result => new {
-                    Id = result.id.Length > 100 ? result.id.Substring(0, 100) : result.id,
+                    Id = result.id.Length > 80 ? result.id.Substring(0, 80) : result.id,
                     DisplayValue = GetRatio(conclusion, result.baseResult, result.diffResult),              
                     BaseMedian = result.baseResult.Statistics.Median,
                     DiffMedian = result.diffResult.Statistics.Median,
@@ -156,7 +156,7 @@ namespace ResultsComparer
             else if (mValue > 3.2)
                 return "bimodal";
             else if (mValue > 2.8)
-                return "can have several modes";
+                return "several?";
 
             return null;
         }
