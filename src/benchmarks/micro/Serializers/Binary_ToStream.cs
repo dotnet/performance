@@ -32,6 +32,7 @@ namespace MicroBenchmarks.Serializers
             ProtoBuf.Meta.RuntimeTypeModel.Default.Add(typeof(DateTimeOffset), false).SetSurrogate(typeof(DateTimeOffsetSurrogate)); // https://stackoverflow.com/a/7046868
         }
 
+        [BenchmarkCategory(Categories.CoreFX)]
         [Benchmark(Description = nameof(BinaryFormatter))]
         public void BinaryFormatter_()
         {

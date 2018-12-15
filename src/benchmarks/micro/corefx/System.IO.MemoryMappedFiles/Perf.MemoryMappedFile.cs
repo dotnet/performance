@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace System.IO.MemoryMappedFiles.Tests
 {
     /// <summary>
     /// Performance tests for the construction and disposal of MemoryMappedFiles of varying sizes
     /// </summary>
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_MemoryMappedFile
     {
         private TempFile _file;

@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace System.Tests
 {
+    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX)]
     public class Perf_String
     {
         public static IEnumerable<object> TestStringSizes()
@@ -37,7 +39,7 @@ namespace System.Tests
         public string Concat_str_str_str_str(StringArguments size)
             => string.Concat(size.TestString1, size.TestString2, size.TestString3, size.TestString4);
 
-        private readonly static IEnumerable<char> s_longCharEnumerable = Enumerable.Range(0, 1000).Select(i => (char)('a' + i % 26));
+        private static readonly IEnumerable<char> s_longCharEnumerable = Enumerable.Range(0, 1000).Select(i => (char)('a' + i % 26));
 
         [Benchmark]
         public string Concat_CharEnumerable() =>

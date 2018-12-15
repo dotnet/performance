@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace System.IO.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_FileInfo
     {
         private readonly string _path = FileUtils.GetTestFilePath();

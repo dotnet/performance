@@ -60,6 +60,7 @@ namespace MicroBenchmarks.Serializers
             MessagePack.MessagePackSerializer.Serialize<T>(memoryStream, value);
         }
 
+        [BenchmarkCategory(Categories.CoreFX)]
         [Benchmark(Description = nameof(BinaryFormatter))]
         public T BinaryFormatter_()
         {

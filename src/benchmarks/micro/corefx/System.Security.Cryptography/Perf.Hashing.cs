@@ -2,14 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace System.Security.Cryptography.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Hashing
     {
-        private readonly byte[] _data = MicroBenchmarks.ValuesGenerator.Array<byte>(100 * 1024 * 1024);
+        private readonly byte[] _data = ValuesGenerator.Array<byte>(100 * 1024 * 1024);
 
         private readonly SHA1 _sha1 = SHA1.Create();
         private readonly SHA256 _sha256 = SHA256.Create();

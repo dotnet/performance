@@ -4,9 +4,11 @@
 
 using System.Linq;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace System.IO.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_File
     {
         private const int DeleteteInnerIterations = 10;

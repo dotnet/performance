@@ -5,11 +5,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 #pragma warning disable CS0618 // obsolete
 
 namespace System.Net.Primitives.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class IPAddressPerformanceTests
     {
         public static IEnumerable<object> ByteAddresses()

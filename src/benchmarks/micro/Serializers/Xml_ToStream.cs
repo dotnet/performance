@@ -18,7 +18,6 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(XmlElement))]
     [GenericTypeArguments(typeof(SimpleStructWithProperties))]
     [GenericTypeArguments(typeof(ClassImplementingIXmlSerialiable))]
-    [BenchmarkCategory(Categories.CoreFX)]
     public class Xml_ToStream<T>
     {
         private readonly T value;
@@ -34,6 +33,7 @@ namespace MicroBenchmarks.Serializers
             memoryStream = new MemoryStream(capacity: short.MaxValue);
         }
 
+        [BenchmarkCategory(Categories.CoreFX, Categories.CoreCLR)]
         [Benchmark(Description = nameof(XmlSerializer))]
         public void XmlSerializer_()
         {
@@ -41,6 +41,7 @@ namespace MicroBenchmarks.Serializers
             xmlSerializer.Serialize(memoryStream, value);
         }
 
+        [BenchmarkCategory(Categories.CoreFX)]
         [Benchmark(Description = nameof(DataContractSerializer))]
         public void DataContractSerializer_()
         {

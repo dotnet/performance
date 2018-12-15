@@ -5,9 +5,11 @@
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
+using MicroBenchmarks;
 
 namespace System.Net.Primitives.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class CredentialCacheTests
     {
         private const string UriPrefix = "http://name";
