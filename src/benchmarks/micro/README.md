@@ -128,6 +128,21 @@ System
  │     └─ReadOnlySpan
 ```
 
+## Categories
+
+Every benchmark should belong to either CoreCLR, CoreFX or ThirdParty library. It allows us for proper filtering for CI runs:
+
+* CoreCLR - benchmarks belonging to this category are executed for CoreCLR CI jobs
+* CoreFX - benchmarks belonging to this category are executed for CoreFX CI jobs
+* ThirdParty - benchmarks belonging to this category are not going to be executed as part of our daily CI runs. We are going to run them before every .NET Framework release to make sure we don't regress any of the most popular 3rd party libraries.
+
+Adding given type/method to particular category requires using a `[BenchmarkCategory]` attribute:
+
+```cs
+[BenchmarkCategory(Categories.CoreFX)]
+public class SomeType
+```
+
 ## All Statistics
 
 By default BenchmarkDotNet displays only `Mean`, `Error` and `StdDev` in the results. If you want to see more statistics, please pass `--allStats` as an extra argument to the app: `dotnet run -c Release -f netcoreapp2.1 -- --allStats`. If you build your own config, please use `config.With(StatisticColumn.AllStatistics)`.
