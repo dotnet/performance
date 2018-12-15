@@ -56,12 +56,13 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or '$(TargetFramework)' == 'netcoreapp2.0'">
-    <Compile Remove="corefx\System.Security.Cryptography.Primitives\**" />
+    <Compile Remove="corefx\System.IO.Compression\Brotli.cs" />
     <Compile Remove="corefx\System.Net.Http\Perf.SocketsHttpHandler.cs" />
     <Compile Remove="corefx\System.Net.Sockets\Perf.Socket.SendReceive.cs" />
     <Compile Remove="corefx\System.Numerics.Vectors\GenericVectorFromSpanConstructorTests.cs" />
-    <Compile Remove="corefx\System.IO.Compression\Brotli.cs" />
     <Compile Remove="corefx\System.Runtime\Perf.HashCode.cs" />
+    <Compile Remove="corefx\System.Security.Cryptography.Primitives\**" />
+    <Compile Remove="corefx\System.Security.Cryptography\Perf.Rfc2898DeriveBytes.cs" />
   </ItemGroup>
 
   <ItemGroup>

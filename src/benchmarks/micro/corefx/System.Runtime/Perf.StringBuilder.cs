@@ -84,6 +84,33 @@ namespace System.Tests
             return sb;
         }
 
+        [Benchmark]
+        public StringBuilder Append_ValueTypes()
+        {
+            var sb = new StringBuilder();
+
+            for (int j = 0; j < NUM_ITERS_APPEND; j++)
+            {
+                sb.Append(sbyte.MaxValue);
+                sb.Append(byte.MaxValue);
+                sb.Append(short.MaxValue);
+                sb.Append(ushort.MaxValue);
+                sb.Append(int.MaxValue);
+                sb.Append(uint.MaxValue);
+                sb.Append(long.MaxValue);
+                sb.Append(ulong.MaxValue);
+                sb.Append(double.MaxValue);
+                sb.Append(float.MaxValue);
+                sb.Append(decimal.MaxValue);
+                sb.Append(new Guid(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11));
+                sb.Append(new DateTime(2018, 12, 14));
+                sb.Append(new DateTimeOffset(new DateTime(2018, 12, 14), default));
+                sb.Append(new TimeSpan(1, 2, 3));
+            }
+
+            return sb;
+        }
+
         [GlobalSetup(Target = nameof(StringBuilderToString))]
         public void SetupStringBuilderToString()
         {

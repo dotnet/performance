@@ -93,5 +93,21 @@ namespace System.IO.Tests
 
             return sb.ToString();
         }
+
+        [GlobalSetup(Target = nameof(EnumerateFiles))]
+        public void SetupEnumerateFiles()
+        {
+            Directory.CreateDirectory(_testFile);
+            for (int i = 0; i < 10_000; i++)
+            {
+                File.Create(Path.Combine(_testFile, $"File{i}.txt")).Dispose();
+            }
+        }
+
+        [Benchmark]
+        public int EnumerateFiles() => Directory.EnumerateFiles(_testFile, "*", SearchOption.AllDirectories).Count();
+
+        [GlobalCleanup(Target = nameof(EnumerateFiles))]
+        public void CleanupEnumerateFiles() => Directory.Delete(_testFile, recursive: true);
     }
 }
