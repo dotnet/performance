@@ -20,13 +20,19 @@ namespace System.Tests
             Blue = 0x10
         }
 
-        [Params("Red", "Red, Orange, Yellow, Green, Blue")] // test both a single value and multiple values
-        public string Text;
+        [Benchmark]
+        [Arguments("Red")]
+        [Arguments("Red, Orange, Yellow, Green, Blue")]
+        public Colors Parse(string text) => (Colors)Enum.Parse(typeof(Colors), text);
 
         [Benchmark]
-        public Colors Parse() => (Colors)Enum.Parse(typeof(Colors), Text);
+        [Arguments("Red")]
+        [Arguments("Red, Orange, Yellow, Green, Blue")]
+        public bool TryParseGeneric(string text) => Enum.TryParse<Colors>(text, out _);
+
+        private Colors _greenAndRed = Colors.Green | Colors.Red;
 
         [Benchmark]
-        public bool TryParseGeneric() => Enum.TryParse<Colors>(Text, out _);
+        public bool HasFlag() => _greenAndRed.HasFlag(Colors.Green);
     }
 }
