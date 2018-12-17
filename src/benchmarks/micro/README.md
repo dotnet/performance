@@ -217,9 +217,11 @@ dotnet run -c Release -- --runtimes net472 netcoreapp2.1
 
 ## Benchmarking private CoreCLR and CoreFX builds using CoreRun
 
-It's possible to benchmark a private build of CoreCLR/FX using CoreRun. You just need to pass the path to CoreRun to BenchmarkDotNet. You can do that by either using `--coreRun $thePath` as an arugment or `job.With(new CoreRunToolchain(coreRunPath: "$thePath"))` in the code.
+It's possible to benchmark private builds of CoreCLR/FX using CoreRun. You just need to pass the path(s) to CoreRun to BenchmarkDotNet. You can do that by either using `--coreRun $thePath` as an arugment or `job.With(new CoreRunToolchain(coreRunPath: "$thePath"))` in the code.
 
 So if you made a change in CoreCLR/FX and want to measure the performance, you can run the benchmarks with `dotnet run -c Release -f netcoreapp3.0 -- --coreRun $thePath`.
+
+**Note:** You can provide more than 1 path to CoreRun. In such case, the first path will be the baseline and all the benchmarks are going to be executed for all CoreRuns you have specified.
 
 **Note:** If `CoreRunToolchain` detects that you have some older version of dependencies required to run the benchmarks in CoreRun folder, it's going to overwrite them with newer versions from the published app. It's going to do that in a shadow copy of the folder with CorRun, so your configuration remains untouched.
 
