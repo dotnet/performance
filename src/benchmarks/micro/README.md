@@ -278,6 +278,8 @@ dotnet run -c Release -- --filter *BinaryTrees_2* --runtimes netcoreapp2.1 netco
 | BinaryTrees_2 | netcoreapp2.1 | 124.4 ms |            Base |
 | BinaryTrees_2 | netcoreapp2.2 | 153.7 ms |          Slower |
 
+**Note:** to compare the historical results you need to use [Results Comparer](../../tools/ResultsComparer/README.md)
+
 ## Enabling given benchmark(s) for selected Operating System(s)
 
 This is possible with the `AllowedOperatingSystemsAttribute`. You need to provide a mandatory comment and OS(es) which benchmark(s) can run on.
