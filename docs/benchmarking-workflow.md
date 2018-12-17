@@ -256,7 +256,10 @@ By using the `DisassemblyDiagnoser` and `EtwProfiler` you should be able to get 
    5. run the benchmarks using given `CoreRun.exe` and save the results to a dedicated folder. An example:
 
         ```cmd
-        dotnet run -c Release -f netcoreapp3.0 -- --filter *Span* --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe" --profiler ETW --artifacts before
+        dotnet run -c Release -f netcoreapp3.0 -- 
+            --artifacts before 
+            --filter *Span* 
+            --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
         ```
 
 3. Use at least one of the available BenchmarkDotNet features: `MemoryDiagnoser`, `DisassemblyDiagnoser` or `EtwProfiler` to get more performance data.
@@ -266,10 +269,15 @@ By using the `DisassemblyDiagnoser` and `EtwProfiler` you should be able to get 
 7. Run the benchmarks using given `CoreRun.exe` and save the results to a dedicated folder. **Different one that you used to store results previously!** Example:
 
     ```cmd
-    dotnet run -c Release -f netcoreapp3.0 -- --filter *Span* --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe" --artifacts after
+    dotnet run -c Release -f netcoreapp3.0 --  --artifacts after --filter *Span* --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
     ```
 
-8. Compare the results.
+8. Compare the results using [Results Comparer](../src/tools/ResultsComparer/README.md)
+
+    ```cmd
+    dotnet run -p ..\..\tools\ResultsComparer\ResultsComparer.csproj --base .\before\ --diff .\after\ --threshold 3%
+    ```
+
 9. Repeat steps 3-8 until you get the desired speedup.
 
 ### Checking for regressions using Statistical Test
@@ -302,7 +310,7 @@ dotnet run -c Release -f netcoreapp2.1 --
 
 **Note:** some of our benchmarks are dependent on the alignment. You can use `--launchCount` option to specify how many processes BenchmarkDotNet should start to run given benchmarks. BDN does it sequentially. It's recommended to use this feature when releasing a new version of .NET Framework.
 
-**Note:** you don't need two copies of CoreCLR/FX to compare the performance. But in that case you have to run the benchmarks at least once before applying any changes.
+**Note:** you don't need two copies of CoreCLR/FX to compare the performance. But in that case, you have to run the benchmarks at least once before applying any changes. To compare the historical results you need to use [Results Comparer](../src/tools/ResultsComparer/README.md)
 
 ### Comparing different runtimes
 
