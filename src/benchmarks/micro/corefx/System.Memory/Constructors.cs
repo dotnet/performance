@@ -76,6 +76,12 @@ namespace System.Memory
         [Benchmark]
         public System.ReadOnlyMemory<T> ReadOnlyMemoryFromArrayStartLength() => new System.ReadOnlyMemory<T>(_nonEmptyArray, start: 0, length: Size);
 
+        [Benchmark]
+        public System.Span<T> ArrayAsSpan() => _nonEmptyArray.AsSpan();
+        
+        [Benchmark]
+        public System.Memory<T> ArrayAsMemory() => _nonEmptyArray.AsMemory();
+
 #if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1 https://github.com/dotnet/coreclr/issues/16126
         [Benchmark]
         public System.Span<T> MemoryMarshalCreateSpan() => MemoryMarshal.CreateSpan<T>(ref _field, Size);
