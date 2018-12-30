@@ -83,6 +83,7 @@ You can filter the benchmarks by namespace, category, type name and method name.
 * `dotnet run -c Release -f netcoreapp2.1 -- --filter BenchmarksGame*` - will run all the benchmarks from BenchmarksGame namespace
 * `dotnet run -c Release -f netcoreapp2.1 -- --filter *.ToStream` - will run all the benchmarks with method name ToStream
 * `dotnet run -c Release -f netcoreapp2.1 -- --filter *.Richards.*` - will run all the benchmarks with type name Richards
+* `dotnet run -c Release -f netcoreapp2.1 -- --filter System.Collections*.Dictionary* *.Perf_Dictionary.*` - will run all the benchmarks with type name start with System.Collections and method name start with Dictionary plus all benchmarks of type name Perf_Dictionary
 
 **Note:** To print a single summary for all of the benchmarks, use `--join`.
 Example: `dotnet run -c Release -f netcoreapp2.1 -- --join -f BenchmarksGame*` - will run all of the benchmarks from BenchmarksGame namespace and print a single summary.
