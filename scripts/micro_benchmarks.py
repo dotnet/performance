@@ -173,6 +173,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         '--corerun',
         dest='corerun',
         required=False,
+        nargs='*',
         type=__valid_file_path,
         help='Full path to CoreRun.exe (corerun on Unix)',
     )

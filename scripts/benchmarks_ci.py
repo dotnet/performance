@@ -482,7 +482,7 @@ def __main(args: list) -> int:
         if args.category:
             run_args += ['--allCategories', args.category]
         if args.corerun:
-            run_args += ['--coreRun', args.corerun]
+            run_args += ['--coreRun'] + args.corerun
         if args.cli:
             run_args += ['--cli', args.cli]
         if args.enable_pmc:
