@@ -7,3 +7,6 @@ src/benchmarks/micro/coreclr/BenchmarksGame/Inputs/regexdna-input25.txt text eol
 src/benchmarks/micro/coreclr/BenchmarksGame/Inputs/regexdna-input25000.txt text eol=lf
 src/benchmarks/micro/coreclr/BenchmarksGame/Inputs/revcomp-input25.txt text eol=lf
 src/benchmarks/micro/coreclr/BenchmarksGame/Inputs/revcomp-input25000.txt text eol=lf
+src/benchmarks/micro/corefx/System.IO.Compression/TestData/sum text eol=lf
+src/benchmarks/micro/corefx/System.IO.Compression/TestData/alice29.txt text eol=lf
+src/benchmarks/micro/corefx/System.Text.RegularExpressions/content/200_000.in text eol=lf

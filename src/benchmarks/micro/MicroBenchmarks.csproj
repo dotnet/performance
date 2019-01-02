@@ -26,14 +26,12 @@
     <PackageReference Include="MessagePackAnalyzer" Version="1.6.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="protobuf-net" Version="2.3.7" />
-    <PackageReference Include="System.IO.Compression.TestData" Version="1.0.6-prerelease" />
     <PackageReference Include="System.Memory" Version="4.5.0" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.0" />
     <PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Serialization.Json" Version="4.3.0" />
     <PackageReference Include="System.Security.Cryptography.Primitives" Version="4.3.0" />
-    <PackageReference Include="System.Text.RegularExpressions.TestData" Version="1.0.2" />
     <PackageReference Include="System.Threading.Channels" Version="4.5.0" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.1" />
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
@@ -44,9 +42,15 @@
 
   <ItemGroup>
     <None Update="coreclr\BenchmarksGame\Inputs\*.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="corefx\System.Net.Http\*.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="corefx\System.IO.Compression\TestData\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="corefx\System.Text.RegularExpressions\content\200_000.in">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -63,17 +67,6 @@
     <Compile Remove="corefx\System.Runtime\Perf.HashCode.cs" />
     <Compile Remove="corefx\System.Security.Cryptography.Primitives\**" />
     <Compile Remove="corefx\System.Security.Cryptography\Perf.Rfc2898DeriveBytes.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="$(NuGetPackageRoot)\system.text.regularexpressions.testdata\1.0.2\content\regexredux\*.*">
-      <Link>corefx\System.Text.RegularExpressions\content\%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(NuGetPackageRoot)\system.io.compression.testdata\1.0.6-prerelease\content\**\*.*">
-      <Link>corefx\System.IO.Compression\TestData\%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
 </Project>
