@@ -173,6 +173,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         '--corerun',
         dest='corerun',
         required=False,
+        nargs='+',
         type=__valid_file_path,
         help='Full path to CoreRun.exe (corerun on Unix)',
     )
@@ -298,7 +299,7 @@ def __main(args: list) -> int:
             if args.category:
                 run_args += ['--allCategories', args.category]
             if args.corerun:
-                run_args += ['--coreRun', args.corerun]
+                run_args += ['--coreRun'] + args.corerun
             if args.cli:
                 run_args += ['--cli', args.cli]
             if args.enable_pmc:
