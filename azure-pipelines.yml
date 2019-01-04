@@ -47,6 +47,7 @@ jobs:
           - name: Creator
             value: ''
           - group: DotNet-HelixApi-Access
+          - group: dotnet-benchview
         workspace:
           clean: all
         pool:
@@ -107,6 +108,7 @@ jobs:
             - name: UploadToBenchview
               value: '--upload-to-benchview-container coreclr'
             - group: DotNet-HelixApi-Access
+            - group: dotnet-benchview
           workspace:
             clean: all
           pool:
