@@ -105,7 +105,8 @@ class FrameworkAction(Action):
             FrameworkAction.get_target_framework_moniker(framework)
             for framework in frameworks
         ]
-        return monikers
+        ## --frameworks netcoreapp3.0 corert should be translated to single moniker: netcoreapp3.0
+        return list(set(monikers))
 
 
 def get_supported_configurations() -> list:
