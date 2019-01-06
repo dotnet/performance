@@ -140,7 +140,7 @@ class CSharpProject:
             '--project', self.csproj_file,
             '--configuration', configuration,
             '--framework', framework,
-            '--no-restore', '--no-build',
+            # '--no-build' temporary disabled due to BDN issue https://github.com/dotnet/performance/issues/209#issuecomment-451759735
         ]
 
         if args:
