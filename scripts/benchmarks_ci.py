@@ -58,7 +58,7 @@ if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
 
 def init_tools(
         architecture: str,
-        frameworks: str,
+        target_framework_monikers: list,
         verbose: bool) -> None:
     '''
     Install tools used by this repository into the tools folder.
@@ -67,8 +67,8 @@ def init_tools(
     '''
     getLogger().info('Installing tools.')
     channels = [
-        micro_benchmarks.TargetFrameworkAction.get_channel(framework) or 'LTS'
-        for framework in frameworks
+        micro_benchmarks.FrameworkAction.get_channel(target_framework_moniker) or 'LTS'
+        for target_framework_moniker in target_framework_monikers
     ]
     dotnet.install(
         architecture=architecture,
@@ -259,7 +259,7 @@ def __get_corefx_os_name():
         return platform.platform()
 
 
-def __get_build_info(args, framework: str) -> benchview.BuildInfo:
+def __get_build_info(args, target_framework_moniker: str) -> benchview.BuildInfo:
     # TODO: Improve complex scenarios.
     #   Could the --cli-* arguments take multiple build info objects from the
     #   command line interface?
@@ -275,11 +275,11 @@ def __get_build_info(args, framework: str) -> benchview.BuildInfo:
         source_timestamp = dotnet.get_commit_date(commit_sha, repository)
     elif args.cli_source_info == 'init-tools':
         # Retrieve data from the installed dotnet tools.
-        branch = micro_benchmarks.TargetFrameworkAction.get_channel(
-            framework
+        branch = micro_benchmarks.FrameworkAction.get_channel(
+            target_framework_moniker
         )
         if not branch:
-            err_msg = 'Cannot determine build information for "%s"' % framework
+            err_msg = 'Cannot determine build information for "%s"' % target_framework_moniker
             getLogger().error(err_msg)
             getLogger().error(
                 "Build information can be provided using the --cli-* options."
@@ -342,7 +342,8 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
     benchviewpy.machinedata(working_directory=bin_directory)
 
     for framework in args.frameworks:
-        buildinfo = __get_build_info(args, framework)
+        target_framework_moniker = FrameworkAction.get_target_framework_moniker(framework)
+        buildinfo = __get_build_info(args, )
 
         # BenchView build.py
         benchviewpy.build(
@@ -358,7 +359,7 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
         working_directory = dotnet.get_build_directory(
             bin_directory=bin_directory,
             configuration=args.configuration,
-            framework=framework,
+            target_framework_moniker=target_framework_moniker,
         )
 
         # BenchView measurement.py
@@ -393,9 +394,10 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
     # Find all measurement.json
     with push_dir(bin_directory):
         for framework in args.frameworks:
+            target_framework_moniker = FrameworkAction.get_target_framework_moniker(framework)
             glob_format = '**/%s/%s/measurement.json' % (
                 args.configuration,
-                framework
+                target_framework_moniker
             )
 
             measurement_jsons = []
@@ -441,10 +443,11 @@ def __main(args: list) -> int:
         raise RuntimeError("""In order to generate BenchView data,
             `--benchview-submission-name` must be provided.""")
 
+    target_framework_monikers = micro_benchmarks.FrameworkAction.get_target_framework_monikers(args.frameworks)
     # Acquire necessary tools (dotnet, and BenchView)
     init_tools(
         architecture=args.architecture,
-        frameworks=args.frameworks,
+        target_framework_monikers=target_framework_monikers,
         verbose=verbose
     )
 
@@ -460,7 +463,7 @@ def __main(args: list) -> int:
     # The MicroBenchmarks.csproj targets .NET Core 2.0, 2.1, 2.2 and 3.0
     # to avoid a build failure when using older frameworks (error NETSDK1045: The current .NET SDK does not support targeting .NET Core $XYZ)
     # we set the TFM to what the user has provided
-    os.environ['PYTHON_SCRIPT_TARGET_FRAMEWORKS'] = ';'.join(args.frameworks)
+    os.environ['PYTHON_SCRIPT_TARGET_FRAMEWORKS'] = ';'.join(target_framework_monikers)
 
     # dotnet --info
     dotnet.info(verbose=verbose)
@@ -469,7 +472,7 @@ def __main(args: list) -> int:
     # Restore and build micro-benchmarks
     micro_benchmarks.build(
         args.configuration,
-        args.frameworks,
+        target_framework_monikers,
         args.incremental,
         verbose
     )

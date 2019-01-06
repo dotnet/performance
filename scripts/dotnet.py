@@ -97,11 +97,11 @@ class CSharpProject:
 
     def build(self,
               configuration: str,
-              frameworks: list,
+              target_framework_monikers: list,
               verbose: bool,
               *args) -> None:
         '''Calls dotnet to build the specified project.'''
-        if not frameworks:  # Frameworks were not specified, the build all.
+        if not target_framework_monikers:  # target framework monikers were not specified, the build all.
             cmdline = [
                 'dotnet', 'build',
                 self.csproj_file,
@@ -113,12 +113,12 @@ class CSharpProject:
             RunCommand(cmdline, verbose=verbose).run(
                 self.working_directory)
         else:  # Only build specified frameworks
-            for framework in frameworks:
+            for target_framework_moniker in target_framework_monikers:
                 cmdline = [
                     'dotnet', 'build',
                     self.csproj_file,
                     '--configuration', configuration,
-                    '--framework', framework,
+                    '--framework', target_framework_moniker,
                     '--no-restore',
                 ]
                 if args:
@@ -128,7 +128,7 @@ class CSharpProject:
 
     def run(self,
             configuration: str,
-            framework: str,
+            target_framework_moniker: str,
             verbose: bool,
             *args) -> None:
         '''
@@ -139,7 +139,7 @@ class CSharpProject:
             'dotnet', 'run',
             '--project', self.csproj_file,
             '--configuration', configuration,
-            '--framework', framework,
+            '--framework', target_framework_moniker,
             '--no-restore', '--no-build',
         ]
 
@@ -205,7 +205,7 @@ def get_commit_date(commit_sha: str, repository: str = None) -> str:
 def get_build_directory(
         bin_directory: str,
         configuration: str,
-        framework: str) -> None:
+        target_framework_moniker: str) -> None:
     '''
     Gets the  output directory where the built artifacts are in with
     respect to the specified bin_directory.
@@ -215,21 +215,21 @@ def get_build_directory(
             bin_directory,
             __find_build_directory(
                 configuration=configuration,
-                framework=framework,
+                target_framework_moniker=target_framework_moniker,
             )
         )
 
 
 def __find_build_directory(
         configuration: str,
-        framework: str) -> str:
+        target_framework_moniker: str) -> str:
     '''
     Attempts to get the output directory where the built artifacts are in
     with respect to the current working directory.
     '''
     pattern = '**/{Configuration}/{TargetFramework}'.format(
         Configuration=configuration,
-        TargetFramework=framework
+        TargetFramework=target_framework_moniker
     )
 
     for path_name in iglob(pattern, recursive=True):

@@ -28,20 +28,20 @@ from performance.logger import setup_loggers
 import dotnet
 
 
-class TargetFrameworkAction(Action):
+class FrameworkAction(Action):
     '''
     Used by the ArgumentParser to represent the information needed to parse the
-    supported .NET target frameworks argument from the command line.
+    supported .NET frameworks argument from the command line.
     '''
 
     def __call__(self, parser, namespace, values, option_string=None):
         if values:
             wrong_choices = []
-            supported_target_frameworks = TargetFrameworkAction\
-                .get_supported_target_frameworks()
+            supported_frameworks = FrameworkAction\
+                .get_supported_frameworks()
 
             for value in values:
-                if value not in supported_target_frameworks:
+                if value not in supported_frameworks:
                     wrong_choices.append(value)
             if wrong_choices:
                 message = ', '.join(wrong_choices)
@@ -50,18 +50,18 @@ class TargetFrameworkAction(Action):
             setattr(namespace, self.dest, list(set(values)))
 
     @staticmethod
-    def get_supported_target_frameworks() -> list:
-        '''List of supported .NET target frameworks.'''
+    def get_supported_frameworks() -> list:
+        '''List of supported .NET frameworks.'''
         frameworks = list(
-            TargetFrameworkAction.__get_framework_channel_map().keys()
+            FrameworkAction.__get_target_framework_moniker_channel_map().keys()
         )
+        frameworks.append('corert')
         if sys.platform == 'win32':
             frameworks.append('net461')
         return frameworks
 
     @staticmethod
-    def __get_framework_channel_map() -> dict:
-        # TODO: Can we do better? For example, read it from csproj?
+    def __get_target_framework_moniker_channel_map() -> dict:
         return {
             'netcoreapp3.0': 'master',
             'netcoreapp2.2': '2.2',
@@ -70,13 +70,42 @@ class TargetFrameworkAction(Action):
         }
 
     @staticmethod
-    def get_channel(framework: str) -> str:
+    def __get_framework_target_framework_moniker_map() -> dict:
+        return {
+            # to run CoreRT benchmarks we need to run the host BDN process as latest .NET Core
+            # the host process will build and run CoreRT benchmarks
+            'corert': 'netcoreapp3.0',
+        }
+
+    @staticmethod
+    def get_channel(target_framework_moniker: str) -> str:
         '''
         Attemps to retrieve the channel that can be used to download the
         DotNet Cli tools.
         '''
-        dct = TargetFrameworkAction.__get_framework_channel_map()
-        return dct[framework] if framework in dct else None
+        dct = FrameworkAction.__get_target_framework_moniker_channel_map()
+        return dct[target_framework_moniker] if target_framework_moniker in dct else None
+        
+    @staticmethod
+    def get_target_framework_moniker(framework: str) -> str:
+        '''
+        Translates framework name to target framework moniker (TFM)
+        Required to run CoreRT benchmarks where the host process must be .NET Core, not CoreRT
+        '''
+        dct = FrameworkAction.__get_framework_target_framework_moniker_map()
+        return dct[framework] if framework in dct else framework
+        
+    @staticmethod
+    def get_target_framework_monikers(frameworks: list) -> list:
+        '''
+        Translates framework names to target framework monikers (TFM)
+        Required to run CoreRT benchmarks where the host process must be .NET Core, not CoreRT
+        '''
+        monikers = [
+            FrameworkAction.get_target_framework_moniker(framework)
+            for framework in frameworks
+        ]
+        return monikers
 
 
 def get_supported_configurations() -> list:
@@ -114,15 +143,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help=SUPPRESS,
     )
 
-    supported_target_frameworks = TargetFrameworkAction\
-        .get_supported_target_frameworks()
+    supported_frameworks = FrameworkAction\
+        .get_supported_frameworks()
     parser.add_argument(
         '-f', '--frameworks',
         required=True,
         nargs='+',
-        action=TargetFrameworkAction,
-        choices=supported_target_frameworks,
-        help='''The target framework to build/run for. '''
+        action=FrameworkAction,
+        choices=supported_frameworks,
+        help='''The framework to build/run for. '''
              '''The target framework must also be specified in the project '''
              '''file.''',
     )
@@ -246,13 +275,14 @@ def __getBenchmarkDotNetArguments(
     # we need to tell BenchmarkDotNet where to restore the packages
     # if we don't it's gonna restore to default global folder
     run_args += ['--packages', get_packages_directory()]
-    run_args += ['--runtimes', framework] # the --packages requires this argument to work (BDN limitaiton)
+    # required for CoreRT where host process framework != benchmark process framework
+    run_args += ['--runtimes', framework]
         
     return run_args
 
 def build(
         configuration: str,
-        frameworks: list,
+        target_framework_monikers: list,
         incremental: str,
         verbose: bool) -> None:
     '''Restores and builds the benchmarks'''
@@ -274,9 +304,9 @@ def build(
 
     # dotnet build
     build_title = "Building .NET micro benchmarks for '{}'".format(
-        ' '.join(frameworks))
+        ' '.join(target_framework_monikers))
     __log_script_header(build_title)
-    BENCHMARKS_CSPROJ.build(configuration, frameworks, verbose)
+    BENCHMARKS_CSPROJ.build(configuration, target_framework_monikers, verbose)
 
 
 def run(
@@ -290,7 +320,8 @@ def run(
     ))
     # dotnet run
     run_args = __getBenchmarkDotNetArguments(args, framework)
-    BENCHMARKS_CSPROJ.run(configuration, framework, verbose, *run_args)
+    target_framework_moniker = FrameworkAction.get_target_framework_moniker(framework)
+    BENCHMARKS_CSPROJ.run(configuration, target_framework_moniker, verbose, *run_args)
 
 
 def __log_script_header(message: str):
@@ -315,6 +346,7 @@ def __main(args: list) -> int:
         frameworks = args.frameworks
         incremental = args.incremental
         verbose = args.verbose
+        target_framework_monikers = TargetAction.get_target_framework_monikers(frameworks)
 
         setup_loggers(verbose=verbose)
 
@@ -322,7 +354,7 @@ def __main(args: list) -> int:
         dotnet.info(verbose)
 
         # dotnet build
-        build(configuration, frameworks, incremental, verbose)
+        build(configuration, target_framework_monikers, incremental, verbose)
 
         for framework in frameworks:
             # dotnet run
