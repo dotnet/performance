@@ -31,7 +31,7 @@ import dotnet
 class TargetFrameworkAction(Action):
     '''
     Used by the ArgumentParser to represent the information needed to parse the
-    supported .NET Core target frameworks argument from the command line.
+    supported .NET target frameworks argument from the command line.
     '''
 
     def __call__(self, parser, namespace, values, option_string=None):
@@ -51,7 +51,7 @@ class TargetFrameworkAction(Action):
 
     @staticmethod
     def get_supported_target_frameworks() -> list:
-        '''List of supported .NET Core target frameworks.'''
+        '''List of supported .NET target frameworks.'''
         frameworks = list(
             TargetFrameworkAction.__get_framework_channel_map().keys()
         )
@@ -220,6 +220,35 @@ def __process_arguments(args: list) -> Tuple[list, bool]:
     parser = add_arguments(parser)
     return parser.parse_args(args)
 
+def __getBenchmarkDotNetArguments(
+        args: list,
+        framework: str
+        ) -> list:
+    run_args = ['--']
+    if args.category:
+        run_args += ['--allCategories', args.category]
+    if args.corerun:
+        run_args += ['--coreRun'] + args.corerun
+    if args.cli:
+        run_args += ['--cli', args.cli]
+    if args.enable_pmc:
+        run_args += [
+            '--counters',
+            'BranchMispredictions+CacheMisses+InstructionRetired',
+        ]
+    if args.filter:
+        run_args += ['--filter'] + args.filter
+
+    # Extra BenchmarkDotNet cli arguments.
+    if args.bdn_arguments:
+        run_args += args.bdn_arguments
+        
+    # we need to tell BenchmarkDotNet where to restore the packages
+    # if we don't it's gonna restore to default global folder
+    run_args += ['--packages', get_packages_directory()]
+    run_args += ['--runtimes', framework] # the --packages requires this argument to work (BDN limitaiton)
+        
+    return run_args
 
 def build(
         configuration: str,
@@ -254,13 +283,14 @@ def run(
         configuration: str,
         framework: str,
         verbose: bool,
-        *args) -> None:
-    '''Builds the benchmarks'''
+        args: list) -> None:
+    '''Runs the benchmarks'''
     __log_script_header("Running .NET micro benchmarks for '{}'".format(
         framework
     ))
     # dotnet run
-    BENCHMARKS_CSPROJ.run(configuration, framework, verbose, *args)
+    run_args = __getBenchmarkDotNetArguments(args, framework)
+    BENCHMARKS_CSPROJ.run(configuration, framework, verbose, *run_args)
 
 
 def __log_script_header(message: str):
@@ -295,27 +325,8 @@ def __main(args: list) -> int:
         build(configuration, frameworks, incremental, verbose)
 
         for framework in frameworks:
-            run_args = ['--']
-            if args.category:
-                run_args += ['--allCategories', args.category]
-            if args.corerun:
-                run_args += ['--coreRun'] + args.corerun
-            if args.cli:
-                run_args += ['--cli', args.cli]
-            if args.enable_pmc:
-                run_args += [
-                    '--counters',
-                    'BranchMispredictions+CacheMisses+InstructionRetired',
-                ]
-            if args.filter:
-                run_args += ['--filter'] + args.filter
-
-            # Extra BenchmarkDotNet cli arguments.
-            if args.bdn_arguments:
-                run_args += args.bdn_arguments
-
             # dotnet run
-            run(configuration, framework, verbose, *run_args)
+            run(configuration, framework, verbose, args)
 
         return 0
     except CalledProcessError as ex:

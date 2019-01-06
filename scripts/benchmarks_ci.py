@@ -476,33 +476,7 @@ def __main(args: list) -> int:
 
     # Run micro-benchmarks
     for framework in args.frameworks:
-        run_args = [
-            '--'
-        ]
-        if args.category:
-            run_args += ['--allCategories', args.category]
-        if args.corerun:
-            run_args += ['--coreRun'] + args.corerun
-        if args.cli:
-            run_args += ['--cli', args.cli]
-        if args.enable_pmc:
-            run_args += [
-                '--counters',
-                'BranchMispredictions+CacheMisses+InstructionRetired',
-            ]
-        if args.filter:
-            run_args += ['--filter'] + args.filter
-
-        # Extra BenchmarkDotNet cli arguments.
-        if args.bdn_arguments:
-            run_args += args.bdn_arguments
-
-        # we need to tell BenchmarkDotNet where to restore the packages
-        # if we don't it's gonna restore to default global folder
-        run_args += ['--packages', micro_benchmarks.get_packages_directory()]
-        run_args += ['--runtimes', framework] # the --packages requires this argument to work (BDN limitaiton)
-
-        micro_benchmarks.run(args.configuration, framework, verbose, *run_args)
+        micro_benchmarks.run(args.configuration, framework, verbose, args)
 
     __run_benchview_scripts(args, verbose)
     # TODO: Archive artifacts.
