@@ -64,16 +64,6 @@ jobs:
               _Category: CoreCLR
               _Framework: netcoreapp3.0
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-            x64_CoreFx_netcoreapp30:
-              _Architecture: x64
-              _Category: CoreFx
-              _Framework: netcoreapp3.0
-              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-            x86_CoreFx_netcoreapp30:
-              _Architecture: x86
-              _Category: CoreFx
-              _Framework: netcoreapp3.0
-              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
         steps:
         - checkout: self
           clean: true
@@ -119,11 +109,6 @@ jobs:
               x64_CoreCLR_netcoreapp30:
                 _Architecture: x64
                 _Category: CoreCLR
-                _Framework: netcoreapp3.0
-                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-              x64_CoreFx_netcoreapp30:
-                _Architecture: x64
-                _Category: CoreFx
                 _Framework: netcoreapp3.0
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
           steps:
