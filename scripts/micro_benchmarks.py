@@ -70,14 +70,6 @@ class FrameworkAction(Action):
         }
 
     @staticmethod
-    def __get_framework_target_framework_moniker_map() -> dict:
-        return {
-            # to run CoreRT benchmarks we need to run the host BDN process as latest .NET Core
-            # the host process will build and run CoreRT benchmarks
-            'corert': 'netcoreapp3.0',
-        }
-
-    @staticmethod
     def get_channel(target_framework_moniker: str) -> str:
         '''
         Attemps to retrieve the channel that can be used to download the
@@ -90,10 +82,10 @@ class FrameworkAction(Action):
     def get_target_framework_moniker(framework: str) -> str:
         '''
         Translates framework name to target framework moniker (TFM)
-        Required to run CoreRT benchmarks where the host process must be .NET Core, not CoreRT
+        To run CoreRT benchmarks we need to run the host BDN process as latest .NET Core
+        the host process will build and run CoreRT benchmarks
         '''
-        dct = FrameworkAction.__get_framework_target_framework_moniker_map()
-        return dct[framework] if framework in dct else framework
+        return 'netcoreapp3.0' if framework == 'corert' else framework
         
     @staticmethod
     def get_target_framework_monikers(frameworks: list) -> list:
@@ -251,9 +243,10 @@ def __process_arguments(args: list) -> Tuple[list, bool]:
     return parser.parse_args(args)
 
 def __getBenchmarkDotNetArguments(
-        args: list,
-        framework: str
+        framework: str,
+        args: list
         ) -> list:
+
     run_args = ['--']
     if args.category:
         run_args += ['--allCategories', args.category]
@@ -280,6 +273,7 @@ def __getBenchmarkDotNetArguments(
     run_args += ['--runtimes', framework]
         
     return run_args
+
 
 def build(
         configuration: str,
@@ -314,13 +308,13 @@ def run(
         configuration: str,
         framework: str,
         verbose: bool,
-        args: list) -> None:
+        *args) -> None:
     '''Runs the benchmarks'''
     __log_script_header("Running .NET micro benchmarks for '{}'".format(
         framework
     ))
     # dotnet run
-    run_args = __getBenchmarkDotNetArguments(args, framework)
+    run_args = __getBenchmarkDotNetArguments(framework, *args)
     target_framework_moniker = FrameworkAction.get_target_framework_moniker(framework)
     BENCHMARKS_CSPROJ.run(configuration, target_framework_moniker, verbose, *run_args)
 
@@ -359,7 +353,7 @@ def __main(args: list) -> int:
 
         for framework in frameworks:
             # dotnet run
-            run(configuration, framework, verbose, args)
+            run(configuration, framework, verbose, *args)
 
         return 0
     except CalledProcessError as ex:

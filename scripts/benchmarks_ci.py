@@ -343,7 +343,7 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
 
     for framework in args.frameworks:
         target_framework_moniker = FrameworkAction.get_target_framework_moniker(framework)
-        buildinfo = __get_build_info(args, )
+        buildinfo = __get_build_info(args, target_framework_moniker)
 
         # BenchView build.py
         benchviewpy.build(
