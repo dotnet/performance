@@ -71,11 +71,7 @@ jobs:
           parameters:
             HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
             HelixType: 'test/performance_$(_BuildConfig)/'
-            # HelixBuild: $(Build.BuildNumber) -- This property is set by default
             HelixTargetQueues: $(_HelixQueue) # Windows.Amd64.ClientRS4.DevEx.15.8.Perf # This will be whatever we call our perf pool
-            #HelixAccessToken: $(BotAccount-dotnet-github-anon-kaonashi-bot-helix-token)
-            #HelixPreCommands: eng\common\init-tools-native.cmd -InstallDirectory $(Agent.BuildDirectory)\native-tools -Force
-            # HelixPostCommands: '' -- any commands that you would like to run after running your job
             WorkItemDirectory: $(Build.SourcesDirectory)\src\benchmarks\micro
             WorkItemCommand: py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --benchview-submission-name "$(BenchviewCommitName)" --working-directory %HELIX_WORKITEM_PAYLOAD% --bin-directory %HELIX_WORKITEM_PAYLOAD% --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) --bdn-arguments="--buildTimeout 300"
             WorkItemTimeout: 14400 # 4 hours
@@ -83,9 +79,6 @@ jobs:
             EnableXUnitReporter: false # required for reporting out xUnit test results to Mission Control
             IsExternal: $(IsExternal)
             Creator: $(Creator)
-            # WaitForWorkItemCompletion: true -- defaults to true
-            # condition: succeeded() - defaults to succeeded()
-            # continueOnError: false -- defaults to false
       # Only run linux runs on commit
       - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
         - job: sdk_performance_linux
@@ -118,16 +111,9 @@ jobs:
             parameters:
               HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
               HelixType: 'test/performance_$(_BuildConfig)/'
-              # HelixBuild: $(Build.BuildNumber) -- This property is set by default
               HelixTargetQueues: Ubuntu.1604.Amd64.Perf # This will be whatever we call our perf pool
-              #HelixAccessToken: $(BotAccount-dotnet-github-anon-kaonashi-bot-helix-token)
-              #HelixPreCommands: eng\common\init-tools-native.cmd -InstallDirectory $(Agent.BuildDirectory)\native-tools -Force
-              # HelixPostCommands: '' -- any commands that you would like to run after running your job
               WorkItemDirectory: $(Build.SourcesDirectory)/src/benchmarks/micro
               WorkItemCommand: python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py --benchview-submission-name "$(BenchviewCommitName)" --working-directory $HELIX_WORKITEM_PAYLOAD --bin-directory $HELIX_WORKITEM_PAYLOAD --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) --bdn-arguments="--buildTimeout 300"
               WorkItemTimeout: 14400 # 4 hours
               CorrelationPayloadDirectory: $(Build.SourcesDirectory)/scripts
               EnableXUnitReporter: false # required for reporting out xUnit test results to Mission Control
-              # WaitForWorkItemCompletion: true -- defaults to true
-              # condition: succeeded() - defaults to succeeded()
-              # continueOnError: false -- defaults to false
