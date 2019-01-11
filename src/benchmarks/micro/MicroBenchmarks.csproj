@@ -19,8 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.11.3.889" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.11.3.889" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.11.3.921" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.11.3.921" />
     <PackageReference Include="Jil" Version="2.15.4" />
     <PackageReference Include="MessagePack" Version="1.7.3.4" />
     <PackageReference Include="MessagePackAnalyzer" Version="1.6.0" />
