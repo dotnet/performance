@@ -71,12 +71,12 @@ jobs:
           parameters:
             HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
             HelixType: 'test/performance_$(_BuildConfig)/'
-            HelixTargetQueues: $(_HelixQueue) # Windows.Amd64.ClientRS4.DevEx.15.8.Perf # This will be whatever we call our perf pool
+            HelixTargetQueues: $(_HelixQueue)
             WorkItemDirectory: $(Build.SourcesDirectory)\src\benchmarks\micro
             WorkItemCommand: py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --benchview-submission-name "$(BenchviewCommitName)" --working-directory %HELIX_WORKITEM_PAYLOAD% --bin-directory %HELIX_WORKITEM_PAYLOAD% --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) --bdn-arguments="--buildTimeout 300"
             WorkItemTimeout: 14400 # 4 hours
             CorrelationPayloadDirectory: $(Build.SourcesDirectory)\scripts
-            EnableXUnitReporter: false # required for reporting out xUnit test results to Mission Control
+            EnableXUnitReporter: false
             IsExternal: $(IsExternal)
             Creator: $(Creator)
       # Only run linux runs on commit
@@ -111,9 +111,9 @@ jobs:
             parameters:
               HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
               HelixType: 'test/performance_$(_BuildConfig)/'
-              HelixTargetQueues: Ubuntu.1604.Amd64.Perf # This will be whatever we call our perf pool
+              HelixTargetQueues: Ubuntu.1604.Amd64.Perf
               WorkItemDirectory: $(Build.SourcesDirectory)/src/benchmarks/micro
               WorkItemCommand: python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py --benchview-submission-name "$(BenchviewCommitName)" --working-directory $HELIX_WORKITEM_PAYLOAD --bin-directory $HELIX_WORKITEM_PAYLOAD --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) --bdn-arguments="--buildTimeout 300"
               WorkItemTimeout: 14400 # 4 hours
               CorrelationPayloadDirectory: $(Build.SourcesDirectory)/scripts
-              EnableXUnitReporter: false # required for reporting out xUnit test results to Mission Control
+              EnableXUnitReporter: false
