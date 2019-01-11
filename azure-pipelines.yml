@@ -67,7 +67,7 @@ jobs:
         steps:
         - checkout: self
           clean: true
-        - template: /eng/send-to-helix.yml
+        - template: /eng/common/templates/steps/send-to-helix.yml
           parameters:
             HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
             HelixType: 'test/performance_$(_BuildConfig)/'
@@ -107,7 +107,7 @@ jobs:
           steps:
           - checkout: self
             clean: true
-          - template: /eng/send-to-helix.yml
+          - template: /eng/common/templates/steps/send-to-helix.yml
             parameters:
               HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
               HelixType: 'test/performance_$(_BuildConfig)/'
