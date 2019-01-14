@@ -2,14 +2,14 @@
 **/bin/
 **/obj/
 
-# Folders to ignore
+# Other folders to ignore
 **/logs/
 **/packages/
-/tools/
-**/reports/
 /artifacts/
+/tools/
 
 # Python files
+**/.pytest_cache/
 **/__pycache__/
 *.pyc
 
