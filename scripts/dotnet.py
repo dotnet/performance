@@ -101,7 +101,7 @@ class CSharpProject:
               verbose: bool,
               *args) -> None:
         '''Calls dotnet to build the specified project.'''
-        if not target_framework_monikers:  # target framework monikers were not specified, the build all.
+        if not target_framework_monikers: # Build all supported frameworks.
             cmdline = [
                 'dotnet', 'build',
                 self.csproj_file,
@@ -268,7 +268,7 @@ def install(
     # Download appropriate dotnet install script
     dotnetInstallScriptExtension = '.ps1' if platform == 'win32' else '.sh'
     dotnetInstallScriptName = 'dotnet-install' + dotnetInstallScriptExtension
-    url = 'https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/'
+    url = 'https://dot.net/v1/'
     dotnetInstallScriptUrl = url + dotnetInstallScriptName
 
     dotnetInstallScriptPath = path.join(install_dir, dotnetInstallScriptName)
