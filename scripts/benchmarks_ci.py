@@ -314,8 +314,9 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
     bin_directory = micro_benchmarks.BENCHMARKS_CSPROJ.bin_path
 
     # BenchView submission-metadata.py
+    # TODO: Simplify logic. This should be removed and unify repo data.
     submission_name = args.benchview_submission_name
-    is_pr = args.benchview_run_type == 'private' and\
+    is_pr = args.benchview_run_type == 'private' and \
         'BenchviewCommitName' in os.environ
     rolling_data = args.benchview_run_type == 'rolling' and \
         'GIT_BRANCH_WITHOUT_ORIGIN' in os.environ and \
@@ -342,7 +343,9 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
     benchviewpy.machinedata(working_directory=bin_directory)
 
     for framework in args.frameworks:
-        target_framework_moniker = FrameworkAction.get_target_framework_moniker(framework)
+        target_framework_moniker = micro_benchmarks \
+            .FrameworkAction \
+            .get_target_framework_moniker(framework)
         buildinfo = __get_build_info(args, target_framework_moniker)
 
         # BenchView build.py
@@ -377,13 +380,14 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
     if 'Configuration' not in benchview_config:
         benchview_config['Configuration'] = args.configuration
 
-    # Generate existing configs. This may be a good time to unify them?
+    # Generate existing configs.
+    # TODO: Unify configs across all repos?
     submission_architecture = args.architecture
     if args.category.casefold() == 'CoreClr'.casefold():
-        benchview_config['JitName'] = 'ryujit'  # This is currently fixed.
+        benchview_config['JitName'] = 'ryujit'  # FIXME: Remove this.
         benchview_config['OS'] = __get_coreclr_os_name()
-        benchview_config['OptLevel'] = args.optimization_level
-        benchview_config['PGO'] = 'pgo'  # This is currently fixed.
+        benchview_config['OptLevel'] = args.optimization_level  # Optimization
+        benchview_config['PGO'] = 'pgo'  # FIXME: Remove this? Enabled/Disabled
         benchview_config['Profile'] = 'On' if args.enable_pmc else 'Off'
     elif args.category.casefold() == 'CoreFx'.casefold():
         submission_architecture = 'AnyCPU'
@@ -394,7 +398,9 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
     # Find all measurement.json
     with push_dir(bin_directory):
         for framework in args.frameworks:
-            target_framework_moniker = FrameworkAction.get_target_framework_moniker(framework)
+            target_framework_moniker = micro_benchmarks \
+                .FrameworkAction \
+                .get_target_framework_moniker(framework)
             glob_format = '**/%s/%s/measurement.json' % (
                 args.configuration,
                 target_framework_moniker
@@ -443,7 +449,9 @@ def __main(args: list) -> int:
         raise RuntimeError("""In order to generate BenchView data,
             `--benchview-submission-name` must be provided.""")
 
-    target_framework_monikers = micro_benchmarks.FrameworkAction.get_target_framework_monikers(args.frameworks)
+    target_framework_monikers = micro_benchmarks \
+        .FrameworkAction \
+        .get_target_framework_monikers(args.frameworks)
     # Acquire necessary tools (dotnet, and BenchView)
     init_tools(
         architecture=args.architecture,
@@ -460,9 +468,11 @@ def __main(args: list) -> int:
     elif args.optimization_level == 'full_opt':
         os.environ['COMPlus_TieredCompilation'] = '0'
 
+    # WORKAROUND
     # The MicroBenchmarks.csproj targets .NET Core 2.0, 2.1, 2.2 and 3.0
-    # to avoid a build failure when using older frameworks (error NETSDK1045: The current .NET SDK does not support targeting .NET Core $XYZ)
-    # we set the TFM to what the user has provided
+    # to avoid a build failure when using older frameworks (error NETSDK1045:
+    # The current .NET SDK does not support targeting .NET Core $XYZ)
+    # we set the TFM to what the user has provided.
     os.environ['PYTHON_SCRIPT_TARGET_FRAMEWORKS'] = ';'.join(target_framework_monikers)
 
     # dotnet --info

@@ -77,7 +77,7 @@ class FrameworkAction(Action):
         '''
         dct = FrameworkAction.__get_target_framework_moniker_channel_map()
         return dct[target_framework_moniker] if target_framework_moniker in dct else None
-        
+
     @staticmethod
     def get_target_framework_moniker(framework: str) -> str:
         '''
@@ -86,7 +86,7 @@ class FrameworkAction(Action):
         the host process will build and run CoreRT benchmarks
         '''
         return 'netcoreapp3.0' if framework == 'corert' else framework
-        
+
     @staticmethod
     def get_target_framework_monikers(frameworks: list) -> list:
         '''
@@ -108,11 +108,13 @@ def get_supported_configurations() -> list:
     '''
     return ['Release', 'Debug']
 
+
 def get_packages_directory() -> str:
     '''
     The path to directory where packages should get restored
     '''
     return path.join(get_artifacts_directory(), 'packages')
+
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''
@@ -242,11 +244,8 @@ def __process_arguments(args: list) -> Tuple[list, bool]:
     parser = add_arguments(parser)
     return parser.parse_args(args)
 
-def __getBenchmarkDotNetArguments(
-        framework: str,
-        args: list
-        ) -> list:
 
+def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
     run_args = ['--']
     if args.category:
         run_args += ['--allCategories', args.category]
@@ -265,13 +264,13 @@ def __getBenchmarkDotNetArguments(
     # Extra BenchmarkDotNet cli arguments.
     if args.bdn_arguments:
         run_args += args.bdn_arguments
-        
+
     # we need to tell BenchmarkDotNet where to restore the packages
     # if we don't it's gonna restore to default global folder
     run_args += ['--packages', get_packages_directory()]
     # required for CoreRT where host process framework != benchmark process framework
     run_args += ['--runtimes', framework]
-        
+
     return run_args
 
 
@@ -314,9 +313,16 @@ def run(
         framework
     ))
     # dotnet run
-    run_args = __getBenchmarkDotNetArguments(framework, *args)
-    target_framework_moniker = FrameworkAction.get_target_framework_moniker(framework)
-    BENCHMARKS_CSPROJ.run(configuration, target_framework_moniker, verbose, *run_args)
+    run_args = __get_benchmarkdotnet_arguments(framework, *args)
+    target_framework_moniker = FrameworkAction.get_target_framework_moniker(
+        framework
+    )
+    BENCHMARKS_CSPROJ.run(
+        configuration,
+        target_framework_moniker,
+        verbose,
+        *run_args
+    )
 
 
 def __log_script_header(message: str):
@@ -341,7 +347,7 @@ def __main(args: list) -> int:
         frameworks = args.frameworks
         incremental = args.incremental
         verbose = args.verbose
-        target_framework_monikers = TargetAction.get_target_framework_monikers(frameworks)
+        target_framework_monikers = FrameworkAction.get_target_framework_monikers(frameworks)
 
         setup_loggers(verbose=verbose)
 
