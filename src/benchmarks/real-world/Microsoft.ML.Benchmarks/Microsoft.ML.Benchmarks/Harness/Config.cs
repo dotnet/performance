@@ -50,11 +50,4 @@ namespace Microsoft.ML.Benchmarks
 #endif
         }
     }
-
-    public class TrainConfig : RecommendedConfig
-    {
-        protected override Job GetJobDefinition()
-            => Job.Dry // the "Dry" job runs the benchmark exactly once, without any warmup to mimic real-world scenario
-                  .WithLaunchCount(3); // BDN will run 3 dedicated processes, sequentially
-    }
 }
