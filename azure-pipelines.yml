@@ -35,6 +35,8 @@ jobs:
             value: dotnet-performance
           - name: BDNArguments
             value: --iterationCount 2
+          - name: HelixApiAccessToken
+            value: ''
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
           - name: _RunType
             value: rolling
@@ -75,6 +77,7 @@ jobs:
           parameters:
             HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
             HelixType: 'test/performance_$(_BuildConfig)/'
+            HelixAccessToken: $(HelixApiAccessToken)
             HelixTargetQueues: $(_HelixQueue)
             WorkItemDirectory: $(Build.SourcesDirectory)\src\benchmarks\micro
             WorkItemCommand: py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --benchview-submission-name "$(BenchviewCommitName)" --working-directory %HELIX_WORKITEM_PAYLOAD% --bin-directory %HELIX_WORKITEM_PAYLOAD% --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) --bdn-arguments="--buildTimeout 300 $(BDNArguments)"
@@ -115,6 +118,7 @@ jobs:
             parameters:
               HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
               HelixType: 'test/performance_$(_BuildConfig)/'
+              HelixAccessToken: $(HelixApiAccessToken)
               HelixTargetQueues: Ubuntu.1604.Amd64.Perf
               WorkItemDirectory: $(Build.SourcesDirectory)/src/benchmarks/micro
               WorkItemCommand: python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py --benchview-submission-name "$(BenchviewCommitName)" --working-directory $HELIX_WORKITEM_PAYLOAD --bin-directory $HELIX_WORKITEM_PAYLOAD --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) --bdn-arguments="--buildTimeout 300"
