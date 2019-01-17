@@ -48,6 +48,8 @@ jobs:
             value: false
           - name: Creator
             value: ''
+          - name: BDNArguments
+            value: ''
           - group: DotNet-HelixApi-Access
           - group: dotnet-benchview
         workspace:
