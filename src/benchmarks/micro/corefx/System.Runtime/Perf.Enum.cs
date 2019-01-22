@@ -144,6 +144,20 @@ namespace System.Tests
             Y = 48,
             Z = 50
         }
+
+        public enum SmallContiguousEnum
+        {
+            A,
+            B,
+            C
+        }
+
+        public enum SmallNonContiguousEnum
+        {
+            A = 0,
+            B = 2,
+            C = 4
+        }
         #endregion
 
         [Benchmark]
@@ -160,41 +174,41 @@ namespace System.Tests
         [Benchmark]
         [Arguments(typeof(BigContiguousEnum), BigContiguousEnum.G)]
         [Arguments(typeof(BigNonContiguousEnum), BigNonContiguousEnum.G)]
-        [Arguments(typeof(Int32Enum), Int32Enum.Max)]
+        [Arguments(typeof(SmallContiguousEnum), SmallContiguousEnum.B)]
+        [Arguments(typeof(SmallNonContiguousEnum), SmallNonContiguousEnum.B)]
         public bool IsDefinedEnumTrue(Type enumType, object value) => Enum.IsDefined(enumType, value);
+
+        [Benchmark]
+        //[Arguments(typeof(BigContiguousEnum), (BigContiguousEnum)26)] // BenchmarkDotNet Issue #1020
+        //[Arguments(typeof(BigNonContiguousEnum), (BigNonContiguousEnum)1)]
+        //[Arguments(typeof(SmallContiguousEnum), (SmallContiguousEnum)3)]
+        //[Arguments(typeof(SmallNonContiguousEnum), (SmallNonContiguousEnum)1)]
+        //public bool IsDefinedEnumFalse(Type enumType, object value) => Enum.IsDefined(enumType, value);
+        [Arguments(typeof(BigContiguousEnum))]
+        public bool IsDefinedEnumFalse(Type enumType) => Enum.IsDefined(enumType, (BigContiguousEnum)(-1));
 
         [Benchmark]
         [Arguments(typeof(BigContiguousEnum), (int)BigContiguousEnum.G)]
         [Arguments(typeof(BigNonContiguousEnum), (int)BigNonContiguousEnum.G)]
-        [Arguments(typeof(Int32Enum), (int)Int32Enum.Max)]
+        [Arguments(typeof(SmallContiguousEnum), (int)SmallContiguousEnum.B)]
+        [Arguments(typeof(SmallNonContiguousEnum), (int)SmallNonContiguousEnum.B)]
         public bool IsDefinedUnderlyingTrue(Type enumType, object value) => Enum.IsDefined(enumType, value);
-
-        [Benchmark]
-        [Arguments(typeof(BigContiguousEnum), "G")]
-        [Arguments(typeof(BigNonContiguousEnum), "G")]
-        [Arguments(typeof(Int32Enum), "Max")]
-        public bool IsDefinedStringTrue(Type enumType, object value) => Enum.IsDefined(enumType, value);
-
-        [Benchmark]
-        //[Arguments(typeof(BigContiguousEnum), (BigContiguousEnum)(-1))] // BenchmarkDotNet Issue #1020
-        //[Arguments(typeof(BigNonContiguousEnum), (BigNonContiguousEnum)1)]
-        //[Arguments(typeof(Int32Enum), (Int32Enum)3)]
-        //public bool IsDefinedEnumFalse(Type enumType, object value) => Enum.IsDefined(enumType, value);
-        [Arguments(typeof(BigContiguousEnum))]
-        [Arguments(typeof(BigNonContiguousEnum))]
-        [Arguments(typeof(Int32Enum))]
-        public bool IsDefinedEnumFalse(Type enumType) => Enum.IsDefined(enumType, (BigContiguousEnum)(-1));
 
         [Benchmark]
         [Arguments(typeof(BigContiguousEnum), 26)]
         [Arguments(typeof(BigNonContiguousEnum), 1)]
-        [Arguments(typeof(Int32Enum), 3)]
+        [Arguments(typeof(SmallContiguousEnum), 3)]
+        [Arguments(typeof(SmallNonContiguousEnum), 1)]
         public bool IsDefinedUnderlyingFalse(Type enumType, object value) => Enum.IsDefined(enumType, value);
 
         [Benchmark]
+        [Arguments(typeof(BigContiguousEnum), "G")]
+        [Arguments(typeof(SmallContiguousEnum), "B")]
+        public bool IsDefinedStringTrue(Type enumType, object value) => Enum.IsDefined(enumType, value);
+
+        [Benchmark]
         [Arguments(typeof(BigContiguousEnum), "GG")]
-        [Arguments(typeof(BigNonContiguousEnum), "GG")]
-        [Arguments(typeof(Int32Enum), "Three")]
+        [Arguments(typeof(SmallContiguousEnum), "BB")]
         public bool IsDefinedStringFalse(Type enumType, object value) => Enum.IsDefined(enumType, value);
         #endregion
 
@@ -204,31 +218,31 @@ namespace System.Tests
 
         [Benchmark]
         [Arguments(typeof(BigContiguousEnum))]
-        [Arguments(typeof(Int32Enum))]
+        [Arguments(typeof(SmallContiguousEnum))]
         public Array GetValues(Type enumType) => Enum.GetValues(enumType);
 
         [Benchmark]
         [Arguments(typeof(BigContiguousEnum))]
-        [Arguments(typeof(Int32Enum))]
+        [Arguments(typeof(SmallContiguousEnum))]
         public string[] GetNames(Type enumType) => Enum.GetNames(enumType);
 
         #region GetName
         [Benchmark]
-        [Arguments(typeof(BigContiguousEnum), BigContiguousEnum.D)]
+        [Arguments(typeof(BigContiguousEnum), BigContiguousEnum.G)]
         public string GetNameEnumDefined(Type enumType, object value) => Enum.GetName(enumType, value);
 
         [Benchmark]
-        [Arguments(typeof(BigContiguousEnum), 3)]
+        //[Arguments(typeof(BigContiguousEnum), (BigContiguousEnum)26)] // BenchmarkDotNet Issue #1020
+        //public string GetNameEnumUndefined(Type enumType, object value) => Enum.GetName(enumType, value);
+        [Arguments(typeof(BigContiguousEnum))]
+        public string GetNameEnumUndefined(Type enumType) => Enum.GetName(enumType, (BigContiguousEnum)26);
+
+        [Benchmark]
+        [Arguments(typeof(BigContiguousEnum), (int)BigContiguousEnum.G)]
         public string GetNameUnderlyingDefined(Type enumType, object value) => Enum.GetName(enumType, value);
 
         [Benchmark]
-        //[Arguments(typeof(BigContiguousEnum), (BigContiguousEnum)(-1))] // BenchmarkDotNet Issue #1020
-        //public string GetNameEnumUndefined(Type enumType, object value) => Enum.GetName(enumType, value);
-        [Arguments(typeof(BigContiguousEnum))]
-        public string GetNameEnumUndefined(Type enumType) => Enum.GetName(enumType, (BigContiguousEnum)(-1));
-
-        [Benchmark]
-        [Arguments(typeof(BigContiguousEnum), -1)]
+        [Arguments(typeof(BigContiguousEnum), 26)]
         public string GetNameUnderlyingUndefined(Type enumType, object value) => Enum.GetName(enumType, value);
         #endregion
 
@@ -275,16 +289,46 @@ namespace System.Tests
         public string ToStringUndefined() => ((BigContiguousEnum)(-1)).ToString();
 
         [Benchmark]
-        //[Arguments(Colors.Blue | Colors.Green | Colors.Orange | Colors.Red | Colors.Yellow)] // BenchmarkDotNet Issue #1020
-        //public string ToStringFlags(Enum value) => value.ToString();
-        public string ToStringFlags() => (Colors.Blue | Colors.Green | Colors.Orange | Colors.Red | Colors.Yellow).ToString();
+        //[Arguments(Colors.Red | Colors.Orange | Colors.Yellow | Colors.Green | Colors.Blue)] // BenchmarkDotNet Issue #1020
+        //public string ToStringFlags5(Enum value) => value.ToString();
+        public string ToStringFlags5() => (Colors.Red | Colors.Orange | Colors.Yellow | Colors.Green | Colors.Blue).ToString();
 
         [Benchmark]
-        [Arguments(BigContiguousEnum.L, "D")]
-        [Arguments(BigContiguousEnum.L, "X")]
-        [Arguments(BigContiguousEnum.L, "G")]
-        [Arguments(BigContiguousEnum.L, "F")]
+        //[Arguments(Colors.Orange | Colors.Yellow | Colors.Green)] // BenchmarkDotNet Issue #1020
+        //public string ToStringFlags3(Enum value) => value.ToString();
+        public string ToStringFlags3() => (Colors.Orange | Colors.Yellow | Colors.Green).ToString();
+
+        [Benchmark]
+        [Arguments(Colors.Red)]
+        public string ToStringFlags1(Enum value) => value.ToString();
+
+        [Benchmark]
+        //[Arguments((Colors)0x20)] // BenchmarkDotNet Issue #1020
+        //public string ToStringFlagsInvalidFlagCombination(Enum value) => value.ToString();
+        public string ToStringFlagsInvalidFlagCombination() => ((Colors)0x20).ToString();
+
+        [Benchmark]
+        [Arguments(BigContiguousEnum.C, "D")]
+        [Arguments(BigContiguousEnum.C, "X")]
+        [Arguments(BigContiguousEnum.C, "G")]
+        //[Arguments(Colors.Green | Colors.Yellow | Colors.Orange, "F")] // BenchmarkDotNet Issue #1020
         public string ToStringFormat(Enum value, string format) => value.ToString(format);
+
+        [Benchmark]
+        public string ToStringFormatF() => (Colors.Green | Colors.Yellow | Colors.Orange).ToString("F");
+        #endregion
+
+        #region Format
+        [Benchmark]
+        [Arguments(typeof(BigContiguousEnum), BigContiguousEnum.C, "D")]
+        [Arguments(typeof(BigContiguousEnum), BigContiguousEnum.C, "X")]
+        [Arguments(typeof(BigContiguousEnum), BigContiguousEnum.C, "G")]
+        //[Arguments(typeof(Colors), Colors.Green | Colors.Yellow | Colors.Orange, "F")] // BenchmarkDotNet Issue #1020
+        public string Format(Type enumType, Enum value, string format) => Enum.Format(enumType, value, format);
+
+        [Benchmark]
+        [Arguments(typeof(Colors))]
+        public string FormatF(Type enumType) => Enum.Format(enumType, Colors.Green | Colors.Yellow | Colors.Orange, "F");
         #endregion
 
         [Benchmark]
@@ -299,14 +343,47 @@ namespace System.Tests
         [Arguments(Int32Enum.One)]
         public TypeCode GetTypeCode(Enum value) => value.GetTypeCode();
 
-        #region Parsing
+        #region IConvertible
         [Benchmark]
-        [Arguments(typeof(Colors), "Red, Orange, Yellow, Green, Blue")]
-        public object ParseFlagsNonGeneric(Type enumType, string text) => Enum.Parse(enumType, text);
+        [Arguments(ByteEnum.Max)]
+        public byte ToByte(IConvertible value) => value.ToByte(null);
 
         [Benchmark]
-        [Arguments("Red, Orange, Yellow, Green, Blue")]
-        public Colors ParseFlagsGeneric(string text) => Enum.Parse<Colors>(text);
+        [Arguments(SByteEnum.Max)]
+        public sbyte ToSByte(IConvertible value) => value.ToSByte(null);
+
+        [Benchmark]
+        [Arguments(Int16Enum.Max)]
+        public short ToInt16(IConvertible value) => value.ToInt16(null);
+
+        [Benchmark]
+        [Arguments(UInt16Enum.Max)]
+        public ushort ToUInt16(IConvertible value) => value.ToUInt16(null);
+
+        [Benchmark]
+        [Arguments(Int32Enum.Max)]
+        public int ToInt32(IConvertible value) => value.ToInt32(null);
+
+        [Benchmark]
+        [Arguments(UInt32Enum.Max)]
+        public uint ToUInt32(IConvertible value) => value.ToUInt32(null);
+
+        [Benchmark]
+        [Arguments(Int64Enum.Max)]
+        public long ToInt64(IConvertible value) => value.ToInt64(null);
+
+        [Benchmark]
+        [Arguments(UInt64Enum.Max)]
+        public ulong ToUInt64(IConvertible value) => value.ToUInt64(null);
+        #endregion
+
+        #region Parsing
+        [Benchmark]
+        [Arguments(typeof(Colors))]
+        public object ParseFlagsNonGeneric(Type enumType) => Enum.Parse(enumType, "Red, Orange, Yellow, Green, Blue");
+
+        [Benchmark]
+        public Colors ParseFlagsGeneric() => Enum.Parse<Colors>("Red, Orange, Yellow, Green, Blue");
 
         [Benchmark]
         [Arguments(typeof(ByteEnum), "Two")]
@@ -389,10 +466,12 @@ namespace System.Tests
         public bool TryParseMissingGeneric() => Enum.TryParse<DayOfWeek>("Three", out _);
 
         [Benchmark]
-        public bool TryParseOverflowNonGeneric() => Enum.TryParse(typeof(DayOfWeek), "9223372036854775807", out _); // long.MaxValue
+        [Arguments(typeof(DayOfWeek))]
+        public bool TryParseOverflowNonGeneric(Type enumType) => Enum.TryParse(enumType, "9223372036854775807", out _); // long.MaxValue
 
         [Benchmark]
-        public bool TryParseMissingNonGeneric() => Enum.TryParse(typeof(DayOfWeek), "Three", out _);
+        [Arguments(typeof(DayOfWeek))]
+        public bool TryParseMissingNonGeneric(Type enumType) => Enum.TryParse(enumType, "Three", out _);
         #endregion
     }
 }
