@@ -245,7 +245,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         '--bin-directory',
         dest='bin_directory',
         required=False,
-        default=None,
+        default=path.join(get_repo_root_path(), 'artifacts', 'bin'),
         type=str,
         help='Root of the bin directory',
     )
