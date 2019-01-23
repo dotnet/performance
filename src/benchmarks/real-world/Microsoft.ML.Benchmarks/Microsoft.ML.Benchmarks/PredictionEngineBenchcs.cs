@@ -115,31 +115,13 @@ namespace Microsoft.ML.Benchmarks
         }
 
         [Benchmark]
-        public void MakeIrisPredictions()
-        {
-            for (int i = 0; i < 10000; i++)
-            {
-                _irisModel.Predict(_irisExample);
-            }
-        }
+        public void MakeIrisPredictions() => _irisModel.Predict(_irisExample);
 
         [Benchmark]
-        public void MakeSentimentPredictions()
-        {
-            for (int i = 0; i < 10000; i++)
-            {
-                _sentimentModel.Predict(_sentimentExample);
-            }
-        }
+        public void MakeSentimentPredictions() => _sentimentModel.Predict(_sentimentExample);
 
         [Benchmark]
-        public void MakeBreastCancerPredictions()
-        {
-            for (int i = 0; i < 10000; i++)
-            {
-                _breastCancerModel.Predict(_breastCancerExample);
-            }
-        }
+        public void MakeBreastCancerPredictions() => _breastCancerModel.Predict(_breastCancerExample);
     }
 
     public class IrisData
