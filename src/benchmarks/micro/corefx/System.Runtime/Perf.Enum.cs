@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -85,8 +86,19 @@ namespace System.Tests
             Max = long.MaxValue
         }
 
+        // 36 members
         public enum BigContiguousEnum
         {
+            Zero,
+            One,
+            Two,
+            Three,
+            Four,
+            Five,
+            Six,
+            Seven,
+            Eight,
+            Nine,
             A,
             B,
             C,
@@ -115,48 +127,61 @@ namespace System.Tests
             Z
         }
 
+        // 36 members
         public enum BigNonContiguousEnum
         {
-            A = 0,
-            B = 2,
-            C = 4,
-            D = 6,
-            E = 8,
-            F = 10,
-            G = 12,
-            H = 14,
-            I = 16,
-            J = 18,
-            K = 20,
-            L = 22,
-            M = 24,
-            N = 26,
-            O = 28,
-            P = 30,
-            Q = 32,
-            R = 34,
-            S = 36,
-            T = 38,
-            U = 40,
-            V = 42,
-            W = 44,
-            X = 46,
-            Y = 48,
-            Z = 50
+            Zero = 0,
+            One = 1,
+            Two = 2,
+            Three = 3,
+            Four = 4,
+            Five = 5,
+            Six = 6,
+            Seven = 7,
+            Eight = 8,
+            Nine = 9,
+            A = 10,
+            B = 12,
+            C = 14,
+            D = 16,
+            E = 18,
+            F = 20,
+            G = 22,
+            H = 24,
+            I = 26,
+            J = 28,
+            K = 30,
+            L = 32,
+            M = 34,
+            N = 36,
+            O = 38,
+            P = 40,
+            Q = 42,
+            R = 44,
+            S = 46,
+            T = 48,
+            U = 50,
+            V = 52,
+            W = 54,
+            X = 56,
+            Y = 58,
+            Z = 60
         }
 
+        // 3 members
         public enum SmallContiguousEnum
         {
-            A,
-            B,
-            C
+            Zero,
+            One,
+            Two
         }
 
+        // 3 members
         public enum SmallNonContiguousEnum
         {
-            A = 0,
-            B = 2,
-            C = 4
+            Zero = 0,
+            Two = 2,
+            Four = 4
         }
         #endregion
 
@@ -174,41 +199,41 @@ namespace System.Tests
         [Benchmark]
         [Arguments(typeof(BigContiguousEnum), BigContiguousEnum.G)]
         [Arguments(typeof(BigNonContiguousEnum), BigNonContiguousEnum.G)]
-        [Arguments(typeof(SmallContiguousEnum), SmallContiguousEnum.B)]
-        [Arguments(typeof(SmallNonContiguousEnum), SmallNonContiguousEnum.B)]
+        [Arguments(typeof(SmallContiguousEnum), SmallContiguousEnum.Two)]
+        [Arguments(typeof(SmallNonContiguousEnum), SmallNonContiguousEnum.Two)]
         public bool IsDefinedEnumTrue(Type enumType, object value) => Enum.IsDefined(enumType, value);
 
         [Benchmark]
-        //[Arguments(typeof(BigContiguousEnum), (BigContiguousEnum)26)] // BenchmarkDotNet Issue #1020
-        //[Arguments(typeof(BigNonContiguousEnum), (BigNonContiguousEnum)1)]
+        //[Arguments(typeof(BigContiguousEnum), (BigContiguousEnum)36)] // BenchmarkDotNet Issue #1020
+        //[Arguments(typeof(BigNonContiguousEnum), (BigNonContiguousEnum)11)]
         //[Arguments(typeof(SmallContiguousEnum), (SmallContiguousEnum)3)]
         //[Arguments(typeof(SmallNonContiguousEnum), (SmallNonContiguousEnum)1)]
         //public bool IsDefinedEnumFalse(Type enumType, object value) => Enum.IsDefined(enumType, value);
         [Arguments(typeof(BigContiguousEnum))]
-        public bool IsDefinedEnumFalse(Type enumType) => Enum.IsDefined(enumType, (BigContiguousEnum)(-1));
+        public bool IsDefinedEnumFalse(Type enumType) => Enum.IsDefined(enumType, (BigContiguousEnum)36);
 
         [Benchmark]
         [Arguments(typeof(BigContiguousEnum), (int)BigContiguousEnum.G)]
         [Arguments(typeof(BigNonContiguousEnum), (int)BigNonContiguousEnum.G)]
-        [Arguments(typeof(SmallContiguousEnum), (int)SmallContiguousEnum.B)]
-        [Arguments(typeof(SmallNonContiguousEnum), (int)SmallNonContiguousEnum.B)]
+        [Arguments(typeof(SmallContiguousEnum), (int)SmallContiguousEnum.Two)]
+        [Arguments(typeof(SmallNonContiguousEnum), (int)SmallNonContiguousEnum.Two)]
         public bool IsDefinedUnderlyingTrue(Type enumType, object value) => Enum.IsDefined(enumType, value);
 
         [Benchmark]
-        [Arguments(typeof(BigContiguousEnum), 26)]
-        [Arguments(typeof(BigNonContiguousEnum), 1)]
+        [Arguments(typeof(BigContiguousEnum), 36)]
+        [Arguments(typeof(BigNonContiguousEnum), 11)]
         [Arguments(typeof(SmallContiguousEnum), 3)]
         [Arguments(typeof(SmallNonContiguousEnum), 1)]
         public bool IsDefinedUnderlyingFalse(Type enumType, object value) => Enum.IsDefined(enumType, value);
 
         [Benchmark]
         [Arguments(typeof(BigContiguousEnum), "G")]
-        [Arguments(typeof(SmallContiguousEnum), "B")]
+        [Arguments(typeof(SmallContiguousEnum), "Two")]
         public bool IsDefinedStringTrue(Type enumType, object value) => Enum.IsDefined(enumType, value);
 
         [Benchmark]
         [Arguments(typeof(BigContiguousEnum), "GG")]
-        [Arguments(typeof(SmallContiguousEnum), "BB")]
+        [Arguments(typeof(SmallContiguousEnum), "Three")]
         public bool IsDefinedStringFalse(Type enumType, object value) => Enum.IsDefined(enumType, value);
         #endregion
 
@@ -232,17 +257,17 @@ namespace System.Tests
         public string GetNameEnumDefined(Type enumType, object value) => Enum.GetName(enumType, value);
 
         [Benchmark]
-        //[Arguments(typeof(BigContiguousEnum), (BigContiguousEnum)26)] // BenchmarkDotNet Issue #1020
+        //[Arguments(typeof(BigContiguousEnum), (BigContiguousEnum)36)] // BenchmarkDotNet Issue #1020
         //public string GetNameEnumUndefined(Type enumType, object value) => Enum.GetName(enumType, value);
         [Arguments(typeof(BigContiguousEnum))]
-        public string GetNameEnumUndefined(Type enumType) => Enum.GetName(enumType, (BigContiguousEnum)26);
+        public string GetNameEnumUndefined(Type enumType) => Enum.GetName(enumType, (BigContiguousEnum)36);
 
         [Benchmark]
         [Arguments(typeof(BigContiguousEnum), (int)BigContiguousEnum.G)]
         public string GetNameUnderlyingDefined(Type enumType, object value) => Enum.GetName(enumType, value);
 
         [Benchmark]
-        [Arguments(typeof(BigContiguousEnum), 26)]
+        [Arguments(typeof(BigContiguousEnum), 36)]
         public string GetNameUnderlyingUndefined(Type enumType, object value) => Enum.GetName(enumType, value);
         #endregion
 
@@ -280,13 +305,19 @@ namespace System.Tests
 
         #region ToString
         [Benchmark]
-        [Arguments(BigContiguousEnum.Z)]
+        [Arguments(BigContiguousEnum.C)]
+        [Arguments(BigNonContiguousEnum.C)]
+        [Arguments(SmallContiguousEnum.One)]
+        [Arguments(SmallNonContiguousEnum.Two)]
         public string ToStringDefined(Enum value) => value.ToString();
 
         [Benchmark]
-        //[Arguments((BigContiguousEnum)(-1))] // BenchmarkDotNet Issue #1020
+        //[Arguments((BigContiguousEnum)36)] // BenchmarkDotNet Issue #1020
+        //[Arguments((BigNonContiguousEnum)11)]
+        //[Arguments((SmallContiguousEnum)3)]
+        //[Arguments((SmallNonContiguousEnum)1)]
         //public string ToStringUndefined(Enum value) => value.ToString();
-        public string ToStringUndefined() => ((BigContiguousEnum)(-1)).ToString();
+        public string ToStringUndefined() => ((BigContiguousEnum)36).ToString();
 
         [Benchmark]
         //[Arguments(Colors.Red | Colors.Orange | Colors.Yellow | Colors.Green | Colors.Blue)] // BenchmarkDotNet Issue #1020
@@ -394,7 +425,8 @@ namespace System.Tests
         [Arguments(typeof(Int32Enum), "Two")]
         [Arguments(typeof(UInt64Enum), "Two")]
         [Arguments(typeof(Int64Enum), "Two")]
-        [Arguments(typeof(BigContiguousEnum), "Z")]
+        [Arguments(typeof(BigContiguousEnum), "C")]
+        [Arguments(typeof(SmallContiguousEnum), "One")]
         public object ParseNameNonGeneric(Type enumType, string value) => Enum.Parse(enumType, value);
 
         [Benchmark]
@@ -433,7 +465,7 @@ namespace System.Tests
         public Int64Enum ParseNameGenericInt64() => Enum.Parse<Int64Enum>("Two");
 
         [Benchmark]
-        public BigContiguousEnum ParseNameGenericBigContiguous() => Enum.Parse<BigContiguousEnum>("Z");
+        public BigContiguousEnum ParseNameGenericBigContiguous() => Enum.Parse<BigContiguousEnum>("C");
 
         [Benchmark]
         public ByteEnum ParseValueGenericByte() => Enum.Parse<ByteEnum>("2");
@@ -463,15 +495,61 @@ namespace System.Tests
         public bool TryParseOverflowGeneric() => Enum.TryParse<DayOfWeek>("9223372036854775807", out _); // long.MaxValue
 
         [Benchmark]
-        public bool TryParseMissingGeneric() => Enum.TryParse<DayOfWeek>("Three", out _);
+        public bool TryParseMissingGenericBigContiguous() => Enum.TryParse<BigContiguousEnum>("ABC", out _);
+
+        [Benchmark]
+        public bool TryParseMissingGenericSmallContiguous() => Enum.TryParse<SmallContiguousEnum>("ABC", out _);
 
         [Benchmark]
         [Arguments(typeof(DayOfWeek))]
         public bool TryParseOverflowNonGeneric(Type enumType) => Enum.TryParse(enumType, "9223372036854775807", out _); // long.MaxValue
 
         [Benchmark]
-        [Arguments(typeof(DayOfWeek))]
-        public bool TryParseMissingNonGeneric(Type enumType) => Enum.TryParse(enumType, "Three", out _);
+        [Arguments(typeof(BigContiguousEnum), "ABC")]
+        [Arguments(typeof(SmallContiguousEnum), "ABC")]
+        public bool TryParseMissingNonGeneric(Type enumType, string value) => Enum.TryParse(enumType, value, out _);
+        #endregion
+
+        #region HybridSearchCutoff
+        // Last found cutoff was 32
+
+        //[Benchmark]
+        [ArgumentsSource(nameof(HybridSearchArguments))]
+        public int LinearSearch(int[] values, int value, int length)
+        {
+            for (int i = length - 1; i >= 0; --i)
+            {
+                if (values[i] == value)
+                {
+                    return i;
+                }
+                if (values[i] < value)
+                {
+                    return ~(i + 1);
+                }
+            }
+            return -1; // == ~0
+        }
+
+        //[Benchmark]
+        [ArgumentsSource(nameof(HybridSearchArguments))]
+        public int BinarySearch(int[] values, int value, int length)
+        {
+            return Array.BinarySearch(values, 0, length, value, null);
+        }
+
+        public IEnumerable<object[]> HybridSearchArguments()
+        {
+            for (int i = 28; i <= 36; ++i)
+            {
+                int[] values = new int[i];
+                for (int j = 0; j < i; ++j)
+                {
+                    values[j] = j;
+                }
+                yield return new object[] { values, 0, i };
+            }
+        }
         #endregion
     }
 }
