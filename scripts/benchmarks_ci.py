@@ -34,7 +34,6 @@ import sys
 from performance.common import push_dir
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
-from performance.common import get_repo_root_path
 
 import benchview
 import dotnet
@@ -68,7 +67,8 @@ def init_tools(
     '''
     getLogger().info('Installing tools.')
     channels = [
-        micro_benchmarks.FrameworkAction.get_channel(target_framework_moniker) or 'LTS'
+        micro_benchmarks.FrameworkAction.get_channel(
+            target_framework_moniker) or 'LTS'
         for target_framework_moniker in target_framework_monikers
     ]
     dotnet.install(
@@ -276,7 +276,10 @@ def __get_corefx_os_name():
         return platform.platform()
 
 
-def __get_build_info(args, target_framework_moniker: str) -> benchview.BuildInfo:
+def __get_build_info(
+        args,
+        target_framework_moniker: str
+) -> benchview.BuildInfo:
     # TODO: Improve complex scenarios.
     #   Could the --cli-* arguments take multiple build info objects from the
     #   command line interface?
@@ -296,7 +299,8 @@ def __get_build_info(args, target_framework_moniker: str) -> benchview.BuildInfo
             target_framework_moniker
         )
         if not branch:
-            err_msg = 'Cannot determine build information for "%s"' % target_framework_moniker
+            err_msg = 'Cannot determine build information for "%s"' % \
+                target_framework_moniker
             getLogger().error(err_msg)
             getLogger().error(
                 "Build information can be provided using the --cli-* options."
@@ -320,7 +324,11 @@ def __get_build_info(args, target_framework_moniker: str) -> benchview.BuildInfo
     )
 
 
-def __run_benchview_scripts(args: list, verbose: bool, BENCHMARKS_CSPROJ: dotnet.CSharpProject) -> None:
+def __run_benchview_scripts(
+        args: list,
+        verbose: bool,
+        BENCHMARKS_CSPROJ: dotnet.CSharpProject
+) -> None:
     '''Run BenchView scripts to collect performance data.'''
     if not args.generate_benchview_data:
         return
@@ -490,7 +498,9 @@ def __main(args: list) -> int:
     # to avoid a build failure when using older frameworks (error NETSDK1045:
     # The current .NET SDK does not support targeting .NET Core $XYZ)
     # we set the TFM to what the user has provided.
-    os.environ['PYTHON_SCRIPT_TARGET_FRAMEWORKS'] = ';'.join(target_framework_monikers)
+    os.environ['PYTHON_SCRIPT_TARGET_FRAMEWORKS'] = ';'.join(
+        target_framework_monikers
+    )
 
     # dotnet --info
     dotnet.info(verbose=verbose)
@@ -515,10 +525,17 @@ def __main(args: list) -> int:
     # Run micro-benchmarks
     if not args.build_only:
         for framework in args.frameworks:
-            micro_benchmarks.run(BENCHMARKS_CSPROJ, args.configuration, framework, verbose, args)
+            micro_benchmarks.run(
+                BENCHMARKS_CSPROJ,
+                args.configuration,
+                framework,
+                verbose,
+                args
+            )
 
         __run_benchview_scripts(args, verbose, BENCHMARKS_CSPROJ)
         # TODO: Archive artifacts.
+
 
 if __name__ == "__main__":
     __main(sys.argv[1:])

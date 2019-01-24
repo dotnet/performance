@@ -100,7 +100,9 @@ def get_tools_directory() -> str:
 
 
 def get_artifacts_directory() -> str:
-    '''Gets the default artifacts directory where arcade builds the benchmarks.'''
+    '''
+    Gets the default artifacts directory where arcade builds the benchmarks.
+    '''
     return os.path.join(get_repo_root_path(), 'artifacts')
 
 

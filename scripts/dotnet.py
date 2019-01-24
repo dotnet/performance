@@ -16,7 +16,6 @@ from urllib.parse import urlparse
 from urllib.request import urlopen, urlretrieve
 
 from performance.common import get_repo_root_path
-from performance.common import get_artifacts_directory
 from performance.common import get_tools_directory
 from performance.common import push_dir
 from performance.common import RunCommand
@@ -45,25 +44,37 @@ class CSharpProject:
             bin_directory: str,
             csproj_file: str):
         if not working_directory:
-            raise TypeError('Unspecified working directory.')
+            raise TypeError(
+                'working_directory should be string, not NoneType.'
+            )
+        if not bin_directory:
+            raise TypeError(
+                'bin_directory should be string, not NoneType.'
+            )
+        if not csproj_file:
+            raise TypeError(
+                'csproj_file should be string, not NoneType.'
+            )
+
         if not path.isdir(working_directory):
             raise ValueError(
                 'Specified working directory: {}, does not exist.'.format(
-                    working_directory))
-
-        if not bin_directory and not path.isdir(bin_directory):
-            raise ValueError(
-                'Specified bin directory: {}, does not exist.'.format(
-                    bin_directory))
+                    working_directory
+                )
+            )
 
         if path.isabs(csproj_file) and not path.exists(csproj_file):
             raise ValueError(
                 'Specified project file: {}, does not exist.'.format(
-                    csproj_file))
+                    csproj_file
+                )
+            )
         elif not path.exists(path.join(working_directory, csproj_file)):
             raise ValueError(
                 'Specified project file: {}, does not exist.'.format(
-                    csproj_file))
+                    csproj_file
+                )
+            )
 
         self.__working_directory = working_directory
         self.__bin_directory = bin_directory
@@ -82,10 +93,7 @@ class CSharpProject:
     @property
     def bin_path(self) -> str:
         '''Gets the directory in which the built binaries will be placed.'''
-        if not self.__bin_directory:
-            return path.join(get_artifacts_directory(), 'bin')
-        else:
-            return path.join(self.__bin_directory, 'bin')
+        return self.__bin_directory
 
     def restore(self, packages_path: str, verbose: bool) -> None:
         '''
@@ -111,7 +119,7 @@ class CSharpProject:
               verbose: bool,
               *args) -> None:
         '''Calls dotnet to build the specified project.'''
-        if not target_framework_monikers: # Build all supported frameworks.
+        if not target_framework_monikers:  # Build all supported frameworks.
             cmdline = [
                 'dotnet', 'build',
                 self.csproj_file,

@@ -76,14 +76,16 @@ class FrameworkAction(Action):
         DotNet Cli tools.
         '''
         dct = FrameworkAction.__get_target_framework_moniker_channel_map()
-        return dct[target_framework_moniker] if target_framework_moniker in dct else None
+        return dct[target_framework_moniker] \
+            if target_framework_moniker in dct \
+            else None
 
     @staticmethod
     def get_target_framework_moniker(framework: str) -> str:
         '''
         Translates framework name to target framework moniker (TFM)
-        To run CoreRT benchmarks we need to run the host BDN process as latest .NET Core
-        the host process will build and run CoreRT benchmarks
+        To run CoreRT benchmarks we need to run the host BDN process as latest
+        .NET Core the host process will build and run CoreRT benchmarks
         '''
         return 'netcoreapp3.0' if framework == 'corert' else framework
 
@@ -91,13 +93,15 @@ class FrameworkAction(Action):
     def get_target_framework_monikers(frameworks: list) -> list:
         '''
         Translates framework names to target framework monikers (TFM)
-        Required to run CoreRT benchmarks where the host process must be .NET Core, not CoreRT
+        Required to run CoreRT benchmarks where the host process must be .NET
+        Core, not CoreRT.
         '''
         monikers = [
             FrameworkAction.get_target_framework_moniker(framework)
             for framework in frameworks
         ]
-        ## --frameworks netcoreapp3.0 corert should be translated to single moniker: netcoreapp3.0
+
+        # ['netcoreapp3.0', 'corert'] should become ['netcoreapp3.0']
         return list(set(monikers))
 
 
@@ -293,7 +297,9 @@ def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
     # we need to tell BenchmarkDotNet where to restore the packages
     # if we don't it's gonna restore to default global folder
     run_args += ['--packages', get_packages_directory()]
-    # required for CoreRT where host process framework != benchmark process framework
+
+    # Required for CoreRT where:
+    #   host process framework != benchmark process framework
     run_args += ['--runtimes', framework]
 
     return run_args
@@ -357,6 +363,7 @@ def __log_script_header(message: str):
     getLogger().info(message)
     getLogger().info('-' * len(message))
 
+
 def __main(args: list) -> int:
     try:
         validate_supported_runtime()
@@ -366,7 +373,8 @@ def __main(args: list) -> int:
         frameworks = args.frameworks
         incremental = args.incremental
         verbose = args.verbose
-        target_framework_monikers = FrameworkAction.get_target_framework_monikers(frameworks)
+        target_framework_monikers = FrameworkAction. \
+            get_target_framework_monikers(frameworks)
 
         setup_loggers(verbose=verbose)
 
@@ -375,15 +383,28 @@ def __main(args: list) -> int:
 
         BENCHMARKS_CSPROJ = dotnet.CSharpProject(
             working_directory=args.working_directory,
-            csproj_file='MicroBenchmarks.csproj'
+            csproj_file='MicroBenchmarks.csproj',
+            bin_directory=args.bin_directory
         )
 
         # dotnet build
-        build(BENCHMARKS_CSPROJ, configuration, target_framework_monikers, incremental, verbose)
+        build(
+            BENCHMARKS_CSPROJ,
+            configuration,
+            target_framework_monikers,
+            incremental,
+            verbose
+        )
 
         for framework in frameworks:
             # dotnet run
-            run(BENCHMARKS_CSPROJ, configuration, framework, verbose, *args)
+            run(
+                BENCHMARKS_CSPROJ,
+                configuration,
+                framework,
+                verbose,
+                args
+            )
 
         return 0
     except CalledProcessError as ex:
