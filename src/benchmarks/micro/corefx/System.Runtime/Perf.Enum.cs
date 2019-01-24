@@ -254,20 +254,24 @@ namespace System.Tests
         #region GetName
         [Benchmark]
         [Arguments(typeof(BigContiguousEnum), BigContiguousEnum.G)]
+        [Arguments(typeof(SmallContiguousEnum), SmallContiguousEnum.One)]
         public string GetNameEnumDefined(Type enumType, object value) => Enum.GetName(enumType, value);
 
         [Benchmark]
         //[Arguments(typeof(BigContiguousEnum), (BigContiguousEnum)36)] // BenchmarkDotNet Issue #1020
+        //[Arguments(typeof(SmallContiguousEnum), (SmallContiguousEnum)3)]
         //public string GetNameEnumUndefined(Type enumType, object value) => Enum.GetName(enumType, value);
         [Arguments(typeof(BigContiguousEnum))]
         public string GetNameEnumUndefined(Type enumType) => Enum.GetName(enumType, (BigContiguousEnum)36);
 
         [Benchmark]
         [Arguments(typeof(BigContiguousEnum), (int)BigContiguousEnum.G)]
+        [Arguments(typeof(SmallContiguousEnum), (int)SmallContiguousEnum.One)]
         public string GetNameUnderlyingDefined(Type enumType, object value) => Enum.GetName(enumType, value);
 
         [Benchmark]
         [Arguments(typeof(BigContiguousEnum), 36)]
+        [Arguments(typeof(SmallContiguousEnum), 3)]
         public string GetNameUnderlyingUndefined(Type enumType, object value) => Enum.GetName(enumType, value);
         #endregion
 
@@ -306,16 +310,12 @@ namespace System.Tests
         #region ToString
         [Benchmark]
         [Arguments(BigContiguousEnum.C)]
-        [Arguments(BigNonContiguousEnum.C)]
         [Arguments(SmallContiguousEnum.One)]
-        [Arguments(SmallNonContiguousEnum.Two)]
         public string ToStringDefined(Enum value) => value.ToString();
 
         [Benchmark]
         //[Arguments((BigContiguousEnum)36)] // BenchmarkDotNet Issue #1020
-        //[Arguments((BigNonContiguousEnum)11)]
         //[Arguments((SmallContiguousEnum)3)]
-        //[Arguments((SmallNonContiguousEnum)1)]
         //public string ToStringUndefined(Enum value) => value.ToString();
         public string ToStringUndefined() => ((BigContiguousEnum)36).ToString();
 
@@ -468,6 +468,9 @@ namespace System.Tests
         public BigContiguousEnum ParseNameGenericBigContiguous() => Enum.Parse<BigContiguousEnum>("C");
 
         [Benchmark]
+        public SmallContiguousEnum ParseNameGenericSmallContiguous() => Enum.Parse<SmallContiguousEnum>("One");
+
+        [Benchmark]
         public ByteEnum ParseValueGenericByte() => Enum.Parse<ByteEnum>("2");
 
         [Benchmark]
@@ -533,10 +536,7 @@ namespace System.Tests
 
         //[Benchmark]
         [ArgumentsSource(nameof(HybridSearchArguments))]
-        public int BinarySearch(int[] values, int value, int length)
-        {
-            return Array.BinarySearch(values, 0, length, value, null);
-        }
+        public int BinarySearch(int[] values, int value, int length) => Array.BinarySearch(values, 0, length, value);
 
         public IEnumerable<object[]> HybridSearchArguments()
         {
