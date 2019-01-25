@@ -245,12 +245,19 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='The directory where MicroBenchmarks.csproj can be found',
     )
 
+    def __absolute_path(file_path: str) -> str:
+        '''
+        Return a normalized absolutized version of the specified file_path
+        path.
+        '''
+        return path.abspath(file_path)
+
     parser.add_argument(
         '--bin-directory',
         dest='bin_directory',
         required=False,
         default=path.join(get_repo_root_path(), 'artifacts', 'bin'),
-        type=str,
+        type=__absolute_path,
         help='Root of the bin directory',
     )
 
