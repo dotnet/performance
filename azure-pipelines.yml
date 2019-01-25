@@ -80,7 +80,7 @@ jobs:
             HelixAccessToken: $(HelixApiAccessToken)
             HelixTargetQueues: $(_HelixQueue)
             WorkItemDirectory: $(Build.SourcesDirectory)\src\benchmarks\micro
-            WorkItemCommand: py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --benchview-submission-name "$(BenchviewCommitName)" --bin-directory %HELIX_WORKITEM_PAYLOAD% --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) --bdn-arguments="$(BDNArguments)"
+            WorkItemCommand: py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --benchview-submission-name "$(BenchviewCommitName)" --working-directory %HELIX_WORKITEM_PAYLOAD% --bin-directory %HELIX_WORKITEM_PAYLOAD% --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) --bdn-arguments="$(BDNArguments)"
             WorkItemTimeout: 14400 # 4 hours
             CorrelationPayloadDirectory: $(Build.SourcesDirectory)\scripts
             EnableXUnitReporter: false
