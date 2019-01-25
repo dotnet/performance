@@ -115,8 +115,9 @@ def push_dir(path: str = None) -> None:
     if path:
         prev = os.getcwd()
         try:
-            getLogger().info('$ pushd "%s"', path)
-            os.chdir(path)
+            abspath = path if os.path.isabs(path) else os.path.abspath(path)
+            getLogger().info('$ pushd "%s"', abspath)
+            os.chdir(abspath)
             yield
         finally:
             getLogger().info('$ popd')
