@@ -20,7 +20,7 @@ jobs:
       - job: sdk_performance_windows
         timeoutInMinutes: 240
         variables:
-        - ${{ if in(variables['Build.Reason'], 'PullRequest') }}:
+        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           - name: _RunType
             value: private
           - name: BenchviewCommitName
