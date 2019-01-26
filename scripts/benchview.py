@@ -114,6 +114,7 @@ class BenchView:
             '--append',
         ]
 
+        full_json_files = []
         with push_dir(working_directory):
             pattern = "BenchmarkDotNet.Artifacts/**/*-full.json"
             getLogger().info(
@@ -121,9 +122,11 @@ class BenchView:
             )
 
             for full_json_file in iglob(pattern, recursive=True):
-                cmdline = common_cmdline + [full_json_file]
-                RunCommand(cmdline, verbose=self.verbose).run(
-                    working_directory)
+                full_json_files.append(full_json_file)
+
+        for full_json_file in full_json_files:
+            cmdline = common_cmdline + [full_json_file]
+            RunCommand(cmdline, verbose=self.verbose).run(working_directory)
 
     def submission_metadata(self, working_directory: str, name: str) -> None:
         '''Wrapper around BenchView's submission-metadata.py'''
