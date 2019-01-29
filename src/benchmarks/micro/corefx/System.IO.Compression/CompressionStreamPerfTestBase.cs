@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -32,7 +32,7 @@ namespace System.IO.Compression
         public string file { get; set; } // this public property is called "file" to keep the benchmark ID in BenchView, do NOT rename it
 
         [Params(CompressionLevel.Optimal, CompressionLevel.Fastest)] // we don't test the performance of CompressionLevel.NoCompression on purpose
-        public CompressionLevel level { get; set; } // this public property is called "file" to keep the benchmark ID in BenchView, do NOT rename it
+        public CompressionLevel level { get; set; } // this public property is called "level" to keep the benchmark ID in BenchView, do NOT rename it
 
         protected CompressedFile CompressedFile;
 
