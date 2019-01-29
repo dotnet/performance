@@ -11,11 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="img\**" />
-    <Compile Remove="Tests\**" />
     <EmbeddedResource Remove="img\**" />
     <None Remove="img\**" />
-    <None Remove="Tests\**" />
   </ItemGroup>
 
   <ItemGroup>
