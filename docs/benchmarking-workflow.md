@@ -79,7 +79,7 @@ Sample commands:
 - See the list of all available .NET Core 2.1 System.Linq benchmarks:
 
 ```cmd
-dotnet run -c Release -f netcoreapp2.1 -- -f System.Linq* --list flat
+dotnet run -f netcoreapp2.1 -- -f System.Linq* --list flat
 ```
 
 ```log
@@ -108,7 +108,7 @@ System.Linq.Tests.Perf_Linq.Range
 - See a hierarchy tree of all available .NET Core 3.0 System.IO.Compression benchmarks:
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 -- -f System.IO.Compression* --list tree
+dotnet run -f netcoreapp3.0 -- -f System.IO.Compression* --list tree
 ```
 
 ```log
@@ -133,7 +133,7 @@ System
 - See a list of all the benchmarks which belong to BenchmarksGame category:
 
 ```cmd
-dotnet run -c Release -f netcoreapp2.1 -- --allCategories BenchmarksGame --list flat
+dotnet run -f netcoreapp2.1 -- --allCategories BenchmarksGame --list flat
 ```
 
 ```log
@@ -170,7 +170,7 @@ Just specify the target framework moniker for `dotnet run`.
 Example: run `System.Collections.CopyTo<Int32>.Array` benchmarks against .NET Core 2.1 installed on your machine:
 
 ```cmd
-dotnet run -c Release -f netcoreapp2.1 -- -f System.Collections.CopyTo<Int32>.Array
+dotnet run -f netcoreapp2.1 -- -f System.Collections.CopyTo<Int32>.Array
 ```
 
 ### Against multiple runtimes
@@ -180,7 +180,7 @@ You need to specify the target framework monikers via `--runtimes` or just `-r` 
 Example: run `System.Collections.CopyTo<Int32>.Array` benchmarks against .NET Core 2.0 and 2.1 installed on your machine:
 
 ```cmd
-dotnet run -c Release -f netcoreapp2.0 -- -f System.Collections.CopyTo<Int32>.Array --runtimes netcoreapp2.0 netcoreapp2.1
+dotnet run -f netcoreapp2.0 -- -f System.Collections.CopyTo<Int32>.Array --runtimes netcoreapp2.0 netcoreapp2.1
 ```
 
 **Important:** when comparing few different .NET runtimes please always use the lowest common API denominator as the host process. What does it mean? BDN needs to detect and build these benchmarks. If you run the host process as .NET Core 2.1 it won't be able to detect benchmarks that use newer APIs are available only for .NET Core 3.0.
@@ -188,13 +188,13 @@ dotnet run -c Release -f netcoreapp2.0 -- -f System.Collections.CopyTo<Int32>.Ar
 Example: run benchmarks for APIs available in .NET Core 2.1 using .NET Core 3.0
 
 ```cmd
-dotnet run -c Release -f netcoreapp2.1 -- -r netcoreapp3.0
+dotnet run -f netcoreapp2.1 -- -r netcoreapp3.0
 ```
 
 Example: run benchmarks for APIs available in .NET Core 3.0 using .NET Core 3.0
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0
+dotnet run -f netcoreapp3.0
 ```
 
 ### Against single runtime using given dotnet cli
@@ -204,7 +204,7 @@ Specify the target framework moniker for `dotnet run` and the path to `dotnet cl
 Example: run `System.Collections.CopyTo<Int32>.Array` benchmarks against .NET Core 3.0 downloaded to a given location:
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 -- -f System.Collections.CopyTo<Int32>.Array --cli C:\tmp\dotnetcli\dotnet.exe
+dotnet run -f netcoreapp3.0 -- -f System.Collections.CopyTo<Int32>.Array --cli C:\tmp\dotnetcli\dotnet.exe
 ```
 
 ### Against private runtime build
@@ -219,7 +219,7 @@ Pass the path to CoreRun using `--coreRun` argument. In both CoreCLR and CoreFX 
 Example: Run all CoreCLR benchmarks using "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 -- --allCategories CoreCLR --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
+dotnet run -f netcoreapp3.0 -- --allCategories CoreCLR --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
 ```
 
 If you want to use some non-default dotnet cli (or you just don't have a default dotnet cli) to build the benchmarks pass the path to cli via `--cli`.
@@ -228,7 +228,7 @@ If you want restore the packages to selected folder, pass it via `--packages`.
 Example: Run all CoreCLR benchmarks using "C:\Projects\coreclr\bin\tests\Windows_NT.x64.Release\Tests\Core_Root\CoreRun.exe", restore the packages to C:\Projects\coreclr\packages and use "C:\Projects\coreclr\Tools\dotnetcli\dotnet.exe" for building the benchmarks.
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 -- --allCategories CoreCLR --coreRun "C:\Projects\coreclr\bin\tests\Windows_NT.x64.Release\Tests\Core_Root\CoreRun.exe --cli "C:\Projects\coreclr\Tools\dotnetcli\dotnet.exe" --packages "C:\Projects\coreclr\packages"
+dotnet run -f netcoreapp3.0 -- --allCategories CoreCLR --coreRun "C:\Projects\coreclr\bin\tests\Windows_NT.x64.Release\Tests\Core_Root\CoreRun.exe --cli "C:\Projects\coreclr\Tools\dotnetcli\dotnet.exe" --packages "C:\Projects\coreclr\packages"
 ```
 
 **VERY IMPORTANT**: CoreRun is a simple host that does NOT take any dependency on NuGet. BenchmarkDotNet just generates some boilerplate code, builds it and tells CoreRun.exe to run the benchmarks from the auto-generated library. CoreRun runs the benchmarks using the libraries that are placed in it's folder. When benchmarked code has a dependency to `System.ABC.dll` version 4.5 and CoreRun has `System.ABC.dll` version 4.5.1 in it's folder, then CoreRun is going to load and use `System.ABC.dll` version 4.5.1. This is why having a single clone of .NET Performance repository allows you to run benchmarks against private builds of CoreCLR/FX from many different locations.
@@ -256,7 +256,7 @@ By using the `DisassemblyDiagnoser` and `EtwProfiler` you should be able to get 
    5. run the benchmarks using given `CoreRun.exe` and save the results to a dedicated folder. An example:
 
         ```cmd
-        dotnet run -c Release -f netcoreapp3.0 -- 
+        dotnet run -f netcoreapp3.0 -- 
             --artifacts before 
             --filter *Span* 
             --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
@@ -269,7 +269,7 @@ By using the `DisassemblyDiagnoser` and `EtwProfiler` you should be able to get 
 7. Run the benchmarks using given `CoreRun.exe` and save the results to a dedicated folder. **Different one that you used to store results previously!** Example:
 
     ```cmd
-    dotnet run -c Release -f netcoreapp3.0 --  --artifacts after --filter *Span* --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
+    dotnet run -f netcoreapp3.0 --  --artifacts after --filter *Span* --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
     ```
 
 8. Compare the results using [Results Comparer](../src/tools/ResultsComparer/README.md)
@@ -291,7 +291,7 @@ Example: run Mann–Whitney U test with an absolute ratio of 3 milliseconds and 
 The following commands are represented in a few lines to make it easier to read on GitHub. Please remove the new lines when copy-pasting to console.
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 \
+dotnet run -f netcoreapp3.0 \
     --allCategories BenchmarksGame \
     --statisticalTest 3ms \
     --coreRun \
@@ -302,7 +302,7 @@ dotnet run -c Release -f netcoreapp3.0 \
 Example: run all benchmarks for .NET Core 2.1 vs 2.2 and use Mann–Whitney U test with a relative ratio of 5%.
 
 ```cmd
-dotnet run -c Release -f netcoreapp2.1 --
+dotnet run -f netcoreapp2.1 --
     --filter *
     --statisticalTest 5%
     --runtimes netcoreapp2.1 netcoreapp2.2
@@ -319,19 +319,19 @@ A must read is [running benchmarks against multiple runtimes](#Against-multiple-
 Example: run all `Span` benchmarks for .NET Core 2.1 vs 3.0:
 
 ```cmd
-dotnet run -c Release -f netcoreapp2.1 -- --allCategories Span --runtimes netcoreapp2.1 netcoreapp3.0
+dotnet run -f netcoreapp2.1 -- --allCategories Span --runtimes netcoreapp2.1 netcoreapp3.0
 ```
 
 Example: run all `System.IO` benchmarks for .NET 4.7.2 vs .NET Core 3.0 preview using dotnet cli from given location:
 
 ```cmd
-dotnet run -c Release -f net472 -- --filter System.IO* --runtimes net472 netcoreapp3.0 --cli "C:\Downloads\3.0.0-preview1-03129-01\dotnet.exe"
+dotnet run -f net472 -- --filter System.IO* --runtimes net472 netcoreapp3.0 --cli "C:\Downloads\3.0.0-preview1-03129-01\dotnet.exe"
 ```
 
 Example: run all benchmarks for .NET Core 2.1 vs 2.2:
 
 ```cmd
-dotnet run -c Release -f netcoreapp2.1 -- -f * --runtimes netcoreapp2.1 netcoreapp2.2
+dotnet run -f netcoreapp2.1 -- -f * --runtimes netcoreapp2.1 netcoreapp2.2
 ```
 
 ### New API
