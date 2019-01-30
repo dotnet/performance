@@ -11,14 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="img\**" />
-    <Compile Remove="Tests\**" />
-    <EmbeddedResource Remove="img\**" />
-    <None Remove="img\**" />
-    <None Remove="Tests\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.11.3.936" />
     <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.11.3.936" />
     <PackageReference Include="Jil" Version="2.15.4" />

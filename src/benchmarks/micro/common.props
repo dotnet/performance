@@ -5,8 +5,8 @@
     <!-- The Python script can narrow down the TFMs to what the user has asked for -->
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <TargetFrameworks>$(PYTHON_SCRIPT_TARGET_FRAMEWORKS)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net461;netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);net461</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
     <WarningLevel>4</WarningLevel>
