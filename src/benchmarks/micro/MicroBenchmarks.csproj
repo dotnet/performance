@@ -61,4 +61,9 @@
     <Compile Remove="corefx\System.Security.Cryptography\Perf.Rfc2898DeriveBytes.cs" />
   </ItemGroup>
 
+  <Target Name="BuildConfigurationCheck" BeforeTargets="Build">
+    <Warning Condition="'$(Configuration)'=='Debug' AND '$(TargetFramework)' == $(DefaultTargetFramework)" 
+        Text="Configuration and Framework were not provided, optimized netcoreapp3.0 build will be used (defaults)." />
+  </Target>
+
 </Project>
