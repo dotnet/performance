@@ -78,21 +78,21 @@ BenchmarkDotNet by default exports the results to GitHub markdown, so you can ju
 
 You can filter the benchmarks by namespace, category, type name and method name. Examples:
 
-* `dotnet run --allCategories CoreCLR Span` - will run all the benchmarks that belong to CoreCLR **AND** Span category
-* `dotnet run --anyCategories CoreCLR CoreFX` - will run all the benchmarks that belong to CoreCLR **OR** CoreFX category
-* `dotnet run --filter BenchmarksGame*` - will run all the benchmarks from BenchmarksGame namespace
-* `dotnet run --filter *.ToStream` - will run all the benchmarks with method name ToStream
-* `dotnet run --filter *.Richards.*` - will run all the benchmarks with type name Richards
-* `dotnet run --filter System.Collections*.Dictionary* *.Perf_Dictionary.*` - will run all the benchmarks with type name start with System.Collections and method name start with Dictionary plus all benchmarks of type name Perf_Dictionary
+* `dotnet run -- --allCategories CoreCLR Span` - will run all the benchmarks that belong to CoreCLR **AND** Span category
+* `dotnet run -- --anyCategories CoreCLR CoreFX` - will run all the benchmarks that belong to CoreCLR **OR** CoreFX category
+* `dotnet run -- --filter BenchmarksGame*` - will run all the benchmarks from BenchmarksGame namespace
+* `dotnet run -- --filter *.ToStream` - will run all the benchmarks with method name ToStream
+* `dotnet run -- --filter *.Richards.*` - will run all the benchmarks with type name Richards
+* `dotnet run -- --filter System.Collections*.Dictionary* *.Perf_Dictionary.*` - will run all the benchmarks with type name start with System.Collections and method name start with Dictionary plus all benchmarks of type name Perf_Dictionary
 
 **Note:** To print a single summary for all of the benchmarks, use `--join`.
-Example: `dotnet run --join --filter BenchmarksGame*` - will run all of the benchmarks from BenchmarksGame namespace and print a single summary.
+Example: `dotnet run -- --join --filter BenchmarksGame*` - will run all of the benchmarks from BenchmarksGame namespace and print a single summary.
 
 ## Printing all available benchmarks
 
 To print the list of all available benchmarks you need to pass `--list [tree/flat]` argument. It can also be combined with `--filter` option.
 
-Example: Show the tree of all the benchmarks which contain "Span" in the name and can be run for .NET Core 2.0: `dotnet run -f netcoreapp2.0 --filter *Span* --list tree`
+Example: Show the tree of all the benchmarks which contain "Span" in the name and can be run for .NET Core 2.0: `dotnet run -f netcoreapp2.0 -- --filter *Span* --list tree`
 
 ```log
 System
@@ -174,7 +174,7 @@ If you want to disassemble the benchmarked code, you need to use the [Disassembl
 
 You can do that by passing `--disassm` to the app or by using `[DisassemblyDiagnoser(printAsm: true, printSource: true)]` attribute or by adding it to your config with `config.With(DisassemblyDiagnoser.Create(new DisassemblyDiagnoserConfig(printAsm: true, recursiveDepth: 1))`.
 
-Example: `dotnet run --filter System.Memory.Span<Int32>.Reverse -d`
+Example: `dotnet run -- --filter System.Memory.Span<Int32>.Reverse -d`
 
 ```assembly
 ; System.Runtime.InteropServices.MemoryMarshal.GetReference[[System.Byte, System.Private.CoreLib]](System.Span`1<Byte>)
@@ -213,7 +213,7 @@ The `--runtimes` or just `-r` allows you to run the benchmarks for selected Runt
 Example: run the benchmarks for .NET 4.7.2 and .NET Core 2.1:
 
 ```cmd
-dotnet run --runtimes net472 netcoreapp2.1
+dotnet run -- --runtimes net472 netcoreapp2.1
 ```
 
 ## Benchmarking private CoreCLR and CoreFX builds using CoreRun
@@ -247,7 +247,7 @@ You can also use any dotnet cli to build and run the benchmarks. To do that you 
 Example: run the benchmarks for .NET Core 3.0 using dotnet cli from `C:\Projects\performance\.dotnet\dotnet.exe`:
 
 ```cmd
-dotnet run --cli "C:\Projects\performance\.dotnet\dotnet.exe"
+dotnet run -- --cli "C:\Projects\performance\.dotnet\dotnet.exe"
 ```
 
 ## Benchmarking private CLR build
@@ -260,7 +260,7 @@ So if you made a change in CLR and want to measure the difference, you can run t
 
 To run benchmarks with private CoreRT build you need to provide the `IlcPath`.
 
-Sample arguments: `dotnet run --ilcPath C:\Projects\corert\bin\Windows_NT.x64.Release`
+Sample arguments: `dotnet run -- --ilcPath C:\Projects\corert\bin\Windows_NT.x64.Release`
 
 ## Statistical Test
 
@@ -271,7 +271,7 @@ To perform a Mann–Whitney U Test and display the results in a dedicated column
 Example: run Mann–Whitney U test with relative ratio of 5% for `BinaryTrees_2` for .NET Core 2.1 (base) vs .NET Core 2.2 (diff). .NET Core 2.1 will be baseline because it was first.
 
 ```cmd
-dotnet run --filter *BinaryTrees_2* --runtimes netcoreapp2.1 netcoreapp2.2 --statisticalTest 5%
+dotnet run -- --filter *BinaryTrees_2* --runtimes netcoreapp2.1 netcoreapp2.2 --statisticalTest 5%
 ```
 
 |        Method |     Toolchain |     Mean | MannWhitney(5%) |

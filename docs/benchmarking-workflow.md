@@ -1,4 +1,4 @@
-﻿# .NET benchmarking workflow
+# .NET benchmarking workflow
 
 ## Table of Contents
 
@@ -79,7 +79,7 @@ Sample commands:
 - See the list of all available .NET Core 2.1 System.Linq benchmarks:
 
 ```cmd
-dotnet run -f netcoreapp2.1 --filter System.Linq* --list flat
+dotnet run -f netcoreapp2.1 -- -f System.Linq* --list flat
 ```
 
 ```log
@@ -108,7 +108,7 @@ System.Linq.Tests.Perf_Linq.Range
 - See a hierarchy tree of all available .NET Core 3.0 System.IO.Compression benchmarks:
 
 ```cmd
-dotnet run -f netcoreapp3.0 --filter System.IO.Compression* --list tree
+dotnet run -f netcoreapp3.0 -- -f System.IO.Compression* --list tree
 ```
 
 ```log
@@ -133,7 +133,7 @@ System
 - See a list of all the benchmarks which belong to BenchmarksGame category:
 
 ```cmd
-dotnet run -f netcoreapp2.1 --allCategories BenchmarksGame --list flat
+dotnet run -f netcoreapp2.1 -- --allCategories BenchmarksGame --list flat
 ```
 
 ```log
@@ -219,7 +219,7 @@ Pass the path to CoreRun using `--coreRun` argument. In both CoreCLR and CoreFX 
 Example: Run all CoreCLR benchmarks using "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
 
 ```cmd
-dotnet run --allCategories CoreCLR --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
+dotnet run -- --allCategories CoreCLR --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
 ```
 
 If you want to use some non-default dotnet cli (or you just don't have a default dotnet cli) to build the benchmarks pass the path to cli via `--cli`.
@@ -256,9 +256,9 @@ By using the `DisassemblyDiagnoser` and `EtwProfiler` you should be able to get 
    5. run the benchmarks using given `CoreRun.exe` and save the results to a dedicated folder. An example:
 
         ```cmd
-        dotnet run
-            --artifacts before 
-            --filter *Span* 
+        dotnet run -- \
+            --artifacts before \
+            --filter *Span* \
             --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
         ```
 
@@ -269,13 +269,13 @@ By using the `DisassemblyDiagnoser` and `EtwProfiler` you should be able to get 
 7. Run the benchmarks using given `CoreRun.exe` and save the results to a dedicated folder. **Different one that you used to store results previously!** Example:
 
     ```cmd
-    dotnet run --artifacts after --filter *Span* --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
+    dotnet run -- --artifacts after --filter *Span* --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
     ```
 
 8. Compare the results using [Results Comparer](../src/tools/ResultsComparer/README.md)
 
     ```cmd
-    dotnet run -p ..\..\tools\ResultsComparer\ResultsComparer.csproj --base .\before\ --diff .\after\ --threshold 3%
+    dotnet run -p ..\..\tools\ResultsComparer\ResultsComparer.csproj -- --base .\before\ --diff .\after\ --threshold 3%
     ```
 
 9. Repeat steps 3-8 until you get the desired speedup.
@@ -291,7 +291,7 @@ Example: run Mann–Whitney U test with an absolute ratio of 3 milliseconds and 
 The following commands are represented in a few lines to make it easier to read on GitHub. Please remove the new lines when copy-pasting to console.
 
 ```cmd
-dotnet run \
+dotnet run -- \
     --allCategories BenchmarksGame \
     --statisticalTest 3ms \
     --coreRun \
