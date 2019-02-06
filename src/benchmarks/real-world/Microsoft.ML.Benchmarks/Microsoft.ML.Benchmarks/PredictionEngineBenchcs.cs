@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
@@ -49,8 +50,9 @@ namespace Microsoft.ML.Benchmarks
 
             IDataView data = reader.Read(_irisDataPath);
 
-            var pipeline = new ColumnConcatenatingEstimator(env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
-                .Append(new SdcaMultiClassTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
+            var pipeline = env.Transforms.Concatenate("Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
+                .Append(env.MulticlassClassification.Trainers.StochasticDualCoordinateAscent(
+                    new SdcaMultiClassTrainer.Options { NumThreads = 1, ConvergenceTolerance = 1e-2f }));
 
             var model = pipeline.Fit(data);
 
@@ -78,8 +80,9 @@ namespace Microsoft.ML.Benchmarks
 
             IDataView data = reader.Read(_sentimentDataPath);
 
-            var pipeline = new TextFeaturizingEstimator(env, "SentimentText", "Features")
-                .Append(new SdcaBinaryTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; }));
+            var pipeline = env.Transforms.Text.FeaturizeText("Features", "SentimentText")
+                .Append(env.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+                    new SdcaBinaryTrainer.Options { NumThreads = 1, ConvergenceTolerance = 1e-2f }));
 
             var model = pipeline.Fit(data);
 
@@ -107,7 +110,8 @@ namespace Microsoft.ML.Benchmarks
 
             IDataView data = reader.Read(_breastCancerDataPath);
 
-            var pipeline = new SdcaBinaryTrainer(env, "Label", "Features", advancedSettings: (s) => { s.NumThreads = 1; s.ConvergenceTolerance = 1e-2f; });
+            var pipeline = env.BinaryClassification.Trainers.StochasticDualCoordinateAscent(
+                new SdcaBinaryTrainer.Options { NumThreads = 1, ConvergenceTolerance = 1e-2f });
 
             var model = pipeline.Fit(data);
 

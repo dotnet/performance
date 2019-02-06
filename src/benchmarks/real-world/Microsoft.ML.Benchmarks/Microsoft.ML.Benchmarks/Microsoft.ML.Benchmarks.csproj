@@ -26,7 +26,7 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.11.3" />
-    <PackageReference Include="Microsoft.ML" Version="0.9.0" />
+    <PackageReference Include="Microsoft.ML" Version="0.10.0" />
   </ItemGroup>
   
   <ItemGroup>
@@ -38,6 +38,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Input\breast-cancer.txt" Link="Input\breast-cancer.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Input\adult.tiny.with-schema.txt" Link="Input\adult.tiny.with-schema.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
 
