@@ -23,10 +23,10 @@ jobs:
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           - name: _RunType
             value: private
-          - name: BenchviewCommitName
-            value: '.NET Performance - CoreClr $(_RunType) - $(Build.SourceBranchName) $(System.PullRequest.PullRequestNumber)'
+          - name: BenchviewCommitNamePostfix
+            value: '$(_RunType) - $(Build.SourceBranchName) $(System.PullRequest.PullRequestNumber)'
           - name: UploadToBenchview
-            value: ''
+            value: '--category'
           - name: _HelixQueue
             value: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
           - name: IsExternal
@@ -40,10 +40,10 @@ jobs:
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
           - name: _RunType
             value: rolling
-          - name: BenchviewCommitName
-            value: '.NET Performance - CoreClr $(_RunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
+          - name: BenchviewCommitNamePostfix
+            value: '$(_RunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
           - name: UploadToBenchview
-            value: '--upload-to-benchview-container coreclr'
+            value: '--upload-to-benchview-container'
           - name: _HelixQueue
             value: Windows.10.Amd64.ClientRS1.Perf
           - name: IsExternal
@@ -65,13 +65,13 @@ jobs:
               _Category: CoreCLR
               _Framework: netcoreapp3.0
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-              _BenchViewArguments: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
+              _BenchViewArguments: '--benchview-submission-name ".NET Performance - CoreClr $(BenchviewCommitNamePostfix)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) coreclr'
             x86_CoreCLR_netcoreapp30:
               _Architecture: x86
               _Category: CoreCLR
               _Framework: netcoreapp3.0
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-              _BenchViewArguments: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
+              _BenchViewArguments: '--benchview-submission-name ".NET Performance - CoreClr $(BenchviewCommitNamePostfix)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) coreclr'
             x64_CoreCLR_netcoreapp22:
               _Architecture: x64
               _Category: CoreCLR
@@ -143,10 +143,10 @@ jobs:
           variables:
             - name: _RunType
               value: rolling
-            - name: BenchviewCommitName
-              value: '.NET Performance - CoreClr $(_RunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
+            - name: BenchviewCommitNamePostfix
+              value: '$(_RunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
             - name: UploadToBenchview
-              value: '--upload-to-benchview-container coreclr'
+              value: '--upload-to-benchview-container'
             - group: DotNet-HelixApi-Access
             - group: dotnet-benchview
           workspace:
@@ -161,7 +161,7 @@ jobs:
                 _Category: CoreCLR
                 _Framework: netcoreapp3.0
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-                _BenchViewArguments: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
+                _BenchViewArguments: '--benchview-submission-name ".NET Performance - CoreClr $(BenchviewCommitNamePostfix)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) coreclr'
               x64_CoreCLR_netcoreapp22:
                 _Architecture: x64
                 _Category: CoreCLR
