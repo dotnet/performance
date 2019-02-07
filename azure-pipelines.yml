@@ -65,51 +65,61 @@ jobs:
               _Category: CoreCLR
               _Framework: netcoreapp3.0
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
             x86_CoreCLR_netcoreapp30:
               _Architecture: x86
               _Category: CoreCLR
               _Framework: netcoreapp3.0
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
             x64_CoreCLR_netcoreapp22:
               _Architecture: x64
               _Category: CoreCLR
               _Framework: netcoreapp2.2
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: ''
             x86_CoreCLR_netcoreapp22:
               _Architecture: x86
               _Category: CoreCLR
               _Framework: netcoreapp2.2
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: ''
             x64_CoreCLR_netcoreapp21:
               _Architecture: x64
               _Category: CoreCLR
               _Framework: netcoreapp2.1
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: ''
             x86_CoreCLR_netcoreapp21:
               _Architecture: x86
               _Category: CoreCLR
               _Framework: netcoreapp2.1
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: ''
             x64_CoreCLR_netcoreapp20:
               _Architecture: x64
               _Category: CoreCLR
               _Framework: netcoreapp2.0
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: ''
             x86_CoreCLR_netcoreapp20:
               _Architecture: x86
               _Category: CoreCLR
               _Framework: netcoreapp2.0
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: ''
             x64_CoreCLR_full_framework:
               _Architecture: x64
               _Category: CoreCLR
               _Framework: net461
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: ''
             x86_CoreCLR_full_framework:
               _Architecture: x86
               _Category: CoreCLR
               _Framework: net461
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: ''
         steps:
         - checkout: self
           clean: true
@@ -120,7 +130,7 @@ jobs:
             HelixAccessToken: $(HelixApiAccessToken)
             HelixTargetQueues: $(_HelixQueue)
             WorkItemDirectory: $(Build.SourcesDirectory)\src\benchmarks\micro
-            WorkItemCommand: py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --benchview-submission-name "$(BenchviewCommitName)" --working-directory . --bin-directory ".\bin" --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) --bdn-arguments="$(BDNArguments)"
+            WorkItemCommand: py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py $(_BenchViewArguments) --working-directory . --bin-directory ".\bin" --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --bdn-arguments="$(BDNArguments)"
             WorkItemTimeout: 14400 # 4 hours
             CorrelationPayloadDirectory: $(Build.SourcesDirectory)\scripts
             EnableXUnitReporter: false
@@ -151,21 +161,25 @@ jobs:
                 _Category: CoreCLR
                 _Framework: netcoreapp3.0
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+                _BenchViewArguments: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
               x64_CoreCLR_netcoreapp22:
                 _Architecture: x64
                 _Category: CoreCLR
                 _Framework: netcoreapp2.2
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+                _BenchViewArguments: ''
               x64_CoreCLR_netcoreapp21:
                 _Architecture: x64
                 _Category: CoreCLR
                 _Framework: netcoreapp2.1
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+                _BenchViewArguments: ''
               x64_CoreCLR_netcoreapp20:
                 _Architecture: x64
                 _Category: CoreCLR
                 _Framework: netcoreapp2.0
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+                _BenchViewArguments: ''
           steps:
           - checkout: self
             clean: true
@@ -176,7 +190,7 @@ jobs:
               HelixAccessToken: $(HelixApiAccessToken)
               HelixTargetQueues: Ubuntu.1604.Amd64.Perf
               WorkItemDirectory: $(Build.SourcesDirectory)/src/benchmarks/micro
-              WorkItemCommand: python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py --benchview-submission-name "$(BenchviewCommitName)" --working-directory $HELIX_WORKITEM_PAYLOAD --bin-directory $HELIX_WORKITEM_PAYLOAD --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) --bdn-arguments="--buildTimeout 300"
+              WorkItemCommand: python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py $(_BenchViewArguments) --working-directory $HELIX_WORKITEM_PAYLOAD --bin-directory $HELIX_WORKITEM_PAYLOAD --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --bdn-arguments="--buildTimeout 300"
               WorkItemTimeout: 14400 # 4 hours
               CorrelationPayloadDirectory: $(Build.SourcesDirectory)/scripts
               EnableXUnitReporter: false
