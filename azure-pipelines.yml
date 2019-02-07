@@ -70,6 +70,46 @@ jobs:
               _Category: CoreCLR
               _Framework: netcoreapp3.0
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+            x64_CoreCLR_netcoreapp22:
+              _Architecture: x64
+              _Category: CoreCLR
+              _Framework: netcoreapp2.2
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+            x86_CoreCLR_netcoreapp22:
+              _Architecture: x86
+              _Category: CoreCLR
+              _Framework: netcoreapp2.2
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+            x64_CoreCLR_netcoreapp21:
+              _Architecture: x64
+              _Category: CoreCLR
+              _Framework: netcoreapp2.1
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+            x86_CoreCLR_netcoreapp21:
+              _Architecture: x86
+              _Category: CoreCLR
+              _Framework: netcoreapp2.1
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+            x64_CoreCLR_netcoreapp20:
+              _Architecture: x64
+              _Category: CoreCLR
+              _Framework: netcoreapp2.0
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+            x86_CoreCLR_netcoreapp20:
+              _Architecture: x86
+              _Category: CoreCLR
+              _Framework: netcoreapp2.0
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+            x64_CoreCLR_full_framework:
+              _Architecture: x64
+              _Category: CoreCLR
+              _Framework: net461
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+            x86_CoreCLR_full_framework:
+              _Architecture: x86
+              _Category: CoreCLR
+              _Framework: net461
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
         steps:
         - checkout: self
           clean: true
@@ -110,6 +150,21 @@ jobs:
                 _Architecture: x64
                 _Category: CoreCLR
                 _Framework: netcoreapp3.0
+                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              x64_CoreCLR_netcoreapp22:
+                _Architecture: x64
+                _Category: CoreCLR
+                _Framework: netcoreapp2.2
+                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              x64_CoreCLR_netcoreapp21:
+                _Architecture: x64
+                _Category: CoreCLR
+                _Framework: netcoreapp2.1
+                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              x64_CoreCLR_netcoreapp20:
+                _Architecture: x64
+                _Category: CoreCLR
+                _Framework: netcoreapp2.0
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
           steps:
           - checkout: self
