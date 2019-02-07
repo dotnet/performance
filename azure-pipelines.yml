@@ -34,7 +34,7 @@ jobs:
           - name: Creator
             value: dotnet-performance
           - name: BDNArguments
-            value: --iterationCount 2
+            value: --iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart
           - name: HelixApiAccessToken
             value: ''
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
