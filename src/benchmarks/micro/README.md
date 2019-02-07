@@ -39,10 +39,10 @@ Any public, non-sealed type with public `[Benchmark]` method in this assembly wi
 
 ## Running
 
-To run the benchmarks you have to execute `dotnet run -f net461|netcoreapp2.0|netcoreapp2.1|netcoreapp2.2|netcoreapp3.0` (choose one of the supported frameworks). If you don't provide the target framework moniker, the default one, `netcoreapp3.0` will be used.
+To run the benchmarks you have to execute `dotnet run -f net461|netcoreapp2.0|netcoreapp2.1|netcoreapp2.2|netcoreapp3.0` (choose one of the supported frameworks).
 
 ```cmd
-PS C:\Projects\performance\src\benchmarks> dotnet run
+PS C:\Projects\performance\src\benchmarks> dotnet run -f netcoreapp2.0
 Available Benchmarks:
   #0   Burgers
   #1   ByteMark
@@ -78,15 +78,15 @@ BenchmarkDotNet by default exports the results to GitHub markdown, so you can ju
 
 You can filter the benchmarks by namespace, category, type name and method name. Examples:
 
-* `dotnet run -- --allCategories CoreCLR Span` - will run all the benchmarks that belong to CoreCLR **AND** Span category
-* `dotnet run -- --anyCategories CoreCLR CoreFX` - will run all the benchmarks that belong to CoreCLR **OR** CoreFX category
-* `dotnet run -- --filter BenchmarksGame*` - will run all the benchmarks from BenchmarksGame namespace
-* `dotnet run -- --filter *.ToStream` - will run all the benchmarks with method name ToStream
-* `dotnet run -- --filter *.Richards.*` - will run all the benchmarks with type name Richards
-* `dotnet run -- --filter System.Collections*.Dictionary* *.Perf_Dictionary.*` - will run all the benchmarks with type name start with System.Collections and method name start with Dictionary plus all benchmarks of type name Perf_Dictionary
+* `dotnet run -f netcoreapp2.1 -- --allCategories CoreCLR Span` - will run all the benchmarks that belong to CoreCLR **AND** Span category
+* `dotnet run -f netcoreapp2.1 -- --anyCategories CoreCLR CoreFX` - will run all the benchmarks that belong to CoreCLR **OR** CoreFX category
+* `dotnet run -f netcoreapp2.1 -- --filter BenchmarksGame*` - will run all the benchmarks from BenchmarksGame namespace
+* `dotnet run -f netcoreapp2.1 -- --filter *.ToStream` - will run all the benchmarks with method name ToStream
+* `dotnet run -f netcoreapp2.1 -- --filter *.Richards.*` - will run all the benchmarks with type name Richards
+* `dotnet run -f netcoreapp2.1 -- --filter System.Collections*.Dictionary* *.Perf_Dictionary.*` - will run all the benchmarks with type name start with System.Collections and method name start with Dictionary plus all benchmarks of type name Perf_Dictionary
 
 **Note:** To print a single summary for all of the benchmarks, use `--join`.
-Example: `dotnet run -- --join --filter BenchmarksGame*` - will run all of the benchmarks from BenchmarksGame namespace and print a single summary.
+Example: `dotnet run -f netcoreapp2.1 -- --join -f BenchmarksGame*` - will run all of the benchmarks from BenchmarksGame namespace and print a single summary.
 
 ## Printing all available benchmarks
 
@@ -146,7 +146,7 @@ public class SomeType
 
 ## All Statistics
 
-By default BenchmarkDotNet displays only `Mean`, `Error` and `StdDev` in the results. If you want to see more statistics, please pass `--allStats` as an extra argument to the app: `dotnet run --allStats`. If you build your own config, please use `config.With(StatisticColumn.AllStatistics)`.
+By default BenchmarkDotNet displays only `Mean`, `Error` and `StdDev` in the results. If you want to see more statistics, please pass `--allStats` as an extra argument to the app: `dotnet run -f netcoreapp2.1 -- --allStats`. If you build your own config, please use `config.With(StatisticColumn.AllStatistics)`.
 
 |   Method |     Mean |     Error |    StdDev |    StdErr |      Min |       Q1 |   Median |       Q3 |      Max |        Op/s |  Gen 0 | Allocated |
 |--------- |---------:|----------:|----------:|----------:|---------:|---------:|---------:|---------:|---------:|------------:|-------:|----------:|
@@ -174,7 +174,7 @@ If you want to disassemble the benchmarked code, you need to use the [Disassembl
 
 You can do that by passing `--disassm` to the app or by using `[DisassemblyDiagnoser(printAsm: true, printSource: true)]` attribute or by adding it to your config with `config.With(DisassemblyDiagnoser.Create(new DisassemblyDiagnoserConfig(printAsm: true, recursiveDepth: 1))`.
 
-Example: `dotnet run -- --filter System.Memory.Span<Int32>.Reverse -d`
+Example: `dotnet run -f netcoreapp2.0 -- --filter System.Memory.Span<Int32>.Reverse -d`
 
 ```assembly
 ; System.Runtime.InteropServices.MemoryMarshal.GetReference[[System.Byte, System.Private.CoreLib]](System.Span`1<Byte>)
@@ -204,7 +204,7 @@ You can do that by passing `-p ETW` or `--profiler ETW` to the app.
 
 ## How to run In Process
 
-If you want to run the benchmarks in process, without creating a dedicated executable and process-level isolation, please pass `--inProcess` (or just `-i`) as an extra argument to the app: `dotnet run --inProcess`. If you build your own config, please use `config.With(Job.Default.With(InProcessToolchain.Instance))`. Please use this option only when you are sure that the benchmarks you want to run have no side effects.
+If you want to run the benchmarks in process, without creating a dedicated executable and process-level isolation, please pass `--inProcess` (or just `-i`) as an extra argument to the app: `dotnet run -f netcoreapp2.1 -- --inProcess`. If you build your own config, please use `config.With(Job.Default.With(InProcessToolchain.Instance))`. Please use this option only when you are sure that the benchmarks you want to run have no side effects.
 
 ## How to compare different Runtimes
 
@@ -220,7 +220,7 @@ dotnet run -- --runtimes net472 netcoreapp2.1
 
 It's possible to benchmark private builds of CoreCLR/FX using CoreRun. You just need to pass the path(s) to CoreRun to BenchmarkDotNet. You can do that by either using `--coreRun $thePath` as an arugment or `job.With(new CoreRunToolchain(coreRunPath: "$thePath"))` in the code.
 
-So if you made a change in CoreCLR/FX and want to measure the performance, you can run the benchmarks with `dotnet run --coreRun $thePath`.
+So if you made a change in CoreCLR/FX and want to measure the performance, you can run the benchmarks with `dotnet run -f netcoreapp3.0 -- --coreRun $thePath`.
 
 **Note:** You can provide more than 1 path to CoreRun. In such case, the first path will be the baseline and all the benchmarks are going to be executed for all CoreRuns you have specified.
 
@@ -247,20 +247,20 @@ You can also use any dotnet cli to build and run the benchmarks. To do that you 
 Example: run the benchmarks for .NET Core 3.0 using dotnet cli from `C:\Projects\performance\.dotnet\dotnet.exe`:
 
 ```cmd
-dotnet run -- --cli "C:\Projects\performance\.dotnet\dotnet.exe"
+dotnet run -- -r netcoreapp3.0 --cli "C:\Projects\performance\.dotnet\dotnet.exe"
 ```
 
 ## Benchmarking private CLR build
 
 It's possible to benchmark a private build of .NET Runtime. You just need to pass the value of `COMPLUS_Version` to BenchmarkDotNet. You can do that by either using `--clrVersion $theVersion` as an arugment or `Job.ShortRun.With(new ClrRuntime(version: "$theVersiong"))` in the code.
 
-So if you made a change in CLR and want to measure the difference, you can run the benchmarks with `dotnet run -f net461 -- --clrVersion $theVersion`. More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/706).
+So if you made a change in CLR and want to measure the difference, you can run the benchmarks with `dotnet run -f net472 -- --clrVersion $theVersion`. More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/706).
 
 ## Benchmarking private CoreRT build
 
 To run benchmarks with private CoreRT build you need to provide the `IlcPath`.
 
-Sample arguments: `dotnet run -- --ilcPath C:\Projects\corert\bin\Windows_NT.x64.Release`
+Sample arguments: `dotnet run -f netcoreapp2.1 -- --ilcPath C:\Projects\corert\bin\Windows_NT.x64.Release`
 
 ## Statistical Test
 
