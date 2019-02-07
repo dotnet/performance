@@ -3,8 +3,6 @@
   <PropertyGroup>
     <UseSharedCompilation>false</UseSharedCompilation>
     <!-- The Python script can narrow down the TFMs to what the user has asked for -->
-    <DefaultTargetFramework>netcoreapp3.0</DefaultTargetFramework>
-    <TargetFramework>$(DefaultTargetFramework)</TargetFramework>
     <TargetFrameworks>$(PYTHON_SCRIPT_TARGET_FRAMEWORKS)</TargetFrameworks>
     <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net461;netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
