@@ -181,10 +181,22 @@ def get_host_commit_sha(dotnet_path: str = None) -> str:
         # First look for the host information, since that is the sha we are
         # looking for. Then, grab the first Commit line we find, which will be
         # the sha of the framework we are testing
+        #
+        # Sample input for .NET Core 2.1+:
+        # Host (useful for support):
+        #   Version: 3.0.0-preview1-27018-05
+        #   Commit:  7a7ca06512
+        #
+        # Sample input for .NET Core 2.0:
+        # Product Information:
+        #   Version:            2.1.202
+        #   Commit SHA-1 hash:  281caedada
         if 'Host' in decoded_line:
             foundHost = True
+        elif 'Product' in decoded_line:
+            foundHost = True
         elif foundHost and 'Commit' in decoded_line:
-            return decoded_line.strip().split()[1]
+            return decoded_line.strip().split()[-1]
 
     raise RuntimeError('.NET Host Commit sha not found.')
 
