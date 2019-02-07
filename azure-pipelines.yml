@@ -72,6 +72,18 @@ jobs:
               _Framework: netcoreapp3.0
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
               _BenchViewArguments: '--benchview-submission-name ".NET Performance - CoreClr $(BenchviewCommitNamePostfix)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) coreclr'
+            x64_CoreFX_netcoreapp30:
+              _Architecture: x64
+              _Category: CoreFX
+              _Framework: netcoreapp3.0
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: '--benchview-submission-name ".NET Performance - CoreFx $(BenchviewCommitNamePostfix)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) corefx'
+            x86_CoreFX_netcoreapp30:
+              _Architecture: x86
+              _Category: CoreFX
+              _Framework: netcoreapp3.0
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: '--benchview-submission-name ".NET Performance - CoreFx $(BenchviewCommitNamePostfix)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) corefx'
             x64_CoreCLR_netcoreapp22:
               _Architecture: x64
               _Category: CoreCLR
@@ -81,6 +93,18 @@ jobs:
             x86_CoreCLR_netcoreapp22:
               _Architecture: x86
               _Category: CoreCLR
+              _Framework: netcoreapp2.2
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: ''
+            x64_CoreFX_netcoreapp22:
+              _Architecture: x64
+              _Category: CoreFX
+              _Framework: netcoreapp2.2
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: ''
+            x86_CoreFX_netcoreapp22:
+              _Architecture: x86
+              _Category: CoreFX
               _Framework: netcoreapp2.2
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
               _BenchViewArguments: ''
@@ -96,6 +120,18 @@ jobs:
               _Framework: netcoreapp2.1
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
               _BenchViewArguments: ''
+            x64_CoreFX_netcoreapp21:
+              _Architecture: x64
+              _Category: CoreFX
+              _Framework: netcoreapp2.1
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: ''
+            x86_CoreFX_netcoreapp21:
+              _Architecture: x86
+              _Category: CoreFX
+              _Framework: netcoreapp2.1
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: ''
             x64_CoreCLR_netcoreapp20:
               _Architecture: x64
               _Category: CoreCLR
@@ -108,6 +144,18 @@ jobs:
               _Framework: netcoreapp2.0
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
               _BenchViewArguments: ''
+            x64_CoreFX_netcoreapp20:
+              _Architecture: x64
+              _Category: CoreFX
+              _Framework: netcoreapp2.0
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: ''
+            x86_CoreFX_netcoreapp20:
+              _Architecture: x86
+              _Category: CoreFX
+              _Framework: netcoreapp2.0
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: ''
             x64_CoreCLR_full_framework:
               _Architecture: x64
               _Category: CoreCLR
@@ -117,6 +165,18 @@ jobs:
             x86_CoreCLR_full_framework:
               _Architecture: x86
               _Category: CoreCLR
+              _Framework: net461
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: ''
+            x64_CoreFX_full_framework:
+              _Architecture: x64
+              _Category: CoreFX
+              _Framework: net461
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: ''
+            x86_CoreFX_full_framework:
+              _Architecture: x86
+              _Category: CoreFX
               _Framework: net461
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
               _BenchViewArguments: ''
@@ -162,9 +222,21 @@ jobs:
                 _Framework: netcoreapp3.0
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
                 _BenchViewArguments: '--benchview-submission-name ".NET Performance - CoreClr $(BenchviewCommitNamePostfix)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) coreclr'
+              x64_CoreFX_netcoreapp30:
+                _Architecture: x64
+                _Category: CoreFX
+                _Framework: netcoreapp3.0
+                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+                _BenchViewArguments: '--benchview-submission-name ".NET Performance - CoreFx $(BenchviewCommitNamePostfix)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview) corefx'
               x64_CoreCLR_netcoreapp22:
                 _Architecture: x64
                 _Category: CoreCLR
+                _Framework: netcoreapp2.2
+                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+                _BenchViewArguments: ''
+              x64_CoreFX_netcoreapp22:
+                _Architecture: x64
+                _Category: CoreFX
                 _Framework: netcoreapp2.2
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
                 _BenchViewArguments: ''
@@ -174,9 +246,21 @@ jobs:
                 _Framework: netcoreapp2.1
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
                 _BenchViewArguments: ''
+              x64_CoreFX_netcoreapp21:
+                _Architecture: x64
+                _Category: CoreFX
+                _Framework: netcoreapp2.1
+                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+                _BenchViewArguments: ''
               x64_CoreCLR_netcoreapp20:
                 _Architecture: x64
                 _Category: CoreCLR
+                _Framework: netcoreapp2.0
+                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+                _BenchViewArguments: ''
+              x64_CoreFX_netcoreapp20:
+                _Architecture: x64
+                _Category: CoreFX
                 _Framework: netcoreapp2.0
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
                 _BenchViewArguments: ''
