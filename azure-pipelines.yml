@@ -23,8 +23,8 @@ jobs:
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           - name: _RunType
             value: private
-          - name: BenchviewCommitName
-            value: '.NET Performance - CoreClr $(_RunType) - $(Build.SourceBranchName) $(System.PullRequest.PullRequestNumber)'
+          - name: BenchviewCommitNamePostfix
+            value: '$(_RunType) - $(Build.SourceBranchName) $(System.PullRequest.PullRequestNumber)'
           - name: UploadToBenchview
             value: ''
           - name: _HelixQueue
@@ -40,8 +40,8 @@ jobs:
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
           - name: _RunType
             value: rolling
-          - name: BenchviewCommitName
-            value: '.NET Performance - CoreClr $(_RunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
+          - name: BenchviewCommitNamePostfix
+            value: '$(_RunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
           - name: UploadToBenchview
             value: '--upload-to-benchview-container coreclr'
           - name: _HelixQueue
@@ -66,7 +66,7 @@ jobs:
               _Category: CoreCLR
               _Framework: netcoreapp3.0
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-              _BenchViewArguments: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
+              _BenchViewArguments: '--benchview-submission-name ".NET Performance - CoreClr $(BenchviewCommitNamePostfix)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
               _BDNFilter: '--category $(_Category)'
             # running CoreCLR benchmarks for .NET Core 3.0 x86 with upload to BenchView
             x86_CoreCLR_netcoreapp30:
@@ -74,7 +74,23 @@ jobs:
               _Category: CoreCLR
               _Framework: netcoreapp3.0
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-              _BenchViewArguments: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
+              _BenchViewArguments: '--benchview-submission-name ".NET Performance - CoreClr $(BenchviewCommitNamePostfix)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
+              _BDNFilter: '--category $(_Category)'
+            # running CoreFX benchmarks for .NET Core 3.0 x64 with upload to BenchView
+            x64_CoreFX_netcoreapp30:
+              _Architecture: x64
+              _Category: CoreFX
+              _Framework: netcoreapp3.0
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: '--benchview-submission-name ".NET Performance - CoreFx $(BenchviewCommitNamePostfix)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
+              _BDNFilter: '--category $(_Category)'
+            # running CoreFX benchmarks for .NET Core 3.0 x86 with upload to BenchView
+            x86_CoreFX_netcoreapp30:
+              _Architecture: x86
+              _Category: CoreFX
+              _Framework: netcoreapp3.0
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: '--benchview-submission-name ".NET Performance - CoreFx $(BenchviewCommitNamePostfix)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
               _BDNFilter: '--category $(_Category)'
             # running all benchmarks for .NET Core 2.2 x64 without upload to BenchView
             x64_ALL_netcoreapp22:
