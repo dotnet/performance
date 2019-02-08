@@ -60,6 +60,7 @@ jobs:
           name: Hosted VS2017
         strategy:
           matrix:
+            # running CoreCLR benchmarks for .NET Core 3.0 x64 with upload to BenchView
             x64_CoreCLR_netcoreapp30:
               _Architecture: x64
               _Category: CoreCLR
@@ -67,6 +68,7 @@ jobs:
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
               _BenchViewArguments: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
               _BDNFilter: '--category $(_Category)'
+            # running CoreCLR benchmarks for .NET Core 3.0 x86 with upload to BenchView
             x86_CoreCLR_netcoreapp30:
               _Architecture: x86
               _Category: CoreCLR
@@ -74,6 +76,7 @@ jobs:
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
               _BenchViewArguments: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
               _BDNFilter: '--category $(_Category)'
+            # running all benchmarks for .NET Core 2.2 x64 without upload to BenchView
             x64_ALL_netcoreapp22:
               _Architecture: x64
               _Category: ALL
@@ -81,6 +84,7 @@ jobs:
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
               _BenchViewArguments: ''
               _BDNFilter: '--filter *'
+            # running all benchmarks for .NET Core 2.2 x86 without upload to BenchView
             x86_ALL_netcoreapp22:
               _Architecture: x86
               _Category: ALL
@@ -88,6 +92,7 @@ jobs:
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
               _BenchViewArguments: ''
               _BDNFilter: '--filter *'
+            # running all benchmarks for .NET Core 2.1 x64 without upload to BenchView
             x64_ALL_netcoreapp21:
               _Architecture: x64
               _Category: ALL
@@ -95,6 +100,7 @@ jobs:
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
               _BenchViewArguments: ''
               _BDNFilter: '--filter *'
+            # running all benchmarks for .NET Core 2.1 x86 without upload to BenchView
             x86_ALL_netcoreapp21:
               _Architecture: x86
               _Category: ALL
@@ -102,6 +108,7 @@ jobs:
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
               _BenchViewArguments: ''
               _BDNFilter: '--filter *'
+            # running all benchmarks for .NET Core 2.0 x64 without upload to BenchView
             x64_ALL_netcoreapp20:
               _Architecture: x64
               _Category: ALL
@@ -109,6 +116,7 @@ jobs:
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
               _BenchViewArguments: ''
               _BDNFilter: '--filter *'
+            # running all benchmarks for .NET Core 2.0 x86 without upload to BenchView
             x86_ALL_netcoreapp20:
               _Architecture: x86
               _Category: ALL
@@ -116,6 +124,7 @@ jobs:
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
               _BenchViewArguments: ''
               _BDNFilter: '--filter *'
+            # running all benchmarks for Full .NET Framework x64 without upload to BenchView
             x64_ALL_full_framework:
               _Architecture: x64
               _Category: ALL
@@ -123,6 +132,7 @@ jobs:
               _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
               _BenchViewArguments: ''
               _BDNFilter: '--filter *'
+            # running all benchmarks for Full .NET Framework x86 without upload to BenchView
             x86_ALL_full_framework:
               _Architecture: x86
               _Category: ALL
@@ -164,6 +174,7 @@ jobs:
           container: ubuntu_x64_build_container
           strategy:
             matrix:
+              # running CoreCLR benchmarks for .NET Core 3.0 with upload to BenchView
               x64_CoreCLR_netcoreapp30:
                 _Architecture: x64
                 _Category: CoreCLR
@@ -171,6 +182,7 @@ jobs:
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
                 _BenchViewArguments: '--benchview-submission-name ".NET Performance - CoreClr $(BenchviewCommitNamePostfix)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) --upload-to-benchview-container coreclr'
                 _BDNFilter: '--category $(_Category)'
+              # running CoreFX benchmarks for .NET Core 3.0 with upload to BenchView
               x64_CoreFX_netcoreapp30:
                 _Architecture: x64
                 _Category: CoreFX
@@ -178,6 +190,7 @@ jobs:
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
                 _BenchViewArguments: '--benchview-submission-name ".NET Performance - CoreFx $(BenchviewCommitNamePostfix)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) --upload-to-benchview-container corefx'
                 _BDNFilter: '--category $(_Category)'
+              # running all benchmarks for .NET Core 2.2 without upload to BenchView
               x64_ALL_netcoreapp22:
                 _Architecture: x64
                 _Category: ALL
@@ -185,6 +198,7 @@ jobs:
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
                 _BenchViewArguments: ''
                 _BDNFilter: '--filter ''*''' # on Unix systems * gets resolved to all files in current folder, we need to double-escape the * with ''
+              # running all benchmarks for .NET Core 2.1 without upload to BenchView
               x64_ALL_netcoreapp21:
                 _Architecture: x64
                 _Category: ALL
@@ -192,6 +206,7 @@ jobs:
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
                 _BenchViewArguments: ''
                 _BDNFilter: '--filter ''*''' # on Unix systems * gets resolved to all files in current folder, we need to double-escape the * with ''
+              # running all benchmarks for .NET Core 2.0 without upload to BenchView
               x64_ALL_netcoreapp20:
                 _Architecture: x64
                 _Category: ALL
