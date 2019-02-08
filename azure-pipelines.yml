@@ -179,6 +179,8 @@ jobs:
               WorkItemTimeout: 14400 # 4 hours
               CorrelationPayloadDirectory: $(Build.SourcesDirectory)/scripts
               EnableXUnitReporter: false
+              IsExternal: false
+              Creator: dotnet-performance
       - ${{ if eq(variables['System.TeamProject'], 'public') }}:
         - job: sdk_performance_linux_public
           timeoutInMinutes: 60
@@ -237,3 +239,5 @@ jobs:
               WorkItemTimeout: 3600 # 1 hour
               CorrelationPayloadDirectory: $(Build.SourcesDirectory)/scripts
               EnableXUnitReporter: false
+              IsExternal: true
+              Creator: ''
