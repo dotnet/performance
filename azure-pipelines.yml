@@ -179,21 +179,21 @@ jobs:
                 _Framework: netcoreapp2.2
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
                 _BenchViewArguments: ''
-                _BDNFilter: '--filter *'
+                _BDNFilter: '--filter ''*''' # on Unix systems * gets resolved to all files in current folder, we need to double-escape the * with ''
               x64_ALL_netcoreapp21:
                 _Architecture: x64
                 _Category: ALL
                 _Framework: netcoreapp2.1
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
                 _BenchViewArguments: ''
-                _BDNFilter: '--filter *'
+                _BDNFilter: '--filter ''*''' # on Unix systems * gets resolved to all files in current folder, we need to double-escape the * with ''
               x64_ALL_netcoreapp20:
                 _Architecture: x64
                 _Category: ALL
                 _Framework: netcoreapp2.0
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
                 _BenchViewArguments: ''
-                _BDNFilter: '--filter *'
+                _BDNFilter: '--filter ''*''' # on Unix systems * gets resolved to all files in current folder, we need to double-escape the * with ''
           steps:
           - checkout: self
             clean: true
