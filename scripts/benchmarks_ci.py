@@ -169,6 +169,14 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         type=str,
         help='Name of the Azure Storage Container to upload to.'
     )
+    # this is a hidden argument that I added just to make .yml stuff work
+    parser.add_argument(
+        '--upload-to-benchview-container-ignore',
+        dest='upload_to_benchview_container_ignore',
+        required=False,
+        type=str,
+        help=argparse.SUPPRESS
+    )
 
     # TODO: Make these arguments dependent on `generate_benchview_data`?
     is_benchview_commit_name_defined = 'BenchviewCommitName' in os.environ
