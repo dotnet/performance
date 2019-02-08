@@ -153,10 +153,8 @@ jobs:
           variables:
             - name: _RunType
               value: rolling
-            - name: BenchviewCommitName
-              value: '.NET Performance - CoreClr $(_RunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
-            - name: UploadToBenchview
-              value: '--upload-to-benchview-container coreclr'
+            - name: BenchviewCommitNamePostfix
+              value: '$(_RunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
             - group: DotNet-HelixApi-Access
             - group: dotnet-benchview
           workspace:
@@ -171,7 +169,14 @@ jobs:
                 _Category: CoreCLR
                 _Framework: netcoreapp3.0
                 _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-                _BenchViewArguments: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
+                _BenchViewArguments: '--benchview-submission-name ".NET Performance - CoreClr $(BenchviewCommitNamePostfix)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) --upload-to-benchview-container coreclr'
+                _BDNFilter: '--category $(_Category)'
+              x64_CoreFX_netcoreapp30:
+                _Architecture: x64
+                _Category: CoreFX
+                _Framework: netcoreapp3.0
+                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+                _BenchViewArguments: '--benchview-submission-name ".NET Performance - CoreFx $(BenchviewCommitNamePostfix)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) --upload-to-benchview-container corefx'
                 _BDNFilter: '--category $(_Category)'
               x64_ALL_netcoreapp22:
                 _Architecture: x64
