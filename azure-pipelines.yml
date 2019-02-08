@@ -179,3 +179,61 @@ jobs:
               WorkItemTimeout: 14400 # 4 hours
               CorrelationPayloadDirectory: $(Build.SourcesDirectory)/scripts
               EnableXUnitReporter: false
+      - ${{ if eq(variables['System.TeamProject'], 'public') }}:
+        - job: sdk_performance_linux_public
+          timeoutInMinutes: 60
+          variables:
+            - name: _RunType
+              value: private
+            # run every benchmark (*)
+            - name: _BenchmarkFiler
+              value: '--filter ''*''' # on Unix systems * gets resolved to all files in current folder, we need to double-escape the * with ''
+            # following arguments allow us to generate BenchView data WITHOUT uploading them (the --upload-to-benchview-container argument is missing)
+            - name: _BenchViewArguments
+              value: '--benchview-submission-name ".NET Performance" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType)'
+            # run every benchmark just ONCE, no warmup, no pilot, no overhead
+            - name: BenchmarkDotNetArguments
+              value: '--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart'
+            - name: HelixApiAccessToken
+              value: ''
+          workspace:
+            clean: all
+          pool:
+            name: Hosted Ubuntu 1604
+          container: ubuntu_x64_build_container
+          strategy:
+            matrix:
+              x64_ALL_netcoreapp30:
+                _Architecture: x64
+                _Category: ALL
+                _Framework: netcoreapp3.0
+                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              x64_ALL_netcoreapp22:
+                _Architecture: x64
+                _Category: ALL
+                _Framework: netcoreapp2.2
+                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              x64_ALL_netcoreapp21:
+                _Architecture: x64
+                _Category: ALL
+                _Framework: netcoreapp2.1
+                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              x64_ALL_netcoreapp20:
+                _Architecture: x64
+                _Category: ALL
+                _Framework: netcoreapp2.0
+                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+          steps:
+          - checkout: self
+            clean: true
+          - template: /eng/common/templates/steps/send-to-helix.yml
+            parameters:
+              HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
+              HelixType: 'test/performance_$(_BuildConfig)/'
+              HelixAccessToken: $(HelixApiAccessToken)
+              HelixTargetQueues: Ubuntu.1604.Amd64.Open # .Open, not .Perf
+              WorkItemDirectory: $(Build.SourcesDirectory)/src/benchmarks/micro
+              WorkItemCommand: python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py $(_BenchmarkFiler) $(_BenchViewArguments) --working-directory $HELIX_WORKITEM_PAYLOAD --bin-directory $HELIX_WORKITEM_PAYLOAD --incremental no --architecture $(_Architecture) -f $(_Framework) --bdn-arguments="$(BenchmarkDotNetArguments)"
+              WorkItemTimeout: 3600 # 1 hour
+              CorrelationPayloadDirectory: $(Build.SourcesDirectory)/scripts
+              EnableXUnitReporter: false
