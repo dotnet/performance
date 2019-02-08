@@ -239,5 +239,4 @@ jobs:
               WorkItemTimeout: 3600 # 1 hour
               CorrelationPayloadDirectory: $(Build.SourcesDirectory)/scripts
               EnableXUnitReporter: false
-              IsExternal: true
               Creator: dotnet-performance
