@@ -180,7 +180,7 @@ jobs:
               CorrelationPayloadDirectory: $(Build.SourcesDirectory)/scripts
               EnableXUnitReporter: false
               IsExternal: false
-              Creator: dotnet-performance
+              Creator: ''
       - ${{ if eq(variables['System.TeamProject'], 'public') }}:
         - job: sdk_performance_linux_public
           timeoutInMinutes: 60
@@ -240,4 +240,4 @@ jobs:
               CorrelationPayloadDirectory: $(Build.SourcesDirectory)/scripts
               EnableXUnitReporter: false
               IsExternal: true
-              Creator: ''
+              Creator: dotnet-performance
