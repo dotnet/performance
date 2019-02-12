@@ -14,7 +14,7 @@ jobs:
     enablePublishBuildArtifacts: true
     helixRepo: dotnet/performance
     jobs:
-      - job: sdk_performance_windows # todo: change name, include values from parameters
+      - job: sdk_performance_${{ parameters.name }}_${{ parameters.architecture }}
         timeoutInMinutes: 320
         variables:
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -42,12 +42,17 @@ jobs:
         container: ${{ parameters.container }}
         strategy:
           matrix:
-            x64_CoreCLR_netcoreapp30: # todo: use all the frameworks provided in the parameters
-              _Architecture: x64 # todo: use the parameter
-              _Category: CoreCLR
-              _Framework: netcoreapp3.0
-              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-              _BenchViewArguments: ''
+            - ${{ each framework in parameters.frameworks }}:
+              ${{ parameters.architecture }}_CoreCLR_${{ framework }}:
+                _Category: coreclr
+                _Framework: ${{ framework }}
+                _BuildConfig: ${{ parameters.architecture }}_CoreCLR_$(_Framework)
+                _BenchViewArguments: ''
+              ${{ parameters.architecture }}_CoreFX_${{ framework }}:
+                _Category: corefx
+                _Framework: ${{ framework }}
+                _BuildConfig: ${{ parameters.architecture }}_CoreFX_$(_Framework)
+                _BenchViewArguments: ''
         steps:
         - checkout: self
           clean: true
