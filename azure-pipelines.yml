@@ -18,6 +18,9 @@ jobs:
     helixRepo: dotnet/performance
     jobs:
       - job: testEnv
+        variables:
+        - name: _BuildConfig
+          value: testenv
         steps:
         - checkout: self
           clean: true
