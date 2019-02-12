@@ -133,7 +133,6 @@ jobs:
             WorkItemCommand: py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py $(_BenchViewArguments) --working-directory . --bin-directory ".\bin" --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --bdn-arguments="$(BDNArguments)"
             WorkItemTimeout: 14400 # 4 hours
             CorrelationPayloadDirectory: $(Build.SourcesDirectory)\scripts
-            EnableXUnitReporter: false
             IsExternal: $(IsExternal)
             Creator: $(Creator)
       - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
@@ -178,7 +177,6 @@ jobs:
               WorkItemCommand: python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py $(_BenchmarkFiler) $(_BenchViewArguments) --working-directory . --bin-directory "./bin" --incremental no --architecture $(_Architecture) -f $(_Framework)
               WorkItemTimeout: 14400 # 4 hours
               CorrelationPayloadDirectory: $(Build.SourcesDirectory)/scripts
-              EnableXUnitReporter: false
               IsExternal: false
               Creator: ''
       - ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -196,8 +194,6 @@ jobs:
             # run every benchmark just ONCE, no warmup, no pilot, no overhead
             - name: BenchmarkDotNetArguments
               value: '--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart'
-            - name: HelixApiAccessToken
-              value: ''
           workspace:
             clean: all
           pool:
@@ -232,12 +228,11 @@ jobs:
             parameters:
               HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
               HelixType: 'test/performance_$(_BuildConfig)/'
-              HelixAccessToken: $(HelixApiAccessToken)
+              HelixAccessToken: ''
               HelixTargetQueues: Ubuntu.1604.Amd64.Open
               WorkItemDirectory: $(Build.SourcesDirectory)/src/benchmarks/micro
               WorkItemCommand: python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py $(_BenchmarkFiler) $(_BenchViewArguments) --working-directory . --bin-directory "./bin" --incremental no --architecture $(_Architecture) -f $(_Framework) --bdn-arguments="$(BenchmarkDotNetArguments)"
               WorkItemTimeout: 3600 # 1 hour
               CorrelationPayloadDirectory: $(Build.SourcesDirectory)/scripts
-              EnableXUnitReporter: false
               IsExternal: true
               Creator: dotnet-performance
