@@ -63,7 +63,7 @@ jobs:
             HelixAccessToken: $(HelixApiAccessToken)
             HelixTargetQueues: ${{ parameters.queue }}
             WorkItemDirectory: $(Build.SourcesDirectory)\src\benchmarks\micro
-            WorkItemCommand: py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py $(_BenchViewArguments) --working-directory . --bin-directory ".\bin" --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --bdn-arguments="$(BDNArguments)"
+            WorkItemCommand: py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py $(_BenchViewArguments) --working-directory . --bin-directory ".\bin" --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) --bdn-arguments="$(BDNArguments)"
             WorkItemTimeout: 14400 # 4 hours
             CorrelationPayloadDirectory: $(Build.SourcesDirectory)\scripts
             EnableXUnitReporter: false
