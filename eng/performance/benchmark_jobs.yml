@@ -14,7 +14,8 @@ jobs:
     enablePublishBuildArtifacts: true
     helixRepo: dotnet/performance
     jobs:
-      - job: '${{ parameters.name }} ${{ parameters.architecture }}'
+      - job: '${{ parameters.name }}_${{ parameters.architecture }}'
+        displayName: '${{ parameters.name }} ${{ parameters.architecture }}'
         timeoutInMinutes: 320
         variables:
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
