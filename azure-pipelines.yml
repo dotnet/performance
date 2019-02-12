@@ -9,188 +9,95 @@ trigger:
 pr:
 - master
 
-# Full stack SDK Performance Testing
 jobs:
-- template: /eng/common/templates/jobs/jobs.yml
-  parameters:
-    enableTelemetry: false
-    enablePublishBuildArtifacts: true
-    helixRepo: dotnet/performance
-    jobs:
-      - job: sdk_performance_windows
-        timeoutInMinutes: 240
-        variables:
-        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
-          - name: _RunType
-            value: private
-          - name: BenchviewCommitName
-            value: '.NET Performance - CoreClr $(_RunType) - $(Build.SourceBranchName) $(System.PullRequest.PullRequestNumber)'
-          - name: UploadToBenchview
-            value: ''
-          - name: _HelixQueue
-            value: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
-          - name: IsExternal
-            value: true
-          - name: Creator
-            value: dotnet-performance
-          - name: BDNArguments
-            value: --iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart
-          - name: HelixApiAccessToken
-            value: ''
-        - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-          - name: _RunType
-            value: rolling
-          - name: BenchviewCommitName
-            value: '.NET Performance - CoreClr $(_RunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
-          - name: UploadToBenchview
-            value: '--upload-to-benchview-container coreclr'
-          - name: _HelixQueue
-            value: Windows.10.Amd64.ClientRS1.Perf
-          - name: IsExternal
-            value: false
-          - name: Creator
-            value: ''
-          - name: BDNArguments
-            value: ''
-          - group: DotNet-HelixApi-Access
-          - group: dotnet-benchview
-        workspace:
-          clean: all
-        pool:
-          name: Hosted VS2017
-        strategy:
-          matrix:
-            x64_CoreCLR_netcoreapp30:
-              _Architecture: x64
-              _Category: CoreCLR
-              _Framework: netcoreapp3.0
-              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-              _BenchViewArguments: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
-            x86_CoreCLR_netcoreapp30:
-              _Architecture: x86
-              _Category: CoreCLR
-              _Framework: netcoreapp3.0
-              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-              _BenchViewArguments: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
-            x64_CoreCLR_netcoreapp22:
-              _Architecture: x64
-              _Category: CoreCLR
-              _Framework: netcoreapp2.2
-              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-              _BenchViewArguments: ''
-            x86_CoreCLR_netcoreapp22:
-              _Architecture: x86
-              _Category: CoreCLR
-              _Framework: netcoreapp2.2
-              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-              _BenchViewArguments: ''
-            x64_CoreCLR_netcoreapp21:
-              _Architecture: x64
-              _Category: CoreCLR
-              _Framework: netcoreapp2.1
-              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-              _BenchViewArguments: ''
-            x86_CoreCLR_netcoreapp21:
-              _Architecture: x86
-              _Category: CoreCLR
-              _Framework: netcoreapp2.1
-              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-              _BenchViewArguments: ''
-            x64_CoreCLR_netcoreapp20:
-              _Architecture: x64
-              _Category: CoreCLR
-              _Framework: netcoreapp2.0
-              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-              _BenchViewArguments: ''
-            x86_CoreCLR_netcoreapp20:
-              _Architecture: x86
-              _Category: CoreCLR
-              _Framework: netcoreapp2.0
-              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-              _BenchViewArguments: ''
-            x64_CoreCLR_full_framework:
-              _Architecture: x64
-              _Category: CoreCLR
-              _Framework: net461
-              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-              _BenchViewArguments: ''
-            x86_CoreCLR_full_framework:
-              _Architecture: x86
-              _Category: CoreCLR
-              _Framework: net461
-              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-              _BenchViewArguments: ''
-        steps:
-        - checkout: self
-          clean: true
-        - template: /eng/common/templates/steps/send-to-helix.yml
-          parameters:
-            HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
-            HelixType: 'test/performance_$(_BuildConfig)/'
-            HelixAccessToken: $(HelixApiAccessToken)
-            HelixTargetQueues: $(_HelixQueue)
-            WorkItemDirectory: $(Build.SourcesDirectory)\src\benchmarks\micro
-            WorkItemCommand: py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py $(_BenchViewArguments) --working-directory . --bin-directory ".\bin" --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --bdn-arguments="$(BDNArguments)"
-            WorkItemTimeout: 14400 # 4 hours
-            CorrelationPayloadDirectory: $(Build.SourcesDirectory)\scripts
-            EnableXUnitReporter: false
-            IsExternal: $(IsExternal)
-            Creator: $(Creator)
-      # Only run linux runs on commit
-      - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-        - job: sdk_performance_linux
-          timeoutInMinutes: 240
-          variables:
-            - name: _RunType
-              value: rolling
-            - name: BenchviewCommitName
-              value: '.NET Performance - CoreClr $(_RunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
-            - name: UploadToBenchview
-              value: '--upload-to-benchview-container coreclr'
-            - group: DotNet-HelixApi-Access
-            - group: dotnet-benchview
-          workspace:
-            clean: all
-          pool:
-            name: Hosted Ubuntu 1604
-          container: ubuntu_x64_build_container
-          strategy:
-            matrix:
-              x64_CoreCLR_netcoreapp30:
-                _Architecture: x64
-                _Category: CoreCLR
-                _Framework: netcoreapp3.0
-                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-                _BenchViewArguments: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(_RunType) $(UploadToBenchview)'
-              x64_CoreCLR_netcoreapp22:
-                _Architecture: x64
-                _Category: CoreCLR
-                _Framework: netcoreapp2.2
-                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-                _BenchViewArguments: ''
-              x64_CoreCLR_netcoreapp21:
-                _Architecture: x64
-                _Category: CoreCLR
-                _Framework: netcoreapp2.1
-                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-                _BenchViewArguments: ''
-              x64_CoreCLR_netcoreapp20:
-                _Architecture: x64
-                _Category: CoreCLR
-                _Framework: netcoreapp2.0
-                _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
-                _BenchViewArguments: ''
-          steps:
-          - checkout: self
-            clean: true
-          - template: /eng/common/templates/steps/send-to-helix.yml
-            parameters:
-              HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
-              HelixType: 'test/performance_$(_BuildConfig)/'
-              HelixAccessToken: $(HelixApiAccessToken)
-              HelixTargetQueues: Ubuntu.1604.Amd64.Perf
-              WorkItemDirectory: $(Build.SourcesDirectory)/src/benchmarks/micro
-              WorkItemCommand: python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py $(_BenchViewArguments) --working-directory $HELIX_WORKITEM_PAYLOAD --bin-directory $HELIX_WORKITEM_PAYLOAD --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --bdn-arguments="--buildTimeout 300"
-              WorkItemTimeout: 14400 # 4 hours
-              CorrelationPayloadDirectory: $(Build.SourcesDirectory)/scripts
-              EnableXUnitReporter: false
+
+# Windows x64 micro benchmarks, public correctness job
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS4
+      kind: micro
+      architecture: x64
+      pool: Hosted VS2017
+      queue: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
+      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - netcoreapp3.0
+        - netcoreapp2.2
+        - netcoreapp2.1
+        - netcoreapp2.0
+        - net461
+
+# Windows x86 micro benchmarks, public correctness job
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS4
+      kind: micro
+      architecture: x86
+      pool: Hosted VS2017
+      queue: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
+      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - netcoreapp3.0
+        - netcoreapp2.2
+        - netcoreapp2.1
+        - netcoreapp2.0
+        - net461
+
+# Windows x64 micro benchmarks, private job
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 10
+      kind: micro
+      architecture: x64
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+        - netcoreapp3.0
+      
+# Windows x86 micro benchmarks, private job
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 10
+      kind: micro
+      architecture: x86
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+        - netcoreapp3.0
+        
+# Ubuntu 1604 x64 micro benchmarks, public correctness job
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1604
+      kind: micro
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1604.Amd64.Open
+      container: ubuntu_x64_build_container
+      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - netcoreapp3.0
+        - netcoreapp2.2
+        - netcoreapp2.1
+        - netcoreapp2.0
+
+# Ubuntu 1604 x64 micro benchmarks, private job
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1604
+      kind: micro
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
+      container: ubuntu_x64_build_container
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+        - netcoreapp3.0

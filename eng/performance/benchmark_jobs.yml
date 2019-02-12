@@ -1,0 +1,84 @@
+parameters:
+  osName: ''           # required -- windows | linux | macos
+  osVersion: ''        # required -- OS version
+  kind: ''             # required -- benchmark kind. As of today, only "micro" benchmarks are supported, we plan to add "scenarios" soon
+  architecture: ''     # required -- Architecture. Allowed values: x64, x86, arm32, arm64
+  pool: ''             # required -- name of the Helix pool
+  queue: ''            # required -- name of the Helix queue
+  container: ''        # optional -- id of the container
+  frameworks: []       # required -- list of frameworks. Allowed values: net461, netcoreapp2.0, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
+
+jobs:
+- template: ../common/templates/jobs/jobs.yml
+  parameters:
+    enableTelemetry: false
+    enablePublishBuildArtifacts: true
+    helixRepo: dotnet/performance
+    jobs:
+      - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}'
+        displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }}'
+        timeoutInMinutes: 320
+        variables:
+        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
+          - name: BenchViewRunType
+            value: private
+          - name: BenchviewCommitName
+            value: '.NET Performance - $(BenchViewRunType) - $(Build.SourceBranchName) $(System.PullRequest.PullRequestNumber)'
+          # for public runs we want to generate data (--generate-benchview-data ) but don't upload it (missing --upload-to-benchview-container)
+          - name: BenchViewArguments
+            value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(BenchViewRunType)'
+          - name: Creator
+            value: dotnet-performance
+          # for public runs we want to run the benchmarks exactly once, no warmup, no pilot, no overhead
+          - name: BenchmarkDotNetArguments
+            value: '--bdn-arguments="--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart"'
+          - name: HelixApiAccessToken
+            value: ''
+        - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+          - name: BenchViewRunType
+            value: rolling
+          - name: BenchviewCommitName
+            value: '.NET Performance - $(BenchViewRunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
+          # for private runs we want to generate data (--generate-benchview-data ) and upload it (--upload-to-benchview-container specifies where)
+          - name: BenchViewArguments
+            value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(BenchViewRunType) --upload-to-benchview-container ${_Category}'
+          # for private runs we don't provide any custom BDN arguments (the ones from Program.Main are used)
+          - name: BenchmarkDotNetArguments
+            value: ''
+          - group: DotNet-HelixApi-Access
+          - group: dotnet-benchview
+        workspace:
+          clean: all
+        pool:
+          name: ${{ parameters.pool }}
+        container: ${{ parameters.container }}
+        strategy:
+          matrix:
+            ${{ each framework in parameters.frameworks }}:
+              CoreCLR_${{ framework }}:
+                _Category: coreclr
+                _Framework: ${{ framework }}
+                _BuildConfig: ${{ parameters.architecture }}_CoreCLR_$(_Framework)
+              CoreFX_${{ framework }}:
+                _Category: corefx
+                _Framework: ${{ framework }}
+                _BuildConfig: ${{ parameters.architecture }}_CoreFX_$(_Framework)
+        steps:
+        - checkout: self
+          clean: true
+        - template: /eng/common/templates/steps/send-to-helix.yml
+          parameters:
+            HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
+            HelixType: 'test/performance_$(_BuildConfig)/'
+            HelixAccessToken: $(HelixApiAccessToken)
+            HelixTargetQueues: ${{ parameters.queue }}
+            Creator: $(Creator)
+            WorkItemTimeout: 14400 # 4 hours
+            ${{ if eq(parameters.osName, 'windows') }}:
+              WorkItemDirectory: '$(Build.SourcesDirectory)\src\benchmarks\micro'
+              WorkItemCommand: 'py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --bin-directory ".\bin" --working-directory . --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
+              CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\scripts'
+            ${{ if ne(parameters.osName, 'windows') }}:
+              WorkItemDirectory: '$(Build.SourcesDirectory)/src/benchmarks/micro'
+              WorkItemCommand: 'python3.5 %HELIX_CORRELATION_PAYLOAD%/benchmarks_ci.py --bin-directory "./bin" --working-directory $HELIX_WORKITEM_PAYLOAD --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
+              CorrelationPayloadDirectory: '$(Build.SourcesDirectory)/scripts'
