@@ -15,6 +15,25 @@ jobs:
     enablePublishBuildArtifacts: true
     helixRepo: dotnet/performance
     jobs:
+      - job: testenv
+        variables:
+        - name: _BuildConfig
+          value: testenv
+        steps:
+        - checkout: self
+          clean: true
+        - template: /eng/common/templates/steps/send-to-helix.yml
+          parameters:
+            HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
+            HelixType: 'test/performance_testenv'
+            HelixAccessToken: ''
+            HelixTargetQueues: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
+            HelixPreCommand: set hello=world
+            WorkItemDirectory: $(Build.SourcesDirectory)\src\benchmarks\micro
+            WorkItemCommand: echo %hello%
+            EnableXUnitReporter: false
+            IsExternal: true
+            Creator: dotnet-performance
       - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}'
         displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }}'
         timeoutInMinutes: 320
