@@ -15,7 +15,7 @@ jobs:
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
-      name: public_windows
+      name: windows
       kind: micro
       architecture: x64
       pool: Hosted VS2017
@@ -31,7 +31,7 @@ jobs:
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
-      name: public_windows
+      name: windows
       kind: micro
       architecture: x86
       pool: Hosted VS2017
@@ -47,7 +47,7 @@ jobs:
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
-      name: private_windows
+      name: windows
       kind: micro
       architecture: x64
       pool: Hosted VS2017
@@ -59,7 +59,7 @@ jobs:
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
-      name: private_windows
+      name: windows
       kind: micro
       architecture: x86
       pool: Hosted VS2017
@@ -71,7 +71,7 @@ jobs:
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
-      name: public_ubuntu_1604
+      name: ubuntu_1604
       kind: micro
       architecture: x64
       pool: Hosted Ubuntu 1604
@@ -87,7 +87,7 @@ jobs:
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
-      name: private_ubuntu_1604
+      name: ubuntu_1604
       kind: micro
       architecture: x64
       pool: Hosted Ubuntu 1604

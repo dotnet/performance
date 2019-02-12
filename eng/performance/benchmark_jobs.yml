@@ -1,5 +1,5 @@
 parameters:
-  name: ''             # required -- job name (prefix), should be [public|private]_osname
+  name: ''             # required -- job name (prefix), should be osname_osversion
   kind: ''             # required -- benchmark kind. As of today, only "micro" benchmarks are supported, we plan to add "scenarios" soon
   architecture: ''     # required -- Architecture. Allowed values: x64, x86, arm32, arm64
   pool: ''             # required -- name of the Helix pool
@@ -14,7 +14,7 @@ jobs:
     enablePublishBuildArtifacts: true
     helixRepo: dotnet/performance
     jobs:
-      - job: sdk_performance_${{ parameters.name }}_${{ parameters.architecture }}
+      - job: '${{ parameters.name }} ${{ parameters.architecture }}'
         timeoutInMinutes: 320
         variables:
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
