@@ -17,6 +17,23 @@ jobs:
     enablePublishBuildArtifacts: true
     helixRepo: dotnet/performance
     jobs:
+      - job: testEnv
+        steps:
+        - checkout: self
+          clean: true
+        - template: /eng/send-to-helix.yml
+          parameters:
+            HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
+            HelixType: 'test/performance_$(_BuildConfig)/'
+            HelixAccessToken: $(HelixApiAccessToken)
+            HelixTargetQueues: $(_HelixQueue)
+            WorkItemDirectory: $(Build.SourcesDirectory)\src\benchmarks\micro
+            WorkItemCommand: echo %hello%
+            WorkItemTimeout: 14400 # 4 hours
+            CorrelationPayloadDirectory: $(Build.SourcesDirectory)\scripts
+            EnableXUnitReporter: false
+            IsExternal: $(IsExternal)
+            Creator: $(Creator)
       - job: sdk_performance_windows
         timeoutInMinutes: 240
         variables:
