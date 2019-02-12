@@ -1,5 +1,6 @@
 parameters:
-  name: ''             # required -- job name (prefix), should be osname_osversion
+  osName: ''           # required -- windows | linux | macos
+  osVersion: ''        # required -- OS version
   kind: ''             # required -- benchmark kind. As of today, only "micro" benchmarks are supported, we plan to add "scenarios" soon
   architecture: ''     # required -- Architecture. Allowed values: x64, x86, arm32, arm64
   pool: ''             # required -- name of the Helix pool
@@ -14,8 +15,8 @@ jobs:
     enablePublishBuildArtifacts: true
     helixRepo: dotnet/performance
     jobs:
-      - job: '${{ parameters.name }}_${{ parameters.architecture }}'
-        displayName: '${{ parameters.name }} ${{ parameters.architecture }}'
+      - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}'
+        displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }}'
         timeoutInMinutes: 320
         variables:
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -73,15 +74,11 @@ jobs:
             HelixTargetQueues: ${{ parameters.queue }}
             Creator: $(Creator)
             WorkItemTimeout: 14400 # 4 hours
-            ${{ if eq(parameters.container, '') }}: # container is always empty for Windows, variables['Agent.Os'] seems to be not available here
+            ${{ if eq(parameters.osName, 'windows') }}:
               WorkItemDirectory: '$(Build.SourcesDirectory)\src\benchmarks\micro'
-            ${{ if ne(parameters.container, '') }}:
-              WorkItemDirectory: '$(Build.SourcesDirectory)/src/benchmarks/micro'
-            ${{ if eq(parameters.container, '') }}:
               WorkItemCommand: 'py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --bin-directory ".\bin" --working-directory . --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
-            ${{ if ne(parameters.container, '') }}:
-              WorkItemCommand: 'python3.5 %HELIX_CORRELATION_PAYLOAD%/benchmarks_ci.py --bin-directory "./bin" --working-directory $HELIX_WORKITEM_PAYLOAD --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
-            ${{ if eq(parameters.container, '') }}:
               CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\scripts'
-            ${{ if ne(parameters.container, '') }}:
+            ${{ if ne(parameters.osName, 'windows') }}:
+              WorkItemDirectory: '$(Build.SourcesDirectory)/src/benchmarks/micro'
+              WorkItemCommand: 'python3.5 %HELIX_CORRELATION_PAYLOAD%/benchmarks_ci.py --bin-directory "./bin" --working-directory $HELIX_WORKITEM_PAYLOAD --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
               CorrelationPayloadDirectory: '$(Build.SourcesDirectory)/scripts'
