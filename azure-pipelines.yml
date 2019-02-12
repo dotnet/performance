@@ -232,10 +232,12 @@ jobs:
             parameters:
               HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
               HelixType: 'test/performance_$(_BuildConfig)/'
+              HelixAccessToken: $(HelixApiAccessToken)
               HelixTargetQueues: Ubuntu.1604.Amd64.Open
               WorkItemDirectory: $(Build.SourcesDirectory)/src/benchmarks/micro
               WorkItemCommand: python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py $(_BenchmarkFiler) $(_BenchViewArguments) --working-directory . --bin-directory "./bin" --incremental no --architecture $(_Architecture) -f $(_Framework) --bdn-arguments="$(BenchmarkDotNetArguments)"
               WorkItemTimeout: 3600 # 1 hour
               CorrelationPayloadDirectory: $(Build.SourcesDirectory)/scripts
               EnableXUnitReporter: false
+              IsExternal: true
               Creator: dotnet-performance
