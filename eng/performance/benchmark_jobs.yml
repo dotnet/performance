@@ -17,7 +17,7 @@ jobs:
     helixRepo: dotnet/performance
     jobs:
       - ${{ if eq(${{parameters.testenv}}, true) }}
-        - job: testenv
+        - job: 'testenv'
           variables:
           - name: _BuildConfig
             value: testenv
