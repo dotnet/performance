@@ -1,5 +1,5 @@
 parameters:
-  os: ''               # required -- Operating System name
+  name: ''             # required -- job name (prefix), should be [public|private]_osname
   kind: ''             # required -- benchmark kind. As of today, only "micro" benchmarks are supported, we plan to add "scenarios" soon
   architecture: ''     # required -- Architecture. Allowed values: x64, x86, arm32, arm64
   pool: ''             # required -- name of the Helix pool
