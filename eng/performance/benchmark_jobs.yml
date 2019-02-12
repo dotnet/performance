@@ -6,7 +6,7 @@ parameters:
   pool: ''             # required -- name of the Helix pool
   queue: ''            # required -- name of the Helix queue
   container: ''        # optional -- id of the container
-  testenv: false
+  testenv: ''
   frameworks: []       # required -- list of frameworks. Allowed values: net461, netcoreapp2.0, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
     enablePublishBuildArtifacts: true
     helixRepo: dotnet/performance
     jobs:
-      - ${{ if eq(${{parameters.testenv}}, true) }}:
+      - ${{ if eq(${{ parameters.testenv }}, 'true') }}:
         - job: 'testenv'
           variables:
           - name: _BuildConfig
