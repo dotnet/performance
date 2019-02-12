@@ -1,0 +1,65 @@
+parameters:
+  os: ''               # required -- Operating System name
+  kind: ''             # required -- benchmark kind. As of today, only "micro" benchmarks are supported, we plan to add "scenarios" soon
+  architecture: ''     # required -- Architecture. Allowed values: x64, x86, arm32, arm64
+  pool: ''             # required -- name of the Helix pool
+  queue: ''            # required -- name of the Helix queue
+  container: ''        # optional -- id of the container
+  frameworks: []       # required -- list of frameworks. Allowed values: net461, netcoreapp2.0, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
+
+- template: ../common/templates/jobs/jobs.yml
+  parameters:
+    enableTelemetry: false
+    enablePublishBuildArtifacts: true
+    helixRepo: dotnet/performance
+    jobs:
+      - job: sdk_performance_windows # todo: change name, include values from parameters
+        timeoutInMinutes: 320
+        variables:
+        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
+          - name: BenchViewRunType
+            value: private
+          - name: BenchviewCommitName
+            value: '.NET Performance - $(BenchViewRunType) - $(Build.SourceBranchName) $(System.PullRequest.PullRequestNumber)'
+          - name: Creator
+            value: dotnet-performance
+          - name: BDNArguments
+            value: --iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart
+          - name: HelixApiAccessToken
+            value: ''
+        - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+          - name: BenchViewRunType
+            value: rolling
+          - name: BenchviewCommitName
+            value: '.NET Performance - $(BenchViewRunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
+          - group: DotNet-HelixApi-Access
+          - group: dotnet-benchview
+        workspace:
+          clean: all
+        pool:
+          name: ${{ parameters.pool }}
+        container: ${{ parameters.container }}
+        strategy:
+          matrix:
+            x64_CoreCLR_netcoreapp30: # todo: use all the frameworks provided in the parameters
+              _Architecture: x64 # todo: use the parameter
+              _Category: CoreCLR
+              _Framework: netcoreapp3.0
+              _BuildConfig: $(_Architecture)_$(_Category)_$(_Framework)
+              _BenchViewArguments: ''
+        steps:
+        - checkout: self
+          clean: true
+        - template: /eng/common/templates/steps/send-to-helix.yml
+          parameters:
+            HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
+            HelixType: 'test/performance_$(_BuildConfig)/'
+            HelixAccessToken: $(HelixApiAccessToken)
+            HelixTargetQueues: ${{ parameters.queue }}
+            WorkItemDirectory: $(Build.SourcesDirectory)\src\benchmarks\micro
+            WorkItemCommand: py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py $(_BenchViewArguments) --working-directory . --bin-directory ".\bin" --incremental no --category $(_Category) --architecture $(_Architecture) -f $(_Framework) --bdn-arguments="$(BDNArguments)"
+            WorkItemTimeout: 14400 # 4 hours
+            CorrelationPayloadDirectory: $(Build.SourcesDirectory)\scripts
+            EnableXUnitReporter: false
+            Creator: $(Creator)
+
