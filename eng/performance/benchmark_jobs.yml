@@ -7,6 +7,7 @@ parameters:
   container: ''        # optional -- id of the container
   frameworks: []       # required -- list of frameworks. Allowed values: net461, netcoreapp2.0, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
 
+jobs:
 - template: ../common/templates/jobs/jobs.yml
   parameters:
     enableTelemetry: false
