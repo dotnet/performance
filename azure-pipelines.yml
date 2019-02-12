@@ -24,16 +24,13 @@ jobs:
         - template: /eng/send-to-helix.yml
           parameters:
             HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
-            HelixType: 'test/performance_$(_BuildConfig)/'
-            HelixAccessToken: $(HelixApiAccessToken)
-            HelixTargetQueues: $(_HelixQueue)
-            WorkItemDirectory: $(Build.SourcesDirectory)\src\benchmarks\micro
+            HelixType: 'test/performance_testEnv'
+            HelixAccessToken: ''
+            HelixTargetQueues: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
             WorkItemCommand: echo %hello%
-            WorkItemTimeout: 14400 # 4 hours
-            CorrelationPayloadDirectory: $(Build.SourcesDirectory)\scripts
             EnableXUnitReporter: false
-            IsExternal: $(IsExternal)
-            Creator: $(Creator)
+            IsExternal: true
+            Creator: dotnet-performance
       - job: sdk_performance_windows
         timeoutInMinutes: 240
         variables:
