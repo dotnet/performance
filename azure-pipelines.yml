@@ -29,6 +29,8 @@ jobs:
             value: ''
           - name: _HelixQueue
             value: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
+          - name: IsExternal
+            value: true
           - name: Creator
             value: dotnet-performance
           - name: BDNArguments
@@ -44,6 +46,8 @@ jobs:
             value: '--upload-to-benchview-container coreclr'
           - name: _HelixQueue
             value: Windows.10.Amd64.ClientRS1.Perf
+          - name: IsExternal
+            value: false
           - name: Creator
             value: ''
           - name: BDNArguments
@@ -130,6 +134,7 @@ jobs:
             WorkItemTimeout: 14400 # 4 hours
             CorrelationPayloadDirectory: $(Build.SourcesDirectory)\scripts
             EnableXUnitReporter: false
+            IsExternal: $(IsExternal)
             Creator: $(Creator)
       - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
         - job: sdk_performance_linux_private
@@ -174,6 +179,7 @@ jobs:
               WorkItemTimeout: 14400 # 4 hours
               CorrelationPayloadDirectory: $(Build.SourcesDirectory)/scripts
               EnableXUnitReporter: false
+              IsExternal: false
               Creator: ''
       - ${{ if eq(variables['System.TeamProject'], 'public') }}:
         - job: sdk_performance_linux_public
