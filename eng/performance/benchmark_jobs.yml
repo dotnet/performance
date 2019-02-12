@@ -42,7 +42,7 @@ jobs:
         container: ${{ parameters.container }}
         strategy:
           matrix:
-            - ${{ each framework in parameters.frameworks }}:
+            ${{ each framework in parameters.frameworks }}:
               CoreCLR_${{ framework }}:
                 _Category: coreclr
                 _Framework: ${{ framework }}
