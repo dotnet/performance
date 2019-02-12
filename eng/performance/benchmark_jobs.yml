@@ -43,12 +43,12 @@ jobs:
         strategy:
           matrix:
             - ${{ each framework in parameters.frameworks }}:
-              ${{ parameters.architecture }}_CoreCLR_${{ framework }}:
+              CoreCLR_${{ framework }}:
                 _Category: coreclr
                 _Framework: ${{ framework }}
                 _BuildConfig: ${{ parameters.architecture }}_CoreCLR_$(_Framework)
                 _BenchViewArguments: ''
-              ${{ parameters.architecture }}_CoreFX_${{ framework }}:
+              CoreFX_${{ framework }}:
                 _Category: corefx
                 _Framework: ${{ framework }}
                 _BuildConfig: ${{ parameters.architecture }}_CoreFX_$(_Framework)
