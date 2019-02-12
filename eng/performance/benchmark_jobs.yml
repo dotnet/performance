@@ -16,7 +16,7 @@ jobs:
     enablePublishBuildArtifacts: true
     helixRepo: dotnet/performance
     jobs:
-      - ${{ if eq(${{ parameters.testenv }}, 'true') }}:
+      - ${{ if eq(parameters.testenv, 'true') }}:
         - job: 'testenv'
           variables:
           - name: _BuildConfig
