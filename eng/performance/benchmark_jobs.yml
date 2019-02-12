@@ -79,7 +79,7 @@ jobs:
             ${{ if eq(parameters.container, '') }}:
               WorkItemCommand: 'py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --bin-directory ".\bin" --working-directory . --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
             ${{ if ne(parameters.container, '') }}:
-              WorkItemCommand: 'python3.5 %HELIX_CORRELATION_PAYLOAD%/benchmarks_ci.py --bin-directory "./bin" --working-directory . --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
+              WorkItemCommand: 'python3.5 %HELIX_CORRELATION_PAYLOAD%/benchmarks_ci.py --bin-directory "./bin" --working-directory $HELIX_WORKITEM_PAYLOAD --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
             ${{ if eq(parameters.container, '') }}:
               CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\scripts'
             ${{ if ne(parameters.container, '') }}:
