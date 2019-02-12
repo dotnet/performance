@@ -51,8 +51,8 @@ jobs:
       kind: micro
       architecture: x64
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS1.Perf
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only, using a dedicated private Helix queue (perfsnakes)
+      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
       
 # Windows x86 micro benchmarks, private job
@@ -63,6 +63,35 @@ jobs:
       kind: micro
       architecture: x86
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS1.Perf
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only, using a dedicated private Helix queue (perfsnakes)
+      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+        - netcoreapp3.0
+        
+# Ubuntu 1604 x64 micro benchmarks, public correctness job
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      name: public_ubuntu_1604
+      kind: micro
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1604.Amd64.Open
+      container: ubuntu_x64_build_container
+      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - netcoreapp3.0
+        - netcoreapp2.2
+        - netcoreapp2.1
+        - netcoreapp2.0
+
+# Ubuntu 1604 x64 micro benchmarks, private job
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      name: private_ubuntu_1604
+      kind: micro
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
+      container: ubuntu_x64_build_container
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
