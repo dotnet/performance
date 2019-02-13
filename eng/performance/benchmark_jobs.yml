@@ -51,10 +51,10 @@ jobs:
             value: ''
           - ${{ if eq(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'set BV_UPLOAD_SAS_TOKEN=$(BV_UPLOAD_SAS_TOKEN)'
+              value: 'set "BV_UPLOAD_SAS_TOKEN=$(BV_UPLOAD_SAS_TOKEN)"'
           - ${{ if ne(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'export BV_UPLOAD_SAS_TOKEN=$(BV_UPLOAD_SAS_TOKEN)'
+              value: 'export BV_UPLOAD_SAS_TOKEN="$(BV_UPLOAD_SAS_TOKEN)"'
           - group: DotNet-HelixApi-Access
           - group: dotnet-benchview
         workspace:
@@ -91,5 +91,5 @@ jobs:
               CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\scripts'
             ${{ if ne(parameters.osName, 'windows') }}:
               WorkItemDirectory: '$(Build.SourcesDirectory)/src/benchmarks/micro'
-              WorkItemCommand: 'python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py --bin-directory "./bin" --working-directory $HELIX_WORKITEM_PAYLOAD --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
+              WorkItemCommand: 'python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py --bin-directory "./bin" --working-directory . --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
               CorrelationPayloadDirectory: '$(Build.SourcesDirectory)/scripts'
