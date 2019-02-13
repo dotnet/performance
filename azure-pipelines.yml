@@ -2,6 +2,8 @@ resources:
   containers:
     - container: ubuntu_x64_build_container
       image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-c103199-20180628134544
+    - container: ubuntu_1604_arm64_cross_container
+      image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-cross-arm64-a3ae44b-20180315221921
 
 trigger:
 - master
@@ -100,4 +102,18 @@ jobs:
       queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
       container: ubuntu_x64_build_container
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+        - netcoreapp3.0
+        
+# Ubuntu 1604 ARM64 micro benchmarks, public correctness job
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1604
+      kind: micro
+      architecture: arm64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1604.Arm64.Open
+      container: ubuntu_1604_arm64_cross_container
+      frameworks: # currently ARM64 is supported only by .NET Core 3.0 https://github.com/dotnet/core/blob/master/release-notes/3.0/3.0-supported-os.md
         - netcoreapp3.0
