@@ -41,7 +41,7 @@ jobs:
             value: '.NET Performance - $(BenchViewRunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
           # for private runs we want to generate data (--generate-benchview-data ) and upload it (--upload-to-benchview-container specifies where)
           - name: BenchViewArguments
-            value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(BenchViewRunType) --upload-to-benchview-container ${_Category}'
+            value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(BenchViewRunType) --upload-to-benchview-container $(_Category)'
           # for private runs we don't provide any custom BDN arguments (the ones from Program.Main are used)
           - name: BenchmarkDotNetArguments
             value: ''
