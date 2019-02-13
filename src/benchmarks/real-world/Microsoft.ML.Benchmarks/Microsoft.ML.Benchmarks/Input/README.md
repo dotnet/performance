@@ -35,3 +35,11 @@ Redistributing the dataset "breast-cancer.txt" with attribution:
 >  Original source: http://ftp.cs.wisc.edu:80/math-prog/cpo-dataset/machine-learn/cancer/cancer1/datacum
 >
 >  Original readme: http://ftp.cs.wisc.edu/math-prog/cpo-dataset/machine-learn/cancer/cancer1/data.doc
+
+### UCI Adult Dataset 
+
+> Redictributing the dataset "adult.tiny.with-schema.txt" with attribution:
+>
+>Dua, D. and Karra Taniskidou, E. (2017). UCI Machine Learning Repository [https://archive.ics.uci.edu/ml]. Irvine, CA: University of California, School of Information and Computer Science.
+>
+>https://archive.ics.uci.edu/ml/datasets/Adult
