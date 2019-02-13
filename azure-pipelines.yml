@@ -126,6 +126,7 @@ jobs:
       osVersion: 1013
       kind: micro
       architecture: x64
+      pool: Hosted Mac Internal Sierra
       queue: OSX.1013.Amd64.Open
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - netcoreapp3.0
