@@ -34,6 +34,8 @@ jobs:
             value: '--bdn-arguments="--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart --stopOnFirstError true"'
           - name: HelixApiAccessToken
             value: ''
+          - name: HelixPreCommand
+            value: ''
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
           - name: BenchViewRunType
             value: rolling
@@ -47,6 +49,12 @@ jobs:
             value: ''
           - name: Creator
             value: ''
+          - ${{ if eq(parameters.osName, 'windows') }}:
+            - name: HelixPreCommand
+              value: 'set BV_UPLOAD_SAS_TOKEN=$(BV_UPLOAD_SAS_TOKEN)'
+          - ${{ if ne(parameters.osName, 'windows') }}:
+            - name: HelixPreCommand
+              value: 'export BV_UPLOAD_SAS_TOKEN=$(BV_UPLOAD_SAS_TOKEN)'
           - group: DotNet-HelixApi-Access
           - group: dotnet-benchview
         workspace:
@@ -74,6 +82,7 @@ jobs:
             HelixType: 'test/performance_$(_BuildConfig)/'
             HelixAccessToken: $(HelixApiAccessToken)
             HelixTargetQueues: ${{ parameters.queue }}
+            HelixPreCommands: $(HelixPreCommand)
             Creator: $(Creator)
             WorkItemTimeout: 14400 # 4 hours
             ${{ if eq(parameters.osName, 'windows') }}:
