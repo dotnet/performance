@@ -14,7 +14,13 @@ using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Benchmarks
 {
-    public class StochasticDualCoordinateAscentClassifierBench : WithExtraMetrics
+    /// <summary>
+    /// These benchmarks measure end-to-end performance of ML pipelines using the
+    /// StochasticDualCoordinateAscent trainer on two datasets. Furthermore, the benchmarks
+    /// measure performance of making a single prediction from one of these pipelines, as
+    /// well as making batch predictions on multiple rows of data from the same model.
+    /// </summary>
+    public class StochasticDualCoordinateAscentClassifierBench
     {
         private readonly string _dataPath = Program.GetInvariantCultureDataPath("iris.txt");
         private readonly string _sentimentDataPath = Program.GetInvariantCultureDataPath("wikipedia-detox-250-line-data.tsv");
@@ -36,14 +42,6 @@ namespace Microsoft.ML.Benchmarks
         private PredictionEngine<IrisData, IrisPrediction> _predictionEngine;
         private IrisData[][] _batches;
         private MultiClassClassifierMetrics _metrics;
-
-        protected override IEnumerable<Metric> GetMetrics()
-        {
-            if (_metrics != null)
-                yield return new Metric(
-                    nameof(MultiClassClassifierMetrics.AccuracyMacro),
-                    _metrics.AccuracyMacro.ToString("0.##", CultureInfo.InvariantCulture));
-        }
 
         [Benchmark]
         public TransformerChain<MulticlassPredictionTransformer<MulticlassLogisticRegressionModelParameters>> TrainIris() => Train(_dataPath);

@@ -11,6 +11,12 @@ using Microsoft.ML.Transforms.Text;
 
 namespace Microsoft.ML.Benchmarks
 {
+    /// <summary>
+    /// These benchmarks measure performance on making a single prediction on a single
+    /// row of data using a trained ML model. Three models are trained on three separate
+    /// datasets as part of the initialization, then the performance of making predictions
+    /// from these models is measured by the benchmarks.
+    /// </summary>
     public class PredictionEngineBench
     {
         private IrisData _irisExample;

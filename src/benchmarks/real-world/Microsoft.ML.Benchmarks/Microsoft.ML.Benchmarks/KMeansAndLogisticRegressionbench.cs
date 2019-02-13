@@ -9,6 +9,13 @@ using Microsoft.ML.Learners;
 
 namespace Microsoft.ML.Benchmarks
 {
+    /// <summary>
+    /// This is an end-to-end benchmark that measures performance of a complete ML pipeline.
+    /// The pipeline consists of applying one hot encoding to categorical features, normalizing
+    /// numerical features, training a KMeans model on the features thus derived, and finally
+    /// training a Logistic Regression model on the derived features plus the score from the
+    /// KMeans trainer.
+    /// </summary>
     public class KMeansAndLogisticRegressionBench
     {
         private readonly string _dataPath = Program.GetInvariantCultureDataPath("adult.tiny.with-schema.txt");

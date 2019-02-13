@@ -11,6 +11,12 @@ using Microsoft.ML.Transforms.Conversions;
 
 namespace Microsoft.ML.Benchmarks
 {
+    /// <summary>
+    /// These benchmarks measure the performance of the hashing function in ML.NET on both
+    /// scalar and vector rows, for a variety of input types: string, float, double, key.
+    /// The benchmarks initialize the hashing transformer with a 20 bit hash, then measure
+    /// perf on fetching the first 100,000 values.
+    /// </summary>
     public class HashBench
     {
         private sealed class RowImpl : Row
@@ -115,54 +121,28 @@ namespace Microsoft.ML.Benchmarks
         }
 
         [GlobalSetup(Target = nameof(HashScalarString))]
-        public void SetupHashScalarString()
-        {
-            InitMap("Hello".AsMemory(), TextType.Instance);
-        }
+        public void SetupHashScalarString() => InitMap("Hello".AsMemory(), TextType.Instance);
 
         [Benchmark]
-        public void HashScalarString()
-        {
-            RunScalar();
-        }
+        public void HashScalarString() => RunScalar();
 
         [GlobalSetup(Target = nameof(HashScalarFloat))]
-        public void SetupHashScalarFloat()
-        {
-            InitMap(5.0f, NumberType.R4);
-        }
+        public void SetupHashScalarFloat() => InitMap(5.0f, NumberType.R4);
 
         [Benchmark]
-        public void HashScalarFloat()
-        {
-            RunScalar();
-        }
+        public void HashScalarFloat() => RunScalar();
 
         [GlobalSetup(Target = nameof(HashScalarDouble))]
-        public void SetupHashScalarDouble()
-        {
-            InitMap(5.0, NumberType.R8);
-        }
+        public void SetupHashScalarDouble() => InitMap(5.0, NumberType.R8);
 
         [Benchmark]
-        public void HashScalarDouble()
-        {
-            RunScalar();
-        }
+        public void HashScalarDouble() => RunScalar();
 
         [GlobalSetup(Target = nameof(HashScalarKey))]
-        public void SetupHashScalarKey()
-        {
-            InitMap(6u, new KeyType(typeof(uint), 100));
-        }
+        public void SetupHashScalarKey() => InitMap(6u, new KeyType(typeof(uint), 100));
 
         [Benchmark]
-        public void HashScalarKey()
-        {
-            RunScalar();
-        }
-
-
+        public void HashScalarKey() => RunScalar();
 
         [GlobalSetup(Target = nameof(HashVectorString))]
         public void SetupHashVectorString()
@@ -172,45 +152,25 @@ namespace Microsoft.ML.Benchmarks
         }
 
         [Benchmark]
-        public void HashVectorString()
-        {
-            RunVector();
-        }
+        public void HashVectorString() => RunVector();
 
         [GlobalSetup(Target = nameof(HashVectorFloat))]
-        public void SetupHashVectorFloat()
-        {
-            InitDenseVecMap(new[] { 1f, 2f, 3f, 4f, 5f }, NumberType.R4);
-        }
+        public void SetupHashVectorFloat() => InitDenseVecMap(new[] { 1f, 2f, 3f, 4f, 5f }, NumberType.R4);
 
         [Benchmark]
-        public void HashVectorFloat()
-        {
-            RunVector();
-        }
+        public void HashVectorFloat() => RunVector();
+
 
         [GlobalSetup(Target = nameof(HashVectorDouble))]
-        public void SetupHashVectorDouble()
-        {
-            InitDenseVecMap(new[] { 1d, 2d, 3d, 4d, 5d }, NumberType.R8);
-        }
+        public void SetupHashVectorDouble() => InitDenseVecMap(new[] { 1d, 2d, 3d, 4d, 5d }, NumberType.R8);
 
         [Benchmark]
-        public void HashVectorDouble()
-        {
-            RunVector();
-        }
+        public void HashVectorDouble() => RunVector();
 
         [GlobalSetup(Target = nameof(HashVectorKey))]
-        public void SetupHashVectorKey()
-        {
-            InitDenseVecMap(new[] { 1u, 2u, 0u, 4u, 5u }, new KeyType(typeof(uint), 100));
-        }
+        public void SetupHashVectorKey() => InitDenseVecMap(new[] { 1u, 2u, 0u, 4u, 5u }, new KeyType(typeof(uint), 100));
 
         [Benchmark]
-        public void HashVectorKey()
-        {
-            RunVector();
-        }
+        public void HashVectorKey() => RunVector();
     }
 }
