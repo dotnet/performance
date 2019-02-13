@@ -57,14 +57,14 @@ jobs:
         strategy:
           matrix:
             ${{ each framework in parameters.frameworks }}:
-              CoreCLR_${{ framework }}:
+              coreclr_${{ framework }}:
                 _Category: coreclr
                 _Framework: ${{ framework }}
-                _BuildConfig: ${{ parameters.architecture }}_CoreCLR_$(_Framework)
-              CoreFX_${{ framework }}:
+                _BuildConfig: ${{ parameters.architecture }}_coreclr_$(_Framework)
+              corefx_${{ framework }}:
                 _Category: corefx
                 _Framework: ${{ framework }}
-                _BuildConfig: ${{ parameters.architecture }}_CoreFX_$(_Framework)
+                _BuildConfig: ${{ parameters.architecture }}_corefx_$(_Framework)
         steps:
         - checkout: self
           clean: true
