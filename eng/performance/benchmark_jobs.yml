@@ -80,7 +80,9 @@ jobs:
               WorkItemDirectory: '$(Build.SourcesDirectory)\src\benchmarks\micro'
               WorkItemCommand: 'py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --bin-directory ".\bin" --working-directory . --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
               CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\scripts'
+              HelixPostCommands: 'xcopy $(Build.SourcesDirectory)\logs $(Build.SourcesDirectory)\artifacts\log\$(_BuildConfig) /S' # copy python script logs to a folder that gets uploaded by the CI
             ${{ if ne(parameters.osName, 'windows') }}:
               WorkItemDirectory: '$(Build.SourcesDirectory)/src/benchmarks/micro'
               WorkItemCommand: 'python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py --bin-directory "./bin" --working-directory $HELIX_WORKITEM_PAYLOAD --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
               CorrelationPayloadDirectory: '$(Build.SourcesDirectory)/scripts'
+              HelixPostCommands: 'cp -R $(Build.SourcesDirectory)/logs $(Build.SourcesDirectory)/artifacts/log/$(_BuildConfig)' # copy python script logs to a folder that gets uploaded by the CI
