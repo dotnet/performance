@@ -117,3 +117,18 @@ jobs:
       container: ubuntu_1604_arm64_cross_container
       frameworks: # currently ARM64 is supported only by .NET Core 3.0 https://github.com/dotnet/core/blob/master/release-notes/3.0/3.0-supported-os.md
         - netcoreapp3.0
+        
+# macOS 10.13 x64 micro benchmarks, public correctness job
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: macos
+      osVersion: 1013
+      kind: micro
+      architecture: x64
+      queue: OSX.1013.Amd64.Open
+      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - netcoreapp3.0
+        - netcoreapp2.2
+        - netcoreapp2.1
+        - netcoreapp2.0
