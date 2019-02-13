@@ -31,7 +31,7 @@ jobs:
             value: dotnet-performance
           # for public runs we want to run the benchmarks exactly once, no warmup, no pilot, no overhead
           - name: BenchmarkDotNetArguments
-            value: '--bdn-arguments="--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart"'
+            value: '--bdn-arguments="--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart --stopOnFirstError true"'
           - name: HelixApiAccessToken
             value: ''
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
