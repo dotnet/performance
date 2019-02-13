@@ -49,10 +49,10 @@ jobs:
             value: ''
           - name: Creator
             value: ''
-          ${{ if eq(parameters.osName, 'windows') }}:
+          - ${{ if eq(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
               value: 'set BV_UPLOAD_SAS_TOKEN=$(BV_UPLOAD_SAS_TOKEN)'
-          ${{ if ne(parameters.osName, 'windows') }}:
+          - ${{ if ne(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
               value: 'BV_UPLOAD_SAS_TOKEN=$(BV_UPLOAD_SAS_TOKEN)'
           - group: DotNet-HelixApi-Access
