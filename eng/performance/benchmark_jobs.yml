@@ -30,7 +30,7 @@ jobs:
               HelixType: 'test/performance_testenv'
               HelixAccessToken: ''
               HelixTargetQueues: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
-              HelixPreCommands: 'set "hello=%2Bworld"'
+              HelixPreCommands: set "hello=%252Bworld"
               WorkItemDirectory: $(Build.SourcesDirectory)\src\benchmarks\micro
               WorkItemCommand: echo %hello%
               EnableXUnitReporter: false
