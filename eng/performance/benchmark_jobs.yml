@@ -24,7 +24,7 @@ jobs:
           steps:
           - checkout: self
             clean: true
-          - template: /eng/performance/send-to-helix.yml
+          - template: /eng/common/templates/steps/send-to-helix.yml
             parameters:
               HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
               HelixType: 'test/performance_testenv'

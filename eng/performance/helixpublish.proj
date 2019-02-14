@@ -10,10 +10,6 @@
     </HelixCorrelationPayload>
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(HelixCommand)' == '' AND '$(TargetGroup)' == 'AllConfigurations'">
-    <HelixPreCommands>$([MSBuild::Escape($(HelixPreCommands)))</HelixPreCommands>
-  </PropertyGroup>
-
   <ItemGroup>
     <HelixWorkItem Include="WorkItem" Condition="'$(WorkItemDirectory)' != ''">
       <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
