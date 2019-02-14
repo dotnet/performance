@@ -51,10 +51,10 @@ jobs:
             value: ''
           - ${{ if eq(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'set "BV_UPLOAD_SAS_TOKEN=$(BV_UPLOAD_SAS_TOKEN)"'
+              value: 'set "BV_UPLOAD_SAS_TOKEN=$(BenchViewUploadToken)"'
           - ${{ if ne(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'export BV_UPLOAD_SAS_TOKEN="$(BV_UPLOAD_SAS_TOKEN)"'
+              value: 'export BV_UPLOAD_SAS_TOKEN="$(BenchViewUploadToken)"'
           - group: DotNet-HelixApi-Access
           - group: dotnet-benchview
         workspace:
