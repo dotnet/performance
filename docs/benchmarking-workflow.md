@@ -1,4 +1,4 @@
-﻿# .NET benchmarking workflow
+# .NET benchmarking workflow
 
 ## Table of Contents
 
@@ -256,9 +256,9 @@ By using the `DisassemblyDiagnoser` and `EtwProfiler` you should be able to get 
    5. run the benchmarks using given `CoreRun.exe` and save the results to a dedicated folder. An example:
 
         ```cmd
-        dotnet run -f netcoreapp3.0 -- 
-            --artifacts before 
-            --filter *Span* 
+        dotnet run -f netcoreapp3.0 --
+            --artifacts before
+            --filter *Span*
             --coreRun "C:\Projects\corefx\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
         ```
 

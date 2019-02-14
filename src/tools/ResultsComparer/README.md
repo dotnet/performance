@@ -1,4 +1,4 @@
-﻿# Results Comparer
+# Results Comparer
 
 This simple tool allows for easy comparison of provided benchmark results.
 
