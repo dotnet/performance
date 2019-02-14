@@ -37,4 +37,4 @@ dotnet run --base "C:\results\windows" --diff "C:\results\ubuntu" --threshold 1%
 | ----------------------------------- | ---------:| ----------------:| ----------------:| -------:|
 | System.Tests.Perf_Array.ArrayCopy3D |      1.31 |           372.71 |           284.73 |         |
 
-If there is no difference, the results are omitted. If there is no match (we use full benchmark names to match the benchmarks), the results are omitted
+If there is no difference or if there is no match (we use full benchmark names to match the benchmarks), then the results are omitted.
