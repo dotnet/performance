@@ -31,10 +31,10 @@ jobs:
               HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
               HelixType: 'test/performance_testenv'
               HelixAccessToken: ''
-              HelixTargetQueues: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
-              HelixPreCommands: 'set "hello=$(hello)"'
+              HelixTargetQueues: ${{ parameters.queue }}
+              HelixPreCommands: 'export hello="$(hello)"'
               WorkItemDirectory: $(Build.SourcesDirectory)\src\benchmarks\micro
-              WorkItemCommand: echo %hello%
+              WorkItemCommand: echo $hello
               EnableXUnitReporter: false
               IsExternal: true
               Creator: dotnet-performance
