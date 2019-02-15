@@ -53,7 +53,7 @@ A few useful links for you:
 
 ### Prerequisites
 
-To run the benchmarks, you need to [download dotnet cli first](./prerequisites.md) first.
+To run the benchmarks, you need to [download dotnet cli](./prerequisites.md) first.
 
 ### Interactive Mode
 
