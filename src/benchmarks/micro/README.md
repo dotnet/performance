@@ -50,6 +50,17 @@ If you contribute to CoreFX/CoreCLR and want to benchmark **local builds of the 
 dotnet run -f netcoreapp3.0 --filter $YourFilter --coreRun "C:\Projects\coreclr\bin\tests\Windows_NT.x64.Release\Tests\Core_Root\CoreRun.exe"
 ```
 
+To make sure that your changes don't introduce any regressions, you can provide paths to CoreRuns with and without your changes and use the Statistical Test feature to detect regressions/improvements ([read more](../../../docs/benchmarkdotnet.md#Regressions)):
+
+```cmd
+dotnet run -f netcoreapp3.0 \
+    --filter BenchmarksGame* \
+    --statisticalTest 3ms \
+    --coreRun \
+        "C:\Projects\corefx_upstream\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe" \
+        "C:\Projects\corefx_fork\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
+```
+
 If you **prefer to use dotnet cli** for that, you need to pass the path to cli via the `--cli` argument.
 
 BenchmarkDotNet allows you to run the benchmarks for private builds of [Full .NET Framework](../../../docs/benchmarkdotnet.md#Private-CLR-Build) and [CoreRT](../../../docs/benchmarkdotnet.md#Private-CoreRT-Build)
