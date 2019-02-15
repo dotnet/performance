@@ -22,7 +22,7 @@ jobs:
           - name: _BuildConfig
             value: testenv
           - name: hello
-            value: '%252Bworld'
+            value: '%25%252Bworld%25%25#3D'
           steps:
           - checkout: self
             clean: true
@@ -32,7 +32,7 @@ jobs:
               HelixType: 'test/performance_testenv'
               HelixAccessToken: ''
               HelixTargetQueues: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
-              HelixPreCommands: 'set hello=$(hello)'
+              HelixPreCommands: 'set "hello=$(hello)"'
               WorkItemDirectory: $(Build.SourcesDirectory)\src\benchmarks\micro
               WorkItemCommand: echo %hello%
               EnableXUnitReporter: false
