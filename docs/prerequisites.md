@@ -2,7 +2,7 @@
 
 ## Clone
 
-This repository is **independent from CoreFX and CoreCLR repositories!**  So this is the only repository you need to clone.
+This repository is **independent of CoreFX and CoreCLR repositories!**  So this is the only repository you need to clone.
 
 ```cmd
 git clone https://github.com/dotnet/performance.git

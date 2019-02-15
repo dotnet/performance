@@ -78,7 +78,7 @@ Available Benchmarks:
 You should select the target benchmark(s). Please, print a number of a benchmark (e.g. '0') or a contained benchmark caption (e.g. 'Burgers'):
 ```
 
-And select one of the benchmarks from the list by either entering it's number or name.
+And select one of the benchmarks from the list by either entering its number or name.
 
 ### Command Line
 
@@ -105,7 +105,7 @@ To print a **joined summary** for all of the benchmarks (by default printed per 
 dotnet run -f netcoreapp2.1 --filter BenchmarksGame* --join
 ```
 
-Please remember that on **Unix** systems `*` is resolved to all files in current diectory, so you need to escape it `'*'`. The filter is **case insensitive**.
+Please remember that on **Unix** systems `*` is resolved to all files in current directory, so you need to escape it `'*'`. The filter is **case insensitive**.
 
 #### Listing the Benchmarks
 
@@ -181,8 +181,8 @@ The results include managed memory statistics from [Memory Diagnoser](http://ada
 |------------:|------------:|------------:|--------------------:|
 |      0.0087 |           - |           - |                64 B |
 
-* Allocated contains the size of allocated **managed** memory. **Stackalloc/native heap allocations are not included.** It's per single invocation, **inclusive**.
-* **For .NET Core the Allocated Memory is only for current thread**, see [#723](https://github.com/dotnet/BenchmarkDotNet/issues/723) for more.
+* Allocated contains the size of the allocated **managed** memory. **Stackalloc/native heap allocations are not included.** It's per single invocation, **inclusive**.
+* **For .NET Core the Allocated Memory is only for the current thread**, see [#723](https://github.com/dotnet/BenchmarkDotNet/issues/723) for more.
 * The `Gen X/1k Op` column contains the number of `Gen X` collections per ***1 000*** Operations. If the value is equal 1, then it means that GC collects memory once per one thousand of benchmark invocations in generation `X`. BenchmarkDotNet is using some heuristic when running benchmarks, so the number of invocations can be different for different runs. Scaling makes the results comparable.
 * `-` in the Gen column means that no garbage collection was performed.
 
@@ -205,7 +205,7 @@ C:\Projects\performance\artifacts\20190215-0303-51368\Benchstone\BenchF\Adams\Te
 
 ## Disassembly
 
-If you want to disassemble the benchmarked code, you need to use the [Disassembly Diagnoser](http://adamsitnik.com/Disassembly-Diagnoser/). It allows to disassemble `asm/C#/IL` in recursive way on Windows for .NET and .NET Core (all Jits) and `asm` for Mono on any OS.
+If you want to disassemble the benchmarked code, you need to use the [Disassembly Diagnoser](http://adamsitnik.com/Disassembly-Diagnoser/). It allows disassembling `asm/C#/IL` in recursive way on Windows for .NET and .NET Core (all Jits) and `asm` for Mono on any OS.
 
 You can do that by passing `--disassm` to the app or by using `[DisassemblyDiagnoser(printAsm: true, printSource: true)]` attribute or by adding it to your config with `config.With(DisassemblyDiagnoser.Create(new DisassemblyDiagnoserConfig(printAsm: true, recursiveDepth: 1))`.
 
@@ -269,7 +269,7 @@ When you run the BenchmarkDotNet benchmarks using dotnet cli it runs them agains
 
 ### Running In Process
 
-Sometimes the easiest way to run the benchmarks against local build of any non-AOT .NET Runtime is to copy all the files into one place, build the app with `csc` and just run the executable.
+Sometimes the easiest way to run the benchmarks against the local build of any non-AOT .NET Runtime is to copy all the files into one place, build the app with `csc` and just run the executable.
 
 If you want to run the benchmarks in the same process, without creating a dedicated executable and process-level isolation, please use `--inProcess` (or just `-i`).
 
@@ -287,7 +287,7 @@ dotnet run -f netcoreapp3.0 --coreRun $thePath
 
 **Note:** If `CoreRunToolchain` detects that you have some older version of dependencies required to run the benchmarks in CoreRun folder, it's going to overwrite them with newer versions from the published app. It's going to do that in a shadow copy of the folder with CoreRun, so your configuration remains untouched.
 
-If you are not sure which assemblies gets loaded and used you can use following code to find out:
+If you are not sure which assemblies gets loaded and used you can use the following code to find out:
 
 ```cs
 [GlobalSetup]
@@ -313,7 +313,7 @@ This is very useful when you want to compare different builds of .NET Core SDK.
 
 ### Private CLR Build
 
-It's possible to benchmark a private build of .NET Runtime. You just need to pass the value of `COMPLUS_Version` to BenchmarkDotNet. You can do that by either using `--clrVersion $theVersion` as an arugment or `Job.ShortRun.With(new ClrRuntime(version: "$theVersiong"))` in the code.
+It's possible to benchmark a private build of .NET Runtime. You just need to pass the value of `COMPLUS_Version` to BenchmarkDotNet. You can do that by either using `--clrVersion $theVersion` as an argument or `Job.ShortRun.With(new ClrRuntime(version: "$theVersiong"))` in the code.
 
 So if you made a change in CLR and want to measure the difference, you can run the benchmarks with:
 

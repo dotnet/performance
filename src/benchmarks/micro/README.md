@@ -24,7 +24,7 @@ To list all available benchmarks ([read more](../../../docs/benchmarkdotnet.md#L
 dotnet run -f netcoreapp3.0 --list flat|tree
 ```
 
-To filter and run the benchmarks using a glob pattern expression applied to full benchmark name: namespace.typeName.methodName ([read more](../../../docs/benchmarkdotnet.md#Filtering-the-Benchmarks)):
+To filter the benchmarks using a glob pattern applied to namespace.typeName.methodName ([read more](../../../docs/benchmarkdotnet.md#Filtering-the-Benchmarks)):
 
 ```cmd
 dotnet run -f netcoreapp3.0 --filter *Span*
@@ -52,9 +52,9 @@ dotnet run -f netcoreapp3.0 --filter $YourFilter --coreRun "C:\Projects\coreclr\
 
 If you **prefer to use dotnet cli** for that, you need to pass the path to cli via the `--cli` argument.
 
-BenchmarkDotNet allows you to run the benchmarks for private builds of [Full .NET Framework](../../../docs/benchmarkdotnet.md##Private-CLR-Build) and [CoreRT](../../../docs/benchmarkdotnet.md##Private-CoreRT-Build)
+BenchmarkDotNet allows you to run the benchmarks for private builds of [Full .NET Framework](../../../docs/benchmarkdotnet.md#Private-CLR-Build) and [CoreRT](../../../docs/benchmarkdotnet.md#Private-CoreRT-Build)
 
-We once again encourage you to read the [full docs about all BenchmarkDotNet](../../../docs/benchmarkdotnet.md).
+We once again encourage you to read the [full docs about all BenchmarkDotNet](../../../docs/benchmarkdotnet.md#table-of-contents).
 
 ---
 
