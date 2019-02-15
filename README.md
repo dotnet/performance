@@ -1,4 +1,4 @@
-﻿# .NET Performance
+# .NET Performance
 
 [![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master)
 
