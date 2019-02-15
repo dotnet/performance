@@ -23,6 +23,9 @@ jobs:
             value: testenv
           - name: hello
             value: '%25%252Bworld%25%25#3D'
+          pool:
+            name: ${{ parameters.pool }}
+          container: ${{ parameters.container }}
           steps:
           - checkout: self
             clean: true
