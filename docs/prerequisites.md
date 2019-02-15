@@ -29,4 +29,3 @@ If you don't want to install `dotnet cli` manually, we have a Python 3 script wh
 ```cmd
 py .\scripts\benchmarks_ci.py --frameworks netcoreapp3.0
 ```
-
