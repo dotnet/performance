@@ -22,7 +22,7 @@ jobs:
           - name: _BuildConfig
             value: testenv
           - name: hello
-            value: %25#2Bworld
+            value: '%25#2Bworld'
           steps:
           - checkout: self
             clean: true
