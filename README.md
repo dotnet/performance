@@ -6,8 +6,13 @@ This repo contains benchmarks used for testing the performance of all .NET Runti
 
 We know that having the benchmarks in a separate repository might seem to be surprising. But the performance is vertical. .NET Runtime features affect base class library performance. Which at the end, affects the end user and provides the business value. This is why we keep all the benchmarks in a single place - to test the performance of the end product. For whatever .NET Runtime you want.
 
-See the [Microbenchmarks Guide](./src/benchmarks/micro/README.md) for information on running our microbenchmarks.
-See the [Real-World Scenarios Guide](./src/benchmarks/real-world/JitBench/README.md) for information on running our real-world scenario benchmarks.
+## Documentation
+
+* [Prerequisites](./docs/prerequisites.md) (dotnet cli or Python 3)
+* [Microbenchmarks Guide](./src/benchmarks/micro/README.md) for information on running our microbenchmarks
+* [Real-World Scenarios Guide](./src/benchmarks/real-world/JitBench/README.md) for information on running our real-world scenario benchmarks
+
+## Contributing to Repository
 
 This project has adopted the code of conduct defined by the Contributor Covenant to clarify expected behavior in our community. For more information, see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
 
