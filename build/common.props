@@ -1,28 +1,32 @@
 <Project>
-
   <PropertyGroup>
+    <!-- we don't want to spawn any-long living compiler processes to avoid BenchmarkDotNet issues with "file in use" -->
     <UseSharedCompilation>false</UseSharedCompilation>
-    <!-- The Python script can narrow down the TFMs to what the user has asked for -->
-    <TargetFrameworks>$(PYTHON_SCRIPT_TARGET_FRAMEWORKS)</TargetFrameworks>
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net461;netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
-    <LangVersion>latest</LangVersion>
-    <GenerateDocumentationFile>False</GenerateDocumentationFile>
-    <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-    <SignAssembly>false</SignAssembly>
+    
     <!-- to make sure that the users don't always need to specify -c Release when using dotnet run -->
     <Optimize>true</Optimize>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <!--
-      Suppress warnings for using preview SDK:
-      You are working with a preview version of the .NET Core SDK.
-      You can define the SDK version via a global.json file in the current project.
-      More at https://go.microsoft.com/fwlink/?linkid=869452
-    -->
+    
+    <!-- The Python script can narrow down the TFMs to what the user has asked for (to avoid downloading all SDKs) -->
+    <TargetFrameworks>$(PYTHON_SCRIPT_TARGET_FRAMEWORKS)</TargetFrameworks>
+    
+    <!-- this repository tests the performance of all .NET Runtimes so we target all of them -->
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net461;netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
+    
+    <!-- we want to be able to use the latest C# compiler features -->
+    <LangVersion>latest</LangVersion>
+    
+    <!-- we don't produce any libraries in this repo, so we don't want to generate docs -->
+    <GenerateDocumentationFile>False</GenerateDocumentationFile>
+    
+    <!-- every warning is important, we want to enforce best practices here to keep high quality of the code and avoid common mistakes -->
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    
+    <!-- we are testing latest bits and we must use preview SDK version -->
     <SuppressNETCoreSdkPreviewMessage>True</SuppressNETCoreSdkPreviewMessage>
+    
+    <!-- we need to make it explicit that we don't want to Sign the Assemblies, otherwise Arcade is going to try to sign them -->
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
-
 </Project>
