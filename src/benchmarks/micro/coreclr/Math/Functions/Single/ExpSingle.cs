@@ -5,33 +5,33 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace MathTests.FloatingPointTests
 {
-    public partial class MathTests
+    public partial class SinglePrecisionTests
     {
         // Tests MathF.Exp(float) over 5000 iterations for the domain -1, +1
 
-        private const float expSingleDelta = 0.0004f;
-        private const float expSingleExpectedResult = 5877.28564f;
+        private const float expDelta = 0.0004f;
+        private const float expExpectedResult = 5877.28564f;
 
         [Benchmark]
-        public void ExpSingleBenchmark() => ExpSingleTest();
+        public void ExpBenchmark() => ExpTest();
 
-        public static void ExpSingleTest()
+        public static void ExpTest()
         {
             var result = 0.0f; var value = -1.0f;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += expSingleDelta;
+                value += expDelta;
                 result += MathF.Exp(value);
             }
 
-            var diff = MathF.Abs(expSingleExpectedResult - result);
+            var diff = MathF.Abs(expExpectedResult - result);
 
-            if (diff > singleEpsilon)
+            if (diff > MathTests.SingleEpsilon)
             {
-                throw new Exception($"Expected Result {expSingleExpectedResult,10:g9}; Actual Result {result,10:g9}");
+                throw new Exception($"Expected Result {expExpectedResult,10:g9}; Actual Result {result,10:g9}");
             }
         }
     }

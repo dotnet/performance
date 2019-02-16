@@ -5,36 +5,36 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace MathTests.FloatingPointTests
 {
-    public partial class MathTests
+    public partial class SinglePrecisionTests
     {
         // Tests MathF.Sinh(float) over 5000 iterations for the domain -1, +1
 
-        private const float sinhSingleDelta = 0.0004f;
-        private const float sinhSingleExpectedResult = 1.26028216f;
+        private const float sinhDelta = 0.0004f;
+        private const float sinhExpectedResult = 1.26028216f;
 
         /// <summary>
         /// this benchmark is dependent on loop alignment
         /// </summary>
         [Benchmark]
-        public void SinhSingleBenchmark() => SinhSingleTest();
+        public void SinhBenchmark() => SinhTest();
 
-        public static void SinhSingleTest()
+        public static void SinhTest()
         {
             var result = 0.0f; var value = -1.0f;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += sinhSingleDelta;
+                value += sinhDelta;
                 result += MathF.Sinh(value);
             }
 
-            var diff = MathF.Abs(sinhSingleExpectedResult - result);
+            var diff = MathF.Abs(sinhExpectedResult - result);
 
-            if (diff > singleEpsilon)
+            if (diff > MathTests.SingleEpsilon)
             {
-                throw new Exception($"Expected Result {sinhSingleExpectedResult,10:g9}; Actual Result {result,10:g9}");
+                throw new Exception($"Expected Result {sinhExpectedResult,10:g9}; Actual Result {result,10:g9}");
             }
         }
     }

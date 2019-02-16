@@ -5,33 +5,33 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace MathTests.FloatingPointTests
 {
-    public partial class MathTests
+    public partial class DoublePrecisionTests
     {
         // Tests Math.Floor(double) over 5000 iterations for the domain -1, +1
 
-        private const double floorDoubleDelta = 0.0004;
-        private const double floorDoubleExpectedResult = -2500;
+        private const double floorDelta = 0.0004;
+        private const double floorExpectedResult = -2500;
 
         [Benchmark]
-        public void FloorDoubleBenchmark() => FloorDoubleTest();
+        public void FloorBenchmark() => FloorTest();
 
-        public static void FloorDoubleTest()
+        public static void FloorTest()
         {
             var result = 0.0; var value = -1.0;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += floorDoubleDelta;
+                value += floorDelta;
                 result += Math.Floor(value);
             }
 
-            var diff = Math.Abs(floorDoubleExpectedResult - result);
+            var diff = Math.Abs(floorExpectedResult - result);
 
-            if (diff > doubleEpsilon)
+            if (diff > MathTests.DoubleEpsilon)
             {
-                throw new Exception($"Expected Result {floorDoubleExpectedResult,20:g17}; Actual Result {result,20:g17}");
+                throw new Exception($"Expected Result {floorExpectedResult,20:g17}; Actual Result {result,20:g17}");
             }
         }
     }

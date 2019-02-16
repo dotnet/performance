@@ -5,33 +5,33 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace MathTests.FloatingPointTests
 {
-    public partial class MathTests
+    public partial class DoublePrecisionTests
     {
         // Tests Math.Tanh(double) over 5000 iterations for the domain -1, +1
 
-        private const double tanhDoubleDelta = 0.0004;
-        private const double tanhDoubleExpectedResult = 0.76159415578341827;
+        private const double tanhDelta = 0.0004;
+        private const double tanhExpectedResult = 0.76159415578341827;
 
         [Benchmark]
-        public void TanhDoubleBenchmark() => TanhDoubleTest();
+        public void TanhBenchmark() => TanhTest();
 
-        public static void TanhDoubleTest()
+        public static void TanhTest()
         {
             var result = 0.0; var value = -1.0;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += tanhDoubleDelta;
+                value += tanhDelta;
                 result += Math.Tanh(value);
             }
 
-            var diff = Math.Abs(tanhDoubleExpectedResult - result);
+            var diff = Math.Abs(tanhExpectedResult - result);
 
-            if (diff > doubleEpsilon)
+            if (diff > MathTests.DoubleEpsilon)
             {
-                throw new Exception($"Expected Result {tanhDoubleExpectedResult,20:g17}; Actual Result {result,20:g17}");
+                throw new Exception($"Expected Result {tanhExpectedResult,20:g17}; Actual Result {result,20:g17}");
             }
         }
     }

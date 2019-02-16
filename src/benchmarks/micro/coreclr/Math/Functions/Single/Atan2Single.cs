@@ -5,34 +5,34 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace MathTests.FloatingPointTests
 {
-    public partial class MathTests
+    public partial class SinglePrecisionTests
     {
         // Tests MathF.Atan2(float, float) over 5000 iterations for the domain y: -1, +1; x: +1, -1
 
-        private const float atan2SingleDeltaX = -0.0004f;
-        private const float atan2SingleDeltaY = 0.0004f;
-        private const float atan2SingleExpectedResult = 3930.14282f;
+        private const float atan2DeltaX = -0.0004f;
+        private const float atan2DeltaY = 0.0004f;
+        private const float atan2ExpectedResult = 3930.14282f;
 
         [Benchmark]
-        public void Atan2SingleBenchmark() => Atan2SingleTest();
+        public void Atan2Benchmark() => Atan2Test();
 
-        public static void Atan2SingleTest()
+        public static void Atan2Test()
         {
             var result = 0.0f; var valueX = 1.0f; var valueY = -1.0f;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                valueX += atan2SingleDeltaX; valueY += atan2SingleDeltaY;
+                valueX += atan2DeltaX; valueY += atan2DeltaY;
                 result += MathF.Atan2(valueY, valueX);
             }
 
-            var diff = MathF.Abs(atan2SingleExpectedResult - result);
+            var diff = MathF.Abs(atan2ExpectedResult - result);
 
-            if (diff > singleEpsilon)
+            if (diff > MathTests.SingleEpsilon)
             {
-                throw new Exception($"Expected Result {atan2SingleExpectedResult,10:g9}; Actual Result {result,10:g9}");
+                throw new Exception($"Expected Result {atan2ExpectedResult,10:g9}; Actual Result {result,10:g9}");
             }
         }
     }

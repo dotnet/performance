@@ -5,34 +5,34 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace MathTests.FloatingPointTests
 {
-    public partial class MathTests
+    public partial class SinglePrecisionTests
     {
         // Tests MathF.Pow(float, float) over 5000 iterations for the domain x: +2, +1; y: -2, -1
 
-        private const float powSingleDeltaX = -0.0004f;
-        private const float powSingleDeltaY = 0.0004f;
-        private const float powSingleExpectedResult = 4659.30762f;
+        private const float powDeltaX = -0.0004f;
+        private const float powDeltaY = 0.0004f;
+        private const float powExpectedResult = 4659.30762f;
 
         [Benchmark]
-        public void PowSingleBenchmark() => PowSingleTest();
+        public void PowBenchmark() => PowTest();
 
-        public static void PowSingleTest()
+        public static void PowTest()
         {
             var result = 0.0f; var valueX = 2.0f; var valueY = -2.0f;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                valueX += powSingleDeltaX; valueY += powSingleDeltaY;
+                valueX += powDeltaX; valueY += powDeltaY;
                 result += MathF.Pow(valueX, valueY);
             }
 
-            var diff = MathF.Abs(powSingleExpectedResult - result);
+            var diff = MathF.Abs(powExpectedResult - result);
 
-            if (diff > singleEpsilon)
+            if (diff > MathTests.SingleEpsilon)
             {
-                throw new Exception($"Expected Result {powSingleExpectedResult,10:g9}; Actual Result {result,10:g9}");
+                throw new Exception($"Expected Result {powExpectedResult,10:g9}; Actual Result {result,10:g9}");
             }
         }
     }

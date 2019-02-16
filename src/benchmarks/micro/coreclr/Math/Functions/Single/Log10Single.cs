@@ -5,36 +5,36 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace MathTests.FloatingPointTests
 {
-    public partial class MathTests
+    public partial class SinglePrecisionTests
     {
         // Tests MathF.Log10(float) over 5000 iterations for the domain -1, +1
 
-        private const float log10SingleDelta = 0.0004f;
-        private const float log10SingleExpectedResult = -664.094971f;
+        private const float log10Delta = 0.0004f;
+        private const float log10ExpectedResult = -664.094971f;
 
         /// <summary>
         /// this benchmark is dependent on loop alignment
         /// </summary>
         [Benchmark]
-        public void Log10SingleBenchmark() => Log10SingleTest();
+        public void Log10Benchmark() => Log10Test();
 
-        public static void Log10SingleTest()
+        public static void Log10Test()
         {
             var result = 0.0f; var value = 0.0f;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += log10SingleDelta;
+                value += log10Delta;
                 result += MathF.Log10(value);
             }
 
-            var diff = MathF.Abs(log10SingleExpectedResult - result);
+            var diff = MathF.Abs(log10ExpectedResult - result);
 
-            if (diff > singleEpsilon)
+            if (diff > MathTests.SingleEpsilon)
             {
-                throw new Exception($"Expected Result {log10SingleExpectedResult,10:g9}; Actual Result {result,10:g9}");
+                throw new Exception($"Expected Result {log10ExpectedResult,10:g9}; Actual Result {result,10:g9}");
             }
         }
     }

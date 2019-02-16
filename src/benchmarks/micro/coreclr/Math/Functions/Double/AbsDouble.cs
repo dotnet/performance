@@ -4,34 +4,36 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
-namespace Functions
+namespace MathTests.FloatingPointTests
 {
-    public partial class MathTests
+    [BenchmarkCategory(Categories.CoreCLR)]
+    public partial class DoublePrecisionTests
     {
         // Tests Math.Abs(double) over 5000 iterations for the domain -1, +1
 
-        private const double absDoubleDelta = 0.0004;
-        private const double absDoubleExpectedResult = 2499.9999999999659;
+        private const double absDelta = 0.0004;
+        private const double absExpectedResult = 2499.9999999999659;
 
         [Benchmark]
-        public void AbsDoubleBenchmark() => AbsDoubleTest();
+        public void AbsBenchmark() => AbsTest();
 
-        public static void AbsDoubleTest()
+        public static void AbsTest()
         {
             var result = 0.0; var value = -1.0;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += absDoubleDelta;
+                value += absDelta;
                 result += Math.Abs(value);
             }
 
-            var diff = Math.Abs(absDoubleExpectedResult - result);
+            var diff = Math.Abs(absExpectedResult - result);
 
-            if (diff > doubleEpsilon)
+            if (diff > MathTests.DoubleEpsilon)
             {
-                throw new Exception($"Expected Result {absDoubleExpectedResult,20:g17}; Actual Result {result,20:g17}");
+                throw new Exception($"Expected Result {absExpectedResult,20:g17}; Actual Result {result,20:g17}");
             }
         }
     }

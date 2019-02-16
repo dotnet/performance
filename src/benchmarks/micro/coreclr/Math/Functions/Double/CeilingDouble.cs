@@ -5,33 +5,33 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace MathTests.FloatingPointTests
 {
-    public partial class MathTests
+    public partial class DoublePrecisionTests
     {
         // Tests Math.Ceiling(double) over 5000 iterations for the domain -1, +1
 
-        private const double ceilingDoubleDelta = 0.0004;
-        private const double ceilingDoubleExpectedResult = 2500;
+        private const double ceilingDelta = 0.0004;
+        private const double ceilingExpectedResult = 2500;
 
         [Benchmark]
-        public void CeilingDoubleBenchmark() => CeilingDoubleTest();
+        public void CeilingBenchmark() => CeilingTest();
 
-        public static void CeilingDoubleTest()
+        public static void CeilingTest()
         {
             var result = 0.0; var value = -1.0;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += ceilingDoubleDelta;
+                value += ceilingDelta;
                 result += Math.Ceiling(value);
             }
 
-            var diff = Math.Abs(ceilingDoubleExpectedResult - result);
+            var diff = Math.Abs(ceilingExpectedResult - result);
 
-            if (diff > doubleEpsilon)
+            if (diff > MathTests.DoubleEpsilon)
             {
-                throw new Exception($"Expected Result {ceilingDoubleExpectedResult,20:g17}; Actual Result {result,20:g17}");
+                throw new Exception($"Expected Result {ceilingExpectedResult,20:g17}; Actual Result {result,20:g17}");
             }
         }
     }
