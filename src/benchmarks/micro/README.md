@@ -1,4 +1,4 @@
-﻿# Benchmarks
+# Benchmarks
 
 This repo contains various .NET benchmarks. It uses BenchmarkDotNet as the benchmarking engine to run benchmarks for .NET, .NET Core, CoreRT and Mono. Including private runtime builds.
 

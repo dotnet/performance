@@ -8,6 +8,6 @@
         "**/logs/": true,
         "**/obj/": true,
         "**/packages/": true,
-        "**/tools/": true,
+        "tools/": true,
     }
 }
