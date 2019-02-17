@@ -4,9 +4,9 @@ This folder contains micro benchmarks that test the performance of .NET Runtime(
 
 ## Tooling
 
-To run the benchmarks, you need to [download dotnet cli](../../../docs/prerequisites.md) first.
+To run the benchmarks, you need to download dotnet cli or use the python script, please see [Prerequisites](../../../docs/prerequisites.md) for more.
 
-We use BenchmarkDotNet as the benchmarking tool, you can read more about it in [our short summary](../../../docs/benchmarkdotnet.md) (it's recommended). The key thing that you need to remember is that **BenchmarkDotNet runs every benchmark in a dedicated process and stops the benchmarking when a good level of precision is met**.
+We use BenchmarkDotNet as the benchmarking tool, you can read more about it in [our short summary](../../../docs/benchmarkdotnet.md) (it's recommended). The key thing that you need to remember is that **BenchmarkDotNet runs every benchmark in a dedicated process and stops the benchmarking when a specified level of precision is met**.
 
 ## Quick Start
 

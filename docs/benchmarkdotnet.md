@@ -25,35 +25,34 @@ BenchmarkDotNet is the benchmarking tool that allows to run benchmarks for .NET,
   - [Private CLR Build](#Private-CLR-Build)
   - [Private CoreRT Build](#Private-CoreRT-Build)
 
-
 ## Main Concepts
 
 Benchmarking is really hard (especially microbenchmarking), you can easily make a mistake during performance measurements.
 BenchmarkDotNet will protect you from the common pitfalls (even for experienced developers) because it does all the dirty work for you:
 
-* it generates an isolated project per runtime (with boilerplate code)
-* it builds the project in `Release` (using Roslyn or dotnet cli)
-* it runs every benchmark in a stand-alone process (to achieve process isolation and avoid side effects)
-* it estimates the perfect invocation count per iteration (based on `IterationTime`)
-* it warms-up the code
-* it evaluates the overhead
-* it runs multiple iterations of the method until the requested level of precision is met
-* it consumes the benchmark result to avoid dead code elimination
-* it prevents from inlining of the benchmark by wrapping it with a delegate
-* it prints the results to the console in GitHub markdown, so you can just copy-paste the printed table to GitHub
-* it exports the results to `.\BenchmarkDotNet.Artifacts\results` so you can store them for later use.
+- it generates an isolated project per runtime (with boilerplate code)
+- it builds the project in `Release` (using Roslyn or dotnet cli)
+- it runs every benchmark in a stand-alone process (to achieve process isolation and avoid side effects)
+- it estimates the perfect invocation count per iteration (based on `IterationTime`)
+- it warms-up the code
+- it evaluates the overhead
+- it runs multiple iterations of the method until the requested level of precision is met
+- it consumes the benchmark result to avoid dead code elimination
+- it prevents from inlining of the benchmark by wrapping it with a delegate
+- it prints the results to the console in GitHub markdown, so you can just copy-paste the printed table to GitHub
+- it exports the results to `.\BenchmarkDotNet.Artifacts\results` so you can store them for later use.
 
 A few useful links for you:
 
-* If you want to know more about BenchmarkDotNet features, check out the [Overview Page](http://benchmarkdotnet.org/Overview.htm).
-* If you want to use BenchmarkDotNet for the first time, the [Getting Started](http://benchmarkdotnet.org/GettingStarted.htm) will help you.
-* If you want to ask a quick question or discuss performance topics, use the [gitter](https://gitter.im/dotnet/BenchmarkDotNet) channel.
+- If you want to know more about BenchmarkDotNet features, check out the [Overview Page](http://benchmarkdotnet.org/Overview.htm).
+- If you want to use BenchmarkDotNet for the first time, the [Getting Started](http://benchmarkdotnet.org/GettingStarted.htm) will help you.
+- If you want to ask a quick question or discuss performance topics, use the [gitter](https://gitter.im/dotnet/BenchmarkDotNet) channel.
 
 ## Running the Benchmarks
 
 ### Prerequisites
 
-To run the benchmarks, you need to [download dotnet cli](./prerequisites.md) first.
+In order to build or run the benchmarks you will need the **.NET Core command-line interface (CLI) tools**. For more information please refer to the [prerequisites](./prerequisites.md).
 
 ### Interactive Mode
 
@@ -84,28 +83,47 @@ And select one of the benchmarks from the list by either entering its number or 
 
 #### Filtering the Benchmarks
 
-You can filter the benchmarks using `--filter $globPattern` console line argument.
+You can filter the benchmarks using `--filter $globPattern` console line argument. The filter is **case insensitive**.
 
 The glob patterns are applied to full benchmark name: namespace.typeName.methodName. Examples:
 
-* `dotnet run -f netcoreapp3.0 --filter BenchmarksGame*` - will run all the benchmarks from BenchmarksGame namespace
-* `dotnet run -f netcoreapp3.0 --filter *.Richards.*` - will run all the benchmarks with type name Richards
-* `dotnet run -f netcoreapp3.0 --filter *.ToStream` - will run all the benchmarks with method name ToStream
-* `dotnet run -f netcoreapp3.0 --filter *` - **will run ALL benchmarks**
+1. Run all the benchmarks from BenchmarksGame namespace:
 
-You can provide many filters (logical disjunction):
+```cmd
+dotnet run -f netcoreapp3.0 --filter BenchmarksGame*
+```
+
+2. Run all the benchmarks with type name Richards:
+
+```cmd
+dotnet run -f netcoreapp3.0 --filter *.Richards.*
+```
+
+3. Run all the benchmarks with method name ToStream:
+
+```cmds
+dotnet run -f netcoreapp3.0 --filter *.ToStream
+```
+
+4. Run ALL benchmarks:
+
+```cmd
+dotnet run -f netcoreapp3.0 --filter *
+```
+
+5. You can provide many filters (logical disjunction):
 
 ```cmd
 dotnet run -f netcoreapp3.0 --filter System.Collections*.Dictionary* *.Perf_Dictionary.*
 ```
 
-To print a **joined summary** for all of the benchmarks (by default printed per type), use `--join`:
+6. To print a **joined summary** for all of the benchmarks (by default printed per type), use `--join`:
 
 ```cmd
 dotnet run -f netcoreapp2.1 --filter BenchmarksGame* --join
 ```
 
-Please remember that on **Unix** systems `*` is resolved to all files in current directory, so you need to escape it `'*'`. The filter is **case insensitive**.
+Please remember that on **Unix** systems `*` is resolved to all files in current directory, so you need to escape it `'*'`.
 
 #### Listing the Benchmarks
 
@@ -165,7 +183,7 @@ Due to the limited space in the console, only Mean, Standard Error and Standard 
 
 Each Iteration is represented by `@`:
 
-```
+```log
 -------------------- Histogram --------------------
 [415.605 ns ; 429.290 ns) | @@@@@@@@@@@@@@@
 [429.290 ns ; 445.623 ns) |
@@ -181,10 +199,10 @@ The results include managed memory statistics from [Memory Diagnoser](http://ada
 |------------:|------------:|------------:|--------------------:|
 |      0.0087 |           - |           - |                64 B |
 
-* Allocated contains the size of the allocated **managed** memory. **Stackalloc/native heap allocations are not included.** It's per single invocation, **inclusive**.
-* **For .NET Core the Allocated Memory is only for the current thread**, see [#723](https://github.com/dotnet/BenchmarkDotNet/issues/723) for more.
-* The `Gen X/1k Op` column contains the number of `Gen X` collections per ***1 000*** Operations. If the value is equal 1, then it means that GC collects memory once per one thousand of benchmark invocations in generation `X`. BenchmarkDotNet is using some heuristic when running benchmarks, so the number of invocations can be different for different runs. Scaling makes the results comparable.
-* `-` in the Gen column means that no garbage collection was performed.
+- Allocated contains the size of the allocated **managed** memory. **Stackalloc/native heap allocations are not -included.** It's per single invocation, **inclusive**.
+- **For .NET Core the Allocated Memory is only for the current thread**, see [#723](https://github.com/dotnet/-BenchmarkDotNet/issues/723) for more.
+- The `Gen X/1k Op` column contains the number of `Gen X` collections per ***1 000*** Operations. If the value is- equal 1, then it means that GC collects memory once per one thousand of benchmark invocations in generation -`X`. BenchmarkDotNet is using some heuristic when running benchmarks, so the number of invocations can be -different for different runs. Scaling makes the results comparable.
+- `-` in the Gen column means that no garbage collection was performed.
 
 ## Profiling
 
@@ -262,7 +280,6 @@ dotnet run -f netcoreapp2.1 --filter *BinaryTrees_2* --runtimes netcoreapp2.1 ne
 
 **Note:** to compare the historical results you need to use [Results Comparer](../src/tools/ResultsComparer/README.md)
 
-
 ## Private Runtime Builds
 
 When you run the BenchmarkDotNet benchmarks using dotnet cli it runs them against selected .NET Runtime using the SDK from PATH. If you want to run the benchmarks against local build of .NET/.NET Core/CoreRT/Mono you need to make it explicit.
@@ -327,6 +344,6 @@ More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/7
 
 To run benchmarks with private CoreRT build you need to provide the `IlcPath`. Example:
 
-```
+```cmd
 dotnet run -f netcoreapp2.1 -- --ilcPath C:\Projects\corert\bin\Windows_NT.x64.Release
 ```

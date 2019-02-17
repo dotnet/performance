@@ -1,22 +1,23 @@
 <Project>
   <PropertyGroup>
-    <!-- we don't want to spawn any-long living compiler processes to avoid BenchmarkDotNet issues with "file in use" -->
+    <!-- Avoid spawning any-long living compiler processes to avoid BenchmarkDotNet issues with "file in use",
+         and automation failing to clean up the folders once the runs are over -->
     <UseSharedCompilation>false</UseSharedCompilation>
     
     <!-- to make sure that the users don't always need to specify -c Release when using dotnet run -->
     <Optimize>true</Optimize>
     
-    <!-- The Python script can narrow down the TFMs to what the user has asked for (to avoid downloading all SDKs) -->
+    <!-- Used by Python script to narrow down the the specified target frameworks to test, and avoid downloading all supported SDKs -->
     <TargetFrameworks>$(PYTHON_SCRIPT_TARGET_FRAMEWORKS)</TargetFrameworks>
     
-    <!-- this repository tests the performance of all .NET Runtimes so we target all of them -->
+    <!-- Supported target frameworks -->
     <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net461;netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
     
-    <!-- we want to be able to use the latest C# compiler features -->
+    <!-- Use the latest C# compiler features -->
     <LangVersion>latest</LangVersion>
     
-    <!-- we don't produce any libraries in this repo, so we don't want to generate docs -->
+    <!-- This repo does not produce any libraries, therefore generating docs is disabled -->
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
     
     <!-- every warning is important, we want to enforce best practices here to keep high quality of the code and avoid common mistakes -->
@@ -26,7 +27,7 @@
     <!-- we are testing latest bits and we must use preview SDK version -->
     <SuppressNETCoreSdkPreviewMessage>True</SuppressNETCoreSdkPreviewMessage>
     
-    <!-- we need to make it explicit that we don't want to Sign the Assemblies, otherwise Arcade is going to try to sign them -->
+    <!-- Explicit disable signing the built assemblies here to stop Arcade attempting to sign them -->
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
 </Project>

@@ -4,11 +4,10 @@
 
 This repo contains benchmarks used for testing the performance of all .NET Runtimes: .NET Core, Full .NET Framework, Mono and CoreRT.
 
-We know that having the benchmarks in a separate repository might seem to be surprising. But the performance is vertical. .NET Runtime features affect base class library performance. Which at the end, affects the end user and provides the business value. This is why we keep all the benchmarks in a single place - to test the performance of the end product. For whatever .NET Runtime you want.
+Finding these benchmarks in a separate repository might be surprising. Performance in a given scenario may be impacted by changes in seemingly unrelated components. Using this central repository ensures that measurements are made in comparable ways acrosss all .NET runtimes and repos. This consistency lets engineers make progress and ensures the customer scenarios are protected.
 
 ## Documentation
 
-* [Prerequisites](./docs/prerequisites.md) (dotnet cli or Python 3)
 * [Microbenchmarks Guide](./src/benchmarks/micro/README.md) for information on running our microbenchmarks
 * [Real-World Scenarios Guide](./src/benchmarks/real-world/JitBench/README.md) for information on running our real-world scenario benchmarks
 
