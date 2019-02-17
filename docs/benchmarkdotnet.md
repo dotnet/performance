@@ -101,7 +101,7 @@ dotnet run -f netcoreapp3.0 --filter *.Richards.*
 
 3. Run all the benchmarks with method name ToStream:
 
-```cmds
+```cmd
 dotnet run -f netcoreapp3.0 --filter *.ToStream
 ```
 
@@ -200,7 +200,7 @@ The results include managed memory statistics from [Memory Diagnoser](http://ada
 |      0.0087 |           - |           - |                64 B |
 
 - Allocated contains the size of the allocated **managed** memory. **Stackalloc/native heap allocations are not -included.** It's per single invocation, **inclusive**.
-- **For .NET Core the Allocated Memory is only for the current thread**, see [#723](https://github.com/dotnet/-BenchmarkDotNet/issues/723) for more.
+- **For .NET Core the Allocated Memory is only for the current thread**, see [#723](https://github.com/dotnet/BenchmarkDotNet/issues/723) for more.
 - The `Gen X/1k Op` column contains the number of `Gen X` collections per ***1 000*** Operations. If the value is- equal 1, then it means that GC collects memory once per one thousand of benchmark invocations in generation -`X`. BenchmarkDotNet is using some heuristic when running benchmarks, so the number of invocations can be -different for different runs. Scaling makes the results comparable.
 - `-` in the Gen column means that no garbage collection was performed.
 

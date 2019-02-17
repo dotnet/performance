@@ -65,7 +65,7 @@ If you **prefer to use dotnet cli** for that, you need to pass the path to cli v
 
 BenchmarkDotNet allows you to run the benchmarks for private builds of [Full .NET Framework](../../../docs/benchmarkdotnet.md#Private-CLR-Build) and [CoreRT](../../../docs/benchmarkdotnet.md#Private-CoreRT-Build)
 
-We once again encourage you to read the [full docs about all BenchmarkDotNet](../../../docs/benchmarkdotnet.md#table-of-contents).
+We once again encourage you to read the [full docs about BenchmarkDotNet](../../../docs/benchmarkdotnet.md#table-of-contents).
 
 ---
 
