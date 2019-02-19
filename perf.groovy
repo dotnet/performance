@@ -153,16 +153,6 @@ def projectFolder = projectName + '/' + Utilities.getFolderName(branch)
                     builder.triggerForBranch(branch)
                     builder.emitTrigger(newJob)
                 }
-                else {
-                    Utilities.addPeriodicTrigger(newJob, "@daily", true /*always run*/)
-                    newJob.with {
-                        wrappers {
-                            timeout {
-                                absolute(240)
-                            }
-                        }
-                    }
-                }
             }
         }
     }
