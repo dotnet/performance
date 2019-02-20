@@ -31,8 +31,6 @@ git clone https://github.com/dotnet/performance.git
 
 This repository is **independent from CoreFX and CoreCLR build systems!** So you need to do this **only ONCE**, no matter how many .NET Runtimes you want to run the benchmarks against.
 
-We know that having the benchmarks in a separate repository might seem to be surprising. But the performance is vertical. .NET Runtime features affect base class library performance. Which at the end, affects the end user and provides the business value. This is why we keep all the benchmarks in a single place - to test the performance of the end product. For whatever .NET Runtime you want.
-
 ### Build
 
 To build the benchmarks you need to have the right `dotnet cli`. This repository allows to benchmark .NET Core 2.0, 2.1, 2.2 and 3.0 so you need to install all of them.

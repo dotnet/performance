@@ -2,10 +2,16 @@
 
 [![Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master)
 
-This repo contains benchmarks used for testing the performance of .NET Frameworks.
+This repo contains benchmarks used for testing the performance of all .NET Runtimes: .NET Core, Full .NET Framework, Mono and CoreRT.
 
-See the [Microbenchmarks Guide](./src/benchmarks/micro/README.md) for information on running our microbenchmarks.
-See the [Real-World Scenarios Guide](./src/benchmarks/real-world/JitBench/README.md) for information on running our real-world scenario benchmarks.
+Finding these benchmarks in a separate repository might be surprising. Performance in a given scenario may be impacted by changes in seemingly unrelated components. Using this central repository ensures that measurements are made in comparable ways across all .NET runtimes and repos. This consistency lets engineers make progress and ensures the customer scenarios are protected.
+
+## Documentation
+
+* [Microbenchmarks Guide](./src/benchmarks/micro/README.md) for information on running our microbenchmarks
+* [Real-World Scenarios Guide](./src/benchmarks/real-world/JitBench/README.md) for information on running our real-world scenario benchmarks
+
+## Contributing to Repository
 
 This project has adopted the code of conduct defined by the Contributor Covenant to clarify expected behavior in our community. For more information, see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
 
