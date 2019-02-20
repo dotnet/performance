@@ -67,6 +67,7 @@ class FrameworkAction(Action):
             'netcoreapp2.2': '2.2',
             'netcoreapp2.1': '2.1',
             'netcoreapp2.0': '2.0',
+            'net461': 'LTS', # when the user asks for Full Framework we download the LTS (default) dotnet cli
         }
 
     @staticmethod

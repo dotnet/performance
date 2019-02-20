@@ -68,7 +68,7 @@ def init_tools(
     getLogger().info('Installing tools.')
     channels = [
         micro_benchmarks.FrameworkAction.get_channel(
-            target_framework_moniker) or 'LTS'
+            target_framework_moniker)
         for target_framework_moniker in target_framework_monikers
     ]
     dotnet.install(
