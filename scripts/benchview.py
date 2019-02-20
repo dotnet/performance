@@ -97,14 +97,15 @@ class BenchView:
             cmdline += ['--source-timestamp', source_timestamp]
         RunCommand(cmdline, verbose=self.verbose).run(working_directory)
 
-    def machinedata(self, working_directory: str, machine_manufacturer: str) -> None:
+    def machinedata(self, working_directory: str, architecture: str) -> None:
         '''Wrapper around BenchView's machinedata.py'''
 
         cmdline = [
             self.python, path.join(self.tools_directory, 'machinedata.py')
         ]
-        if machine_manufacturer:
-            cmdline += ['--machine-manufacturer', machine_manufacturer]
+        # Workaround: https://github.com/workhorsy/py-cpuinfo/issues/112
+        if architecture == 'arm64':
+            cmdline += ['--machine-manufacturer', 'Unknown']
         RunCommand(cmdline, verbose=self.verbose).run(working_directory)
 
     def measurement(self, working_directory: str) -> None:
