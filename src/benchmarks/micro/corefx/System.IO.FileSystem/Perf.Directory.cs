@@ -62,15 +62,10 @@ namespace System.IO.Tests
         public IEnumerable<object> RecursiveDepthData()
         {
             yield return 10;
-
-            // Length of the path can be 260 characters on netfx.
-            if (PathFeatures.AreAllLongPathsAvailable())
-            {
-                yield return 100;
-                // Most Unix distributions have a maximum path length of 1024 characters (1024 UTF-8 bytes). 
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    yield return 1000;
-            }
+            yield return 100;
+#if !NETFRAMEWORK // long paths are always supported on .NET Core
+            yield return 1000; // Most Unix distributions have a maximum path length of 1024 characters (1024 UTF-8 bytes). 
+#endif
         }
 
         [Benchmark]
