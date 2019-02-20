@@ -37,11 +37,13 @@ namespace System.IO.Tests
         [Benchmark]
         public string GetFullPathForLegacyLength() => Path.GetFullPath(_testPath200);
 
+#if !NETFRAMEWORK // long paths are always supported on .NET Core
         [Benchmark]
         public string GetFullPathForTypicalLongPath() => Path.GetFullPath(_testPath500);
 
         [Benchmark]
         public void GetFullPathForReallyLongPath() => Path.GetFullPath(_testPath1000);
+#endif
 
         [Benchmark]
         public string GetPathRoot() => Path.GetPathRoot(_testPath);

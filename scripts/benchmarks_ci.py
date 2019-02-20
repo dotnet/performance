@@ -68,7 +68,7 @@ def init_tools(
     getLogger().info('Installing tools.')
     channels = [
         micro_benchmarks.FrameworkAction.get_channel(
-            target_framework_moniker) or 'LTS'
+            target_framework_moniker)
         for target_framework_moniker in target_framework_monikers
     ]
     dotnet.install(
@@ -364,8 +364,12 @@ def __run_benchview_scripts(
         working_directory=bin_directory,
         name=submission_name)
 
+    machine_manufacturer = 'Unknown' if args.architecture == 'arm64' else ''
+
     # BenchView machinedata.py
-    benchviewpy.machinedata(working_directory=bin_directory)
+    benchviewpy.machinedata(
+        working_directory=bin_directory,
+        machine_manufacturer=machine_manufacturer)
 
     for framework in args.frameworks:
         target_framework_moniker = micro_benchmarks \
