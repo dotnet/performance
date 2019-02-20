@@ -82,7 +82,7 @@ jobs:
             HelixType: 'test/performance_$(_BuildConfig)/'
             HelixAccessToken: $(HelixApiAccessToken)
             HelixTargetQueues: ${{ parameters.queue }}
-            HelixPreCommands: 'git clone https://github.com/workhorsy/py-cpuinfo.git;python3.5 py-cpuinfo/tools/get_system_info.py'
+            HelixPreCommands: 'git clone https://github.com/adamsitnik/py-cpuinfo.git;cd py-cpuinfo;git checkout missingWmic;python3.5 tools/get_system_info.py;cat system_info.txt'
             Creator: $(Creator)
             WorkItemTimeout: 4:00 # 4 hours
             ${{ if ne(parameters.osName, 'windows') }}:
