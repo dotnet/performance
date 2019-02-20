@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
@@ -60,24 +59,37 @@ namespace System.IO.Tests
         public void CleanupExists() => Directory.Delete(_testFile);
 
         public IEnumerable<object> RecursiveDepthData()
-        {
-            yield return 10;
-            yield return 100;
-#if !NETFRAMEWORK // long paths are always supported on .NET Core
-            yield return 1000; // Most Unix distributions have a maximum path length of 1024 characters (1024 UTF-8 bytes). 
-#endif
-        }
+            => new object[] { 10, 100, 1000 } // Most Unix distributions have a maximum path length of 1024 characters (1024 UTF-8 bytes). 
+                .Where(depth =>
+                    {
+                        try
+                        {
+                            var longPath = GetDirectoryPath(_testFile, (int)depth);
+
+                            Directory.CreateDirectory(longPath);
+                            Directory.Delete(longPath);
+
+                            return true;
+                        }
+                        catch (PathTooLongException)
+                        {
+                            return false;
+                        }
+                    }
+                );
 
         [Benchmark]
         [ArgumentsSource(nameof(RecursiveDepthData))]
         public void RecursiveCreateDeleteDirectory(int depth)
         {
             var root = _testFile;
-            var name = root + Path.DirectorySeparatorChar + _testDeepFilePaths[depth];
+            var name = GetDirectoryPath(root, depth);
 
             Directory.CreateDirectory(name);
             Directory.Delete(root, recursive: true);
         }
+
+        private string GetDirectoryPath(string root, int depth) => root + Path.DirectorySeparatorChar + _testDeepFilePaths[depth];
 
         private static string GetTestDeepFilePath(int depth)
         {
