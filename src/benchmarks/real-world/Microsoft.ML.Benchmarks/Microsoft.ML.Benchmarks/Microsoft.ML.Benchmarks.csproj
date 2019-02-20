@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$(MSBuildThisFileDirectory)\..\..\..\..\common.props" />
+  <Import Project="$(MSBuildThisFileDirectory)\..\..\..\micro\common.props" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
   </PropertyGroup>

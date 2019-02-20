@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
-  <Import Project="$(MSBuildThisFileDirectory)\..\..\..\..\build\common.props" />
+  <Import Project="$(MSBuildThisFileDirectory)\..\..\..\benchmarks\micro\common.props" />
   <PropertyGroup>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
