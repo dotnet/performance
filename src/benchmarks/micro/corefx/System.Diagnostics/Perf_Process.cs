@@ -23,13 +23,6 @@ namespace System.Diagnostics
         public void GetProcessById() => Process.GetProcessById(_currentProcessId).Dispose();
 
         [Benchmark]
-        public void EnterLeaveDebugMode()
-        {
-            Process.EnterDebugMode();
-            Process.LeaveDebugMode();
-        }
-        
-        [Benchmark]
         public void GetProcesses()
         {
             foreach (var process in Process.GetProcesses())
