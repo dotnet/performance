@@ -104,7 +104,7 @@ class BenchView:
             self.python, path.join(self.tools_directory, 'machinedata.py')
         ]
         if machine_manufacturer:
-            cmdline += ['--machine_manufacturer', machine_manufacturer]
+            cmdline += ['--machine-manufacturer', machine_manufacturer]
         RunCommand(cmdline, verbose=self.verbose).run(working_directory)
 
     def measurement(self, working_directory: str) -> None:
