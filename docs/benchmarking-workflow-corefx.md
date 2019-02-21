@@ -126,13 +126,13 @@ C:\Projects\performance\src\benchmarks\micro> dotnet run -f netcoreapp3.0 \
 When you have the results you should use [ResultsComparer](../src/tools/ResultsComparer/README.md) to find out how your changes have affected the performance:
 
 ```cmd
-C:\Projects\performance\src\tools\ResultsComparer> dotnet run --base "C:\results\before" --diff "C:\results\after" --threshold 5%
+C:\Projects\performance\src\tools\ResultsComparer> dotnet run --base "C:\results\before" --diff "C:\results\after" --threshold 2%
 ```
 
 Sample output:
 
 ```log
-No Slower results for the provided threshold = 5% and noise filter = 0.3ns.
+No Slower results for the provided threshold = 2% and noise filter = 0.3ns.
 ```
 
 | Faster                                                                           | base/diff | Base Median (ns) | Diff Median (ns) | Modality|
@@ -179,11 +179,11 @@ When you identify and fix the regression, you should use [ResultsComparer](../sr
 
 ## Local CoreCLR Build
 
-Sometimes you might be willing to run the benchmarks using not only local CoreFX but also local CoreCLR build.
+Sometimes you might need to run the benchmarks using not only local CoreFX but also local CoreCLR build.
 
-Thanks to the simplicity of CoreRun, all you need to do is to copy all the runtimes files into the folder with CoreRun.
+Thanks to the simplicity of CoreRun, all you need to do is copy all the runtimes files into the folder with CoreRun.
 
-But before you do it, you should copy/remeber the version of CoreCLR reported by BenchmarkDotNet:
+But before you do it, you should copy/remember the version of CoreCLR reported by BenchmarkDotNet:
 
 ```log
 BenchmarkDotNet=v0.11.3.1003-nightly, OS=Windows 10.0.17763.253 (1809/October2018Update/Redstone5)
