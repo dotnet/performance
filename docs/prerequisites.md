@@ -8,24 +8,20 @@ This repository is **independent of CoreFX and CoreCLR repositories!**  So this 
 git clone https://github.com/dotnet/performance.git
 ```
 
-## Build
+## External tools
 
-To build the benchmarks you need to have the right `dotnet cli`. This repository allows to benchmark .NET Core 2.0, 2.1, 2.2 and 3.0 so you need to install all of them.
+### [python](https://www.python.org/)
 
-- .NET Core 2.0, 2.1 and 2.2 can be installed from [https://www.microsoft.com/net/download/archives](https://www.microsoft.com/net/download/archives)
-- .NET Core 3.0 preview is available at [https://github.com/dotnet/core-sdk#installers-and-binaries](https://github.com/dotnet/core-sdk#installers-and-binaries)
+Python is needed to run the scripts used by automation. These scripts wrap all the logic for tool acquisition, benchmarks build and execution, data collection and upload.
 
-If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [common.props](../build/common.props) file.
+The python scripts in this repository support python version 3.5 or greater.
 
-```diff
--<TargetFrameworks>netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
-+<TargetFrameworks>netcoreapp3.0</TargetFrameworks>
-```
+- [Downloads](https://www.python.org/downloads/)
 
-## Alternative: Python script
+### [.NET Core command-line interface (CLI) tools](https://docs.microsoft.com/en-us/dotnet/core/tools/?tabs=netcore2x)
 
-If you don't want to install `dotnet cli` manually, we have a Python 3 script which can do that for you. All you need to do is to provide the frameworks:
+Used to build the .NET Performance projects, and they can be downloaded here:
 
-```cmd
-py .\scripts\benchmarks_ci.py --frameworks netcoreapp3.0
-```
+- [Downloads](https://dotnet.microsoft.com/download)
+
+Optionally, you could use [dotnet.py](../scripts/dotnet.py) to to download the DotNet Cli locally.

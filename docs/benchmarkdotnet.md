@@ -5,8 +5,11 @@ BenchmarkDotNet is the benchmarking tool that allows to run benchmarks for .NET,
 ## Table of Contents
 
 - [Main Concepts](#Main-Concepts)
+- [Prerequisites](#Prerequisites)
+- [Building the benchmarks](#Building-the-Benchmarks)
+  - [Using .NET Cli](#Build-using-.NET-Cli)
+  - [Using Python script](#Build-using-Python-script)
 - [Running the Benchmarks](#Running-the-Benchmarks)
-  - [Prerequisites](#Prerequisites)
   - [Interactive Mode](#Interactive-Mode)
   - [Command Line](#Command-Line)
     - [Filtering the Benchmarks](#Filtering-the-Benchmarks)
@@ -40,7 +43,7 @@ BenchmarkDotNet will protect you from the common pitfalls (even for experienced 
 - it consumes the benchmark result to avoid dead code elimination
 - it prevents from inlining of the benchmark by wrapping it with a delegate
 - it prints the results to the console in GitHub markdown, so you can just copy-paste the printed table to GitHub
-- it exports the results to `.\BenchmarkDotNet.Artifacts\results` so you can store them for later use.
+- it exports the results to `BenchmarkDotNet.Artifacts\results` so you can store them for later use.
 
 A few useful links for you:
 
@@ -48,11 +51,38 @@ A few useful links for you:
 - If you want to use BenchmarkDotNet for the first time, the [Getting Started](http://benchmarkdotnet.org/GettingStarted.htm) will help you.
 - If you want to ask a quick question or discuss performance topics, use the [gitter](https://gitter.im/dotnet/BenchmarkDotNet) channel.
 
-## Running the Benchmarks
-
-### Prerequisites
+## Prerequisites
 
 In order to build or run the benchmarks you will need the **.NET Core command-line interface (CLI) tools**. For more information please refer to the [prerequisites](./prerequisites.md).
+
+## Building the benchmarks
+
+### Using .NET Cli
+
+To build the benchmarks you need to have the right `dotnet cli`. This repository allows to benchmark .NET Core 2.0, 2.1, 2.2 and 3.0 so you need to install all of them.
+
+All you need to do is run the following command:
+
+```cmd
+dotnet build -c Release
+```
+
+If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [common.props](../build/common.props) file.
+
+```diff
+-<TargetFrameworks>netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
++<TargetFrameworks>netcoreapp3.0</TargetFrameworks>
+```
+
+### Using Python script
+
+If you don't want to install `dotnet cli` manually, we have a Python 3 script which can do that for you. All you need to do is to provide the frameworks:
+
+```cmd
+py .\scripts\benchmarks_ci.py --frameworks netcoreapp3.0
+```
+
+## Running the Benchmarks
 
 ### Interactive Mode
 
@@ -261,7 +291,7 @@ Example: run the benchmarks for .NET Core 2.2 and 3.0:
 dotnet run -f netcoreapp2.2 --runtimes netcoreapp2.1 netcoreapp3.0
 ```
 
-**Important: The host process needs to be the lowest common API denominator of the runtimes you want to compare!** In this case, it was`netcoreapp2.2`. 
+**Important: The host process needs to be the lowest common API denominator of the runtimes you want to compare!** In this case, it was`netcoreapp2.2`.
 
 ## Regressions
 
@@ -320,7 +350,7 @@ public void PrintInfo()
 
 ### dotnet cli
 
-You can also use any dotnet cli to build and run the benchmarks. 
+You can also use any dotnet cli to build and run the benchmarks.
 
 ```cmd
 dotnet run -f netcoreapp3.0 --cli "C:\Projects\performance\.dotnet\dotnet.exe"

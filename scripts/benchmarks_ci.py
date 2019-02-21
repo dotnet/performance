@@ -364,12 +364,10 @@ def __run_benchview_scripts(
         working_directory=bin_directory,
         name=submission_name)
 
-    machine_manufacturer = 'Unknown' if args.architecture == 'arm64' else ''
-
     # BenchView machinedata.py
     benchviewpy.machinedata(
         working_directory=bin_directory,
-        machine_manufacturer=machine_manufacturer)
+        architecture=args.architecture)
 
     for framework in args.frameworks:
         target_framework_moniker = micro_benchmarks \

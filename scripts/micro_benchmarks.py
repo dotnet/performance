@@ -56,7 +56,7 @@ class FrameworkAction(Action):
             FrameworkAction.__get_target_framework_moniker_channel_map().keys()
         )
         frameworks.append('corert')
-        if sys.platform == 'win32':
+        if sys.platform == 'win32' and 'net461' not in frameworks:
             frameworks.append('net461')
         return frameworks
 
@@ -67,7 +67,8 @@ class FrameworkAction(Action):
             'netcoreapp2.2': '2.2',
             'netcoreapp2.1': '2.1',
             'netcoreapp2.0': '2.0',
-            'net461': 'LTS', # when the user asks for Full Framework we download the LTS (default) dotnet cli
+            # For Full Framework download the LTS for dotnet cli.
+            'net461': 'LTS',
         }
 
     @staticmethod
