@@ -31,8 +31,7 @@ public class CscBench
             })?.Location;
     }
 
-    [GlobalSetup]
-    public void SetMscorlib()
+    private static string GetMscorlibPathCore()
     {
         var runtimeDirectory = new FileInfo(GetLoadedAssemblyLocation("System.Runtime.dll"))
             .DirectoryName;
@@ -40,16 +39,23 @@ public class CscBench
         // Some CoreCLR packages have System.Private.CoreLib.ni.dll only.
         var nicorlib = Path.Combine(runtimeDirectory, "System.Private.CoreLib.ni.dll");
         if (File.Exists(nicorlib))
-        {
-            MscorlibPath = nicorlib;
-            return;
-        }
+            return nicorlib;
 
         var corlib = Path.Combine(runtimeDirectory, "System.Private.CoreLib.dll");
         if (!File.Exists(corlib))
             throw new FileNotFoundException("System.Private.CoreLib is not present with the System.Runtime");
 
-        MscorlibPath = corlib;
+        return corlib;
+    }
+
+    [GlobalSetup]
+    public void SetMscorlib()
+    {
+#if NETFRAMEWORK
+        MscorlibPath = typeof(object).Assembly.Location;
+#else
+        MscorlibPath = GetMscorlibPathCore();
+#endif
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
