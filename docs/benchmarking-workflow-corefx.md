@@ -139,6 +139,16 @@ No Slower results for the provided threshold = 2% and noise filter = 0.3ns.
 | -------------------------------------------------------------------------------- | ---------:| ----------------:| ----------------:| --------:|
 | System.IO.Pipes.Tests.Perf_NamedPipeStream_ServerIn_ClientOut.ReadWrite(size: 10 |      1.16 |        297167.47 |        255575.49 |         |
 
+### Running against the latest .NET Core SDK
+
+To run the benchmarks against the latest .NET Core SDK you can use the [benchmarks_ci.py](../scripts/benchmarks_ci.py) script. It's going to download the latest .NET Core SDK(s) for the provided framework(s) and run the benchmarks for you. Please see [Prerequisites](./prerequisites.md#python) for more.
+
+```cmd
+C:\Projects\performance> py scripts\benchmarks_ci.py -f netcoreapp3.0 \
+    --bdn-arguments="--artifacts "C:\results\latest_sdk"" \
+    --filter System.IO.Pipes*
+```
+
 ## Solving Regressions
 
 ### Repro Case
