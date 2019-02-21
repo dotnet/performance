@@ -10,7 +10,7 @@ We use BenchmarkDotNet as the benchmarking tool, you can read more about it in [
 
 ## Quick Start
 
-The first thing that you need to choose is the Target Framework. Available options are: netcoreapp2.0|2.1|2.2|3.0 and net461. You can specify the target framework using `-f|--framework` argument. For the sake of simplicity, all examples below use `netcoreapp3.0` as the target framework.
+The first thing that you need to choose is the Target Framework. Available options are: `netcoreapp2.0|netcoreapp2.1|netcoreapp2.2|netcoreapp3.0|net461`. You can specify the target framework using `-f|--framework` argument. For the sake of simplicity, all examples below use `netcoreapp3.0` as the target framework.
 
 To run the benchmarks in Interactive Mode, where you will be asked which benchmark(s) to run:
 
@@ -44,7 +44,7 @@ dotnet run -f netcoreapp2.1 --filter * --runtimes netcoreapp2.1 netcoreapp3.0 co
 
 ## Private Runtime Builds
 
-If you contribute to CoreFX/CoreCLR and want to benchmark **local builds of the .NET Core** you need to build CoreCLR/FX in Release (including tests) and then provide the path(s) to CoreRun(s). Provided CoreRun(s) will be used to execute every benchmark in a dedicated process.
+If you contribute to CoreFX/CoreCLR and want to benchmark **local builds of .NET Core** you need to build CoreFX/CoreCLR in Release (including tests) and then provide the path(s) to CoreRun(s). Provided CoreRun(s) will be used to execute every benchmark in a dedicated process:
 
 ```cmd
 dotnet run -f netcoreapp3.0 --filter $YourFilter --coreRun "C:\Projects\coreclr\bin\tests\Windows_NT.x64.Release\Tests\Core_Root\CoreRun.exe"
@@ -61,7 +61,7 @@ dotnet run -f netcoreapp3.0 \
         "C:\Projects\corefx_fork\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
 ```
 
-If you **prefer to use dotnet cli** for that, you need to pass the path to cli via the `--cli` argument.
+If you **prefer to use dotnet cli** instead of CoreRun, you need to pass the path to cli via the `--cli` argument.
 
 BenchmarkDotNet allows you to run the benchmarks for private builds of [Full .NET Framework](../../../docs/benchmarkdotnet.md#Private-CLR-Build) and [CoreRT](../../../docs/benchmarkdotnet.md#Private-CoreRT-Build)
 
@@ -86,7 +86,7 @@ public class SomeType
 
 ### Enabling given benchmark(s) for selected Operating System(s)
 
-This is possible with the `AllowedOperatingSystemsAttribute`. You need to provide a mandatory comment and OS(es) which benchmark(s) can run on.
+This is possible with the `AllowedOperatingSystemsAttribute`. You need to provide a mandatory comment and OS(es) that benchmark(s) can run on.
 
 ```cs
 [AllowedOperatingSystems("Hangs on non-Windows, dotnet/corefx#18290", OS.Windows)]
