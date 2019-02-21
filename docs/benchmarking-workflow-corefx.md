@@ -61,7 +61,7 @@ PS C:\Projects\performance\src\benchmarks\micro> tree
 │   └───System.Xml.XmlDocument
 ```
 
-During the port from xunit-performance to BenchmarkDotNet the namespaces, type and methods names were not changed. The exception to this rule are all `System.Collections` ([#92](https://github.com/dotnet/performance/pull/92)) and `Span<T>` ([#94](https://github.com/dotnet/performance/pull/94)) benchmarks which got rewritten to utilize the full capabilities of BenchmarkDotNet.
+During the port from xunit-performance to BenchmarkDotNet, the namespaces, type and methods names were not changed. The exception to this rule are all `System.Collections` ([#92](https://github.com/dotnet/performance/pull/92)) and `Span<T>` ([#94](https://github.com/dotnet/performance/pull/94)) benchmarks which got rewritten to utilize the full capabilities of BenchmarkDotNet.
 
 Please remember that you can  filter the benchmarks using a glob pattern applied to namespace.typeName.methodName ([read more](./benchmarkdotnet.md#Filtering-the-Benchmarks)):
 
@@ -89,7 +89,7 @@ dotnet run -f netcoreapp3.0 --coreRun "C:\Projects\corefx\artifacts\bin\runtime\
 
 **Note:** BenchmarkDotNet expects a path to `CoreRun.exe` file (`corerun` on Unix), not to `Core_Root` folder.
 
-Once you rebuild the part of CoreFX you are working on, the appropriate `.dll` gets updated and the next time you run the benchmarks CoreRun is going to load the updated library.
+Once you rebuild the part of CoreFX you are working on, the appropriate `.dll` gets updated and the next time you run the benchmarks, CoreRun is going to load the updated library.
 
 ```cmd
 C:\Projects\corefx\src\System.Text.RegularExpressions\src> dotnet msbuild /p:ConfigurationGroup=Release
@@ -155,7 +155,7 @@ The real performance investigation starts with profiling. To profile the benchma
 dotnet run -f netcoreapp3.0 --profiler ETW --filter $YourFilter 
 ```
 
-The benchmarking tool is going to print the path to the `.etl` trace file. You should open it with PerfView or Windows Performance Analyzer and start the analysis from there. If you are not familiar with PerfView, you should watch [PerfView Tutorial](https://channel9.msdn.com/Series/PerfView-Tutorial) by Vance Morrison first. It's an investment that is going to pay off very quickly.
+The benchmarking tool is going to print the path to the `.etl` trace file. You should open it with PerfView or Windows Performance Analyzer and start the analysis from there. If you are not familiar with PerfView, you should watch [PerfView Tutorial](https://channel9.msdn.com/Series/PerfView-Tutorial) by @vancem first. It's an investment that is going to pay off very quickly.
 
 ```log
 // * Diagnostic Output - EtwProfiler *
@@ -208,7 +208,7 @@ After the update, the reported CoreCLR version should be changed:
   Job-CYVJFZ : .NET Core ? (CoreCLR 4.6.27517.0, CoreFX 4.7.19.11901), 64bit RyuJIT
 ```
 
-**It's very important to validate the reported version numbers** to make sure that you are running the benchmarks using the versions you think that you are using.
+**It's very important to validate the reported version numbers** to make sure that you are running the benchmarks using the versions you think you are using.
 
 ## Benchmarking new API
 
@@ -216,7 +216,7 @@ When developing new CoreFX features, we should be thinking about the performance
 
 ### Reference
 
-When you develop a new feature, whether it's a new method/type/library in CoreFX all you need to do is to build it in Release and just reference the produced `.dll` from the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) project file.
+When you develop a new feature, whether it's a new method/type/library in CoreFX all you need to do is to build it in Release and just reference the produced implementation `.dll` from the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) project file.
 
 The easiest way to do it is to open [MicroBenchmarks.sln](../src/benchmarks/micro/MicroBenchmarks.sln) with Visual Studio, right click on the [MicroBenchmarks](../src/benchmarks/micro/MicroBenchmarks.csproj) project file, select "Add", then "Reference..." and in the new Dialog Window click "Browse" in the left bottom corner. From the File Picker, choose the new library and click "Add". Please don't forget to Save the changes (Ctrl+Shift+S). From this moment you should be able to consume new public types and methods exposed by the referenced library.
 
@@ -248,6 +248,4 @@ Sample project file change:
 
 Keeping the benchmarks in a separate repository requires us to send a separate PR to the performance repo.
 
-The first thing you need to do is to send a PR with the new API to the CoreFX repository. Once your PR gets merged and a new NuGet package is published to CoreFX NuGet feed you should remove the Reference to a `.dll` and install/update the package consumed by [MicroBenchmarks](../src/benchmarks/micro/MicroBenchmarks.csproj). After that, you should send a PR to the performance repo.
-
-We are aware of the fact that it's not a perfect workflow, however, we think that such a situation is going to be rare enough to not be a problem.
+The first thing you need to do is send a PR with the new API to the CoreFX repository. Once your PR gets merged and a new NuGet package is published to the CoreFX NuGet feed, you should remove the Reference to a `.dll` and install/update the package consumed by [MicroBenchmarks](../src/benchmarks/micro/MicroBenchmarks.csproj). After that, you should send a PR to the performance repo.
