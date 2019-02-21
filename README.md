@@ -10,6 +10,7 @@ Finding these benchmarks in a separate repository might be surprising. Performan
 
 * [Microbenchmarks Guide](./src/benchmarks/micro/README.md) for information on running our microbenchmarks
 * [Real-World Scenarios Guide](./src/benchmarks/real-world/JitBench/README.md) for information on running our real-world scenario benchmarks
+* [Benchmarking workflow for CoreFX](./docs/benchmarking-workflow-corefx.md) for information on working with CoreFX
 
 ## Contributing to Repository
 
