@@ -17,13 +17,13 @@
 
 ## Introduction
 
-This repository is **independent of CoreFX build system.** All you need to get the benchmarks running is to download dotnet cli or use the python script. Please see [Prerequisites](./prerequisites.md) for more.
+This repository is **independent of the CoreFX build system.** All you need to get the benchmarks running is to download the dotnet cli or use the python script. Please see [Prerequisites](./prerequisites.md) for more.
 
 If you are not familiar with BenchmarkDotNet or this repository you should read the [Microbenchmarks Guide](../src/benchmarks/micro/README.md) first. It's really short and concise, we really encourage you to read it.
 
 ### Code Organization
 
-All CoreFX benchmarks which have been ported from CoreFX repository belong to the corresponding folders: `corefx\$namespace`. The directory structure is following (some folders have been ommited for brevity):
+All CoreFX benchmarks which have been ported from CoreFX repository belong to the corresponding folders: `corefx\$namespace`. The directory structure is the following (some folders have been ommited for brevity):
 
 ```log
 PS C:\Projects\performance\src\benchmarks\micro> tree
@@ -79,7 +79,7 @@ In order to run the benchmarks against local CoreFX build you need to build the 
 C:\Projects\corefx> build -Release
 ```
 
-**The most important build artifact for us is CoreRun**. CoreRun is a simple host that does NOT take any dependency on NuGet. BenchmarkDotNet generates some boilerplate code, builds it using dotnet cli and tells CoreRun.exe to run the benchmarks from the auto-generated library. CoreRun runs the benchmarks using the libraries that are placed in its folder. When a benchmarked code has a dependency to `System.ABC.dll` version 4.5 and CoreRun has `System.ABC.dll` version 4.5.1 in its folder, then CoreRun is going to load and use `System.ABC.dll` version 4.5.1. **This is why having a single clone of .NET Performance repository allows you to run benchmarks against private builds of CoreCLR/FX from many different locations.**
+**The most important build artifact for us is CoreRun**. CoreRun is a simple host that does NOT take any dependency on NuGet. BenchmarkDotNet generates some boilerplate code, builds it using dotnet cli and tells CoreRun.exe to run the benchmarks from the auto-generated library. CoreRun runs the benchmarks using the libraries that are placed in its folder. When a benchmarked code has a dependency to `System.ABC.dll` version 4.5 and CoreRun has `System.ABC.dll` version 4.5.1 in its folder, then CoreRun is going to load and use `System.ABC.dll` version 4.5.1. **This means that with a single clone of this dotnet/performance repository you can run benchmarks against private builds of CoreCLR/FX from many different locations.**
 
 Every time you want to run the benchmarks against local build of CoreFX you need to provide the path to CoreRun:
 
@@ -97,9 +97,9 @@ C:\Projects\corefx\src\System.Text.RegularExpressions\src> dotnet msbuild /p:Con
 
 ## Preventing Regressions
 
-Preventing regressions is one of the fundamental concepts of our performance culture.
+Preventing regressions is a fundamental part of our performance culture. The cheapest regression is one that does not get into the product.
 
-**Before introducing any changes**, you should run the benchmarks that test the performance of the feature that you are going to work on and store the results in a **dedicated** folder.
+**Before introducing any changes that may impact performance**, you should run the benchmarks that test the performance of the feature that you are going to work on and store the results in a **dedicated** folder.
 
 ```cmd
 C:\Projects\performance\src\benchmarks\micro> dotnet run -f netcoreapp3.0 \
@@ -181,11 +181,13 @@ BenchmarkDotNet has some extra features that might be useful when doing performa
 
 - You can run the benchmarks against [multiple Runtimes](./benchmarkdotnet.md#Multiple-Runtimes). It can be very useful when the regression has been introduced between .NET Core releases, for example: between netcoreapp2.2 and netcoreapp3.0.
 - You can run the benchmarks using provided [dotnet cli](./benchmarkdotnet.md#dotnet-cli). You can download few dotnet SDKs, unzip them and just run the benchmarks to spot the version that has introduced the regression to narrow down your investigation.
-- You can run the benchmarks using few [CoreRuns](./benchmarkdotnet.md#CoreRun). You can build the latest CoreFX in Release, create a copy of the folder with CoreRun and use git to checkout older commit. Then rebuild the CoreFX and run the benchmarks against the old and new builds. This can narrow down your investigation to the commit that has introduced the bug.
+- You can run the benchmarks using few [CoreRuns](./benchmarkdotnet.md#CoreRun). You can build the latest CoreFX in Release, create a copy of the folder with CoreRun and use git to checkout an older commit. Then rebuild CoreFX and run the benchmarks against the old and new builds. This can narrow down your investigation to the commit that has introduced the bug.
 
 ### Confirmation
 
 When you identify and fix the regression, you should use [ResultsComparer](../src/tools/ResultsComparer/README.md) to confirm that you have solved the problem. Please remember that if the regression was found in a very common type like `Span<T>` and you are not sure which benchmarks to run, you can run all of them using `--filter *`.
+
+Please take a moment to consider how the regression managed to enter the product. Are we now properly protected?
 
 ## Local CoreCLR Build
 
@@ -256,6 +258,6 @@ Sample project file change:
 
 ### PR
 
-Keeping the benchmarks in a separate repository requires us to send a separate PR to the performance repo.
+Because the benchmarks are not in the CoreFX repository you must do two PR's.
 
 The first thing you need to do is send a PR with the new API to the CoreFX repository. Once your PR gets merged and a new NuGet package is published to the CoreFX NuGet feed, you should remove the Reference to a `.dll` and install/update the package consumed by [MicroBenchmarks](../src/benchmarks/micro/MicroBenchmarks.csproj). After that, you should send a PR to the performance repo.
