@@ -257,21 +257,12 @@ def __process_arguments(args: list):
     return parser.parse_args(args)
 
 
-def __get_coreclr_os_name():
+def __get_os_name():
     if sys.platform == 'win32':
-        return 'Windows_NT'
+        return 'Windows'
     elif sys.platform == 'linux':
         os_name, os_version, _ = platform.linux_distribution()
         return '{}{}'.format(os_name, os_version)
-    else:
-        return platform.platform()
-
-
-def __get_corefx_os_name():
-    if sys.platform == 'win32':
-        return 'Windows_NT'
-    elif sys.platform == 'linux':
-        return 'Linux'
     else:
         return platform.platform()
 
@@ -408,19 +399,11 @@ def __run_benchview_scripts(
         benchview_config['Configuration'] = args.configuration
 
     # Generate existing configs.
-    # TODO: Unify configs across all repos?
     submission_architecture = args.architecture
-    if args.category.casefold() == 'CoreClr'.casefold():
-        benchview_config['JitName'] = 'ryujit'  # FIXME: Remove this.
-        benchview_config['OS'] = __get_coreclr_os_name()
-        benchview_config['OptLevel'] = args.optimization_level  # Optimization
-        benchview_config['PGO'] = 'pgo'  # FIXME: Remove this? Enabled/Disabled
-        benchview_config['Profile'] = 'On' if args.enable_pmc else 'Off'
-    elif args.category.casefold() == 'CoreFx'.casefold():
-        submission_architecture = 'AnyCPU'
-        benchview_config['OS'] = __get_corefx_os_name()
-        benchview_config['RunType'] = \
-            'Diagnostic' if args.enable_pmc else 'Profile'
+    
+    benchview_config['OS'] = __get_os_name()
+    benchview_config['OptLevel'] = args.optimization_level
+    benchview_config['Profile'] = 'On' if args.enable_pmc else 'Off'
 
     # Find all measurement.json
     with push_dir(bin_directory):
