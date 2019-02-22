@@ -69,10 +69,11 @@ jobs:
                 _Framework: ${{ framework }}
                 _OptimizationLevel: full_opt
                 _BuildConfig: ${{ parameters.architecture }}_$(_OptimizationLevel)_$(_Framework)
-              tiered_${{ framework }}:
-                _Framework: ${{ framework }}
-                _OptimizationLevel: tiered
-                _BuildConfig: ${{ parameters.architecture }}_$(_OptimizationLevel)_$(_Framework)
+              ${{ if and(startsWith(framework, 'netcoreapp'), ne(framework, 'netcoreapp2.0')) }}: # Tiered JIT was introduced in .NET Core 2.1
+                tiered_${{ framework }}:
+                  _Framework: ${{ framework }}
+                  _OptimizationLevel: tiered
+                  _BuildConfig: ${{ parameters.architecture }}_$(_OptimizationLevel)_$(_Framework)
         steps:
         - checkout: self
           clean: true
