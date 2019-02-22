@@ -9,8 +9,10 @@
     <RestoreSources>
       $(RestoreSources);
       https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json;
+      https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
       https://dotnet.myget.org/F/symreader-converter/api/v3/index.json;
-      https:%2F%2Fdotnet.myget.org/F/symreader/api/v3/index.json;
+      https://dotnet.myget.org/F/symreader/api/v3/index.json;
+      https://ci.appveyor.com/nuget/benchmarkdotnet;
     </RestoreSources>
   </PropertyGroup>
 </Project>
