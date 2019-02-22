@@ -43,7 +43,7 @@ jobs:
             value: '.NET Performance - $(BenchViewRunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
           # for private runs we want to generate data (--generate-benchview-data ) and upload it (--upload-to-benchview-container specifies where)
           - name: BenchViewArguments
-            value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(BenchViewRunType) --upload-to-benchview-container $(_Category)'
+            value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(BenchViewRunType) --upload-to-benchview-container all'
           # for private runs we don't provide any custom BDN arguments (the ones from Program.Main are used)
           - name: BenchmarkDotNetArguments
             value: ''
@@ -65,14 +65,14 @@ jobs:
         strategy:
           matrix:
             ${{ each framework in parameters.frameworks }}:
-              coreclr_${{ framework }}:
-                _Category: coreclr
+              full_opt_${{ framework }}:
                 _Framework: ${{ framework }}
-                _BuildConfig: ${{ parameters.architecture }}_coreclr_$(_Framework)
-              corefx_${{ framework }}:
-                _Category: corefx
+                _OptimizationLevel: full_opt
+                _BuildConfig: ${{ parameters.architecture }}_$(_OptimizationLevel)_$(_Framework)
+              tiered_${{ framework }}:
                 _Framework: ${{ framework }}
-                _BuildConfig: ${{ parameters.architecture }}_corefx_$(_Framework)
+                _OptimizationLevel: tiered
+                _BuildConfig: ${{ parameters.architecture }}_$(_OptimizationLevel)_$(_Framework)
         steps:
         - checkout: self
           clean: true
@@ -87,9 +87,9 @@ jobs:
             WorkItemTimeout: 4:00 # 4 hours
             ${{ if eq(parameters.osName, 'windows') }}:
               WorkItemDirectory: '$(Build.SourcesDirectory)\src\benchmarks\micro'
-              WorkItemCommand: 'py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --bin-directory ".\bin" --working-directory . --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
+              WorkItemCommand: 'py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --bin-directory ".\bin" --working-directory . --optimization-level $(_OptimizationLevel) --incremental no --filter * --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
               CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\scripts'
             ${{ if ne(parameters.osName, 'windows') }}:
               WorkItemDirectory: '$(Build.SourcesDirectory)/src/benchmarks/micro'
-              WorkItemCommand: 'python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py --bin-directory "./bin" --working-directory . --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
+              WorkItemCommand: 'python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py --bin-directory "./bin" --working-directory . --optimization-level $(_OptimizationLevel) --incremental no --filter ''*'' --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
               CorrelationPayloadDirectory: '$(Build.SourcesDirectory)/scripts'
