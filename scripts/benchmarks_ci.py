@@ -20,7 +20,7 @@ For more information refer to: benchmarking-workflow.md
 https://github.com/dotnet/performance/blob/master/docs/benchmarking-workflow.md
 '''
 
-from argparse import ArgumentParser, ArgumentTypeError
+from argparse import Action, ArgumentParser, ArgumentTypeError
 from datetime import datetime
 from glob import iglob
 from itertools import chain
@@ -40,8 +40,85 @@ import dotnet
 import micro_benchmarks
 
 
+class DotNetPerformanceModes(Action):
+    '''
+    Default: (Currently Tiered)
+
+    NoTiering: (Formerly called full_opt)
+        COMPlus_TieredCompilation=0
+            This includes R2R code, useful for comparison against Default and
+            JitOnly for changes to R2R code or tiering.
+
+    JitOnly: Maybe could be called FullOptJitOnly to make it clear what it does
+        COMPlus_TieredCompilation=0
+        COMPlus_ReadyToRun=0
+            This is JIT-only, useful for comparison against Default and NoTier
+            for changes to R2R code or tiering.
+
+    MinOpt:
+        COMPlus_TieredCompilation=0
+        COMPlus_JITMinOpts=1
+            Uses minopt-JIT for methods that do not have pregenerated code,
+            useful for startup time comparisons in scenario benchmarks that
+            include a startup time measurement (probably not for
+            microbenchmarks), probably not useful for a PR.
+
+    For PRs it is recommended to kick off Default, NoTiering, and JitOnly modes
+    '''
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if values:
+            # Remove potentially set environments.
+            if 'COMPlus_TieredCompilation' in os.environ:
+                os.environ.pop('COMPlus_TieredCompilation')
+            if 'COMPlus_ReadyToRun' in os.environ:
+                os.environ.pop('COMPlus_ReadyToRun')
+            if 'COMPlus_JITMinOpts' in os.environ:
+                os.environ.pop('COMPlus_JITMinOpts')
+
+            # Configure .NET Runtime
+            if values == 'Default':
+                pass
+            elif values == 'NoTiering':
+                os.environ['COMPlus_TieredCompilation'] = '0'
+            elif values == 'JitOnly':
+                os.environ['COMPlus_TieredCompilation'] = '0'
+                os.environ['COMPlus_ReadyToRun'] = '0'
+            elif values == 'MinOpt':
+                os.environ['COMPlus_TieredCompilation'] = '0'
+                os.environ['COMPlus_JITMinOpts'] = '1'
+            else:
+                raise ArgumentTypeError(
+                    'Unknown mode: {}'.format(values)
+                )
+
+            setattr(namespace, self.dest, values)
+
+    @staticmethod
+    def modes() -> list:
+        '''Available .NET Performance modes.'''
+        return ['Default', 'NoTiering', 'JitOnly', 'MinOpt']
+
+    @staticmethod
+    def validate(usr_mode: str) -> str:
+        '''Default .NET performance mode.'''
+        requested_mode = None
+        for mode in DotNetPerformanceModes.modes():
+            if usr_mode.casefold() == mode.casefold():
+                requested_mode = mode
+                break
+        if not requested_mode:
+            raise ArgumentTypeError('Unknown mode: {}'.format(usr_mode))
+        return requested_mode
+
+    @staticmethod
+    def tiered() -> str:
+        '''Default .NET performance mode.'''
+        return DotNetPerformanceModes.modes()[0]
+
+
 if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
-    message = '''The `linux_distribution` method is missing from ''' \
+    MESSAGE = '''The `linux_distribution` method is missing from ''' \
         '''the `platform` module, which is used to find out information ''' \
         '''about the OS flavor/version we are using.%s''' \
         '''The Python Docs state that `platform.linux_distribution` is ''' \
@@ -52,7 +129,7 @@ if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
         '''If we are hitting this issue, then it might be time to look ''' \
         '''into using the `distro` module, and possibly packaing as part ''' \
         '''of the dependencies of these scripts/repo.'''
-    getLogger().error(message, os.linesep, os.linesep, os.linesep)
+    getLogger().error(MESSAGE, os.linesep, os.linesep, os.linesep)
     exit(1)
 
 
@@ -93,11 +170,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
     # .NET Runtime Options.
     parser.add_argument(
-        '--optimization-level',
-        dest='optimization_level',
+        '--dotnet-performance-mode',
+        dest='dotnet_performance_mode',
         required=False,
-        default='tiered',
-        choices=['tiered', 'full_opt', 'min_opt']
+        action=DotNetPerformanceModes,
+        choices=DotNetPerformanceModes.modes(),
+        default=DotNetPerformanceModes.tiered(),
+        type=DotNetPerformanceModes.validate,
+        help='''Different performance modes that can be set to change '''
+             '''the .NET runtime behavior'''
     )
 
     PRODUCT_INFO = [
@@ -153,71 +234,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
             "%%Y-%%m-%%dT%%H:%%M:%%SZ").'''
     )
 
-    # BenchView acquisition, and fuctionality
-    parser.add_argument(
-        '--generate-benchview-data',
-        dest='generate_benchview_data',
-        action='store_true',
-        default=False,
-        help='Flags indicating whether BenchView data should be generated.'
-    )
-
-    parser.add_argument(
-        '--upload-to-benchview-container',
-        dest='upload_to_benchview_container',
-        required=False,
-        type=str,
-        help='Name of the Azure Storage Container to upload to.'
-    )
-
-    # TODO: Make these arguments dependent on `generate_benchview_data`?
-    is_benchview_commit_name_defined = 'BenchviewCommitName' in os.environ
-    default_submission_name = os.environ['BenchviewCommitName'] \
-        if is_benchview_commit_name_defined else None
-    parser.add_argument(
-        '--benchview-submission-name',
-        dest='benchview_submission_name',
-        default=default_submission_name,
-        required=False,
-        type=str,
-        help='BenchView submission name.'
-    )
-    parser.add_argument(
-        '--benchview-run-type',
-        dest='benchview_run_type',
-        default='local',
-        choices=['rolling', 'private', 'local'],
-        type=str.lower,
-        help='BenchView submission type.'
-    )
-    parser.add_argument(
-        '--benchview-config-name',
-        dest='benchview_config_name',  # Uses as default args.configuration
-        required=False,
-        type=str,
-        help="BenchView's (user facing) configuration display name."
-    )
-    parser.add_argument(
-        '--benchview-machinepool',
-        dest='benchview_machinepool',
-        default=platform.platform(),
-        required=False,
-        type=str,
-        help="A logical name that groups test results into a single *machine*."
-    )
-    parser.add_argument(
-        '--benchview-config',
-        dest='benchview_config',
-        metavar=('key', 'value'),
-        action='append',
-        required=False,
-        nargs=2,
-        help='''A configuration property defined as a {key:value} pair.
-        This is used to describe the benchmark results. For example, some
-        types of configurations can be: optimization level (tiered, full opt,
-        min opt), configuration (debug/release), profile (on/off), etc.'''
-    )
-
     # Generic arguments.
     parser.add_argument(
         '-q', '--quiet',
@@ -243,6 +259,9 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Attempts to run the benchmarks without building.',
     )
 
+    # BenchView acquisition, and fuctionality
+    parser = benchview.add_arguments(parser)
+
     return parser
 
 
@@ -255,25 +274,6 @@ def __process_arguments(args: list):
     )
     add_arguments(parser)
     return parser.parse_args(args)
-
-
-def __get_coreclr_os_name():
-    if sys.platform == 'win32':
-        return 'Windows_NT'
-    elif sys.platform == 'linux':
-        os_name, os_version, _ = platform.linux_distribution()
-        return '{}{}'.format(os_name, os_version)
-    else:
-        return platform.platform()
-
-
-def __get_corefx_os_name():
-    if sys.platform == 'win32':
-        return 'Windows_NT'
-    elif sys.platform == 'linux':
-        return 'Linux'
-    else:
-        return platform.platform()
 
 
 def __get_build_info(
@@ -407,20 +407,20 @@ def __run_benchview_scripts(
     if 'Configuration' not in benchview_config:
         benchview_config['Configuration'] = args.configuration
 
-    # Generate existing configs.
-    # TODO: Unify configs across all repos?
-    submission_architecture = args.architecture
-    if args.category.casefold() == 'CoreClr'.casefold():
-        benchview_config['JitName'] = 'ryujit'  # FIXME: Remove this.
-        benchview_config['OS'] = __get_coreclr_os_name()
-        benchview_config['OptLevel'] = args.optimization_level  # Optimization
-        benchview_config['PGO'] = 'pgo'  # FIXME: Remove this? Enabled/Disabled
-        benchview_config['Profile'] = 'On' if args.enable_pmc else 'Off'
-    elif args.category.casefold() == 'CoreFx'.casefold():
-        submission_architecture = 'AnyCPU'
-        benchview_config['OS'] = __get_corefx_os_name()
-        benchview_config['RunType'] = \
-            'Diagnostic' if args.enable_pmc else 'Profile'
+    # Generate configurations.
+    def __get_os_name():
+        if sys.platform == 'win32':
+            return '{} {}'.format(platform.system(), platform.release())
+        elif sys.platform == 'linux':
+            os_name, os_version, _ = platform.linux_distribution()
+            return '{}{}'.format(os_name, os_version)
+        else:
+            return platform.platform()
+
+    benchview_config['Jit'] = 'RyuJIT'  # TODO: Hardcoded Jit name.
+    benchview_config['PerformanceMode'] = args.dotnet_performance_mode
+    benchview_config['OS'] = __get_os_name()
+    benchview_config['Profile'] = 'On' if args.enable_pmc else 'Off'
 
     # Find all measurement.json
     with push_dir(bin_directory):
@@ -448,7 +448,7 @@ def __run_benchview_scripts(
             benchviewpy.submission(
                 working_directory=bin_directory,
                 measurement_jsons=measurement_jsons,
-                architecture=submission_architecture,
+                architecture=args.architecture,
                 config_name=benchview_config_name,
                 configs=benchview_config,
                 machinepool=args.benchview_machinepool,
@@ -486,15 +486,6 @@ def __main(args: list) -> int:
         verbose=verbose
     )
 
-    # Configure .NET Runtime
-    # TODO: Is this still correct across releases?
-    #   Does it belong in the script?
-    if args.optimization_level == 'min_opt':
-        os.environ['COMPlus_JITMinOpts'] = '1'
-        os.environ['COMPlus_TieredCompilation'] = '0'
-    elif args.optimization_level == 'full_opt':
-        os.environ['COMPlus_TieredCompilation'] = '0'
-
     # WORKAROUND
     # The MicroBenchmarks.csproj targets .NET Core 2.0, 2.1, 2.2 and 3.0
     # to avoid a build failure when using older frameworks (error NETSDK1045:
@@ -508,9 +499,8 @@ def __main(args: list) -> int:
     dotnet.info(verbose=verbose)
 
     BENCHMARKS_CSPROJ = dotnet.CSharpProject(
-        working_directory=args.working_directory,
-        bin_directory=args.bin_directory,
-        csproj_file='MicroBenchmarks.csproj'
+        project=args.csprojfile,
+        bin_directory=args.bin_directory
     )
 
     if not args.run_only:

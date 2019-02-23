@@ -5,6 +5,7 @@ Contains the functionality around DotNet Cli.
 """
 
 from argparse import ArgumentParser
+from collections import namedtuple
 from glob import iglob
 from json import loads
 from logging import getLogger
@@ -32,53 +33,42 @@ def info(verbose: bool) -> None:
     RunCommand(cmdline, verbose=verbose).run()
 
 
+CSharpProjFile = namedtuple('CSharpProjFile', [
+    'file_name',
+    'working_directory'
+])
+
+
 class CSharpProject:
     '''
     This is a class wrapper around the `dotnet` command line interface.
     Remark: It assumes dotnet is already in the PATH.
     '''
 
-    def __init__(
-            self,
-            working_directory: str,
-            bin_directory: str,
-            csproj_file: str):
-        if not working_directory:
-            raise TypeError(
-                'working_directory should be string, not NoneType.'
-            )
+    def __init__(self, project: CSharpProjFile, bin_directory: str):
+        if not project.file_name:
+            raise TypeError('C# file name cannot be null.')
+        if not project.working_directory:
+            raise TypeError('C# working directory cannot be null.')
         if not bin_directory:
-            raise TypeError(
-                'bin_directory should be string, not NoneType.'
-            )
-        if not csproj_file:
-            raise TypeError(
-                'csproj_file should be string, not NoneType.'
-            )
+            raise TypeError('bin folder cannot be null.')
 
-        if not path.isdir(working_directory):
+        self.__csproj_file = path.abspath(project.file_name)
+        self.__working_directory = path.abspath(project.working_directory)
+        self.__bin_directory = bin_directory
+
+        if not path.isdir(self.__working_directory):
             raise ValueError(
                 'Specified working directory: {}, does not exist.'.format(
-                    working_directory
+                    self.__working_directory
                 )
             )
-
-        if path.isabs(csproj_file) and not path.exists(csproj_file):
+        if not path.isfile(self.__csproj_file):
             raise ValueError(
                 'Specified project file: {}, does not exist.'.format(
-                    csproj_file
+                    self.__csproj_file
                 )
             )
-        elif not path.exists(path.join(working_directory, csproj_file)):
-            raise ValueError(
-                'Specified project file: {}, does not exist.'.format(
-                    csproj_file
-                )
-            )
-
-        self.__working_directory = working_directory
-        self.__bin_directory = bin_directory
-        self.__csproj_file = csproj_file
 
     @property
     def working_directory(self) -> str:

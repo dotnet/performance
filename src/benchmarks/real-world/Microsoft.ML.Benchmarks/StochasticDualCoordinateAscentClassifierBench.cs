@@ -11,6 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Learners;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
+using MicroBenchmarks;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -20,6 +21,7 @@ namespace Microsoft.ML.Benchmarks
     /// measure performance of making a single prediction from one of these pipelines, as
     /// well as making batch predictions on multiple rows of data from the same model.
     /// </summary>
+    [BenchmarkCategory(Categories.MachineLearning)]
     public class StochasticDualCoordinateAscentClassifierBench
     {
         private readonly string _dataPath = Program.GetInvariantCultureDataPath("iris.txt");

@@ -8,6 +8,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
+using MicroBenchmarks;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -17,6 +18,7 @@ namespace Microsoft.ML.Benchmarks
     /// datasets as part of the initialization, then the performance of making predictions
     /// from these models is measured by the benchmarks.
     /// </summary>
+    [BenchmarkCategory(Categories.MachineLearning)]
     public class PredictionEngineBench
     {
         private IrisData _irisExample;

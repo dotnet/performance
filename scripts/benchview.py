@@ -4,15 +4,18 @@
 Support script around BenchView script.
 '''
 
+from argparse import ArgumentParser
 from collections import namedtuple
 from errno import EEXIST
 from glob import iglob
 from logging import getLogger
-from os import path
+from os import environ, path
 from urllib.parse import urlparse
 from urllib.request import urlopen
 from xml.etree import ElementTree
 from zipfile import ZipFile
+
+import platform
 
 from performance.common import get_tools_directory
 from performance.common import get_python_executable
@@ -271,6 +274,81 @@ def __get_latest_benchview_script_version() -> str:
             raise RuntimeError('No BenchView packages found.')
         packages.sort()
         return packages[-1]
+
+
+def add_arguments(parser: ArgumentParser) -> ArgumentParser:
+    '''
+    Adds new arguments to the specified ArgumentParser object.
+    '''
+
+    if not isinstance(parser, ArgumentParser):
+        raise TypeError('Invalid parser.')
+
+    parser.add_argument(
+        '--generate-benchview-data',
+        dest='generate_benchview_data',
+        action='store_true',
+        default=False,
+        help='Flags indicating whether BenchView data should be generated.'
+    )
+
+    parser.add_argument(
+        '--upload-to-benchview-container',
+        dest='upload_to_benchview_container',
+        required=False,
+        type=str,
+        help='Name of the Azure Storage Container to upload to.'
+    )
+
+    # TODO: Make these arguments dependent on `generate_benchview_data`?
+    is_benchview_commit_name_defined = 'BenchviewCommitName' in environ
+    default_submission_name = environ['BenchviewCommitName'] \
+        if is_benchview_commit_name_defined else None
+    parser.add_argument(
+        '--benchview-submission-name',
+        dest='benchview_submission_name',
+        default=default_submission_name,
+        required=False,
+        type=str,
+        help='BenchView submission name.'
+    )
+    parser.add_argument(
+        '--benchview-run-type',
+        dest='benchview_run_type',
+        default='local',
+        choices=['rolling', 'private', 'local'],
+        type=str.lower,
+        help='BenchView submission type.'
+    )
+    parser.add_argument(
+        '--benchview-config-name',
+        dest='benchview_config_name',  # Uses as default args.configuration
+        required=False,
+        type=str,
+        help="BenchView's (user facing) configuration display name."
+    )
+    parser.add_argument(
+        '--benchview-machinepool',
+        dest='benchview_machinepool',
+        default=platform.platform(),
+        required=False,
+        type=str,
+        help="A logical name that groups test results into a single *machine*."
+    )
+    parser.add_argument(
+        '--benchview-config',
+        dest='benchview_config',
+        metavar=('key', 'value'),
+        action='append',
+        required=False,
+        nargs=2,
+        help='''A configuration property defined as a {key:value} pair.
+        This is used to describe the benchmark results. For example, some
+        types of configurations can be: performance mode, configuration,
+        profile, etc.'''
+    )
+
+    return parser
 
 
 def __main():

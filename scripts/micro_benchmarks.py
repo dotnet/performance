@@ -126,7 +126,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''
     Adds new arguments to the specified ArgumentParser object.
     '''
-    def dotnet_configuration(configuration: str) -> str:
+    def __dotnet_configuration(configuration: str) -> str:
         for config in get_supported_configurations():
             is_valid = config.casefold() == configuration.casefold()
             if is_valid:
@@ -140,7 +140,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         required=False,
         default=supported_configurations[0],
         choices=supported_configurations,
-        type=dotnet_configuration,
+        type=__dotnet_configuration,
         help=SUPPRESS,
     )
 
@@ -179,10 +179,11 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
              '''BranchMispredictions+CacheMisses+InstructionRetired''',
     )
 
+    # TODO: Maybe we can drop this in favor of using the --bdn-arguments option
     parser.add_argument(
         '--category',
         required=False,
-        choices=['coreclr', 'corefx'],
+        choices=['coreclr', 'corefx', 'machinelearning'],
         type=str.lower
     )
     parser.add_argument(
@@ -238,13 +239,28 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
             raise ArgumentTypeError('{} does not exist.'.format(file_path))
         return file_path
 
+    def __csproj_file_path(file_path: str) -> dotnet.CSharpProjFile:
+        file_path = __valid_file_path(file_path)
+        return dotnet.CSharpProjFile(
+            file_name=file_path,
+            working_directory=path.dirname(file_path)
+        )
+
+    microbenchmarks_csproj = path.join(
+        get_repo_root_path(), 'src', 'benchmarks', 'micro',
+        'MicroBenchmarks.csproj'
+    )
     parser.add_argument(
-        '--working-directory',
-        dest='working_directory',
+        '--csproj',
+        dest='csprojfile',
         required=False,
-        default=path.join(get_repo_root_path(), 'src', 'benchmarks', 'micro'),
-        type=__valid_dir_path,
-        help='The directory where MicroBenchmarks.csproj can be found',
+        type=__csproj_file_path,
+        default=dotnet.CSharpProjFile(
+            file_name=microbenchmarks_csproj,
+            working_directory=path.dirname(microbenchmarks_csproj)
+        ),
+        help='''C# project file name with the benchmarks to build/run. '''
+             '''The default project is the MicroBenchmarks.csproj'''
     )
 
     def __absolute_path(file_path: str) -> str:
@@ -391,8 +407,7 @@ def __main(args: list) -> int:
         dotnet.info(verbose)
 
         BENCHMARKS_CSPROJ = dotnet.CSharpProject(
-            working_directory=args.working_directory,
-            csproj_file='MicroBenchmarks.csproj',
+            project=args.csprojfile,
             bin_directory=args.bin_directory
         )
 
