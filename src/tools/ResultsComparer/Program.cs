@@ -102,8 +102,8 @@ namespace ResultsComparer
 
         private static IEnumerable<(string id, Benchmark baseResult, Benchmark diffResult)> ReadResults(CommandLineOptions args)
         {
-            var baseFiles = GetFilesToParse(args.BasePath);
-            var diffFiles = GetFilesToParse(args.DiffPath);
+            var baseFiles = GetFilesToParse(args.BasePath).OrderBy(f => new FileInfo(f).CreationTimeUtc).TakeLast(1);
+            var diffFiles = GetFilesToParse(args.DiffPath).OrderBy(f => new FileInfo(f).CreationTimeUtc).TakeLast(1);
 
             if (!baseFiles.Any() || !diffFiles.Any())
                 throw new ArgumentException($"Provided paths contained no {FullBdnJsonFileExtension} files.");
