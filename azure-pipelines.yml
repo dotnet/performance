@@ -1,29 +1,119 @@
-variables:
-  Build.Repository.Clean: true
-  _BuildConfig: Release
-  _HelixType: build/product
-  
+resources:
+  containers:
+    - container: ubuntu_x64_build_container
+      image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-c103199-20180628134544
+    - container: ubuntu_1604_arm64_cross_container
+      image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-cross-arm64-a3ae44b-20180315221921
+
 trigger:
 - master
 
 pr:
 - master
 
-# Full stack SDK Performance Testing
 jobs:
-- template: /eng/common/templates/jobs/jobs.yml
-  parameters:
-    enableTelemetry: true
-    enablePublishBuildArtifacts: false
-    helixRepo: dotnet/performance
-    jobs:
-    - job: sdk_performance
-      pool:
-        name: Hosted VS2017
-      steps:
-      - checkout: self
-        clean: true
-      - script: echo "Hello World"
-        name: echo
-        displayName: Echo
-        condition: succeeded()
+
+# Windows x64 micro benchmarks, public correctness job
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS4
+      kind: micro
+      architecture: x64
+      pool: Hosted VS2017
+      queue: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
+      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - netcoreapp3.0
+        - netcoreapp2.2
+        - netcoreapp2.1
+        - netcoreapp2.0
+        - net461
+
+# Windows x86 micro benchmarks, public correctness job
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS4
+      kind: micro
+      architecture: x86
+      pool: Hosted VS2017
+      queue: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
+      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - netcoreapp3.0
+        - netcoreapp2.2
+        - netcoreapp2.1
+        - netcoreapp2.0
+        - net461
+
+# Windows x64 micro benchmarks, private job
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 10
+      kind: micro
+      architecture: x64
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+        - netcoreapp3.0
+      
+# Windows x86 micro benchmarks, private job
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 10
+      kind: micro
+      architecture: x86
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+        - netcoreapp3.0
+        
+# Ubuntu 1604 x64 micro benchmarks, public correctness job
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1604
+      kind: micro
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1604.Amd64.Open
+      container: ubuntu_x64_build_container
+      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - netcoreapp3.0
+        - netcoreapp2.2
+        - netcoreapp2.1
+        - netcoreapp2.0
+
+# Ubuntu 1604 x64 micro benchmarks, private job
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1604
+      kind: micro
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
+      container: ubuntu_x64_build_container
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+        - netcoreapp3.0
+        
+# Ubuntu 1604 ARM64 micro benchmarks, public correctness job
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1604
+      kind: micro
+      architecture: arm64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1604.Arm64.Open
+      container: ubuntu_1604_arm64_cross_container
+      frameworks: # currently ARM64 is supported only by .NET Core 3.0 https://github.com/dotnet/core/blob/master/release-notes/3.0/3.0-supported-os.md
+        - netcoreapp3.0

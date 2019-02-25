@@ -98,9 +98,13 @@ def get_tools_directory() -> str:
     '''Gets the default root directory where tools should be installed.'''
     return os.path.join(get_repo_root_path(), 'tools')
 
+
 def get_artifacts_directory() -> str:
-    '''Gets the default artifacts directory where arcade builds the benchmarks.'''
+    '''
+    Gets the default artifacts directory where arcade builds the benchmarks.
+    '''
     return os.path.join(get_repo_root_path(), 'artifacts')
+
 
 @contextmanager
 def push_dir(path: str = None) -> None:
@@ -111,8 +115,9 @@ def push_dir(path: str = None) -> None:
     if path:
         prev = os.getcwd()
         try:
-            getLogger().info('$ pushd "%s"', path)
-            os.chdir(path)
+            abspath = path if os.path.isabs(path) else os.path.abspath(path)
+            getLogger().info('$ pushd "%s"', abspath)
+            os.chdir(abspath)
             yield
         finally:
             getLogger().info('$ popd')

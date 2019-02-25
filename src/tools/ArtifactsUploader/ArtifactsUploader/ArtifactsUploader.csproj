@@ -5,7 +5,7 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <AdditionalFiles Include="..\..\..\..\build\stylecop.json" Link="stylecop.json" />
+    <AdditionalFiles Include="..\..\..\stylecop.json" Link="stylecop.json" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.2.1" />

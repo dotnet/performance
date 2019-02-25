@@ -97,12 +97,15 @@ class BenchView:
             cmdline += ['--source-timestamp', source_timestamp]
         RunCommand(cmdline, verbose=self.verbose).run(working_directory)
 
-    def machinedata(self, working_directory: str) -> None:
+    def machinedata(self, working_directory: str, architecture: str) -> None:
         '''Wrapper around BenchView's machinedata.py'''
 
         cmdline = [
             self.python, path.join(self.tools_directory, 'machinedata.py')
         ]
+        # Workaround: https://github.com/workhorsy/py-cpuinfo/issues/112
+        if architecture == 'arm64':
+            cmdline += ['--machine-manufacturer', 'Unknown']
         RunCommand(cmdline, verbose=self.verbose).run(working_directory)
 
     def measurement(self, working_directory: str) -> None:
@@ -114,6 +117,7 @@ class BenchView:
             '--append',
         ]
 
+        full_json_files = []
         with push_dir(working_directory):
             pattern = "BenchmarkDotNet.Artifacts/**/*-full.json"
             getLogger().info(
@@ -121,9 +125,11 @@ class BenchView:
             )
 
             for full_json_file in iglob(pattern, recursive=True):
-                cmdline = common_cmdline + [full_json_file]
-                RunCommand(cmdline, verbose=self.verbose).run(
-                    working_directory)
+                full_json_files.append(full_json_file)
+
+        for full_json_file in full_json_files:
+            cmdline = common_cmdline + [full_json_file]
+            RunCommand(cmdline, verbose=self.verbose).run(working_directory)
 
     def submission_metadata(self, working_directory: str, name: str) -> None:
         '''Wrapper around BenchView's submission-metadata.py'''

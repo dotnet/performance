@@ -16,13 +16,12 @@ namespace System.IO.Compression
         public override Stream CreateStream(Stream stream, CompressionLevel level) => new BrotliStream(stream, level);
 
         [Benchmark]
-        [ArgumentsSource(nameof(Arguments))]
-        public Span<byte> Compress_WithState(CompressedFile file, CompressionLevel level)
+        public Span<byte> Compress_WithState()
         {
             using (BrotliEncoder encoder = new BrotliEncoder(GetQuality(level), Window))
             {
-                Span<byte> output = new Span<byte>(file.UncompressedData);
-                ReadOnlySpan<byte> input = file.CompressedData;
+                Span<byte> output = new Span<byte>(CompressedFile.UncompressedData);
+                ReadOnlySpan<byte> input = CompressedFile.CompressedData;
                 while (!input.IsEmpty && !output.IsEmpty)
                 {
                     encoder.Compress(input, output, out int bytesConsumed, out int written, isFinalBlock:false);
@@ -36,13 +35,12 @@ namespace System.IO.Compression
         }
 
         [Benchmark]
-        [ArgumentsSource(nameof(Arguments))]
-        public Span<byte> Decompress_WithState(CompressedFile file, CompressionLevel level) // the level argument is not used here, but it describes how the data was compressed
+        public Span<byte> Decompress_WithState() // the level argument is not used here, but it describes how the data was compressed (in the benchmark id)
         {
             using (BrotliDecoder decoder = new BrotliDecoder())
             {
-                Span<byte> output = new Span<byte>(file.UncompressedData);
-                ReadOnlySpan<byte> input = file.CompressedData;
+                Span<byte> output = new Span<byte>(CompressedFile.UncompressedData);
+                ReadOnlySpan<byte> input = CompressedFile.CompressedData;
                 while (!input.IsEmpty && !output.IsEmpty)
                 {
                     decoder.Decompress(input, output, out int bytesConsumed, out int written);
@@ -55,18 +53,16 @@ namespace System.IO.Compression
         }
 
         [Benchmark]
-        [ArgumentsSource(nameof(Arguments))]
-        public bool Compress_WithoutState(CompressedFile file, CompressionLevel level)
-            => BrotliEncoder.TryCompress(file.UncompressedData, file.UncompressedData, out int bytesWritten, GetQuality(level), Window);
+        public bool Compress_WithoutState()
+            => BrotliEncoder.TryCompress(CompressedFile.UncompressedData, CompressedFile.UncompressedData, out int bytesWritten, GetQuality(level), Window);
 
         /// <summary>
         /// The perf tests for the instant decompression aren't exactly indicative of real-world scenarios since they require you to know 
         /// either the exact figure or the upper bound of the uncompressed size of your given compressed data.
         /// </summary>
         [Benchmark]
-        [ArgumentsSource(nameof(Arguments))]
-        public bool Decompress_WithoutState(CompressedFile file, CompressionLevel level) // the level argument is not used here, but it describes how the data was compressed
-            => BrotliDecoder.TryDecompress(file.CompressedData, file.UncompressedData, out int bytesWritten);
+        public bool Decompress_WithoutState() // the level argument is not used here, but it describes how the data was compressed (in the benchmark id)
+            => BrotliDecoder.TryDecompress(CompressedFile.CompressedData, CompressedFile.UncompressedData, out int bytesWritten);
         
         private static int GetQuality(CompressionLevel compressLevel)
             => compressLevel == CompressionLevel.Optimal ? 11 : compressLevel == CompressionLevel.Fastest ? 1 : 0;

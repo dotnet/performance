@@ -58,7 +58,7 @@ if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
 
 def init_tools(
         architecture: str,
-        frameworks: str,
+        target_framework_monikers: list,
         verbose: bool) -> None:
     '''
     Install tools used by this repository into the tools folder.
@@ -67,8 +67,9 @@ def init_tools(
     '''
     getLogger().info('Installing tools.')
     channels = [
-        micro_benchmarks.TargetFrameworkAction.get_channel(framework) or 'LTS'
-        for framework in frameworks
+        micro_benchmarks.FrameworkAction.get_channel(
+            target_framework_moniker)
+        for target_framework_moniker in target_framework_monikers
     ]
     dotnet.install(
         architecture=architecture,
@@ -225,6 +226,22 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         action='store_true',
         help='Turns off verbosity.',
     )
+    parser.add_argument(
+        '--build-only',
+        dest='build_only',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Builds the benchmarks but does not run them.',
+    )
+    parser.add_argument(
+        '--run-only',
+        dest='run_only',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Attempts to run the benchmarks without building.',
+    )
 
     return parser
 
@@ -259,7 +276,10 @@ def __get_corefx_os_name():
         return platform.platform()
 
 
-def __get_build_info(args, framework: str) -> benchview.BuildInfo:
+def __get_build_info(
+        args,
+        target_framework_moniker: str
+) -> benchview.BuildInfo:
     # TODO: Improve complex scenarios.
     #   Could the --cli-* arguments take multiple build info objects from the
     #   command line interface?
@@ -275,11 +295,12 @@ def __get_build_info(args, framework: str) -> benchview.BuildInfo:
         source_timestamp = dotnet.get_commit_date(commit_sha, repository)
     elif args.cli_source_info == 'init-tools':
         # Retrieve data from the installed dotnet tools.
-        branch = micro_benchmarks.TargetFrameworkAction.get_channel(
-            framework
+        branch = micro_benchmarks.FrameworkAction.get_channel(
+            target_framework_moniker
         )
         if not branch:
-            err_msg = 'Cannot determine build information for "%s"' % framework
+            err_msg = 'Cannot determine build information for "%s"' % \
+                target_framework_moniker
             getLogger().error(err_msg)
             getLogger().error(
                 "Build information can be provided using the --cli-* options."
@@ -303,7 +324,11 @@ def __get_build_info(args, framework: str) -> benchview.BuildInfo:
     )
 
 
-def __run_benchview_scripts(args: list, verbose: bool) -> None:
+def __run_benchview_scripts(
+        args: list,
+        verbose: bool,
+        BENCHMARKS_CSPROJ: dotnet.CSharpProject
+) -> None:
     '''Run BenchView scripts to collect performance data.'''
     if not args.generate_benchview_data:
         return
@@ -311,11 +336,12 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
     # TODO: Delete previously generated BenchView data (*.json)
 
     benchviewpy = benchview.BenchView(verbose)
-    bin_directory = micro_benchmarks.BENCHMARKS_CSPROJ.bin_path
+    bin_directory = BENCHMARKS_CSPROJ.bin_path
 
     # BenchView submission-metadata.py
+    # TODO: Simplify logic. This should be removed and unify repo data.
     submission_name = args.benchview_submission_name
-    is_pr = args.benchview_run_type == 'private' and\
+    is_pr = args.benchview_run_type == 'private' and \
         'BenchviewCommitName' in os.environ
     rolling_data = args.benchview_run_type == 'rolling' and \
         'GIT_BRANCH_WITHOUT_ORIGIN' in os.environ and \
@@ -339,10 +365,15 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
         name=submission_name)
 
     # BenchView machinedata.py
-    benchviewpy.machinedata(working_directory=bin_directory)
+    benchviewpy.machinedata(
+        working_directory=bin_directory,
+        architecture=args.architecture)
 
     for framework in args.frameworks:
-        buildinfo = __get_build_info(args, framework)
+        target_framework_moniker = micro_benchmarks \
+            .FrameworkAction \
+            .get_target_framework_moniker(framework)
+        buildinfo = __get_build_info(args, target_framework_moniker)
 
         # BenchView build.py
         benchviewpy.build(
@@ -358,7 +389,7 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
         working_directory = dotnet.get_build_directory(
             bin_directory=bin_directory,
             configuration=args.configuration,
-            framework=framework,
+            target_framework_moniker=target_framework_moniker,
         )
 
         # BenchView measurement.py
@@ -376,13 +407,14 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
     if 'Configuration' not in benchview_config:
         benchview_config['Configuration'] = args.configuration
 
-    # Generate existing configs. This may be a good time to unify them?
+    # Generate existing configs.
+    # TODO: Unify configs across all repos?
     submission_architecture = args.architecture
     if args.category.casefold() == 'CoreClr'.casefold():
-        benchview_config['JitName'] = 'ryujit'  # This is currently fixed.
+        benchview_config['JitName'] = 'ryujit'  # FIXME: Remove this.
         benchview_config['OS'] = __get_coreclr_os_name()
-        benchview_config['OptLevel'] = args.optimization_level
-        benchview_config['PGO'] = 'pgo'  # This is currently fixed.
+        benchview_config['OptLevel'] = args.optimization_level  # Optimization
+        benchview_config['PGO'] = 'pgo'  # FIXME: Remove this? Enabled/Disabled
         benchview_config['Profile'] = 'On' if args.enable_pmc else 'Off'
     elif args.category.casefold() == 'CoreFx'.casefold():
         submission_architecture = 'AnyCPU'
@@ -393,9 +425,12 @@ def __run_benchview_scripts(args: list, verbose: bool) -> None:
     # Find all measurement.json
     with push_dir(bin_directory):
         for framework in args.frameworks:
+            target_framework_moniker = micro_benchmarks \
+                .FrameworkAction \
+                .get_target_framework_moniker(framework)
             glob_format = '**/%s/%s/measurement.json' % (
                 args.configuration,
-                framework
+                target_framework_moniker
             )
 
             measurement_jsons = []
@@ -441,10 +476,13 @@ def __main(args: list) -> int:
         raise RuntimeError("""In order to generate BenchView data,
             `--benchview-submission-name` must be provided.""")
 
+    target_framework_monikers = micro_benchmarks \
+        .FrameworkAction \
+        .get_target_framework_monikers(args.frameworks)
     # Acquire necessary tools (dotnet, and BenchView)
     init_tools(
         architecture=args.architecture,
-        frameworks=args.frameworks,
+        target_framework_monikers=target_framework_monikers,
         verbose=verbose
     )
 
@@ -457,55 +495,48 @@ def __main(args: list) -> int:
     elif args.optimization_level == 'full_opt':
         os.environ['COMPlus_TieredCompilation'] = '0'
 
+    # WORKAROUND
     # The MicroBenchmarks.csproj targets .NET Core 2.0, 2.1, 2.2 and 3.0
-    # to avoid a build failure when using older frameworks (error NETSDK1045: The current .NET SDK does not support targeting .NET Core $XYZ)
-    # we set the TFM to what the user has provided
-    os.environ['PYTHON_SCRIPT_TARGET_FRAMEWORKS'] = ';'.join(args.frameworks)
+    # to avoid a build failure when using older frameworks (error NETSDK1045:
+    # The current .NET SDK does not support targeting .NET Core $XYZ)
+    # we set the TFM to what the user has provided.
+    os.environ['PYTHON_SCRIPT_TARGET_FRAMEWORKS'] = ';'.join(
+        target_framework_monikers
+    )
 
     # dotnet --info
     dotnet.info(verbose=verbose)
 
-    # .NET micro-benchmarks
-    # Restore and build micro-benchmarks
-    micro_benchmarks.build(
-        args.configuration,
-        args.frameworks,
-        args.incremental,
-        verbose
+    BENCHMARKS_CSPROJ = dotnet.CSharpProject(
+        working_directory=args.working_directory,
+        bin_directory=args.bin_directory,
+        csproj_file='MicroBenchmarks.csproj'
     )
 
+    if not args.run_only:
+        # .NET micro-benchmarks
+        # Restore and build micro-benchmarks
+        micro_benchmarks.build(
+            BENCHMARKS_CSPROJ,
+            args.configuration,
+            target_framework_monikers,
+            args.incremental,
+            verbose
+        )
+
     # Run micro-benchmarks
-    for framework in args.frameworks:
-        run_args = [
-            '--'
-        ]
-        if args.category:
-            run_args += ['--allCategories', args.category]
-        if args.corerun:
-            run_args += ['--coreRun'] + args.corerun
-        if args.cli:
-            run_args += ['--cli', args.cli]
-        if args.enable_pmc:
-            run_args += [
-                '--counters',
-                'BranchMispredictions+CacheMisses+InstructionRetired',
-            ]
-        if args.filter:
-            run_args += ['--filter'] + args.filter
+    if not args.build_only:
+        for framework in args.frameworks:
+            micro_benchmarks.run(
+                BENCHMARKS_CSPROJ,
+                args.configuration,
+                framework,
+                verbose,
+                args
+            )
 
-        # Extra BenchmarkDotNet cli arguments.
-        if args.bdn_arguments:
-            run_args += args.bdn_arguments
-
-        # we need to tell BenchmarkDotNet where to restore the packages
-        # if we don't it's gonna restore to default global folder
-        run_args += ['--packages', micro_benchmarks.get_packages_directory()]
-        run_args += ['--runtimes', framework] # the --packages requires this argument to work (BDN limitaiton)
-
-        micro_benchmarks.run(args.configuration, framework, verbose, *run_args)
-
-    __run_benchview_scripts(args, verbose)
-    # TODO: Archive artifacts.
+        __run_benchview_scripts(args, verbose, BENCHMARKS_CSPROJ)
+        # TODO: Archive artifacts.
 
 
 if __name__ == "__main__":

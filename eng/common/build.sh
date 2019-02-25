@@ -3,10 +3,14 @@
 # Stop script if unbound variable found (use ${var:-} if intentional)
 set -u
 
+# Stop script if command returns non-zero exit code.
+# Prevents hidden errors caused by missing error code propagation.
+set -e
+
 usage()
 {
   echo "Common settings:"
-  echo "  --configuration <value>    Build configuration: 'Debug' or 'Release' (short: --c)"
+  echo "  --configuration <value>    Build configuration: 'Debug' or 'Release' (short: -c)"
   echo "  --verbosity <value>        Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic] (short: -v)"
   echo "  --binaryLog                Create MSBuild binary log (short: -bl)"
   echo ""
@@ -133,6 +137,9 @@ while [[ $# > 0 ]]; do
     /m:*)
       properties="$properties $1"
       ;;
+    /bl:*)
+      properties="$properties $1"
+      ;;
     *)
       echo "Invalid argument: $1"
       usage
@@ -184,7 +191,6 @@ function Build {
     /p:PerformanceTest=$performance_test \
     /p:Sign=$sign \
     /p:Publish=$publish \
-    /p:ContinuousIntegrationBuild=$ci \
     $properties
 
   ExitWithExitCode 0

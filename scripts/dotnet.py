@@ -16,7 +16,6 @@ from urllib.parse import urlparse
 from urllib.request import urlopen, urlretrieve
 
 from performance.common import get_repo_root_path
-from performance.common import get_artifacts_directory
 from performance.common import get_tools_directory
 from performance.common import push_dir
 from performance.common import RunCommand
@@ -42,24 +41,43 @@ class CSharpProject:
     def __init__(
             self,
             working_directory: str,
+            bin_directory: str,
             csproj_file: str):
         if not working_directory:
-            raise TypeError('Unspecified working directory.')
+            raise TypeError(
+                'working_directory should be string, not NoneType.'
+            )
+        if not bin_directory:
+            raise TypeError(
+                'bin_directory should be string, not NoneType.'
+            )
+        if not csproj_file:
+            raise TypeError(
+                'csproj_file should be string, not NoneType.'
+            )
+
         if not path.isdir(working_directory):
             raise ValueError(
                 'Specified working directory: {}, does not exist.'.format(
-                    working_directory))
+                    working_directory
+                )
+            )
 
         if path.isabs(csproj_file) and not path.exists(csproj_file):
             raise ValueError(
                 'Specified project file: {}, does not exist.'.format(
-                    csproj_file))
+                    csproj_file
+                )
+            )
         elif not path.exists(path.join(working_directory, csproj_file)):
             raise ValueError(
                 'Specified project file: {}, does not exist.'.format(
-                    csproj_file))
+                    csproj_file
+                )
+            )
 
         self.__working_directory = working_directory
+        self.__bin_directory = bin_directory
         self.__csproj_file = csproj_file
 
     @property
@@ -75,7 +93,7 @@ class CSharpProject:
     @property
     def bin_path(self) -> str:
         '''Gets the directory in which the built binaries will be placed.'''
-        return path.join(get_artifacts_directory(), 'bin')
+        return self.__bin_directory
 
     def restore(self, packages_path: str, verbose: bool) -> None:
         '''
@@ -97,11 +115,11 @@ class CSharpProject:
 
     def build(self,
               configuration: str,
-              frameworks: list,
+              target_framework_monikers: list,
               verbose: bool,
               *args) -> None:
         '''Calls dotnet to build the specified project.'''
-        if not frameworks:  # Frameworks were not specified, the build all.
+        if not target_framework_monikers:  # Build all supported frameworks.
             cmdline = [
                 'dotnet', 'build',
                 self.csproj_file,
@@ -113,12 +131,12 @@ class CSharpProject:
             RunCommand(cmdline, verbose=verbose).run(
                 self.working_directory)
         else:  # Only build specified frameworks
-            for framework in frameworks:
+            for target_framework_moniker in target_framework_monikers:
                 cmdline = [
                     'dotnet', 'build',
                     self.csproj_file,
                     '--configuration', configuration,
-                    '--framework', framework,
+                    '--framework', target_framework_moniker,
                     '--no-restore',
                 ]
                 if args:
@@ -128,7 +146,7 @@ class CSharpProject:
 
     def run(self,
             configuration: str,
-            framework: str,
+            target_framework_moniker: str,
             verbose: bool,
             *args) -> None:
         '''
@@ -139,7 +157,7 @@ class CSharpProject:
             'dotnet', 'run',
             '--project', self.csproj_file,
             '--configuration', configuration,
-            '--framework', framework,
+            '--framework', target_framework_moniker,
             '--no-restore', '--no-build',
         ]
 
@@ -163,10 +181,22 @@ def get_host_commit_sha(dotnet_path: str = None) -> str:
         # First look for the host information, since that is the sha we are
         # looking for. Then, grab the first Commit line we find, which will be
         # the sha of the framework we are testing
+        #
+        # Sample input for .NET Core 2.1+:
+        # Host (useful for support):
+        #   Version: 3.0.0-preview1-27018-05
+        #   Commit:  7a7ca06512
+        #
+        # Sample input for .NET Core 2.0:
+        # Product Information:
+        #   Version:            2.1.202
+        #   Commit SHA-1 hash:  281caedada
         if 'Host' in decoded_line:
             foundHost = True
+        elif 'Product' in decoded_line:
+            foundHost = True
         elif foundHost and 'Commit' in decoded_line:
-            return decoded_line.strip().split()[1]
+            return decoded_line.strip().split()[-1]
 
     raise RuntimeError('.NET Host Commit sha not found.')
 
@@ -205,7 +235,7 @@ def get_commit_date(commit_sha: str, repository: str = None) -> str:
 def get_build_directory(
         bin_directory: str,
         configuration: str,
-        framework: str) -> None:
+        target_framework_moniker: str) -> None:
     '''
     Gets the  output directory where the built artifacts are in with
     respect to the specified bin_directory.
@@ -215,21 +245,21 @@ def get_build_directory(
             bin_directory,
             __find_build_directory(
                 configuration=configuration,
-                framework=framework,
+                target_framework_moniker=target_framework_moniker,
             )
         )
 
 
 def __find_build_directory(
         configuration: str,
-        framework: str) -> str:
+        target_framework_moniker: str) -> str:
     '''
     Attempts to get the output directory where the built artifacts are in
     with respect to the current working directory.
     '''
     pattern = '**/{Configuration}/{TargetFramework}'.format(
         Configuration=configuration,
-        TargetFramework=framework
+        TargetFramework=target_framework_moniker
     )
 
     for path_name in iglob(pattern, recursive=True):
@@ -268,7 +298,7 @@ def install(
     # Download appropriate dotnet install script
     dotnetInstallScriptExtension = '.ps1' if platform == 'win32' else '.sh'
     dotnetInstallScriptName = 'dotnet-install' + dotnetInstallScriptExtension
-    url = 'https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/'
+    url = 'https://dot.net/v1/'
     dotnetInstallScriptUrl = url + dotnetInstallScriptName
 
     dotnetInstallScriptPath = path.join(install_dir, dotnetInstallScriptName)
