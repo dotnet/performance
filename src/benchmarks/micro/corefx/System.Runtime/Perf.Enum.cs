@@ -200,8 +200,10 @@ namespace System.Tests
         [Arguments(typeof(Colors))]
         public object ParseFlagsNonGeneric(Type enumType) => Enum.Parse(enumType, "Red, Orange, Yellow, Green, Blue");
 
+#if !NETFRAMEWORK // API added in .NET Core 2.0
         [Benchmark]
         public Colors ParseFlagsGeneric() => Enum.Parse<Colors>("Red, Orange, Yellow, Green, Blue");
+#endif
 
         [Benchmark]
         [Arguments(typeof(ByteEnum), nameof(ByteEnum.Two))]
@@ -227,6 +229,7 @@ namespace System.Tests
         [Arguments(typeof(Int64Enum))]
         public object ParseValueNonGeneric(Type enumType) => Enum.Parse(enumType, "2");
 
+#if !NETFRAMEWORK // API added in .NET Core 2.0
         [Benchmark]
         public ByteEnum ParseNameGenericByte() => Enum.Parse<ByteEnum>(nameof(ByteEnum.Two));
 
@@ -280,6 +283,7 @@ namespace System.Tests
 
         [Benchmark]
         public Int64Enum ParseValueGenericInt64() => Enum.Parse<Int64Enum>("2");
+#endif
 
         [Benchmark]
         public bool TryParseOverflowGeneric() => Enum.TryParse<DayOfWeek>("9223372036854775807", out _); // long.MaxValue
@@ -290,6 +294,7 @@ namespace System.Tests
         [Benchmark]
         public bool TryParseMissingGenericSmallContiguous() => Enum.TryParse<SmallContiguousEnum>("ABC", out _);
 
+#if !NETFRAMEWORK // API added in .NET Core 2.0
         [Benchmark]
         [Arguments(typeof(DayOfWeek))]
         public bool TryParseOverflowNonGeneric(Type enumType) => Enum.TryParse(enumType, "9223372036854775807", out _); // long.MaxValue
@@ -298,6 +303,7 @@ namespace System.Tests
         [Arguments(typeof(BigContiguousEnum), "ABC")]
         [Arguments(typeof(SmallContiguousEnum), "ABC")]
         public bool TryParseMissingNonGeneric(Type enumType, string value) => Enum.TryParse(enumType, value, out _);
+#endif
 
         [Flags]
         public enum Colors
