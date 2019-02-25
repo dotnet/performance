@@ -11,7 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-  <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.11.4.1025" />
     <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.11.4.1025" />
     <PackageReference Include="Jil" Version="2.15.4" />
