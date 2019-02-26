@@ -24,7 +24,7 @@ jobs:
             value: 'py -3'
         - ${{ if eq(parameters.osName, 'macos') }}:
           - name: PythonCommand
-            value: 'python3'
+            value: ''
         - ${{ if and(ne(parameters.osName, 'windows'), ne(parameters.osName, 'macos')) }}:
           - name: PythonCommand
             value: 'python3.5'
