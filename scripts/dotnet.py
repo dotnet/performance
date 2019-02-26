@@ -44,23 +44,18 @@ class CompilationAction(Action):
     Tiered: (Default)
 
     NoTiering: Tiering is disabled, but R2R code is not disabled.
-        COMPlus_TieredCompilation=0
-            This includes R2R code, useful for comparison against Tiered and
-            FullyJittedNoTiering for changes to R2R code or tiering.
+        This includes R2R code, useful for comparison against Tiered and
+        FullyJittedNoTiering for changes to R2R code or tiering.
 
     FullyJittedNoTiering: Tiering and R2R are disabled.
-        COMPlus_TieredCompilation=0
-        COMPlus_ReadyToRun=0
-            This is JIT-only, useful for comparison against Tiered and
-            NoTiering for changes to R2R code or tiering.
+        This is JIT-only, useful for comparison against Tiered and NoTiering
+        for changes to R2R code or tiering.
 
     MinOpt:
-        COMPlus_TieredCompilation=0
-        COMPlus_JITMinOpts=1
-            Uses minopt-JIT for methods that do not have pregenerated code,
-            useful for startup time comparisons in scenario benchmarks that
-            include a startup time measurement (probably not for
-            microbenchmarks), probably not useful for a PR.
+        Uses minopt-JIT for methods that do not have pregenerated code, useful
+        for startup time comparisons in scenario benchmarks that include a
+        startup time measurement (probably not for microbenchmarks), probably
+        not useful for a PR.
 
     For PRs it is recommended to kick off a Tiered run, and being able to
     manually kick-off NoTiering and FullyJittedNoTiering modes when needed.
@@ -248,6 +243,16 @@ class CSharpProject:
                 RunCommand(cmdline, verbose=verbose).run(
                     self.working_directory)
 
+    @staticmethod
+    def __print_complus_environment() -> None:
+        getLogger().info('-' * 50)
+        getLogger().info('Dumping COMPlus environment:')
+        COMPLUS_PREFIX = 'COMPlus'
+        for env in environ:
+            if env[:len(COMPLUS_PREFIX)].lower() == COMPLUS_PREFIX.lower():
+                getLogger().info('  "%s=%s"' % (env, environ[env]))
+        getLogger().info('-' * 50)
+
     def run(self,
             configuration: str,
             target_framework_moniker: str,
@@ -256,7 +261,7 @@ class CSharpProject:
         '''
         Calls dotnet to run a .NET project output.
         '''
-
+        CSharpProject.__print_complus_environment()
         cmdline = [
             'dotnet', 'run',
             '--project', self.csproj_file,
