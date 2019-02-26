@@ -4,7 +4,7 @@
 Contains the functionality around DotNet Cli.
 """
 
-from argparse import ArgumentParser
+from argparse import Action, ArgumentParser, ArgumentTypeError
 from collections import namedtuple
 from glob import iglob
 from json import loads
@@ -37,6 +37,120 @@ CSharpProjFile = namedtuple('CSharpProjFile', [
     'file_name',
     'working_directory'
 ])
+
+
+class CompilationAction(Action):
+    '''
+    Tiered: (Default)
+
+    NoTiering: Tiering is disabled, but R2R code is not disabled.
+        COMPlus_TieredCompilation=0
+            This includes R2R code, useful for comparison against Tiered and
+            FullyJittedNoTiering for changes to R2R code or tiering.
+
+    FullyJittedNoTiering: Tiering and R2R are disabled.
+        COMPlus_TieredCompilation=0
+        COMPlus_ReadyToRun=0
+            This is JIT-only, useful for comparison against Tiered and
+            NoTiering for changes to R2R code or tiering.
+
+    MinOpt:
+        COMPlus_TieredCompilation=0
+        COMPlus_JITMinOpts=1
+            Uses minopt-JIT for methods that do not have pregenerated code,
+            useful for startup time comparisons in scenario benchmarks that
+            include a startup time measurement (probably not for
+            microbenchmarks), probably not useful for a PR.
+
+    For PRs it is recommended to kick off a Tiered run, and being able to
+    manually kick-off NoTiering and FullyJittedNoTiering modes when needed.
+    '''
+    # TODO: Would 'Default' make sense for .NET Framework / CoreRT / Mono?
+    # TODO: Should only be required for benchmark execution under certain tools
+
+    TIERED = 'Tiered'
+    NO_TIERING = 'NoTiering'
+    FULLY_JITTED_NO_TIERING = 'FullyJittedNoTiering'
+    MIN_OPT = 'MinOpt'
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if values:
+            if values not in CompilationAction.modes():
+                raise ArgumentTypeError('Unknown mode: {}'.format(values))
+            setattr(namespace, self.dest, values)
+
+    @staticmethod
+    def __set_mode(mode: str) -> None:
+        # Remove potentially set environments.
+        COMPLUS_ENVIRONMENTS = [
+            'COMPlus_JITMinOpts',
+            'COMPlus_ReadyToRun',
+            'COMPlus_TieredCompilation',
+            'COMPlus_ZapDisable',
+        ]
+        for complus_environment in COMPLUS_ENVIRONMENTS:
+            if complus_environment in environ:
+                environ.pop(complus_environment)
+
+        # Configure .NET Runtime
+        if mode == CompilationAction.TIERED:
+            environ['COMPlus_TieredCompilation'] = '1'
+        elif mode == CompilationAction.NO_TIERING:
+            environ['COMPlus_TieredCompilation'] = '0'
+        elif mode == CompilationAction.FULLY_JITTED_NO_TIERING:
+            environ['COMPlus_ReadyToRun'] = '0'
+            environ['COMPlus_TieredCompilation'] = '0'
+            environ['COMPlus_ZapDisable'] = '1'
+        elif mode == CompilationAction.MIN_OPT:
+            environ['COMPlus_JITMinOpts'] = '1'
+            environ['COMPlus_TieredCompilation'] = '0'
+        else:
+            raise ArgumentTypeError('Unknown mode: {}'.format(mode))
+
+    @staticmethod
+    def validate(usr_mode: str) -> str:
+        '''Validate user input.'''
+        requested_mode = None
+        for mode in CompilationAction.modes():
+            if usr_mode.casefold() == mode.casefold():
+                requested_mode = mode
+                break
+        if not requested_mode:
+            raise ArgumentTypeError('Unknown mode: {}'.format(usr_mode))
+        CompilationAction.__set_mode(requested_mode)
+        return requested_mode
+
+    @staticmethod
+    def modes() -> list:
+        '''Available .NET Performance modes.'''
+        return [
+            CompilationAction.TIERED,
+            CompilationAction.NO_TIERING,
+            CompilationAction.FULLY_JITTED_NO_TIERING,
+            CompilationAction.MIN_OPT
+        ]
+
+    @staticmethod
+    def tiered() -> str:
+        '''Default .NET performance mode.'''
+        return CompilationAction.modes()[0]  # Tiered
+
+    @staticmethod
+    def help_text() -> str:
+        return '''Different compilation modes that can be set to change the
+        .NET compilation behavior. The different modes are: {}: (Default);
+        {}: tiering is disabled, but includes R2R code, and it is useful for
+        comparison against Tiered; {}: This is JIT-only, useful for comparison
+        against Tiered and NoTier for changes to R2R code or tiering; {}: uses
+        minopt-JIT for methods that do not have pregenerated code, and useful
+        for startup time comparisons in scenario benchmarks that include a
+        startup time measurement (probably not for microbenchmarks), probably
+        not useful for a PR.'''.format(
+            CompilationAction.TIERED,
+            CompilationAction.NO_TIERING,
+            CompilationAction.FULLY_JITTED_NO_TIERING,
+            CompilationAction.MIN_OPT
+        )
 
 
 class CSharpProject:
@@ -347,6 +461,18 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default=SUPPORTED_ARCHITECTURES[0],
         choices=SUPPORTED_ARCHITECTURES,
         help='Architecture of DotNet Cli binaries to be installed.'
+    )
+
+    # .NET Compilation modes.
+    parser.add_argument(
+        '--dotnet-compilation-mode',
+        dest='dotnet_compilation_mode',
+        required=False,
+        action=CompilationAction,
+        choices=CompilationAction.modes(),
+        default=CompilationAction.tiered(),
+        type=CompilationAction.validate,
+        help='{}'.format(CompilationAction.help_text())
     )
 
     return parser

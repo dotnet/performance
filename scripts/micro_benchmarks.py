@@ -179,13 +179,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
              '''BranchMispredictions+CacheMisses+InstructionRetired''',
     )
 
-    # TODO: Maybe we can drop this in favor of using the --bdn-arguments option
-    parser.add_argument(
-        '--category',
-        required=False,
-        choices=['coreclr', 'corefx', 'machinelearning'],
-        type=str.lower
-    )
     parser.add_argument(
         '--filter',
         required=False,
@@ -301,8 +294,6 @@ def __process_arguments(args: list) -> Tuple[list, bool]:
 
 def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
     run_args = ['--']
-    if args.category:
-        run_args += ['--allCategories', args.category]
     if args.corerun:
         run_args += ['--coreRun'] + args.corerun
     if args.cli:
