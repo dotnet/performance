@@ -66,13 +66,20 @@ jobs:
           matrix:
             ${{ each framework in parameters.frameworks }}:
               coreclr_${{ framework }}:
-                _Category: coreclr
                 _Framework: ${{ framework }}
                 _BuildConfig: ${{ parameters.architecture }}_coreclr_$(_Framework)
+                _Filter: '--category CoreCLR'
               corefx_${{ framework }}:
-                _Category: corefx
                 _Framework: ${{ framework }}
                 _BuildConfig: ${{ parameters.architecture }}_corefx_$(_Framework)
+                _Filter: '--category CoreFX'
+              all_${{ framework }}:
+                _Framework: ${{ framework }}
+                _BuildConfig: ${{ parameters.architecture }}_all_$(_Framework)
+                ${{ if eq(parameters.osName, 'windows') }}:
+                  _Filter: '--filter *'
+                ${{ if ne(parameters.osName, 'windows') }}:
+                  _Filter: '--filter ''*'''
         steps:
         - checkout: self
           clean: true
@@ -87,9 +94,9 @@ jobs:
             WorkItemTimeout: 5:00 # 5 hours
             ${{ if eq(parameters.osName, 'windows') }}:
               WorkItemDirectory: '$(Build.SourcesDirectory)\src\benchmarks\micro'
-              WorkItemCommand: 'py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --bin-directory ".\bin" --working-directory . --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
+              WorkItemCommand: 'py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --bin-directory ".\bin" --working-directory . --incremental no --architecture ${{ parameters.architecture }} -f $(_Framework) $(_Filter)'
               CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\scripts'
             ${{ if ne(parameters.osName, 'windows') }}:
               WorkItemDirectory: '$(Build.SourcesDirectory)/src/benchmarks/micro'
-              WorkItemCommand: 'python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py --bin-directory "./bin" --working-directory . --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
+              WorkItemCommand: 'python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py --bin-directory "./bin" --working-directory . --incremental no --architecture ${{ parameters.architecture }} -f $(_Framework) $(_Filter)'
               CorrelationPayloadDirectory: '$(Build.SourcesDirectory)/scripts'
