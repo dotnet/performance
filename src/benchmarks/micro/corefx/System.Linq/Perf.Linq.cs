@@ -70,6 +70,24 @@ namespace System.Linq.Tests
             => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.Where(o => o >= 0).Select(o => o + 1), _consumer);
 
         [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public int WhereFirst_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
+        {
+            IEnumerable<int> source = Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType);
+
+            return source.Where(x => x >= size - 1).First();
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public int FirstWithPredicate_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
+        {
+            IEnumerable<int> source = Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType);
+
+            return source.First(x => x >= size - 1);
+        }
+
+        [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))] // for some reason the size and iteration arguments are ignored for this benchmark
         public void Cast_ToBaseClass(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
         {
