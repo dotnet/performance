@@ -76,10 +76,7 @@ jobs:
               all_${{ framework }}:
                 _Framework: ${{ framework }}
                 _BuildConfig: ${{ parameters.architecture }}_all_$(_Framework)
-                ${{ if eq(parameters.osName, 'windows') }}:
-                  _Filter: '--filter *'
-                ${{ if ne(parameters.osName, 'windows') }}:
-                  _Filter: '--filter ''*'''
+                _Filter: '--filter *'
         steps:
         - checkout: self
           clean: true
