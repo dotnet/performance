@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
+  <PropertyGroup>
+    <!-- Avoid spawning any-long living compiler processes to avoid issues with "file in use" -->
+    <UseSharedCompilation>false</UseSharedCompilation>
+  </PropertyGroup>
+
   <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
 
   <PropertyGroup Condition="'$(CopyrightNetFoundation)' != ''">
