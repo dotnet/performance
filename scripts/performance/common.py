@@ -38,22 +38,6 @@ def get_python_executable() -> str:
     return sys.executable
 
 
-def __get_latest_benchview_script_version() -> str:
-    url_str = "http://benchviewtestfeed.azurewebsites.net/nuget/FindPackagesById()?id='Microsoft.BenchView.JSONFormat'"
-    with urlopen(url_str) as response:
-        tree = ElementTree.parse(response)
-        root = tree.getroot()
-        namespace = root.tag[0:root.tag.index('}') + 1]
-        xpath = '{0}entry/{0}content[@type="application/zip"]'.format(
-            namespace)
-        packages = [element.get('src') for element in tree.findall(xpath)]
-        if not packages:
-            raise RuntimeError('No BenchView packages found.')
-        packages.sort()
-        latest_benchview_package = packages[-1]
-        return latest_benchview_package
-
-
 def make_directory(path: str):
     '''Creates a directory.'''
     if not path:

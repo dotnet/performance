@@ -132,6 +132,7 @@ class CompilationAction(Action):
 
     @staticmethod
     def help_text() -> str:
+        '''Gets the help string describing the different compilation modes.'''
         return '''Different compilation modes that can be set to change the
         .NET compilation behavior. The different modes are: {}: (Default);
         {}: tiering is disabled, but includes R2R code, and it is useful for
@@ -250,7 +251,7 @@ class CSharpProject:
         COMPLUS_PREFIX = 'COMPlus'
         for env in environ:
             if env[:len(COMPLUS_PREFIX)].lower() == COMPLUS_PREFIX.lower():
-                getLogger().info('  "%s=%s"' % (env, environ[env]))
+                getLogger().info('  "%s=%s"', env, environ[env])
         getLogger().info('-' * 50)
 
     def run(self,
