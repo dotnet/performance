@@ -43,7 +43,7 @@ BenchmarkDotNet will protect you from the common pitfalls (even for experienced 
 - it consumes the benchmark result to avoid dead code elimination
 - it prevents from inlining of the benchmark by wrapping it with a delegate
 - it prints the results to the console in GitHub markdown, so you can just copy-paste the printed table to GitHub
-- it exports the results to `.\BenchmarkDotNet.Artifacts\results` so you can store them for later use.
+- it exports the results to `BenchmarkDotNet.Artifacts\results` so you can store them for later use.
 
 A few useful links for you:
 
