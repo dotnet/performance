@@ -33,6 +33,7 @@ import sys
 
 from performance.common import push_dir
 from performance.common import validate_supported_runtime
+from performance.common import RunCommand
 from performance.logger import setup_loggers
 
 import benchview
@@ -479,6 +480,16 @@ def __main(args: list) -> int:
     target_framework_monikers = micro_benchmarks \
         .FrameworkAction \
         .get_target_framework_monikers(args.frameworks)
+        
+    if sys.platform == 'win32':
+        RunCommand(
+            'reg export HKLM\SYSTEM\CurrentControlSet\Control\FileSystem backup.reg',
+            verbose=verbose).run()
+        RunCommand(
+            'reg add HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f',
+            success_exit_codes = [0, 1], # we ignore failures on purpose (Access is denied)
+            verbose=verbose).run()
+        
     # Acquire necessary tools (dotnet, and BenchView)
     init_tools(
         architecture=args.architecture,
@@ -537,6 +548,14 @@ def __main(args: list) -> int:
 
         __run_benchview_scripts(args, verbose, BENCHMARKS_CSPROJ)
         # TODO: Archive artifacts.
+        
+    if sys.platform == 'win32':
+        RunCommand(
+            'reg import backup.reg',
+            success_exit_codes = [0, 1], # we ignore failures on purpose (Access is denied)
+            verbose=verbose).run()
+        if os.path.exists('backup.reg'):
+            os.remove('backup.reg')
 
 
 if __name__ == "__main__":
