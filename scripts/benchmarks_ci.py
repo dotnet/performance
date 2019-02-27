@@ -33,7 +33,6 @@ import sys
 
 from performance.common import push_dir
 from performance.common import validate_supported_runtime
-from performance.common import RunCommand
 from performance.logger import setup_loggers
 
 import benchview
@@ -465,14 +464,21 @@ def __run_benchview_scripts(
                     working_directory=bin_directory,
                     container=args.upload_to_benchview_container)
 
-def __run(
-        args: list,
-        verbose: bool
-) -> int:
+
+def __main(args: list) -> int:
+    validate_supported_runtime()
+    args = __process_arguments(args)
+    verbose = not args.quiet
+    setup_loggers(verbose=verbose)
+
+    # This validation could be cleaner
+    if args.generate_benchview_data and not args.benchview_submission_name:
+        raise RuntimeError("""In order to generate BenchView data,
+            `--benchview-submission-name` must be provided.""")
+
     target_framework_monikers = micro_benchmarks \
         .FrameworkAction \
         .get_target_framework_monikers(args.frameworks)
-        
     # Acquire necessary tools (dotnet, and BenchView)
     init_tools(
         architecture=args.architecture,
@@ -531,39 +537,6 @@ def __run(
 
         __run_benchview_scripts(args, verbose, BENCHMARKS_CSPROJ)
         # TODO: Archive artifacts.
-
-
-def __main(args: list) -> int:
-    validate_supported_runtime()
-    args = __process_arguments(args)
-    verbose = not args.quiet
-    setup_loggers(verbose=verbose)
-
-    # This validation could be cleaner
-    if args.generate_benchview_data and not args.benchview_submission_name:
-        raise RuntimeError("""In order to generate BenchView data,
-            `--benchview-submission-name` must be provided.""")
-
-    # we need to enable LongPaths support on Windows
-    if sys.platform == 'win32':
-        RunCommand(
-            'reg export HKLM\SYSTEM\CurrentControlSet\Control\FileSystem backup.reg',
-            verbose=verbose).run()
-        RunCommand(
-            'reg add HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f',
-            success_exit_codes = [0, 1], # we ignore failures on purpose (Access is denied)
-            verbose=verbose).run()
-
-    try:
-        __run(args, verbose)
-    finally:
-        if sys.platform == 'win32':
-            RunCommand(
-                'reg import backup.reg',
-                success_exit_codes = [0, 1], # we ignore failures on purpose (Access is denied)
-                verbose=verbose).run()
-            if os.path.exists('backup.reg'):
-                os.remove('backup.reg')
 
 
 if __name__ == "__main__":

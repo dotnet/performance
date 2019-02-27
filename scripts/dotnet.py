@@ -308,7 +308,7 @@ def install(
 
     if platform != 'win32':
         chmod(dotnetInstallScriptPath, S_IRWXU)
-        
+
     dotnetInstallInterpreter = [
         'powershell.exe',
         '-NoProfile',
