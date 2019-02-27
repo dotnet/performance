@@ -91,7 +91,7 @@ jobs:
             WorkItemTimeout: 5:00 # 5 hours
             ${{ if eq(parameters.osName, 'windows') }}:
               WorkItemDirectory: '$(Build.SourcesDirectory)\src\benchmarks\micro'
-              WorkItemCommand: 'py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --bin-directory ".\bin" --working-directory . --incremental no --architecture ${{ parameters.architecture }} -f $(_Framework) $(_Filter)'
+              WorkItemCommand: 'py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --bin-directory ".\bin" --working-directory . --incremental no --architecture ${{ parameters.architecture }} -f $(_Framework) $(_Filter) --optimization-level full_opt'
               CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\scripts'
             ${{ if ne(parameters.osName, 'windows') }}:
               WorkItemDirectory: '$(Build.SourcesDirectory)/src/benchmarks/micro'
