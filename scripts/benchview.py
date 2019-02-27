@@ -15,6 +15,7 @@ from xml.etree import ElementTree
 from zipfile import ZipFile
 
 from performance.common import get_tools_directory
+from performance.common import get_repo_root_path
 from performance.common import get_python_executable
 from performance.common import make_directory
 from performance.common import push_dir
@@ -118,7 +119,7 @@ class BenchView:
         ]
 
         full_json_files = []
-        with push_dir(working_directory):
+        with push_dir(get_repo_root_path()):
             pattern = "BenchmarkDotNet.Artifacts/**/*-full.json"
             getLogger().info(
                 'Searching BenchmarkDotNet output files with: %s', pattern
