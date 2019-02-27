@@ -8,7 +8,7 @@ from argparse import ArgumentParser
 from glob import iglob
 from json import loads
 from logging import getLogger
-from os import chmod, environ, makedirs, path, pathsep
+from os import chmod, environ, makedirs, path, pathsep, remove
 from stat import S_IRWXU
 from subprocess import check_output
 from sys import argv, platform
@@ -309,6 +309,19 @@ def install(
     if platform != 'win32':
         chmod(dotnetInstallScriptPath, S_IRWXU)
 
+    if platform == 'win32':
+        RunCommand(
+            "reg export HKLM\SYSTEM\CurrentControlSet\Control\FileSystem backup.reg",
+            verbose=verbose).run(
+                get_repo_root_path()
+            )
+        RunCommand(
+            "reg add HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f",
+            success_exit_codes = [0, 1], # we ignore failures on purpose (Access is denied)
+            verbose=verbose).run(
+                get_repo_root_path()
+            )
+        
     dotnetInstallInterpreter = [
         'powershell.exe',
         '-NoProfile',
@@ -326,6 +339,16 @@ def install(
         RunCommand(cmdline_args, verbose=verbose).run(
             get_repo_root_path()
         )
+        
+    if platform == 'win32':
+        RunCommand(
+            "reg import backup.reg",
+            success_exit_codes = [0, 1], # we ignore failures on purpose (Access is denied)
+            verbose=verbose).run(
+                get_repo_root_path()
+        )
+        if path.exists(path.join(get_repo_root_path(), 'backup.reg')):
+            remove(path.join(get_repo_root_path(), 'backup.reg'))
 
     # Set DotNet Cli environment variables.
     environ['DOTNET_CLI_TELEMETRY_OPTOUT'] = '1'
