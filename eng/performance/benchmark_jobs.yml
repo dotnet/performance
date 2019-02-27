@@ -86,10 +86,8 @@ jobs:
             Creator: $(Creator)
             WorkItemTimeout: 4:00 # 4 hours
             ${{ if eq(parameters.osName, 'windows') }}:
-              WorkItemDirectory: '$(Build.SourcesDirectory)\src\benchmarks\micro'
-              WorkItemCommand: 'py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --bin-directory ".\bin" --working-directory . --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
-              CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\scripts'
+              WorkItemDirectory: '$(Build.SourcesDirectory)'
+              WorkItemCommand: 'py -3 scripts\benchmarks_ci.py --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
             ${{ if ne(parameters.osName, 'windows') }}:
-              WorkItemDirectory: '$(Build.SourcesDirectory)/src/benchmarks/micro'
-              WorkItemCommand: 'python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py --bin-directory "./bin" --working-directory . --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
-              CorrelationPayloadDirectory: '$(Build.SourcesDirectory)/scripts'
+              WorkItemDirectory: '$(Build.SourcesDirectory)'
+              WorkItemCommand: 'python3.5 scripts/benchmarks_ci.py --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
