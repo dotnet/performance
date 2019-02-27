@@ -92,4 +92,4 @@ jobs:
             ${{ if ne(parameters.osName, 'windows') }}:
               HelixPreCommands: $(HelixPreCommand)
               WorkItemDirectory: '$(Build.SourcesDirectory)'
-              WorkItemCommand: 'python3.5 scripts/benchmarks_ci.py --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
+              WorkItemCommand: 'scripts/benchmarks_ci.py --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
