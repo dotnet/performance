@@ -75,17 +75,18 @@ jobs:
                 _Framework: ${{ framework }}
                 _CompilationMode: NoTiering
                 _BuildConfig: ${{ parameters.architecture }}_corefx_$(_Framework)
-              ${{ if and(startsWith(framework, 'netcoreapp'), ne(framework, 'netcoreapp2.0')) }}: # Tiered JIT was introduced in .NET Core 2.1
-                coreclr_${{ framework }}_tiered:
-                  _Category: coreclr
-                  _Framework: ${{ framework }}
-                  _CompilationMode: Tiered
-                  _BuildConfig: ${{ parameters.architecture }}_coreclr_$(_Framework)_$(_CompilationMode)
-                corefx_${{ framework }}_tiered:
-                  _Category: corefx
-                  _Framework: ${{ framework }}
-                  _CompilationMode: Tiered
-                  _BuildConfig: ${{ parameters.architecture }}_corefx_$(_Framework)_$(_CompilationMode)
+              ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}: # to reduce the number of CI legs for every PR
+                ${{ if and(startsWith(framework, 'netcoreapp'), ne(framework, 'netcoreapp2.0')) }}: # Tiered JIT was introduced in .NET Core 2.1
+                  coreclr_${{ framework }}_tiered:
+                    _Category: coreclr
+                    _Framework: ${{ framework }}
+                    _CompilationMode: Tiered
+                    _BuildConfig: ${{ parameters.architecture }}_coreclr_$(_Framework)_$(_CompilationMode)
+                  corefx_${{ framework }}_tiered:
+                    _Category: corefx
+                    _Framework: ${{ framework }}
+                    _CompilationMode: Tiered
+                    _BuildConfig: ${{ parameters.architecture }}_corefx_$(_Framework)_$(_CompilationMode)
         steps:
         - checkout: self
           clean: true
