@@ -107,4 +107,4 @@ jobs:
               CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\notLocked' # it gets checked out to a folder with shorter path than WorkItemDirectory so we can avoid file name too long exceptions
             ${{ if ne(parameters.osName, 'windows') }}:
               WorkItemDirectory: '$(Build.SourcesDirectory)'
-              WorkItemCommand: 'python3.5 scripts/benchmarks_ci.py --incremental no --architecture ${{ parameters.architecture }} -f $(_Framework) --bdn-arguments="$(BenchmarkDotNetArguments)" $(BenchViewArguments) --dotnet-compilation-mode $(_CompilationMode)'
+              WorkItemCommand: 'python3 scripts/benchmarks_ci.py --incremental no --architecture ${{ parameters.architecture }} -f $(_Framework) --bdn-arguments="$(BenchmarkDotNetArguments)" $(BenchViewArguments) --dotnet-compilation-mode $(_CompilationMode)'
