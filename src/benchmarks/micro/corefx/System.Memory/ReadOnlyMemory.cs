@@ -6,6 +6,7 @@ using System.Buffers;
 using System.Collections;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 
 namespace System.Memory

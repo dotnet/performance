@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BenchmarkDotNet.Validators;
 
-namespace MicroBenchmarks
+namespace BenchmarkDotNet.Extensions
 {
     /// <summary>
     /// we need to tell our users that having more than 16 test cases per benchmark is a VERY BAD idea

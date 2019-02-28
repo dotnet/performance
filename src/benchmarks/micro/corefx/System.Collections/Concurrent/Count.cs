@@ -4,6 +4,7 @@
 
 using System.Linq;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 
 namespace System.Collections.Concurrent

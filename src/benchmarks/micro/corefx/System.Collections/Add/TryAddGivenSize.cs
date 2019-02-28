@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 
 namespace System.Collections

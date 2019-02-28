@@ -4,7 +4,7 @@
 
 using System;
 using System.Linq;
-using MicroBenchmarks;
+using BenchmarkDotNet.Extensions;
 using Xunit;
 
 namespace Tests
