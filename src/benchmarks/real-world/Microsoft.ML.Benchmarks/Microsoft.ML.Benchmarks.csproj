@@ -1,5 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$(MSBuildThisFileDirectory)\..\..\..\micro\common.props" />
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <Import Project="$(MSBuildThisFileDirectory)\..\..\micro\common.props" />
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
@@ -8,7 +9,7 @@
     <PackageReference Include="BenchmarkDotNet" Version="0.11.3" />
     <PackageReference Include="Microsoft.ML" Version="0.10.0" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <Folder Include="Input\" />
     <Content Include="Input\iris.txt" Link="Input\iris.txt">
@@ -23,11 +24,9 @@
     <None Include="Input\adult.tiny.with-schema.txt" Link="Input\adult.tiny.with-schema.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-
     <BenchmarkFile Update="@(BenchmarkFile)">
       <Link>external\%(Identity)</Link>
     </BenchmarkFile>
-
     <None Condition="Exists('@(BenchmarkFile->'..\data\external\%(Identity)')')" Include="@(BenchmarkFile->'..\data\external\%(Identity)')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

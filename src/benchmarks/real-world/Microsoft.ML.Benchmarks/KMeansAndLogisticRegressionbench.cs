@@ -6,6 +6,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Learners;
+using MicroBenchmarks;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -16,6 +17,7 @@ namespace Microsoft.ML.Benchmarks
     /// training a Logistic Regression model on the derived features plus the score from the
     /// KMeans trainer.
     /// </summary>
+    [BenchmarkCategory(Categories.MachineLearning)]
     public class KMeansAndLogisticRegressionBench
     {
         private readonly string _dataPath = Program.GetInvariantCultureDataPath("adult.tiny.with-schema.txt");

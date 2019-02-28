@@ -8,6 +8,7 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.Conversions;
+using MicroBenchmarks;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -17,6 +18,7 @@ namespace Microsoft.ML.Benchmarks
     /// The benchmarks initialize the hashing transformer with a 20 bit hash, then measure
     /// perf on fetching the first 100,000 values.
     /// </summary>
+    [BenchmarkCategory(Categories.MachineLearning)]
     public class HashBench
     {
         private sealed class RowImpl : Row
