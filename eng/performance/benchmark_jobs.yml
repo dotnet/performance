@@ -31,7 +31,7 @@ jobs:
             value: dotnet-performance
           # for public runs we want to run the benchmarks exactly once, no warmup, no pilot, no overhead
           - name: BenchmarkDotNetArguments
-            value: '--bdn-arguments="--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart --stopOnFirstError true"'
+            value: '--bdn-arguments="--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart --stopOnFirstError true --keepFiles true"'
           - name: HelixApiAccessToken
             value: ''
           - name: HelixPreCommand
@@ -46,7 +46,7 @@ jobs:
             value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(BenchViewRunType) --upload-to-benchview-container $(_Category)'
           # for private runs we don't provide any custom BDN arguments (the ones from Program.Main are used)
           - name: BenchmarkDotNetArguments
-            value: ''
+            value: '--bdn-arguments="--keepFiles true"'
           - name: Creator
             value: ''
           - ${{ if eq(parameters.osName, 'windows') }}:
@@ -76,6 +76,9 @@ jobs:
         steps:
         - checkout: self
           clean: true
+        - ${{ if eq(parameters.osName, 'windows') }}:
+          - script: (robocopy $(Build.SourcesDirectory) $(Build.SourcesDirectory)\notLocked /E /XD $(Build.SourcesDirectory)\notLocked $(Build.SourcesDirectory)\artifacts $(Build.SourcesDirectory)\.git) ^& IF %ERRORLEVEL% LEQ 1 exit 0
+            displayName: Workaround to avoid locked file # https://github.com/dotnet/arcade/issues/2125
         - template: /eng/common/templates/steps/send-to-helix.yml
           parameters:
             HelixSource: 'pr/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
@@ -86,10 +89,9 @@ jobs:
             Creator: $(Creator)
             WorkItemTimeout: 4:00 # 4 hours
             ${{ if eq(parameters.osName, 'windows') }}:
-              WorkItemDirectory: '$(Build.SourcesDirectory)\src\benchmarks\micro'
-              WorkItemCommand: 'py -3 %HELIX_CORRELATION_PAYLOAD%\benchmarks_ci.py --bin-directory ".\bin" --working-directory . --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
-              CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\scripts'
+              WorkItemDirectory: '$(Build.SourcesDirectory)\docs' # WorkItemDirectory can not be empty, so we send it some docs to keep it happy
+              WorkItemCommand: 'py -3 %HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
+              CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\notLocked' # it gets checked out to a folder with shorter path than WorkItemDirectory so we can avoid file name too long exceptions
             ${{ if ne(parameters.osName, 'windows') }}:
-              WorkItemDirectory: '$(Build.SourcesDirectory)/src/benchmarks/micro'
-              WorkItemCommand: 'python3.5 $HELIX_CORRELATION_PAYLOAD/benchmarks_ci.py --bin-directory "./bin" --working-directory . --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
-              CorrelationPayloadDirectory: '$(Build.SourcesDirectory)/scripts'
+              WorkItemDirectory: '$(Build.SourcesDirectory)'
+              WorkItemCommand: 'python3.5 scripts/benchmarks_ci.py --incremental no --category $(_Category) --architecture ${{ parameters.architecture }} -f $(_Framework) $(BenchmarkDotNetArguments) $(BenchViewArguments)'
