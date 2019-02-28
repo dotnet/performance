@@ -4,7 +4,8 @@
 Contains the functionality around DotNet Cli.
 """
 
-from argparse import ArgumentParser
+from argparse import Action, ArgumentParser, ArgumentTypeError
+from collections import namedtuple
 from glob import iglob
 from json import loads
 from logging import getLogger
@@ -32,53 +33,152 @@ def info(verbose: bool) -> None:
     RunCommand(cmdline, verbose=verbose).run()
 
 
+CSharpProjFile = namedtuple('CSharpProjFile', [
+    'file_name',
+    'working_directory'
+])
+
+
+class CompilationAction(Action):
+    '''
+    Tiered: (Default)
+
+    NoTiering: Tiering is disabled, but R2R code is not disabled.
+        This includes R2R code, useful for comparison against Tiered and
+        FullyJittedNoTiering for changes to R2R code or tiering.
+
+    FullyJittedNoTiering: Tiering and R2R are disabled.
+        This is JIT-only, useful for comparison against Tiered and NoTiering
+        for changes to R2R code or tiering.
+
+    MinOpt:
+        Uses minopt-JIT for methods that do not have pregenerated code, useful
+        for startup time comparisons in scenario benchmarks that include a
+        startup time measurement (probably not for microbenchmarks), probably
+        not useful for a PR.
+
+    For PRs it is recommended to kick off a Tiered run, and being able to
+    manually kick-off NoTiering and FullyJittedNoTiering modes when needed.
+    '''
+    # TODO: Would 'Default' make sense for .NET Framework / CoreRT / Mono?
+    # TODO: Should only be required for benchmark execution under certain tools
+
+    TIERED = 'Tiered'
+    NO_TIERING = 'NoTiering'
+    FULLY_JITTED_NO_TIERING = 'FullyJittedNoTiering'
+    MIN_OPT = 'MinOpt'
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if values:
+            if values not in CompilationAction.modes():
+                raise ArgumentTypeError('Unknown mode: {}'.format(values))
+            setattr(namespace, self.dest, values)
+
+    @staticmethod
+    def __set_mode(mode: str) -> None:
+        # Remove potentially set environments.
+        COMPLUS_ENVIRONMENTS = [
+            'COMPlus_JITMinOpts',
+            'COMPlus_ReadyToRun',
+            'COMPlus_TieredCompilation',
+            'COMPlus_ZapDisable',
+        ]
+        for complus_environment in COMPLUS_ENVIRONMENTS:
+            if complus_environment in environ:
+                environ.pop(complus_environment)
+
+        # Configure .NET Runtime
+        if mode == CompilationAction.TIERED:
+            environ['COMPlus_TieredCompilation'] = '1'
+        elif mode == CompilationAction.NO_TIERING:
+            environ['COMPlus_TieredCompilation'] = '0'
+        elif mode == CompilationAction.FULLY_JITTED_NO_TIERING:
+            environ['COMPlus_ReadyToRun'] = '0'
+            environ['COMPlus_TieredCompilation'] = '0'
+            environ['COMPlus_ZapDisable'] = '1'
+        elif mode == CompilationAction.MIN_OPT:
+            environ['COMPlus_JITMinOpts'] = '1'
+            environ['COMPlus_TieredCompilation'] = '0'
+        else:
+            raise ArgumentTypeError('Unknown mode: {}'.format(mode))
+
+    @staticmethod
+    def validate(usr_mode: str) -> str:
+        '''Validate user input.'''
+        requested_mode = None
+        for mode in CompilationAction.modes():
+            if usr_mode.casefold() == mode.casefold():
+                requested_mode = mode
+                break
+        if not requested_mode:
+            raise ArgumentTypeError('Unknown mode: {}'.format(usr_mode))
+        CompilationAction.__set_mode(requested_mode)
+        return requested_mode
+
+    @staticmethod
+    def modes() -> list:
+        '''Available .NET Performance modes.'''
+        return [
+            CompilationAction.TIERED,
+            CompilationAction.NO_TIERING,
+            CompilationAction.FULLY_JITTED_NO_TIERING,
+            CompilationAction.MIN_OPT
+        ]
+
+    @staticmethod
+    def tiered() -> str:
+        '''Default .NET performance mode.'''
+        return CompilationAction.modes()[0]  # Tiered
+
+    @staticmethod
+    def help_text() -> str:
+        '''Gets the help string describing the different compilation modes.'''
+        return '''Different compilation modes that can be set to change the
+        .NET compilation behavior. The different modes are: {}: (Default);
+        {}: tiering is disabled, but includes R2R code, and it is useful for
+        comparison against Tiered; {}: This is JIT-only, useful for comparison
+        against Tiered and NoTier for changes to R2R code or tiering; {}: uses
+        minopt-JIT for methods that do not have pregenerated code, and useful
+        for startup time comparisons in scenario benchmarks that include a
+        startup time measurement (probably not for microbenchmarks), probably
+        not useful for a PR.'''.format(
+            CompilationAction.TIERED,
+            CompilationAction.NO_TIERING,
+            CompilationAction.FULLY_JITTED_NO_TIERING,
+            CompilationAction.MIN_OPT
+        )
+
+
 class CSharpProject:
     '''
     This is a class wrapper around the `dotnet` command line interface.
     Remark: It assumes dotnet is already in the PATH.
     '''
 
-    def __init__(
-            self,
-            working_directory: str,
-            bin_directory: str,
-            csproj_file: str):
-        if not working_directory:
-            raise TypeError(
-                'working_directory should be string, not NoneType.'
-            )
+    def __init__(self, project: CSharpProjFile, bin_directory: str):
+        if not project.file_name:
+            raise TypeError('C# file name cannot be null.')
+        if not project.working_directory:
+            raise TypeError('C# working directory cannot be null.')
         if not bin_directory:
-            raise TypeError(
-                'bin_directory should be string, not NoneType.'
-            )
-        if not csproj_file:
-            raise TypeError(
-                'csproj_file should be string, not NoneType.'
-            )
+            raise TypeError('bin folder cannot be null.')
 
-        if not path.isdir(working_directory):
+        self.__csproj_file = path.abspath(project.file_name)
+        self.__working_directory = path.abspath(project.working_directory)
+        self.__bin_directory = bin_directory
+
+        if not path.isdir(self.__working_directory):
             raise ValueError(
                 'Specified working directory: {}, does not exist.'.format(
-                    working_directory
+                    self.__working_directory
                 )
             )
-
-        if path.isabs(csproj_file) and not path.exists(csproj_file):
+        if not path.isfile(self.__csproj_file):
             raise ValueError(
                 'Specified project file: {}, does not exist.'.format(
-                    csproj_file
+                    self.__csproj_file
                 )
             )
-        elif not path.exists(path.join(working_directory, csproj_file)):
-            raise ValueError(
-                'Specified project file: {}, does not exist.'.format(
-                    csproj_file
-                )
-            )
-
-        self.__working_directory = working_directory
-        self.__bin_directory = bin_directory
-        self.__csproj_file = csproj_file
 
     @property
     def working_directory(self) -> str:
@@ -144,6 +244,16 @@ class CSharpProject:
                 RunCommand(cmdline, verbose=verbose).run(
                     self.working_directory)
 
+    @staticmethod
+    def __print_complus_environment() -> None:
+        getLogger().info('-' * 50)
+        getLogger().info('Dumping COMPlus environment:')
+        COMPLUS_PREFIX = 'COMPlus'
+        for env in environ:
+            if env[:len(COMPLUS_PREFIX)].lower() == COMPLUS_PREFIX.lower():
+                getLogger().info('  "%s=%s"', env, environ[env])
+        getLogger().info('-' * 50)
+
     def run(self,
             configuration: str,
             target_framework_moniker: str,
@@ -152,7 +262,7 @@ class CSharpProject:
         '''
         Calls dotnet to run a .NET project output.
         '''
-
+        CSharpProject.__print_complus_environment()
         cmdline = [
             'dotnet', 'run',
             '--project', self.csproj_file,
@@ -357,6 +467,18 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default=SUPPORTED_ARCHITECTURES[0],
         choices=SUPPORTED_ARCHITECTURES,
         help='Architecture of DotNet Cli binaries to be installed.'
+    )
+
+    # .NET Compilation modes.
+    parser.add_argument(
+        '--dotnet-compilation-mode',
+        dest='dotnet_compilation_mode',
+        required=False,
+        action=CompilationAction,
+        choices=CompilationAction.modes(),
+        default=CompilationAction.tiered(),
+        type=CompilationAction.validate,
+        help='{}'.format(CompilationAction.help_text())
     )
 
     return parser
