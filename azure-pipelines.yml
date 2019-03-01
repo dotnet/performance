@@ -40,12 +40,8 @@ jobs:
       architecture: x86
       pool: Hosted VS2017
       queue: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
-      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+      frameworks: # for public jobs we want to make sure that the PRs don't break x86
         - netcoreapp3.0
-        - netcoreapp2.2
-        - netcoreapp2.1
-        - netcoreapp2.0
-        - net461
 
 # Windows x64 micro benchmarks, private job
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
