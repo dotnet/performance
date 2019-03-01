@@ -63,7 +63,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
-      <Compile Remove="corefx\System.Drawing\Perf_Graphics_Transforms.cs" />
+    <Compile Remove="corefx\System.Drawing\Perf_Graphics*.cs" />
   </ItemGroup>
 
 </Project>
