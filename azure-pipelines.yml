@@ -19,6 +19,7 @@ jobs:
     parameters:
       osName: windows
       osVersion: RS4
+      kind: micro
       architecture: x64
       pool: Hosted VS2017
       queue: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
@@ -37,6 +38,7 @@ jobs:
     parameters:
       osName: windows
       osVersion: RS4
+      kind: micro
       architecture: x86
       pool: Hosted VS2017
       queue: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
@@ -51,6 +53,7 @@ jobs:
     parameters:
       osName: windows
       osVersion: 10
+      kind: micro
       architecture: x64
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
@@ -65,6 +68,7 @@ jobs:
     parameters:
       osName: windows
       osVersion: 10
+      kind: micro
       architecture: x86
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
@@ -79,6 +83,7 @@ jobs:
     parameters:
       osName: ubuntu
       osVersion: 1604
+      kind: micro
       architecture: x64
       pool: Hosted Ubuntu 1604
       queue: Ubuntu.1604.Amd64.Open
@@ -97,6 +102,7 @@ jobs:
     parameters:
       osName: ubuntu
       osVersion: 1604
+      kind: micro
       architecture: x64
       pool: Hosted Ubuntu 1604
       queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
@@ -112,6 +118,7 @@ jobs:
 #     parameters:
 #       osName: ubuntu
 #       osVersion: 1604
+#       kind: micro
 #       architecture: arm64
 #       pool: Hosted Ubuntu 1604
 #       queue: Ubuntu.1604.Arm64.Open
@@ -127,6 +134,7 @@ jobs:
     parameters:
       osName: windows
       osVersion: RS4
+      kind: mlnet
       architecture: x64
       pool: Hosted VS2017
       queue: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
@@ -141,6 +149,7 @@ jobs:
     parameters:
       osName: windows
       osVersion: 10
+      kind: mlnet
       architecture: x64
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
@@ -155,6 +164,7 @@ jobs:
     parameters:
       osName: ubuntu
       osVersion: 1604
+      kind: mlnet
       architecture: x64
       pool: Hosted Ubuntu 1604
       queue: Ubuntu.1604.Amd64.Open
@@ -170,6 +180,7 @@ jobs:
     parameters:
       osName: ubuntu
       osVersion: 1604
+      kind: mlnet
       architecture: x64
       pool: Hosted Ubuntu 1604
       queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
