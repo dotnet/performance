@@ -9,7 +9,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Filters;
 using BenchmarkDotNet.Running;
 
-namespace MicroBenchmarks
+namespace BenchmarkDotNet.Extensions
 {
     public enum OS : byte
     {

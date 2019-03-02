@@ -385,6 +385,7 @@ def run_scripts(
 
         working_directory = dotnet.get_build_directory(
             bin_directory=bin_directory,
+            project_name=BENCHMARKS_CSPROJ.project_name,
             configuration=args.configuration,
             target_framework_moniker=target_framework_moniker,
         )

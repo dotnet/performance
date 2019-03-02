@@ -191,6 +191,11 @@ class CSharpProject:
         return self.__csproj_file
 
     @property
+    def project_name(self) -> str:
+        '''Gets the project name.'''
+        return path.splitext(path.basename(self.__csproj_file))[0]
+
+    @property
     def bin_path(self) -> str:
         '''Gets the directory in which the built binaries will be placed.'''
         return self.__bin_directory
@@ -344,6 +349,7 @@ def get_commit_date(commit_sha: str, repository: str = None) -> str:
 
 def get_build_directory(
         bin_directory: str,
+        project_name: str,
         configuration: str,
         target_framework_moniker: str) -> None:
     '''
@@ -355,6 +361,7 @@ def get_build_directory(
             bin_directory,
             __find_build_directory(
                 configuration=configuration,
+                project_name=project_name,
                 target_framework_moniker=target_framework_moniker,
             )
         )
@@ -362,12 +369,14 @@ def get_build_directory(
 
 def __find_build_directory(
         configuration: str,
+        project_name: str,
         target_framework_moniker: str) -> str:
     '''
     Attempts to get the output directory where the built artifacts are in
     with respect to the current working directory.
     '''
-    pattern = '**/{Configuration}/{TargetFramework}'.format(
+    pattern = '**/{ProjectName}/{Configuration}/{TargetFramework}'.format(
+        ProjectName=project_name,
         Configuration=configuration,
         TargetFramework=target_framework_moniker
     )

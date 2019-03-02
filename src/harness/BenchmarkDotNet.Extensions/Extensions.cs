@@ -6,11 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using BenchmarkDotNet.Reports;
 
-namespace MicroBenchmarks
+namespace BenchmarkDotNet.Extensions
 {
-    internal static class Extensions
+    public static class SummaryExtensions
     {
-        internal static int ToExitCode(this IEnumerable<Summary> summaries)
+        public static int ToExitCode(this IEnumerable<Summary> summaries)
         {
             // an empty summary means that initial filtering and validation did not allow to run
             if (!summaries.Any()) 
