@@ -18,6 +18,7 @@
     <PackageReference Include="MessagePackAnalyzer" Version="1.6.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="protobuf-net" Version="2.3.7" />
+    <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
     <PackageReference Include="System.Memory" Version="4.5.0" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.2" />
@@ -59,6 +60,10 @@
     <Compile Remove="corefx\System.Runtime\Perf.HashCode.cs" />
     <Compile Remove="corefx\System.Security.Cryptography.Primitives\**" />
     <Compile Remove="corefx\System.Security.Cryptography\Perf.Rfc2898DeriveBytes.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
+    <Compile Remove="corefx\System.Drawing\Perf_Graphics*.cs" />
   </ItemGroup>
 
 </Project>
