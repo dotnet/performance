@@ -1,11 +1,11 @@
 parameters:
   osName: ''           # required -- windows | linux | macos
   osVersion: ''        # required -- OS version
-  kind: ''             # required -- benchmark kind. As of today, only "micro" benchmarks are supported, we plan to add "scenarios" soon
   architecture: ''     # required -- Architecture. Allowed values: x64, x86, arm32, arm64
   pool: ''             # required -- name of the Helix pool
   queue: ''            # required -- name of the Helix queue
   container: ''        # optional -- id of the container
+  csproj: ''           # required -- relative path to csproj with benchmarks
   frameworks: []       # required -- list of frameworks. Allowed values: net461, netcoreapp2.0, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
 
 jobs:
@@ -104,8 +104,8 @@ jobs:
             WorkItemTimeout: 4:00 # 4 hours
             ${{ if eq(parameters.osName, 'windows') }}:
               WorkItemDirectory: '$(Build.SourcesDirectory)\docs' # WorkItemDirectory can not be empty, so we send it some docs to keep it happy
-              WorkItemCommand: 'py -3 %HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --incremental no --architecture ${{ parameters.architecture }} -f $(_Framework) --bdn-arguments="$(BenchmarkDotNetArguments)" $(BenchViewArguments) --dotnet-compilation-mode $(_CompilationMode)'
+              WorkItemCommand: 'py -3 %HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --csproj %HELIX_CORRELATION_PAYLOAD%\${{ parameters.csproj }} --incremental no --architecture ${{ parameters.architecture }} -f $(_Framework) --bdn-arguments="$(BenchmarkDotNetArguments)" $(BenchViewArguments) --dotnet-compilation-mode $(_CompilationMode)'
               CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\notLocked' # it gets checked out to a folder with shorter path than WorkItemDirectory so we can avoid file name too long exceptions
             ${{ if ne(parameters.osName, 'windows') }}:
               WorkItemDirectory: '$(Build.SourcesDirectory)'
-              WorkItemCommand: 'python3 scripts/benchmarks_ci.py --incremental no --architecture ${{ parameters.architecture }} -f $(_Framework) --bdn-arguments="$(BenchmarkDotNetArguments)" $(BenchViewArguments) --dotnet-compilation-mode $(_CompilationMode)'
+              WorkItemCommand: 'python3 scripts/benchmarks_ci.py --csproj ${{ parameters.csproj }} --incremental no --architecture ${{ parameters.architecture }} -f $(_Framework) --bdn-arguments="$(BenchmarkDotNetArguments)" $(BenchViewArguments) --dotnet-compilation-mode $(_CompilationMode)'
