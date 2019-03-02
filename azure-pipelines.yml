@@ -23,6 +23,7 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+      categories: ['coreclr', 'corefx']
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - netcoreapp3.0
         - netcoreapp2.2
@@ -40,6 +41,7 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.Amd64.ClientRS4.DevEx.15.8.Perf
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+      categories: ['coreclr', 'corefx']
       frameworks: # for public jobs we want to make sure that the PRs don't break x86
         - netcoreapp3.0
 
@@ -53,6 +55,7 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+      categories: ['coreclr', 'corefx']
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
       
@@ -66,6 +69,7 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+      categories: ['coreclr', 'corefx']
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
         
@@ -80,6 +84,7 @@ jobs:
       queue: Ubuntu.1604.Amd64.Open
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
+      categories: ['coreclr', 'corefx']
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - netcoreapp3.0
         - netcoreapp2.2
@@ -97,6 +102,7 @@ jobs:
       queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
+      categories: ['coreclr', 'corefx']
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
         
@@ -111,5 +117,6 @@ jobs:
 #       queue: Ubuntu.1604.Arm64.Open
 #       container: ubuntu_1604_arm64_cross_container
 #       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
+#       categories: ['coreclr', 'corefx']
 #       frameworks: # currently ARM64 is supported only by .NET Core 3.0 https://github.com/dotnet/core/blob/master/release-notes/3.0/3.0-supported-os.md
 #         - netcoreapp3.0

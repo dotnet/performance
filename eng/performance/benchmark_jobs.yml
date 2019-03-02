@@ -7,6 +7,7 @@ parameters:
   container: ''        # optional -- id of the container
   csproj: ''           # required -- relative path to csproj with benchmarks
   frameworks: []       # required -- list of frameworks. Allowed values: net461, netcoreapp2.0, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
+  categories: []       # required -- list of categories
 
 jobs:
 - template: ../common/templates/jobs/jobs.yml
@@ -65,28 +66,19 @@ jobs:
         strategy:
           matrix:
             ${{ each framework in parameters.frameworks }}:
-              coreclr_${{ framework }}:
-                _Category: coreclr
-                _Framework: ${{ framework }}
-                _CompilationMode: NoTiering
-                _BuildConfig: ${{ parameters.architecture }}_coreclr_$(_Framework)
-              corefx_${{ framework }}:
-                _Category: corefx
-                _Framework: ${{ framework }}
-                _CompilationMode: NoTiering
-                _BuildConfig: ${{ parameters.architecture }}_corefx_$(_Framework)
-              ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}: # to reduce the number of CI legs for every PR
-                ${{ if and(startsWith(framework, 'netcoreapp'), ne(framework, 'netcoreapp2.0')) }}: # Tiered JIT was introduced in .NET Core 2.1
-                  coreclr_${{ framework }}_tiered:
-                    _Category: coreclr
-                    _Framework: ${{ framework }}
-                    _CompilationMode: Tiered
-                    _BuildConfig: ${{ parameters.architecture }}_coreclr_$(_Framework)_$(_CompilationMode)
-                  corefx_${{ framework }}_tiered:
-                    _Category: corefx
-                    _Framework: ${{ framework }}
-                    _CompilationMode: Tiered
-                    _BuildConfig: ${{ parameters.architecture }}_corefx_$(_Framework)_$(_CompilationMode)
+              ${{ each category in parameters.categories }}:
+                ${{ category }}_${{ framework }}:
+                  _Category: ${{ category }}
+                  _Framework: ${{ framework }}
+                  _CompilationMode: NoTiering
+                  _BuildConfig: ${{ parameters.architecture }}_${{ category }}_$(_Framework)
+                ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}: # to reduce the number of CI legs for every PR
+                  ${{ if and(startsWith(framework, 'netcoreapp'), ne(framework, 'netcoreapp2.0')) }}: # Tiered JIT was introduced in .NET Core 2.1
+                    ${{ category }}_${{ framework }}_tiered:
+                      _Category: ${{ category }}
+                      _Framework: ${{ framework }}
+                      _CompilationMode: Tiered
+                      _BuildConfig: ${{ parameters.architecture }}_${{ category }}_$(_Framework)_$(_CompilationMode)
         steps:
         - checkout: self
           clean: true
