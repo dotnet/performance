@@ -1,13 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
-  <Import Project="$(MSBuildThisFileDirectory)\..\..\micro\common.props" />
+  <Import Project="$(MSBuildThisFileDirectory)\..\..\..\common.props" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.11.3" />
     <PackageReference Include="Microsoft.ML" Version="0.10.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+      <ProjectReference Include="..\..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj" />
   </ItemGroup>
 
   <ItemGroup>

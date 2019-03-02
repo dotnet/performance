@@ -8,7 +8,6 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms.Conversions;
-using MicroBenchmarks;
 
 namespace Microsoft.ML.Benchmarks
 {

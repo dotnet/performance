@@ -8,7 +8,6 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using Microsoft.ML.Transforms;
 using Microsoft.ML.Transforms.Text;
-using MicroBenchmarks;
 
 namespace Microsoft.ML.Benchmarks
 {

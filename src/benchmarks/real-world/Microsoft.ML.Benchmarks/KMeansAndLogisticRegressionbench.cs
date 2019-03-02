@@ -6,7 +6,6 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Data;
 using Microsoft.ML.Internal.Calibration;
 using Microsoft.ML.Learners;
-using MicroBenchmarks;
 
 namespace Microsoft.ML.Benchmarks
 {
