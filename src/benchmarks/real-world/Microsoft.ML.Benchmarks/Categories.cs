@@ -8,7 +8,8 @@ namespace MicroBenchmarks
     {
         /// <summary>
         /// benchmarks belonging to this category are executed for MachineLearning CI jobs
+        /// please DO NOT change the value
         /// </summary>
-        public const string MachineLearning = "machinelearning";
+        public const string MachineLearning = "mldotnet";
     }
 }
