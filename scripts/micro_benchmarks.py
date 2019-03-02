@@ -144,14 +144,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help=SUPPRESS,
     )
 
-    supported_frameworks = FrameworkAction\
-        .get_supported_frameworks()
     parser.add_argument(
         '-f', '--frameworks',
         required=True,
         nargs='+',
         action=FrameworkAction,
-        choices=supported_frameworks,
+        choices=FrameworkAction.get_supported_frameworks(),
         help='''The framework to build/run for. '''
              '''The target framework must also be specified in the project '''
              '''file.''',
