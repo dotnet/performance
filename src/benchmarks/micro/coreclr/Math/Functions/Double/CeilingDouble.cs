@@ -15,7 +15,7 @@ namespace Transcendental
         private const double ceilingExpectedResult = 2500;
 
         [Benchmark]
-        public void CeilingBenchmark() => CeilingTest();
+        public void Ceiling() => CeilingTest();
 
         public static void CeilingTest()
         {

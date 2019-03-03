@@ -16,7 +16,7 @@ namespace Transcendental
         private const double sinExpectedResult = 1.0000000005445053;
 
         [Benchmark]
-        public void SinBenchmark() => SinTest();
+        public void Sin() => SinTest();
 
         public static void SinTest()
         {

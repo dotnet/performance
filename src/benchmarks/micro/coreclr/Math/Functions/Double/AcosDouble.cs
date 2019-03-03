@@ -15,7 +15,7 @@ namespace Transcendental
         private const double acosExpectedResult = 7852.4108380716079;
 
         [Benchmark]
-        public void AcosBenchmark() => AcosTest();
+        public void Acos() => AcosTest();
 
         public static void AcosTest()
         {

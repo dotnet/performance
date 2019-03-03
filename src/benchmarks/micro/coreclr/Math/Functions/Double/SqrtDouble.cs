@@ -15,7 +15,7 @@ namespace Transcendental
         private const double sqrtExpectedResult = 5909.0605337797215;
 
         [Benchmark]
-        public void SqrtBenchmark() => SqrtTest();
+        public void Sqrt() => SqrtTest();
 
         public static void SqrtTest()
         {

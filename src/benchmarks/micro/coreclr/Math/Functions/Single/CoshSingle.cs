@@ -16,7 +16,7 @@ namespace Transcendental
         private const float coshExpectedResult = 5876.02588f;
 
         [Benchmark]
-        public void CoshBenchmark() => CoshTest();
+        public void Cosh() => CoshTest();
 
         public static void CoshTest()
         {

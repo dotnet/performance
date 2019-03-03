@@ -15,7 +15,7 @@ namespace Transcendental
         private const float roundExpectedResult = 2.0f;
 
         [Benchmark]
-        public void RoundBenchmark() => RoundTest();
+        public void Round() => RoundTest();
 
         public static void RoundTest()
         {

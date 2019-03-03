@@ -15,7 +15,7 @@ namespace Transcendental
         private const double asinExpectedResult = 1.5707959028763392;
 
         [Benchmark]
-        public void AsinBenchmark() => AsinTest();
+        public void Asin() => AsinTest();
 
         public static void AsinTest()
         {

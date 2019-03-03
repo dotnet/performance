@@ -15,7 +15,7 @@ namespace Transcendental
         private const float floorExpectedResult = -2498.0f;
 
         [Benchmark]
-        public void FloorBenchmark() => FloorTest();
+        public void Floor() => FloorTest();
 
         public static void FloorTest()
         {

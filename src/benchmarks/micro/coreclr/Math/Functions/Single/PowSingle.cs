@@ -16,7 +16,7 @@ namespace Transcendental
         private const float powExpectedResult = 4659.30762f;
 
         [Benchmark]
-        public void PowBenchmark() => PowTest();
+        public void Pow() => PowTest();
 
         public static void PowTest()
         {

@@ -15,7 +15,7 @@ namespace Transcendental
         private const double sinhExpectedResult = 1.17520119337903;
 
         [Benchmark]
-        public void SinhBenchmark() => SinhTest();
+        public void Sinh() => SinhTest();
 
         public static void SinhTest()
         {

@@ -15,7 +15,7 @@ namespace Transcendental
         private const double tanhExpectedResult = 0.76159415578341827;
 
         [Benchmark]
-        public void TanhBenchmark() => TanhTest();
+        public void Tanh() => TanhTest();
 
         public static void TanhTest()
         {

@@ -15,7 +15,7 @@ namespace Transcendental
         private const double tanExpectedResult = 1.5574077243051505;
 
         [Benchmark]
-        public void TanBenchmark() => TanTest();
+        public void Tan() => TanTest();
 
         public static void TanTest()
         {

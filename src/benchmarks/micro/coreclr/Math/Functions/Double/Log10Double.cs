@@ -18,7 +18,7 @@ namespace Transcendental
         /// this benchmark is dependent on loop alignment
         /// </summary>
         [Benchmark]
-        public void Log10Benchmark() => Log10Test();
+        public void Log10() => Log10Test();
 
         public static void Log10Test()
         {

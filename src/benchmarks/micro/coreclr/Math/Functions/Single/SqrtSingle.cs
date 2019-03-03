@@ -15,7 +15,7 @@ namespace Transcendental
         private const float sqrtExpectedResult = 5909.03027f;
 
         [Benchmark]
-        public void SqrtBenchmark() => SqrtTest();
+        public void Sqrt() => SqrtTest();
 
         public static void SqrtTest()
         {

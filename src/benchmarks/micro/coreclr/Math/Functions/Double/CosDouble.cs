@@ -15,7 +15,7 @@ namespace Transcendental
         private const double cosDoubleExpectedResult = -1.0000000005924159;
 
         [Benchmark]
-        public void CosBenchmark() => CosDoubleTest();
+        public void Cos() => CosDoubleTest();
 
         public static void CosDoubleTest()
         {

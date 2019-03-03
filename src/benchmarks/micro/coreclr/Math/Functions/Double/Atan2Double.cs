@@ -16,7 +16,7 @@ namespace Transcendental
         private const double atan2ExpectedResult = 3926.99081698702;
 
         [Benchmark]
-        public void Atan2Benchmark() => Atan2Test();
+        public void Atan2() => Atan2Test();
 
         public static void Atan2Test()
         {

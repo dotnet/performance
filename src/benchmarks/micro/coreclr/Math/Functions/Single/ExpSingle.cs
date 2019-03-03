@@ -15,7 +15,7 @@ namespace Transcendental
         private const float expExpectedResult = 5877.28564f;
 
         [Benchmark]
-        public void ExpBenchmark() => ExpTest();
+        public void Exp() => ExpTest();
 
         public static void ExpTest()
         {

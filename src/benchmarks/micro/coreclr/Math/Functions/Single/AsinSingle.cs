@@ -15,7 +15,7 @@ namespace Transcendental
         private const float asinExpectedResult = 1.57079590f;
 
         [Benchmark]
-        public void AsinBenchmark() => AsinTest();
+        public void Asin() => AsinTest();
 
         public static void AsinTest()
         {

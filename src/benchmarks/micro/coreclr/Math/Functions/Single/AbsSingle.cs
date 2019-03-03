@@ -17,7 +17,7 @@ namespace Transcendental
         private const float absExpectedResult = 2500.03125f;
 
         [Benchmark]
-        public void AbsBenchmark() => AbsTest();
+        public void Abs() => AbsTest();
 
         public static void AbsTest()
         {

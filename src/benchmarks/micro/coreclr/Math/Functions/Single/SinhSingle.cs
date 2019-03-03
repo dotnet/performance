@@ -18,7 +18,7 @@ namespace Transcendental
         /// this benchmark is dependent on loop alignment
         /// </summary>
         [Benchmark]
-        public void SinhBenchmark() => SinhTest();
+        public void Sinh() => SinhTest();
 
         public static void SinhTest()
         {

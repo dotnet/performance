@@ -16,7 +16,7 @@ namespace Transcendental
         private const float cosExpectedResult = -0.993487537f;
 
         [Benchmark]
-        public void CosBenchmark() => CosTest();
+        public void Cos() => CosTest();
 
         public static void CosTest()
         {

@@ -15,7 +15,7 @@ namespace Transcendental
         private const float acosExpectedResult = 7852.41084f;
 
         [Benchmark]
-        public void AcosBenchmark() => AcosTest();
+        public void Acos() => AcosTest();
 
         public static void AcosTest()
         {

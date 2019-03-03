@@ -15,7 +15,7 @@ namespace Transcendental
         private const float logExpectedResult = -1529.14014f;
 
         [Benchmark]
-        public void LogBenchmark() => LogTest();
+        public void Log() => LogTest();
 
         public static void LogTest()
         {

@@ -17,7 +17,7 @@ namespace Transcendental
         private const double absExpectedResult = 2499.9999999999659;
 
         [Benchmark]
-        public void AbsBenchmark() => AbsTest();
+        public void Abs() => AbsTest();
 
         public static void AbsTest()
         {

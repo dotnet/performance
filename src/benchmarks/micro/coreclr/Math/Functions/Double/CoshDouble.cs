@@ -15,7 +15,7 @@ namespace Transcendental
         private const double coshExpectedResult = 5876.0060465657216;
 
         [Benchmark]
-        public void CoshBenchmark() => CoshTest();
+        public void Cosh() => CoshTest();
 
         public static void CoshTest()
         {
