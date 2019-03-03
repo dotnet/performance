@@ -5,7 +5,7 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace MathTests.FloatingPointTests
+namespace Transcendental
 {
     public partial class MathTests
     {

@@ -5,7 +5,7 @@
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-namespace MathTests.FloatingPointTests
+namespace Transcendental
 {
     [BenchmarkCategory(Categories.CoreCLR)]
     public partial class MathTests
