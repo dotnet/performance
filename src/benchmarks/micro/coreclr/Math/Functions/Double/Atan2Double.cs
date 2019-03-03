@@ -7,7 +7,7 @@ using BenchmarkDotNet.Attributes;
 
 namespace Transcendental
 {
-    public partial class DoublePrecisionTests
+    public partial class Double
     {
         // Tests Math.Atan2(double, double) over 5000 iterations for the domain y: -1, +1; x: +1, -1
 

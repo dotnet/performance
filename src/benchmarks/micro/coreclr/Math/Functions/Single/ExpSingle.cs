@@ -7,7 +7,7 @@ using BenchmarkDotNet.Attributes;
 
 namespace Transcendental
 {
-    public partial class SinglePrecisionTests
+    public partial class Single
     {
         // Tests MathF.Exp(float) over 5000 iterations for the domain -1, +1
 

@@ -8,7 +8,7 @@ using BenchmarkDotNet.Running;
 
 namespace Transcendental
 {
-    public partial class DoublePrecisionTests
+    public partial class Double
     {
         // Tests Math.Sin(double) over 5000 iterations for the domain -PI/2, +PI/2
 

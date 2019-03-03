@@ -7,7 +7,7 @@ using BenchmarkDotNet.Attributes;
 
 namespace Transcendental
 {
-    public partial class DoublePrecisionTests
+    public partial class Double
     {
         // Tests Math.Tanh(double) over 5000 iterations for the domain -1, +1
 

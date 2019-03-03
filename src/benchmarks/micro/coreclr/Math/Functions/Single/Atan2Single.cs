@@ -7,7 +7,7 @@ using BenchmarkDotNet.Attributes;
 
 namespace Transcendental
 {
-    public partial class SinglePrecisionTests
+    public partial class Single
     {
         // Tests MathF.Atan2(float, float) over 5000 iterations for the domain y: -1, +1; x: +1, -1
 

@@ -9,7 +9,7 @@ using MicroBenchmarks;
 namespace Transcendental
 {
     [BenchmarkCategory(Categories.CoreCLR)]
-    public partial class DoublePrecisionTests
+    public partial class Double
     {
         // Tests Math.Abs(double) over 5000 iterations for the domain -1, +1
 

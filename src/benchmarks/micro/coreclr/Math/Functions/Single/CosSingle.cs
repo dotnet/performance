@@ -8,7 +8,7 @@ using BenchmarkDotNet.Running;
 
 namespace Transcendental
 {
-    public partial class SinglePrecisionTests
+    public partial class Single
     {
         // Tests MathF.Cos(float) over 5000 iterations for the domain 0, PI
 

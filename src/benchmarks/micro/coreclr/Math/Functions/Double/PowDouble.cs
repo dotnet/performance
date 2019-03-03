@@ -8,7 +8,7 @@ using BenchmarkDotNet.Running;
 
 namespace Transcendental
 {
-    public partial class DoublePrecisionTests
+    public partial class Double
     {
         // Tests Math.Pow(double, double) over 5000 iterations for the domain x: +2, +1; y: -2, -1
 

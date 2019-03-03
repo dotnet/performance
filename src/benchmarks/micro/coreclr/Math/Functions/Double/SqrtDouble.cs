@@ -7,7 +7,7 @@ using BenchmarkDotNet.Attributes;
 
 namespace Transcendental
 {
-    public partial class DoublePrecisionTests
+    public partial class Double
     {
         // Tests Math.Sqrt(double) over 5000 iterations for the domain 0, PI
 
