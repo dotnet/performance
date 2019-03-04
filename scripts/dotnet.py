@@ -308,7 +308,7 @@ def get_dotnet_sdk(framework: str, dotnet_path: str = None) -> str:
         # The .NET Command Line Tools `--info` had a different output in 2.0
         # This line seems commons in all Cli, so we can use the base path to
         # get information about the .NET SDK/Runtime
-        groups = re.search(r"^ +Base Path\: +(\w+.*)$", decoded_line)
+        groups = re.search(r"^ +Base Path\: +(\S+)$", decoded_line)
         if groups:
             break
 
