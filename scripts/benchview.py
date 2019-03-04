@@ -390,7 +390,6 @@ def __run_scripts(
     )
     buildinfo = __get_build_info(args, target_framework_moniker)
 
-    # BenchView build.py
     benchviewpy.build(
         build_type=args.benchview_run_type,
         subparser=buildinfo.subparser,
@@ -400,7 +399,6 @@ def __run_scripts(
         source_timestamp=buildinfo.source_timestamp
     )
 
-    # BenchView submission-metadata.py
     submission_name = '%s (%s): %s:%s' % (
         args.benchview_submission_name,
         args.benchview_run_type,
@@ -408,13 +406,10 @@ def __run_scripts(
         buildinfo.commit_sha
     )
 
-    # BenchView submission-metadada.py
     benchviewpy.submission_metadata(name=submission_name)
 
-    # BenchView measurement.py
     benchviewpy.measurement()
 
-    # BenchView submission.py
     benchviewpy.submission(
         architecture=args.architecture,
         config_name=benchview_config_name,
@@ -424,7 +419,6 @@ def __run_scripts(
         jobtype=args.benchview_run_type
     )
 
-    # Upload to a BenchView container (upload.py).
     if args.upload_to_benchview_container:
         benchviewpy.upload(container=args.upload_to_benchview_container)
 
