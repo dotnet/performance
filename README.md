@@ -1,7 +1,8 @@
 # .NET Performance
 
-[![Public Build Status](https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master)](https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master) (Public)
-[![Internal Build Status](https://dev.azure.com/dnceng/internal/_apis/build/status/dotnet/performance/dotnet-performance?branchName=master)](https://dev.azure.com/dnceng/internal/_build/latest?definitionId=306&branchName=master) (Internal)
+| Public Build Status                         | Internal Build Status                           |
+| :------------------------------------------ | :---------------------------------------------: |
+| [![public_build_icon]][public_build_status] | [![internal_build_icon]][internal_build_status] |
 
 This repo contains benchmarks used for testing the performance of all .NET Runtimes: .NET Core, Full .NET Framework, Mono and CoreRT.
 
@@ -41,6 +42,13 @@ This project has adopted the code of conduct defined by the Contributor Covenant
 | Core 2.1  | [![CoreCLR_windows_RS4_x64_netcoreapp2.1_icon]][CoreCLR_windows_RS4_x64_netcoreapp2.1_status] |                                                                                               | [![CoreCLR_ubuntu_1604_x64_netcoreapp2.1_icon]][CoreCLR_ubuntu_1604_x64_netcoreapp2.1_status] | N/A                                                                                               |
 | Core 2.0  | [![CoreCLR_windows_RS4_x64_netcoreapp2.0_icon]][CoreCLR_windows_RS4_x64_netcoreapp2.0_status] |                                                                                               | [![CoreCLR_ubuntu_1604_x64_netcoreapp2.0_icon]][CoreCLR_ubuntu_1604_x64_netcoreapp2.0_status] | N/A                                                                                               |
 | .NET      | [![CoreCLR_windows_RS4_x64_net461_icon]][CoreCLR_windows_RS4_x64_net461_status]               |                                                                                               | N/A                                                                                           | N/A                                                                                               |
+
+[//]: # (These are the repo links)
+
+[public_build_icon]:                               https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master
+[public_build_status]:                             https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master
+[internal_build_icon]:                             https://dev.azure.com/dnceng/internal/_apis/build/status/dotnet/performance/dotnet-performance?branchName=master
+[internal_build_status]:                           https://dev.azure.com/dnceng/internal/_build/latest?definitionId=306&branchName=master
 
 [//]: # (These are the CoreFX links)
 
