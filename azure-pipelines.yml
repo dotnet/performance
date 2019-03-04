@@ -10,8 +10,9 @@ trigger:
     include:
     - master
   paths:
-    exclude:
-    - *.md # don't trigger the CI if only a doc file was changed
+    exclude: # don't trigger the CI if only a doc file was changed
+    - docs/*
+    - '**/*.md'
 
 pr:
 - master
