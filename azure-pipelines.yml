@@ -6,7 +6,14 @@ resources:
     #   image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-cross-arm64-a3ae44b-20180315221921
 
 trigger:
-- master
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - *
+    exclude:
+    - *.md # don't trigger the CI if only a doc file was changed
 
 pr:
 - master
