@@ -10,8 +10,6 @@ trigger:
     include:
     - master
   paths:
-    include:
-    - *
     exclude:
     - *.md # don't trigger the CI if only a doc file was changed
 
