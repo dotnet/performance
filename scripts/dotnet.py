@@ -35,6 +35,13 @@ def info(verbose: bool) -> None:
     RunCommand(cmdline, verbose=verbose).run()
 
 
+def __log_script_header(message: str):
+    message_length = len(message)
+    getLogger().info('-' * message_length)
+    getLogger().info(message)
+    getLogger().info('-' * message_length)
+
+
 CSharpProjFile = namedtuple('CSharpProjFile', [
     'file_name',
     'working_directory'
@@ -364,6 +371,7 @@ def get_commit_date(commit_sha: str, repository: str = None) -> str:
         urlformat = 'https://api.github.com/repos/%s/%s/commits/%s'
         url = urlformat % (owner, repo, commit_sha)
 
+    getLogger().info("Attempting to retrive build information from: %s", url)
     with urlopen(url) as response:
         item = loads(response.read().decode('utf-8'))
         build_timestamp = item['commit']['committer']['date']
@@ -429,10 +437,7 @@ def install(
     '''
     Downloads dotnet cli into the tools folder.
     '''
-    start_msg = "Downloading DotNet Cli"
-    getLogger().info('-' * len(start_msg))
-    getLogger().info(start_msg)
-    getLogger().info('-' * len(start_msg))
+    __log_script_header("Downloading DotNet Cli")
 
     if not install_dir:
         install_dir = __get_directory(architecture)
