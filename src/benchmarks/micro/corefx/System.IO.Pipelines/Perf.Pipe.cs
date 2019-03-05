@@ -2,130 +2,116 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using BenchmarkDotNet.Attributes;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Xunit.Performance;
+using MicroBenchmarks;
 
 namespace System.IO.Pipelines.Tests
 {
-    public sealed class Perf_Pipe
+    [BenchmarkCategory(Categories.CoreFX)]
+    public class Perf_Pipe
     {
         private const int InnerIterationCount = 10_000;
 
-        [Benchmark(InnerIterationCount = InnerIterationCount)]
-        public async void SyncReadAsync()
+        private Pipe _pipe;
+        private CancellationTokenSource _cts;
+        private byte[] _data;
+
+        [GlobalSetup(Target = nameof(SyncReadAsync))]
+        public async Task Setup_SyncReadAsync()
         {
-            // Setup
-            var pipe = new Pipe(new PipeOptions(pool: null, readerScheduler: PipeScheduler.Inline, writerScheduler: PipeScheduler.Inline, useSynchronizationContext: false));
+            _pipe = new Pipe(new PipeOptions(pool: null, readerScheduler: PipeScheduler.Inline, writerScheduler: PipeScheduler.Inline, useSynchronizationContext: false));
 
-            PipeWriter writer = pipe.Writer;
-            PipeReader reader = pipe.Reader;
+            await _pipe.Writer.WriteAsync(new ReadOnlyMemory<byte>(new byte[] { 0, 0, 0, 0 }));
+            await _pipe.Writer.FlushAsync();
+        }
 
-            await writer.WriteAsync(new ReadOnlyMemory<byte>(new byte[] { 0, 0, 0, 0 }));
-            await writer.FlushAsync();
+        [Benchmark]
+        public async Task SyncReadAsync()
+        {
+            PipeWriter writer = _pipe.Writer;
+            PipeReader reader = _pipe.Reader;
 
-            // Actual perf testing
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
+            for (int i = 0; i < InnerIterationCount; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        ReadResult result = await reader.ReadAsync();
-                        reader.AdvanceTo(result.Buffer.Start);
-                    }
-                }
+                ReadResult result = await reader.ReadAsync();
+                reader.AdvanceTo(result.Buffer.Start);
             }
         }
 
-        [Benchmark(InnerIterationCount = InnerIterationCount)]
-        public async void ReadAsync()
+        [GlobalSetup(Target = nameof(ReadAsync))]
+        public void Setup_ReadAsync()
         {
-            // Setup
-            var pipe = new Pipe(new PipeOptions(pool: null, readerScheduler: PipeScheduler.Inline, writerScheduler: PipeScheduler.Inline, useSynchronizationContext: false));
+            _pipe = new Pipe(new PipeOptions(pool: null, readerScheduler: PipeScheduler.Inline, writerScheduler: PipeScheduler.Inline, useSynchronizationContext: false));
+            _data = new byte[] { 0 };
+        }
 
-            PipeWriter writer = pipe.Writer;
-            PipeReader reader = pipe.Reader;
+        [Benchmark]
+        public async Task ReadAsync()
+        {
+            PipeWriter writer = _pipe.Writer;
+            PipeReader reader = _pipe.Reader;
 
-            var data = new byte[] { 0 };
-
-            // Actual perf testing
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
+            for (int i = 0; i < InnerIterationCount; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        ValueTask<ReadResult> task = reader.ReadAsync();
+                ValueTask<ReadResult> task = reader.ReadAsync();
 
-                        await writer.WriteAsync(data);
-                        await writer.FlushAsync();
+                await writer.WriteAsync(_data);
+                await writer.FlushAsync();
 
-                        ReadResult result = await task;
-                        reader.AdvanceTo(result.Buffer.End);
-                    }
-                }
+                ReadResult result = await task;
+                reader.AdvanceTo(result.Buffer.End);
             }
         }
 
-        [Benchmark(InnerIterationCount = InnerIterationCount)]
-        public async void SyncReadAsyncWithCancellationToken()
+        [GlobalSetup(Target = nameof(SyncReadAsyncWithCancellationToken))]
+        public async Task Setup_SyncReadAsyncWithCancellationToken()
         {
-            // Setup
-            var pipe = new Pipe(new PipeOptions(pool: null, readerScheduler: PipeScheduler.Inline, writerScheduler: PipeScheduler.Inline, useSynchronizationContext: false));
+            _pipe = new Pipe(new PipeOptions(pool: null, readerScheduler: PipeScheduler.Inline, writerScheduler: PipeScheduler.Inline, useSynchronizationContext: false));
+            _cts = new CancellationTokenSource();
 
-            PipeWriter writer = pipe.Writer;
-            PipeReader reader = pipe.Reader;
-            CancellationTokenSource cts = new CancellationTokenSource();
+            await _pipe.Writer.WriteAsync(new ReadOnlyMemory<byte>(new byte[] { 0, 0, 0, 0 }));
+            await _pipe.Writer.FlushAsync();
+        }
 
-            await writer.WriteAsync(new ReadOnlyMemory<byte>(new byte[] { 0, 0, 0, 0 }));
-            await writer.FlushAsync();
+        [Benchmark]
+        public async Task SyncReadAsyncWithCancellationToken()
+        {
+            PipeWriter writer = _pipe.Writer;
+            PipeReader reader = _pipe.Reader;
 
-            // Actual perf testing
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
+            for (int i = 0; i < InnerIterationCount; i++)
             {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        ReadResult result = await reader.ReadAsync(cts.Token);
-                        reader.AdvanceTo(result.Buffer.Start);
-                    }
-                }
+                ReadResult result = await reader.ReadAsync(_cts.Token);
+                reader.AdvanceTo(result.Buffer.Start);
             }
         }
 
-        [Benchmark(InnerIterationCount = InnerIterationCount)]
-        public async void ReadAsyncWithCancellationToken()
+        [GlobalSetup(Target = nameof(ReadAsyncWithCancellationToken))]
+        public void Setup_ReadAsyncWithCancellationToken()
         {
-            // Setup
-            var pipe = new Pipe(new PipeOptions(pool: null, readerScheduler: PipeScheduler.Inline, writerScheduler: PipeScheduler.Inline, useSynchronizationContext: false));
-
-            PipeWriter writer = pipe.Writer;
-            PipeReader reader = pipe.Reader;
-
-            var data = new byte[] { 0 };
-
-            CancellationTokenSource cts = new CancellationTokenSource();
-
-            // Actual perf testing
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        ValueTask<ReadResult> task = reader.ReadAsync(cts.Token);
-
-                        await writer.WriteAsync(data);
-                        await writer.FlushAsync();
-
-                        ReadResult result = await task;
-                        reader.AdvanceTo(result.Buffer.End);
-                    }
-                }
-            }
+            _pipe = new Pipe(new PipeOptions(pool: null, readerScheduler: PipeScheduler.Inline, writerScheduler: PipeScheduler.Inline, useSynchronizationContext: false));
+            _data = new byte[] { 0 };
+            _cts = new CancellationTokenSource();
         }
 
+        [Benchmark]
+        public async Task ReadAsyncWithCancellationToken()
+        {
+            PipeWriter writer = _pipe.Writer;
+            PipeReader reader = _pipe.Reader;
+
+            for (int i = 0; i < InnerIterationCount; i++)
+            {
+                ValueTask<ReadResult> task = reader.ReadAsync(_cts.Token);
+
+                await writer.WriteAsync(_data);
+                await writer.FlushAsync();
+
+                ReadResult result = await task;
+                reader.AdvanceTo(result.Buffer.End);
+            }
+        }
     }
 }
