@@ -76,7 +76,7 @@ Moreover, every CoreFX benchmark belongs to a [CoreFX category](../src/benchmark
 In order to run the benchmarks against local CoreFX build you need to build the CoreFX repository in **Release**:
 
 ```cmd
-C:\Projects\corefx> build -Release
+C:\Projects\corefx> build -c Release
 ```
 
 **The most important build artifact for us is CoreRun**. CoreRun is a simple host that does NOT take any dependency on NuGet. BenchmarkDotNet generates some boilerplate code, builds it using dotnet cli and tells CoreRun.exe to run the benchmarks from the auto-generated library. CoreRun runs the benchmarks using the libraries that are placed in its folder. When a benchmarked code has a dependency to `System.ABC.dll` version 4.5 and CoreRun has `System.ABC.dll` version 4.5.1 in its folder, then CoreRun is going to load and use `System.ABC.dll` version 4.5.1. **This means that with a single clone of this dotnet/performance repository you can run benchmarks against private builds of CoreCLR/FX from many different locations.**
@@ -210,7 +210,7 @@ As you can see, before the "update" the version for the Job (not the Host proces
 The CoreFX build system has a built-in support for that, exposed by the [CoreCLROverridePath](https://github.com/dotnet/corefx/blob/0e7236fda21a07302b14030c82f79bb981c723a6/Documentation/project-docs/developer-guide.md#testing-with-private-coreclr-bits) build parameter:
 
 ```cmd
-C:\Projects\corefx> build -Release /p:CoreCLROverridePath="C:\Projects\coreclr\bin\Product\Windows_NT.x64.Release"
+C:\Projects\corefx> build -c Release /p:CoreCLROverridePath="C:\Projects\coreclr\bin\Product\Windows_NT.x64.Release"
 ```
 
 After the update, the reported CoreCLR version should be changed:
