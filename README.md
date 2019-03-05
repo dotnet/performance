@@ -17,3 +17,10 @@ Finding these benchmarks in a separate repository might be surprising. Performan
 ## Contributing to Repository
 
 This project has adopted the code of conduct defined by the Contributor Covenant to clarify expected behavior in our community. For more information, see the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
+
+[//]: # (These are the build status links)
+
+[public_build_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master
+[public_build_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master
+[internal_build_icon]:    https://dev.azure.com/dnceng/internal/_apis/build/status/dotnet/performance/dotnet-performance?branchName=master
+[internal_build_status]:  https://dev.azure.com/dnceng/internal/_build/latest?definitionId=306&branchName=master
