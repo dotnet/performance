@@ -399,12 +399,19 @@ def __run_scripts(
         source_timestamp=buildinfo.source_timestamp
     )
 
-    submission_name = '%s (%s): %s:%s' % (
-        args.benchview_submission_name,
-        args.benchview_run_type,
-        urlparse(buildinfo.repository).path,
-        buildinfo.commit_sha
-    )
+    if urlparse(buildinfo.repository).path and buildinfo.commit_sha:
+        submission_name = '%s (%s): %s:%s' % (
+            args.benchview_submission_name,
+            args.benchview_run_type,
+            urlparse(buildinfo.repository).path,
+            buildinfo.commit_sha
+        )
+    else:
+        submission_name = '%s (%s): %s' % (
+            args.benchview_submission_name,
+            args.benchview_run_type,
+            framework
+        )
 
     benchviewpy.submission_metadata(name=submission_name)
 
