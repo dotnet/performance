@@ -137,5 +137,38 @@ namespace System.Tests
 
         [Benchmark]
         public string StringBuilderToString() => _bigStringBuilder.ToString();
+
+#if NETCOREAPP3_0 // Append(ReadOnlyMemory<char> value) is available only for .NET Core 3.0+
+        [Benchmark]
+        [Arguments(100)]
+        [Arguments(1000)]
+        public StringBuilder AppendMemoryAsMemory(int length)
+        {
+            string builtString = length == 100 ? _string100 : _string1000;
+            ReadOnlyMemory<char> memory = builtString.AsMemory();
+            StringBuilder builder = new StringBuilder();
+
+            for (int j = 0; j < NUM_ITERS_APPEND; j++)
+                builder.Append(memory); // Appends a string of length "length" to an increasingly large StringBuilder
+
+            return builder;
+        }
+#endif
+
+        [Benchmark]
+        [Arguments(100)]
+        [Arguments(1000)]
+        public StringBuilder AppendMemoryAsObject(int length)
+        {
+            string builtString = length == 100 ? _string100 : _string1000;
+            object memoryObject = builtString.AsMemory(); // deliberately uses object to force use of memory.ToString() for comparison to AppendAsReadOnlyMemory
+
+            StringBuilder builder = new StringBuilder();
+
+            for (int j = 0; j < NUM_ITERS_APPEND; j++)
+                builder.Append(memoryObject);
+
+            return builder;
+        }
     }
 }
