@@ -2,462 +2,134 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
-using Xunit;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Extensions;
+using MicroBenchmarks;
 
 namespace System.Collections.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX, Categories.Collections)]
     public class Perf_BitArray
     {
-        const int IterationCount = 100_000;
+        private const bool BooleanValue = true;
 
-        private static Random s_random = new Random(42);
+        [Params(Utils.DefaultCollectionSize)]
+        public int Size { get; set; }
 
-        [Benchmark(InnerIterationCount = IterationCount)]
-        [InlineData(1, true)]
-        [InlineData(10, true)]
-        [InlineData(32, true)]
-        [InlineData(64, true)]
-        [InlineData(100, true)]
-        [InlineData(128, true)]
-        [InlineData(1000, true)]
-        [InlineData(1, false)]
-        [InlineData(10, false)]
-        [InlineData(32, false)]
-        [InlineData(64, false)]
-        [InlineData(100, false)]
-        [InlineData(128, false)]
-        [InlineData(1000, false)]
-        public void BitArrayLengthCtor(int size, bool value)
+        private BitArray _original;
+        private byte[] _bytes;
+        private bool[] _bools;
+        private int[] _ints;
+
+        [Benchmark]
+        public BitArray BitArrayLengthCtor() => new BitArray(Size);
+
+        [Benchmark]
+        public BitArray BitArrayLengthValueCtor() => new BitArray(Size, BooleanValue);
+
+        [GlobalSetup(Target = nameof(BitArrayBitArrayCtor))]
+        public void Setup_BitArrayBitArrayCtor() => _original = new BitArray(Size, BooleanValue);
+
+        [Benchmark]
+        public BitArray BitArrayBitArrayCtor() => new BitArray(_original);
+
+        [GlobalSetup(Target = nameof(BitArrayBoolArrayCtor))]
+        public void Setup_BitArrayBoolArrayCtor() => _bools = ValuesGenerator.Array<bool>(Size);
+
+        [Benchmark]
+        public BitArray BitArrayBoolArrayCtor() => new BitArray(_bools);
+
+        [GlobalSetup(Targets = new [] { nameof(BitArrayByteArrayCtor), nameof(BitArraySetLengthGrow), nameof(BitArraySetLengthShrink) })]
+        public void Setup_BitArrayByteArrayCtor() => _bytes = ValuesGenerator.Array<byte>(Size);
+
+        [Benchmark]
+        public BitArray BitArrayByteArrayCtor() => new BitArray(_bytes);
+
+        [GlobalSetup(Target = nameof(BitArrayIntArrayCtor))]
+        public void Setup_BitArrayIntArrayCtor() => _ints = ValuesGenerator.Array<int>(Size);
+
+        [Benchmark]
+        public BitArray BitArrayIntArrayCtor() => new BitArray(_ints);
+
+        [GlobalSetup(Targets = new [] { nameof(BitArraySetAll), nameof(BitArrayNot), nameof(BitArrayGet) })]
+        public void Setup_BitArraySetAll() => _original = new BitArray(ValuesGenerator.Array<byte>(Size));
+
+        [Benchmark]
+        public void BitArraySetAll() => _original.SetAll(BooleanValue);
+
+        [Benchmark]
+        public BitArray BitArrayNot() => _original.Not();
+
+        [Benchmark]
+        public bool BitArrayGet()
         {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        var local = new BitArray(size, value);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = IterationCount)]
-        [InlineData(1, true)]
-        [InlineData(2, true)]
-        [InlineData(3, true)]
-        [InlineData(4, true)]
-        [InlineData(10, true)]
-        [InlineData(32, true)]
-        [InlineData(64, true)]
-        [InlineData(100, true)]
-        [InlineData(128, true)]
-        [InlineData(1000, true)]
-        [InlineData(1, false)]
-        [InlineData(2, false)]
-        [InlineData(3, false)]
-        [InlineData(4, false)]
-        [InlineData(10, false)]
-        [InlineData(32, false)]
-        [InlineData(64, false)]
-        [InlineData(100, false)]
-        [InlineData(128, false)]
-        [InlineData(1000, false)]
-        public void BitArrayBitArrayCtor(int size, bool value)
-        {
-            var original = new BitArray(size, value);
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        var local = new BitArray(original);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = IterationCount)]
-        [InlineData(1)]
-        [InlineData(2)]
-        [InlineData(3)]
-        [InlineData(4)]
-        [InlineData(10)]
-        [InlineData(32)]
-        [InlineData(64)]
-        [InlineData(100)]
-        [InlineData(128)]
-        [InlineData(1000)]
-        public void BitArrayBoolArrayCtor(int size)
-        {
-            var bools = new bool[size];
-
-            for (int i = 0; i < bools.Length; i++)
-            {
-                bools[i] = s_random.NextDouble() >= 0.5;
-            }
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        var local = new BitArray(bools);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = IterationCount)]
-        [InlineData(1)]
-        [InlineData(2)]
-        [InlineData(3)]
-        [InlineData(4)]
-        [InlineData(10)]
-        [InlineData(32)]
-        [InlineData(64)]
-        [InlineData(100)]
-        [InlineData(128)]
-        [InlineData(1000)]
-        public void BitArrayByteArrayCtor(int size)
-        {
-            var bytes = new byte[size];
-            s_random.NextBytes(bytes);
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        var local = new BitArray(bytes);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = IterationCount)]
-        [InlineData(1)]
-        [InlineData(2)]
-        [InlineData(3)]
-        [InlineData(4)]
-        [InlineData(10)]
-        [InlineData(32)]
-        [InlineData(64)]
-        [InlineData(100)]
-        [InlineData(128)]
-        [InlineData(1000)]
-        public void BitArrayIntArrayCtor(int size)
-        {
-            var ints = new int[size];
-            for (int i = 0; i < ints.Length; i++)
-            {
-                ints[i] = s_random.Next();
-            }
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        var local = new BitArray(ints);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = IterationCount)]
-        [InlineData(1, true)]
-        [InlineData(2, true)]
-        [InlineData(3, true)]
-        [InlineData(4, true)]
-        [InlineData(10, true)]
-        [InlineData(32, true)]
-        [InlineData(64, true)]
-        [InlineData(100, true)]
-        [InlineData(128, true)]
-        [InlineData(1000, true)]
-        [InlineData(1, false)]
-        [InlineData(2, false)]
-        [InlineData(3, false)]
-        [InlineData(4, false)]
-        [InlineData(10, false)]
-        [InlineData(32, false)]
-        [InlineData(64, false)]
-        [InlineData(100, false)]
-        [InlineData(128, false)]
-        [InlineData(1000, false)]
-        public void BitArraySetAll(int size, bool value)
-        {
-            var bytes = new byte[size];
-            s_random.NextBytes(bytes);
-            var original = new BitArray(bytes);
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        original.SetAll(value);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = IterationCount)]
-        [InlineData(1)]
-        [InlineData(2)]
-        [InlineData(3)]
-        [InlineData(4)]
-        [InlineData(10)]
-        [InlineData(32)]
-        [InlineData(64)]
-        [InlineData(100)]
-        [InlineData(128)]
-        [InlineData(1000)]
-        public void BitArrayNot(int size)
-        {
-            var bytes = new byte[size];
-            s_random.NextBytes(bytes);
-            var original = new BitArray(bytes);
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        original.Not();
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = IterationCount)]
-        [InlineData(1)]
-        [InlineData(2)]
-        [InlineData(3)]
-        [InlineData(4)]
-        [InlineData(10)]
-        [InlineData(32)]
-        [InlineData(64)]
-        [InlineData(100)]
-        [InlineData(128)]
-        [InlineData(1000)]
-        public void BitArrayGet(int size)
-        {
-            var bytes = new byte[size];
-            s_random.NextBytes(bytes);
-            var original = new BitArray(bytes);
             bool local = false;
 
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        for (int j = 0; j < original.Length; j++)
-                        {
-                            local ^= original.Get(j);
-                        }
-                    }
-                }
-            }
+            BitArray original = _original;
+            for (int j = 0; j < original.Length; j++)
+                local ^= original.Get(j);
+
+            return local;
         }
 
-        [Benchmark(InnerIterationCount = IterationCount)]
-        [InlineData(1)]
-        [InlineData(2)]
-        [InlineData(3)]
-        [InlineData(4)]
-        [InlineData(10)]
-        [InlineData(32)]
-        [InlineData(64)]
-        [InlineData(100)]
-        [InlineData(128)]
-        [InlineData(1000)]
-        public void BitArraySet(int size)
+        [GlobalSetup(Target = nameof(BitArraySet))]
+        public void Setup_BitArraySet() => _original = new BitArray(ValuesGenerator.Array<bool>(Size));
+
+        [Benchmark]
+        public void BitArraySet()
         {
-            var bytes = new byte[size];
-            s_random.NextBytes(bytes);
-            var original = new BitArray(bytes);
+            BitArray original = _original;
 
-            var values = new bool[original.Length];
-            for (int i = 0; i < values.Length; i++)
-            {
-                values[i] = s_random.NextDouble() >= 0.5;
-            }
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        for (int j = 0; j < original.Length; j++)
-                        {
-                            original.Set(j, values[j]);
-                        }
-                    }
-                }
-            }
+            for (int j = 0; j < original.Length; j++)
+                original.Set(j, BooleanValue);
         }
 
-        [Benchmark(InnerIterationCount = IterationCount)]
-        [InlineData(1)]
-        [InlineData(2)]
-        [InlineData(3)]
-        [InlineData(4)]
-        [InlineData(10)]
-        [InlineData(32)]
-        [InlineData(64)]
-        [InlineData(100)]
-        [InlineData(128)]
-        [InlineData(1000)]
-        public void BitArraySetLengthGrow(int size)
+        [Benchmark]
+        public BitArray BitArraySetLengthGrow()
         {
-            var bytes = new byte[size];
-            s_random.NextBytes(bytes);
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        var original = new BitArray(bytes);
-                        original.Length = original.Length * 2;
-                    }
-                }
-            }
+            var original = new BitArray(_bytes);
+            original.Length = original.Length * 2;
+            return original;
         }
 
-        [Benchmark(InnerIterationCount = IterationCount)]
-        [InlineData(1)]
-        [InlineData(2)]
-        [InlineData(3)]
-        [InlineData(4)]
-        [InlineData(10)]
-        [InlineData(32)]
-        [InlineData(64)]
-        [InlineData(100)]
-        [InlineData(128)]
-        [InlineData(1000)]
-        public void BitArraySetLengthShrink(int size)
+        [Benchmark]
+        public BitArray BitArraySetLengthShrink()
         {
-            var bytes = new byte[size];
-            s_random.NextBytes(bytes);
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        var original = new BitArray(bytes);
-                        original.Length = original.Length / 2;
-                    }
-                }
-            }
+            var original = new BitArray(_bytes);
+            original.Length = original.Length / 2;
+            return original;
         }
 
-        [Benchmark(InnerIterationCount = IterationCount)]
-        [InlineData(1)]
-        [InlineData(2)]
-        [InlineData(3)]
-        [InlineData(4)]
-        [InlineData(10)]
-        [InlineData(32)]
-        [InlineData(64)]
-        [InlineData(100)]
-        [InlineData(128)]
-        [InlineData(1000)]
-        public void BitArrayCopyToIntArray(int size)
+        [GlobalSetup(Target = nameof(BitArrayCopyToIntArray))]
+        public void Setup_BitArrayCopyToIntArray()
         {
-            var bytes = new byte[size];
-            s_random.NextBytes(bytes);
-            var original = new BitArray(bytes);
-
-            var array = new int[size * 32];
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        original.CopyTo(array, 0);
-                    }
-                }
-            }
+            _bytes = ValuesGenerator.Array<byte>(Size);
+            _original = new BitArray(_bytes);
+            _ints = new int[Size / 4];
         }
 
-        [Benchmark(InnerIterationCount = IterationCount)]
-        [InlineData(1)]
-        [InlineData(2)]
-        [InlineData(3)]
-        [InlineData(4)]
-        [InlineData(10)]
-        [InlineData(32)]
-        [InlineData(64)]
-        [InlineData(100)]
-        [InlineData(128)]
-        [InlineData(1000)]
-        public void BitArrayCopyToByteArray(int size)
+        [Benchmark]
+        public void BitArrayCopyToIntArray() => _original.CopyTo(_ints, 0);
+
+        [GlobalSetup(Target = nameof(BitArrayCopyToByteArray))]
+        public void Setup_BitArrayCopyToByteArray()
         {
-            var bytes = new byte[size];
-            s_random.NextBytes(bytes);
-            var original = new BitArray(bytes);
-
-            var array = new byte[size * 32];
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        original.CopyTo(array, 0);
-                    }
-                }
-            }
+            _bytes = ValuesGenerator.Array<byte>(Size);
+            _original = new BitArray(_bytes);
         }
 
-        [Benchmark(InnerIterationCount = IterationCount)]
-        [InlineData(1)]
-        [InlineData(2)]
-        [InlineData(3)]
-        [InlineData(4)]
-        [InlineData(10)]
-        [InlineData(32)]
-        [InlineData(64)]
-        [InlineData(100)]
-        [InlineData(128)]
-        [InlineData(1000)]
-        public void BitArrayCopyToBoolArray(int size)
+        [Benchmark]
+        public void BitArrayCopyToByteArray() => _original.CopyTo(_bytes, 0);
+
+        [GlobalSetup(Target = nameof(BitArrayCopyToBoolArray))]
+        public void Setup_BitArrayCopyToBoolArray()
         {
-            var bytes = new byte[size];
-            s_random.NextBytes(bytes);
-            var original = new BitArray(bytes);
-
-            var array = new bool[size * 32];
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        original.CopyTo(array, 0);
-                    }
-                }
-            }
+            _bytes = ValuesGenerator.Array<byte>(Size);
+            _original = new BitArray(_bytes);
+            _bools = new bool[Size * 32];
         }
+
+        [Benchmark]
+        public void BitArrayCopyToBoolArray() => _original.CopyTo(_bools, 0);
     }
 }

@@ -87,6 +87,8 @@ namespace BenchmarkDotNet.Extensions
                 return (T)(object)random.Next();
             if (typeof(T) == typeof(double))
                 return (T)(object)random.NextDouble();
+            if (typeof(T) == typeof(bool))
+                return (T)(object)(random.NextDouble() > 0.5);
             if (typeof(T) == typeof(string))
                 return (T) (object) GenerateRandomString(random, 1, 50);
             
