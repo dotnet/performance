@@ -16,6 +16,7 @@ namespace System.Collections
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
     public class ContainsTrue<T>
+        where T : IEquatable<T>
     {
         private T[] _found;
         
@@ -61,7 +62,21 @@ namespace System.Collections
                 result ^= collection.Contains(found[i]);
             return result;
         }
-        
+
+#if NETCOREAPP3_0
+        [BenchmarkCategory(Categories.Span)]
+        [Benchmark]
+        public bool Span()
+        {
+            bool result = default;
+            Span<T> collection = new Span<T>(_array);
+            var found = _found;
+            for (int i = 0; i < found.Length; i++)
+                result ^= collection.Contains(found[i]);
+            return result;
+        }
+#endif
+
         [Benchmark]
         public bool List()
         {

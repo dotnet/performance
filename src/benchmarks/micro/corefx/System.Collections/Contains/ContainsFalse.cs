@@ -15,7 +15,8 @@ namespace System.Collections
     [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
-    public class ContainsFalse<T>
+    public class ContainsFalse<T> 
+        where T : IEquatable<T>
     {
         private T[] _notFound;
         
@@ -64,7 +65,21 @@ namespace System.Collections
                 result ^= collection.Contains(notFound[i]);
             return result;
         }
-        
+
+#if NETCOREAPP3_0
+        [BenchmarkCategory(Categories.Span)]
+        [Benchmark]
+        public bool Span()
+        {
+            bool result = default;
+            Span<T> collection = new Span<T>(_array);
+            var notFound = _notFound;
+            for (int i = 0; i < notFound.Length; i++)
+                result ^= collection.Contains(notFound[i]);
+            return result;
+        }
+#endif
+
         [Benchmark]
         public bool List()
         {
