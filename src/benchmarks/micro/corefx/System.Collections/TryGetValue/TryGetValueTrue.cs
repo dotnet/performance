@@ -48,8 +48,8 @@ namespace System.Collections
         public bool Dictionary()
         {
             bool result = default;
-            var collection = _dictionary;
-            var found = _found;
+            Dictionary<TKey, TValue> collection = _dictionary;
+            TKey[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.TryGetValue(found[i], out _);
             return result;
@@ -63,7 +63,7 @@ namespace System.Collections
         public bool TryGetValue(IDictionary<TKey, TValue> collection)
         {
             bool result = default;
-            var found = _found;
+            TKey[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.TryGetValue(found[i], out _);
             return result;
@@ -73,8 +73,8 @@ namespace System.Collections
         public bool SortedList()
         {
             bool result = default;
-            var collection = _sortedList;
-            var found = _found;
+            SortedList<TKey, TValue> collection = _sortedList;
+            TKey[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.TryGetValue(found[i], out _);
             return result;
@@ -84,8 +84,8 @@ namespace System.Collections
         public bool SortedDictionary()
         {
             bool result = default;
-            var collection = _sortedDictionary;
-            var found = _found;
+            SortedDictionary<TKey, TValue> collection = _sortedDictionary;
+            TKey[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.TryGetValue(found[i], out _);
             return result;
@@ -95,8 +95,8 @@ namespace System.Collections
         public bool ConcurrentDictionary()
         {
             bool result = default;
-            var collection = _concurrentDictionary;
-            var found = _found;
+            ConcurrentDictionary<TKey, TValue> collection = _concurrentDictionary;
+            TKey[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.TryGetValue(found[i], out _);
             return result;
@@ -106,8 +106,8 @@ namespace System.Collections
         public bool ImmutableDictionary()
         {
             bool result = default;
-            var collection = _immutableDictionary;
-            var found = _found;
+            ImmutableDictionary<TKey, TValue> collection = _immutableDictionary;
+            TKey[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.TryGetValue(found[i], out _);
             return result;
@@ -117,8 +117,8 @@ namespace System.Collections
         public bool ImmutableSortedDictionary()
         {
             bool result = default;
-            var collection = _immutableSortedDictionary;
-            var found = _found;
+            ImmutableSortedDictionary<TKey, TValue> collection = _immutableSortedDictionary;
+            TKey[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.TryGetValue(found[i], out _);
             return result;
