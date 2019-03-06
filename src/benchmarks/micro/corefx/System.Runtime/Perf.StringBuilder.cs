@@ -137,5 +137,17 @@ namespace System.Tests
 
         [Benchmark]
         public string StringBuilderToString() => _bigStringBuilder.ToString();
+
+        [Benchmark]
+        public StringBuilder AppendMemory()
+        {
+            ReadOnlyMemory<char> memory = _string100.AsMemory();
+            StringBuilder builder = new StringBuilder();
+
+            for (int j = 0; j < NUM_ITERS_APPEND; j++)
+                builder.Append(memory); // Appends a string of length "length" to an increasingly large StringBuilder
+
+            return builder;
+        }
     }
 }
