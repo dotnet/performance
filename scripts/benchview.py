@@ -20,6 +20,7 @@ from zipfile import ZipFile
 import platform
 import sys
 
+from micro_benchmarks import FrameworkAction
 from performance.common import get_tools_directory
 from performance.common import get_python_executable
 from performance.common import make_directory
@@ -30,7 +31,6 @@ from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
 
 import dotnet
-import micro_benchmarks
 
 
 class BenchView:
@@ -79,7 +79,6 @@ class BenchView:
 
     def build(
             self,
-            working_directory: str,
             build_type: str,
             subparser: str = None,  # ['none', 'git']
             branch: str = None,
@@ -104,9 +103,9 @@ class BenchView:
             cmdline += ['--repository', repository]
         if source_timestamp:
             cmdline += ['--source-timestamp', source_timestamp]
-        RunCommand(cmdline, verbose=self.verbose).run(working_directory)
+        RunCommand(cmdline, verbose=self.verbose).run()
 
-    def machinedata(self, working_directory: str, architecture: str) -> None:
+    def machinedata(self, architecture: str) -> None:
         '''Wrapper around BenchView's machinedata.py'''
 
         cmdline = [
@@ -115,9 +114,9 @@ class BenchView:
         # Workaround: https://github.com/workhorsy/py-cpuinfo/issues/112
         if architecture == 'arm64':
             cmdline += ['--machine-manufacturer', 'Unknown']
-        RunCommand(cmdline, verbose=self.verbose).run(working_directory)
+        RunCommand(cmdline, verbose=self.verbose).run()
 
-    def measurement(self, working_directory: str) -> None:
+    def measurement(self) -> None:
         '''Wrapper around BenchView's measurement.py'''
 
         common_cmdline = [
@@ -127,20 +126,19 @@ class BenchView:
         ]
 
         full_json_files = []
-        with push_dir(working_directory):
-            pattern = "BenchmarkDotNet.Artifacts/**/*-full.json"
-            getLogger().info(
-                'Searching BenchmarkDotNet output files with: %s', pattern
-            )
+        pattern = "BenchmarkDotNet.Artifacts/**/*-full.json"
+        getLogger().info(
+            'Searching BenchmarkDotNet output files with: %s', pattern
+        )
 
-            for full_json_file in iglob(pattern, recursive=True):
-                full_json_files.append(full_json_file)
+        for full_json_file in iglob(pattern, recursive=True):
+            full_json_files.append(full_json_file)
 
         for full_json_file in full_json_files:
             cmdline = common_cmdline + [full_json_file]
-            RunCommand(cmdline, verbose=self.verbose).run(working_directory)
+            RunCommand(cmdline, verbose=self.verbose).run()
 
-    def submission_metadata(self, working_directory: str, name: str) -> None:
+    def submission_metadata(self, name: str) -> None:
         '''Wrapper around BenchView's submission-metadata.py'''
 
         cmdline = [
@@ -149,12 +147,10 @@ class BenchView:
             '--name', name,
             '--user-email', 'dotnet-bot@microsoft.com'
         ]
-        RunCommand(cmdline, verbose=self.verbose).run(working_directory)
+        RunCommand(cmdline, verbose=self.verbose).run()
 
     def submission(
             self,
-            working_directory: str,
-            measurement_jsons: list,
             architecture: str,
             config_name: str,
             configs: dict,
@@ -163,20 +159,14 @@ class BenchView:
             jobtype: str
     ) -> None:
         '''Wrapper around BenchView's submission.py'''
-        if not measurement_jsons:
-            raise ValueError("No `measurement.json` were specified.")
-
         cmdline = [
             self.python, path.join(self.tools_directory, 'submission.py'),
 
-            *measurement_jsons,
+            'measurement.json',
 
-            '--build', path.join(
-                working_directory, 'build.json'),
-            '--machine-data', path.join(
-                working_directory, 'machinedata.json'),
-            '--metadata', path.join(
-                working_directory, 'submission-metadata.json'),
+            '--build', 'build.json',
+            '--machine-data', 'machinedata.json',
+            '--metadata', 'submission-metadata.json',
 
             '--group', jobgroup,
             '--type', jobtype,
@@ -186,18 +176,18 @@ class BenchView:
         ]
         for key, value in configs.items():
             cmdline += ['--config', key, value]
-        RunCommand(cmdline, verbose=self.verbose).run(working_directory)
+        RunCommand(cmdline, verbose=self.verbose).run()
 
-    def upload(self, working_directory: str, container: str) -> None:
+    def upload(self, container: str) -> None:
         '''Wrapper around BenchView's upload.py'''
 
         cmdline = [
             self.python,
             path.join(self.tools_directory, 'upload.py'),
-            path.join(working_directory, 'submission.json'),
+            'submission.json',
             '--container', container,
         ]
-        RunCommand(cmdline, verbose=self.verbose).run(working_directory)
+        RunCommand(cmdline, verbose=self.verbose).run()
 
 
 BuildInfo = namedtuple('BuildInfo', [
@@ -213,7 +203,7 @@ def install():
     '''
     Downloads scripts that serialize/upload performance data to BenchView.
     '''
-    __log_script_header()
+    __log_script_header("Downloading BenchView scripts")
 
     url_str = __get_latest_benchview_script_version()
     benchview_path = BenchView.get_scripts_directory()
@@ -258,11 +248,11 @@ def __unzip_file(file_path: str, output_path: str):
         zipfile.extractall(output_path)
 
 
-def __log_script_header():
-    start_msg = "Downloading BenchView scripts"
-    getLogger().info('-' * len(start_msg))
-    getLogger().info(start_msg)
-    getLogger().info('-' * len(start_msg))
+def __log_script_header(message: str):
+    message_length = len(message)
+    getLogger().info('-' * message_length)
+    getLogger().info(message)
+    getLogger().info('-' * message_length)
 
 
 def __get_latest_benchview_script_version() -> str:
@@ -282,7 +272,7 @@ def __get_latest_benchview_script_version() -> str:
         return packages[-1]
 
 
-def __get_build_info(args, target_framework_moniker: str) -> BuildInfo:
+def __get_build_info(framework: str, args) -> BuildInfo:
     # TODO: Expand this to support: Mono, CoreRT, CoreRun, dotnet.
     #   Could the --cli-* arguments take multiple build info objects from the
     #   command line interface?
@@ -292,15 +282,21 @@ def __get_build_info(args, target_framework_moniker: str) -> BuildInfo:
     repository = args.cli_repository
     source_timestamp = args.cli_source_timestamp
 
+    target_framework_moniker = FrameworkAction.get_target_framework_moniker(
+        framework
+    )
+
     if args.cli_source_info == 'cli':
         # Retrieve data from the specified dotnet executable.
-        commit_sha = dotnet.get_host_commit_sha(args.cli)
-        source_timestamp = dotnet.get_commit_date(commit_sha, repository)
+        commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli)
+        source_timestamp = dotnet.get_commit_date(
+            framework,
+            commit_sha,
+            repository
+        )
     elif args.cli_source_info == 'init-tools':
         # Retrieve data from the installed dotnet tools.
-        branch = micro_benchmarks.FrameworkAction.get_channel(
-            target_framework_moniker
-        )
+        branch = FrameworkAction.get_branch(target_framework_moniker)
         if not branch:
             err_msg = 'Cannot determine build information for "%s"' % \
                 target_framework_moniker
@@ -309,9 +305,12 @@ def __get_build_info(args, target_framework_moniker: str) -> BuildInfo:
                 "Build information can be provided using the --cli-* options."
             )
             raise ValueError(err_msg)
-        commit_sha = dotnet.get_host_commit_sha(which('dotnet'))
-        repository = 'https://github.com/dotnet/core-setup'
-        source_timestamp = dotnet.get_commit_date(commit_sha)
+        commit_sha = dotnet.get_dotnet_sdk(
+            target_framework_moniker,
+            which('dotnet')
+        )
+        repository = 'https://github.com/dotnet/core-sdk'
+        source_timestamp = dotnet.get_commit_date(framework, commit_sha)
     elif args.cli_source_info == 'repo':
         # Retrieve data from current repository.
         subparser = 'git'
@@ -327,6 +326,115 @@ def __get_build_info(args, target_framework_moniker: str) -> BuildInfo:
     )
 
 
+def __get_os_name():
+    '''Attempts to get a uniform OS name across platforms.'''
+    if sys.platform == 'win32':
+        return '{} {}'.format(platform.system(), platform.release())
+    elif sys.platform == 'linux':
+        os_name, os_version, _ = platform.linux_distribution()
+        return '{} {}'.format(os_name, os_version)
+    else:
+        return platform.platform()
+
+
+def __get_working_directory(
+        BENCHMARKS_CSPROJ: dotnet.CSharpProject,
+        configuration: str,
+        framework: str
+) -> str:
+    glob_fmt = '{BinPath}/{ProjectName}/**/{Configuration}/{TargetFramework}'
+    target_framework_moniker = FrameworkAction.get_target_framework_moniker(
+        framework
+    )
+    pattern = glob_fmt.format(
+        BinPath=BENCHMARKS_CSPROJ.bin_path,
+        ProjectName=BENCHMARKS_CSPROJ.project_name,
+        Configuration=configuration,
+        TargetFramework=target_framework_moniker
+    )
+
+    for path_name in iglob(pattern, recursive=True):
+        if path.isdir(path_name):
+            return path.abspath(path_name)
+
+    raise RuntimeError(
+        "Unable to find target directory for {}.".format(
+            target_framework_moniker
+        )
+    )
+
+
+def __run_scripts(
+        args: list,
+        benchviewpy: BenchView,
+        framework: str
+) -> None:
+    '''Runs all BenchView scripts for the specified framework results.'''
+    benchviewpy.machinedata(architecture=args.architecture)
+
+    # Build the BenchView configuration data
+    benchview_config_name = args.benchview_config_name \
+        if args.benchview_config_name else args.configuration
+
+    benchview_config = list(chain(args.benchview_config)) \
+        if args.benchview_config else []
+    i = iter(benchview_config)
+    benchview_config = dict(zip(i, i))
+
+    # Configuration
+    if 'Configuration' not in benchview_config:
+        benchview_config['Configuration'] = args.configuration
+    # TODO: Hardcoded Jit name. Mono have multiple Jit engines.
+    #   This value should be optional, and set when applicable.
+    # benchview_config['Jit'] = 'RyuJIT'
+    benchview_config['Framework'] = framework
+    benchview_config['.NET Compilation Mode'] = args.dotnet_compilation_mode
+    benchview_config['OS'] = __get_os_name()
+    benchview_config['PGO'] = 'Enabled'
+    benchview_config['Profile'] = 'On' if args.enable_pmc else 'Off'
+
+    buildinfo = __get_build_info(framework, args)
+
+    benchviewpy.build(
+        build_type=args.benchview_run_type,
+        subparser=buildinfo.subparser,
+        branch=buildinfo.branch,
+        commit=buildinfo.commit_sha,
+        repository=buildinfo.repository,
+        source_timestamp=buildinfo.source_timestamp
+    )
+
+    if urlparse(buildinfo.repository).path and buildinfo.commit_sha:
+        submission_name = '%s (%s): %s:%s' % (
+            args.benchview_submission_name,
+            args.benchview_run_type,
+            urlparse(buildinfo.repository).path,
+            buildinfo.commit_sha
+        )
+    else:
+        submission_name = '%s (%s): %s' % (
+            args.benchview_submission_name,
+            args.benchview_run_type,
+            framework
+        )
+
+    benchviewpy.submission_metadata(name=submission_name)
+
+    benchviewpy.measurement()
+
+    benchviewpy.submission(
+        architecture=args.architecture,
+        config_name=benchview_config_name,
+        configs=benchview_config,
+        machinepool=args.benchview_machinepool,
+        jobgroup='.NET Performance',
+        jobtype=args.benchview_run_type
+    )
+
+    if args.upload_to_benchview_container:
+        benchviewpy.upload(container=args.upload_to_benchview_container)
+
+
 def run_scripts(
         args: list,
         verbose: bool,
@@ -336,132 +444,18 @@ def run_scripts(
     if not args.generate_benchview_data:
         return
 
-    # TODO: Delete previously generated BenchView data (*.json)
-
-    benchviewpy = BenchView(verbose)
-    bin_directory = BENCHMARKS_CSPROJ.bin_path
-
-    # BenchView submission-metadata.py
-    submission_name = '%s (%s)' % (
-        args.benchview_submission_name,
-        args.benchview_run_type
-    )
-
-    rolling_data = args.benchview_run_type == 'rolling' and \
-        'GIT_BRANCH_WITHOUT_ORIGIN' in environ and \
-        'GIT_COMMIT' in environ
-
-    if rolling_data:
-        submission_name += ': %s:%s' % (
-            environ['GIT_BRANCH_WITHOUT_ORIGIN'],
-            environ['GIT_COMMIT']
-        )
-
-    benchviewpy.submission_metadata(
-        working_directory=bin_directory,
-        name=submission_name)
-
-    # BenchView machinedata.py
-    benchviewpy.machinedata(
-        working_directory=bin_directory,
-        architecture=args.architecture)
+    __log_script_header('Running BenchView scripts')
 
     for framework in args.frameworks:
-        target_framework_moniker = micro_benchmarks \
-            .FrameworkAction \
-            .get_target_framework_moniker(framework)
-        buildinfo = __get_build_info(args, target_framework_moniker)
-
-        # BenchView build.py
-        benchviewpy.build(
-            working_directory=bin_directory,
-            build_type=args.benchview_run_type,
-            subparser=buildinfo.subparser,
-            branch=buildinfo.branch,
-            commit=buildinfo.commit_sha,
-            repository=buildinfo.repository,
-            source_timestamp=buildinfo.source_timestamp
+        working_directory = __get_working_directory(
+            BENCHMARKS_CSPROJ,
+            args.configuration,
+            framework
         )
 
-        working_directory = dotnet.get_build_directory(
-            bin_directory=bin_directory,
-            project_name=BENCHMARKS_CSPROJ.project_name,
-            configuration=args.configuration,
-            target_framework_moniker=target_framework_moniker,
-        )
-
-        # BenchView measurement.py
-        benchviewpy.measurement(working_directory=working_directory)
-
-    # Build the BenchView configuration data
-    benchview_config_name = args.benchview_config_name \
-        if args.benchview_config_name else args.configuration
-    benchview_config = list(chain(args.benchview_config)) \
-        if args.benchview_config else []
-    i = iter(benchview_config)
-    benchview_config = dict(zip(i, i))
-
-    # Configuration
-    if 'Configuration' not in benchview_config:
-        benchview_config['Configuration'] = args.configuration
-
-    # Generate configurations.
-    def __get_os_name():
-        if sys.platform == 'win32':
-            return '{} {}'.format(platform.system(), platform.release())
-        elif sys.platform == 'linux':
-            os_name, os_version, _ = platform.linux_distribution()
-            return '{}{}'.format(os_name, os_version)
-        else:
-            return platform.platform()
-
-    # TODO: Hardcoded Jit name. Mono have multiple Jit engines.
-    #   This value should be optional, and set when applicable.
-    # benchview_config['Jit'] = 'RyuJIT'
-
-    benchview_config['.NET Compilation Mode'] = args.dotnet_compilation_mode
-
-    benchview_config['OS'] = __get_os_name()
-    benchview_config['Profile'] = 'On' if args.enable_pmc else 'Off'
-
-    # Find all measurement.json
-    with push_dir(bin_directory):
-        for framework in args.frameworks:
-            target_framework_moniker = micro_benchmarks \
-                .FrameworkAction \
-                .get_target_framework_moniker(framework)
-            glob_format = '**/%s/%s/measurement.json' % (
-                args.configuration,
-                target_framework_moniker
-            )
-
-            measurement_jsons = []
-            for measurement_json in iglob(glob_format, recursive=True):
-                measurement_jsons.append(measurement_json)
-
-            jobGroup = '.NET Performance'
-            if len(args.frameworks) > 1:
-                benchview_config['Framework'] = framework
-
-            # BenchView submission.py
-            benchviewpy.submission(
-                working_directory=bin_directory,
-                measurement_jsons=measurement_jsons,
-                architecture=args.architecture,
-                config_name=benchview_config_name,
-                configs=benchview_config,
-                machinepool=args.benchview_machinepool,
-                jobgroup=jobGroup,
-                jobtype=args.benchview_run_type
-            )
-
-            # Upload to a BenchView container (upload.py).
-            # TODO: submission.py does not have an --append option,
-            #   instead upload each build/config separately.
-            if args.upload_to_benchview_container:
-                benchviewpy.upload(
-                    working_directory=bin_directory,
-                    container=args.upload_to_benchview_container)
+        with push_dir(working_directory):
+            benchviewpy = BenchView(verbose)
+            __run_scripts(args, benchviewpy, framework)
 
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:

@@ -9,12 +9,14 @@ from collections import namedtuple
 from glob import iglob
 from json import loads
 from logging import getLogger
-from os import chmod, environ, makedirs, path, pathsep
+from os import chmod, environ, listdir, makedirs, path, pathsep
 from stat import S_IRWXU
 from subprocess import check_output
 from sys import argv, platform
 from urllib.parse import urlparse
 from urllib.request import urlopen, urlretrieve
+
+import re
 
 from performance.common import get_repo_root_path
 from performance.common import get_tools_directory
@@ -31,6 +33,13 @@ def info(verbose: bool) -> None:
     """
     cmdline = ['dotnet', '--info']
     RunCommand(cmdline, verbose=verbose).run()
+
+
+def __log_script_header(message: str):
+    message_length = len(message)
+    getLogger().info('-' * message_length)
+    getLogger().info(message)
+    getLogger().info('-' * message_length)
 
 
 CSharpProjFile = namedtuple('CSharpProjFile', [
@@ -282,51 +291,86 @@ class CSharpProject:
             self.working_directory)
 
 
-def get_host_commit_sha(dotnet_path: str = None) -> str:
+def get_dotnet_sdk(framework: str, dotnet_path: str = None) -> str:
     """Gets the dotnet Host commit sha from the `dotnet --info` command."""
+    if not framework:
+        raise TypeError(
+            "The target framework to get information for was not specified."
+        )
     if not dotnet_path:
         dotnet_path = 'dotnet'
 
+    groups = re.search(r"^netcoreapp(\d)\.(\d)$", framework)
+    if not groups:
+        raise ValueError("Unknown target framework: {}".format(framework))
+
+    FrameworkVersion = namedtuple('FrameworkVersion', ['major', 'minor'])
+    version = FrameworkVersion(int(groups.group(1)), int(groups.group(2)))
+
     output = check_output([dotnet_path, '--info'])
 
-    foundHost = False
     for line in output.splitlines():
         decoded_line = line.decode('utf-8')
 
-        # First look for the host information, since that is the sha we are
-        # looking for. Then, grab the first Commit line we find, which will be
-        # the sha of the framework we are testing
-        #
-        # Sample input for .NET Core 2.1+:
-        # Host (useful for support):
-        #   Version: 3.0.0-preview1-27018-05
-        #   Commit:  7a7ca06512
-        #
-        # Sample input for .NET Core 2.0:
-        # Product Information:
-        #   Version:            2.1.202
-        #   Commit SHA-1 hash:  281caedada
-        if 'Host' in decoded_line:
-            foundHost = True
-        elif 'Product' in decoded_line:
-            foundHost = True
-        elif foundHost and 'Commit' in decoded_line:
-            return decoded_line.strip().split()[-1]
+        # The .NET Command Line Tools `--info` had a different output in 2.0
+        # This line seems commons in all Cli, so we can use the base path to
+        # get information about the .NET SDK/Runtime
+        groups = re.search(r"^ +Base Path\: +(\S+)$", decoded_line)
+        if groups:
+            break
 
-    raise RuntimeError('.NET Host Commit sha not found.')
+    if not groups:
+        raise RuntimeError(
+            'Did not find "Base Path:" entry on the `dotnet --info` command'
+        )
+
+    base_path = groups.group(1)
+    sdk_path = path.abspath(path.join(base_path, '..'))
+    sdks = [
+        d for d in listdir(sdk_path) if path.isdir(path.join(sdk_path, d))
+    ]
+    sdks.sort(reverse=True)
+
+    # Determine the SDK being used.
+    # Attempt 1: Try to use exact match.
+    sdk = next((f for f in sdks if f.startswith(
+        "{}.{}".format(version.major, version.minor))), None)
+    if not sdk:
+        # Attempt 2: Increase the minor version by 1 and retry.
+        sdk = next((f for f in sdks if f.startswith(
+            "{}.{}".format(version.major, version.minor + 1))), None)
+
+    if not sdk:
+        raise RuntimeError(
+            "Unable to determine the .NET SDK used for {}".format(framework)
+        )
+
+    with open(path.join(sdk_path, sdk, '.version')) as sdk_version_file:
+        return sdk_version_file.readline().strip()
+    raise RuntimeError("Unable to retrieve information about the .NET SDK.")
 
 
-def get_commit_date(commit_sha: str, repository: str = None) -> str:
+def get_commit_date(
+        framework: str,
+        commit_sha: str,
+        repository: str = None
+) -> str:
     '''
     Gets the .NET Core committer date using the GitHub Web API from the
-    https://github.com/dotnet/core-setup repository.
+    repository.
     '''
+    if not framework:
+        raise ValueError('Target framework was not defined.')
     if not commit_sha:
         raise ValueError('.NET Commit sha was not defined.')
 
+    url = None
+    urlformat = 'https://api.github.com/repos/%s/%s/commits/%s'
     if repository is None:
-        urlformat = 'https://api.github.com/repos/dotnet/core-setup/commits/%s'
-        url = urlformat % commit_sha
+        # The origin of the repo where the commit belongs to has changed
+        # between release. Here we attempt to naively guess the repo.
+        repo = 'core-sdk' if framework == 'netcoreapp3.0' else 'cli'
+        url = urlformat % ('dotnet', repo, commit_sha)
     else:
         url_path = urlparse(repository).path
         tokens = url_path.split("/")
@@ -334,10 +378,11 @@ def get_commit_date(commit_sha: str, repository: str = None) -> str:
             raise ValueError('Unable to determine owner and repo from url.')
         owner = tokens[1]
         repo = tokens[2]
-        urlformat = 'https://api.github.com/repos/%s/%s/commits/%s'
         url = urlformat % (owner, repo, commit_sha)
 
+    build_timestamp = None
     with urlopen(url) as response:
+        getLogger().info("Commit: %s", url)
         item = loads(response.read().decode('utf-8'))
         build_timestamp = item['commit']['committer']['date']
 
@@ -375,7 +420,7 @@ def __find_build_directory(
     Attempts to get the output directory where the built artifacts are in
     with respect to the current working directory.
     '''
-    pattern = '**/{ProjectName}/{Configuration}/{TargetFramework}'.format(
+    pattern = '**/{ProjectName}/**/{Configuration}/{TargetFramework}'.format(
         ProjectName=project_name,
         Configuration=configuration,
         TargetFramework=target_framework_moniker
@@ -402,10 +447,7 @@ def install(
     '''
     Downloads dotnet cli into the tools folder.
     '''
-    start_msg = "Downloading DotNet Cli"
-    getLogger().info('-' * len(start_msg))
-    getLogger().info(start_msg)
-    getLogger().info('-' * len(start_msg))
+    __log_script_header("Downloading DotNet Cli")
 
     if not install_dir:
         install_dir = __get_directory(architecture)
