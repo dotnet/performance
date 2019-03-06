@@ -83,6 +83,24 @@ class FrameworkAction(Action):
             else None
 
     @staticmethod
+    def get_branch(target_framework_moniker: str) -> str:
+        '''
+        Attemps to retrieve the channel that can be used to download the
+        DotNet Cli tools.
+        '''
+        dct = {
+            'netcoreapp3.0': 'master',
+            'netcoreapp2.2': 'release/2.2',
+            'netcoreapp2.1': 'release/2.1',
+            'netcoreapp2.0': 'release/2.0.0',
+            # For Full Framework download the LTS for dotnet cli.
+            'net461': 'LTS',
+        }
+        return dct[target_framework_moniker] \
+            if target_framework_moniker in dct \
+            else None
+
+    @staticmethod
     def get_target_framework_moniker(framework: str) -> str:
         '''
         Translates framework name to target framework moniker (TFM)

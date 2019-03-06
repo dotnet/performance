@@ -350,17 +350,27 @@ def get_dotnet_sdk(framework: str, dotnet_path: str = None) -> str:
     raise RuntimeError("Unable to retrieve information about the .NET SDK.")
 
 
-def get_commit_date(commit_sha: str, repository: str = None) -> str:
+def get_commit_date(
+        framework: str,
+        commit_sha: str,
+        repository: str = None
+) -> str:
     '''
     Gets the .NET Core committer date using the GitHub Web API from the
-    https://github.com/dotnet/core-sdk repository.
+    repository.
     '''
+    if not framework:
+        raise ValueError('Target framework was not defined.')
     if not commit_sha:
         raise ValueError('.NET Commit sha was not defined.')
 
+    url = None
+    urlformat = 'https://api.github.com/repos/%s/%s/commits/%s'
     if repository is None:
-        urlformat = 'https://api.github.com/repos/dotnet/core-sdk/commits/%s'
-        url = urlformat % commit_sha
+        # The origin of the repo where the commit belongs to has changed
+        # between release. Here we attempt to naively guess the repo.
+        repo = 'core-sdk' if framework == 'netcoreapp3.0' else 'cli'
+        url = urlformat % ('dotnet', repo, commit_sha)
     else:
         url_path = urlparse(repository).path
         tokens = url_path.split("/")
@@ -368,11 +378,11 @@ def get_commit_date(commit_sha: str, repository: str = None) -> str:
             raise ValueError('Unable to determine owner and repo from url.')
         owner = tokens[1]
         repo = tokens[2]
-        urlformat = 'https://api.github.com/repos/%s/%s/commits/%s'
         url = urlformat % (owner, repo, commit_sha)
 
-    getLogger().info("Attempting to retrive build information from: %s", url)
+    build_timestamp = None
     with urlopen(url) as response:
+        getLogger().info("Commit: %s", url)
         item = loads(response.read().decode('utf-8'))
         build_timestamp = item['commit']['committer']['date']
 

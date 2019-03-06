@@ -272,7 +272,7 @@ def __get_latest_benchview_script_version() -> str:
         return packages[-1]
 
 
-def __get_build_info(args, target_framework_moniker: str) -> BuildInfo:
+def __get_build_info(framework: str, args) -> BuildInfo:
     # TODO: Expand this to support: Mono, CoreRT, CoreRun, dotnet.
     #   Could the --cli-* arguments take multiple build info objects from the
     #   command line interface?
@@ -282,13 +282,21 @@ def __get_build_info(args, target_framework_moniker: str) -> BuildInfo:
     repository = args.cli_repository
     source_timestamp = args.cli_source_timestamp
 
+    target_framework_moniker = FrameworkAction.get_target_framework_moniker(
+        framework
+    )
+
     if args.cli_source_info == 'cli':
         # Retrieve data from the specified dotnet executable.
         commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli)
-        source_timestamp = dotnet.get_commit_date(commit_sha, repository)
+        source_timestamp = dotnet.get_commit_date(
+            framework,
+            commit_sha,
+            repository
+        )
     elif args.cli_source_info == 'init-tools':
         # Retrieve data from the installed dotnet tools.
-        branch = FrameworkAction.get_channel(target_framework_moniker)
+        branch = FrameworkAction.get_branch(target_framework_moniker)
         if not branch:
             err_msg = 'Cannot determine build information for "%s"' % \
                 target_framework_moniker
@@ -302,7 +310,7 @@ def __get_build_info(args, target_framework_moniker: str) -> BuildInfo:
             which('dotnet')
         )
         repository = 'https://github.com/dotnet/core-sdk'
-        source_timestamp = dotnet.get_commit_date(commit_sha)
+        source_timestamp = dotnet.get_commit_date(framework, commit_sha)
     elif args.cli_source_info == 'repo':
         # Retrieve data from current repository.
         subparser = 'git'
@@ -385,10 +393,7 @@ def __run_scripts(
     benchview_config['PGO'] = 'Enabled'
     benchview_config['Profile'] = 'On' if args.enable_pmc else 'Off'
 
-    target_framework_moniker = FrameworkAction.get_target_framework_moniker(
-        framework
-    )
-    buildinfo = __get_build_info(args, target_framework_moniker)
+    buildinfo = __get_build_info(framework, args)
 
     benchviewpy.build(
         build_type=args.benchview_run_type,
