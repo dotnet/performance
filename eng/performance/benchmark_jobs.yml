@@ -73,8 +73,10 @@ jobs:
                   _Framework: ${{ framework }}
                   _CompilationMode: NoTiering
                   _BuildConfig: ${{ parameters.architecture }}_${{ category }}_$(_Framework)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
-                  ${{ if startsWith(framework, 'netcoreapp') }}: # we don't want to upload non-.NET Core results to BenchView
+                  ${{ if startsWith(framework, 'netcoreapp') }}:
                     _BenchViewArguments: $(BenchViewArguments)
+                  ${{ if not(startsWith(framework, 'netcoreapp')) }}: # we don't want to upload non-.NET Core results to BenchView
+                    _BenchViewArguments: ''
                 ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}: # to reduce the number of CI legs for every PR
                   ${{ if and(startsWith(framework, 'netcoreapp'), ne(framework, 'netcoreapp2.0')) }}: # Tiered JIT was introduced in .NET Core 2.1
                     ${{ category }}_${{ framework }}_tiered:
