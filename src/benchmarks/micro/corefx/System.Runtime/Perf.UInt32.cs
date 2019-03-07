@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
@@ -34,7 +35,22 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
-        public void Parse(string value) => uint.Parse(value.AsSpan());
+        public uint ParseSpan(string value) => uint.Parse(value.AsSpan());
 #endif
+
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public uint Parse(string value) => uint.Parse(value);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public bool TryParse(string value) => uint.TryParse(value, out _);
+
+        public static IEnumerable<object> StringHexValues
+            => Values.OfType<UInt32>().Select(value => value.ToString("X", CultureInfo.InvariantCulture));
+
+        [Benchmark]
+        [ArgumentsSource(nameof(StringHexValues))]
+        public bool TryParseHex(string value) => uint.TryParse(value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out _);
     }
 }

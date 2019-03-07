@@ -27,61 +27,6 @@ namespace System.Buffers.Text.Tests
         [ArgumentsSource(nameof(Utf8TestCase))]
         public bool TryParseUInt64Hex(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out ulong _, out int _, 'X');
 
-        [Benchmark]
-        [InlineData("2134567890")] // standard parse
-        [InlineData("4294967295")] // max value
-        [InlineData("0")] // min value
-        [InlineData("000000000000000000001235abcdfg")]
-        [InlineData("21474836abcdefghijklmnop")]
-        private static void StringToUInt32_Baseline(string text)
-        {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        uint.TryParse(text, out uint value);
-                        TestHelpers.DoNotIgnore(value, 0);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        private static void StringToUInt32_VariableLength_Baseline()
-        {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        uint.TryParse(s_UInt32TextArray[i % 10], out uint value);
-                        TestHelpers.DoNotIgnore(value, 0);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("abcdef")] // standard parse
-        [InlineData("ffffffff")] // max value
-        [InlineData("0")] // min value
-        private static void StringToUInt32Hex_Baseline(string text)
-        {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        uint.TryParse(text, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint value);
-                        TestHelpers.DoNotIgnore(value, 0);
-                    }
-                }
-            }
-        }
 
         [Benchmark(InnerIterationCount = InnerCount)]
         private static void StringToUInt32Hex_VariableLength()
