@@ -17,124 +17,32 @@ namespace System.Buffers.Text.Tests
             => Perf_UInt64.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
         [Benchmark]
-        [ArgumentsSource(nameof(Utf8TestCase))]
+        [ArgumentsSource(nameof(UInt64Values))]
         public bool TryParseUInt64(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out ulong _, out int _);
 
         public IEnumerable<object> UInt64HexValues
             => Perf_UInt64.StringHexValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
         [Benchmark]
-        [ArgumentsSource(nameof(Utf8TestCase))]
+        [ArgumentsSource(nameof(UInt64HexValues))]
         public bool TryParseUInt64Hex(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out ulong _, out int _, 'X');
 
+        public IEnumerable<object> UInt32Values
+            => Perf_UInt32.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        private static void StringToUInt32Hex_VariableLength()
-        {
-            int textLength = s_UInt32TextArrayHex.Length;
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        string text = s_UInt32TextArrayHex[i % textLength];
-                        uint.TryParse(text, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint value);
-                        TestHelpers.DoNotIgnore(value, 0);
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(UInt32Values))]
+        public bool TryParseUInt32(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out uint _, out int _);
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("2134567890")] // standard parse
-        [InlineData("4294967295")] // max value
-        [InlineData("0")] // min value
-        [InlineData("000000000000000000001235abcdfg")]
-        [InlineData("21474836abcdefghijklmnop")]
-        private static void ByteSpanToUInt32(string text)
-        {
-            byte[] utf8ByteArray = Encoding.UTF8.GetBytes(text);
-            var utf8ByteSpan = new ReadOnlySpan<byte>(utf8ByteArray);
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        Utf8Parser.TryParse(utf8ByteSpan, out uint value, out int bytesConsumed);
-                        TestHelpers.DoNotIgnore(value, bytesConsumed);
-                    }
-                }
-            }
-        }
+        public IEnumerable<object> UInt32HexValues
+            => Perf_UInt64.StringHexValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        private static void ByteSpanToUInt32_VariableLength()
-        {
-            int textLength = s_UInt32TextArray.Length;
-            byte[][] utf8ByteArray = (byte[][])Array.CreateInstance(typeof(byte[]), textLength);
-            for (var i = 0; i < textLength; i++)
-            {
-                utf8ByteArray[i] = Encoding.UTF8.GetBytes(s_UInt32TextArray[i]);
-            }
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        ReadOnlySpan<byte> utf8ByteSpan = utf8ByteArray[i % textLength];
-                        Utf8Parser.TryParse(utf8ByteSpan, out uint value, out int bytesConsumed);
-                        TestHelpers.DoNotIgnore(value, bytesConsumed);
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(UInt32HexValues))]
+        public bool TryParseUInt32Hex(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out uint _, out int _, 'X');
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("abcdef")] // standard parse
-        [InlineData("ffffffff")] // max value
-        [InlineData("0")] // min value
-        private static void ByteSpanToUInt32Hex(string text)
-        {
-            byte[] utf8ByteArray = Encoding.UTF8.GetBytes(text);
-            var utf8ByteSpan = new ReadOnlySpan<byte>(utf8ByteArray);
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        Utf8Parser.TryParse(utf8ByteSpan, out uint value, out int bytesConsumed, 'X');
-                        TestHelpers.DoNotIgnore(value, bytesConsumed);
-                    }
-                }
-            }
-        }
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        private static void ByteSpanToUInt32Hex_VariableLength()
-        {
-            int textLength = s_UInt32TextArrayHex.Length;
-            byte[][] utf8ByteArray = (byte[][])Array.CreateInstance(typeof(byte[]), textLength);
-            for (var i = 0; i < textLength; i++)
-            {
-                utf8ByteArray[i] = Encoding.UTF8.GetBytes(s_UInt32TextArrayHex[i]);
-            }
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        ReadOnlySpan<byte> utf8ByteSpan = utf8ByteArray[i % textLength];
-                        Utf8Parser.TryParse(utf8ByteSpan, out uint value, out int bytesConsumed, 'X');
-                        TestHelpers.DoNotIgnore(value, bytesConsumed);
-                    }
-                }
-            }
-        }
+
 
         [Benchmark(InnerIterationCount = InnerCount)]
         private static void ByteSpanToSByte_VariableLength()
