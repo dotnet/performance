@@ -2,264 +2,116 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Xunit.Performance;
-using Xunit;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Extensions;
+using MicroBenchmarks;
 
 namespace System.Buffers.Text.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Base64EncodeDecodeTests
     {
-        private const int InnerCount = 1000;
+        [Params(1000)]
+        public int NumberOfBytes { get; set; }
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData(10)]
-        [InlineData(100)]
-        [InlineData(1000)]
-        [InlineData(1000 * 1000)]
-        private static void Base64Encode(int numberOfBytes)
+        private byte[] _decodedBytes;
+        private byte[] _encodedBytes;
+
+        private char[] _encodedChars;
+
+        [GlobalSetup(Target = nameof(Base64Encode))]
+        public void SetupBase64Encode()
         {
-            Span<byte> source = new byte[numberOfBytes];
-            Base64TestHelper.InitalizeBytes(source);
-            Span<byte> destination = new byte[Base64.GetMaxEncodedToUtf8Length(numberOfBytes)];
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        Base64.EncodeToUtf8(source, destination, out int consumed, out int written);
-                }
-            }
-
-            Span<byte> backToSource = new byte[numberOfBytes];
-            Base64.DecodeFromUtf8(destination, backToSource, out _, out _);
-            Assert.True(source.SequenceEqual(backToSource));
+            _decodedBytes = ValuesGenerator.Array<byte>(NumberOfBytes);
+            _encodedBytes = new byte[Base64.GetMaxEncodedToUtf8Length(NumberOfBytes)];
         }
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData(10)]
-        [InlineData(100)]
-        [InlineData(1000)]
-        [InlineData(1000 * 1000)]
-        private static void Base64EncodeDestinationTooSmall(int numberOfBytes)
-        {
-            Span<byte> source = new byte[numberOfBytes];
-            Base64TestHelper.InitalizeBytes(source);
-            Span<byte> destination = new byte[Base64.GetMaxEncodedToUtf8Length(numberOfBytes) - 1];
+        [Benchmark]
+        public OperationStatus Base64Encode() => Base64.EncodeToUtf8(_decodedBytes, _encodedBytes, out _, out _);
 
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        Base64.EncodeToUtf8(source, destination, out int consumed, out int written);
-                }
-            }
+        [GlobalSetup(Target = nameof(Base64EncodeDestinationTooSmall))]
+        public void SetupBase64EncodeDestinationTooSmall()
+        {
+            _decodedBytes = ValuesGenerator.Array<byte>(NumberOfBytes);
+            _encodedBytes = new byte[Base64.GetMaxEncodedToUtf8Length(NumberOfBytes) - 1]; // -1
         }
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData(10)]
-        [InlineData(100)]
-        [InlineData(1000)]
-        [InlineData(1000 * 1000)]
-        private static void Base64EncodeBaseline(int numberOfBytes)
-        {
-            var source = new byte[numberOfBytes];
-            Base64TestHelper.InitalizeBytes(source.AsSpan());
-            var destination = new char[Base64.GetMaxEncodedToUtf8Length(numberOfBytes)];
+        [Benchmark]
+        public OperationStatus Base64EncodeDestinationTooSmall() => Base64.EncodeToUtf8(_decodedBytes, _encodedBytes, out _, out _);
 
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        Convert.ToBase64CharArray(source, 0, source.Length, destination, 0);
-                }
-            }
+        [GlobalSetup(Target = nameof(Base64EncodeBaseline))]
+        public void SetupBase64EncodeBaseline()
+        {
+            _decodedBytes = ValuesGenerator.Array<byte>(NumberOfBytes);
+            _encodedChars = new char[Base64.GetMaxEncodedToUtf8Length(NumberOfBytes)];
         }
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData(10)]
-        [InlineData(100)]
-        [InlineData(1000)]
-        [InlineData(1000 * 1000)]
-        private static void Base64Decode(int numberOfBytes)
+        [Benchmark]
+        public int Base64EncodeBaseline() => Convert.ToBase64CharArray(_decodedBytes, 0, _decodedBytes.Length, _encodedChars, 0);
+
+        [GlobalSetup(Target = nameof(Base64Decode))]
+        public void SetupBase64Decode()
         {
-            Span<byte> source = new byte[numberOfBytes];
-            Base64TestHelper.InitalizeBytes(source);
-            Span<byte> encoded = new byte[Base64.GetMaxEncodedToUtf8Length(numberOfBytes)];
-            Base64.EncodeToUtf8(source, encoded, out _, out _);
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        Base64.DecodeFromUtf8(encoded, source, out int bytesConsumed, out int bytesWritten);
-                }
-            }
-
-            Span<byte> backToEncoded = encoded.ToArray();
-            Base64.EncodeToUtf8(source, encoded, out _, out _);
-            Assert.True(backToEncoded.SequenceEqual(encoded));
+            _encodedBytes = ValuesGenerator.Array<byte>(NumberOfBytes);
+            _decodedBytes = new byte[Base64.GetMaxEncodedToUtf8Length(NumberOfBytes)];
         }
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData(10)]
-        [InlineData(100)]
-        [InlineData(1000)]
-        [InlineData(1000 * 1000)]
-        private static void Base64DecodeDetinationTooSmall(int numberOfBytes)
+        [Benchmark]
+        public OperationStatus Base64Decode() => Base64.DecodeFromUtf8(_encodedBytes, _decodedBytes, out _, out _);
+
+        [GlobalSetup(Target = nameof(Base64DecodeDetinationTooSmall))]
+        public void SetupBase64DecodeDetinationTooSmall()
         {
-            Span<byte> source = new byte[numberOfBytes];
-            Base64TestHelper.InitalizeBytes(source);
-            Span<byte> encoded = new byte[Base64.GetMaxEncodedToUtf8Length(numberOfBytes)];
-            Base64.EncodeToUtf8(source, encoded, out _, out _);
-
-            source = source.Slice(0, source.Length - 1);
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        Base64.DecodeFromUtf8(encoded, source, out int bytesConsumed, out int bytesWritten);
-                }
-            }
+            _encodedBytes = ValuesGenerator.Array<byte>(NumberOfBytes);
+            _decodedBytes = new byte[Base64.GetMaxEncodedToUtf8Length(NumberOfBytes) - 1];
         }
 
-#if netcoreapp
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData(10)]
-        [InlineData(100)]
-        [InlineData(1000)]
-        [InlineData(1000 * 1000)]
-        private static void Base64DecodeBaseline(int numberOfBytes)
-        {
-            Span<byte> source = new byte[numberOfBytes];
-            Base64TestHelper.InitalizeBytes(source);
-            ReadOnlySpan<char> encoded = Convert.ToBase64String(source.ToArray()).ToCharArray();
+        [Benchmark]
+        public OperationStatus Base64DecodeDetinationTooSmall() => Base64.DecodeFromUtf8(_encodedBytes, _decodedBytes, out _, out _);
 
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                        Convert.TryFromBase64Chars(encoded, source, out int bytesWritten);
-                }
-            }
+#if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1
+        [GlobalSetup(Target = nameof(Base64DecodeBaseline))]
+        public void SetupBase64DecodeBaselinee()
+        {
+            _decodedBytes = ValuesGenerator.Array<byte>(NumberOfBytes);
+            _encodedChars = Convert.ToBase64String(_decodedBytes).ToCharArray();
         }
+
+        [Benchmark]
+        public bool Base64DecodeBaseline() => Convert.TryFromBase64Chars(_encodedChars, _decodedBytes, out _);
 #endif
+    }
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData(10)]
-        [InlineData(100)]
-        [InlineData(1000)]
-        [InlineData(1000 * 1000)]
-        private static void Base64EncodeInPlace(int numberOfBytes)
+    // we want to test InPlace methods so we need to setup every benchmark invocation so we are using [IterationSetup]
+    // to make the Iteration last longer and make the results stable, we are using bigger NumberOfBytes
+    // but due to limitation of BDN where Params have no Target and are applied to entire class
+    // the benchmarks live in a separate class
+    [BenchmarkCategory(Categories.CoreFX)]
+    public class Base64EncodeDecodeInPlaceTests
+    {
+        [Params(1000 * 1000 * 200)] // allows for stable iteraiton around 200ms
+        public int NumberOfBytes { get; set; }
+
+        private byte[] _source;
+        private byte[] _destination;
+
+        [GlobalSetup]
+        public void Setup()
         {
-            Span<byte> source = new byte[numberOfBytes];
-            Base64TestHelper.InitalizeBytes(source);
-            int length = Base64.GetMaxEncodedToUtf8Length(numberOfBytes);
-            Span<byte> decodedSpan = new byte[length];
-            source.CopyTo(decodedSpan);
-            Span<byte> backupSpan = decodedSpan.ToArray();
-
-            int bytesWritten = 0;
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        backupSpan.CopyTo(decodedSpan);
-                        Base64.EncodeToUtf8InPlace(decodedSpan, numberOfBytes, out bytesWritten);
-                    }
-                }
-            }
-
-            Span<byte> backToSource = new byte[numberOfBytes];
-            Base64.DecodeFromUtf8(decodedSpan, backToSource, out _, out _);
-            Assert.True(backupSpan.Slice(0, numberOfBytes).SequenceEqual(backToSource));
+            _source = ValuesGenerator.Array<byte>(NumberOfBytes);
+            _destination = new byte[Base64.GetMaxEncodedToUtf8Length(NumberOfBytes)];
         }
+
+        [IterationSetup(Target = nameof(Base64EncodeInPlace))]
+        public void SetupBase64EncodeInPlace() => Array.Copy(_source, _destination, _source.Length);
 
         [Benchmark]
-        [InlineData(1000 * 1000)]
-        private static void Base64EncodeInPlaceOnce(int numberOfBytes)
-        {
-            Span<byte> source = new byte[numberOfBytes];
-            Base64TestHelper.InitalizeBytes(source);
-            int length = Base64.GetMaxEncodedToUtf8Length(numberOfBytes);
-            Span<byte> decodedSpan = new byte[length];
-            source.CopyTo(decodedSpan);
-            Span<byte> backupSpan = decodedSpan.ToArray();
+        public OperationStatus Base64EncodeInPlace() => Base64.EncodeToUtf8InPlace(_destination, _source.Length, out _);
 
-            int bytesWritten = 0;
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                backupSpan.CopyTo(decodedSpan);
-                using (iteration.StartMeasurement())
-                {
-                    Base64.EncodeToUtf8InPlace(decodedSpan, numberOfBytes, out bytesWritten);
-                }
-            }
-
-            Span<byte> backToSource = new byte[numberOfBytes];
-            Base64.DecodeFromUtf8(decodedSpan, backToSource, out _, out _);
-            Assert.True(backupSpan.Slice(0, numberOfBytes).SequenceEqual(backToSource));
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData(10)]
-        [InlineData(100)]
-        [InlineData(1000)]
-        [InlineData(1000 * 1000)]
-        private static void Base64DecodeInPlace(int numberOfBytes)
-        {
-            Span<byte> source = new byte[numberOfBytes];
-            Base64TestHelper.InitalizeBytes(source);
-            int length = Base64.GetMaxEncodedToUtf8Length(numberOfBytes);
-            Span<byte> encodedSpan = new byte[length];
-            Base64.EncodeToUtf8(source, encodedSpan, out _, out _);
-
-            Span<byte> backupSpan = encodedSpan.ToArray();
-
-            int bytesWritten = 0;
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        backupSpan.CopyTo(encodedSpan);
-                        Base64.DecodeFromUtf8InPlace(encodedSpan, out bytesWritten);
-                    }
-                }
-            }
-
-            Assert.True(source.SequenceEqual(encodedSpan.Slice(0, bytesWritten)));
-        }
+        [IterationSetup(Target = nameof(Base64DecodeInPlace))]
+        public void SetupBase64DecodeInPlace() => Base64.EncodeToUtf8(_source, _destination, out _, out _);
 
         [Benchmark]
-        [InlineData(1000 * 1000)]
-        private static void Base64DecodeInPlaceOnce(int numberOfBytes)
-        {
-            Span<byte> source = new byte[numberOfBytes];
-            Base64TestHelper.InitalizeBytes(source);
-            int length = Base64.GetMaxEncodedToUtf8Length(numberOfBytes);
-            Span<byte> encodedSpan = new byte[length];
-
-            int bytesWritten = 0;
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                Base64.EncodeToUtf8(source, encodedSpan, out _, out _);
-                using (iteration.StartMeasurement())
-                {
-                    Base64.DecodeFromUtf8InPlace(encodedSpan, out bytesWritten);
-                }
-            }
-
-            Assert.True(source.SequenceEqual(encodedSpan.Slice(0, bytesWritten)));
-        }
+        public OperationStatus Base64DecodeInPlace() => Base64.DecodeFromUtf8InPlace(_destination, out _);
     }
 }
