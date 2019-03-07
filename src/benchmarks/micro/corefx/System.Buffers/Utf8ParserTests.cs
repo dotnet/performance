@@ -56,51 +56,6 @@ namespace System.Buffers.Text.Tests
         public bool TryParseInt32(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out int _, out int _);
 
         [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("0")]
-        [InlineData("107")] // standard parse
-        [InlineData("127")] // max value
-        [InlineData("-128")] // min value
-        [InlineData("-21abcdefghijklmnop")]
-        [InlineData("21abcdefghijklmnop")]
-        [InlineData("00000000000000000000123")]
-        private static void StringToSByte_Baseline(string text)
-        {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        sbyte.TryParse(text, out sbyte value);
-                        TestHelpers.DoNotIgnore(value, 0);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        private static void StringToSByte_VariableLength_Baseline()
-        {
-            int textLength = s_SByteTextArray.Length;
-            byte[][] utf8ByteArray = (byte[][])Array.CreateInstance(typeof(byte[]), textLength);
-            for (var i = 0; i < textLength; i++)
-            {
-                utf8ByteArray[i] = Encoding.UTF8.GetBytes(s_SByteTextArray[i]);
-            }
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        sbyte.TryParse(s_SByteTextArray[i % textLength], out sbyte value);
-                        TestHelpers.DoNotIgnore(value, 0);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
         private static void ByteSpanToInt16_VariableLength()
         {
             int textLength = s_Int16TextArray.Length;
@@ -175,31 +130,12 @@ namespace System.Buffers.Text.Tests
         [ArgumentsSource(nameof(BooleanValues))]
         public bool TryParseBool(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out bool _, out int _);
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("0")]
-        [InlineData("107")] // standard parse
-        [InlineData("127")] // max value
-        [InlineData("-128")] // min value
-        [InlineData("-21abcdefghijklmnop")]
-        [InlineData("21abcdefghijklmnop")]
-        [InlineData("00000000000000000000123")]
-        private static void ByteSpanToSByte(string text)
-        {
-            byte[] utf8ByteArray = Encoding.UTF8.GetBytes(text);
-            ReadOnlySpan<byte> utf8ByteSpan = utf8ByteArray;
+        public IEnumerable<object> SByteValues
+            => Perf_SByte.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        Utf8Parser.TryParse(utf8ByteSpan, out sbyte value, out int bytesConsumed);
-                        TestHelpers.DoNotIgnore(value, bytesConsumed);
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(ByteValues))]
+        public bool TryParseSByte(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out sbyte _, out int _);
 
         public IEnumerable<object> ByteValues
             => Perf_Byte.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
