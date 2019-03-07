@@ -36,11 +36,11 @@ namespace System.Tests
         public string ToStringWithCultureInfo(float value, CultureInfo culture)
             => value.ToString(culture);
 
-        public IEnumerable<object[]> ToStringWithFormat()
+        public IEnumerable<object[]> ToStringWithFormatArguments()
             => _formats.SelectMany(format => Values.Select(value => new object[] { value, format }));
 
         [Benchmark]
-        [ArgumentsSource(nameof(ToStringWithFormat))]
+        [ArgumentsSource(nameof(ToStringWithFormatArguments))]
         public string ToStringWithFormat(float value, string format)
             => value.ToString(format);
 

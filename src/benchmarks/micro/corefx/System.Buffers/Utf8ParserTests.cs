@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Tests;
 using System.Text;
+using MicroBenchmarks;
 
 namespace System.Buffers.Text.Tests
 {
+    [BenchmarkCategory(Categories.CoreFX)]
     public class Utf8ParserTests
     {
         public IEnumerable<object> Int64Values
