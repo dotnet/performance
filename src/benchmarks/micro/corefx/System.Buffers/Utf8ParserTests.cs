@@ -4,7 +4,6 @@
 
 using BenchmarkDotNet.Attributes;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Tests;
 using System.Text;
@@ -55,73 +54,12 @@ namespace System.Buffers.Text.Tests
         [ArgumentsSource(nameof(Int32Values))]
         public bool TryParseInt32(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out int _, out int _);
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        private static void ByteSpanToInt16_VariableLength()
-        {
-            int textLength = s_Int16TextArray.Length;
-            byte[][] utf8ByteArray = (byte[][])Array.CreateInstance(typeof(byte[]), textLength);
-            for (var i = 0; i < textLength; i++)
-            {
-                utf8ByteArray[i] = Encoding.UTF8.GetBytes(s_Int16TextArray[i]);
-            }
+        public IEnumerable<object> Int16Values
+            => Perf_Int16.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        ReadOnlySpan<byte> utf8ByteSpan = utf8ByteArray[i % textLength];
-                        Utf8Parser.TryParse(utf8ByteSpan, out short value, out int bytesConsumed);
-                        TestHelpers.DoNotIgnore(value, bytesConsumed);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("0")]
-        [InlineData("10737")] // standard parse
-        [InlineData("32767")] // max value
-        [InlineData("-32768")] // min value
-        [InlineData("000000000000000000001235abcdfg")]
-        private static void StringToInt16_Baseline(string text)
-        {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        short.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out short value);
-                        TestHelpers.DoNotIgnore(value, 0);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        private static void StringToInt16_VariableLength_Baseline()
-        {
-            int textLength = s_Int16TextArray.Length;
-            byte[][] utf8ByteArray = (byte[][])Array.CreateInstance(typeof(byte[]), textLength);
-            for (var i = 0; i < textLength; i++)
-            {
-                utf8ByteArray[i] = Encoding.UTF8.GetBytes(s_Int16TextArray[i]);
-            }
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        short.TryParse(s_Int16TextArray[i % textLength], out short value);
-                        TestHelpers.DoNotIgnore(value, 0);
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(Int16Values))]
+        public bool TryParseInt16(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out ushort _, out int _);
 
         public IEnumerable<object> BooleanValues
             => Perf_Boolean.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
@@ -143,30 +81,6 @@ namespace System.Buffers.Text.Tests
         [Benchmark]
         [ArgumentsSource(nameof(ByteValues))]
         public bool TryParseByte(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out byte _, out int _);
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("0")]
-        [InlineData("4212")] // standard parse
-        [InlineData("-32768")] // min value
-        [InlineData("32767")] // max value
-        [InlineData("000000000000000000001235abcdfg")]
-        private static void ByteSpanToInt16(string text)
-        {
-            byte[] utf8ByteArray = Encoding.UTF8.GetBytes(text);
-            ReadOnlySpan<byte> utf8ByteSpan = utf8ByteArray;
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        Utf8Parser.TryParse(utf8ByteSpan, out short value, out int bytesConsumed);
-                        TestHelpers.DoNotIgnore(value, bytesConsumed);
-                    }
-                }
-            }
-        }
 
         [Benchmark(InnerIterationCount = InnerCount)]
         [InlineData("4212")] // standard parse
