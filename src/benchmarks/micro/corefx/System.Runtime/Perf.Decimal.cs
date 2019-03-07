@@ -5,6 +5,7 @@
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace System.Tests
 {
@@ -16,8 +17,19 @@ namespace System.Tests
             new decimal(1.23456789E+5)
         };
 
+        public static IEnumerable<object> StringValues
+            => Values.OfType<decimal>().Select(value => value.ToString());
+
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
-        public string Decimal_ToString(decimal value) => value.ToString();
+        public string ToString(decimal value) => value.ToString();
+
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public decimal Parse(string value) => decimal.Parse(value);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public bool TryParse(string value) => decimal.TryParse(value, out _);
     }
 }

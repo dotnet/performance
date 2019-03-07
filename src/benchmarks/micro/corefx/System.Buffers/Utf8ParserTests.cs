@@ -359,25 +359,12 @@ namespace System.Buffers.Text.Tests
             }
         }
 
-        [Benchmark]
-        [ArgumentsSource()]
-        public bool TryParseDecimal()
-        {
-            byte[] utf8ByteArray = Encoding.UTF8.GetBytes("1.23456789E+5");
-            ReadOnlySpan<byte> utf8ByteSpan = utf8ByteArray;
+        public IEnumerable<object> DecimalValues
+            => Perf_Decimal.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        Utf8Parser.TryParse(utf8ByteSpan, out decimal value, out int bytesConsumed);
-                        TestHelpers.DoNotIgnore(value, bytesConsumed);
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(DecimalValues))]
+        public bool TryParseDecimal(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out decimal _, out int _);
 
         // Reenable commented out test cases when https://github.com/xunit/xunit/issues/1822 is fixed.
         [Benchmark(InnerIterationCount = InnerCount)]
