@@ -24,29 +24,25 @@ namespace System.Tests
 
         public static IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
 
-        public IEnumerable<object[]> DefaultToStringArguments() 
-            => Values.Select(value => new object[] {value, 100_000});
-        
         [Benchmark]
-        [ArgumentsSource(nameof(DefaultToStringArguments))]
-        public string DefaultToString(double number, int innerIterations) // innerIterations argument is not used anymore but kept to preserve benchmark ID, do NOT remove it 
-            => number.ToString(); 
+        [ArgumentsSource(nameof(Values))]
+        public string ToString(double value) => value.ToString(); 
 
         public IEnumerable<object[]> ToStringWithCultureInfoArguments() 
-            => Values.Select(value => new object[] { new CultureInfo("zh"), value, 100_000});
+            => Values.Select(value => new object[] { value, new CultureInfo("zh") });
 
         [Benchmark]
         [ArgumentsSource(nameof(ToStringWithCultureInfoArguments))]
-        public string ToStringWithCultureInfo(CultureInfo cultureName, double number, int innerIterations) // the argument is called "cultureName" instead of "culture" to keep benchmark ID in BenchView, do NOT rename it
-            => number.ToString(cultureName);
+        public string ToStringWithCultureInfo(double value, CultureInfo culture)
+            => value.ToString(culture);
 
-        public IEnumerable<object[]> ToStringWithFormat_TestData()
-            => _formats.SelectMany(format => Values.Select(value => new object[] {format, value, 2_000_000}));
+        public IEnumerable<object[]> ToStringWithFormat()
+            => _formats.SelectMany(format => Values.Select(value => new object[] { value, format }));
 
         [Benchmark]
-        [ArgumentsSource(nameof(ToStringWithFormat_TestData))]
-        public string ToStringWithFormat(string format, double number, int innerIterations) // innerIterations argument is not used anymore but kept to preserve benchmark ID, do NOT remove it  
-            => number.ToString(format);
+        [ArgumentsSource(nameof(ToStringWithFormat))]
+        public string ToStringWithFormat(double value, string format)
+            => value.ToString(format);
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
