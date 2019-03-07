@@ -292,42 +292,12 @@ namespace System.Buffers.Text.Tests
             }
         }
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("Fri, 30 Jun 2000 03:15:45 GMT")] // standard parse
-        private static void ByteSpanToTimeOffsetR(string text)
-        {
-            byte[] utf8ByteArray = Encoding.UTF8.GetBytes(text);
-            ReadOnlySpan<byte> utf8ByteSpan = utf8ByteArray;
+        public IEnumerable<object> DateTimeOffsetValues
+            => Perf_DateTimeOffset.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        Utf8Parser.TryParse(utf8ByteSpan, out DateTimeOffset value, out int bytesConsumed, 'R');
-                        TestHelpers.DoNotIgnore(value, bytesConsumed);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("Fri, 30 Jun 2000 03:15:45 GMT")] // standard parse
-        private static void StringToTimeOffsetR_Baseline(string text)
-        {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        DateTimeOffset.TryParseExact(text, "r", null, DateTimeStyles.None, out DateTimeOffset value);
-                        TestHelpers.DoNotIgnore(value, 0);
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(DateTimeOffsetValues))]
+        public bool TryParseDateTimeOffset(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out DateTimeOffset _, out int _);
 
         public IEnumerable<object> DecimalValues
             => Perf_Decimal.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));

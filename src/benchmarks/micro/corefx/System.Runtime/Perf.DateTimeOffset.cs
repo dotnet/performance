@@ -5,6 +5,7 @@
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace System.Tests
 {
@@ -29,9 +30,9 @@ namespace System.Tests
             yield return "o";
         }
 
-        [Benchmark(Description = "ToString")]
+        [Benchmark]
         [ArgumentsSource(nameof(ToString_MemberData))]
-        public string ToString_str(string format) => date1.ToString(format);
+        public string ToString(string format) => date1.ToString(format);
 
         [Benchmark]
         public TimeSpan op_Subtraction() => date1 - date2;
@@ -41,8 +42,18 @@ namespace System.Tests
             new DateTimeOffset(year: 2017, month: 12, day: 30, hour: 3, minute: 45, second: 22, millisecond: 950, offset: new TimeSpan(hours: -8, minutes: 0, seconds: 0))
         };
 
+        public static IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
+
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
         public string ToString(DateTimeOffset value) => value.ToString();
+
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public DateTimeOffset Parse(string value) => DateTimeOffset.Parse(value);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public bool TryParse(string value) => DateTimeOffset.TryParse(value, out _);
     }
 }
