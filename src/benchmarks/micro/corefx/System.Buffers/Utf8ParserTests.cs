@@ -168,42 +168,12 @@ namespace System.Buffers.Text.Tests
             }
         }
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("True")]
-        [InlineData("False")]
-        private static void StringToBool_Baseline(string text)
-        {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        bool.TryParse(text, out bool value);
-                    }
-                }
-            }
-        }
+        public IEnumerable<object> BooleanValues
+            => Perf_Boolean.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("True")]
-        [InlineData("False")]
-        private static void BytesSpanToBool(string text)
-        {
-            byte[] utf8ByteArray = Encoding.UTF8.GetBytes(text);
-            ReadOnlySpan<byte> utf8ByteSpan = utf8ByteArray;
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        Utf8Parser.TryParse(utf8ByteSpan, out bool value, out int bytesConsumed);
-                        TestHelpers.DoNotIgnore(value, bytesConsumed);
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(BooleanValues))]
+        public bool TryParseBool(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out bool _, out int _);
 
         [Benchmark(InnerIterationCount = InnerCount)]
         [InlineData("0")]

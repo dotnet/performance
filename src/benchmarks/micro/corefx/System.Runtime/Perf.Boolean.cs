@@ -4,16 +4,32 @@
 
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace System.Tests
 {
     [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Boolean
     {
-        [Benchmark(Description = "Parse")]
-        public bool Parse_str() => bool.Parse(bool.TrueString); 
+        public static IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
 
-        [Benchmark(Description = "ToString")]
-        public string ToString_() => true.ToString();
+        public static IEnumerable<object> Values => new object[]
+        {
+            true,
+            false
+        };
+
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public bool Parse(string value) => bool.Parse(value);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public bool TryParse(string value) => bool.TryParse(value, out _);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(Values))]
+        public string ToString(bool value) => value.ToString();
     }
 }
