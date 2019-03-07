@@ -31,6 +31,10 @@ namespace System.Tests
         [ArgumentsSource(nameof(StringValues))]
         public int Parse(string value) => int.Parse(value);
 
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public bool TryParse(string value) => int.TryParse(value, out _);
+
 #if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
@@ -39,6 +43,10 @@ namespace System.Tests
         [Benchmark]
         [ArgumentsSource(nameof(Int32Values))]
         public bool TryFormat(int value) => value.TryFormat(new Span<char>(_destination), out _);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public bool TryParseSpan(string value) => int.TryParse(value.AsSpan(), out _);
 #endif
     }
 }
