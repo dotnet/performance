@@ -27,6 +27,14 @@ namespace System.Tests
         [ArgumentsSource(nameof(Int64Values))]
         public string ToString(long value) => value.ToString();
 
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public long Parse(string value) => long.Parse(value);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public bool TryParse(string value) => long.TryParse(value, out _);
+
 #if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1
         [Benchmark]
         [ArgumentsSource(nameof(Int64Values))]
@@ -34,7 +42,11 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
-        public long Parse(string value) => long.Parse(value.AsSpan());
+        public long ParseSpan(string value) => long.Parse(value.AsSpan());
+
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public bool TryParseSpan(string value) => long.TryParse(value.AsSpan(), out _);
 #endif
     }
 }

@@ -11,8 +11,6 @@ from subprocess import list2cmdline
 from subprocess import PIPE
 from subprocess import Popen
 from subprocess import STDOUT
-from urllib.request import urlopen
-from xml.etree import ElementTree
 
 import os
 import sys
