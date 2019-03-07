@@ -21,7 +21,7 @@ namespace System.Tests
             int.MaxValue
         };
 
-        public IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
+        public static IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
 
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
