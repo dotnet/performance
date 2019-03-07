@@ -13,8 +13,6 @@ namespace System.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Double
     {
-        private readonly decimal decimalNum = new decimal(1.23456789E+5);
-
         private readonly double[] _testCases = { double.MinValue, 12345.0 /* same value used by other tests to compare the perf */, double.MaxValue };
         private readonly string[] _formats = { "R", "G", "G17", "E", "F50" };
 
@@ -41,8 +39,5 @@ namespace System.Tests
         [ArgumentsSource(nameof(ToStringWithFormat_TestData))]
         public string ToStringWithFormat(string format, double number, int innerIterations) // innerIterations argument is not used anymore but kept to preserve benchmark ID, do NOT remove it  
             => number.ToString(format);
-
-        [Benchmark]
-        public string Decimal_ToString() => decimalNum.ToString();
     }
 }
