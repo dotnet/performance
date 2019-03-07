@@ -12,6 +12,13 @@ namespace System.Buffers.Text.Tests
 {
     public class Utf8ParserTests
     {
+        public IEnumerable<object> Int64Values
+            => Perf_Int64.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
+
+        [Benchmark]
+        [ArgumentsSource(nameof(Int64Values))]
+        public bool TryParseInt64(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out long _, out int _);
+
         public IEnumerable<object> UInt64Values
             => Perf_UInt64.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
@@ -25,6 +32,13 @@ namespace System.Buffers.Text.Tests
         [Benchmark]
         [ArgumentsSource(nameof(UInt64HexValues))]
         public bool TryParseUInt64Hex(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out ulong _, out int _, 'X');
+
+        public IEnumerable<object> Int32Values
+            => Perf_Int32.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
+
+        [Benchmark]
+        [ArgumentsSource(nameof(Int32Values))]
+        public bool TryParseInt32(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out int _, out int _);
 
         public IEnumerable<object> UInt32Values
             => Perf_UInt32.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
@@ -40,47 +54,12 @@ namespace System.Buffers.Text.Tests
         [ArgumentsSource(nameof(UInt32HexValues))]
         public bool TryParseUInt32Hex(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out uint _, out int _, 'X');
 
-        public IEnumerable<object> Int64Values
-            => Perf_Int64.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
-
-        [Benchmark]
-        [ArgumentsSource(nameof(Int64Values))]
-        public bool TryParseInt64(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out long _, out int _);
-
-        public IEnumerable<object> Int32Values
-            => Perf_Int32.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
-
-        [Benchmark]
-        [ArgumentsSource(nameof(Int32Values))]
-        public bool TryParseInt32(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out int _, out int _);
-
         public IEnumerable<object> Int16Values
             => Perf_Int16.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
         [Benchmark]
         [ArgumentsSource(nameof(Int16Values))]
-        public bool TryParseInt16(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out ushort _, out int _);
-
-        public IEnumerable<object> BooleanValues
-            => Perf_Boolean.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
-
-        [Benchmark]
-        [ArgumentsSource(nameof(BooleanValues))]
-        public bool TryParseBool(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out bool _, out int _);
-
-        public IEnumerable<object> SByteValues
-            => Perf_SByte.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
-
-        [Benchmark]
-        [ArgumentsSource(nameof(ByteValues))]
-        public bool TryParseSByte(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out sbyte _, out int _);
-
-        public IEnumerable<object> ByteValues
-            => Perf_Byte.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
-
-        [Benchmark]
-        [ArgumentsSource(nameof(ByteValues))]
-        public bool TryParseByte(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out byte _, out int _);
+        public bool TryParseInt16(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out short _, out int _);
 
         public IEnumerable<object> UInt16Values
             => Perf_UInt16.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
@@ -89,12 +68,26 @@ namespace System.Buffers.Text.Tests
         [ArgumentsSource(nameof(UInt16Values))]
         public bool TryParseUInt16(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out ushort _, out int _);
 
-        public IEnumerable<object> DateTimeOffsetValues
-            => Perf_DateTimeOffset.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
+        public IEnumerable<object> ByteValues
+            => Perf_Byte.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
         [Benchmark]
-        [ArgumentsSource(nameof(DateTimeOffsetValues))]
-        public bool TryParseDateTimeOffset(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out DateTimeOffset _, out int _);
+        [ArgumentsSource(nameof(ByteValues))]
+        public bool TryParseByte(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out byte _, out int _);
+
+        public IEnumerable<object> SByteValues
+            => Perf_SByte.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
+
+        [Benchmark]
+        [ArgumentsSource(nameof(SByteValues))]
+        public bool TryParseSByte(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out sbyte _, out int _);
+
+        public IEnumerable<object> BooleanValues
+            => Perf_Boolean.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
+
+        [Benchmark]
+        [ArgumentsSource(nameof(BooleanValues))]
+        public bool TryParseBool(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out bool _, out int _);
 
         public IEnumerable<object> DecimalValues
             => Perf_Decimal.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
@@ -116,6 +109,13 @@ namespace System.Buffers.Text.Tests
         [Benchmark]
         [ArgumentsSource(nameof(SingleValues))]
         public bool TryParseSingle(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out float _, out int _);
+
+        public IEnumerable<object> DateTimeOffsetValues
+            => Perf_DateTimeOffset.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
+
+        [Benchmark]
+        [ArgumentsSource(nameof(DateTimeOffsetValues))]
+        public bool TryParseDateTimeOffset(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out DateTimeOffset _, out int _);
 
         public class Utf8TestCase
         {
