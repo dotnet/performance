@@ -20,7 +20,7 @@ namespace System.Buffers.Text.Tests
         [ArgumentsSource(nameof(Int64Values))]
         public bool FormatterInt64(long value) => Utf8Formatter.TryFormat(value, _destination, out _);
 
-        public IEnumerable<object> UInt64Values() => Perf_UInt64.UInt64Values;
+        public IEnumerable<object> UInt64Values() => Perf_UInt64.Values;
 
         [Benchmark]
         [ArgumentsSource(nameof(UInt64Values))]

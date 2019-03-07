@@ -107,46 +107,6 @@ namespace System.Buffers.Text.Tests
         [InlineData("0")] // min value
         [InlineData("000000000000000000001235abcdfg")]
         [InlineData("21474836abcdefghijklmnop")]
-        private static void StringToUInt64_Baseline(string text)
-        {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        ulong.TryParse(text, out ulong value);
-                        TestHelpers.DoNotIgnore(value, 0);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("abcdef")] // standard parse
-        [InlineData("ffffffffffffffff")] // max value
-        [InlineData("0")] // min value
-        private static void StringToUInt64Hex_Baseline(string text)
-        {
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        ulong.TryParse(text, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out ulong value);
-                        TestHelpers.DoNotIgnore(value, 0);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("2134567890")] // standard parse
-        [InlineData("18446744073709551615")] // max value
-        [InlineData("0")] // min value
-        [InlineData("000000000000000000001235abcdfg")]
-        [InlineData("21474836abcdefghijklmnop")]
         private static void ByteSpanToUInt64(string text)
         {
             byte[] utf8ByteArray = Encoding.UTF8.GetBytes(text);
