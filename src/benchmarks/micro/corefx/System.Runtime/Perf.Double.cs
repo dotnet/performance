@@ -22,6 +22,8 @@ namespace System.Tests
             double.MaxValue
         };
 
+        public static IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
+
         public IEnumerable<object[]> DefaultToStringArguments() 
             => Values.Select(value => new object[] {value, 100_000});
         
@@ -45,5 +47,13 @@ namespace System.Tests
         [ArgumentsSource(nameof(ToStringWithFormat_TestData))]
         public string ToStringWithFormat(string format, double number, int innerIterations) // innerIterations argument is not used anymore but kept to preserve benchmark ID, do NOT remove it  
             => number.ToString(format);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public double Parse(string value) => double.Parse(value);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public bool TryParse(string value) => double.TryParse(value, out _);
     }
 }
