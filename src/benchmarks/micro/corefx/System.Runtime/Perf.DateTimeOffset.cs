@@ -35,5 +35,14 @@ namespace System.Tests
 
         [Benchmark]
         public TimeSpan op_Subtraction() => date1 - date2;
+
+        public static IEnumerable<object> Values => new object[]
+        {
+            new DateTimeOffset(year: 2017, month: 12, day: 30, hour: 3, minute: 45, second: 22, millisecond: 950, offset: new TimeSpan(hours: -8, minutes: 0, seconds: 0))
+        };
+
+        [Benchmark]
+        [ArgumentsSource(nameof(Values))]
+        public string ToString(DateTimeOffset value) => value.ToString();
     }
 }

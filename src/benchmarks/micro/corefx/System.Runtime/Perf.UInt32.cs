@@ -14,9 +14,9 @@ namespace System.Tests
     {
         private char[] _destination = new char[uint.MaxValue.ToString().Length];
 
-        public IEnumerable<object> StringValues => UInt32Values.Select(value => value.ToString()).ToArray();
+        public IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
         
-        public IEnumerable<object> UInt32Values => new object[]
+        public static IEnumerable<object> Values => new object[]
         {
             uint.MinValue,
             (uint)12345, // same value used by other tests to compare the perf
@@ -24,12 +24,12 @@ namespace System.Tests
         };
 
         [Benchmark]
-        [ArgumentsSource(nameof(UInt32Values))]
+        [ArgumentsSource(nameof(Values))]
         public string ToString(uint value) => value.ToString();
 
 #if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1
         [Benchmark]
-        [ArgumentsSource(nameof(UInt32Values))]
+        [ArgumentsSource(nameof(Values))]
         public bool TryFormat(uint value) => value.TryFormat(new Span<char>(_destination), out _);
 
         [Benchmark]

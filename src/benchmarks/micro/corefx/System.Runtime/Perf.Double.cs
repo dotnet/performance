@@ -13,11 +13,17 @@ namespace System.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Double
     {
-        private readonly double[] _testCases = { double.MinValue, 12345.0 /* same value used by other tests to compare the perf */, double.MaxValue };
         private readonly string[] _formats = { "R", "G", "G17", "E", "F50" };
 
+        public static IEnumerable<object> Values => new object[]
+        {
+            double.MinValue,
+            12345.0 /* same value used by other tests to compare the perf */,
+            double.MaxValue
+        };
+
         public IEnumerable<object[]> DefaultToStringArguments() 
-            => _testCases.Select(value => new object[] {value, 100_000});
+            => Values.Select(value => new object[] {value, 100_000});
         
         [Benchmark]
         [ArgumentsSource(nameof(DefaultToStringArguments))]
@@ -25,7 +31,7 @@ namespace System.Tests
             => number.ToString(); 
 
         public IEnumerable<object[]> ToStringWithCultureInfoArguments() 
-            => _testCases.Select(value => new object[] { new CultureInfo("zh"), value, 100_000});
+            => Values.Select(value => new object[] { new CultureInfo("zh"), value, 100_000});
 
         [Benchmark]
         [ArgumentsSource(nameof(ToStringWithCultureInfoArguments))]
@@ -33,7 +39,7 @@ namespace System.Tests
             => number.ToString(cultureName);
 
         public IEnumerable<object[]> ToStringWithFormat_TestData()
-            => _formats.SelectMany(format => _testCases.Select(value => new object[] {format, value, 2_000_000}));
+            => _formats.SelectMany(format => Values.Select(value => new object[] {format, value, 2_000_000}));
 
         [Benchmark]
         [ArgumentsSource(nameof(ToStringWithFormat_TestData))]
