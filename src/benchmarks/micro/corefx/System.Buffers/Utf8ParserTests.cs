@@ -201,50 +201,12 @@ namespace System.Buffers.Text.Tests
             }
         }
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("42")] // standard parse
-        [InlineData("0")] // min value
-        [InlineData("255")] // max value
-        private static void ByteSpanToByte(string text)
-        {
-            byte[] utf8ByteArray = Encoding.UTF8.GetBytes(text);
-            ReadOnlySpan<byte> utf8ByteSpan = utf8ByteArray;
+        public IEnumerable<object> ByteValues
+            => Perf_Byte.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        Utf8Parser.TryParse(utf8ByteSpan, out byte value, out int bytesConsumed);
-                        TestHelpers.DoNotIgnore(value, bytesConsumed);
-                    }
-                }
-            }
-        }
-
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("42")] // standard parse
-        [InlineData("0")] // min value
-        [InlineData("255")] // max value
-        private static void StringToByte_Baseline(string text)
-        {
-            byte[] utf8ByteArray = Encoding.UTF8.GetBytes(text);
-            ReadOnlySpan<byte> utf8ByteSpan = utf8ByteArray;
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        byte.TryParse(text, out byte value);
-                        TestHelpers.DoNotIgnore(value, 0);
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(ByteValues))]
+        public bool TryParseByte(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out byte _, out int _);
 
         [Benchmark(InnerIterationCount = InnerCount)]
         [InlineData("0")]
