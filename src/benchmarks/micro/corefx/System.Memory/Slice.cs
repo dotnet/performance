@@ -152,7 +152,75 @@ namespace System.Memory
 
             return memory;
         }
-        
+
+        [Benchmark(OperationsPerInvoke = 16)]
+        public System.Memory<T> MemorySpanStart()
+        {
+            System.Memory<T> memory = new System.Memory<T>(_nonEmptyArray);
+
+            Consume(memory.Span.Slice(Size / 2)); Consume(memory.Span.Slice(Size / 2));
+            Consume(memory.Span.Slice(Size / 2)); Consume(memory.Span.Slice(Size / 2));
+            Consume(memory.Span.Slice(Size / 2)); Consume(memory.Span.Slice(Size / 2));
+            Consume(memory.Span.Slice(Size / 2)); Consume(memory.Span.Slice(Size / 2));
+            Consume(memory.Span.Slice(Size / 2)); Consume(memory.Span.Slice(Size / 2));
+            Consume(memory.Span.Slice(Size / 2)); Consume(memory.Span.Slice(Size / 2));
+            Consume(memory.Span.Slice(Size / 2)); Consume(memory.Span.Slice(Size / 2));
+            Consume(memory.Span.Slice(Size / 2)); Consume(memory.Span.Slice(Size / 2));
+
+            return memory;
+        }
+
+        [Benchmark(OperationsPerInvoke = 16)]
+        public System.Memory<T> MemorySpanStartLength()
+        {
+            System.Memory<T> memory = new System.Memory<T>(_nonEmptyArray);
+
+            Consume(memory.Span.Slice(Size / 2, 1)); Consume(memory.Span.Slice(Size / 2, 1));
+            Consume(memory.Span.Slice(Size / 2, 1)); Consume(memory.Span.Slice(Size / 2, 1));
+            Consume(memory.Span.Slice(Size / 2, 1)); Consume(memory.Span.Slice(Size / 2, 1));
+            Consume(memory.Span.Slice(Size / 2, 1)); Consume(memory.Span.Slice(Size / 2, 1));
+            Consume(memory.Span.Slice(Size / 2, 1)); Consume(memory.Span.Slice(Size / 2, 1));
+            Consume(memory.Span.Slice(Size / 2, 1)); Consume(memory.Span.Slice(Size / 2, 1));
+            Consume(memory.Span.Slice(Size / 2, 1)); Consume(memory.Span.Slice(Size / 2, 1));
+            Consume(memory.Span.Slice(Size / 2, 1)); Consume(memory.Span.Slice(Size / 2, 1));
+
+            return memory;
+        }
+
+        [Benchmark(OperationsPerInvoke = 16)]
+        public System.ReadOnlyMemory<T> ReadOnlyMemorySpanStart()
+        {
+            System.ReadOnlyMemory<T> memory = new System.ReadOnlyMemory<T>(_nonEmptyArray);
+
+            Consume(memory.Span.Slice(Size / 2)); Consume(memory.Span.Slice(Size / 2));
+            Consume(memory.Span.Slice(Size / 2)); Consume(memory.Span.Slice(Size / 2));
+            Consume(memory.Span.Slice(Size / 2)); Consume(memory.Span.Slice(Size / 2));
+            Consume(memory.Span.Slice(Size / 2)); Consume(memory.Span.Slice(Size / 2));
+            Consume(memory.Span.Slice(Size / 2)); Consume(memory.Span.Slice(Size / 2));
+            Consume(memory.Span.Slice(Size / 2)); Consume(memory.Span.Slice(Size / 2));
+            Consume(memory.Span.Slice(Size / 2)); Consume(memory.Span.Slice(Size / 2));
+            Consume(memory.Span.Slice(Size / 2)); Consume(memory.Span.Slice(Size / 2));
+
+            return memory;
+        }
+
+        [Benchmark(OperationsPerInvoke = 16)]
+        public System.ReadOnlyMemory<T> ReadOnlyMemorySpanStartLength()
+        {
+            System.ReadOnlyMemory<T> memory = new System.ReadOnlyMemory<T>(_nonEmptyArray);
+
+            Consume(memory.Span.Slice(Size / 2, 1)); Consume(memory.Span.Slice(Size / 2, 1));
+            Consume(memory.Span.Slice(Size / 2, 1)); Consume(memory.Span.Slice(Size / 2, 1));
+            Consume(memory.Span.Slice(Size / 2, 1)); Consume(memory.Span.Slice(Size / 2, 1));
+            Consume(memory.Span.Slice(Size / 2, 1)); Consume(memory.Span.Slice(Size / 2, 1));
+            Consume(memory.Span.Slice(Size / 2, 1)); Consume(memory.Span.Slice(Size / 2, 1));
+            Consume(memory.Span.Slice(Size / 2, 1)); Consume(memory.Span.Slice(Size / 2, 1));
+            Consume(memory.Span.Slice(Size / 2, 1)); Consume(memory.Span.Slice(Size / 2, 1));
+            Consume(memory.Span.Slice(Size / 2, 1)); Consume(memory.Span.Slice(Size / 2, 1));
+
+            return memory;
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void Consume(in System.Span<T> _) { }
         
