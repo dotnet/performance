@@ -62,7 +62,7 @@ namespace System.Collections
         public bool IDictionary() => TryGetValue(_dictionary);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public bool TryGetValue(IDictionary<TKey, TValue> collection)
+        private bool TryGetValue(IDictionary<TKey, TValue> collection)
         {
             bool result = default;
             TKey[] notFound = _notFound;
