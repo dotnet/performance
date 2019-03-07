@@ -82,27 +82,12 @@ namespace System.Buffers.Text.Tests
         [ArgumentsSource(nameof(ByteValues))]
         public bool TryParseByte(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out byte _, out int _);
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("4212")] // standard parse
-        [InlineData("0")] // min value
-        [InlineData("65535")] // max value
-        private static void ByteSpanToUInt16(string text)
-        {
-            byte[] utf8ByteArray = Encoding.UTF8.GetBytes(text);
-            ReadOnlySpan<byte> utf8ByteSpan = utf8ByteArray;
+        public IEnumerable<object> UInt16Values
+            => Perf_UInt16.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        Utf8Parser.TryParse(utf8ByteSpan, out ushort value, out int bytesConsumed);
-                        TestHelpers.DoNotIgnore(value, bytesConsumed);
-                    }
-                }
-            }
-        }
+        [Benchmark]
+        [ArgumentsSource(nameof(UInt16Values))]
+        public bool TryParseUInt16(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out ushort _, out int _);
 
         public IEnumerable<object> DateTimeOffsetValues
             => Perf_DateTimeOffset.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
