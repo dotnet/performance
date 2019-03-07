@@ -427,7 +427,7 @@ def __run_scripts(
         config_name=benchview_config_name,
         configs=benchview_config,
         machinepool=args.benchview_machinepool,
-        jobgroup='.NET Performance',
+        jobgroup=args.benchview_job_group,
         jobtype=args.benchview_run_type
     )
 
@@ -528,6 +528,14 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         This is used to describe the benchmark results. For example, some
         types of configurations can be: performance mode, configuration,
         profile, etc.'''
+    )
+    parser.add_argument(
+        '--benchview-job-group',
+        dest='benchview_job_group',
+        required=False,
+        default='.NET Performance',
+        type=str,
+        help='''Category to distinguish different batches of uploads.'''
     )
 
     return parser
