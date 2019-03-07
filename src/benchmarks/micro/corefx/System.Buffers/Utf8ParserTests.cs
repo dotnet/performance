@@ -2,150 +2,32 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using BenchmarkDotNet.Attributes;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Tests;
 using System.Text;
-using Microsoft.Xunit.Performance;
-using Xunit;
 
 namespace System.Buffers.Text.Tests
 {
-    public static partial class Utf8ParserTests
+    public class Utf8ParserTests
     {
-        private const int InnerCount = 100_000;
+        public IEnumerable<object> UInt64Values
+            => Perf_UInt64.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
-        private static readonly string[] s_UInt32TextArray = new string[10]
-        {
-            "42",
-            "429496",
-            "429496729",
-            "42949",
-            "4",
-            "42949672",
-            "4294",
-            "429",
-            "4294967295",
-            "4294967"
-        };
+        [Benchmark]
+        [ArgumentsSource(nameof(Utf8TestCase))]
+        public bool TryParseUInt64(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out ulong _, out int _);
 
-        private static readonly string[] s_UInt32TextArrayHex = new string[8]
-        {
-            "A2",
-            "A29496",
-            "A2949",
-            "A",
-            "A2949672",
-            "A294",
-            "A29",
-            "A294967"
-        };
+        public IEnumerable<object> UInt64HexValues
+            => Perf_UInt64.StringHexValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
-        private static readonly string[] s_Int16TextArray = new string[13]
-        {
-            "21474",
-            "2",
-            "-21474",
-            "31484",
-            "-21",
-            "-2",
-            "214",
-            "2147",
-            "-2147",
-            "-9345",
-            "9345",
-            "1000",
-            "-214"
-        };
+        [Benchmark]
+        [ArgumentsSource(nameof(Utf8TestCase))]
+        public bool TryParseUInt64Hex(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out ulong _, out int _, 'X');
 
-        private static readonly string[] s_Int32TextArray = new string[20]
-        {
-            "214748364",
-            "2",
-            "21474836",
-            "-21474",
-            "21474",
-            "-21",
-            "-2",
-            "214",
-            "-21474836",
-            "-214748364",
-            "2147",
-            "-2147",
-            "-214748",
-            "-2147483",
-            "214748",
-            "-2147483648",
-            "2147483647",
-            "21",
-            "2147483",
-            "-214"
-        };
-
-        private static readonly string[] s_SByteTextArray = new string[17]
-        {
-            "95",
-            "2",
-            "112",
-            "-112",
-            "-21",
-            "-2",
-            "114",
-            "-114",
-            "-124",
-            "117",
-            "-117",
-            "-14",
-            "14",
-            "74",
-            "21",
-            "83",
-            "-127"
-        };
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("2134567890")] // standard parse
-        [InlineData("18446744073709551615")] // max value
-        [InlineData("0")] // min value
-        [InlineData("000000000000000000001235abcdfg")]
-        [InlineData("21474836abcdefghijklmnop")]
-        private static void ByteSpanToUInt64(string text)
-        {
-            byte[] utf8ByteArray = Encoding.UTF8.GetBytes(text);
-            ReadOnlySpan<byte> utf8ByteSpan = new ReadOnlySpan<byte>(utf8ByteArray);
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        Utf8Parser.TryParse(utf8ByteSpan, out ulong value, out int bytesConsumed);
-                        TestHelpers.DoNotIgnore(value, bytesConsumed);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData("abcdef")] // standard parse
-        [InlineData("ffffffffffffffff")] // max value
-        [InlineData("0")] // min value
-        private static void ByteSpanToUInt64Hex(string text)
-        {
-            byte[] utf8ByteArray = Encoding.UTF8.GetBytes(text);
-            ReadOnlySpan<byte> utf8ByteSpan = new ReadOnlySpan<byte>(utf8ByteArray);
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        Utf8Parser.TryParse(utf8ByteSpan, out ulong value, out int bytesConsumed, 'X');
-                        TestHelpers.DoNotIgnore(value, bytesConsumed);
-                    }
-                }
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
+        [Benchmark]
         [InlineData("2134567890")] // standard parse
         [InlineData("4294967295")] // max value
         [InlineData("0")] // min value
@@ -874,6 +756,20 @@ namespace System.Buffers.Text.Tests
                     }
                 }
             }
+        }
+
+        public class Utf8TestCase
+        {
+            public byte[] Utf8Bytes { get; }
+            private string Text { get; }
+
+            public Utf8TestCase(string text)
+            {
+                Text = text;
+                Utf8Bytes = Encoding.UTF8.GetBytes(Text);
+            }
+
+            public override string ToString() => Text; // displayed by BDN
         }
     }
 }

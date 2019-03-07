@@ -15,7 +15,7 @@ namespace System.Tests
     {
         private char[] _destination = new char[ulong.MaxValue.ToString().Length];
 
-        public IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
+        public static IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
         
         public static IEnumerable<object> Values => new object[]
         {
