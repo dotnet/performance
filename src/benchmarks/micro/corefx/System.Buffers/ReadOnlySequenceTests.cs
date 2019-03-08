@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
@@ -73,6 +74,7 @@ namespace System.Buffers.Tests
         public int FirstTenSegments()
             => First(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size / 10));
 
+        [MethodImpl(MethodImplOptions.NoInlining)] // make sure that the method does not get inlined for any of the benchmarks and we compare apples to apples
         private int IterateTryGet(ReadOnlySequence<T> sequence)
         {
             int consume = 0;
@@ -84,6 +86,7 @@ namespace System.Buffers.Tests
             return consume;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private int IterateForEach(ReadOnlySequence<T> sequence)
         {
             int consume = 0;
@@ -94,6 +97,7 @@ namespace System.Buffers.Tests
             return consume;
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private int First(ReadOnlySequence<T> sequence)
         {
             int consume = 0;
