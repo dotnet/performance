@@ -1,229 +1,74 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
-
-using System.Memory.Tests;
-using System.MemoryTests;
-using Microsoft.Xunit.Performance;
-using Xunit;
+using System.Linq;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Extensions;
+using MicroBenchmarks;
 
 namespace System.Buffers.Tests
 {
-    public class Perf_ReadOnlySequence_TryGet
+    [BenchmarkCategory(Categories.CoreFX)]
+    [GenericTypeArguments(typeof(byte))]
+    [GenericTypeArguments(typeof(char))]
+    public class ReadOnlySequenceTests<T>
     {
-        private const int InnerCount = 100_000;
-        volatile static int _volatileInt = 0;
+        private const int Size = 10_000;
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData(10_000, 100)]
-        private static void Byte_Array(int bufSize, int bufOffset)
+        private readonly T[] _array = ValuesGenerator.Array<T>(Size);
+        private BufferSegment<T> _startSegment, _endSegment;
+
+        [Benchmark]
+        public int IterateTryGetOverArray() => IterateTryGet(new ReadOnlySequence<T>(_array));
+
+        [Benchmark]
+        public int IterateTryGetOverMemory() => IterateTryGet(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
+
+        [GlobalSetup(Target = nameof(IterateTryGetOverSingleSegment))]
+        public void SetupIterateTryGetOverSingleSegment() => _startSegment = _endSegment = new BufferSegment<T>(new ReadOnlyMemory<T>(_array));
+
+        [Benchmark]
+        public int IterateTryGetOverSingleSegment()
+            => IterateTryGet(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size));
+
+        [GlobalSetup(Target = nameof(IterateTryGetOverTenSegments))]
+        public void SetupIterateTryGetOverTenSegments()
         {
-            var buffer = new ReadOnlySequence<byte>(new byte[bufSize], bufOffset, bufSize - 2 * bufOffset);
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
+            const int segmentsCount = 10;
+            const int segmentSize = Size / segmentsCount;
+            _startSegment = new BufferSegment<T>(new ReadOnlyMemory<T>(_array.Take(segmentSize).ToArray()));
+            _endSegment = _startSegment;
+            for (int i = 1; i < segmentsCount; i++)
             {
-                int localInt = 0;
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        SequencePosition p = buffer.Start;
-                        while (buffer.TryGet(ref p, out ReadOnlyMemory<byte> memory))
-                            localInt ^= memory.Length;
-                    }
-                }
-                _volatileInt = localInt;
+                _endSegment = _endSegment.Append(new ReadOnlyMemory<T>(_array.Skip(i * segmentSize).Take(Size / segmentsCount).ToArray()));
             }
         }
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData(10_000, 100)]
-        private static void Byte_Memory(int bufSize, int bufOffset)
-        {
-            var manager = new CustomMemoryForTest<byte>(new byte[bufSize], bufOffset, bufSize - 2 * bufOffset);
-            var buffer = new ReadOnlySequence<byte>(manager.Memory);
+        [Benchmark]
+        public int IterateTryGetOverTenSegments()
+            => IterateTryGet(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size / 10));
 
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                int localInt = 0;
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        SequencePosition p = buffer.Start;
-                        while (buffer.TryGet(ref p, out ReadOnlyMemory<byte> memory))
-                            localInt ^= memory.Length;
-                    }
-                }
-                _volatileInt = localInt;
-            }
+        private int IterateTryGet(ReadOnlySequence<T> sequence)
+        {
+            int consume = 0;
+
+            SequencePosition position = sequence.Start;
+            while (sequence.TryGet(ref position, out var memory))
+                consume += memory.Length;
+
+            return consume;
         }
+    }
 
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData(10_000, 100)]
-        private static void Byte_SingleSegment(int bufSize, int bufOffset)
+    internal class BufferSegment<T> : ReadOnlySequenceSegment<T>
+    {
+        public BufferSegment(ReadOnlyMemory<T> memory) => Memory = memory;
+
+        public BufferSegment<T> Append(ReadOnlyMemory<T> memory)
         {
-            var segment1 = new BufferSegment<byte>(new byte[bufSize]);
-            var buffer = new ReadOnlySequence<byte>(segment1, bufOffset, segment1, bufSize - bufOffset);
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
+            var segment = new BufferSegment<T>(memory)
             {
-                int localInt = 0;
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        SequencePosition p = buffer.Start;
-                        while (buffer.TryGet(ref p, out ReadOnlyMemory<byte> memory))
-                            localInt ^= memory.Length;
-                    }
-                }
-                _volatileInt = localInt;
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount / 10)]
-        [InlineData(10_000, 100)]
-        private static void Byte_MultiSegment(int bufSize, int bufOffset)
-        {
-            var segment1 = new BufferSegment<byte>(new byte[bufSize / 10]);
-            BufferSegment<byte> segment2 = segment1;
-            for (int j = 0; j < 10; j++)
-                segment2 = segment2.Append(new byte[bufSize / 10]);
-            var buffer = new ReadOnlySequence<byte>(segment1, bufOffset, segment2, bufSize / 10 - bufOffset);
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                int localInt = 0;
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        SequencePosition p = buffer.Start;
-                        while (buffer.TryGet(ref p, out ReadOnlyMemory<byte> memory))
-                            localInt ^= memory.Length;
-                    }
-                }
-                _volatileInt = localInt;
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData(10_000, 100)]
-        private static void Char_Array(int bufSize, int bufOffset)
-        {
-            var buffer = new ReadOnlySequence<char>(new char[bufSize], bufOffset, bufSize - 2 * bufOffset);
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                int localInt = 0;
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        SequencePosition p = buffer.Start;
-                        while (buffer.TryGet(ref p, out ReadOnlyMemory<char> memory))
-                            localInt ^= memory.Length;
-                    }
-                }
-                _volatileInt = localInt;
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData(10_000, 100)]
-        private static void Char_Memory(int bufSize, int bufOffset)
-        {
-            var manager = new CustomMemoryForTest<char>(new char[bufSize], bufOffset, bufSize - 2 * bufOffset);
-            var buffer = new ReadOnlySequence<char>(manager.Memory);
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                int localInt = 0;
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        SequencePosition p = buffer.Start;
-                        while (buffer.TryGet(ref p, out ReadOnlyMemory<char> memory))
-                            localInt ^= memory.Length;
-                    }
-                }
-                _volatileInt = localInt;
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData(10_000, 100)]
-        private static void Char_SingleSegment(int bufSize, int bufOffset)
-        {
-            var segment1 = new BufferSegment<char>(new char[bufSize]);
-            var buffer = new ReadOnlySequence<char>(segment1, bufOffset, segment1, bufSize - bufOffset);
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                int localInt = 0;
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        SequencePosition p = buffer.Start;
-                        while (buffer.TryGet(ref p, out ReadOnlyMemory<char> memory))
-                            localInt ^= memory.Length;
-                    }
-                }
-                _volatileInt = localInt;
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount / 10)]
-        [InlineData(10_000, 100)]
-        private static void Char_MultiSegment(int bufSize, int bufOffset)
-        {
-            var segment1 = new BufferSegment<char>(new char[bufSize / 10]);
-            BufferSegment<char> segment2 = segment1;
-            for (int j = 0; j < 10; j++)
-                segment2 = segment2.Append(new char[bufSize / 10]);
-            var buffer = new ReadOnlySequence<char>(segment1, bufOffset, segment2, bufSize / 10 - bufOffset);
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                int localInt = 0;
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        SequencePosition p = buffer.Start;
-                        while (buffer.TryGet(ref p, out ReadOnlyMemory<char> memory))
-                            localInt ^= memory.Length;
-                    }
-                }
-                _volatileInt = localInt;
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        [InlineData(10_000, 100)]
-        private static void String(int bufSize, int bufOffset)
-        {
-            ReadOnlyMemory<char> strMemory = new string('a', bufSize).AsMemory();
-            strMemory = strMemory.Slice(bufOffset, bufSize - bufOffset);
-            var buffer = new ReadOnlySequence<char>(strMemory);
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                int localInt = 0;
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        SequencePosition p = buffer.Start;
-                        while (buffer.TryGet(ref p, out ReadOnlyMemory<char> memory))
-                            localInt ^= memory.Length;
-                    }
-                }
-                _volatileInt = localInt;
-            }
+                RunningIndex = RunningIndex + Memory.Length
+            };
+            Next = segment;
+            return segment;
         }
     }
 }
