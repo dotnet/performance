@@ -6,14 +6,17 @@
 using System.Runtime.Intrinsics.X86;
 using System.Runtime.Intrinsics;
 
-internal class RayPacket256
+namespace PacketTracer
 {
-    public VectorPacket256 Starts;
-    public VectorPacket256 Dirs;
-
-    public RayPacket256(VectorPacket256 starts, VectorPacket256 dirs)
+    internal class RayPacket256
     {
-        Starts = starts;
-        Dirs = dirs;
+        public VectorPacket256 Starts;
+        public VectorPacket256 Dirs;
+
+        public RayPacket256(VectorPacket256 starts, VectorPacket256 dirs)
+        {
+            Starts = starts;
+            Dirs = dirs;
+        }
     }
 }
