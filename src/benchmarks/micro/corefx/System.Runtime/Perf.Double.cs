@@ -22,7 +22,9 @@ namespace System.Tests
             double.MaxValue
         };
 
-        public static IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
+        public static IEnumerable<object> StringValues
+            // r is used to fromat Min and Max values to a parsable string https://stackoverflow.com/a/767011
+            => Values.OfType<double>().Select(value => value.ToString("r")).ToArray();
 
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
