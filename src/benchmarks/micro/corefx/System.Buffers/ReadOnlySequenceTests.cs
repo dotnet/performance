@@ -28,6 +28,9 @@ namespace System.Buffers.Tests
         [Benchmark(OperationsPerInvoke = 16)]
         public int FirstArray() => First(new ReadOnlySequence<T>(_array));
 
+        [Benchmark(OperationsPerInvoke = 10)]
+        public long SliceArray() => Slice(new ReadOnlySequence<T>(_array));
+
         [Benchmark]
         public int IterateTryGetMemory() => IterateTryGet(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
 
@@ -40,7 +43,10 @@ namespace System.Buffers.Tests
         [Benchmark(OperationsPerInvoke = 16)]
         public int FirstMemory() => First(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
 
-        [GlobalSetup(Targets = new [] { nameof(IterateTryGetSingleSegment), nameof(IterateForEachSingleSegment), nameof(IterateGetPositionSingleSegment), nameof(FirstSingleSegment) })]
+        [Benchmark(OperationsPerInvoke = 10)]
+        public long SliceMemory() => Slice(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
+
+        [GlobalSetup(Targets = new [] { nameof(IterateTryGetSingleSegment), nameof(IterateForEachSingleSegment), nameof(IterateGetPositionSingleSegment), nameof(FirstSingleSegment), nameof(SliceSingleSegment) })]
         public void SetupSingleSegment() => _startSegment = _endSegment = new BufferSegment<T>(new ReadOnlyMemory<T>(_array));
 
         [Benchmark]
@@ -59,7 +65,11 @@ namespace System.Buffers.Tests
         public int FirstSingleSegment()
             => First(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size));
 
-        [GlobalSetup(Targets = new [] { nameof(IterateTryGetTenSegments), nameof(IterateForEachTenSegments), nameof(IterateGetPositionTenSegments), nameof(FirstTenSegments) })]
+        [Benchmark(OperationsPerInvoke = 10)]
+        public long SliceSingleSegment()
+            => Slice(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size));
+
+        [GlobalSetup(Targets = new [] { nameof(IterateTryGetTenSegments), nameof(IterateForEachTenSegments), nameof(IterateGetPositionTenSegments), nameof(FirstTenSegments), nameof(SliceTenSegments) })]
         public void SetupTenSegments()
         {
             const int segmentsCount = 10;
@@ -87,6 +97,10 @@ namespace System.Buffers.Tests
         [Benchmark(OperationsPerInvoke = 16)]
         public int FirstTenSegments()
             => First(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size / 10));
+
+        [Benchmark(OperationsPerInvoke = 10)]
+        public long SliceTenSegments()
+            => Slice(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size / 10));
 
         [MethodImpl(MethodImplOptions.NoInlining)] // make sure that the method does not get inlined for any of the benchmarks and we compare apples to apples
         private int IterateTryGet(ReadOnlySequence<T> sequence)
@@ -138,6 +152,20 @@ namespace System.Buffers.Tests
             consume += sequence.First.Length; consume += sequence.First.Length; consume += sequence.First.Length; consume += sequence.First.Length;
             consume += sequence.First.Length; consume += sequence.First.Length; consume += sequence.First.Length; consume += sequence.First.Length;
             consume += sequence.First.Length; consume += sequence.First.Length; consume += sequence.First.Length; consume += sequence.First.Length;
+
+            return consume;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private long Slice(ReadOnlySequence<T> sequence)
+        {
+            long consume = 0;
+
+            consume += sequence.Slice(Size / 10 * 0, Size / 10).Length; consume += sequence.Slice(Size / 10 * 1, Size / 10).Length;
+            consume += sequence.Slice(Size / 10 * 2, Size / 10).Length; consume += sequence.Slice(Size / 10 * 3, Size / 10).Length;
+            consume += sequence.Slice(Size / 10 * 4, Size / 10).Length; consume += sequence.Slice(Size / 10 * 5, Size / 10).Length;
+            consume += sequence.Slice(Size / 10 * 6, Size / 10).Length; consume += sequence.Slice(Size / 10 * 7, Size / 10).Length;
+            consume += sequence.Slice(Size / 10 * 8, Size / 10).Length; consume += sequence.Slice(Size / 10 * 9, Size / 10).Length;
 
             return consume;
         }
