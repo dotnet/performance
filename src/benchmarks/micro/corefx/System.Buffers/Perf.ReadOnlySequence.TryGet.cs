@@ -109,48 +109,6 @@ namespace System.Buffers.Tests
         }
 
         [Benchmark(InnerIterationCount = InnerCount)]
-        private static void Byte_Empty()
-        {
-            ReadOnlySequence<byte> buffer = ReadOnlySequence<byte>.Empty;
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                int localInt = 0;
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        SequencePosition p = buffer.Start;
-                        while (buffer.TryGet(ref p, out ReadOnlyMemory<byte> memory))
-                            localInt ^= memory.Length;
-                    }
-                }
-                _volatileInt = localInt;
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        private static void Byte_Default()
-        {
-            ReadOnlySequence<byte> buffer = default;
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                int localInt = 0;
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        SequencePosition p = buffer.Start;
-                        while (buffer.TryGet(ref p, out ReadOnlyMemory<byte> memory))
-                            localInt ^= memory.Length;
-                    }
-                }
-                _volatileInt = localInt;
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
         [InlineData(10_000, 100)]
         private static void Char_Array(int bufSize, int bufOffset)
         {
@@ -267,48 +225,5 @@ namespace System.Buffers.Tests
                 _volatileInt = localInt;
             }
         }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        private static void Char_Empty()
-        {
-            ReadOnlySequence<char> buffer = ReadOnlySequence<char>.Empty;
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                int localInt = 0;
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        SequencePosition p = buffer.Start;
-                        while (buffer.TryGet(ref p, out ReadOnlyMemory<char> memory))
-                            localInt ^= memory.Length;
-                    }
-                }
-                _volatileInt = localInt;
-            }
-        }
-
-        [Benchmark(InnerIterationCount = InnerCount)]
-        private static void Char_Default()
-        {
-            ReadOnlySequence<char> buffer = default;
-
-            foreach (BenchmarkIteration iteration in Benchmark.Iterations)
-            {
-                int localInt = 0;
-                using (iteration.StartMeasurement())
-                {
-                    for (int i = 0; i < Benchmark.InnerIterationCount; i++)
-                    {
-                        SequencePosition p = buffer.Start;
-                        while (buffer.TryGet(ref p, out ReadOnlyMemory<char> memory))
-                            localInt ^= memory.Length;
-                    }
-                }
-                _volatileInt = localInt;
-            }
-        }
-
     }
 }
