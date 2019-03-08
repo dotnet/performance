@@ -30,6 +30,6 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
-        public string ToString(byte value) => value.ToString();
+        public string ToString(sbyte value) => value.ToString();
     }
 }
