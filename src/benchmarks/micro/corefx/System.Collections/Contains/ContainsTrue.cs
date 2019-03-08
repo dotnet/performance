@@ -56,8 +56,8 @@ namespace System.Collections
         public bool Array()
         {
             bool result = default;
-            var collection = _array;
-            var found = _found;
+            T[] collection = _array;
+            T[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
@@ -70,7 +70,7 @@ namespace System.Collections
         {
             bool result = default;
             Span<T> collection = new Span<T>(_array);
-            var found = _found;
+            T[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
@@ -81,8 +81,8 @@ namespace System.Collections
         public bool List()
         {
             bool result = default;
-            var collection = _list;
-            var found = _found;
+            List<T> collection = _list;
+            T[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
@@ -96,7 +96,7 @@ namespace System.Collections
         private bool Contains(ICollection<T> collection)
         {
             bool result = default;
-            var found = _found;
+            T[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
@@ -106,8 +106,8 @@ namespace System.Collections
         public bool LinkedList()
         {
             bool result = default;
-            var collection = _linkedList;
-            var found = _found;
+            LinkedList<T> collection = _linkedList;
+            T[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
@@ -117,8 +117,8 @@ namespace System.Collections
         public bool HashSet()
         {
             bool result = default;
-            var collection = _hashSet;
-            var found = _found;
+            HashSet<T> collection = _hashSet;
+            T[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
@@ -128,8 +128,8 @@ namespace System.Collections
         public bool Queue()
         {
             bool result = default;
-            var collection = _queue;
-            var found = _found;
+            Queue<T> collection = _queue;
+            T[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
@@ -139,8 +139,8 @@ namespace System.Collections
         public bool Stack()
         {
             bool result = default;
-            var collection = _stack;
-            var found = _found;
+            Stack<T> collection = _stack;
+            T[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
@@ -150,8 +150,8 @@ namespace System.Collections
         public bool SortedSet()
         {
             bool result = default;
-            var collection = _sortedSet;
-            var found = _found;
+            SortedSet<T> collection = _sortedSet;
+            T[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
@@ -161,8 +161,8 @@ namespace System.Collections
         public bool ImmutableArray()
         {
             bool result = default;
-            var collection = _immutableArray;
-            var found = _found;
+            ImmutableArray<T> collection = _immutableArray;
+            T[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
@@ -172,8 +172,8 @@ namespace System.Collections
         public bool ImmutableHashSet()
         {
             bool result = default;
-            var collection = _immutableHashSet;
-            var found = _found;
+            ImmutableHashSet<T> collection = _immutableHashSet;
+            T[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
@@ -183,8 +183,8 @@ namespace System.Collections
         public bool ImmutableList()
         {
             bool result = default;
-            var collection = _immutableList;
-            var found = _found;
+            ImmutableList<T> collection = _immutableList;
+            T[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
@@ -194,8 +194,8 @@ namespace System.Collections
         public bool ImmutableSortedSet()
         {
             bool result = default;
-            var collection = _immutableSortedSet;
-            var found = _found;
+            ImmutableSortedSet<T> collection = _immutableSortedSet;
+            T[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
