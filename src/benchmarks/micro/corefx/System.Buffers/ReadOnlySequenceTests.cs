@@ -17,39 +17,49 @@ namespace System.Buffers.Tests
         private BufferSegment<T> _startSegment, _endSegment;
 
         [Benchmark]
-        public int IterateTryGetOverArray() => IterateTryGet(new ReadOnlySequence<T>(_array));
+        public int IterateTryGetArray() => IterateTryGet(new ReadOnlySequence<T>(_array));
 
         [Benchmark]
-        public int IterateForEachOverArray() => IterateForEach(new ReadOnlySequence<T>(_array));
+        public int IterateForEachArray() => IterateForEach(new ReadOnlySequence<T>(_array));
+
+        [Benchmark]
+        public int IterateGetPositionArray() => IterateGetPosition(new ReadOnlySequence<T>(_array));
 
         [Benchmark(OperationsPerInvoke = 16)]
         public int FirstArray() => First(new ReadOnlySequence<T>(_array));
 
         [Benchmark]
-        public int IterateTryGetOverMemory() => IterateTryGet(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
+        public int IterateTryGetMemory() => IterateTryGet(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
 
         [Benchmark]
-        public int IterateForEachOverMemory() => IterateForEach(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
+        public int IterateForEachMemory() => IterateForEach(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
+
+        [Benchmark]
+        public int IterateGetPositionMemory() => IterateGetPosition(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
 
         [Benchmark(OperationsPerInvoke = 16)]
         public int FirstMemory() => First(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
 
-        [GlobalSetup(Targets = new [] { nameof(IterateTryGetOverSingleSegment), nameof(IterateForEachOverSingleSegment), nameof(FirstSingleSegment) })]
+        [GlobalSetup(Targets = new [] { nameof(IterateTryGetSingleSegment), nameof(IterateForEachSingleSegment), nameof(IterateGetPositionSingleSegment), nameof(FirstSingleSegment) })]
         public void SetupSingleSegment() => _startSegment = _endSegment = new BufferSegment<T>(new ReadOnlyMemory<T>(_array));
 
         [Benchmark]
-        public int IterateTryGetOverSingleSegment()
+        public int IterateTryGetSingleSegment()
             => IterateTryGet(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size));
 
         [Benchmark]
-        public int IterateForEachOverSingleSegment()
+        public int IterateForEachSingleSegment()
             => IterateForEach(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size));
+
+        [Benchmark]
+        public int IterateGetPositionSingleSegment()
+            => IterateGetPosition(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size));
 
         [Benchmark(OperationsPerInvoke = 16)]
         public int FirstSingleSegment()
             => First(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size));
 
-        [GlobalSetup(Targets = new [] { nameof(IterateTryGetOverTenSegments), nameof(IterateForEachOverTenSegments), nameof(FirstTenSegments) })]
+        [GlobalSetup(Targets = new [] { nameof(IterateTryGetTenSegments), nameof(IterateForEachTenSegments), nameof(IterateGetPositionTenSegments), nameof(FirstTenSegments) })]
         public void SetupTenSegments()
         {
             const int segmentsCount = 10;
@@ -63,12 +73,16 @@ namespace System.Buffers.Tests
         }
 
         [Benchmark]
-        public int IterateTryGetOverTenSegments()
+        public int IterateTryGetTenSegments()
             => IterateTryGet(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size / 10));
 
         [Benchmark]
-        public int IterateForEachOverTenSegments()
+        public int IterateForEachTenSegments()
             => IterateForEach(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size / 10));
+
+        [Benchmark]
+        public int IterateGetPositionTenSegments()
+            => IterateGetPosition(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size / 10));
 
         [Benchmark(OperationsPerInvoke = 16)]
         public int FirstTenSegments()
@@ -93,6 +107,24 @@ namespace System.Buffers.Tests
 
             foreach (ReadOnlyMemory<T> memory in sequence)
                 consume += memory.Length;
+
+            return consume;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private int IterateGetPosition(ReadOnlySequence<T> sequence)
+        {
+            int consume = 0;
+
+            SequencePosition position = sequence.Start;
+            int offset = (int)(sequence.Length / 10);
+            SequencePosition end = sequence.GetPosition(0, sequence.End);
+
+            while (!position.Equals(end))
+            {
+                position = sequence.GetPosition(offset, position);
+                consume += position.GetInteger();
+            }
 
             return consume;
         }
