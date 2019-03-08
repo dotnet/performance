@@ -22,6 +22,7 @@ namespace System.Memory
         public int Size;
 
         private T[] _array, _same, _emptyWithSingleValue;
+        private T[] _fourValues;
         private T _notDefaultValue;
 
         [GlobalSetup]
@@ -55,20 +56,30 @@ namespace System.Memory
         [Benchmark]
         public bool EndsWith() => new System.Span<T>(_array).EndsWith(new System.ReadOnlySpan<T>(_same).Slice(start: Size / 2));
 
-        [GlobalSetup(Targets = new [] { nameof(IndexOfValue), nameof(LastIndexOfValue), nameof(LastIndexOfAnyValues) })]
+        [GlobalSetup(Targets = new [] { nameof(IndexOfValue), nameof(LastIndexOfValue), nameof(LastIndexOfAnyValues), nameof(IndexOfAnyFourValues), nameof(IndexOfAnyTwoValues), nameof(IndexOfAnyThreeValues) })]
         public void SetupIndexOf()
         {
             _notDefaultValue = ValuesGenerator.GetNonDefaultValue<T>();
+            _fourValues = Enumerable.Repeat(_notDefaultValue, 4).ToArray();
             _emptyWithSingleValue = new T[Size];
             _emptyWithSingleValue[Size / 2] = _notDefaultValue;
         }
 
         [Benchmark]
         public int IndexOfValue() => new System.Span<T>(_emptyWithSingleValue).IndexOf(_notDefaultValue);
-        
+
+        [Benchmark]
+        public int IndexOfAnyTwoValues() => new System.Span<T>(_emptyWithSingleValue).IndexOfAny(_notDefaultValue, _notDefaultValue);
+
+        [Benchmark]
+        public int IndexOfAnyThreeValues() => new System.Span<T>(_emptyWithSingleValue).IndexOfAny(_notDefaultValue, _notDefaultValue, _notDefaultValue);
+
+        [Benchmark]
+        public int IndexOfAnyFourValues() => new System.Span<T>(_emptyWithSingleValue).IndexOfAny(new ReadOnlySpan<T>(_fourValues));
+
         [Benchmark]
         public int LastIndexOfValue() => new System.Span<T>(_emptyWithSingleValue).LastIndexOf(_notDefaultValue);
-        
+
         [Benchmark]
         public int LastIndexOfAnyValues() => new System.Span<T>(_emptyWithSingleValue).LastIndexOfAny(_notDefaultValue, _notDefaultValue);
         

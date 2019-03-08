@@ -15,7 +15,8 @@ namespace System.Collections
     [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
-    public class ContainsFalse<T>
+    public class ContainsFalse<T> 
+        where T : IEquatable<T>
     {
         private T[] _notFound;
         
@@ -58,19 +59,33 @@ namespace System.Collections
         public bool Array()
         {
             bool result = default;
-            var collection = _array;
-            var notFound = _notFound;
+            T[] collection = _array;
+            T[] notFound = _notFound;
             for (int i = 0; i < notFound.Length; i++)
                 result ^= collection.Contains(notFound[i]);
             return result;
         }
-        
+
+#if NETCOREAPP3_0
+        [BenchmarkCategory(Categories.Span)]
+        [Benchmark]
+        public bool Span()
+        {
+            bool result = default;
+            Span<T> collection = new Span<T>(_array);
+            T[] notFound = _notFound;
+            for (int i = 0; i < notFound.Length; i++)
+                result ^= collection.Contains(notFound[i]);
+            return result;
+        }
+#endif
+
         [Benchmark]
         public bool List()
         {
             bool result = default;
-            var collection = _list;
-            var notFound = _notFound;
+            List<T> collection = _list;
+            T[] notFound = _notFound;
             for (int i = 0; i < notFound.Length; i++)
                 result ^= collection.Contains(notFound[i]);
             return result;
@@ -84,7 +99,7 @@ namespace System.Collections
         private bool Contains(ICollection<T> collection)
         {
             bool result = default;
-            var notFound = _notFound;
+            T[] notFound = _notFound;
             for (int i = 0; i < notFound.Length; i++)
                 result ^= collection.Contains(notFound[i]);
             return result;
@@ -94,8 +109,8 @@ namespace System.Collections
         public bool LinkedList()
         {
             bool result = default;
-            var collection = _linkedList;
-            var notFound = _notFound;
+            LinkedList<T> collection = _linkedList;
+            T[] notFound = _notFound;
             for (int i = 0; i < notFound.Length; i++)
                 result ^= collection.Contains(notFound[i]);
             return result;
@@ -105,8 +120,8 @@ namespace System.Collections
         public bool HashSet()
         {
             bool result = default;
-            var collection = _hashSet;
-            var notFound = _notFound;
+            HashSet<T> collection = _hashSet;
+            T[] notFound = _notFound;
             for (int i = 0; i < notFound.Length; i++)
                 result ^= collection.Contains(notFound[i]);
             return result;
@@ -116,8 +131,8 @@ namespace System.Collections
         public bool Queue()
         {
             bool result = default;
-            var collection = _queue;
-            var notFound = _notFound;
+            Queue<T> collection = _queue;
+            T[] notFound = _notFound;
             for (int i = 0; i < notFound.Length; i++)
                 result ^= collection.Contains(notFound[i]);
             return result;
@@ -127,8 +142,8 @@ namespace System.Collections
         public bool Stack()
         {
             bool result = default;
-            var collection = _stack;
-            var notFound = _notFound;
+            Stack<T> collection = _stack;
+            T[] notFound = _notFound;
             for (int i = 0; i < notFound.Length; i++)
                 result ^= collection.Contains(notFound[i]);
             return result;
@@ -138,8 +153,8 @@ namespace System.Collections
         public bool SortedSet()
         {
             bool result = default;
-            var collection = _sortedSet;
-            var notFound = _notFound;
+            SortedSet<T> collection = _sortedSet;
+            T[] notFound = _notFound;
             for (int i = 0; i < notFound.Length; i++)
                 result ^= collection.Contains(notFound[i]);
             return result;
@@ -149,8 +164,8 @@ namespace System.Collections
         public bool ImmutableArray()
         {
             bool result = default;
-            var collection = _immutableArray;
-            var notFound = _notFound;
+            ImmutableArray<T> collection = _immutableArray;
+            T[] notFound = _notFound;
             for (int i = 0; i < notFound.Length; i++)
                 result ^= collection.Contains(notFound[i]);
             return result;
@@ -160,8 +175,8 @@ namespace System.Collections
         public bool ImmutableHashSet()
         {
             bool result = default;
-            var collection = _immutableHashSet;
-            var notFound = _notFound;
+            ImmutableHashSet<T> collection = _immutableHashSet;
+            T[] notFound = _notFound;
             for (int i = 0; i < notFound.Length; i++)
                 result ^= collection.Contains(notFound[i]);
             return result;
@@ -171,8 +186,8 @@ namespace System.Collections
         public bool ImmutableList()
         {
             bool result = default;
-            var collection = _immutableList;
-            var notFound = _notFound;
+            ImmutableList<T> collection = _immutableList;
+            T[] notFound = _notFound;
             for (int i = 0; i < notFound.Length; i++)
                 result ^= collection.Contains(notFound[i]);
             return result;
@@ -182,8 +197,8 @@ namespace System.Collections
         public bool ImmutableSortedSet()
         {
             bool result = default;
-            var collection = _immutableSortedSet;
-            var notFound = _notFound;
+            ImmutableSortedSet<T> collection = _immutableSortedSet;
+            T[] notFound = _notFound;
             for (int i = 0; i < notFound.Length; i++)
                 result ^= collection.Contains(notFound[i]);
             return result;
