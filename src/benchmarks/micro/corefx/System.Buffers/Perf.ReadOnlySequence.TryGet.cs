@@ -19,17 +19,27 @@ namespace System.Buffers.Tests
         public int IterateTryGetOverArray() => IterateTryGet(new ReadOnlySequence<T>(_array));
 
         [Benchmark]
+        public int IterateForEachOverArray() => IterateForEach(new ReadOnlySequence<T>(_array));
+
+        [Benchmark]
         public int IterateTryGetOverMemory() => IterateTryGet(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
 
-        [GlobalSetup(Target = nameof(IterateTryGetOverSingleSegment))]
-        public void SetupIterateTryGetOverSingleSegment() => _startSegment = _endSegment = new BufferSegment<T>(new ReadOnlyMemory<T>(_array));
+        [Benchmark]
+        public int IterateForEachOverMemory() => IterateForEach(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
+
+        [GlobalSetup(Targets = new [] { nameof(IterateTryGetOverSingleSegment), nameof(IterateForEachOverSingleSegment) })]
+        public void SetupSingleSegment() => _startSegment = _endSegment = new BufferSegment<T>(new ReadOnlyMemory<T>(_array));
 
         [Benchmark]
         public int IterateTryGetOverSingleSegment()
             => IterateTryGet(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size));
 
-        [GlobalSetup(Target = nameof(IterateTryGetOverTenSegments))]
-        public void SetupIterateTryGetOverTenSegments()
+        [Benchmark]
+        public int IterateForEachOverSingleSegment()
+            => IterateForEach(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size));
+
+        [GlobalSetup(Targets = new [] { nameof(IterateTryGetOverTenSegments), nameof(IterateForEachOverTenSegments) })]
+        public void SetupTenSegments()
         {
             const int segmentsCount = 10;
             const int segmentSize = Size / segmentsCount;
@@ -45,12 +55,26 @@ namespace System.Buffers.Tests
         public int IterateTryGetOverTenSegments()
             => IterateTryGet(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size / 10));
 
+        [Benchmark]
+        public int IterateForEachOverTenSegments()
+            => IterateForEach(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size / 10));
+
         private int IterateTryGet(ReadOnlySequence<T> sequence)
         {
             int consume = 0;
 
             SequencePosition position = sequence.Start;
             while (sequence.TryGet(ref position, out var memory))
+                consume += memory.Length;
+
+            return consume;
+        }
+
+        private int IterateForEach(ReadOnlySequence<T> sequence)
+        {
+            int consume = 0;
+
+            foreach (ReadOnlyMemory<T> memory in sequence)
                 consume += memory.Length;
 
             return consume;
