@@ -4,9 +4,6 @@
          and automation failing to clean up the folders once the runs are over -->
     <UseSharedCompilation>false</UseSharedCompilation>
     
-    <!-- to make sure that the users don't always need to specify -c Release when using dotnet run -->
-    <Optimize>true</Optimize>
-    
     <!-- Used by Python script to narrow down the the specified target frameworks to test, and avoid downloading all supported SDKs -->
     <TargetFrameworks>$(PYTHON_SCRIPT_TARGET_FRAMEWORKS)</TargetFrameworks>
     
