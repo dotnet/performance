@@ -148,10 +148,15 @@ namespace System.Buffers.Tests
         {
             int consume = 0;
 
-            consume += sequence.First.Length; consume += sequence.First.Length; consume += sequence.First.Length; consume += sequence.First.Length;
-            consume += sequence.First.Length; consume += sequence.First.Length; consume += sequence.First.Length; consume += sequence.First.Length;
-            consume += sequence.First.Length; consume += sequence.First.Length; consume += sequence.First.Length; consume += sequence.First.Length;
-            consume += sequence.First.Length; consume += sequence.First.Length; consume += sequence.First.Length; consume += sequence.First.Length;
+            consume += sequence.First.Length; consume += sequence.First.Length;
+            consume += sequence.First.Length; consume += sequence.First.Length;
+            consume += sequence.First.Length; consume += sequence.First.Length;
+            consume += sequence.First.Length; consume += sequence.First.Length;
+
+            consume += sequence.First.Length; consume += sequence.First.Length;
+            consume += sequence.First.Length; consume += sequence.First.Length;
+            consume += sequence.First.Length; consume += sequence.First.Length;
+            consume += sequence.First.Length; consume += sequence.First.Length;
 
             return consume;
         }
@@ -161,11 +166,16 @@ namespace System.Buffers.Tests
         {
             long consume = 0;
 
-            consume += sequence.Slice(Size / 10 * 0, Size / 10).Length; consume += sequence.Slice(Size / 10 * 1, Size / 10).Length;
-            consume += sequence.Slice(Size / 10 * 2, Size / 10).Length; consume += sequence.Slice(Size / 10 * 3, Size / 10).Length;
-            consume += sequence.Slice(Size / 10 * 4, Size / 10).Length; consume += sequence.Slice(Size / 10 * 5, Size / 10).Length;
-            consume += sequence.Slice(Size / 10 * 6, Size / 10).Length; consume += sequence.Slice(Size / 10 * 7, Size / 10).Length;
-            consume += sequence.Slice(Size / 10 * 8, Size / 10).Length; consume += sequence.Slice(Size / 10 * 9, Size / 10).Length;
+            consume += sequence.Slice(Size / 10 * 0, Size / 10).Length; // 1
+            consume += sequence.Slice(Size / 10 * 1, Size / 10).Length; // 2
+            consume += sequence.Slice(Size / 10 * 2, Size / 10).Length; // 3
+            consume += sequence.Slice(Size / 10 * 3, Size / 10).Length; // 4
+            consume += sequence.Slice(Size / 10 * 4, Size / 10).Length; // 5
+            consume += sequence.Slice(Size / 10 * 5, Size / 10).Length; // 6
+            consume += sequence.Slice(Size / 10 * 6, Size / 10).Length; // 7
+            consume += sequence.Slice(Size / 10 * 7, Size / 10).Length; // 8
+            consume += sequence.Slice(Size / 10 * 8, Size / 10).Length; // 9
+            consume += sequence.Slice(Size / 10 * 9, Size / 10).Length; // 10
 
             return consume;
         }

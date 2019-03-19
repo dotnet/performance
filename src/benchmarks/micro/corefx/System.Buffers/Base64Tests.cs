@@ -9,7 +9,7 @@ using MicroBenchmarks;
 namespace System.Buffers.Text.Tests
 {
     [BenchmarkCategory(Categories.CoreFX)]
-    public class Base64EncodeDecodeTests
+    public class Base64Tests
     {
         [Params(1000)]
         public int NumberOfBytes { get; set; }
@@ -39,7 +39,7 @@ namespace System.Buffers.Text.Tests
         [Benchmark]
         public OperationStatus Base64EncodeDestinationTooSmall() => Base64.EncodeToUtf8(_decodedBytes, _encodedBytes, out _, out _);
 
-        [GlobalSetup(Target = nameof(Base64EncodeBaseline))]
+        [GlobalSetup(Target = nameof(ConvertToBase64CharArray))]
         public void SetupBase64EncodeBaseline()
         {
             _decodedBytes = ValuesGenerator.Array<byte>(NumberOfBytes);
@@ -47,7 +47,7 @@ namespace System.Buffers.Text.Tests
         }
 
         [Benchmark]
-        public int Base64EncodeBaseline() => Convert.ToBase64CharArray(_decodedBytes, 0, _decodedBytes.Length, _encodedChars, 0);
+        public int ConvertToBase64CharArray() => Convert.ToBase64CharArray(_decodedBytes, 0, _decodedBytes.Length, _encodedChars, 0);
 
         [GlobalSetup(Target = nameof(Base64Decode))]
         public void SetupBase64Decode()
@@ -70,22 +70,22 @@ namespace System.Buffers.Text.Tests
         public OperationStatus Base64DecodeDetinationTooSmall() => Base64.DecodeFromUtf8(_encodedBytes, _decodedBytes, out _, out _);
 
 #if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1
-        [GlobalSetup(Target = nameof(Base64DecodeBaseline))]
-        public void SetupBase64DecodeBaselinee()
+        [GlobalSetup(Target = nameof(ConvertTryFromBase64Chars))]
+        public void SetupConvertTryFromBase64Chars()
         {
             _decodedBytes = ValuesGenerator.Array<byte>(NumberOfBytes);
             _encodedChars = Convert.ToBase64String(_decodedBytes).ToCharArray();
         }
 
         [Benchmark]
-        public bool Base64DecodeBaseline() => Convert.TryFromBase64Chars(_encodedChars, _decodedBytes, out _);
+        public bool ConvertTryFromBase64Chars() => Convert.TryFromBase64Chars(_encodedChars, _decodedBytes, out _);
 #endif
     }
 
-    // we want to test InPlace methods so we need to setup every benchmark invocation so we are using [IterationSetup]
-    // to make the Iteration last longer and make the results stable, we are using bigger NumberOfBytes
-    // but due to limitation of BDN where Params have no Target and are applied to entire class
-    // the benchmarks live in a separate class
+    // We want to test InPlace methods, which require fresh input for every benchmark invocation.
+    // To setup every benchmark invocation we are using [IterationSetup].
+    // To make the results stable the Iteration needs to last at least 100ms, this is why we are using bigger value for NumberOfBytes
+    // Due to limitation of BDN, where Params have no Target and are applied to entire class the benchmarks live in a separate class.
     [BenchmarkCategory(Categories.CoreFX)]
     public class Base64EncodeDecodeInPlaceTests
     {

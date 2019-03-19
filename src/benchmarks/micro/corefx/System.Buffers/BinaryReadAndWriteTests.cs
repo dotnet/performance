@@ -184,7 +184,7 @@ namespace System.Buffers.Binary.Tests
         [Benchmark]
         public int[] MeasureReverseEndianness()
         {
-            var local = _oneThousandIntegers;
+            int[] local = _oneThousandIntegers;
 
             for (int j = 0; j < local.Length; j++)
             {
@@ -197,7 +197,7 @@ namespace System.Buffers.Binary.Tests
         [Benchmark]
         public int[] MeasureReverseUsingNtoH()
         {
-            var local = _oneThousandIntegers;
+            int[] local = _oneThousandIntegers;
 
             for (int j = 0; j < local.Length; j++)
             {
