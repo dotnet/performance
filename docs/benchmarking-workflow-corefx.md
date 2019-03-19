@@ -242,8 +242,6 @@ namespace System
     public static class Console
     {
         public static void WriteHelloWorld() => WriteLine("Hello World!");
-        <!-- markdownlint-disable MD009 -->        
-        
         // the rest omitted for brevity
     }
 }
