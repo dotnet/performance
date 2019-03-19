@@ -4,35 +4,34 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
-    public partial class MathTests
+    public partial class Single
     {
         // Tests MathF.Ceiling(float) over 5000 iterations for the domain -1, +1
 
-        private const float ceilingSingleDelta = 0.0004f;
-        private const float ceilingSingleExpectedResult = 2502.0f;
+        private const float ceilingDelta = 0.0004f;
+        private const float ceilingExpectedResult = 2502.0f;
 
         [Benchmark]
-        public void CeilingSingleBenchmark() => CeilingSingleTest();
+        public void Ceiling() => CeilingTest();
 
-        public static void CeilingSingleTest()
+        public static void CeilingTest()
         {
             var result = 0.0f; var value = -1.0f;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += ceilingSingleDelta;
+                value += ceilingDelta;
                 result += MathF.Ceiling(value);
             }
 
-            var diff = MathF.Abs(ceilingSingleExpectedResult - result);
+            var diff = MathF.Abs(ceilingExpectedResult - result);
 
-            if (diff > singleEpsilon)
+            if (diff > MathTests.SingleEpsilon)
             {
-                throw new Exception($"Expected Result {ceilingSingleExpectedResult,10:g9}; Actual Result {result,10:g9}");
+                throw new Exception($"Expected Result {ceilingExpectedResult,10:g9}; Actual Result {result,10:g9}");
             }
         }
     }

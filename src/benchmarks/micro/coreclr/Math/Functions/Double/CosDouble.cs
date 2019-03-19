@@ -5,9 +5,9 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
-    public partial class MathTests
+    public partial class Double
     {
         // Tests Math.Cos(double) over 5000 iterations for the domain 0, PI
 
@@ -15,13 +15,13 @@ namespace Functions
         private const double cosDoubleExpectedResult = -1.0000000005924159;
 
         [Benchmark]
-        public void CosDoubleBenchmark() => CosDoubleTest();
+        public void Cos() => CosDoubleTest();
 
         public static void CosDoubleTest()
         {
             var result = 0.0; var value = 0.0;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 value += cosDoubleDelta;
                 result += Math.Cos(value);
@@ -29,7 +29,7 @@ namespace Functions
 
             var diff = Math.Abs(cosDoubleExpectedResult - result);
 
-            if (diff > doubleEpsilon)
+            if (diff > MathTests.DoubleEpsilon)
             {
                 throw new Exception($"Expected Result {cosDoubleExpectedResult,20:g17}; Actual Result {result,20:g17}");
             }

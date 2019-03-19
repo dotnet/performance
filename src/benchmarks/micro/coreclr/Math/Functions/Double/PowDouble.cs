@@ -6,34 +6,34 @@ using System;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
-    public partial class MathTests
+    public partial class Double
     {
         // Tests Math.Pow(double, double) over 5000 iterations for the domain x: +2, +1; y: -2, -1
 
-        private const double powDoubleDeltaX = -0.0004;
-        private const double powDoubleDeltaY = 0.0004;
-        private const double powDoubleExpectedResult = 4659.4627376138733;
+        private const double powDeltaX = -0.0004;
+        private const double powDeltaY = 0.0004;
+        private const double powExpectedResult = 4659.4627376138733;
 
         [Benchmark]
-        public void PowDoubleBenchmark() => PowDoubleTest();
+        public void Pow() => PowTest();
 
-        public static void PowDoubleTest()
+        public static void PowTest()
         {
             var result = 0.0; var valueX = 2.0; var valueY = -2.0;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                valueX += powDoubleDeltaX; valueY += powDoubleDeltaY;
+                valueX += powDeltaX; valueY += powDeltaY;
                 result += Math.Pow(valueX, valueY);
             }
 
-            var diff = Math.Abs(powDoubleExpectedResult - result);
+            var diff = Math.Abs(powExpectedResult - result);
 
-            if (diff > doubleEpsilon)
+            if (diff > MathTests.DoubleEpsilon)
             {
-                throw new Exception($"Expected Result {powDoubleExpectedResult,20:g17}; Actual Result {result,20:g17}");
+                throw new Exception($"Expected Result {powExpectedResult,20:g17}; Actual Result {result,20:g17}");
             }
         }
     }

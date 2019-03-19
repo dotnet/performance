@@ -6,33 +6,33 @@ using System;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
-    public partial class MathTests
+    public partial class Single
     {
         // Tests MathF.Atan(float) over 5000 iterations for the domain -1, +1
 
-        private const float atanSingleDelta = 0.0004f;
-        private const float atanSingleExpectedResult = 0.841940999f;
+        private const float atanDelta = 0.0004f;
+        private const float atanExpectedResult = 0.841940999f;
 
         [Benchmark]
-        public void AtanSingleBenchmark() => AtanSingleTest();
+        public void Atan() => AtanTest();
 
-        public static void AtanSingleTest()
+        public static void AtanTest()
         {
             var result = 0.0f; var value = -1.0f;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += atanSingleDelta;
+                value += atanDelta;
                 result += MathF.Atan(value);
             }
 
-            var diff = MathF.Abs(atanSingleExpectedResult - result);
+            var diff = MathF.Abs(atanExpectedResult - result);
 
-            if (diff > singleEpsilon)
+            if (diff > MathTests.SingleEpsilon)
             {
-                throw new Exception($"Expected Result {atanSingleExpectedResult,10:g9}; Actual Result {result,10:g9}");
+                throw new Exception($"Expected Result {atanExpectedResult,10:g9}; Actual Result {result,10:g9}");
             }
         }
     }

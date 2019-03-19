@@ -6,33 +6,33 @@ using System;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
-    public partial class MathTests
+    public partial class Double
     {
         // Tests Math.Sin(double) over 5000 iterations for the domain -PI/2, +PI/2
 
-        private const double sinDoubleDelta = 0.0006283185307180;
-        private const double sinDoubleExpectedResult = 1.0000000005445053;
+        private const double sinDelta = 0.0006283185307180;
+        private const double sinExpectedResult = 1.0000000005445053;
 
         [Benchmark]
-        public void SinDoubleBenchmark() => SinDoubleTest();
+        public void Sin() => SinTest();
 
-        public static void SinDoubleTest()
+        public static void SinTest()
         {
             var result = 0.0; var value = -1.5707963267948966;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += sinDoubleDelta;
+                value += sinDelta;
                 result += Math.Sin(value);
             }
 
-            var diff = Math.Abs(sinDoubleExpectedResult - result);
+            var diff = Math.Abs(sinExpectedResult - result);
 
-            if (diff > doubleEpsilon)
+            if (diff > MathTests.DoubleEpsilon)
             {
-                throw new Exception($"Expected Result {sinDoubleExpectedResult,20:g17}; Actual Result {result,20:g17}");
+                throw new Exception($"Expected Result {sinExpectedResult,20:g17}; Actual Result {result,20:g17}");
             }
         }
     }

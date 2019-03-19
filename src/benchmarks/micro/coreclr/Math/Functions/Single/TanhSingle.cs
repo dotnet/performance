@@ -5,33 +5,33 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
-    public partial class MathTests
+    public partial class Single
     {
         // Tests MathF.Tanh(float) over 5000 iterations for the domain -1, +1
 
-        private const float tanhSingleDelta = 0.0004f;
-        private const float tanhSingleExpectedResult = 0.816701353f;
+        private const float tanhDelta = 0.0004f;
+        private const float tanhExpectedResult = 0.816701353f;
 
         [Benchmark]
-        public void TanhSingleBenchmark() => TanhSingleTest();
+        public void Tanh() => TanhTest();
 
-        public static void TanhSingleTest()
+        public static void TanhTest()
         {
             var result = 0.0f; var value = -1.0f;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += tanhSingleDelta;
+                value += tanhDelta;
                 result += MathF.Tanh(value);
             }
 
-            var diff = MathF.Abs(tanhSingleExpectedResult - result);
+            var diff = MathF.Abs(tanhExpectedResult - result);
 
-            if (diff > singleEpsilon)
+            if (diff > MathTests.SingleEpsilon)
             {
-                throw new Exception($"Expected Result {tanhSingleExpectedResult,10:g9}; Actual Result {result,10:g9}");
+                throw new Exception($"Expected Result {tanhExpectedResult,10:g9}; Actual Result {result,10:g9}");
             }
         }
     }

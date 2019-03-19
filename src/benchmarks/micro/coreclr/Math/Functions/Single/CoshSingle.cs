@@ -6,33 +6,33 @@ using System;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
-    public partial class MathTests
+    public partial class Single
     {
         // Tests MathF.Cosh(float) over 5000 iterations for the domain -1, +1
 
-        private const float coshSingleDelta = 0.0004f;
-        private const float coshSingleExpectedResult = 5876.02588f;
+        private const float coshDelta = 0.0004f;
+        private const float coshExpectedResult = 5876.02588f;
 
         [Benchmark]
-        public void CoshSingleBenchmark() => CoshSingleTest();
+        public void Cosh() => CoshTest();
 
-        public static void CoshSingleTest()
+        public static void CoshTest()
         {
             var result = 0.0f; var value = -1.0f;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += coshSingleDelta;
+                value += coshDelta;
                 result += MathF.Cosh(value);
             }
 
-            var diff = MathF.Abs(coshSingleExpectedResult - result);
+            var diff = MathF.Abs(coshExpectedResult - result);
 
-            if (diff > singleEpsilon)
+            if (diff > MathTests.SingleEpsilon)
             {
-                throw new Exception($"Expected Result {coshSingleExpectedResult,10:g9}; Actual Result {result,10:g9}");
+                throw new Exception($"Expected Result {coshExpectedResult,10:g9}; Actual Result {result,10:g9}");
             }
         }
     }

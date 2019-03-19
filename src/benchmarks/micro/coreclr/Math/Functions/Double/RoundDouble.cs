@@ -4,35 +4,34 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
-    public partial class MathTests
+    public partial class Double
     {
         // Tests Math.Round(double) over 5000 iterations for the domain -PI/2, +PI/2
 
-        private const double roundDoubleDelta = 0.0006283185307180;
-        private const double roundDoubleExpectedResult = 2;
+        private const double roundDelta = 0.0006283185307180;
+        private const double roundExpectedResult = 2;
 
         [Benchmark]
-        public void RoundDoubleBenchmark() => RoundDoubleTest();
+        public void Round() => RoundTest();
 
-        public static void RoundDoubleTest()
+        public static void RoundTest()
         {
             var result = 0.0; var value = -1.5707963267948966;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += roundDoubleDelta;
+                value += roundDelta;
                 result += Math.Round(value);
             }
 
-            var diff = Math.Abs(roundDoubleExpectedResult - result);
+            var diff = Math.Abs(roundExpectedResult - result);
 
-            if (diff > doubleEpsilon)
+            if (diff > MathTests.DoubleEpsilon)
             {
-                throw new Exception($"Expected Result {roundDoubleExpectedResult,20:g17}; Actual Result {result,20:g17}");
+                throw new Exception($"Expected Result {roundExpectedResult,20:g17}; Actual Result {result,20:g17}");
             }
         }
     }

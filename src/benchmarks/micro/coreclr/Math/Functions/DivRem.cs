@@ -5,7 +5,7 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
     public partial class MathTests
     {

@@ -5,34 +5,34 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
-    public partial class MathTests
+    public partial class Double
     {
         // Tests Math.Atan2(double, double) over 5000 iterations for the domain y: -1, +1; x: +1, -1
 
-        private const double atan2DoubleDeltaX = -0.0004;
-        private const double atan2DoubleDeltaY = 0.0004;
-        private const double atan2DoubleExpectedResult = 3926.99081698702;
+        private const double atan2DeltaX = -0.0004;
+        private const double atan2DeltaY = 0.0004;
+        private const double atan2ExpectedResult = 3926.99081698702;
 
         [Benchmark]
-        public void Atan2DoubleBenchmark() => Atan2DoubleTest();
+        public void Atan2() => Atan2Test();
 
-        public static void Atan2DoubleTest()
+        public static void Atan2Test()
         {
             var result = 0.0; var valueX = 1.0; var valueY = -1.0;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                valueX += atan2DoubleDeltaX; valueY += atan2DoubleDeltaY;
+                valueX += atan2DeltaX; valueY += atan2DeltaY;
                 result += Math.Atan2(valueY, valueX);
             }
 
-            var diff = Math.Abs(atan2DoubleExpectedResult - result);
+            var diff = Math.Abs(atan2ExpectedResult - result);
 
-            if (diff > doubleEpsilon)
+            if (diff > MathTests.DoubleEpsilon)
             {
-                throw new Exception($"Expected Result {atan2DoubleExpectedResult,20:g17}; Actual Result {result,20:g17}");
+                throw new Exception($"Expected Result {atan2ExpectedResult,20:g17}; Actual Result {result,20:g17}");
             }
         }
     }

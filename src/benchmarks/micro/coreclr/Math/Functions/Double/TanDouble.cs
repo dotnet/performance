@@ -5,33 +5,33 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
-    public partial class MathTests
+    public partial class Double
     {
         // Tests Math.Tan(double) over 5000 iterations for the domain -PI/2, +PI/2
 
-        private const double tanDoubleDelta = 0.0004;
-        private const double tanDoubleExpectedResult = 1.5574077243051505;
+        private const double tanDelta = 0.0004;
+        private const double tanExpectedResult = 1.5574077243051505;
 
         [Benchmark]
-        public void TanDoubleBenchmark() => TanDoubleTest();
+        public void Tan() => TanTest();
 
-        public static void TanDoubleTest()
+        public static void TanTest()
         {
             var result = 0.0; var value = -1.0;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += tanDoubleDelta;
+                value += tanDelta;
                 result += Math.Tan(value);
             }
 
-            var diff = Math.Abs(tanDoubleExpectedResult - result);
+            var diff = Math.Abs(tanExpectedResult - result);
 
-            if (diff > doubleEpsilon)
+            if (diff > MathTests.DoubleEpsilon)
             {
-                throw new Exception($"Expected Result {tanDoubleExpectedResult,20:g17}; Actual Result {result,20:g17}");
+                throw new Exception($"Expected Result {tanExpectedResult,20:g17}; Actual Result {result,20:g17}");
             }
         }
     }

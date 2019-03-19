@@ -5,33 +5,33 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
-    public partial class MathTests
+    public partial class Double
     {
         // Tests Math.Sinh(double) over 5000 iterations for the domain -1, +1
 
-        private const double sinhDoubleDelta = 0.0004;
-        private const double sinhDoubleExpectedResult = 1.17520119337903;
+        private const double sinhDelta = 0.0004;
+        private const double sinhExpectedResult = 1.17520119337903;
 
         [Benchmark]
-        public void SinhDoubleBenchmark() => SinhDoubleTest();
+        public void Sinh() => SinhTest();
 
-        public static void SinhDoubleTest()
+        public static void SinhTest()
         {
             var result = 0.0; var value = -1.0;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += sinhDoubleDelta;
+                value += sinhDelta;
                 result += Math.Sinh(value);
             }
 
-            var diff = Math.Abs(sinhDoubleExpectedResult - result);
+            var diff = Math.Abs(sinhExpectedResult - result);
 
-            if (diff > doubleEpsilon)
+            if (diff > MathTests.DoubleEpsilon)
             {
-                throw new Exception($"Expected Result {sinhDoubleExpectedResult,20:g17}; Actual Result {result,20:g17}");
+                throw new Exception($"Expected Result {sinhExpectedResult,20:g17}; Actual Result {result,20:g17}");
             }
         }
     }

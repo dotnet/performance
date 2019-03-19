@@ -5,33 +5,33 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
-    public partial class MathTests
+    public partial class Double
     {
         // Tests Math.Cosh(double) over 5000 iterations for the domain -1, +1
 
-        private const double coshDoubleDelta = 0.0004;
-        private const double coshDoubleExpectedResult = 5876.0060465657216;
+        private const double coshDelta = 0.0004;
+        private const double coshExpectedResult = 5876.0060465657216;
 
         [Benchmark]
-        public void CoshDoubleBenchmark() => CoshDoubleTest();
+        public void Cosh() => CoshTest();
 
-        public static void CoshDoubleTest()
+        public static void CoshTest()
         {
             var result = 0.0; var value = -1.0;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += coshDoubleDelta;
+                value += coshDelta;
                 result += Math.Cosh(value);
             }
 
-            var diff = Math.Abs(coshDoubleExpectedResult - result);
+            var diff = Math.Abs(coshExpectedResult - result);
 
-            if (diff > doubleEpsilon)
+            if (diff > MathTests.DoubleEpsilon)
             {
-                throw new Exception($"Expected Result {coshDoubleExpectedResult,20:g17}; Actual Result {result,20:g17}");
+                throw new Exception($"Expected Result {coshExpectedResult,20:g17}; Actual Result {result,20:g17}");
             }
         }
     }

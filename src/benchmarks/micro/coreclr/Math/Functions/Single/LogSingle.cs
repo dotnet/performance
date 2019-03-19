@@ -5,33 +5,33 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
-    public partial class MathTests
+    public partial class Single
     {
         // Tests MathF.Log(float) over 5000 iterations for the domain -1, +1
 
-        private const float logSingleDelta = 0.0004f;
-        private const float logSingleExpectedResult = -1529.14014f;
+        private const float logDelta = 0.0004f;
+        private const float logExpectedResult = -1529.14014f;
 
         [Benchmark]
-        public void LogSingleBenchmark() => LogSingleTest();
+        public void Log() => LogTest();
 
-        public static void LogSingleTest()
+        public static void LogTest()
         {
             var result = 0.0f; var value = 0.0f;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += logSingleDelta;
+                value += logDelta;
                 result += MathF.Log(value);
             }
 
-            var diff = MathF.Abs(logSingleExpectedResult - result);
+            var diff = MathF.Abs(logExpectedResult - result);
 
-            if (diff > singleEpsilon)
+            if (diff > MathTests.SingleEpsilon)
             {
-                throw new Exception($"Expected Result {logSingleExpectedResult,10:g9}; Actual Result {result,10:g9}");
+                throw new Exception($"Expected Result {logExpectedResult,10:g9}; Actual Result {result,10:g9}");
             }
         }
     }

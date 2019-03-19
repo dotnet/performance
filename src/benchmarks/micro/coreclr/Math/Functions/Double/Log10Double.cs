@@ -5,36 +5,36 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
-    public partial class MathTests
+    public partial class Double
     {
         // Tests Math.Log10(double) over 5000 iterations for the domain -1, +1
 
-        private const double log10DoubleDelta = 0.0004;
-        private const double log10DoubleExpectedResult = -664.07384902184072;
+        private const double log10Delta = 0.0004;
+        private const double log10ExpectedResult = -664.07384902184072;
 
         /// <summary>
         /// this benchmark is dependent on loop alignment
         /// </summary>
         [Benchmark]
-        public void Log10DoubleBenchmark() => Log10DoubleTest();
+        public void Log10() => Log10Test();
 
-        public static void Log10DoubleTest()
+        public static void Log10Test()
         {
             var result = 0.0; var value = 0.0;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += log10DoubleDelta;
+                value += log10Delta;
                 result += Math.Log10(value);
             }
 
-            var diff = Math.Abs(log10DoubleExpectedResult - result);
+            var diff = Math.Abs(log10ExpectedResult - result);
 
-            if (diff > doubleEpsilon)
+            if (diff > MathTests.DoubleEpsilon)
             {
-                throw new Exception($"Expected Result {log10DoubleExpectedResult,20:g17}; Actual Result {result,20:g17}");
+                throw new Exception($"Expected Result {log10ExpectedResult,20:g17}; Actual Result {result,20:g17}");
             }
         }
     }
