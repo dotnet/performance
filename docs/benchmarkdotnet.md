@@ -114,46 +114,45 @@ And select one of the benchmarks from the list by either entering its number or 
 #### Filtering the Benchmarks
 
 You can filter the benchmarks using `--filter $globPattern` console line argument. The filter is **case insensitive**.
-<!-- markdownlint-disable MD029 -->
+
 The glob patterns are applied to full benchmark name: namespace.typeName.methodName. Examples:
 
-1. Run all the benchmarks from BenchmarksGame namespace:
+- Run all the benchmarks from BenchmarksGame namespace:
 
 ```cmd
 dotnet run -c Release -f netcoreapp3.0 --filter BenchmarksGame*
 ```
 
-2. Run all the benchmarks with type name Richards:
+- Run all the benchmarks with type name Richards:
 
 ```cmd
 dotnet run -c Release -f netcoreapp3.0 --filter *.Richards.*
 ```
 
-3. Run all the benchmarks with method name ToStream:
+- Run all the benchmarks with method name ToStream:
 
 ```cmd
 dotnet run -c Release -f netcoreapp3.0 --filter *.ToStream
 ```
 
-4. Run ALL benchmarks:
+- Run ALL benchmarks:
 
 ```cmd
 dotnet run -c Release -f netcoreapp3.0 --filter *
 ```
 
-5. You can provide many filters (logical disjunction):
+- You can provide many filters (logical disjunction):
 
 ```cmd
 dotnet run -c Release -f netcoreapp3.0 --filter System.Collections*.Dictionary* *.Perf_Dictionary.*
 ```
 
-6. To print a **joined summary** for all of the benchmarks (by default printed per type), use `--join`:
+- To print a **joined summary** for all of the benchmarks (by default printed per type), use `--join`:
 
 ```cmd
 dotnet run -c Release -f netcoreapp2.1 --filter BenchmarksGame* --join
 ```
 
-<!-- markdownlint-enable MD029 -->
 Please remember that on **Unix** systems `*` is resolved to all files in current directory, so you need to escape it `'*'`.
 
 #### Listing the Benchmarks
