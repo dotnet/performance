@@ -5,7 +5,7 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Transcendental
+namespace System.MathBenchmarks
 {
     public partial class Single
     {
