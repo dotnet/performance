@@ -86,10 +86,10 @@ py .\scripts\benchmarks_ci.py --frameworks netcoreapp3.0
 
 ### Interactive Mode
 
-To run the benchmarks in interactive mode you have to execute `dotnet run -f $targetFrameworkMoniker` in the folder with benchmarks project.
+To run the benchmarks in interactive mode you have to execute `dotnet run -c Release -f $targetFrameworkMoniker` in the folder with benchmarks project.
 
 ```cmd
-C:\Projects\performance\src\benchmarks\micro> dotnet run -f netcoreapp3.0
+C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f netcoreapp3.0
 Available Benchmarks:
   #0   Burgers
   #1   ByteMark
@@ -117,40 +117,40 @@ You can filter the benchmarks using `--filter $globPattern` console line argumen
 
 The glob patterns are applied to full benchmark name: namespace.typeName.methodName. Examples:
 
-1. Run all the benchmarks from BenchmarksGame namespace:
+- Run all the benchmarks from BenchmarksGame namespace:
 
 ```cmd
-dotnet run -f netcoreapp3.0 --filter BenchmarksGame*
+dotnet run -c Release -f netcoreapp3.0 --filter BenchmarksGame*
 ```
 
-2. Run all the benchmarks with type name Richards:
+- Run all the benchmarks with type name Richards:
 
 ```cmd
-dotnet run -f netcoreapp3.0 --filter *.Richards.*
+dotnet run -c Release -f netcoreapp3.0 --filter *.Richards.*
 ```
 
-3. Run all the benchmarks with method name ToStream:
+- Run all the benchmarks with method name ToStream:
 
 ```cmd
-dotnet run -f netcoreapp3.0 --filter *.ToStream
+dotnet run -c Release -f netcoreapp3.0 --filter *.ToStream
 ```
 
-4. Run ALL benchmarks:
+- Run ALL benchmarks:
 
 ```cmd
-dotnet run -f netcoreapp3.0 --filter *
+dotnet run -c Release -f netcoreapp3.0 --filter *
 ```
 
-5. You can provide many filters (logical disjunction):
+- You can provide many filters (logical disjunction):
 
 ```cmd
-dotnet run -f netcoreapp3.0 --filter System.Collections*.Dictionary* *.Perf_Dictionary.*
+dotnet run -c Release -f netcoreapp3.0 --filter System.Collections*.Dictionary* *.Perf_Dictionary.*
 ```
 
-6. To print a **joined summary** for all of the benchmarks (by default printed per type), use `--join`:
+- To print a **joined summary** for all of the benchmarks (by default printed per type), use `--join`:
 
 ```cmd
-dotnet run -f netcoreapp2.1 --filter BenchmarksGame* --join
+dotnet run -c Release -f netcoreapp2.1 --filter BenchmarksGame* --join
 ```
 
 Please remember that on **Unix** systems `*` is resolved to all files in current directory, so you need to escape it `'*'`.
@@ -162,7 +162,7 @@ To print the list of all available benchmarks you need to pass `--list [tree/fla
 Example: Show the tree of all the benchmarks from System.Threading namespace that can be run for .NET Core 2.0:
 
 ```cmd
-dotnet run -f netcoreapp2.0 --list tree --filter System.Threading*
+dotnet run -c Release -f netcoreapp2.0 --list tree --filter System.Threading*
 ```
 
 ```log
@@ -257,7 +257,7 @@ If you want to disassemble the benchmarked code, you need to use the [Disassembl
 
 You can do that by passing `--disassm` to the app or by using `[DisassemblyDiagnoser(printAsm: true, printSource: true)]` attribute or by adding it to your config with `config.With(DisassemblyDiagnoser.Create(new DisassemblyDiagnoserConfig(printAsm: true, recursiveDepth: 1))`.
 
-Example: `dotnet run -f netcoreapp2.0 -- --filter System.Memory.Span<Int32>.Reverse -d`
+Example: `dotnet run -c Release -f netcoreapp2.0 -- --filter System.Memory.Span<Int32>.Reverse -d`
 
 ```assembly
 ; System.Runtime.InteropServices.MemoryMarshal.GetReference[[System.Byte, System.Private.CoreLib]](System.Span`1<Byte>)
@@ -288,7 +288,7 @@ Available options are: Mono, CoreRT, net461, net462, net47, net471, net472, netc
 Example: run the benchmarks for .NET Core 2.2 and 3.0:
 
 ```cmd
-dotnet run -f netcoreapp2.2 --runtimes netcoreapp2.1 netcoreapp3.0
+dotnet run -c Release -f netcoreapp2.2 --runtimes netcoreapp2.1 netcoreapp3.0
 ```
 
 **Important: The host process needs to be the lowest common API denominator of the runtimes you want to compare!** In this case, it was`netcoreapp2.2`.
@@ -300,7 +300,7 @@ To perform a Mann–Whitney U Test and display the results in a dedicated column
 Example: run Mann–Whitney U test with relative ratio of 5% for `BinaryTrees_2` for .NET Core 2.1 (base) vs .NET Core 2.2 (diff). .NET Core 2.1 will be baseline because it was first.
 
 ```cmd
-dotnet run -f netcoreapp2.1 --filter *BinaryTrees_2* --runtimes netcoreapp2.1 netcoreapp2.2 --statisticalTest 5%
+dotnet run -c Release -f netcoreapp2.1 --filter *BinaryTrees_2* --runtimes netcoreapp2.1 netcoreapp2.2 --statisticalTest 5%
 ```
 
 |        Method |     Toolchain |     Mean | MannWhitney(5%) |
@@ -327,7 +327,7 @@ Please use this option only when you are sure that the benchmarks you want to ru
 It's possible to benchmark private builds of CoreCLR/FX using CoreRun.
 
 ```cmd
-dotnet run -f netcoreapp3.0 --coreRun $thePath
+dotnet run -c Release -f netcoreapp3.0 --coreRun $thePath
 ```
 
 **Note:** You can provide more than 1 path to CoreRun. In such case, the first path will be the baseline and all the benchmarks are going to be executed for all CoreRuns you have specified.
@@ -353,7 +353,7 @@ public void PrintInfo()
 You can also use any dotnet cli to build and run the benchmarks.
 
 ```cmd
-dotnet run -f netcoreapp3.0 --cli "C:\Projects\performance\.dotnet\dotnet.exe"
+dotnet run -c Release -f netcoreapp3.0 --cli "C:\Projects\performance\.dotnet\dotnet.exe"
 ```
 
 This is very useful when you want to compare different builds of .NET Core SDK.
@@ -365,7 +365,7 @@ It's possible to benchmark a private build of .NET Runtime. You just need to pas
 So if you made a change in CLR and want to measure the difference, you can run the benchmarks with:
 
 ```cmd
-dotnet run -f net472 -- --clrVersion $theVersion
+dotnet run -c Release -f net472 -- --clrVersion $theVersion
 ```
 
 More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/706).
@@ -375,5 +375,5 @@ More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/7
 To run benchmarks with private CoreRT build you need to provide the `IlcPath`. Example:
 
 ```cmd
-dotnet run -f netcoreapp2.1 -- --ilcPath C:\Projects\corert\bin\Windows_NT.x64.Release
+dotnet run -c Release -f netcoreapp2.1 -- --ilcPath C:\Projects\corert\bin\Windows_NT.x64.Release
 ```
