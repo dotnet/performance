@@ -55,6 +55,10 @@
     <Compile Remove="coreclr\Math\Functions\Single\**" />
   </ItemGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0' Or '$(TargetFramework)' == 'netcoreapp2.1' Or '$(TargetFramework)' == 'netcoreapp2.2' Or '$(TargetFramework)' == 'netcoreapp3.0'">
+    <DefineConstants>NETCORE</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or '$(TargetFramework)' == 'netcoreapp2.0'">
     <Compile Remove="corefx\System.IO.Compression\Brotli.cs" />
     <Compile Remove="corefx\System.Net.Http\Perf.SocketsHttpHandler.cs" />

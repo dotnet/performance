@@ -145,6 +145,31 @@ namespace System.Linq.Tests
         public void Take(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType) 
             => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.Take(size - 1), _consumer);
 
+#if NETCORE
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public void TakeLast(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
+            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.TakeLast(size - 1), _consumer);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public int[] TakeLastToArray(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
+        {
+            IEnumerable<int> source = Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType);
+
+            return source.TakeLast(size - 1).ToArray();
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public List<int> TakeLastToList(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
+        {
+            IEnumerable<int> source = Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType);
+
+            return source.TakeLast(size - 1).ToList();
+        }
+#endif
+
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
         public void SkipTake(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType) 
