@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.CompilerServices;
-using ColorPacket256 = PacketTracer.VectorPacket256;
+using ColorPacket256 = HardwareIntrinsics.RayTracer.VectorPacket256;
 
-namespace PacketTracer
+namespace HardwareIntrinsics.RayTracer
 {
     internal class LightPacket256
     {

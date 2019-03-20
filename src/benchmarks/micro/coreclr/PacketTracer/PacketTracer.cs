@@ -8,9 +8,9 @@ using static System.Runtime.Intrinsics.X86.Avx2;
 using static System.Runtime.Intrinsics.X86.Sse2;
 using System.Runtime.Intrinsics;
 
-using ColorPacket256 = PacketTracer.VectorPacket256;
+using ColorPacket256 = HardwareIntrinsics.RayTracer.VectorPacket256;
 
-namespace PacketTracer
+namespace HardwareIntrinsics.RayTracer
 {
     internal class Packet256Tracer
     {

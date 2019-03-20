@@ -6,7 +6,7 @@ using System.Runtime.Intrinsics.X86;
 using static System.Runtime.Intrinsics.X86.Avx;
 using System.Runtime.Intrinsics;
 
-namespace PacketTracer
+namespace HardwareIntrinsics.RayTracer
 {
     internal class Camera
     {

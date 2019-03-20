@@ -9,7 +9,7 @@ using System.Runtime.Intrinsics.X86;
 using System.Runtime.Intrinsics;
 using System.Runtime.CompilerServices;
 
-namespace PacketTracer
+namespace HardwareIntrinsics.RayTracer
 {
     internal struct Intersections
     {

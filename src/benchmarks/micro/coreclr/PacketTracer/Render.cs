@@ -9,10 +9,10 @@ using System.Runtime.Intrinsics.X86;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-namespace PacketTracer
+namespace HardwareIntrinsics.RayTracer
 {
     [BenchmarkCategory(Categories.CoreCLR)]
-    public class Render
+    public class SoA
     {
         private const int RunningTime = 1000;
         private const int Width = 248;
@@ -21,10 +21,10 @@ namespace PacketTracer
         private ObjectPool<int[]> _freeBuffers = new ObjectPool<int[]>(() => new int[Width * 3 * Height]); // Each pixel has 3 fields (RGB)
 
         [GlobalSetup]
-        public unsafe void Setup() => Run(); // run it once during the Setup to avoid https://github.com/dotnet/BenchmarkDotNet/issues/837s
+        public unsafe void Setup() => Render(); // run it once during the Setup to avoid https://github.com/dotnet/BenchmarkDotNet/issues/837s
 
         [Benchmark]
-        public unsafe void Run()
+        public unsafe void Render()
         {
             if (!Avx2.IsSupported)
                 return;

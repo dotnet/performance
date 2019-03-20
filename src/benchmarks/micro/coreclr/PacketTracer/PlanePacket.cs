@@ -8,7 +8,7 @@ using static System.Runtime.Intrinsics.X86.Avx;
 using System.Runtime.Intrinsics;
 using System.Runtime.CompilerServices;
 
-namespace PacketTracer
+namespace HardwareIntrinsics.RayTracer
 {
     internal sealed class PlanePacket256 : ObjectPacket256
     {

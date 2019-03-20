@@ -7,9 +7,9 @@ using System.Runtime.Intrinsics.X86;
 using System.Runtime.Intrinsics;
 using System.Runtime.CompilerServices;
 
-using ColorPacket256 = PacketTracer.VectorPacket256;
+using ColorPacket256 = HardwareIntrinsics.RayTracer.VectorPacket256;
 
-namespace PacketTracer
+namespace HardwareIntrinsics.RayTracer
 {
     internal static class ColorPacket256Helper
     {

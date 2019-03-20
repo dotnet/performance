@@ -4,9 +4,9 @@
 
 using System.Runtime.Intrinsics;
 using System;
-using ColorPacket256 = PacketTracer.VectorPacket256;
+using ColorPacket256 = HardwareIntrinsics.RayTracer.VectorPacket256;
 
-namespace PacketTracer
+namespace HardwareIntrinsics.RayTracer
 {
     internal class Surface
     {

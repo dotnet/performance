@@ -4,7 +4,7 @@
 
 using System.Runtime.Intrinsics;
 
-namespace PacketTracer
+namespace HardwareIntrinsics.RayTracer
 {
     internal abstract class ObjectPacket256
     {

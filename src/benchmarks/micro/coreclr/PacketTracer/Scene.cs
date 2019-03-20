@@ -10,7 +10,7 @@ using static System.Runtime.Intrinsics.X86.Avx2;
 using System.Runtime.Intrinsics;
 using System.Runtime.CompilerServices;
 
-namespace PacketTracer
+namespace HardwareIntrinsics.RayTracer
 {
     internal class Scene
     {
