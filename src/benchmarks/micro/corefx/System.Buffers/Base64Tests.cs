@@ -40,7 +40,7 @@ namespace System.Buffers.Text.Tests
         public OperationStatus Base64EncodeDestinationTooSmall() => Base64.EncodeToUtf8(_decodedBytes, _encodedBytes, out _, out _);
 
         [GlobalSetup(Target = nameof(ConvertToBase64CharArray))]
-        public void SetupBase64EncodeBaseline()
+        public void SetupConvertToBase64CharArray()
         {
             _decodedBytes = ValuesGenerator.Array<byte>(NumberOfBytes);
             _encodedChars = new char[Base64.GetMaxEncodedToUtf8Length(NumberOfBytes)];
