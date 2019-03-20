@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
@@ -14,9 +15,9 @@ namespace System.Tests
     {
         private char[] _destination = new char[ulong.MaxValue.ToString().Length];
 
-        public IEnumerable<object> StringValues => UInt64Values.Select(value => value.ToString()).ToArray();
+        public static IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
         
-        public static object[] UInt64Values => new object[]
+        public static IEnumerable<object> Values => new object[]
         {
             ulong.MinValue,
             (ulong)12345, // same value used by other tests to compare the perf
@@ -24,17 +25,32 @@ namespace System.Tests
         };
 
         [Benchmark]
-        [ArgumentsSource(nameof(UInt64Values))]
+        [ArgumentsSource(nameof(Values))]
         public string ToString(ulong value) => value.ToString();
 
 #if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1
         [Benchmark]
-        [ArgumentsSource(nameof(UInt64Values))]
+        [ArgumentsSource(nameof(Values))]
         public bool TryFormat(ulong value) => value.TryFormat(new Span<char>(_destination), out _);
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
-        public ulong Parse(string value) => ulong.Parse(value.AsSpan());
+        public ulong ParseSpan(string value) => ulong.Parse(value.AsSpan());
 #endif
+
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public ulong Parse(string value) => ulong.Parse(value);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(StringValues))]
+        public bool TryParse(string value) => ulong.TryParse(value, out _);
+
+        public static IEnumerable<object> StringHexValues 
+            => Values.OfType<UInt64>().Select(value => value.ToString("X", CultureInfo.InvariantCulture));
+
+        [Benchmark]
+        [ArgumentsSource(nameof(StringHexValues))]
+        public bool TryParseHex(string value) => ulong.TryParse(value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out _);
     }
 }

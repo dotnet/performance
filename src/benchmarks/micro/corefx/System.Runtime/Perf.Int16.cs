@@ -10,26 +10,27 @@ using System.Linq;
 namespace System.Tests
 {
     [BenchmarkCategory(Categories.CoreFX)]
-    public class Perf_Boolean
+    public class Perf_Int16
     {
         public static IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
 
         public static IEnumerable<object> Values => new object[]
         {
-            true,
-            false
+            short.MinValue,
+            0,
+            short.MaxValue
         };
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
-        public bool Parse(string value) => bool.Parse(value);
+        public short Parse(string value) => short.Parse(value);
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
-        public bool TryParse(string value) => bool.TryParse(value, out _);
+        public bool TryParse(string value) => short.TryParse(value, out _);
 
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
-        public string ToString(bool value) => value.ToString();
+        public string ToString(short value) => value.ToString();
     }
 }

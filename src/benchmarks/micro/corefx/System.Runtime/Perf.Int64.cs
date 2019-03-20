@@ -14,9 +14,9 @@ namespace System.Tests
     {
         private char[] _destination = new char[long.MinValue.ToString().Length];
 
-        public IEnumerable<object> StringValues => Int64Values.Select(value => value.ToString()).ToArray();
-        
-        public IEnumerable<object> Int64Values => new object[]
+        public static IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
+
+        public static IEnumerable<object> Values => new object[]
         {
             long.MinValue,
             (long)12345, // same value used by other tests to compare the perf
@@ -24,7 +24,7 @@ namespace System.Tests
         };
 
         [Benchmark]
-        [ArgumentsSource(nameof(Int64Values))]
+        [ArgumentsSource(nameof(Values))]
         public string ToString(long value) => value.ToString();
 
         [Benchmark]
@@ -37,7 +37,7 @@ namespace System.Tests
 
 #if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1
         [Benchmark]
-        [ArgumentsSource(nameof(Int64Values))]
+        [ArgumentsSource(nameof(Values))]
         public bool TryFormat(long value) => value.TryFormat(new Span<char>(_destination), out _);
 
         [Benchmark]

@@ -14,17 +14,17 @@ namespace System.Tests
     {
         private char[] _destination = new char[int.MinValue.ToString().Length];
         
-        public IEnumerable<object> Int32Values => new object[]
+        public static IEnumerable<object> Values => new object[]
         {
             int.MinValue,
             (int)12345, // same value used by other tests to compare the perf
             int.MaxValue
         };
 
-        public IEnumerable<object> StringValues => Int32Values.Select(value => value.ToString()).ToArray();
+        public static IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
 
         [Benchmark]
-        [ArgumentsSource(nameof(Int32Values))]
+        [ArgumentsSource(nameof(Values))]
         public string ToString(int value) => value.ToString();
 
         [Benchmark]
@@ -41,7 +41,7 @@ namespace System.Tests
         public int ParseSpan(string value) => int.Parse(value.AsSpan());
 
         [Benchmark]
-        [ArgumentsSource(nameof(Int32Values))]
+        [ArgumentsSource(nameof(Values))]
         public bool TryFormat(int value) => value.TryFormat(new Span<char>(_destination), out _);
 
         [Benchmark]

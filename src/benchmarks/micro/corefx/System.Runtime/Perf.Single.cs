@@ -11,31 +11,29 @@ using MicroBenchmarks;
 namespace System.Tests
 {
     [BenchmarkCategory(Categories.CoreFX)]
-    public class Perf_Double
+    public class Perf_Single
     {
         private readonly string[] _formats = { "R", "G", "G17", "E", "F50" };
 
         public static IEnumerable<object> Values => new object[]
         {
-            double.MinValue,
-            12345.0 /* same value used by other tests to compare the perf */,
-            double.MaxValue
+            float.MinValue,
+            (float)12345.0 /* same value used by other tests to compare the perf */,
+            float.MaxValue
         };
 
-        public static IEnumerable<object> StringValues
-            // r is used to fromat Min and Max values to a parsable string https://stackoverflow.com/a/767011
-            => Values.OfType<double>().Select(value => value.ToString("r")).ToArray();
+        public static IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
 
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
-        public string ToString(double value) => value.ToString(); 
+        public string ToString(float value) => value.ToString(); 
 
         public IEnumerable<object[]> ToStringWithCultureInfoArguments() 
             => Values.Select(value => new object[] { value, new CultureInfo("zh") });
 
         [Benchmark]
         [ArgumentsSource(nameof(ToStringWithCultureInfoArguments))]
-        public string ToStringWithCultureInfo(double value, CultureInfo culture)
+        public string ToStringWithCultureInfo(float value, CultureInfo culture)
             => value.ToString(culture);
 
         public IEnumerable<object[]> ToStringWithFormatArguments()
@@ -43,15 +41,15 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ToStringWithFormatArguments))]
-        public string ToStringWithFormat(double value, string format)
+        public string ToStringWithFormat(float value, string format)
             => value.ToString(format);
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
-        public double Parse(string value) => double.Parse(value);
+        public float Parse(string value) => float.Parse(value);
 
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
-        public bool TryParse(string value) => double.TryParse(value, out _);
+        public bool TryParse(string value) => float.TryParse(value, out _);
     }
 }
