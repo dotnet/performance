@@ -13,7 +13,13 @@ trigger:
   paths:
     exclude: # don't trigger the CI if only a doc file was changed
     - docs/*
-    - '**/*.md'
+    - eng/common/README.md
+    - src/benchmarks/micro/Serializers/README.md
+    - src/benchmarks/micro/README.md
+    - src/benchmarks/real-world/JitBench/README.md
+    - src/benchmarks/real-world/Microsoft.ML.Benchmarks/Input/README.md
+    - src/tools/ResultsComparer/README.md
+    - README.md
 
 # Trigger builds for PR's targeting master
 pr:
@@ -23,7 +29,13 @@ pr:
   paths:
     exclude: # don't trigger the CI if only a doc file was changed
     - docs/*
-    - '**/*.md'
+    - eng/common/README.md
+    - src/benchmarks/micro/Serializers/README.md
+    - src/benchmarks/micro/README.md
+    - src/benchmarks/real-world/JitBench/README.md
+    - src/benchmarks/real-world/Microsoft.ML.Benchmarks/Input/README.md
+    - src/tools/ResultsComparer/README.md
+    - README.md
 
 jobs:
 
