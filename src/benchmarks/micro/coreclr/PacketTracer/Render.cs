@@ -18,7 +18,7 @@ namespace HardwareIntrinsics.RayTracer
         private const int Width = 248;
         private const int Height = 248;
 
-        private ObjectPool<int[]> _freeBuffers = new ObjectPool<int[]>(() => new int[Width * 3 * Height]); // Each pixel has 3 fields (RGB)
+        private int[] rgbBuffer = new int[Width * 3 * Height]; // Each pixel has 3 fields (RGB)
 
         [GlobalSetup]
         public unsafe void Setup() => Render(); // run it once during the Setup to avoid https://github.com/dotnet/BenchmarkDotNet/issues/837s
@@ -36,9 +36,6 @@ namespace HardwareIntrinsics.RayTracer
             var baseY = sphere2.Radiuses;
             sphere2.Centers.Ys = sphere2.Radiuses;
 
-            // Get the next buffer
-            var rgbBuffer = _freeBuffers.GetObject();
-
             float dy2 = 0.8f * MathF.Abs(MathF.Sin((float) (1 * Math.PI / 3000)));
             sphere2.Centers.Ys = Avx.Add(baseY, Vector256.Create(dy2));
 
@@ -46,8 +43,6 @@ namespace HardwareIntrinsics.RayTracer
             {
                 packetTracer.RenderVectorized(scene, ptr);
             }
-
-            _freeBuffers.PutObject(rgbBuffer);
         }
     }
 }
