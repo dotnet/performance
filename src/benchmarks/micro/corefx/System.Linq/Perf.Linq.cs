@@ -145,6 +145,13 @@ namespace System.Linq.Tests
         public void Take(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType) 
             => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.Take(size - 1), _consumer);
 
+#if !NETFRAMEWORK
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public void TakeLast(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
+            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.TakeLast(size - 1), _consumer);
+#endif
+
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
         public void SkipTake(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType) 
