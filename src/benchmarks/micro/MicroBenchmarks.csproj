@@ -10,6 +10,10 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">
+    <DefineConstants>NETFRAMEWORK</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Jil" Version="2.15.4" />
     <PackageReference Include="MessagePack" Version="1.7.3.4" />
@@ -54,10 +58,6 @@
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">
     <Compile Remove="coreclr\Math\Functions\Single\**" />
   </ItemGroup>
-
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0' Or '$(TargetFramework)' == 'netcoreapp2.1' Or '$(TargetFramework)' == 'netcoreapp2.2' Or '$(TargetFramework)' == 'netcoreapp3.0'">
-    <DefineConstants>NETCORE</DefineConstants>
-  </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or '$(TargetFramework)' == 'netcoreapp2.0'">
     <Compile Remove="corefx\System.IO.Compression\Brotli.cs" />
