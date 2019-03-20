@@ -5,33 +5,33 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
-    public partial class MathTests
+    public partial class Single
     {
         // Tests MathF.Sin(float) over 5000 iterations for the domain -PI/2, +PI/2
 
-        private const float sinSingleDelta = 0.000628318531f;
-        private const float sinSingleExpectedResult = 1.03592682f;
+        private const float sinDelta = 0.000628318531f;
+        private const float sinExpectedResult = 1.03592682f;
 
         [Benchmark]
-        public void SinSingleBenchmark() => SinSingleTest();
+        public void Sin() => SinTest();
 
-        public static void SinSingleTest()
+        public static void SinTest()
         {
             var result = 0.0f; var value = -1.57079633f;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += sinSingleDelta;
+                value += sinDelta;
                 result += MathF.Sin(value);
             }
 
-            var diff = MathF.Abs(sinSingleExpectedResult - result);
+            var diff = MathF.Abs(sinExpectedResult - result);
 
-            if (diff > singleEpsilon)
+            if (diff > MathTests.SingleEpsilon)
             {
-                throw new Exception($"Expected Result {sinSingleExpectedResult,10:g9}; Actual Result {result,10:g9}");
+                throw new Exception($"Expected Result {sinExpectedResult,10:g9}; Actual Result {result,10:g9}");
             }
         }
     }

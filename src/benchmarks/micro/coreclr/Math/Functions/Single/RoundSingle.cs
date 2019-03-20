@@ -5,33 +5,33 @@
 using System;
 using BenchmarkDotNet.Attributes;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
-    public partial class MathTests
+    public partial class Single
     {
         // Tests MathF.Round(float) over 5000 iterations for the domain -PI/2, +PI/2
 
-        private const float roundSingleDelta = 0.000628318531f;
-        private const float roundSingleExpectedResult = 2.0f;
+        private const float roundDelta = 0.000628318531f;
+        private const float roundExpectedResult = 2.0f;
 
         [Benchmark]
-        public void RoundSingleBenchmark() => RoundSingleTest();
+        public void Round() => RoundTest();
 
-        public static void RoundSingleTest()
+        public static void RoundTest()
         {
             var result = 0.0f; var value = -1.57079633f;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += roundSingleDelta;
+                value += roundDelta;
                 result += MathF.Round(value);
             }
 
-            var diff = MathF.Abs(roundSingleExpectedResult - result);
+            var diff = MathF.Abs(roundExpectedResult - result);
 
-            if (diff > singleEpsilon)
+            if (diff > MathTests.SingleEpsilon)
             {
-                throw new Exception($"Expected Result {roundSingleExpectedResult,10:g9}; Actual Result {result,10:g9}");
+                throw new Exception($"Expected Result {roundExpectedResult,10:g9}; Actual Result {result,10:g9}");
             }
         }
     }

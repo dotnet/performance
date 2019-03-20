@@ -6,33 +6,33 @@ using System;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 
-namespace Functions
+namespace System.MathBenchmarks
 {
-    public partial class MathTests
+    public partial class Single
     {
         // Tests MathF.Cos(float) over 5000 iterations for the domain 0, PI
 
-        private const float cosSingleDelta = 0.000628318531f;
-        private const float cosSingleExpectedResult = -0.993487537f;
+        private const float cosDelta = 0.000628318531f;
+        private const float cosExpectedResult = -0.993487537f;
 
         [Benchmark]
-        public void CosSingleBenchmark() => CosSingleTest();
+        public void Cos() => CosTest();
 
-        public static void CosSingleTest()
+        public static void CosTest()
         {
             var result = 0.0f; var value = 0.0f;
 
-            for (var iteration = 0; iteration < iterations; iteration++)
+            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += cosSingleDelta;
+                value += cosDelta;
                 result += MathF.Cos(value);
             }
 
-            var diff = MathF.Abs(cosSingleExpectedResult - result);
+            var diff = MathF.Abs(cosExpectedResult - result);
 
-            if (diff > singleEpsilon)
+            if (diff > MathTests.SingleEpsilon)
             {
-                throw new Exception($"Expected Result {cosSingleExpectedResult,10:g9}; Actual Result {result,10:g9}");
+                throw new Exception($"Expected Result {cosExpectedResult,10:g9}; Actual Result {result,10:g9}");
             }
         }
     }

@@ -66,7 +66,7 @@ During the port from xunit-performance to BenchmarkDotNet, the namespaces, type 
 Please remember that you can  filter the benchmarks using a glob pattern applied to namespace.typeName.methodName ([read more](./benchmarkdotnet.md#Filtering-the-Benchmarks)):
 
 ```cmd
-dotnet run -f netcoreapp3.0 --filter System.Memory*
+dotnet run -c Release -f netcoreapp3.0 --filter System.Memory*
 ```
 
 Moreover, every CoreFX benchmark belongs to a [CoreFX category](../src/benchmarks/micro/README.md#Categories)
@@ -84,7 +84,7 @@ C:\Projects\corefx> build -c Release
 Every time you want to run the benchmarks against local build of CoreFX you need to provide the path to CoreRun:
 
 ```cmd
-dotnet run -f netcoreapp3.0 --coreRun "C:\Projects\corefx\artifacts\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe" --filter $someFilter 
+dotnet run -c Release -f netcoreapp3.0 --coreRun "C:\Projects\corefx\artifacts\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe" --filter $someFilter
 ```
 
 **Note:** BenchmarkDotNet expects a path to `CoreRun.exe` file (`corerun` on Unix), not to `Core_Root` folder.
@@ -102,7 +102,8 @@ Preventing regressions is a fundamental part of our performance culture. The che
 **Before introducing any changes that may impact performance**, you should run the benchmarks that test the performance of the feature that you are going to work on and store the results in a **dedicated** folder.
 
 ```cmd
-C:\Projects\performance\src\benchmarks\micro> dotnet run -f netcoreapp3.0 \
+C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release \
+    -f netcoreapp3.0 \
     --artifacts "C:\results\before" \
     --coreRun "C:\Projects\corefx\artifacts\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe" \
     --filter System.IO.Pipes*
@@ -117,7 +118,8 @@ After you introduce the changes and rebuild the part of CoreFX that you are work
 ```cmd
 C:\Projects\corefx\src\System.IO.Pipes\src> dotnet msbuild /p:ConfigurationGroup=Release
 
-C:\Projects\performance\src\benchmarks\micro> dotnet run -f netcoreapp3.0 \
+C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release \
+    -f netcoreapp3.0 \
     --artifacts "C:\results\after" \
     --coreRun "C:\Projects\corefx\artifacts\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe" \
     --filter System.IO.Pipes*
@@ -161,8 +163,8 @@ The next step is to send a PR to this repository with the aforementioned benchma
 
 The real performance investigation starts with profiling. To profile the benchmarked code and produce an ETW Trace file ([read more](./benchmarkdotnet.md#Profiling)):
 
-```
-dotnet run -f netcoreapp3.0 --profiler ETW --filter $YourFilter 
+```cmd
+dotnet run -c Release -f netcoreapp3.0 --profiler ETW --filter $YourFilter
 ```
 
 The benchmarking tool is going to print the path to the `.etl` trace file. You should open it with PerfView or Windows Performance Analyzer and start the analysis from there. If you are not familiar with PerfView, you should watch [PerfView Tutorial](https://channel9.msdn.com/Series/PerfView-Tutorial) by @vancem first. It's an investment that is going to pay off very quickly.
@@ -240,7 +242,6 @@ namespace System
     public static class Console
     {
         public static void WriteHelloWorld() => WriteLine("Hello World!");
-        
         // the rest omitted for brevity
     }
 }
