@@ -8,6 +8,8 @@
     <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <IsARM Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().StartsWith(`arm`, System.StringComparison.OrdinalIgnoreCase))'">true</IsARM>
   </PropertyGroup>
 
   <ItemGroup>
@@ -68,5 +70,9 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
     <Compile Remove="corefx\System.Drawing\Perf_Graphics*.cs" />
   </ItemGroup>
-
+  
+  <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.0' OR '$(IsARM)' == 'true'">
+    <Compile Remove="coreclr\PacketTracer\**" />
+  </ItemGroup>
+  
 </Project>
