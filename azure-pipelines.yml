@@ -135,7 +135,7 @@ jobs:
       kind: micro
       architecture: arm64
       pool: Hosted Ubuntu 1604
-      queue: Ubuntu.1604.Arm64.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-helix-arm64v8-b049512-20190321153539
+      queue: Ubuntu.1604.Arm64.Docker.Open@mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-helix-arm64v8-b049512-20190321153539
       container: ubuntu_1604_arm64_cross_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       categories: ['coreclr', 'corefx']
