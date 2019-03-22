@@ -3,7 +3,7 @@ resources:
     - container: ubuntu_x64_build_container
       image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-c103199-20180628134544
     - container: ubuntu_1604_arm64_cross_container
-      image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-helix-arm64v8-b049512-20190321153539
+      image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-16.04-helix-arm64v8-b049512-20190321153539
 
 # CI Trigger on master branch
 trigger:
