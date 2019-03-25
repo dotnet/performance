@@ -14,22 +14,25 @@ namespace System.Linq.Tests
     {
         private const int DefaultSize = 100;
         private const int DefaulIterationCount = 1000;
-        private static readonly int[] DefaultMultipleSizes = new int[] { 6, 100 };
 
         private readonly Consumer _consumer = new Consumer();
         private readonly IEnumerable<int> _range0to10 = Enumerable.Range(0, 10);
         private readonly IEnumerable<int> _tenMillionToZero = Enumerable.Range(0, 10_000_000).Reverse();
 
-        private static IEnumerable<object[]> GetIterationSizeWrapperData(int size)
+        public static IEnumerable<object[]> IterationSizeWrapperData()
         {
-            yield return new object[] { size, DefaulIterationCount, Perf_LinqTestBase.WrapperType.NoWrap };
-            yield return new object[] { size, DefaulIterationCount, Perf_LinqTestBase.WrapperType.IEnumerable };
-            yield return new object[] { size, DefaulIterationCount, Perf_LinqTestBase.WrapperType.IReadOnlyCollection };
-            yield return new object[] { size, DefaulIterationCount, Perf_LinqTestBase.WrapperType.ICollection };
+            yield return new object[] { DefaultSize, DefaulIterationCount, Perf_LinqTestBase.WrapperType.NoWrap };
+            yield return new object[] { DefaultSize, DefaulIterationCount, Perf_LinqTestBase.WrapperType.IEnumerable };
+            yield return new object[] { DefaultSize, DefaulIterationCount, Perf_LinqTestBase.WrapperType.IReadOnlyCollection };
+            yield return new object[] { DefaultSize, DefaulIterationCount, Perf_LinqTestBase.WrapperType.ICollection };
         }
 
-        public static IEnumerable<object[]> IterationSizeWrapperData() => GetIterationSizeWrapperData(DefaultSize);
-        public static IEnumerable<object[]> IterationMultipleSizesWrapperData() => DefaultMultipleSizes.SelectMany(x => GetIterationSizeWrapperData(x));
+        public static IEnumerable<object[]> IterationSizeReducedWrapperData()
+        {
+            yield return new object[] { DefaultSize, DefaulIterationCount, Perf_LinqTestBase.WrapperType.NoWrap };
+            yield return new object[] { DefaultSize, DefaulIterationCount, Perf_LinqTestBase.WrapperType.IEnumerable };
+            yield return new object[] { DefaultSize, DefaulIterationCount, Perf_LinqTestBase.WrapperType.ICollection };
+        }
 
         public class BaseClass
         {
@@ -44,9 +47,6 @@ namespace System.Linq.Tests
         {
             { DefaultSize, Enumerable.Range(0, DefaultSize).ToArray() }
         };
-
-        private static readonly IReadOnlyDictionary<int, int[]> _multipleSizesToPreallocatedArray = DefaultMultipleSizes.ToDictionary(k => k, v => Enumerable.Range(0, v).ToArray());
-
 
         private readonly ChildClass[] _childClassArrayOfTenElements = Enumerable.Repeat(new ChildClass() { Value = 1, ChildValue = 2 }, 10).ToArray();
         private readonly int[] _intArrayOfTenElements = Enumerable.Repeat(1, 10).ToArray();
@@ -154,19 +154,19 @@ namespace System.Linq.Tests
 
 #if !NETFRAMEWORK
         [Benchmark]
-        [ArgumentsSource(nameof(IterationMultipleSizesWrapperData))]
+        [ArgumentsSource(nameof(IterationSizeReducedWrapperData))]
         public void TakeLastOne(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Measure(_multipleSizesToPreallocatedArray[size], wrapType, col => col.TakeLast(1), _consumer);
+            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.TakeLast(1), _consumer);
 
         [Benchmark]
-        [ArgumentsSource(nameof(IterationMultipleSizesWrapperData))]
-        public void TakeLast(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Measure(_multipleSizesToPreallocatedArray[size], wrapType, col => col.TakeLast(size / 2), _consumer);
+        [ArgumentsSource(nameof(IterationSizeReducedWrapperData))]
+        public void TakeLastHalf(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
+            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.TakeLast(size / 2), _consumer);
 
         [Benchmark]
-        [ArgumentsSource(nameof(IterationMultipleSizesWrapperData))]
+        [ArgumentsSource(nameof(IterationSizeReducedWrapperData))]
         public void TakeLastFull(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Measure(_multipleSizesToPreallocatedArray[size], wrapType, col => col.TakeLast(size - 1), _consumer);
+            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.TakeLast(size - 1), _consumer);
 #endif
 
         [Benchmark]
