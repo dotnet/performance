@@ -14,7 +14,6 @@ namespace System.Linq.Tests
     {
         private const int DefaultSize = 100;
         private const int DefaulIterationCount = 1000;
-
         private readonly Consumer _consumer = new Consumer();
         private readonly IEnumerable<int> _range0to10 = Enumerable.Range(0, 10);
         private readonly IEnumerable<int> _tenMillionToZero = Enumerable.Range(0, 10_000_000).Reverse();
