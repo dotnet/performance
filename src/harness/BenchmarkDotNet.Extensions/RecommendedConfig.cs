@@ -25,6 +25,7 @@ namespace BenchmarkDotNet.Extensions
                 .With(JsonExporter.Full) // make sure we export to Json (for BenchView integration purpose)
                 .With(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
                 .With(TooManyTestCasesValidator.FailOnError)
+                .With(new UniqueArgumentsValidator()) // don't allow for duplicated arguments #404
                 .With(new MandatoryCategoryValidator(mandatoryCategories));
     }
 }
