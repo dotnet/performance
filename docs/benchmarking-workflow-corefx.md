@@ -232,7 +232,7 @@ When developing new CoreFX features, we should be thinking about the performance
 
 When you develop a new feature, whether it's a new method/type/library in CoreFX all you need to do is to build it in Release and just reference the produced implementation `.dll` from the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) project file.
 
-The easiest way to do it is to open [MicroBenchmarks.sln](../src/benchmarks/micro/MicroBenchmarks.sln) with Visual Studio, right click on the [MicroBenchmarks](../src/benchmarks/micro/MicroBenchmarks.csproj) project file, select "Add", then "Reference..." and in the new Dialog Window click "Browse" in the left bottom corner. From the File Picker, choose the new library and click "Add". Please don't forget to Save the changes (Ctrl+Shift+S). From this moment you should be able to consume new public types and methods exposed by the referenced library.
+The easiest way to do it is to open [MicroBenchmarks.sln](../src/benchmarks/micro/MicroBenchmarks.sln) with Visual Studio, right click on the [MicroBenchmarks](../src/benchmarks/micro/MicroBenchmarks.csproj) project file, select "Add", then "Reference..." and in the new Dialog Window click "Browse" in the left bottom corner. From the File Picker, choose the new library and click "Add". Make sure to pick the reference assembly (not implementation assembly) from corefx which falls under path `artifacts\bin\ref\netcoreapp\`. Next, from the Solution Explorer window expand Dependencies for MicroBenchmarks solution and after selecting the assembly which you just added, set CopyLocal value to `No` from within the Properties window. Please don't forget to Save the changes (Ctrl+Shift+S). From this moment you should be able to consume new public types and methods exposed by the referenced library.
 
 Sample changes:
 
@@ -251,8 +251,9 @@ Sample project file change:
 
 ```xml
 <ItemGroup>
-  <Reference Include="System.NewAPI">
-    <HintPath>..\..\..\..\corefx\artifacts\bin\runtime\netcoreapp-Windows_NT-Release-x64\System.Console.dll</HintPath>
+  <Reference Include="System.Console">
+    <HintPath>..\..\..\..\corefx\artifacts\bin\ref\netcoreapp\System.Console.dll</HintPath>
+    <Private>false</Private>
   </Reference>
 </ItemGroup>
 ```
