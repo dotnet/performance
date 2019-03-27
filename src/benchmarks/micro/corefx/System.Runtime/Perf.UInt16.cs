@@ -17,7 +17,7 @@ namespace System.Tests
         public static IEnumerable<object> Values => new object[]
         {
             ushort.MinValue,
-            0,
+            (ushort)12345, // same value used by other tests to compare the perf
             ushort.MaxValue
         };
 
