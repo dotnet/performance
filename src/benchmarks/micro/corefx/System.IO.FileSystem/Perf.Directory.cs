@@ -67,7 +67,7 @@ namespace System.IO.Tests
                             var longPath = GetDirectoryPath(_testFile, (int)depth);
 
                             Directory.CreateDirectory(longPath);
-                            Directory.Delete(longPath);
+                            Directory.Delete(_testFile, recursive: true);
 
                             return true;
                         }
