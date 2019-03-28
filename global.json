@@ -3,8 +3,8 @@
     "dotnet": "2.1.403"
   },
   "msbuild-sdks": {
-    "Microsoft.DotNet.Arcade.Sdk": "1.0.0-beta.19176.14",
-    "Microsoft.DotNet.Helix.Sdk": "2.0.0-beta.19176.14"
+    "Microsoft.DotNet.Arcade.Sdk": "1.0.0-beta.19177.11",
+    "Microsoft.DotNet.Helix.Sdk": "2.0.0-beta.19177.11"
   },
   "native-tools": {
     "python3": "3.7.1"
