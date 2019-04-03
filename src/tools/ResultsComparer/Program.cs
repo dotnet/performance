@@ -44,6 +44,8 @@ namespace ResultsComparer
 
             var notSame = GetNotSameResults(args, testThreshold, noiseThreshold).ToArray();
 
+            PrintSummary(notSame);
+
             PrintTable(notSame, EquivalenceTestConclusion.Slower, args);
             PrintTable(notSame, EquivalenceTestConclusion.Faster, args);
 
@@ -68,6 +70,30 @@ namespace ResultsComparer
 
                 yield return (pair.id, pair.baseResult, pair.diffResult, userTresholdResult.Conclusion);
             }
+        }
+
+        private static void PrintSummary((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame)
+        {
+            var better = notSame.Where(result => result.conclusion == EquivalenceTestConclusion.Faster);
+            var worse = notSame.Where(result => result.conclusion == EquivalenceTestConclusion.Slower);
+            var betterCount = better.Count();
+            var worseCount = worse.Count();
+
+            // If the baseline doesn't have the same set of tests, you wind up with Infinity in the list of diffs.
+            // Exclude them for purposes of geomean.
+            better = better.Where(x => GetRatio(x) != double.PositiveInfinity);
+            worse = worse.Where(x => GetRatio(x) != double.PositiveInfinity);
+
+            var betterGeoMean = Math.Pow(10, better.Skip(1).Aggregate(Math.Log10(GetRatio(better.First())), (x, y) => x + Math.Log10(GetRatio(y))) / better.Count());
+            var worseGeoMean = Math.Pow(10, worse.Skip(1).Aggregate(Math.Log10(GetRatio(worse.First())), (x, y) => x + Math.Log10(GetRatio(y))) / worse.Count());
+
+
+            Console.WriteLine("summary:");
+            Console.WriteLine($"better: {betterCount}, geomean: {betterGeoMean:F3}");
+            Console.WriteLine($"worse: {worseCount}, geomean: {worseGeoMean:F3}");
+            Console.WriteLine($"total diff: {notSame.Count()}");
+            Console.WriteLine();
+
         }
 
         private static void PrintTable((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame, EquivalenceTestConclusion conclusion, CommandLineOptions args)
@@ -167,6 +193,8 @@ namespace ResultsComparer
 
             return null;
         }
+
+        private static double GetRatio((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion) item) => GetRatio(item.conclusion, item.baseResult, item.diffResult);
 
         private static double GetRatio(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
             => conclusion == EquivalenceTestConclusion.Faster
