@@ -84,8 +84,10 @@ namespace ResultsComparer
             better = better.Where(x => GetRatio(x) != double.PositiveInfinity);
             worse = worse.Where(x => GetRatio(x) != double.PositiveInfinity);
 
-            var betterGeoMean = Math.Pow(better.Skip(1).Aggregate(GetRatio(better.First()), (x, y) => x * GetRatio(y)), (1.0 / better.Count()));
-            var worseGeoMean = Math.Pow(worse.Skip(1).Aggregate(GetRatio(worse.First()), (x, y) => x * GetRatio(y)), (1.0 / worse.Count()));
+            var betterGeoMean = Math.Pow(10, better.Skip(1).Aggregate(Math.Log10(GetRatio(better.First())), (x, y) => x + Math.Log10(GetRatio(y))) / better.Count());
+            var worseGeoMean = Math.Pow(10, worse.Skip(1).Aggregate(Math.Log10(GetRatio(worse.First())), (x, y) => x + Math.Log10(GetRatio(y))) / worse.Count());
+
+
             Console.WriteLine("summary:");
             Console.WriteLine($"better: {betterCount}, geomean: {betterGeoMean:F3}");
             Console.WriteLine($"worse: {worseCount}, geomean: {worseGeoMean:F3}");
