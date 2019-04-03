@@ -38,13 +38,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.Memory">
-      <HintPath>..\..\..\..\corefx\artifacts\bin\ref\netcoreapp\System.Memory.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="coreclr\BenchmarksGame\Inputs\*.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
