@@ -76,24 +76,24 @@ namespace System.Buffers.Tests
         public long SliceArray() => Slice(new ReadOnlySequence<T>(_array));
 
         [Benchmark]
-        public int IterateTryGetMemory() => IterateTryGet(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
+        public int IterateTryGetMemory() => IterateTryGet(new ReadOnlySequence<T>(_memory));
 
         [Benchmark]
-        public int IterateForEachMemory() => IterateForEach(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
+        public int IterateForEachMemory() => IterateForEach(new ReadOnlySequence<T>(_memory));
 
         [Benchmark]
-        public int IterateGetPositionMemory() => IterateGetPosition(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
+        public int IterateGetPositionMemory() => IterateGetPosition(new ReadOnlySequence<T>(_memory));
 
         [Benchmark(OperationsPerInvoke = 16)]
         public int FirstMemory() => First(new ReadOnlySequence<T>(_memory));
 
         [Benchmark(OperationsPerInvoke = 10)]
-        public long SliceMemory() => Slice(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
+        public long SliceMemory() => Slice(new ReadOnlySequence<T>(_memory));
 
         [GlobalSetup(Targets = new [] { nameof(IterateTryGetSingleSegment), nameof(IterateForEachSingleSegment), nameof(IterateGetPositionSingleSegment), nameof(FirstSingleSegment), nameof(SliceSingleSegment) })]
         public void SetupSingleSegment() => _startSegment = _endSegment = new BufferSegment<T>(new ReadOnlyMemory<T>(_array));
 
-        [GlobalSetup(Targets = new [] { nameof(FirstMemory) })]
+        [GlobalSetup(Targets = new [] { nameof(FirstMemory), nameof(SliceMemory), nameof(IterateTryGetMemory), nameof(IterateForEachMemory), nameof(IterateGetPositionMemory) })]
         public void MemorySegment() => _memory = new ReadOnlyMemory<T>(_array);
 
         [Benchmark]
