@@ -75,6 +75,17 @@
     <Compile Remove="coreclr\Math\Functions\Single\Cbrt.cs" />
   </ItemGroup>
 
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.0')">
+    <Compile Remove="coreclr\Math\Functions\Double\FusedMultiplyAdd.cs" />
+    <Compile Remove="coreclr\Math\Functions\Double\ILogB.cs" />
+    <Compile Remove="coreclr\Math\Functions\Double\Log2.cs" />
+    <Compile Remove="coreclr\Math\Functions\Double\ScaleB.cs" />
+    <Compile Remove="coreclr\Math\Functions\Single\FusedMultiplyAdd.cs" />
+    <Compile Remove="coreclr\Math\Functions\Single\ILogB.cs" />
+    <Compile Remove="coreclr\Math\Functions\Single\Log2.cs" />
+    <Compile Remove="coreclr\Math\Functions\Single\ScaleB.cs" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
     <Compile Remove="corefx\System.Drawing\Perf_Graphics*.cs" />
   </ItemGroup>
