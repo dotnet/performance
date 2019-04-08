@@ -262,4 +262,11 @@ Sample project file change:
 
 Because the benchmarks are not in the CoreFX repository you must do two PR's.
 
-The first thing you need to do is send a PR with the new API to the CoreFX repository. Once your PR gets merged and a new NuGet package is published to the CoreFX NuGet feed, you should remove the Reference to a `.dll` and install/update the package consumed by [MicroBenchmarks](../src/benchmarks/micro/MicroBenchmarks.csproj). After that, you should send a PR to the performance repo.
+The first thing you need to do is send a PR with the new API to the CoreFX repository. Once your PR gets merged and a new NuGet package is published to the CoreFX NuGet feed, you should remove the Reference to a `.dll` and install/update the package consumed by [MicroBenchmarks](../src/benchmarks/micro/MicroBenchmarks.csproj). You can do this by running the following script locally:
+
+```cmd
+$Python3 ./scripts/benchmarks_ci.py --filter $YourFilter -f netcoreapp3.0 --incremental no --architecture x64
+```
+This script will try to pull the latest .NET Core SDK from CoreFX nightly build, which should contain the new API that you just merged in your first PR, and use that to build MicroBenchmarks project and then run the benchmarks that satisfy the filter you provided. 
+
+After you have confirmed your benchmarks successfully run locally, then your PR should be ready for performance repo.
