@@ -15,6 +15,7 @@ namespace System.Buffers.Tests
 
         private readonly T[] _array = ValuesGenerator.Array<T>(Size);
         private BufferSegment<T> _startSegment, _endSegment;
+        private ReadOnlyMemory<T> _memory;
 
         [Benchmark]
         public int IterateTryGetArray() => IterateTryGet(new ReadOnlySequence<T>(_array));
@@ -28,26 +29,72 @@ namespace System.Buffers.Tests
         [Benchmark(OperationsPerInvoke = 16)]
         public int FirstArray() => First(new ReadOnlySequence<T>(_array));
 
+#if NETCOREAPP3_0
+        [Benchmark(OperationsPerInvoke = 16)]
+        public int FirstSpanArray() => FirstSpan(new ReadOnlySequence<T>(_array));
+
+        [Benchmark(OperationsPerInvoke = 16)]
+        public int FirstSpanMemory() => FirstSpan(new ReadOnlySequence<T>(_memory));
+
+        [Benchmark(OperationsPerInvoke = 16)]
+        public int FirstSpanSingleSegment()
+            => FirstSpan(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size));
+
+        [Benchmark(OperationsPerInvoke = 16)]
+        public int FirstSpanTenSegments()
+            => FirstSpan(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size / 10));
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private int FirstSpan(ReadOnlySequence<T> sequence)
+        {
+            int consume = 0;
+
+            consume += sequence.FirstSpan.Length; consume += sequence.FirstSpan.Length;
+            consume += sequence.FirstSpan.Length; consume += sequence.FirstSpan.Length;
+            consume += sequence.FirstSpan.Length; consume += sequence.FirstSpan.Length;
+            consume += sequence.FirstSpan.Length; consume += sequence.FirstSpan.Length;
+
+            consume += sequence.FirstSpan.Length; consume += sequence.FirstSpan.Length;
+            consume += sequence.FirstSpan.Length; consume += sequence.FirstSpan.Length;
+            consume += sequence.FirstSpan.Length; consume += sequence.FirstSpan.Length;
+            consume += sequence.FirstSpan.Length; consume += sequence.FirstSpan.Length;
+
+            return consume;
+        }
+
+        [GlobalSetup(Targets = new [] { nameof(FirstSpanSingleSegment) })]
+        public void SetupFirstSpanSingleSegment() => SetupSingleSegment();
+
+        [GlobalSetup(Targets = new [] { nameof(FirstSpanMemory) })]
+        public void MemoryFirstSpanMemory() => MemorySegment();
+
+        [GlobalSetup(Targets = new [] { nameof(FirstSpanTenSegments) })]
+        public void SetupFirstSpanTenSegments() => SetupTenSegments();
+#endif
+
         [Benchmark(OperationsPerInvoke = 10)]
         public long SliceArray() => Slice(new ReadOnlySequence<T>(_array));
 
         [Benchmark]
-        public int IterateTryGetMemory() => IterateTryGet(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
+        public int IterateTryGetMemory() => IterateTryGet(new ReadOnlySequence<T>(_memory));
 
         [Benchmark]
-        public int IterateForEachMemory() => IterateForEach(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
+        public int IterateForEachMemory() => IterateForEach(new ReadOnlySequence<T>(_memory));
 
         [Benchmark]
-        public int IterateGetPositionMemory() => IterateGetPosition(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
+        public int IterateGetPositionMemory() => IterateGetPosition(new ReadOnlySequence<T>(_memory));
 
         [Benchmark(OperationsPerInvoke = 16)]
-        public int FirstMemory() => First(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
+        public int FirstMemory() => First(new ReadOnlySequence<T>(_memory));
 
         [Benchmark(OperationsPerInvoke = 10)]
-        public long SliceMemory() => Slice(new ReadOnlySequence<T>(new ReadOnlyMemory<T>(_array)));
+        public long SliceMemory() => Slice(new ReadOnlySequence<T>(_memory));
 
         [GlobalSetup(Targets = new [] { nameof(IterateTryGetSingleSegment), nameof(IterateForEachSingleSegment), nameof(IterateGetPositionSingleSegment), nameof(FirstSingleSegment), nameof(SliceSingleSegment) })]
         public void SetupSingleSegment() => _startSegment = _endSegment = new BufferSegment<T>(new ReadOnlyMemory<T>(_array));
+
+        [GlobalSetup(Targets = new [] { nameof(FirstMemory), nameof(SliceMemory), nameof(IterateTryGetMemory), nameof(IterateForEachMemory), nameof(IterateGetPositionMemory) })]
+        public void MemorySegment() => _memory = new ReadOnlyMemory<T>(_array);
 
         [Benchmark]
         public int IterateTryGetSingleSegment()
