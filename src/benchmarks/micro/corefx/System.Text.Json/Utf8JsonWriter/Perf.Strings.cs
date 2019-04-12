@@ -1,0 +1,111 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System.Buffers;
+using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
+
+namespace System.Text.Json
+{
+    [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+    public class Perf_Strings
+    {
+        private const int DataSize = 100_000;
+
+        private ArrayBufferWriter<byte> _arrayBufferWriter;
+        private PooledBufferWriter<byte> _pooledBufferWriter;
+
+        private string[] _stringArrayValues;
+        private byte[][] _stringArrayValuesUtf8;
+
+        [Params(true, false)]
+        public bool Formatted;
+
+        [Params(true, false)]
+        public bool SkipValidation;
+
+        [Params(true, false)]
+        public bool Pool;
+
+        [GlobalSetup]
+        public void Setup()
+        {
+            _arrayBufferWriter = new ArrayBufferWriter<byte>();
+            _pooledBufferWriter = new PooledBufferWriter<byte>();
+
+            _stringArrayValues = new string[DataSize];
+            _stringArrayValuesUtf8 = new byte[DataSize][];
+
+            for (int i = 0; i < DataSize; i++)
+            {
+                _stringArrayValues[i] = GetString(5, 100);
+            }
+        }
+
+        private static string GetString(int minLength, int maxLength)
+        {
+            var random = new Random(42);
+            int length = random.Next(minLength, maxLength);
+            var array = new char[length];
+
+            for (int i = 0; i < length; i++)
+            {
+                array[i] = (char)random.Next(97, 123);
+            }
+
+            if (random.NextDouble() > 0.5)
+            {
+                array[random.Next(0, length)] = '+';
+            }
+
+            return new string(array);
+        }
+
+        [Benchmark]
+        public void WriteStringsUtf8()
+        {
+            IBufferWriter<byte> output = GetOutput();
+            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
+            var json = new Utf8JsonWriter(output, state);
+
+            json.WriteStartArray();
+            for (int i = 0; i < DataSize; i++)
+            {
+                json.WriteStringValue(_stringArrayValuesUtf8[i]);
+            }
+            json.WriteEndArray();
+            json.Flush(isFinalBlock: true);
+        }
+
+        [Benchmark]
+        public void WriteStringsUtf16()
+        {
+            IBufferWriter<byte> output = GetOutput();
+            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
+            var json = new Utf8JsonWriter(output, state);
+
+            json.WriteStartArray();
+            for (int i = 0; i < DataSize; i++)
+            {
+                json.WriteStringValue(_stringArrayValues[i]);
+            }
+            json.WriteEndArray();
+            json.Flush(isFinalBlock: true);
+        }
+
+        private IBufferWriter<byte> GetOutput()
+        {
+            if (Pool)
+            {
+                _pooledBufferWriter.Clear();
+                return _pooledBufferWriter;
+            }
+            else
+            {
+                _arrayBufferWriter.Clear();
+                return _arrayBufferWriter;
+            }
+        }
+    }
+}

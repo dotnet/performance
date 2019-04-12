@@ -30,6 +30,7 @@ namespace MicroBenchmarks
             public const string Perflab = "Perflab";
             public const string Virtual = "Virtual";
 
+        public const string JSON = "JSON";
         public const string LINQ = "LINQ";
         public const string Reflection = "Reflection";
         public const string SIMD = "SIMD";
