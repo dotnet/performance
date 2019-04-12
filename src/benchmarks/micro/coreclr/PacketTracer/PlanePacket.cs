@@ -32,7 +32,7 @@ namespace HardwareIntrinsics.RayTracer
             var denom = VectorPacket256.DotProduct(Norms, rayPacket256.Dirs);
             var dist = Divide(Add(VectorPacket256.DotProduct(Norms, rayPacket256.Starts), Offsets),
                 Subtract(Vector256<float>.Zero, denom));
-            var gtMask = Compare(denom, Vector256<float>.Zero, FloatComparisonMode.GreaterThanOrderedNonSignaling);
+            var gtMask = Compare(denom, Vector256<float>.Zero, FloatComparisonMode.OrderedGreaterThanNonSignaling);
             return BlendVariable(dist, Intersections.NullDistance, gtMask);
         }
     }
