@@ -14,7 +14,6 @@ namespace System.Text.Json
         private const int DataSize = 100_000;
 
         private ArrayBufferWriter<byte> _arrayBufferWriter;
-        private PooledBufferWriter<byte> _pooledBufferWriter;
 
         private string[] _stringArrayValues;
         private byte[][] _stringArrayValuesUtf8;
@@ -24,9 +23,6 @@ namespace System.Text.Json
 
         [Params(true, false)]
         public bool SkipValidation;
-
-        [Params(true, false)]
-        public bool Pool;
 
         public enum Escape
         {
@@ -42,7 +38,6 @@ namespace System.Text.Json
         public void Setup()
         {
             _arrayBufferWriter = new ArrayBufferWriter<byte>();
-            _pooledBufferWriter = new PooledBufferWriter<byte>();
 
             _stringArrayValues = new string[DataSize];
             _stringArrayValuesUtf8 = new byte[DataSize][];
@@ -86,7 +81,8 @@ namespace System.Text.Json
         [Benchmark]
         public void WriteStringsUtf8()
         {
-            IBufferWriter<byte> output = GetOutput();
+            _arrayBufferWriter.Clear();
+            IBufferWriter<byte> output = _arrayBufferWriter;
             var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
             var json = new Utf8JsonWriter(output, state);
 
@@ -102,7 +98,8 @@ namespace System.Text.Json
         [Benchmark]
         public void WriteStringsUtf16()
         {
-            IBufferWriter<byte> output = GetOutput();
+            _arrayBufferWriter.Clear();
+            IBufferWriter<byte> output = _arrayBufferWriter;
             var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
             var json = new Utf8JsonWriter(output, state);
 
@@ -113,20 +110,6 @@ namespace System.Text.Json
             }
             json.WriteEndArray();
             json.Flush(isFinalBlock: true);
-        }
-
-        private IBufferWriter<byte> GetOutput()
-        {
-            if (Pool)
-            {
-                _pooledBufferWriter.Clear();
-                return _pooledBufferWriter;
-            }
-            else
-            {
-                _arrayBufferWriter.Clear();
-                return _arrayBufferWriter;
-            }
         }
     }
 }
