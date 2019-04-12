@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Buffers;
+using System.IO;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
+using Newtonsoft.Json;
 
 namespace System.Text.Json
 {
@@ -126,6 +128,93 @@ namespace System.Text.Json
             {
                 _arrayBufferWriter.Clear();
                 return _arrayBufferWriter;
+            }
+        }
+    }
+
+    [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+    public class Perf_Newtonsoft_Strings
+    {
+        private const int DataSize = 100_000;
+
+        private MemoryStream _memoryStream;
+
+        private string[] _stringArrayValues;
+
+        private TextWriter _writer;
+
+        [Params(Formatting.Indented, Formatting.None)]
+        public Formatting Formatting;
+
+        public enum Escape
+        {
+            AllEscaped,
+            OneEscaped,
+            NoneEscaped
+        }
+
+        [Params(Escape.AllEscaped, Escape.OneEscaped, Escape.NoneEscaped)]
+        public Escape Escaped;
+
+        [GlobalSetup]
+        public void Setup()
+        {
+            _memoryStream = new MemoryStream();
+            _writer = new StreamWriter(_memoryStream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true);
+
+            _stringArrayValues = new string[DataSize];
+
+            for (int i = 0; i < DataSize; i++)
+            {
+                _stringArrayValues[i] = GetString(5, 100, Escaped);
+            }
+        }
+
+        private static string GetString(int minLength, int maxLength, Escape escape)
+        {
+            var random = new Random(42);
+            int length = random.Next(minLength, maxLength);
+            var array = new char[length];
+
+            if (escape != Escape.AllEscaped)
+            {
+                for (int i = 0; i < length; i++)
+                {
+                    array[i] = (char)random.Next(97, 123);
+                }
+
+                if (escape == Escape.OneEscaped)
+                {
+                    if (random.NextDouble() > 0.5)
+                    {
+                        array[random.Next(0, length)] = '"';
+                    }
+                }
+            }
+            else
+            {
+                array.AsSpan().Fill('"');
+            }
+
+            return new string(array);
+        }
+
+        [Benchmark]
+        public void WriteStrings()
+        {
+            _memoryStream.Seek(0, SeekOrigin.Begin);
+            TextWriter output = _writer;
+            using (var json = new JsonTextWriter(output))
+            {
+                json.Formatting = Formatting;
+
+                json.WriteStartArray();
+                for (int i = 0; i < DataSize; i++)
+                {
+                    json.WriteValue(_stringArrayValues[i]);
+                }
+                json.WriteEndArray();
+                json.Flush();
             }
         }
     }

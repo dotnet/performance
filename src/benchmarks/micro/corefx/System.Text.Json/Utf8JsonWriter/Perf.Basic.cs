@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Buffers;
+using System.IO;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
+using Newtonsoft.Json;
 
 namespace System.Text.Json
 {
@@ -127,6 +129,81 @@ namespace System.Text.Json
             {
                 _arrayBufferWriter.Clear();
                 return _arrayBufferWriter;
+            }
+        }
+    }
+
+    [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+    public class Perf_Newtonsoft_Basic
+    {
+        private MemoryStream _memoryStream;
+
+        private TextWriter _writer;
+
+        [Params(Formatting.Indented, Formatting.None)]
+        public Formatting Formatting;
+
+        private const int DataSize = 10;
+
+        private int[] _numberArrayValues;
+
+        [GlobalSetup]
+        public void Setup()
+        {
+            _memoryStream = new MemoryStream();
+            _writer = new StreamWriter(_memoryStream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true);
+
+            _numberArrayValues = new int[DataSize];
+
+            var random = new Random(42);
+            for (int i = 0; i < DataSize; i++)
+            {
+                _numberArrayValues[i] = random.Next(-10000, 10000);
+            }
+        }
+
+        [Benchmark]
+        public void WriteBasic()
+        {
+            _memoryStream.Seek(0, SeekOrigin.Begin);
+            TextWriter output = _writer;
+            using (var json = new JsonTextWriter(output))
+            {
+                json.Formatting = Formatting;
+
+                json.WriteStartObject();
+                json.WritePropertyName("age");
+                json.WriteValue(42);
+                json.WritePropertyName("first");
+                json.WriteValue("John");
+                json.WritePropertyName("last");
+                json.WriteValue("Smith");
+                json.WritePropertyName("phoneNumbers");
+                json.WriteStartArray();
+                json.WriteValue("425-000-1212");
+                json.WriteValue("425-000-1213");
+                json.WriteEndArray();
+                json.WritePropertyName("address");
+                json.WriteStartObject();
+                json.WritePropertyName("street");
+                json.WriteValue("1 Microsoft Way");
+                json.WritePropertyName("city");
+                json.WriteValue("Redmond");
+                json.WritePropertyName("zip");
+                json.WriteValue(98052);
+                json.WriteEndObject();
+
+                json.WritePropertyName("ExtraArray");
+                json.WriteStartArray();
+                for (int i = 0; i < DataSize; i++)
+                {
+                    json.WriteValue(_numberArrayValues[i]);
+                }
+                json.WriteEndArray();
+
+                json.WriteEndObject();
+
+                json.Flush();
             }
         }
     }
