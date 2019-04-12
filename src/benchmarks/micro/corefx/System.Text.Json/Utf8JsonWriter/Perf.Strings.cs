@@ -40,6 +40,7 @@ namespace System.Text.Json
             for (int i = 0; i < DataSize; i++)
             {
                 _stringArrayValues[i] = GetString(5, 100);
+                _stringArrayValuesUtf8[i] = Encoding.UTF8.GetBytes(_stringArrayValues[i]);
             }
         }
 

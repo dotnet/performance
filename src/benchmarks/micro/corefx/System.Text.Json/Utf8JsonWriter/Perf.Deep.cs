@@ -91,7 +91,7 @@ namespace System.Text.Json
 
             for (int i = 0; i < Depth; i++)
             {
-                json.WriteEndArray();
+                json.WriteEndObject();
             }
 
             json.WriteEndObject();
@@ -129,7 +129,7 @@ namespace System.Text.Json
 
             for (int i = 0; i < Depth; i++)
             {
-                json.WriteEndArray();
+                json.WriteEndObject();
             }
 
             json.WriteEndObject();
