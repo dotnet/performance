@@ -28,6 +28,16 @@ namespace System.Text.Json
         [Params(true, false)]
         public bool Pool;
 
+        public enum Escape
+        {
+            AllEscaped,
+            OneEscaped,
+            NoneEscaped
+        }
+
+        [Params(Escape.AllEscaped, Escape.OneEscaped, Escape.NoneEscaped)]
+        public Escape Escaped;
+
         [GlobalSetup]
         public void Setup()
         {
@@ -39,25 +49,35 @@ namespace System.Text.Json
 
             for (int i = 0; i < DataSize; i++)
             {
-                _stringArrayValues[i] = GetString(5, 100);
+                _stringArrayValues[i] = GetString(5, 100, Escaped);
                 _stringArrayValuesUtf8[i] = Encoding.UTF8.GetBytes(_stringArrayValues[i]);
             }
         }
 
-        private static string GetString(int minLength, int maxLength)
+        private static string GetString(int minLength, int maxLength, Escape escape)
         {
             var random = new Random(42);
             int length = random.Next(minLength, maxLength);
             var array = new char[length];
 
-            for (int i = 0; i < length; i++)
+            if (escape != Escape.AllEscaped)
             {
-                array[i] = (char)random.Next(97, 123);
-            }
+                for (int i = 0; i < length; i++)
+                {
+                    array[i] = (char)random.Next(97, 123);
+                }
 
-            if (random.NextDouble() > 0.5)
+                if (escape == Escape.OneEscaped)
+                {
+                    if (random.NextDouble() > 0.5)
+                    {
+                        array[random.Next(0, length)] = '"';
+                    }
+                }
+            }
+            else
             {
-                array[random.Next(0, length)] = '+';
+                array.AsSpan().Fill('"');
             }
 
             return new string(array);
