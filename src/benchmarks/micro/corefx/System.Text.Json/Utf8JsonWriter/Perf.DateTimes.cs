@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Buffers;
-using System.IO;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
-using Newtonsoft.Json;
 
 namespace System.Text.Json
 {
@@ -70,55 +68,6 @@ namespace System.Text.Json
             {
                 _arrayBufferWriter.Clear();
                 return _arrayBufferWriter;
-            }
-        }
-    }
-
-    [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
-    public class Perf_Newtonsoft_DateTimes
-    {
-        private MemoryStream _memoryStream;
-
-        private const int DataSize = 100_000;
-
-        private DateTime[] _dateArrayValues;
-
-        private TextWriter _writer;
-
-        [Params(Formatting.Indented, Formatting.None)]
-        public Formatting Formatting;
-
-        [GlobalSetup]
-        public void Setup()
-        {
-            _memoryStream = new MemoryStream();
-            _writer = new StreamWriter(_memoryStream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true);
-
-            _dateArrayValues = new DateTime[DataSize];
-
-            for (int i = 0; i < DataSize; i++)
-            {
-                _dateArrayValues[i] = DateTime.Now;
-            }
-        }
-
-        [Benchmark]
-        public void WriteDateTimes()
-        {
-            _memoryStream.Seek(0, SeekOrigin.Begin);
-            TextWriter output = _writer;
-            using (var json = new JsonTextWriter(output))
-            {
-                json.Formatting = Formatting;
-
-                json.WriteStartArray();
-                for (int i = 0; i < DataSize; i++)
-                {
-                    json.WriteValue(_dateArrayValues[i]);
-                }
-                json.WriteEndArray();
-
-                json.Flush();
             }
         }
     }

@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Buffers;
-using System.IO;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
-using Newtonsoft.Json;
 
 namespace System.Text.Json
 {
@@ -149,93 +147,6 @@ namespace System.Text.Json
             {
                 _arrayBufferWriter.Clear();
                 return _arrayBufferWriter;
-            }
-        }
-    }
-
-    [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
-    public class Perf_Newtonsoft_Deep
-    {
-        private MemoryStream _memoryStream;
-
-        private const int DataSize = 100_000;
-        private const int Depth = 500;
-
-        private string[] _propertNames;
-        private int[] _numberArrayValues;
-        private string[] _stringArrayValues;
-
-        private TextWriter _writer;
-
-        [Params(Formatting.Indented, Formatting.None)]
-        public Formatting Formatting;
-
-        [GlobalSetup]
-        public void Setup()
-        {
-            _memoryStream = new MemoryStream();
-            _writer = new StreamWriter(_memoryStream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true);
-
-            var random = new Random(42);
-
-            _propertNames = new string[Depth];
-            _numberArrayValues = new int[DataSize];
-            _stringArrayValues = new string[DataSize];
-
-            for (int i = 0; i < Depth; i++)
-            {
-                _propertNames[i] = "abcde" + i.ToString();
-            }
-
-            for (int i = 0; i < DataSize; i++)
-            {
-                int value = random.Next(-10000, 10000);
-                _numberArrayValues[i] = value;
-                _stringArrayValues[i] = value.ToString();
-            }
-        }
-
-        [Benchmark]
-        public void WriteDeep()
-        {
-            _memoryStream.Seek(0, SeekOrigin.Begin);
-            TextWriter output = _writer;
-            using (var json = new JsonTextWriter(output))
-            {
-                json.Formatting = Formatting;
-
-                json.WriteStartObject();
-                for (int i = 0; i < Depth; i++)
-                {
-                    json.WritePropertyName(_propertNames[i]);
-                    json.WriteStartObject();
-                }
-
-                json.WritePropertyName("ExtraArray");
-                json.WriteStartArray();
-                for (int i = 0; i < DataSize; i++)
-                {
-                    int number = _numberArrayValues[i];
-
-                    if (number > 0)
-                    {
-                        json.WriteValue(_stringArrayValues[i]);
-                    }
-                    else
-                    {
-                        json.WriteValue(number);
-                    }
-                }
-                json.WriteEndArray();
-
-                for (int i = 0; i < Depth; i++)
-                {
-                    json.WriteEndObject();
-                }
-
-                json.WriteEndObject();
-
-                json.Flush();
             }
         }
     }

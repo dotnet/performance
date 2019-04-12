@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Buffers;
-using System.IO;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
-using Newtonsoft.Json;
 
 namespace System.Text.Json
 {
@@ -46,34 +44,6 @@ namespace System.Text.Json
             IBufferWriter<byte> output = NewOutput ? new PooledBufferWriter<byte>() : _pooledBufferWriter;
             var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
             var json = new Utf8JsonWriter(output, state);
-        }
-    }
-
-    [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
-    public class Perf_Newtonsoft_Ctor
-    {
-        private TextWriter _writer;
-
-        [Params(Formatting.Indented, Formatting.None)]
-        public Formatting Formatting;
-
-        [Params(true, false)]
-        public bool NewOutput;
-
-        [GlobalSetup]
-        public void Setup()
-        {
-            _writer = new StreamWriter(new MemoryStream());
-        }
-
-        [Benchmark]
-        public void Ctor()
-        {
-            TextWriter output = NewOutput ? new StreamWriter(new MemoryStream()) : _writer;
-            using (var json = new JsonTextWriter(output))
-            {
-                json.Formatting = Formatting;
-            }
         }
     }
 }

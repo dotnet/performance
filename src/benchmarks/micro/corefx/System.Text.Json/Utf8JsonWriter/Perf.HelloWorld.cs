@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Buffers;
-using System.IO;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
-using Newtonsoft.Json;
 
 namespace System.Text.Json
 {
@@ -72,42 +70,6 @@ namespace System.Text.Json
             {
                 _arrayBufferWriter.Clear();
                 return _arrayBufferWriter;
-            }
-        }
-    }
-
-    [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
-    public class Perf_Newtonsoft_HelloWorld
-    {
-        private MemoryStream _memoryStream;
-
-        private TextWriter _writer;
-
-        [Params(Formatting.Indented, Formatting.None)]
-        public Formatting Formatting;
-
-        [GlobalSetup]
-        public void Setup()
-        {
-            _memoryStream = new MemoryStream();
-            _writer = new StreamWriter(_memoryStream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true);
-        }
-
-        [Benchmark]
-        public void WriteHelloWorld()
-        {
-            _memoryStream.Seek(0, SeekOrigin.Begin);
-            TextWriter output = _writer;
-            using (var json = new JsonTextWriter(output))
-            {
-                json.Formatting = Formatting;
-
-                json.WriteStartObject();
-                json.WritePropertyName("message");
-                json.WriteValue("Hello, World!");
-                json.WriteEndObject();
-
-                json.Flush();
             }
         }
     }

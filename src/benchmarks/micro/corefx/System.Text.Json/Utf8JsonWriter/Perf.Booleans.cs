@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Buffers;
-using System.IO;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
-using Newtonsoft.Json;
 
 namespace System.Text.Json
 {
@@ -72,57 +70,6 @@ namespace System.Text.Json
             {
                 _arrayBufferWriter.Clear();
                 return _arrayBufferWriter;
-            }
-        }
-    }
-
-    [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
-    public class Perf_Newtonsoft_Booleans
-    {
-        private MemoryStream _memoryStream;
-
-        private const int DataSize = 100_000;
-
-        private bool[] _boolArrayValues;
-
-        private TextWriter _writer;
-
-        [Params(Formatting.Indented, Formatting.None)]
-        public Formatting Formatting;
-
-        [GlobalSetup]
-        public void Setup()
-        {
-            _memoryStream = new MemoryStream();
-            _writer = new StreamWriter(_memoryStream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true);
-
-            var random = new Random(42);
-
-            _boolArrayValues = new bool[DataSize];
-
-            for (int i = 0; i < DataSize; i++)
-            {
-                _boolArrayValues[i] = random.NextDouble() > 0.5;
-            }
-        }
-
-        [Benchmark]
-        public void WriteBoolean()
-        {
-            _memoryStream.Seek(0, SeekOrigin.Begin);
-            TextWriter output = _writer;
-            using (var json = new JsonTextWriter(output))
-            {
-                json.Formatting = Formatting;
-
-                json.WriteStartArray();
-                for (int i = 0; i < DataSize; i++)
-                {
-                    json.WriteValue(_boolArrayValues[i]);
-                }
-                json.WriteEndArray();
-
-                json.Flush();
             }
         }
     }
