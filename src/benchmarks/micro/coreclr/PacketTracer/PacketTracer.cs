@@ -71,7 +71,7 @@ namespace HardwareIntrinsics.RayTracer
 
             var color = Shade(isect, rayPacket256, scene, depth);
             var isNull = Compare(isect.Distances, Intersections.NullDistance,
-                FloatComparisonMode.EqualOrderedNonSignaling);
+                FloatComparisonMode.OrderedEqualNonSignaling);
             var backgroundColor = ColorPacket256Helper.BackgroundColor.Xs;
             return new ColorPacket256(BlendVariable(color.Xs, backgroundColor, isNull),
                 BlendVariable(color.Ys, backgroundColor, isNull),
@@ -87,7 +87,7 @@ namespace HardwareIntrinsics.RayTracer
             }
 
             var isNull = Compare(isect.Distances, Intersections.NullDistance,
-                FloatComparisonMode.EqualOrderedNonSignaling);
+                FloatComparisonMode.OrderedEqualNonSignaling);
             return BlendVariable(isect.Distances, Vector256<float>.Zero, isNull);
         }
 
@@ -101,12 +101,12 @@ namespace HardwareIntrinsics.RayTracer
                 if (!Intersections.AllNullIntersections(distance))
                 {
                     var notNullMask = Compare(distance, Intersections.NullDistance,
-                        FloatComparisonMode.NotEqualOrderedNonSignaling);
+                        FloatComparisonMode.OrderedNotEqualNonSignaling);
                     var nullMinMask = Compare(mins.Distances, Intersections.NullDistance,
-                        FloatComparisonMode.EqualOrderedNonSignaling);
+                        FloatComparisonMode.OrderedEqualNonSignaling);
 
                     var lessMinMask = Compare(mins.Distances, distance,
-                        FloatComparisonMode.GreaterThanOrderedNonSignaling);
+                        FloatComparisonMode.OrderedGreaterThanNonSignaling);
                     var minMask = And(notNullMask, Or(nullMinMask, lessMinMask));
                     var minDis = BlendVariable(mins.Distances, distance, minMask);
                     var minIndices = BlendVariable(mins.ThingIndices.AsSingle(),
@@ -153,13 +153,13 @@ namespace HardwareIntrinsics.RayTracer
                 var neatIsectDis = TestRay(new RayPacket256(pos, livec), scene);
 
                 // is in shadow?
-                var mask1 = Compare(neatIsectDis, ldis.Lengths, FloatComparisonMode.LessThanOrEqualOrderedNonSignaling);
-                var mask2 = Compare(neatIsectDis, zero, FloatComparisonMode.NotEqualOrderedNonSignaling);
+                var mask1 = Compare(neatIsectDis, ldis.Lengths, FloatComparisonMode.OrderedLessThanOrEqualNonSignaling);
+                var mask2 = Compare(neatIsectDis, zero, FloatComparisonMode.OrderedNotEqualNonSignaling);
                 var isInShadow = And(mask1, mask2);
 
                 Vector256<float> illum = VectorPacket256.DotProduct(livec, norms);
                 Vector256<float> illumGraterThanZero =
-                    Compare(illum, zero, FloatComparisonMode.GreaterThanOrderedNonSignaling);
+                    Compare(illum, zero, FloatComparisonMode.OrderedGreaterThanNonSignaling);
                 var tmpColor1 = illum * colorPacket;
                 var defaultRGB = zero;
                 Vector256<float> lcolorR = BlendVariable(defaultRGB, tmpColor1.Xs, illumGraterThanZero);
@@ -169,7 +169,7 @@ namespace HardwareIntrinsics.RayTracer
 
                 Vector256<float> specular = VectorPacket256.DotProduct(livec, rds.Normalize());
                 Vector256<float> specularGraterThanZero =
-                    Compare(specular, zero, FloatComparisonMode.GreaterThanOrderedNonSignaling);
+                    Compare(specular, zero, FloatComparisonMode.OrderedGreaterThanNonSignaling);
 
                 var difColor = new ColorPacket256(1, 1, 1);
                 var splColor = new ColorPacket256(1, 1, 1);
