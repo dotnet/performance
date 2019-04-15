@@ -5,7 +5,7 @@
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-namespace System.Text.Json
+namespace System.Text.Json.Tests
 {
     [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
     public class Perf_Strings
@@ -90,6 +90,7 @@ namespace System.Text.Json
         public void WriteStringsUtf8()
         {
             var json = new Utf8JsonWriter(_arrayBufferWriter, _state);
+
             json.WriteStartArray();
             for (int i = 0; i < DataSize; i++)
             {

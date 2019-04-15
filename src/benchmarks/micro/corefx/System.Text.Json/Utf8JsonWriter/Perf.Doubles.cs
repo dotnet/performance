@@ -5,7 +5,7 @@
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-namespace System.Text.Json
+namespace System.Text.Json.Tests
 {
     [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
     public class Perf_Doubles

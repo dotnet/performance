@@ -5,11 +5,21 @@
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-namespace System.Text.Json
+namespace System.Text.Json.Tests
 {
     [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
-    public class Perf_Arrays
+    public class Perf_Basic
     {
+        private static readonly byte[] ExtraArrayUtf8 = Encoding.UTF8.GetBytes("ExtraArray");
+        private static readonly byte[] FirstUtf8 = Encoding.UTF8.GetBytes("first");
+        private static readonly byte[] LastUtf8 = Encoding.UTF8.GetBytes("last");
+        private static readonly byte[] AgeUtf8 = Encoding.UTF8.GetBytes("age");
+        private static readonly byte[] PhoneNumbersUtf8 = Encoding.UTF8.GetBytes("phoneNumbers");
+        private static readonly byte[] AddressUtf8 = Encoding.UTF8.GetBytes("address");
+        private static readonly byte[] StreetUtf8 = Encoding.UTF8.GetBytes("street");
+        private static readonly byte[] CityUtf8 = Encoding.UTF8.GetBytes("city");
+        private static readonly byte[] ZipUtf8 = Encoding.UTF8.GetBytes("zip");
+
         private ArrayBufferWriter<byte> _arrayBufferWriter;
         private JsonWriterState _state;
 
@@ -49,47 +59,69 @@ namespace System.Text.Json
             }
         }
 
-        [IterationSetup(Targets = new[] { nameof(WriteArrayValuesUtf8), nameof(WriteArrayValuesUtf16) })]
-        public void SetupWriteArrayValues()
+        [IterationSetup(Targets = new[] { nameof(WriteBasicUtf8), nameof(WriteBasicUt16) })]
+        public void SetupWriteBasic()
         {
             _arrayBufferWriter.Clear();
             _state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
         }
 
         [Benchmark]
-        public void WriteArrayValuesUtf8()
+        public void WriteBasicUtf8()
         {
             var json = new Utf8JsonWriter(_arrayBufferWriter, _state);
 
             json.WriteStartObject();
+            json.WriteNumber(AgeUtf8, 42);
+            json.WriteString(FirstUtf8, "John");
+            json.WriteString(LastUtf8, "Smith");
+            json.WriteStartArray(PhoneNumbersUtf8);
+            json.WriteStringValue("425-000-1212");
+            json.WriteStringValue("425-000-1213");
+            json.WriteEndArray();
+            json.WriteStartObject(AddressUtf8);
+            json.WriteString(StreetUtf8, "1 Microsoft Way");
+            json.WriteString(CityUtf8, "Redmond");
+            json.WriteNumber(ZipUtf8, 98052);
+            json.WriteEndObject();
+
+            json.WriteStartArray(ExtraArrayUtf8);
             for (int i = 0; i < DataSize; i++)
             {
-                json.WriteStartArray(_propertyNamesUtf8[i]);
-
-                json.WriteStringValue(_stringArrayValues[i]);
                 json.WriteNumberValue(_numberArrayValues[i]);
-
-                json.WriteEndArray();
             }
+            json.WriteEndArray();
+
             json.WriteEndObject();
             json.Flush(isFinalBlock: true);
         }
 
         [Benchmark]
-        public void WriteArrayValuesUtf16()
+        public void WriteBasicUt16()
         {
             var json = new Utf8JsonWriter(_arrayBufferWriter, _state);
 
             json.WriteStartObject();
+            json.WriteNumber("age", 42);
+            json.WriteString("first", "John");
+            json.WriteString("last", "Smith");
+            json.WriteStartArray("phoneNumbers");
+            json.WriteStringValue("425-000-1212");
+            json.WriteStringValue("425-000-1213");
+            json.WriteEndArray();
+            json.WriteStartObject("address");
+            json.WriteString("street", "1 Microsoft Way");
+            json.WriteString("city", "Redmond");
+            json.WriteNumber("zip", 98052);
+            json.WriteEndObject();
+
+            json.WriteStartArray("ExtraArray");
             for (int i = 0; i < DataSize; i++)
             {
-                json.WriteStartArray(_propertyNames[i]);
-
-                json.WriteStringValue(_stringArrayValues[i]);
                 json.WriteNumberValue(_numberArrayValues[i]);
-
-                json.WriteEndArray();
             }
+            json.WriteEndArray();
+
             json.WriteEndObject();
             json.Flush(isFinalBlock: true);
         }

@@ -5,7 +5,7 @@
 using System.Buffers;
 using System.Diagnostics;
 
-namespace System.Text.Json
+namespace System.Text.Json.Tests
 {
     internal sealed class ArrayBufferWriter<T> : IBufferWriter<T>
     {
