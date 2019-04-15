@@ -13,7 +13,6 @@ namespace System.Text.Json.Tests
         private const int DataSize = 100_000;
 
         private ArrayBufferWriter<byte> _arrayBufferWriter;
-        private JsonWriterState _state;
 
         private double[] _numberArrayValues;
 
@@ -52,17 +51,12 @@ namespace System.Text.Json.Tests
             return value;
         }
 
-        [IterationSetup(Target = nameof(WriteDoubles))]
-        public void SetupWriteDoubles()
-        {
-            _arrayBufferWriter.Clear();
-            _state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
-        }
-
         [Benchmark]
         public void WriteDoubles()
         {
-            var json = new Utf8JsonWriter(_arrayBufferWriter, _state);
+            _arrayBufferWriter.Clear();
+            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
+            var json = new Utf8JsonWriter(_arrayBufferWriter, state);
 
             json.WriteStartArray();
             for (int i = 0; i < DataSize; i++)

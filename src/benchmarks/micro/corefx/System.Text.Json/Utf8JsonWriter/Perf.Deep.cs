@@ -16,7 +16,6 @@ namespace System.Text.Json.Tests
         private const int Depth = 500;
 
         private ArrayBufferWriter<byte> _arrayBufferWriter;
-        private JsonWriterState _state;
 
         private string[] _propertyNames;
         private byte[][] _propertyNamesUtf8;
@@ -55,17 +54,12 @@ namespace System.Text.Json.Tests
             }
         }
 
-        [IterationSetup(Targets = new[] { nameof(WriteDeepUtf8), nameof(WriteDeepUtf16) })]
-        public void SetupWriteDeep()
-        {
-            _arrayBufferWriter.Clear();
-            _state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
-        }
-
         [Benchmark]
         public void WriteDeepUtf8()
         {
-            var json = new Utf8JsonWriter(_arrayBufferWriter, _state);
+            _arrayBufferWriter.Clear();
+            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
+            var json = new Utf8JsonWriter(_arrayBufferWriter, state);
 
             json.WriteStartObject();
             for (int i = 0; i < Depth; i++)
@@ -93,7 +87,9 @@ namespace System.Text.Json.Tests
         [Benchmark]
         public void WriteDeepUtf16()
         {
-            var json = new Utf8JsonWriter(_arrayBufferWriter, _state);
+            _arrayBufferWriter.Clear();
+            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
+            var json = new Utf8JsonWriter(_arrayBufferWriter, state);
 
             json.WriteStartObject();
             for (int i = 0; i < Depth; i++)

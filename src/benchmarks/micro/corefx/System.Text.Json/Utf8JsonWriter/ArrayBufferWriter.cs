@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Buffers;
-using System.Diagnostics;
 
 namespace System.Text.Json.Tests
 {
+    // Remove once we have https://github.com/dotnet/corefx/issues/34894
     internal sealed class ArrayBufferWriter<T> : IBufferWriter<T>
     {
         private T[] _buffer;
@@ -29,47 +29,16 @@ namespace System.Text.Json.Tests
             _index = 0;
         }
 
-        public ReadOnlyMemory<T> WrittenMemory
-        {
-            get
-            {
-                return _buffer.AsMemory(0, _index);
-            }
-        }
+        public ReadOnlyMemory<T> WrittenMemory => _buffer.AsMemory(0, _index);
 
-        public int WrittenCount
-        {
-            get
-            {
-                return _index;
-            }
-        }
+        public int WrittenCount => _index;
 
-        public int Capacity
-        {
-            get
-            {
-                return _buffer.Length;
-            }
-        }
+        public int Capacity => _buffer.Length;
 
-        public int FreeCapacity
-        {
-            get
-            {
-                return _buffer.Length - _index;
-            }
-        }
+        public int FreeCapacity => _buffer.Length - _index;
 
         public void Clear()
         {
-            ClearHelper();
-        }
-
-        private void ClearHelper()
-        {
-            Debug.Assert(_buffer != null);
-
             _buffer.AsSpan(0, _index).Clear();
             _index = 0;
         }
@@ -80,7 +49,7 @@ namespace System.Text.Json.Tests
                 throw new ArgumentException(nameof(count));
 
             if (_index > _buffer.Length - count)
-                ThrowInvalidOperationException(_buffer.Length);
+                throw new InvalidOperationException($"Cannot advance past the end of the buffer, which has a size of {_buffer.Length}.");
 
             _index += count;
         }
@@ -99,8 +68,6 @@ namespace System.Text.Json.Tests
 
         private void CheckAndResizeBuffer(int sizeHint)
         {
-            Debug.Assert(_buffer != null);
-
             if (sizeHint < 0)
                 throw new ArgumentException(nameof(sizeHint));
 
@@ -123,14 +90,6 @@ namespace System.Text.Json.Tests
 
                 _buffer = newBuffer;
             }
-
-            Debug.Assert(_buffer.Length - _index > 0);
-            Debug.Assert(_buffer.Length - _index >= sizeHint);
-        }
-
-        private static void ThrowInvalidOperationException(int capacity)
-        {
-            throw new InvalidOperationException($"Cannot advance past the end of the buffer, which has a size of {capacity}.");
         }
     }
 }

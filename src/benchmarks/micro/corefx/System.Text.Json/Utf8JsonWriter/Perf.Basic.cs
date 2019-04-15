@@ -21,7 +21,6 @@ namespace System.Text.Json.Tests
         private static readonly byte[] ZipUtf8 = Encoding.UTF8.GetBytes("zip");
 
         private ArrayBufferWriter<byte> _arrayBufferWriter;
-        private JsonWriterState _state;
 
         private string[] _propertyNames;
         private byte[][] _propertyNamesUtf8;
@@ -59,17 +58,12 @@ namespace System.Text.Json.Tests
             }
         }
 
-        [IterationSetup(Targets = new[] { nameof(WriteBasicUtf8), nameof(WriteBasicUt16) })]
-        public void SetupWriteBasic()
-        {
-            _arrayBufferWriter.Clear();
-            _state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
-        }
-
         [Benchmark]
         public void WriteBasicUtf8()
         {
-            var json = new Utf8JsonWriter(_arrayBufferWriter, _state);
+            _arrayBufferWriter.Clear();
+            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
+            var json = new Utf8JsonWriter(_arrayBufferWriter, state);
 
             json.WriteStartObject();
             json.WriteNumber(AgeUtf8, 42);
@@ -99,7 +93,9 @@ namespace System.Text.Json.Tests
         [Benchmark]
         public void WriteBasicUt16()
         {
-            var json = new Utf8JsonWriter(_arrayBufferWriter, _state);
+            _arrayBufferWriter.Clear();
+            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
+            var json = new Utf8JsonWriter(_arrayBufferWriter, state);
 
             json.WriteStartObject();
             json.WriteNumber("age", 42);
