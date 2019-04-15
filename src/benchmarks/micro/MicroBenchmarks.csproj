@@ -86,7 +86,7 @@
     <Compile Remove="coreclr\Math\Functions\Single\ScaleB.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition=" !('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' == '3.0')">
+  <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.0'">
     <Compile Remove="corefx\System.Text.Json\Utf8JsonWriter\*.cs" />
   </ItemGroup>
 

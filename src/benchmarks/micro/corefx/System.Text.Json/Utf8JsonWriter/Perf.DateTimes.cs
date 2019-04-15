@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Buffers;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -14,7 +13,7 @@ namespace System.Text.Json
         private const int DataSize = 100_000;
 
         private ArrayBufferWriter<byte> _arrayBufferWriter;
-        private PooledBufferWriter<byte> _pooledBufferWriter;
+        private JsonWriterState _state;
 
         private DateTime[] _dateArrayValues;
 
@@ -24,29 +23,32 @@ namespace System.Text.Json
         [Params(true, false)]
         public bool SkipValidation;
 
-        [Params(true, false)]
-        public bool Pool;
-
         [GlobalSetup]
         public void Setup()
         {
             _arrayBufferWriter = new ArrayBufferWriter<byte>();
-            _pooledBufferWriter = new PooledBufferWriter<byte>();
 
             _dateArrayValues = new DateTime[DataSize];
 
+            var startDate = new DateTime(2000, 01, 01);
+
             for (int i = 0; i < DataSize; i++)
             {
-                _dateArrayValues[i] = DateTime.Now;
+                _dateArrayValues[i] = startDate.AddDays(i);
             }
+        }
+
+        [IterationSetup(Target = nameof(WriteDateTimes))]
+        public void SetupWriteDateTimes()
+        {
+            _arrayBufferWriter.Clear();
+            _state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
         }
 
         [Benchmark]
         public void WriteDateTimes()
         {
-            IBufferWriter<byte> output = GetOutput();
-            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
-            var json = new Utf8JsonWriter(output, state);
+            var json = new Utf8JsonWriter(_arrayBufferWriter, _state);
 
             json.WriteStartArray();
             for (int i = 0; i < DataSize; i++)
@@ -55,20 +57,6 @@ namespace System.Text.Json
             }
             json.WriteEndArray();
             json.Flush(isFinalBlock: true);
-        }
-
-        private IBufferWriter<byte> GetOutput()
-        {
-            if (Pool)
-            {
-                _pooledBufferWriter.Clear();
-                return _pooledBufferWriter;
-            }
-            else
-            {
-                _arrayBufferWriter.Clear();
-                return _arrayBufferWriter;
-            }
         }
     }
 }

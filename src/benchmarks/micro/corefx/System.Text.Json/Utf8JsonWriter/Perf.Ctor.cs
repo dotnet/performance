@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Buffers;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -12,7 +11,6 @@ namespace System.Text.Json
     public class Perf_Ctor
     {
         private ArrayBufferWriter<byte> _arrayBufferWriter;
-        private PooledBufferWriter<byte> _pooledBufferWriter;
 
         [Params(true, false)]
         public bool Formatted;
@@ -20,30 +18,17 @@ namespace System.Text.Json
         [Params(true, false)]
         public bool SkipValidation;
 
-        [Params(true, false)]
-        public bool NewOutput;
-
         [GlobalSetup]
         public void Setup()
         {
             _arrayBufferWriter = new ArrayBufferWriter<byte>();
-            _pooledBufferWriter = new PooledBufferWriter<byte>();
         }
 
         [Benchmark]
-        public void Ctor_Array()
+        public void Ctor()
         {
-            IBufferWriter<byte> output = NewOutput ? new ArrayBufferWriter<byte>() : _arrayBufferWriter;
             var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
-            var json = new Utf8JsonWriter(output, state);
-        }
-
-        [Benchmark]
-        public void Ctor_Pool()
-        {
-            IBufferWriter<byte> output = NewOutput ? new PooledBufferWriter<byte>() : _pooledBufferWriter;
-            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
-            var json = new Utf8JsonWriter(output, state);
+            var json = new Utf8JsonWriter(_arrayBufferWriter, state);
         }
     }
 }

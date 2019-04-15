@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Buffers;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -14,6 +13,7 @@ namespace System.Text.Json
         private const int DataSize = 100_000;
 
         private ArrayBufferWriter<byte> _arrayBufferWriter;
+        private JsonWriterState _state;
 
         private string[] _stringArrayValues;
         private byte[][] _stringArrayValuesUtf8;
@@ -42,16 +42,17 @@ namespace System.Text.Json
             _stringArrayValues = new string[DataSize];
             _stringArrayValuesUtf8 = new byte[DataSize][];
 
+            var random = new Random(42);
+
             for (int i = 0; i < DataSize; i++)
             {
-                _stringArrayValues[i] = GetString(5, 100, Escaped);
+                _stringArrayValues[i] = GetString(random, 5, 100, Escaped);
                 _stringArrayValuesUtf8[i] = Encoding.UTF8.GetBytes(_stringArrayValues[i]);
             }
         }
 
-        private static string GetString(int minLength, int maxLength, Escape escape)
+        private static string GetString(Random random, int minLength, int maxLength, Escape escape)
         {
-            var random = new Random(42);
             int length = random.Next(minLength, maxLength);
             var array = new char[length];
 
@@ -78,14 +79,17 @@ namespace System.Text.Json
             return new string(array);
         }
 
+        [IterationSetup(Targets = new[] { nameof(WriteStringsUtf8), nameof(WriteStringsUtf16) })]
+        public void SetupWriteStrings()
+        {
+            _arrayBufferWriter.Clear();
+            _state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
+        }
+
         [Benchmark]
         public void WriteStringsUtf8()
         {
-            _arrayBufferWriter.Clear();
-            IBufferWriter<byte> output = _arrayBufferWriter;
-            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
-            var json = new Utf8JsonWriter(output, state);
-
+            var json = new Utf8JsonWriter(_arrayBufferWriter, _state);
             json.WriteStartArray();
             for (int i = 0; i < DataSize; i++)
             {
@@ -98,10 +102,7 @@ namespace System.Text.Json
         [Benchmark]
         public void WriteStringsUtf16()
         {
-            _arrayBufferWriter.Clear();
-            IBufferWriter<byte> output = _arrayBufferWriter;
-            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
-            var json = new Utf8JsonWriter(output, state);
+            var json = new Utf8JsonWriter(_arrayBufferWriter, _state);
 
             json.WriteStartArray();
             for (int i = 0; i < DataSize; i++)
