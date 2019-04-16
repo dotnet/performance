@@ -22,10 +22,7 @@ namespace System.Text.Json.Tests
 
         private ArrayBufferWriter<byte> _arrayBufferWriter;
 
-        private string[] _propertyNames;
-        private byte[][] _propertyNamesUtf8;
         private int[] _numberArrayValues;
-        private string[] _stringArrayValues;
 
         [Params(true, false)]
         public bool Formatted;
@@ -43,18 +40,11 @@ namespace System.Text.Json.Tests
 
             var random = new Random(42);
 
-            _propertyNames = new string[DataSize];
-            _propertyNamesUtf8 = new byte[DataSize][];
             _numberArrayValues = new int[DataSize];
-            _stringArrayValues = new string[DataSize];
 
             for (int i = 0; i < DataSize; i++)
             {
-                _propertyNames[i] = "abcde" + i.ToString();
-                _propertyNamesUtf8[i] = Encoding.UTF8.GetBytes(_propertyNames[i]);
-                int value = random.Next(-10000, 10000);
-                _numberArrayValues[i] = value;
-                _stringArrayValues[i] = value.ToString();
+                _numberArrayValues[i] = random.Next(-10000, 10000);
             }
         }
 
@@ -91,7 +81,7 @@ namespace System.Text.Json.Tests
         }
 
         [Benchmark]
-        public void WriteBasicUt16()
+        public void WriteBasicUtf16()
         {
             _arrayBufferWriter.Clear();
             var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
