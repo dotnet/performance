@@ -86,6 +86,10 @@
     <Compile Remove="coreclr\Math\Functions\Single\ScaleB.cs" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.0'">
+    <Compile Remove="corefx\System.Text.Json\Utf8JsonWriter\*.cs" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
     <Compile Remove="corefx\System.Drawing\Perf_Graphics*.cs" />
   </ItemGroup>
