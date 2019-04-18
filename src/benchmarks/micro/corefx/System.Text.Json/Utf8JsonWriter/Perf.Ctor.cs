@@ -27,8 +27,10 @@ namespace System.Text.Json.Tests
         [Benchmark]
         public void Ctor()
         {
-            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
-            var json = new Utf8JsonWriter(_arrayBufferWriter, state);
+            using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
+            {
+
+            }
         }
     }
 }

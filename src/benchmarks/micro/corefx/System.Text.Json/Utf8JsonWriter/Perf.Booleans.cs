@@ -41,16 +41,17 @@ namespace System.Text.Json.Tests
         public void WriteBooleans()
         {
             _arrayBufferWriter.Clear();
-            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
-            var json = new Utf8JsonWriter(_arrayBufferWriter, state);
-
-            json.WriteStartArray();
-            for (int i = 0; i < DataSize; i++)
+            using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
-                json.WriteBooleanValue(_boolArrayValues[i]);
+
+                json.WriteStartArray();
+                for (int i = 0; i < DataSize; i++)
+                {
+                    json.WriteBooleanValue(_boolArrayValues[i]);
+                }
+                json.WriteEndArray();
+                json.Flush();
             }
-            json.WriteEndArray();
-            json.Flush(isFinalBlock: true);
         }
     }
 }

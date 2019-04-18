@@ -41,17 +41,18 @@ namespace System.Text.Json.Tests
         public void WriteDateTimes()
         {
             _arrayBufferWriter.Clear();
-            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
 
-            var json = new Utf8JsonWriter(_arrayBufferWriter, state);
-
-            json.WriteStartArray();
-            for (int i = 0; i < DataSize; i++)
+            using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
-                json.WriteStringValue(_dateArrayValues[i]);
+
+                json.WriteStartArray();
+                for (int i = 0; i < DataSize; i++)
+                {
+                    json.WriteStringValue(_dateArrayValues[i]);
+                }
+                json.WriteEndArray();
+                json.Flush();
             }
-            json.WriteEndArray();
-            json.Flush(isFinalBlock: true);
         }
     }
 }
