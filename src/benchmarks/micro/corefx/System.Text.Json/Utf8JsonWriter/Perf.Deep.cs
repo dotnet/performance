@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Buffers;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -58,60 +59,62 @@ namespace System.Text.Json.Tests
         public void WriteDeepUtf8()
         {
             _arrayBufferWriter.Clear();
-            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
-            var json = new Utf8JsonWriter(_arrayBufferWriter, state);
-
-            json.WriteStartObject();
-            for (int i = 0; i < Depth; i++)
+            using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
-                json.WriteStartObject(_propertyNamesUtf8[i]);
-            }
 
-            json.WriteStartArray(ExtraArrayUtf8);
-            for (int i = 0; i < DataSize; i++)
-            {
-                json.WriteStringValue(_stringArrayValues[i]);
-                json.WriteNumberValue(_numberArrayValues[i]);
-            }
-            json.WriteEndArray();
+                json.WriteStartObject();
+                for (int i = 0; i < Depth; i++)
+                {
+                    json.WriteStartObject(_propertyNamesUtf8[i]);
+                }
 
-            for (int i = 0; i < Depth; i++)
-            {
+                json.WriteStartArray(ExtraArrayUtf8);
+                for (int i = 0; i < DataSize; i++)
+                {
+                    json.WriteStringValue(_stringArrayValues[i]);
+                    json.WriteNumberValue(_numberArrayValues[i]);
+                }
+                json.WriteEndArray();
+
+                for (int i = 0; i < Depth; i++)
+                {
+                    json.WriteEndObject();
+                }
+
                 json.WriteEndObject();
+                json.Flush();
             }
-
-            json.WriteEndObject();
-            json.Flush(isFinalBlock: true);
         }
 
         [Benchmark]
         public void WriteDeepUtf16()
         {
             _arrayBufferWriter.Clear();
-            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
-            var json = new Utf8JsonWriter(_arrayBufferWriter, state);
-
-            json.WriteStartObject();
-            for (int i = 0; i < Depth; i++)
+            using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
-                json.WriteStartObject(_propertyNames[i]);
-            }
 
-            json.WriteStartArray("ExtraArray");
-            for (int i = 0; i < DataSize; i++)
-            {
-                json.WriteStringValue(_stringArrayValues[i]);
-                json.WriteNumberValue(_numberArrayValues[i]);
-            }
-            json.WriteEndArray();
+                json.WriteStartObject();
+                for (int i = 0; i < Depth; i++)
+                {
+                    json.WriteStartObject(_propertyNames[i]);
+                }
 
-            for (int i = 0; i < Depth; i++)
-            {
+                json.WriteStartArray("ExtraArray");
+                for (int i = 0; i < DataSize; i++)
+                {
+                    json.WriteStringValue(_stringArrayValues[i]);
+                    json.WriteNumberValue(_numberArrayValues[i]);
+                }
+                json.WriteEndArray();
+
+                for (int i = 0; i < Depth; i++)
+                {
+                    json.WriteEndObject();
+                }
+
                 json.WriteEndObject();
+                json.Flush();
             }
-
-            json.WriteEndObject();
-            json.Flush(isFinalBlock: true);
         }
     }
 }

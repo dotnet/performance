@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Buffers;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -52,64 +53,66 @@ namespace System.Text.Json.Tests
         public void WriteBasicUtf8()
         {
             _arrayBufferWriter.Clear();
-            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
-            var json = new Utf8JsonWriter(_arrayBufferWriter, state);
-
-            json.WriteStartObject();
-            json.WriteNumber(AgeUtf8, 42);
-            json.WriteString(FirstUtf8, "John");
-            json.WriteString(LastUtf8, "Smith");
-            json.WriteStartArray(PhoneNumbersUtf8);
-            json.WriteStringValue("425-000-1212");
-            json.WriteStringValue("425-000-1213");
-            json.WriteEndArray();
-            json.WriteStartObject(AddressUtf8);
-            json.WriteString(StreetUtf8, "1 Microsoft Way");
-            json.WriteString(CityUtf8, "Redmond");
-            json.WriteNumber(ZipUtf8, 98052);
-            json.WriteEndObject();
-
-            json.WriteStartArray(ExtraArrayUtf8);
-            for (int i = 0; i < DataSize; i++)
+            using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
-                json.WriteNumberValue(_numberArrayValues[i]);
-            }
-            json.WriteEndArray();
 
-            json.WriteEndObject();
-            json.Flush(isFinalBlock: true);
+                json.WriteStartObject();
+                json.WriteNumber(AgeUtf8, 42);
+                json.WriteString(FirstUtf8, "John");
+                json.WriteString(LastUtf8, "Smith");
+                json.WriteStartArray(PhoneNumbersUtf8);
+                json.WriteStringValue("425-000-1212");
+                json.WriteStringValue("425-000-1213");
+                json.WriteEndArray();
+                json.WriteStartObject(AddressUtf8);
+                json.WriteString(StreetUtf8, "1 Microsoft Way");
+                json.WriteString(CityUtf8, "Redmond");
+                json.WriteNumber(ZipUtf8, 98052);
+                json.WriteEndObject();
+
+                json.WriteStartArray(ExtraArrayUtf8);
+                for (int i = 0; i < DataSize; i++)
+                {
+                    json.WriteNumberValue(_numberArrayValues[i]);
+                }
+                json.WriteEndArray();
+
+                json.WriteEndObject();
+                json.Flush();
+            }
         }
 
         [Benchmark]
         public void WriteBasicUtf16()
         {
             _arrayBufferWriter.Clear();
-            var state = new JsonWriterState(options: new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation });
-            var json = new Utf8JsonWriter(_arrayBufferWriter, state);
-
-            json.WriteStartObject();
-            json.WriteNumber("age", 42);
-            json.WriteString("first", "John");
-            json.WriteString("last", "Smith");
-            json.WriteStartArray("phoneNumbers");
-            json.WriteStringValue("425-000-1212");
-            json.WriteStringValue("425-000-1213");
-            json.WriteEndArray();
-            json.WriteStartObject("address");
-            json.WriteString("street", "1 Microsoft Way");
-            json.WriteString("city", "Redmond");
-            json.WriteNumber("zip", 98052);
-            json.WriteEndObject();
-
-            json.WriteStartArray("ExtraArray");
-            for (int i = 0; i < DataSize; i++)
+            using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
-                json.WriteNumberValue(_numberArrayValues[i]);
-            }
-            json.WriteEndArray();
 
-            json.WriteEndObject();
-            json.Flush(isFinalBlock: true);
+                json.WriteStartObject();
+                json.WriteNumber("age", 42);
+                json.WriteString("first", "John");
+                json.WriteString("last", "Smith");
+                json.WriteStartArray("phoneNumbers");
+                json.WriteStringValue("425-000-1212");
+                json.WriteStringValue("425-000-1213");
+                json.WriteEndArray();
+                json.WriteStartObject("address");
+                json.WriteString("street", "1 Microsoft Way");
+                json.WriteString("city", "Redmond");
+                json.WriteNumber("zip", 98052);
+                json.WriteEndObject();
+
+                json.WriteStartArray("ExtraArray");
+                for (int i = 0; i < DataSize; i++)
+                {
+                    json.WriteNumberValue(_numberArrayValues[i]);
+                }
+                json.WriteEndArray();
+
+                json.WriteEndObject();
+                json.Flush();
+            }
         }
     }
 }
