@@ -15,4 +15,36 @@
       https://ci.appveyor.com/nuget/benchmarkdotnet;
     </RestoreSources>
   </PropertyGroup>
+  <!--Package versions-->
+  <!--
+    These versions should ONLY be updated by automation.
+    DO NOT UPDATE THESE MANUALLY. Use the `darc` command line tool to update this file so it stays in sync with
+    Version.Details.xml.
+    See https://github.com/dotnet/arcade/blob/master/Documentation/Darc.md for instructions on using darc.
+  -->
+  <PropertyGroup Label="Automated">
+    <!-- Packages from dotnet/core-setup -->
+    <MicrosoftNETCoreAppPackageVersion>3.0.0-preview5-27618-16</MicrosoftNETCoreAppPackageVersion>
+    <!-- corefx -->
+    <SystemDrawingCommonPackageVersion>4.6.0-preview5.19217.11</SystemDrawingCommonPackageVersion>
+    <SystemIOPipelinesPackageVersion>4.6.0-preview5.19217.11</SystemIOPipelinesPackageVersion>
+    <SystemNumericsVectorsPackageVersion>4.6.0-preview5.19217.11</SystemNumericsVectorsPackageVersion>
+    <SystemRuntimeCompilerServicesUnsafePackageVersion>4.6.0-preview5.19217.11</SystemRuntimeCompilerServicesUnsafePackageVersion>
+    <SystemRuntimeSerializationFormattersPackageVersion>4.6.0-preview5.19217.11</SystemRuntimeSerializationFormattersPackageVersion>
+    <SystemRuntimeSerializationJsonPackageVersion>4.6.0-preview5.19217.11</SystemRuntimeSerializationJsonPackageVersion>
+    <SystemThreadingChannelsPackageVersion>4.6.0-preview5.19217.11</SystemThreadingChannelsPackageVersion>
+  </PropertyGroup>
+  <!--
+    ^^^^^^^^^^
+    SEE NOTE ABOVE.
+    Versions above this comment are updated automatically. Don't change them manually.
+    Versions below this comment are not managed by automation and can be changed as needed.
+  -->
+  <PropertyGroup Label="Manual">
+    <!-- Build tool dependencies -->
+    <!-- Stable dotnet/corefx packages no longer updated for .NET Core 3 -->
+    <SystemSecurityCryptographyPrimitivesPackageVersion>4.3.0</SystemSecurityCryptographyPrimitivesPackageVersion>
+    <SystemThreadingTasksExtensionsPackageVersion>4.5.2</SystemThreadingTasksExtensionsPackageVersion>
+    <SystemXmlXmlSerializerPackageVersion>4.3.0</SystemXmlXmlSerializerPackageVersion>
+  </PropertyGroup>
 </Project>

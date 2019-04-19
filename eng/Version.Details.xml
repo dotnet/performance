@@ -1,6 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
+    <Dependency Name="System.Drawing.Common" Version="4.6.0-preview5.19217.11" CoherentParentDependency="Microsoft.NETCore.App">
+      <Uri>https://github.com/dotnet/corefx</Uri>
+      <Sha>315fd00cb2465390900209919cdb2bf6bc44ae0e</Sha>
+    </Dependency>
+    <Dependency Name="System.IO.Pipelines" Version="4.6.0-preview5.19217.11" CoherentParentDependency="Microsoft.NETCore.App">
+      <Uri>https://github.com/dotnet/corefx</Uri>
+      <Sha>315fd00cb2465390900209919cdb2bf6bc44ae0e</Sha>
+    </Dependency>
+    <Dependency Name="System.Numerics.Vectors" Version="4.6.0-preview5.19217.11" CoherentParentDependency="Microsoft.NETCore.App">
+      <Uri>https://github.com/dotnet/corefx</Uri>
+      <Sha>315fd00cb2465390900209919cdb2bf6bc44ae0e</Sha>
+    </Dependency>
+    <Dependency Name="System.Runtime.CompilerServices.Unsafe" Version="4.6.0-preview5.19217.11" CoherentParentDependency="Microsoft.NETCore.App">
+      <Uri>https://github.com/dotnet/corefx</Uri>
+      <Sha>315fd00cb2465390900209919cdb2bf6bc44ae0e</Sha>
+    </Dependency>
+    <Dependency Name="System.Runtime.Serialization.Formatters" Version="4.6.0-preview5.19217.11" CoherentParentDependency="Microsoft.NETCore.App">
+      <Uri>https://github.com/dotnet/corefx</Uri>
+      <Sha>315fd00cb2465390900209919cdb2bf6bc44ae0e</Sha>
+    </Dependency>
+    <Dependency Name="System.Threading.Channels" Version="4.6.0-preview5.19217.11" CoherentParentDependency="Microsoft.NETCore.App">
+      <Uri>https://github.com/dotnet/corefx</Uri>
+      <Sha>315fd00cb2465390900209919cdb2bf6bc44ae0e</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.NETCore.App" Version="3.0.0-preview5-27618-16">
+      <Uri>https://github.com/dotnet/core-setup</Uri>
+      <Sha>490010c3451a44e45f782a019efd736aa490f79c</Sha>
+    </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
     <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="1.0.0-beta.19218.1">

@@ -9,6 +9,8 @@
     <DebugSymbols>true</DebugSymbols>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
+    <RuntimeFrameworkVersion Condition=" '$(TargetFramework)' == 'netcoreapp3.0' ">$(MicrosoftNETCoreAppPackageVersion)</RuntimeFrameworkVersion>
+
     <IsARM Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().StartsWith(`arm`, System.StringComparison.OrdinalIgnoreCase))'">true</IsARM>
   </PropertyGroup>
 
@@ -18,17 +20,30 @@
     <PackageReference Include="MessagePackAnalyzer" Version="1.6.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="protobuf-net" Version="2.3.7" />
-    <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
-    <PackageReference Include="System.IO.Pipelines" Version="4.5.3" />
-    <PackageReference Include="System.Memory" Version="4.5.1" />
-    <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.2" />
-    <PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
-    <PackageReference Include="System.Runtime.Serialization.Json" Version="4.3.0" />
-    <PackageReference Include="System.Security.Cryptography.Primitives" Version="4.3.0" />
-    <PackageReference Include="System.Threading.Channels" Version="4.5.0" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.2" />
-    <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
+    <PackageReference Include="System.Drawing.Common">
+        <Version>$(SystemDrawingCommonPackageVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.IO.Pipelines">
+        <Version>$(SystemIOPipelinesPackageVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Numerics.Vectors">
+        <Version>$(SystemNumericsVectorsPackageVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe">
+        <Version>$(SystemRuntimeCompilerServicesUnsafePackageVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Security.Cryptography.Primitives">
+        <Version>$(SystemSecurityCryptographyPrimitivesPackageVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Threading.Channels">
+        <Version>$(SystemThreadingChannelsPackageVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Threading.Tasks.Extensions">
+        <Version>$(SystemThreadingTasksExtensionsPackageVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Xml.XmlSerializer">
+        <Version>$(SystemXmlXmlSerializerPackageVersion)</Version>
+    </PackageReference>
     <PackageReference Include="Utf8Json" Version="1.3.7" />
     <PackageReference Include="ZeroFormatter" Version="1.6.4" />
     <PackageReference Include="ZeroFormatter.Analyzer" Version="1.1.1" />
@@ -84,9 +99,6 @@
     <Compile Remove="coreclr\Math\Functions\Single\ILogB.cs" />
     <Compile Remove="coreclr\Math\Functions\Single\Log2.cs" />
     <Compile Remove="coreclr\Math\Functions\Single\ScaleB.cs" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.0'">
     <Compile Remove="corefx\System.Text.Json\Utf8JsonWriter\*.cs" />
   </ItemGroup>
 
