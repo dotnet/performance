@@ -228,7 +228,7 @@ jobs:
       queue: Windows.10.Amd64.ClientRS4.DevEx.15.8.Open
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       categories: ['roslyn']
-      frameworks: # for ML.NET jobs we want to check .NET Core 3.0 only
+      frameworks: # for Roslyn jobs we want to check .NET Core 3.0 only
         - netcoreapp3.0
 
 # Windows x64 Roslyn benchmarks, private job
