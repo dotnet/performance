@@ -91,6 +91,7 @@ namespace CompilerBenchmarks
         [Benchmark]
         public object SerializeMetadata()
         {
+            _peStream.Position = 0;
             var diagnostics = DiagnosticBag.GetInstance();
 
             _comp.SerializeToPeStream(
