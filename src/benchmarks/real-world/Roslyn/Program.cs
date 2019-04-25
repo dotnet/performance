@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,27 +10,17 @@ using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Validators;
+using BenchmarkDotNet.Extensions;
 
 namespace CompilerBenchmarks
 {
     public class Program
     {
-        private class IgnoreReleaseOnly : ManualConfig
-        {
-            public IgnoreReleaseOnly()
-            {
-                Add(JitOptimizationsValidator.DontFailOnError);
-                Add(DefaultConfig.Instance.GetLoggers().ToArray());
-                Add(DefaultConfig.Instance.GetExporters().ToArray());
-                Add(DefaultConfig.Instance.GetColumnProviders().ToArray());
-                Add(MemoryDiagnoser.Default);
-                Add(Job.Core.WithGcServer(true));
-            }
-        }
-
         public static async Task Main()
         {
-            var config = new IgnoreReleaseOnly();
+            var config = RecommendedConfig.Create(
+                artifactsPath: new DirectoryInfo(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "BenchmarkDotNet.Artifacts")), 
+                mandatoryCategories: ImmutableHashSet.Create<string>("Roslyn"));
 
             string cscSourceDownloadLink = "https://roslyninfra.blob.core.windows.net/perf-artifacts/CodeAnalysisRepro.zip";
             string sourceDownloadDir = Path.Combine(AppContext.BaseDirectory, "roslynSource");

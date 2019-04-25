@@ -11,6 +11,7 @@ using static Microsoft.CodeAnalysis.Compilation;
 
 namespace CompilerBenchmarks
 {
+    [BenchmarkCategory("Roslyn")]
     public class StageBenchmarks
     {
         private Compilation _comp;

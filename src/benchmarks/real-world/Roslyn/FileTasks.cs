@@ -128,10 +128,10 @@ namespace CompilerBenchmarks
                     Directory.Delete(path, true);
                     return;
                 }
-                catch(IOException e) when (i < retries-1)
+                catch(IOException) when (i < retries-1)
                 {
                 }
-                catch(UnauthorizedAccessException e) when (i < retries - 1)
+                catch(UnauthorizedAccessException) when (i < retries - 1)
                 {
                 }
                 // if something has a transient lock on the file waiting may resolve the issue
@@ -165,10 +165,10 @@ namespace CompilerBenchmarks
                     Directory.Move(sourceDirName, destDirName);
                     return;
                 }
-                catch (IOException e) when (i < retries - 1)
+                catch (IOException) when (i < retries - 1)
                 {
                 }
-                catch (UnauthorizedAccessException e) when (i < retries - 1)
+                catch (UnauthorizedAccessException) when (i < retries - 1)
                 {
                 }
                 // if something has a transient lock on the file waiting may resolve the issue
@@ -190,10 +190,10 @@ namespace CompilerBenchmarks
                     File.Move(sourceFileName, destFileName);
                     return;
                 }
-                catch (IOException e) when (i < retries - 1)
+                catch (IOException) when (i < retries - 1)
                 {
                 }
-                catch (UnauthorizedAccessException e) when (i < retries - 1)
+                catch (UnauthorizedAccessException) when (i < retries - 1)
                 {
                 }
                 // if something has a transient lock on the file waiting may resolve the issue
