@@ -24,9 +24,5 @@
       <Command>$(WorkItemCommand)</Command>
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
-    <HelixWorkItem Include="Echo">
-      <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
-      <Command>echo Hello World</Command>
-    </HelixWorkItem>
   </ItemGroup>
 </Project>
