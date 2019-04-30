@@ -1,11 +1,4 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
-  <PropertyGroup>
-    <HelixSource>pr/dotnet/performance/$(Build.SourceBranch)</HelixSource>
-    <HelixType>'test/performance_$(_BuildConfig)/</HelixType>
-    <HelixBuild>$(Build.BuildNumber)</HelixBuild>
-    <HelixTargetQueues>$(HelixTargetQueue)</HelixTargetQueues>
-    <Creator>$(Creator)</Creator>
-  </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
     <WorkItemCommand>%HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --csproj %HELIX_CORRELATION_PAYLOAD%\$(TargetCsproj)</WorkItemCommand>
