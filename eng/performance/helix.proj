@@ -8,11 +8,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
-    <WorkItemCommand>%HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --csproj %HELIX_CORRELATION_PAYLOAD%\$(TargetCsproj)</Command>
+    <WorkItemCommand>%HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --csproj %HELIX_CORRELATION_PAYLOAD%\$(TargetCsproj)</WorkItemCommand>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
-    <WorkItemCommand>scripts/benchmarks_ci.py --csproj $(TargetCsproj)</Command>
+    <WorkItemCommand>scripts/benchmarks_ci.py --csproj $(TargetCsproj)</WorkItemCommand>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(WorkItemCommand)' != ''">
