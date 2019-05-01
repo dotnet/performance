@@ -442,6 +442,7 @@ def __get_directory(architecture: str) -> str:
 def install(
         architecture: str,
         channels: list,
+        version: str,
         verbose: bool,
         install_dir: str = None) -> None:
     '''
@@ -477,16 +478,27 @@ def install(
         dotnetInstallScriptPath
     ] if platform == 'win32' else [dotnetInstallScriptPath]
 
-    # Install Runtime/SDKs
-    for channel in channels:
+    # If Version is supplied, pull down the specified version
+    if version is not None:
         cmdline_args = dotnetInstallInterpreter + [
             '-InstallDir', install_dir,
             '-Architecture', architecture,
-            '-Channel', channel,
+            '-Version', version,
         ]
         RunCommand(cmdline_args, verbose=verbose).run(
             get_repo_root_path()
         )
+    else:
+        # Install Runtime/SDKs
+        for channel in channels:
+            cmdline_args = dotnetInstallInterpreter + [
+                '-InstallDir', install_dir,
+                '-Architecture', architecture,
+                '-Channel', channel,
+            ]
+            RunCommand(cmdline_args, verbose=verbose).run(
+                get_repo_root_path()
+            )
 
     # Set DotNet Cli environment variables.
     environ['DOTNET_CLI_TELEMETRY_OPTOUT'] = '1'
@@ -568,6 +580,14 @@ def __process_arguments(args: list):
         help='Download DotNet Cli from the Channel specified.'
     )
 
+    install_parser.add_argument(
+        '--version',
+        dest='version',
+        required=False,
+        default=None,
+        help='Download DotNet Cli at the specified version.'
+    )
+
     install_parser = add_arguments(install_parser)
 
     # private install arguments.
@@ -596,6 +616,7 @@ def __main(args: list) -> int:
     install(
         architecture=args.architecture,
         channels=args.channels,
+        version=args.version,
         verbose=args.verbose,
         install_dir=args.install_dir,
     )

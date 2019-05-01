@@ -27,6 +27,7 @@ from logging import getLogger
 import os
 import platform
 import sys
+import re
 
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
@@ -54,6 +55,7 @@ if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
 
 def init_tools(
         architecture: str,
+        version: str,
         target_framework_monikers: list,
         verbose: bool) -> None:
     '''
@@ -70,6 +72,7 @@ def init_tools(
     dotnet.install(
         architecture=architecture,
         channels=channels,
+        version=version,
         verbose=verbose,
     )
     benchview.install()
@@ -140,6 +143,24 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
             "%%Y-%%m-%%dT%%H:%%M:%%SZ").'''
     )
 
+    def __is_valid_sdk_version(version:str) -> str:
+        try:
+            if version is None or re.search('\d\.\d+\.\d+', version):
+                return version
+            else:
+                raise ValueError
+        except ValueError:
+            raise ArgumentTypeError(
+                'Version "{}" is in the wrong format'.format(version))
+
+    parser.add_argument(
+        '--version',
+        required=False,
+        default=None,
+        type=__is_valid_sdk_version,
+        help='Version of the dotnet cli to install in the A.B.C format'
+    )
+
     # Generic arguments.
     parser.add_argument(
         '-q', '--quiet',
@@ -199,6 +220,7 @@ def __main(args: list) -> int:
     # Acquire necessary tools (dotnet, and BenchView)
     init_tools(
         architecture=args.architecture,
+        version=args.version,
         target_framework_monikers=target_framework_monikers,
         verbose=verbose
     )
