@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+
+  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
+    <WorkItemCommand>%HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --csproj %HELIX_CORRELATION_PAYLOAD%\$(TargetCsproj)</WorkItemCommand>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
+    <WorkItemCommand>scripts/benchmarks_ci.py --csproj $(TargetCsproj)</WorkItemCommand>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(WorkItemCommand)' != ''">
+    <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) -f $(_Framework) --bdn-arguments="$(BenchmarkDotNetArguments)" $(_BenchViewArguments) --dotnet-compilation-mode $(_CompilationMode)</WorkItemCommand>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
+      <PayloadDirectory>%(Identity)</PayloadDirectory>
+    </HelixCorrelationPayload>
+  </ItemGroup>
+
+  <ItemGroup>
+    <HelixWorkItem Include="WorkItem">
+      <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
+      <Command>$(WorkItemCommand)</Command>
+      <Timeout>4:00</Timeout>
+    </HelixWorkItem>
+  </ItemGroup>
+</Project>
