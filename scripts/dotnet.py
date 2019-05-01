@@ -479,10 +479,13 @@ def install(
     ] if platform == 'win32' else [dotnetInstallScriptPath]
 
     # If Version is supplied, pull down the specified version
-    if version is not None:
-        cmdline_args = dotnetInstallInterpreter + [
+
+    cmdline_args = dotnetInstallInterpreter + [
             '-InstallDir', install_dir,
-            '-Architecture', architecture,
+            '-Architecture', architecture
+    ]
+    if version is not None:
+        cmdline_args = cmdline_args + [
             '-Version', version,
         ]
         RunCommand(cmdline_args, verbose=verbose).run(
@@ -491,9 +494,7 @@ def install(
     else:
         # Install Runtime/SDKs
         for channel in channels:
-            cmdline_args = dotnetInstallInterpreter + [
-                '-InstallDir', install_dir,
-                '-Architecture', architecture,
+            cmdline_args = cmdline_args + [
                 '-Channel', channel,
             ]
             RunCommand(cmdline_args, verbose=verbose).run(
@@ -544,6 +545,25 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='{}'.format(CompilationAction.help_text())
     )
 
+    def __is_valid_sdk_version(version:str) -> str:
+        try:
+            if version is None or re.search('\d\.\d+\.\d+', version):
+                return version
+            else:
+                raise ValueError
+        except ValueError:
+            raise ArgumentTypeError(
+                'Version "{}" is in the wrong format'.format(version))
+
+    parser.add_argument(
+        '--dotnet-version',
+        dest="dotnet_version",
+        required=False,
+        default=None,
+        type=__is_valid_sdk_version,
+        help='Version of the dotnet cli to install in the A.B.C format'
+    )
+
     return parser
 
 
@@ -556,6 +576,7 @@ def __process_arguments(args: list):
         title='Subcommands',
         description='Supported DotNet Cli subcommands'
     )
+
     install_parser = subparsers.add_parser(
         'install',
         allow_abbrev=False,
@@ -616,7 +637,7 @@ def __main(args: list) -> int:
     install(
         architecture=args.architecture,
         channels=args.channels,
-        version=args.version,
+        version=args.dotnet_version,
         verbose=args.verbose,
         install_dir=args.install_dir,
     )
