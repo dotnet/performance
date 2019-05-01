@@ -27,7 +27,6 @@ from logging import getLogger
 import os
 import platform
 import sys
-import re
 
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
