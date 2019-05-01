@@ -547,7 +547,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
     def __is_valid_sdk_version(version:str) -> str:
         try:
-            if version is None or re.search('\d\.\d+\.\d+', version):
+            if version is None or re.search('^\d\.\d+\.\d+', version):
                 return version
             else:
                 raise ValueError
@@ -599,14 +599,6 @@ def __process_arguments(args: list):
         default=[SUPPORTED_CHANNELS[0]],
         choices=SUPPORTED_CHANNELS,
         help='Download DotNet Cli from the Channel specified.'
-    )
-
-    install_parser.add_argument(
-        '--version',
-        dest='version',
-        required=False,
-        default=None,
-        help='Download DotNet Cli at the specified version.'
     )
 
     install_parser = add_arguments(install_parser)
