@@ -39,6 +39,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="System.Text.Json">
+      <!--<HintPath>..\..\..\..\corefx\artifacts\bin\System.Text.Json\netcoreapp-Windows_NT-Release\System.Text.Json.dll</HintPath>-->
+      <HintPath>..\..\..\..\corefx\artifacts\bin\System.Text.Json\netcoreapp-Release\System.Text.Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="coreclr\BenchmarksGame\Inputs\*.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

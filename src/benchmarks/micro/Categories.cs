@@ -31,6 +31,7 @@ namespace MicroBenchmarks
             public const string Virtual = "Virtual";
 
         public const string JSON = "JSON";
+        public const string JsonSerializer = "JsonSerializer";
         public const string LINQ = "LINQ";
         public const string Reflection = "Reflection";
         public const string SIMD = "SIMD";

@@ -5,6 +5,8 @@
 using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 
 namespace MicroBenchmarks.Serializers
@@ -106,6 +108,15 @@ namespace MicroBenchmarks.Serializers
         {
             memoryStream.Position = 0;
             return (T)dataContractJsonSerializer.ReadObject(memoryStream);
+        }
+
+        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX)]
+        [Benchmark(Description = "System.Text.Json")]
+        public async Task<T> SystemTextJson_()
+        {
+            memoryStream.Position = 0;
+            T value = await JsonSerializer.ReadAsync<T>(memoryStream);
+            return value;
         }
 
         private StreamReader CreateNonClosingReaderWithDefaultSizes()

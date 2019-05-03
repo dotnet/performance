@@ -38,5 +38,9 @@ namespace MicroBenchmarks.Serializers
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Utf8Json")]
         public T Utf8Json_() => Utf8Json.JsonSerializer.Deserialize<T>(serialized);
+
+        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX)]
+        [Benchmark(Description = "System.Text.Json")]
+        public T SystemTextJson_() => System.Text.Json.Serialization.JsonSerializer.Parse<T>(serialized);
     }
 }
