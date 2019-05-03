@@ -4,6 +4,7 @@
 
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
+using MicroBenchmarks.Serializers;
 
 namespace System.Text.Json.Tests
 {
