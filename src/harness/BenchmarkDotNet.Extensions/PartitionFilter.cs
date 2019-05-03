@@ -11,10 +11,10 @@ public class PartitionFilter : IFilter
     private readonly int? _partitionIndex; // indexed from 0
     private int _counter = 0;
  
-    public PartitionFilter()
+    public PartitionFilter(int? partitionCount, int? partitionIndex)
     {
-        _partitionsCount = ReadFromEnvironmentVariable("PARTITIONS_COUNT");
-        _partitionIndex = ReadFromEnvironmentVariable("PARTITION_INDEX");
+        _partitionsCount = partitionCount;
+        _partitionIndex = partitionIndex;
     }
  
     public bool Predicate(BenchmarkCase benchmarkCase)
@@ -24,9 +24,4 @@ public class PartitionFilter : IFilter
 
         return _counter++ % _partitionsCount.Value == _partitionIndex.Value; // will return true only for benchmarks that belong to it’s partition
     }
- 
-    private int? ReadFromEnvironmentVariable(string key)
-        => int.TryParse(Environment.GetEnvironmentVariable(key), out int partitionsCount)
-            ? (int?)partitionsCount
-            : null;
 }
