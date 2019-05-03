@@ -2,14 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml;
-using System.Xml.Serialization;
-using MessagePack;
-using ProtoBuf;
-using ZeroFormatter;
 
 namespace System.Text.Json.Tests
 {
@@ -25,14 +19,6 @@ namespace System.Text.Json.Tests
                 return (T)(object)CreateIndexViewModel();
             if (typeof(T) == typeof(MyEventsListerViewModel))
                 return (T)(object)CreateMyEventsListerViewModel();
-            if (typeof(T) == typeof(CollectionsOfPrimitives))
-                return (T)(object)CreateCollectionsOfPrimitives(1024); // 1024 values was copied from CoreFX benchmarks
-            if (typeof(T) == typeof(XmlElement))
-                return (T)(object)CreateXmlElement();
-            if (typeof(T) == typeof(SimpleStructWithProperties))
-                return (T)(object)new SimpleStructWithProperties { Num = 1, Text = "Foo" };
-            if (typeof(T) == typeof(ClassImplementingIXmlSerialiable))
-                return (T)(object)new ClassImplementingIXmlSerialiable { StringValue = "Hello world" };
 
             throw new NotImplementedException();
         }
@@ -114,66 +100,6 @@ namespace System.Text.Json.Tests
                         Name = "A very nice task to have"
                     }, 4).ToList()
             };
-
-        private static CollectionsOfPrimitives CreateCollectionsOfPrimitives(int count)
-            => new CollectionsOfPrimitives
-            {
-                ByteArray = CreateByteArray(count),
-                DateTimeArray = CreateDateTimeArray(count),
-                Dictionary = CreateDictionaryOfIntString(count),
-                ListOfInt = CreateListOfInt(count)
-            };
-
-        private static DateTime[] CreateDateTimeArray(int count)
-        {
-            DateTime[] arr = new DateTime[count];
-            int kind = (int)DateTimeKind.Unspecified;
-            int maxDateTimeKind = (int) DateTimeKind.Local;
-            DateTime val = DateTime.Now.AddHours(count/2);
-            for (int i = 0; i < count; i++)
-            {
-                arr[i] = DateTime.SpecifyKind(val, (DateTimeKind)kind);
-                val = val.AddHours(1);
-                kind = (kind + 1)%maxDateTimeKind;
-            }
-
-            return arr;
-        }
-        
-        private static Dictionary<int, string> CreateDictionaryOfIntString(int count)
-        {
-            Dictionary<int, string> dictOfIntString = new Dictionary<int, string>(count);
-            for (int i = 0; i < count; ++i)
-            {
-                dictOfIntString[i] = i.ToString();
-            }
-
-            return dictOfIntString;
-        }
-
-        private static byte[] CreateByteArray(int size)
-        {
-            byte[] obj = new byte[size];
-            for (int i = 0; i < obj.Length; ++i)
-            {
-                unchecked
-                {
-                    obj[i] = (byte)i;
-                }
-            }
-            return obj;
-        }
-
-        private static List<int> CreateListOfInt(int count) => Enumerable.Range(0, count).ToList();
-
-        private static XmlElement CreateXmlElement()
-        {
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(@"<html></html>");
-            XmlElement xmlElement = xmlDoc.CreateElement("Element");
-            xmlElement.InnerText = "Element innertext";
-            return xmlElement;
-        }
     }
 
     /// <summary>
@@ -188,97 +114,79 @@ namespace System.Text.Json.Tests
 
     // the view models come from a real world app called "AllReady"
     [Serializable]
-    [ProtoContract]
-    [ZeroFormattable]
-    [MessagePackObject]
     public class LoginViewModel : IVerifiable
     {
-        [ProtoMember(1)] [Index(0)] [Key(0)] public virtual string Email { get; set; }
-        [ProtoMember(2)] [Index(1)] [Key(1)] public virtual string Password { get; set; }
-        [ProtoMember(3)] [Index(2)] [Key(2)] public virtual bool RememberMe { get; set; }
+        public virtual string Email { get; set; }
+        public virtual string Password { get; set; }
+        public virtual bool RememberMe { get; set; }
 
         public long TouchEveryProperty() => Email.Length + Password.Length + Convert.ToInt32(RememberMe);
     }
 
     [Serializable]
-    [ProtoContract]
-    [ZeroFormattable]
-    [MessagePackObject]
     public class Location : IVerifiable
     {
-        [ProtoMember(1)] [Index(0)] [Key(0)] public virtual int Id { get; set; }
-        [ProtoMember(2)] [Index(1)] [Key(1)] public virtual string Address1 { get; set; }
-        [ProtoMember(3)] [Index(2)] [Key(2)] public virtual string Address2 { get; set; }
-        [ProtoMember(4)] [Index(3)] [Key(3)] public virtual string City { get; set; }
-        [ProtoMember(5)] [Index(4)] [Key(4)] public virtual string State { get; set; }
-        [ProtoMember(6)] [Index(5)] [Key(5)] public virtual string PostalCode { get; set; }
-        [ProtoMember(7)] [Index(6)] [Key(6)] public virtual string Name { get; set; }
-        [ProtoMember(8)] [Index(7)] [Key(7)] public virtual string PhoneNumber { get; set; }
-        [ProtoMember(9)] [Index(8)] [Key(8)] public virtual string Country { get; set; }
+        public virtual int Id { get; set; }
+        public virtual string Address1 { get; set; }
+        public virtual string Address2 { get; set; }
+        public virtual string City { get; set; }
+        public virtual string State { get; set; }
+        public virtual string PostalCode { get; set; }
+        public virtual string Name { get; set; }
+        public virtual string PhoneNumber { get; set; }
+        public virtual string Country { get; set; }
 
         public long TouchEveryProperty() => Id + Address1.Length + Address2.Length + City.Length + State.Length + PostalCode.Length + Name.Length + PhoneNumber.Length + Country.Length;
     }
 
     [Serializable]
-    [ProtoContract]
-    [ZeroFormattable]
-    [MessagePackObject]
     public class ActiveOrUpcomingCampaign : IVerifiable
     {
-        [ProtoMember(1)] [Index(0)] [Key(0)] public virtual int Id { get; set; }
-        [ProtoMember(2)] [Index(1)] [Key(1)] public virtual string ImageUrl { get; set; }
-        [ProtoMember(3)] [Index(2)] [Key(2)] public virtual string Name { get; set; }
-        [ProtoMember(4)] [Index(3)] [Key(3)] public virtual string Description { get; set; }
-        [ProtoMember(5)] [Index(4)] [Key(4)] public virtual DateTimeOffset StartDate { get; set; }
-        [ProtoMember(6)] [Index(5)] [Key(5)] public virtual DateTimeOffset EndDate { get; set; }
+        public virtual int Id { get; set; }
+        public virtual string ImageUrl { get; set; }
+        public virtual string Name { get; set; }
+        public virtual string Description { get; set; }
+        public virtual DateTimeOffset StartDate { get; set; }
+        public virtual DateTimeOffset EndDate { get; set; }
 
         public long TouchEveryProperty() => Id + ImageUrl.Length + Name.Length + Description.Length + StartDate.Ticks + EndDate.Ticks;
     }
 
     [Serializable]
-    [ProtoContract]
-    [ZeroFormattable]
-    [MessagePackObject]
     public class ActiveOrUpcomingEvent : IVerifiable
     {
-        [ProtoMember(1)] [Index(0)] [Key(0)] public virtual int Id { get; set; }
-        [ProtoMember(2)] [Index(1)] [Key(1)] public virtual string ImageUrl { get; set; }
-        [ProtoMember(3)] [Index(2)] [Key(2)] public virtual string Name { get; set; }
-        [ProtoMember(4)] [Index(3)] [Key(3)] public virtual string CampaignName { get; set; }
-        [ProtoMember(5)] [Index(4)] [Key(4)] public virtual string CampaignManagedOrganizerName { get; set; }
-        [ProtoMember(6)] [Index(5)] [Key(5)] public virtual string Description { get; set; }
-        [ProtoMember(7)] [Index(6)] [Key(6)] public virtual DateTimeOffset StartDate { get; set; }
-        [ProtoMember(8)] [Index(7)] [Key(7)] public virtual DateTimeOffset EndDate { get; set; }
+        public virtual int Id { get; set; }
+        public virtual string ImageUrl { get; set; }
+        public virtual string Name { get; set; }
+        public virtual string CampaignName { get; set; }
+        public virtual string CampaignManagedOrganizerName { get; set; }
+        public virtual string Description { get; set; }
+        public virtual DateTimeOffset StartDate { get; set; }
+        public virtual DateTimeOffset EndDate { get; set; }
 
         public long TouchEveryProperty() => Id + ImageUrl.Length + Name.Length + CampaignName.Length + CampaignManagedOrganizerName.Length + Description.Length + StartDate.Ticks + EndDate.Ticks;
     }
 
     [Serializable]
-    [ProtoContract]
-    [ZeroFormattable]
-    [MessagePackObject]
     public class CampaignSummaryViewModel : IVerifiable
     {
-        [ProtoMember(1)] [Index(0)] [Key(0)] public virtual int Id { get; set; }
-        [ProtoMember(2)] [Index(1)] [Key(1)] public virtual string Title { get; set; }
-        [ProtoMember(3)] [Index(2)] [Key(2)] public virtual string Description { get; set; }
-        [ProtoMember(4)] [Index(3)] [Key(3)] public virtual string ImageUrl { get; set; }
-        [ProtoMember(5)] [Index(4)] [Key(4)] public virtual string OrganizationName { get; set; }
-        [ProtoMember(6)] [Index(5)] [Key(5)] public virtual string Headline { get; set; }
+        public virtual int Id { get; set; }
+        public virtual string Title { get; set; }
+        public virtual string Description { get; set; }
+        public virtual string ImageUrl { get; set; }
+        public virtual string OrganizationName { get; set; }
+        public virtual string Headline { get; set; }
 
         public long TouchEveryProperty() => Id + Title.Length + Description.Length + ImageUrl.Length + OrganizationName.Length + Headline.Length;
     }
 
     [Serializable]
-    [ProtoContract]
-    [ZeroFormattable]
-    [MessagePackObject]
     public class IndexViewModel : IVerifiable
     {
-        [ProtoMember(1)] [Index(0)] [Key(0)] public virtual List<ActiveOrUpcomingEvent> ActiveOrUpcomingEvents { get; set; }
-        [ProtoMember(2)] [Index(1)] [Key(1)] public virtual CampaignSummaryViewModel FeaturedCampaign { get; set; }
-        [ProtoMember(3)] [Index(2)] [Key(2)] public virtual bool IsNewAccount { get; set; }
-        [IgnoreFormat] [IgnoreMember] public bool HasFeaturedCampaign => FeaturedCampaign != null;
+        public virtual List<ActiveOrUpcomingEvent> ActiveOrUpcomingEvents { get; set; }
+        public virtual CampaignSummaryViewModel FeaturedCampaign { get; set; }
+        public virtual bool IsNewAccount { get; set; }
+        public bool HasFeaturedCampaign => FeaturedCampaign != null;
 
         public long TouchEveryProperty()
         {
@@ -292,16 +200,13 @@ namespace System.Text.Json.Tests
     }
 
     [Serializable]
-    [ProtoContract]
-    [ZeroFormattable]
-    [MessagePackObject]
     public class MyEventsListerViewModel : IVerifiable
     {
         // the orginal type defined these fields as IEnumerable,
         // but XmlSerializer failed to serialize them with "cannot serialize member because it is an interface" error
-        [ProtoMember(1)] [Index(0)] [Key(0)] public virtual List<MyEventsListerItem> CurrentEvents { get; set; } = new List<MyEventsListerItem>();
-        [ProtoMember(2)] [Index(1)] [Key(1)] public virtual List<MyEventsListerItem> FutureEvents { get; set; } = new List<MyEventsListerItem>();
-        [ProtoMember(3)] [Index(2)] [Key(2)] public virtual List<MyEventsListerItem> PastEvents { get; set; } = new List<MyEventsListerItem>();
+        public virtual List<MyEventsListerItem> CurrentEvents { get; set; } = new List<MyEventsListerItem>();
+        public virtual List<MyEventsListerItem> FutureEvents { get; set; } = new List<MyEventsListerItem>();
+        public virtual List<MyEventsListerItem> PastEvents { get; set; } = new List<MyEventsListerItem>();
 
         public long TouchEveryProperty()
         {
@@ -317,21 +222,18 @@ namespace System.Text.Json.Tests
     }
 
     [Serializable]
-    [ProtoContract]
-    [ZeroFormattable]
-    [MessagePackObject]
     public class MyEventsListerItem : IVerifiable
     {
-        [ProtoMember(1)] [Index(0)] [Key(0)] public virtual int EventId { get; set; }
-        [ProtoMember(2)] [Index(1)] [Key(1)] public virtual string EventName { get; set; }
-        [ProtoMember(3)] [Index(2)] [Key(2)] public virtual DateTimeOffset StartDate { get; set; }
-        [ProtoMember(4)] [Index(3)] [Key(3)] public virtual DateTimeOffset EndDate { get; set; }
-        [ProtoMember(5)] [Index(4)] [Key(4)] public virtual string TimeZone { get; set; }
-        [ProtoMember(6)] [Index(5)] [Key(5)] public virtual string Campaign { get; set; }
-        [ProtoMember(7)] [Index(6)] [Key(6)] public virtual string Organization { get; set; }
-        [ProtoMember(8)] [Index(7)] [Key(7)] public virtual int VolunteerCount { get; set; }
+        public virtual int EventId { get; set; }
+        public virtual string EventName { get; set; }
+        public virtual DateTimeOffset StartDate { get; set; }
+        public virtual DateTimeOffset EndDate { get; set; }
+        public virtual string TimeZone { get; set; }
+        public virtual string Campaign { get; set; }
+        public virtual string Organization { get; set; }
+        public virtual int VolunteerCount { get; set; }
 
-        [ProtoMember(9)] [Index(8)] [Key(8)] public virtual List<MyEventsListerItemTask> Tasks { get; set; } = new List<MyEventsListerItemTask>();
+        public virtual List<MyEventsListerItemTask> Tasks { get; set; } = new List<MyEventsListerItemTask>();
 
         public long TouchEveryProperty()
         {
@@ -345,79 +247,12 @@ namespace System.Text.Json.Tests
     }
 
     [Serializable]
-    [ProtoContract]
-    [ZeroFormattable]
-    [MessagePackObject]
     public class MyEventsListerItemTask : IVerifiable
     {
-        [ProtoMember(1)] [Index(0)] [Key(0)] public virtual string Name { get; set; }
-        [ProtoMember(2)] [Index(1)] [Key(1)] public virtual DateTimeOffset? StartDate { get; set; }
-        [ProtoMember(3)] [Index(2)] [Key(2)] public virtual DateTimeOffset? EndDate { get; set; }
-
-        [IgnoreFormat]
-        [IgnoreMember]
-        public string FormattedDate
-        {
-            get
-            {
-                if (!StartDate.HasValue || !EndDate.HasValue)
-                {
-                    return null;
-                }
-
-                var startDateString = string.Format("{0:g}", StartDate.Value);
-                var endDateString = string.Format("{0:g}", EndDate.Value);
-
-                return string.Format($"From {startDateString} to {endDateString}");
-            }
-        }
+        public virtual string Name { get; set; }
+        public virtual DateTimeOffset? StartDate { get; set; }
+        public virtual DateTimeOffset? EndDate { get; set; }
 
         public long TouchEveryProperty() => Name.Length + StartDate.Value.Ticks + EndDate.Value.Ticks;
-    }
-
-    [Serializable]
-    [ProtoContract]
-    [ZeroFormattable]
-    [MessagePackObject]
-    public class CollectionsOfPrimitives : IVerifiable
-    {
-        [ProtoMember(1)] [Index(0)] [Key(0)] public virtual byte[] ByteArray { get; set; }
-        [ProtoMember(2)] [Index(1)] [Key(1)] public virtual DateTime[] DateTimeArray { get; set; }
-        
-        [XmlIgnore] // xml serializer does not support anything that implements IDictionary..
-        [ProtoMember(3)] [Index(2)] [Key(2)] public virtual Dictionary<int, string> Dictionary { get; set; }
-        
-        [ProtoMember(4)] [Index(3)] [Key(3)] public virtual List<int> ListOfInt { get; set; }
-        
-        public long TouchEveryProperty() => ByteArray.Length + DateTimeArray.Length + ListOfInt.Count + Dictionary.Count;
-    }
-    
-    public struct SimpleStructWithProperties
-    {
-        public int Num { get; set; }
-        public string Text { get; set; }
-    }
-    
-    public class ClassImplementingIXmlSerialiable : IXmlSerializable
-    {
-        public string StringValue { get; set; }
-        private bool BoolValue { get; set; }
-
-        public ClassImplementingIXmlSerialiable() => BoolValue = true;
-
-        public System.Xml.Schema.XmlSchema GetSchema() => null;
-
-        public void ReadXml(XmlReader reader)
-        {
-            reader.MoveToContent();
-            StringValue = reader.GetAttribute("StringValue");
-            BoolValue = bool.Parse(reader.GetAttribute("BoolValue"));
-        }
-
-        public void WriteXml(XmlWriter writer)
-        {
-            writer.WriteAttributeString("StringValue", StringValue);
-            writer.WriteAttributeString("BoolValue", BoolValue.ToString());
-        }
     }
 }

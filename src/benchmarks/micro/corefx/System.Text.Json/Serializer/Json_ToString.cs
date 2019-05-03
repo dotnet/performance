@@ -11,7 +11,6 @@ namespace System.Text.Json.Tests
     [GenericTypeArguments(typeof(Location))]
     [GenericTypeArguments(typeof(IndexViewModel))]
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
-    [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
     public class Json_ToString<T>
     {
         private readonly T value;
