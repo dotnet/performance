@@ -40,7 +40,7 @@ namespace System.Text.Json.Serialization.Tests
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON, Categories.JsonSerializer)]
         [Benchmark]
-        public T DeserializeFromBytes() => JsonSerializer.Parse<T>(_utf8Serialized);
+        public T DeserializeFromUtf8Bytes() => JsonSerializer.Parse<T>(_utf8Serialized);
 
         [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.JsonSerializer)]
         [Benchmark]
