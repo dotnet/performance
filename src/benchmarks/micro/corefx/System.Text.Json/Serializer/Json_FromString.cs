@@ -14,34 +14,16 @@ namespace System.Text.Json.Tests
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     public class Json_FromString<T>
     {
-        private readonly T value;
-        private string serialized;
+        private readonly T _value;
+        private string _serialized;
 
-        public Json_FromString() => value = DataGenerator.Generate<T>();
+        public Json_FromString() => _value = DataGenerator.Generate<T>();
 
-        [GlobalSetup(Target = nameof(Jil_))]
-        public void SerializeJil() => serialized = Jil.JSON.Serialize<T>(value);
+        [GlobalSetup(Target = nameof(DeserializeJsonFromString))]
+        public void SerializeJsonToString() => _serialized = Serialization.JsonSerializer.ToString(_value);
 
-        [GlobalSetup(Target = nameof(JsonNet_))]
-        public void SerializeJsonNet() => serialized = Newtonsoft.Json.JsonConvert.SerializeObject(value);
-
-        [GlobalSetup(Target = nameof(Utf8Json_))]
-        public void SerializeUtf8Json_() => serialized = Utf8Json.JsonSerializer.ToJsonString(value);
-
-        [BenchmarkCategory(Categories.ThirdParty, Categories.JsonSerializer)]
-        [Benchmark(Description = "Jil")]
-        public T Jil_() => Jil.JSON.Deserialize<T>(serialized);
-
-        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.ThirdParty, Categories.JsonSerializer)]
-        [Benchmark(Description = "JSON.NET")]
-        public T JsonNet_() => Newtonsoft.Json.JsonConvert.DeserializeObject<T>(serialized);
-
-        [BenchmarkCategory(Categories.ThirdParty, Categories.JsonSerializer)]
-        [Benchmark(Description = "Utf8Json")]
-        public T Utf8Json_() => Utf8Json.JsonSerializer.Deserialize<T>(serialized);
-
-        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.JsonSerializer)]
-        [Benchmark(Description = "System.Text.Json")]
-        public T SystemTextJson_() => Serialization.JsonSerializer.Parse<T>(serialized);
+        [BenchmarkCategory(Categories.CoreFX, Categories.JSON, Categories.JsonSerializer)]
+        [Benchmark]
+        public T DeserializeJsonFromString() => Serialization.JsonSerializer.Parse<T>(_serialized);
     }
 }

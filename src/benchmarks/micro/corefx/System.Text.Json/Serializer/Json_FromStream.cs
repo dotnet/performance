@@ -18,116 +18,34 @@ namespace System.Text.Json.Tests
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     public class Json_FromStream<T>
     {
-        private readonly T value;
-
-        private readonly MemoryStream memoryStream;
-
-        private DataContractJsonSerializer dataContractJsonSerializer;
-        private Newtonsoft.Json.JsonSerializer newtonSoftJsonSerializer;
+        private readonly T _value;
+        private readonly MemoryStream _memoryStream;
 
         public Json_FromStream()
         {
-            value = DataGenerator.Generate<T>();
+            _value = DataGenerator.Generate<T>();
 
             // the stream is pre-allocated, we don't want the benchmarks to include stream allocaton cost
-            memoryStream = new MemoryStream(capacity: short.MaxValue);
-
-            dataContractJsonSerializer = new DataContractJsonSerializer(typeof(T));
-            newtonSoftJsonSerializer = new Newtonsoft.Json.JsonSerializer();
+            _memoryStream = new MemoryStream(capacity: short.MaxValue);
         }
 
-        [GlobalSetup(Target = nameof(Jil_))]
-        public void SetupJil_()
+        [GlobalSetup(Target = nameof(DeserializeJsonFromStream))]
+        public async Task SetupDeserializeJsonFromStream()
         {
-            memoryStream.Position = 0;
-
-            using (var writer = new StreamWriter(memoryStream, Encoding.UTF8, short.MaxValue, leaveOpen: true))
-            {
-                Jil.JSON.Serialize<T>(value, writer);
-                writer.Flush();
-            }
-        }
-
-        [GlobalSetup(Target = nameof(JsonNet_))]
-        public void SetupJsonNet_()
-        {
-            memoryStream.Position = 0;
-
-            using (var writer = new StreamWriter(memoryStream, Encoding.UTF8, short.MaxValue, leaveOpen: true))
-            {
-                newtonSoftJsonSerializer.Serialize(writer, value);
-                writer.Flush();
-            }
-        }
-
-        [GlobalSetup(Target = nameof(Utf8Json_))]
-        public void SetupUtf8Json_()
-        {
-            memoryStream.Position = 0;
-            Utf8Json.JsonSerializer.Serialize<T>(memoryStream, value);
-        }
-
-        [GlobalSetup(Target = nameof(DataContractJsonSerializer_))]
-        public void SetupDataContractJsonSerializer_()
-        {
-            memoryStream.Position = 0;
-            dataContractJsonSerializer.WriteObject(memoryStream, value);
-        }
-
-        [BenchmarkCategory(Categories.ThirdParty, Categories.JsonSerializer)]
-        [Benchmark(Description = "Jil")]
-        public T Jil_()
-        {
-            memoryStream.Position = 0;
-
-            using (var reader = CreateNonClosingReaderWithDefaultSizes())
-                return Jil.JSON.Deserialize<T>(reader);
-        }
-
-        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.ThirdParty, Categories.JsonSerializer)] // JSON.NET is so popular that despite being 3rd Party lib we run the benchmarks for CoreFX and CoreCLR CI
-        [Benchmark(Description = "JSON.NET")]
-        public T JsonNet_()
-        {
-            memoryStream.Position = 0;
-
-            using (var reader = CreateNonClosingReaderWithDefaultSizes())
-                return (T)newtonSoftJsonSerializer.Deserialize(reader, typeof(T));
-        }
-
-        [BenchmarkCategory(Categories.ThirdParty, Categories.JsonSerializer)]
-        [Benchmark(Description = "Utf8Json")]
-        public T Utf8Json_()
-        {
-            memoryStream.Position = 0;
-            return Utf8Json.JsonSerializer.Deserialize<T>(memoryStream);
+            _memoryStream.Position = 0;
+            await Serialization.JsonSerializer.WriteAsync(_value, _memoryStream);
         }
 
         [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.JsonSerializer)]
-        [Benchmark(Description = "DataContractJsonSerializer")]
-        public T DataContractJsonSerializer_()
+        [Benchmark]
+        public async Task<T> DeserializeJsonFromStream()
         {
-            memoryStream.Position = 0;
-            return (T)dataContractJsonSerializer.ReadObject(memoryStream);
-        }
-
-        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.JsonSerializer)]
-        [Benchmark(Description = "System.Text.Json")]
-        public async Task<T> SystemTextJson_()
-        {
-            memoryStream.Position = 0;
-            T value = await JsonSerializer.ReadAsync<T>(memoryStream);
+            _memoryStream.Position = 0;
+            T value = await JsonSerializer.ReadAsync<T>(_memoryStream);
             return value;
         }
 
-        private StreamReader CreateNonClosingReaderWithDefaultSizes()
-            => new StreamReader(
-                memoryStream,
-                Encoding.UTF8,
-                true, // default is true https://github.com/dotnet/corefx/blob/708e4537d8944199af7d580def0d97a030be98c7/src/Common/src/CoreLib/System/IO/StreamReader.cs#L98
-                1024, // default buffer size from CoreFX https://github.com/dotnet/corefx/blob/708e4537d8944199af7d580def0d97a030be98c7/src/Common/src/CoreLib/System/IO/StreamReader.cs#L27 
-                leaveOpen: true); // we want to reuse the same string in the benchmarks to make sure that cost of allocating stream is not included in the benchmarks
-
         [GlobalCleanup]
-        public void Cleanup() => memoryStream.Dispose();
+        public void Cleanup() => _memoryStream.Dispose();
     }
 }
