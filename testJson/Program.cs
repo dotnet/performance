@@ -2,15 +2,112 @@
 using System.Text.Json.Serialization;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 
 namespace testJson
 {
     class Program
     {
+
+        // ..\tools\dotnet\x64\dotnet.exe run -c Release -- 1 {\"Email\":\"name.familyname@not.com\",\"Password\":\"abcdefgh123456!@\",\"RememberMe\":true}
+        // ..\tools\dotnet\x64\dotnet.exe run -c Release -- 2 {\"Email\":\"name.familyname@not.com\",\"Password\":\"abcdefgh123456!@\",\"RememberMe\":true}
+
+        // ..\tools\dotnet\x64\dotnet.exe run -c Release -- 1 {\"Email\":\"name.familyname@not.com\",\"Password\":\"abcdefgh123456!@\",\"RememberMe\":true} {\"Email\":\"name.familyname@not.com\",\"Password\":\"abcdefgh12345!@\",\"RememberMe\":true} {\"Email\":\"name.familyname@not.com\",\"Password\":\"abcdefgh1235!@\",\"RememberMe\":true} {\"Email\":\"name.familyname@not.com\",\"Password\":\"abcdefgh2345!@\",\"RememberMe\":true} {\"Email\":\"name.familyname@not.com\",\"Password\":\"acdefgh12345!@\",\"RememberMe\":true}
+        // ..\tools\dotnet\x64\dotnet.exe run -c Release -- 2 {\"Email\":\"name.familyname@not.com\",\"Password\":\"abcdefgh123456!@\",\"RememberMe\":true} {\"Email\":\"name.familyname@not.com\",\"Password\":\"abcdefgh12345!@\",\"RememberMe\":true} {\"Email\":\"name.familyname@not.com\",\"Password\":\"abcdefgh1235!@\",\"RememberMe\":true} {\"Email\":\"name.familyname@not.com\",\"Password\":\"abcdefgh2345!@\",\"RememberMe\":true} {\"Email\":\"name.familyname@not.com\",\"Password\":\"acdefgh12345!@\",\"RememberMe\":true}
+    
         static void Main(string[] args)
         {
-            ReadLoginViewModel();
-            ReadIndexViewModel();
+            //ReadLoginViewModel();
+            //ReadIndexViewModel();
+
+            // LoginViewModel _1 = JsonSerializer.Parse<LoginViewModel>("{\"Email\":\"name.familyname@not.com\",\"Password\":\"abcdefgh123456!@\",\"RememberMe\":true}");
+            // LoginViewModel _2 = Newtonsoft.Json.JsonConvert.DeserializeObject<LoginViewModel>("{\"Email\":\"name.familyname@not.com\",\"Password\":\"abcdefgh123456!@\",\"RememberMe\":true}");
+
+            // Stopwatch sw = new Stopwatch();
+
+            // sw.Restart();
+            // for (int i = 0; i < 100; i++)
+            // {
+            //     LoginViewModel result = JsonSerializer.Parse<LoginViewModel>("{\"Email\":\"name.familyname@not.com\",\"Password\":\"abcdefgh123456!@\",\"RememberMe\":true}");
+            // }
+            // sw.Stop();
+            // Console.WriteLine(sw.ElapsedTicks);
+
+
+            // sw.Restart();
+            // for (int i = 0; i < 100; i++)
+            // {
+            //     LoginViewModel result = Newtonsoft.Json.JsonConvert.DeserializeObject<LoginViewModel>("{\"Email\":\"name.familyname@not.com\",\"Password\":\"abcdefgh123456!@\",\"RememberMe\":true}");
+            // }
+            // sw.Stop();
+            // Console.WriteLine(sw.ElapsedTicks);
+
+            // string[] strings = new string[1_000];
+
+            // strings[0] = JsonSerializer.ToString(_1);
+            // strings[0] = Newtonsoft.Json.JsonConvert.SerializeObject(_2);
+
+            // sw.Restart();
+            // for (int i = 0; i < 100; i++)
+            // {
+            //     strings[i] = JsonSerializer.ToString(_1);
+            // }
+            // sw.Stop();
+            // Console.WriteLine(sw.ElapsedTicks);
+
+
+            // sw.Restart();
+            // for (int i = 0; i < 100; i++)
+            // {
+            //     strings[i] = Newtonsoft.Json.JsonConvert.SerializeObject(_2);
+            // }
+            // sw.Stop();
+            // Console.WriteLine(sw.ElapsedTicks);
+
+            var sw = new Stopwatch();
+            sw.Restart();
+            if (args[0] == "1")
+            {
+                for (int j = 0; j < 100_000; j++)
+                {
+                    for (int i = 1; i < args.Length; i++)
+                    {
+                        RoundtripSTJ(args[i]);
+                    }
+                }
+            }
+            else
+            {
+                for (int j = 0; j < 100_000; j++)
+                {
+                    for (int i = 1; i < args.Length; i++)
+                    {
+                        RoundtripNewtonsoft(args[i]);
+                    }
+                }
+            }
+            sw.Stop();
+            Console.WriteLine(sw.ElapsedTicks);
+        }
+
+        private static void RoundtripSTJ(string str)
+        {
+            LoginViewModel _1 = JsonSerializer.Parse<LoginViewModel>(str);
+            string roundTrip = JsonSerializer.ToString(_1);
+            if (str != roundTrip)
+            {
+                throw new Exception();
+            }
+        }
+
+        private static void RoundtripNewtonsoft(string str)
+        {
+            LoginViewModel _1 = Newtonsoft.Json.JsonConvert.DeserializeObject<LoginViewModel>(str);
+            string roundTrip =  Newtonsoft.Json.JsonConvert.SerializeObject(_1);
+            if (str != roundTrip)
+            {
+                throw new Exception();
+            }
         }
 
         private static IndexViewModel CreateIndexViewModel()
