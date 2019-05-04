@@ -29,10 +29,6 @@ namespace MicroBenchmarks.Serializers
         [Benchmark(Description = "Utf8Json")]
         public string Utf8Json_() => Utf8Json.JsonSerializer.ToJsonString(value);
 
-        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX)]
-        [Benchmark(Description = "System.Text.Json")]
-        public string SystemTextJson_() => System.Text.Json.Serialization.JsonSerializer.ToString(value);
-
         // DataContractJsonSerializer does not provide an API to serialize to string
         // so it's not included here (apples vs apples thing)
     }
