@@ -24,10 +24,7 @@ namespace MicroBenchmarks
                 argsList = CommandLineOptions.ParseAndRemoveIntParameter(argsList, "--partition-count", out partitionCount);
                 argsList = CommandLineOptions.ParseAndRemoveIntParameter(argsList, "--partition-index", out partitionIndex);
 
-                if (!(partitionCount.HasValue == partitionIndex.HasValue))
-                {
-                    throw new ArgumentException ("If either --partition-count or --partition-index is specified, both must be specified");
-                }
+                CommandLineOptions.ValidatePartitionParameters(partitionCount, partitionIndex);
             }
             catch (ArgumentException e)
             {

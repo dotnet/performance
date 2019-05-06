@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace MicroBenchmarks
+namespace BenchmarkDotNet.Extensions
 {
-    class CommandLineOptions
+    public class CommandLineOptions
     {
         // Find and parse given parameter with expected int value, then remove it and its value from the list of arguments to then pass to BenchmarkDotNet
         // Throws ArgumentException if the parameter does not have a value or that value is not parsable as an int
@@ -28,6 +28,31 @@ namespace MicroBenchmarks
             }
 
             return argsList;
+        }
+
+        public static void ValidatePartitionParameters(int? count, int? index)
+        {
+            // Either count and index must both be specified or neither specified
+            if (!(count.HasValue == index.HasValue))
+            {
+                throw new ArgumentException("If either --partition-count or --partition-index is specified, both must be specified");
+            }
+            // Check values of count and index parameters
+            else if (count.HasValue && index.HasValue)
+            {
+                if (count < 2)
+                {
+                    throw new ArgumentException("When specified, value of --partition-index must be greater than 1");
+                }
+                else if (!(index < count))
+                {
+                    throw new ArgumentException("Value of --partition-index must be less than --partition-count");
+                }
+                else if (index < 0)
+                {
+                    throw new ArgumentException("Value of --partition-index must be greater than or equal to 0");
+                }
+            }
         }
     }
 }
