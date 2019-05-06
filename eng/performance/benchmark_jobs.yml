@@ -1,14 +1,15 @@
 parameters:
-  osName: ''           # required -- windows | linux | macos
-  osVersion: ''        # required -- OS version
-  kind: ''             # required -- benchmark kind. As of today, only "micro" and "mlnet" benchmarks are supported, we plan to add "scenarios" soon
-  architecture: ''     # required -- Architecture. Allowed values: x64, x86, arm32, arm64
-  pool: ''             # required -- name of the Helix pool
-  queue: ''            # required -- name of the Helix queue
-  container: ''        # optional -- id of the container
-  csproj: ''           # required -- relative path to csproj with benchmarks
-  frameworks: []       # required -- list of frameworks. Allowed values: net461, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
-  categories: []       # required -- list of categories
+  osName: ''            # required -- windows | linux | macos
+  osVersion: ''         # required -- OS version
+  kind: ''              # required -- benchmark kind. As of today, only "micro" and "mlnet" benchmarks are supported, we plan to add "scenarios" soon
+  architecture: ''      # required -- Architecture. Allowed values: x64, x86, arm32, arm64
+  pool: ''              # required -- name of the Helix pool
+  queue: ''             # required -- name of the Helix queue
+  container: ''         # optional -- id of the container
+  csproj: ''            # required -- relative path to csproj with benchmarks
+  frameworks: []        # required -- list of frameworks. Allowed values: net461, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
+  runCategories: ''     # required -- string of space separated categories supplied to benchmark dotnet
+  benchviewCategory: '' # optional -- category for benchview upload container
 
 jobs:
 - template: ../common/templates/jobs/jobs.yml
@@ -33,7 +34,7 @@ jobs:
             value: dotnet-performance
           # for public runs we want to run the benchmarks exactly once, no warmup, no pilot, no overhead
           - name: BenchmarkDotNetArguments
-            value: '--allCategories $(_Category) --iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart --stopOnFirstError true'
+            value: '--anyCategories ${{ parameters.runCategories }} --iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart --stopOnFirstError true'
           - name: HelixApiAccessToken
             value: ''
           - name: HelixPreCommand
@@ -47,10 +48,10 @@ jobs:
             value: '.NET Performance - $(BenchViewRunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
           # for private runs we want to generate data (--generate-benchview-data ) and upload it (--upload-to-benchview-container specifies where)
           - name: BenchViewArguments
-            value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(BenchViewRunType) --upload-to-benchview-container $(_Category)'
+            value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(BenchViewRunType) --upload-to-benchview-container ${{ parameters.benchviewCategory}}'
           # for private runs we don't provide any custom BDN arguments (the ones from Program.Main are used)
           - name: BenchmarkDotNetArguments
-            value: '--allCategories $(_Category)'
+            value: '--anyCategories ${{ parameters.runCategories }}'
           - name: Creator
             value: ''
           - ${{ if eq(parameters.osName, 'windows') }}:
@@ -71,24 +72,21 @@ jobs:
         strategy:
           matrix:
             ${{ each framework in parameters.frameworks }}:
-              ${{ each category in parameters.categories }}:
-                ${{ category }}_${{ framework }}:
-                  _Category: ${{ category }}
-                  _Framework: ${{ framework }}
-                  _CompilationMode: NoTiering
-                  _BuildConfig: ${{ parameters.architecture }}_${{ category }}_$(_Framework)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
-                  ${{ if startsWith(framework, 'netcoreapp') }}:
+              ${{ framework }}:
+                _Framework: ${{ framework }}
+                _CompilationMode: NoTiering
+                _BuildConfig: ${{ parameters.architecture }}_$(_Framework)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
+                ${{ if startsWith(framework, 'netcoreapp') }}:
+                  _BenchViewArguments: $(BenchViewArguments)
+                ${{ if not(startsWith(framework, 'netcoreapp')) }}: # we don't want to upload non-.NET Core results to BenchView
+                  _BenchViewArguments: ''
+              ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}: # to reduce the number of CI legs for every PR
+                ${{ if startsWith(framework, 'netcoreapp') }}: # Tiered JIT was introduced in .NET Core 2.1
+                  ${{ framework }}_tiered:
+                    _Framework: ${{ framework }}
+                    _CompilationMode: Tiered
+                    _BuildConfig: ${{ parameters.architecture }}_$(_Framework)_$(_CompilationMode)_${{ parameters.kind }}
                     _BenchViewArguments: $(BenchViewArguments)
-                  ${{ if not(startsWith(framework, 'netcoreapp')) }}: # we don't want to upload non-.NET Core results to BenchView
-                    _BenchViewArguments: ''
-                ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}: # to reduce the number of CI legs for every PR
-                  ${{ if startsWith(framework, 'netcoreapp') }}: # Tiered JIT was introduced in .NET Core 2.1
-                    ${{ category }}_${{ framework }}_tiered:
-                      _Category: ${{ category }}
-                      _Framework: ${{ framework }}
-                      _CompilationMode: Tiered
-                      _BuildConfig: ${{ parameters.architecture }}_${{ category }}_$(_Framework)_$(_CompilationMode)_${{ parameters.kind }}
-                      _BenchViewArguments: $(BenchViewArguments)
         steps:
         - checkout: self
           clean: true

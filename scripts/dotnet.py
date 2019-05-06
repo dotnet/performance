@@ -14,7 +14,7 @@ from stat import S_IRWXU
 from subprocess import check_output
 from sys import argv, platform
 from urllib.parse import urlparse
-from urllib.request import urlopen, urlretrieve
+from urllib.request import urlopen, urlretrieve, Request
 
 import re
 

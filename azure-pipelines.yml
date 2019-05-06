@@ -48,14 +48,28 @@ jobs:
       kind: micro
       architecture: x64
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS4.DevEx.15.8.Open
+      queue: Windows.10.Amd64.ClientRS4.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      categories: ['coreclr', 'corefx']
+      runCategories: 'coreclr corefx' 
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - netcoreapp3.0
         - netcoreapp2.2
         - netcoreapp2.1
-        - net461
+
+ # Windows x64 micro benchmarks net461, public correctness job
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS4
+      kind: micro_net461
+      architecture: x64
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.ClientRS4.DevEx.15.8.Open
+      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+      runCategories: 'coreclr corefx'
+      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - net461 
 
 # Windows x86 micro benchmarks, public correctness job
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -66,9 +80,9 @@ jobs:
       kind: micro
       architecture: x86
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS4.DevEx.15.8.Open
+      queue: Windows.10.Amd64.ClientRS4.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      categories: ['coreclr', 'corefx']
+      runCategories: 'coreclr corefx'
       frameworks: # for public jobs we want to make sure that the PRs don't break x86
         - netcoreapp3.0
 
@@ -83,7 +97,8 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      categories: ['coreclr', 'corefx']
+      runCategories: 'coreclr corefx'
+      benchviewCategory: 'coreclr'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
       
@@ -98,7 +113,8 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      categories: ['coreclr', 'corefx']
+      runCategories: 'coreclr corefx'
+      benchviewCategory: 'coreclr'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
         
@@ -114,7 +130,7 @@ jobs:
       queue: Ubuntu.1604.Amd64.Open
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      categories: ['coreclr', 'corefx']
+      runCategories: 'coreclr corefx'
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - netcoreapp3.0
         - netcoreapp2.2
@@ -132,7 +148,8 @@ jobs:
       queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      categories: ['coreclr', 'corefx']
+      runCategories: 'coreclr corefx'
+      benchviewCategory: 'coreclr'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
         
@@ -148,7 +165,7 @@ jobs:
 #       queue: Ubuntu.1604.Arm64.Open
 #       container: ubuntu_1604_arm64_cross_container
 #       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-#       categories: ['coreclr', 'corefx']
+#       runCategories: 'coreclr corefx'
 #       frameworks: # currently ARM64 is supported only by .NET Core 3.0 https://github.com/dotnet/core/blob/master/release-notes/3.0/3.0-supported-os.md
 #         - netcoreapp3.0
 
@@ -161,9 +178,9 @@ jobs:
       kind: mlnet
       architecture: x64
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS4.DevEx.15.8.Open
+      queue: Windows.10.Amd64.ClientRS4.Open
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-      categories: ['mldotnet']
+      runCategories: 'mldotnet'
       frameworks: # for ML.NET jobs we want to check .NET Core 3.0 only
         - netcoreapp3.0
 
@@ -178,7 +195,8 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-      categories: ['mldotnet']
+      runCategories: 'mldotnet'
+      benchviewCategory: 'mldotnet'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
         
@@ -193,8 +211,8 @@ jobs:
       pool: Hosted Ubuntu 1604
       queue: Ubuntu.1604.Amd64.Open
       container: ubuntu_x64_build_container
+      runCategories: 'mldotnet'
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
-      categories: ['mldotnet']
       frameworks: # for ML.NET jobs we want to check .NET Core 3.0 only
         - netcoreapp3.0
 
@@ -210,7 +228,8 @@ jobs:
       queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
-      categories: ['mldotnet']
+      runCategories: 'mldotnet'
+      benchviewCategory: 'mldotnet'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
 
@@ -223,9 +242,9 @@ jobs:
       kind: roslyn
       architecture: x64
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS4.DevEx.15.8.Open
+      queue: Windows.10.Amd64.ClientRS4.Open
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
-      categories: ['roslyn']
+      runCategories: 'roslyn'
       frameworks: # for Roslyn jobs we want to check .NET Core 3.0 only
         - netcoreapp3.0
 
@@ -240,7 +259,8 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
-      categories: ['roslyn']
+      runCategories: 'roslyn'
+      benchviewCategory: 'roslyn'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
         
