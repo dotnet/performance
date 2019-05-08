@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,12 @@ namespace Reporting
             if (counter.DefaultCounter && Counters.Any(c => c.DefaultCounter))
                 throw new Exception($"Duplicate default counter, name: ${counter.Name}");
             Counters.Add(counter);
+        }
+
+        public void AddCounter(IEnumerable<Counter> counters)
+        {
+            foreach (var counter in counters)
+                AddCounter(counter);
         }
     }
 }
