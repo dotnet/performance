@@ -69,7 +69,7 @@ namespace System.Buffers.Text.Tests
         [Benchmark]
         public OperationStatus Base64DecodeDetinationTooSmall() => Base64.DecodeFromUtf8(_encodedBytes, _decodedBytes, out _, out _);
 
-#if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1
+#if !NETFRAMEWORK // API added in .NET Core 2.1
         [GlobalSetup(Target = nameof(ConvertTryFromBase64Chars))]
         public void SetupConvertTryFromBase64Chars()
         {

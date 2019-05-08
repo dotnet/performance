@@ -330,7 +330,7 @@ namespace System.Tests
             return str[index];
         }
 
-#if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1
+#if !NETFRAMEWORK // API added in .NET Core 2.1
         [Benchmark]
         [Arguments("This is a very nice sentence", "bad", StringComparison.CurrentCultureIgnoreCase)]
         [Arguments("This is a very nice sentence", "bad", StringComparison.Ordinal)]

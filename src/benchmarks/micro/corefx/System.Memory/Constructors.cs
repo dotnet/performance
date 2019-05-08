@@ -88,7 +88,7 @@ namespace System.Memory
         [Benchmark]
         public System.Memory<T> ArrayAsMemoryStartLength() => _nonEmptyArray.AsMemory(start: 0, length: Size);
 
-#if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1 https://github.com/dotnet/coreclr/issues/16126
+#if !NETFRAMEWORK // API added in .NET Core 2.1 https://github.com/dotnet/coreclr/issues/16126
         [Benchmark]
         public System.Span<T> MemoryMarshalCreateSpan() => MemoryMarshal.CreateSpan<T>(ref _field, Size);
     

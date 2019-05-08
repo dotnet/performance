@@ -47,7 +47,7 @@ namespace System.Net.Primitives.Tests
         [Benchmark]
         public long NetworkToHostOrder() => IPAddress.NetworkToHostOrder(s_addr);
 
-#if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1
+#if !NETFRAMEWORK // API added in .NET Core 2.1
         [Benchmark]
         [ArgumentsSource(nameof(ByteAddresses))]
         public IPAddress Ctor_Span(byte[] address)

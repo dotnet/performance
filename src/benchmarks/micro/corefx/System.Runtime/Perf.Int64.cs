@@ -35,7 +35,7 @@ namespace System.Tests
         [ArgumentsSource(nameof(StringValues))]
         public bool TryParse(string value) => long.TryParse(value, out _);
 
-#if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1
+#if !NETFRAMEWORK // API added in .NET Core 2.1
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
         public bool TryFormat(long value) => value.TryFormat(new Span<char>(_destination), out _);
