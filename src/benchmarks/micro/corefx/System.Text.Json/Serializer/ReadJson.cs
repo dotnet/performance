@@ -16,7 +16,6 @@ namespace System.Text.Json.Serialization.Tests
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     public class ReadJson<T>
     {
-        private T _value;
         private string _serialized;
         private byte[] _utf8Serialized;
         private MemoryStream _memoryStream;
@@ -24,25 +23,25 @@ namespace System.Text.Json.Serialization.Tests
         [GlobalSetup]
         public async Task Setup()
         {
-            _value = DataGenerator.Generate<T>();
+            T value = DataGenerator.Generate<T>();
 
-            _serialized = JsonSerializer.ToString(_value);
+            _serialized = JsonSerializer.ToString(value);
 
             _utf8Serialized = Encoding.UTF8.GetBytes(_serialized);
 
             _memoryStream = new MemoryStream(capacity: short.MaxValue);
-            await JsonSerializer.WriteAsync(_value, _memoryStream);
+            await JsonSerializer.WriteAsync(value, _memoryStream);
         }
 
-        [BenchmarkCategory(Categories.CoreFX, Categories.JSON, Categories.JsonSerializer)]
+        [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public T DeserializeFromString() => JsonSerializer.Parse<T>(_serialized);
 
-        [BenchmarkCategory(Categories.CoreFX, Categories.JSON, Categories.JsonSerializer)]
+        [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public T DeserializeFromUtf8Bytes() => JsonSerializer.Parse<T>(_utf8Serialized);
 
-        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.JsonSerializer)]
+        [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public async Task<T> DeserializeFromStream()
         {

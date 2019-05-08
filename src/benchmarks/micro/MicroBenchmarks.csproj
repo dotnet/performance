@@ -87,8 +87,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.0'">
-    <Compile Remove="corefx\System.Text.Json\Serializer\*.cs" />
-    <Compile Remove="corefx\System.Text.Json\Utf8JsonWriter\*.cs" />
+    <Compile Remove="corefx\System.Text.Json\*\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">

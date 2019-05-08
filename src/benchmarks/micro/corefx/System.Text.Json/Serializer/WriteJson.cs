@@ -28,15 +28,15 @@ namespace System.Text.Json.Serialization.Tests
             await JsonSerializer.WriteAsync(_value, _memoryStream);
         }
 
-        [BenchmarkCategory(Categories.CoreFX, Categories.JSON, Categories.JsonSerializer)]
+        [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public string SerializeToString() => JsonSerializer.ToString(_value);
 
-        [BenchmarkCategory(Categories.CoreFX, Categories.JSON, Categories.JsonSerializer)]
+        [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public byte[] SerializeToUtf8Bytes() => JsonSerializer.ToBytes(_value);
 
-        [BenchmarkCategory(Categories.CoreFX, Categories.JSON, Categories.JsonSerializer)]
+        [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public async Task SerializeToStream()
         {
@@ -45,9 +45,6 @@ namespace System.Text.Json.Serialization.Tests
         }
 
         [GlobalCleanup]
-        public void Cleanup()
-        {
-            _memoryStream.Dispose();
-        }
+        public void Cleanup() => _memoryStream.Dispose();
     }
 }
