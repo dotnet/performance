@@ -66,7 +66,6 @@ class FrameworkAction(Action):
             'netcoreapp3.0': 'master',
             'netcoreapp2.2': '2.2',
             'netcoreapp2.1': '2.1',
-            'netcoreapp2.0': '2.0',
             # For Full Framework download the LTS for dotnet cli.
             'net461': 'LTS',
         }
@@ -92,7 +91,6 @@ class FrameworkAction(Action):
             'netcoreapp3.0': 'master',
             'netcoreapp2.2': 'release/2.2',
             'netcoreapp2.1': 'release/2.1',
-            'netcoreapp2.0': 'release/2.0.0',
             # For Full Framework download the LTS for dotnet cli.
             'net461': 'LTS',
         }

@@ -41,8 +41,8 @@ To build the benchmarks you need to have the right `dotnet cli`. This repository
 If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [common.props](../src/benchmarks/micro/common.props) file.
 
 ```diff
--     <TargetFrameworks>netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
-+     <TargetFrameworks>netcoreapp2.0;netcoreapp2.1</TargetFrameworks>
+-     <TargetFrameworks>netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
++     <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
 ```
 
 Once you have it, you can build the [MicroBenchmarks](../src/benchmarks/micro/MicroBenchmarks.csproj) project. Please do remember that the default configuration for `dotnet cli` is `Debug`. Running benchmarks in `Debug` makes no sense, so please **always build and run it in `Release` mode**.
@@ -178,7 +178,7 @@ You need to specify the target framework monikers via `--runtimes` or just `-r` 
 Example: run `System.Collections.CopyTo<Int32>.Array` benchmarks against .NET Core 2.0 and 2.1 installed on your machine:
 
 ```cmd
-dotnet run -c Release -f netcoreapp2.0 -- -f System.Collections.CopyTo<Int32>.Array --runtimes netcoreapp2.0 netcoreapp2.1
+dotnet run -c Release -f netcoreapp2.1 -- -f System.Collections.CopyTo<Int32>.Array --runtimes netcoreapp2.1
 ```
 
 **Important:** when comparing few different .NET runtimes please always use the lowest common API denominator as the host process. What does it mean? BDN needs to detect and build these benchmarks. If you run the host process as .NET Core 2.1 it won't be able to detect benchmarks that use newer APIs are available only for .NET Core 3.0.

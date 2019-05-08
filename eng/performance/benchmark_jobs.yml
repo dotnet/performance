@@ -7,7 +7,7 @@ parameters:
   queue: ''            # required -- name of the Helix queue
   container: ''        # optional -- id of the container
   csproj: ''           # required -- relative path to csproj with benchmarks
-  frameworks: []       # required -- list of frameworks. Allowed values: net461, netcoreapp2.0, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
+  frameworks: []       # required -- list of frameworks. Allowed values: net461, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
   categories: []       # required -- list of categories
 
 jobs:
@@ -82,7 +82,7 @@ jobs:
                   ${{ if not(startsWith(framework, 'netcoreapp')) }}: # we don't want to upload non-.NET Core results to BenchView
                     _BenchViewArguments: ''
                 ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}: # to reduce the number of CI legs for every PR
-                  ${{ if and(startsWith(framework, 'netcoreapp'), ne(framework, 'netcoreapp2.0')) }}: # Tiered JIT was introduced in .NET Core 2.1
+                  ${{ if startsWith(framework, 'netcoreapp') }}: # Tiered JIT was introduced in .NET Core 2.1
                     ${{ category }}_${{ framework }}_tiered:
                       _Category: ${{ category }}
                       _Framework: ${{ framework }}
