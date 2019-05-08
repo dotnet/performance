@@ -57,7 +57,7 @@
     <Compile Remove="coreclr\Math\Functions\Single\**" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or '$(TargetFramework)' == 'netcoreapp2.0'">
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <Compile Remove="corefx\System.IO.Compression\Brotli.cs" />
     <Compile Remove="corefx\System.Net.Http\Perf.SocketsHttpHandler.cs" />
     <Compile Remove="corefx\System.Net.Sockets\Perf.Socket.SendReceive.cs" />
@@ -88,10 +88,6 @@
 
   <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.0'">
     <Compile Remove="corefx\System.Text.Json\*\*.cs" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
-    <Compile Remove="corefx\System.Drawing\Perf_Graphics*.cs" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.0' OR '$(IsARM)' == 'true'">
