@@ -10,7 +10,7 @@ We use BenchmarkDotNet as the benchmarking tool, you can read more about it in [
 
 ## Quick Start
 
-The first thing that you need to choose is the Target Framework. Available options are: `netcoreapp2.0|netcoreapp2.1|netcoreapp2.2|netcoreapp3.0|net461`. You can specify the target framework using `-f|--framework` argument. For the sake of simplicity, all examples below use `netcoreapp3.0` as the target framework.
+The first thing that you need to choose is the Target Framework. Available options are: `netcoreapp2.1|netcoreapp2.2|netcoreapp3.0|net461`. You can specify the target framework using `-f|--framework` argument. For the sake of simplicity, all examples below use `netcoreapp3.0` as the target framework.
 
 To run the benchmarks in Interactive Mode, where you will be asked which benchmark(s) to run:
 

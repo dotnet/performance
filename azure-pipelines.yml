@@ -55,7 +55,6 @@ jobs:
         - netcoreapp3.0
         - netcoreapp2.2
         - netcoreapp2.1
-        - netcoreapp2.0
         - net461
 
 # Windows x86 micro benchmarks, public correctness job
@@ -120,7 +119,6 @@ jobs:
         - netcoreapp3.0
         - netcoreapp2.2
         - netcoreapp2.1
-        - netcoreapp2.0
 
 # Ubuntu 1604 x64 micro benchmarks, private job
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:

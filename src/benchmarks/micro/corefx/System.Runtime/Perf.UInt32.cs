@@ -28,7 +28,7 @@ namespace System.Tests
         [ArgumentsSource(nameof(Values))]
         public string ToString(uint value) => value.ToString();
 
-#if !NETFRAMEWORK && !NETCOREAPP2_0 // API added in .NET Core 2.1
+#if !NETFRAMEWORK // API added in .NET Core 2.1
         [Benchmark]
         [ArgumentsSource(nameof(Values))]
         public bool TryFormat(uint value) => value.TryFormat(new Span<char>(_destination), out _);

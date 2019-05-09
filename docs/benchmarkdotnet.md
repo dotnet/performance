@@ -70,7 +70,7 @@ dotnet build -c Release
 If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [common.props](../build/common.props) file.
 
 ```diff
--<TargetFrameworks>netcoreapp2.0;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
+-<TargetFrameworks>netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
 +<TargetFrameworks>netcoreapp3.0</TargetFrameworks>
 ```
 
@@ -162,7 +162,7 @@ To print the list of all available benchmarks you need to pass `--list [tree/fla
 Example: Show the tree of all the benchmarks from System.Threading namespace that can be run for .NET Core 2.0:
 
 ```cmd
-dotnet run -c Release -f netcoreapp2.0 --list tree --filter System.Threading*
+dotnet run -c Release -f netcoreapp2.1 --list tree --filter System.Threading*
 ```
 
 ```log
@@ -257,7 +257,7 @@ If you want to disassemble the benchmarked code, you need to use the [Disassembl
 
 You can do that by passing `--disassm` to the app or by using `[DisassemblyDiagnoser(printAsm: true, printSource: true)]` attribute or by adding it to your config with `config.With(DisassemblyDiagnoser.Create(new DisassemblyDiagnoserConfig(printAsm: true, recursiveDepth: 1))`.
 
-Example: `dotnet run -c Release -f netcoreapp2.0 -- --filter System.Memory.Span<Int32>.Reverse -d`
+Example: `dotnet run -c Release -f netcoreapp2.1 -- --filter System.Memory.Span<Int32>.Reverse -d`
 
 ```assembly
 ; System.Runtime.InteropServices.MemoryMarshal.GetReference[[System.Byte, System.Private.CoreLib]](System.Span`1<Byte>)
@@ -283,7 +283,7 @@ M00_L00:
 
 The `--runtimes` or just `-r` allows you to run the benchmarks for **multiple Runtimes**.
 
-Available options are: Mono, CoreRT, net461, net462, net47, net471, net472, netcoreapp2.0, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0.
+Available options are: Mono, CoreRT, net461, net462, net47, net471, net472, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0.
 
 Example: run the benchmarks for .NET Core 2.2 and 3.0:
 

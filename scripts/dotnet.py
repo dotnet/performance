@@ -555,7 +555,6 @@ def __process_arguments(args: list):
         'master',  # Default channel
         '2.2',
         '2.1',
-        '2.0',
         'LTS',
     ]
     install_parser.add_argument(
