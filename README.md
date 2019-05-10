@@ -59,65 +59,65 @@ This project has adopted the code of conduct defined by the Contributor Covenant
 [//]: # (These are the CoreFX links)
 
 [//]: # (These are the windows x64 links)
-[CoreFX_windows_RS4_x64_netcoreapp3.0_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=CoreFX_netcoreapp3.0
-[CoreFX_windows_RS4_x64_netcoreapp3.0_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=CoreFX_netcoreapp3.0
-[CoreFX_windows_RS4_x64_netcoreapp2.2_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=CoreFX_netcoreapp2.2
-[CoreFX_windows_RS4_x64_netcoreapp2.2_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=CoreFX_netcoreapp2.2
-[CoreFX_windows_RS4_x64_netcoreapp2.1_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=CoreFX_netcoreapp2.1
-[CoreFX_windows_RS4_x64_netcoreapp2.1_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=CoreFX_netcoreapp2.1
-[CoreFX_windows_RS4_x64_net461_status]:            https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=CoreFX_net461
-[CoreFX_windows_RS4_x64_net461_icon]:              https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=CoreFX_net461
+[CoreFX_windows_RS4_x64_netcoreapp3.0_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20corefx_netcoreapp3.0
+[CoreFX_windows_RS4_x64_netcoreapp3.0_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20corefx_netcoreapp3.0
+[CoreFX_windows_RS4_x64_netcoreapp2.2_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20corefx_netcoreapp2.2
+[CoreFX_windows_RS4_x64_netcoreapp2.2_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20corefx_netcoreapp2.2
+[CoreFX_windows_RS4_x64_netcoreapp2.1_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20corefx_netcoreapp2.1
+[CoreFX_windows_RS4_x64_netcoreapp2.1_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20corefx_netcoreapp2.1
+[CoreFX_windows_RS4_x64_net461_status]:            https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20corefx_net461
+[CoreFX_windows_RS4_x64_net461_icon]:              https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20corefx_net461
 
 [//]: # (These are the windows x86 links)
-[CoreFX_windows_RS4_x86_netcoreapp3.0_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x86%20micro&configuration=CoreFX_netcoreapp3.0
-[CoreFX_windows_RS4_x86_netcoreapp3.0_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x86%20micro&configuration=CoreFX_netcoreapp3.0
+[CoreFX_windows_RS4_x86_netcoreapp3.0_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x86%20micro&configuration=windows%20RS4%20x86%20micro%20corefx_netcoreapp3.0
+[CoreFX_windows_RS4_x86_netcoreapp3.0_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x86%20micro&configuration=windows%20RS4%20x86%20micro%20corefx_netcoreapp3.0
 
 [//]: # (These are the ubuntu x64 links)
-[CoreFX_ubuntu_1604_x64_netcoreapp3.0_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=CoreFX_netcoreapp3.0
-[CoreFX_ubuntu_1604_x64_netcoreapp3.0_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=CoreFX_netcoreapp3.0
-[CoreFX_ubuntu_1604_x64_netcoreapp2.2_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=CoreFX_netcoreapp2.2
-[CoreFX_ubuntu_1604_x64_netcoreapp2.2_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=CoreFX_netcoreapp2.2
-[CoreFX_ubuntu_1604_x64_netcoreapp2.1_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=CoreFX_netcoreapp2.1
-[CoreFX_ubuntu_1604_x64_netcoreapp2.1_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=CoreFX_netcoreapp2.1
+[CoreFX_ubuntu_1604_x64_netcoreapp3.0_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=ubuntu%201604%20x64%20micro%20corefx_netcoreapp3.0
+[CoreFX_ubuntu_1604_x64_netcoreapp3.0_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=ubuntu%201604%20x64%20micro%20corefx_netcoreapp3.0
+[CoreFX_ubuntu_1604_x64_netcoreapp2.2_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=ubuntu%201604%20x64%20micro%20corefx_netcoreapp2.2
+[CoreFX_ubuntu_1604_x64_netcoreapp2.2_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=ubuntu%201604%20x64%20micro%20corefx_netcoreapp2.2
+[CoreFX_ubuntu_1604_x64_netcoreapp2.1_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=ubuntu%201604%20x64%20micro%20corefx_netcoreapp2.1
+[CoreFX_ubuntu_1604_x64_netcoreapp2.1_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=ubuntu%201604%20x64%20micro%20corefx_netcoreapp2.1
 
 [//]: # (These are the ubuntu arm64 links)
-[CoreFX_ubuntu_1604_arm64_netcoreapp3.0_status]:   https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20arm64%20micro&configuration=CoreFX_netcoreapp3.0
-[CoreFX_ubuntu_1604_arm64_netcoreapp3.0_icon]:     https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20arm64%20micro&configuration=CoreFX_netcoreapp3.0
+[CoreFX_ubuntu_1604_arm64_netcoreapp3.0_status]:   https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20arm64%20micro&configuration=ubuntu%201604%20arm64%20micro%20corefx_netcoreapp3.0
+[CoreFX_ubuntu_1604_arm64_netcoreapp3.0_icon]:     https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20arm64%20micro&configuration=ubuntu%201604%20arm64%20micro%20corefx_netcoreapp3.0
 
 [//]: # (These are the CoreCLR links)
 
 [//]: # (These are the windows x64 links)
-[CoreCLR_windows_RS4_x64_netcoreapp3.0_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=CoreCLR_netcoreapp3.0
-[CoreCLR_windows_RS4_x64_netcoreapp3.0_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=CoreCLR_netcoreapp3.0
-[CoreCLR_windows_RS4_x64_netcoreapp2.2_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=CoreCLR_netcoreapp2.2
-[CoreCLR_windows_RS4_x64_netcoreapp2.2_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=CoreCLR_netcoreapp2.2
-[CoreCLR_windows_RS4_x64_netcoreapp2.1_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=CoreCLR_netcoreapp2.1
-[CoreCLR_windows_RS4_x64_netcoreapp2.1_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=CoreCLR_netcoreapp2.1
-[CoreCLR_windows_RS4_x64_net461_status]:           https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=CoreCLR_net461
-[CoreCLR_windows_RS4_x64_net461_icon]:             https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=CoreCLR_net461
+[CoreCLR_windows_RS4_x64_netcoreapp3.0_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20coreclr_netcoreapp3.0
+[CoreCLR_windows_RS4_x64_netcoreapp3.0_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20coreclr_netcoreapp3.0
+[CoreCLR_windows_RS4_x64_netcoreapp2.2_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20coreclr_netcoreapp2.2
+[CoreCLR_windows_RS4_x64_netcoreapp2.2_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20coreclr_netcoreapp2.2
+[CoreCLR_windows_RS4_x64_netcoreapp2.1_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20coreclr_netcoreapp2.1
+[CoreCLR_windows_RS4_x64_netcoreapp2.1_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20coreclr_netcoreapp2.1
+[CoreCLR_windows_RS4_x64_net461_status]:           https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20coreclr_net461
+[CoreCLR_windows_RS4_x64_net461_icon]:             https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20coreclr_net461
 
 [//]: # (These are the windows x86 links)
-[CoreCLR_windows_RS4_x86_netcoreapp3.0_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x86%20micro&configuration=CoreCLR_netcoreapp3.0
-[CoreCLR_windows_RS4_x86_netcoreapp3.0_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x86%20micro&configuration=CoreCLR_netcoreapp3.0
+[CoreCLR_windows_RS4_x86_netcoreapp3.0_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x86%20micro&configuration=windows%20RS4%20x86%20micro%20coreclr_netcoreapp3.0
+[CoreCLR_windows_RS4_x86_netcoreapp3.0_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x86%20micro&configuration=windows%20RS4%20x86%20micro%20coreclr_netcoreapp3.0
 
 [//]: # (These are the ubuntu x64 links)
-[CoreCLR_ubuntu_1604_x64_netcoreapp3.0_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=CoreCLR_netcoreapp3.0
-[CoreCLR_ubuntu_1604_x64_netcoreapp3.0_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=CoreCLR_netcoreapp3.0
-[CoreCLR_ubuntu_1604_x64_netcoreapp2.2_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=CoreCLR_netcoreapp2.2
-[CoreCLR_ubuntu_1604_x64_netcoreapp2.2_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=CoreCLR_netcoreapp2.2
-[CoreCLR_ubuntu_1604_x64_netcoreapp2.1_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=CoreCLR_netcoreapp2.1
-[CoreCLR_ubuntu_1604_x64_netcoreapp2.1_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=CoreCLR_netcoreapp2.1
+[CoreCLR_ubuntu_1604_x64_netcoreapp3.0_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=ubuntu%201604%20x64%20micro%20coreclr_netcoreapp3.0
+[CoreCLR_ubuntu_1604_x64_netcoreapp3.0_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=ubuntu%201604%20x64%20micro%20coreclr_netcoreapp3.0
+[CoreCLR_ubuntu_1604_x64_netcoreapp2.2_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=ubuntu%201604%20x64%20micro%20coreclr_netcoreapp2.2
+[CoreCLR_ubuntu_1604_x64_netcoreapp2.2_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=ubuntu%201604%20x64%20micro%20coreclr_netcoreapp2.2
+[CoreCLR_ubuntu_1604_x64_netcoreapp2.1_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=ubuntu%201604%20x64%20micro%20coreclr_netcoreapp2.1
+[CoreCLR_ubuntu_1604_x64_netcoreapp2.1_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20x64%20micro&configuration=ubuntu%201604%20x64%20micro%20coreclr_netcoreapp2.1
 
 [//]: # (These are the ubuntu arm64 links)
-[CoreCLR_ubuntu_1604_arm64_netcoreapp3.0_status]:  https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20arm64%20micro&configuration=CoreCLR_netcoreapp3.0
-[CoreCLR_ubuntu_1604_arm64_netcoreapp3.0_icon]:    https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20arm64%20micro&configuration=CoreCLR_netcoreapp3.0
+[CoreCLR_ubuntu_1604_arm64_netcoreapp3.0_status]:  https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20arm64%20micro&configuration=ubuntu%201604%20arm64%20micro%20coreclr_netcoreapp3.0
+[CoreCLR_ubuntu_1604_arm64_netcoreapp3.0_icon]:    https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20arm64%20micro&configuration=ubuntu%201604%20arm64%20micro%20coreclr_netcoreapp3.0
 
 [//]: # (These are the ML.NET links)
 
 [//]: # (These are the windows x64 links)
-[mldotnet_windows_RS4_x64_netcoreapp3.0_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20mlnet&configuration=mldotnet_netcoreapp3.0
-[mldotnet_windows_RS4_x64_netcoreapp3.0_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20mlnet&configuration=mldotnet_netcoreapp3.0
+[mldotnet_windows_RS4_x64_netcoreapp3.0_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20mlnet&configuration=windows%20RS4%20x64%20mlnet%20mldotnet_netcoreapp3.0
+[mldotnet_windows_RS4_x64_netcoreapp3.0_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20mlnet&configuration=windows%20RS4%20x64%20mlnet%20mldotnet_netcoreapp3.0
 
 [//]: # (These are the ubuntu x64 links)
-[mldotnet_ubuntu_1604_x64_netcoreapp3.0_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20x64%20mlnet&configuration=mldotnet_netcoreapp3.0
-[mldotnet_ubuntu_1604_x64_netcoreapp3.0_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20x64%20mlnet&configuration=mldotnet_netcoreapp3.0
+[mldotnet_ubuntu_1604_x64_netcoreapp3.0_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20x64%20mlnet&configuration=ubuntu%201604%20x64%20mlnet%20mldotnet_netcoreapp3.0
+[mldotnet_ubuntu_1604_x64_netcoreapp3.0_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20x64%20mlnet&configuration=ubuntu%201604%20x64%20mlnet%20mldotnet_netcoreapp3.0
