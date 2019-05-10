@@ -31,7 +31,6 @@
 
   <!-- 
     Partition the Microbenchamrks project, but nothing else
-    TODO: only for oficial builds 
   -->
   <ItemGroup Condition="$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
     <HelixWorkItem Include="@(Partition)">
