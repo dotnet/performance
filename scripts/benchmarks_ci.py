@@ -54,6 +54,7 @@ if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
 
 def init_tools(
         architecture: str,
+        version: str,
         target_framework_monikers: list,
         verbose: bool) -> None:
     '''
@@ -70,6 +71,7 @@ def init_tools(
     dotnet.install(
         architecture=architecture,
         channels=channels,
+        version=version,
         verbose=verbose,
     )
     benchview.install()
@@ -199,6 +201,7 @@ def __main(args: list) -> int:
     # Acquire necessary tools (dotnet, and BenchView)
     init_tools(
         architecture=args.architecture,
+        version=args.dotnet_version,
         target_framework_monikers=target_framework_monikers,
         verbose=verbose
     )
