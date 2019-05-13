@@ -1,4 +1,5 @@
 parameters:
+  steps: []            # optional -- any additional steps that need to happen before pulling down the performance repo and sending the performance benchmarks to helix (ie building your repo)
   osName: ''            # required -- windows | linux | macos
   osVersion: ''         # required -- OS version
   kind: ''              # required -- benchmark kind. As of today, only "micro" and "mlnet" benchmarks are supported, we plan to add "scenarios" soon
@@ -10,6 +11,7 @@ parameters:
   frameworks: []        # required -- list of frameworks. Allowed values: net461, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
   runCategories: ''     # required -- string of space separated categories supplied to benchmark dotnet
   benchviewCategory: '' # optional -- category for benchview upload container
+  corerun: ''          # optional -- path to corerun
 
 jobs:
 - template: ../common/templates/jobs/jobs.yml
@@ -106,6 +108,8 @@ jobs:
                 ${{ if not(startsWith(framework, 'netcoreapp')) }}: # we don't want to upload non-.NET Core results to BenchView
                   _BenchViewArguments: ''
         steps:
+        - ${{ each step in parameters.steps }}:
+          - ${{ step }}
         - checkout: self
           clean: true
         - script: $(Python) scripts/ci_setup.py --frameworks $(_Framework) --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs)
