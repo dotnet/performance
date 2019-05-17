@@ -18,6 +18,7 @@ namespace System.Net.Security.Tests
         private readonly Barrier _twoParticipantBarrier = new Barrier(2);
         private readonly X509Certificate2 _cert = Test.Common.Configuration.Certificates.GetServerCertificate();
         private readonly byte[] _clientBuffer = new byte[1], _serverBuffer = new byte[1];
+        private readonly byte[] _largeClientBuffer = new byte[4096], _largeServerBuffer = new byte[4096];
 
         private NetworkStream _client, _server; // used for handshake tests
         private SslStream _sslClient, _sslServer; // used for read/write tests
@@ -59,10 +60,14 @@ namespace System.Net.Security.Tests
                 await Task.WhenAll(
                     sslClient.AuthenticateAsClientAsync("localhost", null, SslProtocols.None, checkCertificateRevocation: false),
                     sslServer.AuthenticateAsServerAsync(_cert, clientCertificateRequired: false, SslProtocols.None, checkCertificateRevocation: false));
+
+                // Workaround for corefx#37765
+                await sslServer.WriteAsync(_serverBuffer, default);
+                await sslClient.ReadAsync(_clientBuffer, default);
             }
         }
 
-        private const int ReadWriteIterations = 1_000;
+        private const int ReadWriteIterations = 50_000;
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
         public async Task WriteReadAsync()
@@ -89,7 +94,7 @@ namespace System.Net.Security.Tests
             }
         }
 
-        private const int ConcurrentReadWriteIterations = 10_000;
+        private const int ConcurrentReadWriteIterations = 50_000;
 
         [Benchmark(OperationsPerInvoke = ConcurrentReadWriteIterations)]
         public async Task ConcurrentReadWrite()
@@ -112,6 +117,50 @@ namespace System.Net.Security.Tests
             {
                 await _sslClient.WriteAsync(buffer2, default);
                 await _sslServer.ReadAsync(buffer2, default);
+            }
+
+            await other;
+        }
+
+        private const int ConcurrentReadWriteLargeBufferIterations = 10_000;
+
+        [Benchmark(OperationsPerInvoke = ConcurrentReadWriteLargeBufferIterations)]
+        public async Task ConcurrentReadWriteLargeBuffer()
+        {
+            Memory<byte> buffer1 = _largeClientBuffer;
+            Memory<byte> buffer2 = _largeServerBuffer;
+
+            Task other = Task.Run(async delegate
+            {
+                _twoParticipantBarrier.SignalAndWait();
+                for (int i = 0; i < ConcurrentReadWriteLargeBufferIterations; i++)
+                {
+                    await _sslServer.WriteAsync(buffer1, default);
+
+                    int totalRead = 0;
+                    Memory<byte> buff = buffer1;
+                    while (totalRead < buffer1.Length)
+                    {
+                        int bytesRead = await _sslClient.ReadAsync(buff, default);
+                        totalRead += bytesRead;
+                        buff = buff.Slice(bytesRead);
+                    }
+                }
+            });
+
+            _twoParticipantBarrier.SignalAndWait();
+            for (int i = 0; i < ConcurrentReadWriteLargeBufferIterations; i++)
+            {
+                await _sslClient.WriteAsync(buffer2, default);
+
+                int totalRead = 0;
+                Memory<byte> buff = buffer2;
+                while (totalRead < buffer2.Length)
+                {
+                    int bytesRead = await _sslServer.ReadAsync(buff, default);
+                    totalRead += bytesRead;
+                    buff = buff.Slice(bytesRead);
+                }
             }
 
             await other;
