@@ -10,13 +10,12 @@ from glob import iglob
 from json import loads
 from logging import getLogger
 from os import chmod, environ, listdir, makedirs, path, pathsep
+from re import search
 from stat import S_IRWXU
 from subprocess import check_output
 from sys import argv, platform
 from urllib.parse import urlparse
 from urllib.request import urlopen, urlretrieve
-
-import re
 
 from performance.common import get_repo_root_path
 from performance.common import get_tools_directory
@@ -46,6 +45,20 @@ CSharpProjFile = namedtuple('CSharpProjFile', [
     'file_name',
     'working_directory'
 ])
+
+
+class VersionsAction(Action):
+    '''
+    Argument parser helper class used to validates the dotnet-versions input.
+    '''
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if values:
+            for version in values:
+                if not search(r'^\d\.\d+\.\d+', version):
+                    raise ArgumentTypeError(
+                        'Version "{}" is in the wrong format'.format(version))
+            setattr(namespace, self.dest, values)
 
 
 class CompilationAction(Action):
@@ -300,7 +313,7 @@ def get_dotnet_sdk(framework: str, dotnet_path: str = None) -> str:
     if not dotnet_path:
         dotnet_path = 'dotnet'
 
-    groups = re.search(r"^netcoreapp(\d)\.(\d)$", framework)
+    groups = search(r"^netcoreapp(\d)\.(\d)$", framework)
     if not groups:
         raise ValueError("Unknown target framework: {}".format(framework))
 
@@ -315,7 +328,7 @@ def get_dotnet_sdk(framework: str, dotnet_path: str = None) -> str:
         # The .NET Command Line Tools `--info` had a different output in 2.0
         # This line seems commons in all Cli, so we can use the base path to
         # get information about the .NET SDK/Runtime
-        groups = re.search(r"^ +Base Path\: +(\S+)$", decoded_line)
+        groups = search(r"^ +Base Path\: +(\S+)$", decoded_line)
         if groups:
             break
 
@@ -442,7 +455,7 @@ def __get_directory(architecture: str) -> str:
 def install(
         architecture: str,
         channels: list,
-        version: str,
+        versions: str,
         verbose: bool,
         install_dir: str = None) -> None:
     '''
@@ -480,23 +493,22 @@ def install(
 
     # If Version is supplied, pull down the specified version
 
-    cmdline_args = dotnetInstallInterpreter + [
-            '-InstallDir', install_dir,
-            '-Architecture', architecture
+    common_cmdline_args = dotnetInstallInterpreter + [
+        '-InstallDir', install_dir,
+        '-Architecture', architecture
     ]
-    if version is not None:
-        cmdline_args = cmdline_args + [
-            '-Version', version,
-        ]
-        RunCommand(cmdline_args, verbose=verbose).run(
-            get_repo_root_path()
-        )
-    else:
-        # Install Runtime/SDKs
+
+    # Install Runtime/SDKs
+    if versions:
+        for version in versions:
+            cmdline_args = common_cmdline_args + ['-Version', version]
+            RunCommand(cmdline_args, verbose=verbose).run(
+                get_repo_root_path()
+            )
+
+    if channels:
         for channel in channels:
-            cmdline_args = cmdline_args + [
-                '-Channel', channel,
-            ]
+            cmdline_args = common_cmdline_args + ['-Channel', channel]
             RunCommand(cmdline_args, verbose=verbose).run(
                 get_repo_root_path()
             )
@@ -545,22 +557,13 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='{}'.format(CompilationAction.help_text())
     )
 
-    def __is_valid_sdk_version(version:str) -> str:
-        try:
-            if version is None or re.search('^\d\.\d+\.\d+', version):
-                return version
-            else:
-                raise ValueError
-        except ValueError:
-            raise ArgumentTypeError(
-                'Version "{}" is in the wrong format'.format(version))
-
     parser.add_argument(
-        '--dotnet-version',
-        dest="dotnet_version",
+        '--dotnet-versions',
+        dest="dotnet_versions",
         required=False,
-        default=None,
-        type=__is_valid_sdk_version,
+        nargs='+',
+        default=[],
+        action=VersionsAction,
         help='Version of the dotnet cli to install in the A.B.C format'
     )
 
@@ -628,7 +631,7 @@ def __main(args: list) -> int:
     install(
         architecture=args.architecture,
         channels=args.channels,
-        version=args.dotnet_version,
+        versions=args.dotnet_versions,
         verbose=args.verbose,
         install_dir=args.install_dir,
     )
