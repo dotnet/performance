@@ -73,7 +73,18 @@ namespace System.Memory
             new object[] { GenerateInputString('\u3060', 1000, 'x', 500), "x", StringComparison.Ordinal },
             new object[] { GenerateInputString('\u3060', 100, '\u3059', 50), "\u3059", StringComparison.Ordinal }
         };
-        
+
+        [Benchmark]
+        [ArgumentsSource(nameof(TrimArguments))]
+        public ReadOnlySpan<char> Trim(string input) => input.AsSpan().Trim();
+
+        public static IEnumerable<object[]> TrimArguments => new List<object[]>
+        {
+            new object[] { "" },
+            new object[] { " abcdefg " },
+            new object[] { "abcdefg" }
+        };
+
         private static string GenerateInputString(char source, int count, char replaceChar, int replacePos)
         {
             char[] str = new char[count];

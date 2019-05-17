@@ -4,7 +4,6 @@
 
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
-using System.Net;
 
 namespace System.Net.Tests
 {
@@ -12,9 +11,12 @@ namespace System.Net.Tests
     public class Perf_WebUtility
     {
         [Benchmark]
-        public string Decode_DecodingRequired() => WebUtility.UrlDecode("abcdefghijklmnopqrstuvwxy%22");
+        public string UrlDecode_DecodingRequired() => WebUtility.UrlDecode("abcdefghijklmnopqrstuvwxy%22");
 
         [Benchmark]
-        public string Decode_NoDecodingRequired() => WebUtility.UrlDecode("abcdefghijklmnopqrstuvwxyz");
+        public string UrlDecode_NoDecodingRequired() => WebUtility.UrlDecode("abcdefghijklmnopqrstuvwxyz");
+
+        [Benchmark]
+        public void HtmlDecode_Entities() => WebUtility.HtmlDecode("&#x6C34;&#x6C34;&#x6C34;&#x6C34;&#x6C34;&#x6C34;&#x6C34;");
     }
 }

@@ -52,6 +52,10 @@ namespace System.Linq.Tests
         private readonly int[] _intArrayOfTenElements = Enumerable.Repeat(1, 10).ToArray();
 
         [Benchmark]
+        public void EmptyTakeSelectToArray() =>
+            Enumerable.Empty<int>().Take(10).Select(i => i).ToArray();
+
+        [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
         public void Select(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
             => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.Select(o => o + 1), _consumer);
@@ -131,6 +135,11 @@ namespace System.Linq.Tests
         [Arguments(DefaultSize, DefaulIterationCount)]
         public void Range(int size, int iteration)
             => Enumerable.Range(0, size).Consume(_consumer);
+
+        [Benchmark]
+        [Arguments(DefaultSize)]
+        public void RangeSelect(int size)
+            => Enumerable.Range(0, size).Select(i => i).Consume(_consumer);
 
         [Benchmark]
         [Arguments(DefaultSize, DefaulIterationCount)]

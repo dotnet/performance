@@ -28,5 +28,13 @@ namespace System.Collections.Tests
 
         [Benchmark]
         public int Max() => _set.Max;
+
+        [Benchmark]
+        public int EnumerateViewBetween()
+        {
+            int count = 0;
+            foreach (int item in _set.GetViewBetween(100, 200)) count++;
+            return count;
+        }
     }
 }

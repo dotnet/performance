@@ -4,6 +4,8 @@
 
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
+using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace System.Tests
 {
@@ -270,5 +272,45 @@ namespace System.Tests
             for (int i = 0; i < _byteArrays.Length; i++)
                 Array.Resize<byte>(ref _byteArrays[i], NewSize);
         }
+
+        private readonly int[] _reversibleArray = Enumerable.Range(0, 256).ToArray();
+
+        [Benchmark]
+        public void Reverse() => Array.Reverse(_reversibleArray);
+
+        [GlobalSetup(Target = nameof(ClearUnaligned))]
+        public void SetupClearUnaligned()
+        {
+            while (true)
+            {
+                var buffer = new byte[8192];
+                GCHandle handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+                if (((long)handle.AddrOfPinnedObject()) % 32 != 0)
+                {
+                    _clearableArrayHandle = handle;
+                    _clearableArray = buffer;
+                    return;
+                }
+                handle.Free();
+            }
+        }
+ 
+        [GlobalCleanup(Target = nameof(ClearUnaligned))]
+        public void CleanupClearUnaligned() => _clearableArrayHandle.Free();
+ 
+        private GCHandle _clearableArrayHandle;
+        private byte[] _clearableArray;
+
+        [Benchmark]
+        public void ClearUnaligned() => Array.Clear(_clearableArray, 0, _clearableArray.Length);
+
+        private readonly char[] _indexOfCharArray = "This is a test of a reasonably long string to see how IndexOf works".ToCharArray();
+        private readonly short[] _indexOfShortArray = "This is a test of a reasonably long string to see how IndexOf works".Select(c => (short)c).ToArray();
+
+        [Benchmark]
+        public int IndexOfChar() => Array.IndexOf(_indexOfCharArray, '.');
+
+        [Benchmark]
+        public void IndexOfShort() => Array.IndexOf(_indexOfShortArray, (short)'.');
     }
 }

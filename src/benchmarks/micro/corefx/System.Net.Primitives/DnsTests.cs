@@ -5,15 +5,15 @@
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-namespace System.Tests
+namespace System.Net.Tests
 {
     [BenchmarkCategory(Categories.CoreFX)]
-    public class Perf_Uri
+    public class DnsTests
     {
         [Benchmark]
-        public string ParseAbsoluteUri() => new Uri("http://127.0.0.1:80").AbsoluteUri;
+        public IPHostEntry GetHostEntry() => Dns.GetHostEntry("34.206.253.53");
 
         [Benchmark]
-        public string DnsSafeHost() => new Uri("http://[fe80::3]%1").DnsSafeHost;
+        public string GetHostName() => Dns.GetHostName();
     }
 }

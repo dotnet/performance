@@ -20,9 +20,14 @@ namespace System.Net.Http.Tests
     public class SocketsHttpHandlerPerfTest
     {
         // the field names start with lowercase to keep to benchmark ID! do not change it
-        [Params(false, true)] public bool ssl;
-        [Params(false, true)] public bool chunkedResponse;
-        [Params(1, 100_000)] public int responseLength;
+        [Params(false, true)]
+        public bool Ssl { get; set; }
+
+        [Params(false, true)]
+        public bool ChunkedResponse { get; set; }
+
+        [Params(1, 1024, 10 * 1024 * 1024)]
+        public int ResponseLength { get; set; }
 
         private System.Security.Cryptography.X509Certificates.X509Certificate2 _serverCert;
         private Socket _listener;
@@ -40,9 +45,9 @@ namespace System.Net.Http.Tests
             _listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
             _listener.Listen(int.MaxValue);
             string responseText =
-                "HTTP/1.1 200 OK\r\n" + (chunkedResponse ?
-                $"Transfer-Encoding: chunked\r\n\r\n{responseLength.ToString("X")}\r\n{new string('a', responseLength)}\r\n0\r\n\r\n" :
-                $"Content-Length: {responseLength}\r\n\r\n{new string('a', responseLength)}");
+                "HTTP/1.1 200 OK\r\n" + (ChunkedResponse ?
+                $"Transfer-Encoding: chunked\r\n\r\n{ResponseLength.ToString("X")}\r\n{new string('a', ResponseLength)}\r\n0\r\n\r\n" :
+                $"Content-Length: {ResponseLength}\r\n\r\n{new string('a', ResponseLength)}");
             ReadOnlyMemory<byte> responseBytes = Encoding.UTF8.GetBytes(responseText);
 
             _serverTask = Task.Run(async () =>
@@ -56,7 +61,7 @@ namespace System.Net.Http.Tests
                             try
                             {
                                 Stream stream = new NetworkStream(s);
-                                if (ssl)
+                                if (Ssl)
                                 {
                                     var sslStream = new SslStream(stream, false, delegate { return true; });
                                     await sslStream.AuthenticateAsServerAsync(_serverCert, false, SslProtocols.None, false);
@@ -80,11 +85,11 @@ namespace System.Net.Http.Tests
             });
 
             var ep = (IPEndPoint)_listener.LocalEndPoint;
-            var uri = new Uri($"http{(ssl ? "s" : "")}://{ep.Address}:{ep.Port}/");
+            var uri = new Uri($"http{(Ssl ? "s" : "")}://{ep.Address}:{ep.Port}/");
             _handler = new SocketsHttpHandler();
             _invoker = new HttpMessageInvoker(_handler);
 
-            if (ssl)
+            if (Ssl)
             {
                 _handler.SslOptions.RemoteCertificateValidationCallback = delegate { return true; };
             }
