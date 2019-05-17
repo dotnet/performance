@@ -60,6 +60,7 @@
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <Compile Remove="corefx\System.IO.Compression\Brotli.cs" />
     <Compile Remove="corefx\System.Net.Http\Perf.SocketsHttpHandler.cs" />
+    <Compile Remove="corefx\System.Net.Security\SslStreamTests.cs" />
     <Compile Remove="corefx\System.Net.Sockets\Perf.Socket.SendReceive.cs" />
     <Compile Remove="corefx\System.Numerics.Vectors\GenericVectorFromSpanConstructorTests.cs" />
     <Compile Remove="corefx\System.Runtime\Perf.HashCode.cs" />
