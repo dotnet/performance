@@ -49,14 +49,6 @@ namespace MicroBenchmarks.Serializers
         }
 
         [BenchmarkCategory(Categories.ThirdParty)]
-        [Benchmark(Description = "ZeroFormatter")]
-        public void ZeroFormatter_()
-        {
-            memoryStream.Position = 0;
-            ZeroFormatter.ZeroFormatterSerializer.Serialize<T>(memoryStream, value);
-        }
-
-        [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "MessagePack")]
         public void MessagePack_()
         {
