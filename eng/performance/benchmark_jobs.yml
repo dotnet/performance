@@ -8,7 +8,6 @@ parameters:
   container: ''         # optional -- id of the container
   csproj: ''            # required -- relative path to csproj with benchmarks
   frameworks: []        # required -- list of frameworks. Allowed values: net461, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
-  runCategories: ''     # required -- string of space separated categories supplied to benchmark dotnet
   benchviewCategory: '' # optional -- category for benchview upload container
 
 jobs:
@@ -34,7 +33,7 @@ jobs:
             value: dotnet-performance
           # for public runs we want to run the benchmarks exactly once, no warmup, no pilot, no overhead
           - name: BenchmarkDotNetArguments
-            value: '--anyCategories ${{ parameters.runCategories }} --iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart --stopOnFirstError true'
+            value: '--filter * --iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart --stopOnFirstError true'
           - name: HelixApiAccessToken
             value: ''
           - name: HelixPreCommand
@@ -51,7 +50,7 @@ jobs:
             value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(BenchViewRunType) --upload-to-benchview-container ${{ parameters.benchviewCategory}}'
           # for private runs we don't provide any custom BDN arguments (the ones from Program.Main are used)
           - name: BenchmarkDotNetArguments
-            value: '--anyCategories ${{ parameters.runCategories }}'
+            value: '--filter *'
           - name: Creator
             value: ''
           - ${{ if eq(parameters.osName, 'windows') }}:
