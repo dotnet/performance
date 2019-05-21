@@ -76,9 +76,9 @@ This project has adopted the code of conduct defined by the Contributor Covenant
 [//]: # (These are the ML.NET links)
 
 [//]: # (These are the windows x64 links)
-[mldotnet_windows_RS4_x64_netcoreapp3.0_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20mlnet&configuration=windows%20RS4%20x64%20mlnet%20mldotnet_netcoreapp3.0
-[mldotnet_windows_RS4_x64_netcoreapp3.0_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20mlnet&configuration=windows%20RS4%20x64%20mlnet%20mldotnet_netcoreapp3.0
+[mldotnet_windows_RS4_x64_netcoreapp3.0_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20mlnet
+[mldotnet_windows_RS4_x64_netcoreapp3.0_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20mlnet
 
 [//]: # (These are the ubuntu x64 links)
-[mldotnet_ubuntu_1604_x64_netcoreapp3.0_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20x64%20mlnet&configuration=ubuntu%201604%20x64%20mlnet%20mldotnet_netcoreapp3.0
-[mldotnet_ubuntu_1604_x64_netcoreapp3.0_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20x64%20mlnet&configuration=ubuntu%201604%20x64%20mlnet%20mldotnet_netcoreapp3.0
+[mldotnet_ubuntu_1604_x64_netcoreapp3.0_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=ubuntu%201604%20x64%20mlnet
+[mldotnet_ubuntu_1604_x64_netcoreapp3.0_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=ubuntu%201604%20x64%20mlnet
