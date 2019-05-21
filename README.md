@@ -53,8 +53,9 @@ This project has adopted the code of conduct defined by the Contributor Covenant
 [micro_windows_RS4_x64_netcoreapp2.2_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20netcoreapp2.2
 [micro_windows_RS4_x64_netcoreapp2.1_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20netcoreapp2.1
 [micro_windows_RS4_x64_netcoreapp2.1_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20netcoreapp2.1
-[micro_windows_RS4_x64_net461_status]:            https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20net461
-[micro_windows_RS4_x64_net461_icon]:              https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro&configuration=windows%20RS4%20x64%20micro%20net461
+[micro_windows_RS4_x64_net461_status]:            https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro_net461
+[micro_windows_RS4_x64_net461_icon]:              https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro_net461
+
 
 [//]: # (These are the windows x86 links)
 [micro_windows_RS4_x86_netcoreapp3.0_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x86%20micro&configuration=windows%20RS4%20x86%20micro%20netcoreapp3.0
