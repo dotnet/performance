@@ -15,7 +15,6 @@ This folder contains benchmarks of the most popular serializers.
     * [BinaryFormatter](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.serialization.formatters.binary.binaryformatter) `4.3.0`
     * [MessagePack](https://github.com/neuecc/MessagePack-CSharp) `1.7.3.4` 
     * [protobuff-net](https://github.com/mgravell/protobuf-net) `2.3.7`
-    * [ZeroFormatter](https://github.com/neuecc/ZeroFormatter) `1.6.4` 
 
 Missing: ProtoBuff from Google and BOND from MS
 
