@@ -13,6 +13,7 @@ namespace System.Buffers.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     [GenericTypeArguments(typeof(byte))] // value type
     [GenericTypeArguments(typeof(object))] // reference type
+    [GcServer(true)] // Server GC is the most important scenario for ArrayPool
     public class RentReturnArrayPoolTests<T>
     {
         private readonly ArrayPool<T> _createdPool = ArrayPool<T>.Create();
@@ -152,6 +153,7 @@ namespace System.Buffers.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     [GenericTypeArguments(typeof(byte))] // value type
     [GenericTypeArguments(typeof(object))] // reference type
+    [GcServer(true)] // Server GC is the most important scenario for ArrayPool
     public class NonStandardArrayPoolTests<T>
     {
         private readonly ArrayPool<T> _createdPool = ArrayPool<T>.Create();
