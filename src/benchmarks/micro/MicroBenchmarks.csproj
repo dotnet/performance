@@ -64,7 +64,7 @@
     <Compile Remove="coreclr\Math\Functions\Double\Asinh.cs" />
     <Compile Remove="coreclr\Math\Functions\Double\Atanh.cs" />
     <Compile Remove="coreclr\Math\Functions\Double\Cbrt.cs" />
-    <Compile Remove="coreclr\Math\Functions\Single\**" />
+    <Compile Remove="coreclr\Math\Functions\Single\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.0')">
@@ -76,11 +76,11 @@
     <Compile Remove="coreclr\Math\Functions\Single\ILogB.cs" />
     <Compile Remove="coreclr\Math\Functions\Single\Log2.cs" />
     <Compile Remove="coreclr\Math\Functions\Single\ScaleB.cs" />
-    <Compile Remove="corefx\System.Text.Json\**" />
+    <Compile Remove="corefx\System.Text.Json\**\*.cs" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.0' OR '$(IsARM)' == 'true'">
-    <Compile Remove="coreclr\PacketTracer\**" />
+    <Compile Remove="coreclr\PacketTracer\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>
