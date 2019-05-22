@@ -30,7 +30,7 @@ namespace Tests
             CommandLineOptions.ValidatePartitionParameters(count, index);
 
             Assert.Equal(10, count);
-            Assert.Equal(0, count);
+            Assert.Equal(0, index);
         }
         [Fact]
         public void ArgsListContainsNeitherPartitionsCountAndIndex()
