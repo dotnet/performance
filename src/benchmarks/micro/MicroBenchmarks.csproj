@@ -53,16 +53,13 @@
 
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <Compile Remove="**\*netcoreapp*.cs" />
-    <Content Include="**\*netcoreapp*.cs" /> <!-- makes VS display the exluded files in solution explorer -->
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.0'">
     <Compile Remove="**\*netcoreapp30.cs" />
-    <Content Include="**\*netcoreapp30.cs" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(IsARM)' == 'true'">
     <Compile Remove="coreclr\PacketTracer\**" />
-    <Content Include="coreclr\PacketTracer\**" />
   </ItemGroup>
   
 </Project>
