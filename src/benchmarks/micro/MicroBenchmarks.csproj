@@ -82,5 +82,10 @@
   <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.0' OR '$(IsARM)' == 'true'">
     <Compile Remove="coreclr\PacketTracer\**" />
   </ItemGroup>
-  
+
+  <ItemGroup>
+    <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
+    <None Include="**/*.cs" />
+  </ItemGroup>
+
 </Project>
