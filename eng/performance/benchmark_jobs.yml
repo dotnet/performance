@@ -23,9 +23,11 @@ jobs:
         displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }}'
         timeoutInMinutes: 320
         variables:
-        - perfConfigs: ''
+        - name: perfConfigs
+          value: ''
         - ${{ each config in parameters.configs }}:
-          perfConfigs: '${{ config.key }}=${{ config.value }};$(perfConfigs)'
+          - name: perfConfigs
+            value: '${{ config.key }}=${{ config.value }};$(perfConfigs)'
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           - name: BenchViewRunType
             value: private
