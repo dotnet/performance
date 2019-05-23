@@ -50,7 +50,12 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS4.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx' 
+      runCategories: 'coreclr corefx'
+      configs:
+        - key: config1
+          value: value1
+        - key: config2
+          value: value2
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - netcoreapp3.0
         - netcoreapp2.2
