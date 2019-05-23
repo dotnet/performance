@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="$(MSBuildThisFileDirectory)\..\..\common.props" />
 
@@ -51,10 +51,6 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' ">
-    <Compile Remove="coreclr\Math\Functions\Single\**" />
-  </ItemGroup>
-
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <Compile Remove="corefx\System.IO.Compression\Brotli.cs" />
     <Compile Remove="corefx\System.Net.Http\Perf.SocketsHttpHandler.cs" />
@@ -68,10 +64,7 @@
     <Compile Remove="coreclr\Math\Functions\Double\Asinh.cs" />
     <Compile Remove="coreclr\Math\Functions\Double\Atanh.cs" />
     <Compile Remove="coreclr\Math\Functions\Double\Cbrt.cs" />
-    <Compile Remove="coreclr\Math\Functions\Single\Acosh.cs" />
-    <Compile Remove="coreclr\Math\Functions\Single\Asinh.cs" />
-    <Compile Remove="coreclr\Math\Functions\Single\Atanh.cs" />
-    <Compile Remove="coreclr\Math\Functions\Single\Cbrt.cs" />
+    <Compile Remove="coreclr\Math\Functions\Single\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.0')">
@@ -83,14 +76,16 @@
     <Compile Remove="coreclr\Math\Functions\Single\ILogB.cs" />
     <Compile Remove="coreclr\Math\Functions\Single\Log2.cs" />
     <Compile Remove="coreclr\Math\Functions\Single\ScaleB.cs" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.0'">
-    <Compile Remove="corefx\System.Text.Json\*\*.cs" />
+    <Compile Remove="corefx\System.Text.Json\**\*.cs" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.0' OR '$(IsARM)' == 'true'">
-    <Compile Remove="coreclr\PacketTracer\**" />
+    <Compile Remove="coreclr\PacketTracer\**\*.cs" />
   </ItemGroup>
-  
+
+  <ItemGroup>
+    <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
+    <None Include="**/*.cs" />
+  </ItemGroup>
+
 </Project>
