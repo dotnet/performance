@@ -18,14 +18,14 @@ jobs:
     enableTelemetry: false
     enablePublishBuildArtifacts: true
     helixRepo: dotnet/performance
-    perfConfigs: ''
-    - ${{ each config in parameters.configs }}:
-      perfConfigs: '${{ config.key }}:${{ config.value }};$(perfConfigs)'
     jobs:
       - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}'
         displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }}'
         timeoutInMinutes: 320
         variables:
+        - perfConfigs: ''
+        - ${{ each config in parameters.configs }}:
+          perfConfigs: '${{ config.key }}=${{ config.value }};$(perfConfigs)'
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           - name: BenchViewRunType
             value: private
