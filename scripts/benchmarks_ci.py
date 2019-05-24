@@ -239,11 +239,12 @@ def __main(args: list) -> int:
         for framework in args.frameworks:
             #Before we run the benchmarks we need to set the CommitDate in the environment
             #for the nex reporting tool
-            target_framework_moniker = micro_benchmarks.FrameworkAction.get_target_framework_moniker(framework)
-            commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli)
-            source_timestamp = dotnet.get_commit_date(framework, commit_sha, args.cli_repository)
-            os.environ['PERFLAB_HASH'] = commit_sha
-            os.environ['PERFLAB_BUILDTIMESTAMP'] = source_timestamp
+            if framework != 'net461':
+                target_framework_moniker = micro_benchmarks.FrameworkAction.get_target_framework_moniker(framework)
+                commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli)
+                source_timestamp = dotnet.get_commit_date(framework, commit_sha, args.cli_repository)
+                os.environ['PERFLAB_HASH'] = commit_sha
+                os.environ['PERFLAB_BUILDTIMESTAMP'] = source_timestamp
             micro_benchmarks.run(
                 BENCHMARKS_CSPROJ,
                 args.configuration,
@@ -251,8 +252,6 @@ def __main(args: list) -> int:
                 verbose,
                 args
             )
-            os.environ['PERFLAB_HASH'] = ""
-            os.environ['PERFLAB_BUILDTIMESTAMP'] = ""
 
         benchview.run_scripts(args, verbose, BENCHMARKS_CSPROJ)
         # TODO: Archive artifacts.
