@@ -23,13 +23,13 @@
       <Output TaskParameter="Outputs" PropertyName="SourceVersion" />
     </Exec>
 
-    <ItemGroup Condition="'($TargetsWindows)' == 'true'">
+    <PropertyGroup Condition="'($TargetsWindows)' == 'true'">
       <HelixPreCommands>$(HelixPreCommands);set PERFLAB_BUILDTIMESTAMP=$(SourceVersion)</HelixPreCommands>
-    </ItemGroup>
+    </PropertyGroup>
 
-    <ItemGroup Condition="'($TargetsWindows)' != 'true'">
+    <PropertyGroup Condition="'($TargetsWindows)' != 'true'">
       <HelixPreCommands>$(HelixPreCommands);export PERFLAB_BUILDTIMESTAMP=$(SourceVersion)</HelixPreCommands>
-    </ItemGroup>
+    </PropertyGroup>
 
     <PropertyGroup>
       <PartitionCount>5</PartitionCount>
