@@ -96,19 +96,11 @@ namespace Reporting
                 run,
                 tests
             };
-            return JsonConvert.SerializeObject(jsonobj,
-                                               Formatting.Indented,
-                                               new JsonSerializerSettings
-                                               {
-                                                   ContractResolver = new DefaultContractResolver
-                                                   {
-                                                       NamingStrategy = new CamelCaseNamingStrategy
-                                                       {
-                                                           ProcessDictionaryKeys = false
-                                                       }
-                                                   }
-                                               });
-
+            var settings = new JsonSerializerSettings();
+            var resolver = new DefaultContractResolver();
+            resolver.NamingStrategy = new CamelCaseNamingStrategy() { ProcessDictionaryKeys = false };
+            settings.ContractResolver = resolver;
+            return JsonConvert.SerializeObject(jsonobj, Formatting.Indented, settings);
         }
 
         private bool CheckEnvironment()
