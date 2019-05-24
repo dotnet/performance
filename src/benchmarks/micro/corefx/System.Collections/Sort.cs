@@ -34,11 +34,12 @@ namespace System.Collections
     [GenericTypeArguments(typeof(int))] // value type, Array sort in native code
     [GenericTypeArguments(typeof(IntStruct))] // custom value type, sort in managed code
     [GenericTypeArguments(typeof(IntClass))] // custom reference type, sort in managed code, compare fast
-    [GenericTypeArguments(typeof(string))] // reference type, compare slow
+    //[GenericTypeArguments(typeof(string))] // reference type, compare slow
     [InvocationCount(InvocationsPerIteration)]
+    [DisassemblyDiagnoser(recursiveDepth: 3)]
     public class Sort<T>
     {
-        private const int InvocationsPerIteration = 1000;
+        private const int InvocationsPerIteration = 40000;
 
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
@@ -61,14 +62,14 @@ namespace System.Collections
         [Benchmark]
         public void Array() => System.Array.Sort(_arrays[_iterationIndex++], 0, Size);
 
-        [IterationSetup(Target = nameof(List))]
+        //[IterationSetup(Target = nameof(List))]
         public void SetupListIteration() => Utils.FillCollections(ref _lists, InvocationsPerIteration, _values);
 
-        [Benchmark]
+        //[Benchmark]
         public void List() => _lists[_iterationIndex++].Sort();
 
-        [BenchmarkCategory(Categories.LINQ)]
-        [Benchmark]
+        //[BenchmarkCategory(Categories.LINQ)]
+        //[Benchmark]
         public int LinqQuery()
         {
             int count = 0;
@@ -77,8 +78,8 @@ namespace System.Collections
             return count;
         }
 
-        [BenchmarkCategory(Categories.LINQ)]
-        [Benchmark]
+        //[BenchmarkCategory(Categories.LINQ)]
+        //[Benchmark]
         public int LinqOrderByExtension()
         {
             int count = 0;
