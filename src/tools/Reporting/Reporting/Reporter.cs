@@ -79,7 +79,7 @@ namespace Reporting
             build = new Build
             {
                 Repo = environment.GetEnvironmentVariable("PERFLAB_REPO"),
-                Branch = environment.GetEnvironmentVariable("PEFRFLAB_BRANCH"),
+                Branch = environment.GetEnvironmentVariable("PERFLAB_BRANCH"),
                 Architecture = environment.GetEnvironmentVariable("PERFLAB_BUILDARCH"),
                 Locale = environment.GetEnvironmentVariable("PERFLAB_LOCALE"),
                 GitHash = environment.GetEnvironmentVariable("PERFLAB_HASH"),
