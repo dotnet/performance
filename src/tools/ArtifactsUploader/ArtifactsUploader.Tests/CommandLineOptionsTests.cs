@@ -16,13 +16,12 @@ namespace ArtifactsUploader.Tests
     {
         private static readonly string[] CorrectArguments =
         {
-            "--project=CoreCLR", 
-            "--branch=master", 
-            "--job=veryNiceCiJobName",
-            "--isPr=false", 
+            "--container=CoreCLR", 
+            "--folderName=master", 
+            "--archiveName=veryNiceCiJobName",
             "--workplace=.",
             "--storageUrl=https://portal.azure.com/",
-            $"--artifacts={Directory.GetCurrentDirectory()}", 
+            $"--searchDirectory={Directory.GetCurrentDirectory()}", 
             "--searchPatterns", "*.log", "*.txt"
         };
         
@@ -57,18 +56,17 @@ namespace ArtifactsUploader.Tests
         {
             var loggerMock = LoggerMockHelpers.CreateLoggerMock();
             
-            var withUppercaseArgument = CorrectArguments.Select(arg => arg.Replace("--isPr=false", "--isPr=true")).ToArray();
+            var withUppercaseArgument = CorrectArguments.Select(arg => arg.Replace("--storageUrl = https://portal.azure.com/", "--storageurl=https://portal.azure.com/")).ToArray();
             
             var result = CommandLineOptions.Parse(withUppercaseArgument, loggerMock.Object);
             
             Assert.True(result.isSuccess);
-            Assert.True(result.options.IsPr);
             
             LoggerMockHelpers.AssertNothingWasWrittenToLog(loggerMock);
         }
 
         [Theory]
-        [InlineData("artifacts", "--artifacts=\"Z:\\not\\existing\\I\\hope\"")]
+        [InlineData("searchDirectory", "--searchDirectory=\"Z:\\not\\existing\\I\\hope\"")]
         [InlineData("workplace", "--workplace=\"Z:\\not\\existing\\I\\hope\"")]
         public void NonExistingDirectoriesAreReportedAsErrors(string argumentName, string invalidValue)
         {

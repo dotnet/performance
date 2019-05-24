@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,20 +27,23 @@ namespace ArtifactsUploader
                     return -1;
                 }
 
-                var archive = FilesHelper.GetNonExistingArchiveFile(commandLineOptions.Workplace, commandLineOptions.JobName);
-                var fileToArchive = FilesHelper.GetFilesToArchive(commandLineOptions.ArtifactsDirectory, commandLineOptions.SearchPatterns);
-
+                var fileToArchive = FilesHelper.GetFilesToUpload(commandLineOptions.SearchDirectory, commandLineOptions.SearchPatterns);
                 if (!fileToArchive.Any())
                 {
                     log.Warning("Nothing to compress and upload");
                     return -1;
                 }
 
+                if (!commandLineOptions.SkipCompression)
+                {
+                    var archive = FilesHelper.GetNonExistingArchiveFile(commandLineOptions.Workplace, commandLineOptions.ArchiveName);
+                    Compressor.Compress(archive, fileToArchive, log);
+                    fileToArchive = new[] { archive };
+                }
+
                 using (var tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(commandLineOptions.TimeoutInMinutes)))
                 {
-                    Compressor.Compress(archive, fileToArchive, log);
-
-                    await Uploader.Upload(archive, commandLineOptions, log, tokenSource.Token);
+                    await Uploader.Upload(fileToArchive, commandLineOptions, log, tokenSource.Token);
                 }
 
                 log.Information("Done!");

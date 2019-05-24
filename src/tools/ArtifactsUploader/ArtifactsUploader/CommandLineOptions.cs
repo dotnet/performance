@@ -11,20 +11,17 @@ namespace ArtifactsUploader
 {
     public class CommandLineOptions
     {
-        [Option("project", Required = true, HelpText = "Project name")]
-        public string ProjectName { get; set; }
+        [Option("container", Required = true, HelpText = "Container name")]
+        public string ContainerName { get; set; }
 
-        [Option("branch", Required = true, HelpText = "Branch name")]
-        public string BranchName { get; set; }
+        [Option("folderName", Required = false, HelpText = "Folder name within container")]
+        public string FolderName { get; set; }
 
-        [Option("job", Required = true, HelpText = "CI Job name, uploaded archive will have the same name!")]
-        public string JobName { get; set; }
+        [Option("archiveName", Required = false, HelpText = "Archive Name")]
+        public string ArchiveName { get; set; }
 
-        [Option("isPR", Required = true, HelpText = "True for PRs")]
-        public bool IsPr { get; set; }
-
-        [Option("artifacts", Required = true, HelpText = "Path to artifacts directory")]
-        public DirectoryInfo ArtifactsDirectory { get; set; }
+        [Option("searchDirectory", Required = true, HelpText = "Directory to search")]
+        public DirectoryInfo SearchDirectory { get; set; }
 
         [Option("searchPatterns", Required = true, HelpText = "Search patterns", Min = 1)]
         public IEnumerable<string> SearchPatterns { get; set; }
@@ -38,8 +35,11 @@ namespace ArtifactsUploader
         [Option("timeoutMinutes", Required = false, Default = 10, HelpText = "Timout for upload, in minutes")]
         public int TimeoutInMinutes { get; set; }
 
-        [Option("workplace", Required = true, HelpText = "Path to workplace directory where compressed artifacts will be stored")]
+        [Option("workplace", Required = false, HelpText = "Path to workplace directory where compressed artifacts will be stored")]
         public DirectoryInfo Workplace { get; set; }
+
+        [Option("skipCompression", Required = false, HelpText = "Skips compression and uploads discovered files individually")]
+        public bool SkipCompression { get; set; }
 
         public static (bool isSuccess, CommandLineOptions options) Parse(string[] args, ILogger log)
         {
@@ -58,13 +58,13 @@ namespace ArtifactsUploader
 
         private static bool Validate(CommandLineOptions options, ILogger log)
         {
-            if (!options.ArtifactsDirectory.Exists)
+            if (!options.SearchDirectory.Exists)
             {
-                log.Error($"Provided directory, [{options.ArtifactsDirectory.FullName}] does NOT exist. Unable to upload the artifacts!");
+                log.Error($"Provided directory, [{options.SearchDirectory.FullName}] does NOT exist. Unable to upload the artifacts!");
                 return false;
             }
 
-            if (!options.Workplace.Exists)
+            if (!(options.Workplace?.Exists ?? true))
             {
                 log.Error($"Provided directory, [{options.Workplace.FullName}] does NOT exist. Unable to upload the artifacts!");
                 return false;

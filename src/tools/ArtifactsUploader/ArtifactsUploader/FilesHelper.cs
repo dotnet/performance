@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace ArtifactsUploader
     {
         public static FileInfo GetNonExistingArchiveFile(DirectoryInfo workplace, string jobName)
         {
-            var fileInfo = new FileInfo(Path.Combine(workplace.FullName, $"{jobName}.zip")); // I assume that job name is unique
+            var fileInfo = new FileInfo(Path.Combine(workplace?.FullName ?? Path.GetTempPath(), $"{jobName}.zip")); // I assume that job name is unique
 
             if (fileInfo.Exists)
             {
@@ -22,7 +23,7 @@ namespace ArtifactsUploader
             return fileInfo;
         }
 
-        public static IEnumerable<FileInfo> GetFilesToArchive(DirectoryInfo artifactsDirectory, IEnumerable<string> searchPatterns)
+        public static IEnumerable<FileInfo> GetFilesToUpload(DirectoryInfo artifactsDirectory, IEnumerable<string> searchPatterns)
             => searchPatterns.SelectMany(searchPattern =>
                     artifactsDirectory.EnumerateFiles(searchPattern, SearchOption.AllDirectories));
     }

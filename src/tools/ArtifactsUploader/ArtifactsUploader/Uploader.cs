@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -16,7 +17,7 @@ namespace ArtifactsUploader
 {
     public static class Uploader
     {
-        public static async Task Upload(FileInfo archive, CommandLineOptions options, ILogger log, CancellationToken cancellationToken)
+        public static async Task Upload(IEnumerable<FileInfo> files, CommandLineOptions options, ILogger log, CancellationToken cancellationToken)
         {
             log.Information($"Starting the upload to {options.StorageUrl}");
 
@@ -28,7 +29,7 @@ namespace ArtifactsUploader
             var account = CloudStorageAccount.Parse(storageConnectionString);
             var blobClient = account.CreateCloudBlobClient();
 
-            var containerName = options.ProjectName; // we use project name (CoreFX/CoreCLR etc) as a container name
+            var containerName = options.ContainerName; // we use project name (CoreFX/CoreCLR etc) as a container name
             var projectBlobContainer = blobClient.GetContainerReference(containerName);
 
             TransferManager.Configurations.ParallelOperations = 64; // value taken from https://github.com/Azure/azure-storage-net-data-movement
@@ -38,9 +39,12 @@ namespace ArtifactsUploader
                 ProgressHandler = new Progress<TransferStatus>(progress => log.Information("Bytes uploaded: {0}", progress.BytesTransferred)),
             };
 
-            var destinationBlob = projectBlobContainer.GetBlockBlobReference(GetDestinationBlobName(options, archive));
+            foreach (var file in files)
+            {
+                var destinationBlob = projectBlobContainer.GetBlockBlobReference(GetDestinationBlobName(options, file));
 
-            await TransferManager.UploadAsync(archive.FullName, destinationBlob, null, context, cancellationToken);
+                await TransferManager.UploadAsync(file.FullName, destinationBlob, null, context, cancellationToken);
+            }
         }
 
         private static string GetConnectionString(CommandLineOptions options)
@@ -50,6 +54,6 @@ namespace ArtifactsUploader
             => options.SasToken ?? Environment.GetEnvironmentVariable("AZ_BLOB_LOGS_SAS_TOKEN");
 
         private static string GetDestinationBlobName(CommandLineOptions options, FileInfo archive)
-            => Path.Combine(options.BranchName, archive.Name);
+            => Path.Combine(options.FolderName ?? string.Empty, archive.Name);
     }
 }
