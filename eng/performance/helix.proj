@@ -1,61 +1,63 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
 
-  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
-    <WorkItemCommand>%HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --csproj %HELIX_CORRELATION_PAYLOAD%\$(TargetCsproj)</WorkItemCommand>
-  </PropertyGroup>
+  <Target Name="Test">
+    <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
+      <WorkItemCommand>%HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --csproj %HELIX_CORRELATION_PAYLOAD%\$(TargetCsproj)</WorkItemCommand>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
-    <WorkItemCommand>scripts/benchmarks_ci.py --csproj $(TargetCsproj)</WorkItemCommand>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
+      <WorkItemCommand>scripts/benchmarks_ci.py --csproj $(TargetCsproj)</WorkItemCommand>
+    </PropertyGroup>
 
-  <PropertyGroup Condition="'$(WorkItemCommand)' != ''">
-    <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) -f $(_Framework) $(_BenchViewArguments) --dotnet-compilation-mode $(_CompilationMode)</WorkItemCommand>
-  </PropertyGroup>
+    <PropertyGroup Condition="'$(WorkItemCommand)' != ''">
+      <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) -f $(_Framework) $(_BenchViewArguments) --dotnet-compilation-mode $(_CompilationMode)</WorkItemCommand>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
-      <PayloadDirectory>%(Identity)</PayloadDirectory>
-    </HelixCorrelationPayload>
-  </ItemGroup>
+    <ItemGroup>
+      <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
+        <PayloadDirectory>%(Identity)</PayloadDirectory>
+      </HelixCorrelationPayload>
+    </ItemGroup>
 
-  <Exec Command="git show -s --format=%cI $(BUILD_SOURCEVERSION)" ConsoleToMsBuild="true">
-	  <Output TaskParameter="Outputs" PropertyName="SourceVersion" />
-	</Exec>
+    <Exec Command="git show -s --format=%cI $(BUILD_SOURCEVERSION)" ConsoleToMsBuild="true">
+      <Output TaskParameter="Outputs" PropertyName="SourceVersion" />
+    </Exec>
 
-  <ItemGroup Condition="'($TargetsWindows)' == 'true'">
-    <HelixPreCommands>$(HelixPreCommands);set PERFLAB_BUILDTIMESTAMP=$(SourceVersion)</HelixPreCommands>
-  </ItemGroup>
+    <ItemGroup Condition="'($TargetsWindows)' == 'true'">
+      <HelixPreCommands>$(HelixPreCommands);set PERFLAB_BUILDTIMESTAMP=$(SourceVersion)</HelixPreCommands>
+    </ItemGroup>
 
-  <ItemGroup Condition="'($TargetsWindows)' != 'true'">
-    <HelixPreCommands>$(HelixPreCommands);export PERFLAB_BUILDTIMESTAMP=$(SourceVersion)</HelixPreCommands>
-  </ItemGroup>
+    <ItemGroup Condition="'($TargetsWindows)' != 'true'">
+      <HelixPreCommands>$(HelixPreCommands);export PERFLAB_BUILDTIMESTAMP=$(SourceVersion)</HelixPreCommands>
+    </ItemGroup>
 
-  <PropertyGroup>
-    <PartitionCount>5</PartitionCount>
-  </PropertyGroup>
-  <ItemGroup>
-    <Partition Include="Partition0" Index="0" />
-    <Partition Include="Partition1" Index="1" />
-    <Partition Include="Partition2" Index="2" />
-    <Partition Include="Partition3" Index="3" />
-    <Partition Include="Partition4" Index="4" />
-  </ItemGroup>
+    <PropertyGroup>
+      <PartitionCount>5</PartitionCount>
+    </PropertyGroup>
+    <ItemGroup>
+      <Partition Include="Partition0" Index="0" />
+      <Partition Include="Partition1" Index="1" />
+      <Partition Include="Partition2" Index="2" />
+      <Partition Include="Partition3" Index="3" />
+      <Partition Include="Partition4" Index="4" />
+    </ItemGroup>
 
-  <!-- 
-    Partition the Microbenchamrks project, but nothing else
-  -->
-  <ItemGroup Condition="$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
-    <HelixWorkItem Include="@(Partition)">
-      <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
-      <Command>echo %PERFLAB_BUILDTIMESTAMP%</Command>
-      <Timeout>4:00</Timeout>
-    </HelixWorkItem>
-  </ItemGroup>
-  <ItemGroup Condition="!$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
-    <HelixWorkItem Include="WorkItem">
-      <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
-      <Command>$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments)"</Command>
-      <Timeout>4:00</Timeout>
-    </HelixWorkItem>
-  </ItemGroup>
+    <!-- 
+      Partition the Microbenchamrks project, but nothing else
+    -->
+    <ItemGroup Condition="$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
+      <HelixWorkItem Include="@(Partition)">
+        <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
+        <Command>echo %PERFLAB_BUILDTIMESTAMP%</Command>
+        <Timeout>4:00</Timeout>
+      </HelixWorkItem>
+    </ItemGroup>
+    <ItemGroup Condition="!$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
+      <HelixWorkItem Include="WorkItem">
+        <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
+        <Command>$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments)"</Command>
+        <Timeout>4:00</Timeout>
+      </HelixWorkItem>
+    </ItemGroup>
+  </Target>
 </Project>
