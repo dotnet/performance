@@ -23,10 +23,10 @@ jobs:
         displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }}'
         timeoutInMinutes: 320
         variables:
-        - ${{ if eq(parametrs.osName, 'windows') }}:
+        - ${{ if eq(parameters.osName, 'windows') }}:
           - name: SharedHelixPreCommand
             value: 'set PERFLAB_INLAB=1;set PERFLAB_HASH=$(Build.SourceVersion);set PERFLAB_REPO=$(Build.Repository.Name);set PERFLAB_BRANCH=$(Build.SourceBranch);set PERFLAB_PERFHASH=$(Build.SourceVersion);set PERFLAB_QUEUE=${{ parameters.queue }};set PERFLAB_BUILDNUM=$(Build.BuildNumber);set PERFLAB_BUILDARCH=${{parameters.architecture}};git show -s --format=%cI $(Build.SourceVersion) > tmp.txt; set /p PERFLAB_BUILDTIMESTAMP=<tmp.txt;del tmp.txt;set PERFLAB_LOCALE=${{parameters.locale}}'
-        - ${{ if neq(parametrs.osName, 'windows') }}:
+        - ${{ if ne(parameters.osName, 'windows') }}:
           - name: SharedHelixPreCommand
             value: 'export PERFLAB_INLAB=1;export PERFLAB_HASH=$(Build.SourceVersion);export PERFLAB_REPO=$(Build.Repository.Name);export PERFLAB_BRANCH=$(Build.SourceBranch);export PERFLAB_PERFHASH=$(Build.SourceVersion);export PERFLAB_QUEUE=${{ parameters.queue }};export PERFLAB_BUILDNUM=$(Build.BuildNumber);export PERFLAB_BUILDARCH=${{parameters.architecture}};git show -s --format=%cI $(Build.SourceVersion) > tmp.txt;export PERFLAB_BUILDTIMESTAMP=$(<tmp.txt);rm tmp.txt;export PERFLAB_LOCALE=${{parameters.locale}}'
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
