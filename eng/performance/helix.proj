@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
 
-  <Target Name="Test">
+  <Target Name="Test" DependsOnTargets="DiscoverBuildTimeStamp">
     <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
       <WorkItemCommand>%HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --csproj %HELIX_CORRELATION_PAYLOAD%\$(TargetCsproj)</WorkItemCommand>
     </PropertyGroup>
@@ -18,10 +18,6 @@
         <PayloadDirectory>%(Identity)</PayloadDirectory>
       </HelixCorrelationPayload>
     </ItemGroup>
-
-    <Exec Command="git show -s --format=%cI $(BUILD_SOURCEVERSION)" ConsoleToMsBuild="true">
-      <Output TaskParameter="Outputs" PropertyName="SourceVersion" />
-    </Exec>
 
     <PropertyGroup Condition="'($TargetsWindows)' == 'true'">
       <HelixPreCommands>$(HelixPreCommands);set PERFLAB_BUILDTIMESTAMP=$(SourceVersion)</HelixPreCommands>
@@ -59,5 +55,11 @@
         <Timeout>4:00</Timeout>
       </HelixWorkItem>
     </ItemGroup>
+  </Target>
+
+  <Target Name="DiscoverBuildTimeStamp">
+    <Exec Command="git show -s --format=%cI $(BUILD_SOURCEVERSION)" ConsoleToMsBuild="true">
+      <Output TaskParameter="Outputs" PropertyName="SourceVersion" />
+    </Exec>
   </Target>
 </Project>
