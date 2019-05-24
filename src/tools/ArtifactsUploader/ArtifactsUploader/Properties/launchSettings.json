@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "ArtifactsUploader": {
-      "commandName": "Project",
-      "commandLineArgs": "--container results --branch csfiles --artifacts . --searchPatterns *cs --storageUrl https://pvscmdupload.blob.core.windows.net --token \"?sv=2018-03-28&ss=bf&srt=sco&sp=rwdlac&se=2019-05-24T07:15:29Z&st=2019-05-23T23:15:29Z&spr=https&sig=IjS1XEZdEm0dfieRK3hccg22%2Bh%2BX%2FrtwMDFMdBqNPYo%3D\" --job testjob --skipCompression true"
-    }
-  }
-}
