@@ -25,10 +25,10 @@ jobs:
         variables:
         - ${{ if eq(parameters.osName, 'windows') }}:
           - name: SharedHelixPreCommand
-            value: 'set PERFLAB_INLAB=1;set PERFLAB_HASH=$(Build.SourceVersion);set PERFLAB_REPO=$(Build.Repository.Name);set PERFLAB_BRANCH=$(Build.SourceBranch);set PERFLAB_PERFHASH=$(Build.SourceVersion);set PERFLAB_QUEUE=${{ parameters.queue }};set PERFLAB_BUILDNUM=$(Build.BuildNumber);set PERFLAB_BUILDARCH=${{parameters.architecture}};set PERFLAB_LOCALE=${{parameters.locale}}'
+            value: 'set PERFLAB_INLAB=1;set PERFLAB_REPO=dotnet/core-sdk;set PERFLAB_BRANCH=$(Build.SourceBranch);set PERFLAB_PERFHASH=$(Build.SourceVersion);set PERFLAB_QUEUE=${{ parameters.queue }};set PERFLAB_BUILDNUM=$(Build.BuildNumber);set PERFLAB_BUILDARCH=${{parameters.architecture}};set PERFLAB_LOCALE=${{parameters.locale}}'
         - ${{ if ne(parameters.osName, 'windows') }}:
           - name: SharedHelixPreCommand
-            value: 'export PERFLAB_INLAB=1;export PERFLAB_HASH=$(Build.SourceVersion);export PERFLAB_REPO=$(Build.Repository.Name);export PERFLAB_BRANCH=$(Build.SourceBranch);export PERFLAB_PERFHASH=$(Build.SourceVersion);export PERFLAB_QUEUE=${{ parameters.queue }};export PERFLAB_BUILDNUM=$(Build.BuildNumber);export PERFLAB_BUILDARCH=${{parameters.architecture}};export PERFLAB_LOCALE=${{parameters.locale}}'
+            value: 'export PERFLAB_INLAB=1;export PERFLAB_REPO=dotnet/core-sdk;export PERFLAB_BRANCH=$(Build.SourceBranch);export PERFLAB_PERFHASH=$(Build.SourceVersion);export PERFLAB_QUEUE=${{ parameters.queue }};export PERFLAB_BUILDNUM=$(Build.BuildNumber);export PERFLAB_BUILDARCH=${{parameters.architecture}};export PERFLAB_LOCALE=${{parameters.locale}}'
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           - name: BenchViewRunType
             value: private
