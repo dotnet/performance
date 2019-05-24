@@ -26,7 +26,7 @@ namespace Reporting.Tests
                 {"PERFLAB_PERFHASH","testPerfHash" },
                 {"PERFLAB_QUEUE","testQueue" },
                 {"PERFLAB_REPO","testRepo" },
-                {"PEFRFLAB_BRANCH","testBranch" },
+                {"PERFLAB_BRANCH","testBranch" },
                 {"PERFLAB_BUILDARCH","testBuildArch" },
                 {"PERFLAB_LOCALE","testLocale" },
                 {"PERFLAB_HASH","testHash" },

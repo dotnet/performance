@@ -48,7 +48,7 @@ namespace Reporting.Tests
             Assert.Equal(environment.GetEnvironmentVariable("PERFLAB_PERFHASH"), jsonObj.Run.PerfRepoHash);
             Assert.Equal(environment.GetEnvironmentVariable("PERFLAB_QUEUE"), jsonObj.Run.Queue);
             Assert.Equal(environment.GetEnvironmentVariable("PERFLAB_REPO"), jsonObj.Build.Repo);
-            Assert.Equal(environment.GetEnvironmentVariable("PEFRFLAB_BRANCH"), jsonObj.Build.Branch);
+            Assert.Equal(environment.GetEnvironmentVariable("PERFLAB_BRANCH"), jsonObj.Build.Branch);
             Assert.Equal(environment.GetEnvironmentVariable("PERFLAB_BUILDARCH"), jsonObj.Build.Architecture);
             Assert.Equal(environment.GetEnvironmentVariable("PERFLAB_LOCALE"), jsonObj.Build.Locale);
             Assert.Equal(environment.GetEnvironmentVariable("PERFLAB_HASH"), jsonObj.Build.GitHash);
