@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
 
-  <Target Name="Test" DependsOnTargets="DiscoverBuildTimeStamp">
+  <Target Name="Test">
     <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
       <WorkItemCommand>%HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --csproj %HELIX_CORRELATION_PAYLOAD%\$(TargetCsproj)</WorkItemCommand>
     </PropertyGroup>
@@ -18,6 +18,8 @@
         <PayloadDirectory>%(Identity)</PayloadDirectory>
       </HelixCorrelationPayload>
     </ItemGroup>
+
+    <MSBuild Projects="$(MSBuildProjectFile)" Targets="DiscoverBuildTimeStamp" />
 
     <PropertyGroup Condition="'($TargetsWindows)' == 'true'">
       <HelixPreCommands>$(HelixPreCommands);set PERFLAB_BUILDTIMESTAMP=$(SourceVersion)</HelixPreCommands>
