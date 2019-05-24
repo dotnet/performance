@@ -18,6 +18,18 @@
     </HelixCorrelationPayload>
   </ItemGroup>
 
+  <Exec Command="git show -s --format=%cI $(BUILD_SOURCEVERSION)" ConsoleToMsBuild="true">
+	  <Output TaskParameter="Outputs" PropertyName="SourceVersion" />
+	</Exec>
+
+  <ItemGroup Condition="'($TargetsWindows)' == 'true'">
+    <HelixPreCommands>$(HelixPreCommands);set PERFLAB_BUILDTIMESTAMP=$(SourceVersion)</HelixPreCommands>
+  </ItemGroup>
+
+  <ItemGroup Condition="'($TargetsWindows)' != 'true'">
+    <HelixPreCommands>$(HelixPreCommands);export PERFLAB_BUILDTIMESTAMP=$(SourceVersion)</HelixPreCommands>
+  </ItemGroup>
+
   <PropertyGroup>
     <PartitionCount>5</PartitionCount>
   </PropertyGroup>
@@ -35,7 +47,7 @@
   <ItemGroup Condition="$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
     <HelixWorkItem Include="@(Partition)">
       <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
-      <Command>echo</Command>
+      <Command>echo %PERFLAB_BUILDTIMESTAMP%</Command>
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemGroup>

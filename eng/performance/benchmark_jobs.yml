@@ -25,10 +25,10 @@ jobs:
         variables:
         - ${{ if eq(parameters.osName, 'windows') }}:
           - name: SharedHelixPreCommand
-            value: 'set PERFLAB_INLAB=1;set PERFLAB_HASH=$(Build.SourceVersion);set PERFLAB_REPO=$(Build.Repository.Name);set PERFLAB_BRANCH=$(Build.SourceBranch);set PERFLAB_PERFHASH=$(Build.SourceVersion);set PERFLAB_QUEUE=${{ parameters.queue }};set PERFLAB_BUILDNUM=$(Build.BuildNumber);set PERFLAB_BUILDARCH=${{parameters.architecture}};git show -s --format=%cI $(Build.SourceVersion) > tmp.txt; set /p PERFLAB_BUILDTIMESTAMP=<tmp.txt;del tmp.txt;set PERFLAB_LOCALE=${{parameters.locale}}'
+            value: 'set PERFLAB_INLAB=1;set PERFLAB_HASH=$(Build.SourceVersion);set PERFLAB_REPO=$(Build.Repository.Name);set PERFLAB_BRANCH=$(Build.SourceBranch);set PERFLAB_PERFHASH=$(Build.SourceVersion);set PERFLAB_QUEUE=${{ parameters.queue }};set PERFLAB_BUILDNUM=$(Build.BuildNumber);set PERFLAB_BUILDARCH=${{parameters.architecture}};set PERFLAB_LOCALE=${{parameters.locale}}'
         - ${{ if ne(parameters.osName, 'windows') }}:
           - name: SharedHelixPreCommand
-            value: 'export PERFLAB_INLAB=1;export PERFLAB_HASH=$(Build.SourceVersion);export PERFLAB_REPO=$(Build.Repository.Name);export PERFLAB_BRANCH=$(Build.SourceBranch);export PERFLAB_PERFHASH=$(Build.SourceVersion);export PERFLAB_QUEUE=${{ parameters.queue }};export PERFLAB_BUILDNUM=$(Build.BuildNumber);export PERFLAB_BUILDARCH=${{parameters.architecture}};git show -s --format=%cI $(Build.SourceVersion) > tmp.txt;export PERFLAB_BUILDTIMESTAMP=$$(<tmp.txt);rm tmp.txt;export PERFLAB_LOCALE=${{parameters.locale}}'
+            value: 'export PERFLAB_INLAB=1;export PERFLAB_HASH=$(Build.SourceVersion);export PERFLAB_REPO=$(Build.Repository.Name);export PERFLAB_BRANCH=$(Build.SourceBranch);export PERFLAB_PERFHASH=$(Build.SourceVersion);export PERFLAB_QUEUE=${{ parameters.queue }};export PERFLAB_BUILDNUM=$(Build.BuildNumber);export PERFLAB_BUILDARCH=${{parameters.architecture}};export PERFLAB_LOCALE=${{parameters.locale}}'
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           - name: BenchViewRunType
             value: private
@@ -98,6 +98,8 @@ jobs:
         - checkout: self
           clean: true
         - ${{ if eq(parameters.osName, 'windows') }}:
+          - script: set MTVAR=var
+          - script: echo MTVAR
           - script: (robocopy $(Build.SourcesDirectory) $(Build.SourcesDirectory)\notLocked /E /XD $(Build.SourcesDirectory)\notLocked $(Build.SourcesDirectory)\artifacts $(Build.SourcesDirectory)\.git) ^& IF %ERRORLEVEL% LEQ 1 exit 0
             displayName: Workaround to avoid locked file # https://github.com/dotnet/arcade/issues/2125
         - template: /eng/performance/send-to-helix.yml
