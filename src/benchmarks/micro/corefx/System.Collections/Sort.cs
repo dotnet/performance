@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Diagnostics.Windows.Configs;
 using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 
@@ -37,6 +38,7 @@ namespace System.Collections
     //[GenericTypeArguments(typeof(string))] // reference type, compare slow
     [InvocationCount(InvocationsPerIteration)]
     [DisassemblyDiagnoser(recursiveDepth: 3)]
+    [InliningDiagnoser]
     public class Sort<T>
     {
         private const int InvocationsPerIteration = 40000;
