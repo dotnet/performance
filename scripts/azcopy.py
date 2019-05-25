@@ -38,7 +38,7 @@ class AzCopy:
         return path.join(self.get_azcopy_directory(), self.exename)
 
     def get_upload_url(self) -> str:
-        return f"{self.containerUrl}{self.path}{self.sas}"
+        return "{0}{1}{2}".format(self.containerUrl, self.path, self.sas)
 
     def download_azcopy(self) -> None:
         if(path.exists(self.exe_path()) == True):
