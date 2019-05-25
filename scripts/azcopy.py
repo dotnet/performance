@@ -3,7 +3,6 @@
 import os
 from os import sys, path, makedirs, environ
 from glob import glob
-from performance.logger import setup_loggers
 from urllib.request import urlopen
 from tarfile import TarFile
 from zipfile import ZipFile
@@ -72,7 +71,6 @@ class AzCopy:
 
     @staticmethod
     def upload_results(containerPath: str, verbose: bool) -> None:
-        setup_loggers(verbose)
         if(os.environ.get('PERFLAB_UPLOAD_TOKEN') != None):
             files = glob(path.join(get_artifacts_directory(), '**','*perf-lab-report.json'), recursive=True)
             if files:
