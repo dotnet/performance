@@ -39,6 +39,7 @@ namespace System.Collections
     [InvocationCount(InvocationsPerIteration)]
     [DisassemblyDiagnoser(recursiveDepth: 3)]
     [InliningDiagnoser]
+    [EtwProfiler]
     public class Sort<T>
     {
         private const int InvocationsPerIteration = 40000;
