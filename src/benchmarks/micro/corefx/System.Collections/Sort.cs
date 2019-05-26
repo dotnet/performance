@@ -32,17 +32,14 @@ namespace System.Collections
     }
 
     [BenchmarkCategory(Categories.CoreCLR, Categories.Collections, Categories.GenericCollections)]
-    //[GenericTypeArguments(typeof(int))] // value type, Array sort in native code
+    [GenericTypeArguments(typeof(int))] // value type, Array sort in native code
     [GenericTypeArguments(typeof(IntStruct))] // custom value type, sort in managed code
-    //[GenericTypeArguments(typeof(IntClass))] // custom reference type, sort in managed code, compare fast
-    //[GenericTypeArguments(typeof(string))] // reference type, compare slow
+    [GenericTypeArguments(typeof(IntClass))] // custom reference type, sort in managed code, compare fast
+    [GenericTypeArguments(typeof(string))] // reference type, compare slow
     [InvocationCount(InvocationsPerIteration)]
-    [DisassemblyDiagnoser(recursiveDepth: 3)]
-    [InliningDiagnoser]
-    [EtwProfiler]
     public class Sort<T>
     {
-        private const int InvocationsPerIteration = 40000;
+        private const int InvocationsPerIteration = 5000;
 
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
