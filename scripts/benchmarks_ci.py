@@ -94,6 +94,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         'init-tools',  # Default
         'repo',
         'cli',
+        'args',
     ]
     parser.add_argument(
         '--cli-source-info',
@@ -250,8 +251,6 @@ def __main(args: list) -> int:
                 target_framework_moniker = micro_benchmarks.FrameworkAction.get_target_framework_moniker(framework)
                 commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli)
                 source_timestamp = dotnet.get_commit_date(framework, commit_sha, args.cli_repository)
-                os.environ['PERFLAB_HASH'] = commit_sha
-                os.environ['PERFLAB_BUILDTIMESTAMP'] = source_timestamp
 
             # ensure that if we aren't generating data we dont try to go down the perflab reporting path, since we'll be missing data.
             if os.getenv('PERFLAB_INLAB') and not args.generate_benchview_data:
