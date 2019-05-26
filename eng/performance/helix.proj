@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(WorkItemCommand)' != ''">
-    <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) -f $(_Framework) $(_BenchViewArguments) --dotnet-compilation-mode $(_CompilationMode)</WorkItemCommand>
+    <WorkItemCommand>$(Python) --version</WorkItemCommand>
   </PropertyGroup>
 
   <ItemGroup>
