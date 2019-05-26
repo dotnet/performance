@@ -34,7 +34,7 @@ namespace System.Text.Json.Serialization.Tests
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
-        public byte[] SerializeToUtf8Bytes() => JsonSerializer.ToBytes(_value);
+        public byte[] SerializeToUtf8Bytes() => JsonSerializer.ToUtf8Bytes(_value);
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
