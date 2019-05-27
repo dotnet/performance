@@ -30,14 +30,10 @@ namespace BenchmarkDotNet.Extensions
             if (reporter == null) // not running in the perf lab
                 return;
 
-            var nameDelegate = typeof(BenchmarkCase).Assembly.GetType("BenchmarkDotNet.Exporters.FullNameProvider").GetMethod("GetBenchmarkName", BindingFlags.Static | BindingFlags.NonPublic);
-
-
             foreach (var report in summary.Reports)
             {
                 var test = new Test();
-                //test.Name = FullNameProvider.GetBenchmarkName(report.BenchmarkCase);
-                test.Name = (string)nameDelegate.Invoke(null, new[] { report.BenchmarkCase });
+                test.Name = FullNameProvider.GetBenchmarkName(report.BenchmarkCase);
                 test.Categories = report.BenchmarkCase.Descriptor.Categories;
                 var results = from result in report.AllMeasurements
                               where result.IterationMode == Engines.IterationMode.Workload && result.IterationStage == Engines.IterationStage.Result
