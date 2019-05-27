@@ -27,9 +27,9 @@ jobs:
             value: private
           - name: BenchviewCommitName
             value: '.NET Performance - $(BenchViewRunType) - $(Build.SourceBranchName) $(System.PullRequest.PullRequestNumber)'
-          # for public runs we want to generate data (--generate-benchview-data ) but don't upload it (missing --upload-to-benchview-container)
+          # for public runs we do not want to generate data or upload it (missing --generate-benchview-data and --upload-to-benchview-container)
           - name: BenchViewArguments
-            value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(BenchViewRunType)'
+            value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --benchview-run-type $(BenchViewRunType)'
           - name: Creator
             value: dotnet-performance
           # for public runs we want to run the benchmarks exactly once, no warmup, no pilot, no overhead
