@@ -34,6 +34,7 @@ from performance.logger import setup_loggers
 import benchview
 import dotnet
 import micro_benchmarks
+from azcopy import AzCopy
 
 
 if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
@@ -141,6 +142,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
             (date-time from RFC 3339, Section 5.6.
             "%%Y-%%m-%%dT%%H:%%M:%%SZ").'''
     )
+
+    parser.add_argument('--upload-to-perflab-container',
+        dest="upload_to_perflab_container",
+        required=False,
+        help="Container to upload perf lab results to."
+    )   
 
     # Generic arguments.
     parser.add_argument(
@@ -259,6 +266,11 @@ def __main(args: list) -> int:
             )
 
         benchview.run_scripts(args, verbose, BENCHMARKS_CSPROJ)
+
+        if(args.upload_to_perflab_container): 
+            AzCopy.upload_results(args.upload_to_perflab_container, verbose)
+        
+
         # TODO: Archive artifacts.
 
 
