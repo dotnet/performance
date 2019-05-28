@@ -31,7 +31,7 @@ jobs:
             value: 'py -3'
         - ${{ if ne(parameters.osName, 'windows') }}:
           - name: CliArguments
-            value: '--dotnet-version $$DOTNET_VERSION --cli-source-info args --cli-branch $$PERFLAB_BRANCH --cli-commit-sha $$PERFLAB_HASH --cli-repository https://github.com/$$PERFLAB_REPO --cli-source-timestamp $$PERFLAB_BUILDTIMESTAMP'
+            value: '--dotnet-version $DOTNET_VERSION --cli-source-info args --cli-branch $PERFLAB_BRANCH --cli-commit-sha $PERFLAB_HASH --cli-repository https://github.com/$PERFLAB_REPO --cli-source-timestamp $PERFLAB_BUILDTIMESTAMP'
           - name: AdditionalHelixPreCommands
             value: 'chmod +x ./tools/machine-setup.sh;. ./tools/machine-setup.sh'
           - name: Python
