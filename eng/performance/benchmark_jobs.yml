@@ -26,7 +26,7 @@ jobs:
           - name: CliArguments
             value: '--dotnet-versions %DOTNET_VERSION% --cli-source-info args --cli-branch %PERFLAB_BRANCH% --cli-commit-sha %PERFLAB_HASH% --cli-repository https://github.com/%PERFLAB_REPO% --cli-source-timestamp %PERFLAB_BUILDTIMESTAMP%'
           - name: AdditionalHelixPreCommands
-            value: '%HELIX_CORRELATION_PAYLOAD%\tools\machine-setup.cmd'
+            value: 'call %HELIX_CORRELATION_PAYLOAD%\tools\machine-setup.cmd'
           - name: Python
             value: 'py -3'
         - ${{ if ne(parameters.osName, 'windows') }}:
