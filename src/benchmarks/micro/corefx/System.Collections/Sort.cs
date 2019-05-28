@@ -102,6 +102,7 @@ namespace System.Collections
         {
             public int Compare(T x, T y) => x.CompareTo(y);
         }
+
         readonly struct ComparableComparerStruct : IComparer<T>
         {
             public int Compare(T x, T y) => x.CompareTo(y);
