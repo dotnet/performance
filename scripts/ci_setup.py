@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 
-from argparse import ArgumentParser, ArgumentTypeError
-from datetime import datetime
+from argparse import ArgumentParser
 from logging import getLogger
 
 import os
-import platform
 import sys
 
 from performance.common import get_tools_directory
