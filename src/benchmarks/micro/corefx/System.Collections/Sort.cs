@@ -27,7 +27,6 @@ namespace System.Collections
 
         private int _iterationIndex = 0;
         private T[] _values;
-
         private T[][] _arrays;
         private List<T>[] _lists;
 
