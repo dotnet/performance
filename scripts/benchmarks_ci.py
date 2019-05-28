@@ -245,13 +245,6 @@ def __main(args: list) -> int:
     # Run micro-benchmarks
     if not args.build_only:
         for framework in args.frameworks:
-            #Before we run the benchmarks we need to set the CommitDate in the environment
-            #for the nex reporting tool
-            if framework != 'net461' and args.generate_benchview_data:
-                target_framework_moniker = micro_benchmarks.FrameworkAction.get_target_framework_moniker(framework)
-                commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli)
-                source_timestamp = dotnet.get_commit_date(framework, commit_sha, args.cli_repository)
-
             # ensure that if we aren't generating data we dont try to go down the perflab reporting path, since we'll be missing data.
             if os.getenv('PERFLAB_INLAB') and not args.generate_benchview_data:
                 os.environ.pop('PERFLAB_INLAB')

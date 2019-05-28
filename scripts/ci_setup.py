@@ -137,7 +137,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
 def __process_arguments(args: list):
     parser = ArgumentParser(
-        description='Tool to run .NET micro benchmarks',
+        description='Tool to generate a machine setup script',
         allow_abbrev=False,
         # epilog=os.linesep.join(__doc__.splitlines())
         epilog=__doc__,
