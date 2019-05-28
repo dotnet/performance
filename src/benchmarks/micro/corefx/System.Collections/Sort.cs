@@ -90,6 +90,11 @@ namespace System.Collections
                 var values = ValuesGenerator.ArrayOfUniqueValues<int>(Size);
                 return (T[])(object)values.Select(v => new IntClass(v)).ToArray();
             }
+            else if (typeof(T) == typeof(BigStruct))
+            {
+                var values = ValuesGenerator.ArrayOfUniqueValues<int>(Size);
+                return (T[])(object)values.Select(v => new BigStruct(v)).ToArray();
+            }
             else
             {
                 return ValuesGenerator.ArrayOfUniqueValues<T>(Size);
