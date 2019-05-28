@@ -52,7 +52,7 @@ jobs:
           - name: HelixApiAccessToken
             value: ''
           - name: HelixPreCommand
-            value: '$(AdditionHelixPreCommands)'
+            value: '$(AdditionalHelixPreCommands)'
           - name: HelixSourcePrefix
             value: "pr"
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
@@ -73,7 +73,7 @@ jobs:
               value: 'set "BV_UPLOAD_SAS_TOKEN=$(BenchViewUploadToken)";$(AdditionHelixPreCommands)'
           - ${{ if ne(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'export BV_UPLOAD_SAS_TOKEN="$(BenchViewUploadTokenLinux)";$(AdditionHelixPreCommands)'
+              value: 'export BV_UPLOAD_SAS_TOKEN="$(BenchViewUploadTokenLinux)";$(AdditionalHelixPreCommands)'
           - name: HelixSourcePrefix
             value: 'official'
           - group: DotNet-HelixApi-Access
