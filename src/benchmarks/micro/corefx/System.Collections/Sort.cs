@@ -34,7 +34,11 @@ namespace System.Collections
         public void Setup() => _values = GenerateValues();
 
         [IterationCleanup]
-        public void CleanupIteration() => _iterationIndex = 0; // after every iteration end we set the index to 0
+        public void CleanupIteration()
+        {
+            _iterationIndex = 0; // after every iteration end we set the index to 0
+            _lists = null; // after every iteration end we must clear the lists since `Utils.FillCollections` reuses lists
+        }
 
         [IterationSetup(Targets = new []{ nameof(Array), nameof(Array_ComparerClass),
             nameof(Array_ComparerStruct), nameof(Array_Comparison) })]
