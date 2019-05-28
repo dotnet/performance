@@ -11,35 +11,17 @@ using MicroBenchmarks;
 
 namespace System.Collections
 {
-    // TODO: Where should the below types reside?
-
-    public readonly struct IntStruct : IComparable<IntStruct>
-    {
-        readonly int _value;
-
-        public IntStruct(int value) => _value = value;
-
-        public int CompareTo(IntStruct other) => _value.CompareTo(other._value);
-    }
-
-    public class IntClass : IComparable<IntClass>
-    {
-        readonly int _value;
-
-        public IntClass(int value) => _value = value;
-
-        public int CompareTo(IntClass other) => _value.CompareTo(other._value);
-    }
-
     [BenchmarkCategory(Categories.CoreCLR, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type, Array sort in native code
     [GenericTypeArguments(typeof(IntStruct))] // custom value type, sort in managed code
     [GenericTypeArguments(typeof(IntClass))] // custom reference type, sort in managed code, compare fast
+    [GenericTypeArguments(typeof(BigStruct))] // custom value type, sort in managed code
     [GenericTypeArguments(typeof(string))] // reference type, compare slow
     [InvocationCount(InvocationsPerIteration)]
-    public class Sort<T>
+    public class Sort<T> where T : IComparable<T>
     {
-        private const int InvocationsPerIteration = 5000;
+        static readonly ComparableComparerClass _comparableComparerClass = new ComparableComparerClass();
+        private const int InvocationsPerIteration = 1000;
 
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
@@ -56,20 +38,30 @@ namespace System.Collections
         [IterationCleanup]
         public void CleanupIteration() => _iterationIndex = 0; // after every iteration end we set the index to 0
 
-        [IterationSetup(Target = nameof(Array))]
+        [IterationSetup(Targets = new []{ nameof(Array), nameof(Array_ComparerClass),
+            nameof(Array_ComparerStruct), nameof(Array_Comparison) })]
         public void SetupArrayIteration() => Utils.FillArrays(ref _arrays, InvocationsPerIteration, _values);
 
         [Benchmark]
         public void Array() => System.Array.Sort(_arrays[_iterationIndex++], 0, Size);
 
-        //[IterationSetup(Target = nameof(List))]
+        [Benchmark]
+        public void Array_ComparerClass() => System.Array.Sort(_arrays[_iterationIndex++], 0, Size, _comparableComparerClass);
+
+        [Benchmark]
+        public void Array_ComparerStruct() => System.Array.Sort(_arrays[_iterationIndex++], 0, Size, new ComparableComparerStruct());
+
+        [Benchmark]
+        public void Array_Comparison() => System.Array.Sort(_arrays[_iterationIndex++], (x, y) => x.CompareTo(y));
+
+        [IterationSetup(Target = nameof(List))]
         public void SetupListIteration() => Utils.FillCollections(ref _lists, InvocationsPerIteration, _values);
 
-        //[Benchmark]
+        [Benchmark]
         public void List() => _lists[_iterationIndex++].Sort();
 
-        //[BenchmarkCategory(Categories.LINQ)]
-        //[Benchmark]
+        [BenchmarkCategory(Categories.LINQ)]
+        [Benchmark]
         public int LinqQuery()
         {
             int count = 0;
@@ -78,8 +70,8 @@ namespace System.Collections
             return count;
         }
 
-        //[BenchmarkCategory(Categories.LINQ)]
-        //[Benchmark]
+        [BenchmarkCategory(Categories.LINQ)]
+        [Benchmark]
         public int LinqOrderByExtension()
         {
             int count = 0;
@@ -104,6 +96,15 @@ namespace System.Collections
             {
                 return ValuesGenerator.ArrayOfUniqueValues<T>(Size);
             }
+        }
+
+        sealed class ComparableComparerClass : IComparer<T>
+        {
+            public int Compare(T x, T y) => x.CompareTo(y);
+        }
+        readonly struct ComparableComparerStruct : IComparer<T>
+        {
+            public int Compare(T x, T y) => x.CompareTo(y);
         }
     }
 }
