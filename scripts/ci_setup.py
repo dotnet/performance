@@ -175,7 +175,7 @@ def __main(args: list) -> int:
     config_string = '"%s"' % ';'.join(args.build_configs)
 
     for framework in target_framework_monikers:
-        if framework != 'net461':
+        if framework.startswith('netcoreapp'):
             target_framework_moniker = micro_benchmarks.FrameworkAction.get_target_framework_moniker(framework)
             dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli)
             commit_sha =  dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
@@ -196,6 +196,11 @@ def __main(args: list) -> int:
                 out_file.write(variable_format % ('PERFLAB_BUILDTIMESTAMP', source_timestamp))
                 out_file.write(variable_format % ('PERFLAB_CONFIGS', config_string))
                 out_file.write(variable_format % ('DOTNET_VERSION', dotnet_version))
+
+        else:
+            with open(args.output_file, 'w') as out_file:
+                out_file.write(variable_format % ('PERFLAB_INLAB', '0'))
+
 
 if __name__ == "__main__":
     __main(sys.argv[1:])

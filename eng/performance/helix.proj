@@ -9,7 +9,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(WorkItemCommand)' != ''">
-    <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) -f $(_Framework) $(_BenchViewArguments) --dotnet-compilation-mode $(_CompilationMode) $(CliArguments)</WorkItemCommand>
+    <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) -f $(_Framework) $(_BenchViewArguments) --dotnet-compilation-mode $(_CompilationMode)</WorkItemCommand>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(_Framework)' != 'net461'">
+    <WorkItemCommand>$(WorkItemCommand) $(CliArguments)</WorkItemCommand>
   </PropertyGroup>
 
   <ItemGroup>
