@@ -147,7 +147,8 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument('--upload-to-perflab-container',
         dest="upload_to_perflab_container",
         required=False,
-        help="Container to upload perf lab results to."
+        help="Causes results files to be uploaded to perf container",
+        action='store_true'
     )   
 
     # Generic arguments.
@@ -259,8 +260,8 @@ def __main(args: list) -> int:
 
         benchview.run_scripts(args, verbose, BENCHMARKS_CSPROJ)
 
-        if(args.upload_to_perflab_container): 
-            AzCopy.upload_results(args.upload_to_perflab_container, verbose)
+        if args.upload_to_perflab_container: 
+            AzCopy.upload_results('', verbose=verbose)
         
 
         # TODO: Archive artifacts.
