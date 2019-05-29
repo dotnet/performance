@@ -147,7 +147,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument('--upload-to-perflab-container',
         dest="upload_to_perflab_container",
         required=False,
-        help="Container to upload perf lab results to.",
+        help="Causes results files to be uploaded to perf container",
         action='store_true'
     )   
 
