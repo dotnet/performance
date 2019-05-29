@@ -5,7 +5,6 @@ from logging import getLogger
 
 import os
 import sys
-import shutil
 
 from performance.common import get_tools_directory
 from performance.common import validate_supported_runtime
@@ -207,7 +206,7 @@ def __main(args: list) -> int:
     # On non-windows platforms, delete dotnet, so that we don't have to deal with chmoding it on the helix machines
     # This is only necessary for netcoreapp3.0
     if sys.platform != 'win32' and is_netcoreapp_30:
-        shutil.rmtree(dotnet.__get_directory(args.architecture))
+        dotnet.delete_dotnet(args.architecture)
 
 
 if __name__ == "__main__":

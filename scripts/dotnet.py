@@ -11,6 +11,7 @@ from json import loads
 from logging import getLogger
 from os import chmod, environ, listdir, makedirs, path, pathsep
 from re import search
+from shutil import rmtree
 from stat import S_IRWXU
 from subprocess import check_output
 from sys import argv, platform
@@ -478,6 +479,9 @@ def __get_directory(architecture: str) -> str:
     '''Gets the default directory where dotnet is to be installed.'''
     return path.join(get_tools_directory(), 'dotnet', architecture)
 
+def remove_dotnet(architecture: str) -> str:
+    '''Removes the dotnet installed in the tools directory associated with a particular architecture'''
+    rmtree(__get_directory(architecture))
 
 def install(
         architecture: str,
