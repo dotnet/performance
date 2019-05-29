@@ -5,6 +5,7 @@ from logging import getLogger
 
 import os
 import sys
+import shutil
 
 from performance.common import get_tools_directory
 from performance.common import validate_supported_runtime
