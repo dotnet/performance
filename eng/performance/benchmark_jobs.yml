@@ -89,7 +89,7 @@ jobs:
               ${{ framework }}:
                 _Framework: ${{ framework }}
                 _CompilationMode: NoTiering
-                _Configs: CompilationMode=NoTiering
+                _Configs: CompilationMode=$(_CompilationMode)
                 _BuildConfig: ${{ parameters.architecture }}_$(_Framework)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
                 ${{ if startsWith(framework, 'netcoreapp') }}:
                   _BenchViewArguments: $(BenchViewArguments)
@@ -99,7 +99,7 @@ jobs:
                 ${{ if startsWith(framework, 'netcoreapp') }}: # Tiered JIT was introduced in .NET Core 2.1
                   ${{ framework }}_tiered:
                     _Framework: ${{ framework }}
-                    _Configs: CompilationMode=Tiered
+                    _Configs: CompilationMode=$(_CompilationMode)
                     _CompilationMode: Tiered
                     _BuildConfig: ${{ parameters.architecture }}_$(_Framework)_$(_CompilationMode)_${{ parameters.kind }}
                     _BenchViewArguments: $(BenchViewArguments)
