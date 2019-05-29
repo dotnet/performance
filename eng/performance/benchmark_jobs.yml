@@ -41,6 +41,9 @@ jobs:
             value: private
           - name: BenchviewCommitName
             value: '.NET Performance - $(BenchViewRunType) - $(Build.SourceBranchName) $(System.PullRequest.PullRequestNumber)'
+          # for public runs, we do not want to upload perflab data
+          - name: PerfLabArguments
+            value: ''
           # for public runs we do not want to generate data or upload it (missing --generate-benchview-data and --upload-to-benchview-container)
           - name: BenchViewArguments
             value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --benchview-run-type $(BenchViewRunType)'
@@ -60,6 +63,9 @@ jobs:
             value: rolling
           - name: BenchviewCommitName
             value: '.NET Performance - $(BenchViewRunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
+          # for private runs, we want to upload perflab data
+          - name: PerfLabArguments
+            value: '--upload-to-perflab-container'
           # for private runs we want to generate data (--generate-benchview-data ) and upload it (--upload-to-benchview-container specifies where)
           - name: BenchViewArguments
             value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(BenchViewRunType) --upload-to-benchview-container ${{ parameters.benchviewCategory}}'
@@ -70,10 +76,10 @@ jobs:
             value: ''
           - ${{ if eq(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'set "BV_UPLOAD_SAS_TOKEN=$(BenchViewUploadToken)";$(AdditionalHelixPreCommands)'
+              value: 'set "BV_UPLOAD_SAS_TOKEN=$(BenchViewUploadToken)";set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
           - ${{ if ne(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'export BV_UPLOAD_SAS_TOKEN="$(BenchViewUploadTokenLinux)";$(AdditionalHelixPreCommands)'
+              value: 'export BV_UPLOAD_SAS_TOKEN="$(BenchViewUploadTokenLinux)";export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
           - name: HelixSourcePrefix
             value: 'official'
           - group: DotNet-HelixApi-Access
@@ -93,6 +99,7 @@ jobs:
                 _BuildConfig: ${{ parameters.architecture }}_$(_Framework)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
                 ${{ if startsWith(framework, 'netcoreapp') }}:
                   _BenchViewArguments: $(BenchViewArguments)
+                  _PerfLabArguments: $(PerfLabArguments)
                 ${{ if not(startsWith(framework, 'netcoreapp')) }}: # we don't want to upload non-.NET Core results to BenchView
                   _BenchViewArguments: ''
               ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}: # to reduce the number of CI legs for every PR
