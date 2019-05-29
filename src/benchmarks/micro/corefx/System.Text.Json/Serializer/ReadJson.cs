@@ -53,4 +53,17 @@ namespace System.Text.Json.Serialization.Tests
         [GlobalCleanup]
         public void Cleanup() => _memoryStream.Dispose();
     }
+
+    public class ReadJson
+    {
+        [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+        [Benchmark(Baseline = true)]
+        public string StackallocConst()
+        {
+            Span<char> result = stackalloc char[256];
+
+            result[0] = 'a';
+            return result.Slice(0, 1).ToString();
+        }
+    }
 }
