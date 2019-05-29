@@ -70,7 +70,7 @@ jobs:
             value: ''
           - ${{ if eq(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'set "BV_UPLOAD_SAS_TOKEN=$(BenchViewUploadToken)";$(AdditionHelixPreCommands)'
+              value: 'set "BV_UPLOAD_SAS_TOKEN=$(BenchViewUploadToken)";$(AdditionalHelixPreCommands)'
           - ${{ if ne(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
               value: 'export BV_UPLOAD_SAS_TOKEN="$(BenchViewUploadTokenLinux)";$(AdditionalHelixPreCommands)'
