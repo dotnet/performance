@@ -314,6 +314,18 @@ def __get_build_info(framework: str, args) -> BuildInfo:
     elif args.cli_source_info == 'repo':
         # Retrieve data from current repository.
         subparser = 'git'
+    elif args.cli_source_info == 'args':
+        # All of the required data should already be supplied in the parameters
+        if not branch or not commit_sha or not source_timestamp:
+            err_msg = 'Cannot determine build information for "%s"' % \
+                target_framework_moniker
+            getLogger().error(err_msg)
+            getLogger().error(
+                "Build information must be provided using the --cli-* options."
+            )
+            raise ValueError(err_msg)
+        if not repository:
+            repository = 'https://github.com/dotnet/core-sdk'
     else:
         raise ValueError('Unknown build source.')
 

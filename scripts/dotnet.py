@@ -11,9 +11,11 @@ from json import loads
 from logging import getLogger
 from os import chmod, environ, listdir, makedirs, path, pathsep
 from re import search
+from shutil import rmtree
 from stat import S_IRWXU
 from subprocess import check_output
 from sys import argv, platform
+from typing import Tuple
 from urllib.parse import urlparse
 from urllib.request import urlopen, urlretrieve
 
@@ -69,6 +71,9 @@ class CompilationAction(Action):
         This includes R2R code, useful for comparison against Tiered and
         FullyJittedNoTiering for changes to R2R code or tiering.
 
+    Default: Don't set any environment variables. Use what the compiler views
+        as the default.
+
     FullyJittedNoTiering: Tiering and R2R are disabled.
         This is JIT-only, useful for comparison against Tiered and NoTiering
         for changes to R2R code or tiering.
@@ -87,6 +92,7 @@ class CompilationAction(Action):
 
     TIERED = 'Tiered'
     NO_TIERING = 'NoTiering'
+    DEFAULT='Default'
     FULLY_JITTED_NO_TIERING = 'FullyJittedNoTiering'
     MIN_OPT = 'MinOpt'
 
@@ -121,7 +127,7 @@ class CompilationAction(Action):
         elif mode == CompilationAction.MIN_OPT:
             environ['COMPlus_JITMinOpts'] = '1'
             environ['COMPlus_TieredCompilation'] = '0'
-        else:
+        elif mode != CompilationAction.DEFAULT:
             raise ArgumentTypeError('Unknown mode: {}'.format(mode))
 
     @staticmethod
@@ -303,22 +309,24 @@ class CSharpProject:
         RunCommand(cmdline, verbose=verbose).run(
             self.working_directory)
 
-
-def get_dotnet_sdk(framework: str, dotnet_path: str = None) -> str:
-    """Gets the dotnet Host commit sha from the `dotnet --info` command."""
-    if not framework:
-        raise TypeError(
-            "The target framework to get information for was not specified."
-        )
-    if not dotnet_path:
-        dotnet_path = 'dotnet'
-
+def get_framework_version(framework: str) -> str:
     groups = search(r"^netcoreapp(\d)\.(\d)$", framework)
     if not groups:
         raise ValueError("Unknown target framework: {}".format(framework))
 
     FrameworkVersion = namedtuple('FrameworkVersion', ['major', 'minor'])
     version = FrameworkVersion(int(groups.group(1)), int(groups.group(2)))
+
+    return version
+
+def get_sdk_path(version: str, dotnet_path: str = None) -> str:
+    """Gets the dotnet Host version from the `dotnet --info` command."""
+    if not version:
+        raise TypeError(
+            "The target version to get information for was not specified."
+        )
+    if not dotnet_path:
+        dotnet_path = 'dotnet'
 
     output = check_output([dotnet_path, '--info'])
 
@@ -339,6 +347,14 @@ def get_dotnet_sdk(framework: str, dotnet_path: str = None) -> str:
 
     base_path = groups.group(1)
     sdk_path = path.abspath(path.join(base_path, '..'))
+
+    return sdk_path
+
+def get_dotnet_version(framework: str, dotnet_path: str = None, sdk_path: str = None) -> str:
+    version = get_framework_version(framework)
+
+    sdk_path = get_sdk_path(version, dotnet_path) if sdk_path is None else sdk_path
+
     sdks = [
         d for d in listdir(sdk_path) if path.isdir(path.join(sdk_path, d))
     ]
@@ -352,16 +368,33 @@ def get_dotnet_sdk(framework: str, dotnet_path: str = None) -> str:
         # Attempt 2: Increase the minor version by 1 and retry.
         sdk = next((f for f in sdks if f.startswith(
             "{}.{}".format(version.major, version.minor + 1))), None)
-
+    
     if not sdk:
         raise RuntimeError(
             "Unable to determine the .NET SDK used for {}".format(framework)
         )
+    
+    return sdk
+
+def get_dotnet_sdk(framework: str, dotnet_path: str = None, sdk: str = None) -> str:
+    """Gets the dotnet Host commit sha from the `dotnet --info` command."""
+
+    sdk_path = get_sdk_path(get_framework_version(framework), dotnet_path)
+    sdk = get_dotnet_version(framework, dotnet_path, sdk_path) if sdk is None else sdk
 
     with open(path.join(sdk_path, sdk, '.version')) as sdk_version_file:
         return sdk_version_file.readline().strip()
     raise RuntimeError("Unable to retrieve information about the .NET SDK.")
 
+def get_repository(repository:str) -> Tuple[str, str]:
+    url_path = urlparse(repository).path
+    tokens = url_path.split("/")
+    if len(tokens) != 3:
+        raise ValueError('Unable to determine owner and repo from url.')
+    owner = tokens[1]
+    repo = tokens[2]
+    
+    return owner, repo
 
 def get_commit_date(
         framework: str,
@@ -385,12 +418,7 @@ def get_commit_date(
         repo = 'core-sdk' if framework == 'netcoreapp3.0' else 'cli'
         url = urlformat % ('dotnet', repo, commit_sha)
     else:
-        url_path = urlparse(repository).path
-        tokens = url_path.split("/")
-        if len(tokens) != 3:
-            raise ValueError('Unable to determine owner and repo from url.')
-        owner = tokens[1]
-        repo = tokens[2]
+        owner, repo = get_repository(repository)
         url = urlformat % (owner, repo, commit_sha)
 
     build_timestamp = None
@@ -451,6 +479,9 @@ def __get_directory(architecture: str) -> str:
     '''Gets the default directory where dotnet is to be installed.'''
     return path.join(get_tools_directory(), 'dotnet', architecture)
 
+def remove_dotnet(architecture: str) -> str:
+    '''Removes the dotnet installed in the tools directory associated with a particular architecture'''
+    rmtree(__get_directory(architecture))
 
 def install(
         architecture: str,
@@ -520,6 +551,10 @@ def install(
 
     # Add installed dotnet cli to PATH
     environ["PATH"] = install_dir + pathsep + environ["PATH"]
+
+    # If we have copied dotnet from a different machine, it will not be executable. Fix this
+    if platform != 'win32':
+        chmod(path.join(install_dir, 'dotnet'), S_IRWXU)
 
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
