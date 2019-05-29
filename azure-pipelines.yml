@@ -48,7 +48,7 @@ jobs:
       kind: micro
       architecture: x64
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS4.Open
+      queue: Windows.10.Amd64.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'coreclr corefx' 
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
@@ -80,7 +80,7 @@ jobs:
       kind: micro
       architecture: x86
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS4.Open
+      queue: Windows.10.Amd64.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'coreclr corefx'
       frameworks: # for public jobs we want to make sure that the PRs don't break x86
@@ -178,7 +178,7 @@ jobs:
       kind: mlnet
       architecture: x64
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS4.Open
+      queue: Windows.10.Amd64.Open
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
       frameworks: # for ML.NET jobs we want to check .NET Core 3.0 only
@@ -242,7 +242,7 @@ jobs:
       kind: roslyn
       architecture: x64
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS4.Open
+      queue: Windows.10.Amd64.Open
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
       frameworks: # for Roslyn jobs we want to check .NET Core 3.0 only
