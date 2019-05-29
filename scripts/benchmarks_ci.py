@@ -260,7 +260,7 @@ def __main(args: list) -> int:
 
         benchview.run_scripts(args, verbose, BENCHMARKS_CSPROJ)
 
-        if(args.upload_to_perflab_container): 
+        if args.upload_to_perflab_container: 
             AzCopy.upload_results('', verbose=verbose)
         
 

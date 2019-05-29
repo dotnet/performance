@@ -73,18 +73,37 @@ class AzCopy:
 
     @staticmethod
     def upload_results(container_path: str, verbose: bool) -> None:
-        if os.getenv('PERFLAB_UPLOAD_TOKEN'):
+        if os.getenv('PERFLAB_UPLOAD_TOKEN') and os.getenv("HELIX_CORRELATION_ID"):
+
+            # first find if we have any files at all
             files = glob(path.join(
                 get_artifacts_directory(),
                 '**',
                 '*perf-lab-report.json'), recursive=True)
+
             if files:
-                dirname = path.dirname(files[0])
-                if len(files) == 1:
+                # since we do, we will rename them to include the correlation ID
+                for file in files:
+                    directory_name = path.dirname(file)
+                    filename = path.basename(file)
+                    newname = "{0}-{1}".format(path.join(
+                                                directory_name,
+                                                os.getenv('HELIX_CORRELATION_ID')),
+                                               filename)
+                    os.rename(file, newname)
+
+                renamed_files = glob(path.join(
+                                        get_artifacts_directory(),
+                                        '**',
+                                        '*perf-lab-report.json'), recursive=True)
+
+
+                dirname = path.dirname(renamed_files[0])
+                if len(renamed_files) == 1:
                     # need to work around a bug in azcopy which loses file name if
                     # there is only one file.
                     # https://github.com/Azure/azure-storage-azcopy/issues/410
-                    container_path = path.join(container_path, path.basename(files[0]))
+                    container_path = path.join(container_path, path.basename(renamed_files[0]))
                 AzCopy(os.environ['PERFLAB_UPLOAD_TOKEN'],
                        container_path,
                        verbose).upload_files(path.join(dirname, '*perf-lab-report.json'))
