@@ -548,6 +548,10 @@ def install(
     # Add installed dotnet cli to PATH
     environ["PATH"] = install_dir + pathsep + environ["PATH"]
 
+    # If we have copied dotnet from a different machine, it will not be executable. Fix this
+    if platform != 'win32':
+        chmod(path.join(install_dir, 'dotnet'), S_IRWXU)
+
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''
