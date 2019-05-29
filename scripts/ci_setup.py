@@ -172,8 +172,12 @@ def __main(args: list) -> int:
     owner, repo = 'dotnet', 'core-sdk' if args.repository is None else dotnet.get_repository(args.repository)
     config_string = '"%s"' % ';'.join(args.build_configs)
 
+    is_netcoreapp_30 = False
+
     for framework in target_framework_monikers:
         if framework.startswith('netcoreapp'):
+            if framework == 'netcoreapp3.0':
+                is_netcoreapp_30 = True
             target_framework_moniker = micro_benchmarks.FrameworkAction.get_target_framework_moniker(framework)
             dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli)
             commit_sha =  dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
@@ -198,6 +202,11 @@ def __main(args: list) -> int:
         else:
             with open(args.output_file, 'w') as out_file:
                 out_file.write(variable_format % ('PERFLAB_INLAB', '0'))
+
+    # On non-windows platforms, delete dotnet, so that we don't have to deal with chmoding it on the helix machines
+    # This is only necessary for netcoreapp3.0
+    if sys.platform != 'win32' and is_netcoreapp_30:
+        shutil.rmtree(dotnet.__get_directory(args.architecture))
 
 
 if __name__ == "__main__":
