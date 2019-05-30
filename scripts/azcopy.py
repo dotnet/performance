@@ -7,6 +7,7 @@ from logging import getLogger
 from tarfile import TarFile
 from urllib.request import urlopen
 from zipfile import ZipFile
+from random import randint
 
 from performance.common import (RunCommand, get_artifacts_directory,
                                 get_tools_directory)
@@ -82,6 +83,9 @@ class AzCopy:
                 '*perf-lab-report.json'), recursive=True)
 
             if files:
+                getLogger().info("Found {0} files".format(len(files)))
+                for file in files:
+                    getLogger().info("file: {0}".format(file))
                 # since we do, we will rename them to include the correlation ID
                 for file in files:
                     directory_name = path.dirname(file)
@@ -90,7 +94,19 @@ class AzCopy:
                                                 directory_name,
                                                 os.getenv('HELIX_CORRELATION_ID')),
                                                filename)
-                    os.rename(file, newname)
+                    getLogger().info("copying \n\t{0}\nto\n\t{1}".format(file, newname))
+                    try:
+                        os.rename(file, newname)
+                    except (FileNotFoundError, OSError) as err:
+                        getLogger().error("Failed to copy {0}, err was: {1}".format(file, err.errno))
+                        if path.isfile(file):
+                            getLogger().info("File still seems to exist, trying with shorter name")
+                            newname = path.join(directory_name, "{0}-perf-lab-report.json".format(randint(1000, 9999)))
+                            getLogger().info("copying \n\t{0}\nto\n\t{1}".format(file, newname))
+                            try:
+                                os.rename(file, newname)
+                            except (FileNotFoundError, OSError) as err:
+                                getLogger().error("Still failed to copy {0}".format(file))
 
                 renamed_files = glob(path.join(
                                         get_artifacts_directory(),
