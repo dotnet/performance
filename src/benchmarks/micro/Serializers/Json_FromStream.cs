@@ -5,7 +5,6 @@
 using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 
 namespace MicroBenchmarks.Serializers
