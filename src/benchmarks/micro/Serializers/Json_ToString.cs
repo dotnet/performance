@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using Jil;
 
 namespace MicroBenchmarks.Serializers
 {
@@ -20,7 +19,7 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]
-        public string Jil_() => Jil.JSON.Serialize<T>(value, Options.ISO8601);
+        public string Jil_() => Jil.JSON.Serialize<T>(value, Jil.Options.ISO8601);
 
         [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.ThirdParty)]
         [Benchmark(Description = "JSON.NET")]

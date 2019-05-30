@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using Jil;
 
 namespace MicroBenchmarks.Serializers
 {
@@ -20,7 +19,7 @@ namespace MicroBenchmarks.Serializers
         public Json_FromString() => value = DataGenerator.Generate<T>();
 
         [GlobalSetup(Target = nameof(Jil_))]
-        public void SerializeJil() => serialized = Jil.JSON.Serialize<T>(value, Options.ISO8601);
+        public void SerializeJil() => serialized = Jil.JSON.Serialize<T>(value, Jil.Options.ISO8601);
 
         [GlobalSetup(Target = nameof(JsonNet_))]
         public void SerializeJsonNet() => serialized = Newtonsoft.Json.JsonConvert.SerializeObject(value);
@@ -30,7 +29,7 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]
-        public T Jil_() => Jil.JSON.Deserialize<T>(serialized, Options.ISO8601);
+        public T Jil_() => Jil.JSON.Deserialize<T>(serialized, Jil.Options.ISO8601);
 
         [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.ThirdParty)]
         [Benchmark(Description = "JSON.NET")]
