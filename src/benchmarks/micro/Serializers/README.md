@@ -11,7 +11,7 @@ This folder contains benchmarks of the most popular serializers.
     * [Jil](https://github.com/kevin-montrose/Jil) `2.15.4` 
     * [JSON.NET](https://github.com/JamesNK/Newtonsoft.Json) `11.0.1` 
     * [Utf8Json](https://github.com/neuecc/Utf8Json) `1.3.7` 
-	* [SpanJson](https://github.com/Tornhoof/SpanJson) `2.0.12` 
+    * [SpanJson](https://github.com/Tornhoof/SpanJson) `2.0.12` 
 * Binary
     * [BinaryFormatter](https://docs.microsoft.com/en-us/dotnet/api/system.runtime.serialization.formatters.binary.binaryformatter) `4.3.0`
     * [MessagePack](https://github.com/neuecc/MessagePack-CSharp) `1.7.3.4` 
