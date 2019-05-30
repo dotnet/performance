@@ -14,7 +14,7 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(IndexViewModel))]
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
-    public class Json_ToStream<T>
+    public partial class Json_ToStream<T>
     {
         private readonly T value;
 

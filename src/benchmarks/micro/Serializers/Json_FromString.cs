@@ -11,7 +11,7 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(IndexViewModel))]
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
-    public class Json_FromString<T>
+    public partial class Json_FromString<T>
     {
         private readonly T value;
         private string serialized;

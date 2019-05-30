@@ -5,6 +5,7 @@
 using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 
 namespace MicroBenchmarks.Serializers
@@ -14,7 +15,7 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(IndexViewModel))]
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
-    public class Json_FromStream<T>
+    public partial class Json_FromStream<T>
     {
         private readonly T value;
 
