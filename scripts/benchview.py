@@ -126,7 +126,7 @@ class BenchView:
         ]
 
         full_json_files = []
-        pattern = "BenchmarkDotNet.Artifacts/**/*-full.json"
+        pattern = "**/*-full.json"
         getLogger().info(
             'Searching BenchmarkDotNet output files with: %s', pattern
         )
@@ -459,11 +459,12 @@ def run_scripts(
     __log_script_header('Running BenchView scripts')
 
     for framework in args.frameworks:
-        working_directory = __get_working_directory(
+        
+        working_directory = path.join(__get_working_directory(
             BENCHMARKS_CSPROJ,
             args.configuration,
             framework
-        )
+        ), 'BenchmarkDotNet.Artifacts') if not args.bdn_artifacts else path.join(args.bdn_artifacts)
 
         with push_dir(working_directory):
             benchviewpy = BenchView(verbose)
