@@ -28,7 +28,7 @@ namespace System.Collections
         private int _iterationIndex = 0;
         private T[] _values;
         private T[][] _arrays;
-        private List<T>[] _lists = null;
+        private List<T>[] _lists;
 
         [GlobalSetup]
         public void Setup() => _values = GenerateValues();
