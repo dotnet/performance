@@ -28,17 +28,13 @@ namespace System.Collections
         private int _iterationIndex = 0;
         private T[] _values;
         private T[][] _arrays;
-        private List<T>[] _lists;
+        private List<T>[] _lists = null;
 
         [GlobalSetup]
         public void Setup() => _values = GenerateValues();
 
         [IterationCleanup]
-        public void CleanupIteration()
-        {
-            _iterationIndex = 0; // after every iteration end we set the index to 0
-            _lists = null; // after every iteration end we must clear the lists since `Utils.FillCollections` reuses lists
-        }
+        public void CleanupIteration() => _iterationIndex = 0; // after every iteration end we set the index to 0
 
         [IterationSetup(Targets = new []{ nameof(Array), nameof(Array_ComparerClass),
             nameof(Array_ComparerStruct), nameof(Array_Comparison) })]
@@ -57,7 +53,7 @@ namespace System.Collections
         public void Array_Comparison() => System.Array.Sort(_arrays[_iterationIndex++], (x, y) => x.CompareTo(y));
 
         [IterationSetup(Target = nameof(List))]
-        public void SetupListIteration() => Utils.FillCollections(ref _lists, InvocationsPerIteration, _values);
+        public void SetupListIteration() => Utils.ClearAndFillCollections(ref _lists, InvocationsPerIteration, _values);
 
         [Benchmark]
         public void List() => _lists[_iterationIndex++].Sort();

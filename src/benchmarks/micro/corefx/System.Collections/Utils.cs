@@ -26,6 +26,17 @@ namespace System.Collections
                 throw new InvalidOperationException();
         }
 
+        internal static void ClearAndFillCollections<TCollection, TValues>(ref TCollection[] collections, int collectionsCount, TValues[] keys)
+            where TCollection : ICollection<TValues>, new()
+        {
+            if (collections != null)
+            {
+                foreach (var collection in collections)
+                {   collection.Clear(); }
+            }
+            FillCollections(ref collections, collectionsCount, keys);
+        }
+
         internal static void FillCollections<TCollection, TValues>(ref TCollection[] collections, int collectionsCount, TValues[] keys)
             where TCollection : ICollection<TValues>, new()
         {
