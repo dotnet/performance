@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using BenchmarkDotNet.Attributes;
+using Jil;
 
 namespace MicroBenchmarks.Serializers
 {
@@ -41,7 +42,7 @@ namespace MicroBenchmarks.Serializers
 
             using (var writer = new StreamWriter(memoryStream, Encoding.UTF8, short.MaxValue, leaveOpen: true))
             {
-                Jil.JSON.Serialize<T>(value, writer);
+                Jil.JSON.Serialize<T>(value, writer, Options.ISO8601);
                 writer.Flush();
             }
         }
@@ -79,7 +80,7 @@ namespace MicroBenchmarks.Serializers
             memoryStream.Position = 0;
 
             using (var reader = CreateNonClosingReaderWithDefaultSizes())
-                return Jil.JSON.Deserialize<T>(reader);
+                return Jil.JSON.Deserialize<T>(reader, Options.ISO8601);
         }
 
         [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.ThirdParty)] // JSON.NET is so popular that despite being 3rd Party lib we run the benchmarks for CoreFX and CoreCLR CI

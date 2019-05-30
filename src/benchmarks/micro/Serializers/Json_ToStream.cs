@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using BenchmarkDotNet.Attributes;
+using Jil;
 
 namespace MicroBenchmarks.Serializers
 {
@@ -41,7 +42,7 @@ namespace MicroBenchmarks.Serializers
         public void Jil_()
         {
             memoryStream.Position = 0;
-            Jil.JSON.Serialize<T>(value, streamWriter);
+            Jil.JSON.Serialize<T>(value, streamWriter, Options.ISO8601);
         }
 
         [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.ThirdParty)]
