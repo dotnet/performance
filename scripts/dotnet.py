@@ -548,6 +548,7 @@ def install(
     environ['DOTNET_CLI_TELEMETRY_OPTOUT'] = '1'
     environ['DOTNET_MULTILEVEL_LOOKUP'] = '0'
     environ['UseSharedCompilation'] = 'false'
+    environ['DOTNET_ROOT'] = install_dir
 
     # Add installed dotnet cli to PATH
     environ["PATH"] = install_dir + pathsep + environ["PATH"]
