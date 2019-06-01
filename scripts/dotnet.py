@@ -569,7 +569,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     SUPPORTED_ARCHITECTURES = [
         'x64',  # Default architecture
         'x86',
-        'arm32',
+        'arm',
         'arm64',
     ]
     parser.add_argument(
