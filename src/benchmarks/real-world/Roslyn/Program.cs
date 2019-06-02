@@ -6,18 +6,37 @@ using System.IO;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Extensions;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Exporters.Json;
+using BenchmarkDotNet.Columns;
 
 namespace CompilerBenchmarks
 {
     public class Program
     {
+        private static IConfig CustomConfig(DirectoryInfo artifactsPath, ImmutableHashSet<string> mandatoryCategories, int? partitionCount = null, int? partitionIndex = null)
+            => DefaultConfig.Instance
+                .With(Job.Default) // tell BDN that this are our default settings
+                .WithArtifactsPath(artifactsPath.FullName)
+                .With(MemoryDiagnoser.Default) // MemoryDiagnoser is enabled by default
+                .With(new OperatingSystemFilter())
+                .With(new PartitionFilter(partitionCount, partitionIndex))
+                .With(JsonExporter.Full) // make sure we export to Json (for BenchView integration purpose)
+                .With(new PerfLabExporter())
+                .With(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
+                .With(TooManyTestCasesValidator.FailOnError)
+                .With(new UniqueArgumentsValidator()) // don't allow for duplicated arguments #404
+                .With(new MandatoryCategoryValidator(mandatoryCategories));
+
         public static async Task<int> Main(string[] args)
         {
             await Setup();
 
             return BenchmarkSwitcher
                 .FromAssembly(typeof(Program).Assembly)
-                .Run(args, RecommendedConfig.Create(
+                .Run(args, CustomConfig(
                     artifactsPath: new DirectoryInfo(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "BenchmarkDotNet.Artifacts")),
                     mandatoryCategories: ImmutableHashSet.Create("Roslyn")))
                 .ToExitCode();

@@ -14,7 +14,6 @@ namespace CompilerBenchmarks
         public static Compilation CreateReproCompilation()
         {
             var projectDir = Environment.GetEnvironmentVariable(TestProjectEnvVarName);
-            var cmdLineParser = new CSharpCommandLineParser();
             var responseFile = Path.Combine(projectDir, "repro.rsp");
             var compiler = new MockCSharpCompiler(responseFile, projectDir, Array.Empty<string>());
             var output = new StringWriter();

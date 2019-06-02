@@ -5,7 +5,9 @@ using System.IO;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Compilation;
 
@@ -18,11 +20,36 @@ namespace CompilerBenchmarks
         private CommonPEModuleBuilder _moduleBeingBuilt;
         private EmitOptions _options;
         private MemoryStream _peStream;
+        private ParseOptions _parseOptions;
+        private SourceText[] _files;
+
+        [GlobalSetup(Target = nameof(Parsing))]
+        public void ParsingSetup()
+        {
+            var projectDir = Environment.GetEnvironmentVariable(Helpers.TestProjectEnvVarName);
+            var responseFile = Path.Combine(projectDir, "repro.rsp");
+            var cmdLineParser = new CSharpCommandLineParser();
+            var args = cmdLineParser.Parse(new[] { "@" + responseFile }, projectDir, sdkDirectory: null);
+            _parseOptions = args.ParseOptions;
+            _files = new SourceText[args.SourceFiles.Length];
+            Parallel.For(0, _files.Length, index =>
+            {
+                using (var fstream = new FileStream(args.SourceFiles[index].Path, FileMode.Open))
+                {
+                    _files[index] = SourceText.From(fstream);
+                }
+            });
+        }
 
         [Benchmark]
-        public object Parsing()
+        public SyntaxTree[] Parsing()
         {
-            return Helpers.CreateReproCompilation();
+            var trees = new SyntaxTree[_files.Length];
+            Parallel.For(0, _files.Length, index =>
+            {
+                trees[index] = SyntaxFactory.ParseSyntaxTree(_files[index], _parseOptions);
+            });
+            return trees;
         }
 
         [GlobalSetup(Target = nameof(CompileMethodsAndEmit))]
