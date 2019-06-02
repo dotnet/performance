@@ -18,7 +18,7 @@ namespace System.Tests
             StringComparison.InvariantCulture, StringComparison.InvariantCultureIgnoreCase)]
         public StringComparison Comparison { get; set; }
 
-        private string _input, _same, _lastCharacterDifferent;
+        private string _input, _same;
         private StringComparer _comparer;
 
         [GlobalSetup]
@@ -28,8 +28,6 @@ namespace System.Tests
             char[] characters = ValuesGenerator.Array<char>(Count);
             _input = new string(characters);
             _same = new string(characters);
-            characters[characters.Length - 1] = characters[characters.Length - 1]++;
-            _lastCharacterDifferent = new string(characters);
         }
 
         [Benchmark]
@@ -37,9 +35,6 @@ namespace System.Tests
 
         [Benchmark]
         public int CompareSame() => _comparer.Compare(_input, _same);
-
-        [Benchmark]
-        public int CompareLastCharDifferent() => _comparer.Compare(_input, _lastCharacterDifferent);
 
         private StringComparer GetStringComparer()
         {
