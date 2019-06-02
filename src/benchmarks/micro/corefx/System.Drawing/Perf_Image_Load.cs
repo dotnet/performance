@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
@@ -21,7 +22,7 @@ namespace System.Drawing.Tests
             new ImageTestData(ImageFormat.Gif)
         };
 
-        public IEnumerable<object> ImageFormats() => TestCases;
+        public IEnumerable<object> ImageFormats() => TestCases.Where(format => format.Stream != null);
 
         [Benchmark]
         [ArgumentsSource(nameof(ImageFormats))]
@@ -57,7 +58,15 @@ namespace System.Drawing.Tests
 
             public ImageTestData(ImageFormat format)
             {
-                Stream = CreateTestImage(format);
+                try
+                {
+                    Stream = CreateTestImage(format);
+                }
+                catch (DllNotFoundException) // missing libgdiplus on some Linux distros
+                {
+                    Stream = null;
+                }
+                
                 FormatName = format.ToString();
             }
 
