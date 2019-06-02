@@ -7,7 +7,7 @@ namespace System.Tests
     [BenchmarkCategory(Categories.CoreFX, Categories.CoreCLR)]
     public class Perf_StringComparer
     {
-        [Params(10, 10_000_000)] // bigger than the biggest array in ArrayPool.Shared
+        [Params(10, 10_000_000)] // 10kk is bigger than the biggest array in ArrayPool.Shared, it's unhappy path for some of the methods
         public int Count { get; set; }
 
         [Params(StringComparison.OrdinalIgnoreCase, StringComparison.InvariantCultureIgnoreCase)]
