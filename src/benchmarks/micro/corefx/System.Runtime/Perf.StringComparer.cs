@@ -10,7 +10,9 @@ namespace System.Tests
         [Params(10, 10_000_000)] // 10kk is bigger than the biggest array in ArrayPool.Shared, it's unhappy path for some of the methods
         public int Count { get; set; }
 
-        [Params(StringComparison.OrdinalIgnoreCase, StringComparison.InvariantCultureIgnoreCase)]
+        [Params(
+            StringComparison.Ordinal, StringComparison.OrdinalIgnoreCase,
+            StringComparison.InvariantCulture, StringComparison.InvariantCultureIgnoreCase)]
         public StringComparison Comparison { get; set; }
 
         private string _input, _same, _lastCharacterDifferent;
