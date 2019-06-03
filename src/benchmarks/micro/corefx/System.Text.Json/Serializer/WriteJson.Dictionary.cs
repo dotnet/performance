@@ -73,42 +73,42 @@ namespace System.Text.Json.Serialization.Tests
         [Benchmark]
         public byte[] SerializeImmutableDict_ToBytes()
         {
-            return System.Text.Json.Serialization.JsonSerializer.ToUtf8Bytes(_immutableDict);
+            return JsonSerializer.ToUtf8Bytes(_immutableDict);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public byte[] SerializeIImmutableDict_ToBytes()
         {
-            return System.Text.Json.Serialization.JsonSerializer.ToUtf8Bytes(_iimmutableDict);
+            return JsonSerializer.ToUtf8Bytes(_iimmutableDict);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public byte[] SerializeImmutableSortedDict_ToBytes()
         {
-            return System.Text.Json.Serialization.JsonSerializer.ToUtf8Bytes(_immutableSortedDict);
+            return JsonSerializer.ToUtf8Bytes(_immutableSortedDict);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public string SerializeImmutableDict_ToString()
         {
-            return System.Text.Json.Serialization.JsonSerializer.ToString(_immutableDict);
+            return JsonSerializer.ToString(_immutableDict);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public string SerializeIImmutableDict_ToString()
         {
-            return System.Text.Json.Serialization.JsonSerializer.ToString(_iimmutableDict);
+            return JsonSerializer.ToString(_iimmutableDict);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public string SerializeImmutableSortedDict_ToString()
         {
-            return System.Text.Json.Serialization.JsonSerializer.ToString(_immutableSortedDict);
+            return JsonSerializer.ToString(_immutableSortedDict);
         }
     }
 }
