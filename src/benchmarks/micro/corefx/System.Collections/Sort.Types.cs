@@ -6,7 +6,7 @@ namespace System.Collections
 {
     public readonly struct IntStruct : IComparable<IntStruct>
     {
-        readonly int _value;
+        private readonly int _value;
 
         public IntStruct(int value) => _value = value;
 
@@ -15,7 +15,7 @@ namespace System.Collections
 
     public class IntClass : IComparable<IntClass>
     {
-        readonly int _value;
+        private readonly int _value;
 
         public IntClass(int value) => _value = value;
 
@@ -24,14 +24,14 @@ namespace System.Collections
 
     public readonly struct BigStruct : IComparable<BigStruct>
     {
-        readonly long _long;
-        readonly int _int0;
-        readonly int _int1;
-        readonly short _short0;
-        readonly short _short1;
-        readonly short _short2;
-        readonly short _short3;
-        readonly double _double; 
+        private readonly long _long;
+        private readonly int _int0;
+        private readonly int _int1;
+        private readonly short _short0;
+        private readonly short _short1;
+        private readonly short _short2;
+        private readonly short _short3;
+        private readonly double _double; 
 
         public BigStruct(int value)
         {
