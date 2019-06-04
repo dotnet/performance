@@ -78,7 +78,7 @@ namespace System.Collections
             return count;
         }
 
-        T[] GenerateValues()
+        private T[] GenerateValues()
         {
             if (typeof(T) == typeof(IntStruct))
             {
@@ -101,12 +101,12 @@ namespace System.Collections
             }
         }
 
-        sealed class ComparableComparerClass : IComparer<T>
+        private sealed class ComparableComparerClass : IComparer<T>
         {
             public int Compare(T x, T y) => x.CompareTo(y);
         }
 
-        readonly struct ComparableComparerStruct : IComparer<T>
+        private readonly struct ComparableComparerStruct : IComparer<T>
         {
             public int Compare(T x, T y) => x.CompareTo(y);
         }
