@@ -264,6 +264,22 @@ jobs:
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
 
+# Ubuntu 1604 x64 Roslyn benchmarks, public correctness job
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1604
+      kind: roslyn
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1604.Amd64.Open
+      container: ubuntu_x64_build_container
+      runCategories: 'roslyn'
+      csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
+      frameworks: # for Roslyn jobs we want to check .NET Core 3.0 only
+        - netcoreapp3.0
+
 # Ubuntu 1604 x64 Roslyn benchmarks, private job
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: /eng/performance/benchmark_jobs.yml
