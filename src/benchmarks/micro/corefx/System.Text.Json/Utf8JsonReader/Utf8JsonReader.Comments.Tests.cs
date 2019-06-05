@@ -13,8 +13,6 @@ using System.Threading.Tasks;
 
 namespace System.Text.Json.Tests
 {
-    //using static Utf8JsonReaderCommentsTests.TestCaseType;
-
     [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
     public partial class Utf8JsonReaderCommentsTests
     {
@@ -22,7 +20,7 @@ namespace System.Text.Json.Tests
         public JsonCommentHandling CommentHandling;
 
         // 0 => single segment
-        [Params(0, 1, 100)]
+        [Params(0, 100)]
         public int SegmentSize;
 
         private bool MultiSegment => SegmentSize != 0;
@@ -71,6 +69,72 @@ namespace System.Text.Json.Tests
 
             while (reader.Read())
             {
+            }
+        }
+
+        private static ReadOnlySequence<byte> GetSequence(byte[] dataUtf8, int segmentSize)
+        {
+            int numberOfSegments = dataUtf8.Length / segmentSize + 1;
+            byte[][] buffers = new byte[numberOfSegments][];
+
+            for (int j = 0; j < numberOfSegments - 1; j++)
+            {
+                buffers[j] = new byte[segmentSize];
+                Array.Copy(dataUtf8, j * segmentSize, buffers[j], 0, segmentSize);
+            }
+
+            int remaining = dataUtf8.Length % segmentSize;
+            buffers[numberOfSegments - 1] = new byte[remaining];
+            Array.Copy(dataUtf8, dataUtf8.Length - remaining, buffers[numberOfSegments - 1], 0, remaining);
+
+            return CreateReadOnlySequence(buffers);
+        }
+
+        private static ReadOnlySequence<byte> CreateReadOnlySequence(params byte[][] buffers)
+        {
+            if (buffers.Length == 1)
+                return new ReadOnlySequence<byte>(buffers[0]);
+
+            var list = new List<Memory<byte>>();
+
+            foreach (byte[] buffer in buffers)
+                list.Add(buffer);
+
+            return ReadOnlyBufferSegment.Create(list.ToArray());
+        }
+
+        private class ReadOnlyBufferSegment : ReadOnlySequenceSegment<byte>
+        {
+            public static ReadOnlySequence<byte> Create(IEnumerable<Memory<byte>> buffers)
+            {
+                ReadOnlyBufferSegment segment = null;
+                ReadOnlyBufferSegment first = null;
+                foreach (Memory<byte> buffer in buffers)
+                {
+                    var newSegment = new ReadOnlyBufferSegment()
+                    {
+                        Memory = buffer,
+                    };
+
+                    if (segment != null)
+                    {
+                        segment.Next = newSegment;
+                        newSegment.RunningIndex = segment.RunningIndex + segment.Memory.Length;
+                    }
+                    else
+                    {
+                        first = newSegment;
+                    }
+
+                    segment = newSegment;
+                }
+
+                if (first == null)
+                {
+                    first = segment = new ReadOnlyBufferSegment();
+                }
+
+                return new ReadOnlySequence<byte>(first, 0, segment, segment.Memory.Length);
             }
         }
 
