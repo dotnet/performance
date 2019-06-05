@@ -37,8 +37,7 @@ namespace System.Text.Json.Tests
             _arrayBufferWriter.Clear();
             using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
-                json.WriteBase64String("data", _data);
-
+                json.WriteBase64StringValue(_data);
                 json.Flush();
             }
         }
