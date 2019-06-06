@@ -31,7 +31,7 @@ namespace System.Text.Json.Serialization.Tests
             _utf8Serialized = Encoding.UTF8.GetBytes(_serialized);
 
             _memoryStream = new MemoryStream(capacity: short.MaxValue);
-            await JsonSerializer.WriteAsync(value, _memoryStream);
+            await JsonSerializer.WriteAsync(_memoryStream, value);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
