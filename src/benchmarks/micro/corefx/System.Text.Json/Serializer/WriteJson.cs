@@ -25,7 +25,7 @@ namespace System.Text.Json.Serialization.Tests
             _value = DataGenerator.Generate<T>();
 
             _memoryStream = new MemoryStream(capacity: short.MaxValue);
-            await JsonSerializer.WriteAsync(_value, _memoryStream);
+            await JsonSerializer.WriteAsync(_memoryStream, _value);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
@@ -41,7 +41,7 @@ namespace System.Text.Json.Serialization.Tests
         public async Task SerializeToStream()
         {
             _memoryStream.Position = 0;
-            await JsonSerializer.WriteAsync(_value, _memoryStream);
+            await JsonSerializer.WriteAsync(_memoryStream, _value);
         }
 
         [GlobalCleanup]
