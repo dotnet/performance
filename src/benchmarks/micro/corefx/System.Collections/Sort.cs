@@ -13,14 +13,13 @@ namespace System.Collections
     [BenchmarkCategory(Categories.CoreCLR, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type, Array sort in native code
     [GenericTypeArguments(typeof(IntStruct))] // custom value type, sort in managed code
-    [GenericTypeArguments(typeof(IntClass))] // custom reference type, sort in managed code, compare fast
+    [GenericTypeArguments(typeof(IntClass))] // custom reference type, sort in managed code
     [GenericTypeArguments(typeof(BigStruct))] // custom value type, sort in managed code
-    [GenericTypeArguments(typeof(string))] // reference type, compare slow
     [InvocationCount(InvocationsPerIteration)]
     public class Sort<T> where T : IComparable<T>
     {
-        static readonly ComparableComparerClass _comparableComparerClass = new ComparableComparerClass();
-        private const int InvocationsPerIteration = 1000;
+        private static readonly ComparableComparerClass _comparableComparerClass = new ComparableComparerClass();
+        private const int InvocationsPerIteration = 50000;
 
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
