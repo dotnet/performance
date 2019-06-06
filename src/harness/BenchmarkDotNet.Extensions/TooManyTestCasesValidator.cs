@@ -13,7 +13,7 @@ namespace BenchmarkDotNet.Extensions
     /// </summary>
     public class TooManyTestCasesValidator : IValidator
     {
-        private const int Limit = 100;
+        private const int Limit = 16;
         
         public static readonly IValidator FailOnError = new TooManyTestCasesValidator();
         

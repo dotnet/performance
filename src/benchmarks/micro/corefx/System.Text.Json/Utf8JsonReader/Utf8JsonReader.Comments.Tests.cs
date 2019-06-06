@@ -8,6 +8,7 @@ using MicroBenchmarks.Serializers;
 using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -34,18 +35,10 @@ namespace System.Text.Json.Tests
 
         private static Dictionary<TestCaseType, string> s_testCases = new Dictionary<TestCaseType, string>()
         {
-            { TestCaseType.SingleEmptyMultiLineComment, "{}/**/" },
-            { TestCaseType.MultipleEmptyMultiLineComment, "{}/**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**//**/" },
-            { TestCaseType.SingleShortMultiLineComment, "{}/*asdasd*/" },
-            { TestCaseType.MultipleShortMultiLineComment, "[1, /*asdasd*/ 2, /*asdasd*/ 3, /*asdasd*/ 4, /*asdasd*/ 5, /*asdasd*/ 6, /*asdasd*/ 7,/*asdasd*/ 8, /*asdasd*/ 9, /*asdasd*/ 10 /*asdasd*/]" },
-            { TestCaseType.SingleLongMultiLineComment1, "{}/*" + new string('c', 2000) + "*/" },
-            { TestCaseType.SingleLongMultiLineComment2, "{}/*" + new string('\n', 2000) + "*/" },
-
-            { TestCaseType.SingleEmptySingleLineComment, "{}//\n" },
-            { TestCaseType.MultipleEmptySingleLineComment, "{}//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n//\n" },
-            { TestCaseType.SingleShortSingleLineComment, "{}//asdasd\n" },
-            { TestCaseType.MultipleShortSingleLineComment, "[1, //asdasd\n2, //asdasd\n3, //asdasd\n4, //asdasd\n5, //asdasd\n6, //asdasd\n7, //asdasd\n8, //asdasd\n9, //asdasd\n10, //asdasd\n11, //asdasd\n12, //asdasd\n13 //asdasd\n]" },
-            { TestCaseType.SingleLongSingleLineComment, "{}//" + new string('c', 2000) + "\n" },
+            { TestCaseType.ShortMultiLine, "{}/*asdasd*/" },
+            { TestCaseType.LongMultiLine, "{}/*" + string.Join("", Enumerable.Repeat("some comment\n", 1000)) + "*/" },
+            { TestCaseType.ShortSingleLine, "{}//asdasd\n" },
+            { TestCaseType.LongSingleLine, "{}//" + new string('c', 2000) + "\n" },
         };
 
         [GlobalSetup]
@@ -140,17 +133,10 @@ namespace System.Text.Json.Tests
 
         public enum TestCaseType
         {
-            SingleEmptyMultiLineComment,
-            MultipleEmptyMultiLineComment,
-            SingleShortMultiLineComment,
-            MultipleShortMultiLineComment,
-            SingleLongMultiLineComment1,
-            SingleLongMultiLineComment2,
-            SingleEmptySingleLineComment,
-            MultipleEmptySingleLineComment,
-            SingleShortSingleLineComment,
-            MultipleShortSingleLineComment,
-            SingleLongSingleLineComment,
+            ShortMultiLine,
+            LongMultiLine,
+            ShortSingleLine,
+            LongSingleLine,
         }
     }
 }
