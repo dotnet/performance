@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Buffers;
+using System.Linq;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
@@ -14,6 +15,8 @@ namespace System.Text.Json.Tests
     {
         private ArrayBufferWriter<byte> _arrayBufferWriter;
         private byte[] _data;
+        private byte[] _dataWithNoEscaping;
+        private byte[] _dataWithEscaping;
 
         [Params(10, 100, 1000)]
         public int NumberOfBytes { get; set; }
@@ -29,6 +32,15 @@ namespace System.Text.Json.Tests
         {
             _arrayBufferWriter = new ArrayBufferWriter<byte>();
             _data = ValuesGenerator.Array<byte>(NumberOfBytes);
+
+            // Results in a number of A plus padding
+            _dataWithNoEscaping = new byte[NumberOfBytes];
+
+            // Results in a lot + and /
+            _dataWithEscaping = Enumerable.Repeat(0, NumberOfBytes)
+                .Select(i => i % 2 == 0 ? 0xFB : 0xFF)
+                .Select(i => (byte)i)
+                .ToArray();
         }
 
         [Benchmark]
@@ -38,6 +50,28 @@ namespace System.Text.Json.Tests
             using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
                 json.WriteBase64StringValue(_data);
+                json.Flush();
+            }
+        }
+
+        [Benchmark]
+        public void WriteByteArrayAsBase64_NoEscaping()
+        {
+            _arrayBufferWriter.Clear();
+            using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
+            {
+                json.WriteBase64StringValue(_dataWithNoEscaping);
+                json.Flush();
+            }
+        }
+
+        [Benchmark]
+        public void WriteByteArrayAsBase64_HeavyEscaping()
+        {
+            _arrayBufferWriter.Clear();
+            using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
+            {
+                json.WriteBase64StringValue(_dataWithEscaping);
                 json.Flush();
             }
         }
