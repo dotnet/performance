@@ -44,34 +44,20 @@ namespace System.Text.Json.Tests
         }
 
         [Benchmark]
-        public void WriteByteArrayAsBase64()
-        {
-            _arrayBufferWriter.Clear();
-            using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
-            {
-                json.WriteBase64StringValue(_data);
-                json.Flush();
-            }
-        }
+        public void WriteByteArrayAsBase64() => WriteByteArrayAsBase64Core(_data);
 
         [Benchmark]
-        public void WriteByteArrayAsBase64_NoEscaping()
-        {
-            _arrayBufferWriter.Clear();
-            using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
-            {
-                json.WriteBase64StringValue(_dataWithNoEscaping);
-                json.Flush();
-            }
-        }
+        public void WriteByteArrayAsBase64_NoEscaping() => WriteByteArrayAsBase64Core(_dataWithNoEscaping);
 
         [Benchmark]
-        public void WriteByteArrayAsBase64_HeavyEscaping()
+        public void WriteByteArrayAsBase64_HeavyEscaping() => WriteByteArrayAsBase64Core(_dataWithEscaping);
+
+        private void WriteByteArrayAsBase64Core(byte[] data)
         {
             _arrayBufferWriter.Clear();
             using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
-                json.WriteBase64StringValue(_dataWithEscaping);
+                json.WriteBase64StringValue(data);
                 json.Flush();
             }
         }
