@@ -28,7 +28,7 @@ namespace System.Text.Json.Tests
             _dataWithNoEscaping = new byte[NumberOfBytes];
 
             // Results in a lot + and /
-            _dataWithEscaping = Enumerable.Repeat(0, NumberOfBytes)
+            _dataWithEscaping = Enumerable.Range(0, NumberOfBytes)
                 .Select(i => i % 2 == 0 ? 0xFB : 0xFF)
                 .Select(i => (byte)i)
                 .ToArray();
