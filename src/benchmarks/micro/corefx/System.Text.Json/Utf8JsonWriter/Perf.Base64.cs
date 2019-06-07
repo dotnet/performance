@@ -7,7 +7,7 @@ using System.Linq;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-namespace System.Text.Json.Writer.Tests
+namespace System.Text.Json.Tests
 {
     [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
     public class Perf_Base64
