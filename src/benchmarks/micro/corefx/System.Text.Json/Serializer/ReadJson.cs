@@ -14,6 +14,7 @@ namespace System.Text.Json.Serialization.Tests
     [GenericTypeArguments(typeof(Location))]
     [GenericTypeArguments(typeof(IndexViewModel))]
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
+    [GenericTypeArguments(typeof(BinaryData))]
     public class ReadJson<T>
     {
         private string _serialized;
