@@ -6,7 +6,7 @@ using System.Buffers;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-namespace System.Text.Json.Tests
+namespace System.Text.Json.Writer.Tests
 {
     [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
     public class Perf_Ctor
