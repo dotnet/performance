@@ -26,7 +26,7 @@ namespace System.Text.Json.Reader.Tests
             var dataWithNoEscaping = new byte[NumberOfBytes];
 
             // Results in a lot + and /
-            var dataWithEscaping = Enumerable.Range(0, NumberOfBytes)
+            byte[] dataWithEscaping = Enumerable.Range(0, NumberOfBytes)
                 .Select(i => i % 2 == 0 ? 0xFB : 0xFF)
                 .Select(i => (byte)i)
                 .ToArray();
@@ -55,7 +55,7 @@ namespace System.Text.Json.Reader.Tests
 
         private byte[] ReadBase64EncodedByteArrayCore(ReadOnlySpan<byte> base64)
         {
-            var json = new Utf8JsonReader(base64, true, default);
+            var json = new Utf8JsonReader(base64, isFinalBlock: true, state: default);
             json.Read();
             return json.GetBytesFromBase64();
         }
