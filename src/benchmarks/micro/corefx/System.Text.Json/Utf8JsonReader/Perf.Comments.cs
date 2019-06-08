@@ -11,16 +11,14 @@ using System.Linq;
 namespace System.Text.Json.Tests
 {
     [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
-    public partial class Utf8JsonReaderCommentsTests
+    public partial class Utf8JsonReader_Comments
     {
         [Params(JsonCommentHandling.Skip, JsonCommentHandling.Allow)]
         public JsonCommentHandling CommentHandling;
 
-        // 0 => single segment
-        [Params(0, 100)]
-        public int SegmentSize;
+        [Params(true, false)]
+        public bool SingleSegment;
 
-        private bool MultiSegment => SegmentSize != 0;
         private byte[] _jsonPayload;
         private ReadOnlySequence<byte> _jsonPayloadSequence;
 
@@ -41,18 +39,14 @@ namespace System.Text.Json.Tests
         public void Setup()
         {
             _jsonPayload = Encoding.UTF8.GetBytes(s_testCases[TestCase]);
-
-            if (MultiSegment)
-            {
-                _jsonPayloadSequence = GetSequence(_jsonPayload, SegmentSize);
-            }
+            _jsonPayloadSequence = GetSequence(_jsonPayload, 100);
         }
 
         [Benchmark]
-        public void Utf8JsonReaderCommentParsing()
+        public void EmptyLoop()
         {
             var state = new JsonReaderState(options: new JsonReaderOptions { CommentHandling = CommentHandling });
-            Utf8JsonReader reader = MultiSegment ?
+            Utf8JsonReader reader = !SingleSegment ?
                 new Utf8JsonReader(_jsonPayloadSequence, isFinalBlock: true, state) :
                 new Utf8JsonReader(_jsonPayload, isFinalBlock: true, state);
 
