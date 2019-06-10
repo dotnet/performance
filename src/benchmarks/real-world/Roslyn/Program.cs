@@ -18,7 +18,7 @@ namespace CompilerBenchmarks
     {
         private static IConfig CustomConfig(DirectoryInfo artifactsPath, ImmutableHashSet<string> mandatoryCategories, int? partitionCount = null, int? partitionIndex = null)
             => DefaultConfig.Instance
-                .With(Job.Default) // tell BDN that this are our default settings
+                .With(Job.Default.AsDefault()) // tell BDN that this are our default settings
                 .WithArtifactsPath(artifactsPath.FullName)
                 .With(MemoryDiagnoser.Default) // MemoryDiagnoser is enabled by default
                 .With(new OperatingSystemFilter())
