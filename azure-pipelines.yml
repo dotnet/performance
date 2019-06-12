@@ -2,8 +2,8 @@ resources:
   containers:
     - container: ubuntu_x64_build_container
       image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-c103199-20180628134544
-    # - container: ubuntu_1604_arm64_cross_container
-    #   image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-cross-arm64-a3ae44b-20180315221921
+    - container: ubuntu_1604_arm64_cross_container
+      image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-cross-arm64-a3ae44b-20180315221921
 
 # CI Trigger on master branch
 trigger:
@@ -153,21 +153,22 @@ jobs:
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
         
-# # Ubuntu 1604 ARM64 micro benchmarks, public correctness job
-# - ${{ if eq(variables['System.TeamProject'], 'public') }}:
-#   - template: /eng/performance/benchmark_jobs.yml
-#     parameters:
-#       osName: ubuntu
-#       osVersion: 1604
-#       kind: micro
-#       architecture: arm64
-#       pool: Hosted Ubuntu 1604
-#       queue: Ubuntu.1604.Arm64.Open
-#       container: ubuntu_1604_arm64_cross_container
-#       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-#       runCategories: 'coreclr corefx'
-#       frameworks: # currently ARM64 is supported only by .NET Core 3.0 https://github.com/dotnet/core/blob/master/release-notes/3.0/3.0-supported-os.md
-#         - netcoreapp3.0
+# Ubuntu 1804 ARM64 micro benchmarks, private correctness job
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: micro
+      architecture: arm64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1804.Arm64.Perf
+      container: ubuntu_1604_arm64_cross_container
+      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
+      runCategories: 'coreclr corefx'
+      benchviewCategory: 'coreclr'
+      frameworks: # currently ARM64 is supported only by .NET Core 3.0 https://github.com/dotnet/core/blob/master/release-notes/3.0/3.0-supported-os.md
+        - netcoreapp3.0
 
 # Windows x64 ML.NET benchmarks, public correctness job
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
