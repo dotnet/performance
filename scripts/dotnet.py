@@ -147,6 +147,7 @@ class CompilationAction(Action):
     def modes() -> list:
         '''Available .NET Performance modes.'''
         return [
+            CompilationAction.DEFAULT,
             CompilationAction.TIERED,
             CompilationAction.NO_TIERING,
             CompilationAction.FULLY_JITTED_NO_TIERING,
@@ -154,15 +155,18 @@ class CompilationAction(Action):
         ]
 
     @staticmethod
-    def tiered() -> str:
+    def noenv() -> str:
         '''Default .NET performance mode.'''
-        return CompilationAction.modes()[0]  # Tiered
+        return CompilationAction.modes()[0]  # No environment set
 
     @staticmethod
     def help_text() -> str:
         '''Gets the help string describing the different compilation modes.'''
         return '''Different compilation modes that can be set to change the
-        .NET compilation behavior. The different modes are: {}: (Default);
+        .NET compilation behavior. The default configurations have changed between
+        releases of .NET. These flags enable ensuring consistency when running 
+        more than one runtime. The different modes are: {}: no 
+        environment variables are set; {}: tiering is enabled.
         {}: tiering is disabled, but includes R2R code, and it is useful for
         comparison against Tiered; {}: This is JIT-only, useful for comparison
         against Tiered and NoTier for changes to R2R code or tiering; {}: uses
@@ -170,6 +174,7 @@ class CompilationAction(Action):
         for startup time comparisons in scenario benchmarks that include a
         startup time measurement (probably not for microbenchmarks), probably
         not useful for a PR.'''.format(
+            CompilationAction.DEFAULT,
             CompilationAction.TIERED,
             CompilationAction.NO_TIERING,
             CompilationAction.FULLY_JITTED_NO_TIERING,
@@ -588,7 +593,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         required=False,
         action=CompilationAction,
         choices=CompilationAction.modes(),
-        default=CompilationAction.tiered(),
+        default=CompilationAction.noenv(),
         type=CompilationAction.validate,
         help='{}'.format(CompilationAction.help_text())
     )

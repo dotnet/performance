@@ -98,8 +98,7 @@ jobs:
             ${{ each framework in parameters.frameworks }}:
               ${{ framework }}:
                 _Framework: ${{ framework }}
-                _CompilationMode: NoTiering
-                _Configs: CompilationMode=$(_CompilationMode)
+                _Configs: CompilationMode=Tiered
                 _BuildConfig: ${{ parameters.architecture }}_$(_Framework)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
                 ${{ if startsWith(framework, 'netcoreapp') }}:
                   _BenchViewArguments: $(BenchViewArguments)
