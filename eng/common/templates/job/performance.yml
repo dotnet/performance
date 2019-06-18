@@ -31,7 +31,7 @@ jobs:
         - ${{ if ne(parameters.coreroot, '')}}:
           - name: UseCoreRun
             value: true
-        - ${{ if or(eq(parameters.runFromPerfRepo, 'false') }}:
+        - ${{ if eq(parameters.runFromPerfRepo, 'false') }}:
           - name: PayloadDirectory
             value: $(Build.SourcesDirectory)/Payload
           - name: PerformanceDirectory
