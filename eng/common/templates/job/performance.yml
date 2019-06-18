@@ -31,13 +31,18 @@ jobs:
         - ${{ if ne(parameters.coreroot, '')}}:
           - name: UseCoreRun
             value: true
-        - ${{ if eq(parameters.runFromPerfRepo, 'false') }}:
+        - ${{ if or(eq(parameters.runFromPerfRepo, 'false') }}:
           - name: PayloadDirectory
             value: $(Build.SourcesDirectory)/Payload
           - name: PerformanceDirectory
             value: $(PayloadDirectory)/performance
           - name: SetupArguments
             value: --repository https://github.com/$(Build.Repository.Name) --branch $(Build.SourceBranch) --frameworks $(_Framework) --get-perf-hash --commit-sha $(Build.SourceVersion) --queue $(HelixTargetQueue) --build-number $(Build.BuildNumber) --build-configs $(_Configs)
+        - ${{ if and(ne(parameters.runFromPerfRepo, 'false'), eq(parameters.osName, 'windows')) }}:
+          - name: PayloadDirectory
+            value: $(Build.SourcesDirectory)/Payload
+          - name: PerformanceDirectory
+            value: $(PayloadDirectory)/performance
         - ${{ if and(ne(parameters.runFromPerfRepo, 'false'), ne(parameters.osName, 'windows')) }}:
           - name: PayloadDirectory
             value: $(Build.SourcesDirectory)
