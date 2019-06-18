@@ -41,7 +41,7 @@ jobs:
 
 # Windows x64 micro benchmarks, public correctness job
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
-  - template: /eng/common/templates/performance.yml
+  - template: /eng/common/templates/job/performance.yml
     parameters:
       osName: windows
       osVersion: RS4
