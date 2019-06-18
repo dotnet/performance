@@ -11,7 +11,7 @@ parameters:
   runFromPerfRepo: false     # optional -- set this to true if running inside the performance repo
 
 jobs:
-- template: ../common/templates/jobs/jobs.yml
+- template: ../jobs/jobs.yml
   parameters:
     enableTelemetry: false
     enablePublishBuildArtifacts: true
