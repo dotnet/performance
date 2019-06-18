@@ -6,7 +6,9 @@ from logging import getLogger
 import os
 import sys
 
+from performance.common import get_repo_root_path
 from performance.common import get_tools_directory
+from performance.common import RunCommand
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
 
@@ -100,7 +102,16 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default='testSha',
         required=False,
         type=str,
-        help='Test queue'
+        help='Sha of the performance repo'
+    )
+
+    parser.add_argument(
+        '--get-perf-hash',
+        dest="get_perf_hash",
+        required=False,
+        action='store_true',
+        default=False,
+        help='Discover the hash of the performance repository'
     )
 
     parser.add_argument(
@@ -169,10 +180,15 @@ def __main(args: list) -> int:
     dotnet.info(verbose=verbose)
 
     variable_format = 'set %s=%s\n' if sys.platform == 'win32' else 'export %s=%s\n'
-    owner, repo = 'dotnet', 'core-sdk' if args.repository is None else dotnet.get_repository(args.repository)
-    config_string = '"%s"' % ';'.join(args.build_configs)
+    owner, repo = ('dotnet', 'core-sdk') if args.repository is None else (dotnet.get_repository(args.repository))
+    print(repo)
+    config_string = '%s' % ';'.join(args.build_configs)
 
     is_netcoreapp_30 = False
+
+    cmdline = ['git', 'rev-parse', 'HEAD']
+
+    perfHash = RunCommand(cmdline, verbose=True).run(get_repo_root_path()) if args.get_perf_hash else args.perf_hash
 
     for framework in target_framework_monikers:
         if framework.startswith('netcoreapp'):

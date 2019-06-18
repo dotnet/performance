@@ -65,14 +65,14 @@ class VersionsAction(Action):
 
 class CompilationAction(Action):
     '''
-    Tiered: (Default)
+    Tiered: 
 
     NoTiering: Tiering is disabled, but R2R code is not disabled.
         This includes R2R code, useful for comparison against Tiered and
         FullyJittedNoTiering for changes to R2R code or tiering.
 
     Default: Don't set any environment variables. Use what the compiler views
-        as the default.
+        as the default. (Default)
 
     FullyJittedNoTiering: Tiering and R2R are disabled.
         This is JIT-only, useful for comparison against Tiered and NoTiering
@@ -90,9 +90,9 @@ class CompilationAction(Action):
     # TODO: Would 'Default' make sense for .NET Framework / CoreRT / Mono?
     # TODO: Should only be required for benchmark execution under certain tools
 
+    DEFAULT='Default'
     TIERED = 'Tiered'
     NO_TIERING = 'NoTiering'
-    DEFAULT='Default'
     FULLY_JITTED_NO_TIERING = 'FullyJittedNoTiering'
     MIN_OPT = 'MinOpt'
 

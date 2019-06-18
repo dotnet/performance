@@ -1,0 +1,135 @@
+parameters:
+  steps: []                  # optional -- any additional steps that need to happen before pulling down the performance repo and sending the performance benchmarks to helix (ie building your repo)
+  osName: 'windows'          # required -- windows | ubuntu
+  kind: ''                   # required -- benchmark kind. As of today, only "micro" and "mlnet" benchmarks are supported, we plan to add "scenarios" soon
+  architecture: ''           # required -- Architecture. Allowed values: x64, x86, arm, arm64
+  pool: ''                   # required -- name of the Helix pool
+  csproj: 'src\benchmarks\micro\MicroBenchmarks.csproj'                 # required -- relative path to csproj with benchmarks from the performance repo root
+  runCategories: ''          # required -- string of space separated categories supplied to benchmark dotnet
+  coreroot: ''               # optional -- path to core_root directory
+  compilationMode: 'Default' # optional -- compilation mode
+  runFromPerfRepo: false     # optional -- set this to true if running inside the performance repo
+
+jobs:
+- template: ../common/templates/jobs/jobs.yml
+  parameters:
+    enableTelemetry: false
+    enablePublishBuildArtifacts: true
+    helixRepo: dotnet/performance
+    jobs:
+      - job: '${{ parameters.osName }}_${{ parameters.architecture }}_${{ parameters.kind }}'
+        displayName: '${{ parameters.osName }} ${{ parameters.architecture }} ${{ parameters.kind }}'
+        timeoutInMinutes: 320
+        variables:
+        - name: _Framework
+          value: netcoreapp3.0
+        # PGO vs No-PGO, etc?
+        - name: _Configs
+          value: CompilationMode=${{parameters.compilationMode}}
+        - name: _BuildConfig
+          value: ${{ parameters.architecture }}_$(_Framework)_${{parameters.compilationMode}}_${{ parameters.kind }}
+        - ${{ if neq(parameters.coreroot, '')}}:
+          - name: UseCoreRun
+            value: true
+        - ${{ if eq(parameters.runFromPerfRepo, 'false') }}:
+          - name: PayloadDirectory
+            value: $(Build.SourcesDirectory)/Payload
+          - name: PerformanceDirectory
+            value: $(PayloadDirectory)/performance
+        - ${{ if and(ne(parameters.runFromPerfRepo, 'false'), ne(parameters.osName, 'windows')) }}:
+          - name: PayloadDirectory
+            value: $(Build.SourcesDirectory)
+          - name: PerformanceDirectory
+            value: $(PayloadDirectory)
+        - ${{ if eq(parameters.osName, 'windows') }}:
+          - name: Python
+            value: 'py -3'
+        - ${{ if ne(parameters.osName, 'windows') }}:
+          - name: Python
+            value: 'python3'
+        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
+          # for public runs, we do not want to upload perflab data
+          - name: PerfLabArguments
+            value: ''
+          - name: Creator
+            value: $(Build.DefinitionName)
+          # for public runs we want to run the benchmarks exactly once, no warmup, no pilot, no overhead
+          - name: BenchmarkDotNetArguments
+            value: '--anyCategories ${{ parameters.runCategories }} --iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart --stopOnFirstError true'
+          - name: HelixApiAccessToken
+            value: ''
+          - name: HelixPreCommand
+            value: ''
+          - name: HelixSourcePrefix
+            value: "pr"
+          - ${{ if eq(parameters.osName, 'windows') }}:
+            - name: HelixTargetQueue
+              value: Windows.10.Amd64.ClientRS4.Open
+          - ${{ if ne(parameters.osName, 'windows') }}:
+            - name: HelixTargetQueue
+              value: Ubuntu.1604.Amd64.Open
+        - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+          # for private runs, we want to upload perflab data
+          - name: PerfLabArguments
+            value: '--upload-to-perflab-container'
+          # for private runs we don't provide any custom BDN arguments (the ones from Program.Main are used)
+          - name: BenchmarkDotNetArguments
+            value: '--anyCategories ${{ parameters.runCategories }}'
+          - name: Creator
+            value: ''
+          - ${{ if eq(parameters.osName, 'windows') }}:
+            - name: HelixPreCommand
+              value: 'set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)"'
+            - name: HelixTargetQueue
+              value: Windows.10.Amd64.ClientRS1.Perf
+          - ${{ if ne(parameters.osName, 'windows') }}:
+            - name: HelixPreCommand
+              value: 'export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)"'
+            - name: HelixTargetQueue
+              value: Ubuntu.1604.Amd64.Perf
+          - name: HelixSourcePrefix
+            value: 'official'
+          - group: DotNet-HelixApi-Access
+          - group: dotnet-benchview
+        workspace:
+          clean: all
+        pool:
+          name: ${{ parameters.pool }}
+        container: ${{ parameters.container }}
+        steps:
+        - checkout: self
+          clean: true
+        # Run all of the steps to setup repo
+        - ${{ each step in parameters.steps }}:
+          - ${{ step }}
+        # Download performance repo if we are not running in the perf repo
+        - ${{ if eq(parameters.runFromPerfRepo, 'false') }}:
+          - script: git clone https://github.com/dotnet/performance $(PayloadDirectory)/performance
+          # Moves could be moved to helix proj?
+          - ${{ if and(eq(parameters.osName, 'windows'), ne(coreroot, '') }}:
+            - script: move ${{parameters.coreroot}} $(PayloadDirectory)\Core_Root
+              displayName: Move Core Root to payload directory
+          - ${{ if and(ne(parameters.osName, 'windows'), ne(coreroot, '') }}:
+            - script: mv ${{parameters.coreroot}} $(PayloadDirectory)/Core_Root
+              displayName: Move Core Root to payload directory
+        - ${{ if and(eq(parameters.runFromPerfRepo, 'true'), eq(parameters.osName, 'windows')) }}:
+          - script: (robocopy $(Build.SourcesDirectory) $(PayloadDirectory)\performance /E /XD $(PayloadDirectory) $(Build.SourcesDirectory)\artifacts $(Build.SourcesDirectory)\.git) ^& IF %ERRORLEVEL% LEQ 1 exit 0
+            displayName: Copy files to payload directory
+        - script: $(Python) $(PerformanceDirectory)/scripts/ci_setup.py --repository https://github.com/$(Build.Repository.Name) --branch $(Build.SourceBranch) --frameworks $(_Framework) --get-perf-hash --commit-sha $(Build.SourceVersion) --queue $(HelixTargetQueue) --build-number $(Build.BuildNumber) --build-configs $(_Configs)
+        # Run perf testing in helix
+        - template: /eng/common/templates/steps/perf-send-to-helix.yml
+          parameters:
+            HelixSource: '$(HelixSourcePrefix)/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
+            HelixType: 'test/performance_$(_BuildConfig)/'
+            HelixAccessToken: $(HelixApiAccessToken)
+            HelixTargetQueues: ${{ parameters.queue }}
+            HelixPreCommands: $(HelixPreCommand)
+            Creator: $(Creator)
+            Architecture: ${{ parameters.architecture }}
+            TargetCsproj: ${{ parameters.csproj }}
+            WorkItemTimeout: 4:00 # 4 hours
+            ${{ if or(eq(parameters.osName, 'windows'), eq(parameters.runFromPerfRepo, 'false')) }}:
+              WorkItemDirectory: '$(Build.SourcesDirectory)\docs' # WorkItemDirectory can not be empty, so we send it some docs to keep it happy
+              CorrelationPayloadDirectory: '$(PayloadDirectory)' # it gets checked out to a folder with shorter path than WorkItemDirectory so we can avoid file name too long exceptions
+            ${{ if and(ne(parameters.osName, 'windows'), ne(parameters.runFromPerfRepo, 'false')) }}:
+              WorkItemDirectory: '$(PayloadDirectory)'
