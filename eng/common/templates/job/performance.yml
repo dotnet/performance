@@ -106,10 +106,10 @@ jobs:
         - ${{ if eq(parameters.runFromPerfRepo, 'false') }}:
           - script: git clone https://github.com/dotnet/performance $(PayloadDirectory)/performance
           # Moves could be moved to helix proj?
-          - ${{ if and(eq(parameters.osName, 'windows'), ne(coreroot, '') }}:
+          - ${{ if and(eq(parameters.osName, 'windows'), ne(coreroot, '')) }}:
             - script: move ${{parameters.coreroot}} $(PayloadDirectory)\Core_Root
               displayName: Move Core Root to payload directory
-          - ${{ if and(ne(parameters.osName, 'windows'), ne(coreroot, '') }}:
+          - ${{ if and(ne(parameters.osName, 'windows'), ne(coreroot, '')) }}:
             - script: mv ${{parameters.coreroot}} $(PayloadDirectory)/Core_Root
               displayName: Move Core Root to payload directory
         - ${{ if and(eq(parameters.runFromPerfRepo, 'true'), eq(parameters.osName, 'windows')) }}:
