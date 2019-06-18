@@ -28,7 +28,7 @@ jobs:
           value: CompilationMode=${{parameters.compilationMode}}
         - name: _BuildConfig
           value: ${{ parameters.architecture }}_$(_Framework)_${{parameters.compilationMode}}_${{ parameters.kind }}
-        - ${{ if neq(parameters.coreroot, '')}}:
+        - ${{ if ne(parameters.coreroot, '')}}:
           - name: UseCoreRun
             value: true
         - ${{ if eq(parameters.runFromPerfRepo, 'false') }}:
