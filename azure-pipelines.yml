@@ -51,6 +51,7 @@ jobs:
       queue: Windows.10.Amd64.ClientRS4.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'coreclr corefx' 
+      runFromPerfRepo: true
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - netcoreapp3.0
         - netcoreapp2.2
