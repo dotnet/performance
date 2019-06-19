@@ -39,20 +39,18 @@ pr:
 
 jobs:
 
-# Windows x64 micro benchmarks, public correctness job
-- ${{ if eq(variables['System.TeamProject'], 'public') }}:
-  - template: /eng/common/templates/job/performance.yml
-    parameters:
-      osName: windows
-      osVersion: RS4
-      kind: micro
-      architecture: x64
-      pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS4.Open
-      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx' 
-      runFromPerfRepo: true
-      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - netcoreapp3.0
-        - netcoreapp2.2
-        - netcoreapp2.1
+# Ubuntu 1604 x64 micro benchmarks, public correctness job	
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:	
+  - template: /eng/performance/benchmark_jobs.yml	
+    parameters:	
+      osName: ubuntu	
+      osVersion: 1604	
+      kind: micro	
+      architecture: x64	
+      pool: Hosted Ubuntu 1604	
+      queue: Ubuntu.1604.Amd64.Open	
+      container: ubuntu_x64_build_container	
+      csproj: src/benchmarks/micro/MicroBenchmarks.csproj	
+      runCategories: 'coreclr corefx'	
+      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks	
+        - netcoreapp3.0	
