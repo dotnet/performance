@@ -121,17 +121,25 @@ jobs:
         # Download performance repo if we are not running in the perf repo
         - ${{ if eq(parameters.runFromPerfRepo, 'false') }}:
           - script: git clone https://github.com/dotnet/performance $(PerformanceDirectory)
+            displayName: Checkout performance repo
           # Moves could be moved to helix proj?
           - ${{ if and(eq(parameters.osName, 'windows'), ne(parameters.coreroot, '')) }}:
             - script: move ${{parameters.coreroot}} $(PayloadDirectory)\Core_Root
               displayName: Move Core Root to payload directory
+            - script: mkdir $(Build.SourcesDirectory)\workitem
+              displayName: Create empty directory for WorkItem
           - ${{ if and(ne(parameters.osName, 'windows'), ne(parameters.coreroot, '')) }}:
             - script: mv ${{parameters.coreroot}} $(PayloadDirectory)/Core_Root
               displayName: Move Core Root to payload directory
+            - script: mkdir $(Build.SourcesDirectory)/workitem
+              displayName: Create empty directory for WorkItem
         - ${{ if and(eq(parameters.runFromPerfRepo, 'true'), eq(parameters.osName, 'windows')) }}:
           - script: (robocopy $(Build.SourcesDirectory) $(PerformanceDirectory) /E /XD $(PayloadDirectory) $(Build.SourcesDirectory)\artifacts $(Build.SourcesDirectory)\.git) ^& IF %ERRORLEVEL% LEQ 1 exit 0
             displayName: Copy files to payload directory
+          - script: mkdir $(Build.SourcesDirectory)\workitem
+            displayName: Create empty directory for WorkItem
         - script: $(Python) $(PerformanceDirectory)/scripts/ci_setup.py $(SetupArguments)
+          displayName: Run setup script
         # Run perf testing in helix
         - template: /eng/common/templates/steps/perf-send-to-helix.yml
           parameters:
@@ -145,7 +153,7 @@ jobs:
             TargetCsproj: ${{ parameters.csproj }}
             WorkItemTimeout: 4:00 # 4 hours
             ${{ if or(eq(parameters.osName, 'windows'), eq(parameters.runFromPerfRepo, 'false')) }}:
-              WorkItemDirectory: '$(Build.SourcesDirectory)\docs' # WorkItemDirectory can not be empty, so we send it some docs to keep it happy
+              WorkItemDirectory: '$(Build.SourcesDirectory)\workitem' # WorkItemDirectory can not be empty, so we send it some docs to keep it happy
               CorrelationPayloadDirectory: '$(PayloadDirectory)' # it gets checked out to a folder with shorter path than WorkItemDirectory so we can avoid file name too long exceptions
             ${{ if and(ne(parameters.osName, 'windows'), ne(parameters.runFromPerfRepo, 'false')) }}:
               WorkItemDirectory: '$(PayloadDirectory)'
