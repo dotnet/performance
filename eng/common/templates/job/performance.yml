@@ -60,7 +60,7 @@ jobs:
             value: --repository https://github.com/$(Build.Repository.Name) --branch $(Build.SourceBranch) --frameworks $(_Framework) --get-perf-hash --commit-sha $(Build.SourceVersion) --queue $(HelixTargetQueue) --build-number $(Build.BuildNumber) --build-configs $(_Configs)
         - ${{ if ne(parameters.runFromPerfRepo, 'false') }}:
           - name: RunFromPerfRepo
-              value: true
+            value: true
           - name: SetupArguments
             value: --frameworks $(_Framework) --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs)
         - ${{ if eq(parameters.osName, 'windows') }}:
