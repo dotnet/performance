@@ -126,17 +126,17 @@ jobs:
           - ${{ if and(eq(parameters.osName, 'windows'), ne(parameters.coreroot, '')) }}:
             - script: move ${{parameters.coreroot}} $(PayloadDirectory)\Core_Root
               displayName: Move Core Root to payload directory
-            - script: mkdir $(Build.SourcesDirectory)\workitem
+            - script: move $(PerformanceDirectory)\docs $(Build.Sources.Directory)\workitem
               displayName: Create empty directory for WorkItem
           - ${{ if and(ne(parameters.osName, 'windows'), ne(parameters.coreroot, '')) }}:
             - script: mv ${{parameters.coreroot}} $(PayloadDirectory)/Core_Root
               displayName: Move Core Root to payload directory
-            - script: mkdir $(Build.SourcesDirectory)/workitem
+            - script: mv $(PerformanceDirectory)/docs $(Build.Sources.Directory)/workitem
               displayName: Create empty directory for WorkItem
         - ${{ if and(eq(parameters.runFromPerfRepo, 'true'), eq(parameters.osName, 'windows')) }}:
           - script: (robocopy $(Build.SourcesDirectory) $(PerformanceDirectory) /E /XD $(PayloadDirectory) $(Build.SourcesDirectory)\artifacts $(Build.SourcesDirectory)\.git) ^& IF %ERRORLEVEL% LEQ 1 exit 0
             displayName: Copy files to payload directory
-          - script: mkdir $(Build.SourcesDirectory)\workitem
+          - script: move $(PerformanceDirectory)\docs $(Build.Sources.Directory)\workitem
             displayName: Create empty directory for WorkItem
         - script: $(Python) $(PerformanceDirectory)/scripts/ci_setup.py $(SetupArguments)
           displayName: Run setup script
