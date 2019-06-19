@@ -31,30 +31,36 @@ jobs:
         - ${{ if ne(parameters.coreroot, '')}}:
           - name: UseCoreRun
             value: true
-        - ${{ if and(eq(parameters.runFromPerfRepo, 'false'), eq(parameters.osName, 'windows')) }}:
+        # Windows
+        - ${{ if eq(parameters.osName, 'windows') }}:
           - name: PayloadDirectory
             value: $(Build.SourcesDirectory)\Payload
           - name: PerformanceDirectory
             value: $(PayloadDirectory)\performance
-        - ${{ if and(eq(parameters.runFromPerfRepo, 'false'), ne(parameters.osName, 'windows')) }}:
-          - name: PayloadDirectory
-            value: $(Build.SourcesDirectory)/Payload
-          - name: PerformanceDirectory
-            value: $(PayloadDirectory)/performance
-        - ${{ if and(ne(parameters.runFromPerfRepo, 'false'), eq(parameters.osName, 'windows')) }}:
-          - name: PayloadDirectory
-            value: $(Build.SourcesDirectory)\Payload
-          - name: PerformanceDirectory
-            value: $(PayloadDirectory)\performance
-        - ${{ if and(ne(parameters.runFromPerfRepo, 'false'), ne(parameters.osName, 'windows')) }}:
-          - name: PayloadDirectory
-            value: $(Build.SourcesDirectory)
-          - name: PerformanceDirectory
-            value: $(PayloadDirectory)
+          - name: WorkItemDirectory
+            value: $(Build.SourcesDirectory)\workitem
+        # Non-Windows - not performance repo
+        - ${{ if ne(parameters.osName, 'windows') }}:
+          - name: WorkItemDirectory
+              value: $(Build.SourcesDirectory)/workitem
+          - ${{ if eq(parameters.runFromPerfRepo, 'false') }}:
+            - name: PayloadDirectory
+              value: $(Build.SourcesDirectory)/Payload
+            - name: PerformanceDirectory
+              value: $(PayloadDirectory)/performance
+          - ${{ if ne(parameters.runFromPerfRepo, 'false') }}:
+            - name: PayloadDirectory
+              value: $(Build.SourcesDirectory)
+            - name: PerformanceDirectory
+              value: $(PayloadDirectory)
         - ${{ if eq(parameters.runFromPerfRepo, 'false') }}:
+          - name: RunFromPerfRepo
+            value: false
           - name: SetupArguments
             value: --repository https://github.com/$(Build.Repository.Name) --branch $(Build.SourceBranch) --frameworks $(_Framework) --get-perf-hash --commit-sha $(Build.SourceVersion) --queue $(HelixTargetQueue) --build-number $(Build.BuildNumber) --build-configs $(_Configs)
         - ${{ if ne(parameters.runFromPerfRepo, 'false') }}:
+          - name: RunFromPerfRepo
+              value: true
           - name: SetupArguments
             value: --frameworks $(_Framework) --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs)
         - ${{ if eq(parameters.osName, 'windows') }}:
@@ -126,12 +132,12 @@ jobs:
           - ${{ if and(eq(parameters.osName, 'windows'), ne(parameters.coreroot, '')) }}:
             - script: move ${{parameters.coreroot}} $(PayloadDirectory)\Core_Root
               displayName: Move Core Root to payload directory
-            - script: move $(PerformanceDirectory)\docs $(Build.SourcesDirectory)\workitem
+            - script: move $(PerformanceDirectory)\docs $(WorkItemDirectory)
               displayName: Create empty directory for WorkItem
           - ${{ if and(ne(parameters.osName, 'windows'), ne(parameters.coreroot, '')) }}:
             - script: mv ${{parameters.coreroot}} $(PayloadDirectory)/Core_Root
               displayName: Move Core Root to payload directory
-            - script: mv $(PerformanceDirectory)/docs $(Build.SourcesDirectory)/workitem
+            - script: mv $(PerformanceDirectory)/docs $(WorkItemDirectory)
               displayName: Create empty directory for WorkItem
         - ${{ if and(eq(parameters.runFromPerfRepo, 'true'), eq(parameters.osName, 'windows')) }}:
           - script: (robocopy $(Build.SourcesDirectory) $(PerformanceDirectory) /E /XD $(PayloadDirectory) $(Build.SourcesDirectory)\artifacts $(Build.SourcesDirectory)\.git) ^& IF %ERRORLEVEL% LEQ 1 exit 0
@@ -153,7 +159,7 @@ jobs:
             TargetCsproj: ${{ parameters.csproj }}
             WorkItemTimeout: 4:00 # 4 hours
             ${{ if or(eq(parameters.osName, 'windows'), eq(parameters.runFromPerfRepo, 'false')) }}:
-              WorkItemDirectory: '$(Build.SourcesDirectory)\workitem' # WorkItemDirectory can not be empty, so we send it some docs to keep it happy
+              WorkItemDirectory: '$(WorkItemDirectory)' # WorkItemDirectory can not be empty, so we send it some docs to keep it happy
               CorrelationPayloadDirectory: '$(PayloadDirectory)' # it gets checked out to a folder with shorter path than WorkItemDirectory so we can avoid file name too long exceptions
             ${{ if and(ne(parameters.osName, 'windows'), ne(parameters.runFromPerfRepo, 'false')) }}:
               WorkItemDirectory: '$(PayloadDirectory)'
