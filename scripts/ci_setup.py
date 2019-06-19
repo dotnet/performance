@@ -181,7 +181,6 @@ def __main(args: list) -> int:
 
     variable_format = 'set %s=%s\n' if sys.platform == 'win32' else 'export %s=%s\n'
     owner, repo = ('dotnet', 'core-sdk') if args.repository is None else (dotnet.get_repository(args.repository))
-    print(repo)
     config_string = '%s' % ';'.join(args.build_configs)
 
     is_netcoreapp_30 = False
@@ -200,6 +199,8 @@ def __main(args: list) -> int:
             source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, args.repository)
 
             branch = micro_benchmarks.FrameworkAction.get_branch(target_framework_moniker) if not args.branch else args.branch
+
+            getLogger().info("Writing script to %s" % args.output_file)
 
             with open(args.output_file, 'w') as out_file:
                 out_file.write(variable_format % ('PERFLAB_INLAB', '1'))
