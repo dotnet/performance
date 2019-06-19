@@ -42,7 +42,7 @@ jobs:
         # Non-Windows - not performance repo
         - ${{ if ne(parameters.osName, 'windows') }}:
           - name: WorkItemDirectory
-              value: $(Build.SourcesDirectory)/workitem
+            value: $(Build.SourcesDirectory)/workitem
           - ${{ if eq(parameters.runFromPerfRepo, 'false') }}:
             - name: PayloadDirectory
               value: $(Build.SourcesDirectory)/Payload
