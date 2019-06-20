@@ -6,9 +6,11 @@ from logging import getLogger
 import os
 import sys
 
+from subprocess import check_output
+
 from performance.common import get_repo_root_path
 from performance.common import get_tools_directory
-from performance.common import RunCommand
+from performance.common import push_dir
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
 
@@ -185,9 +187,19 @@ def __main(args: list) -> int:
 
     is_netcoreapp_30 = False
 
-    cmdline = ['git', 'rev-parse', 'HEAD']
+    output = ''
 
-    perfHash = RunCommand(cmdline, verbose=True).run(get_repo_root_path()) if args.get_perf_hash else args.perf_hash
+    with push_dir(get_repo_root_path()):
+        output = check_output(['git', 'rev-parse', 'HEAD'])
+
+    decoded_lines = []
+
+    for line in output.splitlines():
+        decoded_lines = decoded_lines + [line.decode('utf-8')]
+
+    decoded_output = ''.join(decoded_lines)
+
+    perfHash = decoded_output if args.get_perf_hash else args.perf_hash
 
     for framework in target_framework_monikers:
         if framework.startswith('netcoreapp'):
@@ -206,7 +218,7 @@ def __main(args: list) -> int:
                 out_file.write(variable_format % ('PERFLAB_INLAB', '1'))
                 out_file.write(variable_format % ('PERFLAB_REPO', '/'.join([owner, repo])))
                 out_file.write(variable_format % ('PERFLAB_BRANCH', branch))
-                out_file.write(variable_format % ('PERFLAB_PERFHASH', args.perf_hash))
+                out_file.write(variable_format % ('PERFLAB_PERFHASH', perfHash))
                 out_file.write(variable_format % ('PERFLAB_HASH', commit_sha))
                 out_file.write(variable_format % ('PERFLAB_QUEUE', args.queue))
                 out_file.write(variable_format % ('PERFLAB_BUILDNUM', args.build_number))

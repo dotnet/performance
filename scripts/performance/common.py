@@ -150,10 +150,9 @@ class RunCommand:
         '''Enables/Disables verbosity.'''
         return self.__verbose
 
-    def run(self, working_directory: str = None) -> str:
+    def run(self, working_directory: str = None) -> None:
         '''Executes specified shell command.'''
         should_pipe = self.verbose
-        output = []
         with push_dir(working_directory):
             quoted_cmdline = '$ '
             quoted_cmdline += list2cmdline(self.cmdline)
@@ -174,7 +173,6 @@ class RunCommand:
                             for line in iter(proc.stdout.readline, ''):
                                 line = line.rstrip()
                                 getLogger().info(line)
-                                output = output + [line]
 
                     proc.wait()
 
@@ -183,4 +181,3 @@ class RunCommand:
                             "Process exited with status %s", proc.returncode)
                         raise CalledProcessError(
                             proc.returncode, quoted_cmdline)
-        return os.linesep.join(output)
