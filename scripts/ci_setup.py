@@ -6,7 +6,11 @@ from logging import getLogger
 import os
 import sys
 
+from subprocess import check_output
+
+from performance.common import get_repo_root_path
 from performance.common import get_tools_directory
+from performance.common import push_dir
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
 
@@ -100,7 +104,16 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default='testSha',
         required=False,
         type=str,
-        help='Test queue'
+        help='Sha of the performance repo'
+    )
+
+    parser.add_argument(
+        '--get-perf-hash',
+        dest="get_perf_hash",
+        required=False,
+        action='store_true',
+        default=False,
+        help='Discover the hash of the performance repository'
     )
 
     parser.add_argument(
@@ -169,10 +182,24 @@ def __main(args: list) -> int:
     dotnet.info(verbose=verbose)
 
     variable_format = 'set %s=%s\n' if sys.platform == 'win32' else 'export %s=%s\n'
-    owner, repo = 'dotnet', 'core-sdk' if args.repository is None else dotnet.get_repository(args.repository)
-    config_string = '"%s"' % ';'.join(args.build_configs)
+    owner, repo = ('dotnet', 'core-sdk') if args.repository is None else (dotnet.get_repository(args.repository))
+    config_string = ';'.join(args.build_configs) if sys.platform == 'win32' else '"%s"' % ';'.join(args.build_configs)
 
     is_netcoreapp_30 = False
+
+    output = ''
+
+    with push_dir(get_repo_root_path()):
+        output = check_output(['git', 'rev-parse', 'HEAD'])
+
+    decoded_lines = []
+
+    for line in output.splitlines():
+        decoded_lines = decoded_lines + [line.decode('utf-8')]
+
+    decoded_output = ''.join(decoded_lines)
+
+    perfHash = decoded_output if args.get_perf_hash else args.perf_hash
 
     for framework in target_framework_monikers:
         if framework.startswith('netcoreapp'):
@@ -185,11 +212,13 @@ def __main(args: list) -> int:
 
             branch = micro_benchmarks.FrameworkAction.get_branch(target_framework_moniker) if not args.branch else args.branch
 
+            getLogger().info("Writing script to %s" % args.output_file)
+
             with open(args.output_file, 'w') as out_file:
                 out_file.write(variable_format % ('PERFLAB_INLAB', '1'))
                 out_file.write(variable_format % ('PERFLAB_REPO', '/'.join([owner, repo])))
                 out_file.write(variable_format % ('PERFLAB_BRANCH', branch))
-                out_file.write(variable_format % ('PERFLAB_PERFHASH', args.perf_hash))
+                out_file.write(variable_format % ('PERFLAB_PERFHASH', perfHash))
                 out_file.write(variable_format % ('PERFLAB_HASH', commit_sha))
                 out_file.write(variable_format % ('PERFLAB_QUEUE', args.queue))
                 out_file.write(variable_format % ('PERFLAB_BUILDNUM', args.build_number))
