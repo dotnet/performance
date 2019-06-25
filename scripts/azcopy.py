@@ -73,11 +73,11 @@ class AzCopy:
         RunCommand(cmdline, verbose=self.verbose).run()
 
     @staticmethod
-    def upload_results(container_path: str, verbose: bool) -> None:
+    def upload_results(container_path: str, artifacts_path: str, verbose: bool) -> None:
         getLogger().info("Starting upload process")
         if os.getenv('PERFLAB_UPLOAD_TOKEN') and os.getenv("HELIX_CORRELATION_ID"):
             globpath = path.join(
-                get_artifacts_directory(),
+                get_artifacts_directory() if not artifacts_path else artifacts_path,
                 '**',
                 '*perf-lab-report.json')
             getLogger().info("Searching in {0}".format(globpath))
