@@ -74,13 +74,15 @@ class AzCopy:
 
     @staticmethod
     def upload_results(container_path: str, verbose: bool) -> None:
+        getLogger().info("Starting upload process")
         if os.getenv('PERFLAB_UPLOAD_TOKEN') and os.getenv("HELIX_CORRELATION_ID"):
-
-            # first find if we have any files at all
-            files = glob(path.join(
+            globpath = path.join(
                 get_artifacts_directory(),
                 '**',
-                '*perf-lab-report.json'), recursive=True)
+                '*perf-lab-report.json')
+            getLogger().info("Searching in {0}".format(globpath))
+            # first find if we have any files at all
+            files = glob(globpath, recursive=True)
 
             if files:
                 getLogger().info("Found {0} files".format(len(files)))
@@ -108,10 +110,7 @@ class AzCopy:
                             except (FileNotFoundError, OSError) as err:
                                 getLogger().error("Still failed to copy {0}".format(file))
 
-                renamed_files = glob(path.join(
-                                        get_artifacts_directory(),
-                                        '**',
-                                        '*perf-lab-report.json'), recursive=True)
+                renamed_files = glob(globpath, recursive=True)
 
 
                 dirname = path.dirname(renamed_files[0])
@@ -123,3 +122,8 @@ class AzCopy:
                 AzCopy(os.environ['PERFLAB_UPLOAD_TOKEN'],
                        container_path,
                        verbose).upload_files(path.join(dirname, '*perf-lab-report.json'))
+            else:
+                getLogger().warning("Found zero files to upload")
+        else:
+            getLogger().warning("Environment variables were unset, no uploading")
+
