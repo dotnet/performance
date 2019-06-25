@@ -30,7 +30,7 @@ jobs:
           - name: Python
             value: 'py -3'
           - name: ArtifactsDirectory
-            value: '%HELIX_WORKITEM_UPLOAD_ROOT%\BenchmarkDotNet.Artifacts'
+            value: '%HELIX_CORRELATION_PAYLOAD%\artifacts\BenchmarkDotNet.Artifacts'
         - ${{ if ne(parameters.osName, 'windows') }}:
           - name: CliArguments
             value: '--dotnet-versions $DOTNET_VERSION --cli-source-info args --cli-branch $PERFLAB_BRANCH --cli-commit-sha $PERFLAB_HASH --cli-repository https://github.com/$PERFLAB_REPO --cli-source-timestamp $PERFLAB_BUILDTIMESTAMP'
@@ -39,7 +39,7 @@ jobs:
           - name: Python
             value: python3
           - name: ArtifactsDirectory
-            value: '$HELIX_WORKITEM_UPLOAD_ROOT/BenchmarkDotNet.Artifacts'
+            value: '$HELIX_WORKITEM_PAYLOAD/artifacts/BenchmarkDotNet.Artifacts'
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           - name: BenchViewRunType
             value: private
