@@ -127,7 +127,3 @@ class AzCopy:
         else:
             getLogger().warning("Environment variables were unset, no uploading")
 
-if __name__ == "__main__":
-    from performance.logger import setup_loggers
-    setup_loggers(verbose=True)
-    AzCopy.upload_results("somepath", verbose=True)
