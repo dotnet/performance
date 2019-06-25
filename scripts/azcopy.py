@@ -74,6 +74,7 @@ class AzCopy:
 
     @staticmethod
     def upload_results(container_path: str, verbose: bool) -> None:
+        getLogger().info("Starting upload process")
         if os.getenv('PERFLAB_UPLOAD_TOKEN') and os.getenv("HELIX_CORRELATION_ID"):
 
             # first find if we have any files at all
@@ -123,6 +124,10 @@ class AzCopy:
                 AzCopy(os.environ['PERFLAB_UPLOAD_TOKEN'],
                        container_path,
                        verbose).upload_files(path.join(dirname, '*perf-lab-report.json'))
+            else:
+                getLogger().warning("Found zero files to upload")
+        else:
+            getLogger().warning("Environment variables were unset, no uploading")
 
 if __name__ == "__main__":
     from performance.logger import setup_loggers
