@@ -123,3 +123,8 @@ class AzCopy:
                 AzCopy(os.environ['PERFLAB_UPLOAD_TOKEN'],
                        container_path,
                        verbose).upload_files(path.join(dirname, '*perf-lab-report.json'))
+
+if __name__ == "__main__":
+    from performance.logger import setup_loggers
+    setup_loggers(verbose=True)
+    AzCopy.upload_results("somepath", verbose=True)
