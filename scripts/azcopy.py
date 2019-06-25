@@ -75,7 +75,7 @@ class AzCopy:
     @staticmethod
     def upload_results(container_path: str, artifacts_path: str, verbose: bool) -> None:
         getLogger().info("Starting upload process")
-        if os.getenv('PERFLAB_UPLOAD_TOKEN') and os.getenv("HELIX_CORRELATION_ID"):
+        if os.getenv('PERFLAB_UPLOAD_TOKEN') and os.getenv("HELIX_WORKITEM_ID"):
             globpath = path.join(
                 get_artifacts_directory() if not artifacts_path else artifacts_path,
                 '**',
@@ -94,7 +94,7 @@ class AzCopy:
                     filename = path.basename(file)
                     newname = "{0}-{1}".format(path.join(
                                                 directory_name,
-                                                os.getenv('HELIX_CORRELATION_ID')),
+                                                os.getenv('HELIX_WORKITEM_ID')),
                                                filename)
                     getLogger().info("copying \n\t{0}\nto\n\t{1}".format(file, newname))
                     try:
