@@ -115,7 +115,7 @@ jobs:
         - template: /eng/performance/send-to-helix.yml
           parameters:
             HelixSource: '$(HelixSourcePrefix)/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
-            HelixType: 'test/performance_$(_BuildConfig)/'
+            HelixType: 'test/performance/'
             HelixAccessToken: $(HelixApiAccessToken)
             HelixTargetQueues: ${{ parameters.queue }}
             HelixPreCommands: $(HelixPreCommand)
