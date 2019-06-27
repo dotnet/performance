@@ -1,15 +1,13 @@
 <Project>
   <PropertyGroup>
+    <!-- don't import settings from root/Directory.Build.props and root/Directory.Build.targets (Arcade) 
+        which add some dependencies and settings to all the projects in the repo and breaks benchmarks -->
+    <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>
+    <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
+  
     <!-- Avoid spawning any-long living compiler processes to avoid BenchmarkDotNet issues with "file in use",
          and automation failing to clean up the folders once the runs are over -->
     <UseSharedCompilation>false</UseSharedCompilation>
-    
-    <!-- Used by Python script to narrow down the the specified target frameworks to test, and avoid downloading all supported SDKs -->
-    <TargetFrameworks>$(PYTHON_SCRIPT_TARGET_FRAMEWORKS)</TargetFrameworks>
-    
-    <!-- Supported target frameworks -->
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net461;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
     
     <!-- Use the latest C# compiler features -->
     <LangVersion>latest</LangVersion>
