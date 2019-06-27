@@ -1,10 +1,7 @@
 <Project>
+  <!-- Microsoft.DotNet.Arcade.Sdk must be imported in explict way in every Directory.Build.props file -->
+  <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
   <PropertyGroup>
-    <!-- don't import settings from root/Directory.Build.props and root/Directory.Build.targets (Arcade) 
-        which add some dependencies and settings to all the projects in the repo and breaks benchmarks -->
-    <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>
-    <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
-  
     <!-- Avoid spawning any-long living compiler processes to avoid BenchmarkDotNet issues with "file in use",
          and automation failing to clean up the folders once the runs are over -->
     <UseSharedCompilation>false</UseSharedCompilation>

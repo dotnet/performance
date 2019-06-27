@@ -6,6 +6,10 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <IsShipping>false</IsShipping>
+    <!-- this app is using internal Roslyn API and needs to be signed -->
+    <SignAssembly>true</SignAssembly>
+    <!-- ignore warning about BenchmarkDotNet.Extensions being not signed -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <StrongNameKeyId>MicrosoftShared</StrongNameKeyId>
   </PropertyGroup>
 
