@@ -10,8 +10,4 @@
     <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.11.3.1003" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\tools\Reporting\Reporting\Reporting.csproj" />
-  </ItemGroup>
-
 </Project>

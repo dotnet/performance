@@ -24,7 +24,6 @@ namespace BenchmarkDotNet.Extensions
                 .With(new OperatingSystemFilter())
                 .With(new PartitionFilter(partitionCount, partitionIndex))
                 .With(JsonExporter.Full) // make sure we export to Json (for BenchView integration purpose)
-                .With(new PerfLabExporter())
                 .With(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
                 .With(TooManyTestCasesValidator.FailOnError)
                 .With(new UniqueArgumentsValidator()) // don't allow for duplicated arguments #404
