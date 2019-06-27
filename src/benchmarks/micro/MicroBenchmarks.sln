@@ -6,9 +6,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicroBenchmarks", "MicroBenchmarks.csproj", "{D99F63AE-3154-4F13-9424-FA5F9D032D1D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenchmarkDotNet.Extensions.Tests", "..\..\tests\harness\BenchmarkDotNet.Extensions.Tests\BenchmarkDotNet.Extensions.Tests.csproj", "{0A02797B-B016-4F5C-AADB-11EE2653BA92}"
-	ProjectSection(ProjectDependencies) = postProject
-		{D99F63AE-3154-4F13-9424-FA5F9D032D1D} = {D99F63AE-3154-4F13-9424-FA5F9D032D1D}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BenchmarkDotNet.Extensions", "..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj", "{D44B5BFC-F333-4165-8830-437FBC8DF6BE}"
 EndProject
