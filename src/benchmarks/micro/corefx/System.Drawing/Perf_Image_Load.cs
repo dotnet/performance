@@ -64,7 +64,7 @@ namespace System.Drawing.Tests
                 Console.WriteLine("libgdiplus is missing, you can install it by running 'apt-get install libgdiplus'");
                 Console.ResetColor();
 
-                return Array.Empty<ImageTestData>();
+                throw;
             }
         }
 
