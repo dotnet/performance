@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenchmarkDotNet.Extensions.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BenchmarkDotNet.Extensions", "..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj", "{D44B5BFC-F333-4165-8830-437FBC8DF6BE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reporting", "..\..\tools\Reporting\Reporting\Reporting.csproj", "{384EC85F-C645-4123-A13D-B8E7B40F2A23}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{D44B5BFC-F333-4165-8830-437FBC8DF6BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D44B5BFC-F333-4165-8830-437FBC8DF6BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D44B5BFC-F333-4165-8830-437FBC8DF6BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{384EC85F-C645-4123-A13D-B8E7B40F2A23}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{384EC85F-C645-4123-A13D-B8E7B40F2A23}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{384EC85F-C645-4123-A13D-B8E7B40F2A23}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{384EC85F-C645-4123-A13D-B8E7B40F2A23}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
