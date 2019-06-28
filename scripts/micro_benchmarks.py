@@ -137,6 +137,12 @@ def get_packages_directory() -> str:
     '''
     return path.join(get_artifacts_directory(), 'packages')
 
+def get_benchmarks_binlog_path() -> str:
+    '''
+    The path to bin log file used for troubleshooting
+    '''
+    return path.join(get_artifacts_directory(), 'log', 'benchmarks.binlog')
+
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''
@@ -370,11 +376,15 @@ def build(
     __log_script_header("Restoring .NET micro benchmarks")
     BENCHMARKS_CSPROJ.restore(packages_path=packages, verbose=verbose)
 
+    benchmarks_binglog_path = get_benchmarks_binlog_path()
+
     # dotnet build
     build_title = "Building .NET micro benchmarks for '{}'".format(
         ' '.join(target_framework_monikers))
     __log_script_header(build_title)
-    BENCHMARKS_CSPROJ.build(configuration, target_framework_monikers, verbose)
+    BENCHMARKS_CSPROJ.build(
+        configuration, target_framework_monikers, verbose,
+        benchmarks_binglog_path)
 
 
 def run(

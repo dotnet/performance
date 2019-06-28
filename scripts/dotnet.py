@@ -255,6 +255,7 @@ class CSharpProject:
               configuration: str,
               target_framework_monikers: list,
               verbose: bool,
+              benchmarks_binglog_path: str,
               *args) -> None:
         '''Calls dotnet to build the specified project.'''
         if not target_framework_monikers:  # Build all supported frameworks.
@@ -263,7 +264,7 @@ class CSharpProject:
                 self.csproj_file,
                 '--configuration', configuration,
                 '--no-restore',
-                '/bl',
+                "/bl:{}".format(benchmarks_binglog_path),
             ]
             if args:
                 cmdline = cmdline + list(args)
@@ -277,6 +278,7 @@ class CSharpProject:
                     '--configuration', configuration,
                     '--framework', target_framework_moniker,
                     '--no-restore',
+                    "/bl:{}".format(benchmarks_binglog_path),
                 ]
                 if args:
                     cmdline = cmdline + list(args)
