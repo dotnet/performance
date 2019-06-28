@@ -263,6 +263,7 @@ class CSharpProject:
                 self.csproj_file,
                 '--configuration', configuration,
                 '--no-restore',
+                '/bl',
             ]
             if args:
                 cmdline = cmdline + list(args)
