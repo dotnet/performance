@@ -31,7 +31,7 @@ namespace System.Text.Json.Serialization.Tests
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
-        public string Serialize() => JsonSerializer.Serialize(_value);
+        public string SerializeToString() => JsonSerializer.Serialize(_value);
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
