@@ -141,7 +141,7 @@ def get_benchmarks_binlog_path() -> str:
     '''
     The path to bin log file used for troubleshooting
     '''
-    return path.join(get_artifacts_directory(), '..', '..', 'benchmarksbin.log')
+    return path.join(get_artifacts_directory(), '..', '..', 'benchmarks.binlog')
 
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
