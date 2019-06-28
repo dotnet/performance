@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
 
-  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
+  <PropertyGroup Condition="'$(AGENT_OS)' == 'Windows_NT'">
     <WorkItemCommand>%HELIX_CORRELATION_PAYLOAD%\performance\scripts\benchmarks_ci.py --csproj %HELIX_CORRELATION_PAYLOAD%\performance\$(TargetCsproj)</WorkItemCommand>
     <CliArguments>--dotnet-versions %DOTNET_VERSION% --cli-source-info args --cli-branch %PERFLAB_BRANCH% --cli-commit-sha %PERFLAB_HASH% --cli-repository https://github.com/%PERFLAB_REPO% --cli-source-timestamp %PERFLAB_BUILDTIMESTAMP%</CliArguments>
     <Python>py -3</Python>
@@ -9,7 +9,7 @@
     <ArtifactsDirectory>%HELIX_CORRELATION_PAYLOAD%\artifacts\BenchmarkDotNet.Artifacts</ArtifactsDirectory>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetsWindows)' != 'true' and '$(RunFromPerfRepo)' == 'false'">
+  <PropertyGroup Condition="'$(AGENT_OS)' != 'Windows_NT' and '$(RunFromPerfRepo)' == 'false'">
     <WorkItemCommand>$HELIX_CORRELATION_PAYLOAD/performance/scripts/benchmarks_ci.py --csproj $HELIX_CORRELATION_PAYLOAD/performance/$(TargetCsproj)</WorkItemCommand>
     <CliArguments>--dotnet-versions $DOTNET_VERSION --cli-source-info args --cli-branch $PERFLAB_BRANCH --cli-commit-sha $PERFLAB_HASH --cli-repository https://github.com/$PERFLAB_REPO --cli-source-timestamp $PERFLAB_BUILDTIMESTAMP</CliArguments>
     <Python>python3</Python>
@@ -18,7 +18,7 @@
     <ArtifactsDirectory>$HELIX_CORRELATION_PAYLOAD/artifacts/BenchmarkDotNet.Artifacts</ArtifactsDirectory>
   </PropertyGroup>
   
-  <PropertyGroup Condition="'$(TargetsWindows)' != 'true' and '$(RunFromPerfRepo)' == 'true'">
+  <PropertyGroup Condition="'$(AGENT_OS)' != 'Windows_NT' and '$(RunFromPerfRepo)' == 'true'">
     <WorkItemCommand>./scripts/benchmarks_ci.py --csproj ./$(TargetCsproj)</WorkItemCommand>
     <CliArguments>--dotnet-versions $DOTNET_VERSION --cli-source-info args --cli-branch $PERFLAB_BRANCH --cli-commit-sha $PERFLAB_HASH --cli-repository https://github.com/$PERFLAB_REPO --cli-source-timestamp $PERFLAB_BUILDTIMESTAMP</CliArguments>
     <Python>python3</Python>
