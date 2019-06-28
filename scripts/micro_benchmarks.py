@@ -376,15 +376,12 @@ def build(
     __log_script_header("Restoring .NET micro benchmarks")
     BENCHMARKS_CSPROJ.restore(packages_path=packages, verbose=verbose)
 
-    benchmarks_binglog_path = get_benchmarks_binlog_path()
-
     # dotnet build
     build_title = "Building .NET micro benchmarks for '{}'".format(
         ' '.join(target_framework_monikers))
     __log_script_header(build_title)
     BENCHMARKS_CSPROJ.build(
-        configuration, target_framework_monikers, verbose,
-        benchmarks_binglog_path)
+        configuration, target_framework_monikers, verbose, packages)
 
 
 def run(

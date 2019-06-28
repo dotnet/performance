@@ -255,7 +255,7 @@ class CSharpProject:
               configuration: str,
               target_framework_monikers: list,
               verbose: bool,
-              benchmarks_binglog_path: str,
+              packages_path: str,
               *args) -> None:
         '''Calls dotnet to build the specified project.'''
         if not target_framework_monikers:  # Build all supported frameworks.
@@ -264,7 +264,7 @@ class CSharpProject:
                 self.csproj_file,
                 '--configuration', configuration,
                 '--no-restore',
-                "/bl:{}".format(benchmarks_binglog_path),
+                "/p:NuGetPackageRoot={}".format(packages_path),
             ]
             if args:
                 cmdline = cmdline + list(args)
@@ -278,14 +278,12 @@ class CSharpProject:
                     '--configuration', configuration,
                     '--framework', target_framework_moniker,
                     '--no-restore',
-                    "/bl:{}".format(benchmarks_binglog_path),
+                    "/p:NuGetPackageRoot={}".format(packages_path),
                 ]
                 if args:
                     cmdline = cmdline + list(args)
                 RunCommand(cmdline, verbose=verbose).run(
                     self.working_directory)
-                pre, ext = path.splitext(benchmarks_binglog_path)
-                rename(benchmarks_binglog_path, pre + '.log')
 
     @staticmethod
     def __print_complus_environment() -> None:
