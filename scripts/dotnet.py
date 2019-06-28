@@ -9,7 +9,7 @@ from collections import namedtuple
 from glob import iglob
 from json import loads
 from logging import getLogger
-from os import chmod, environ, listdir, makedirs, path, pathsep
+from os import chmod, environ, listdir, makedirs, path, pathsep, rename
 from re import search
 from shutil import rmtree
 from stat import S_IRWXU
@@ -284,6 +284,8 @@ class CSharpProject:
                     cmdline = cmdline + list(args)
                 RunCommand(cmdline, verbose=verbose).run(
                     self.working_directory)
+                pre, ext = path.splitext(benchmarks_binglog_path)
+                rename(benchmarks_binglog_path, pre + '.log')
 
     @staticmethod
     def __print_complus_environment() -> None:
