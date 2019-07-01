@@ -24,7 +24,7 @@ steps:
     displayName: ${{ parameters.DisplayNamePrefix }} (Windows)
     env:
       TargetsWindows: 'true'
-      BuildConfig: $(BuildConfig)
+      BuildConfig: $(_BuildConfig)
       HelixSource: ${{ parameters.HelixSource }}
       HelixType: ${{ parameters.HelixType }}
       HelixBuild: ${{ parameters.HelixBuild }}
@@ -47,7 +47,7 @@ steps:
     displayName: ${{ parameters.DisplayNamePrefix }} (Unix)
     env:
       TargetsWindows: 'false'
-      BuildConfig: $(BuildConfig)
+      BuildConfig: $(_BuildConfig)
       HelixSource: ${{ parameters.HelixSource }}
       HelixType: ${{ parameters.HelixType }}
       HelixBuild: ${{ parameters.HelixBuild }}

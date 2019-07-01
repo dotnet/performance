@@ -90,6 +90,6 @@ Write-PipelineSetVariable -Name 'RunFromPerfRepo' -Value "$RunFromPerformanceRep
 Write-PipelineSetVariable -Name 'Creator' -Value "$Creator" -IsMultiJobVariable $false
 Write-PipelineSetVariable -Name 'Queue' -Value "$Queue" -IsMultiJobVariable $false
 Write-PipelineSetVariable -Name 'HelixSourcePrefix' -Value "$HelixSourcePrefix" -IsMultiJobVariable $false
-Write-PipelineSetVariable -Name 'BuildConfig' -Value "$Architecture.$Kind.$Framework" -IsMultiJobVariable $false
+Write-PipelineSetVariable -Name '_BuildConfig' -Value "$Architecture.$Kind.$Framework" -IsMultiJobVariable $false
 
 exit 0
