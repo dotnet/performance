@@ -75,7 +75,7 @@ Write-PipelineSetVariable -Name 'PerformanceDirectory' -Value "$PerformanceDirec
 Write-PipelineSetVariable -Name 'WorkItemDirectory' -Value "$WorkItemDirectory" -IsSingleJobVariable
 
 # Script Arguments
-Write-PipelineSetVariable -Name 'Python' -Value "py -3"
+Write-PipelineSetVariable -Name 'Python' -Value "py -3" -IsSingleJobVariable
 Write-PipelineSetVariable -Name 'ExtraBenchmarkDotNetArguments' -Value "$ExtraBenchmarkDotNetArguments" -IsSingleJobVariable
 Write-PipelineSetVariable -Name 'SetupArguments' -Value "$SetupArguments" -IsSingleJobVariable
 Write-PipelineSetVariable -Name 'PerfLabArguments' -Value "$PerfLabArguments" -IsSingleJobVariable
