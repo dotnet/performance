@@ -90,7 +90,7 @@ Write-PipelineSetVariableCurrentJob -Name 'RunFromPerfRepo' -Value "$RunFromPerf
 Write-PipelineSetVariableCurrentJob -Name 'Creator' -Value "$Creator"
 Write-PipelineSetVariableCurrentJob -Name 'Queue' -Value "$Queue"
 Write-PipelineSetVariableCurrentJob -Name 'HelixSourcePrefix' -Value "$HelixSourcePrefix"
-Write-PipelineSetVariableCurrentJob -Name '_BuildConfig' -Value "$Architecture.$Kind.$Framework"
+Write-PipelineSetVariableCurrentJob -Name 'BuildConfig' -Value "$Architecture.$Kind.$Framework"
 
 # Write-Host "##vso[task.setvariable variable=UseCoreRun]$UseCoreRun"
 # Write-Host "##vso[task.setvariable variable=PayloadDirectory]$PayloadDirectory"
