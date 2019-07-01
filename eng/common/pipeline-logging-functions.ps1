@@ -77,30 +77,14 @@ function Write-PipelineTaskError {
       [string]$Name,
       [string]$Value,
       [switch]$Secret,
-      [switch]$AsOutput)
+      [switch]$AsOutput,
+      [switch]$IsSingleJobVariable)
 
       if($ci) {
         Write-LoggingCommand -Area 'task' -Event 'setvariable' -Data $Value -Properties @{
           'variable' = $Name
           'isSecret' = $Secret
-          'isOutput' = 'true'
-        } -AsOutput:$AsOutput
-      }
-  }
-
-  function Write-PipelineSetVariableCurrentJob {
-    [CmdletBinding()]
-    param(
-      [Parameter(Mandatory = $true)]
-      [string]$Name,
-      [string]$Value,
-      [switch]$Secret,
-      [switch]$AsOutput)
-
-      if($ci) {
-        Write-LoggingCommand -Area 'task' -Event 'setvariable' -Data $Value -Properties @{
-          'variable' = $Name
-          'isSecret' = $Secret
+          'isOutput' = -Not $IsSingleJobVariable
         } -AsOutput:$AsOutput
       }
   }

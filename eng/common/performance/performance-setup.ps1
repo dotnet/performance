@@ -70,27 +70,27 @@ $ci = $true
 . "$PSScriptRoot\..\pipeline-logging-functions.ps1"
 
 # Directories
-Write-PipelineSetVariableCurrentJob -Name 'PayloadDirectory' -Value "$PayloadDirectory"
-Write-PipelineSetVariableCurrentJob -Name 'PerformanceDirectory' -Value "$PerformanceDirectory"
-Write-PipelineSetVariableCurrentJob -Name 'WorkItemDirectory' -Value "$WorkItemDirectory"
+Write-PipelineSetVariable -Name 'PayloadDirectory' -Value "$PayloadDirectory" -IsSingleJobVariable
+Write-PipelineSetVariable -Name 'PerformanceDirectory' -Value "$PerformanceDirectory" -IsSingleJobVariable
+Write-PipelineSetVariable -Name 'WorkItemDirectory' -Value "$WorkItemDirectory" -IsSingleJobVariable
 
 # Script Arguments
-Write-PipelineSetVariableCurrentJob -Name 'Python' -Value "py -3"
-Write-PipelineSetVariableCurrentJob -Name 'ExtraBenchmarkDotNetArguments' -Value "$ExtraBenchmarkDotNetArguments"
-Write-PipelineSetVariableCurrentJob -Name 'SetupArguments' -Value "$SetupArguments"
-Write-PipelineSetVariableCurrentJob -Name 'PerfLabArguments' -Value "$PerfLabArguments"
-Write-PipelineSetVariableCurrentJob -Name 'BDNCategories' -Value "$RunCategories"
-Write-PipelineSetVariableCurrentJob -Name 'TargetCsproj' -Value "$Csproj"
-Write-PipelineSetVariableCurrentJob -Name 'Kind' -Value "$Kind"
-Write-PipelineSetVariableCurrentJob -Name 'Architecture' -Value "$Architecture"
-Write-PipelineSetVariableCurrentJob -Name 'UseCoreRun' -Value "$UseCoreRun"
-Write-PipelineSetVariableCurrentJob -Name 'RunFromPerfRepo' -Value "$RunFromPerformanceRepo"
+Write-PipelineSetVariable -Name 'Python' -Value "py -3"
+Write-PipelineSetVariable -Name 'ExtraBenchmarkDotNetArguments' -Value "$ExtraBenchmarkDotNetArguments" -IsSingleJobVariable
+Write-PipelineSetVariable -Name 'SetupArguments' -Value "$SetupArguments" -IsSingleJobVariable
+Write-PipelineSetVariable -Name 'PerfLabArguments' -Value "$PerfLabArguments" -IsSingleJobVariable
+Write-PipelineSetVariable -Name 'BDNCategories' -Value "$RunCategories" -IsSingleJobVariable
+Write-PipelineSetVariable -Name 'TargetCsproj' -Value "$Csproj" -IsSingleJobVariable
+Write-PipelineSetVariable -Name 'Kind' -Value "$Kind" -IsSingleJobVariable
+Write-PipelineSetVariable -Name 'Architecture' -Value "$Architecture" -IsSingleJobVariable
+Write-PipelineSetVariable -Name 'UseCoreRun' -Value "$UseCoreRun" -IsSingleJobVariable
+Write-PipelineSetVariable -Name 'RunFromPerfRepo' -Value "$RunFromPerformanceRepo" -IsSingleJobVariable
 
 # Helix Arguments
-Write-PipelineSetVariableCurrentJob -Name 'Creator' -Value "$Creator"
-Write-PipelineSetVariableCurrentJob -Name 'Queue' -Value "$Queue"
-Write-PipelineSetVariableCurrentJob -Name 'HelixSourcePrefix' -Value "$HelixSourcePrefix"
-Write-PipelineSetVariableCurrentJob -Name 'BuildConfig' -Value "$Architecture.$Kind.$Framework"
+Write-PipelineSetVariable -Name 'Creator' -Value "$Creator" -IsSingleJobVariable
+Write-PipelineSetVariable -Name 'Queue' -Value "$Queue" -IsSingleJobVariable
+Write-PipelineSetVariable -Name 'HelixSourcePrefix' -Value "$HelixSourcePrefix" -IsSingleJobVariable
+Write-PipelineSetVariable -Name 'BuildConfig' -Value "$Architecture.$Kind.$Framework" -IsSingleJobVariable
 
 # Write-Host "##vso[task.setvariable variable=UseCoreRun]$UseCoreRun"
 # Write-Host "##vso[task.setvariable variable=PayloadDirectory]$PayloadDirectory"
