@@ -78,13 +78,13 @@ function Write-PipelineTaskError {
       [string]$Value,
       [switch]$Secret,
       [switch]$AsOutput,
-      [switch]$IsSingleJobVariable)
+      [bool]$IsMultiJobVariable=$true)
 
       if($ci) {
         Write-LoggingCommand -Area 'task' -Event 'setvariable' -Data $Value -Properties @{
           'variable' = $Name
           'isSecret' = $Secret
-          'isOutput' = -Not $IsSingleJobVariable
+          'isOutput' = $IsMultiJobVariable
         } -AsOutput:$AsOutput
       }
   }

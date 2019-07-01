@@ -87,7 +87,15 @@ while (($# > 0)); do
       echo "Advanced settings:"
       echo "  --framework <value>            The framework to run, if not running in master"
       echo "  --compliationmode <value>      The compilation mode if not passing --configurations"
-      echo ""
+      echo "  --sourcedirectory <value>      The directory of the sources. Defaults to env:BUILD_SOURCESDIRECTORY"
+      echo "  --repository <value>           The name of the repository in the <owner>/<repository name> format. Defaults to env:BUILD_REPOSITORY_NAME"
+      echo "  --branch <value>               The name of the branch. Defaults to env:BUILD_SOURCEBRANCH"
+      echo "  --commitsha <value>            The commit sha1 to run against. Defaults to env:BUILD_SOURCEVERSION"
+      echo "  --buildnumber <value>          The build number currently running. Defaults to env:BUILD_BUILDNUMBER"
+      echo "  --csproj                       The relative path to the benchmark csproj whose tests should be run. Defaults to src\benchmarks\micro\MicroBenchmarks.csproj"
+      echo "  --kind <value>                 Related to csproj. The kind of benchmarks that should be run. Defaults to micro"
+      echo "  --runcategories <value>        Related to csproj. Categories of benchmarks to run. Defaults to \"coreclr corefx\""
+      echo "  --internal                     If the benchmarks are running as an official job."
       exit 0
       ;;
   esac
