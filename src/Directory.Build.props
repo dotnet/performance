@@ -13,7 +13,7 @@
     <GenerateDocumentationFile>False</GenerateDocumentationFile>
     
     <!-- every warning is important, we want to enforce best practices here to keep high quality of the code and avoid common mistakes -->
-    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningLevel>4</WarningLevel>
     
     <!-- we are testing latest bits and we must use preview SDK version -->
