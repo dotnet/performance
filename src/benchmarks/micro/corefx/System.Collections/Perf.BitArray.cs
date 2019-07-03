@@ -11,12 +11,14 @@ namespace System.Collections.Tests
     [BenchmarkCategory(Categories.CoreFX, Categories.Collections)]
     public class Perf_BitArray
     {
+        private const int DefaultShiftCount = 17;
         private const bool BooleanValue = true;
 
         [Params(Utils.DefaultCollectionSize)]
         public int Size { get; set; }
 
         private BitArray _original;
+        private BitArray _original2;
         private byte[] _bytes;
         private bool[] _bools;
         private int[] _ints;
@@ -51,7 +53,7 @@ namespace System.Collections.Tests
         [Benchmark]
         public BitArray BitArrayIntArrayCtor() => new BitArray(_ints);
 
-        [GlobalSetup(Targets = new [] { nameof(BitArraySetAll), nameof(BitArrayNot), nameof(BitArrayGet) })]
+        [GlobalSetup(Targets = new [] { nameof(BitArraySetAll), nameof(BitArrayNot), nameof(BitArrayGet), nameof(BitArrayRightShift), nameof(BitArrayLeftShift) })]
         public void Setup_BitArraySetAll() => _original = new BitArray(ValuesGenerator.Array<byte>(Size));
 
         [Benchmark]
@@ -71,6 +73,28 @@ namespace System.Collections.Tests
 
             return local;
         }
+
+        [Benchmark]
+        public void BitArrayRightShift() => _original.RightShift(DefaultShiftCount);
+
+        [Benchmark]
+        public void BitArrayLeftShift() => _original.LeftShift(DefaultShiftCount);
+
+        [GlobalSetup(Targets = new [] { nameof(BitArrayAnd), nameof(BitArrayOr), nameof(BitArrayXor) })]
+        public void Setup_BitArrayAnd()
+        {
+            _original = new BitArray(ValuesGenerator.Array<byte>(Size));
+            _original2 = new BitArray(ValuesGenerator.Array<byte>(Size));
+        }
+
+        [Benchmark]
+        public BitArray BitArrayAnd() => _original.And(_original2);
+
+        [Benchmark]
+        public BitArray BitArrayOr() => _original.Or(_original2);
+
+        [Benchmark]
+        public BitArray BitArrayXor() => _original.Xor(_original2);
 
         [GlobalSetup(Target = nameof(BitArraySet))]
         public void Setup_BitArraySet() => _original = new BitArray(ValuesGenerator.Array<bool>(Size));
