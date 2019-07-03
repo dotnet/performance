@@ -79,22 +79,73 @@ namespace System.Linq.Tests
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
         public int WhereFirst_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
-        {
-            IEnumerable<int> source = Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType);
-
-            return source.Where(x => x >= size - 1).First();
-        }
+            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Where(x => x >= size - 1).First();
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
         public int FirstWithPredicate_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
-        {
-            IEnumerable<int> source = Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType);
-
-            return source.First(x => x >= size - 1);
-        }
+            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).First(x => x >= size - 1);
 
         [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public int WhereFirstOrDefault_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
+            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Where(x => x >= size - 1).FirstOrDefault();
+
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public int FirstOrDefaultWithPredicate_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
+            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).FirstOrDefault(x => x >= size - 1);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public bool WhereAny_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
+            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Where(x => x >= size - 1).Any();
+
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public bool AnyWithPredicate_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
+            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Any(x => x >= size - 1);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public int WhereSingle_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
+            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Where(x => x >= size - 1).Single();
+
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public int SingleWithPredicate_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
+            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Single(x => x >= size - 1);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public int WhereSingleOrDefault_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
+            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Where(x => x >= size - 1).SingleOrDefault();
+
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public int SingleOrDefaultWithPredicate_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
+            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).SingleOrDefault(x => x >= size - 1);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public int WhereLast(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
+            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Where(x => x % 2 == 0).Last();
+
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public int LastWithPredicate(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
+            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Last(x => x % 2 == 0);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public int WhereLastOrDefault(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
+            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Where(x => x % 2 == 0).LastOrDefault();
+
+        [Benchmark]
+        [ArgumentsSource(nameof(IterationSizeWrapperData))]
+        public int LastOrDefaultWithPredicate(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
+            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).LastOrDefault(x => x % 2 == 0);
+
         [ArgumentsSource(nameof(IterationSizeWrapperData))] // for some reason the size and iteration arguments are ignored for this benchmark
         public void Cast_ToBaseClass(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
         {
