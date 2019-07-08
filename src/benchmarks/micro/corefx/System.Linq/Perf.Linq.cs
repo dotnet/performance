@@ -146,6 +146,7 @@ namespace System.Linq.Tests
         public int LastOrDefaultWithPredicate(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
             => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).LastOrDefault(x => x % 2 == 0);
 
+        [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))] // for some reason the size and iteration arguments are ignored for this benchmark
         public void Cast_ToBaseClass(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
         {
