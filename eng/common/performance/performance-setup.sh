@@ -96,6 +96,7 @@ while (($# > 0)); do
       echo "  --kind <value>                 Related to csproj. The kind of benchmarks that should be run. Defaults to micro"
       echo "  --runcategories <value>        Related to csproj. Categories of benchmarks to run. Defaults to \"coreclr corefx\""
       echo "  --internal                     If the benchmarks are running as an official job."
+      echo ""
       exit 0
       ;;
   esac
@@ -109,46 +110,42 @@ if [ -z "$configurations" ]; then
     configurations="CompliationMode=$compilation_mode"
 fi
 
-if [ -z "$corerootdirectory" ]; then
+if [ -z "$core_root_directory" ]; then
     use_core_run=false
 fi
 
-payload_directory=
-performance_directory=
-workitem_directory=
-setup_arguments=
+payload_directory=$source_directory/Payload
+performance_directory=$payload_directory/performance
+workitem_directory=$source_directory/workitem
+common_setup_arguments="--frameworks $framework --queue $queue --build-number $build_number --build-configs $configurations"
+setup_arguments="--repository https://github.com/$repository --branch $branch --get-perf-hash --commit-sha $commit_sha $common_setup_arguments"
+extra_benchmark_dotnet_arguments="--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart --stopOnFirstError true"
 perflab_arguments=
-queue=
-creator=
-helix_source_prefix=
+queue=Ubuntu.1604.Amd64.Open
+creator=$BUILD_DEFINITIONNAME
+helix_source_prefix="pr"
 
 if [[ "$internal" == true ]]; then
     perflab_arguments="--upload-to-perflab-container"
     helix_source_prefix="official"
+    creator=
+    extra_benchmark_dotnet_arguments=
+    
     if [[ "$architecture" = "arm64" ]]; then
         queue=Ubuntu.1804.Arm64.Perf
     else
         queue=Ubuntu.1604.Amd64.Perf
     fi
-else
-    queue=Ubuntu.1604.Amd64.Open
-    extra_benchmark_dotnet_arguments="--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart --stopOnFirstError true"
-    creator=$BUILD_DEFINITIONNAME
-    helix_source_prefix="pr"
 fi
 
-common_setup_arguments="--frameworks $framework --queue $queue --build-number $build_number --build-configs $configurations"
+
 
 if [[ "$run_from_perf_repo" = true ]]; then
+    payload_directory=
     workitem_directory=$source_directory
     performance_directory=$workitem_directory
     setup_arguments="--perf-hash $commit_sha $common_setup_arguments"
 else
-    payload_directory=$source_directory/Payload
-    performance_directory=$payload_directory/performance
-    workitem_directory=$source_directory/workitem
-    setup_arguments="--repository https://github.com/$repository --branch $branch --get-perf-hash --commit-sha $commit_sha $common_setup_arguments"
-
     git clone --branch master --depth 1 --quiet https://github.com/dotnet/performance $performance_directory
     
     docs_directory=$performance_directory/docs

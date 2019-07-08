@@ -21,7 +21,19 @@ $UseCoreRun = ($CoreRootDirectory -ne [string]::Empty)
 $PayloadDirectory = (Join-Path $SourceDirectory "Payload")
 $PerformanceDirectory = (Join-Path $PayloadDirectory "performance")
 $WorkItemDirectory = (Join-Path $SourceDirectory "workitem")
-$Creator = ""
+$ExtraBenchmarkDotNetArguments = "--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart --stopOnFirstError true"
+$Creator = $env:BUILD_DEFINITIONNAME
+$PerfLabArguments = ""
+$HelixSourcePrefix = "pr"
+
+$CommonSetupArguments="--frameworks $Framework --queue $Queue --build-number $BuildNumber --build-configs $Configurations"
+$SetupArguments = "--repository https://github.com/$Repository --branch $Branch --get-perf-hash --commit-sha $CommitSha $CommonSetupArguments"
+
+$Queue = "Windows.10.Amd64.ClientRS4.DevEx.15.8.Open"
+
+if ($Framework.StartsWith("netcoreapp")) {
+    $Queue = "Windows.10.Amd64.ClientRS4.Open"
+}
 
 if ($Internal) {
     $Queue = "Windows.10.Amd64.ClientRS1.Perf"
@@ -30,20 +42,6 @@ if ($Internal) {
     $Creator = ""
     $HelixSourcePrefix = "official"
 }
-else {
-    if ($Framework.StartsWith("netcoreapp")) {
-        $Queue = "Windows.10.Amd64.ClientRS4.Open"
-    }
-    else {
-        $Queue = "Windows.10.Amd64.ClientRS4.DevEx.15.8.Open"
-    }
-    $ExtraBenchmarkDotNetArguments = "--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart --stopOnFirstError true"
-    $Creator = $env:BUILD_DEFINITIONNAME
-    $PerfLabArguments = ""
-    $HelixSourcePrefix = "pr"
-}
-
-$CommonSetupArguments="--frameworks $Framework --queue $Queue --build-number $BuildNumber --build-configs $Configurations"
 
 if ($RunFromPerformanceRepo) {
     $SetupArguments = "--perf-hash $CommitSha $CommonSetupArguments"
@@ -51,8 +49,6 @@ if ($RunFromPerformanceRepo) {
     robocopy $SourceDirectory $PerformanceDirectory /E /XD $PayloadDirectory $SourceDirectory\artifacts $SourceDirectory\.git
 }
 else {
-    $SetupArguments = "--repository https://github.com/$Repository --branch $Branch --get-perf-hash --commit-sha $CommitSha $CommonSetupArguments"
-    
     git clone --branch master --depth 1 --quiet https://github.com/dotnet/performance $PerformanceDirectory
 }
 
