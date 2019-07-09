@@ -26,9 +26,6 @@ $Creator = $env:BUILD_DEFINITIONNAME
 $PerfLabArguments = ""
 $HelixSourcePrefix = "pr"
 
-$CommonSetupArguments="--frameworks $Framework --queue $Queue --build-number $BuildNumber --build-configs $Configurations"
-$SetupArguments = "--repository https://github.com/$Repository --branch $Branch --get-perf-hash --commit-sha $CommitSha $CommonSetupArguments"
-
 $Queue = "Windows.10.Amd64.ClientRS4.DevEx.15.8.Open"
 
 if ($Framework.StartsWith("netcoreapp")) {
@@ -42,6 +39,9 @@ if ($Internal) {
     $Creator = ""
     $HelixSourcePrefix = "official"
 }
+
+$CommonSetupArguments="--frameworks $Framework --queue $Queue --build-number $BuildNumber --build-configs $Configurations"
+$SetupArguments = "--repository https://github.com/$Repository --branch $Branch --get-perf-hash --commit-sha $CommitSha $CommonSetupArguments"
 
 if ($RunFromPerformanceRepo) {
     $SetupArguments = "--perf-hash $CommitSha $CommonSetupArguments"

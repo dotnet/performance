@@ -56,3 +56,21 @@ jobs:
     ${{ if ne(variables['System.TeamProject'], 'public') }}:
       frameworks: 
         - netcoreapp3.0
+
+# Ubuntu 1604 x64 micro benchmarks		
+- template: /eng/common/templates/job/performance.yml	
+  parameters:	
+    jobName: ubuntu_1604_x64_micro
+    displayName: Ubuntu 1604 x64 micro
+    pool:
+      name: Hosted Ubuntu 1604	
+    container: ubuntu_x64_build_container
+    extraSetupParameters: --architecture x64
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks	
+        - netcoreapp3.0  
+        # - netcoreapp2.2
+        # - netcoreapp2.1
+    ${{ if ne(variables['System.TeamProject'], 'public') }}:
+      frameworks: 
+        - netcoreapp3.0

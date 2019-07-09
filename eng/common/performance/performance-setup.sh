@@ -117,8 +117,6 @@ fi
 payload_directory=$source_directory/Payload
 performance_directory=$payload_directory/performance
 workitem_directory=$source_directory/workitem
-common_setup_arguments="--frameworks $framework --queue $queue --build-number $build_number --build-configs $configurations"
-setup_arguments="--repository https://github.com/$repository --branch $branch --get-perf-hash --commit-sha $commit_sha $common_setup_arguments"
 extra_benchmark_dotnet_arguments="--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart --stopOnFirstError true"
 perflab_arguments=
 queue=Ubuntu.1604.Amd64.Open
@@ -138,7 +136,8 @@ if [[ "$internal" == true ]]; then
     fi
 fi
 
-
+common_setup_arguments="--frameworks $framework --queue $queue --build-number $build_number --build-configs $configurations"
+setup_arguments="--repository https://github.com/$repository --branch $branch --get-perf-hash --commit-sha $commit_sha $common_setup_arguments"
 
 if [[ "$run_from_perf_repo" = true ]]; then
     payload_directory=
