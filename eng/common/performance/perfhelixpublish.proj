@@ -11,12 +11,12 @@
 
   <PropertyGroup Condition="'$(AGENT_OS)' != 'Windows_NT' and '$(RunFromPerfRepo)' == 'false'">
     <BaseDirectory>$HELIX_CORRELATION_PAYLOAD</BaseDirectory>
-    <PerformanceDirectory>$BaseDirectory/performance</PerformanceDirectory>
+    <PerformanceDirectory>$(BaseDirectory)/performance</PerformanceDirectory>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(AGENT_OS)' != 'Windows_NT' and '$(RunFromPerfRepo)' == 'true'">
     <BaseDirectory>$HELIX_WORKITEM_PAYLOAD</BaseDirectory>
-    <PerformanceDirectory>$BaseDirectory/performance</PerformanceDirectory>
+    <PerformanceDirectory>$(BaseDirectory)</PerformanceDirectory>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(AGENT_OS)' != 'Windows_NT'">
