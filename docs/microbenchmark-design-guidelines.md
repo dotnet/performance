@@ -1,5 +1,16 @@
 # Microbenchmark Design Guidelines
 
+## General Overview
+
+* Choose a good name because you won't be able to change it after the first results are uploaded to the Reporting System.
+* Move initialization logic to a Setup method. Don't forget to clean up the resources in a corresponding Cleanup method.
+* If your benchmark needs input data, it should be always exactly the same data. Use `ValuesGenerator` to generate the data.
+* Benchmark should have one test case per one code path of the benchmarked code. Not more.
+* Focus on the most common use cases, not edge cases. Performance of error cases is almost never interesting.
+* Make sure the benchmark has no side-effects.
+* Return the result from the benchmark to prevent dead code elimination.
+* Try to avoid adding loops to your benchmark, BenchmarkDotNet is going to invoke the benchmark many times for you instead.
+
 ## Table of Contents
 
 - [Mindset](#Mindset)
@@ -26,7 +37,6 @@
   - [Dead Code Elimination](#Dead-Code-Elimination)
   - [Loops](#Loops)
   - [Method inlining](#Method-Inlining)
-- [Summary](#Summary)
 
 ## Mindset
 
@@ -72,6 +82,8 @@ Key things that you need to remember:
 * BenchmarkDotNet was designed to make accurate nano-benchmarks with repeatable results possible, to achieve that it does many things, including overhead calculation and subtraction (it benchmarks an empty method with the same signature and subtract the average value from results).
 * BenchmarkDotNet removes outliers by default (this repo is configured to remove only the upper outliers)
 * BenchmarkDotNet creates a type which derives from type with benchmarks. So the type with benchmarks must **not** be **sealed** and it can **not** be **static** and it has to be **public**. It also has to be a `class` (no structs support).
+
+**Note:** If you are not sure what invocation or iteration means, please read [this doc](https://benchmarkdotnet.org/articles/guides/how-it-works.html) that explains how BenchmarkDotNet works.
 
 ## Setup
 
@@ -127,14 +139,14 @@ public void SetupReverse()
 public void SetupArray()
 ```
 
-**Note:** If you need to clean up resources after the benchmark run, you should use the corresponding `[GlobalCleanup]` attribute. It's going to be executed only once, after all benchmark iterations.
+**Note:** If you need to clean up resources after the benchmark run (an example of required cleanup would be any files created on the disk by the benchmark process), you should use the corresponding `[GlobalCleanup]` attribute. It's going to be executed only once, after all benchmark iterations.
 
 ### IterationSetup
 
-If your benchmark requires a clean state for every invocation, you need to use the `[IterationSetup]` attribute. Unfortunately, just using the `[IterationSetup]` attribute is not enough to get stable results. You also need to make sure that the benchmark itself performs enough of computations for a single invocation to run longer than 100ms. The closer to 250ms the more stable results you are going to get.
+If your benchmark requires a clean state for every invocation, you need to use the `[IterationSetup]` attribute. Unfortunately, just using the `[IterationSetup]` attribute is not enough to get stable results. You also need to make sure that the benchmark itself performs enough of computations for a single invocation to run longer than 100ms. **If you don't, your benchmark will be entirely invalid.**
 
 ```cs
-[Params(1000 * 1000 * 200)] // allows for stable iteraiton around 200ms
+[Params(1000 * 1000 * 200)] // allows for stable iteration around 200ms
 public int NumberOfBytes { get; set; }
 
 private byte[] _source, _destination;
@@ -157,7 +169,7 @@ public OperationStatus Base64EncodeInPlace() => Base64.EncodeToUtf8InPlace(_dest
 
 If you want to get a better understanding of it, you should read [this blog post](https://aakinshin.net/posts/stopwatch/#pitfalls) about stopwatch and follow the GitHub discussions in this [issue](https://github.com/dotnet/BenchmarkDotNet/issues/730) and [PR](https://github.com/dotnet/BenchmarkDotNet/pull/760).
 
-**Note:** if using `[GlobalSetup]` is enough, you should not be using `[IterationSetup]`.
+<ins>**If using `[GlobalSetup]` is enough, you should NOT be using `[IterationSetup]`**</ins>
 
 ### OperationsPerInvoke
 
@@ -204,6 +216,7 @@ public Span<byte> Slice()
     Span<byte> span = new Span<byte>(_nonEmptyArray); // create it once
 
     // perform OperationsPerInvoke-many operations
+    // without introducing a loop, which would add an extra overhead
     span = span.Slice(1); span = span.Slice(1); span = span.Slice(1); span = span.Slice(1);
     span = span.Slice(1); span = span.Slice(1); span = span.Slice(1); span = span.Slice(1);
     span = span.Slice(1); span = span.Slice(1); span = span.Slice(1); span = span.Slice(1);
@@ -218,6 +231,8 @@ BenchmarkDotNet is going to scale the result by the number provided in `Operatio
 ```
 reportedResult = 1/16*SpanCtor + 1*Slice
 ```
+
+**Note:** `OperationsPerInvoke` should be big enough to amortize the "setup" cost.
 
 ## Test Cases
 
@@ -404,6 +419,8 @@ public DateTime Parse(CultureInfo cultureInfo)
 
 **Note:** If you need to use the argument in the setup method, then instead of using `ArgumentsSource` you should use `ParamsSource`.
 
+**Note:** `[ArgumentsSource]` methods are only called once per execution of the benchmark, and the cached results are used per invocation.
+
 **Note:** the time spent for initializing an argument is not included in the time reported by the harness. It means that you can have a custom complex type with initialization logic in it's ctor and setup the benchmark in that way:
 
 An example from [System.Drawing.Perf_Image_Load](https://github.com/dotnet/performance/blob/d13b517422b40c2c4e0c78934a5e1c4b54420372/src/benchmarks/micro/corefx/System.Drawing/Perf_Image_Load.cs#L71-L85)
@@ -447,7 +464,7 @@ public class ImageTestData
 
 #### Generic benchmarks
 
-BenchmarkDotNet supports generic classes. It's allows for having a dedicated test case for Value and Reference Types.
+BenchmarkDotNet supports generic classes. It allows for having a dedicated test case for Value and Reference Types.
 
 An example from [Activator](https://github.com/dotnet/performance/blob/dabac287ff09d06c756ee316e4dfe28c78698635/src/benchmarks/micro/coreclr/System.Reflection/Activator.cs) benchmarks:
 
@@ -544,14 +561,3 @@ By relying on the BDN mechanism you are going to avoid loop alignment issues. Be
 BenchmarkDotNet prevents from inlining the benchmarked method by wrapping it into a delegate (delegates can not be inlined as of today). The cost of delegate invocation is excluded by a separate run for Overhead calculation.
 
 The benchmark methods don't need to have `[MethodImpl(MethodImplOptions.NoInlining)]` attribute applied.
-
-## Summary
-
-* Choose a good name because you won't be able to change it after the first results are uploaded to the Reporting System.
-* Move initialization logic to a Setup method. Don't forget to clean up the resources in a corresponding Cleanup method.
-* If your benchmark needs input data, it should be always exactly the same data. Use `ValuesGenerator` to generate the data.
-* You should have one test case per one code path. Not more.
-* Focus on the most common use cases, not edge cases.
-* Make sure the benchmark has no side-effects.
-* Return the result from the benchmark to prevent dead code elimination.
-* Try to avoid adding loops to your benchmark, BenchmarkDotNet is going to invoke the benchmark many times for you instead.
