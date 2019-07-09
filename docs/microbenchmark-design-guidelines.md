@@ -37,7 +37,7 @@ Writing Benchmarks is much different than writing Unit Tests. So before you star
 When writing Unit Tests, we ideally want to test all methods and properties of the given type. We also test both the happy and unhappy paths. The result of every Unit Test run is a single value: passed or failed.
 
 Benchmarks are different. First of all, the result of a benchmark run is never a single value. It's a whole distribution, described with values like mean, standard deviation, min, max and so on. To get a meaningful distribution, the benchmark has to be executed many, many times. **This takes a lot of time**. With the current [recommended settings](https://github.com/dotnet/performance/blob/51d8f8483b139bb1edde97f917fa436671693f6f/src/harness/BenchmarkDotNet.Extensions/RecommendedConfig.cs#L17-L20) used in this repository, it takes on average six seconds to run a single benchmark. 
-The public surface of .NET Standard 2.0 API has `36 519` methods. If we had 1 benchmark for every public method, it would take two and a half days to run the benchmarks.
+The public surface of .NET Standard 2.0 API has tens of thousands of methods. If we had 1 benchmark for every public method, it would take two and a half days to run the benchmarks.
 
 This is only one of the reasons why writing Benchmarks is different than writing Unit Tests.
 
@@ -75,7 +75,7 @@ Key things that you need to remember:
 
 ## Setup
 
-Let's write a benchmark that measures the performance of reverting an array of 1 000 integers:
+Let's write a benchmark that measures the performance of reversing an array of 1 000 integers:
 
 ```cs
 [Benchmark]
@@ -97,13 +97,13 @@ And open the produced trace file with [PerfView](https://github.com/Microsoft/pe
 
 ![Regression](img/setup_array_reverse_profiler.png)
 
-As you can see, reversing the array took only `26.6%` of the benchmark execution time!! The rest was spent on executing the array creation logic. What does it mean? It means that the given benchmark is measuring the performance of creating and reversing the array. Not just reversing the array.
+As you can see, reversing the array took only `26.6%` of the benchmark execution time! The rest was spent on executing the array creation logic. What does it mean? It means that the given benchmark is measuring the performance of creating and reversing the array. Not just reversing the array.
 
-This is why **the initialization logic should be always separated from the benchmark**. If possible of course.
+This is why **the initialization logic should be always separated from the benchmark**.
 
 ### GlobalSetup
 
-Public method marked with `[GlobalSetup]` attribute is going to be executed **exactly once**, before running the benchmark for the first time.
+A public method marked with `[GlobalSetup]` attribute is going to be executed **exactly once**, before running the benchmark for the first time.
 
 ```cs
 private int[] _array;
@@ -115,7 +115,7 @@ public void SetupReverse() => _array = Enumerable.Range(0, 1000).ToArray();
 public void Reverse() => Array.Reverse(_array);
 ```
 
-If given `[GlobalSetup]` does not specify the `Target(s)` benchmark name(s), it's executed for every benchmark declared in a given class.
+Any method marked `[GlobalSetup]` which does not specify the `Target(s)` benchmark name(s) is executed for every benchmark declared in a given class.
 
 In case you want to have a class with multiple benchmarks and multiple, dedicated setup methods you need to use `Target` or `Targets` properties of the setup attribute:
 
@@ -511,7 +511,7 @@ In this particular benchmark, the list is growing with every benchmark invocatio
 
 To prevent from [dead code elimination](https://en.wikipedia.org/wiki/Dead_code_elimination) BenchmarkDotNet consumes the result returned from a benchmark and writes it to a `volatile` field ([code](https://github.com/dotnet/BenchmarkDotNet/blob/94863ab4d024eca04d061423e5aad498feff386b/src/BenchmarkDotNet/Engines/Consumer.cs)).
 
-The only thing that you need to remember is to **return the result from the benchmark**. Even if you think that as of today the JIT is not going to eliminate the code.
+The only thing that you need to remember is to **return the result from the benchmark**. This is required practice even if you know that the JIT will not eliminate code in a particular case.
 
 ### Loops
 
