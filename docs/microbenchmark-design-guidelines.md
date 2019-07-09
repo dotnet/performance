@@ -47,7 +47,7 @@ Writing Benchmarks is much different than writing Unit Tests. So before you star
 When writing Unit Tests, we ideally want to test all methods and properties of the given type. We also test both the happy and unhappy paths. The result of every Unit Test run is a single value: passed or failed.
 
 Benchmarks are different. First of all, the result of a benchmark run is never a single value. It's a whole distribution, described with values like mean, standard deviation, min, max and so on. To get a meaningful distribution, the benchmark has to be executed many, many times. **This takes a lot of time**. With the current [recommended settings](https://github.com/dotnet/performance/blob/51d8f8483b139bb1edde97f917fa436671693f6f/src/harness/BenchmarkDotNet.Extensions/RecommendedConfig.cs#L17-L20) used in this repository, it takes on average six seconds to run a single benchmark. 
-The public surface of .NET Standard 2.0 API has tens of thousands of methods. If we had 1 benchmark for every public method, it would take two and a half days to run the benchmarks.
+The public surface of .NET Standard 2.0 API has tens of thousands of methods. If we had 1 benchmark for every public method, it would take two and a half days to run the benchmarks. Not to speak about the time it would take to analyze the results, filter the false positives, etc..
 
 This is only one of the reasons why writing Benchmarks is different than writing Unit Tests.
 
