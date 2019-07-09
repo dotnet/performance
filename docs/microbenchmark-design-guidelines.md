@@ -41,7 +41,7 @@ The public surface of .NET Standard 2.0 API has tens of thousands of methods. If
 
 This is only one of the reasons why writing Benchmarks is different than writing Unit Tests.
 
-The goal of benchmarking is to test the performance of all the methods that are frequently used (hot paths) and should be performant. The focus should be on the most common use cases, not edge cases.
+The goal of benchmarking is to test the performance of all the methods that are frequently used (hot paths) and should be performant. **The focus should be on the most common use cases, not edge cases**.
 
 ### Benchmarks are Immutable
 
@@ -63,11 +63,11 @@ If you have some good reasons for changing the implementation of the benchmark y
 
 ## BenchmarkDotNet
 
-BenchmarkDotNet is the benchmarking harness used in this repository. If you are new to BenchmarkDotNet, you should read [this doc](./benchmarkdotnet.md).
+BenchmarkDotNet is the benchmarking harness used in this repository. If you are new to BenchmarkDotNet, you should read [this introduction to BenchmarkDotNet](./benchmarkdotnet.md).
 
 Key things that you need to remember: 
 
-* BenchmarkDotNet **does not require the user to provide the number of iterations and invocations per iteration**, it implements a smart heuristic based on standard error and runs the benchmark until the results are not stable.
+* BenchmarkDotNet **does not require the user to provide the number of iterations and invocations per iteration**, it implements a smart heuristic based on standard error and runs the benchmark until the results are stable.
 * BenchmarkDotNet runs every benchmark in a separate process, process isolation allows avoiding side-effects. The more memory allocated by given benchmark, the bigger the difference for in-proc vs out-proc execution.
 * BenchmarkDotNet was designed to make accurate nano-benchmarks with repeatable results possible, to achieve that it does many things, including overhead calculation and subtraction (it benchmarks an empty method with the same signature and subtract the average value from results).
 * BenchmarkDotNet removes outliers by default (this repo is configured to remove only the upper outliers)
@@ -191,7 +191,7 @@ public Span<byte> Slice()
 }
 ```
 
-The benchmark is not going to measure the performance of `Slice` operation, but similar to previous example it's going to measure the performance of creating a `Span` from `Array` and the `Slice` operation.
+The benchmark is not going to measure the performance of `Slice` operation, but similar to previous example of reversing an array it's going to measure the performance of creating a `Span` from `Array` and the `Slice` operation.
 
 To solve this problem we can use `OperationsPerInvoke` property of the `[Benchmark]` attribute.
 
@@ -541,7 +541,7 @@ By relying on the BDN mechanism you are going to avoid loop alignment issues. Be
 
 ### Method Inlining
 
-BenchmarkDotNet prevents from inlining the benchmarked method by wrapping it into a delegate (delegates can not be inlined as of today). The cost of delegate invocation is excluded by running separate run for Overhead calculation.
+BenchmarkDotNet prevents from inlining the benchmarked method by wrapping it into a delegate (delegates can not be inlined as of today). The cost of delegate invocation is excluded by a separate run for Overhead calculation.
 
 The benchmark methods don't need to have `[MethodImpl(MethodImplOptions.NoInlining)]` attribute applied.
 
