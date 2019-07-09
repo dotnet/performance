@@ -8,7 +8,7 @@ To run the benchmarks, you need to download dotnet cli or use the python script,
 
 We use BenchmarkDotNet as the benchmarking tool, you can read more about it in [our short summary](../../../docs/benchmarkdotnet.md) (it's recommended). The key thing that you need to remember is that **BenchmarkDotNet runs every benchmark in a dedicated process and stops the benchmarking when a specified level of precision is met**.
 
-To learn more about Microbenchmark Design, please read [this document](../../../docs/microbenchmark-design-guidelines.md).
+To learn more about designing benchmarks, please read [Microbenchmark Design Guidelines](../../../docs/microbenchmark-design-guidelines.md).
 
 ## Quick Start
 
