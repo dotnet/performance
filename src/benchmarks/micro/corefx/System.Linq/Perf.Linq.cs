@@ -129,10 +129,11 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(AnyPredicateArguments))]
         public bool AnyWithPredicate_LastElementMatches(LinqTestData collection) => collection.Collection.Any(x => x >= DefaultSize - 1);
 
+        // .Where.Single has no special treatment, the code execution paths are based on WhereIterators
+        // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Single.cs
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public int WhereSingle_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Where(x => x >= size - 1).Single();
+        [ArgumentsSource(nameof(WhereArguments))]
+        public int WhereSingle_LastElementMatches(LinqTestData collection) => collection.Collection.Where(x => x >= DefaultSize - 1).Single();
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
