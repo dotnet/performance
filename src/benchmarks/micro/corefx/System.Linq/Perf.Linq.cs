@@ -196,20 +196,28 @@ namespace System.Linq.Tests
             source.Cast<int>().Consume(_consumer);
         }
 
-        [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public void OrderBy(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.OrderBy(o => -o), _consumer);
+        public IEnumerable<object> OrderByArguments()
+        {
+            int[] notSortedArray = ValuesGenerator.ArrayOfUniqueValues<int>(100);
+
+            // .OrderBy has no special treatment, but we want to test already sorted collection and not sorted collection
+            // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/OrderBy.cs
+
+            yield return new LinqTestData(notSortedArray.OrderBy(x => x)); // sorted input scenario
+            yield return new LinqTestData(new EnumerableWrapper<int>(notSortedArray));
+        }
 
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public void OrderByDescending(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.OrderByDescending(o => -o), _consumer);
+        [ArgumentsSource(nameof(OrderByArguments))]
+        public void OrderBy(LinqTestData collection) => collection.Collection.OrderBy(o => o).Consume(_consumer);
 
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public void OrderByThenBy(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.OrderBy(o => -o).ThenBy(o => o), _consumer);
+        [ArgumentsSource(nameof(OrderByArguments))]
+        public void OrderByDescending(LinqTestData collection) => collection.Collection.OrderByDescending(o => o).Consume(_consumer);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(OrderByArguments))]
+        public void OrderByThenBy(LinqTestData collection) => collection.Collection.OrderBy(o => o).ThenBy(o => -o).Consume(_consumer);
 
         [Benchmark]
         [Arguments(DefaultSize, DefaulIterationCount)]
