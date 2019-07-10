@@ -238,7 +238,7 @@ namespace System.Linq.Tests
 #if !NETFRAMEWORK
         public IEnumerable<object> TakeLastArguments()
         {
-            // .TakeLast has 3 code paths: List and IEnumerable
+            // .TakeLast has 2 code paths: List and IEnumerable
             // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Take.SpeedOpt.cs
 
             yield return new LinqTestData(new List<int>(_arrayOf100Integers));
@@ -256,14 +256,18 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(IEnumerableArgument))]
         public void SkipHalfTakeHalf(LinqTestData collection) => collection.Collection.Skip(DefaultSize / 2).Take(DefaultSize / 2).Consume(_consumer);
 
-        [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public int[] ToArray(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
+        public IEnumerable<object> ToArrayArguments()
         {
-            IEnumerable<int> source = Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType);
+            // .ToArray has two code paths: ICollection and IEnumerable
+            // https://github.com/dotnet/corefx/blob/a10890f4ffe0fadf090c922578ba0e606ebdd16c/src/Common/src/System/Collections/Generic/EnumerableHelpers.Linq.cs#L93
 
-            return source.ToArray();
+            yield return new LinqTestData(_arrayOf100Integers);
+            yield return new LinqTestData(new EnumerableWrapper<int>(_arrayOf100Integers));
         }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(ToArrayArguments))]
+        public int[] ToArray(LinqTestData collection) => collection.Collection.ToArray();
 
         public IEnumerable<object> SelectToArrayArguments()
         {
