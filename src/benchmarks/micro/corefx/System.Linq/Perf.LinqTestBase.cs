@@ -12,9 +12,32 @@ namespace System.Linq.Tests
     /// </summary>
     public class Perf_LinqTestBase
     {
+        public class LinqTestData
+        {
+            public LinqTestData(IEnumerable<int> collection) => Collection = collection;
+
+            public IEnumerable<int> Collection { get; }
+
+            // the value returned by ToString is used in the text representation of Benchmark ID in our reporting system
+            public override string ToString()
+            {
+                switch (Collection)
+                {
+                    case int[] _:
+                        return "int[]";
+                    case List<int> _:
+                        return "List<int>";
+                    case IList<int> _:
+                        return "IList<int>";
+                    default:
+                        return "IEnumerable<int>";
+                }
+            }
+        }
+
         public class EnumerableWrapper<T> : IEnumerable<T>
         {
-            private T[] _array;
+            private readonly T[] _array;
             public EnumerableWrapper(T[] array) { _array = array; }
 
             public IEnumerator<T> GetEnumerator() { return ((IEnumerable<T>)_array).GetEnumerator(); }
@@ -68,10 +91,10 @@ namespace System.Linq.Tests
             Collections.IEnumerator Collections.IEnumerable.GetEnumerator() { return ((IEnumerable<T>)_array).GetEnumerator(); }
         }
 
-        public class ListWrapper<T> : IList<T>
+        public class IListWrapper<T> : IList<T>
         {
             private T[] _array;
-            public ListWrapper(T[] array) { _array = array; }
+            public IListWrapper(T[] array) { _array = array; }
 
             public int Count { get { return _array.Length; } }
             public bool IsReadOnly { get { return true; } }
@@ -132,7 +155,7 @@ namespace System.Linq.Tests
                 case WrapperType.IReadOnlyList:
                     return new ReadOnlyListWrapper<T>(source);
                 case WrapperType.IList:
-                    return new ListWrapper<T>(source);
+                    return new IListWrapper<T>(source);
             }
 
             return source;

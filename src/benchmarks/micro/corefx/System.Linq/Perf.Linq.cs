@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections;
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
+using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
+using static System.Linq.Tests.Perf_LinqTestBase;
 
 namespace System.Linq.Tests
 {
@@ -16,6 +19,7 @@ namespace System.Linq.Tests
         private const int DefaulIterationCount = 1000;
 
         private readonly Consumer _consumer = new Consumer();
+        private readonly int[] _arrayOf100Integers = Enumerable.Range(0, DefaultSize).ToArray();
         private readonly IEnumerable<int> _range0to10 = Enumerable.Range(0, 10);
         private readonly IEnumerable<int> _tenMillionToZero = Enumerable.Range(0, 10_000_000).Reverse();
 
@@ -51,10 +55,20 @@ namespace System.Linq.Tests
         private readonly ChildClass[] _childClassArrayOfTenElements = Enumerable.Repeat(new ChildClass() { Value = 1, ChildValue = 2 }, 10).ToArray();
         private readonly int[] _intArrayOfTenElements = Enumerable.Repeat(1, 10).ToArray();
 
+        public IEnumerable<object> SelectArguments()
+        {
+            // .Select has 4 code paths: SelectEnumerableIterator, SelectArrayIterator, SelectListIterator, SelectIListIterator
+            // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Select.cs
+
+            yield return new LinqTestData(new EnumerableWrapper<int>(_arrayOf100Integers));
+            yield return new LinqTestData(_arrayOf100Integers);
+            yield return new LinqTestData(new List<int>(_arrayOf100Integers));
+            yield return new LinqTestData(new IListWrapper<int>(_arrayOf100Integers));
+        }
+
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public void Select(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.Select(o => o + 1), _consumer);
+        [ArgumentsSource(nameof(SelectArguments))]
+        public void Select(LinqTestData collection) => collection.Collection.Select(o => o + 1).Consume(_consumer);
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
