@@ -29,6 +29,8 @@ namespace System.Linq.Tests
                         return "List<int>";
                     case IList<int> _:
                         return "IList<int>";
+                    case IOrderedEnumerable<int> _:
+                        return "IOrderedEnumerable<int>";
                     default:
                         return "IEnumerable<int>";
                 }

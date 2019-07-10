@@ -96,10 +96,18 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(WhereArguments))]
         public int WhereFirst_LastElementMatches(LinqTestData collection) => collection.Collection.Where(x => x >= DefaultSize - 1).First();
 
+        public IEnumerable<object> FirstPredicateArguments()
+        {
+            // .First(predicate) has 2 code paths: OrderedEnumerable and IEnumerable
+            // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/First.cs
+
+            yield return new LinqTestData(_arrayOf100Integers.OrderBy(x => x)); // .OrderBy returns IOrderedEnumerable (OrderedEnumerable is internal)
+            yield return new LinqTestData(new EnumerableWrapper<int>(_arrayOf100Integers));
+        }
+
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public int FirstWithPredicate_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).First(x => x >= size - 1);
+        [ArgumentsSource(nameof(FirstPredicateArguments))]
+        public int FirstWithPredicate_LastElementMatches(LinqTestData collection) => collection.Collection.First(x => x >= DefaultSize - 1);
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
