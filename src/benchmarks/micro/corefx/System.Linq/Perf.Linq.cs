@@ -135,9 +135,15 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(WhereArguments))]
         public int WhereSingle_LastElementMatches(LinqTestData collection) => collection.Collection.Where(x => x >= DefaultSize - 1).Single();
 
+        // .Where.SingleOrDefault has no special treatment, the code execution paths are based on WhereIterators
+        // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Single.cs
+        [Benchmark]
+        [ArgumentsSource(nameof(WhereArguments))]
+        public int WhereSingleOrDefault_LastElementMatches(LinqTestData collection) => collection.Collection.Where(x => x >= DefaultSize - 1).SingleOrDefault();
+
         public IEnumerable<object> SinglePredicateArguments()
         {
-            // .Single has no special treatment and it has a single execution path
+            // .Single and .SingleOrDefault have no special treatment and it has a single execution path
             // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Single.cs
             yield return new LinqTestData(new EnumerableWrapper<int>(_arrayOf100Integers));
         }
@@ -147,14 +153,8 @@ namespace System.Linq.Tests
         public int SingleWithPredicate_LastElementMatches(LinqTestData collection) => collection.Collection.Single(x => x >= DefaultSize - 1);
 
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public int WhereSingleOrDefault_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Where(x => x >= size - 1).SingleOrDefault();
-
-        [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public int SingleOrDefaultWithPredicate_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).SingleOrDefault(x => x >= size - 1);
+        [ArgumentsSource(nameof(SinglePredicateArguments))]
+        public int SingleOrDefaultWithPredicate_LastElementMatches(LinqTestData collection) => collection.Collection.SingleOrDefault(x => x >= DefaultSize - 1);
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
