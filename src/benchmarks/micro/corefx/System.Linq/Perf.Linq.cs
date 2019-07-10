@@ -55,6 +55,12 @@ namespace System.Linq.Tests
         private readonly ChildClass[] _childClassArrayOfTenElements = Enumerable.Repeat(new ChildClass() { Value = 1, ChildValue = 2 }, 10).ToArray();
         private readonly int[] _intArrayOfTenElements = Enumerable.Repeat(1, 10).ToArray();
 
+        // used by benchmarks that have no special case per collection type
+        public IEnumerable<object> IEnumerableArgument()
+        {
+            yield return new LinqTestData(new EnumerableWrapper<int>(_arrayOf100Integers));
+        }
+
         public IEnumerable<object> SelectArguments()
         {
             // .Select has 4 code paths: SelectEnumerableIterator, SelectArrayIterator, SelectListIterator, SelectIListIterator
@@ -140,15 +146,10 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(WhereArguments))]
         public bool WhereAny_LastElementMatches(LinqTestData collection) => collection.Collection.Where(x => x >= DefaultSize - 1).Any();
 
-        public IEnumerable<object> AnyPredicateArguments()
-        {
-            // .Any has no special treatment and it has a single execution path
-            // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/AnyAll.cs
-            yield return new LinqTestData(new EnumerableWrapper<int>(_arrayOf100Integers));
-        }
-
+        // .Any has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/AnyAll.cs
         [Benchmark]
-        [ArgumentsSource(nameof(AnyPredicateArguments))]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
         public bool AnyWithPredicate_LastElementMatches(LinqTestData collection) => collection.Collection.Any(x => x >= DefaultSize - 1);
 
         // .Where.Single has no special treatment, the code execution paths are based on WhereIterators
@@ -163,19 +164,16 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(WhereArguments))]
         public int WhereSingleOrDefault_LastElementMatches(LinqTestData collection) => collection.Collection.Where(x => x >= DefaultSize - 1).SingleOrDefault();
 
-        public IEnumerable<object> SinglePredicateArguments()
-        {
-            // .Single and .SingleOrDefault have no special treatment and it has a single execution path
-            // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Single.cs
-            yield return new LinqTestData(new EnumerableWrapper<int>(_arrayOf100Integers));
-        }
-
+        // .Single has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Single.cs
         [Benchmark]
-        [ArgumentsSource(nameof(SinglePredicateArguments))]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
         public int SingleWithPredicate_LastElementMatches(LinqTestData collection) => collection.Collection.Single(x => x >= DefaultSize - 1);
 
+        // .Single has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Single.cs
         [Benchmark]
-        [ArgumentsSource(nameof(SinglePredicateArguments))]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
         public int SingleOrDefaultWithPredicate_LastElementMatches(LinqTestData collection) => collection.Collection.SingleOrDefault(x => x >= DefaultSize - 1);
 
         [Benchmark]
