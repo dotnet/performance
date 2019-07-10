@@ -112,10 +112,11 @@ namespace System.Linq.Tests
         // FirstOrDefault runs the same code as First, except that it does not throw. I don't think that benchmarking it adds any value so I've removed it.
         // https://github.com/dotnet/corefx/blob/aef8ed681c53f0e04733878e240c072036dd6679/src/System.Linq/src/System/Linq/First.cs#L11-L37
 
+        // .Where.Any has no special treatment, the code execution paths are based on WhereIterators
+        // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/AnyAll.cs
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public bool WhereAny_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Where(x => x >= size - 1).Any();
+        [ArgumentsSource(nameof(WhereArguments))]
+        public bool WhereAny_LastElementMatches(LinqTestData collection) => collection.Collection.Where(x => x >= DefaultSize - 1).Any();
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
