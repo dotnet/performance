@@ -231,15 +231,17 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(IEnumerableArgument))]
         public void Reverse(LinqTestData collection) => collection.Collection.Reverse().Consume(_consumer);
 
+        // .Skip has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Skip.cs
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public void Skip(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.Skip(1), _consumer);
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public void Skip_One(LinqTestData collection) => collection.Collection.Skip(1).Consume(_consumer);
 
+        // .Take has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Take.cs
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public void Take(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.Take(size - 1), _consumer);
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public void Take_All(LinqTestData collection) => collection.Collection.Take(DefaultSize).Consume(_consumer);
 
 #if !NETFRAMEWORK
         [Benchmark]
