@@ -218,14 +218,12 @@ namespace System.Linq.Tests
         public void OrderByThenBy(LinqTestData collection) => collection.Collection.OrderBy(o => o).ThenBy(o => -o).Consume(_consumer);
 
         [Benchmark]
-        [Arguments(DefaultSize, DefaulIterationCount)]
-        public void Range(int size, int iteration)
-            => Enumerable.Range(0, size).Consume(_consumer);
+        [Arguments(DefaultSize)]
+        public void Range(int size) => Enumerable.Range(0, size).Consume(_consumer);
 
         [Benchmark]
-        [Arguments(DefaultSize, DefaulIterationCount)]
-        public void Repeat(int size, int iteration)
-            => Enumerable.Repeat(0, size).Consume(_consumer);
+        [Arguments(DefaultSize)]
+        public void Repeat(int size) => Enumerable.Repeat(0, size).Consume(_consumer);
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
