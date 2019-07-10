@@ -52,7 +52,6 @@ namespace System.Linq.Tests
             { DefaultSize, Enumerable.Range(0, DefaultSize).ToArray() }
         };
 
-        private readonly ChildClass[] _childClassArrayOfTenElements = Enumerable.Repeat(new ChildClass() { Value = 1, ChildValue = 2 }, 10).ToArray();
         private readonly int[] _intArrayOfTenElements = Enumerable.Repeat(1, 10).ToArray();
 
         // used by benchmarks that have no special case per collection type
@@ -176,23 +175,15 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(IEnumerableArgument))]
         public int SingleOrDefaultWithPredicate_LastElementMatches(LinqTestData collection) => collection.Collection.SingleOrDefault(x => x >= DefaultSize - 1);
 
-        [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))] // for some reason the size and iteration arguments are ignored for this benchmark
-        public void Cast_ToBaseClass(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-        {
-            IEnumerable<ChildClass> source = Perf_LinqTestBase.Wrap(_childClassArrayOfTenElements, wrapType);
+        private readonly ChildClass[] _childClassArrayOfHundredElements = Enumerable.Repeat(new ChildClass() { Value = 1, ChildValue = 2 }, 100).ToArray();
 
-            source.Cast<BaseClass>().Consume(_consumer);
-        }
+        // Cast has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Cast.cs
+        [Benchmark]
+        public void Cast_ToBaseClass() => _childClassArrayOfHundredElements.Cast<BaseClass>().Consume(_consumer);
 
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))] // for some reason the size and iteration arguments are ignored for this benchmark
-        public void Cast_SameType(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-        {
-            IEnumerable<int> source = Perf_LinqTestBase.Wrap(_intArrayOfTenElements, wrapType);
-
-            source.Cast<int>().Consume(_consumer);
-        }
+        public void Cast_SameType() => _childClassArrayOfHundredElements.Cast<ChildClass>().Consume(_consumer);
 
         public IEnumerable<object> OrderByArguments()
         {
