@@ -96,6 +96,12 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(WhereArguments))]
         public int WhereFirst_LastElementMatches(LinqTestData collection) => collection.Collection.Where(x => x >= DefaultSize - 1).First();
 
+        // .Where.Last has no special treatment, the code execution paths are based on WhereIterators
+        // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Last.cs
+        [Benchmark]
+        [ArgumentsSource(nameof(WhereArguments))]
+        public int WhereLast_LastElementMatches(LinqTestData collection) => collection.Collection.Where(x => x >= DefaultSize - 1).Last();
+
         public IEnumerable<object> FirstPredicateArguments()
         {
             // .First(predicate) has 2 code paths: OrderedEnumerable and IEnumerable
@@ -109,8 +115,24 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(FirstPredicateArguments))]
         public int FirstWithPredicate_LastElementMatches(LinqTestData collection) => collection.Collection.First(x => x >= DefaultSize - 1);
 
+        public IEnumerable<object> LastPredicateArguments()
+        {
+            // .Last(predicate) has 3 code paths: OrderedEnumerable, IList and IEnumerable
+            // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Last.cs
+
+            yield return new LinqTestData(_arrayOf100Integers.OrderBy(x => x)); // .OrderBy returns IOrderedEnumerable (OrderedEnumerable is internal)
+            yield return new LinqTestData(new IListWrapper<int>(_arrayOf100Integers));
+            yield return new LinqTestData(new EnumerableWrapper<int>(_arrayOf100Integers));
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(LastPredicateArguments))]
+        public int LastWithPredicate_FirstElementMatches(LinqTestData collection) => collection.Collection.Last(x => x >= 0);
+
         // FirstOrDefault runs the same code as First, except that it does not throw. I don't think that benchmarking it adds any value so I've removed it.
         // https://github.com/dotnet/corefx/blob/aef8ed681c53f0e04733878e240c072036dd6679/src/System.Linq/src/System/Linq/First.cs#L11-L37
+        // The same goes for LastOrDefault
+        // https://github.com/dotnet/corefx/blob/aef8ed681c53f0e04733878e240c072036dd6679/src/System.Linq/src/System/Linq/Last.cs#L11-L37
 
         // .Where.Any has no special treatment, the code execution paths are based on WhereIterators
         // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/AnyAll.cs
@@ -155,26 +177,6 @@ namespace System.Linq.Tests
         [Benchmark]
         [ArgumentsSource(nameof(SinglePredicateArguments))]
         public int SingleOrDefaultWithPredicate_LastElementMatches(LinqTestData collection) => collection.Collection.SingleOrDefault(x => x >= DefaultSize - 1);
-
-        [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public int WhereLast(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Where(x => x % 2 == 0).Last();
-
-        [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public int LastWithPredicate(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Last(x => x % 2 == 0);
-
-        [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public int WhereLastOrDefault(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Where(x => x % 2 == 0).LastOrDefault();
-
-        [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public int LastOrDefaultWithPredicate(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).LastOrDefault(x => x % 2 == 0);
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))] // for some reason the size and iteration arguments are ignored for this benchmark
