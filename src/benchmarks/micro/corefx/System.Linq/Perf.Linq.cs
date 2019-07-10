@@ -90,7 +90,7 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(WhereArguments))]
         public void WhereSelect(LinqTestData collection) => collection.Collection.Where(o => o >= 0).Select(o => o + 1).Consume(_consumer);
 
-        // .Where.First has no special treatment, the code execution paths are base on WhereIterator
+        // .Where.First has no special treatment, the code execution paths are based on WhereIterators
         // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/First.cs
         [Benchmark]
         [ArgumentsSource(nameof(WhereArguments))]
@@ -118,10 +118,16 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(WhereArguments))]
         public bool WhereAny_LastElementMatches(LinqTestData collection) => collection.Collection.Where(x => x >= DefaultSize - 1).Any();
 
+        public IEnumerable<object> AnyPredicateArguments()
+        {
+            // .Any has no special treatment and it has a single execution path
+            // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/AnyAll.cs
+            yield return new LinqTestData(new EnumerableWrapper<int>(_arrayOf100Integers));
+        }
+
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public bool AnyWithPredicate_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Any(x => x >= size - 1);
+        [ArgumentsSource(nameof(AnyPredicateArguments))]
+        public bool AnyWithPredicate_LastElementMatches(LinqTestData collection) => collection.Collection.Any(x => x >= DefaultSize - 1);
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
