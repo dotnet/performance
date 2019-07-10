@@ -14,7 +14,7 @@ namespace System.Linq.Tests
     {
         private readonly Consumer _consumer = new Consumer();
 
-        // used by benchmarks that have no special case per collection type
+        // used by benchmarks that have no special handling per collection type
         public IEnumerable<object> IEnumerableArgument()
         {
             yield return LinqTestData.IEnumerable;
@@ -110,6 +110,12 @@ namespace System.Linq.Tests
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
         public bool AnyWithPredicate_LastElementMatches(LinqTestData input) => input.Collection.Any(i => i >= LinqTestData.Size - 1);
+
+        // All() has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/AnyAll.cs
+        [Benchmark]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public bool All_AllElementsMatch(LinqTestData input) => input.Collection.All(i => i >= 0);
 
         // Where().Single() has no special treatment, the code execution paths are based on WhereIterators
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Single.cs
@@ -295,5 +301,148 @@ namespace System.Linq.Tests
             }
             result.Consume(_consumer);
         }
+
+        // Sum() has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Sum.cs
+        [Benchmark]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public int Sum(LinqTestData input) => input.Collection.Sum();
+
+        // Min() has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Min.cs
+        [Benchmark]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public int Min(LinqTestData input) => input.Collection.Min();
+
+        // Max() has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Max.cs
+        [Benchmark]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public int Max(LinqTestData input) => input.Collection.Max();
+
+        // Average() has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Average.cs
+        [Benchmark]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public double Average(LinqTestData input) => input.Collection.Average();
+
+        public IEnumerable<object> CountArguments()
+        {
+            // Count() has 2 code paths: ICollection and IEnumerable
+            // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Count.cs
+
+            yield return LinqTestData.IEnumerable;
+            yield return LinqTestData.ICollection;
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(CountArguments))]
+        public int Count(LinqTestData input) => input.Collection.Count();
+
+        // Aggregate(func) has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Aggregate.cs
+        [Benchmark]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public double Aggregate(LinqTestData input) => input.Collection.Aggregate((x, y) => x + y);
+
+        // Aggregate(seed, func) has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Aggregate.cs
+        [Benchmark]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public double Aggregate_Seed(LinqTestData input) => input.Collection.Aggregate(0, (x, y) => x + y);
+
+        // Distinct() has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Distinct.cs
+        [Benchmark]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public void Distinct(LinqTestData input) => input.Collection.Distinct().Consume(_consumer);
+
+        public IEnumerable<object> ElementAtArguments()
+        {
+            // Count() has 2 code paths: IList and IEnumerable
+            // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/ElementAt.cs
+
+            yield return LinqTestData.IEnumerable;
+            yield return LinqTestData.IList;
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(ElementAtArguments))]
+        public int ElementAt(LinqTestData input) => input.Collection.ElementAt(LinqTestData.Size / 2);
+
+        // GroupBy(func) has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Grouping.cs
+        [Benchmark]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public void GroupBy(LinqTestData input) => input.Collection.GroupBy(x => x % 10).Consume(_consumer);
+
+        // Zip(func) has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Zip.cs
+        [Benchmark]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public void Zip(LinqTestData input) => input.Collection.Zip(input.Collection, (x, y) => x + y).Consume(_consumer);
+
+        // Intersect() has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Intersect.cs
+        [Benchmark]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public void Intersect(LinqTestData input) => input.Collection.Intersect(input.Collection).Consume(_consumer);
+
+        // Except() has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Except.cs
+        [Benchmark]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public void Except(LinqTestData input) => input.Collection.Except(input.Collection).Consume(_consumer);
+
+#if NETCOREAPP3_0 // API Available in .NET Core 3.0+
+        // Append() has two execution paths: AppendPrependIterator (a result of another Append or Prepend) and IEnumerable, this benchmark tests both
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/AppendPrepend.cs
+        [Benchmark]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public void Append(LinqTestData input)
+        {
+            IEnumerable<int> result = Enumerable.Empty<int>();
+            foreach (int item in input.Collection)
+            {
+                result = result.Append(item);
+            }
+            result.Consume(_consumer);
+        }
+
+        // Prepend()has two execution paths: AppendPrependIterator (a result of another Append or Prepend) and IEnumerable, this benchmark tests both
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/AppendPrepend.cs
+        [Benchmark]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public void Prepend(LinqTestData input)
+        {
+            IEnumerable<int> result = Enumerable.Empty<int>();
+            foreach (int item in input.Collection)
+            {
+                result = result.Prepend(item);
+            }
+            result.Consume(_consumer);
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public void AppendPrepend(LinqTestData input)
+        {
+            IEnumerable<int> result = Enumerable.Empty<int>();
+            int index = 0;
+            foreach (int item in input.Collection)
+            {
+                if (index % 2 == 0)
+                {
+                    result = result.Append(item);
+                }
+                else
+                {
+                    result = result.Prepend(item);
+                }
+                index++;
+            }
+            result.Consume(_consumer);
+        }
+#endif
     }
 }
