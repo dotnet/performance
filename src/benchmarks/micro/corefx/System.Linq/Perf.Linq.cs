@@ -299,14 +299,10 @@ namespace System.Linq.Tests
             return source.ToList();
         }
 
+        // // .Select.ToList has same 5 code paths as Select.ToArray
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public List<int> SelectToList(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-        {
-            IEnumerable<int> source = Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType);
-
-            return source.Select(i => i).ToList();
-        }
+        [ArgumentsSource(nameof(SelectToArrayArguments))]
+        public List<int> SelectToList(LinqTestData collection) => collection.Collection.Select(o => o + 1).ToList();
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
