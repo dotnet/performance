@@ -21,6 +21,7 @@ namespace System.Linq.Tests
         private readonly Consumer _consumer = new Consumer();
         private readonly int[] _arrayOf100Integers = Enumerable.Range(0, DefaultSize).ToArray();
         private readonly IEnumerable<int> _range0to10 = Enumerable.Range(0, 10);
+
         private readonly IEnumerable<int> _tenMillionToZero = Enumerable.Range(0, 10_000_000).Reverse();
 
         public static IEnumerable<object[]> IterationSizeWrapperData()
@@ -322,14 +323,14 @@ namespace System.Linq.Tests
         }
 
         [Benchmark]
-        public int Concat()
+        public void Concat()
         {
             IEnumerable<int> result = _range0to10;
             for (int i = 0; i < 1000; i++)
             {
                 result = result.Concat(_range0to10);
             }
-            return result.Sum();
+            result.Consume(_consumer);
         }
     }
 }
