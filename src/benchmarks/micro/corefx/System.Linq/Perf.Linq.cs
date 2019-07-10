@@ -249,10 +249,11 @@ namespace System.Linq.Tests
         public void TakeLastHalf(LinqTestData collection) => collection.Collection.TakeLast(DefaultSize / 2).Consume(_consumer);
 #endif
 
+        // .Skip has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Skip.cs
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public void SkipTake(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.Skip(1).Take(size - 2), _consumer);
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public void SkipHalfTakeHalf(LinqTestData collection) => collection.Collection.Skip(DefaultSize / 2).Take(DefaultSize / 2).Consume(_consumer);
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
