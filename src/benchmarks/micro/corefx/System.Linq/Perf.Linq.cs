@@ -297,14 +297,19 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(SelectToArrayArguments))]
         public List<int> SelectToList(LinqTestData collection) => collection.Collection.Select(o => o + 1).ToList();
 
+        public IEnumerable<object> ToDictionaryArguments()
+        {
+            // ToDictionary has 3 code paths: Array, List and IEnumerable
+            // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/ToCollection.cs#L36
+
+            yield return new LinqTestData(new EnumerableWrapper<int>(_arrayOf100Integers));
+            yield return new LinqTestData(_arrayOf100Integers);
+            yield return new LinqTestData(new List<int>(_arrayOf100Integers));
+        }
+
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public Dictionary<int, int> ToDictionary(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-        {
-            IEnumerable<int> source = Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType);
-
-            return source.ToDictionary(key => key);
-        }
+        public Dictionary<int, int> ToDictionary(LinqTestData collection) => collection.Collection.ToDictionary(key => key);
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
