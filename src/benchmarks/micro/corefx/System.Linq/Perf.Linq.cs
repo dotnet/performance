@@ -84,10 +84,11 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(WhereArguments))]
         public void Where(LinqTestData collection) => collection.Collection.Where(o => o >= 0).Consume(_consumer);
 
+        // .Where.Select has 3 code paths: WhereSelectEnumerableIterator, WhereSelectArrayIterator, WhereSelectListIterator, exactly as .Where
+        // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Where.cs
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public void WhereSelect(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.Where(o => o >= 0).Select(o => o + 1), _consumer);
+        [ArgumentsSource(nameof(WhereArguments))]
+        public void WhereSelect(LinqTestData collection) => collection.Collection.Where(o => o >= 0).Select(o => o + 1).Consume(_consumer);
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
