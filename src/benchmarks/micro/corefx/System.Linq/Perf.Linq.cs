@@ -109,15 +109,8 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(FirstPredicateArguments))]
         public int FirstWithPredicate_LastElementMatches(LinqTestData collection) => collection.Collection.First(x => x >= DefaultSize - 1);
 
-        [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public int WhereFirstOrDefault_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).Where(x => x >= size - 1).FirstOrDefault();
-
-        [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public int FirstOrDefaultWithPredicate_LastElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType).FirstOrDefault(x => x >= size - 1);
+        // FirstOrDefault runs the same code as First, except that it does not throw. I don't think that benchmarking it adds any value so I've removed it.
+        // https://github.com/dotnet/corefx/blob/aef8ed681c53f0e04733878e240c072036dd6679/src/System.Linq/src/System/Linq/First.cs#L11-L37
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
