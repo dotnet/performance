@@ -170,9 +170,15 @@ def __main(args: list) -> int:
     target_framework_monikers = micro_benchmarks \
         .FrameworkAction \
         .get_target_framework_monikers(args.frameworks)
+
     # Acquire necessary tools (dotnet, and BenchView)
+    # For arm64 runs, download the x64 version so we can get the information we need, but set all variables
+    # as if we were running normally. This is a workaround due to the fact that arm64 binaries cannot run
+    # in the cross containers, so we are running the ci setup script in a normal ubuntu container
+    architecture = 'x64' if args.architecture == 'arm64' else args.architecture
+
     init_tools(
-        architecture=args.architecture,
+        architecture=architecture,
         dotnet_versions=args.dotnet_versions,
         target_framework_monikers=target_framework_monikers,
         verbose=verbose
@@ -235,7 +241,7 @@ def __main(args: list) -> int:
     # On non-windows platforms, delete dotnet, so that we don't have to deal with chmoding it on the helix machines
     # This is only necessary for netcoreapp3.0
     if sys.platform != 'win32' and is_netcoreapp_30:
-        dotnet.remove_dotnet(args.architecture)
+        dotnet.remove_dotnet(architecture)
 
 
 if __name__ == "__main__":
