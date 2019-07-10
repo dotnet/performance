@@ -285,16 +285,14 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(SelectToArrayArguments))]
         public int[] SelectToArray(LinqTestData collection) => collection.Collection.Select(o => o + 1).ToArray();
 
+        // ToList has same 2 code paths as ToArray
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/ToCollection.cs#L30
+        // https://github.com/dotnet/coreclr/blob/d61a380bbfde580986f416d8bf3e687104cd5701/src/System.Private.CoreLib/shared/System/Collections/Generic/List.cs#L61
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public List<int> ToList(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-        {
-            IEnumerable<int> source = Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType);
+        [ArgumentsSource(nameof(ToArrayArguments))]
+        public List<int> ToList(LinqTestData collection) => collection.Collection.ToList();
 
-            return source.ToList();
-        }
-
-        // // .Select.ToList has same 5 code paths as Select.ToArray
+        // Select.ToList has same 5 code paths as Select.ToArray
         [Benchmark]
         [ArgumentsSource(nameof(SelectToArrayArguments))]
         public List<int> SelectToList(LinqTestData collection) => collection.Collection.Select(o => o + 1).ToList();
