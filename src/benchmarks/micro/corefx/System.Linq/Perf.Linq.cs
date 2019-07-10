@@ -86,11 +86,6 @@ namespace System.Linq.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public void WhereWhere(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.Where(o => o >= 0).Where(o => o >= -1), _consumer);
-
-        [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
         public void WhereSelect(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
             => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.Where(o => o >= 0).Select(o => o + 1), _consumer);
 
