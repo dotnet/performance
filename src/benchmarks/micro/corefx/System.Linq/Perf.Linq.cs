@@ -311,23 +311,18 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
         public Dictionary<int, int> ToDictionary(LinqTestData collection) => collection.Collection.ToDictionary(key => key);
 
-        [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public bool Contains_ElementNotFound(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
+        public IEnumerable<object> ContainsArguments()
         {
-            IEnumerable<int> source = Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType);
+            // Contains has 2 code paths: ICollection and IEnumerable
+            // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Contains.cs
 
-            return source.Contains(size + 1);
+            yield return new LinqTestData(new EnumerableWrapper<int>(_arrayOf100Integers));
+            yield return new LinqTestData(_arrayOf100Integers);
         }
 
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public bool Contains_FirstElementMatches(int size, int iterationCount, Perf_LinqTestBase.WrapperType wrapType)
-        {
-            IEnumerable<int> source = Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType);
-
-            return source.Contains(0);
-        }
+        [ArgumentsSource(nameof(ContainsArguments))]
+        public bool Contains_ElementNotFound(LinqTestData collection) => collection.Collection.Contains(DefaultSize + 1);
 
         [Benchmark]
         public void Concat()
