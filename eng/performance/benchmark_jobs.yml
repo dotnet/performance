@@ -112,22 +112,20 @@ jobs:
         - ${{ if eq(parameters.osName, 'windows') }}:
           - script: (robocopy $(Build.SourcesDirectory) $(Build.SourcesDirectory)\notLocked /E /XD $(Build.SourcesDirectory)\notLocked $(Build.SourcesDirectory)\artifacts $(Build.SourcesDirectory)\.git) ^& IF %ERRORLEVEL% LEQ 1 exit 0
             displayName: Workaround to avoid locked file # https://github.com/dotnet/arcade/issues/2125
-
-        - ${{ if ne(parameters.architecture, 'arm64') }}:
-          - template: /eng/performance/send-to-helix.yml
-            parameters:
-              HelixSource: '$(HelixSourcePrefix)/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
-              HelixType: 'test/performance_$(_BuildConfig)/'
-              HelixAccessToken: $(HelixApiAccessToken)
-              HelixTargetQueues: ${{ parameters.queue }}
-              HelixPreCommands: $(HelixPreCommand)
-              Creator: $(Creator)
-              Architecture: ${{ parameters.architecture }}
-              TargetCsproj: ${{ parameters.csproj }}
-              WorkItemTimeout: 4:00 # 4 hours
-              Python: $(Python)
-              ${{ if eq(parameters.osName, 'windows') }}:
-                WorkItemDirectory: '$(Build.SourcesDirectory)\docs' # WorkItemDirectory can not be empty, so we send it some docs to keep it happy
-                CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\notLocked' # it gets checked out to a folder with shorter path than WorkItemDirectory so we can avoid file name too long exceptions
-              ${{ if ne(parameters.osName, 'windows') }}:
-                WorkItemDirectory: '$(Build.SourcesDirectory)'
+        - template: /eng/performance/send-to-helix.yml
+          parameters:
+            HelixSource: '$(HelixSourcePrefix)/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
+            HelixType: 'test/performance_$(_BuildConfig)/'
+            HelixAccessToken: $(HelixApiAccessToken)
+            HelixTargetQueues: ${{ parameters.queue }}
+            HelixPreCommands: $(HelixPreCommand)
+            Creator: $(Creator)
+            Architecture: ${{ parameters.architecture }}
+            TargetCsproj: ${{ parameters.csproj }}
+            WorkItemTimeout: 4:00 # 4 hours
+            Python: $(Python)
+            ${{ if eq(parameters.osName, 'windows') }}:
+              WorkItemDirectory: '$(Build.SourcesDirectory)\docs' # WorkItemDirectory can not be empty, so we send it some docs to keep it happy
+              CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\notLocked' # it gets checked out to a folder with shorter path than WorkItemDirectory so we can avoid file name too long exceptions
+            ${{ if ne(parameters.osName, 'windows') }}:
+              WorkItemDirectory: '$(Build.SourcesDirectory)'
