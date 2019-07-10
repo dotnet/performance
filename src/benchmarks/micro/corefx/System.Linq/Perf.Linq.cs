@@ -225,10 +225,11 @@ namespace System.Linq.Tests
         [Arguments(DefaultSize)]
         public void Repeat(int size) => Enumerable.Repeat(0, size).Consume(_consumer);
 
+        // .Reverse has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Reverse.cs
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public void Reverse(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.Reverse(), _consumer);
+        [ArgumentsSource(nameof(IEnumerableArgument))]
+        public void Reverse(LinqTestData collection) => collection.Collection.Reverse().Consume(_consumer);
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
