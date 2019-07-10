@@ -241,23 +241,21 @@ namespace System.Linq.Tests
         // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Take.cs
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
-        public void Take_All(LinqTestData collection) => collection.Collection.Take(DefaultSize).Consume(_consumer);
+        public void Take_All(LinqTestData collection) => collection.Collection.Take(DefaultSize - 1).Consume(_consumer);
 
 #if !NETFRAMEWORK
-        [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeReducedWrapperData))]
-        public void TakeLastOne(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.TakeLast(1), _consumer);
+        public IEnumerable<object> TakeLastArguments()
+        {
+            // .TakeLast has 3 code paths: List and IEnumerable
+            // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Take.SpeedOpt.cs
+
+            yield return new LinqTestData(new List<int>(_arrayOf100Integers));
+            yield return new LinqTestData(new EnumerableWrapper<int>(_arrayOf100Integers));
+        }
 
         [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeReducedWrapperData))]
-        public void TakeLastHalf(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.TakeLast(size / 2), _consumer);
-
-        [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeReducedWrapperData))]
-        public void TakeLastFull(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.TakeLast(size - 1), _consumer);
+        [ArgumentsSource(nameof(TakeLastArguments))]
+        public void TakeLastHalf(LinqTestData collection) => collection.Collection.TakeLast(DefaultSize / 2).Consume(_consumer);
 #endif
 
         [Benchmark]
