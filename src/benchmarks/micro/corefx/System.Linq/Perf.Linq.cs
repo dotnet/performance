@@ -70,10 +70,6 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(SelectArguments))]
         public void Select(LinqTestData collection) => collection.Collection.Select(o => o + 1).Consume(_consumer);
 
-        [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public void SelectSelect(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
-            => Perf_LinqTestBase.Measure(_sizeToPreallocatedArray[size], wrapType, col => col.Select(o => o + 1).Select(o => o - 1), _consumer);
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
