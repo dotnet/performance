@@ -274,14 +274,21 @@ namespace System.Linq.Tests
             return source.ToArray();
         }
 
-        [Benchmark]
-        [ArgumentsSource(nameof(IterationSizeWrapperData))]
-        public int[] SelectToArray(int size, int iteration, Perf_LinqTestBase.WrapperType wrapType)
+        public IEnumerable<object> SelectToArrayArguments()
         {
-            IEnumerable<int> source = Perf_LinqTestBase.Wrap(_sizeToPreallocatedArray[size], wrapType);
+            // .Select.ToArray has 5 code paths: SelectEnumerableIterator.ToArray, SelectArrayIterator.ToArray, SelectRangeIterator.ToArray, SelectListIterator.ToArray, SelectIListIterator.ToArray
+            // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/Select.SpeedOpt.cs
 
-            return source.Select(i => i).ToArray();
+            yield return new LinqTestData(new EnumerableWrapper<int>(_arrayOf100Integers));
+            yield return new LinqTestData(_arrayOf100Integers);
+            yield return new LinqTestData(Enumerable.Range(0, DefaultSize));
+            yield return new LinqTestData(new List<int>(_arrayOf100Integers));
+            yield return new LinqTestData(new IListWrapper<int>(_arrayOf100Integers));
         }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(SelectToArrayArguments))]
+        public int[] SelectToArray(LinqTestData collection) => collection.Collection.Select(o => o + 1).ToArray();
 
         [Benchmark]
         [ArgumentsSource(nameof(IterationSizeWrapperData))]
