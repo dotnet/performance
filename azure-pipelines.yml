@@ -111,8 +111,8 @@ jobs:
 # Ubuntu 1804 x64 ML.NET benchmarks
 - template: /eng/common/templates/job/performance.yml	
   parameters:	
-    jobName: ubuntu_1804_x64_micro
-    displayName: Ubuntu 1804 x64 micro
+    jobName: ubuntu_1804_x64_mldotnet
+    displayName: Ubuntu 1804 x64 mldotnet
     pool:
       name: Hosted Ubuntu 1604	
     container: ubuntu_x64_build_container
@@ -123,8 +123,8 @@ jobs:
 # Windows x64 Roslyn benchmarks
 - template: /eng/common/templates/job/performance.yml	
   parameters:	
-    jobName: windows_10_x64_mldotnet
-    displayName: Windows 10 x64 mldotnet
+    jobName: windows_10_x64_roslyn
+    displayName: Windows 10 x64 roslyn
     extraSetupParameters: -Architecture x64 -Csproj src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj -Kind roslyn -RunCategories roslyn
     pool: 
       name: Hosted VS2017
@@ -134,8 +134,8 @@ jobs:
 # Ubuntu 1804 x64 Roslyn benchmarks
 - template: /eng/common/templates/job/performance.yml	
   parameters:	
-    jobName: ubuntu_1804_x64_micro
-    displayName: Ubuntu 1804 x64 micro
+    jobName: ubuntu_1804_x64_roslyn
+    displayName: Ubuntu 1804 x64 roslyn
     pool:
       name: Hosted Ubuntu 1604	
     container: ubuntu_x64_build_container
