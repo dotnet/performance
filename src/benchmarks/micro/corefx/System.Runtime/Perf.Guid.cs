@@ -12,10 +12,16 @@ namespace System.Tests
     {
         const string guidStr = "a8a110d5-fc49-43c5-bf46-802db8f843ff";
 
+        private readonly Guid _guid = new Guid(guidStr);
+        private readonly Guid _same = new Guid(guidStr);
+
         [Benchmark]
         public Guid NewGuid() => Guid.NewGuid();
 
         [Benchmark]
         public Guid ctor_str() => new Guid(guidStr);
+
+        [Benchmark]
+        public bool EqualsSame() => _guid.Equals(_same);
     }
 }
