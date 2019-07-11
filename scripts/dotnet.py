@@ -545,7 +545,12 @@ def install(
                 get_repo_root_path()
             )
 
-    if channels:
+    # Only check channels if versions are not supplied.
+    # When we supply a version, but still pull down with -Channel, we will use
+    # whichever sdk is newer. So if we are trying to check an older version,
+    # or if there is a new version between when we start a run and when we actually
+    # run, we will be testing the "wrong" version, ie, not the version we specified.
+    if (not versions) and channels:
         for channel in channels:
             cmdline_args = common_cmdline_args + ['-Channel', channel]
             RunCommand(cmdline_args, verbose=verbose).run(
