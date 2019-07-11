@@ -60,6 +60,9 @@
     <None Update="corefx\System.Text.RegularExpressions\content\200_000.in">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="support\Directory.build.props" Link="\%(Filename)%(Extension)" Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework'">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework'">
