@@ -34,6 +34,7 @@ from performance.logger import setup_loggers
 import benchview
 import dotnet
 import micro_benchmarks
+import upload
 from azcopy import AzCopy
 
 
@@ -256,9 +257,19 @@ def __main(args: list) -> int:
 
         benchview.run_scripts(args, verbose, BENCHMARKS_CSPROJ)
 
-        if args.upload_to_perflab_container: 
-            AzCopy.upload_results('', args.bdn_artifacts, verbose=verbose)
+        if args.upload_to_perflab_container:
+            if args.architecture == 'arm64':
+                globpath = os.path.join(
+                    get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
+                    '**',
+                    '*perf-lab-report.json')
+
+                upload.upload(globpath, 'results', 'PERFLAB_UPLOAD_TOKEN', 'pvscmdupload.blob.core.windows.net')
+            else: 
+                AzCopy.upload_results('', args.bdn_artifacts, verbose=verbose)
         
+        
+
 
         # TODO: Archive artifacts.
 

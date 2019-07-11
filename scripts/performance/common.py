@@ -87,6 +87,28 @@ def get_artifacts_directory() -> str:
     '''
     return os.path.join(get_repo_root_path(), 'artifacts')
 
+def rename_upload_files(files) -> None:
+    for file in files:
+        directory_name = os.path.dirname(file)
+        filename = os.path.basename(file)
+        newname = "{0}-{1}".format(os.path.join(
+                                    directory_name,
+                                    os.getenv('HELIX_WORKITEM_ID')),
+                                    filename)
+        getLogger().info("copying \n\t{0}\nto\n\t{1}".format(file, newname))
+        try:
+            os.rename(file, newname)
+        except (FileNotFoundError, OSError) as err:
+            getLogger().error("Failed to copy {0}, err was: {1}".format(file, err.errno))
+            if os.path.isfile(file):
+                getLogger().info("File still seems to exist, trying with shorter name")
+                newname = os.path.join(directory_name, "{0}-perf-lab-report.json".format(randint(1000, 9999)))
+                getLogger().info("copying \n\t{0}\nto\n\t{1}".format(file, newname))
+                try:
+                    os.rename(file, newname)
+                except (FileNotFoundError, OSError) as err:
+                    getLogger().error("Still failed to copy {0}".format(file))
+
 
 @contextmanager
 def push_dir(path: str = None) -> None:
