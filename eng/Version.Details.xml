@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <ProductDependencies>
-  </ProductDependencies>
+  <ProductDependencies></ProductDependencies>
   <ToolsetDependencies>
     <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="1.0.0-beta.19360.8">
       <Uri>https://github.com/dotnet/arcade</Uri>
@@ -10,6 +9,10 @@
     <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="2.0.0-beta.19360.8">
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>a6ae1b637ed236354529992729af875f6c8a180a</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.Dotnet.Sdk.Internal" Version="1.0.0-preview.19361.10">
+      <Uri>https://github.com/dotnet/core-sdk</Uri>
+      <Sha></Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
