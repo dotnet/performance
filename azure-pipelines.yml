@@ -53,21 +53,7 @@ jobs:
         - netcoreapp3.0
         - netcoreapp2.2
         - netcoreapp2.1
-
- # Windows x64 micro benchmarks net461, public correctness job
-- ${{ if eq(variables['System.TeamProject'], 'public') }}:
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: windows
-      osVersion: RS4
-      kind: micro_net461
-      architecture: x64
-      pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS4.DevEx.15.8.Open
-      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
-      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - net461 
+        - net461
 
 # Windows x86 micro benchmarks, public correctness job
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
