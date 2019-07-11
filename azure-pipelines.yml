@@ -124,7 +124,7 @@ jobs:
       osVersion: 1804
       kind: micro
       architecture: x64
-      pool: Hosted Ubuntu 1804
+      pool: Hosted Ubuntu 1604
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
@@ -142,7 +142,7 @@ jobs:
       osVersion: 1804
       kind: micro
       architecture: x64
-      pool: Hosted Ubuntu 1804
+      pool: Hosted Ubuntu 1604
       queue: Ubuntu.1804.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
@@ -159,7 +159,7 @@ jobs:
 #       osVersion: 1804
 #       kind: micro
 #       architecture: arm64
-#       pool: Hosted Ubuntu 1804
+#       pool: Hosted Ubuntu 1604
 #       queue: Ubuntu.1804.Arm64.Perf
 #       container: ubuntu_x64_build_container
 #       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
@@ -207,7 +207,7 @@ jobs:
       osVersion: 1804
       kind: mlnet
       architecture: x64
-      pool: Hosted Ubuntu 1804
+      pool: Hosted Ubuntu 1604
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
       runCategories: 'mldotnet'
@@ -223,7 +223,7 @@ jobs:
       osVersion: 1804
       kind: mlnet
       architecture: x64
-      pool: Hosted Ubuntu 1804
+      pool: Hosted Ubuntu 1604
       queue: Ubuntu.1804.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
@@ -271,7 +271,7 @@ jobs:
       osVersion: 1804
       kind: roslyn
       architecture: x64
-      pool: Hosted Ubuntu 1804
+      pool: Hosted Ubuntu 1604
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
       runCategories: 'roslyn'
@@ -287,7 +287,7 @@ jobs:
       osVersion: 1804
       kind: roslyn
       architecture: x64
-      pool: Hosted Ubuntu 1804
+      pool: Hosted Ubuntu 1604
       queue: Ubuntu.1804.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
