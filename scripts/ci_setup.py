@@ -41,6 +41,7 @@ def init_tools(
         versions=dotnet_versions,
         verbose=verbose,
     )
+    benchview.install()
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''Adds new arguments to the specified ArgumentParser object.'''
