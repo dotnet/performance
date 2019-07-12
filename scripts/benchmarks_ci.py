@@ -76,8 +76,6 @@ def init_tools(
         versions=dotnet_versions,
         verbose=verbose,
     )
-    if not skip_benchview_download:
-        benchview.install()
 
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
@@ -178,15 +176,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Attempts to run the benchmarks without building.',
     )
 
-    parser.add_argument(
-        '--skip-benchview-download',
-        dest='skip_benchview_download',
-        required=False,
-        default=False,
-        action='store_true',
-        help='Skips downloading the benchview scripts'
-    )
-
     # BenchView acquisition, and fuctionality
     parser = benchview.add_arguments(parser)
 
@@ -223,7 +212,6 @@ def __main(args: list) -> int:
         architecture=args.architecture,
         dotnet_versions=args.dotnet_versions,
         target_framework_monikers=target_framework_monikers,
-        skip_benchview_download=args.skip_benchview_download,
         verbose=verbose
     )
 

@@ -56,8 +56,7 @@ class BenchView:
     @staticmethod
     def get_scripts_directory() -> str:
         '''BenchView scripts install directory.'''
-        return path.join(
-            get_tools_directory(), 'Microsoft.BenchView.JSONFormat')
+        return get_script_path()
 
     @property
     def python(self):
@@ -199,78 +198,11 @@ BuildInfo = namedtuple('BuildInfo', [
 ])
 
 
-def install():
-    '''
-    Downloads scripts that serialize/upload performance data to BenchView.
-    '''
-    __log_script_header("Downloading BenchView scripts")
-
-    url_str = __get_latest_benchview_script_version()
-    benchview_path = BenchView.get_scripts_directory()
-
-    if path.isdir(benchview_path):
-        remove_directory(benchview_path)
-    if not path.exists(benchview_path):
-        make_directory(benchview_path)
-
-    getLogger().info('%s -> %s', url_str, benchview_path)
-
-    zipfile_path = __download_zip_file(url_str, benchview_path)
-    __unzip_file(zipfile_path, benchview_path)
-
-
-def __download_zip_file(url_str: str, output_path: str):
-    if not url_str:
-        raise ValueError('URL was not defined.')
-    url = urlparse(url_str)
-    if not url.scheme or not url.netloc or not url.path:
-        raise ValueError('Invalid URL: {}'.format(url_str))
-    if not output_path:
-        raise ValueError('Invalid output directory: {}'.format(output_path))
-
-    zip_file_name = path.basename(url.path)
-    zip_file_name = path.join(output_path, zip_file_name)
-
-    if not path.splitext(zip_file_name)[1] == '.zip':
-        zip_file_name = '{}.zip'.format(zip_file_name)
-
-    if path.isfile(zip_file_name):
-        raise FileExistsError(EEXIST, 'File exists', zip_file_name)
-
-    with urlopen(url_str) as response, open(zip_file_name, 'wb') as zipfile:
-        zipfile.write(response.read())
-    return zip_file_name
-
-
-def __unzip_file(file_path: str, output_path: str):
-    '''Extract all members from the archive to the specified directory.'''
-    with ZipFile(file_path, 'r') as zipfile:
-        zipfile.extractall(output_path)
-
-
 def __log_script_header(message: str):
     message_length = len(message)
     getLogger().info('-' * message_length)
     getLogger().info(message)
     getLogger().info('-' * message_length)
-
-
-def __get_latest_benchview_script_version() -> str:
-    scheme_authority = 'http://benchviewtestfeed.azurewebsites.net'
-    fullpath = "/nuget/FindPackagesById()?id='Microsoft.BenchView.JSONFormat'"
-    url_str = '{}{}'.format(scheme_authority, fullpath)
-    with urlopen(url_str) as response:
-        tree = ElementTree.parse(response)
-        root = tree.getroot()
-        namespace = root.tag[0:root.tag.index('}') + 1]
-        xpath = '{0}entry/{0}content[@type="application/zip"]'.format(
-            namespace)
-        packages = [element.get('src') for element in tree.findall(xpath)]
-        if not packages:
-            raise RuntimeError('No BenchView packages found.')
-        packages.sort()
-        return packages[-1]
-
 
 def __get_build_info(framework: str, args) -> BuildInfo:
     # TODO: Expand this to support: Mono, CoreRT, CoreRun, dotnet.
