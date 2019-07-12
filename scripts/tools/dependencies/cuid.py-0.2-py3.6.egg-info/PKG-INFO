@@ -1,0 +1,35 @@
+Metadata-Version: 1.2
+Name: cuid.py
+Version: 0.2
+Summary: Fast, scalable unique ID generation
+Home-page: http://github.com/necaris/cuid.py
+Author: Rami Chowdhury
+Author-email: rami.chowdhury@gmail.com
+Maintainer: Rami Chowdhury
+Maintainer-email: rami.chowdhury@gmail.com
+License: UNKNOWN
+Download-URL: http://github.com/necaris/cuid.py/tarball/v0.2
+Description: # cuid.py
+        
+        Implementation of https://github.com/ericelliott/cuid in Python.
+        
+        A `cuid` is a portable and sequentially-ordered unique identifier designed for horizontal scalability and speed -- this version is ported from the reference implementation in Javascript.
+        
+        Tested on CPython 2.7 and 3.4 as well as PyPy.
+        
+        Rough benchmarks on my machine (2.2GHz i7, 2012 Macbook Pro):
+        - Python 3.4: 19.38Î¼s per cuid
+        - Python 2.7: 17.58Î¼s per cuid
+        - PyPy 2.6: 4.28Î¼s per cuid
+        
+        *Note*: For now, this has no dependencies outside the standard library -- in time this may change, to provide better random numbers and / or performance.
+        
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: POSIX
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Software Development :: Libraries :: Python Modules

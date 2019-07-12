@@ -1,0 +1,9 @@
+MANIFEST.in
+README.md
+cuid.py
+setup.cfg
+setup.py
+cuid.py.egg-info/PKG-INFO
+cuid.py.egg-info/SOURCES.txt
+cuid.py.egg-info/dependency_links.txt
+cuid.py.egg-info/top_level.txt

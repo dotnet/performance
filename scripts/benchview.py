@@ -22,6 +22,7 @@ import sys
 
 from micro_benchmarks import FrameworkAction
 from performance.common import get_tools_directory
+from performance.common import get_script_path
 from performance.common import get_python_executable
 from performance.common import make_directory
 from performance.common import push_dir
