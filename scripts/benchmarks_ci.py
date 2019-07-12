@@ -57,7 +57,6 @@ def init_tools(
         architecture: str,
         dotnet_versions: str,
         target_framework_monikers: list,
-        skip_benchview_download: bool,
         verbose: bool) -> None:
     '''
     Install tools used by this repository into the tools folder.
