@@ -16,6 +16,7 @@ from performance.logger import setup_loggers
 
 import dotnet
 import micro_benchmarks
+import benchview
 
 global_extension = ".cmd" if sys.platform == 'win32' else '.sh'
 
