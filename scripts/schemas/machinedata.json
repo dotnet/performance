@@ -1,0 +1,19 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://benchview/schemas/machinedata.json",
+    "title": "machinedata",
+    "type": "object",
+    "properties": {
+        "machine": {
+            "$ref": "machine.json"
+        },
+        "os": {
+            "$ref": "operatingsystem.json"
+        }
+    },
+    "required": [
+        "machine",
+        "os"
+    ],
+    "additionalProperties": false
+}

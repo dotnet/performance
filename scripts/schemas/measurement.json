@@ -1,0 +1,10 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://benchview/schemas/measurement.json",
+    "title": "tests",
+    "type": "array",
+    "items": {
+        "$ref": "test.json"
+    },
+    "minItems": 1
+}

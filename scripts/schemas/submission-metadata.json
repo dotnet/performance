@@ -1,0 +1,41 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://benchview/schemas/submission-metadata.json",
+    "type": "object",
+    "x-typeName": "Submission-meta",
+    "additionalProperties": true,
+    "required": [
+        "name",
+        "created",
+        "cuid"
+    ],
+    "properties": {
+        "name": {
+            "$ref": "nonwhitespacestring.json"
+        },
+        "description": {
+            "oneOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "$ref": "nonwhitespacestring.json"
+                }
+            ]
+        },
+        "email": {
+            "type": "string",
+            "format": "email"
+        },
+        "created": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "cuid": {
+            "type": "string",
+            "description": "Collision-resistant id assigned to this submission.",
+            "maxLength": 25,
+            "minLength": 25
+        }
+    }
+}

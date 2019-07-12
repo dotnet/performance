@@ -1,0 +1,29 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://benchview/schemas/submission.json",
+    "type": "object",
+    "x-typeName": "Submission",
+    "additionalProperties": false,
+    "allOf": [
+        {
+            "$ref": "submission-metadata.json"
+        }
+    ],
+    "properties": {
+        "name": {},
+        "description": {},
+        "email": {},
+        "created": {},
+        "cuid": {},
+        "runs": {
+            "type": "array",
+            "items": {
+                "$ref": "run.json"
+            },
+            "minItems": 1
+        }
+    },
+    "required": [
+        "runs"
+    ]
+}

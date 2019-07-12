@@ -1,0 +1,42 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://benchview/schemas/build.json",
+    "type": "object",
+    "x-typeName": "Build",
+    "additionalProperties": false,
+    "required": [
+        "repository",
+        "branch",
+        "number",
+        "sourceTimestamp",
+        "type"
+    ],
+    "properties": {
+        "repository": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2000
+        },
+        "branch": {
+            "allOf": [
+                {
+                    "$ref": "nonwhitespacestring.json"
+                },
+                {
+                    "type": "string",
+                    "maxLength": 255
+                }
+            ]
+        },
+        "number": {
+            "$ref": "nonwhitespacestring.json"
+        },
+        "sourceTimestamp": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "type": {
+            "$ref": "type.json"
+        }
+    }
+}

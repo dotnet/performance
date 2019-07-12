@@ -1,0 +1,29 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://benchview/schemas/test.json",
+    "type": "object",
+    "x-typeName": "Test",
+    "additionalProperties": false,
+    "required": [
+        "name",
+        "results",
+        "tests"
+    ],
+    "properties": {
+        "name": {
+            "$ref": "nonwhitespacestring.json"
+        },
+        "results": {
+            "type": "array",
+            "items": {
+                "$ref": "result.json"
+            }
+        },
+        "tests": {
+            "type": "array",
+            "items": {
+                "$ref": "#"
+            }
+        }
+    }
+}

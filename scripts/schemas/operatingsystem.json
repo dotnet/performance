@@ -1,0 +1,27 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://benchview/schemas/operatingsystem.json",
+    "type": "object",
+    "x-typeName": "OperatingSystem",
+    "additionalProperties": false,
+    "required": [
+        "name",
+        "version",
+        "edition",
+        "architecture"
+    ],
+    "properties": {
+        "name": {
+            "$ref": "nonwhitespacestring.json"
+        },
+        "version": {
+            "$ref": "nonwhitespacestring.json"
+        },
+        "edition": {
+            "$ref": "nonwhitespacestring.json"
+        },
+        "architecture": {
+            "$ref": "nonwhitespacestring.json"
+        }
+    }
+}

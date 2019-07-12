@@ -1,0 +1,53 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://benchview/schemas/run.json",
+    "type": "object",
+    "x-typeName": "Run",
+    "additionalProperties": false,
+    "required": [
+        "architecture",
+        "build",
+        "group",
+        "type",
+        "machine",
+        "os",
+        "configuration",
+        "tests"
+    ],
+    "properties": {
+        "architecture": {
+            "$ref": "nonwhitespacestring.json"
+        },
+        "build": {
+            "$ref": "build.json"
+        },
+        "group": {
+            "$ref": "nonwhitespacestring.json"
+        },
+        "type": {
+            "$ref": "type.json"
+        },
+        "machine": {
+            "$ref": "machine.json"
+        },
+        "machinePool": {
+            "oneOf": [
+                {
+                    "$ref": "nonwhitespacestring.json"
+                },
+                {
+                    "type": "null"
+                }
+            ]
+        },
+        "os": {
+            "$ref": "operatingsystem.json"
+        },
+        "configuration": {
+            "$ref": "configuration.json"
+        },
+        "tests": {
+            "$ref": "measurement.json"
+        }
+    }
+}

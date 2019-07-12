@@ -1,0 +1,23 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://benchview/schemas/configuration.json",
+    "type": "object",
+    "x-typeName": "Configuration",
+    "additionalProperties": false,
+    "required": [
+        "displayName",
+        "properties"
+    ],
+    "properties": {
+        "displayName": {
+            "$ref": "nonwhitespacestring.json"
+        },
+        "properties": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "nonwhitespacestring.json"
+            },
+            "minProperties": 1
+        }
+    }
+}

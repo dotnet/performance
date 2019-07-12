@@ -1,0 +1,25 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://benchview/schemas/result.json",
+    "type": "object",
+    "x-typeName": "Result",
+    "additionalProperties": false,
+    "required": [
+        "metric",
+        "values"
+    ],
+    "properties": {
+        "metric": {
+            "$ref": "metric.json"
+        },
+        "values": {
+            "type": "array",
+            "items": {
+                "type": "number",
+                "format": "double"
+            },
+            "maxItems": 128,
+            "minItems": 1
+        }
+    }
+}

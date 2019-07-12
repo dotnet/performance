@@ -1,0 +1,51 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://benchview/schemas/machine.json",
+    "type": "object",
+    "x-typeName": "Machine",
+    "additionalProperties": false,
+    "required": [
+        "name",
+        "architecture",
+        "manufacturer",
+        "cores",
+        "threads",
+        "physicalMemory"
+    ],
+    "properties": {
+        "name": {
+            "$ref": "nonwhitespacestring.json"
+        },
+        "description": {
+            "oneOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "$ref": "nonwhitespacestring.json"
+                }
+            ]
+        },
+        "architecture": {
+            "$ref": "nonwhitespacestring.json"
+        },
+        "manufacturer": {
+            "$ref": "nonwhitespacestring.json"
+        },
+        "cores": {
+            "type": "integer",
+            "maximum": 2147483647.0,
+            "minimum": 1.0
+        },
+        "threads": {
+            "type": "integer",
+            "maximum": 2147483647.0,
+            "minimum": 1.0
+        },
+        "physicalMemory": {
+            "type": "number",
+            "format": "double",
+            "minimum": 1.0
+        }
+    }
+}

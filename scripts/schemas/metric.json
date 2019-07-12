@@ -1,0 +1,23 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://benchview/schemas/metric.json",
+    "type": "object",
+    "x-typeName": "Metric",
+    "additionalProperties": false,
+    "required": [
+        "name",
+        "unit",
+        "greaterTheBetter"
+    ],
+    "properties": {
+        "name": {
+            "$ref": "nonwhitespacestring.json"
+        },
+        "unit": {
+            "$ref": "nonwhitespacestring.json"
+        },
+        "greaterTheBetter": {
+            "type": "boolean"
+        }
+    }
+}
