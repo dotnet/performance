@@ -267,10 +267,7 @@ def __main(args: list) -> int:
                 upload.upload(globpath, 'results', 'PERFLAB_UPLOAD_TOKEN', 'pvscmdupload.blob.core.windows.net')
             else: 
                 AzCopy.upload_results('', args.bdn_artifacts, verbose=verbose)
-        
-        
-
-
+                
         # TODO: Archive artifacts.
 
 
