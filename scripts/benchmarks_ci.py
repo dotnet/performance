@@ -57,7 +57,7 @@ def init_tools(
         architecture: str,
         dotnet_versions: str,
         target_framework_monikers: list,
-        skip_download_benchview: bool,
+        skip_benchview_download: bool,
         verbose: bool) -> None:
     '''
     Install tools used by this repository into the tools folder.
@@ -76,7 +76,7 @@ def init_tools(
         versions=dotnet_versions,
         verbose=verbose,
     )
-    if not skip_download_benchview:
+    if not skip_benchview_download:
         benchview.install()
 
 
@@ -223,7 +223,7 @@ def __main(args: list) -> int:
         architecture=args.architecture,
         dotnet_versions=args.dotnet_versions,
         target_framework_monikers=target_framework_monikers,
-        skip_download_benchview=args.skip_download_benchview,
+        skip_benchview_download=args.skip_benchview_download,
         verbose=verbose
     )
 
