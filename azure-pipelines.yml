@@ -99,17 +99,43 @@ jobs:
       benchviewCategory: 'coreclr'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
+    - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 10
+      kind: micro
+      architecture: x64
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
+      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+      runCategories: 'coreclr corefx'
+      benchviewCategory: 'coreclr'
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+        - netcoreapp3.0
       
 # Windows x86 micro benchmarks, private job
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
-      osVersion: 10
+      osVersion: 10-clientrs5
       kind: micro
       architecture: x86
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS5.Perf # using a dedicated private Helix queue (perfsnakes)
+      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+      runCategories: 'coreclr corefx'
+      benchviewCategory: 'coreclr'
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+        - netcoreapp3.0
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 10-clientrs1
+      kind: micro
+      architecture: x86
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'coreclr corefx'
       benchviewCategory: 'coreclr'
@@ -144,6 +170,20 @@ jobs:
       architecture: x64
       pool: Hosted Ubuntu 1604
       queue: Ubuntu.1804.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
+      runCategories: 'coreclr corefx'
+      benchviewCategory: 'coreclr'
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+        - netcoreapp3.0
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1604
+      kind: micro
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       runCategories: 'coreclr corefx'
@@ -188,11 +228,24 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
-      osVersion: 10
+      osVersion: 10-clientrs5
       kind: mlnet
       architecture: x64
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS5.Perf # using a dedicated private Helix queue (perfsnakes)
+      csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
+      runCategories: 'mldotnet'
+      benchviewCategory: 'mldotnet'
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+        - netcoreapp3.0
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 10-clientrs1
+      kind: mlnet
+      architecture: x64
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
       benchviewCategory: 'mldotnet'
@@ -231,6 +284,20 @@ jobs:
       benchviewCategory: 'mldotnet'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1604
+      kind: mlnet
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
+      runCategories: 'mldotnet'
+      benchviewCategory: 'mldotnet'
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+        - netcoreapp3.0
 
 # Windows x64 Roslyn benchmarks, public correctness job
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -252,11 +319,24 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
-      osVersion: 10
+      osVersion: 10-clientrs5
       kind: roslyn
       architecture: x64
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS5.Perf # using a dedicated private Helix queue (perfsnakes)
+      csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
+      runCategories: 'roslyn'
+      benchviewCategory: 'roslyn'
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+        - netcoreapp3.0
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 10-clientrs1
+      kind: roslyn
+      architecture: x64
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
       benchviewCategory: 'roslyn'
@@ -289,6 +369,20 @@ jobs:
       architecture: x64
       pool: Hosted Ubuntu 1604
       queue: Ubuntu.1804.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
+      runCategories: 'roslyn'
+      benchviewCategory: 'roslyn'
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+        - netcoreapp3.0
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1604
+      kind: roslyn
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       runCategories: 'roslyn'
