@@ -38,15 +38,6 @@ def upload_data(url, data):
     if not (f.status == 200 or f.status == 201):
         raise ConnectionError("Upload to url {} failed with status {} and reason {}".format(url, f.status, f.reason))
 
-
-def load_json_from_binary(data):
-    jsonStr = data.decode('utf-8')
-    return json.loads(jsonStr)
-
-
-def build_unique_upload_name(container, submission, hash):
-    return '{}_{}_{}.json'.format(container, submission["cuid"], hash)
-
 def upload(globpath, container, sas_token_env, storage_account_uri):
     try:
         sas_token_env = sas_token_env
@@ -56,7 +47,7 @@ def upload(globpath, container, sas_token_env, storage_account_uri):
             return 1
 
         files = glob(globpath, recursive=True)
-        rename_upload_files(files)
+        rename_upload_files(files, os.getenv('HELIX_WORKITEM_ID'))
 
         renamed_files = glob(globpath, recursive=True)
 

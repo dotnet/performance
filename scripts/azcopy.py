@@ -89,7 +89,7 @@ class AzCopy:
                 for file in files:
                     getLogger().info("file: {0}".format(file))
                 # since we do, we will rename them to include the correlation ID
-                rename_upload_files(files)
+                rename_upload_files(files, os.getenv('HELIX_WORKITEM_ID'))
 
                 renamed_files = glob(globpath, recursive=True)
                 

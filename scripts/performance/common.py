@@ -87,13 +87,13 @@ def get_artifacts_directory() -> str:
     '''
     return os.path.join(get_repo_root_path(), 'artifacts')
 
-def rename_upload_files(files) -> None:
+def rename_upload_files(files, helix_workitem_id) -> None:
     for file in files:
         directory_name = os.path.dirname(file)
         filename = os.path.basename(file)
         newname = "{0}-{1}".format(os.path.join(
                                     directory_name,
-                                    os.getenv('HELIX_WORKITEM_ID')),
+                                    helix_workitem_id),
                                     filename)
         getLogger().info("copying \n\t{0}\nto\n\t{1}".format(file, newname))
         try:
