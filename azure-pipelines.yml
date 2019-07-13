@@ -152,7 +152,7 @@ jobs:
         - netcoreapp3.0
         
 # Ubuntu 1804 ARM64 micro benchmarks, private job. Only run during the scheduled builds
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Scheduled')) }}:
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule')) }}:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: ubuntu
