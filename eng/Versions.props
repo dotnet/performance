@@ -15,4 +15,12 @@
       https://ci.appveyor.com/nuget/benchmarkdotnet;
     </RestoreSources>
   </PropertyGroup>
+  <!--Package versions-->
+  <PropertyGroup>
+    <MicrosoftDotnetSdkInternalPackageVersion>1.0.0-preview.19363.28</MicrosoftDotnetSdkInternalPackageVersion>
+  </PropertyGroup>
+  <!--Package names-->
+  <PropertyGroup>
+    <MicrosoftDotnetSdkInternalPackage>Microsoft.Dotnet.Sdk.Internal</MicrosoftDotnetSdkInternalPackage>
+  </PropertyGroup>
 </Project>

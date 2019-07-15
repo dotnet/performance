@@ -10,7 +10,7 @@ from zipfile import ZipFile
 from random import randint
 
 from performance.common import (RunCommand, get_artifacts_directory,
-                                get_tools_directory)
+                                get_tools_directory, rename_upload_files)
 
 
 class AzCopy:
@@ -89,30 +89,10 @@ class AzCopy:
                 for file in files:
                     getLogger().info("file: {0}".format(file))
                 # since we do, we will rename them to include the correlation ID
-                for file in files:
-                    directory_name = path.dirname(file)
-                    filename = path.basename(file)
-                    newname = "{0}-{1}".format(path.join(
-                                                directory_name,
-                                                os.getenv('HELIX_WORKITEM_ID')),
-                                               filename)
-                    getLogger().info("copying \n\t{0}\nto\n\t{1}".format(file, newname))
-                    try:
-                        os.rename(file, newname)
-                    except (FileNotFoundError, OSError) as err:
-                        getLogger().error("Failed to copy {0}, err was: {1}".format(file, err.errno))
-                        if path.isfile(file):
-                            getLogger().info("File still seems to exist, trying with shorter name")
-                            newname = path.join(directory_name, "{0}-perf-lab-report.json".format(randint(1000, 9999)))
-                            getLogger().info("copying \n\t{0}\nto\n\t{1}".format(file, newname))
-                            try:
-                                os.rename(file, newname)
-                            except (FileNotFoundError, OSError) as err:
-                                getLogger().error("Still failed to copy {0}".format(file))
+                rename_upload_files(files, os.getenv('HELIX_WORKITEM_ID'))
 
                 renamed_files = glob(globpath, recursive=True)
-
-
+                
                 dirname = path.dirname(renamed_files[0])
                 if len(renamed_files) == 1:
                     # need to work around a bug in azcopy which loses file name if
