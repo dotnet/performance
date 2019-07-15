@@ -359,7 +359,7 @@ namespace System.Linq.Tests
 
         public IEnumerable<object> ElementAtArguments()
         {
-            // Count() has 2 code paths: IList and IEnumerable
+            // ElementAt() has 2 code paths: IList and IEnumerable
             // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/ElementAt.cs
 
             yield return LinqTestData.IEnumerable;

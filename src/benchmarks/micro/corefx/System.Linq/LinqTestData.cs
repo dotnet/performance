@@ -8,7 +8,7 @@ namespace System.Linq.Tests
 {
     public class LinqTestData
     {
-        // this field is a const (not instance field) to avoid creating clojures in tested LINQ
+        // this field is a const (not instance field) to avoid creating closures in tested LINQ
         internal const int Size = 100;
 
         private static readonly int[] _arrayOf100Integers = Enumerable.Range(0, Size).ToArray();
