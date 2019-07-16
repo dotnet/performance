@@ -33,12 +33,8 @@ namespace System.Collections
         private SortedList<T, T>[] _sortedLists;
         private SortedSet<T>[] _sortedSets;
         private SortedDictionary<T, T>[] _sortedDictionaries;
-        private ConcurrentDictionary<T, T>[] _concurrentDictionaries;
         private Stack<T>[] _stacks;
         private Queue<T>[] _queues;
-        private ConcurrentStack<T>[] _concurrentStacks;
-        private ConcurrentQueue<T>[] _concurrentQueues;
-        private ConcurrentBag<T>[] _concurrentBags;
 
         [GlobalSetup]
         public void Setup() => _keys = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
@@ -141,18 +137,6 @@ namespace System.Collections
             foreach (var key in keys)
                 sorteddictionary.Remove(key);
         }
-
-        [IterationSetup(Target = nameof(ConcurrentDictionary))]
-        public void SetupConcurrentDictionaryIteration() => Utils.FillDictionaries(ref _concurrentDictionaries, InvocationsPerIteration, _keys);
-
-        [Benchmark]
-        public void ConcurrentDictionary()
-        {
-            var concurrentdictionary = _concurrentDictionaries[_iterationIndex++];
-            var keys = _keys;
-            foreach (var key in keys)
-                concurrentdictionary.TryRemove(key, out _);
-        }
         
         [IterationSetup(Target = nameof(Stack))]
         public void SetupStackIteration() => Utils.FillStacks(ref _stacks, InvocationsPerIteration, _keys);
@@ -166,18 +150,6 @@ namespace System.Collections
                 stack.Pop();
         }
         
-        [IterationSetup(Target = nameof(ConcurrentStack))]
-        public void SetupConcurrentStackIteration() => Utils.FillProducerConsumerCollection(ref _concurrentStacks, InvocationsPerIteration, _keys);
-        
-        [Benchmark]
-        public void ConcurrentStack()
-        {
-            var stack = _concurrentStacks[_iterationIndex++];
-            var keys = _keys;
-            foreach (var key in keys) // we don't need to iterate over keys but to compare apples to apples we do
-                stack.TryPop(out _);
-        }
-        
         [IterationSetup(Target = nameof(Queue))]
         public void SetupQueueIteration() => Utils.FillQueues(ref _queues, InvocationsPerIteration, _keys);
         
@@ -188,30 +160,6 @@ namespace System.Collections
             var keys = _keys;
             foreach (var key in keys) // we don't need to iterate over keys but to compare apples to apples we do
                 queue.Dequeue();
-        }
-        
-        [IterationSetup(Target = nameof(ConcurrentQueue))]
-        public void SetupConcurrentQueueIteration() => Utils.FillProducerConsumerCollection(ref _concurrentQueues, InvocationsPerIteration, _keys);
-        
-        [Benchmark]
-        public void ConcurrentQueue()
-        {
-            var queue = _concurrentQueues[_iterationIndex++];
-            var keys = _keys;
-            foreach (var key in keys) // we don't need to iterate over keys but to compare apples to apples we do
-                queue.TryDequeue(out _);
-        }
-
-        [IterationSetup(Target = nameof(ConcurrentBag))]
-        public void SetupConcurrentBagIteration() => Utils.FillProducerConsumerCollection(ref _concurrentBags, InvocationsPerIteration, _keys);
-        
-        [Benchmark]
-        public void ConcurrentBag()
-        {
-            var bag = _concurrentBags[_iterationIndex++];
-            var keys = _keys;
-            foreach (var key in keys) // we don't need to iterate over keys but to compare apples to apples we do
-                bag.TryTake(out _);
         }
     }
 }
