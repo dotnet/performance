@@ -29,8 +29,12 @@ jobs:
             value: 'call %HELIX_CORRELATION_PAYLOAD%\tools\machine-setup.cmd'
           - name: Python
             value: 'py -3'
-          - name: ArtifactsDirectory
-            value: '%HELIX_CORRELATION_PAYLOAD%\artifacts\BenchmarkDotNet.Artifacts'
+          - ${{ if ne(parameters.osVersion, 'RS1')}}:
+            - name: ArtifactsDirectory
+              value: '%HELIX_WORKITEM_UPLOAD_ROOT%\BenchmarkDotNet.Artifacts'
+          - ${{ if eq(parameters.osVersion, 'RS1')}}:
+            - name: ArtifactsDirectory
+              value: '%HELIX_CORRELATION_PAYLOAD%\artifacts\BenchmarkDotNet.Artifacts'
         - ${{ if ne(parameters.osName, 'windows') }}:
           - name: CliArguments
             value: '--dotnet-versions $DOTNET_VERSION --cli-source-info args --cli-branch $PERFLAB_BRANCH --cli-commit-sha $PERFLAB_HASH --cli-repository https://github.com/$PERFLAB_REPO --cli-source-timestamp $PERFLAB_BUILDTIMESTAMP'
@@ -38,8 +42,12 @@ jobs:
             value: 'chmod +x ./tools/machine-setup.sh;. ./tools/machine-setup.sh'
           - name: Python
             value: python3
-          - name: ArtifactsDirectory
-            value: '$HELIX_WORKITEM_PAYLOAD/artifacts/BenchmarkDotNet.Artifacts'
+          - ${{ if eq(parameters.osVersion, '1804')}}:
+            - name: ArtifactsDirectory
+              value: '$HELIX_WORKITEM_UPLOAD_ROOT/BenchmarkDotNet.Artifacts'
+          - ${{ if eq(parameters.osVersion, '1604')}}:
+            - name: ArtifactsDirectory
+              value: '$HELIX_WORKITEM_PAYLOAD/artifacts/BenchmarkDotNet.Artifacts'
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           - name: BenchViewRunType
             value: private
