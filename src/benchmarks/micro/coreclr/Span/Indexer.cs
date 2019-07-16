@@ -3,10 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 
 namespace Span
@@ -26,15 +26,19 @@ namespace Span
         [Params(1024)]
         public int length; // the field must be called length (starts with lowercase) to keep old benchmark id in BenchView, do NOT change it
 
-        private byte[] a;
+        private byte[] _array;
+        private GCHandle _pinnedArrayHandle;
         private Sink sink = Sink.NewSink();
-        
+
         [GlobalSetup]
-        public void Setup() => a = GetData(length);
+        public void Setup() => _array = ValuesGenerator.UnalignedArray<byte>(length, out _pinnedArrayHandle);
+
+        [GlobalCleanup]
+        public void Cleanup() => _pinnedArrayHandle.Free();
 
         [Benchmark]
         [BenchmarkCategory("Indexer in-loop bounds check elimination")]
-        public byte Ref() => TestRef(a);
+        public byte Ref() => TestRef(_array);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestRef(Span<byte> data)
@@ -53,7 +57,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Indexer in-loop bounds check elimination")]
-        public byte Fixed1() => TestFixed1(a);
+        public byte Fixed1() => TestFixed1(_array);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static unsafe byte TestFixed1(Span<byte> data)
@@ -75,7 +79,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Indexer in-loop bounds check elimination")]
-        public byte Fixed2() => TestFixed2(a);
+        public byte Fixed2() => TestFixed2(_array);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static unsafe byte TestFixed2(Span<byte> data)
@@ -96,7 +100,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Indexer in-loop bounds check elimination")]
-        public byte Indexer1() => TestIndexer1(a);
+        public byte Indexer1() => TestIndexer1(_array);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestIndexer1(Span<byte> data)
@@ -114,7 +118,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Indexer in-loop bounds check elimination")]
-        public byte Indexer2() => TestIndexer2(a);
+        public byte Indexer2() => TestIndexer2(_array);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestIndexer2(Span<byte> data)
@@ -131,7 +135,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Indexer in-loop bounds check elimination")]
-        public byte Indexer3() => TestIndexer3(a);
+        public byte Indexer3() => TestIndexer3(_array);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestIndexer3(Span<byte> data)
@@ -150,7 +154,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Indexer in-loop bounds check elimination")]
-        public byte Indexer4() => TestIndexer4(a, 10);
+        public byte Indexer4() => TestIndexer4(_array, 10);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestIndexer4(Span<byte> data, int iterations)
@@ -175,7 +179,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Indexer in-loop bounds check elimination")]
-        public byte Indexer5() => TestIndexer5(a, out int z);
+        public byte Indexer5() => TestIndexer5(_array, out int z);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestIndexer5(Span<byte> data, out int z)
@@ -196,7 +200,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Indexer in-loop bounds check elimination")]
-        public byte Indexer6() => TestIndexer6(a, sink);
+        public byte Indexer6() => TestIndexer6(_array, sink);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestIndexer6(Span<byte> data, Sink s)
@@ -216,7 +220,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Indexer in-loop bounds check elimination")]
-        public byte ReadOnlyIndexer1() => TestReadOnlyIndexer1(a);
+        public byte ReadOnlyIndexer1() => TestReadOnlyIndexer1(_array);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestReadOnlyIndexer1(ReadOnlySpan<byte> data)
@@ -234,7 +238,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Indexer in-loop bounds check elimination")]
-        public byte ReadOnlyIndexer2() => TestReadOnlyIndexer2(a);
+        public byte ReadOnlyIndexer2() => TestReadOnlyIndexer2(_array);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestReadOnlyIndexer2(ReadOnlySpan<byte> data)
@@ -251,7 +255,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Indexer in-loop bounds check elimination w/ writes")]
-        public byte WriteViaIndexer1() => TestWriteViaIndexer1(a);
+        public byte WriteViaIndexer1() => TestWriteViaIndexer1(_array);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestWriteViaIndexer1(Span<byte> data)
@@ -271,7 +275,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Indexer in-loop bounds check elimination w/ writes")]
-        public byte WriteViaIndexer2() => TestWriteViaIndexer2(a, 0, a.Length);
+        public byte WriteViaIndexer2() => TestWriteViaIndexer2(_array, 0, _array.Length);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestWriteViaIndexer2(Span<byte> data, int start, int end)
@@ -291,7 +295,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Span known size bounds check elimination")]
-        public byte KnownSizeArray() => TestKnownSizeArray(a);
+        public byte KnownSizeArray() => TestKnownSizeArray(_array);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestKnownSizeArray(Span<byte> data)
@@ -307,7 +311,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Span known size bounds check elimination")]
-        public byte KnownSizeCtor() => TestKnownSizeCtor(a);
+        public byte KnownSizeCtor() => TestKnownSizeCtor(_array);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestKnownSizeCtor(byte[] a)
@@ -325,7 +329,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Span known size bounds check elimination")]
-        public byte KnownSizeCtor2() => TestKnownSizeCtor2(a);
+        public byte KnownSizeCtor2() => TestKnownSizeCtor2(_array);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestKnownSizeCtor2(byte[] a)
@@ -348,7 +352,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Same index in-loop redundant bounds check elimination")]
-        public byte SameIndex1() => TestSameIndex1(a, 0, a.Length);
+        public byte SameIndex1() => TestSameIndex1(_array, 0, _array.Length);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestSameIndex1(Span<byte> data, int start, int end)
@@ -369,7 +373,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Same index in-loop redundant bounds check elimination")]
-        public byte SameIndex2() => TestSameIndex2(a, ref a[0], 0, a.Length);
+        public byte SameIndex2() => TestSameIndex2(_array, ref _array[0], 0, _array.Length);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestSameIndex2(Span<byte> data, ref byte b, int start, int end)
@@ -395,7 +399,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Covered index in-loop redundant bounds check elimination")]
-        public byte CoveredIndex1() => TestCoveredIndex1(a, 0, a.Length);
+        public byte CoveredIndex1() => TestCoveredIndex1(_array, 0, _array.Length);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestCoveredIndex1(Span<byte> data, int start, int end)
@@ -422,7 +426,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Covered index in-loop redundant bounds check elimination")]
-        public byte CoveredIndex2() => TestCoveredIndex2(a, 0, a.Length);
+        public byte CoveredIndex2() => TestCoveredIndex2(_array, 0, _array.Length);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestCoveredIndex2(Span<byte> data, int start, int end)
@@ -448,7 +452,7 @@ namespace Span
 
         [Benchmark]
         [BenchmarkCategory("Covered index in-loop redundant bounds check elimination")]
-        public byte CoveredIndex3() => TestCoveredIndex3(a, 0, a.Length);
+        public byte CoveredIndex3() => TestCoveredIndex3(_array, 0, _array.Length);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         static byte TestCoveredIndex3(Span<byte> data, int start, int end)
@@ -472,19 +476,6 @@ namespace Span
             byte r = (byte)(z ^ y ^ x ^ y ^ z);
 
             return r;
-        }
-
-        static byte[] GetData(int size)
-        {
-            byte[] data = new byte[size];
-            SetData(data);
-            return data;
-        }
-
-        static void SetData(byte[] data)
-        {
-            Random Rnd = new Random(42);
-            Rnd.NextBytes(data);
         }
     }
 }

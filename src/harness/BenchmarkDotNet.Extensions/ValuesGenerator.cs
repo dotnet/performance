@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace BenchmarkDotNet.Extensions
@@ -19,6 +20,22 @@ namespace BenchmarkDotNet.Extensions
                 return Array<T>(byte.MaxValue).First(value => !value.Equals(default));
             else
                 return ArrayOfUniqueValues<T>(2).First(value => !value.Equals(default));
+        }
+
+        /// <summary>
+        /// generates an array of unique random values
+        /// the array is guaranteed to be not 16-byte aligned
+        /// </summary>
+        /// <remarks>make sure to Free the handle in a Cleanup method</remarks>
+        public static T[] UnalignedArrayOfUniqueValues<T>(int count, out GCHandle pinnedArrayHandle)
+            where T : struct // GCHandle supports only pinning arrays of primitive and blittable types
+        {
+            T[] randomUnique = ArrayOfUniqueValues<T>(count);
+            T[] unalignedUnique = AllocateAlignedArray<T>(count, false, out pinnedArrayHandle);
+
+            System.Array.Copy(randomUnique, unalignedUnique, count);
+
+            return unalignedUnique;
         }
 
         /// <summary>
@@ -40,7 +57,23 @@ namespace BenchmarkDotNet.Extensions
 
             return uniqueValues.ToArray();
         }
-        
+
+        /// <summary>
+        /// generates an array of random values
+        /// the array is guaranteed to be not 16-byte aligned
+        /// </summary>
+        /// <remarks>make sure to Free the handle in a Cleanup method</remarks>
+        public static T[] UnalignedArray<T>(int count, out GCHandle pinnedArrayHandle)
+            where T : struct // GCHandle supports only pinning arrays of primitive and blittable types
+        {
+            T[] random = Array<T>(count);
+            T[] unaligned = AllocateAlignedArray<T>(count, false, out pinnedArrayHandle);
+
+            System.Array.Copy(random, unaligned, count);
+
+            return unaligned;
+        }
+
         public static T[] Array<T>(int count)
         {
             var random = new Random(Seed); 
@@ -113,6 +146,24 @@ namespace BenchmarkDotNet.Extensions
             }
 
             return builder.ToString();
+        }
+
+        private static T[] AllocateAlignedArray<T>(int size, bool aligned, out GCHandle pinnedArrayHandle)
+        {
+            while (true)
+            {
+                T[] result = new T[size];
+                pinnedArrayHandle = GCHandle.Alloc(result, GCHandleType.Pinned);
+
+                if (((long)pinnedArrayHandle.AddrOfPinnedObject() % 16 == 0) == aligned)
+                {
+                    return result;
+                }
+                else
+                {
+                    pinnedArrayHandle.Free();
+                }
+            }
         }
     }
 }

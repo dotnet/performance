@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using BenchmarkDotNet.Extensions;
 using Xunit;
 
@@ -71,6 +72,26 @@ namespace Tests
             Assert.NotEqual(default(byte), ValuesGenerator.GetNonDefaultValue<byte>());
             Assert.NotEqual(default(int), ValuesGenerator.GetNonDefaultValue<int>());
             Assert.NotEqual(default(string), ValuesGenerator.GetNonDefaultValue<string>());
+        }
+
+        [Fact]
+        public void UnalignedArrayReturnsUnalignedArray()
+        {
+            const int size = 1024;
+            byte[] array = ValuesGenerator.UnalignedArray<byte>(size, out GCHandle handle);
+
+            Assert.False(((long)handle.AddrOfPinnedObject()) % 16 == 0);
+            Assert.Equal(size, array.Length);
+        }
+
+        [Fact]
+        public void UnalignedArrayOfUniqueValuesReturnsUnalignedArray()
+        {
+            const int size = 1024;
+            int[] array = ValuesGenerator.UnalignedArrayOfUniqueValues<int>(size, out GCHandle handle);
+
+            Assert.False(((long)handle.AddrOfPinnedObject()) % 16 == 0);
+            Assert.Equal(size, array.Length);
         }
     }
 }
