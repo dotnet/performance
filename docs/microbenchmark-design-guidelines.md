@@ -91,11 +91,13 @@ Let's write a benchmark that measures the performance of reversing an array of 1
 
 ```cs
 [Benchmark]
-public void Reverse()
+public int[] Reverse()
 {
     int[] array = Enumerable.Range(0, 1_000).ToArray();
 
     Array.Reverse(array);
+
+    return array;
 }
 ```
 
