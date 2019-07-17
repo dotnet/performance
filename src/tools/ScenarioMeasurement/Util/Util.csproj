@@ -4,9 +4,4 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>ScenarioMeasurement</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="2.0.41" />
-  </ItemGroup>
-
 </Project>

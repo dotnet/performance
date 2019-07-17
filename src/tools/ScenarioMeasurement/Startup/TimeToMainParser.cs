@@ -24,7 +24,7 @@ namespace ScenarioMeasurement
             var results = new List<double>();
             double threadTime = 0;
             var threadTimes = new List<double>();
-            var ins = new Dictionary<int, double?>();
+            var ins = new Dictionary<int, double>();
             double start = -1;
             int? pid = null;
             using (var source = new ETWTraceEventSource(mergeTraceFile))
@@ -36,7 +36,8 @@ namespace ScenarioMeasurement
                     {
                         if(pid.HasValue)
                         {
-                            throw new Exception("found a start when we already had a start");
+                            // Processes might be reentrant. For now this traces the first (outermost) process of a given name.
+                            return; 
                         }
                         pid = evt.ProcessID;
                         start = evt.TimeStampRelativeMSec;
@@ -48,23 +49,21 @@ namespace ScenarioMeasurement
                     if (!pid.HasValue) // we're currently in a measurement interval
                         return;
 
-                    if (evt.NewProcessID != pid && evt.OldProcessID != pid) // but this isn't it
-                        return;
+                    if (evt.NewProcessID != pid && evt.OldProcessID != pid) 
+                        return; // but this isn't our process
 
-                    if (evt.OldProcessID == pid && ins.ContainsKey(evt.OldProcessID))
+                    if (evt.OldProcessID == pid) // this is a switch out from our process
                     {
-                        if (!ins[evt.OldThreadID].HasValue)
+                        if (ins.TryGetValue(evt.OldThreadID, out var value)) // had we ever recorded a switch in for this thread? 
                         {
-                            return;
+                            threadTime += evt.TimeStampRelativeMSec - value;
+                            ins.Remove(evt.OldThreadID);
                         }
-                        threadTime += evt.TimeStampRelativeMSec - ins[evt.OldThreadID].Value;
-                        ins.Remove(evt.OldThreadID);
                     }
-                    else
+                    else // this is a switch in to our process
                     {
                         ins[evt.NewThreadID] = evt.TimeStampRelativeMSec;
                     }
-
                 };
 
                 ClrPrivateTraceEventParser clrpriv = new ClrPrivateTraceEventParser(source);

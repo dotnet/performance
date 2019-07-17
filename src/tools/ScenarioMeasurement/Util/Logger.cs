@@ -17,7 +17,7 @@ namespace ScenarioMeasurement
 
         public void LogVerbose(string message)
         {
-            Console.WriteLine("message");
+            Console.WriteLine(message);
         }
     }
 }
