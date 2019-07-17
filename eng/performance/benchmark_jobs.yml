@@ -26,7 +26,7 @@ jobs:
           - name: CliArguments
             value: '--dotnet-versions %DOTNET_VERSION% --cli-source-info args --cli-branch %PERFLAB_BRANCH% --cli-commit-sha %PERFLAB_HASH% --cli-repository https://github.com/%PERFLAB_REPO% --cli-source-timestamp %PERFLAB_BUILDTIMESTAMP%'
           - name: AdditionalHelixPreCommands
-            value: 'py -3 pip -m install --user --pre --upgrade azure-storage-blob;call %HELIX_CORRELATION_PAYLOAD%\tools\machine-setup.cmd'
+            value: 'call %HELIX_CORRELATION_PAYLOAD%\tools\machine-setup.cmd'
           - name: Python
             value: 'py -3'
           - name: ArtifactsDirectory
@@ -35,7 +35,7 @@ jobs:
           - name: CliArguments
             value: '--dotnet-versions $DOTNET_VERSION --cli-source-info args --cli-branch $PERFLAB_BRANCH --cli-commit-sha $PERFLAB_HASH --cli-repository https://github.com/$PERFLAB_REPO --cli-source-timestamp $PERFLAB_BUILDTIMESTAMP'
           - name: AdditionalHelixPreCommands
-            value: 'pip3 install --user --pre --upgrade azure-storage-blob;chmod +x ./tools/machine-setup.sh;. ./tools/machine-setup.sh'
+            value: 'chmod +x ./tools/machine-setup.sh;. ./tools/machine-setup.sh'
           - name: Python
             value: python3
           - name: ArtifactsDirectory
@@ -80,10 +80,10 @@ jobs:
             value: ''
           - ${{ if eq(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'set "BV_UPLOAD_SAS_TOKEN=$(BenchViewUploadToken)";set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
+              value: 'py -3 pip -m install --user --pre --upgrade azure-storage-blob;set "BV_UPLOAD_SAS_TOKEN=$(BenchViewUploadToken)";set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
           - ${{ if ne(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'export BV_UPLOAD_SAS_TOKEN="$(BenchViewUploadTokenLinux)";export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
+              value: 'pip3 install --user --pre --upgrade azure-storage-blob;export BV_UPLOAD_SAS_TOKEN="$(BenchViewUploadTokenLinux)";export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
           - name: HelixSourcePrefix
             value: 'official'
           - group: DotNet-HelixApi-Access

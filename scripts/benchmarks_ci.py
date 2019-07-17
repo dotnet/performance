@@ -34,8 +34,6 @@ from performance.logger import setup_loggers
 import benchview
 import dotnet
 import micro_benchmarks
-import upload
-
 
 if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
     MESSAGE = '''The `linux_distribution` method is missing from ''' \
@@ -257,6 +255,7 @@ def __main(args: list) -> int:
         benchview.run_scripts(args, verbose, BENCHMARKS_CSPROJ)
 
         if args.upload_to_perflab_container:
+            import upload
             globpath = os.path.join(
                 get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
                 '**',
