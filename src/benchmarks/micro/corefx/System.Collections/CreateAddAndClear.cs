@@ -7,6 +7,7 @@ using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace System.Collections
 {
@@ -62,6 +63,21 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        public ICollection<T> ICollection() => ICollection(new List<T>());
+
+        [MethodImpl(MethodImplOptions.NoInlining)] // we want to prevent from inlining this particular method to make sure that JIT does not find out that ICollection is always List
+        private ICollection<T> ICollection(ICollection<T> collection)
+        {
+            foreach (T uniqueKey in _keys)
+            {
+                collection.Add(uniqueKey);
+            }
+            collection.Clear();
+            return collection;
+        }
+
+        [Benchmark]
         public LinkedList<T> LinkedList()
         {
             LinkedList<T> linkedList = new LinkedList<T>();
@@ -89,6 +105,21 @@ namespace System.Collections
         public Dictionary<T, T> Dictionary()
         {
             Dictionary<T, T> dictionary = new Dictionary<T, T>();
+            foreach (T uniqueKey in _keys)
+            {
+                dictionary.Add(uniqueKey, uniqueKey);
+            }
+            dictionary.Clear();
+            return dictionary;
+        }
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        public IDictionary<T, T> IDictionary() => IDictionary(new Dictionary<T, T>());
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private IDictionary<T, T> IDictionary(IDictionary<T, T> dictionary)
+        {
             foreach (T uniqueKey in _keys)
             {
                 dictionary.Add(uniqueKey, uniqueKey);
@@ -192,6 +223,18 @@ namespace System.Collections
             }
             concurrentQueue.Clear();
             return concurrentQueue;
+        }
+
+        [Benchmark]
+        public ConcurrentBag<T> ConcurrentBag()
+        {
+            ConcurrentBag<T> concurrentBag = new ConcurrentBag<T>();
+            foreach (T uniqueKey in _keys)
+            {
+                concurrentBag.Add(uniqueKey);
+            }
+            concurrentBag.Clear();
+            return concurrentBag;
         }
 #endif
     }
