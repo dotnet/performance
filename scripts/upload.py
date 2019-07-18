@@ -1,13 +1,13 @@
 from azure.storage.blob import BlobClient, ContentSettings
 from traceback import format_exc
 from glob import glob
-from os import path
+import os
 
 from logging import getLogger
 
 def get_unique_name(filename, unique_id) -> str:
     newname = "{0}-{1}".format(unique_id,
-                                path.basename(filename))
+                                os.path.basename(filename))
     if len(newname) > 1024:
         newname = "{0}-perf-lab-report.json".format(randint(1000, 9999))
     return newname
@@ -15,7 +15,7 @@ def get_unique_name(filename, unique_id) -> str:
 def upload(globpath, container, sas_token_env, storage_account_uri):
     try:
         sas_token_env = sas_token_env
-        sas_token = os.environ.get(sas_token_env)
+        sas_token = os.getenv(sas_token_env)
         if sas_token is None:
             getLogger().error("Sas token environment variable {} was not defined.".format(sas_token_env))
             return 1
