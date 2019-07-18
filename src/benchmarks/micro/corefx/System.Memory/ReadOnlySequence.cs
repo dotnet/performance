@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Buffers;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
@@ -10,12 +11,12 @@ namespace MicroBenchmarks.corefx
 {
     internal class BufferSegment<T> : ReadOnlySequenceSegment<T>
     {
-        public BufferSegment(System.ReadOnlyMemory<T> memory)
+        public BufferSegment(ReadOnlyMemory<T> memory)
         {
             Memory = memory;
         }
 
-        public BufferSegment<T> Append(System.ReadOnlyMemory<T> memory)
+        public BufferSegment<T> Append(ReadOnlyMemory<T> memory)
         {
             var segment = new BufferSegment<T>(memory)
             {
@@ -29,26 +30,34 @@ namespace MicroBenchmarks.corefx
     [BenchmarkCategory(Categories.CoreFX)]
     public partial class ReadOnlySequenceBenchmarks
     {
+        public enum SequenceKind { Single, Multiple };
+
+        [Params(SequenceKind.Single, SequenceKind.Multiple)]
+        public SequenceKind Segment { get; set; }
+
         private ReadOnlySequence<byte> _sequence;
-        private ReadOnlySequence<byte> _multiSegmentSequence;
-        private System.SequencePosition _start;
-        private System.SequencePosition _end;
-        private System.SequencePosition _ms_start;
-        private System.SequencePosition _ms_end;
+        private SequencePosition _start;
+        private SequencePosition _end;
 
         [GlobalSetup]
         public void GlobalSetup()
         {
-            System.Memory<byte> memory = new System.Memory<byte>(Enumerable.Repeat((byte)1, 10000).ToArray());
-            _sequence = new ReadOnlySequence<byte>(memory);
-            _start =_sequence.GetPosition(10);
-            _end =_sequence.GetPosition(9990);
+            Memory<byte> memory = new Memory<byte>(Enumerable.Repeat((byte)1, 10000).ToArray());
 
-            BufferSegment<byte> firstSegment = new BufferSegment<byte>(memory.Slice(0, memory.Length / 2 ));
-            BufferSegment<byte> secondSegment = firstSegment.Append(memory.Slice(memory.Length / 2 , memory.Length / 2 ));
-            _multiSegmentSequence = new ReadOnlySequence<byte>(firstSegment, 0, secondSegment, firstSegment.Memory.Length);
-            _ms_start = _multiSegmentSequence.GetPosition(10);
-            _ms_end = _multiSegmentSequence.GetPosition(9990);
+            if (Segment == SequenceKind.Single)
+            {
+                _sequence = new ReadOnlySequence<byte>(memory);
+                _start = _sequence.GetPosition(10);
+                _end = _sequence.GetPosition(9990);
+            }
+            else
+            {
+                BufferSegment<byte> firstSegment = new BufferSegment<byte>(memory.Slice(0, memory.Length / 2));
+                BufferSegment<byte> secondSegment = firstSegment.Append(memory.Slice(memory.Length / 2, memory.Length / 2));
+                _sequence = new ReadOnlySequence<byte>(firstSegment, 0, secondSegment, firstSegment.Memory.Length);
+                _start = _sequence.GetPosition(10);
+                _end = _sequence.GetPosition(9990);
+            }
         }
 
         [Benchmark]
@@ -80,7 +89,6 @@ namespace MicroBenchmarks.corefx
             return localSequence;
         }
 
-        // Add multiple calls for Slice(startPosition, endPosition)
         [Benchmark]
         public ReadOnlySequence<byte> RepeatSlice_StartPosition_And_EndPosition()
         {
@@ -89,48 +97,6 @@ namespace MicroBenchmarks.corefx
             localSequence = localSequence.Slice(_start, localSequence.End);
             localSequence = localSequence.Slice(_start, localSequence.End);
             localSequence = localSequence.Slice(_start, localSequence.End);
-            return localSequence;
-        }
-
-        // MultiSegment Benchmarks
-        [Benchmark]
-        public ReadOnlySequence<byte> MS_StartPosition() => _multiSegmentSequence.Slice(_ms_start);
-
-        [Benchmark]
-        public ReadOnlySequence<byte> MS_Start() => _multiSegmentSequence.Slice(0);
-
-        [Benchmark]
-        public ReadOnlySequence<byte> MS_Start_And_Length() => _multiSegmentSequence.Slice(0, 10000);
-
-        [Benchmark]
-        public ReadOnlySequence<byte> MS_Start_And_EndPosition() => _multiSegmentSequence.Slice(0, _ms_end);
-
-        [Benchmark]
-        public ReadOnlySequence<byte> MS_StartPosition_And_Length() => _multiSegmentSequence.Slice(_ms_start, 3);
-
-        [Benchmark]
-        public ReadOnlySequence<byte> MS_StartPosition_And_EndPosition() => _multiSegmentSequence.Slice(_ms_start, _ms_end);
-
-        [Benchmark]
-        public ReadOnlySequence<byte> MS_RepeatSlice()
-        {
-            var localSequence = _multiSegmentSequence.Slice(0, 10000);
-            localSequence = localSequence.Slice(0, 5000);
-            localSequence = localSequence.Slice(0, 2500);
-            localSequence = localSequence.Slice(0, 1250);
-            localSequence = localSequence.Slice(0, 625);
-            return localSequence;
-        }
-
-        // Add multiple calls for Slice(startPosition, endPosition)
-        [Benchmark]
-        public ReadOnlySequence<byte> MS_RepeatSlice_StartPosition_And_EndPosition()
-        {
-            var localSequence = _multiSegmentSequence.Slice(_ms_start, _ms_end);
-            localSequence = localSequence.Slice(_ms_start, localSequence.End);
-            localSequence = localSequence.Slice(_ms_start, localSequence.End);
-            localSequence = localSequence.Slice(_ms_start, localSequence.End);
-            localSequence = localSequence.Slice(_ms_start, localSequence.End);
             return localSequence;
         }
     }
