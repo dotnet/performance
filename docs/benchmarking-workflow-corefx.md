@@ -21,6 +21,8 @@ This repository is **independent of the CoreFX build system.** All you need to g
 
 If you are not familiar with BenchmarkDotNet or this repository you should read the [Microbenchmarks Guide](../src/benchmarks/micro/README.md) first. It's really short and concise, we really encourage you to read it.
 
+To learn more about designing benchmarks, please read [Microbenchmark Design Guidelines](./microbenchmark-design-guidelines.md).
+
 ### Code Organization
 
 All CoreFX benchmarks which have been ported from CoreFX repository belong to the corresponding folders: `corefx\$namespace`. The directory structure is the following (some folders have been ommited for brevity):

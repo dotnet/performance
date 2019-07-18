@@ -61,6 +61,13 @@ namespace System.Tests
         [Arguments("dzsdzsDDZSDZSDZSddsz")]
         public int GetHashCode(string s)
             => s.GetHashCode();
+
+        [Benchmark]
+        [Arguments("")]
+        [Arguments("TeSt!")]
+        [Arguments("dzsdzsDDZSDZSDZSddsz")]
+        public int GetHashCodeOrdinalIgnoreCase(string s)
+            => StringComparer.OrdinalIgnoreCase.GetHashCode(s);
         
         [Benchmark]
         [Arguments("Test", 2, " Test")]
@@ -235,6 +242,11 @@ namespace System.Tests
             => s1.Equals(s2);
 
         [Benchmark]
+        [Arguments("dzsdzsDDZSDZSDZSddsz", "dzsdzsDDZSDZSDZSddsz")]
+        public bool EqualsIgnoreCase(string s1, string s2)
+            => s1.Equals(s2, StringComparison.OrdinalIgnoreCase);
+
+        [Benchmark]
         [Arguments("Testing {0}, {0:C}, {0:D5}, {0:E} - {0:F4}{0:G}{0:N}  {0:X} !!", 8)]
         [Arguments("Testing {0}, {0:C}, {0:E} - {0:F4}{0:G}{0:N} , !!", 3.14159)]
         public string Format_OneArg(string s, object o)
@@ -253,6 +265,7 @@ namespace System.Tests
         [Arguments("TeSt")]
         [Arguments("TEST")]
         [Arguments("test")]
+        [Arguments("This is a much longer piece of text that might benefit more from vectorization.")]
         public string ToUpper(string s)
             => s.ToUpper();
 
@@ -260,6 +273,7 @@ namespace System.Tests
         [Arguments("TeSt")]
         [Arguments("TEST")]
         [Arguments("test")]
+        [Arguments("This is a much longer piece of text that might benefit more from vectorization.")]
         public string ToUpperInvariant(string s)
             => s.ToUpperInvariant();
         
@@ -267,6 +281,7 @@ namespace System.Tests
         [Arguments("TeSt")]
         [Arguments("TEST")]
         [Arguments("test")]
+        [Arguments("This is a much longer piece of text that might benefit more from vectorization.")]
         public string ToLower(string s)
             => s.ToLower();
 
@@ -274,6 +289,7 @@ namespace System.Tests
         [Arguments("TeSt")]
         [Arguments("TEST")]
         [Arguments("test")]
+        [Arguments("This is a much longer piece of text that might benefit more from vectorization.")]
         public string ToLowerInvariant(string s)
             => s.ToLowerInvariant();
 

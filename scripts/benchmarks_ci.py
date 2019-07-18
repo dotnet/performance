@@ -34,6 +34,8 @@ from performance.logger import setup_loggers
 import benchview
 import dotnet
 import micro_benchmarks
+import upload
+from azcopy import AzCopy
 
 
 if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
@@ -93,6 +95,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         'init-tools',  # Default
         'repo',
         'cli',
+        'args',
     ]
     parser.add_argument(
         '--cli-source-info',
@@ -141,6 +144,13 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
             (date-time from RFC 3339, Section 5.6.
             "%%Y-%%m-%%dT%%H:%%M:%%SZ").'''
     )
+
+    parser.add_argument('--upload-to-perflab-container',
+        dest="upload_to_perflab_container",
+        required=False,
+        help="Causes results files to be uploaded to perf container",
+        action='store_true'
+    )   
 
     # Generic arguments.
     parser.add_argument(
@@ -237,19 +247,6 @@ def __main(args: list) -> int:
     # Run micro-benchmarks
     if not args.build_only:
         for framework in args.frameworks:
-            #Before we run the benchmarks we need to set the CommitDate in the environment
-            #for the nex reporting tool
-            if framework != 'net461' and args.generate_benchview_data:
-                target_framework_moniker = micro_benchmarks.FrameworkAction.get_target_framework_moniker(framework)
-                commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli)
-                source_timestamp = dotnet.get_commit_date(framework, commit_sha, args.cli_repository)
-                os.environ['PERFLAB_HASH'] = commit_sha
-                os.environ['PERFLAB_BUILDTIMESTAMP'] = source_timestamp
-
-            # ensure that if we aren't generating data we dont try to go down the perflab reporting path, since we'll be missing data.
-            if os.getenv('PERFLAB_INLAB') and not args.generate_benchview_data:
-                os.environ.pop('PERFLAB_INLAB')
-
             micro_benchmarks.run(
                 BENCHMARKS_CSPROJ,
                 args.configuration,
@@ -259,6 +256,18 @@ def __main(args: list) -> int:
             )
 
         benchview.run_scripts(args, verbose, BENCHMARKS_CSPROJ)
+
+        if args.upload_to_perflab_container:
+            if args.architecture == 'arm64':
+                globpath = os.path.join(
+                    get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
+                    '**',
+                    '*perf-lab-report.json')
+
+                upload.upload(globpath, 'results', 'PERFLAB_UPLOAD_TOKEN', 'pvscmdupload.blob.core.windows.net')
+            else: 
+                AzCopy.upload_results('', args.bdn_artifacts, verbose=verbose)
+                
         # TODO: Archive artifacts.
 
 

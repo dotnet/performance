@@ -31,5 +31,29 @@ namespace System.Tests
         [Benchmark]
         [ArgumentsSource(nameof(StringValues))]
         public bool TryParse(string value) => decimal.TryParse(value, out _);
+
+        private decimal _a = 67891.2345m;
+        private decimal _b = 12345.6789m;
+
+        [Benchmark]
+        public decimal Add() => _a + _b;
+
+        [Benchmark]
+        public decimal Subtract() => _a - _b;
+
+        [Benchmark]
+        public decimal Multiply() => _a * _b;
+
+        [Benchmark]
+        public decimal Divide() => _a / _b;
+
+        [Benchmark]
+        public decimal Mod() => _a % _b;
+
+        [Benchmark]
+        public decimal Floor() => decimal.Floor(_a);
+
+        [Benchmark]
+        public decimal Round() => decimal.Round(_a);
     }
 }

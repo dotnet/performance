@@ -52,7 +52,7 @@ namespace BenchmarkDotNet.Extensions
                 test.Counters.Add(new Counter
                 {
                     Name = "Duration",
-                    TopCounter = true,
+                    TopCounter = false,
                     DefaultCounter = false,
                     HigherIsBetter = false,
                     MetricName = "ms",

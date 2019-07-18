@@ -2,7 +2,7 @@ parameters:
   osName: ''            # required -- windows | linux | macos
   osVersion: ''         # required -- OS version
   kind: ''              # required -- benchmark kind. As of today, only "micro" and "mlnet" benchmarks are supported, we plan to add "scenarios" soon
-  architecture: ''      # required -- Architecture. Allowed values: x64, x86, arm32, arm64
+  architecture: ''      # required -- Architecture. Allowed values: x64, x86, arm, arm64
   pool: ''              # required -- name of the Helix pool
   queue: ''             # required -- name of the Helix queue
   container: ''         # optional -- id of the container
@@ -22,14 +22,35 @@ jobs:
         displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }}'
         timeoutInMinutes: 320
         variables:
+        - ${{ if eq(parameters.osName, 'windows') }}:
+          - name: CliArguments
+            value: '--dotnet-versions %DOTNET_VERSION% --cli-source-info args --cli-branch %PERFLAB_BRANCH% --cli-commit-sha %PERFLAB_HASH% --cli-repository https://github.com/%PERFLAB_REPO% --cli-source-timestamp %PERFLAB_BUILDTIMESTAMP%'
+          - name: AdditionalHelixPreCommands
+            value: 'call %HELIX_CORRELATION_PAYLOAD%\tools\machine-setup.cmd'
+          - name: Python
+            value: 'py -3'
+          - name: ArtifactsDirectory
+            value: '%HELIX_CORRELATION_PAYLOAD%\artifacts\BenchmarkDotNet.Artifacts'
+        - ${{ if ne(parameters.osName, 'windows') }}:
+          - name: CliArguments
+            value: '--dotnet-versions $DOTNET_VERSION --cli-source-info args --cli-branch $PERFLAB_BRANCH --cli-commit-sha $PERFLAB_HASH --cli-repository https://github.com/$PERFLAB_REPO --cli-source-timestamp $PERFLAB_BUILDTIMESTAMP'
+          - name: AdditionalHelixPreCommands
+            value: 'chmod +x ./tools/machine-setup.sh;. ./tools/machine-setup.sh'
+          - name: Python
+            value: python3
+          - name: ArtifactsDirectory
+            value: '$HELIX_WORKITEM_PAYLOAD/artifacts/BenchmarkDotNet.Artifacts'
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           - name: BenchViewRunType
             value: private
           - name: BenchviewCommitName
             value: '.NET Performance - $(BenchViewRunType) - $(Build.SourceBranchName) $(System.PullRequest.PullRequestNumber)'
+          # for public runs, we do not want to upload perflab data
+          - name: PerfLabArguments
+            value: ''
           # for public runs we do not want to generate data or upload it (missing --generate-benchview-data and --upload-to-benchview-container)
           - name: BenchViewArguments
-            value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --benchview-run-type $(BenchViewRunType)'
+            value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --benchview-run-type $(BenchViewRunType) --generate-benchview-data --bdn-artifacts $(ArtifactsDirectory)'
           - name: Creator
             value: dotnet-performance
           # for public runs we want to run the benchmarks exactly once, no warmup, no pilot, no overhead
@@ -38,7 +59,7 @@ jobs:
           - name: HelixApiAccessToken
             value: ''
           - name: HelixPreCommand
-            value: ''
+            value: '$(AdditionalHelixPreCommands)'
           - name: HelixSourcePrefix
             value: "pr"
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
@@ -46,9 +67,12 @@ jobs:
             value: rolling
           - name: BenchviewCommitName
             value: '.NET Performance - $(BenchViewRunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
+          # for private runs, we want to upload perflab data
+          - name: PerfLabArguments
+            value: '--upload-to-perflab-container'
           # for private runs we want to generate data (--generate-benchview-data ) and upload it (--upload-to-benchview-container specifies where)
           - name: BenchViewArguments
-            value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(BenchViewRunType) --upload-to-benchview-container ${{ parameters.benchviewCategory}}'
+            value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(BenchViewRunType) --upload-to-benchview-container ${{ parameters.benchviewCategory}} --bdn-artifacts $(ArtifactsDirectory)'
           # for private runs we don't provide any custom BDN arguments (the ones from Program.Main are used)
           - name: BenchmarkDotNetArguments
             value: '--anyCategories ${{ parameters.runCategories }}'
@@ -56,10 +80,10 @@ jobs:
             value: ''
           - ${{ if eq(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'set "BV_UPLOAD_SAS_TOKEN=$(BenchViewUploadToken)"'
+              value: 'set "BV_UPLOAD_SAS_TOKEN=$(BenchViewUploadToken)";set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
           - ${{ if ne(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'export BV_UPLOAD_SAS_TOKEN="$(BenchViewUploadTokenLinux)"'
+              value: 'export BV_UPLOAD_SAS_TOKEN="$(BenchViewUploadTokenLinux)";export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
           - name: HelixSourcePrefix
             value: 'official'
           - group: DotNet-HelixApi-Access
@@ -74,22 +98,17 @@ jobs:
             ${{ each framework in parameters.frameworks }}:
               ${{ framework }}:
                 _Framework: ${{ framework }}
-                _CompilationMode: NoTiering
+                _Configs: CompilationMode=Tiered
                 _BuildConfig: ${{ parameters.architecture }}_$(_Framework)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
                 ${{ if startsWith(framework, 'netcoreapp') }}:
                   _BenchViewArguments: $(BenchViewArguments)
+                  _PerfLabArguments: $(PerfLabArguments)
                 ${{ if not(startsWith(framework, 'netcoreapp')) }}: # we don't want to upload non-.NET Core results to BenchView
                   _BenchViewArguments: ''
-              ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}: # to reduce the number of CI legs for every PR
-                ${{ if startsWith(framework, 'netcoreapp') }}: # Tiered JIT was introduced in .NET Core 2.1
-                  ${{ framework }}_tiered:
-                    _Framework: ${{ framework }}
-                    _CompilationMode: Tiered
-                    _BuildConfig: ${{ parameters.architecture }}_$(_Framework)_$(_CompilationMode)_${{ parameters.kind }}
-                    _BenchViewArguments: $(BenchViewArguments)
         steps:
         - checkout: self
           clean: true
+        - script: $(Python) scripts/ci_setup.py --frameworks $(_Framework) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs)
         - ${{ if eq(parameters.osName, 'windows') }}:
           - script: (robocopy $(Build.SourcesDirectory) $(Build.SourcesDirectory)\notLocked /E /XD $(Build.SourcesDirectory)\notLocked $(Build.SourcesDirectory)\artifacts $(Build.SourcesDirectory)\.git) ^& IF %ERRORLEVEL% LEQ 1 exit 0
             displayName: Workaround to avoid locked file # https://github.com/dotnet/arcade/issues/2125
@@ -104,10 +123,9 @@ jobs:
             Architecture: ${{ parameters.architecture }}
             TargetCsproj: ${{ parameters.csproj }}
             WorkItemTimeout: 4:00 # 4 hours
+            Python: $(Python)
             ${{ if eq(parameters.osName, 'windows') }}:
-              Python: 'py -3'
               WorkItemDirectory: '$(Build.SourcesDirectory)\docs' # WorkItemDirectory can not be empty, so we send it some docs to keep it happy
               CorrelationPayloadDirectory: '$(Build.SourcesDirectory)\notLocked' # it gets checked out to a folder with shorter path than WorkItemDirectory so we can avoid file name too long exceptions
             ${{ if ne(parameters.osName, 'windows') }}:
-              Python: python3
               WorkItemDirectory: '$(Build.SourcesDirectory)'
