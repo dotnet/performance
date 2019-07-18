@@ -18,10 +18,10 @@ The python scripts in this repository support python version 3.5 or greater.
 
 - [Downloads](https://www.python.org/downloads/)
 
-### [.NET Core command-line interface (CLI) tools](https://docs.microsoft.com/en-us/dotnet/core/tools/?tabs=netcore2x)
+### .NET Core SDK
 
-Used to build the .NET Performance projects, and they can be downloaded here:
+The .NET Core SDK contains both the .NET Core runtime and CLI tools. .NET Performance projects test the performance of daily builds of .NET Core Runtime. **You need to install the latest daily build of .NET Core SDK to be able to build the projects**. It can be downloaded here:
 
-- [Downloads](https://dotnet.microsoft.com/download)
+- [Downloads](https://github.com/dotnet/core-sdk#installers-and-binaries)
 
 Optionally, you could use [dotnet.py](../scripts/dotnet.py) to to download the DotNet Cli locally.

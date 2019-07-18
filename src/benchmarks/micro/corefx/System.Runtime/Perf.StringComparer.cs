@@ -9,13 +9,10 @@ namespace System.Tests
     {
         [Params(
             128, // stackalloc path
-            1024 * 256, // ArrayPool.Shared.Rent without allocation 
-            2 * 1024 * 1024)] // ArrayPool.Shared.Rent WITH allocation
+            1024 * 256)] // ArrayPool.Shared.Rent without allocation 
         public int Count { get; set; }
 
-        [Params(
-            StringComparison.Ordinal, StringComparison.OrdinalIgnoreCase,
-            StringComparison.InvariantCulture, StringComparison.InvariantCultureIgnoreCase)]
+        [ParamsAllValues]
         public StringComparison Comparison { get; set; }
 
         private string _input, _same;

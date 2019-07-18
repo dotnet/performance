@@ -88,5 +88,15 @@ namespace Reporting.Tests
             r.AddTest(t);
             Assert.Throws<Exception>(() => { r.AddTest(t); });
         }
+
+        [Fact]
+        public void AddCountersEnumerable()
+        {
+            Test t = new Test();
+            Counter c1 = new Counter { Name = "Counter1", DefaultCounter = true };
+            Counter c2 = new Counter { Name = "Counter2" };
+            t.AddCounter(new[] { c1, c2 });
+            Assert.Equal(2, t.Counters.Count);
+        }
     }
 }

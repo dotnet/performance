@@ -400,7 +400,7 @@ def __run_scripts(
     #   This value should be optional, and set when applicable.
     # benchview_config['Jit'] = 'RyuJIT'
     benchview_config['Framework'] = framework
-    benchview_config['.NET Compilation Mode'] = args.dotnet_compilation_mode
+    benchview_config['.NET Compilation Mode'] = 'Tiered'
     benchview_config['OS'] = __get_os_name()
     benchview_config['PGO'] = 'Enabled'
     benchview_config['Profile'] = 'On' if args.enable_pmc else 'Off'
