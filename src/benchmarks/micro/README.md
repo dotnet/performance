@@ -8,6 +8,8 @@ To run the benchmarks, you need to download dotnet cli or use the python script,
 
 We use BenchmarkDotNet as the benchmarking tool, you can read more about it in [our short summary](../../../docs/benchmarkdotnet.md) (it's recommended). The key thing that you need to remember is that **BenchmarkDotNet runs every benchmark in a dedicated process and stops the benchmarking when a specified level of precision is met**.
 
+To learn more about designing benchmarks, please read [Microbenchmark Design Guidelines](../../../docs/microbenchmark-design-guidelines.md).
+
 ## Quick Start
 
 The first thing that you need to choose is the Target Framework. Available options are: `netcoreapp2.1|netcoreapp2.2|netcoreapp3.0|net461`. You can specify the target framework using `-f|--framework` argument. For the sake of simplicity, all examples below use `netcoreapp3.0` as the target framework.

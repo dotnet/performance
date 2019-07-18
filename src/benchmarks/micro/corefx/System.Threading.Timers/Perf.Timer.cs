@@ -72,5 +72,31 @@ namespace System.Threading.Tests
             }
             Task.WaitAll(tasks);
         }
+
+        [GlobalSetup(Target = nameof(ShortScheduleAndDisposeWithFiringTimers))]
+        public void SetupShortScheduleAndDisposeWithFiringTimers()
+        {
+            for (int i = 0; i < _timers.Length; i++)
+            {
+                _timers[i] = new Timer(_ => { }, null, i, i);
+            }
+            Thread.Sleep(1000);
+        }
+
+        [GlobalCleanup(Target = nameof(ShortScheduleAndDisposeWithFiringTimers))]
+        public void CleanupShortScheduleAndDisposeWithFiringTimers()
+        {
+            using (var are = new AutoResetEvent(false))
+            {
+                foreach (Timer t in _timers)
+                {
+                    t.Dispose(are);
+                    are.WaitOne();
+                }
+            }
+        }
+
+        [Benchmark]
+        public void ShortScheduleAndDisposeWithFiringTimers() => new Timer(_ => { }, 0, 100, 100).Dispose();
     }
 }

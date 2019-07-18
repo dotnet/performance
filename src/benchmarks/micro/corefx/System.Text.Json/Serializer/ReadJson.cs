@@ -5,6 +5,8 @@
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 using MicroBenchmarks.Serializers;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -14,6 +16,10 @@ namespace System.Text.Json.Serialization.Tests
     [GenericTypeArguments(typeof(Location))]
     [GenericTypeArguments(typeof(IndexViewModel))]
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
+    [GenericTypeArguments(typeof(BinaryData))]
+    [GenericTypeArguments(typeof(Dictionary<string, string>))]
+    [GenericTypeArguments(typeof(ImmutableDictionary<string, string>))]
+    [GenericTypeArguments(typeof(ImmutableSortedDictionary<string, string>))]
     public class ReadJson<T>
     {
         private string _serialized;
@@ -25,28 +31,28 @@ namespace System.Text.Json.Serialization.Tests
         {
             T value = DataGenerator.Generate<T>();
 
-            _serialized = JsonSerializer.ToString(value);
+            _serialized = JsonSerializer.Serialize(value);
 
             _utf8Serialized = Encoding.UTF8.GetBytes(_serialized);
 
             _memoryStream = new MemoryStream(capacity: short.MaxValue);
-            await JsonSerializer.WriteAsync(value, _memoryStream);
+            await JsonSerializer.SerializeAsync(_memoryStream, value);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
-        public T DeserializeFromString() => JsonSerializer.Parse<T>(_serialized);
+        public T DeserializeFromString() => JsonSerializer.Deserialize<T>(_serialized);
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
-        public T DeserializeFromUtf8Bytes() => JsonSerializer.Parse<T>(_utf8Serialized);
+        public T DeserializeFromUtf8Bytes() => JsonSerializer.Deserialize<T>(_utf8Serialized);
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public async Task<T> DeserializeFromStream()
         {
             _memoryStream.Position = 0;
-            T value = await JsonSerializer.ReadAsync<T>(_memoryStream);
+            T value = await JsonSerializer.DeserializeAsync<T>(_memoryStream);
             return value;
         }
 

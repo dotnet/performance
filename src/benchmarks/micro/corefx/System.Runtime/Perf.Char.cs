@@ -27,5 +27,16 @@ namespace System.Tests
         [Benchmark]
         [ArgumentsSource(nameof(Char_ChangeCase_MemberData))]
         public char Char_ToUpper(char c, CultureInfo cultureName)=> char.ToUpper(c, cultureName);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(GetUnicodeCategoryArguments))]
+        public UnicodeCategory GetUnicodeCategory(char c) => char.GetUnicodeCategory(c);
+
+        public static IEnumerable<object[]> GetUnicodeCategoryArguments()
+        {
+            yield return new object[] { '.' };
+            yield return new object[] { 'a' };
+            yield return new object[] { '\x05D0' };
+        }
     }
 }

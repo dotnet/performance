@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
-  <Import Project="$(MSBuildThisFileDirectory)\..\..\..\common.props" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
