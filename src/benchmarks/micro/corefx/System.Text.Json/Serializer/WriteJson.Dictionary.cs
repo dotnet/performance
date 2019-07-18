@@ -31,84 +31,84 @@ namespace System.Text.Json.Serialization.Tests
         [Benchmark]
         public byte[] SerializeDict_ToUtf8Bytes()
         {
-            return JsonSerializer.ToUtf8Bytes(_dict);
+            return JsonSerializer.SerializeToUtf8Bytes(_dict);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public byte[] SerializeIDict_ToUtf8Bytes()
         {
-            return JsonSerializer.ToUtf8Bytes(_iDict);
+            return JsonSerializer.SerializeToUtf8Bytes(_iDict);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public byte[] SerializeIReadOnlyDict_ToUtf8Bytes()
         {
-            return JsonSerializer.ToUtf8Bytes(_iReadOnlyDict);
+            return JsonSerializer.SerializeToUtf8Bytes(_iReadOnlyDict);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
-        public string SerializeDict_ToString()
+        public string SerializeDict_Serialize()
         {
-            return JsonSerializer.ToString(_dict);
+            return JsonSerializer.Serialize(_dict);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
-        public string SerializeIDict_ToString()
+        public string SerializeIDict_Serialize()
         {
-            return JsonSerializer.ToString(_iDict);
+            return JsonSerializer.Serialize(_iDict);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
-        public string SerializeIReadOnlyDict_ToString()
+        public string SerializeIReadOnlyDict_Serialize()
         {
-            return JsonSerializer.ToString(_iReadOnlyDict);
+            return JsonSerializer.Serialize(_iReadOnlyDict);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public byte[] SerializeImmutableDict_ToBytes()
         {
-            return JsonSerializer.ToUtf8Bytes(_immutableDict);
+            return JsonSerializer.SerializeToUtf8Bytes(_immutableDict);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public byte[] SerializeIImmutableDict_ToBytes()
         {
-            return JsonSerializer.ToUtf8Bytes(_iimmutableDict);
+            return JsonSerializer.SerializeToUtf8Bytes(_iimmutableDict);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public byte[] SerializeImmutableSortedDict_ToBytes()
         {
-            return JsonSerializer.ToUtf8Bytes(_immutableSortedDict);
+            return JsonSerializer.SerializeToUtf8Bytes (_immutableSortedDict);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
-        public string SerializeImmutableDict_ToString()
+        public string SerializeImmutableDict_Serialize()
         {
-            return JsonSerializer.ToString(_immutableDict);
+            return JsonSerializer.Serialize(_immutableDict);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
-        public string SerializeIImmutableDict_ToString()
+        public string SerializeIImmutableDict_Serialize()
         {
-            return JsonSerializer.ToString(_iimmutableDict);
+            return JsonSerializer.Serialize(_iimmutableDict);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
-        public string SerializeImmutableSortedDict_ToString()
+        public string SerializeImmutableSortedDict_Serialize()
         {
-            return JsonSerializer.ToString(_immutableSortedDict);
+            return JsonSerializer.Serialize(_immutableSortedDict);
         }
     }
 }
