@@ -4,13 +4,7 @@
 
 using System.Buffers;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Memory;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Diagnostics.Windows;
-using BenchmarkDotNet.Diagnostics.Windows.Configs;
-using MicroBenchmarks;
-using Microsoft.Diagnostics.Tracing.Parsers.Clr;
 
 namespace MicroBenchmarks.corefx
 {
@@ -42,8 +36,6 @@ namespace MicroBenchmarks.corefx
         private System.SequencePosition _ms_start;
         private System.SequencePosition _ms_end;
 
-        //private System.Buffers.ReadOnlySequence<byte> _sequence;
-
         [GlobalSetup]
         public void GlobalSetup()
         {
@@ -60,40 +52,22 @@ namespace MicroBenchmarks.corefx
         }
 
         [Benchmark]
-        public void StartPosition()
-        {
-            _sequence.Slice(_start);
-        }
+        public ReadOnlySequence<byte> StartPosition() => _sequence.Slice(_start);
 
         [Benchmark]
-        public void Start()
-        {
-            _sequence.Slice(0);
-        }
+        public ReadOnlySequence<byte> Start() => _sequence.Slice(0);
 
         [Benchmark]
-        public void Start_And_Length()
-        {
-            _sequence.Slice(0, 10000);
-        }
+        public ReadOnlySequence<byte> Start_And_Length() => _sequence.Slice(0, 10000);
 
         [Benchmark]
-        public void Start_And_EndPosition()
-        {
-            _sequence.Slice(0, _end);
-        }
+        public ReadOnlySequence<byte> Start_And_EndPosition() => _sequence.Slice(0, _end);
 
         [Benchmark]
-        public void StartPosition_And_Length()
-        {
-            _sequence.Slice(_start, 3);
-        }
+        public ReadOnlySequence<byte> StartPosition_And_Length() => _sequence.Slice(_start, 3);
 
         [Benchmark]
-        public void StartPosition_And_EndPosition()
-        {
-            _sequence.Slice(_start, _end);
-        }
+        public ReadOnlySequence<byte> StartPosition_And_EndPosition() => _sequence.Slice(_start, _end);
 
         [Benchmark]
         public ReadOnlySequence<byte> RepeatSlice()
@@ -120,40 +94,22 @@ namespace MicroBenchmarks.corefx
 
         // MultiSegment Benchmarks
         [Benchmark]
-        public void MS_StartPosition()
-        {
-            _multiSegmentSequence.Slice(_ms_start);
-        }
+        public ReadOnlySequence<byte> MS_StartPosition() => _multiSegmentSequence.Slice(_ms_start);
 
         [Benchmark]
-        public void MS_Start()
-        {
-            _multiSegmentSequence.Slice(0);
-        }
+        public ReadOnlySequence<byte> MS_Start() => _multiSegmentSequence.Slice(0);
 
         [Benchmark]
-        public void MS_Start_And_Length()
-        {
-            _multiSegmentSequence.Slice(0, 10000);
-        }
+        public ReadOnlySequence<byte> MS_Start_And_Length() => _multiSegmentSequence.Slice(0, 10000);
 
         [Benchmark]
-        public void MS_Start_And_EndPosition()
-        {
-            _multiSegmentSequence.Slice(0, _ms_end);
-        }
+        public ReadOnlySequence<byte> MS_Start_And_EndPosition() => _multiSegmentSequence.Slice(0, _ms_end);
 
         [Benchmark]
-        public void MS_StartPosition_And_Length()
-        {
-            _multiSegmentSequence.Slice(_ms_start, 3);
-        }
+        public ReadOnlySequence<byte> MS_StartPosition_And_Length() => _multiSegmentSequence.Slice(_ms_start, 3);
 
         [Benchmark]
-        public void MS_StartPosition_And_EndPosition()
-        {
-            _multiSegmentSequence.Slice(_ms_start, _ms_end);
-        }
+        public ReadOnlySequence<byte> MS_StartPosition_And_EndPosition() => _multiSegmentSequence.Slice(_ms_start, _ms_end);
 
         [Benchmark]
         public ReadOnlySequence<byte> MS_RepeatSlice()
@@ -177,6 +133,5 @@ namespace MicroBenchmarks.corefx
             localSequence = localSequence.Slice(_ms_start, localSequence.End);
             return localSequence;
         }
-        
     }
 }
