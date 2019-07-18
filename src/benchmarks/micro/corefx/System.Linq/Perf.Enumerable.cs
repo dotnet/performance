@@ -394,6 +394,9 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(IEnumerableArgument))]
         public void Except(LinqTestData input) => input.Collection.Except(input.Collection).Consume(_consumer);
 
+        [Benchmark]
+        public void EmptyTakeSelectToArray() => Enumerable.Empty<int>().Take(10).Select(i => i).ToArray();
+
 #if NETCOREAPP3_0 // API Available in .NET Core 3.0+
         // Append() has two execution paths: AppendPrependIterator (a result of another Append or Prepend) and IEnumerable, this benchmark tests both
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/AppendPrepend.cs

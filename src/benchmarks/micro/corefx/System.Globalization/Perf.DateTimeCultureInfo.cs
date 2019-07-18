@@ -16,8 +16,8 @@ namespace System.Globalization.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_DateTimeCultureInfo
     {
-        private readonly DateTime _time = DateTime.Now;
-        
+        private readonly DateTime _time = new DateTime(654321098765432109);
+
         public IEnumerable<object> Cultures()
         {
             yield return new CultureInfo("fr");
@@ -35,5 +35,17 @@ namespace System.Globalization.Tests
         [ArgumentsSource(nameof(Cultures))]
         public DateTime Parse(CultureInfo culturestring)
             => DateTime.Parse("10/10/2010 12:00:00 AM", culturestring);
+
+        private readonly CultureInfo _hebrewIsrael = CreateHebrewIsraelCultureInfo();
+
+        private static CultureInfo CreateHebrewIsraelCultureInfo()
+        {
+            var c = new CultureInfo("he-IL");
+            c.DateTimeFormat.Calendar = new HebrewCalendar();
+            return c;
+        }
+
+        [Benchmark]
+        public string ToStringHebrewIsrael() => _time.ToString(_hebrewIsrael);
     }
 }

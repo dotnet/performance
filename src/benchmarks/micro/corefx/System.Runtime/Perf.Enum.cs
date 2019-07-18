@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -20,6 +21,16 @@ namespace System.Tests
             Blue = 0x10
         }
 
+        public enum ByteEnum : byte
+        {
+            A,
+            B
+        }
+
+        [Benchmark]
+        [Arguments(Colors.Yellow)]
+        public string EnumToString(Colors value) => value.ToString();
+
         [Benchmark]
         [Arguments("Red")]
         [Arguments("Red, Orange, Yellow, Green, Blue")]
@@ -34,5 +45,10 @@ namespace System.Tests
 
         [Benchmark]
         public bool HasFlag() => _greenAndRed.HasFlag(Colors.Green);
+
+        private ByteEnum _byteEnum = ByteEnum.A;
+
+        [Benchmark]
+        public void Compare() => Comparer<ByteEnum>.Default.Compare(_byteEnum, _byteEnum);
     }
 }
