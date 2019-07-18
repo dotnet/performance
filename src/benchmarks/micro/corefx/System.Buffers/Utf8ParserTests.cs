@@ -36,7 +36,7 @@ namespace System.Buffers.Text.Tests
         public bool TryParseUInt64Hex(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out ulong _, out int _, 'X');
 
         public IEnumerable<object> Int32Values
-            => Perf_Int32.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
+            => Perf_Int32.StringValuesDecimal.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
         [Benchmark]
         [ArgumentsSource(nameof(Int32Values))]

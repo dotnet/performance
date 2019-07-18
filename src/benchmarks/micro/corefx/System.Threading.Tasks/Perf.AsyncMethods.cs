@@ -33,5 +33,14 @@ namespace System.Threading.Tasks.Tests
 
             async Task Yield() => await Task.Yield();
         }
+
+        [Benchmark(OperationsPerInvoke = 1_000_000)]
+        public async Task Yield()
+        {
+            for (int i = 0; i < 1_000_000; i++)
+            {
+                await Task.Yield();
+            }
+        }
     }
 }

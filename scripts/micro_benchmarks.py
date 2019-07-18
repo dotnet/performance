@@ -374,7 +374,8 @@ def build(
     build_title = "Building .NET micro benchmarks for '{}'".format(
         ' '.join(target_framework_monikers))
     __log_script_header(build_title)
-    BENCHMARKS_CSPROJ.build(configuration, target_framework_monikers, verbose)
+    BENCHMARKS_CSPROJ.build(
+        configuration, target_framework_monikers, verbose, packages)
 
 
 def run(

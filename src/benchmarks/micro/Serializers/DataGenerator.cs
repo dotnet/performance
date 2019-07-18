@@ -4,9 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
+using BenchmarkDotNet.Extensions;
 using MessagePack;
 using ProtoBuf;
 
@@ -24,6 +26,8 @@ namespace MicroBenchmarks.Serializers
                 return (T)(object)CreateIndexViewModel();
             if (typeof(T) == typeof(MyEventsListerViewModel))
                 return (T)(object)CreateMyEventsListerViewModel();
+            if (typeof(T) == typeof(BinaryData))
+                return (T)(object)CreateBinaryData(1024);
             if (typeof(T) == typeof(CollectionsOfPrimitives))
                 return (T)(object)CreateCollectionsOfPrimitives(1024); // 1024 values was copied from CoreFX benchmarks
             if (typeof(T) == typeof(XmlElement))
@@ -32,6 +36,15 @@ namespace MicroBenchmarks.Serializers
                 return (T)(object)new SimpleStructWithProperties { Num = 1, Text = "Foo" };
             if (typeof(T) == typeof(ClassImplementingIXmlSerialiable))
                 return (T)(object)new ClassImplementingIXmlSerialiable { StringValue = "Hello world" };
+            if (typeof(T) == typeof(Dictionary<string, string>))
+                return (T)(object)ValuesGenerator.ArrayOfUniqueValues<string>(100).ToDictionary(value => value);
+            if (typeof(T) == typeof(ImmutableDictionary<string, string>))
+                return (T)(object)ImmutableDictionary.CreateRange(ValuesGenerator.ArrayOfUniqueValues<string>(100).ToDictionary(value => value));
+            if (typeof(T) == typeof(ImmutableSortedDictionary<string, string>))
+                return (T)(object)ImmutableSortedDictionary.CreateRange(ValuesGenerator.ArrayOfUniqueValues<string>(100).ToDictionary(value => value));
+            if (typeof(T) == typeof(HashSet<string>))
+                return (T)(object)new HashSet<string>(ValuesGenerator.ArrayOfUniqueValues<string>(100));
+
 
             throw new NotImplementedException();
         }
@@ -112,6 +125,12 @@ namespace MicroBenchmarks.Serializers
                         EndDate = DateTime.UtcNow.AddDays(1),
                         Name = "A very nice task to have"
                     }, 4).ToList()
+            };
+
+        private static BinaryData CreateBinaryData(int size)
+            => new BinaryData
+            {
+                ByteArray = CreateByteArray(size)
             };
 
         private static CollectionsOfPrimitives CreateCollectionsOfPrimitives(int count)
@@ -308,6 +327,14 @@ namespace MicroBenchmarks.Serializers
                 return string.Format($"From {startDateString} to {endDateString}");
             }
         }
+    }
+
+    [Serializable]
+    [ProtoContract]
+    [MessagePackObject]
+    public class BinaryData
+    {
+        [ProtoMember(1)] [Key(0)] public byte[] ByteArray { get; set; }
     }
 
     [Serializable]

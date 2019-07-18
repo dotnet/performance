@@ -1,15 +1,10 @@
 <Project>
+  <!-- Microsoft.DotNet.Arcade.Sdk must be imported in explict way in every Directory.Build.props file -->
+  <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
   <PropertyGroup>
     <!-- Avoid spawning any-long living compiler processes to avoid BenchmarkDotNet issues with "file in use",
          and automation failing to clean up the folders once the runs are over -->
     <UseSharedCompilation>false</UseSharedCompilation>
-    
-    <!-- Used by Python script to narrow down the the specified target frameworks to test, and avoid downloading all supported SDKs -->
-    <TargetFrameworks>$(PYTHON_SCRIPT_TARGET_FRAMEWORKS)</TargetFrameworks>
-    
-    <!-- Supported target frameworks -->
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net461;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
     
     <!-- Use the latest C# compiler features -->
     <LangVersion>latest</LangVersion>
@@ -23,6 +18,10 @@
     
     <!-- we are testing latest bits and we must use preview SDK version -->
     <SuppressNETCoreSdkPreviewMessage>True</SuppressNETCoreSdkPreviewMessage>
+
+    <!-- Disable SourceLink -->
+    <EnableSourceLink>false</EnableSourceLink>
+    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
     
     <!-- Explicit disable signing the built assemblies here to stop Arcade attempting to sign them -->
     <SignAssembly>false</SignAssembly>
