@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <!-- Used by Python script to narrow down the the specified target frameworks to test, and avoid downloading all supported SDKs -->
@@ -83,6 +83,7 @@
     <Compile Remove="coreclr\Math\Functions\Single\ILogB.cs" />
     <Compile Remove="coreclr\Math\Functions\Single\Log2.cs" />
     <Compile Remove="coreclr\Math\Functions\Single\ScaleB.cs" />
+    <Compile Remove="corefx\System.Memory\SequenceReader.cs" />
     <Compile Remove="corefx\System.Text.Json\**\*.cs" />
   </ItemGroup>
   
