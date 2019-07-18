@@ -19,6 +19,7 @@ namespace System.IO.Tests
         private string _string2 = new string('a', 2), _string100 = new string('a', 100);
         private char[] _buffer2 = new string('a', 2).ToCharArray(), _buffer100 = new string('a', 100).ToCharArray();
         private char[] _buffer12 = new string('a', 12).ToCharArray(), _buffer110 = new string('a', 110).ToCharArray();
+        private MemoryStream _memoryStream;
         private StreamWriter _streamWriter;
 
         public IEnumerable<object> WriteLengthMemberData()
@@ -30,12 +31,14 @@ namespace System.IO.Tests
         [GlobalSetup]
         public void Setup()
         {
-            _streamWriter = new StreamWriter(Stream.Null, new UTF8Encoding(false, true), DefaultStreamWriterBufferSize, leaveOpen: true);
+            _memoryStream = new MemoryStream(MemoryStreamSize);
+            _streamWriter = new StreamWriter(_memoryStream, new UTF8Encoding(false, true), DefaultStreamWriterBufferSize, leaveOpen: true);
         }
         
         [GlobalCleanup]
         public void Cleanup()
         {
+            _memoryStream.Dispose();
             _streamWriter.Dispose();
         }
 
@@ -48,6 +51,7 @@ namespace System.IO.Tests
             int outerIteration = TotalWriteCount / innerIterations;
 
             var writer = _streamWriter;
+            var stream = _memoryStream;
             
             for (int i = 0; i < outerIteration; i++)
             {
@@ -56,6 +60,7 @@ namespace System.IO.Tests
                     writer.Write(buffer);
                 }
                 writer.Flush();
+                stream.Position = 0;
             }
         }
 
@@ -68,6 +73,7 @@ namespace System.IO.Tests
             int outerIteration = TotalWriteCount / innerIterations;
 
             var writer = _streamWriter;
+            var stream = _memoryStream;
             
             for (int i = 0; i < outerIteration; i++)
             {
@@ -76,6 +82,7 @@ namespace System.IO.Tests
                     writer.Write(buffer, 10, writeLength);
                 }
                 writer.Flush();
+                stream.Position = 0;
             }
         }
 
@@ -88,6 +95,7 @@ namespace System.IO.Tests
             int outerIteration = TotalWriteCount / innerIterations;
 
             var writer = _streamWriter;
+            var stream = _memoryStream;
             
             for (int i = 0; i < outerIteration; i++)
             {
@@ -96,6 +104,7 @@ namespace System.IO.Tests
                     writer.Write(value);
                 }
                 writer.Flush();
+                stream.Position = 0;
             }
         }
 
