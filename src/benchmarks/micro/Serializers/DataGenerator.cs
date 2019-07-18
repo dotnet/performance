@@ -42,6 +42,9 @@ namespace MicroBenchmarks.Serializers
                 return (T)(object)ImmutableDictionary.CreateRange(ValuesGenerator.ArrayOfUniqueValues<string>(100).ToDictionary(value => value));
             if (typeof(T) == typeof(ImmutableSortedDictionary<string, string>))
                 return (T)(object)ImmutableSortedDictionary.CreateRange(ValuesGenerator.ArrayOfUniqueValues<string>(100).ToDictionary(value => value));
+            if (typeof(T) == typeof(HashSet<string>))
+                return (T)(object)new HashSet<string>(ValuesGenerator.ArrayOfUniqueValues<string>(100));
+
 
             throw new NotImplementedException();
         }

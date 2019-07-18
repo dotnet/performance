@@ -20,6 +20,7 @@ namespace System.Text.Json.Serialization.Tests
     [GenericTypeArguments(typeof(Dictionary<string, string>))]
     [GenericTypeArguments(typeof(ImmutableDictionary<string, string>))]
     [GenericTypeArguments(typeof(ImmutableSortedDictionary<string, string>))]
+    [GenericTypeArguments(typeof(HashSet<string>))]
     public class ReadJson<T>
     {
         private string _serialized;
