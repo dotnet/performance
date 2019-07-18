@@ -12,6 +12,7 @@ namespace System.Collections
 {
     [BenchmarkCategory(Categories.CoreCLR, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type, Array sort in native code
+    [GenericTypeArguments(typeof(string))] // reference type, Array sort in native code
     [GenericTypeArguments(typeof(IntStruct))] // custom value type, sort in managed code
     [GenericTypeArguments(typeof(IntClass))] // custom reference type, sort in managed code
     [GenericTypeArguments(typeof(BigStruct))] // custom value type, sort in managed code
