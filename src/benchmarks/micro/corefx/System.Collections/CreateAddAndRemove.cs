@@ -41,7 +41,11 @@ namespace System.Collections
         [Benchmark]
         public LinkedList<T> LinkedList()
         {
-            LinkedList<T> linkedList = new LinkedList<T>(_keys);
+            LinkedList<T> linkedList = new LinkedList<T>();
+            foreach (T item in _keys)
+            {
+                linkedList.AddLast(item);
+            }
             foreach (T item in _keys)
             {
                 linkedList.Remove(item);
