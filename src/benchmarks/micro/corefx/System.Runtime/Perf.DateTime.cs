@@ -35,5 +35,11 @@ namespace System.Tests
 
         [Benchmark]
         public TimeSpan op_Subtraction() => date1 - date2;
+
+        [Benchmark]
+        public DateTime ParseR() => DateTime.ParseExact("Mon, 03 Jun 1996 22:15:00 GMT", "r", null);
+
+        [Benchmark]
+        public DateTime ParseO() => DateTime.ParseExact("1996-06-03T22:15:00.0000000", "o", null);
     }
 }

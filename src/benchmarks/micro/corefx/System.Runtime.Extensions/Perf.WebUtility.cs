@@ -4,7 +4,6 @@
 
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
-using System.Net;
 
 namespace System.Net.Tests
 {
@@ -16,5 +15,8 @@ namespace System.Net.Tests
 
         [Benchmark]
         public string Decode_NoDecodingRequired() => WebUtility.UrlDecode("abcdefghijklmnopqrstuvwxyz");
+
+        [Benchmark]
+        public void HtmlDecode_Entities() => WebUtility.HtmlDecode("&#x6C34;&#x6C34;&#x6C34;&#x6C34;&#x6C34;&#x6C34;&#x6C34;");
     }
 }

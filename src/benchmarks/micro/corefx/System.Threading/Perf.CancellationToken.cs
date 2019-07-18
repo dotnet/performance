@@ -43,5 +43,14 @@ namespace System.Threading.Tests
         [Benchmark]
         public void CreateLinkedTokenSource3() =>
             CancellationTokenSource.CreateLinkedTokenSource(_tokens).Dispose();
+
+        [Benchmark]
+        public void CancelAfter()
+        {
+            using (var cts = new CancellationTokenSource())
+            {
+                cts.CancelAfter(int.MaxValue - 1);
+            }
+        }
     }
 }

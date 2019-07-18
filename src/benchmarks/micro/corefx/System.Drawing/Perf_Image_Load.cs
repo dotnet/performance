@@ -5,8 +5,8 @@
 using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 
 namespace System.Drawing.Tests
@@ -14,14 +14,10 @@ namespace System.Drawing.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public class Perf_Image_Load
     {
-        private static readonly ImageTestData[] TestCases = {
-            new ImageTestData(ImageFormat.Bmp),
-            new ImageTestData(ImageFormat.Jpeg),
-            new ImageTestData(ImageFormat.Png),
-            new ImageTestData(ImageFormat.Gif)
-        };
+        // this field is lazy to avoid the exception during static ctor initialization of this type (harder to catch and handle properly)
+        private static readonly Lazy<ImageTestData[]> LazyTestCases = new Lazy<ImageTestData[]>(CreateTestCases);
 
-        public IEnumerable<object> ImageFormats() => TestCases;
+        public IEnumerable<object> ImageFormats() => LazyTestCases.Value;
 
         [Benchmark]
         [ArgumentsSource(nameof(ImageFormats))]
@@ -47,6 +43,28 @@ namespace System.Drawing.Tests
         {
             using (Image.FromStream(format.Stream, false, false))
             {
+            }
+        }
+
+        private static ImageTestData[] CreateTestCases()
+        {
+            try
+            {
+                return new [] 
+                {
+                    new ImageTestData(ImageFormat.Bmp),
+                    new ImageTestData(ImageFormat.Jpeg),
+                    new ImageTestData(ImageFormat.Png),
+                    new ImageTestData(ImageFormat.Gif)
+                };
+            }
+            catch (Exception) when (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("libgdiplus is missing, you can install it by running 'apt-get install libgdiplus'");
+                Console.ResetColor();
+
+                throw;
             }
         }
 

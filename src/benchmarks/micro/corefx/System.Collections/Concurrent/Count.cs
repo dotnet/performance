@@ -38,7 +38,16 @@ namespace System.Collections.Concurrent
         
         [Benchmark]
         public int Queue() => _queue.Count;
-        
+
+        [Benchmark]
+        public int Queue_EnqueueCountDequeue()
+        {
+            _queue.Enqueue(default);
+            int c = _queue.Count;
+            _queue.TryDequeue(out _);
+            return c;
+        }
+
         [Benchmark]
         public int Stack() => _stack.Count;
         

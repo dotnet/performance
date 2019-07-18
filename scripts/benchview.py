@@ -126,7 +126,7 @@ class BenchView:
         ]
 
         full_json_files = []
-        pattern = "BenchmarkDotNet.Artifacts/**/*-full.json"
+        pattern = "**/*-full.json"
         getLogger().info(
             'Searching BenchmarkDotNet output files with: %s', pattern
         )
@@ -400,7 +400,7 @@ def __run_scripts(
     #   This value should be optional, and set when applicable.
     # benchview_config['Jit'] = 'RyuJIT'
     benchview_config['Framework'] = framework
-    benchview_config['.NET Compilation Mode'] = args.dotnet_compilation_mode
+    benchview_config['.NET Compilation Mode'] = 'Tiered'
     benchview_config['OS'] = __get_os_name()
     benchview_config['PGO'] = 'Enabled'
     benchview_config['Profile'] = 'On' if args.enable_pmc else 'Off'
@@ -459,11 +459,12 @@ def run_scripts(
     __log_script_header('Running BenchView scripts')
 
     for framework in args.frameworks:
-        working_directory = __get_working_directory(
+        
+        working_directory = path.join(__get_working_directory(
             BENCHMARKS_CSPROJ,
             args.configuration,
             framework
-        )
+        ), 'BenchmarkDotNet.Artifacts') if not args.bdn_artifacts else path.join(args.bdn_artifacts)
 
         with push_dir(working_directory):
             benchviewpy = BenchView(verbose)
