@@ -19,7 +19,7 @@ namespace System.Collections
     public class Sort<T> where T : IComparable<T>
     {
         private static readonly ComparableComparerClass _comparableComparerClass = new ComparableComparerClass();
-        private const int InvocationsPerIteration = 50000;
+        private const int InvocationsPerIteration = 5000;
 
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
