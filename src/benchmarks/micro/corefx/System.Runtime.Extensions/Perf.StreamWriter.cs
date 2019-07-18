@@ -109,6 +109,10 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        public void WriteFormat() => _streamWriter.Write("Writing out a value: {0}", 42);
+        public void WriteFormat()
+        {
+            _memoryStream.Position = 0;
+            _streamWriter.Write("Writing out a value: {0}", 42);
+        }
     }
 }
