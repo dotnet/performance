@@ -239,6 +239,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
              '''harness.''',
     )
 
+    parser.add_argument(
+        '--bdn-artifacts',
+        dest='bdn_artifacts',
+        required=False,
+        type=str,
+        help='''Path to artifacts directory to be passed to the BenchmarkDotNet '''
+             '''harness.''',
+    )
+
     def __valid_dir_path(file_path: str) -> str:
         '''Verifies that specified file path exists.'''
         file_path = path.abspath(file_path)
@@ -324,6 +333,9 @@ def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
     if args.bdn_arguments:
         run_args += args.bdn_arguments
 
+    if args.bdn_artifacts:
+        run_args += ['--artifacts', args.bdn_artifacts] 
+
     # we need to tell BenchmarkDotNet where to restore the packages
     # if we don't it's gonna restore to default global folder
     run_args += ['--packages', get_packages_directory()]
@@ -362,7 +374,8 @@ def build(
     build_title = "Building .NET micro benchmarks for '{}'".format(
         ' '.join(target_framework_monikers))
     __log_script_header(build_title)
-    BENCHMARKS_CSPROJ.build(configuration, target_framework_monikers, verbose)
+    BENCHMARKS_CSPROJ.build(
+        configuration, target_framework_monikers, verbose, packages)
 
 
 def run(

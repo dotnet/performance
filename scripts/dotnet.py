@@ -10,13 +10,14 @@ from glob import iglob
 from json import loads
 from logging import getLogger
 from os import chmod, environ, listdir, makedirs, path, pathsep
+from re import search
+from shutil import rmtree
 from stat import S_IRWXU
 from subprocess import check_output
 from sys import argv, platform
+from typing import Tuple
 from urllib.parse import urlparse
 from urllib.request import urlopen, urlretrieve
-
-import re
 
 from performance.common import get_repo_root_path
 from performance.common import get_tools_directory
@@ -48,6 +49,20 @@ CSharpProjFile = namedtuple('CSharpProjFile', [
 ])
 
 
+class VersionsAction(Action):
+    '''
+    Argument parser helper class used to validates the dotnet-versions input.
+    '''
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if values:
+            for version in values:
+                if not search(r'^\d\.\d+\.\d+', version):
+                    raise ArgumentTypeError(
+                        'Version "{}" is in the wrong format'.format(version))
+            setattr(namespace, self.dest, values)
+
+
 class CompilationAction(Action):
     '''
     Tiered: (Default)
@@ -55,6 +70,9 @@ class CompilationAction(Action):
     NoTiering: Tiering is disabled, but R2R code is not disabled.
         This includes R2R code, useful for comparison against Tiered and
         FullyJittedNoTiering for changes to R2R code or tiering.
+
+    Default: Don't set any environment variables. Use what the compiler views
+        as the default.
 
     FullyJittedNoTiering: Tiering and R2R are disabled.
         This is JIT-only, useful for comparison against Tiered and NoTiering
@@ -74,6 +92,7 @@ class CompilationAction(Action):
 
     TIERED = 'Tiered'
     NO_TIERING = 'NoTiering'
+    DEFAULT='Default'
     FULLY_JITTED_NO_TIERING = 'FullyJittedNoTiering'
     MIN_OPT = 'MinOpt'
 
@@ -108,7 +127,7 @@ class CompilationAction(Action):
         elif mode == CompilationAction.MIN_OPT:
             environ['COMPlus_JITMinOpts'] = '1'
             environ['COMPlus_TieredCompilation'] = '0'
-        else:
+        elif mode != CompilationAction.DEFAULT:
             raise ArgumentTypeError('Unknown mode: {}'.format(mode))
 
     @staticmethod
@@ -128,6 +147,7 @@ class CompilationAction(Action):
     def modes() -> list:
         '''Available .NET Performance modes.'''
         return [
+            CompilationAction.DEFAULT,
             CompilationAction.TIERED,
             CompilationAction.NO_TIERING,
             CompilationAction.FULLY_JITTED_NO_TIERING,
@@ -135,15 +155,18 @@ class CompilationAction(Action):
         ]
 
     @staticmethod
-    def tiered() -> str:
+    def noenv() -> str:
         '''Default .NET performance mode.'''
-        return CompilationAction.modes()[0]  # Tiered
+        return CompilationAction.modes()[0]  # No environment set
 
     @staticmethod
     def help_text() -> str:
         '''Gets the help string describing the different compilation modes.'''
         return '''Different compilation modes that can be set to change the
-        .NET compilation behavior. The different modes are: {}: (Default);
+        .NET compilation behavior. The default configurations have changed between
+        releases of .NET. These flags enable ensuring consistency when running 
+        more than one runtime. The different modes are: {}: no 
+        environment variables are set; {}: tiering is enabled.
         {}: tiering is disabled, but includes R2R code, and it is useful for
         comparison against Tiered; {}: This is JIT-only, useful for comparison
         against Tiered and NoTier for changes to R2R code or tiering; {}: uses
@@ -151,6 +174,7 @@ class CompilationAction(Action):
         for startup time comparisons in scenario benchmarks that include a
         startup time measurement (probably not for microbenchmarks), probably
         not useful for a PR.'''.format(
+            CompilationAction.DEFAULT,
             CompilationAction.TIERED,
             CompilationAction.NO_TIERING,
             CompilationAction.FULLY_JITTED_NO_TIERING,
@@ -231,6 +255,7 @@ class CSharpProject:
               configuration: str,
               target_framework_monikers: list,
               verbose: bool,
+              packages_path: str,
               *args) -> None:
         '''Calls dotnet to build the specified project.'''
         if not target_framework_monikers:  # Build all supported frameworks.
@@ -239,6 +264,7 @@ class CSharpProject:
                 self.csproj_file,
                 '--configuration', configuration,
                 '--no-restore',
+                "/p:NuGetPackageRoot={}".format(packages_path),
             ]
             if args:
                 cmdline = cmdline + list(args)
@@ -252,6 +278,7 @@ class CSharpProject:
                     '--configuration', configuration,
                     '--framework', target_framework_moniker,
                     '--no-restore',
+                    "/p:NuGetPackageRoot={}".format(packages_path),
                 ]
                 if args:
                     cmdline = cmdline + list(args)
@@ -290,22 +317,24 @@ class CSharpProject:
         RunCommand(cmdline, verbose=verbose).run(
             self.working_directory)
 
-
-def get_dotnet_sdk(framework: str, dotnet_path: str = None) -> str:
-    """Gets the dotnet Host commit sha from the `dotnet --info` command."""
-    if not framework:
-        raise TypeError(
-            "The target framework to get information for was not specified."
-        )
-    if not dotnet_path:
-        dotnet_path = 'dotnet'
-
-    groups = re.search(r"^netcoreapp(\d)\.(\d)$", framework)
+def get_framework_version(framework: str) -> str:
+    groups = search(r"^netcoreapp(\d)\.(\d)$", framework)
     if not groups:
         raise ValueError("Unknown target framework: {}".format(framework))
 
     FrameworkVersion = namedtuple('FrameworkVersion', ['major', 'minor'])
     version = FrameworkVersion(int(groups.group(1)), int(groups.group(2)))
+
+    return version
+
+def get_sdk_path(version: str, dotnet_path: str = None) -> str:
+    """Gets the dotnet Host version from the `dotnet --info` command."""
+    if not version:
+        raise TypeError(
+            "The target version to get information for was not specified."
+        )
+    if not dotnet_path:
+        dotnet_path = 'dotnet'
 
     output = check_output([dotnet_path, '--info'])
 
@@ -315,7 +344,7 @@ def get_dotnet_sdk(framework: str, dotnet_path: str = None) -> str:
         # The .NET Command Line Tools `--info` had a different output in 2.0
         # This line seems commons in all Cli, so we can use the base path to
         # get information about the .NET SDK/Runtime
-        groups = re.search(r"^ +Base Path\: +(\S+)$", decoded_line)
+        groups = search(r"^ +Base Path\: +(\S+)$", decoded_line)
         if groups:
             break
 
@@ -326,6 +355,14 @@ def get_dotnet_sdk(framework: str, dotnet_path: str = None) -> str:
 
     base_path = groups.group(1)
     sdk_path = path.abspath(path.join(base_path, '..'))
+
+    return sdk_path
+
+def get_dotnet_version(framework: str, dotnet_path: str = None, sdk_path: str = None) -> str:
+    version = get_framework_version(framework)
+
+    sdk_path = get_sdk_path(version, dotnet_path) if sdk_path is None else sdk_path
+
     sdks = [
         d for d in listdir(sdk_path) if path.isdir(path.join(sdk_path, d))
     ]
@@ -339,16 +376,33 @@ def get_dotnet_sdk(framework: str, dotnet_path: str = None) -> str:
         # Attempt 2: Increase the minor version by 1 and retry.
         sdk = next((f for f in sdks if f.startswith(
             "{}.{}".format(version.major, version.minor + 1))), None)
-
+    
     if not sdk:
         raise RuntimeError(
             "Unable to determine the .NET SDK used for {}".format(framework)
         )
+    
+    return sdk
+
+def get_dotnet_sdk(framework: str, dotnet_path: str = None, sdk: str = None) -> str:
+    """Gets the dotnet Host commit sha from the `dotnet --info` command."""
+
+    sdk_path = get_sdk_path(get_framework_version(framework), dotnet_path)
+    sdk = get_dotnet_version(framework, dotnet_path, sdk_path) if sdk is None else sdk
 
     with open(path.join(sdk_path, sdk, '.version')) as sdk_version_file:
         return sdk_version_file.readline().strip()
     raise RuntimeError("Unable to retrieve information about the .NET SDK.")
 
+def get_repository(repository:str) -> Tuple[str, str]:
+    url_path = urlparse(repository).path
+    tokens = url_path.split("/")
+    if len(tokens) != 3:
+        raise ValueError('Unable to determine owner and repo from url.')
+    owner = tokens[1]
+    repo = tokens[2]
+    
+    return owner, repo
 
 def get_commit_date(
         framework: str,
@@ -372,12 +426,7 @@ def get_commit_date(
         repo = 'core-sdk' if framework == 'netcoreapp3.0' else 'cli'
         url = urlformat % ('dotnet', repo, commit_sha)
     else:
-        url_path = urlparse(repository).path
-        tokens = url_path.split("/")
-        if len(tokens) != 3:
-            raise ValueError('Unable to determine owner and repo from url.')
-        owner = tokens[1]
-        repo = tokens[2]
+        owner, repo = get_repository(repository)
         url = urlformat % (owner, repo, commit_sha)
 
     build_timestamp = None
@@ -438,11 +487,14 @@ def __get_directory(architecture: str) -> str:
     '''Gets the default directory where dotnet is to be installed.'''
     return path.join(get_tools_directory(), 'dotnet', architecture)
 
+def remove_dotnet(architecture: str) -> str:
+    '''Removes the dotnet installed in the tools directory associated with a particular architecture'''
+    rmtree(__get_directory(architecture))
 
 def install(
         architecture: str,
         channels: list,
-        version: str,
+        versions: str,
         verbose: bool,
         install_dir: str = None) -> None:
     '''
@@ -480,23 +532,27 @@ def install(
 
     # If Version is supplied, pull down the specified version
 
-    cmdline_args = dotnetInstallInterpreter + [
-            '-InstallDir', install_dir,
-            '-Architecture', architecture
+    common_cmdline_args = dotnetInstallInterpreter + [
+        '-InstallDir', install_dir,
+        '-Architecture', architecture
     ]
-    if version is not None:
-        cmdline_args = cmdline_args + [
-            '-Version', version,
-        ]
-        RunCommand(cmdline_args, verbose=verbose).run(
-            get_repo_root_path()
-        )
-    else:
-        # Install Runtime/SDKs
+
+    # Install Runtime/SDKs
+    if versions:
+        for version in versions:
+            cmdline_args = common_cmdline_args + ['-Version', version]
+            RunCommand(cmdline_args, verbose=verbose).run(
+                get_repo_root_path()
+            )
+
+    # Only check channels if versions are not supplied.
+    # When we supply a version, but still pull down with -Channel, we will use
+    # whichever sdk is newer. So if we are trying to check an older version,
+    # or if there is a new version between when we start a run and when we actually
+    # run, we will be testing the "wrong" version, ie, not the version we specified.
+    if (not versions) and channels:
         for channel in channels:
-            cmdline_args = cmdline_args + [
-                '-Channel', channel,
-            ]
+            cmdline_args = common_cmdline_args + ['-Channel', channel]
             RunCommand(cmdline_args, verbose=verbose).run(
                 get_repo_root_path()
             )
@@ -505,9 +561,14 @@ def install(
     environ['DOTNET_CLI_TELEMETRY_OPTOUT'] = '1'
     environ['DOTNET_MULTILEVEL_LOOKUP'] = '0'
     environ['UseSharedCompilation'] = 'false'
+    environ['DOTNET_ROOT'] = install_dir
 
     # Add installed dotnet cli to PATH
     environ["PATH"] = install_dir + pathsep + environ["PATH"]
+
+    # If we have copied dotnet from a different machine, it will not be executable. Fix this
+    if platform != 'win32':
+        chmod(path.join(install_dir, 'dotnet'), S_IRWXU)
 
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
@@ -521,7 +582,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     SUPPORTED_ARCHITECTURES = [
         'x64',  # Default architecture
         'x86',
-        'arm32',
+        'arm',
         'arm64',
     ]
     parser.add_argument(
@@ -540,27 +601,18 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         required=False,
         action=CompilationAction,
         choices=CompilationAction.modes(),
-        default=CompilationAction.tiered(),
+        default=CompilationAction.noenv(),
         type=CompilationAction.validate,
         help='{}'.format(CompilationAction.help_text())
     )
 
-    def __is_valid_sdk_version(version:str) -> str:
-        try:
-            if version is None or re.search('^\d\.\d+\.\d+', version):
-                return version
-            else:
-                raise ValueError
-        except ValueError:
-            raise ArgumentTypeError(
-                'Version "{}" is in the wrong format'.format(version))
-
     parser.add_argument(
-        '--dotnet-version',
-        dest="dotnet_version",
+        '--dotnet-versions',
+        dest="dotnet_versions",
         required=False,
-        default=None,
-        type=__is_valid_sdk_version,
+        nargs='+',
+        default=[],
+        action=VersionsAction,
         help='Version of the dotnet cli to install in the A.B.C format'
     )
 
@@ -628,7 +680,7 @@ def __main(args: list) -> int:
     install(
         architecture=args.architecture,
         channels=args.channels,
-        version=args.dotnet_version,
+        versions=args.dotnet_versions,
         verbose=args.verbose,
         install_dir=args.install_dir,
     )

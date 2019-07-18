@@ -44,6 +44,12 @@ namespace ResultsComparer
 
             var notSame = GetNotSameResults(args, testThreshold, noiseThreshold).ToArray();
 
+            if (!notSame.Any())
+            {
+                Console.WriteLine($"No differences found between the benchmark results with threshold {testThreshold}.");
+                return;
+            }
+
             PrintSummary(notSame);
 
             PrintTable(notSame, EquivalenceTestConclusion.Slower, args);
@@ -81,19 +87,25 @@ namespace ResultsComparer
 
             // If the baseline doesn't have the same set of tests, you wind up with Infinity in the list of diffs.
             // Exclude them for purposes of geomean.
-            better = better.Where(x => GetRatio(x) != double.PositiveInfinity);
             worse = worse.Where(x => GetRatio(x) != double.PositiveInfinity);
-
-            var betterGeoMean = Math.Pow(10, better.Skip(1).Aggregate(Math.Log10(GetRatio(better.First())), (x, y) => x + Math.Log10(GetRatio(y))) / better.Count());
-            var worseGeoMean = Math.Pow(10, worse.Skip(1).Aggregate(Math.Log10(GetRatio(worse.First())), (x, y) => x + Math.Log10(GetRatio(y))) / worse.Count());
-
+            better = better.Where(x => GetRatio(x) != double.PositiveInfinity);
 
             Console.WriteLine("summary:");
-            Console.WriteLine($"better: {betterCount}, geomean: {betterGeoMean:F3}");
-            Console.WriteLine($"worse: {worseCount}, geomean: {worseGeoMean:F3}");
+
+            if (betterCount > 0)
+            {
+                var betterGeoMean = Math.Pow(10, better.Skip(1).Aggregate(Math.Log10(GetRatio(better.First())), (x, y) => x + Math.Log10(GetRatio(y))) / better.Count());
+                Console.WriteLine($"better: {betterCount}, geomean: {betterGeoMean:F3}");
+            }
+
+            if (worseCount > 0)
+            {
+                var worseGeoMean = Math.Pow(10, worse.Skip(1).Aggregate(Math.Log10(GetRatio(worse.First())), (x, y) => x + Math.Log10(GetRatio(y))) / worse.Count());
+                Console.WriteLine($"worse: {worseCount}, geomean: {worseGeoMean:F3}");
+            }
+
             Console.WriteLine($"total diff: {notSame.Count()}");
             Console.WriteLine();
-
         }
 
         private static void PrintTable((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame, EquivalenceTestConclusion conclusion, CommandLineOptions args)
@@ -102,9 +114,10 @@ namespace ResultsComparer
                 .Where(result => result.conclusion == conclusion)
                 .OrderByDescending(result => GetRatio(conclusion, result.baseResult, result.diffResult))
                 .Take(args.TopCount ?? int.MaxValue)
-                .Select(result => new {
+                .Select(result => new
+                {
                     Id = result.id.Length > 80 ? result.id.Substring(0, 80) : result.id,
-                    DisplayValue = GetRatio(conclusion, result.baseResult, result.diffResult),              
+                    DisplayValue = GetRatio(conclusion, result.baseResult, result.diffResult),
                     BaseMedian = result.baseResult.Statistics.Median,
                     DiffMedian = result.diffResult.Statistics.Median,
                     Modality = GetModalInfo(result.baseResult) ?? GetModalInfo(result.diffResult)

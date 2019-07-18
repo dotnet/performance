@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
-using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -44,7 +43,7 @@ namespace PerfLabTests
             return ret;
         }
         
-        [IterationSetup(Target = nameof(MulticastDelegateCombineInvoke))]
+        [GlobalSetup(Target = nameof(MulticastDelegateCombineInvoke))]
         public void SetupMulticastDelegateCombineInvoke()
         {
             md1Field = new MultiDelegate(this.Invocable2);

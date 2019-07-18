@@ -41,7 +41,7 @@ namespace MicroBenchmarks.Serializers
         public void Jil_()
         {
             memoryStream.Position = 0;
-            Jil.JSON.Serialize<T>(value, streamWriter);
+            Jil.JSON.Serialize<T>(value, streamWriter, Jil.Options.ISO8601);
         }
 
         [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.ThirdParty)]

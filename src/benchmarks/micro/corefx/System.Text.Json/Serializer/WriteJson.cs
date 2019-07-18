@@ -14,6 +14,7 @@ namespace System.Text.Json.Serialization.Tests
     [GenericTypeArguments(typeof(Location))]
     [GenericTypeArguments(typeof(IndexViewModel))]
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
+    [GenericTypeArguments(typeof(BinaryData))]
     public class WriteJson<T>
     {
         private T _value;
@@ -25,23 +26,23 @@ namespace System.Text.Json.Serialization.Tests
             _value = DataGenerator.Generate<T>();
 
             _memoryStream = new MemoryStream(capacity: short.MaxValue);
-            await JsonSerializer.WriteAsync(_value, _memoryStream);
+            await JsonSerializer.SerializeAsync(_memoryStream, _value);
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
-        public string SerializeToString() => JsonSerializer.ToString(_value);
+        public string SerializeToString() => JsonSerializer.Serialize(_value);
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
-        public byte[] SerializeToUtf8Bytes() => JsonSerializer.ToBytes(_value);
+        public byte[] SerializeToUtf8Bytes() => JsonSerializer.SerializeToUtf8Bytes(_value);
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
         public async Task SerializeToStream()
         {
             _memoryStream.Position = 0;
-            await JsonSerializer.WriteAsync(_value, _memoryStream);
+            await JsonSerializer.SerializeAsync(_memoryStream, _value);
         }
 
         [GlobalCleanup]

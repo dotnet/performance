@@ -126,7 +126,7 @@ class BenchView:
         ]
 
         full_json_files = []
-        pattern = "BenchmarkDotNet.Artifacts/**/*-full.json"
+        pattern = "**/*-full.json"
         getLogger().info(
             'Searching BenchmarkDotNet output files with: %s', pattern
         )
@@ -314,6 +314,18 @@ def __get_build_info(framework: str, args) -> BuildInfo:
     elif args.cli_source_info == 'repo':
         # Retrieve data from current repository.
         subparser = 'git'
+    elif args.cli_source_info == 'args':
+        # All of the required data should already be supplied in the parameters
+        if not branch or not commit_sha or not source_timestamp:
+            err_msg = 'Cannot determine build information for "%s"' % \
+                target_framework_moniker
+            getLogger().error(err_msg)
+            getLogger().error(
+                "Build information must be provided using the --cli-* options."
+            )
+            raise ValueError(err_msg)
+        if not repository:
+            repository = 'https://github.com/dotnet/core-sdk'
     else:
         raise ValueError('Unknown build source.')
 
@@ -388,7 +400,7 @@ def __run_scripts(
     #   This value should be optional, and set when applicable.
     # benchview_config['Jit'] = 'RyuJIT'
     benchview_config['Framework'] = framework
-    benchview_config['.NET Compilation Mode'] = args.dotnet_compilation_mode
+    benchview_config['.NET Compilation Mode'] = 'Tiered'
     benchview_config['OS'] = __get_os_name()
     benchview_config['PGO'] = 'Enabled'
     benchview_config['Profile'] = 'On' if args.enable_pmc else 'Off'
@@ -447,11 +459,12 @@ def run_scripts(
     __log_script_header('Running BenchView scripts')
 
     for framework in args.frameworks:
-        working_directory = __get_working_directory(
+        
+        working_directory = path.join(__get_working_directory(
             BENCHMARKS_CSPROJ,
             args.configuration,
             framework
-        )
+        ), 'BenchmarkDotNet.Artifacts') if not args.bdn_artifacts else path.join(args.bdn_artifacts)
 
         with push_dir(working_directory):
             benchviewpy = BenchView(verbose)

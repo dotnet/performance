@@ -19,7 +19,7 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]
-        public string Jil_() => Jil.JSON.Serialize<T>(value);
+        public string Jil_() => Jil.JSON.Serialize<T>(value, Jil.Options.ISO8601);
 
         [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.ThirdParty)]
         [Benchmark(Description = "JSON.NET")]

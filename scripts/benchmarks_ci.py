@@ -34,6 +34,8 @@ from performance.logger import setup_loggers
 import benchview
 import dotnet
 import micro_benchmarks
+import upload
+from azcopy import AzCopy
 
 
 if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
@@ -54,7 +56,7 @@ if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
 
 def init_tools(
         architecture: str,
-        version: str,
+        dotnet_versions: str,
         target_framework_monikers: list,
         verbose: bool) -> None:
     '''
@@ -71,7 +73,7 @@ def init_tools(
     dotnet.install(
         architecture=architecture,
         channels=channels,
-        version=version,
+        versions=dotnet_versions,
         verbose=verbose,
     )
     benchview.install()
@@ -93,6 +95,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         'init-tools',  # Default
         'repo',
         'cli',
+        'args',
     ]
     parser.add_argument(
         '--cli-source-info',
@@ -141,6 +144,13 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
             (date-time from RFC 3339, Section 5.6.
             "%%Y-%%m-%%dT%%H:%%M:%%SZ").'''
     )
+
+    parser.add_argument('--upload-to-perflab-container',
+        dest="upload_to_perflab_container",
+        required=False,
+        help="Causes results files to be uploaded to perf container",
+        action='store_true'
+    )   
 
     # Generic arguments.
     parser.add_argument(
@@ -201,7 +211,7 @@ def __main(args: list) -> int:
     # Acquire necessary tools (dotnet, and BenchView)
     init_tools(
         architecture=args.architecture,
-        version=args.dotnet_version,
+        dotnet_versions=args.dotnet_versions,
         target_framework_monikers=target_framework_monikers,
         verbose=verbose
     )
@@ -246,6 +256,18 @@ def __main(args: list) -> int:
             )
 
         benchview.run_scripts(args, verbose, BENCHMARKS_CSPROJ)
+
+        if args.upload_to_perflab_container:
+            if args.architecture == 'arm64':
+                globpath = os.path.join(
+                    get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
+                    '**',
+                    '*perf-lab-report.json')
+
+                upload.upload(globpath, 'results', 'PERFLAB_UPLOAD_TOKEN', 'pvscmdupload.blob.core.windows.net')
+            else: 
+                AzCopy.upload_results('', args.bdn_artifacts, verbose=verbose)
+                
         # TODO: Archive artifacts.
 
 

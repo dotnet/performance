@@ -15,7 +15,7 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(IndexViewModel))]
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
-    public class Binary_FromStream<T> where T : IVerifiable
+    public class Binary_FromStream<T>
     {
         private readonly T value;
         private readonly MemoryStream memoryStream;
@@ -46,13 +46,6 @@ namespace MicroBenchmarks.Serializers
             ProtoBuf.Serializer.Serialize(memoryStream, value);
         }
 
-        [GlobalSetup(Target = nameof(ZeroFormatter_Naive) + "," + nameof(ZeroFormatter_Real))]
-        public void SetupZeroFormatter_()
-        {
-            memoryStream.Position = 0;
-            ZeroFormatter.ZeroFormatterSerializer.Serialize<T>(memoryStream, value);
-        }
-
         [GlobalSetup(Target = nameof(MessagePack_))]
         public void SetupMessagePack()
         {
@@ -74,30 +67,6 @@ namespace MicroBenchmarks.Serializers
         {
             memoryStream.Position = 0;
             return ProtoBuf.Serializer.Deserialize<T>(memoryStream);
-        }
-
-        [BenchmarkCategory(Categories.ThirdParty)]
-        [Benchmark(Description = "ZeroFormatter_Naive")]
-        public T ZeroFormatter_Naive()
-        {
-            memoryStream.Position = 0;
-            return ZeroFormatter.ZeroFormatterSerializer.Deserialize<T>(memoryStream);
-        }
-
-        /// <summary>
-        /// ZeroFormatter requires all properties to be virtual
-        /// they are deserialized for real when they are used for the first time
-        /// if we don't touch the properites, they are not being deserialized and the result is skewed
-        /// </summary>
-        [BenchmarkCategory(Categories.ThirdParty)]
-        [Benchmark(Description = "ZeroFormatter_Real")]
-        public long ZeroFormatter_Real()
-        {
-            memoryStream.Position = 0;
-
-            var deserialized = ZeroFormatter.ZeroFormatterSerializer.Deserialize<T>(memoryStream);
-
-            return deserialized.TouchEveryProperty();
         }
 
         [BenchmarkCategory(Categories.ThirdParty)]
