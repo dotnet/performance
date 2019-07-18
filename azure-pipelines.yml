@@ -89,11 +89,11 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
-      osVersion: RS5
+      osVersion: 19H1
       kind: micro
       architecture: x64
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS5.Perf # using a dedicated private Helix queue (perfsnakes)
+      queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'coreclr corefx'
       benchviewCategory: 'coreclr'
@@ -119,11 +119,11 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
-      osVersion: RS5
+      osVersion: 19H1
       kind: micro
       architecture: x86
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS5.Perf # using a dedicated private Helix queue (perfsnakes)
+      queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'coreclr corefx'
       benchviewCategory: 'coreclr'
@@ -171,7 +171,7 @@ jobs:
       kind: micro
       architecture: x64
       pool: Hosted Ubuntu 1604
-      queue: Ubuntu.1804.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
+      queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       runCategories: 'coreclr corefx'
@@ -231,11 +231,11 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
-      osVersion: RS5
+      osVersion: 19H1
       kind: mlnet
       architecture: x64
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS5.Perf # using a dedicated private Helix queue (perfsnakes)
+      queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
       benchviewCategory: 'mldotnet'
@@ -281,7 +281,7 @@ jobs:
       kind: mlnet
       architecture: x64
       pool: Hosted Ubuntu 1604
-      queue: Ubuntu.1804.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
+      queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
@@ -324,11 +324,11 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
-      osVersion: RS5
+      osVersion: 19H1
       kind: roslyn
       architecture: x64
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS5.Perf # using a dedicated private Helix queue (perfsnakes)
+      queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
       benchviewCategory: 'roslyn'
@@ -374,7 +374,7 @@ jobs:
       kind: roslyn
       architecture: x64
       pool: Hosted Ubuntu 1604
-      queue: Ubuntu.1804.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
+      queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       runCategories: 'roslyn'
