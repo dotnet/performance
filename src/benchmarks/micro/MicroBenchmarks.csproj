@@ -13,13 +13,7 @@
     <DebugSymbols>true</DebugSymbols>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-    <TargetFramework Condition="'$(Configuration)' == 'NetCoreApp30-Release'">
-      netcoreapp30
-    </TargetFramework>
-    <DefineConstants Condition="'$(Configuration)' == 'NetCoreApp30-Release'"> $(DefineConstants);NETCOREAPP3_0; </DefineConstants>
     <IsARM Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().StartsWith(`arm`, System.StringComparison.OrdinalIgnoreCase))'">true</IsARM>
-
-    <Configurations>Debug;Release;NetCoreApp30-Debug;NetCoreApp30-Release</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
@@ -94,8 +88,7 @@
   
   <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp3.0' OR '$(IsARM)' == 'true'">
     <Compile Remove="coreclr\PacketTracer\**\*.cs" />
-    <Compile Remove="corefx\System.Memory\ReadOnlySequence.SequenceReaders.cs" />
-  </ItemGroup> 
+  </ItemGroup>
 
   <ItemGroup>
     <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
