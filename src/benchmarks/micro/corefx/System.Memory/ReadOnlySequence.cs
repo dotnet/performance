@@ -2,21 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Buffers;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
-namespace MicroBenchmarks.corefx
+namespace System.Memory
 {
     internal class BufferSegment<T> : ReadOnlySequenceSegment<T>
     {
-        public BufferSegment(ReadOnlyMemory<T> memory)
-        {
-            Memory = memory;
-        }
+        public BufferSegment(System.ReadOnlyMemory<T> memory) => Memory = memory;
 
-        public BufferSegment<T> Append(ReadOnlyMemory<T> memory)
+        public BufferSegment<T> Append(System.ReadOnlyMemory<T> memory)
         {
             var segment = new BufferSegment<T>(memory)
             {
@@ -28,7 +25,7 @@ namespace MicroBenchmarks.corefx
     }
 
     [BenchmarkCategory(Categories.CoreFX)]
-    public partial class ReadOnlySequenceBenchmarks
+    public class ReadOnlySequence
     {
         public enum SequenceKind { Single, Multiple };
 
@@ -42,7 +39,7 @@ namespace MicroBenchmarks.corefx
         [GlobalSetup]
         public void GlobalSetup()
         {
-            Memory<byte> memory = new Memory<byte>(Enumerable.Repeat((byte)1, 10000).ToArray());
+            System.Memory<byte> memory = new System.Memory<byte>(Enumerable.Repeat((byte)1, 10000).ToArray());
 
             if (Segment == SequenceKind.Single)
             {
