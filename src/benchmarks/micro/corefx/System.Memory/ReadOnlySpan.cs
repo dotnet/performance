@@ -78,12 +78,12 @@ namespace System.Memory
         [ArgumentsSource(nameof(TrimArguments))]
         public ReadOnlySpan<char> Trim(string input) => input.AsSpan().Trim();
 
-        public static IEnumerable<object[]> TrimArguments => new List<object[]>
+        public static IEnumerable<object> TrimArguments()
         {
-            new object[] { "" },
-            new object[] { " abcdefg " },
-            new object[] { "abcdefg" }
-        };
+            yield return "";
+            yield return " abcdefg ";
+            yield return "abcdefg";
+        }
 
         private static string GenerateInputString(char source, int count, char replaceChar, int replacePos)
         {
