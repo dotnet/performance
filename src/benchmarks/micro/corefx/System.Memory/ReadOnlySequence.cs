@@ -58,27 +58,27 @@ namespace System.Memory
         }
 
         [Benchmark]
-        public ReadOnlySequence<byte> StartPosition() => _sequence.Slice(_start);
+        public ReadOnlySequence<byte> Slice_StartPosition() => _sequence.Slice(_start);
 
         [Benchmark]
-        public ReadOnlySequence<byte> Start() => _sequence.Slice(0);
+        public ReadOnlySequence<byte> Slice_Start() => _sequence.Slice(0);
 
         [Benchmark]
-        public ReadOnlySequence<byte> Start_And_Length() => _sequence.Slice(0, 10000);
+        public ReadOnlySequence<byte> Slice_Start_And_Length() => _sequence.Slice(0, 10000);
 
         [Benchmark]
-        public ReadOnlySequence<byte> Start_And_EndPosition() => _sequence.Slice(0, _end);
+        public ReadOnlySequence<byte> Slice_Start_And_EndPosition() => _sequence.Slice(0, _end);
 
         [Benchmark]
-        public ReadOnlySequence<byte> StartPosition_And_Length() => _sequence.Slice(_start, 3);
+        public ReadOnlySequence<byte> Slice_StartPosition_And_Length() => _sequence.Slice(_start, 3);
 
         [Benchmark]
-        public ReadOnlySequence<byte> StartPosition_And_EndPosition() => _sequence.Slice(_start, _end);
+        public ReadOnlySequence<byte> Slice_StartPosition_And_EndPosition() => _sequence.Slice(_start, _end);
 
         [Benchmark]
-        public ReadOnlySequence<byte> RepeatSlice()
+        public ReadOnlySequence<byte> Slice_Repeat()
         {
-            var localSequence = _sequence.Slice(0, 10000);
+            ReadOnlySequence<byte> localSequence = _sequence.Slice(0, 10000);
             localSequence = localSequence.Slice(0, 5000);
             localSequence = localSequence.Slice(0, 2500);
             localSequence = localSequence.Slice(0, 1250);
@@ -87,9 +87,9 @@ namespace System.Memory
         }
 
         [Benchmark]
-        public ReadOnlySequence<byte> RepeatSlice_StartPosition_And_EndPosition()
+        public ReadOnlySequence<byte> Slice_Repeat_StartPosition_And_EndPosition()
         {
-            var localSequence = _sequence.Slice(_start, _end);
+            ReadOnlySequence<byte> localSequence = _sequence.Slice(_start, _end);
             localSequence = localSequence.Slice(_start, localSequence.End);
             localSequence = localSequence.Slice(_start, localSequence.End);
             localSequence = localSequence.Slice(_start, localSequence.End);
