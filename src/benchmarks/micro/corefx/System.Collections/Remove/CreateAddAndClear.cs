@@ -57,6 +57,7 @@ namespace System.Collections
             {
                 list.Add(uniqueKey);
             }
+            list.Clear();
             return list;
         }
 
@@ -112,6 +113,7 @@ namespace System.Collections
             {
                 sortedSet.Add(uniqueKey);
             }
+            sortedSet.Clear();
             return sortedSet;
         }
 
