@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -44,6 +45,10 @@ namespace MicroBenchmarks.Serializers
                 return (T)(object)ImmutableSortedDictionary.CreateRange(ValuesGenerator.ArrayOfUniqueValues<string>(100).ToDictionary(value => value));
             if (typeof(T) == typeof(HashSet<string>))
                 return (T)(object)new HashSet<string>(ValuesGenerator.ArrayOfUniqueValues<string>(100));
+            if (typeof(T) == typeof(ArrayList))
+                return (T)(object)new ArrayList(ValuesGenerator.ArrayOfUniqueValues<string>(100));
+            if (typeof(T) == typeof(Hashtable))
+                return (T)(object)new Hashtable(ValuesGenerator.ArrayOfUniqueValues<string>(100).ToDictionary(value => value));
 
 
             throw new NotImplementedException();

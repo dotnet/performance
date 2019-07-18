@@ -5,6 +5,7 @@
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 using MicroBenchmarks.Serializers;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -21,6 +22,8 @@ namespace System.Text.Json.Serialization.Tests
     [GenericTypeArguments(typeof(ImmutableDictionary<string, string>))]
     [GenericTypeArguments(typeof(ImmutableSortedDictionary<string, string>))]
     [GenericTypeArguments(typeof(HashSet<string>))]
+    [GenericTypeArguments(typeof(ArrayList))]
+    [GenericTypeArguments(typeof(Hashtable))]
     public class WriteJson<T>
     {
         private T _value;
