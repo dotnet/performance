@@ -32,7 +32,6 @@ namespace System.Collections
             where TCollection : ICollection<TValues>, new()
         {
             if (collections != null)
-            {
                 foreach (var collection in collections)
                 {   collection.Clear(); }
             FillCollections(ref collections, collectionsCount, keys);
