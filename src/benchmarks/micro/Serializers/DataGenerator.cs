@@ -4,9 +4,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
+using BenchmarkDotNet.Extensions;
 using MessagePack;
 using ProtoBuf;
 
@@ -34,6 +36,12 @@ namespace MicroBenchmarks.Serializers
                 return (T)(object)new SimpleStructWithProperties { Num = 1, Text = "Foo" };
             if (typeof(T) == typeof(ClassImplementingIXmlSerialiable))
                 return (T)(object)new ClassImplementingIXmlSerialiable { StringValue = "Hello world" };
+            if (typeof(T) == typeof(Dictionary<string, string>))
+                return (T)(object)ValuesGenerator.ArrayOfUniqueValues<string>(100).ToDictionary(value => value);
+            if (typeof(T) == typeof(ImmutableDictionary<string, string>))
+                return (T)(object)ImmutableDictionary.CreateRange(ValuesGenerator.ArrayOfUniqueValues<string>(100).ToDictionary(value => value));
+            if (typeof(T) == typeof(ImmutableSortedDictionary<string, string>))
+                return (T)(object)ImmutableSortedDictionary.CreateRange(ValuesGenerator.ArrayOfUniqueValues<string>(100).ToDictionary(value => value));
 
             throw new NotImplementedException();
         }

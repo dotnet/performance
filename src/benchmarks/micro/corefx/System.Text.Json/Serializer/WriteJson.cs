@@ -5,6 +5,8 @@
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 using MicroBenchmarks.Serializers;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -15,6 +17,9 @@ namespace System.Text.Json.Serialization.Tests
     [GenericTypeArguments(typeof(IndexViewModel))]
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     [GenericTypeArguments(typeof(BinaryData))]
+    [GenericTypeArguments(typeof(Dictionary<string, string>))]
+    [GenericTypeArguments(typeof(ImmutableDictionary<string, string>))]
+    [GenericTypeArguments(typeof(ImmutableSortedDictionary<string, string>))]
     public class WriteJson<T>
     {
         private T _value;
