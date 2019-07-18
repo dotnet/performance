@@ -8,7 +8,6 @@ using System.IO.Pipelines;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
-using Microsoft.AspNetCore.Server.Kestrel.Transport.Abstractions.Internal;
 
 namespace Microsoft.AspNetCore.Server.Kestrel.Performance
 {
@@ -19,15 +18,12 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Performance
 
         private PipeReader _reader;
         private PipeWriter _writer;
-        private MemoryPool<byte> _memoryPool;
 
         [GlobalSetup]
         public void Setup()
         {
-            _memoryPool = KestrelMemoryPool.Create();
-
             var chunkLength = Length / Chunks;
-            if (chunkLength > _memoryPool.MaxBufferSize)
+            if (chunkLength > MemoryPool<byte>.Shared.MaxBufferSize)
             {
                 // Parallel test will deadlock if too large (waiting for second Task to complete), so N/A that run
                 throw new InvalidOperationException();
@@ -39,13 +35,10 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Performance
                 throw new InvalidOperationException();
             }
 
-            var pipe = new Pipe(new PipeOptions(_memoryPool));
+            var pipe = new Pipe(new PipeOptions(MemoryPool<byte>.Shared));
             _reader = pipe.Reader;
             _writer = pipe.Writer;
         }
-
-        [GlobalCleanup]
-        public void Cleanup() => _memoryPool.Dispose();
 
         [Params(128, 4096)]
         public int Length { get; set; }
