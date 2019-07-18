@@ -11,16 +11,26 @@ namespace System.Tests
     public class Perf_Guid
     {
         const string guidStr = "a8a110d5-fc49-43c5-bf46-802db8f843ff";
-        private readonly byte[] _buffer = new byte[16];
+        
+        private readonly Guid _guid;
+        private readonly Guid _same;
+        private readonly byte[] _buffer;
 
-        private readonly Guid _guid = new Guid(guidStr);
-        private readonly Guid _same = new Guid(guidStr);
+        public Perf_Guid()
+        {
+            _guid = new Guid(guidStr);
+            _same = new Guid(guidStr);
+            _buffer = _guid.ToByteArray();
+        }
 
         [Benchmark]
         public Guid NewGuid() => Guid.NewGuid();
 
         [Benchmark]
         public Guid ctor_str() => new Guid(guidStr);
+
+        [Benchmark]
+        public Guid ctor_bytes() => new Guid(_buffer);
 
         [Benchmark]
         public bool EqualsSame() => _guid.Equals(_same);
@@ -36,11 +46,7 @@ namespace System.Tests
 
 #if !NETFRAMEWORK
         [Benchmark]
-        public Guid ToFromBytes()
-        {
-            _guid.TryWriteBytes(_buffer);
-            return new Guid(_buffer);
-        }
+        public bool TryWriteBytes() => _guid.TryWriteBytes(_buffer);
 #endif
     }
 }
