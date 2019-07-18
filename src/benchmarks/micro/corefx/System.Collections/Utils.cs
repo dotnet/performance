@@ -35,7 +35,6 @@ namespace System.Collections
             {
                 foreach (var collection in collections)
                 {   collection.Clear(); }
-            }
             FillCollections(ref collections, collectionsCount, keys);
         }
 
