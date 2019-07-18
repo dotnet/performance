@@ -33,7 +33,7 @@ namespace System.Collections
         {
             if (collections != null)
                 foreach (var collection in collections)
-                {   collection.Clear(); }
+                   collection.Clear();
             FillCollections(ref collections, collectionsCount, keys);
         }
 
