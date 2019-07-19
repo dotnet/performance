@@ -35,6 +35,14 @@ pr:
     - src/tools/ResultsComparer/README.md
     - README.md
 
+schedules:
+- cron: "0 */4 * * *"
+  displayName: Every 4 hour build
+  branches:
+    include:
+    - master
+  always: true
+
 jobs:
 
 # Windows x64 micro benchmarks, public correctness job
