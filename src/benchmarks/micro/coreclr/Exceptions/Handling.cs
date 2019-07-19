@@ -81,7 +81,7 @@ namespace Exceptions
         [Arguments(ExceptionKind.Hardware)]
         [Arguments(ExceptionKind.ReflectionSoftware)]
         [Arguments(ExceptionKind.ReflectionHardware)]
-        public Exception ThrowAndCatchManyCatchBlocks(ExceptionKind kind)
+        public Exception ThrowAndCatch_ManyCatchBlocks(ExceptionKind kind)
         {
             try
             {
@@ -210,65 +210,6 @@ namespace Exceptions
             return null;
         }
 
-        [Benchmark]
-        [Arguments(ExceptionKind.Software)]
-        [Arguments(ExceptionKind.Hardware)]
-        public Exception ThrowAndCatchFinallyDeep(ExceptionKind kind)
-        {
-            try
-            {
-                Level1(kind);
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            finally
-            {
-                DoNothing();
-            }
-
-            return null;
-        }
-
-        [Benchmark]
-        [Arguments(ExceptionKind.Software)]
-        [Arguments(ExceptionKind.Hardware)]
-        public Exception ThrowAndCatchWhenDeep(ExceptionKind kind)
-        {
-            try
-            {
-                Level1(kind);
-            }
-            catch (Exception ex) when (ReturnTrue())
-            {
-                return ex;
-            }
-
-            return null;
-        }
-
-        [Benchmark]
-        [Arguments(ExceptionKind.Software)]
-        [Arguments(ExceptionKind.Hardware)]
-        public Exception ThrowAndCatchWhenFinallyDeep(ExceptionKind kind)
-        {
-            try
-            {
-                Level1(kind);
-            }
-            catch (Exception ex) when (ReturnTrue())
-            {
-                return ex;
-            }
-            finally
-            {
-                DoNothing();
-            }
-
-            return null;
-        }
-
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void ThrowRecursive(ExceptionKind kind, int depth)
         {
@@ -300,67 +241,6 @@ namespace Exceptions
 
             return null;
         }
-
-        [Benchmark]
-        [Arguments(ExceptionKind.Software)]
-        [Arguments(ExceptionKind.Hardware)]
-        public Exception ThrowAndCatchFinallyDeepRecursive(ExceptionKind kind)
-        {
-            try
-            {
-                ThrowRecursive(kind, 10);
-            }
-            catch (Exception ex)
-            {
-                return ex;
-            }
-            finally
-            {
-                DoNothing();
-            }
-
-            return null;
-        }
-
-        [Benchmark]
-        [Arguments(ExceptionKind.Software)]
-        [Arguments(ExceptionKind.Hardware)]
-        public Exception ThrowAndCatchWhenDeepRecursive(ExceptionKind kind)
-        {
-            try
-            {
-                ThrowRecursive(kind, 10);
-            }
-            catch (Exception ex) when (ReturnTrue())
-            {
-                return ex;
-            }
-
-            return null;
-        }
-
-        [Benchmark]
-        [Arguments(ExceptionKind.Software)]
-        [Arguments(ExceptionKind.Hardware)]
-        public Exception ThrowAndCatchWhenFinallyDeepRecursive(ExceptionKind kind)
-        {
-            try
-            {
-                ThrowRecursive(kind, 10);
-            }
-            catch (Exception ex) when (ReturnTrue())
-            {
-                return ex;
-            }
-            finally
-            {
-                DoNothing();
-            }
-
-            return null;
-        }
-
-
 
         [Benchmark]
         [Arguments(ExceptionKind.Software)]
