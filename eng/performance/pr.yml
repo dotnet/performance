@@ -3,6 +3,8 @@ resources:
     - container: ubuntu_x64_build_container
       image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-c103199-20180628134544
 
+trigger: none
+
 jobs:
 
 # Windows x64 micro benchmarks, public correctness job
