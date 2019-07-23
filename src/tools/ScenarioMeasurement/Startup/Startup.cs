@@ -11,6 +11,7 @@ namespace ScenarioMeasurement
     {
         TimeToMain,
         GenericStartup,
+        ProcessTime,
         WPF
     }
     class Startup
@@ -89,6 +90,9 @@ namespace ScenarioMeasurement
                     break;
                 case MetricType.GenericStartup:
                     parser = new GenericStartupParser();
+                    break;
+                case MetricType.ProcessTime:
+                    parser = new ProcessTimeParser();
                     break;
                     //case MetricType.WPF:
                     //    parser = new WPFParser();
