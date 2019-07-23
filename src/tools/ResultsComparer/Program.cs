@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using BenchmarkDotNet.Mathematics;
 using BenchmarkDotNet.Mathematics.StatisticalTesting;
@@ -150,7 +151,12 @@ namespace ResultsComparer
             var baseResults = baseFiles.Select(ReadFromFile);
             var diffResults = diffFiles.Select(ReadFromFile);
 
-            var benchmarkIdToDiffResults = diffResults.SelectMany(result => result.Benchmarks).ToDictionary(benchmarkResult => benchmarkResult.FullName, benchmarkResult => benchmarkResult);
+            var filters = args.Filters.Select(pattern => new Regex(WildcardToRegex(pattern), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).ToArray();
+
+            var benchmarkIdToDiffResults = diffResults
+                .SelectMany(result => result.Benchmarks)
+                .Where(benchmarkResult => !filters.Any() || filters.Any(filter => filter.IsMatch(benchmarkResult.FullName)))
+                .ToDictionary(benchmarkResult => benchmarkResult.FullName, benchmarkResult => benchmarkResult);
 
             return baseResults
                 .SelectMany(result => result.Benchmarks)
@@ -227,5 +233,8 @@ namespace ResultsComparer
                 throw;
             }
         }
+
+        // https://stackoverflow.com/a/6907849/5852046 not perfect but should work for all we need
+        private static string WildcardToRegex(string pattern) => $"^{Regex.Escape(pattern).Replace(@"\*", ".*").Replace(@"\?", ".")}$";
     }
 }
