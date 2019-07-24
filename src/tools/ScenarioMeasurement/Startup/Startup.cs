@@ -4,6 +4,7 @@ using Reporting;
 using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace ScenarioMeasurement
 {
@@ -120,10 +121,7 @@ namespace ScenarioMeasurement
             if (!failed)
             {
                 logger.Log("Parsing..");
-                var files = new System.Collections.Generic.List<string>
-                {
-                    kernelTraceFile
-                };
+                var files = new List<string> { kernelTraceFile };
                 if (File.Exists(userTraceFile))
                 {
                     files.Add(userTraceFile);
