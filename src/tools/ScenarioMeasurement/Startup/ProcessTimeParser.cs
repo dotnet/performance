@@ -17,7 +17,6 @@ namespace ScenarioMeasurement
 
         public void EnableUserProviders(TraceEventSession user)
         {
-            return;
         }
 
         public IList<Counter> Parse(string mergeTraceFile, string processName)
