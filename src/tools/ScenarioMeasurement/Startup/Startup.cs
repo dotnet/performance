@@ -4,6 +4,7 @@ using Reporting;
 using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace ScenarioMeasurement
 {
@@ -11,6 +12,7 @@ namespace ScenarioMeasurement
     {
         TimeToMain,
         GenericStartup,
+        ProcessTime,
         WPF
     }
     class Startup
@@ -90,6 +92,9 @@ namespace ScenarioMeasurement
                 case MetricType.GenericStartup:
                     parser = new GenericStartupParser();
                     break;
+                case MetricType.ProcessTime:
+                    parser = new ProcessTimeParser();
+                    break;
                     //case MetricType.WPF:
                     //    parser = new WPFParser();
                     //    break;
@@ -116,7 +121,12 @@ namespace ScenarioMeasurement
             if (!failed)
             {
                 logger.Log("Parsing..");
-                TraceEventSession.Merge(new[] { kernelTraceFile, userTraceFile }, traceFileName);
+                var files = new List<string> { kernelTraceFile };
+                if (File.Exists(userTraceFile))
+                {
+                    files.Add(userTraceFile);
+                }
+                TraceEventSession.Merge(files.ToArray(), traceFileName);
                 var counters = parser.Parse(traceFileName, Path.GetFileNameWithoutExtension(appExe));
                 foreach (var counter in counters)
                 {
