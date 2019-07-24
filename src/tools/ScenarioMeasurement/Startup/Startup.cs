@@ -120,7 +120,14 @@ namespace ScenarioMeasurement
             if (!failed)
             {
                 logger.Log("Parsing..");
-                TraceEventSession.Merge(new[] { kernelTraceFile, userTraceFile }, traceFileName);
+                if (File.Exists(userTraceFile))
+                {
+                    TraceEventSession.Merge(new[] { kernelTraceFile, userTraceFile }, traceFileName);
+                }
+                else
+                {
+                    TraceEventSession.Merge(new[] { kernelTraceFile }, traceFileName);
+                }
                 var counters = parser.Parse(traceFileName, Path.GetFileNameWithoutExtension(appExe));
                 foreach (var counter in counters)
                 {

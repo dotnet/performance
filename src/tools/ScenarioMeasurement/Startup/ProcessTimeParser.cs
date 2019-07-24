@@ -17,7 +17,7 @@ namespace ScenarioMeasurement
 
         public void EnableUserProviders(TraceEventSession user)
         {
-            user.EnableProvider("PerfLabProcessTimeEventSource");
+            return;
         }
 
         public IList<Counter> Parse(string mergeTraceFile, string processName)
