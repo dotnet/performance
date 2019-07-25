@@ -38,5 +38,14 @@ namespace MicroBenchmarks.Serializers
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Utf8Json")]
         public T Utf8Json_() => Utf8Json.JsonSerializer.Deserialize<T>(serialized);
+
+#if NETCOREAPP3_0 // API Available in .NET Core 3.0+
+        [GlobalSetup(Target = nameof(SystemTextJson_))]
+        public void SerializeSystemTextJson() => serialized = System.Text.Json.JsonSerializer.Serialize<T>(value);
+
+        [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+        [Benchmark(Description = "System.Text.Json")]
+        public T SystemTextJson_() => System.Text.Json.JsonSerializer.Deserialize<T>(serialized);
+#endif
     }
 }

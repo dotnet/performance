@@ -68,6 +68,16 @@ namespace MicroBenchmarks.Serializers
             dataContractJsonSerializer.WriteObject(memoryStream, value);
         }
 
+#if NETCOREAPP3_0 // API Available in .NET Core 3.0+
+        [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+        [Benchmark(Description = "System.Text.Json")]
+        public System.Threading.Tasks.Task SystemTextJson_()
+        {
+            memoryStream.Position = 0;
+            return System.Text.Json.JsonSerializer.SerializeAsync<T>(memoryStream, value);
+        }
+#endif
+
         [GlobalCleanup]
         public void Cleanup()
         {

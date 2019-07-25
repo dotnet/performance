@@ -31,5 +31,11 @@ namespace MicroBenchmarks.Serializers
 
         // DataContractJsonSerializer does not provide an API to serialize to string
         // so it's not included here (apples vs apples thing)
+
+#if NETCOREAPP3_0 // API Available in .NET Core 3.0+
+        [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+        [Benchmark(Description = "System.Text.Json")]
+        public string SystemTextJson_() => System.Text.Json.JsonSerializer.Serialize<T>(value);
+#endif
     }
 }

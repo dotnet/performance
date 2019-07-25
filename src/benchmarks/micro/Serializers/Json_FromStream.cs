@@ -108,6 +108,27 @@ namespace MicroBenchmarks.Serializers
             return (T)dataContractJsonSerializer.ReadObject(memoryStream);
         }
 
+#if NETCOREAPP3_0 // API Available in .NET Core 3.0+
+        [GlobalSetup(Target = nameof(SystemTextJson_))]
+        public void SetupSystemTextJson_()
+        {
+            memoryStream.Position = 0;
+
+            using (var writer = new System.Text.Json.Utf8JsonWriter(memoryStream))
+            {
+                System.Text.Json.JsonSerializer.Serialize<T>(writer, value);
+            }
+        }
+
+        [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+        [Benchmark(Description = "System.Text.Json")]
+        public System.Threading.Tasks.ValueTask<T> SystemTextJson_()
+        {
+            memoryStream.Position = 0;
+            return System.Text.Json.JsonSerializer.DeserializeAsync<T>(memoryStream);
+        }
+#endif
+
         private StreamReader CreateNonClosingReaderWithDefaultSizes()
             => new StreamReader(
                 memoryStream, 
