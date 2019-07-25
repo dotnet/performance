@@ -20,11 +20,11 @@ Missing: ProtoBuff from Google and BOND from MS
 
 ## Data Contracts
 
-Data Contracts were copied from a real Web App � [allReady](https://github.com/HTBox/allReady/) to mimic real world scenarios.
+Data Contracts were copied from a real Web App - [allReady](https://github.com/HTBox/allReady/) to mimic real world scenarios.
 
-* [LoginViewModel](DataGenerator.cs#L120) � class, 3 properties
-* [Location](DataGenerator.cs#L133) � class, 9 properties
-* [IndexViewModel](DataGenerator.cs#L202) � class, nested class + list of 20 Events (8 properties each)
+* [LoginViewModel](DataGenerator.cs#L120) - class, 3 properties
+* [Location](DataGenerator.cs#L133) - class, 9 properties
+* [IndexViewModel](DataGenerator.cs#L202) - class, nested class + list of 20 Events (8 properties each)
 * [MyEventsListerViewModel](DataGenerator.cs#L224) - class, 3 lists of complex types, each type contains another list of complex types
 
 ## Design Decisions
