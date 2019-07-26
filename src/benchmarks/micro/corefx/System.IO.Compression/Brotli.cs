@@ -20,8 +20,8 @@ namespace System.IO.Compression
         {
             using (BrotliEncoder encoder = new BrotliEncoder(GetQuality(level), Window))
             {
-                Span<byte> output = new Span<byte>(CompressedFile.UncompressedData);
-                ReadOnlySpan<byte> input = CompressedFile.CompressedData;
+                Span<byte> output = new Span<byte>(CompressedFile.CompressedData);
+                ReadOnlySpan<byte> input = CompressedFile.UncompressedData;
                 while (!input.IsEmpty && !output.IsEmpty)
                 {
                     encoder.Compress(input, output, out int bytesConsumed, out int written, isFinalBlock:false);
@@ -54,7 +54,7 @@ namespace System.IO.Compression
 
         [Benchmark]
         public bool Compress_WithoutState()
-            => BrotliEncoder.TryCompress(CompressedFile.UncompressedData, CompressedFile.UncompressedData, out int bytesWritten, GetQuality(level), Window);
+            => BrotliEncoder.TryCompress(CompressedFile.UncompressedData, CompressedFile.CompressedData, out int bytesWritten, GetQuality(level), Window);
 
         /// <summary>
         /// The perf tests for the instant decompression aren't exactly indicative of real-world scenarios since they require you to know 
