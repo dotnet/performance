@@ -20,8 +20,8 @@ namespace System.IO.Compression
         {
             using (BrotliEncoder encoder = new BrotliEncoder(GetQuality(level), Window))
             {
-                Span<byte> output = new Span<byte>(CompressedFile.UncompressedData);
-                ReadOnlySpan<byte> input = CompressedFile.CompressedData;
+                Span<byte> output = new Span<byte>(CompressedFile.CompressedData);
+                ReadOnlySpan<byte> input = CompressedFile.UncompressedData;
                 while (!input.IsEmpty && !output.IsEmpty)
                 {
                     encoder.Compress(input, output, out int bytesConsumed, out int written, isFinalBlock:false);
