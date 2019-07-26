@@ -54,7 +54,7 @@ namespace System.IO.Compression
 
         [Benchmark]
         public bool Compress_WithoutState()
-            => BrotliEncoder.TryCompress(CompressedFile.UncompressedData, CompressedFile.UncompressedData, out int bytesWritten, GetQuality(level), Window);
+            => BrotliEncoder.TryCompress(CompressedFile.UncompressedData, CompressedFile.CompressedData, out int bytesWritten, GetQuality(level), Window);
 
         /// <summary>
         /// The perf tests for the instant decompression aren't exactly indicative of real-world scenarios since they require you to know 
