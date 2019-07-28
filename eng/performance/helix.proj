@@ -37,4 +37,20 @@
     Partition the Microbenchamrks project, but nothing else
   -->
 
+  <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
+    <HelixWorkItem Include="test">
+      <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
+      <Command>set</Command>
+      <Timeout>1:00</Timeout>
+    </HelixWorkItem>
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetsWindows)' != 'true'">
+    <HelixWorkItem Include="test">
+      <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
+      <Command>export</Command>
+      <Timeout>1:00</Timeout>
+    </HelixWorkItem>
+  </ItemGroup>
+
+
 </Project>
