@@ -19,7 +19,7 @@ namespace ScenarioMeasurement
         {
         }
 
-        public IList<Counter> Parse(string mergeTraceFile, string processName)
+        public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids)
         {
             var results = new List<double>();
             double threadTime = 0;
@@ -27,13 +27,12 @@ namespace ScenarioMeasurement
             var ins = new Dictionary<int, double>();
             double start = -1;
             int? pid = null;
-            var imageFileName = "";
             using (var source = new ETWTraceEventSource(mergeTraceFile))
             {
 
                 source.Kernel.ProcessStart += evt =>
                 {
-                    if (evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
+                    if (processName.Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase) && pids.Contains(evt.ProcessID))
                     {
                         if (pid.HasValue)
                         {
@@ -42,7 +41,6 @@ namespace ScenarioMeasurement
                         }
                         pid = evt.ProcessID;
                         start = evt.TimeStampRelativeMSec;
-                        imageFileName = evt.ImageFileName;
                     }
                 };
 
@@ -70,9 +68,7 @@ namespace ScenarioMeasurement
 
                 source.Kernel.ProcessEndGroup += evt =>
                 {
-                    // not using processname here because it's not tracked by the state machine when the process just ended
-                    // but ImageFileName exists
-                    if (pid.HasValue && evt.ProcessID == pid && evt.ImageFileName == imageFileName)
+                    if (pid.HasValue && pid == evt.ProcessID)
                     {
                         results.Add(evt.TimeStampRelativeMSec - start);
                         pid = null;

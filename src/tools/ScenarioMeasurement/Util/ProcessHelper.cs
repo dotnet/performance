@@ -38,7 +38,7 @@ namespace ScenarioMeasurement
         /// <param name="appArgs">Optional arguments</param>
         /// <param name="workingDirectory">Optional working directory (defaults to current directory)</param>
         /// <returns></returns>
-        public Result Run()
+        public (Result result, int pid) Run()
         {
             var psi = new ProcessStartInfo();
             psi.FileName = Executable;
@@ -71,6 +71,7 @@ namespace ScenarioMeasurement
                     };
                 }
                 process.Start();
+                int pid = process.Id;
                 if (!GuiApp)
                 {
                     process.BeginOutputReadLine();
@@ -83,7 +84,7 @@ namespace ScenarioMeasurement
                     if (!exited)
                     {
                         process.Kill();
-                        return Result.TimeoutExceeded;
+                        return (Result.TimeoutExceeded, pid);
                     }
                 }
                 else
@@ -92,13 +93,13 @@ namespace ScenarioMeasurement
                     if (!process.HasExited) { process.CloseMainWindow(); }
                     else
                     {
-                        return Result.ExitedEarly;
+                        return (Result.ExitedEarly, pid);
                     }
                     bool exited = process.WaitForExit(5000);
                     if (!exited)
                     {
                         process.Kill();
-                        return Result.CloseFailed;
+                        return (Result.CloseFailed, pid);
                     }
                 }
                 using (var sw = new StreamWriter($"testlog_{Path.GetFileName(Executable)}_{process.Id}.log"))
@@ -108,7 +109,12 @@ namespace ScenarioMeasurement
                     sw.WriteLine("Standard error:");
                     sw.WriteLine(error.ToString());
                 }
-                return Result.Success;
+                // Be aware a successful exit could be non-zero
+                if (process.ExitCode != 0)
+                {
+                    return (Result.ExitedWithError, pid);
+                }
+                return (Result.Success, pid);
             }
         }
         public enum Result
@@ -116,7 +122,8 @@ namespace ScenarioMeasurement
             Success,
             TimeoutExceeded,
             ExitedEarly,
-            CloseFailed
+            CloseFailed,
+            ExitedWithError
         }
     }
 }

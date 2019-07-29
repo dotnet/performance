@@ -27,7 +27,7 @@ namespace ScenarioMeasurement
             user.EnableProvider("PerfLabGenericEventSource");
         }
 
-        public IList<Counter> Parse(string mergeTraceFile, string processName)
+        public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids)
         {
             var results = new List<double>();
             var threadTimes = new List<double>();
@@ -40,7 +40,7 @@ namespace ScenarioMeasurement
 
                 source.Kernel.ProcessStart += evt =>
                 {
-                    if (evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
+                    if (evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase) && pids.Contains(evt.ProcessID))
                     {
                         if (pid.HasValue)
                         {
