@@ -376,7 +376,9 @@ def get_dotnet_version(framework: str, dotnet_path: str = None, sdk_path: str = 
         # Attempt 2: Increase the minor version by 1 and retry.
         sdk = next((f for f in sdks if f.startswith(
             "{}.{}".format(version.major, version.minor + 1))), None)
-    
+    if not sdk:
+        sdk = next((f for f in sdks if f.startswith(
+            "{}.{}".format('5', '0'))), None)
     if not sdk:
         raise RuntimeError(
             "Unable to determine the .NET SDK used for {}".format(framework)
