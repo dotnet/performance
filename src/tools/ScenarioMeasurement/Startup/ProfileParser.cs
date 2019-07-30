@@ -53,7 +53,7 @@ namespace ScenarioMeasurement
 
         }
 
-        public IList<Counter> Parse(string mergeTraceFile, string processName)
+        public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids)
         {
             throw new NotImplementedException("Parsing is not supported on ProfileParser");
         }

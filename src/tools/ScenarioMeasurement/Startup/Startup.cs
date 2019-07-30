@@ -1,10 +1,10 @@
-﻿using Microsoft.Diagnostics.Tracing.Parsers;
-using Microsoft.Diagnostics.Tracing.Session;
-using Reporting;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
+using Microsoft.Diagnostics.Tracing.Parsers;
+using Microsoft.Diagnostics.Tracing.Session;
+using Reporting;
 
 namespace ScenarioMeasurement
 {
@@ -35,6 +35,8 @@ namespace ScenarioMeasurement
         /// <param name="guiApp">true: app under test is a GUI app, false: console</param>
         /// <param name="skipProfileIteration">true: skip full results iteration</param>
         /// <param name="reportJsonPath">path to save report json</param>
+        /// <param name="iterationSetup">command to set up before each iteration</param>
+        /// <param name="setupArgs">arguments of iterationSetup</param>
         /// <returns></returns>
         static int Main(string appExe,
                         MetricType metricType,
@@ -42,6 +44,8 @@ namespace ScenarioMeasurement
                         string traceFileName,
                         bool processWillExit = false,
                         int iterations = 5,
+                        string iterationSetup = "",
+                        string setupArgs = "",
                         int timeout = 60,
                         int measurementDelay = 15,
                         string appArgs = "",
@@ -74,6 +78,15 @@ namespace ScenarioMeasurement
                 WorkingDirectory = workingDir,
                 GuiApp = guiApp
             };
+
+            // create iteration set up process helper
+            logger.Log($"Iteration set up: {iterationSetup} (args: {setupArgs})");
+            ProcessHelper setUpProcHelper = null;
+            if (!String.IsNullOrEmpty(iterationSetup))
+            {
+                setUpProcHelper = SetupIteration(iterationSetup, setupArgs, workingDir);
+            }
+
             Util.Init();
 
             if (warmup)
@@ -99,6 +112,8 @@ namespace ScenarioMeasurement
                     //    parser = new WPFParser();
                     //    break;
             }
+
+            var pids = new List<int>();
             using (var kernel = new TraceEventSession(KernelTraceEventParser.KernelSessionName, kernelTraceFile))
             {
                 parser.EnableKernelProvider(kernel);
@@ -107,13 +122,31 @@ namespace ScenarioMeasurement
                     parser.EnableUserProviders(user);
                     for (int i = 0; i < iterations; i++)
                     {
-                        var result = procHelper.Run();
-                        if (result != ProcessHelper.Result.Success)
+                        // set up iteration
+                        if (setUpProcHelper != null)
                         {
-                            logger.Log($"failed. result: {result}");
+                            var setUpResult = setUpProcHelper.Run().result;
+                            if (setUpResult != ProcessHelper.Result.Success)
+                            {
+                                logger.Log($"Failed to set up. Result: {setUpResult}");
+                                failed = true;
+                                break;
+                            }
+                        }
+
+                        // run iteration
+                        var runResult = procHelper.Run();
+                        if (runResult.result == ProcessHelper.Result.Success)
+                        {
+                            pids.Add(runResult.pid);
+                        }
+                        else
+                        {
+                            logger.Log($"Failed to run. Result: {runResult.result}");
                             failed = true;
                             break;
                         }
+
                     }
                 }
             }
@@ -127,7 +160,7 @@ namespace ScenarioMeasurement
                     files.Add(userTraceFile);
                 }
                 TraceEventSession.Merge(files.ToArray(), traceFileName);
-                var counters = parser.Parse(traceFileName, Path.GetFileNameWithoutExtension(appExe));
+                var counters = parser.Parse(traceFileName, Path.GetFileNameWithoutExtension(appExe), pids);
                 foreach (var counter in counters)
                 {
                     logger.Log($"{counter.Name,-15}: {counter.Results.Average():F3} {counter.MetricName}");
@@ -146,7 +179,6 @@ namespace ScenarioMeasurement
                         File.WriteAllText(reportJsonPath, reporter.GetJson());
                     }
                 }
-             
             }
 
             File.Delete(kernelTraceFile);
@@ -164,10 +196,10 @@ namespace ScenarioMeasurement
                     using (var user = new TraceEventSession("ProfileSession", profileUserTraceFile))
                     {
                         profiler.EnableUserProviders(user);
-                        var result = procHelper.Run();
+                        var result = procHelper.Run().result;
                         if (result != ProcessHelper.Result.Success)
                         {
-                            logger.Log($"failed. result: {result}");
+                            logger.Log($"Failed. Result: {result}");
                             failed = true;
                         }
                     }
@@ -183,6 +215,19 @@ namespace ScenarioMeasurement
 
             return (failed ? -1 : 0);
 
+        }
+
+        private static ProcessHelper SetupIteration(string command, string args, string workingDir)
+        {
+            var procHelper = new ProcessHelper()
+            {
+                ProcessWillExit = true,
+                Executable = command,
+                Arguments = args,
+                WorkingDirectory = workingDir,
+                Timeout = 300
+            };
+            return procHelper;
         }
     }
 }
