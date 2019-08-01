@@ -37,6 +37,8 @@ namespace ScenarioMeasurement
         /// <param name="reportJsonPath">path to save report json</param>
         /// <param name="iterationSetup">command to set up before each iteration</param>
         /// <param name="setupArgs">arguments of iterationSetup</param>
+        /// <param name="iterationCleanup">command to clean up after each iteration</param>
+        /// <param name="cleanupArgs">arguments of iterationCleanup</param>
         /// <returns></returns>
         static int Main(string appExe,
                         MetricType metricType,
@@ -46,6 +48,8 @@ namespace ScenarioMeasurement
                         int iterations = 5,
                         string iterationSetup = "",
                         string setupArgs = "",
+                        string iterationCleanup = "",
+                        string cleanupArgs = "",
                         int timeout = 60,
                         int measurementDelay = 15,
                         string appArgs = "",
@@ -79,12 +83,20 @@ namespace ScenarioMeasurement
                 GuiApp = guiApp
             };
 
-            // create iteration set up process helper
+            // create iteration setup process helper
             logger.Log($"Iteration set up: {iterationSetup} (args: {setupArgs})");
-            ProcessHelper setUpProcHelper = null;
+            ProcessHelper setupProcHelper = null;
             if (!String.IsNullOrEmpty(iterationSetup))
             {
-                setUpProcHelper = SetupIteration(iterationSetup, setupArgs, workingDir);
+                setupProcHelper = CreateProcHelper(iterationSetup, setupArgs, workingDir);
+            }
+
+            // create iteration cleanup process helper
+            logger.Log($"Iteration clean up: {iterationCleanup} (args: {cleanupArgs})");
+            ProcessHelper cleanupProcHelper = null;
+            if (!String.IsNullOrEmpty(iterationCleanup))
+            {
+                cleanupProcHelper = CreateProcHelper(iterationCleanup, cleanupArgs, workingDir);
             }
 
             Util.Init();
@@ -123,12 +135,12 @@ namespace ScenarioMeasurement
                     for (int i = 0; i < iterations; i++)
                     {
                         // set up iteration
-                        if (setUpProcHelper != null)
+                        if (setupProcHelper != null)
                         {
-                            var setUpResult = setUpProcHelper.Run().result;
-                            if (setUpResult != ProcessHelper.Result.Success)
+                            var setupResult = setupProcHelper.Run().result;
+                            if (setupResult != ProcessHelper.Result.Success)
                             {
-                                logger.Log($"Failed to set up. Result: {setUpResult}");
+                                logger.Log($"Failed to set up. Result: {setupResult}");
                                 failed = true;
                                 break;
                             }
@@ -147,6 +159,17 @@ namespace ScenarioMeasurement
                             break;
                         }
 
+                        // clean up iteration
+                        if (cleanupProcHelper != null)
+                        {
+                            var cleanupResult = cleanupProcHelper.Run().result;
+                            if (cleanupResult != ProcessHelper.Result.Success)
+                            {
+                                logger.Log($"Failed to clean up. Result: {cleanupResult}");
+                                failed = true;
+                                break;
+                            }
+                        }
                     }
                 }
             }
@@ -217,7 +240,7 @@ namespace ScenarioMeasurement
 
         }
 
-        private static ProcessHelper SetupIteration(string command, string args, string workingDir)
+        private static ProcessHelper CreateProcHelper(string command, string args, string workingDir)
         {
             var procHelper = new ProcessHelper()
             {
