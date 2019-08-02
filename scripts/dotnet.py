@@ -92,7 +92,7 @@ class CompilationAction(Action):
 
     TIERED = 'Tiered'
     NO_TIERING = 'NoTiering'
-    DEFAULT='Default'
+    DEFAULT = 'Default'
     FULLY_JITTED_NO_TIERING = 'FullyJittedNoTiering'
     MIN_OPT = 'MinOpt'
 
@@ -164,8 +164,8 @@ class CompilationAction(Action):
         '''Gets the help string describing the different compilation modes.'''
         return '''Different compilation modes that can be set to change the
         .NET compilation behavior. The default configurations have changed between
-        releases of .NET. These flags enable ensuring consistency when running 
-        more than one runtime. The different modes are: {}: no 
+        releases of .NET. These flags enable ensuring consistency when running
+        more than one runtime. The different modes are: {}: no
         environment variables are set; {}: tiering is enabled.
         {}: tiering is disabled, but includes R2R code, and it is useful for
         comparison against Tiered; {}: This is JIT-only, useful for comparison
@@ -317,6 +317,7 @@ class CSharpProject:
         RunCommand(cmdline, verbose=verbose).run(
             self.working_directory)
 
+
 def get_framework_version(framework: str) -> str:
     groups = search(r"^netcoreapp(\d)\.(\d)$", framework)
     if not groups:
@@ -326,6 +327,7 @@ def get_framework_version(framework: str) -> str:
     version = FrameworkVersion(int(groups.group(1)), int(groups.group(2)))
 
     return version
+
 
 def get_sdk_path(version: str, dotnet_path: str = None) -> str:
     """Gets the dotnet Host version from the `dotnet --info` command."""
@@ -358,10 +360,12 @@ def get_sdk_path(version: str, dotnet_path: str = None) -> str:
 
     return sdk_path
 
+
 def get_dotnet_version(framework: str, dotnet_path: str = None, sdk_path: str = None) -> str:
     version = get_framework_version(framework)
 
-    sdk_path = get_sdk_path(version, dotnet_path) if sdk_path is None else sdk_path
+    sdk_path = get_sdk_path(
+        version, dotnet_path) if sdk_path is None else sdk_path
 
     sdks = [
         d for d in listdir(sdk_path) if path.isdir(path.join(sdk_path, d))
@@ -383,28 +387,32 @@ def get_dotnet_version(framework: str, dotnet_path: str = None, sdk_path: str = 
         raise RuntimeError(
             "Unable to determine the .NET SDK used for {}".format(framework)
         )
-    
+
     return sdk
+
 
 def get_dotnet_sdk(framework: str, dotnet_path: str = None, sdk: str = None) -> str:
     """Gets the dotnet Host commit sha from the `dotnet --info` command."""
 
     sdk_path = get_sdk_path(get_framework_version(framework), dotnet_path)
-    sdk = get_dotnet_version(framework, dotnet_path, sdk_path) if sdk is None else sdk
+    sdk = get_dotnet_version(framework, dotnet_path,
+                             sdk_path) if sdk is None else sdk
 
     with open(path.join(sdk_path, sdk, '.version')) as sdk_version_file:
         return sdk_version_file.readline().strip()
     raise RuntimeError("Unable to retrieve information about the .NET SDK.")
 
-def get_repository(repository:str) -> Tuple[str, str]:
+
+def get_repository(repository: str) -> Tuple[str, str]:
     url_path = urlparse(repository).path
     tokens = url_path.split("/")
     if len(tokens) != 3:
         raise ValueError('Unable to determine owner and repo from url.')
     owner = tokens[1]
     repo = tokens[2]
-    
+
     return owner, repo
+
 
 def get_commit_date(
         framework: str,
@@ -489,9 +497,11 @@ def __get_directory(architecture: str) -> str:
     '''Gets the default directory where dotnet is to be installed.'''
     return path.join(get_tools_directory(), 'dotnet', architecture)
 
+
 def remove_dotnet(architecture: str) -> str:
     '''Removes the dotnet installed in the tools directory associated with a particular architecture'''
     rmtree(__get_directory(architecture))
+
 
 def install(
         architecture: str,
@@ -628,8 +638,10 @@ def __process_arguments(args: list):
     )
     subparsers = parser.add_subparsers(
         title='Subcommands',
-        description='Supported DotNet Cli subcommands'
+        description='Supported DotNet Cli subcommands',
+        dest='install',
     )
+    subparsers.required = True
 
     install_parser = subparsers.add_parser(
         'install',
