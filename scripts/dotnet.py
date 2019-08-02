@@ -361,7 +361,10 @@ def get_sdk_path(version: str, dotnet_path: str = None) -> str:
     return sdk_path
 
 
-def get_dotnet_version(framework: str, dotnet_path: str = None, sdk_path: str = None) -> str:
+def get_dotnet_version(
+        framework: str,
+        dotnet_path: str = None,
+        sdk_path: str = None) -> str:
     version = get_framework_version(framework)
 
     sdk_path = get_sdk_path(
@@ -391,7 +394,10 @@ def get_dotnet_version(framework: str, dotnet_path: str = None, sdk_path: str = 
     return sdk
 
 
-def get_dotnet_sdk(framework: str, dotnet_path: str = None, sdk: str = None) -> str:
+def get_dotnet_sdk(
+        framework: str,
+        dotnet_path: str = None,
+        sdk: str = None) -> str:
     """Gets the dotnet Host commit sha from the `dotnet --info` command."""
 
     sdk_path = get_sdk_path(get_framework_version(framework), dotnet_path)
@@ -499,7 +505,10 @@ def __get_directory(architecture: str) -> str:
 
 
 def remove_dotnet(architecture: str) -> str:
-    '''Removes the dotnet installed in the tools directory associated with a particular architecture'''
+    '''
+    Removes the dotnet installed in the tools directory associated with the
+    specified architecture.
+    '''
     rmtree(__get_directory(architecture))
 
 
@@ -578,12 +587,13 @@ def install(
     # Add installed dotnet cli to PATH
     environ["PATH"] = install_dir + pathsep + environ["PATH"]
 
-    # If we have copied dotnet from a different machine, it will not be executable. Fix this
+    # If we have copied dotnet from a different machine, then it may not be
+    # marked as executable. Fix this.
     if platform != 'win32':
         chmod(path.join(install_dir, 'dotnet'), S_IRWXU)
 
 
-def add_arguments(parser: ArgumentParser) -> ArgumentParser:
+def __add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''
     Adds new arguments to the specified ArgumentParser object.
     '''
@@ -606,6 +616,26 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Architecture of DotNet Cli binaries to be installed.'
     )
 
+    parser.add_argument(
+        '--dotnet-versions',
+        dest="dotnet_versions",
+        required=False,
+        nargs='+',
+        default=[],
+        action=VersionsAction,
+        help='Version of the dotnet cli to install in the A.B.C format'
+    )
+
+    return parser
+
+
+def add_arguments(parser: ArgumentParser) -> ArgumentParser:
+    '''
+    Adds new arguments to the specified ArgumentParser object.
+    '''
+
+    parser = __add_arguments(parser)
+
     # .NET Compilation modes.
     parser.add_argument(
         '--dotnet-compilation-mode',
@@ -616,16 +646,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default=CompilationAction.noenv(),
         type=CompilationAction.validate,
         help='{}'.format(CompilationAction.help_text())
-    )
-
-    parser.add_argument(
-        '--dotnet-versions',
-        dest="dotnet_versions",
-        required=False,
-        nargs='+',
-        default=[],
-        action=VersionsAction,
-        help='Version of the dotnet cli to install in the A.B.C format'
     )
 
     return parser
@@ -666,7 +686,7 @@ def __process_arguments(args: list):
         help='Download DotNet Cli from the Channel specified.'
     )
 
-    install_parser = add_arguments(install_parser)
+    install_parser = __add_arguments(install_parser)
 
     # private install arguments.
     install_parser.add_argument(
