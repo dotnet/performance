@@ -35,14 +35,13 @@ pr:
     - src/tools/ResultsComparer/README.md
     - README.md
 
-- ${{ if ne(variables['System.TeamProject'], 'public') }}:
-  schedules:
-  - cron: "0 */4 * * *"
-    displayName: Every 4 hour build
-    branches:
-      include:
-      - master
-    always: true
+schedules:
+- cron: "0 */4 * * *"
+  displayName: Every 4 hour build
+  branches:
+    include:
+    - master
+  always: true
 
 jobs:
 
