@@ -94,7 +94,7 @@ jobs:
       frameworks: # for public jobs we want to make sure that the PRs don't break x86
         - netcoreapp3.0
 
-  # Windows x64 ML.NET benchmarks, public correctness job
+  # Windows x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
@@ -122,7 +122,7 @@ jobs:
       frameworks: # for ML.NET jobs we want to check .NET Core 3.0 only
         - netcoreapp3.0
 
-  # Windows x64 Roslyn benchmarks, public correctness job
+  # Windows x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
@@ -199,7 +199,7 @@ jobs:
       frameworks: # for ML.NET jobs we want to check .NET Core 3.0 only
         - netcoreapp3.0
 
-  # Ubuntu 1604 x64 Roslyn benchmarks, public correctness job
+  # Ubuntu 1604 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: ubuntu
@@ -230,7 +230,7 @@ jobs:
         - netcoreapp3.0
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-  # Windows x64 micro benchmarks, private job
+  # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
@@ -306,7 +306,7 @@ jobs:
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
 
-  # Windows x64 Roslyn benchmarks, private job
+  # Windows x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
@@ -321,7 +321,7 @@ jobs:
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
 
-  # Ubuntu 1604 x64 micro benchmarks, private job
+  # Ubuntu 1604 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
@@ -404,8 +404,8 @@ jobs:
 # Scheduled Private jobs
 ################################################
 
-# Ubuntu 1804 ARM64 micro benchmarks, private job. Only run during the scheduled builds
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule')) }}:
+  # Ubuntu 1804 ARM64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: ubuntu
