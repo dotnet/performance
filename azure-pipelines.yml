@@ -45,8 +45,12 @@ schedules:
 
 jobs:
 
-# Windows x64 micro benchmarks, public correctness job
+######################################################
+# Public correctness jobs
+######################################################
+
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
@@ -62,9 +66,8 @@ jobs:
         - netcoreapp2.2
         - netcoreapp2.1
 
- # Windows x64 micro benchmarks net461, public correctness job
-- ${{ if eq(variables['System.TeamProject'], 'public') }}:
   - template: /eng/performance/benchmark_jobs.yml
+    # Windows x64 net461 micro benchmarks
     parameters:
       osName: windows
       osVersion: RS4
@@ -75,10 +78,9 @@ jobs:
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'coreclr corefx'
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - net461 
+        - net461
 
-# Windows x86 micro benchmarks, public correctness job
-- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  # Windows x86 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
@@ -92,8 +94,7 @@ jobs:
       frameworks: # for public jobs we want to make sure that the PRs don't break x86
         - netcoreapp3.0
 
-# Windows x64 micro benchmarks, private job
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  # Windows x64 ML.NET benchmarks, public correctness job
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
@@ -115,15 +116,13 @@ jobs:
       kind: micro
       architecture: x64
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
-      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
-      benchviewCategory: 'coreclr'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+      queue: Windows.10.Amd64.ClientRS4.Open
+      csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
+      runCategories: 'mldotnet'
+      frameworks: # for ML.NET jobs we want to check .NET Core 3.0 only
         - netcoreapp3.0
-      
-# Windows x86 micro benchmarks, private job
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+
+  # Windows x64 Roslyn benchmarks, public correctness job
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
@@ -145,11 +144,10 @@ jobs:
       kind: micro
       architecture: x86
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
-      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
-      benchviewCategory: 'coreclr'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+      queue: Windows.10.Amd64.ClientRS4.Open
+      csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
+      runCategories: 'roslyn'
+      frameworks: # for Roslyn jobs we want to check .NET Core 3.0 only
         - netcoreapp3.0
         
 # Ubuntu 1804 x64 micro benchmarks, public correctness job
@@ -191,32 +189,29 @@ jobs:
     parameters:
       osName: ubuntu
       osVersion: 1604
-      kind: micro
+      kind: mlnet
       architecture: x64
       pool: Hosted Ubuntu 1604
-      queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
+      queue: Ubuntu.1604.Amd64.Open
       container: ubuntu_x64_build_container
-      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
-      benchviewCategory: 'coreclr'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+      runCategories: 'mldotnet'
+      csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
+      frameworks: # for ML.NET jobs we want to check .NET Core 3.0 only
         - netcoreapp3.0
-        
-# Ubuntu 1804 ARM64 micro benchmarks, private job. Only run during the scheduled builds
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule')) }}:
+
+  # Ubuntu 1604 x64 Roslyn benchmarks, public correctness job
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: ubuntu
-      osVersion: 1804
-      kind: micro
-      architecture: arm64
+      osVersion: 1604
+      kind: roslyn
+      architecture: x64
       pool: Hosted Ubuntu 1604
-      queue: Ubuntu.1804.Arm64.Perf
+      queue: Ubuntu.1604.Amd64.Open
       container: ubuntu_x64_build_container
-      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
-      benchviewCategory: 'coreclr'
-      frameworks: # currently ARM64 is supported only by .NET Core 3.0 https://github.com/dotnet/core/blob/master/release-notes/3.0/3.0-supported-os.md
+      runCategories: 'roslyn'
+      csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
+      frameworks: # for Roslyn jobs we want to check .NET Core 3.0 only
         - netcoreapp3.0
 
 # Windows x64 ML.NET benchmarks, public correctness job
@@ -234,8 +229,8 @@ jobs:
       frameworks: # for ML.NET jobs we want to check .NET Core 3.0 only
         - netcoreapp3.0
 
-# Windows x64 ML.NET benchmarks, private job
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  # Windows x64 micro benchmarks, private job
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
@@ -258,9 +253,9 @@ jobs:
       architecture: x64
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
-      csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-      runCategories: 'mldotnet'
-      benchviewCategory: 'mldotnet'
+      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+      runCategories: 'coreclr corefx'
+      benchviewCategory: 'coreclr'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
         
@@ -303,17 +298,15 @@ jobs:
       osVersion: 1604
       kind: mlnet
       architecture: x64
-      pool: Hosted Ubuntu 1604
-      queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
-      container: ubuntu_x64_build_container
-      csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
+      csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
       benchviewCategory: 'mldotnet'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
 
-# Windows x64 Roslyn benchmarks, public correctness job
-- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  # Windows x64 Roslyn benchmarks, private job
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
@@ -324,11 +317,11 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
-      frameworks: # for Roslyn jobs we want to check .NET Core 3.0 only
+      benchviewCategory: 'roslyn'
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
 
-# Windows x64 Roslyn benchmarks, private job
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  # Ubuntu 1604 x64 micro benchmarks, private job
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
@@ -349,11 +342,12 @@ jobs:
       osVersion: RS1
       kind: roslyn
       architecture: x64
-      pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
-      csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
-      runCategories: 'roslyn'
-      benchviewCategory: 'roslyn'
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
+      runCategories: 'coreclr corefx'
+      benchviewCategory: 'coreclr'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
 
@@ -368,9 +362,10 @@ jobs:
       pool: Hosted Ubuntu 1604
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
-      runCategories: 'roslyn'
-      csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
-      frameworks: # for Roslyn jobs we want to check .NET Core 3.0 only
+      csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
+      runCategories: 'mldotnet'
+      benchviewCategory: 'mldotnet'
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
 
 # Ubuntu 1804 x64 Roslyn benchmarks, private job
@@ -404,4 +399,24 @@ jobs:
       benchviewCategory: 'roslyn'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
         - netcoreapp3.0
-        
+
+################################################
+# Scheduled Private jobs
+################################################
+
+# Ubuntu 1804 ARM64 micro benchmarks, private job. Only run during the scheduled builds
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule')) }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: micro
+      architecture: arm64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1804.Arm64.Perf
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
+      runCategories: 'coreclr corefx'
+      benchviewCategory: 'coreclr'
+      frameworks: # currently ARM64 is supported only by .NET Core 3.0 https://github.com/dotnet/core/blob/master/release-notes/3.0/3.0-supported-os.md
+        - netcoreapp3.0
