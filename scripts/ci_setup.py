@@ -191,7 +191,7 @@ def __main(args: list) -> int:
     owner, repo = ('dotnet', 'core-sdk') if args.repository is None else (dotnet.get_repository(args.repository))
     config_string = ';'.join(args.build_configs) if sys.platform == 'win32' else '"%s"' % ';'.join(args.build_configs)
 
-    is_netcoreapp_30 = False
+    remove_dotnet = False
 
     output = ''
 
