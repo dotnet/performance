@@ -261,10 +261,7 @@ def __main(args: list) -> int:
                 '**',
                 '*perf-lab-report.json')
 
-            returncode = upload.upload(globpath, 'results', 'PERFLAB_UPLOAD_TOKEN', 'https://pvscmdupload.blob.core.windows.net')
-
-            if returncode != 0:
-                return returncode
+            upload.upload(globpath, 'results', 'PERFLAB_UPLOAD_TOKEN', 'https://pvscmdupload.blob.core.windows.net')
                 
         # TODO: Archive artifacts.
 
