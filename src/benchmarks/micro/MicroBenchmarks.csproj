@@ -86,7 +86,7 @@
     <Compile Remove="corefx\System.Text.Json\**\*.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition="('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.0') OR '$(IsARM)' == 'true'">
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.0') OR '$(IsARM)' == 'true'">
     <Compile Remove="coreclr\PacketTracer\**\*.cs" />
   </ItemGroup>
 
