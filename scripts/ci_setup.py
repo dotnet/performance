@@ -209,8 +209,8 @@ def __main(args: list) -> int:
 
     for framework in target_framework_monikers:
         if framework.startswith('netcoreapp'):
-            if framework == 'netcoreapp3.0':
-                is_netcoreapp_30 = True
+            if framework == 'netcoreapp3.0' or framework == 'netcoreapp5.0':
+                remove_dotnet = True
             target_framework_moniker = micro_benchmarks.FrameworkAction.get_target_framework_moniker(framework)
             dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli)
             commit_sha =  dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
@@ -239,8 +239,8 @@ def __main(args: list) -> int:
                 out_file.write(variable_format % ('PERFLAB_INLAB', '0'))
 
     # On non-windows platforms, delete dotnet, so that we don't have to deal with chmoding it on the helix machines
-    # This is only necessary for netcoreapp3.0
-    if sys.platform != 'win32' and is_netcoreapp_30:
+    # This is only necessary for netcoreapp3.0 and netcoreapp5.0
+    if sys.platform != 'win32' and remove_dotnet:
         dotnet.remove_dotnet(architecture)
 
 

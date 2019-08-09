@@ -12,7 +12,7 @@ def get_unique_name(filename, unique_id) -> str:
         newname = "{0}-perf-lab-report.json".format(randint(1000, 9999))
     return newname
 
-def upload(globpath, container, sas_token_env, storage_account_uri):
+def upload(globpath, container, sas_token_env, storage_account_uri) -> int:
     try:
         sas_token_env = sas_token_env
         sas_token = os.getenv(sas_token_env)
@@ -33,6 +33,7 @@ def upload(globpath, container, sas_token_env, storage_account_uri):
                 blob_client.upload_blob(data, blob_type="BlockBlob", content_settings=ContentSettings(content_type="application/json"))
 
             getLogger().info("upload complete")
+            return 0
 
     except Exception as ex:
         getLogger().error('{0}: {1}'.format(type(ex), str(ex)))
