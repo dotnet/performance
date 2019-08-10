@@ -50,6 +50,7 @@ jobs:
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'coreclr corefx' 
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - netcoreapp5.0
         - netcoreapp3.0
         - netcoreapp2.2
         - netcoreapp2.1
@@ -82,7 +83,7 @@ jobs:
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'coreclr corefx'
       frameworks: # for public jobs we want to make sure that the PRs don't break x86
-        - netcoreapp3.0
+        - netcoreapp5.0
 
 # Windows x64 micro benchmarks, private job
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
@@ -130,6 +131,7 @@ jobs:
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       runCategories: 'coreclr corefx'
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - netcoreapp5.0
         - netcoreapp3.0
         - netcoreapp2.2
         - netcoreapp2.1
