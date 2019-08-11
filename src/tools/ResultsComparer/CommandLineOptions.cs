@@ -29,6 +29,9 @@ namespace ResultsComparer
         [Option("csv", HelpText = "Path to exported CSV results. Optional.")]
         public FileInfo CsvPath { get; set; }
 
+        [Option('f', "filter", HelpText = "Filter the benchmarks by name using glob pattern(s). Optional.")]
+        public IEnumerable<string> Filters { get; set; }
+
         [Usage(ApplicationAlias = "")]
         public static IEnumerable<Example> Examples
         {
@@ -40,6 +43,8 @@ namespace ResultsComparer
                     new CommandLineOptions { BasePath = @"C:\results\win", DiffPath = @"C:\results\unix", StatisticalTestThreshold = "5%", TopCount = 10 });
                 yield return new Example(@"Compare the results stored in 'C:\results\win' (base) vs 'C:\results\unix' (diff) using 5% threshold and 0.5ns noise filter.",
                     new CommandLineOptions { BasePath = @"C:\results\win", DiffPath = @"C:\results\unix", StatisticalTestThreshold = "5%", NoiseThreshold = "0.5ns" });
+                yield return new Example(@"Compare the System.Math benchmark results stored in 'C:\results\ubuntu16' (base) vs 'C:\results\ubuntu18' (diff) using 5% threshold.",
+                    new CommandLineOptions { Filters = new[] { "System.Math*" }, BasePath = @"C:\results\win", DiffPath = @"C:\results\unix", StatisticalTestThreshold = "5%" });
             }
         }
     }

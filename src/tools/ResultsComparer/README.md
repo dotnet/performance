@@ -17,6 +17,7 @@ Optional arguments:
 * `--top` - filter the diff to top/bottom `N` results
 * `--noise` - noise threshold for Statistical Test. The difference for 1.0ns and 1.1ns is 10%, but it's just a noise. Examples: 0.5ns 1ns. The default value is 0.3ns.
 * `--csv` - path to exported CSV results. Optional.
+* `-f|--filter` - filter the benchmarks by name using glob pattern(s). Optional.
 
 Sample: compare the results stored in `C:\results\windows` vs `C:\results\ubuntu` using `1%` threshold and print only TOP 10.
 

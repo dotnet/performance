@@ -38,8 +38,8 @@ namespace System.IO.Tests
         [GlobalCleanup]
         public void Cleanup()
         {
-            _memoryStream.Dispose();
             _streamWriter.Dispose();
+            _memoryStream.Dispose();
         }
 
         [Benchmark]

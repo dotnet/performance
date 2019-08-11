@@ -5,18 +5,18 @@ using Reporting;
 using System;
 using System.Collections.Generic;
 
+
 namespace ScenarioMeasurement
 {
-    internal class TimeToMainParser : IParser
+    internal class ProcessTimeParser : IParser
     {
         public void EnableKernelProvider(TraceEventSession kernel)
         {
-            kernel.EnableKernelProvider((KernelTraceEventParser.Keywords)(KernelTraceEventParser.Keywords.Process | KernelTraceEventParser.Keywords.Thread | KernelTraceEventParser.Keywords.ContextSwitch));
+            kernel.EnableKernelProvider((KernelTraceEventParser.Keywords.Process | KernelTraceEventParser.Keywords.Thread | KernelTraceEventParser.Keywords.ContextSwitch));
         }
 
         public void EnableUserProviders(TraceEventSession user)
         {
-            user.EnableProvider(ClrPrivateTraceEventParser.ProviderGuid, TraceEventLevel.Verbose, (ulong)ClrPrivateTraceEventParser.Keywords.Startup);
         }
 
         public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids)
@@ -29,15 +29,15 @@ namespace ScenarioMeasurement
             int? pid = null;
             using (var source = new ETWTraceEventSource(mergeTraceFile))
             {
-                
+
                 source.Kernel.ProcessStart += evt =>
                 {
-                    if(evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase) && pids.Contains(evt.ProcessID))
+                    if (processName.Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase) && pids.Contains(evt.ProcessID))
                     {
-                        if(pid.HasValue)
+                        if (pid.HasValue)
                         {
                             // Processes might be reentrant. For now this traces the first (outermost) process of a given name.
-                            return; 
+                            return;
                         }
                         pid = evt.ProcessID;
                         start = evt.TimeStampRelativeMSec;
@@ -49,12 +49,12 @@ namespace ScenarioMeasurement
                     if (!pid.HasValue) // we're currently in a measurement interval
                         return;
 
-                    if (evt.NewProcessID != pid && evt.OldProcessID != pid) 
+                    if (evt.NewProcessID != pid && evt.OldProcessID != pid)
                         return; // but this isn't our process
 
                     if (evt.OldProcessID == pid) // this is a switch out from our process
                     {
-                        if (ins.TryGetValue(evt.OldThreadID, out var value)) // had we ever recorded a switch in for this thread? 
+                        if (ins.TryGetValue(evt.OldThreadID, out var value)) // had we ever recorded a switch in for this thread?
                         {
                             threadTime += evt.TimeStampRelativeMSec - value;
                             ins.Remove(evt.OldThreadID);
@@ -66,10 +66,9 @@ namespace ScenarioMeasurement
                     }
                 };
 
-                ClrPrivateTraceEventParser clrpriv = new ClrPrivateTraceEventParser(source);
-                clrpriv.StartupMainStart += evt =>
+                source.Kernel.ProcessEndGroup += evt =>
                 {
-                    if(pid.HasValue && evt.ProcessID == pid && evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
+                    if (pid.HasValue && pid == evt.ProcessID)
                     {
                         results.Add(evt.TimeStampRelativeMSec - start);
                         pid = null;
@@ -78,12 +77,13 @@ namespace ScenarioMeasurement
                         start = 0;
                     }
                 };
+
                 source.Process();
             }
-            return new[] { new Counter() { Name = "Time To Main", Results = results.ToArray(), TopCounter = true, DefaultCounter = true, HigherIsBetter = false, MetricName = "ms"},
+
+            return new[] { new Counter() { Name = "Process Time", Results = results.ToArray(), TopCounter = true, DefaultCounter = true, HigherIsBetter = false, MetricName = "ms"},
                            new Counter() { Name = "Time on Thread", Results = threadTimes.ToArray(), TopCounter = true, DefaultCounter = false, HigherIsBetter = false, MetricName = "ms" }
             };
-
         }
     }
 }
