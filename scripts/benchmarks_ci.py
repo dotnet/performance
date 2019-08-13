@@ -256,6 +256,8 @@ def __main(args: list) -> int:
 
         benchview.run_scripts(args, verbose, BENCHMARKS_CSPROJ)
 
+        dotnet.shutdown_server(verbose)
+
         if args.upload_to_perflab_container:
             import upload
             globpath = os.path.join(
