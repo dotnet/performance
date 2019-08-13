@@ -66,8 +66,8 @@ jobs:
         - netcoreapp2.2
         - netcoreapp2.1
 
+  # Windows x64 net461 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
-    # Windows x64 net461 micro benchmarks
     parameters:
       osName: windows
       osVersion: RS4
