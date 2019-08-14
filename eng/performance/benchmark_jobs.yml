@@ -45,7 +45,7 @@ jobs:
           - ${{ if eq(parameters.osVersion, '1804')}}:
             - name: ArtifactsDirectory
               value: '$HELIX_WORKITEM_UPLOAD_ROOT/BenchmarkDotNet.Artifacts'
-          - ${{ if eq(parameters.osVersion, '1604')}}:
+          - ${{ if or(eq(parameters.osVersion, '1604'), eq(parameters.architecture, 'arm64'))}}:
             - name: ArtifactsDirectory
               value: '$HELIX_WORKITEM_PAYLOAD/artifacts/BenchmarkDotNet.Artifacts'
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
