@@ -297,7 +297,7 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
-      osVersion: 10
+      osVersion: RS1
       kind: micro
       architecture: x64
       pool: Hosted VS2017
@@ -312,7 +312,7 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
-      osVersion: 10
+      osVersion: RS1
       kind: micro
       architecture: x86
       pool: Hosted VS2017
@@ -327,7 +327,7 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
-      osVersion: 10
+      osVersion: RS1
       kind: mlnet
       architecture: x64
       pool: Hosted VS2017
@@ -342,7 +342,7 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
-      osVersion: 10
+      osVersion: RS1
       kind: roslyn
       architecture: x64
       pool: Hosted VS2017
