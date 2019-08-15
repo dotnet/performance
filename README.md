@@ -67,6 +67,8 @@ This project has adopted the code of conduct defined by the Contributor Covenant
 
 
 [//]: # (These are the windows x86 links)
+[micro_windows_RS4_x86_netcoreapp5.0_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x86%20micro&configuration=windows%20RS4%20x86%20micro%20netcoreapp5.0
+[micro_windows_RS4_x86_netcoreapp5.0_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x86%20micro&configuration=windows%20RS4%20x86%20micro%20netcoreapp5.0
 [micro_windows_RS4_x86_netcoreapp3.0_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x86%20micro&configuration=windows%20RS4%20x86%20micro%20netcoreapp3.0
 [micro_windows_RS4_x86_netcoreapp3.0_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x86%20micro&configuration=windows%20RS4%20x86%20micro%20netcoreapp3.0
 
