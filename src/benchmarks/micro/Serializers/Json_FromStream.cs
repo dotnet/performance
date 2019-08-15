@@ -44,6 +44,8 @@ namespace MicroBenchmarks.Serializers
                 Jil.JSON.Serialize<T>(value, writer, Jil.Options.ISO8601);
                 writer.Flush();
             }
+
+            Jil_(); // workaround for https://github.com/dotnet/BenchmarkDotNet/issues/837
         }
 
         [GlobalSetup(Target = nameof(JsonNet_))]

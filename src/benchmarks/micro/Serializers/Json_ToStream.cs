@@ -36,6 +36,9 @@ namespace MicroBenchmarks.Serializers
             newtonSoftJsonSerializer = new Newtonsoft.Json.JsonSerializer();
         }
 
+        [GlobalSetup(Target = nameof(Jil_))]
+        public void WarmupJil() => Jil_(); // workaround for https://github.com/dotnet/BenchmarkDotNet/issues/837
+
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]
         public void Jil_()
