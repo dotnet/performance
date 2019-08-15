@@ -47,9 +47,9 @@ This project has adopted the code of conduct defined by the Contributor Covenant
 
 #### Roslyn
 
-| Framework | Windows RS5 x64                                                                             |
-| :-------- | :-----------------------------------------------------------------------------------------: |
-| Core 3.0  | [![roslyn_windows_RS5_x64_netcoreapp3.0_icon]][roslyn_windows_RS5_x64_netcoreapp3.0_status] |
+| Framework | Windows RS5 x64                                                                             | Ubuntu 16.04 x64                                                                            |
+| :-------- | :-----------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------: |
+| Core 3.0  | [![roslyn_windows_RS5_x64_netcoreapp3.0_icon]][roslyn_windows_RS5_x64_netcoreapp3.0_status] | [![roslyn_ubuntu_1604_x64_netcoreapp3.0_icon]][roslyn_ubuntu_1604_x64_netcoreapp3.0_status] |
 
 [//]: # (These are the micro links)
 
@@ -100,3 +100,7 @@ This project has adopted the code of conduct defined by the Contributor Covenant
 [//]: # (These are the windows x64 links)
 [roslyn_windows_RS5_x64_netcoreapp3.0_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS5%20x64%20roslyn
 [roslyn_windows_RS5_x64_netcoreapp3.0_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS5%20x64%20roslyn
+
+[//]: # (These are the ubuntu x64 links)
+[roslyn_ubuntu_1604_x64_netcoreapp3.0_status]:    https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=Ubuntu%201804%20x64%20roslyn
+[roslyn_ubuntu_1604_x64_netcoreapp3.0_icon]:      https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=Ubuntu%201804%20x64%20roslyn
