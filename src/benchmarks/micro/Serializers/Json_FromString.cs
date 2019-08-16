@@ -19,7 +19,12 @@ namespace MicroBenchmarks.Serializers
         public Json_FromString() => value = DataGenerator.Generate<T>();
 
         [GlobalSetup(Target = nameof(Jil_))]
-        public void SerializeJil() => serialized = Jil.JSON.Serialize<T>(value, Jil.Options.ISO8601);
+        public void SerializeJil()
+        {
+            serialized = Jil.JSON.Serialize<T>(value, Jil.Options.ISO8601);
+
+            Jil_(); // workaround for https://github.com/dotnet/BenchmarkDotNet/issues/837
+        }
 
         [GlobalSetup(Target = nameof(JsonNet_))]
         public void SerializeJsonNet() => serialized = Newtonsoft.Json.JsonConvert.SerializeObject(value);

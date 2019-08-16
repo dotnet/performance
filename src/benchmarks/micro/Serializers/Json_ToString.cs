@@ -17,6 +17,9 @@ namespace MicroBenchmarks.Serializers
 
         public Json_ToString() => value = DataGenerator.Generate<T>();
 
+        [GlobalSetup(Target = nameof(Jil_))]
+        public void WarmupJil() => Jil_(); // workaround for https://github.com/dotnet/BenchmarkDotNet/issues/837
+
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]
         public string Jil_() => Jil.JSON.Serialize<T>(value, Jil.Options.ISO8601);
