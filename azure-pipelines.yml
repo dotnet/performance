@@ -93,7 +93,7 @@ jobs:
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'coreclr corefx'
       frameworks: # for public jobs we want to make sure that the PRs don't break x86
-        - netcoreapp3.0
+        - netcoreapp5.0
 
   # Windows x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
