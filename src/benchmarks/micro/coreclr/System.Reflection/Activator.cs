@@ -21,7 +21,7 @@ namespace System.Reflection
         [Benchmark]
         public object CreateInstanceType() => System.Activator.CreateInstance(typeof(T));
 
-#if NETFRAMEWORK || NETCOREAPP3_0 // API available in Full .NET Framework and .NET Core 3.0
+#if !NETCOREAPP2_1 && !NETCOREAPP2_2 // API available in Full .NET Framework and .NET Core 3.0+
         [Benchmark]
         public object CreateInstanceNames() => System.Activator.CreateInstance(_assemblyName, _typeName);
 #endif
