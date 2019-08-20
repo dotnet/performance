@@ -513,7 +513,7 @@ def remove_dotnet(architecture: str) -> str:
 
 def shutdown_server(verbose:bool) -> None:
     '''
-    Shutsdown the dotnet server
+    Shuts down the dotnet server
     '''
     cmdline = [
         'dotnet', 'build-server', 'shutdown'
