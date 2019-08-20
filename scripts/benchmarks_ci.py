@@ -251,6 +251,8 @@ def __main(args: list) -> int:
                 verbose,
                 args
             )
+            
+        dotnet.shutdown_server(verbose)
 
         benchview.run_scripts(args, verbose, BENCHMARKS_CSPROJ)
 

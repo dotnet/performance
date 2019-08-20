@@ -511,6 +511,16 @@ def remove_dotnet(architecture: str) -> str:
     '''
     rmtree(__get_directory(architecture))
 
+def shutdown_server(verbose:bool) -> None:
+    '''
+    Shuts down the dotnet server
+    '''
+    cmdline = [
+        'dotnet', 'build-server', 'shutdown'
+    ]
+    RunCommand(cmdline, verbose=verbose).run(
+        get_repo_root_path())
+
 
 def install(
         architecture: str,
