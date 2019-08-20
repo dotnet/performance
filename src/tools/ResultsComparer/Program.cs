@@ -232,7 +232,6 @@ namespace ResultsComparer
             }
 
             Console.WriteLine($"XML results exported to {xmlPath.FullName}");
-            return;
         }
 
         private static string[] GetFilesToParse(string path)
