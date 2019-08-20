@@ -49,14 +49,14 @@ namespace ResultsComparer
             if (!notSame.Any())
             {
                 Console.WriteLine($"No differences found between the benchmark results with threshold {testThreshold}.");
-                ExportToXml(new List<string>(), new List<string>(), args.XmlPath);
+                ExportToXml(notSame, args.XmlPath);
                 return;
             }
 
             PrintSummary(notSame);
 
-            List<string> slower = PrintTable(notSame, EquivalenceTestConclusion.Slower, args);
-            List<string> faster = PrintTable(notSame, EquivalenceTestConclusion.Faster, args);
+            PrintTable(notSame, EquivalenceTestConclusion.Slower, args);
+            PrintTable(notSame, EquivalenceTestConclusion.Faster, args);
 
             ExportToCsv(notSame, args.CsvPath);
             ExportToXml(notSame, args.XmlPath);
@@ -112,7 +112,7 @@ namespace ResultsComparer
             Console.WriteLine();
         }
 
-        private static List<string> PrintTable((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame, EquivalenceTestConclusion conclusion, CommandLineOptions args)
+        private static void PrintTable((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame, EquivalenceTestConclusion conclusion, CommandLineOptions args)
         {
             var data = notSame
                 .Where(result => result.conclusion == conclusion)
@@ -132,23 +132,16 @@ namespace ResultsComparer
             {
                 Console.WriteLine($"No {conclusion} results for the provided threshold = {args.StatisticalTestThreshold} and noise filter = {args.NoiseThreshold}.");
                 Console.WriteLine();
-                return new List<string>();
             }
 
             var table = data.ToMarkdownTable().WithHeaders(conclusion.ToString(), conclusion == EquivalenceTestConclusion.Faster ? "base/diff" : "diff/base", "Base Median (ns)", "Diff Median (ns)", "Modality");
 
-            List<string> results = new List<string>();
             foreach (var line in table.ToMarkdown().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries))
             {
                 Console.WriteLine($"| {line.TrimStart()}|"); // the table starts with \t and does not end with '|' and it looks bad so we fix it
-                results.Add($"| {line.TrimStart()}|");
             }
 
             Console.WriteLine();
-
-            // First row is a header row; Second row is a spacer row. Remove them both.
-            results.RemoveRange(0, 2);
-            return results;
         }
 
         private static IEnumerable<(string id, Benchmark baseResult, Benchmark diffResult)> ReadResults(CommandLineOptions args)
@@ -236,6 +229,26 @@ namespace ResultsComparer
                     writer.WriteEndElement();
                 }
 
+                writer.WriteStartElement("test");
+                writer.WriteAttributeString("name", "Fake.Test.Method");
+                writer.WriteAttributeString("type", "Fake.Test");
+                writer.WriteAttributeString("method", "Method");
+                writer.WriteAttributeString("time", "0");
+                writer.WriteAttributeString("result", "Fail");
+                writer.WriteStartElement("failure");
+                writer.WriteAttributeString("exception-type", "Regression");
+                writer.WriteElementString("message", $"Fake.Test.Method has regressed, was 40.0 is 400.0.");
+                writer.WriteEndElement();
+
+                writer.WriteStartElement("test");
+                writer.WriteAttributeString("name", "Fake.Test.Method-faster");
+                writer.WriteAttributeString("type", "Fake.Test");
+                writer.WriteAttributeString("method", "Method-faster");
+                writer.WriteAttributeString("time", "0");
+                writer.WriteAttributeString("result", "Skip");
+                writer.WriteElementString("reason", $"Fake.Test.Method-faster has improved, was 400.0 is 40.0.");
+                writer.WriteEndElement();
+                
                 writer.WriteEndElement();
                 writer.Flush();
             }
