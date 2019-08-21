@@ -15,10 +15,8 @@ namespace System.Text.Json.Tests
     public class Perf_Depth
     {
         private byte[] _dataUtf8;
-        private MemoryStream _stream;
-        private StreamReader _reader;
 
-        [Params(1, 2, 4, 8, 16, 32, 64, 65, 66, 128, 256, 512)]
+        [Params(1, 64, 65, 512)]
         public int Depth;
 
         [GlobalSetup]
@@ -27,14 +25,9 @@ namespace System.Text.Json.Tests
             var output = new ArrayBufferWriter<byte>(1024);
             var jsonUtf8 = new Utf8JsonWriter(output);
 
-            WriteDepth(ref jsonUtf8, Depth - 1);
+            WriteDepth(jsonUtf8, Depth - 1);
 
-            string actualStr = Encoding.UTF8.GetString(output.WrittenSpan);
-
-            _dataUtf8 = Encoding.UTF8.GetBytes(actualStr);
-
-            _stream = new MemoryStream(_dataUtf8);
-            _reader = new StreamReader(_stream, Encoding.UTF8, false, 1024, true);
+            _dataUtf8 = output.WrittenSpan.ToArray();
         }
 
         [Benchmark]
@@ -47,7 +40,7 @@ namespace System.Text.Json.Tests
             while (json.Read()) ;
         }
 
-        private static void WriteDepth(ref Utf8JsonWriter jsonUtf8, int depth)
+        private static void WriteDepth(Utf8JsonWriter jsonUtf8, int depth)
         {
             jsonUtf8.WriteStartObject();
             for (int i = 0; i < depth; i++)

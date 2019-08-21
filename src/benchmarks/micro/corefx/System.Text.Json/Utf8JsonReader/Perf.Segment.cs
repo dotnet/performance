@@ -25,10 +25,8 @@ namespace System.Text.Json.Tests
         private Dictionary<int, ReadOnlySequence<byte>> _sequences;
         private ReadOnlySequence<byte> _sequenceSingle;
 
-        [ParamsSource(nameof(TestCaseValues))]
+        [ParamsAllValues]
         public TestCaseType TestCase;
-
-        public static IEnumerable<TestCaseType> TestCaseValues() => (IEnumerable<TestCaseType>)Enum.GetValues(typeof(TestCaseType));
 
         [GlobalSetup]
         public void Setup()
@@ -39,13 +37,10 @@ namespace System.Text.Json.Tests
 
             _sequenceSingle = new ReadOnlySequence<byte>(_dataUtf8);
 
-            int[] segmentSizes = { 4_096, 8_192 };
-
             _sequences = new Dictionary<int, ReadOnlySequence<byte>>();
 
-            for (int i = 0; i < segmentSizes.Length; i++)
+            foreach(int segmentSize in new int[] { 4_096, 8_192 })
             {
-                int segmentSize = segmentSizes[i];
                 _sequences.Add(segmentSize, Utf8JsonReaderCommentsTests.GetSequence(_dataUtf8, segmentSize));
             }
         }
@@ -106,29 +101,30 @@ namespace System.Text.Json.Tests
             byte[] buffer = ArrayPool<byte>.Shared.Rent(segmentSize * 2);
             JsonReaderState state = default;
             int previous = 0;
+            int consumed = 0;
             foreach (ReadOnlyMemory<byte> memory in sequenceMultiple)
             {
                 ReadOnlySpan<byte> span = memory.Span;
                 Span<byte> bufferSpan = buffer;
+
+                //Copy values of the new sequence to post-leftover locations.
                 span.CopyTo(bufferSpan.Slice(previous));
+
+                //Trim the buffer to the size of the leftover + the size of current sequence.
                 bufferSpan = bufferSpan.Slice(0, span.Length + previous);
 
-                bool isFinalBlock = bufferSpan.Length == 0;
+                bool isFinalBlock = consumed == sequenceMultiple.Length;
 
                 var json = new Utf8JsonReader(bufferSpan, isFinalBlock, state);
                 while (json.Read()) ;
 
-                if (isFinalBlock)
-                {
-                    break;
-                }
-
                 state = json.CurrentState;
 
-                if (json.BytesConsumed != bufferSpan.Length)
+                if (json.BytesConsumed < bufferSpan.Length)
                 {
                     ReadOnlySpan<byte> leftover = bufferSpan.Slice((int)json.BytesConsumed);
                     previous = leftover.Length;
+                    //Carry the leftover in order to read it on the next sequence.
                     leftover.CopyTo(buffer);
                 }
                 else

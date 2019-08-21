@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
+using System.Memory;
 
 namespace System.Text.Json.Tests
 {
@@ -32,16 +33,13 @@ namespace System.Text.Json.Tests
         private byte[] _dataUtf8;
         private ReadOnlySequence<byte> _sequence;
         private ReadOnlySequence<byte> _sequenceSingle;
-        private MemoryStream _stream;
-        private StreamReader _reader;
+        private byte[] _destination;
 
-        [ParamsSource(nameof(TestCaseValues))]
+        [ParamsAllValues]
         public TestCaseType TestCase;
 
         [Params(true, false)]
         public bool IsDataCompact;
-
-        public static IEnumerable<TestCaseType> TestCaseValues() => (IEnumerable<TestCaseType>)Enum.GetValues(typeof(TestCaseType));
 
         [GlobalSetup]
         public void Setup()
@@ -52,14 +50,12 @@ namespace System.Text.Json.Tests
             if (IsDataCompact)
             {
                 using (var jsonReader = new JsonTextReader(new StringReader(_jsonString)))
+                using (var stringWriter = new StringWriter())
+                using (var jsonWriter = new JsonTextWriter(stringWriter))
                 {
                     JToken obj = JToken.ReadFrom(jsonReader);
-                    var stringWriter = new StringWriter();
-                    using (var jsonWriter = new JsonTextWriter(stringWriter))
-                    {
-                        obj.WriteTo(jsonWriter);
-                        _jsonString = stringWriter.ToString();
-                    }
+                    obj.WriteTo(jsonWriter);
+                    _jsonString = stringWriter.ToString();
                 }
             }
 
@@ -72,9 +68,8 @@ namespace System.Text.Json.Tests
             ReadOnlyMemory<byte> secondMem = dataMemory.Slice(_dataUtf8.Length / 2);
             BufferSegment<byte> secondSegment = firstSegment.Append(secondMem);
             _sequence = new ReadOnlySequence<byte>(firstSegment, 0, secondSegment, secondMem.Length);
-
-            _stream = new MemoryStream(_dataUtf8);
-            _reader = new StreamReader(_stream, Encoding.UTF8, false, 1024, true);
+            
+            _destination = new byte[_dataUtf8.Length * 2];
         }
 
         [Benchmark]
@@ -101,9 +96,7 @@ namespace System.Text.Json.Tests
         [Benchmark]
         public byte[] ReadReturnBytes()
         {
-            var outputArray = new byte[_dataUtf8.Length * 2];
-
-            Span<byte> destination = outputArray;
+            Span<byte> destination = _destination;
             var json = new Utf8JsonReader(_dataUtf8);
             while (json.Read())
             {
@@ -151,25 +144,7 @@ namespace System.Text.Json.Tests
                         break;
                 }
             }
-            return outputArray;
-        }
-    }
-
-    internal class BufferSegment<T> : ReadOnlySequenceSegment<T>
-    {
-        public BufferSegment(ReadOnlyMemory<T> memory)
-        {
-            Memory = memory;
-        }
-
-        public BufferSegment<T> Append(ReadOnlyMemory<T> memory)
-        {
-            var segment = new BufferSegment<T>(memory)
-            {
-                RunningIndex = RunningIndex + Memory.Length
-            };
-            Next = segment;
-            return segment;
+            return _destination;
         }
     }
 }
