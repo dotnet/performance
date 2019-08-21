@@ -106,7 +106,8 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
-      frameworks: # for ML.NET jobs we want to check .NET Core 3.0 only
+      frameworks: # for ML.NET jobs we want to check .NET Core 3.0 and 5.0 only
+        - netcoreapp5.0
         - netcoreapp3.0
 
   # Windows x64 Roslyn benchmarks
@@ -120,7 +121,8 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
-      frameworks: # for Roslyn jobs we want to check .NET Core 3.0 only
+      frameworks: # for Roslyn jobs we want to check .NET Core 3.0 and 5.0 only
+        - netcoreapp5.0
         - netcoreapp3.0
         
   # Ubuntu 1804 x64 micro benchmarks
@@ -153,7 +155,8 @@ jobs:
       container: ubuntu_x64_build_container
       runCategories: 'mldotnet'
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
-      frameworks: # for ML.NET jobs we want to check .NET Core 3.0 only
+      frameworks: # for ML.NET jobs we want to check .NET Core 3.0 and 5.0 only
+        - netcoreapp5.0
         - netcoreapp3.0
 
   # Ubuntu 1804 x64 Roslyn benchmarks
@@ -168,7 +171,8 @@ jobs:
       container: ubuntu_x64_build_container
       runCategories: 'roslyn'
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
-      frameworks: # for Roslyn jobs we want to check .NET Core 3.0 only
+      frameworks: # for Roslyn jobs we want to check .NET Core 3.0 and 5.0 only
+        - netcoreapp5.0
         - netcoreapp3.0
 
 ###########################################
@@ -220,7 +224,8 @@ jobs:
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
       benchviewCategory: 'mldotnet'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
+        - netcoreapp5.0
         - netcoreapp3.0
 
   # Windows x64 Roslyn benchmarks
@@ -235,7 +240,8 @@ jobs:
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
       benchviewCategory: 'roslyn'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
+        - netcoreapp5.0
         - netcoreapp3.0
 
   # Ubuntu 1804 x64 micro benchmarks
@@ -268,7 +274,8 @@ jobs:
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
       benchviewCategory: 'mldotnet'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
+        - netcoreapp5.0
         - netcoreapp3.0
   
   # Ubuntu 1804 x64 Roslyn benchmarks
@@ -284,7 +291,8 @@ jobs:
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       runCategories: 'roslyn'
       benchviewCategory: 'roslyn'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
+      frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
+        - netcoreapp5.0
         - netcoreapp3.0
 
 ################################################
