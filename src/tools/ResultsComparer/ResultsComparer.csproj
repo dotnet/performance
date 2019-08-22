@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp2.1</TargetFrameworks>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>

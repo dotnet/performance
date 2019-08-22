@@ -233,10 +233,12 @@ def __main(args: list) -> int:
                 out_file.write(variable_format % ('PERFLAB_BUILDTIMESTAMP', source_timestamp))
                 out_file.write(variable_format % ('PERFLAB_CONFIGS', config_string))
                 out_file.write(variable_format % ('DOTNET_VERSION', dotnet_version))
+                out_file.write(variable_format % ('PERFLAB_TARGET_FRAMEWORKS', framework))
 
         else:
             with open(args.output_file, 'w') as out_file:
                 out_file.write(variable_format % ('PERFLAB_INLAB', '0'))
+                out_file.write(variable_format % ('PERFLAB_TARGET_FRAMEWORKS', framework))
 
     # On non-windows platforms, delete dotnet, so that we don't have to deal with chmoding it on the helix machines
     # This is only necessary for netcoreapp3.0 and netcoreapp5.0

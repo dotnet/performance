@@ -218,7 +218,7 @@ def __main(args: list) -> int:
     # to avoid a build failure when using older frameworks (error NETSDK1045:
     # The current .NET SDK does not support targeting .NET Core $XYZ)
     # we set the TFM to what the user has provided.
-    os.environ['PYTHON_SCRIPT_TARGET_FRAMEWORKS'] = ';'.join(
+    os.environ['PERFLAB_TARGET_FRAMEWORKS'] = ';'.join(
         target_framework_monikers
     )
 
