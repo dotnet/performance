@@ -11,9 +11,9 @@
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>c7f03b2cf06bdfc64dad4140fd0d486127095cd8</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Dotnet.Sdk.Internal" Version="1.0.0-preview.19423.4">
+    <Dependency Name="Microsoft.Dotnet.Sdk.Internal" Version="1.0.0-preview.19423.22">
       <Uri>https://github.com/dotnet/core-sdk</Uri>
-      <Sha>5c30b26441c6dfb3016d23ba35198089d912fc7c</Sha>
+      <Sha>b829ae815bb6c1a48c330bce423baa973eebbd0b</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
