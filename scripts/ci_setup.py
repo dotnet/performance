@@ -187,8 +187,12 @@ def __main(args: list) -> int:
     # dotnet --info
     dotnet.info(verbose=verbose)
 
+    # When running on internal repos, the repository comes to us incorrectly
+    # (ie https://github.com/dotnet-coreclr). Replace dashes with slashes in that case.
+    repo_url = 'https://github.com/dotnet/core-sdk' if args.repository is None else args.repository.replace('-','/')
+
     variable_format = 'set %s=%s\n' if sys.platform == 'win32' else 'export %s=%s\n'
-    owner, repo = ('dotnet', 'core-sdk') if args.repository is None else (dotnet.get_repository(args.repository))
+    owner, repo = dotnet.get_repository(repo_url)
     config_string = ';'.join(args.build_configs) if sys.platform == 'win32' else '"%s"' % ';'.join(args.build_configs)
 
     remove_dotnet = False
@@ -214,7 +218,7 @@ def __main(args: list) -> int:
             target_framework_moniker = micro_benchmarks.FrameworkAction.get_target_framework_moniker(framework)
             dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli)
             commit_sha =  dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
-            source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, args.repository)
+            source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
 
             branch = micro_benchmarks.FrameworkAction.get_branch(target_framework_moniker) if not args.branch else args.branch
 
