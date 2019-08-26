@@ -103,6 +103,7 @@ namespace ScenarioMeasurement
 
             if (warmup)
             {
+                logger.Log("=============== Warm up ================");
                 procHelper.Run();
             }
 
@@ -134,6 +135,7 @@ namespace ScenarioMeasurement
                     parser.EnableUserProviders(user);
                     for (int i = 0; i < iterations; i++)
                     {
+                        logger.Log($"=============== Iteration {i} ================ ");
                         // set up iteration
                         if (setupProcHelper != null)
                         {
@@ -184,9 +186,13 @@ namespace ScenarioMeasurement
                 }
                 TraceEventSession.Merge(files.ToArray(), traceFileName);
                 var counters = parser.Parse(traceFileName, Path.GetFileNameWithoutExtension(appExe), pids);
+
                 foreach (var counter in counters)
                 {
-                    logger.Log($"{counter.Name,-15}: {counter.Results.Average():F3} {counter.MetricName}");
+                    string average = $"Average {counter.Results.Average():F3} {counter.MetricName}";
+                    string max = $"Max {counter.Results.Max():F3} {counter.MetricName}";
+                    string min = $"Min {counter.Results.Min():F3} {counter.MetricName}";
+                    logger.Log($"{counter.Name,-15}: {average,-25}|{max,-25}|{min,-25}");
                 }
 
                 var reporter = Reporter.CreateReporter();

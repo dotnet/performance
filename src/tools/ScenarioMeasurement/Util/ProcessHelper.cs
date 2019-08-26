@@ -102,13 +102,10 @@ namespace ScenarioMeasurement
                         return (Result.CloseFailed, pid);
                     }
                 }
-                using (var sw = new StreamWriter($"testlog_{Path.GetFileName(Executable)}_{process.Id}.log"))
-                {
-                    sw.WriteLine("Standard output:");
-                    sw.WriteLine(output.ToString());
-                    sw.WriteLine("Standard error:");
-                    sw.WriteLine(error.ToString());
-                }
+
+                Console.WriteLine(output.ToString());
+                Console.WriteLine(error.ToString());
+
                 // Be aware a successful exit could be non-zero
                 if (process.ExitCode != 0)
                 {
