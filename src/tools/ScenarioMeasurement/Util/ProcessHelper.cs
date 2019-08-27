@@ -31,6 +31,13 @@ namespace ScenarioMeasurement
 
         public bool GuiApp { get; set; } = false;
 
+        public Logger logger;
+
+        public ProcessHelper(Logger logger)
+        {
+            this.logger = logger;
+        }
+
         /// <summary>
         /// Runs the specified process and waits for it to exit.
         /// </summary>
@@ -103,8 +110,8 @@ namespace ScenarioMeasurement
                     }
                 }
 
-                Console.WriteLine(output.ToString());
-                Console.WriteLine(error.ToString());
+                logger.Log(output.ToString());
+                logger.Log(error.ToString());
 
                 // Be aware a successful exit could be non-zero
                 if (process.ExitCode != 0)

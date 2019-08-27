@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Session;
 using Reporting;
+
 
 namespace ScenarioMeasurement
 {
@@ -72,7 +74,7 @@ namespace ScenarioMeasurement
 
             bool failed = false;
             logger.Log($"Running {appExe} (args: \"{appArgs}\")");
-            var procHelper = new ProcessHelper()
+            var procHelper = new ProcessHelper(logger)
             {
                 ProcessWillExit = processWillExit,
                 Timeout = timeout,
@@ -88,7 +90,7 @@ namespace ScenarioMeasurement
             ProcessHelper setupProcHelper = null;
             if (!String.IsNullOrEmpty(iterationSetup))
             {
-                setupProcHelper = CreateProcHelper(iterationSetup, setupArgs, workingDir);
+                setupProcHelper = CreateProcHelper(iterationSetup, setupArgs, workingDir, logger);
             }
 
             // create iteration cleanup process helper
@@ -96,7 +98,7 @@ namespace ScenarioMeasurement
             ProcessHelper cleanupProcHelper = null;
             if (!String.IsNullOrEmpty(iterationCleanup))
             {
-                cleanupProcHelper = CreateProcHelper(iterationCleanup, cleanupArgs, workingDir);
+                cleanupProcHelper = CreateProcHelper(iterationCleanup, cleanupArgs, workingDir, logger);
             }
 
             Util.Init();
@@ -187,13 +189,7 @@ namespace ScenarioMeasurement
                 TraceEventSession.Merge(files.ToArray(), traceFileName);
                 var counters = parser.Parse(traceFileName, Path.GetFileNameWithoutExtension(appExe), pids);
 
-                foreach (var counter in counters)
-                {
-                    string average = $"Average {counter.Results.Average():F3} {counter.MetricName}";
-                    string max = $"Max {counter.Results.Max():F3} {counter.MetricName}";
-                    string min = $"Min {counter.Results.Min():F3} {counter.MetricName}";
-                    logger.Log($"{counter.Name,-15}: {average,-25}|{max,-25}|{min,-25}");
-                }
+                WriteResultTable(counters, logger);
 
                 var reporter = Reporter.CreateReporter();
                 if (reporter != null)
@@ -246,9 +242,9 @@ namespace ScenarioMeasurement
 
         }
 
-        private static ProcessHelper CreateProcHelper(string command, string args, string workingDir)
+        private static ProcessHelper CreateProcHelper(string command, string args, string workingDir, Logger logger)
         {
-            var procHelper = new ProcessHelper()
+            var procHelper = new ProcessHelper(logger)
             {
                 ProcessWillExit = true,
                 Executable = command,
@@ -257,6 +253,20 @@ namespace ScenarioMeasurement
                 Timeout = 300
             };
             return procHelper;
+        }
+
+        private static void WriteResultTable(IEnumerable<Counter> counters, Logger logger)
+        {
+
+            logger.Log($"{"Metric",-15}|{"Average",-15}|{"Max",-15}|{"Min",-15}");
+            logger.Log($"---------------|---------------|---------------|---------------");
+            foreach (var counter in counters)
+            {
+                string average = $"{counter.Results.Average():F3} {counter.MetricName}";
+                string max = $"{counter.Results.Max():F3} {counter.MetricName}";
+                string min = $"{counter.Results.Min():F3} {counter.MetricName}";
+                logger.Log($"{counter.Name,-15}|{average,-15}|{max,-15}|{min,-15}");
+            }
         }
     }
 }
