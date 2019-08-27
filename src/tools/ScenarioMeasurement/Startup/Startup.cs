@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.IO;
-using System.Linq;
-using Microsoft.Diagnostics.Tracing.Parsers;
+﻿using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Session;
 using Reporting;
-
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace ScenarioMeasurement
 {
@@ -257,7 +255,6 @@ namespace ScenarioMeasurement
 
         private static void WriteResultTable(IEnumerable<Counter> counters, Logger logger)
         {
-
             logger.Log($"{"Metric",-15}|{"Average",-15}|{"Max",-15}|{"Min",-15}");
             logger.Log($"---------------|---------------|---------------|---------------");
             foreach (var counter in counters)
