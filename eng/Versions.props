@@ -17,7 +17,7 @@
   </PropertyGroup>
   <!--Package versions-->
   <PropertyGroup>
-    <MicrosoftDotnetSdkInternalPackageVersion>1.0.0-preview.19427.32</MicrosoftDotnetSdkInternalPackageVersion>
+    <MicrosoftDotnetSdkInternalPackageVersion>1.0.0-preview.19428.2</MicrosoftDotnetSdkInternalPackageVersion>
   </PropertyGroup>
   <!--Package names-->
   <PropertyGroup>
