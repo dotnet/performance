@@ -8,6 +8,10 @@
   - [Project Settings](#Project-Settings)
 - [Profiling on Windows](#Profiling-on-Windows)
   - [Visual Studio Profiler](#Visual-Studio-Profiler)
+    - [dotnet](#dotnet)
+    - [CPU](#CPU)
+    - [CoreRun](#CoreRun)
+    - [Allocation Tracking](#Allocation-Tracking)
 
 
 ## Prerequisites
@@ -87,18 +91,13 @@ namespace ProfilingDocs
 ```cs
 class Program
 {
-    static void Main()
-    {
-        var sut = Setup();
-
-        WhatYouCareAbout(sut);
-    }
+    static void Main() => WhatYouCareAbout(Setup());
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static $SomeType Setup() { }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void WhatYouCareAbout($SomeType sut) { }
+    private static void WhatYouCareAbout($SomeType initialized) { }
 }
 ```
 
@@ -160,6 +159,8 @@ You can just save it as `startvs.cmd` file and run providing path to the `testho
 startvs.cmd "C:\Projects\corefx\artifacts\bin\testhost\netcoreapp-Windows_NT-Release-x64\" "C:\Projects\repro\ProfilingDocs.sln"
 ```
 
+#### CPU
+
 Once you started the VS with the right environment variables you need to click on the `Debug` menu item and then choose `Performance Profiler` or just press `Alt+F2`:
 
 ![Debug Performance Profiler](img/vs_profiler_0_debug_performance_profiler.png)
@@ -194,6 +195,59 @@ If you have configured everything properly you are able to see the CPU time spen
 
 ![External code](img/vs_profiler_7_source_code.png)
 
+#### CoreRun
+
+If you prefer to use CoreRun instead of dotnet you need to select `Launch an executable`
+
+![Launch executable](img/vs_profiler_8_executable_corerun.png)
+
+And provide the neccessary arguments (path to the compiled repro dll):
+
+![Executable parameters](img/vs_profiler_9_corerun_run.png)
+
+The alternative is to run the repro app using CoreRun yourself and use VS Profiler to attach to a running process:
+
+![Attach to running process](img/vs_profiler_10_corerun_attach.png)
+
+![Choose CoreRun process](img/vs_profiler_11_corerun_attach.png)
 
 
+#### Allocation Tracking
 
+Since `DateTime.UtcNow` does not allocate managed memory, we are going to profile a different app:
+
+```cs
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
+
+namespace ProfilingDocs
+{
+    class Program
+    {
+        static void Main()
+        {
+            for (int i = 0; i < 100_000; i++)
+            {
+                Consume(CryptoConfig.CreateFromName("RSA"));
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void Consume<T>(in T _) { }
+    }
+}
+```
+
+To track memory allocation you need to check `.NET Object Allocation Tracking` in the performance wizard and click `Start`.
+
+![.NET Object Allocation Tracking](img/vs_profiler_12_check_memory.png)
+
+The reported results contain information about all allocated .NET objects.
+
+![Allocated Objects](img/vs_profiler_13_memory.png)
+
+Again, if you have configured everything properly you are able to right click on method name and Go to Source File!
+
+![Go to Source File](img/vs_profiler_14_memory_goto_source.png)
+
+![Actual Source File](img/vs_profiler_15_memory_source_file.png)
