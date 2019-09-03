@@ -18,7 +18,7 @@ namespace ScenarioMeasurement
     class Startup
     {
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="appExe">Full path to test executable</param>
         /// <param name="metricType">Type of interval measurement</param>
@@ -255,14 +255,14 @@ namespace ScenarioMeasurement
 
         private static void WriteResultTable(IEnumerable<Counter> counters, Logger logger)
         {
-            logger.Log($"{"Metric",-15}|{"Average",-15}|{"Max",-15}|{"Min",-15}");
+            logger.Log($"{"Metric",-15}|{"Average",-15}|{"Min",-15}|{"Max",-15}");
             logger.Log($"---------------|---------------|---------------|---------------");
             foreach (var counter in counters)
             {
                 string average = $"{counter.Results.Average():F3} {counter.MetricName}";
                 string max = $"{counter.Results.Max():F3} {counter.MetricName}";
                 string min = $"{counter.Results.Min():F3} {counter.MetricName}";
-                logger.Log($"{counter.Name,-15}|{average,-15}|{max,-15}|{min,-15}");
+                logger.Log($"{counter.Name,-15}|{average,-15}|{min,-15}|{max,-15}");
             }
         }
     }
