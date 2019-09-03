@@ -18,6 +18,12 @@
       - [Analyzing the Results](#Analyzing-the-Results)
       - [Viewing Source Code](#Viewing-Source-Code)
       - [Identifying Regressions](#Identifying-Regressions)
+  - [VTune](#VTune)
+    - [When to use](#When-to-use)
+    - [Identifying Hotspots](#Identifying-Hotspots)
+    - [Problems](#Problems)
+      - [Code](#Code)
+      - [Skids](#Skids)
 
 
 ## Prerequisites
@@ -389,3 +395,156 @@ PerfView has a built-in support for identifying regressions. To use it you need 
 ![Regression Report](img/perfview_24_regression_report.png)
 
 It's recommended to use it instead of trying to eyeball complex Flame Graphs.
+
+### VTune
+
+Intel VTune is a very powerful profiler that allows for low-level profiling:
+
+* provides micro-architecture specific analysis
+* identifies hot spots and bottlenecks
+* utilizes MSRs to get additional low-level hardware information
+
+#### When to use
+
+Let's use PerfView to profile the following app that tries to reproduce [Potential regression: Dictionary of Value Types #25842 ](https://github.com/dotnet/coreclr/issues/25842):
+
+```cs
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+
+namespace ProfilingDocs
+{
+    class Program
+    {
+        const int LastElement = 512;
+
+        static void Main()
+        {
+            Dictionary<int, int> dictionary = Enumerable.Range(start: 0, count: LastElement).ToDictionary(x => x);
+
+            ActualJob(dictionary);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static bool ActualJob(Dictionary<int, int> dictionary)
+        {
+            bool result = false;
+
+            for (int i = 0; i < 3_000_000; i++)
+            {
+                for (int notFound = LastElement + 1; notFound < LastElement * 2; notFound++)
+                {
+                    result ^= dictionary.TryGetValue(notFound, out _);
+                }
+            }
+
+            return result;
+        }
+    }
+}
+```
+
+PerfView tells us that 70% of exclusive CPU time was spent in `FindEntry` method:
+
+![PerfView not is not enough](img/vtune_not_perfview.png)
+
+Once we [open](https://github.com/dotnet/coreclr/blob/4aa65f077778c7c05211825f98684aae9c52caaf/src/System.Private.CoreLib/shared/System/Collections/Generic/Dictionary.cs#L363-L460) the source code of `FindEntry` method we can see that:
+
+* there are two execution paths based on whether `IEqualityComparer<TKey>` was provided or not (`comparer == null`)
+* there is a separate execution path for Value Types (`default(TKey)! != null`) and another for reference types
+* JIT can **devirtualize** the calls to `EqualityComparer<TValue>.Default` intrinsic. It means that calls to `Equals` and `GetHashCode` can get **inlined**. Which means that neither VS Profiler or PerfView are going to be able to assign profile samples to source code of the inlined method (the samples are going to be assigned to inlinee - `FindEntry` method).
+
+When we open the Flame Graph we can see that the Call Stack ends at `FindEntry` method. So `Equals` and `GetHashCode` got devirtualized and inlined.
+
+![Inlined](img/vtune_why_not_perfview_flamegraph.png)
+
+**You should start every investigation with VS Profiler or PerfView. When you get to a point where you clearly need information on CPU instruction level and you are using Intel hardware, use VTune.**
+
+#### Identifying Hotspots
+
+Run VTune **as Administrator** and click `New Project`:
+
+![New Project](img/vtune_new_project.png)
+
+Provide the project name and click `Create Project`:
+
+![Create Project](img/vtune_create_a_project.png)
+
+Specify path to CoreRun and provide the path to repro library as a parameter:
+
+![CoreRun Arguments](img/vtune_corerun_arguments.png)
+
+Choose `Hardware Event-Based Sampling` and check `Collect Stacks`:
+
+![Hardware Sampling](img/vtune_hardware_sampling.png)
+
+**Note:** to `Hardware Event-Based Sampling` is available only if you don't have virtualization enabled. You might gonna need to reboot your PC and disable virtualization in BIOS to get it working.
+
+**Important:** It's recommended to use `Hardware Event-Based Sampling` for small repro apps that run shorther that one minute. If you use `User-Mode Sampling` VTune might fail to recognize the module and assign vast majority of the profile samples (and CPU time) to `[Outside any know module]`.
+
+![Failed to recognize](img/vtune_outside_known_module.png)
+
+Now you are good to go! Just click the start button:
+
+![Start](img/vtune_start.png)
+
+VTune is going to run provided app and display a summary after it's done processing the profile data:
+
+![Summary](img/vtune_summary.png)
+
+Similar to PerfView, when we use Start button VTune profiles entire process lifetime. Since this time we are not interested in .NET Runtime startup performance we need to filter the profile. You can do that by selecting the interesting method, right clicking and choosing `Filter in by Selection`:
+
+![Filter by name](img/vtune_filter.png)
+
+As you can see, we've filtered out a lot of noise and now `ActualJob` is 100% of the inclusive time.
+
+![Filtered](img/vtune_filtered.png)
+
+We can now sort the methods by exclusive time by clicking on the `CPU Time: Self` column name:
+
+![Sort by CPU Time](img/vtune_sortby_cpu_time.png)
+
+Right click on the most expensive method and choose `View Source`:
+
+![View Source](img/vtune_view_source.png)
+
+Which shows us that 6.68s out of 9.390 (`ActualJob` inclusive CPU time) was spent for modulo operation!
+
+![Div](img/vtune_div.png)
+
+To go to the next hotsopot you can to click the `Go to Smaller Function Hotspot` button:
+
+![Go to hotspot](img/vtune_goto_hotspot.png)
+
+#### Problems
+
+If you ever run into any problem with VTune, you should check the `Collection Log`:
+
+![Collection Log](img/vtune_collection_log.png)
+
+If the error message does not tell you anything and you can't find any similar reports on the internet, you can ask for help on the [Intel VTune Amplifier forum](https://software.intel.com/en-us/forums/intel-vtune-amplifier).
+
+##### Code
+
+VTune is capable of showing not only the output assembly code but also native and managed source code.
+
+![Source code](img/vtune_source_code.png)
+
+If it ever fails to show the source code (the `Source` button is then greyed out), you can click on the `Search Sources/Binaries` button and specify additional folders that should be searched for symbol and source files.
+
+**Note:** According to the VTune [docs](https://software.intel.com/en-us/vtune-amplifier-help-dialog-box-source-search), the search is non-recursive. So adding just `corefx` and `coreclr` repo root folders to the list is not enough.
+
+![Specify Sources](img/vtune_folders.png)
+
+##### Skids
+
+Hardware Event-Based Sampling is vulnerable to [skids](https://github.com/brendangregg/skid-testing). When the event occurs, the counter increments and when it reaches the max interval value the event is fired with **current** Instruction Pointer. As an example we can use following source code:
+
+```cs
+bool result ^= dictionary.TryGetValue(notFound, out _);
+```
+
+The profiler shows that a lot of inclusive CPU time was spent on the `xor` operation. Obviously, it's not true and it was most probably spent in the `call` to `TryGetValue` method. It means that to fully understand the output of Hardware Event-Based Sampling profilers you also need to be familiar with assembly code.
+
+![Skids](img/vtune_skids.png)
