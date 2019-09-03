@@ -31,6 +31,13 @@ namespace ScenarioMeasurement
 
         public bool GuiApp { get; set; } = false;
 
+        public Logger logger;
+
+        public ProcessHelper(Logger logger)
+        {
+            this.logger = logger;
+        }
+
         /// <summary>
         /// Runs the specified process and waits for it to exit.
         /// </summary>
@@ -102,13 +109,10 @@ namespace ScenarioMeasurement
                         return (Result.CloseFailed, pid);
                     }
                 }
-                using (var sw = new StreamWriter($"testlog_{Path.GetFileName(Executable)}_{process.Id}.log"))
-                {
-                    sw.WriteLine("Standard output:");
-                    sw.WriteLine(output.ToString());
-                    sw.WriteLine("Standard error:");
-                    sw.WriteLine(error.ToString());
-                }
+
+                logger.Log(output.ToString());
+                logger.Log(error.ToString());
+
                 // Be aware a successful exit could be non-zero
                 if (process.ExitCode != 0)
                 {
