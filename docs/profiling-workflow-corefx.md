@@ -24,7 +24,11 @@
     - [Problems](#Problems)
       - [Code](#Code)
       - [Skids](#Skids)
-
+- [PerfCollect](#PerfCollect)
+  - [Preparing Your Machine](#Preparing-Your-Machine)
+  - [Preparing Repro](#Preparing-Repro)
+  - [Collecting a Trace](#Collecting-a-Trace)
+  - [Analyzing the Trace](#Analyzing-the-Trace)
 
 ## Prerequisites
 
@@ -548,3 +552,109 @@ bool result ^= dictionary.TryGetValue(notFound, out _);
 The profiler shows that a lot of inclusive CPU time was spent on the `xor` operation. Obviously, it's not true and it was most probably spent in the `call` to `TryGetValue` method. It means that to fully understand the output of Hardware Event-Based Sampling profilers you also need to be familiar with assembly code.
 
 ![Skids](img/vtune_skids.png)
+
+## PerfCollect
+
+PerfCollect is a simple, yet very powerful script that allows for profiling .NET Core apps on Linux. It is internally leveraging LTTng and using perf.
+
+In contrary to `dotnet trace` it gives you native call stacks which are very useful when you need to profile native parts of CoreFX/CLR.
+
+It has it's own excellent [documentation](https://github.com/dotnet/coreclr/blob/master/Documentation/project-docs/linux-performance-tracing.md) (a **highly recommended read**), the goal of this doc is not to duplicate it, but rather show **how to profile local CoreFX/CLR build running on a Linux VM from a Windows developer machine**. We need two OSes because as of today only PerfView is capable of opening a `PerfCollect` trace file.
+
+### Preparing Your Machine
+
+You need to install the script, make it an executable and run as sudo with `install` parameter to install all the dependencies.
+
+```cmd
+curl -OL https://aka.ms/perfcollect
+chmod +x perfcollect
+sudo ./perfcollect install
+```
+
+### Preparing Repro
+
+Before you collect a trace, you need to prepare a [Repro](#Repro). As of today, `PerfCollect` does not give you the possibility to run a standalone executable. It collects the data machine wide with explicit start and stop. The simplest way to create a repo app is to simply put the code that you want to profile inside a `while(true)` loop.
+
+As an example, we are going to use following app that tries to reproduce [String.StartsWith slower on Linux with some characters #40674](https://github.com/dotnet/corefx/issues/40674)
+
+```cs
+using System.Runtime.CompilerServices;
+
+namespace ProfilingDocs
+{
+    class Program
+    {
+        static void Main()
+        {
+            Console.WriteLine("Started running. Press Ctrl+C to stop.");
+
+            while (true)
+            {
+                Consume(string.Concat(new string('a', 512), "-").StartsWith("i"));
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void Consume<T>(in T _) { }
+    }
+}
+```
+
+**Note:** You can just build the repro app on your Windows dev machine and copy the output app to your Linux VM using `scp`.
+
+```cmd
+scp -r "C:\Users\adsitnik\source\repos\ProfilingDocs\ProfilingDocs\bin\Release\netcoreapp3.0\ProfilingDocs.dll" adsitnik@11.222.33.444:/home/adsitnik/Projects/coreclr/bin/tests/Linux.x64.Release/Tests/Core_Root/ProfilingDocs.dll
+```
+
+### Collecting a Trace
+
+To collect a trace, you need to open two terminals:
+
+* one for controlling tracing, referred to as [Trace]
+* one for running the application, referred to as [App].
+
+**[App]**: Setup the application shell - this enables tracing configuration inside of CoreCLR:
+
+```cmd
+export COMPlus_PerfMapEnabled=1
+export COMPlus_EnableEventLog=1
+```
+
+**[Trace]** Start collection:
+
+```cmd
+sudo ./perfcollect collect slowStartsWith
+```
+
+**[App]**: Run the repro app using `corerun`. It's recommended to use `corerun` because it has `crossgen` required to solve native symbols in the same folder and hence native symbol solving is going to work out of the box:
+
+```cmd
+cd /home/adsitnik/Projects/coreclr/bin/tests/Linux.x64.Release/Tests/Core_Root/
+./corerun ./ProfilingDocs.dll
+```
+
+**[Trace]** Wait few seconds to let PerfCollect gather some samples and stop collection by pressing `Ctrl+C` in the trace terminal:
+
+```cmd
+^C
+...STOPPED.
+
+
+Trace saved to slowStartsWith.trace.zip
+```
+
+**[App]**: don't forget to stop your app by pressing `Ctrl+C` as well.
+
+![PerfCollect Demo](img/perfcollect_demo.gif)
+
+### Analyzing the Trace
+
+As mentioned previously, currently only PerfView is capable of opening a `PerfCollect` trace file. So to analyze the trace file you need to copy it to a Windows machine. You can do that by using `scp`.
+
+```cmd
+scp -r adsitnik@11.222.33.444:/home/adsitnik/Projects/tracing/slowStartsWith.zip C:\traces\startsWith
+```
+
+Once you get it there, you need to open it with PerfView and follow the [filtering instructions](#filtering) to filter the trace and [analyze the results](#Analyzing-the-Results).
+
+![Sample PerfCollect trace file opened in PerfView](img/perfcollect_perfview.png)
