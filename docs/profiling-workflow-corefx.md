@@ -2,6 +2,7 @@
 
 ## Table of Contents
 
+- [Introduction](#Introduction)
 - [Prerequisites](#Prerequisites)
   - [Build](#Build)
   - [Repro](#Repro)
@@ -29,9 +30,25 @@
   - [Collecting a Trace](#Collecting-a-Trace)
   - [Analyzing the Trace](#Analyzing-the-Trace)
 
-# Prerequisites
 
-This doc explains how to profile local CoreFX and CoreCLR builds and it's targetted at CoreFX and CoreCLR contributors.
+# Introduction
+
+**This doc explains how to profile local CoreFX and CoreCLR builds and it's targetted at CoreFX and CoreCLR contributors.**
+
+Before you start any performance investigation, you need to [build](#Build) CoreFX and|or CoreCLR in **Release**, create a small [repro](#Repro) app and change the default [project settings](#Project-Settings).
+
+The next step is to choose the right profiler depending on the OS:
+
+* Windows
+  * [Visual Studio Profiler](#Visual-Studio-Profiler) allows for [CPU](#CPU-Investigation) and [memory](#Allocation-Tracking) profiling. It's intuitive to use and you should **use it be default**.
+  * [PerfView](#PerfView) is the ultimate .NET Profiler but it has a high entry cost. If Visual Studio Profiler is not enough, you should switch to [PerfView](#PerfView).
+* Linux
+  * [dotnet trace](https://github.com/dotnet/diagnostics/blob/master/documentation/dotnet-trace-instructions.md) works on every OS, it's easy to use and it should be your **default choice** on Unix systems.
+  * [PerfCollect](#PerfCollect) is a simple, yet very powerful script that allows for profiling native parts of CoreFX/CLR. You should use it if `dotnet trace` can not handle your case.
+
+If you clearly need information on CPU instruction level, then depending on the hardware you should use [Intel VTune](#VTune) or [AMD uProf](https://developer.amd.com/amd-uprof/).
+
+# Prerequisites
 
 ## Build
 
