@@ -19,7 +19,6 @@ namespace System.Buffers.Tests
         private readonly T[][] _nestedArrays = new T[NestedDepth][];
         private const int Iterations = 100_000;
         private const int NestedDepth = 8;
-
         [Params(4096)]
         public int RentalSize;
 
@@ -36,14 +35,14 @@ namespace System.Buffers.Tests
 
         private static void Clear(T[] arr) => arr.AsSpan().Clear();
 
-        private static int CountDefault(T[] arr)
+        private static T IterateAll(T[] arr)
         {
-            int count = 0;
+            T ret = default;
             foreach (T item in arr)
             {
-                if (item == default) count++;
+                ret = item;
             }
-            return count;
+            return ret;
         }
 
         [Benchmark(OperationsPerInvoke = Iterations)]
@@ -55,7 +54,7 @@ namespace System.Buffers.Tests
                 T[] arr = pool.Rent(RentalSize);
                 if (ManipulateArray) Clear(arr);
                 if (Async) await Task.Yield();
-                if (ManipulateArray) CountDefault(arr);
+                if (ManipulateArray) IterateAll(arr);
                 pool.Return(arr);
             }
         }
@@ -75,7 +74,7 @@ namespace System.Buffers.Tests
                         T[] arr = pool.Rent(RentalSize);
                         if (ManipulateArray) Clear(arr);
                         if (Async) await Task.Yield();
-                        if (ManipulateArray) CountDefault(arr);
+                        if (ManipulateArray) IterateAll(arr);
                         pool.Return(arr);
                     }
                 })));
@@ -97,7 +96,7 @@ namespace System.Buffers.Tests
 
                 for (int j = _nestedArrays.Length - 1; j >= 0; j--)
                 {
-                    if (ManipulateArray) CountDefault(_nestedArrays[j]);
+                    if (ManipulateArray) IterateAll(_nestedArrays[j]);
                     pool.Return(_nestedArrays[j]);
                 }
             }
@@ -122,7 +121,7 @@ namespace System.Buffers.Tests
 
                     while (reader.TryRead(out T[] buffer))
                     {
-                        if (ManipulateArray) CountDefault(buffer);
+                        if (ManipulateArray) IterateAll(buffer);
                         pool.Return(buffer);
                     }
                 }
@@ -132,7 +131,7 @@ namespace System.Buffers.Tests
             for (int i = 0; i < Iterations; i++)
             {
                 T[] buffer = pool.Rent(RentalSize);
-                if (ManipulateArray) CountDefault(buffer);
+                if (ManipulateArray) IterateAll(buffer);
                 ValueTask write = writer.WriteAsync(buffer);
                 if (Async)
                 {
