@@ -19,12 +19,6 @@ namespace CompilerBenchmarks
         private EmitOptions _options;
         private MemoryStream _peStream;
 
-        [Benchmark]
-        public object Parsing()
-        {
-            return Helpers.CreateReproCompilation();
-        }
-
         [GlobalSetup(Target = nameof(CompileMethodsAndEmit))]
         public void LoadCompilation()
         {
@@ -39,7 +33,7 @@ namespace CompilerBenchmarks
         public object CompileMethodsAndEmit()
         {
             _peStream.Position = 0;
-            return _comp.Emit(_peStream);
+            return _comp.WithOptions(_comp.Options.WithConcurrentBuild(false)).Emit(_peStream);
         }
 
         [GlobalSetup(Target = nameof(SerializeMetadata))]

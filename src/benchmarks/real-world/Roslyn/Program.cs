@@ -4,8 +4,10 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
+using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Extensions;
+using BenchmarkDotNet.Jobs;
 
 namespace CompilerBenchmarks
 {
@@ -18,8 +20,10 @@ namespace CompilerBenchmarks
             return BenchmarkSwitcher
                 .FromAssembly(typeof(Program).Assembly)
                 .Run(args, RecommendedConfig.Create(
-                    artifactsPath: new DirectoryInfo(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "BenchmarkDotNet.Artifacts")),
-                    mandatoryCategories: ImmutableHashSet.Create("Roslyn")))
+                               artifactsPath: new DirectoryInfo(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location),
+                                                                             "BenchmarkDotNet.Artifacts")),
+                               mandatoryCategories: ImmutableHashSet.Create("Roslyn"))
+                           .With(Job.Default.WithMaxRelativeError(0.01)))
                 .ToExitCode();
         }
 
