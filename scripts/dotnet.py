@@ -439,7 +439,7 @@ def get_commit_date(
     if repository is None:
         # The origin of the repo where the commit belongs to has changed
         # between release. Here we attempt to naively guess the repo.
-        core_sdk_frameworks = ['netcoreapp3.0', 'netcoreapp3.1', 'netcoreapp5.0']
+        core_sdk_frameworks = ['netcoreapp3.0', 'netcoreapp5.0']
         repo = 'core-sdk' if framework  in core_sdk_frameworks else 'cli'
         url = urlformat % ('dotnet', repo, commit_sha)
     else:

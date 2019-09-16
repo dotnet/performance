@@ -211,7 +211,7 @@ def __main(args: list) -> int:
 
     perfHash = decoded_output if args.get_perf_hash else args.perf_hash
 
-    remove_frameworks = ['netcoreapp3.0', 'netcoreapp3.1', 'netcoreapp5.0']
+    remove_frameworks = ['netcoreapp3.0', 'netcoreapp5.0']
 
     for framework in target_framework_monikers:
         if framework.startswith('netcoreapp'):

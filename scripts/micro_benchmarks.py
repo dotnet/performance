@@ -64,8 +64,7 @@ class FrameworkAction(Action):
     def __get_target_framework_moniker_channel_map() -> dict:
         return {
             'netcoreapp5.0': 'master',
-            'netcoreapp3.0': 'release/3.0.1xx',
-            'netcoreapp3.1': 'release/3.1.1xx',
+            'netcoreapp3.0': 'release/3.1.1xx',
             'netcoreapp2.2': '2.2',
             'netcoreapp2.1': '2.1',
             # For Full Framework download the LTS for dotnet cli.
@@ -90,8 +89,7 @@ class FrameworkAction(Action):
         '''
         dct = {
             'netcoreapp5.0': 'master',
-            'netcoreapp3.0': 'release/3.0.1xx',
-            'netcoreapp3.1': 'release/3.1.1xx',
+            'netcoreapp3.0': 'release/3.1.1xx',
             'netcoreapp2.2': 'release/2.2',
             'netcoreapp2.1': 'release/2.1',
             # For Full Framework download the LTS for dotnet cli.
