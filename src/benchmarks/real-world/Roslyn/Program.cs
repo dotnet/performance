@@ -22,8 +22,8 @@ namespace CompilerBenchmarks
                 .Run(args, RecommendedConfig.Create(
                                artifactsPath: new DirectoryInfo(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location),
                                                                              "BenchmarkDotNet.Artifacts")),
-                               mandatoryCategories: ImmutableHashSet.Create("Roslyn"))
-                           .With(Job.Default.WithMaxRelativeError(0.01)))
+                               mandatoryCategories: ImmutableHashSet.Create("Roslyn"),
+                               job: Job.Default.WithMaxRelativeError(0.01)))
                 .ToExitCode();
         }
 
