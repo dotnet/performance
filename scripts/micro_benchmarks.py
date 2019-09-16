@@ -65,6 +65,7 @@ class FrameworkAction(Action):
         return {
             'netcoreapp5.0': 'master',
             'netcoreapp3.0': 'release/3.0.1xx',
+            'netcoreapp3.1': 'release/3.1.1xx',
             'netcoreapp2.2': '2.2',
             'netcoreapp2.1': '2.1',
             # For Full Framework download the LTS for dotnet cli.
@@ -85,12 +86,12 @@ class FrameworkAction(Action):
     @staticmethod
     def get_branch(target_framework_moniker: str) -> str:
         '''
-        Attemps to retrieve the channel that can be used to download the
-        DotNet Cli tools.
+        Attemps to retrieve the branch name for reporting purposes
         '''
         dct = {
             'netcoreapp5.0': 'master',
             'netcoreapp3.0': 'release/3.0.1xx',
+            'netcoreapp3.1': 'release/3.1.1xx',
             'netcoreapp2.2': 'release/2.2',
             'netcoreapp2.1': 'release/2.1',
             # For Full Framework download the LTS for dotnet cli.
