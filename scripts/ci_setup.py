@@ -211,9 +211,11 @@ def __main(args: list) -> int:
 
     perfHash = decoded_output if args.get_perf_hash else args.perf_hash
 
+    remove_frameworks = ['netcoreapp3.0', 'netcoreapp5.0']
+
     for framework in target_framework_monikers:
         if framework.startswith('netcoreapp'):
-            if framework == 'netcoreapp3.0' or framework == 'netcoreapp5.0':
+            if framework in remove_frameworks:
                 remove_dotnet = True
             target_framework_moniker = micro_benchmarks.FrameworkAction.get_target_framework_moniker(framework)
             dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli)
