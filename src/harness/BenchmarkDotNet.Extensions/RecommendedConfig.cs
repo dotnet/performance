@@ -25,11 +25,11 @@ namespace BenchmarkDotNet.Extensions
                     .WithIterationTime(TimeInterval.FromMilliseconds(250)) // the default is 0.5s per iteration, which is slighlty too much for us
                     .WithMinIterationCount(15)
                     .WithMaxIterationCount(20) // we don't want to run more that 20 iterations
-                    .DontEnforcePowerPlan() // make sure BDN does not try to enforce High Performance power plan on Windows
-                    .AsDefault(); // tell BDN that this are our default settings
+                    .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
             }
+
             return DefaultConfig.Instance
-                .With(job)
+                .With(job.AsDefault()) // tell BDN that this are our default settings
                 .WithArtifactsPath(artifactsPath.FullName)
                 .With(MemoryDiagnoser.Default) // MemoryDiagnoser is enabled by default
                 .With(new OperatingSystemFilter())
