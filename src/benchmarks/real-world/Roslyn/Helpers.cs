@@ -2,6 +2,8 @@
 
 using System;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -11,14 +13,33 @@ namespace CompilerBenchmarks
     {
         public const string TestProjectEnvVarName = "ROSLYN_TEST_PROJECT_DIR";
 
-        public static Compilation CreateReproCompilation()
+        public static CSharpCompilation CreateReproCompilation()
         {
             var projectDir = Environment.GetEnvironmentVariable(TestProjectEnvVarName);
-            var cmdLineParser = new CSharpCommandLineParser();
-            var responseFile = Path.Combine(projectDir, "repro.rsp");
-            var compiler = new MockCSharpCompiler(responseFile, projectDir, Array.Empty<string>());
-            var output = new StringWriter();
-            return compiler.CreateCompilation(output, null, null);
+            var cmdLineArgs = CSharpCommandLineParser.Default.Parse(
+                new[] { "@repro.rsp"},
+                projectDir,
+                sdkDirectory: null);
+            var sourceFiles = cmdLineArgs.SourceFiles;
+            var trees = new SyntaxTree[sourceFiles.Length];
+            Parallel.For(0, sourceFiles.Length, i =>
+            {
+                var path = sourceFiles[i].Path;
+                trees[i] = SyntaxFactory.ParseSyntaxTree(
+                    File.ReadAllText(path),
+                    cmdLineArgs.ParseOptions,
+                    path);
+            });
+
+            var references = cmdLineArgs.MetadataReferences
+                .Select(r => MetadataReference.CreateFromFile(Path.Combine(projectDir, r.Reference)))
+                .ToList();
+
+            return CSharpCompilation.Create(
+                "Microsoft.CodeAnalysis",
+                trees,
+                references,
+                options: cmdLineArgs.CompilationOptions);
         }
     }
 }

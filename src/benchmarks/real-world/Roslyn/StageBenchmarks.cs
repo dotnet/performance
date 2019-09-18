@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Compilation;
@@ -14,17 +15,37 @@ namespace CompilerBenchmarks
     [BenchmarkCategory("Roslyn")]
     public class StageBenchmarks
     {
-        private Compilation _comp;
+        private CSharpCompilation _comp;
         private CommonPEModuleBuilder _moduleBeingBuilt;
         private EmitOptions _options;
         private MemoryStream _peStream;
 
-        [GlobalSetup(Target = nameof(CompileMethodsAndEmit))]
-        public void LoadCompilation()
+        [IterationSetup(Target = nameof(GetDiagnostics))]
+        public void LoadFreshCompilation()
         {
-            _peStream = new MemoryStream();
-            _comp = Helpers.CreateReproCompilation();
+            var comp = Helpers.CreateReproCompilation();
+            var options = comp.Options.WithConcurrentBuild(false);
+            // Since we want to measure binding and symbol construction
+            // cost it's important that we don't re-use the same compilation
+            // as results will be cached
+            _comp = CSharpCompilation.Create(
+                comp.AssemblyName,
+                comp.SyntaxTrees,
+                comp.References,
+                options);
+        }
 
+        [Benchmark]
+        public object GetDiagnostics()
+        {
+            return _comp.GetDiagnostics();
+        }
+
+        [GlobalSetup(Target = nameof(CompileMethodsAndEmit))]
+        public void LoadCompilationAndGetDiagnostics()
+        {
+            _comp = Helpers.CreateReproCompilation();
+            _peStream = new MemoryStream();
             // Call GetDiagnostics to force declaration symbol binding to finish
             _ = _comp.GetDiagnostics();
         }
@@ -39,7 +60,7 @@ namespace CompilerBenchmarks
         [GlobalSetup(Target = nameof(SerializeMetadata))]
         public void CompileMethods()
         {
-            LoadCompilation();
+            LoadCompilationAndGetDiagnostics();
 
             _options = EmitOptions.Default.WithIncludePrivateMembers(true);
 
@@ -70,8 +91,8 @@ namespace CompilerBenchmarks
 
             _comp.GenerateResourcesAndDocumentationComments(
                 _moduleBeingBuilt,
-                xmlDocumentationStream: null,
-                win32ResourcesStream: null,
+                xmlDocStream: null,
+                win32Resources: null,
                 _options.OutputNameOverride,
                 diagnostics,
                 cancellationToken: default);
