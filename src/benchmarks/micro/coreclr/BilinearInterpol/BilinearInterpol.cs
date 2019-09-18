@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Numerics;
+
+// HW Intrinsic APIs are available only in .NET Core 3.0+
+#if !NETCOREAPP2_1 && !NETCOREAPP2_2 && !NETFRAMEWORK
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
+#endif
 
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
@@ -182,6 +186,7 @@ public class BilinearTest
         return z;
     }
 
+#if !NETCOREAPP2_1 && !NETCOREAPP2_2 && !NETFRAMEWORK
     private static unsafe double[] BilinearInterpol_AVX(
                                             double[] x,
                                             double[] A,
@@ -261,6 +266,7 @@ public class BilinearTest
         }
         return z;
     }
+#endif // !NETCOREAPP2_1 && !NETCOREAPP2_2 && !NETFRAMEWORK
 
     public static bool CheckResult(double[] output, double[] vectorOutput)
     {
@@ -292,6 +298,7 @@ public class BilinearTest
         return vectorOutput;
     }
 
+#if !NETCOREAPP2_1 && !NETCOREAPP2_2 && !NETFRAMEWORK
     [BenchmarkCategory(Categories.CoreCLR)]
     [Benchmark(Description = "BilinearInterpol_AVX")]
     public double[] Test2()
@@ -304,4 +311,5 @@ public class BilinearTest
         }
         return null;
     }
+#endif
 }
