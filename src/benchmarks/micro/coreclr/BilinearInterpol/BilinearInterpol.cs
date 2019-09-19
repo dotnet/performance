@@ -268,6 +268,10 @@ public class BilinearTest
     }
 #endif // !NETCOREAPP2_1 && !NETCOREAPP2_2 && !NETFRAMEWORK
 
+    // This method is currently unused. It is useful, when generating a new vectorized version
+    // of the benchmark (e.g. with a different set of HW intrinsics), to ensure that it is
+    // correct (i.e. produces the same result as the scalar version).
+    //
     public static bool CheckResult(double[] output, double[] vectorOutput)
     {
         double eps = 1e-16;
@@ -282,17 +286,17 @@ public class BilinearTest
         return true;
     }
 
-    [Benchmark(Description = "BilinearInterpol_Scalar")]
+    [Benchmark]
     [BenchmarkCategory(Categories.CoreCLR)]
-    public double[] Test0()
+    public double[] Interpol_Scalar()
     {
         output = BilinearInterpol(input, A, minXA, maxXA, B, minXB, maxXB, weightB);
         return output;
     }
 
-    [Benchmark(Description = "BilinearInterpol_Vector")]
+    [Benchmark]
     [BenchmarkCategory(Categories.CoreCLR)]
-    public double[] Test1()
+    public double[] Interpol_Vector()
     {
         double[] vectorOutput = BilinearInterpol_Vector(input, A, minXA, maxXA, B, minXB, maxXB, weightB);
         return vectorOutput;
@@ -300,8 +304,8 @@ public class BilinearTest
 
 #if !NETCOREAPP2_1 && !NETCOREAPP2_2 && !NETFRAMEWORK
     [BenchmarkCategory(Categories.CoreCLR)]
-    [Benchmark(Description = "BilinearInterpol_AVX")]
-    public double[] Test2()
+    [Benchmark]
+    public double[] Interpol_AVX()
     {
         if (Avx2.IsSupported)
         {
