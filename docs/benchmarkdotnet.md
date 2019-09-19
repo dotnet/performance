@@ -59,7 +59,7 @@ In order to build or run the benchmarks you will need the **.NET Core command-li
 
 ### Using .NET Cli
 
-To build the benchmarks you need to have the right `dotnet cli`. This repository allows to benchmark .NET Core 2.0, 2.1, 2.2 and 3.0 so you need to install all of them.
+To build the benchmarks you need to have the right `dotnet cli`. This repository allows to benchmark .NET Core 2.0, 2.1, 2.2, 3.0 and 5.0 so you need to install all of them.
 
 All you need to do is run the following command:
 
