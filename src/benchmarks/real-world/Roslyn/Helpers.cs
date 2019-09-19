@@ -13,13 +13,19 @@ namespace CompilerBenchmarks
     {
         public const string TestProjectEnvVarName = "ROSLYN_TEST_PROJECT_DIR";
 
-        public static CSharpCompilation CreateReproCompilation()
+        public static CSharpCommandLineArguments GetReproCommandLineArgs()
         {
             var projectDir = Environment.GetEnvironmentVariable(TestProjectEnvVarName);
-            var cmdLineArgs = CSharpCommandLineParser.Default.Parse(
+            return CSharpCommandLineParser.Default.Parse(
                 new[] { "@repro.rsp"},
                 projectDir,
                 sdkDirectory: null);
+        }
+
+        public static CSharpCompilation CreateReproCompilation()
+        {
+            var projectDir = Environment.GetEnvironmentVariable(TestProjectEnvVarName);
+            var cmdLineArgs = GetReproCommandLineArgs();
             var sourceFiles = cmdLineArgs.SourceFiles;
             var trees = new SyntaxTree[sourceFiles.Length];
             Parallel.For(0, sourceFiles.Length, i =>
