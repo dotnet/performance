@@ -16,7 +16,7 @@ namespace System.Globalization.Tests
             char[] str = new char[count];
             for (int i = 0; i < count; i++)
             {
-                str[i] = replaceChar;
+                str[i] = source;
             }
             str[replacePos] = replaceChar;
 
