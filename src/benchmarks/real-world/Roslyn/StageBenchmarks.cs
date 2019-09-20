@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Compilation;
@@ -16,23 +17,40 @@ namespace CompilerBenchmarks
     public class StageBenchmarks
     {
         private CSharpCompilation _comp;
+        private CompilationWithAnalyzers _compWithAnalyzers;
         private CommonPEModuleBuilder _moduleBeingBuilt;
         private EmitOptions _options;
         private MemoryStream _peStream;
 
+        [GlobalSetup(Targets = new[] {
+             nameof(GetDiagnostics),
+             nameof(GetDiagnosticsWithAnalyzers) })]
+        public void LoadCompilation()
+        {
+            _comp = Helpers.CreateReproCompilation();
+        }
+
         [IterationSetup(Target = nameof(GetDiagnostics))]
         public void LoadFreshCompilation()
         {
-            var comp = Helpers.CreateReproCompilation();
-            var options = comp.Options.WithConcurrentBuild(false);
+            var options = _comp.Options.WithConcurrentBuild(false);
             // Since we want to measure binding and symbol construction
             // cost it's important that we don't re-use the same compilation
             // as results will be cached
             _comp = CSharpCompilation.Create(
-                comp.AssemblyName,
-                comp.SyntaxTrees,
-                comp.References,
+                _comp.AssemblyName,
+                _comp.SyntaxTrees,
+                _comp.References,
                 options);
+        }
+
+        [IterationSetup(Target = nameof(GetDiagnosticsWithAnalyzers))]
+        public void LoadFreshCompilationWithAnalyzers()
+        {
+            LoadFreshCompilation();
+            _compWithAnalyzers = Helpers.CreateReproCompilationWithAnalyzers(
+                _comp,
+                Helpers.GetReproCommandLineArgs());
         }
 
         [Benchmark]
@@ -41,10 +59,16 @@ namespace CompilerBenchmarks
             return _comp.GetDiagnostics();
         }
 
+        [Benchmark]
+        public async Task<object> GetDiagnosticsWithAnalyzers()
+        {
+            return await _compWithAnalyzers.GetAllDiagnosticsAsync();
+        }
+
         [GlobalSetup(Target = nameof(CompileMethodsAndEmit))]
         public void LoadCompilationAndGetDiagnostics()
         {
-            _comp = Helpers.CreateReproCompilation();
+            LoadCompilation();
             _peStream = new MemoryStream();
             // Call GetDiagnostics to force declaration symbol binding to finish
             _ = _comp.GetDiagnostics();
