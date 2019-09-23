@@ -12,7 +12,7 @@ namespace CompilerBenchmarks
     public class RoslynApis
     {
         [Benchmark]
-        public object BuildAnalyzerConfigs()
+        public ImmutableArray<AnalyzerConfigOptionsResult> BuildAnalyzerConfigs()
         {
             var cmdLineArgs = Helpers.GetReproCommandLineArgs();
             var analyzerConfigs = cmdLineArgs.AnalyzerConfigPaths
