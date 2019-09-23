@@ -43,7 +43,7 @@ namespace System.Globalization.Tests
         public (CultureInfo CultureInfo, CompareOptions CompareOptions) Options;
 
         [Params(1024)] // single execution path = single test case
-        public int Count { get; set; }
+        public int Count;
 
         [GlobalSetup]
         public void Setup()

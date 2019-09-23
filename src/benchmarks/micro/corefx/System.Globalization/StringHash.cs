@@ -33,7 +33,7 @@ namespace System.Globalization.Tests
         [Params(
             128, // small input that fits into stack-allocated array https://github.com/dotnet/coreclr/blob/c6675ef2e22474d6222d054ae3d022c01eda9b6d/src/System.Private.CoreLib/shared/System/Globalization/CompareInfo.Unix.cs#L824
             1024 * 128)] // medium size input that fits into an array rented from ArrayPool.Shared without allocation
-        public int Count { get; set; }
+        public int Count;
 
         private string _value;
 
