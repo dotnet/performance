@@ -29,9 +29,9 @@ namespace CompilerBenchmarks
 
         private static async Task Setup()
         {
-            string cscSourceDownloadLink = "https://roslyninfra.blob.core.windows.net/perf-artifacts/CodeAnalysisRepro.zip";
+            string cscSourceDownloadLink = "https://roslyninfra.blob.core.windows.net/perf-artifacts/CodeAnalysisReproWithAnalyzers.zip";
             string sourceDownloadDir = Path.Combine(AppContext.BaseDirectory, "roslynSource");
-            var sourceDir = Path.Combine(sourceDownloadDir, "CodeAnalysisRepro");
+            var sourceDir = Path.Combine(sourceDownloadDir, "CodeAnalysisReproWithAnalyzers");
             if (!Directory.Exists(sourceDir))
             {
                 await FileTasks.DownloadAndUnzip(cscSourceDownloadLink, sourceDownloadDir);
