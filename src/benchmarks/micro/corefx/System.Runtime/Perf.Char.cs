@@ -21,6 +21,36 @@ namespace System.Tests
         }
 
         [Benchmark]
+        [Arguments("Good afternoon, Constable!")]
+        public int Char_IsLower(string input) // counts the number of lowercase chars in a string
+        {
+            int count = 0;
+            foreach (char ch in input)
+            {
+                if (char.IsLower(ch))
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        [Benchmark]
+        [Arguments("Good afternoon, Constable!")]
+        public int Char_IsUpper(string input) // counts the number of uppercase chars in a string
+        {
+            int count = 0;
+            foreach (char ch in input)
+            {
+                if (char.IsUpper(ch))
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        [Benchmark]
         [ArgumentsSource(nameof(Char_ChangeCase_MemberData))]
         public char Char_ToLower(char c, CultureInfo cultureName) => char.ToLower(c, cultureName); // the argument is called "cultureName" instead of "culture" to keep benchmark ID in BenchView, do NOT rename it
 
