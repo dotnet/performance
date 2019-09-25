@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace CompilerBenchmarks
 {
@@ -46,6 +49,33 @@ namespace CompilerBenchmarks
                 trees,
                 references,
                 options: cmdLineArgs.CompilationOptions);
+        }
+
+        public static CompilationWithAnalyzers CreateReproCompilationWithAnalyzers(
+            Compilation comp,
+            CommandLineArguments cmdLineArgs)
+        {
+            var analyzers = cmdLineArgs.ResolveAnalyzersFromArguments(
+                LanguageNames.CSharp,
+                new List<DiagnosticInfo>(),
+                MessageProvider.Instance,
+                new CoreClrAnalyzerAssemblyLoader());
+            var additionalFiles = cmdLineArgs.AdditionalFiles
+                .SelectAsArray(f => (AdditionalText)new AdditionalTextFile(f.Path));
+
+            var analyzerOptions = new AnalyzerOptions(
+                additionalFiles.As<AdditionalText>(),
+                CompilerAnalyzerConfigOptionsProvider.Empty);
+
+            return new CompilationWithAnalyzers(
+                comp,
+                analyzers,
+                new CompilationWithAnalyzersOptions(
+                    analyzerOptions,
+                    delegate {},
+                    concurrentAnalysis: false,
+                    logAnalyzerExecutionTime: false));
+
         }
     }
 }
