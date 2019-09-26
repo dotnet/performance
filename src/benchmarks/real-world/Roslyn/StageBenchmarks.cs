@@ -45,6 +45,9 @@ namespace CompilerBenchmarks
                 options);
         }
 
+        [Benchmark]
+        public ImmutableArray<Diagnostic> GetDiagnostics() => _comp.GetDiagnostics();
+
         [IterationSetup(Target = nameof(GetDiagnosticsWithAnalyzers))]
         public void LoadFreshCompilationWithAnalyzers()
         {
@@ -53,9 +56,6 @@ namespace CompilerBenchmarks
                 _comp,
                 Helpers.GetReproCommandLineArgs());
         }
-
-        [Benchmark]
-        public ImmutableArray<Diagnostic> GetDiagnostics() => _comp.GetDiagnostics();
 
         [Benchmark]
         public Task<ImmutableArray<Diagnostic>> GetDiagnosticsWithAnalyzers()
