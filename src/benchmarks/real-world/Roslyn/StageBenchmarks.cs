@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
@@ -44,6 +45,9 @@ namespace CompilerBenchmarks
                 options);
         }
 
+        [Benchmark]
+        public ImmutableArray<Diagnostic> GetDiagnostics() => _comp.GetDiagnostics();
+
         [IterationSetup(Target = nameof(GetDiagnosticsWithAnalyzers))]
         public void LoadFreshCompilationWithAnalyzers()
         {
@@ -54,16 +58,8 @@ namespace CompilerBenchmarks
         }
 
         [Benchmark]
-        public object GetDiagnostics()
-        {
-            return _comp.GetDiagnostics();
-        }
-
-        [Benchmark]
-        public async Task<object> GetDiagnosticsWithAnalyzers()
-        {
-            return await _compWithAnalyzers.GetAllDiagnosticsAsync();
-        }
+        public Task<ImmutableArray<Diagnostic>> GetDiagnosticsWithAnalyzers()
+            => _compWithAnalyzers.GetAllDiagnosticsAsync();
 
         [GlobalSetup(Target = nameof(CompileMethodsAndEmit))]
         public void LoadCompilationAndGetDiagnostics()
@@ -75,7 +71,7 @@ namespace CompilerBenchmarks
         }
 
         [Benchmark]
-        public object CompileMethodsAndEmit()
+        public EmitResult CompileMethodsAndEmit()
         {
             _peStream.Position = 0;
             return _comp.WithOptions(_comp.Options.WithConcurrentBuild(false)).Emit(_peStream);
@@ -128,7 +124,7 @@ namespace CompilerBenchmarks
         }
 
         [Benchmark]
-        public object SerializeMetadata()
+        public Stream SerializeMetadata()
         {
             _peStream.Position = 0;
             var diagnostics = DiagnosticBag.GetInstance();
