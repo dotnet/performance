@@ -54,7 +54,7 @@ namespace System.Globalization.Tests
         public void Setup()
         {
             // we are using simple input to mimic "real world test case"
-            char[] characters = ".NET Conf provides a wide selection of live sessions streaming here that feature speakers from the community and .NET product teams. It is a chance to learn, ask questions live, and get inspired for your next software project.".ToArray();
+            char[] characters = "NET Conf provides a wide selection of live sessions streaming here that feature speakers from the community and .NET product teams. It is a chance to learn, ask questions live, and get inspired for your next software project".ToArray();
 
             // we ensure that high chars are present by inserting one
             if (Options.highChars)
