@@ -66,10 +66,12 @@ namespace System.Globalization.Tests
             _firstHalf = new string(characters.Take(characters.Length / 2).ToArray());
             _secondHalf = new string(characters.Skip(characters.Length / 2).ToArray());
             char[] copy = characters.ToArray();
-            copy[0] = (char)(copy[0] + 1);
+            // to get a different char we can not just increment the first|last char because for the HighChars=true
+            // CultureInfo.GetCultureInfo("en-US").CompareInfo.IsSuffix(new string((char)0x81, 1), new string((char)0x82, 1)) returns TRUE
+            copy[0] = (char)(copy[0] * 2);
             _diffAtFirstChar = new string(copy);
             copy = characters.ToArray();
-            copy[characters.Length - 1] = (char)(copy[characters.Length - 1] + 1);
+            copy[characters.Length - 1] = (char)(copy[characters.Length - 1] * 2);
             _diffAtLastChar = new string(copy);
         }
 
