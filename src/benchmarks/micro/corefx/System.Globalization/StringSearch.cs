@@ -69,10 +69,10 @@ namespace System.Globalization.Tests
             char[] copy = characters.ToArray();
             // to get a different char we can not just increment the first|last char because for the HighChars=true
             // CultureInfo.GetCultureInfo("en-US").CompareInfo.IsSuffix(new string((char)0x81, 1), new string((char)0x82, 1)) returns true
-            copy[0] = (char)(copy[0] * 2);
+            copy[0] = (char)(Options.highChars ? copy[0] * 2 : copy[0] + 1);
             _diffAtFirstChar = new string(copy);
             copy = characters.ToArray();
-            copy[characters.Length - 1] = (char)(copy[characters.Length - 1] * 2);
+            copy[characters.Length - 1] = (char)(Options.highChars ? copy[characters.Length - 1] * 2 : copy[characters.Length - 1] + 1);
             _diffAtLastChar = new string(copy);
 
             // now we need to ensure that the test data is correct to avoid issues like https://github.com/dotnet/performance/pull/909
