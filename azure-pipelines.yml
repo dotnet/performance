@@ -63,6 +63,7 @@ jobs:
       runCategories: 'coreclr corefx' 
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - netcoreapp5.0
+        - netcoreapp3.1
         - netcoreapp3.0
         - netcoreapp2.2
         - netcoreapp2.1
@@ -139,6 +140,7 @@ jobs:
       runCategories: 'coreclr corefx'
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - netcoreapp5.0
+        - netcoreapp3.1
         - netcoreapp3.0
         - netcoreapp2.2
         - netcoreapp2.1
