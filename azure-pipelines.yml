@@ -196,7 +196,7 @@ jobs:
       benchviewCategory: 'coreclr'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
-        - netcoreapp3.0
+        - netcoreapp3.1
       
   # Windows x86 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -212,7 +212,7 @@ jobs:
       benchviewCategory: 'coreclr'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
-        - netcoreapp3.0
+        - netcoreapp3.1
 
   # Windows x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -228,7 +228,7 @@ jobs:
       benchviewCategory: 'mldotnet'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
-        - netcoreapp3.0
+        - netcoreapp3.1
 
   # Windows x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -244,7 +244,7 @@ jobs:
       benchviewCategory: 'roslyn'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
-        - netcoreapp3.0
+        - netcoreapp3.1
 
   # Ubuntu 1804 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -261,7 +261,7 @@ jobs:
       benchviewCategory: 'coreclr'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
-        - netcoreapp3.0
+        - netcoreapp3.1
 
   # Ubuntu 1804 x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -278,7 +278,7 @@ jobs:
       benchviewCategory: 'mldotnet'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
-        - netcoreapp3.0
+        - netcoreapp3.1
   
   # Ubuntu 1804 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -295,7 +295,7 @@ jobs:
       benchviewCategory: 'roslyn'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
-        - netcoreapp3.0
+        - netcoreapp3.1
 
 ################################################
 # Scheduled Private jobs
