@@ -9,7 +9,6 @@ parameters:
   csproj: ''            # required -- relative path to csproj with benchmarks
   frameworks: []        # required -- list of frameworks. Allowed values: net461, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
   runCategories: ''     # required -- string of space separated categories supplied to benchmark dotnet
-  benchviewCategory: '' # optional -- category for benchview upload container
 
 jobs:
 - template: ../common/templates/jobs/jobs.yml
@@ -49,16 +48,9 @@ jobs:
             - name: ArtifactsDirectory
               value: '$HELIX_WORKITEM_PAYLOAD/artifacts/BenchmarkDotNet.Artifacts'
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
-          - name: BenchViewRunType
-            value: private
-          - name: BenchviewCommitName
-            value: '.NET Performance - $(BenchViewRunType) - $(Build.SourceBranchName) $(System.PullRequest.PullRequestNumber)'
           # for public runs, we do not want to upload perflab data
           - name: PerfLabArguments
             value: ''
-          # for public runs we do not want to generate data or upload it (missing --generate-benchview-data and --upload-to-benchview-container)
-          - name: BenchViewArguments
-            value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --benchview-run-type $(BenchViewRunType) --generate-benchview-data --bdn-artifacts $(ArtifactsDirectory)'
           - name: Creator
             value: dotnet-performance
           # for public runs we want to run the benchmarks exactly once, no warmup, no pilot, no overhead
@@ -71,16 +63,9 @@ jobs:
           - name: HelixSourcePrefix
             value: "pr"
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-          - name: BenchViewRunType
-            value: rolling
-          - name: BenchviewCommitName
-            value: '.NET Performance - $(BenchViewRunType) - $(Build.SourceBranchName) $(Build.SourceVersion)'
           # for private runs, we want to upload perflab data
           - name: PerfLabArguments
             value: '--upload-to-perflab-container'
-          # for private runs we want to generate data (--generate-benchview-data ) and upload it (--upload-to-benchview-container specifies where)
-          - name: BenchViewArguments
-            value: '--benchview-submission-name "$(BenchviewCommitName)" --benchview-machinepool perfsnake --generate-benchview-data --benchview-run-type $(BenchViewRunType) --upload-to-benchview-container ${{ parameters.benchviewCategory}} --bdn-artifacts $(ArtifactsDirectory)'
           # for private runs we don't provide any custom BDN arguments (the ones from Program.Main are used)
           - name: BenchmarkDotNetArguments
             value: '--anyCategories ${{ parameters.runCategories }}'
@@ -88,13 +73,14 @@ jobs:
             value: ''
           - ${{ if eq(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'py -3 -m pip install --user --pre --upgrade azure-storage-blob;set "BV_UPLOAD_SAS_TOKEN=$(BenchViewUploadToken)";set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
+              value: 'py -3 -m pip install --user --pre --upgrade azure-storage-blob;set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
           - ${{ if ne(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'pip3 install --user --pre --upgrade azure-storage-blob;export BV_UPLOAD_SAS_TOKEN="$(BenchViewUploadTokenLinux)";export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
+              value: 'pip3 install --user --pre --upgrade azure-storage-blob;export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
           - name: HelixSourcePrefix
             value: 'official'
           - group: DotNet-HelixApi-Access
+          # perflab upload tokens still exist in this variable group
           - group: dotnet-benchview
         workspace:
           clean: all
@@ -108,11 +94,6 @@ jobs:
                 _Framework: ${{ framework }}
                 _Configs: CompilationMode=Tiered RunKind="${{ parameters.kind }}"
                 _BuildConfig: ${{ parameters.architecture }}_$(_Framework)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
-                ${{ if startsWith(framework, 'netcoreapp') }}:
-                  _BenchViewArguments: $(BenchViewArguments)
-                  _PerfLabArguments: $(PerfLabArguments)
-                ${{ if not(startsWith(framework, 'netcoreapp')) }}: # we don't want to upload non-.NET Core results to BenchView
-                  _BenchViewArguments: ''
         steps:
         - checkout: self
           clean: true

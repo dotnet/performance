@@ -171,7 +171,7 @@ def __main(args: list) -> int:
         .FrameworkAction \
         .get_target_framework_monikers(args.frameworks)
 
-    # Acquire necessary tools (dotnet, and BenchView)
+    # Acquire necessary tools (dotnet)
     # For arm64 runs, download the x64 version so we can get the information we need, but set all variables
     # as if we were running normally. This is a workaround due to the fact that arm64 binaries cannot run
     # in the cross containers, so we are running the ci setup script in a normal ubuntu container
