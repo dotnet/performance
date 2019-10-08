@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
@@ -114,6 +115,7 @@ namespace PerfLabTests
 
         public static Object[] myClass1Arr;
         public static Object[] myClass2Arr;
+        public static Object myObj;
 
         static CastingPerf()
         {
@@ -371,6 +373,94 @@ namespace PerfLabTests
             bool res = false;
             for (int i = 0; i < InnerIterationCount; i++)
                 res = myClass2Arr is IMyInterface1[];
+            return res;
+        }
+
+        [GlobalSetup(Target = nameof(CheckArrayIsNonvariantGenericInterface))]
+        public void SetupCheckArrayIsNonvariantGenericInterface() => myObj = new MyClass2[5];
+
+        [Benchmark]
+        public bool CheckArrayIsNonvariantGenericInterface()
+        {
+            bool res = false;
+            for (int i = 0; i < InnerIterationCount; i++)
+                res = myObj is ICollection<MyClass2>;
+
+            return res;
+        }
+
+        [GlobalSetup(Target = nameof(CheckArrayIsNonvariantGenericInterfaceNo))]
+        public void SetupCheckArrayIsNonvariantGenericInterfaceNo() => myObj = new MyClass2[5];
+
+        [Benchmark]
+        public bool CheckArrayIsNonvariantGenericInterfaceNo()
+        {
+            bool res = false;
+            for (int i = 0; i < InnerIterationCount; i++)
+                res = myObj is ICollection<Exception>;
+
+            return res;
+        }
+
+        [GlobalSetup(Target = nameof(CheckArrayIsArrayByVariance))]
+        public void SetupCheckArrayIsArrayByVariance() => myObj = new MyClass2[5];
+
+        [Benchmark]
+        public bool CheckArrayIsArrayByVariance()
+        {
+            bool res = false;
+            for (int i = 0; i < InnerIterationCount; i++)
+                res = myObj is IMyInterface2[];
+
+            return res;
+        }
+
+        [GlobalSetup(Target = nameof(CheckListIsVariantGenericInterface))]
+        public void SetupCheckListIsVariantGenericInterface() => myObj = new List<MyClass2>();
+
+        [Benchmark]
+        public bool CheckListIsVariantGenericInterface()
+        {
+            bool res = false;
+            for (int i = 0; i < InnerIterationCount; i++)
+                res = myObj is IReadOnlyCollection<object>;
+
+            return res;
+        }
+
+        [GlobalSetup(Target = nameof(CheckArrayIsVariantGenericInterfaceNo))]
+        public void SetupCheckArrayIsVariantGenericInterfaceNo() => myObj = new MyClass2[5];
+
+        [Benchmark]
+        public bool CheckArrayIsVariantGenericInterfaceNo()
+        {
+            bool res = false;
+            for (int i = 0; i < InnerIterationCount; i++)
+                res = myObj is IReadOnlyCollection<Exception>;
+
+            return res;
+        }
+
+        [GlobalSetup(Target = nameof(AssignArrayElementByVariance))]
+        public void SetupAssignArrayElementByVariance() => myClass2Arr = new IReadOnlyCollection<object>[5];
+
+        [Benchmark]
+        public bool AssignArrayElementByVariance()
+        {
+            bool res = false;
+            for (int i = 0; i < InnerIterationCount; i++)
+                myClass2Arr[0] = myClass2Arr;
+
+            return res;
+        }
+
+        [Benchmark]
+        public bool CheckArrayIsVariantGenericInterfaceReflection()
+        {
+            bool res = false;
+            for (int i = 0; i < InnerIterationCount; i++)
+                res = typeof(IReadOnlyCollection<object>).IsAssignableFrom(typeof(MyClass2[]));
+
             return res;
         }
     }
