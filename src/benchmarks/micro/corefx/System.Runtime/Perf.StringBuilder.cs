@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using System.Text;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
@@ -12,142 +11,191 @@ namespace System.Tests
     [BenchmarkCategory(Categories.CoreFX, Categories.CoreCLR)]
     public class Perf_StringBuilder
     {
-        private readonly string _string0 = "";
-        private readonly string _string100 = new string(Enumerable.Repeat('a', 100).ToArray());
-        private readonly string _string200 = new string(Enumerable.Repeat('a', 200).ToArray());
-        private readonly string _string1000 = new string(Enumerable.Repeat('a', 1000).ToArray());
-        private StringBuilder _bigStringBuilder;
+        const int LOHAllocatedStringSize = 100_000;
 
-        [Benchmark]
-        public void ctor() => new StringBuilder();
+        private string _stringLOH = new string('a', LOHAllocatedStringSize);
+        private string _string100 = new string('a', 100);
+        private StringBuilder _builderSingleSegment100 = new StringBuilder(new string('a', 100));
+        private StringBuilder _builderSingleSegmentLOH = new StringBuilder(new string('a', LOHAllocatedStringSize));
+        private StringBuilder _builderMultipleSegments100;
+        private StringBuilder _builderMultipleSegmentsLOH;
 
         [Benchmark]
         [Arguments(100)]
-        [Arguments(1000)]
-        public void ctor_string(int length) => new StringBuilder(length == 100 ? _string100 : _string1000);
+        [Arguments(LOHAllocatedStringSize)]
+        public StringBuilder ctor_string(int length) => new StringBuilder(length == 100 ? _string100 : _stringLOH);
 
         [Benchmark]
-        [Arguments(0)]
-        [Arguments(200)]
-        public void Append(int length)
-        {
-            string builtString = length == 0 ? _string0 : _string200;
-            StringBuilder empty = new StringBuilder();
+        [Arguments(100)]
+        [Arguments(LOHAllocatedStringSize)]
+        public StringBuilder ctor_capacity(int length) => new StringBuilder(length);
 
-            for (int i = 0; i < 10000; i++)
-                empty.Append(builtString); // Appends a string of length "length" to an increasingly large StringBuilder
+        [Benchmark]
+        [Arguments(100)]
+        [Arguments(LOHAllocatedStringSize)]
+        public string ToString_SingleSegment(int length) => (length == 100 ? _builderSingleSegment100 : _builderSingleSegmentLOH).ToString();
+
+        [GlobalSetup(Target = nameof(ToString_MultipleSegments))]
+        public void Setup_ToString_MultipleSegments()
+        {
+            _builderMultipleSegments100 = Append_Char(100); // 16 + 32 + 48 + 96 char segments
+            _builderMultipleSegmentsLOH = Append_Char(LOHAllocatedStringSize);
         }
 
-        public const int NUM_ITERS_CONCAT = 1000;
-        public const int NUM_ITERS_APPEND = 1000;
-        public const int NUM_ITERS_TOSTRING = 1000;
-
-        public static string s1 = "12345";
-        public static string s2 = "1234567890";
-        public static string s3 = "1234567890abcde";
-        public static string s4 = "1234567890abcdefghij";
-        public static string s5 = "1234567890abcdefghijklmno";
-        public static string s6 = "1234567890abcdefghijklmnopqrst";
-        public static string s7 = "1234567890abcdefghijklmnopqrstuvwxy";
-        public static string s8 = "1234567890abcdefghijklmnopqrstuvwxyzABCD";
-        public static string s9 = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHI";
-        public static string s10 = "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN";
+        // internally StringBuilder is a linked list of StringBuilders and each of them contains a buffer of character (char[])
+        // this benchmark tests this very common execution path - joining all the buffers from multiple StringBuffer instances into one string
+        [Benchmark]
+        [Arguments(100)]
+        [Arguments(LOHAllocatedStringSize)]
+        public string ToString_MultipleSegments(int length) => (length == 100 ? _builderMultipleSegments100 : _builderMultipleSegmentsLOH).ToString();
 
         [Benchmark]
-        public string StringConcat()
+        [Arguments(100)]
+        [Arguments(LOHAllocatedStringSize)]
+        public StringBuilder Append_Char(int length)
         {
-            string str = "";
+            StringBuilder builder = new StringBuilder();
 
-            for (int j = 0; j < NUM_ITERS_CONCAT; j++)
-                str += s1 + s2 + s3 + s4 + s5 + s6 + s7 + s8 + s9 + s10;
-
-            return str;
-        }
-
-        [Benchmark]
-        public StringBuilder StringBuilderAppend()
-        {
-            StringBuilder sb = new StringBuilder();
-
-            for (int j = 0; j < NUM_ITERS_APPEND; j++)
+            for (int i = 0; i < length; i++)
             {
-                sb.Append(s1);
-                sb.Append(s2);
-                sb.Append(s3);
-                sb.Append(s4);
-                sb.Append(s5);
-                sb.Append(s6);
-                sb.Append(s7);
-                sb.Append(s8);
-                sb.Append(s9);
-                sb.Append(s10);
+                builder.Append('a');
             }
 
-            return sb;
+            return builder;
         }
 
+        [Benchmark]
+        [Arguments(100)]
+        [Arguments(LOHAllocatedStringSize)]
+        public StringBuilder Append_Char_Capacity(int length)
+        {
+            StringBuilder builder = new StringBuilder(length);
+
+            for (int i = 0; i < length; i++)
+            {
+                builder.Append('a');
+            }
+
+            return builder;
+        }
+
+        [Benchmark]
+        [Arguments(1)]
+        [Arguments(1_000)]
+        public StringBuilder Append_Strings(int repeat)
+        {
+            StringBuilder builder = new StringBuilder();
+
+            // strings are not sorted by length to mimic real input
+            for (int i = 0; i < repeat; i++)
+            {
+                builder.Append("12345");
+                builder.Append("1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN");
+                builder.Append("1234567890abcdefghijklmnopqrstuvwxy");
+                builder.Append("1234567890");
+                builder.Append("1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHI");
+                builder.Append("1234567890abcde");
+                builder.Append("1234567890abcdefghijklmnopqrstuvwxyzABCD");
+                builder.Append("1234567890abcdefghijklmnopqrst");
+                builder.Append("1234567890abcdefghij");
+                builder.Append("1234567890abcdefghijklmno");
+            }
+
+            return builder;
+        }
+
+        [Benchmark]
+        public StringBuilder AppendLine_Strings()
+        {
+            StringBuilder builder = new StringBuilder();
+
+            // strings are not sorted by length to mimic real input
+            builder.AppendLine("12345");
+            builder.AppendLine("1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN");
+            builder.AppendLine("1234567890abcdefghijklmnopqrstuvwxy");
+            builder.AppendLine("1234567890");
+            builder.AppendLine("1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHI");
+            builder.AppendLine("1234567890abcde");
+            builder.AppendLine("1234567890abcdefghijklmnopqrstuvwxyzABCD");
+            builder.AppendLine("1234567890abcdefghijklmnopqrst");
+            builder.AppendLine("1234567890abcdefghij");
+            builder.AppendLine("1234567890abcdefghijklmno");
+
+            return builder;
+        }
+
+        [Benchmark]
+        public StringBuilder Append_Primitives()
+        {
+            var builder = new StringBuilder();
+
+            builder.Append(true);
+            builder.Append(sbyte.MaxValue);
+            builder.Append(byte.MaxValue);
+            builder.Append(short.MaxValue);
+            builder.Append(ushort.MaxValue);
+            builder.Append(int.MaxValue);
+            builder.Append(uint.MaxValue);
+            builder.Append(long.MaxValue);
+            builder.Append(ulong.MaxValue);
+            builder.Append(double.MaxValue);
+            builder.Append(float.MaxValue);
+            builder.Append(decimal.MaxValue);
+
+            return builder;
+        }
+
+        // as of today the following types are added using Append(object) and hence boxed
         [Benchmark]
         public StringBuilder Append_ValueTypes()
         {
-            var sb = new StringBuilder();
+            var builder = new StringBuilder();
 
-            for (int j = 0; j < NUM_ITERS_APPEND; j++)
-            {
-                sb.Append(sbyte.MaxValue);
-                sb.Append(byte.MaxValue);
-                sb.Append(short.MaxValue);
-                sb.Append(ushort.MaxValue);
-                sb.Append(int.MaxValue);
-                sb.Append(uint.MaxValue);
-                sb.Append(long.MaxValue);
-                sb.Append(ulong.MaxValue);
-                sb.Append(double.MaxValue);
-                sb.Append(float.MaxValue);
-                sb.Append(decimal.MaxValue);
-                sb.Append(new Guid(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11));
-                sb.Append(new DateTime(2018, 12, 14));
-                sb.Append(new DateTimeOffset(new DateTime(2018, 12, 14), default));
-                sb.Append(new TimeSpan(1, 2, 3));
-            }
+            var dateTime = new DateTime(2018, 12, 14);
+            var timeSpan = new TimeSpan(1, 2, 0);
+            var dateTimeOffset = new DateTimeOffset(dateTime, timeSpan);
+            var guid = new Guid(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
 
-            return sb;
-        }
+            // to amortize the cost of creating the value types we add them few times
+            builder.Append(guid); builder.Append(dateTime); builder.Append(timeSpan); builder.Append(dateTimeOffset);
+            builder.Append(guid); builder.Append(dateTime); builder.Append(timeSpan); builder.Append(dateTimeOffset);
+            builder.Append(guid); builder.Append(dateTime); builder.Append(timeSpan); builder.Append(dateTimeOffset);
+            builder.Append(guid); builder.Append(dateTime); builder.Append(timeSpan); builder.Append(dateTimeOffset);
 
-        [GlobalSetup(Target = nameof(StringBuilderToString))]
-        public void SetupStringBuilderToString()
-        {
-            StringBuilder sb = new StringBuilder();
-
-            for (int j = 0; j < NUM_ITERS_TOSTRING; j++)
-            {
-                sb.Append(s1);
-                sb.Append(s2);
-                sb.Append(s3);
-                sb.Append(s4);
-                sb.Append(s5);
-                sb.Append(s6);
-                sb.Append(s7);
-                sb.Append(s8);
-                sb.Append(s9);
-                sb.Append(s10);
-            }
-
-            _bigStringBuilder = sb;
+            return builder;
         }
 
         [Benchmark]
-        public string StringBuilderToString() => _bigStringBuilder.ToString();
-
-        [Benchmark]
-        public int AppendMemory()
+        public StringBuilder Append_Memory()
         {
             ReadOnlyMemory<char> memory = _string100.AsMemory();
             StringBuilder builder = new StringBuilder();
 
-            for (int j = 0; j < NUM_ITERS_APPEND; j++)
-                builder.Append(memory); // Appends a string of length "length" to an increasingly large StringBuilder
+            builder.Append(memory); builder.Append(memory); builder.Append(memory); builder.Append(memory);
+            builder.Append(memory); builder.Append(memory); builder.Append(memory); builder.Append(memory);
+            builder.Append(memory); builder.Append(memory); builder.Append(memory); builder.Append(memory);
+            builder.Append(memory); builder.Append(memory); builder.Append(memory); builder.Append(memory);
 
-            return builder.Length;
+            return builder;
+        }
+
+        [Benchmark]
+        public StringBuilder Insert_Strings()
+        {
+            StringBuilder builder = new StringBuilder();
+
+            builder.Insert(builder.Length / 1, "12345");
+            builder.Insert(builder.Length / 2, "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN");
+            builder.Insert(builder.Length / 3, "1234567890abcdefghijklmnopqrstuvwxy");
+            builder.Insert(builder.Length / 4, "1234567890");
+            builder.Insert(builder.Length / 5, "1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHI");
+            builder.Insert(builder.Length / 6, "1234567890abcde");
+            builder.Insert(builder.Length / 7, "1234567890abcdefghijklmnopqrstuvwxyzABCD");
+            builder.Insert(builder.Length / 8, "1234567890abcdefghijklmnopqrst");
+            builder.Insert(builder.Length / 9, "1234567890abcdefghij");
+            builder.Insert(builder.Length / 10, "1234567890abcdefghijklmno");
+
+            return builder;
         }
     }
 }
