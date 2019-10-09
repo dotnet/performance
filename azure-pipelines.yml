@@ -49,7 +49,7 @@ jobs:
 # Public correctness jobs
 ######################################################
 
-- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+- ${{ if and(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
