@@ -118,12 +118,6 @@ namespace PerfLabTests
         public static Object[] myClass2Arr;
         public static Object myObj;
 
-        // used to prevent potential compiler optimizations.
-        // as long as compiler/JIT does not look inside the method
-        // it generally needs to assume "anything can happen" 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void FakeSideEffects() { }
-
         static CastingPerf()
         {
             j = new int[NUM_ARRAY_ELEMENTS];
@@ -389,14 +383,7 @@ namespace PerfLabTests
         [Benchmark]
         public bool CheckArrayIsNonvariantGenericInterface()
         {
-            bool res = false;
-            for (int i = 0; i < InnerIterationCount; i++)
-            {
-                res = myObj is ICollection<MyClass2>;
-                FakeSideEffects();
-            }
-
-            return res;
+            return myObj is ICollection<MyClass2>;
         }
 
         [GlobalSetup(Target = nameof(CheckArrayIsNonvariantGenericInterfaceNo))]
@@ -405,14 +392,7 @@ namespace PerfLabTests
         [Benchmark]
         public bool CheckArrayIsNonvariantGenericInterfaceNo()
         {
-            bool res = false;
-            for (int i = 0; i < InnerIterationCount; i++)
-            { 
-                res = myObj is ICollection<Exception>;
-                FakeSideEffects();
-            }
-
-            return res;
+            return myObj is ICollection<Exception>;
         }
 
         [GlobalSetup(Target = nameof(CheckArrayIsArrayByVariance))]
@@ -421,14 +401,7 @@ namespace PerfLabTests
         [Benchmark]
         public bool CheckArrayIsArrayByVariance()
         {
-            bool res = false;
-            for (int i = 0; i < InnerIterationCount; i++)
-            { 
-                res = myObj is IMyInterface2[];
-                FakeSideEffects();
-            }
-
-            return res;
+            return myObj is IMyInterface2[];
         }
 
         [GlobalSetup(Target = nameof(CheckListIsVariantGenericInterface))]
@@ -437,14 +410,7 @@ namespace PerfLabTests
         [Benchmark]
         public bool CheckListIsVariantGenericInterface()
         {
-            bool res = false;
-            for (int i = 0; i < InnerIterationCount; i++)
-            { 
-                res = myObj is IReadOnlyCollection<object>;
-                FakeSideEffects();
-            }
-
-            return res;
+            return myObj is IReadOnlyCollection<object>;
         }
 
         [GlobalSetup(Target = nameof(CheckArrayIsVariantGenericInterfaceNo))]
@@ -453,43 +419,23 @@ namespace PerfLabTests
         [Benchmark]
         public bool CheckArrayIsVariantGenericInterfaceNo()
         {
-            bool res = false;
-            for (int i = 0; i < InnerIterationCount; i++)
-            { 
-                res = myObj is IReadOnlyCollection<Exception>;
-                FakeSideEffects();
-            }
-
-            return res;
+            return myObj is IReadOnlyCollection<Exception>;
         }
 
         [GlobalSetup(Target = nameof(AssignArrayElementByVariance))]
         public void SetupAssignArrayElementByVariance() => myClass2Arr = new IReadOnlyCollection<object>[5];
 
         [Benchmark]
-        public bool AssignArrayElementByVariance()
+        public void AssignArrayElementByVariance()
         {
-            bool res = false;
-            for (int i = 0; i < InnerIterationCount; i++)
-            { 
-                myClass2Arr[0] = myClass2Arr;
-                FakeSideEffects();
-            }
-
-            return res;
+            // no return is needed. The cast is potentially throwing and thus is not optimizable.
+            myClass2Arr[0] = myClass2Arr;
         }
 
         [Benchmark]
         public bool CheckArrayIsVariantGenericInterfaceReflection()
         {
-            bool res = false;
-            for (int i = 0; i < InnerIterationCount; i++)
-            { 
-                res = typeof(IReadOnlyCollection<object>).IsAssignableFrom(typeof(MyClass2[]));
-                FakeSideEffects();
-            }
-
-            return res;
+            return typeof(IReadOnlyCollection<object>).IsAssignableFrom(typeof(MyClass2[]));
         }
     }
 }
