@@ -63,7 +63,7 @@ namespace System.Collections
             return result;
         }
 
-#if NETCOREAPP3_0
+#if !NETFRAMEWORK && !NETCOREAPP2_1 && !NETCOREAPP2_2
         [BenchmarkCategory(Categories.Span)]
         [Benchmark]
         public bool Span()

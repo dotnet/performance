@@ -11,14 +11,25 @@ namespace BenchmarkDotNet.Extensions
 {
     public static class RecommendedConfig
     {
-        public static IConfig Create(DirectoryInfo artifactsPath, ImmutableHashSet<string> mandatoryCategories, int? partitionCount = null, int? partitionIndex = null)
-            => DefaultConfig.Instance
-                .With(Job.Default
+        public static IConfig Create(
+            DirectoryInfo artifactsPath,
+            ImmutableHashSet<string> mandatoryCategories,
+            int? partitionCount = null,
+            int? partitionIndex = null,
+            Job job = null)
+        {
+            if (job is null)
+            {
+                job = Job.Default
                     .WithWarmupCount(1) // 1 warmup is enough for our purpose
                     .WithIterationTime(TimeInterval.FromMilliseconds(250)) // the default is 0.5s per iteration, which is slighlty too much for us
                     .WithMinIterationCount(15)
                     .WithMaxIterationCount(20) // we don't want to run more that 20 iterations
-                    .AsDefault()) // tell BDN that this are our default settings
+                    .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
+            }
+
+            return DefaultConfig.Instance
+                .With(job.AsDefault()) // tell BDN that this are our default settings
                 .WithArtifactsPath(artifactsPath.FullName)
                 .With(MemoryDiagnoser.Default) // MemoryDiagnoser is enabled by default
                 .With(new OperatingSystemFilter())
@@ -29,5 +40,6 @@ namespace BenchmarkDotNet.Extensions
                 .With(TooManyTestCasesValidator.FailOnError)
                 .With(new UniqueArgumentsValidator()) // don't allow for duplicated arguments #404
                 .With(new MandatoryCategoryValidator(mandatoryCategories));
+        }
     }
 }

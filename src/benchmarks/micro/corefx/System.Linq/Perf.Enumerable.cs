@@ -69,10 +69,12 @@ namespace System.Linq.Tests
 
         public IEnumerable<object> FirstPredicateArguments()
         {
-            // First(predicate) has 2 code paths: OrderedEnumerable and IEnumerable
-            // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/First.cs
+            // First(predicate) has 4 code paths: OrderedEnumerable, Array, List, and IEnumerable
+            // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/First.cs
 
             yield return LinqTestData.IOrderedEnumerable;
+            yield return LinqTestData.Array;
+            yield return LinqTestData.List;
             yield return LinqTestData.IEnumerable;
         }
 
@@ -105,10 +107,10 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(WhereArguments))]
         public bool WhereAny_LastElementMatches(LinqTestData input) => input.Collection.Where(i => i >= LinqTestData.Size - 1).Any();
 
-        // Any() has no special treatment and it has a single execution path
-        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/AnyAll.cs
+        // Any uses TryGetFirst internally.
+        // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/First.cs
         [Benchmark]
-        [ArgumentsSource(nameof(IEnumerableArgument))]
+        [ArgumentsSource(nameof(FirstPredicateArguments))]
         public bool AnyWithPredicate_LastElementMatches(LinqTestData input) => input.Collection.Any(i => i >= LinqTestData.Size - 1);
 
         // All() has no special treatment and it has a single execution path
@@ -129,23 +131,26 @@ namespace System.Linq.Tests
         [ArgumentsSource(nameof(WhereArguments))]
         public int WhereSingleOrDefault_LastElementMatches(LinqTestData input) => input.Collection.Where(i => i >= LinqTestData.Size - 1).SingleOrDefault();
 
-        // Single() has no special treatment and it has a single execution path
-        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Single.cs
+        public IEnumerable<object> SinglePredicateArguments()
+        {
+            // Single(predicate) has 3 code paths: Array, List, and IEnumerable
+            // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/First.cs
+
+            yield return LinqTestData.Array;
+            yield return LinqTestData.List;
+            yield return LinqTestData.IEnumerable;
+        }
+
         [Benchmark]
-        [ArgumentsSource(nameof(IEnumerableArgument))]
+        [ArgumentsSource(nameof(SinglePredicateArguments))]
         public int SingleWithPredicate_LastElementMatches(LinqTestData input) => input.Collection.Single(i => i >= LinqTestData.Size - 1);
 
-        // Single() has no special treatment and it has a single execution path
-        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Single.cs
         [Benchmark]
-        [ArgumentsSource(nameof(IEnumerableArgument))]
-        public int SingleOrDefaultWithPredicate_LastElementMatches(LinqTestData input) => input.Collection.SingleOrDefault(i => i >= LinqTestData.Size - 1);
+        [ArgumentsSource(nameof(SinglePredicateArguments))]
+        public int SingleWithPredicate_FirstElementMatches(LinqTestData input) => input.Collection.Single(i => i <= 0);
 
-        // Single() has no special treatment and it has a single execution path
-        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Single.cs
-        [Benchmark]
-        [ArgumentsSource(nameof(IEnumerableArgument))]
-        public int SingleOrDefaultWithPredicate_FirstElementMatches(LinqTestData input) => input.Collection.SingleOrDefault(i => i <= 0);
+        // SingleOrDefault() runs the same code as Single, except that it does not throw. Benchmarking it does not add any value so it go removed.
+        // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/First.cs
 
         // Cast has no special treatment and it has a single execution path
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Cast.cs
@@ -397,7 +402,7 @@ namespace System.Linq.Tests
         [Benchmark]
         public void EmptyTakeSelectToArray() => Enumerable.Empty<int>().Take(10).Select(i => i).ToArray();
 
-#if NETCOREAPP3_0 // API Available in .NET Core 3.0+
+#if !NETFRAMEWORK && !NETCOREAPP2_1 && !NETCOREAPP2_2 // API Available in .NET Core 3.0+
         // Append() has two execution paths: AppendPrependIterator (a result of another Append or Prepend) and IEnumerable, this benchmark tests both
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/AppendPrepend.cs
         [Benchmark]

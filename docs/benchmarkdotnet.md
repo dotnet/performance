@@ -59,7 +59,7 @@ In order to build or run the benchmarks you will need the **.NET Core command-li
 
 ### Using .NET Cli
 
-To build the benchmarks you need to have the right `dotnet cli`. This repository allows to benchmark .NET Core 2.0, 2.1, 2.2 and 3.0 so you need to install all of them.
+To build the benchmarks you need to have the right `dotnet cli`. This repository allows to benchmark .NET Core 2.0, 2.1, 2.2, 3.0 and 5.0 so you need to install all of them.
 
 All you need to do is run the following command:
 
@@ -230,7 +230,7 @@ The results include managed memory statistics from [Memory Diagnoser](http://ada
 |      0.0087 |           - |           - |                64 B |
 
 - Allocated contains the size of the allocated **managed** memory. **Stackalloc/native heap allocations are not -included.** It's per single invocation, **inclusive**.
-- **For .NET Core the Allocated Memory is only for the current thread**, see [#723](https://github.com/dotnet/BenchmarkDotNet/issues/723) for more.
+- **For .NET Core 3.0 preview6+ the Allocated Memory is for all threads that were live during the benchmark execution. Before .NET Core 3.0 preview6+ the Allocated Memory is only for the current thread**.
 - The `Gen X/1k Op` column contains the number of `Gen X` collections per ***1 000*** Operations. If the value is- equal 1, then it means that GC collects memory once per one thousand of benchmark invocations in generation -`X`. BenchmarkDotNet is using some heuristic when running benchmarks, so the number of invocations can be -different for different runs. Scaling makes the results comparable.
 - `-` in the Gen column means that no garbage collection was performed.
 

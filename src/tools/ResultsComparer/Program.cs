@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Xml;
 using BenchmarkDotNet.Mathematics;
 using BenchmarkDotNet.Mathematics.StatisticalTesting;
 using CommandLine;
@@ -57,6 +58,7 @@ namespace ResultsComparer
             PrintTable(notSame, EquivalenceTestConclusion.Faster, args);
 
             ExportToCsv(notSame, args.CsvPath);
+            ExportToXml(notSame, args.XmlPath);
         }
 
         private static IEnumerable<(string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)> GetNotSameResults(CommandLineOptions args, Threshold testThreshold, Threshold noiseThreshold)
@@ -183,6 +185,53 @@ namespace ResultsComparer
             }
 
             Console.WriteLine($"CSV results exported to {csvPath.FullName}");
+        }
+
+        private static void ExportToXml((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame, FileInfo xmlPath)
+        {
+            if (xmlPath == null)
+            {  
+                Console.WriteLine("No file given");
+                return;
+            }
+
+             if (xmlPath.Exists)
+                xmlPath.Delete();
+
+            using (XmlWriter writer = XmlWriter.Create(xmlPath.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write)))
+            {
+                writer.WriteStartElement("performance-tests");
+                foreach (var slower in notSame.Where(x => x.conclusion == EquivalenceTestConclusion.Slower))
+                {
+                    writer.WriteStartElement("test");
+                    writer.WriteAttributeString("name", slower.id);
+                    writer.WriteAttributeString("type", slower.baseResult.Type);
+                    writer.WriteAttributeString("method", slower.baseResult.Method);
+                    writer.WriteAttributeString("time", "0");
+                    writer.WriteAttributeString("result", "Fail");
+                    writer.WriteStartElement("failure");
+                    writer.WriteAttributeString("exception-type", "Regression");
+                    writer.WriteElementString("message", $"{slower.id} has regressed, was {slower.baseResult.Statistics.Median} is {slower.diffResult.Statistics.Median}.");
+                    writer.WriteEndElement();
+                }
+
+                foreach (var faster in notSame.Where(x => x.conclusion == EquivalenceTestConclusion.Faster))
+                {
+                    writer.WriteStartElement("test");
+                    writer.WriteAttributeString("name", faster.id);
+                    writer.WriteAttributeString("type", faster.baseResult.Type);
+                    writer.WriteAttributeString("method", faster.baseResult.Method);
+                    writer.WriteAttributeString("time", "0");
+                    writer.WriteAttributeString("result", "Skip");
+                    writer.WriteElementString("reason", $"{faster.id} has improved, was {faster.baseResult.Statistics.Median} is {faster.diffResult.Statistics.Median}.");
+                    writer.WriteEndElement();
+                }
+
+                writer.WriteEndElement();
+                writer.Flush();
+            }
+
+            Console.WriteLine($"XML results exported to {xmlPath.FullName}");
         }
 
         private static string[] GetFilesToParse(string path)

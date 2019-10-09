@@ -29,6 +29,9 @@ namespace ResultsComparer
         [Option("csv", HelpText = "Path to exported CSV results. Optional.")]
         public FileInfo CsvPath { get; set; }
 
+        [Option("xml", HelpText = "Path to exported XML results. Optional.")]
+        public FileInfo XmlPath { get; set; }
+
         [Option('f', "filter", HelpText = "Filter the benchmarks by name using glob pattern(s). Optional.")]
         public IEnumerable<string> Filters { get; set; }
 

@@ -61,7 +61,7 @@ namespace System.Text.Json.Tests
             }
         }
 
-        private static ReadOnlySequence<byte> GetSequence(byte[] dataUtf8, int segmentSize)
+        internal static ReadOnlySequence<byte> GetSequence(byte[] dataUtf8, int segmentSize)
         {
             int numberOfSegments = dataUtf8.Length / segmentSize + 1;
             byte[][] buffers = new byte[numberOfSegments][];

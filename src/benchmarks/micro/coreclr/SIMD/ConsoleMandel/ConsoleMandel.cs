@@ -51,9 +51,15 @@ namespace SIMD
         }
 
         [Benchmark]
-        public void VectorFloatSinglethreadRawNoInt() => XBench(10, 8);
+        public void VectorFloatSinglethreadRaw() => XBench(10, 16);
 
         [Benchmark]
-        public void VectorFloatSinglethreadADTNoInt() => XBench(10, 9);
+        public void VectorFloatSinglethreadADT() => XBench(10, 17);
+
+        [Benchmark]
+        public void VectorDoubleSinglethreadRaw() => XBench(10, 20);
+
+        [Benchmark]
+        public void VectorDoubleSinglethreadADT() => XBench(10, 21);
     }
 }

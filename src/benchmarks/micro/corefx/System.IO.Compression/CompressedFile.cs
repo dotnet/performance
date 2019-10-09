@@ -32,7 +32,7 @@ namespace System.IO.Compression
 
         public override string ToString() => Name;
 
-        private static string GetFilePath(string fileName) 
+        internal static string GetFilePath(string fileName) 
             => Path.Combine(
                 Path.GetDirectoryName(typeof(CompressedFile).Assembly.Location), 
                 "corefx", "System.IO.Compression", "TestData",

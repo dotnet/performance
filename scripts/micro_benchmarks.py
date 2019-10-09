@@ -63,7 +63,8 @@ class FrameworkAction(Action):
     @staticmethod
     def __get_target_framework_moniker_channel_map() -> dict:
         return {
-            'netcoreapp3.0': 'master',
+            'netcoreapp5.0': 'master',
+            'netcoreapp3.0': 'release/3.1.1xx',
             'netcoreapp2.2': '2.2',
             'netcoreapp2.1': '2.1',
             # For Full Framework download the LTS for dotnet cli.
@@ -84,11 +85,11 @@ class FrameworkAction(Action):
     @staticmethod
     def get_branch(target_framework_moniker: str) -> str:
         '''
-        Attemps to retrieve the channel that can be used to download the
-        DotNet Cli tools.
+        Attemps to retrieve the branch name for reporting purposes
         '''
         dct = {
-            'netcoreapp3.0': 'master',
+            'netcoreapp5.0': 'master',
+            'netcoreapp3.0': 'release/3.1.1xx',
             'netcoreapp2.2': 'release/2.2',
             'netcoreapp2.1': 'release/2.1',
             # For Full Framework download the LTS for dotnet cli.
@@ -105,7 +106,7 @@ class FrameworkAction(Action):
         To run CoreRT benchmarks we need to run the host BDN process as latest
         .NET Core the host process will build and run CoreRT benchmarks
         '''
-        return 'netcoreapp3.0' if framework == 'corert' else framework
+        return 'netcoreapp5.0' if framework == 'corert' else framework
 
     @staticmethod
     def get_target_framework_monikers(frameworks: list) -> list:
@@ -119,7 +120,7 @@ class FrameworkAction(Action):
             for framework in frameworks
         ]
 
-        # ['netcoreapp3.0', 'corert'] should become ['netcoreapp3.0']
+        # ['netcoreapp5.0', 'corert'] should become ['netcoreapp5.0']
         return list(set(monikers))
 
 
