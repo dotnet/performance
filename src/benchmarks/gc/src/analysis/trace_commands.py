@@ -26,7 +26,7 @@ from ..commonlib.option import map_option, non_null, option_or
 from ..commonlib.type_utils import argument, with_slots
 from ..commonlib.util import opt_max, seconds_to_msec
 
-from .setup_clr import Clr, get_clr
+from .clr import Clr, get_clr
 from .clr_types import AbstractEtlxTraceProcess, AbstractTracedProcesses
 from .core_analysis import get_traced_processes, TRACE_PATH_DOC, try_get_runtime
 from .process_trace import test_result_from_path

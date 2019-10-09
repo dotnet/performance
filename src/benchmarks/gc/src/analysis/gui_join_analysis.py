@@ -30,7 +30,7 @@ from ..commonlib.result_utils import map_ok
 from ..commonlib.type_utils import with_slots
 from ..commonlib.util import lazy_property
 
-from .setup_clr import Clr
+from .clr import Clr
 from .clr_types import AbstractServerGcHistory, AbstractTraceGC
 from .enums import GcJoinPhase, GcJoinStage, GcJoinTime, GcJoinType, ServerGCThreadState
 

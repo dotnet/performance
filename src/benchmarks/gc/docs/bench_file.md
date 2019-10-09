@@ -199,6 +199,9 @@ complus_gcnoaffinitize: `bool | None`
 complus_gccpugroup: `bool | None`
   Set to true to enable CPU groups.
 
+complus_gcnumaaware: `bool | None`
+  Set to false to disable NUMA-awareness in GC
+
 complus_thread_useallcpugroups: `bool | None`
   Set to true to automatically distribute threads across CPU Groups
 

@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Mapping, Optional
 
 from ..analysis.core_analysis import get_process_info, process_predicate_from_id
-from ..analysis.setup_clr import Clr, get_clr
+from ..analysis.clr import Clr, get_clr
 
 from ..commonlib.bench_file import (
     BenchFileAndPath,
@@ -167,7 +167,7 @@ def _run_all_benchmarks(
     no_check_runs: bool,
 ) -> None:
     host_info = read_this_machines_host_info()
-    clr = get_clr()
+    clr = None if no_check_runs else get_clr()
     default_env = check_env()
     for t in iter_tests_to_run(bench, get_this_machine(), max_iterations, out_dir):
         now = datetime.now().strftime("%H:%M:%S")
@@ -184,7 +184,7 @@ def _run_all_benchmarks(
                 ),
                 t.out,
             )
-            if test_status.success and not no_check_runs:
+            if clr is not None and test_status.success:
                 trace_file = t.out.trace_file_path(test_status)
                 if trace_file is not None:
                     _check_test_run(clr, t.config, trace_file, host_info, test_status.process_id)

@@ -28,7 +28,7 @@ from ..commonlib.command import (
     CommandsMapping,
     parse_command_args,
 )
-from ..commonlib.config import ROOT_PATH
+from ..commonlib.config import GC_PATH
 from ..commonlib.type_utils import argument, T, U, with_slots
 from ..commonlib.util import ExecArgs, exec_and_get_output, exec_cmd
 
@@ -71,7 +71,7 @@ def _prefix(up: _UserAndPass) -> Sequence[str]:
         "-p",
         up.password,
         "-w",
-        str(ROOT_PATH),  # Assumes this is in the same directory on all machines
+        str(GC_PATH),  # Assumes this is in the same directory on all machines
     )
 
 

@@ -16,7 +16,7 @@ from ..commonlib.collection_util import find_only, is_empty, try_find_only, TryF
 from ..commonlib.option import map_option, non_null, optional_to_iter
 from ..commonlib.type_utils import check_cast, with_slots
 
-from .setup_clr import Clr, SYMBOL_PATH
+from .clr import Clr, SYMBOL_PATH
 from .clr_types import (
     AbstractEtlTrace,
     AbstractTraceCallStack,

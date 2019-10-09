@@ -28,7 +28,7 @@ from ..commonlib.result_utils import match
 from ..commonlib.type_utils import argument, with_slots
 
 from .analyze_joins import show_time_span_start_end
-from .setup_clr import get_clr
+from .clr import get_clr
 from .core_analysis import GC_NUMBER_DOC, PROCESS_DOC, SINGLE_PATH_DOC, TRACE_PATH_DOC
 from .parse_metrics import (
     get_parsed_and_score_metrics,

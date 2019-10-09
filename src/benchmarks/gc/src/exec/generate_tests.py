@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Callable, cast, Dict, Iterable, Mapping, Optional, Sequence, Type
 
 from ..analysis.run_metrics import get_final_youngest_desired_bytes_for_process
-from ..analysis.setup_clr import get_clr
+from ..analysis.clr import get_clr
 
 from ..commonlib.bench_file import (
     BenchFile,

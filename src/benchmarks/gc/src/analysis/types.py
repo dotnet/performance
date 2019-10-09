@@ -45,7 +45,7 @@ from ..commonlib.util import (
     stdev_frac,
 )
 
-from .setup_clr import Clr
+from .clr import Clr
 from .clr_types import (
     AbstractGCPerHeapHistory,
     AbstractGCPerHeapHistoryGenData,
@@ -1264,6 +1264,13 @@ class ProcessedTrace:
                     - ts.StartMSec
                 )
             )
+
+    @property
+    def TotalNonGCSeconds(self) -> FailableFloat:
+        return map_ok(
+            self.FirstToLastEventSeconds,
+            lambda t: t - msec_to_seconds(sum(gc.PauseDurationMSec for gc in self.gcs)),
+        )
 
     @property
     def FirstToLastEventSeconds(self) -> FailableFloat:

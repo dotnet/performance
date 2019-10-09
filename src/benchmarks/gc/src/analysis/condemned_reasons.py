@@ -23,7 +23,7 @@ from ..commonlib.document import (
 )
 from ..commonlib.type_utils import argument, enum_count, enum_value, with_slots
 
-from .setup_clr import get_clr
+from .clr import get_clr
 from .clr_types import AbstractGCCondemnedReasons
 from .core_analysis import GC_NUMBER_DOC, PROCESS_DOC, SINGLE_PATH_DOC
 from .enums import Gens, gen_short_name

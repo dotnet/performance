@@ -18,12 +18,12 @@ from typing import Any, Callable, cast, Dict, Optional, Sequence, Tuple
 from flask import Flask, jsonify, request, Request, Response, send_from_directory
 
 from ..commonlib.collection_util import find_only_matching
-from ..commonlib.config import CWD, ROOT_PATH
+from ..commonlib.config import CWD, GC_PATH
 from ..commonlib.parse_and_serialize import to_serializable
 from ..commonlib.result_utils import match
 from ..commonlib.type_utils import with_slots
 
-from .setup_clr import get_clr
+from .clr import get_clr
 from .clr_types import AbstractTraceGC, AbstractTraceLog, AbstractTraceProcess
 from .core_analysis import (
     find_process,
@@ -58,7 +58,7 @@ class App:
     load_etl_and_get_process_id: Tuple[Callable[[Path, ProcessPredicate], int],]
 
 
-_GUI_DIR = ROOT_PATH / "gui"
+_GUI_DIR = GC_PATH / "gui"
 
 
 def get_app() -> App:

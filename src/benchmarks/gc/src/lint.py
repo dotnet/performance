@@ -20,7 +20,7 @@ from .commonlib.command import (
     CommandsMapping,
     validate_all_commands_are_documented,
 )
-from .commonlib.config import ROOT_PATH, SRC_PATH
+from .commonlib.config import GC_PATH, SRC_PATH
 from .commonlib.document_type import update_benchfile_md
 from .commonlib.host_info import read_this_machines_host_info
 from .commonlib.type_utils import argument, with_slots
@@ -45,8 +45,8 @@ def _lint(args: _LintArgs) -> None:
         return [Path(file) for file in glob(f"{SRC_PATH}/**/*.{ext}", recursive=True)]
 
     py_files = [
-        ROOT_PATH / "__main__.py",
-        ROOT_PATH / "jupyter_notebook.py",
+        GC_PATH / "__main__.py",
+        GC_PATH / "jupyter_notebook.py",
         *(file for file in get_files("py") if file.name != "dead_code.py"),
     ]
     py_files_minus_jupyter = [file for file in py_files if file.name != "jupyter_notebook.ipynb"]
@@ -177,9 +177,9 @@ def _check_license() -> None:
 
 def _all_non_ignored_files() -> Iterable[Path]:
     """All source files, whether Python, C, or C#."""
-    matches = parse_gitignore(ROOT_PATH / ".gitignore")
+    matches = parse_gitignore(GC_PATH / ".gitignore")
     return walk_files_recursive(
-        ROOT_PATH,
+        GC_PATH,
         # '.git' should be implicit in gitignore, but parse_gitignore doesn't handle that
         filter_dir=lambda dir_path: dir_path.name != ".git" and not matches(dir_path),
     )

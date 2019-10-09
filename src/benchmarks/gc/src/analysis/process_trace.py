@@ -14,7 +14,7 @@ from ..commonlib.option import map_option, non_null
 from ..commonlib.result_utils import map_ok, match
 from ..commonlib.util import change_extension, show_size_bytes
 
-from .setup_clr import Clr, get_clr
+from .clr import Clr, get_clr
 from .clr_types import (
     AbstractGCPerHeapHistory,
     AbstractJoinInfoForGC,

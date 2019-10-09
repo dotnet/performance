@@ -18,7 +18,7 @@ from typing import Iterable, Iterator, Mapping, Optional, Sequence, Tuple
 from psutil import process_iter
 
 from ..analysis.core_analysis import get_process_info, process_predicate_from_id
-from ..analysis.setup_clr import Clr
+from ..analysis.clr import Clr
 from ..analysis.types import ProcessInfo
 
 from ..commonlib.bench_file import (
@@ -41,7 +41,7 @@ from ..commonlib.collection_util import (
     find,
     is_empty,
 )
-from ..commonlib.config import ROOT_PATH, EXEC_ENV_PATH, PERFVIEW_PATH
+from ..commonlib.config import GC_PATH, EXEC_ENV_PATH, PERFVIEW_PATH
 from ..commonlib.option import map_option, non_null, optional_to_iter, option_or, option_or_3
 from ..commonlib.parse_and_serialize import parse_yaml
 from ..commonlib.type_utils import with_slots
@@ -189,7 +189,7 @@ def _do_run_single_test(built: Built, t: SingleTest, out: TestPaths) -> _Partial
 # Use this instead of TemporaryDirectory if you want to analyze the output
 @contextmanager
 def NonTemporaryDirectory(name: str) -> Iterator[Path]:
-    yield ROOT_PATH / "temp" / (name + str(randint(0, 99)))
+    yield GC_PATH / "temp" / (name + str(randint(0, 99)))
 
 
 def run_single_test_temporary(clr: Clr, built: Built, t: SingleTest) -> ProcessInfo:

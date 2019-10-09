@@ -100,6 +100,7 @@ Only has effect when complus_gcserver is set.
 @doc_field("complus_gclargepages", "Set to true to enable large pages.")
 @doc_field("complus_gcnoaffinitize", "Set to true to prevent affinitizing GC threads to cpu cores.")
 @doc_field("complus_gccpugroup", "Set to true to enable CPU groups.")
+@doc_field("complus_gcnumaaware", "Set to false to disable NUMA-awareness in GC")
 @doc_field(
     "complus_thread_useallcpugroups",
     "Set to true to automatically distribute threads across CPU Groups",
@@ -149,6 +150,7 @@ class Config:
     complus_gclargepages: Optional[bool] = None
     complus_gcnoaffinitize: Optional[bool] = None
     complus_gccpugroup: Optional[bool] = None
+    complus_gcnumaaware: Optional[bool] = None
     complus_thread_useallcpugroups: Optional[bool] = None
     complus_threadpool_forcemaxworkerthreads: Optional[int] = None
     complus_tieredcompilation: Optional[bool] = None
@@ -270,6 +272,7 @@ class TestConfigCombined:
             ob("COMPlus_GCLargePages", cfg.complus_gclargepages),
             ob("COMPlus_GCNoAffinitize", cfg.complus_gcnoaffinitize),
             ob("COMPlus_GCCpuGroup", cfg.complus_gccpugroup),
+            ob("COMPlus_GCNumaAware", cfg.complus_gcnumaaware),
             ob("COMPlus_Thread_UseAllCpuGroups", cfg.complus_thread_useallcpugroups),
             od(
                 "COMPlus_ThreadPool_ForceMaxWorkerThreads",

@@ -4,11 +4,7 @@
 
 from typing import Any, cast, Sequence, Type
 
-from ..commonlib.get_built import (
-    throw_if_gcperf_is_out_of_date,
-    GCPERF_DLL_PATH,
-    TRACEEVENT_DLL_PATH,
-)
+from ..commonlib.get_built import get_built_gcperf
 from ..commonlib.type_utils import T
 
 from .clr_types import (
@@ -44,24 +40,10 @@ from .clr_types import (
 )
 
 
+# This class contains no data, but is passed around as proof that we've set up CLR.
 class Clr:
-    _is_setup = False
-
-    def _ensure_setup(self) -> None:
-        if not self._is_setup:
-            # Import this lazily because pythonnet is hard to install on some machines,se
-            # and some commands can do without it
-            from clr import AddReference
-
-            throw_if_gcperf_is_out_of_date()
-
-            for path in ("System.Collections", str(GCPERF_DLL_PATH), str(TRACEEVENT_DLL_PATH)):
-                AddReference(path)
-            self._is_setup = True
-
     @property
     def _system(self) -> Any:
-        self._ensure_setup()
         # pylint:disable=import-outside-toplevel
         import System  # type: ignore
 
@@ -69,56 +51,48 @@ class Clr:
 
     @property
     def _tracing(self) -> Any:
-        self._ensure_setup()
         from Microsoft.Diagnostics import Tracing  # type: ignore
 
         return Tracing
 
     @property
     def _symbols(self) -> Any:
-        self._ensure_setup()
         from Microsoft.Diagnostics import Symbols
 
         return Symbols
 
     @property
     def _analysis(self) -> Any:
-        self._ensure_setup()
         from Microsoft.Diagnostics.Tracing import Analysis  # type: ignore
 
         return Analysis
 
     @property
     def _cap_gc(self) -> Any:
-        self._ensure_setup()
         from Microsoft.Diagnostics.Tracing.Analysis.Cap import GC  # type: ignore
 
         return GC
 
     @property
     def _gc(self) -> Any:
-        self._ensure_setup()
         from Microsoft.Diagnostics.Tracing.Analysis import GC  # type: ignore
 
         return GC
 
     @property
     def _etlx(self) -> Any:
-        self._ensure_setup()
         from Microsoft.Diagnostics.Tracing import Etlx
 
         return Etlx
 
     @property
     def _clr(self) -> Any:
-        self._ensure_setup()
         from Microsoft.Diagnostics.Tracing.Parsers import Clr as ClrParser  # type: ignore
 
         return ClrParser
 
     @property
     def _gcperf(self) -> Any:
-        self._ensure_setup()
         # pylint:disable=import-outside-toplevel
         import GCPerf  # type: ignore
 
@@ -126,21 +100,18 @@ class Clr:
 
     @property
     def _io(self) -> Any:
-        self._ensure_setup()
         from System import IO
 
         return IO
 
     @property
     def _reflection(self) -> Any:
-        self._ensure_setup()
         from System import Reflection
 
         return Reflection
 
     @property
     def _stacks(self) -> Any:
-        self._ensure_setup()
         from Microsoft.Diagnostics.Tracing import Stacks
 
         return Stacks
@@ -286,6 +257,12 @@ class Clr:
 
 
 def get_clr() -> Clr:
+    # Import this lazily because pythonnet is hard to install on some machines,
+    # and some commands can do without it
+    from clr import AddReference
+
+    for path in ("System.Collections", *(str(d) for d in get_built_gcperf())):
+        AddReference(path)
     return Clr()
 
 
