@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -116,6 +117,10 @@ namespace PerfLabTests
         public static Object[] myClass1Arr;
         public static Object[] myClass2Arr;
         public static Object myObj;
+
+        // to make 
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void FakeSideEffects() { }
 
         static CastingPerf()
         {
@@ -384,7 +389,10 @@ namespace PerfLabTests
         {
             bool res = false;
             for (int i = 0; i < InnerIterationCount; i++)
+            {
                 res = myObj is ICollection<MyClass2>;
+                FakeSideEffects();
+            }
 
             return res;
         }
@@ -397,7 +405,10 @@ namespace PerfLabTests
         {
             bool res = false;
             for (int i = 0; i < InnerIterationCount; i++)
+            { 
                 res = myObj is ICollection<Exception>;
+                FakeSideEffects();
+            }
 
             return res;
         }
@@ -410,7 +421,10 @@ namespace PerfLabTests
         {
             bool res = false;
             for (int i = 0; i < InnerIterationCount; i++)
+            { 
                 res = myObj is IMyInterface2[];
+                FakeSideEffects();
+            }
 
             return res;
         }
@@ -423,7 +437,10 @@ namespace PerfLabTests
         {
             bool res = false;
             for (int i = 0; i < InnerIterationCount; i++)
+            { 
                 res = myObj is IReadOnlyCollection<object>;
+                FakeSideEffects();
+            }
 
             return res;
         }
@@ -436,7 +453,10 @@ namespace PerfLabTests
         {
             bool res = false;
             for (int i = 0; i < InnerIterationCount; i++)
+            { 
                 res = myObj is IReadOnlyCollection<Exception>;
+                FakeSideEffects();
+            }
 
             return res;
         }
@@ -449,7 +469,10 @@ namespace PerfLabTests
         {
             bool res = false;
             for (int i = 0; i < InnerIterationCount; i++)
+            { 
                 myClass2Arr[0] = myClass2Arr;
+                FakeSideEffects();
+            }
 
             return res;
         }
@@ -459,7 +482,10 @@ namespace PerfLabTests
         {
             bool res = false;
             for (int i = 0; i < InnerIterationCount; i++)
+            { 
                 res = typeof(IReadOnlyCollection<object>).IsAssignableFrom(typeof(MyClass2[]));
+                FakeSideEffects();
+            }
 
             return res;
         }
