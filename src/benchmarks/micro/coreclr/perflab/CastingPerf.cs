@@ -118,7 +118,9 @@ namespace PerfLabTests
         public static Object[] myClass2Arr;
         public static Object myObj;
 
-        // to make 
+        // used to prevent potential compiler optimizations.
+        // as long as compiler/JIT does not look inside the method
+        // it generally needs to assume "anything can happen" 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void FakeSideEffects() { }
 
