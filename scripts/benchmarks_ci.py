@@ -253,6 +253,7 @@ def __main(args: list) -> int:
                 '*perf-lab-report.json')
 
             upload.upload(globpath, UPLOAD_CONTAINER, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+            upload.upload_and_queue(globpath, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
                 
         # TODO: Archive artifacts.
 

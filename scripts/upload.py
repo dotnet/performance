@@ -1,4 +1,5 @@
 from azure.storage.blob import BlobClient, ContentSettings
+from azure.storage.queue import QueueService
 from traceback import format_exc
 from glob import glob
 import os
@@ -11,6 +12,35 @@ def get_unique_name(filename, unique_id) -> str:
     if len(newname) > 1024:
         newname = "{0}-perf-lab-report.json".format(randint(1000, 9999))
     return newname
+
+def upload_and_queue(globpath, container, queue, sas_token_env, storage_account_uri):
+    try:
+        sas_token_env = sas_token_env
+        sas_token = os.getenv(sas_token_env)
+        if sas_token is None:
+            getLogger().error("Sas token environment variable {} was not defined.".format(sas_token_env))
+            return 1
+
+        files = glob(globpath, recursive=True)
+
+        for infile in files:
+            blob_name = get_unique_name(infile, os.getenv('HELIX_WORKITEM_ID'))
+
+            getLogger().info("uploading {} to storage account".format(infile))
+
+            blob_client = BlobClient(blob_url=storage_account_uri, container=container, blob=blob_name, credential=sas_token)
+            
+            with open(infile, "rb") as data:
+                blob_client.upload_blob(data, blob_type="BlockBlob", content_settings=ContentSettings(content_type="application/json"))
+
+            queue_service = QueueService(account_name='pvscmdupload', sas_token)
+            queue_service.put_message(queue, blob_client.url)
+            getLogger().info("upload complete")
+
+    except Exception as ex:
+        getLogger().error('{0}: {1}'.format(type(ex), str(ex)))
+        getLogger().error(format_exc())
+        return 1
 
 def upload(globpath, container, sas_token_env, storage_account_uri):
     try:
