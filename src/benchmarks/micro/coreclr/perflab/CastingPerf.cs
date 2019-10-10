@@ -375,8 +375,13 @@ namespace PerfLabTests
             return res;
         }
 
-        [GlobalSetup(Target = nameof(CheckArrayIsNonvariantGenericInterface))]
-        public void SetupCheckArrayIsNonvariantGenericInterface() => myObj = new MyClass2[5];
+        [GlobalSetup(Targets = new[] { 
+            nameof(CheckArrayIsNonvariantGenericInterface), 
+            nameof(CheckArrayIsNonvariantGenericInterfaceNo),
+            nameof(CheckArrayIsArrayByVariance),
+            nameof(CheckListIsVariantGenericInterface),
+            nameof(CheckArrayIsVariantGenericInterfaceNo)})]
+        public void SetupMyObj() => myObj = new MyClass2[5];
 
         [Benchmark]
         public bool CheckArrayIsNonvariantGenericInterface()
@@ -384,17 +389,11 @@ namespace PerfLabTests
             return myObj is ICollection<MyClass2>;
         }
 
-        [GlobalSetup(Target = nameof(CheckArrayIsNonvariantGenericInterfaceNo))]
-        public void SetupCheckArrayIsNonvariantGenericInterfaceNo() => myObj = new MyClass2[5];
-
         [Benchmark]
         public bool CheckArrayIsNonvariantGenericInterfaceNo()
         {
             return myObj is ICollection<Exception>;
         }
-
-        [GlobalSetup(Target = nameof(CheckArrayIsArrayByVariance))]
-        public void SetupCheckArrayIsArrayByVariance() => myObj = new MyClass2[5];
 
         [Benchmark]
         public bool CheckArrayIsArrayByVariance()
@@ -402,17 +401,11 @@ namespace PerfLabTests
             return myObj is IMyInterface2[];
         }
 
-        [GlobalSetup(Target = nameof(CheckListIsVariantGenericInterface))]
-        public void SetupCheckListIsVariantGenericInterface() => myObj = new List<MyClass2>();
-
         [Benchmark]
         public bool CheckListIsVariantGenericInterface()
         {
             return myObj is IReadOnlyCollection<object>;
         }
-
-        [GlobalSetup(Target = nameof(CheckArrayIsVariantGenericInterfaceNo))]
-        public void SetupCheckArrayIsVariantGenericInterfaceNo() => myObj = new MyClass2[5];
 
         [Benchmark]
         public bool CheckArrayIsVariantGenericInterfaceNo()
