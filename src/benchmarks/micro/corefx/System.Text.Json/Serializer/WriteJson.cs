@@ -28,6 +28,7 @@ namespace System.Text.Json.Serialization.Tests
     {
         private T _value;
         private MemoryStream _memoryStream;
+        private object _objectWithObjectProperty;
 
         [GlobalSetup]
         public async Task Setup()
@@ -36,6 +37,8 @@ namespace System.Text.Json.Serialization.Tests
 
             _memoryStream = new MemoryStream(capacity: short.MaxValue);
             await JsonSerializer.SerializeAsync(_memoryStream, _value);
+
+            _objectWithObjectProperty = new { Prop = (object)_value };
         }
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
@@ -56,7 +59,7 @@ namespace System.Text.Json.Serialization.Tests
 
         [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
         [Benchmark]
-        public string SerializeObjectProperty() => JsonSerializer.Serialize(new { Prop = (object)_value });
+        public string SerializeObjectProperty() => JsonSerializer.Serialize(_objectWithObjectProperty);
 
         [GlobalCleanup]
         public void Cleanup() => _memoryStream.Dispose();
