@@ -295,7 +295,7 @@ dotnet run -c Release -f netcoreapp2.2 --runtimes netcoreapp2.1 netcoreapp3.0
 
 ## Regressions
 
-To perform a Mann–Whitney U Test and display the results in a dedicated column you need to provide the Threshold for Statistical Test via `--statisticalTest` argument. The value can be relative (5%) or absolut (10ms, 100ns, 1s)
+To perform a Mann–Whitney U Test and display the results in a dedicated column you need to provide the Threshold for Statistical Test via `--statisticalTest` argument. The value can be relative (5%) or absolute (10ms, 100ns, 1s)
 
 Example: run Mann–Whitney U test with relative ratio of 5% for `BinaryTrees_2` for .NET Core 2.1 (base) vs .NET Core 2.2 (diff). .NET Core 2.1 will be baseline because it was first.
 
@@ -360,7 +360,7 @@ This is very useful when you want to compare different builds of .NET Core SDK.
 
 ### Private CLR Build
 
-It's possible to benchmark a private build of .NET Runtime. You just need to pass the value of `COMPLUS_Version` to BenchmarkDotNet. You can do that by either using `--clrVersion $theVersion` as an argument or `Job.ShortRun.With(new ClrRuntime(version: "$theVersiong"))` in the code.
+It's possible to benchmark a private build of .NET Runtime. You just need to pass the value of `COMPLUS_Version` to BenchmarkDotNet. You can do that by either using `--clrVersion $theVersion` as an argument or `Job.ShortRun.With(new ClrRuntime(version: "$theVersion"))` in the code.
 
 So if you made a change in CLR and want to measure the difference, you can run the benchmarks with:
 
