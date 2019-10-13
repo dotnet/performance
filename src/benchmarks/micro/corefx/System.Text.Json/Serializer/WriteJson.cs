@@ -54,6 +54,10 @@ namespace System.Text.Json.Serialization.Tests
             await JsonSerializer.SerializeAsync(_memoryStream, _value);
         }
 
+        [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+        [Benchmark]
+        public string SerializeObjectProperty() => JsonSerializer.Serialize(new { Prop = (object)_value });
+
         [GlobalCleanup]
         public void Cleanup() => _memoryStream.Dispose();
     }
