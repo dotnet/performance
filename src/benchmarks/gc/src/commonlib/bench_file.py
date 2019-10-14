@@ -185,6 +185,7 @@ class Config:
 @with_slots
 @dataclass(frozen=True)
 class HeapAffinitizeRange:
+    group: Optional[int]
     # both inclusive
     lo: int
     hi: int
@@ -217,12 +218,20 @@ def _assert_sorted_and_non_overlapping(ranges: Sequence[HeapAffinitizeRange]) ->
 
 
 def _parse_heap_affinitize_range(s: str) -> HeapAffinitizeRange:
+    if ":" in s:
+        l, r = s.split(":", 1)
+        return _parse_heap_affinitize_range_after_group(int(l), r)
+    else:
+        return _parse_heap_affinitize_range_after_group(None, s)
+
+
+def _parse_heap_affinitize_range_after_group(group: Optional[int], s: str) -> HeapAffinitizeRange:
     if "-" in s:
         l, r = s.split("-", 1)
-        return HeapAffinitizeRange(lo=int(l), hi=int(r))
+        return HeapAffinitizeRange(group=group, lo=int(l), hi=int(r))
     else:
         x = int(s)
-        return HeapAffinitizeRange(x, x)
+        return HeapAffinitizeRange(group=group, lo=x, hi=x)
 
 
 # Combined CommonConfig and individual test's config
