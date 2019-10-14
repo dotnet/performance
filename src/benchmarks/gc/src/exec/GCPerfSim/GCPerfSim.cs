@@ -1560,8 +1560,6 @@ class MemoryAlloc
     // and pause buckets.
     public List<double> lohAllocPauses = new List<double>(10);
 
-    static StreamWriter sw;
-
     // TODO: should be mutable, change when we switch phases
     readonly Phase curPhase;
 
@@ -2057,7 +2055,7 @@ class MemoryAlloc
         //    (ReferenceItemOperation)operationIndex, GC.GetTotalMemory(false));
     }
 
-    void PrintPauses()
+    void PrintPauses(StreamWriter sw)
     {
         if (curPhase.lohPauseMeasure)
         {
@@ -2092,7 +2090,7 @@ class MemoryAlloc
     {
         // TODO: we probably need to synchronoze writes to this somehow
         string logFileName = currentPid + "-output.txt";
-        sw = new StreamWriter(logFileName);
+        StreamWriter sw = new StreamWriter(logFileName);
         sw.WriteLine("Started running");
 
         long tStart = Environment.TickCount;
@@ -2113,14 +2111,14 @@ class MemoryAlloc
             for (uint i = 0; i < threads.Length; i++)
                 threads[i].Join();
             for (uint i = 0; i < threadLaunchers.Length; i++)
-                threadLaunchers[i].Alloc.PrintPauses();
+                threadLaunchers[i].Alloc.PrintPauses(sw);
         }
         else
         {
             // Easier to debug without launching a separate thread
             ThreadLauncher t = new ThreadLauncher(0, args.perThreadArgs);
             t.Run();
-            t.Alloc.PrintPauses();
+            t.Alloc.PrintPauses(sw);
         }
         long tEnd = Environment.TickCount;
 

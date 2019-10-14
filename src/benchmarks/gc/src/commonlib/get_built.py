@@ -20,6 +20,7 @@ from .config import (
     BENCH_DIR_PATH,
     DEPENDENCIES_PATH,
     EXEC_ENV_PATH,
+    PERFORMANCE_PATH,
     sigcheck_exists,
     SIGCHECK64_PATH,
     SRC_PATH,
@@ -188,15 +189,8 @@ def _get_most_recently_updated_file(path: Path) -> Optional[UpdatedFile]:
         return None
 
 
-_ANALYSIS_PATH = SRC_PATH / "analysis"
-_MANAGED_LIB_PATH: Path = _ANALYSIS_PATH / "managed-lib"
-_MANAGED_LIB_BIN: Path = _MANAGED_LIB_PATH / "bin"
-# This isn't run as part of a performance test, so use debug version
-_GCPERF_PUBLISH_PATH: Path = _MANAGED_LIB_BIN / "Debug" / "netstandard2.0" / "publish"
-GCPERF_DLL_PATH: Path = _GCPERF_PUBLISH_PATH / "GCPerf.dll"
-TRACEEVENT_DLL_PATH: Path = _GCPERF_PUBLISH_PATH / "Microsoft.Diagnostics.Tracing.TraceEvent.dll"
-
 _TEST_PATH = SRC_PATH / "exec"
+_ARTIFACTS_BIN_PATH: Path = PERFORMANCE_PATH / "artifacts" / "bin"
 
 
 def _get_test_path(name: str) -> Path:
@@ -211,23 +205,30 @@ def _get_cs_files(path: Path) -> Sequence[Path]:
     ]
 
 
-def throw_if_gcperf_is_out_of_date() -> None:
+def get_built_gcperf() -> Sequence[Path]:
+    """Returns all DLLs needed to use GCPerf"""
+    analysis_path = SRC_PATH / "analysis"
+    managed_lib_path = analysis_path / "managed-lib"
+    # This isn't run as part of a performance test, so use debug version
+    gcperf_publish_path = _ARTIFACTS_BIN_PATH / "GCPerf" / "Debug" / "netstandard2.0" / "publish"
+    gcperf_dll_path = gcperf_publish_path / "GCPerf.dll"
+    traceevent_dll_path = gcperf_publish_path / "Microsoft.Diagnostics.Tracing.TraceEvent.dll"
+
     msg = _is_build_is_out_of_date(
-        (_DEPENDENCIES_DLLS_PATH, *_get_cs_files(_MANAGED_LIB_PATH)),
-        _GCPERF_PUBLISH_PATH,
+        (_DEPENDENCIES_DLLS_PATH, *_get_cs_files(managed_lib_path)),
+        gcperf_publish_path,
         BuildKind.forbid_out_of_date,
     )
-    if msg is None:
-        assert_file_exists(GCPERF_DLL_PATH)
-    else:
-        raise Exception(
-            f"You probably need to go to {_MANAGED_LIB_PATH} and run `dotnet publish`.\n{msg}"
-        )
+    assert (
+        msg is None
+    ), f"You probably need to go to {managed_lib_path} and run `dotnet publish`.\n{msg}"
+    return [assert_file_exists(p) for p in (gcperf_dll_path, traceevent_dll_path)]
 
 
 def _get_built_test(name: str, build_kind: BuildKind) -> Path:
+    # Apparently, built files go to the root of the performance repo instead of next to the source.
     test_dir = _get_test_path(name)
-    out_path = test_dir / "bin" / "release" / "netcoreapp3.0" / f"{name}.dll"
+    out_path = _ARTIFACTS_BIN_PATH / name / "release" / "netcoreapp3.0" / f"{name}.dll"
     test_cs = test_dir / f"{name}.cs"
     assert_file_exists(test_cs)
     msg = _is_build_is_out_of_date(_get_cs_files(test_dir), out_path, build_kind)
@@ -561,7 +562,7 @@ def get_built(
 
 
 _EXEC_ENV_BUILD_CMD_PATH = EXEC_ENV_PATH / "build.cmd"
-_EXEC_ENV_BUILD_DEBUG_PATH = EXEC_ENV_PATH / "build" / "Debug"
+_EXEC_ENV_BUILD_DEBUG_PATH = EXEC_ENV_PATH / "out" / "Debug"
 assert_file_exists(_EXEC_ENV_BUILD_CMD_PATH)
 
 

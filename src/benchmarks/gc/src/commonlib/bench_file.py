@@ -100,6 +100,7 @@ Only has effect when complus_gcserver is set.
 @doc_field("complus_gclargepages", "Set to true to enable large pages.")
 @doc_field("complus_gcnoaffinitize", "Set to true to prevent affinitizing GC threads to cpu cores.")
 @doc_field("complus_gccpugroup", "Set to true to enable CPU groups.")
+@doc_field("complus_gcnumaaware", "Set to false to disable NUMA-awareness in GC")
 @doc_field(
     "complus_thread_useallcpugroups",
     "Set to true to automatically distribute threads across CPU Groups",
@@ -149,6 +150,7 @@ class Config:
     complus_gclargepages: Optional[bool] = None
     complus_gcnoaffinitize: Optional[bool] = None
     complus_gccpugroup: Optional[bool] = None
+    complus_gcnumaaware: Optional[bool] = None
     complus_thread_useallcpugroups: Optional[bool] = None
     complus_threadpool_forcemaxworkerthreads: Optional[int] = None
     complus_tieredcompilation: Optional[bool] = None
@@ -183,6 +185,7 @@ class Config:
 @with_slots
 @dataclass(frozen=True)
 class HeapAffinitizeRange:
+    group: Optional[int]
     # both inclusive
     lo: int
     hi: int
@@ -215,12 +218,20 @@ def _assert_sorted_and_non_overlapping(ranges: Sequence[HeapAffinitizeRange]) ->
 
 
 def _parse_heap_affinitize_range(s: str) -> HeapAffinitizeRange:
+    if ":" in s:
+        l, r = s.split(":", 1)
+        return _parse_heap_affinitize_range_after_group(int(l), r)
+    else:
+        return _parse_heap_affinitize_range_after_group(None, s)
+
+
+def _parse_heap_affinitize_range_after_group(group: Optional[int], s: str) -> HeapAffinitizeRange:
     if "-" in s:
         l, r = s.split("-", 1)
-        return HeapAffinitizeRange(lo=int(l), hi=int(r))
+        return HeapAffinitizeRange(group=group, lo=int(l), hi=int(r))
     else:
         x = int(s)
-        return HeapAffinitizeRange(x, x)
+        return HeapAffinitizeRange(group=group, lo=x, hi=x)
 
 
 # Combined CommonConfig and individual test's config
@@ -270,6 +281,7 @@ class TestConfigCombined:
             ob("COMPlus_GCLargePages", cfg.complus_gclargepages),
             ob("COMPlus_GCNoAffinitize", cfg.complus_gcnoaffinitize),
             ob("COMPlus_GCCpuGroup", cfg.complus_gccpugroup),
+            ob("COMPlus_GCNumaAware", cfg.complus_gcnumaaware),
             ob("COMPlus_Thread_UseAllCpuGroups", cfg.complus_thread_useallcpugroups),
             od(
                 "COMPlus_ThreadPool_ForceMaxWorkerThreads",

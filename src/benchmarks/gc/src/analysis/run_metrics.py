@@ -306,12 +306,9 @@ def _get_gc_aggregate_stats() -> Mapping[NamedRunMetric, Callable[[ProcessedTrac
 
 
 def _get_num_heaps(proc: ProcessedTrace) -> FailableInt:
-    if is_empty(proc.gcs):
-        return Err("No GCs")
-    else:
+    def f(gcs: Sequence[ProcessedGC]) -> int:
         n_heaps = proc.gcs[0].trace_gc.HeapCount
-        # print(f"{len(proc.gcs)} gcs")
-        for i, gc in enumerate(proc.gcs):
+        for i, gc in enumerate(gcs):
             assert gc.trace_gc.HeapCount == n_heaps
             if gc.trace_gc.GlobalHeapHistory is None:
                 print(f"WARN: GC{i} has null GlobalHeapHistory. It's a {gc.Type}")
@@ -321,7 +318,9 @@ def _get_num_heaps(proc: ProcessedTrace) -> FailableInt:
                     f"WARN: GC{i} has {phh_count} PerHeapHistories but {n_heaps} heaps. "
                     + f"It's a {gc.Type}"
                 )
-        return Ok(n_heaps)
+        return n_heaps
+
+    return map_ok(proc.gcs_result, f)
 
 
 _RUN_METRIC_GETTERS: Mapping[
@@ -332,6 +331,7 @@ _RUN_METRIC_GETTERS: Mapping[
         NamedRunMetric("FirstToLastEventSeconds"): fn_of_property(
             ProcessedTrace.FirstToLastEventSeconds
         ),
+        NamedRunMetric("TotalNonGCSeconds"): fn_of_property(ProcessedTrace.TotalNonGCSeconds),
         NamedRunMetric("FirstToLastGCSeconds"): fn_of_property(ProcessedTrace.FirstToLastGCSeconds),
         NamedRunMetric("FirstEventToFirstGCSeconds"): fn_of_property(
             ProcessedTrace.FirstEventToFirstGCSeconds

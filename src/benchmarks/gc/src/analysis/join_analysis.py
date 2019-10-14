@@ -12,7 +12,7 @@ from ..commonlib.result_utils import flat_map_ok, map_ok
 from ..commonlib.type_utils import enum_value
 from ..commonlib.util import opt_max, opt_median
 
-from .setup_clr import Clr
+from .clr import Clr
 from .clr_types import AbstractJoinInfoForHeap, AbstractJoinInfoForProcess, cs_result_to_result
 from .enums import GcJoinPhase, GcJoinStage, ServerGCState
 from .types import FailableFloat, PerHeapGetter, ProcessedHeap, ProcessInfo, SingleHeapMetric

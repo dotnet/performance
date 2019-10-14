@@ -29,7 +29,7 @@ from ..commonlib.result_utils import unwrap
 from ..commonlib.type_utils import argument, enum_value, T, with_slots
 from ..commonlib.util import float_to_str, get_percent
 
-from .setup_clr import Clr, get_clr
+from .clr import Clr, get_clr
 from .clr_types import (
     AbstractJoinInfoForGC,
     AbstractJoinInfoForHeap,

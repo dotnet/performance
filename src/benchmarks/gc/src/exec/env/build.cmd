@@ -1,6 +1,6 @@
-del build
-mkdir build
-cd build
+del out
+mkdir out
+cd out
 cmake ..
 devenv /build Debug env.sln
 cd ..

@@ -103,6 +103,7 @@ _IMPORTANT_RUN_METRICS: Sequence[str] = (
     "CountIsBlockingGen2",
     "PctIsEphemeral",
     "FirstToLastGCSeconds",
+    "TotalNonGCSeconds",
     "NumHeaps",
     "HeapSizeBeforeMB_Max",
     "HeapSizeAfterMB_Max",

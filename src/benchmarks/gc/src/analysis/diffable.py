@@ -280,6 +280,7 @@ def _get_diffables_by_vary(
     diffables = [
         SingleDiffable(key, value, get_run_metrics(key.benchmark)) for key, value in res.items()
     ]
+    assert not is_empty(diffables), "No tests matched the criteria"
     diffed_names = non_null(
         find_common(
             lambda diffable: tuple(

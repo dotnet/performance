@@ -12,7 +12,7 @@ from typing import Iterable, Mapping, Sequence
 
 from ..commonlib.type_utils import with_slots
 
-from .setup_clr import Clr
+from .clr import Clr
 from .clr_types import (
     AbstractServerGcHistory,
     AbstractThreadWorkSpan,

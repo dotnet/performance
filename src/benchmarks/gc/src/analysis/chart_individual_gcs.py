@@ -16,7 +16,7 @@ from ..commonlib.result_utils import all_non_err, ignore_err
 from ..commonlib.type_utils import argument, with_slots
 
 from .chart_utils import Color, OUT_SVG_DOC, set_axes, show_or_save, subplots, zip_with_colors
-from .setup_clr import get_clr
+from .clr import get_clr
 from .core_analysis import PROCESS_DOC, TRACE_PATH_DOC
 from .enums import GCType, Gens
 from .parse_metrics import (

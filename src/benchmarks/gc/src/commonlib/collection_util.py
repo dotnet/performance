@@ -252,7 +252,7 @@ def repeat(value: T, times: int) -> Sequence[T]:
 
 def find_common(get_u: Callable[[T], U], ts: Sequence[T]) -> Optional[U]:
     """
-    Returns the result of `get_u` if it is the same for all `xs`.
+    Returns the result of `get_u` if it is the same for all `ts`.
     (Returns `None` on empty input.)
     """
     res = None

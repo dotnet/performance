@@ -7,8 +7,7 @@ difftool/dist
 difftool/difftool.spec
 *.exe
 *.obj
-bin
-obj
+src/exec/env/out
 
 bench/**/*
 # We put PerfView and SigCheck here on Windows.

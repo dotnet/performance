@@ -355,6 +355,7 @@ NumHeaps
 PctTimePausedInGC
 TotalAllocatedMB
 TotalLOHAllocatedMB
+TotalNonGCSeconds
 ready_stolen_cpu_fraction_max
 ready_stolen_cpu_fraction_mean
 single_threaded_stolen_cpu_fraction_max
