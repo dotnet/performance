@@ -27,7 +27,7 @@ def upload(globpath, container, sas_token_env, storage_account_uri):
 
             getLogger().info("uploading {}".format(infile))
 
-            blob_client = BlobClient(blob_url=storage_account_uri, container=container, blob=blob_name, credential=sas_token)
+            blob_client = BlobClient(account_url=storage_account_uri, container_name=container, blob_name=blob_name, credential=sas_token)
             
             with open(infile, "rb") as data:
                 blob_client.upload_blob(data, blob_type="BlockBlob", content_settings=ContentSettings(content_type="application/json"))
