@@ -185,7 +185,9 @@ namespace ScenarioMeasurement
                     files.Add(userTraceFile);
                 }
                 TraceEventSession.Merge(files.ToArray(), traceFileName);
-                var counters = parser.Parse(traceFileName, Path.GetFileNameWithoutExtension(appExe), pids);
+
+                string commandLine = $"\"{appExe}\" {appArgs}";
+                var counters = parser.Parse(traceFileName, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
 
                 WriteResultTable(counters, logger);
 
@@ -247,7 +249,6 @@ namespace ScenarioMeasurement
                 ProcessWillExit = true,
                 Executable = command,
                 Arguments = args,
-                WorkingDirectory = workingDir,
                 Timeout = 300
             };
             return procHelper;
