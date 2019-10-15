@@ -13,26 +13,7 @@ def get_unique_name(filename, unique_id) -> str:
         newname = "{0}-perf-lab-report.json".format(randint(1000, 9999))
     return newname
 
-def upload_and_queue(globpath, container, queue, sas_token_env, storage_account_uri):
-    try:
-        sas_token_env = sas_token_env
-        sas_token = os.getenv(sas_token_env)
-        if sas_token is None:
-            getLogger().error("Sas token environment variable {} was not defined.".format(sas_token_env))
-            return 1
-
-        upload(globpath, container, sas_token_env, storage_account_uri)
-
-        queue_service = QueueService(account_name='pvscmdupload', sas_token)
-        queue_service.put_message(queue, blob_client.url)
-        getLogger().info("upload complete")
-
-    except Exception as ex:
-        getLogger().error('{0}: {1}'.format(type(ex), str(ex)))
-        getLogger().error(format_exc())
-        return 1
-
-def upload(globpath, container, sas_token_env, storage_account_uri):
+def upload(globpath, container, queue, sas_token_env, storage_account_uri):
     try:
         sas_token_env = sas_token_env
         sas_token = os.getenv(sas_token_env)
@@ -51,6 +32,10 @@ def upload(globpath, container, sas_token_env, storage_account_uri):
             
             with open(infile, "rb") as data:
                 blob_client.upload_blob(data, blob_type="BlockBlob", content_settings=ContentSettings(content_type="application/json"))
+
+            if queue is not None:
+                queue_service = QueueService(account_name='pvscmdupload', sas_token)
+                queue_service.put_message(queue, blob_client.url)
 
             getLogger().info("upload complete")
 
