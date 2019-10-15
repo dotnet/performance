@@ -206,9 +206,17 @@ def run_single_test_temporary(clr: Clr, built: Built, t: SingleTest) -> ProcessI
 
 def check_env() -> Mapping[str, str]:
     e = environ
-    for k in e.keys():
-        if any(k.lower().startswith(start) for start in ("complus", "core_root")):
-            raise Exception(f"Environment variable '{k}' should not be set")
+    bad_environment_variables = [
+        k
+        for k in e.keys()
+        if any(k.lower().startswith(start) for start in ("complus", "core_root"))
+    ]
+    if not is_empty(bad_environment_variables):
+        start = f"Environment variables should not be set: {', '.join(bad_environment_variables)}"
+        msg = (
+            start if os_is_windows() else f'{start}\nTry running: unset "${{!COMPlus@}}" CORE_ROOT'
+        )
+        raise Exception(msg)
     return e
 
 
@@ -373,17 +381,23 @@ def _run_single_test_windows_perfview(
     ensure_empty_dir(out.out_path_base)
 
     # Start with the memory load
-    mem_load_pct = t.config.memory_load_percent
+    mem_load = t.config.memory_load
     mem_load_process = None
-    if mem_load_pct is not None:
+    if mem_load is not None:
         print("setting up memory load...")
-        mem_load_process = Popen(
-            args=(str(built.win.make_memory_load), "-percent", str(mem_load_pct)), stderr=PIPE
+        mem_load_args: Sequence[str] = (
+            str(built.win.make_memory_load),
+            "-percent",
+            str(mem_load.percent),
+            *optional_to_iter("-noReadjust" if mem_load.no_readjust else None),
         )
+        mem_load_process = Popen(args=mem_load_args, stderr=PIPE)
         assert mem_load_process.stderr is not None
         # Wait on it to start up
         line = decode_stdout(mem_load_process.stderr.readline())
-        assert line == "make_memory_load finished starting up"
+        assert (
+            line == "make_memory_load finished starting up"
+        ), f"Unexpected make_memory_load output {line}"
         print("done")
 
     log_file = out.add_ext("perfview-log.txt")
@@ -400,15 +414,17 @@ def _run_single_test_windows_perfview(
     test_cmd = _get_windows_test_cmd(built, t, ignore_container=False)
     run_process = exec_start(_get_exec_args(test_cmd.command, t, out), pipe_stdout=True)
 
-    run_result = wait_on_process_with_timeout(
-        run_process, start_time_seconds=start_time_seconds, timeout_seconds=timeout_seconds
-    )
-
-    exec_and_expect_output(
-        ExecArgs(_get_perfview_start_or_stop_cmd(t, log_file, trace_file, is_start=False)),
-        expected_output="",
-        err="PerfView stop failed",
-    )
+    try:
+        run_result = wait_on_process_with_timeout(
+            run_process, start_time_seconds=start_time_seconds, timeout_seconds=timeout_seconds
+        )
+    finally:
+        # Stop PerfView even if the test failed
+        exec_and_expect_output(
+            ExecArgs(_get_perfview_start_or_stop_cmd(t, log_file, trace_file, is_start=False)),
+            expected_output="",
+            err="PerfView stop failed",
+        )
 
     if run_result.time_taken is None:
         kill_test_processes()
@@ -505,7 +521,7 @@ def _run_single_test_no_collect(
 ) -> _PartialTestRunStatus:
     if t.options.log is not None:
         raise Exception("TODO")
-    if t.config.memory_load_percent is not None:
+    if t.config.memory_load is not None:
         # The script only works on windows right now
         raise Exception("TODO")
 
@@ -547,7 +563,7 @@ def _run_single_test_dotnet_trace(
         raise Exception("TODO")
     if t.config.affinitize:
         raise Exception("TODO")
-    if t.config.memory_load_percent is not None:
+    if t.config.memory_load is not None:
         # The script only works on windows right now
         raise Exception("TODO")
 
@@ -798,9 +814,10 @@ def _rename_gcperfsim_out(out: TestPaths) -> Path:
 
 
 def _get_exec_args(cmd: Sequence[str], t: SingleTest, out: TestPaths) -> ExecArgs:
+
     env = combine_mappings(
         t.default_env,
-        t.config.env(map_option(t.coreclr, lambda c: c.core_root)),
+        t.config.with_coreclr(t.coreclr_name).env(map_option(t.coreclr, lambda c: c.core_root)),
         log_env(t.options.log, out.out_path_base),
     )
     return ExecArgs(
@@ -823,7 +840,7 @@ def _run_single_test_linux_perfcollect(t: SingleTest, out: TestPaths) -> TestRun
 
     cwd = non_null(t.coreclr).corerun.parent  # TODO: handle self-contained executables
     env = combine_mappings(
-        t.config.env(map_option(t.coreclr, lambda c: c.core_root)),
+        t.config.with_coreclr(t.coreclr_name).env(map_option(t.coreclr, lambda c: c.core_root)),
         {"COMPlus_PerfMapEnabled": "1", "COMPlus_EnableEventLog": "1"},
     )
     cmd: Sequence[str] = _benchmark_command(t)

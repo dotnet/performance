@@ -2,7 +2,6 @@
 # The .NET Foundation licenses this file to you under the MIT license.
 # See the LICENSE file in the project root for more information.
 
-from math import ceil, floor
 from statistics import mean, stdev
 from typing import Callable, Iterable, List, Mapping, Sequence, Tuple, Type, TypeVar
 
@@ -17,7 +16,7 @@ from ..commonlib.collection_util import (
 )
 from ..commonlib.result_utils import all_non_err, as_err, fn_to_ok, flat_map_ok, map_ok
 from ..commonlib.type_utils import check_cast, T
-from ..commonlib.util import get_percent
+from ..commonlib.util import get_95th_percentile, get_percent
 
 from .types import (
     Failable,
@@ -212,25 +211,6 @@ def _fail_if_empty(
     return lambda xs: Err(f"<no values>") if is_empty(xs) else Ok(cb(xs))
 
 
-# numpy has problems on ARM, so using this instead.
-def get_percentile(values: Sequence[float], percent: float) -> float:
-    assert not is_empty(values)
-    assert 0.0 <= percent <= 100.0
-    sorted_values = sorted(values)
-    fraction = percent / 100.0
-    index_and_fraction = (len(values) - 1) * fraction
-    prev_index = floor(index_and_fraction)
-    next_index = ceil(index_and_fraction)
-    # The closer we are to 'next_index', the more 'next' should matter
-    next_factor = index_and_fraction - prev_index
-    prev_factor = 1.0 - next_factor
-    return sorted_values[prev_index] * prev_factor + sorted_values[next_index]
-
-
-def _get_95th_percentile(values: Sequence[float]) -> FailableFloat:
-    return Err("<no values>") if is_empty(values) else Ok(get_percentile(values, 95))
-
-
 def _stdev(values: Sequence[float]) -> FailableFloat:
     if len(values) <= 1:
         return Err("Not enough values for stdev")
@@ -243,6 +223,6 @@ AGGREGATE_FLOAT_STATISTICS: Mapping[str, Callable[[Sequence[float]], FailableFlo
     "Max": _fail_if_empty(max),
     "Min": _fail_if_empty(min),
     "Sum": fn_to_ok(sum),
-    "95P": _get_95th_percentile,
+    "95P": get_95th_percentile,
     "Stdev": _stdev,
 }

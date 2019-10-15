@@ -24,6 +24,7 @@ from .commonlib.bench_file import (
     parse_bench_file,
     GCPerfSimArgs,
     MAX_ITERATIONS_FOR_ANALYZE_DOC,
+    MemoryLoadOptions,
     TestConfigContainer,
     Config,
     Vary,
@@ -158,7 +159,7 @@ class SuiteRunCommandArgs:
 
 
 def suite_run_command(args: SuiteRunCommandArgs) -> None:
-    from .all_commands import ALL_COMMANDS
+    from .all_commands import ALL_COMMANDS  # pylint:disable=import-outside-toplevel
 
     suite = load_yaml(SuiteFile, args.suite_path)
     commands = suite.command_groups[args.command_name]
@@ -275,8 +276,8 @@ def _create_scenario_high_memory_load(
     )
     # TODO: Don't specify a percent, specify an amount remaining in GB
     configs: Mapping[str, Config] = {
-        "80pct": Config(memory_load_percent=80),
-        "90pct": Config(memory_load_percent=90),
+        "80pct": Config(memory_load=MemoryLoadOptions(percent=80)),
+        "90pct": Config(memory_load=MemoryLoadOptions(percent=90)),
     }
     benchmarks: Mapping[str, Benchmark] = {
         "a": Benchmark(arguments=GCPerfSimArgs(tc=proc_count, tagb=40, tlgb=5, sohsi=30, sohpi=50))

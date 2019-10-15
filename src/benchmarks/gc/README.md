@@ -1,12 +1,14 @@
 # About
 
-`dotnet-gc-infra` lets you run GC performance tests and analyze and chart statistics.
+This program lets you run GC performance tests and analyze and chart statistics.
 
 Command examples in this document use Bash/PowerShell syntax. If using Window's CMD, replace `/` with `\`.
 
-The general workflow when using `dotnet-gc-infra` is:
+The general workflow when using the GC infra is:
 
-* For testing your changes to coreclr, get a master branch build of coreclr, and also your own build. (It can also be used to compare different configurations on just the master branch.)
+* For testing your changes to coreclr, get a master branch build of coreclr, and also your own build.
+  (You can of course use any version of coreclr, not just master.
+  You can also only test with a single coreclr.)
 * Write a benchfile. (Or generate default ones with `suite-create` as in the tutorial.) This will reference the coreclrs and list the tests to be run.
 * Run the benchfile and collect traces.
 * Run analysis on the output.
@@ -102,7 +104,7 @@ On non-Windows systems, you'll need [`dotnet-trace`](https://github.com/dotnet/d
 On non-Windows systems, to run container tests, you'll need `cgroup-tools` installed.
 You should have builds of coreclr available for use in the next step.
 
-Finally, run `py . setup` from the root of dotnet-gc-infra.
+Finally, run `py . setup` from the same directory as this README.
 This will read information about your system that's relevant to performance analysis (such as cache sizes) and save to `bench/host_info.yaml`.
 It will also install some necessary dependencies on Windows.
 
@@ -123,13 +125,13 @@ The benchfiles can exist anywhere. This example will use the local directory `be
 To avoid writing benchfiles yourself, `suite-create` can generate a few:
 
 ```sh
-cd path/to/dotnet-gc-infra
 py . suite-create bench/suite --coreclrs path_to_coreclr0 path_to_coreclr1
 ```
 
 `path_to_coreclr0` is the path to a [Core_Root](#Core_Root).
 
-`path_to_coreclr1` should be a different Core_Root. (it can be the same, but the point is to compare performance of two different builds.)
+`path_to_coreclr1` should be a different Core_Root. (It can be the same, but the point is to compare performance of two different builds.)
+You can omit this if you just intend to test a single coreclr.
 
 If you made a mistake, you can run `suite-create` again and pass `--overwrite`, which clears the output directory (`bench/suite` in this example) first.
 

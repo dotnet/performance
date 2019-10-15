@@ -9,7 +9,6 @@ from io import StringIO
 from math import ceil, floor
 from os import get_terminal_size, terminal_size
 from pathlib import Path
-from sys import argv
 from typing import Callable, cast, Iterable, Mapping, Optional, List, Sequence, Tuple, Union
 
 from psutil import Process
@@ -28,8 +27,8 @@ from .collection_util import (
     zip_check_3,
 )
 from .option import map_option, optional_to_iter, option_or
-from .type_utils import check_cast, with_slots
-from .util import float_to_str, os_is_windows
+from .type_utils import argument, check_cast, with_slots
+from .util import float_to_str, get_command_line, os_is_windows
 
 Tag = SimpleDoc.Tag
 
@@ -94,7 +93,9 @@ class Table:
             self.header_groups is None or sum(x.size_cells for x in self.header_groups) == n_columns
         )
         for row in self.rows:
-            assert len(row) == n_columns
+            assert (
+                len(row) == n_columns
+            ), f"Row has {len(row)} entries but table has {n_columns} column headers"
 
 
 @with_slots
@@ -165,14 +166,6 @@ class SpecialOutputWidth(Enum):
 
 
 OutputWidth = Union[int, SpecialOutputWidth]
-
-OUTPUT_WIDTH_DOC = """
-Maximum width (in columns) of console or text file output.
-Default is the current terminal size.
-"""
-TABLE_INDENT_DOC = """
-Indent tables by this many spaces.
-"""
 
 
 def print_document(
@@ -635,9 +628,31 @@ class OutputOptions:
 
 EMPTY_OUTPUT_OPTIONS = OutputOptions()
 
-TXT_DOC = "Output to a '.txt' file"
-HTML_DOC = "Output to a '.html' file"
-XLSX_DOC = "Output to a '.xlsx' file"
+
+@with_slots
+@dataclass(frozen=True)
+class DocOutputArgs:
+    output_width: Optional[OutputWidth] = argument(
+        default=None,
+        doc="""
+        Maximum width (in columns) of console or text file output.
+        Default is the current terminal size.
+        """,
+    )
+    table_indent: Optional[int] = argument(default=None, doc="Indent tables by this many spaces.")
+    txt: Optional[Path] = argument(default=None, doc="Output to a '.txt' file")
+    html: Optional[Path] = argument(default=None, doc="Output to a '.html' file")
+    xlsx: Optional[Path] = argument(default=None, doc="Output to a '.xlsx' file")
+
+
+def output_options_from_args(args: DocOutputArgs) -> OutputOptions:
+    return OutputOptions(
+        width=args.output_width,
+        table_indent=args.table_indent,
+        html=args.html,
+        txt=args.txt,
+        excel=args.xlsx,
+    )
 
 
 def handle_doc(doc: Document, output: OutputOptions = EMPTY_OUTPUT_OPTIONS) -> None:
@@ -645,7 +660,7 @@ def handle_doc(doc: Document, output: OutputOptions = EMPTY_OUTPUT_OPTIONS) -> N
         output.html.write_text(render_to_html(doc))
     if output.txt:
         doc_txt = render_to_plaintext(doc, max_width=output.width, table_indent=output.table_indent)
-        txt = f"> {' '.join(argv)}\n\n{doc_txt}"
+        txt = f"{get_command_line()}\n\n{doc_txt}"
         output.txt.write_text(txt, encoding="utf-8")
     if output.excel:
         render_to_excel(doc, output.excel)

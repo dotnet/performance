@@ -5,8 +5,9 @@
 from dataclasses import dataclass
 from operator import floordiv
 from pathlib import Path
+from re import search
 from textwrap import indent
-from typing import Mapping, Optional, Sequence, Tuple
+from typing import Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from .bench_file import (
     change_path_machine,
@@ -16,7 +17,7 @@ from .bench_file import (
     parse_machines_arg,
 )
 from .get_built import get_built, Built
-from .collection_util import empty_mapping
+from .collection_util import empty_mapping, is_empty
 from .command import Command, CommandKind, CommandsMapping
 from .config import HOST_INFO_PATH
 from .option import map_option, map_option_2
@@ -59,12 +60,32 @@ class CacheInfo:
 
 @with_slots
 @dataclass(frozen=True)
+class Range:
+    # Both inclusive
+    lo: int
+    hi: int
+
+    def with_hi(self, new_hi: int) -> "Range":
+        return Range(self.lo, new_hi)
+
+
+@with_slots
+@dataclass(frozen=True)
+class NumaNodeInfo:
+    numa_node_number: int
+    # None on non-Windows
+    cpu_group_number: Optional[int]
+    ranges: Sequence[Range]
+
+
+@with_slots
+@dataclass(frozen=True)
 class HostInfo:
     # All values are None if unknown
     hostname: str
     n_physical_processors: int
     n_logical_processors: int
-    numa_nodes: int
+    numa_nodes: Sequence[NumaNodeInfo]
     cache_info: CacheInfo
     clock_ghz: Optional[float] = None
     total_physical_memory_mb: Optional[int] = None
@@ -73,7 +94,7 @@ class HostInfo:
 @with_slots
 @dataclass(frozen=True)
 class _NumaNodesAndCacheInfo:
-    numa_nodes: int
+    numa_nodes: Sequence[NumaNodeInfo]
     n_physical_processors: int
     n_logical_processors: int
     caches: CacheInfo
@@ -131,11 +152,13 @@ def _get_host_info_posix() -> HostInfo:
 
     total_physical_memory_mb = round(kb_to_mb(float(remove_str_end(x["MemTotal"], " kB"))))
 
+    numa_nodes = _get_numa_nodes_posix()
+
     return HostInfo(
         hostname=get_hostname(),
         n_physical_processors=n_physical_processors,
         n_logical_processors=n_logical_processors,
-        numa_nodes=sockets,
+        numa_nodes=numa_nodes,
         cache_info=CacheInfo(
             # TODO: figure out how to determine number of caches on posix
             l1=CacheInfoForLevel(
@@ -150,6 +173,36 @@ def _get_host_info_posix() -> HostInfo:
         clock_ghz=clock_ghz,
         total_physical_memory_mb=total_physical_memory_mb,
     )
+
+
+def _get_numa_nodes_posix() -> Sequence[NumaNodeInfo]:
+    return tuple(
+        _parse_numa_nodes_posix(
+            exec_and_get_output(ExecArgs(("numactl", "--hardware"), quiet_print=True))
+        )
+    )
+
+
+def _parse_numa_nodes_posix(s: str) -> Iterable[NumaNodeInfo]:
+    for line in s.splitlines():
+        res = search(r"^node (\d+) cpus: ", line)
+        if res is not None:
+            node_number = int(res.group(1))
+            yield NumaNodeInfo(
+                numa_node_number=node_number,
+                cpu_group_number=None,
+                ranges=_ranges_from_numbers([int(x) for x in line[res.span()[1] :].split()]),
+            )
+
+
+def _ranges_from_numbers(ns: Iterable[int]) -> Sequence[Range]:
+    ranges: List[Range] = []
+    for n in ns:
+        if is_empty(ranges) or n != ranges[-1].hi + 1:
+            ranges.append(Range(n, n))
+        else:
+            ranges.append(ranges.pop().with_hi(n))
+    return ranges
 
 
 def _parse_keys_values_lines(s: str) -> Mapping[str, str]:
@@ -182,6 +235,8 @@ def _get_host_info_windows(built: Built) -> HostInfo:
 
 
 def _get_clock_ghz_windows() -> float:
+    # Import lazily as this is only available on Windows
+    # pylint:disable=import-outside-toplevel
     from winreg import ConnectRegistry, HKEY_LOCAL_MACHINE, OpenKey, QueryValueEx
 
     registry = ConnectRegistry(None, HKEY_LOCAL_MACHINE)

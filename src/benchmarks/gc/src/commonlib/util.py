@@ -9,7 +9,7 @@ from difflib import get_close_matches
 from enum import Enum
 from functools import reduce
 from inspect import getfile
-from math import inf, isclose, isnan
+from math import ceil, floor, inf, isclose, isnan
 from operator import mul
 import os
 from os import kill, name as os_name
@@ -20,12 +20,14 @@ from signal import signal, SIGINT
 from subprocess import DEVNULL, PIPE, Popen, run
 from stat import S_IREAD, S_IWRITE, S_IRUSR, S_IWUSR, S_IRGRP, S_IWGRP, S_IROTH, S_IWOTH
 from statistics import median, StatisticsError
+from sys import argv
 from threading import Event, Thread
 from time import sleep, time
 from typing import Any, Callable, cast, Iterable, Mapping, Optional, Sequence, Union
 from xml.etree.ElementTree import Element, parse as parse_xml
 
 from psutil import process_iter
+from result import Err, Ok, Result
 
 from .collection_util import find, identity, is_empty, min_max_float
 from .option import option_or
@@ -383,7 +385,7 @@ def kill_process(process: AnyPopen, time_allowed_seconds: float) -> None:
         sleep(1)
         if (time() - start_time_seconds) > time_allowed_seconds:
             print(
-                f"Process '{process.args}' refused to shut down normally. "
+                f"Process '{check_cast(str, process.args)}' refused to shut down normally. "
                 + "Trying again without asking nicely."
             )
             process.kill()
@@ -413,6 +415,8 @@ def exec_and_get_output_and_exit_code(args: ExecArgs) -> OutputAndExitCode:
         r = run(args.cmd, stdout=PIPE, cwd=args.cwd, env=args.env, check=False)
     except FileNotFoundError:
         raise ExecutableNotFoundException(Path(args.cmd[0])) from None
+    except NotADirectoryError:
+        raise Exception(f"Invalid cwd: {args.cwd}") from None
 
     return OutputAndExitCode(decode_stdout(r.stdout), r.returncode)
 
@@ -575,7 +579,8 @@ def assert_admin() -> None:
 
 def is_admin() -> bool:
     if os_is_windows():
-        from win32com.shell.shell import IsUserAnAdmin
+        # Do this import lazily as it is only available on Windows
+        from win32com.shell.shell import IsUserAnAdmin  # pylint:disable=import-outside-toplevel
 
         return IsUserAnAdmin()
     else:
@@ -678,6 +683,25 @@ def opt_median(i: Iterable[float]) -> Optional[float]:
         return None
 
 
+# numpy has problems on ARM, so using this instead.
+def get_percentile(values: Sequence[float], percent: float) -> float:
+    assert not is_empty(values)
+    assert 0.0 <= percent <= 100.0
+    sorted_values = sorted(values)
+    fraction = percent / 100.0
+    index_and_fraction = (len(values) - 1) * fraction
+    prev_index = floor(index_and_fraction)
+    next_index = ceil(index_and_fraction)
+    # The closer we are to 'next_index', the more 'next' should matter
+    next_factor = index_and_fraction - prev_index
+    prev_factor = 1.0 - next_factor
+    return sorted_values[prev_index] * prev_factor + sorted_values[next_index] * next_factor
+
+
+def get_95th_percentile(values: Sequence[float]) -> Result[str, float]:
+    return Err("<no values>") if is_empty(values) else Ok(get_percentile(values, 95))
+
+
 def update_file(path: Path, text: str) -> None:
     if (not path.exists()) or path.read_text(encoding="utf-8") != text:
         print(f"Updating {path}")
@@ -701,3 +725,7 @@ def check_no_processes(names: Sequence[str]) -> None:
             assert name not in proc.name().lower(), (
                 f"'{name}' is already running\n" + f"Try: `{suggestion}`"
             )
+
+
+def get_command_line() -> str:
+    return f"> py {' '.join(argv)}"

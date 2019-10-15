@@ -13,16 +13,13 @@ from ..commonlib.collection_util import indices, is_empty, min_max_float
 from ..commonlib.command import Command, CommandKind, CommandsMapping
 from ..commonlib.document import (
     Cell,
+    DocOutputArgs,
     Document,
     handle_doc,
-    OutputOptions,
-    OutputWidth,
-    OUTPUT_WIDTH_DOC,
+    output_options_from_args,
     Row,
     Section,
     Table,
-    TABLE_INDENT_DOC,
-    TXT_DOC,
 )
 from ..commonlib.option import map_option, non_null, optional_to_iter
 from ..commonlib.result_utils import unwrap
@@ -64,14 +61,13 @@ Shows the top N worst individual joins.
 
 @with_slots
 @dataclass(frozen=True)
-class AnalyzeJoinsAllGcsArgs:
+class AnalyzeJoinsAllGcsArgs(DocOutputArgs):
     trace_path: Path = argument(name_optional=True, doc=TRACE_PATH_DOC)
     process: ProcessQuery = argument(default=None, doc=PROCESS_DOC)
     show_n_worst_stolen_time_instances: int = argument(
         default=10, doc=_DOC_N_WORST_STOLEN_TIME_INSTANCES
     )
     show_n_worst_joins: int = argument(default=10, doc=_DOC_N_WORST_JOINS)
-    txt: Optional[Path] = argument(default=None, doc=TXT_DOC)
 
 
 def analyze_joins_all_gcs(args: AnalyzeJoinsAllGcsArgs) -> None:
@@ -86,7 +82,7 @@ def analyze_joins_all_gcs(args: AnalyzeJoinsAllGcsArgs) -> None:
             show_n_worst_stolen_time_instances=args.show_n_worst_stolen_time_instances,
             show_n_worst_joins=args.show_n_worst_joins,
         ),
-        OutputOptions(txt=args.txt),
+        output_options_from_args(args),
     )
 
 
@@ -113,7 +109,7 @@ def analyze_joins_all_gcs_for_jupyter(
 
 @with_slots
 @dataclass(frozen=True)
-class _AnalyzeJoinsSingleGcArgs:
+class _AnalyzeJoinsSingleGcArgs(DocOutputArgs):
     trace_path: Path = argument(name_optional=True, doc=TRACE_PATH_DOC)
     gc_number: int = argument(doc=GC_NUMBER_DOC)
     process: ProcessQuery = argument(default=None, doc=PROCESS_DOC)
@@ -133,10 +129,6 @@ class _AnalyzeJoinsSingleGcArgs:
     )
     max_heaps: Optional[int] = argument(default=None, doc="Only show this many heaps")
 
-    txt: Optional[Path] = argument(default=None, doc=TXT_DOC)
-    output_width: Optional[OutputWidth] = argument(default=None, doc=OUTPUT_WIDTH_DOC)
-    table_indent: Optional[int] = argument(default=None, doc=TABLE_INDENT_DOC)
-
 
 def _analyze_joins_single_gc(args: _AnalyzeJoinsSingleGcArgs) -> None:
     _check_join_analysis_ready()
@@ -151,9 +143,7 @@ def _analyze_joins_single_gc(args: _AnalyzeJoinsSingleGcArgs) -> None:
         show_n_worst_stolen_time_instances=args.show_n_worst_stolen_time_instances,
         max_heaps=args.max_heaps,
     )
-    handle_doc(
-        doc, OutputOptions(width=args.output_width, table_indent=args.table_indent, txt=args.txt)
-    )
+    handle_doc(doc, output_options_from_args(args))
 
 
 def _get_processed_trace_with_just_join_info(

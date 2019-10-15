@@ -23,7 +23,7 @@ from typing import (
 )
 
 from .frozen_dict import FrozenDict
-from .option import optional_to_iter
+from .option import map_option, optional_to_iter
 from .type_utils import K, T, U, V, with_slots
 
 
@@ -103,8 +103,8 @@ def invert_multi_mapping(m: Mapping[K, Sequence[V]]) -> Mapping[V, K]:
     return out
 
 
-def optional_mapping(key: K, value: Optional[V]) -> Mapping[K, V]:
-    return empty_mapping() if value is None else {key: value}
+def optional_mapping(key: K, value: Optional[V]) -> Optional[Mapping[K, V]]:
+    return map_option(value, lambda v: {key: v})
 
 
 # sequence
@@ -243,6 +243,10 @@ def unzip3(triplets: Iterable[Tuple[T, U, V]]) -> Tuple[Sequence[T], Sequence[U]
 def count(i: Iterable[Tuple[()]]) -> int:
     assert not isinstance(i, list) or isinstance(i, tuple)
     return sum(1 for _ in i)
+
+
+def filter_not_none(s: Iterable[Optional[T]]) -> Iterable[T]:
+    return (x for x in s if x is not None)
 
 
 def repeat(value: T, times: int) -> Sequence[T]:
@@ -495,7 +499,7 @@ def zip_check_3(a: Iterable[T], b: Iterable[U], c: Iterable[V]) -> Iterable[Tupl
     return ((a, *bc) for a, bc in zip_check(a, zip_check(b, c)))
 
 
-def zip_shorten_former(a: Sequence[T], b: Sequence[U]) -> Iterable[Tuple[T, U]]:
+def zip_shorten_latter(a: Sequence[T], b: Sequence[U]) -> Iterable[Tuple[T, U]]:
     assert len(a) <= len(b)
     return zip(a, b)
 

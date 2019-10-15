@@ -453,6 +453,8 @@ abstract class ReferenceItemWithSize : ITypeWithPayload
     public static long NumConstructed = 0;
     public static long NumFreed = 0;
 #endif
+    public static long NumCreatedWithFinalizers = 0;
+    public static long NumFinalized = 0;
 
     // The size includes indirect children too.
 
@@ -535,9 +537,6 @@ abstract class ReferenceItemWithSize : ITypeWithPayload
 
     class ReferenceItemWithSizeFinalizable : ReferenceItemWithSize
     {
-        public static long NumCreatedWithFinalizers = 0;
-        public static long NumFinalized = 0;
-
         public ReferenceItemWithSizeFinalizable(uint size, bool isPinned)
             : base(size, isPinned)
         {
@@ -586,6 +585,7 @@ readonly struct BucketSpec
     public readonly uint weight;
     public BucketSpec(SizeRange sizeRange, uint survInterval, uint pinInterval, uint finalizableInterval, uint weight)
     {
+        Debug.Assert(weight != 0);
         this.sizeRange = sizeRange;
         this.survInterval = survInterval;
         this.pinInterval = pinInterval;
@@ -597,7 +597,9 @@ readonly struct BucketSpec
 
         if (this.pinInterval != 0 || this.finalizableInterval != 0)
         {
-            Util.AlwaysAssert(this.survInterval != 0, "pinInterval and finalizableInterval only affect surviving objects, but nothing survives");
+            Util.AlwaysAssert(
+                this.survInterval != 0,
+                $"pinInterval and finalizableInterval only affect surviving objects, but nothing survives (in bucket with size range {sizeRange})");
         }
     }
 
@@ -804,12 +806,14 @@ class Args
 {
     public readonly uint threadCount;
     public readonly PerThreadArgs perThreadArgs;
+    public readonly bool finishWithFullCollect;
     public readonly bool endException;
 
-    public Args(uint threadCount, in PerThreadArgs perThreadArgs, bool endException)
+    public Args(uint threadCount, in PerThreadArgs perThreadArgs, bool finishWithFullCollect, bool endException)
     {
         this.threadCount = threadCount;
         this.perThreadArgs = perThreadArgs;
+        this.finishWithFullCollect = finishWithFullCollect;
         this.endException = endException;
     }
 
@@ -888,7 +892,14 @@ class ArgsParser
             State? s = TryReadTag(ref text);
             if (s == State.Eof)
             {
-                return new Args(threadCount: threadCount, perThreadArgs: new PerThreadArgs(verifyLiveSize: verifyLiveSize, printEveryNthIter: printEveryNthIter, ParsePhases(ref text, threadCount)), endException: false);
+                return new Args(
+                    threadCount: threadCount,
+                    perThreadArgs: new PerThreadArgs(
+                        verifyLiveSize: verifyLiveSize,
+                        printEveryNthIter: printEveryNthIter,
+                        phases: ParsePhases(ref text, threadCount)),
+                    finishWithFullCollect: false,
+                    endException: false);
             }
             ReadOnlySpan<char> word = text.TakeWord();
             text.TakeSpace();
@@ -1135,12 +1146,16 @@ class ArgsParser
         ItemType allocType = ItemType.ReferenceItem;
         bool verifyLiveSize = false;
         uint printEveryNthIter = 0;
+        bool finishWithFullCollect = false;
         bool endException = false;
 
         for (uint i = 0; i < args.Length; ++i)
         {
             switch (args[i])
             {
+                case "-finishWithFullCollect":
+                    finishWithFullCollect = true;
+                    break;
                 case "-endException":
                     endException = true;
                     break;
@@ -1267,6 +1282,7 @@ class ArgsParser
         return new Args(
             threadCount: threadCount,
             perThreadArgs: new PerThreadArgs(verifyLiveSize: verifyLiveSize, printEveryNthIter: printEveryNthIter, phases: new Phase[] { onlyPhase }),
+            finishWithFullCollect: finishWithFullCollect,
             endException: endException);
     }
 
@@ -2140,6 +2156,48 @@ class MemoryAlloc
 
     public static int Main(string[] argsStrs)
     {
+        try
+        {
+            Args args;
+            args = ArgsParser.Parse(argsStrs);
+
+            double secondsTaken = MainInner(args);
+
+            if (args.endException)
+            {
+                GC.Collect(2, GCCollectionMode.Forced, true);
+#if TODO
+                EmptyWorkingSet(Process.GetCurrentProcess().Handle);
+#endif
+                //Debugger.Break();
+                throw new System.ArgumentException("Just an opportunity for debugging", "test");
+            }
+
+            if (args.finishWithFullCollect)
+            {
+                while (ReferenceItemWithSize.NumFinalized < ReferenceItemWithSize.NumCreatedWithFinalizers)
+                {
+                    Console.WriteLine($"{ReferenceItemWithSize.NumFinalized} out of {ReferenceItemWithSize.NumCreatedWithFinalizers} finalizers have run, doing a full collect");
+                    GC.Collect(2, GCCollectionMode.Forced, blocking: true);
+                    GC.WaitForPendingFinalizers();
+                }
+                Util.AlwaysAssert(ReferenceItemWithSize.NumFinalized == ReferenceItemWithSize.NumCreatedWithFinalizers);
+            }
+
+            PrintResult(secondsTaken: secondsTaken);
+
+            return 0;
+        }
+        catch (Exception e)
+        {
+            Console.Error.WriteLine(e.Message);
+            Console.Error.WriteLine(e.StackTrace);
+            return 1;
+        }
+    }
+
+    public static double MainInner(Args args)
+    {
         Console.WriteLine($"Running 64-bit? {Environment.Is64BitProcess}");
 
         int currentPid = Process.GetCurrentProcess().Id;
@@ -2148,34 +2206,11 @@ class MemoryAlloc
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
 
-        Args args;
-        try
-        {
-            args = ArgsParser.Parse(argsStrs);
-            args.Describe();
-            DoTest(args, currentPid);
-        }
-        catch (Exception e)
-        {
-            Console.Error.WriteLine(e.Message);
-            Console.Error.WriteLine(e.StackTrace);
-            return 1;
-        }
-
-        if (args.endException)
-        {
-            GC.Collect(2, GCCollectionMode.Forced, true);
-#if TODO
-            EmptyWorkingSet(Process.GetCurrentProcess().Handle);
-#endif
-            //Debugger.Break();
-            throw new System.ArgumentException("Just an opportunity for debugging", "test");
-        }
+        args.Describe();
+        DoTest(args, currentPid);
 
         stopwatch.Stop();
-        PrintResult(secondsTaken: stopwatch.Elapsed.TotalSeconds);
-        
-        return 0;
+        return stopwatch.Elapsed.TotalSeconds;
     }
 
     private static void PrintResult(double secondsTaken)
@@ -2194,6 +2229,8 @@ class MemoryAlloc
         }
         Console.WriteLine("]");
 
+        Console.WriteLine($"num_created_with_finalizers: {ReferenceItemWithSize.NumCreatedWithFinalizers}");
+        Console.WriteLine($"num_finalized: {ReferenceItemWithSize.NumFinalized}");
         Console.WriteLine($"final_total_memory_bytes: {GC.GetTotalMemory(forceFullCollection: false)}");
 
         // Use reflection to detect GC.GetGCMemoryInfo because it doesn't exist in dotnet core 2.0 or in .NET framework.

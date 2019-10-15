@@ -44,6 +44,9 @@ class gc_reason(OrderedEnum):
     lowmemory_host = 11
     pm_full_gc = 12
     lowmemory_host_blocking = 13
+    bgc_tuning_soh = 14
+    bgc_tuning_loh = 15
+    bgc_stepping = 16
 
 
 # See gc_heap_expand_mechanism in gcrecords.h

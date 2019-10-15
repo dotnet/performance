@@ -26,6 +26,7 @@ from .type_utils import (
     is_a,
     is_field_name_optional,
     match_type,
+    NO_DEFAULT,
     non_optional_type,
     show_type_for_command,
     T,
@@ -151,7 +152,7 @@ def help_command(args: HelpArgs) -> None:
     if args.command_name is None:
         print_document(_document_for_help_all_commands(args.hidden))
     else:
-        from ..all_commands import ALL_COMMANDS
+        from ..all_commands import ALL_COMMANDS  # pylint:disable=import-outside-toplevel
 
         command = get_or_did_you_mean(ALL_COMMANDS, args.command_name, "command")
         _print_help_for_command(command, show_hidden_arguments=args.hidden)
@@ -163,7 +164,7 @@ HELP_COMMANDS: CommandsMapping = {
 
 
 def _document_for_help_all_commands(show_hidden: bool) -> Document:
-    from ..all_commands import ALL_COMMANDS
+    from ..all_commands import ALL_COMMANDS  # pylint:disable=import-outside-toplevel
 
     def row_for_command(command_name: str, command: Command) -> Row:
         return (Cell(command_name), Cell(unindent_doc(command.doc), align=Align.left))
@@ -313,13 +314,13 @@ def _command_help_row_for_field(fld: Any, show_hidden_arguments: bool) -> Option
 
 
 def validate_all_commands_are_documented() -> None:
-    from ..all_commands import ALL_COMMANDS
+    from ..all_commands import ALL_COMMANDS  # pylint:disable=import-outside-toplevel
 
     for command in ALL_COMMANDS.values():
         param_type = _get_command_parameter_type(command.fn)
         if param_type is not None and is_dataclass(param_type):
             for fld in fields(param_type):
-                assert fld.default is MISSING or is_a(
+                assert fld.default is NO_DEFAULT or is_a(
                     fld.default, fld.type
                 ), f"{param_type.__name__}.{fld.name}: default value does not match type"
                 if try_get_field_argument_info(fld) is None:
@@ -378,7 +379,7 @@ def parse_command_args(command_name: str, cls: Type[T], argv: Sequence[str]) -> 
             from_cmd = fields_from_cmd.get(field.name)
             if from_cmd is None:
                 assert (
-                    field.default is not MISSING
+                    field.default is not NO_DEFAULT
                 ), f"'{_to_cmd_line_arg_name(field.name)}' was not provided and has no default"
                 return check_cast(field.type, field.default)
             else:

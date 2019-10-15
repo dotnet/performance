@@ -165,6 +165,7 @@ handle_doc(
         single_heap_metrics=parse_single_heap_metrics_arg(("InMB", "OutMB")),
         show_first_n_gcs=5,
         show_last_n_gcs=None,
+        show_reasons=False,
     )
 )
 
@@ -636,3 +637,6 @@ def _more_custom(trace: ProcessedTrace) -> None:
 
 
 _more_custom(_TRACE)
+
+
+# %%
