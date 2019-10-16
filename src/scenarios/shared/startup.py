@@ -69,4 +69,4 @@ class StartupWrapper(object):
 
         if runninginlab():
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
-            upload(reportjson, UPLOAD_CONTAINER, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+            upload(reportjson, UPLOAD_CONTAINER, None, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)

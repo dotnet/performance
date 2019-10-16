@@ -1,5 +1,5 @@
 from azure.storage.blob import BlobClient, ContentSettings
-from azure.storage.queue import QueueService
+from azure.storage.queue import QueueClient
 from traceback import format_exc
 from glob import glob
 import os
@@ -28,14 +28,16 @@ def upload(globpath, container, queue, sas_token_env, storage_account_uri):
 
             getLogger().info("uploading {}".format(infile))
 
-            blob_client = BlobClient(account_url=storage_account_uri, container_name=container, blob_name=blob_name, credential=sas_token)
+            blob_client = BlobClient(account_url=storage_account_uri.format('blob'), container_name=container, blob_name=blob_name, credential=sas_token)
             
             with open(infile, "rb") as data:
                 blob_client.upload_blob(data, blob_type="BlockBlob", content_settings=ContentSettings(content_type="application/json"))
 
             if queue is not None:
-                queue_service = QueueService(account_name='pvscmdupload', sas_token)
-                queue_service.put_message(queue, blob_client.url)
+                queue_client = QueueClient(storage_account_uri.format('queue'), queue=queue, credential=sas_token)
+                print(queue_client.queue_name)
+                print(queue_client.url)
+                queue_client.enqueue_message(blob_client.url)
 
             getLogger().info("upload complete")
 
