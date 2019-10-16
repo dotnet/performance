@@ -22,6 +22,16 @@ namespace System.Threading.Tasks.Dataflow.Tests
         public override ITargetBlock<int> CreateBlock() => new ActionBlock<int>(i => { });
     }
 
+    public class ParallelActionBlockPerfTests : DefaultTargetPerfTests
+    {
+        public override ITargetBlock<int> CreateBlock() => new ActionBlock<int>(i => { }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount });
+    }
+
+    public class UnorderedParallelActionBlockPerfTests : DefaultTargetPerfTests
+    {
+        public override ITargetBlock<int> CreateBlock() => new ActionBlock<int>(i => { }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, EnsureOrdered = false });
+    }
+
     [BenchmarkCategory(Categories.CoreFX)]
     public abstract class PerfTests<T> where T : IDataflowBlock
     {
@@ -44,7 +54,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
     }
 
     [BenchmarkCategory(Categories.CoreFX)]
-    public abstract class DefaultTargetPerfTests : PerfTests<ITargetBlock<int>> { }
+    public abstract class DefaultTargetPerfTests : TargetPerfTests<ITargetBlock<int>> { }
 
     [BenchmarkCategory(Categories.CoreFX)]
     public abstract class TargetPerfTests<T> : PerfTests<T> where T : ITargetBlock<int>
@@ -75,7 +85,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
     public abstract class DefaultPropagatorPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>> { }
 
     [BenchmarkCategory(Categories.CoreFX)]
-    public abstract class PropagatorPerfTests<T> : BoundedPropagatorPerfTests<T> where T : IPropagatorBlock<int, int> 
+    public abstract class PropagatorPerfTests<T> : BoundedPropagatorPerfTests<T> where T : IPropagatorBlock<int, int>
     {
         [Benchmark(OperationsPerInvoke = 100_000)]
         public void PostReceiveSequential()
@@ -118,7 +128,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
             {
                 for (int i = 0; i < 100_000; i++)
                 {
-                    while (!block.Post(i));
+                    while (!block.Post(i)) ;
                 }
             });
 
