@@ -5,25 +5,53 @@
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-//#pragma warning disable CS1998 // async methods without awaits
-
 namespace System.Threading.Tasks.Dataflow.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
-    public class Perf_Dataflow
+    public class UnboundedBufferBlockPerfTests : DefaultPropagatorPerfTests
     {
-        [Benchmark]
-        public async Task BufferBlock_Completion()
+        public override IPropagatorBlock<int, int> CreateBlock() => new BufferBlock<int>();
+    }
+
+    public class BoundedBufferBlockPerfTests : DefaultBoundedPropagatorPerfTests
+    {
+        public override IPropagatorBlock<int, int> CreateBlock() => new BufferBlock<int>(new DataflowBlockOptions { BoundedCapacity = 100 });
+    }
+
+    public class ActionBlockPerfTests : DefaultTargetPerfTests
+    {
+        public override ITargetBlock<int> CreateBlock() => new ActionBlock<int>(i => { });
+    }
+
+    [BenchmarkCategory(Categories.CoreFX)]
+    public abstract class PerfTests<T> where T : IDataflowBlock
+    {
+        protected T block;
+
+        public abstract T CreateBlock();
+
+        [GlobalSetup]
+        public void BlockSetup()
         {
-            var block = new BufferBlock<int>();
+            block = CreateBlock();
+        }
+
+        [Benchmark]
+        public async Task Completion()
+        {
             block.Complete();
             await block.Completion;
         }
+    }
 
+    [BenchmarkCategory(Categories.CoreFX)]
+    public abstract class DefaultTargetPerfTests : PerfTests<ITargetBlock<int>> { }
+
+    [BenchmarkCategory(Categories.CoreFX)]
+    public abstract class TargetPerfTests<T> : PerfTests<T> where T : ITargetBlock<int>
+    {
         [Benchmark(OperationsPerInvoke = 100_000)]
-        public void BufferBlock_Post()
+        public void Post()
         {
-            var block = new BufferBlock<int>();
             for (int i = 0; i < 100_000; i++)
             {
                 block.Post(i);
@@ -31,19 +59,27 @@ namespace System.Threading.Tasks.Dataflow.Tests
         }
 
         [Benchmark(OperationsPerInvoke = 100_000)]
-        public async Task BufferBlock_SendAsync()
+        public async Task SendAsync()
         {
-            var block = new BufferBlock<int>();
             for (int i = 0; i < 100_000; i++)
             {
                 await block.SendAsync(i);
             }
         }
+    }
 
+    [BenchmarkCategory(Categories.CoreFX)]
+    public abstract class DefaultBoundedPropagatorPerfTests : BoundedPropagatorPerfTests<IPropagatorBlock<int, int>> { }
+
+    [BenchmarkCategory(Categories.CoreFX)]
+    public abstract class DefaultPropagatorPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>> { }
+
+    [BenchmarkCategory(Categories.CoreFX)]
+    public abstract class PropagatorPerfTests<T> : BoundedPropagatorPerfTests<T> where T : IPropagatorBlock<int, int> 
+    {
         [Benchmark(OperationsPerInvoke = 100_000)]
-        public void BufferBlock_PostReceiveSequential()
+        public void PostReceiveSequential()
         {
-            var block = new BufferBlock<int>();
             for (int i = 0; i < 100_000; i++)
             {
                 block.Post(i);
@@ -56,9 +92,8 @@ namespace System.Threading.Tasks.Dataflow.Tests
         }
 
         [Benchmark(OperationsPerInvoke = 100_000)]
-        public async Task BufferBlock_SendReceiveAsyncSequential()
+        public async Task SendReceiveAsyncSequential()
         {
-            var block = new BufferBlock<int>();
             for (int i = 0; i < 100_000; i++)
             {
                 await block.SendAsync(i);
@@ -69,22 +104,25 @@ namespace System.Threading.Tasks.Dataflow.Tests
                 await block.ReceiveAsync();
             }
         }
+    }
 
+    [BenchmarkCategory(Categories.CoreFX)]
+    public abstract class BoundedPropagatorPerfTests<T> : PerfTests<T> where T : IPropagatorBlock<int, int>
+    {
         [Benchmark(OperationsPerInvoke = 100_000)]
-        public async Task BufferBlock_PostReceiveParallel()
+        public async Task PostReceiveParallel()
         {
-            var block = new BufferBlock<int>();
             await Task.WhenAll(Post(), Receive());
-            
-            Task Post() => Task.Run(()=>
+
+            Task Post() => Task.Run(() =>
             {
                 for (int i = 0; i < 100_000; i++)
                 {
-                    block.Post(i);
+                    while (!block.Post(i));
                 }
             });
 
-            Task Receive() => Task.Run(()=>
+            Task Receive() => Task.Run(() =>
             {
                 for (int i = 0; i < 100_000; i++)
                 {
@@ -94,11 +132,10 @@ namespace System.Threading.Tasks.Dataflow.Tests
         }
 
         [Benchmark(OperationsPerInvoke = 100_000)]
-        public async Task BufferBlock_SendReceiveAsyncParallel()
+        public async Task SendReceiveAsyncParallel()
         {
-            var block = new BufferBlock<int>();
             await Task.WhenAll(SendAsync(), ReceiveAsync());
-            
+
             async Task SendAsync()
             {
                 for (int i = 0; i < 100_000; i++)
