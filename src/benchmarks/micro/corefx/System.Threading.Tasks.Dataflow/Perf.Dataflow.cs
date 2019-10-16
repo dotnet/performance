@@ -24,12 +24,93 @@ namespace System.Threading.Tasks.Dataflow.Tests
 
     public class ParallelActionBlockPerfTests : DefaultTargetPerfTests
     {
-        public override ITargetBlock<int> CreateBlock() => new ActionBlock<int>(i => { }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount });
+        public override ITargetBlock<int> CreateBlock() =>
+            new ActionBlock<int>(
+                i => { },
+                new ExecutionDataflowBlockOptions
+                {
+                    MaxDegreeOfParallelism = Environment.ProcessorCount
+                }
+            );
     }
 
     public class UnorderedParallelActionBlockPerfTests : DefaultTargetPerfTests
     {
-        public override ITargetBlock<int> CreateBlock() => new ActionBlock<int>(i => { }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, EnsureOrdered = false });
+        public override ITargetBlock<int> CreateBlock() =>
+            new ActionBlock<int>(
+                i => { },
+                new ExecutionDataflowBlockOptions
+                {
+                    MaxDegreeOfParallelism = Environment.ProcessorCount,
+                    EnsureOrdered = false
+                }
+            );
+    }
+
+    public class SPCActionBlockPerfTests : DefaultTargetPerfTests
+    {
+        public override ITargetBlock<int> CreateBlock() =>
+            new ActionBlock<int>(
+                i => { },
+                new ExecutionDataflowBlockOptions
+                {
+                    SingleProducerConstrained = true
+                }
+            );
+    }
+
+
+    // public class BufferedActionBlockPerfTests : DefaultTargetPerfTests
+    // {
+    //     public override ITargetBlock<int> CreateBlock()
+    //     {
+    //         var buffer = new BufferBlock<int>();
+    //         var action = new ActionBlock<int>(i => { });
+    //         buffer.LinkTo(action, new DataflowLinkOptions { PropagateCompletion = true });
+    //         return DataflowBlock.Encapsulate(action, buffer);
+    //     }
+    // }
+
+    public class TransformBlockPerfTests : DefaultPropagatorPerfTests
+    {
+        public override IPropagatorBlock<int, int> CreateBlock() =>
+            new TransformBlock<int, int>(i => i);
+    }
+
+    public class ParallelTransformBlockPerfTests : DefaultPropagatorPerfTests
+    {
+        public override IPropagatorBlock<int, int> CreateBlock() =>
+            new TransformBlock<int, int>(
+                i => i,
+                new ExecutionDataflowBlockOptions
+                {
+                    MaxDegreeOfParallelism = Environment.ProcessorCount
+                }
+            );
+    }
+
+    public class UnorderedParallelTransformBlockPerfTests : DefaultPropagatorPerfTests
+    {
+        public override IPropagatorBlock<int, int> CreateBlock() =>
+            new TransformBlock<int, int>(
+                i => i,
+                new ExecutionDataflowBlockOptions
+                {
+                    MaxDegreeOfParallelism = Environment.ProcessorCount,
+                    EnsureOrdered = false
+                }
+            );
+    }
+
+    public class EncapsulateBlockPerfTests : DefaultPropagatorPerfTests
+    {
+        public override IPropagatorBlock<int, int> CreateBlock()
+        {
+            var block1 = new TransformBlock<int, int>(i => ++i, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount });
+            var block2 = new TransformBlock<int, int>(i => --i, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = Environment.ProcessorCount });
+            block1.LinkTo(block2, new DataflowLinkOptions { PropagateCompletion = true });
+            return DataflowBlock.Encapsulate(block1, block2);
+        }
     }
 
     [BenchmarkCategory(Categories.CoreFX)]
