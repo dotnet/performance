@@ -88,7 +88,7 @@ namespace ScenarioMeasurement
             ProcessHelper setupProcHelper = null;
             if (!String.IsNullOrEmpty(iterationSetup))
             {
-                setupProcHelper = CreateProcHelper(iterationSetup, setupArgs, workingDir, logger);
+                setupProcHelper = CreateProcHelper(iterationSetup, setupArgs, logger);
             }
 
             // create iteration cleanup process helper
@@ -96,7 +96,7 @@ namespace ScenarioMeasurement
             ProcessHelper cleanupProcHelper = null;
             if (!String.IsNullOrEmpty(iterationCleanup))
             {
-                cleanupProcHelper = CreateProcHelper(iterationCleanup, cleanupArgs, workingDir, logger);
+                cleanupProcHelper = CreateProcHelper(iterationCleanup, cleanupArgs, logger);
             }
 
             Util.Init();
@@ -185,7 +185,9 @@ namespace ScenarioMeasurement
                     files.Add(userTraceFile);
                 }
                 TraceEventSession.Merge(files.ToArray(), traceFileName);
-                var counters = parser.Parse(traceFileName, Path.GetFileNameWithoutExtension(appExe), pids);
+
+                string commandLine = $"\"{appExe}\" {appArgs}";
+                var counters = parser.Parse(traceFileName, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
 
                 WriteResultTable(counters, logger);
 
@@ -240,14 +242,13 @@ namespace ScenarioMeasurement
 
         }
 
-        private static ProcessHelper CreateProcHelper(string command, string args, string workingDir, Logger logger)
+        private static ProcessHelper CreateProcHelper(string command, string args, Logger logger)
         {
             var procHelper = new ProcessHelper(logger)
             {
                 ProcessWillExit = true,
                 Executable = command,
                 Arguments = args,
-                WorkingDirectory = workingDir,
                 Timeout = 300
             };
             return procHelper;
