@@ -30,6 +30,7 @@ import sys
 
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
+from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR
 
 import dotnet
 import micro_benchmarks
@@ -251,7 +252,7 @@ def __main(args: list) -> int:
                 '**',
                 '*perf-lab-report.json')
 
-            upload.upload(globpath, 'results', 'PERFLAB_UPLOAD_TOKEN', 'https://pvscmdupload.blob.core.windows.net')
+            upload.upload(globpath, UPLOAD_CONTAINER, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
                 
         # TODO: Archive artifacts.
 

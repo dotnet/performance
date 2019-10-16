@@ -18,15 +18,15 @@ namespace ScenarioMeasurement
     class Startup
     {
         /// <summary>
-        ///
+        /// 
         /// </summary>
         /// <param name="appExe">Full path to test executable</param>
         /// <param name="metricType">Type of interval measurement</param>
         /// <param name="scenarioName">Scenario name for reporting</param>
         /// <param name="processWillExit">true: process exits on its own. False: process does not exit, send close.</param>
-        /// <param name="iterations">Number of measured iterations</param>
         /// <param name="timeout">Max wait for process to exit</param>
         /// <param name="measurementDelay">Allowed time for startup window</param>
+        /// <param name="iterations">Number of measured iterations</param>
         /// <param name="appArgs">optional arguments to test executable</param>
         /// <param name="logFileName">optional log file. Default is appExe.startup.log</param>
         /// <param name="workingDir">optional working directory</param>
@@ -39,6 +39,7 @@ namespace ScenarioMeasurement
         /// <param name="setupArgs">arguments of iterationSetup</param>
         /// <param name="iterationCleanup">command to clean up after each iteration</param>
         /// <param name="cleanupArgs">arguments of iterationCleanup</param>
+        /// <param name="traceDirectory">Directory to put files in (defaults to current directory)</param>
         /// <returns></returns>
         static int Main(string appExe,
                         MetricType metricType,
@@ -58,7 +59,8 @@ namespace ScenarioMeasurement
                         bool warmup = true,
                         bool guiApp = true,
                         bool skipProfileIteration = false,
-                        string reportJsonPath = "")
+                        string reportJsonPath = "",
+                        string traceDirectory = null)
         {
             Logger logger = new Logger(String.IsNullOrEmpty(logFileName) ? $"{appExe}.startup.log" : logFileName);
             static void checkArg(string arg, string name)
@@ -70,6 +72,17 @@ namespace ScenarioMeasurement
             checkArg(appExe, nameof(appExe));
             checkArg(traceFileName, nameof(traceFileName));
 
+            if (String.IsNullOrEmpty(traceDirectory))
+            {
+                traceDirectory = Environment.CurrentDirectory;
+            }
+            else
+            {
+                if(!Directory.Exists(traceDirectory))
+                {
+                    Directory.CreateDirectory(traceDirectory);
+                }
+            }
             bool failed = false;
             logger.Log($"Running {appExe} (args: \"{appArgs}\")");
             var procHelper = new ProcessHelper(logger)
@@ -82,7 +95,7 @@ namespace ScenarioMeasurement
                 WorkingDirectory = workingDir,
                 GuiApp = guiApp
             };
-
+            
             // create iteration setup process helper
             logger.Log($"Iteration set up: {iterationSetup} (args: {setupArgs})");
             ProcessHelper setupProcHelper = null;
@@ -109,6 +122,9 @@ namespace ScenarioMeasurement
 
             string kernelTraceFile = Path.ChangeExtension(traceFileName, "perflabkernel.etl");
             string userTraceFile = Path.ChangeExtension(traceFileName, "perflabuser.etl");
+            traceFileName = Path.Join(traceDirectory, traceFileName);
+            kernelTraceFile = Path.Join(traceDirectory, kernelTraceFile);
+            userTraceFile = Path.Join(traceDirectory, userTraceFile);
             IParser parser = null;
             switch (metricType)
             {
@@ -214,6 +230,10 @@ namespace ScenarioMeasurement
                 string profileTraceFileName = $"{Path.GetFileNameWithoutExtension(traceFileName)}_profile.etl";
                 string profileKernelTraceFile = Path.ChangeExtension(profileTraceFileName, ".kernel.etl");
                 string profileUserTraceFile = Path.ChangeExtension(profileTraceFileName, ".user.etl");
+                profileTraceFileName = Path.Join(traceDirectory, profileTraceFileName);
+                profileKernelTraceFile = Path.Join(traceDirectory, profileKernelTraceFile);
+                profileUserTraceFile = Path.Join(traceDirectory, profileUserTraceFile);
+                logger.Log($"=============== Profile Iteration ================ ");
                 ProfileParser profiler = new ProfileParser(parser);
                 using (var kernel = new TraceEventSession(KernelTraceEventParser.KernelSessionName, profileKernelTraceFile))
                 {

@@ -50,6 +50,18 @@ jobs:
 ######################################################
 
 - ${{ if and(eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest')) }}:
+  # Windows x64 scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      architecture: x64
+      pool: Hosted VS2017
+      kind: scenarios
+      queue: Windows.10.Amd64.ClientRS5.Open
+      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - netcoreapp5.0
+        
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
@@ -180,6 +192,19 @@ jobs:
 ###########################################
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+
+  # Windows x64 scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: windows
+      osVersion: 19H1
+      architecture: x64
+      pool: Hosted VS2017
+      kind: scenarios
+      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - netcoreapp5.0
+
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:

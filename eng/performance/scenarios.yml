@@ -1,0 +1,106 @@
+parameters:
+  osName: ''            # required -- windows | linux | macos
+  osVersion: ''         # required -- OS version
+  kind: ''              # required -- benchmark kind. As of today, only "micro" and "mlnet" benchmarks are supported, we plan to add "scenarios" soon
+  architecture: ''      # required -- Architecture. Allowed values: x64, x86, arm, arm64
+  pool: ''              # required -- name of the Helix pool
+  queue: ''             # required -- name of the Helix queue
+  container: ''         # optional -- id of the container
+  frameworks: []        # required -- list of frameworks. Allowed values: net461, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
+
+jobs:
+- template: ../common/templates/jobs/jobs.yml
+  parameters:
+    enableTelemetry: false
+    enablePublishBuildArtifacts: true
+    helixRepo: dotnet/performance
+    jobs:
+      - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}'
+        displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }}'
+        timeoutInMinutes: 320
+        variables:
+        - ${{ if eq(parameters.osName, 'windows') }}:
+          - name: ScriptExtension
+            value: .cmd
+          - name: CorrelationStaging
+            value: $(Build.SourcesDirectory)\CorrelationStaging\
+          - name: AdditionalHelixPreCommands
+            value: 'call %HELIX_CORRELATION_PAYLOAD%\machine-setup$(ScriptExtension)'
+          - name: Python
+            value: 'py -3'
+          - name: ArtifactsDirectory
+            value: '%HELIX_WORKITEM_UPLOAD_ROOT%\Scenarios'
+        - ${{ if ne(parameters.osName, 'windows') }}:
+          - name: ScriptExtension
+            value: .sh
+          - name: CorrelationStaging
+            value: $(Build.SourcesDirectory)/CorrelationStaging/
+          - name: AdditionalHelixPreCommands
+            value: 'chmod +x $HELIX_CORRELATION_PAYLOAD/machine-setup.sh;. $HELIX_CORRELATION_PAYLOAD/machine-setup$(ScriptExtension)'
+          - name: Python
+            value: python3
+          - name: ArtifactsDirectory
+            value: '$HELIX_WORKITEM_UPLOAD_ROOT/Scenarios'
+        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
+          - name: HelixApiAccessToken
+            value: ''
+          - name: HelixPreCommand
+            value: '$(AdditionalHelixPreCommands)'
+          - name: HelixSourcePrefix
+            value: "pr"
+        - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+          - ${{ if eq(parameters.osName, 'windows') }}:
+            - name: HelixPreCommand
+              value: 'py -3 -m pip install --user --pre --upgrade azure-storage-blob;set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
+          - ${{ if ne(parameters.osName, 'windows') }}:
+            - name: HelixPreCommand
+              value: 'pip3 install --user --pre --upgrade azure-storage-blob;export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
+          - name: HelixSourcePrefix
+            value: 'official'
+          - group: DotNet-HelixApi-Access
+          - group: dotnet-benchview
+        workspace:
+          clean: all
+        pool:
+          name: ${{ parameters.pool }}
+        container: ${{ parameters.container }}
+        strategy:
+          matrix:
+            ${{ each framework in parameters.frameworks }}:
+              ${{ framework }}:
+                _Framework: ${{ framework }}
+                _Configs: RunKind="${{ parameters.kind }}"
+                _BuildConfig: ${{ parameters.architecture }}_$(_Framework)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
+        steps:
+        - checkout: self
+          clean: true
+        - script: $(Python) scripts/ci_setup.py --frameworks $(_Framework) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup$(ScriptExtension) --install-dir $(CorrelationStaging)dotnet
+          displayName: Run ci_setup.py
+        - ${{ if eq(parameters.osName, 'windows') }}:
+          - script: xcopy .\scripts $(CorrelationStaging)scripts\/e && xcopy .\src\scenarios\shared $(CorrelationStaging)shared\/e 
+            displayName: Copy python libraries
+          - script: $(CorrelationStaging)dotnet\dotnet publish -o $(CorrelationStaging)startup -f $(_Framework) $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\Startup\Startup.csproj
+            displayName: Build startup tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+        - ${{ if ne(parameters.osName, 'windows') }}:
+          - script: cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared
+            displayName: Copy python libraries
+          - script: $(CorrelationStaging)dotnet/dotnet publish -o $(CorrelationStaging)startup -f $(_Framework) $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/Startup/Startup.csproj
+            displayName: Build startup tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+        - template: /eng/performance/send-to-helix.yml
+          parameters:
+            HelixSource: '$(HelixSourcePrefix)/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
+            HelixType: 'test/performance_$(_BuildConfig)/'
+            HelixAccessToken: $(HelixApiAccessToken)
+            HelixTargetQueues: ${{ parameters.queue }}
+            HelixPreCommands: $(HelixPreCommand)
+            CorrelationPayloadDirectory: $(CorrelationStaging)
+            ProjectFile: scenarios.proj
+            WorkItemDirectory: $(Build.SourcesDirectory)
+            Creator: $(Creator)
+            Architecture: ${{ parameters.architecture }}
+            WorkItemTimeout: 4:00 # 4 hours
+            Python: $(Python)
