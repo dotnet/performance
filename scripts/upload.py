@@ -35,8 +35,6 @@ def upload(globpath, container, queue, sas_token_env, storage_account_uri):
 
             if queue is not None:
                 queue_client = QueueClient(storage_account_uri.format('queue'), queue=queue, credential=sas_token)
-                print(queue_client.queue_name)
-                print(queue_client.url)
                 queue_client.enqueue_message(blob_client.url)
 
             getLogger().info("upload complete")
