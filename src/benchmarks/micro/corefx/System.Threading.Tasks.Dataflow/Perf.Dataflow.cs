@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -159,14 +160,74 @@ namespace System.Threading.Tasks.Dataflow.Tests
             var action2 = new ActionBlock<int>(i => { });
             block.LinkTo(action1, new DataflowLinkOptions { PropagateCompletion = true });
             block.LinkTo(action2, new DataflowLinkOptions { PropagateCompletion = true });
-            
+
             for (int i = 0; i < 100_000; i++)
             {
                 await block.SendAsync(i);
             }
             block.Complete();
-            
+
             await Task.WhenAll(action1.Completion, action2.Completion);
+        }
+    }
+
+    public class BatchBlockPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int[]>, int[]>
+    {
+        protected override int ReceiveSize { get; } = 100;
+        public override IPropagatorBlock<int, int[]> CreateBlock() => new BatchBlock<int>(ReceiveSize);
+    }
+
+    [BenchmarkCategory(Categories.CoreFX)]
+    public class JoinBlockPerfTests : SourceBlockPerfTests<JoinBlock<int, int>, Tuple<int, int>>
+    {
+        public override JoinBlock<int, int> CreateBlock() => new JoinBlock<int, int>();
+
+        [Benchmark(OperationsPerInvoke = 100_000)]
+        public async Task PostTwiceReceiveOnceParallel()
+        {
+            await Task.WhenAll(
+                Post(block.Target1),
+                Post(block.Target2),
+                Receive()
+            );
+        }
+
+        [Benchmark(OperationsPerInvoke = 100_000)]
+        public async Task SendAsyncTwiceReceiveAsyncOnceParallel()
+        {
+            await Task.WhenAll(
+                SendAsync(block.Target1),
+                SendAsync(block.Target2),
+                ReceiveAsync()
+            );
+        }
+    }
+
+    [BenchmarkCategory(Categories.CoreFX)]
+    public class BatchedJoinBlockPerfTests : SourceBlockPerfTests<BatchedJoinBlock<int, int>, Tuple<IList<int>, IList<int>>>
+    {
+        protected override int ReceiveSize { get; } = 100;
+
+        public override BatchedJoinBlock<int, int> CreateBlock() => new BatchedJoinBlock<int, int>(ReceiveSize);
+
+        [Benchmark(OperationsPerInvoke = 100_000)]
+        public async Task PostTwiceReceiveOnceParallel()
+        {
+            await Task.WhenAll(
+                Post(block.Target1),
+                Post(block.Target2),
+                Receive()
+            );
+        }
+
+        [Benchmark(OperationsPerInvoke = 100_000)]
+        public async Task SendAsyncTwiceReceiveAsyncOnceParallel()
+        {
+            await Task.WhenAll(
+                SendAsync(block.Target1),
+                SendAsync(block.Target2),
+                ReceiveAsync()
+            );
         }
     }
 
@@ -180,6 +241,9 @@ namespace System.Threading.Tasks.Dataflow.Tests
         [GlobalSetup]
         public void BlockSetup()
         {
+            //while(!System.Diagnostics.Debugger.IsAttached)
+            //    Thread.Sleep(TimeSpan.FromMilliseconds(100));
+
             block = CreateBlock();
         }
 
@@ -189,6 +253,46 @@ namespace System.Threading.Tasks.Dataflow.Tests
             block.Complete();
             await block.Completion;
         }
+
+        protected static Task Post(ITargetBlock<int> target) => Task.Run(() =>
+        {
+            for (int i = 0; i < 100_000; i++)
+            {
+                while (!target.Post(i)) ;
+            }
+        });
+
+        protected static Task Receive<U>(ISourceBlock<U> source, int receiveSize = 1) => Task.Run(() =>
+        {
+            for (int i = 0; i < 100_000 / receiveSize; i++)
+            {
+                source.Receive();
+            }
+        });
+
+        protected static async Task SendAsync(ITargetBlock<int> target)
+        {
+            for (int i = 0; i < 100_000; i++)
+            {
+                await target.SendAsync(i);
+            }
+        }
+
+        protected static async Task ReceiveAsync<U>(ISourceBlock<U> source, int receiveSize = 1)
+        {
+            for (int i = 0; i < 100_000 / receiveSize; i++)
+            {
+                await source.ReceiveAsync();
+            }
+        }
+    }
+
+    [BenchmarkCategory(Categories.CoreFX)]
+    public abstract class SourceBlockPerfTests<T, U> : PerfTests<T> where T : ISourceBlock<U>
+    {
+        protected virtual int ReceiveSize { get; } = 1;
+        protected Task Receive() => Receive(block, ReceiveSize);
+        protected Task ReceiveAsync() => ReceiveAsync(block, ReceiveSize);
     }
 
     [BenchmarkCategory(Categories.CoreFX)]
@@ -217,14 +321,16 @@ namespace System.Threading.Tasks.Dataflow.Tests
     }
 
     [BenchmarkCategory(Categories.CoreFX)]
-    public abstract class DefaultBoundedPropagatorPerfTests : BoundedPropagatorPerfTests<IPropagatorBlock<int, int>> { }
+    public abstract class DefaultBoundedPropagatorPerfTests : BoundedPropagatorPerfTests<IPropagatorBlock<int, int>, int> { }
 
     [BenchmarkCategory(Categories.CoreFX)]
-    public abstract class DefaultPropagatorPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>> { }
+    public abstract class DefaultPropagatorPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>, int> { }
 
     [BenchmarkCategory(Categories.CoreFX)]
-    public abstract class PropagatorPerfTests<T> : BoundedPropagatorPerfTests<T> where T : IPropagatorBlock<int, int>
+    public abstract class PropagatorPerfTests<T, U> : TargetPerfTests<IPropagatorBlock<int, U>> where T : IPropagatorBlock<int, U>
     {
+        protected virtual int ReceiveSize { get; } = 1;
+
         [Benchmark(OperationsPerInvoke = 100_000)]
         public void PostReceiveSequential()
         {
@@ -233,7 +339,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
                 block.Post(i);
             }
 
-            for (int i = 0; i < 100_000; i++)
+            for (int i = 0; i < 100_000 / ReceiveSize; i++)
             {
                 block.Receive();
             }
@@ -247,15 +353,59 @@ namespace System.Threading.Tasks.Dataflow.Tests
                 await block.SendAsync(i);
             }
 
-            for (int i = 0; i < 100_000; i++)
+            for (int i = 0; i < 100_000 / ReceiveSize; i++)
             {
                 await block.ReceiveAsync();
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = 100_000)]
+        public async Task PostReceiveParallel()
+        {
+            await Task.WhenAll(Post(), Receive());
+
+            Task Post() => Task.Run(() =>
+            {
+                for (int i = 0; i < 100_000; i++)
+                {
+                    while (!block.Post(i)) ;
+                }
+            });
+
+            Task Receive() => Task.Run(() =>
+            {
+                for (int i = 0; i < 100_000 / ReceiveSize; i++)
+                {
+                    block.Receive();
+                }
+            });
+        }
+
+        [Benchmark(OperationsPerInvoke = 100_000)]
+        public async Task SendReceiveAsyncParallel()
+        {
+            await Task.WhenAll(SendAsync(), ReceiveAsync());
+
+            async Task SendAsync()
+            {
+                for (int i = 0; i < 100_000; i++)
+                {
+                    await block.SendAsync(i);
+                }
+            }
+
+            async Task ReceiveAsync()
+            {
+                for (int i = 0; i < 100_000 / ReceiveSize; i++)
+                {
+                    await block.ReceiveAsync();
+                }
             }
         }
     }
 
     [BenchmarkCategory(Categories.CoreFX)]
-    public abstract class BoundedPropagatorPerfTests<T> : PerfTests<T> where T : IPropagatorBlock<int, int>
+    public abstract class BoundedPropagatorPerfTests<T, U> : PerfTests<T> where T : IPropagatorBlock<int, U>
     {
         [Benchmark(OperationsPerInvoke = 100_000)]
         public async Task PostReceiveParallel()
