@@ -27,6 +27,25 @@ namespace System.Tests
             => Values.OfType<double>().Select(value => value.ToString("r")).ToArray();
 
         [Benchmark]
+        [Arguments(0.0)]
+        [Arguments(double.NaN)]
+        public bool IsNaN(double value)
+        {
+            // double.IsNaN takes very little time to execute,
+            // so we need to boost the execution time a bit.
+
+            bool result = false;
+
+            for (int i = 0; i < 1000000; i++)
+            {
+                result &= double.IsNaN(value);
+                value += 1.0;
+            }
+
+            return result;
+        }
+
+        [Benchmark]
         [ArgumentsSource(nameof(Values))]
         public string ToString(double value) => value.ToString(); 
 
