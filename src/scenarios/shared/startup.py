@@ -8,7 +8,6 @@ from performance.logger import setup_loggers
 from performance.common import get_artifacts_directory, get_packages_directory, RunCommand
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR
 from dotnet import CSharpProject, CSharpProjFile
-from upload import upload
 from shared.util import helixpayload, helixuploaddir, builtexe, publishedexe, runninginlab
 from shared.const import *
 class StartupWrapper(object):
@@ -68,5 +67,6 @@ class StartupWrapper(object):
 
 
         if runninginlab():
+            from upload import upload
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
             upload(reportjson, UPLOAD_CONTAINER, None, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
