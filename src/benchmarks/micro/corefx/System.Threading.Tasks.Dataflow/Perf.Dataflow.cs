@@ -60,22 +60,31 @@ namespace System.Threading.Tasks.Dataflow.Tests
             );
     }
 
-
-    // public class BufferedActionBlockPerfTests : DefaultTargetPerfTests
-    // {
-    //     public override ITargetBlock<int> CreateBlock()
-    //     {
-    //         var buffer = new BufferBlock<int>();
-    //         var action = new ActionBlock<int>(i => { });
-    //         buffer.LinkTo(action, new DataflowLinkOptions { PropagateCompletion = true });
-    //         return DataflowBlock.Encapsulate(action, buffer);
-    //     }
-    // }
-
+    [BenchmarkCategory(Categories.CoreFX)]
     public class TransformBlockPerfTests : DefaultPropagatorPerfTests
     {
         public override IPropagatorBlock<int, int> CreateBlock() =>
             new TransformBlock<int, int>(i => i);
+
+        [Benchmark(OperationsPerInvoke = 100_000)]
+        public void RxPublishSubscribe()
+        {
+            var observer = block.AsObserver();
+            var observable = block.AsObservable();
+            observable.Subscribe(new IgnoreObserver<int>());   
+            for(int i = 0; i < 100_000; i++)
+            {
+                observer.OnNext(i);
+            }
+            observer.OnCompleted();
+        }
+
+        class IgnoreObserver<T> : IObserver<T>
+        {
+            public void OnCompleted() {}
+            public void OnError(Exception error) {}
+            public void OnNext(T value) {}
+        }
     }
 
     public class ParallelTransformBlockPerfTests : DefaultPropagatorPerfTests
