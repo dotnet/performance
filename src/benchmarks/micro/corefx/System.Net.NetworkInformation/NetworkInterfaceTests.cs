@@ -12,7 +12,7 @@ namespace System.Net.NetworkInformation.Tests
     public class NetworkInterfaceTests
     {
         [Benchmark]
-        public void GetAllNetworkInterfaces() => NetworkInterface.GetAllNetworkInterfaces();
+        public NetworkInterface[] GetAllNetworkInterfaces() => NetworkInterface.GetAllNetworkInterfaces();
 
         [Benchmark]
         public void GetAllNetworkInterfacesProperties()
