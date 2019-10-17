@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.NetworkInformation;
-using System.Reflection;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -14,12 +11,8 @@ namespace System.Net.NetworkInformation.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public class NetworkInterfaceTests
     {
-        private PropertyInfo[] NetworkInterfaceInfo = typeof(System.Net.NetworkInformation.NetworkInterface).GetProperties(BindingFlags.Instance | BindingFlags.Public);
-        private PropertyInfo[] IPInterfaceStatisticsInfo = typeof(System.Net.NetworkInformation.IPInterfaceStatistics).GetProperties(BindingFlags.Instance | BindingFlags.Public);
-        private PropertyInfo[] IPInterfacePropertiesInfo = typeof(System.Net.NetworkInformation.IPInterfaceProperties).GetProperties(BindingFlags.Instance | BindingFlags.Public);
-
         [Benchmark]
-        public void GetAllNetworkInterfaces() => NetworkInformation.NetworkInterface.GetAllNetworkInterfaces();
+        public void GetAllNetworkInterfaces() => NetworkInterface.GetAllNetworkInterfaces();
 
         [Benchmark]
         public void GetAllNetworkInterfacesProperties()
@@ -29,32 +22,40 @@ namespace System.Net.NetworkInformation.Tests
                 IPInterfaceStatistics ips = ni.GetIPStatistics();
                 IPInterfaceProperties ipp = ni.GetIPProperties();
 
-                foreach(var pi in NetworkInterfaceInfo)
-                {
-                    try
-                    {
-                        _ = pi.GetValue(ni);
-                    }
-                    catch (Exception) { };
-                }
+                _ = ni.Id;
+                _ = ni.Name;
+                _ = ni.Description;
+                _ = ni.NetworkInterfaceType;
+                try { _ = ni.OperationalStatus; } catch { }
+                try { _ = ni.Speed; } catch { }
+                try { _ = ni.IsReceiveOnly; } catch { }
+                try { _ = ni.SupportsMulticast; } catch { }
 
-                foreach(var pi in IPInterfaceStatisticsInfo)
-                {
-                    try
-                    {
-                        _ = pi.GetValue(ips);
-                    }
-                    catch (Exception) { };
-                }
+                // IP Statistics
+                try { _ = ips.BytesReceived; } catch { }
+                try { _ = ips.BytesSent; } catch { }
+                try { _ = ips.IncomingPacketsDiscarded;} catch { }
+                try { _ = ips.IncomingPacketsWithErrors;} catch { }
+                try { _ = ips.IncomingUnknownProtocolPackets;} catch { }
+                try { _ = ips.NonUnicastPacketsReceived; } catch { }
+                try { _ = ips.NonUnicastPacketsSent; } catch { }
+                try { _ = ips.OutgoingPacketsDiscarded; } catch { }
+                try { _ = ips.OutgoingPacketsWithErrors; } catch { }
+                try { _ = ips.OutputQueueLength; } catch { }
+                try { _ = ips.UnicastPacketsReceived; } catch { }
+                try { _ = ips.UnicastPacketsSent; } catch { }
 
-                foreach(var pi in IPInterfacePropertiesInfo)
-                {
-                    try
-                    {
-                        _ = pi.GetValue(ipp);
-                    }
-                    catch (Exception) { };
-                }
+                // IP Properties
+                try { _ = ipp.IsDnsEnabled; } catch { };
+                try { _ = ipp.DnsSuffix; } catch { };
+                try { _ = ipp.IsDynamicDnsEnabled; } catch { };
+                try { _ = ipp.UnicastAddresses; } catch { };
+                try { _ = ipp.MulticastAddresses; } catch { };
+                try { _ = ipp.AnycastAddresses; } catch { };
+                try { _ = ipp.DnsAddresses; } catch { };
+                try { _ = ipp.GatewayAddresses; } catch { };
+                try { _ = ipp.DhcpServerAddresses; } catch { };
+                try { _ = ipp.DnsAddresses; } catch { };
             }
         }
     }
