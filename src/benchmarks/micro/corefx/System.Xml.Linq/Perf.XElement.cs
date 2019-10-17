@@ -1,4 +1,8 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
 namespace System.Xml.Linq
@@ -14,16 +18,16 @@ namespace System.Xml.Linq
         [Benchmark(OperationsPerInvoke = 8)]
         public XElement CreateWithElements()
         {
-            XElement doc = new XElement("Root",
-                new XElement("elem1", "text node two e1; text node three"),
-                new XElement("elem1", "text node two e1; text node three"),
-                new XElement("elem1", "text node two e1; text node three"),
-                new XElement("elem1", "text node two e1; text node three"),
-                new XElement("elem1", "text node two e1; text node three"),
-                new XElement("elem1", "text node two e1; text node three"),
-                new XElement("elem1", "text node two e1; text node three"),
-                new XElement("elem1", "text node two e1; text node three")
-                );
+            XElement doc = new XElement("Root",   // Typical XElement creation scenario with children 
+                new XElement("elem1", "some xml element content"),
+                new XElement("elem1", "some xml element content"),
+                new XElement("elem1", "some xml element content"),
+                new XElement("elem1", "some xml element content"),
+                new XElement("elem1", "some xml element content"),
+                new XElement("elem1", "some xml element content"),
+                new XElement("elem1", "some xml element content"),
+                new XElement("elem1", "some xml element content")
+            );
 
             return doc;
         }
@@ -49,8 +53,5 @@ namespace System.Xml.Linq
 
         [Benchmark]
         public string GetValue() => _element.Value;
-
-        [Benchmark]
-        public XName GetXName() => _element.Name;
     }
 }
