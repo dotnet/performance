@@ -202,7 +202,12 @@ namespace ScenarioMeasurement
                 }
                 TraceEventSession.Merge(files.ToArray(), traceFileName);
 
-                string commandLine = $"\"{appExe}\" {appArgs}".TrimEnd();
+                string commandLine = $"\"{appExe}\"";
+                if (!String.IsNullOrEmpty(appArgs))
+                {
+                    commandLine = commandLine + " " + appArgs;
+                }
+
                 var counters = parser.Parse(traceFileName, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
 
                 WriteResultTable(counters, logger);
