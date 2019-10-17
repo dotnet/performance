@@ -113,6 +113,63 @@ namespace System.Threading.Tasks.Dataflow.Tests
         }
     }
 
+    public class TransformManyBlockPerfTests : DefaultPropagatorPerfTests
+    {
+        public override IPropagatorBlock<int, int> CreateBlock() =>
+            new TransformManyBlock<int, int>(
+                i => new int[] { i },
+                new ExecutionDataflowBlockOptions
+                {
+                    MaxDegreeOfParallelism = Environment.ProcessorCount
+                });
+    }
+
+    [BenchmarkCategory(Categories.CoreFX)]
+    public class BroadcastBlockPerfTests : DefaultPropagatorPerfTests
+    {
+        public override IPropagatorBlock<int, int> CreateBlock() =>
+            new BroadcastBlock<int>(
+                i => i,
+                new ExecutionDataflowBlockOptions
+                {
+                    MaxDegreeOfParallelism = Environment.ProcessorCount
+                });
+
+        [Benchmark(OperationsPerInvoke = 100_000)]
+        public async Task PostMultiReceiveParallel()
+        {
+            var action1 = new ActionBlock<int>(i => { });
+            var action2 = new ActionBlock<int>(i => { });
+            block.LinkTo(action1, new DataflowLinkOptions { PropagateCompletion = true });
+            block.LinkTo(action2, new DataflowLinkOptions { PropagateCompletion = true });
+
+            for (int i = 0; i < 100_000; i++)
+            {
+                block.Post(i);
+            }
+            block.Complete();
+
+            await Task.WhenAll(action1.Completion, action2.Completion);
+        }
+
+        [Benchmark(OperationsPerInvoke = 100_000)]
+        public async Task SendMultiReceiveAsyncParallel()
+        {
+            var action1 = new ActionBlock<int>(i => { });
+            var action2 = new ActionBlock<int>(i => { });
+            block.LinkTo(action1, new DataflowLinkOptions { PropagateCompletion = true });
+            block.LinkTo(action2, new DataflowLinkOptions { PropagateCompletion = true });
+            
+            for (int i = 0; i < 100_000; i++)
+            {
+                await block.SendAsync(i);
+            }
+            block.Complete();
+            
+            await Task.WhenAll(action1.Completion, action2.Completion);
+        }
+    }
+
     [BenchmarkCategory(Categories.CoreFX)]
     public abstract class PerfTests<T> where T : IDataflowBlock
     {
