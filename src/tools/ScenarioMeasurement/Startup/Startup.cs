@@ -202,7 +202,12 @@ namespace ScenarioMeasurement
                 }
                 TraceEventSession.Merge(files.ToArray(), traceFileName);
 
-                string commandLine = $"\"{appExe}\" {appArgs}".TrimEnd();
+                string commandLine = $"\"{appExe}\"";
+                if (!String.IsNullOrEmpty(appArgs))
+                {
+                    commandLine = commandLine + " " + appArgs;
+                }
+
                 var counters = parser.Parse(traceFileName, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
 
                 WriteResultTable(counters, logger);
@@ -241,11 +246,34 @@ namespace ScenarioMeasurement
                     using (var user = new TraceEventSession("ProfileSession", profileUserTraceFile))
                     {
                         profiler.EnableUserProviders(user);
+
+                        // setup iteration
+                        if (setupProcHelper != null)
+                        {
+                            var setupResult = setupProcHelper.Run().result;
+                            if (setupResult != ProcessHelper.Result.Success)
+                            {
+                                logger.Log($"Failed to set up. Result: {setupResult}");
+                                failed = true;
+                            }
+                        }
+
                         var result = procHelper.Run().result;
                         if (result != ProcessHelper.Result.Success)
                         {
-                            logger.Log($"Failed. Result: {result}");
+                            logger.Log($"Failed to run. Result: {result}");
                             failed = true;
+                        }
+
+                        // cleanup iteration
+                        if (cleanupProcHelper != null)
+                        {
+                            var cleanupResult = cleanupProcHelper.Run().result;
+                            if (cleanupResult != ProcessHelper.Result.Success)
+                            {
+                                logger.Log($"Failed to clean up. Result: {cleanupResult}");
+                                failed = true;
+                            }
                         }
                     }
                 }
