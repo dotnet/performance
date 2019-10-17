@@ -48,6 +48,8 @@ jobs:
             value: '$(AdditionalHelixPreCommands)'
           - name: HelixSourcePrefix
             value: "pr"
+          - name: Creator
+            value: dotnet-performance
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
           - ${{ if eq(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
@@ -57,6 +59,8 @@ jobs:
               value: 'pip3 install --user --pre --upgrade azure-storage-blob;export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
           - name: HelixSourcePrefix
             value: 'official'
+          - name: Creator
+            value: ''
           - group: DotNet-HelixApi-Access
           - group: dotnet-benchview
         workspace:
