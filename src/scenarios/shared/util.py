@@ -5,6 +5,7 @@ import sys
 import os
 from os import environ
 from shared import const
+from performance.constants import UPLOAD_TOKEN_VAR
 
 def helixpayload():
     '''
@@ -29,6 +30,9 @@ def builtexe(exename: str):
 def publishedexe(exename: str):
     'gets binary path for published exe'
     return os.path.join(const.PUBDIR, '%s%s' % (exename, extension()))
+
+def uploadtokenpresent():
+    return environ.get(UPLOAD_TOKEN_VAR) is not None
 
 def runninginlab():
     return environ.get('PERFLAB_INLAB') is not None
