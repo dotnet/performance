@@ -30,7 +30,7 @@ import sys
 
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
-from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR
+from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 
 import dotnet
 import micro_benchmarks
@@ -252,7 +252,10 @@ def __main(args: list) -> int:
                 '**',
                 '*perf-lab-report.json')
 
-            upload.upload(globpath, UPLOAD_CONTAINER, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+            #No queue insertion
+            upload.upload(globpath, UPLOAD_CONTAINER, None, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+            #With queue insertion
+            upload.upload(globpath, 'resultsandbox', UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
                 
         # TODO: Archive artifacts.
 

@@ -1,4 +1,5 @@
 from azure.storage.blob import BlobClient, ContentSettings
+from azure.storage.queue import QueueClient
 from traceback import format_exc
 from glob import glob
 import os
@@ -12,7 +13,7 @@ def get_unique_name(filename, unique_id) -> str:
         newname = "{0}-perf-lab-report.json".format(randint(1000, 9999))
     return newname
 
-def upload(globpath, container, sas_token_env, storage_account_uri):
+def upload(globpath, container, queue, sas_token_env, storage_account_uri):
     try:
         sas_token_env = sas_token_env
         sas_token = os.getenv(sas_token_env)
@@ -27,10 +28,14 @@ def upload(globpath, container, sas_token_env, storage_account_uri):
 
             getLogger().info("uploading {}".format(infile))
 
-            blob_client = BlobClient(account_url=storage_account_uri, container_name=container, blob_name=blob_name, credential=sas_token)
+            blob_client = BlobClient(account_url=storage_account_uri.format('blob'), container_name=container, blob_name=blob_name, credential=sas_token)
             
             with open(infile, "rb") as data:
                 blob_client.upload_blob(data, blob_type="BlockBlob", content_settings=ContentSettings(content_type="application/json"))
+
+            if queue is not None:
+                queue_client = QueueClient(storage_account_uri.format('queue'), queue=queue, credential=sas_token)
+                queue_client.enqueue_message(blob_client.url)
 
             getLogger().info("upload complete")
 
