@@ -3,6 +3,8 @@ Module for running scenario tasks
 '''
 
 import sys
+import os
+
 from logging import getLogger
 from collections import namedtuple
 from argparse import ArgumentParser
@@ -20,6 +22,9 @@ optfields = ('guiapp',
              'iterations',
              'timeout',
              'warmup',
+             'workingdir',
+             'iterationsetup',
+             'setupargs',
              )
 
 # These are the kinds of scenarios we run. Default here indicates whether ALL
@@ -62,11 +67,35 @@ class Runner:
             startup.runtests(**self.traits._asdict(),
                              scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
                              apptorun=publishedexe(self.traits.exename))
-        # if testtype == 'sdk' and self.traits.sdk:
-        #     print("sdk")
-        #     startup = StartupWrapper()
-        #     startup.runtests(**self.traits._asdict(),
-        #         scenariotypename='Build No Changes')
-        #     # fix some other traits
-        #     startup.runtests(**self.traits._asdict(),
-        #         scenariotypename='Rebuild')
+        elif self.testtype == const.SDK:
+            startup = StartupWrapper()
+            # clean build
+            startup.runtests(scenarioname=self.traits.scenarioname,
+                             exename=self.traits.exename,
+                             guiapp=self.traits.guiapp,
+                             startupmetric=const.STARTUP_PROCESSTIME,
+                             appargs='build',
+                             timeout=self.traits.timeout,
+                             warmup='false',
+                             iterations=self.traits.iterations,
+                             scenariotypename='%s (%s)' % (const.SCENARIO_NAMES[const.SDK], const.BUILD_CLEAN),
+                             apptorun=const.DOTNET,  # TODO: not using traits.exename here bc we want to use dotnet.exe
+                             iterationsetup=const.PYTHON,
+                             setupargs='-3 %s' % const.ITERATION_SETUP_FILE,
+                             workingdir=const.TMPDIR,
+                             )
+            # build(no changes)
+            startup.runtests(scenarioname=self.traits.scenarioname,
+                             exename=self.traits.exename,
+                             guiapp=self.traits.guiapp,
+                             startupmetric=const.STARTUP_PROCESSTIME,
+                             appargs='build',
+                             timeout=self.traits.timeout,
+                             warmup='true',
+                             iterations=self.traits.iterations,
+                             scenariotypename='%s (%s)' % (const.SCENARIO_NAMES[const.SDK], const.BUILD_NO_CHANGES),
+                             apptorun=const.DOTNET,
+                             iterationsetup=None,
+                             setupargs=None,
+                             workingdir=const.TMPDIR,
+                             )
