@@ -73,10 +73,10 @@ jobs:
             value: ''
           - ${{ if eq(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'py -3 -m pip install --user ''azure.storage.blob==12.0.0b4'' --force-reinstall;py -3 -m pip install --user ''azure.storage.queue==12.0.0b4'' --force-reinstall;set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
+              value: 'py -3 -m pip install --user azure.storage.blob==12.0.0b4 --force-reinstall;py -3 -m pip install --user azure.storage.queue==12.0.0b4 --force-reinstall;set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
           - ${{ if ne(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'pip3 install --user ''azure.storage.blob==12.0.0b4'' --force-reinstall;pip3 install --user ''azure.storage.queue==12.0.0b4'' --force-reinstall;export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
+              value: 'pip3 install --user azure.storage.blob==12.0.0b4 --force-reinstall;pip3 install --user azure.storage.queue==12.0.0b4 --force-reinstall;export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
           - name: HelixSourcePrefix
             value: 'official'
           - group: DotNet-HelixApi-Access
