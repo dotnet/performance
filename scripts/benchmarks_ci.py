@@ -28,7 +28,7 @@ import os
 import platform
 import sys
 
-from performance.common import validate_supported_runtime
+from performance.common import validate_supported_runtime, get_artifacts_directory
 from performance.logger import setup_loggers
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 
