@@ -3,6 +3,8 @@ Commands and utilities for pre.py scripts
 '''
 
 import sys
+import os
+import shutil
 from argparse import ArgumentParser
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
@@ -89,6 +91,14 @@ class PreCommands:
         if self.operation == PUBLISH:
             self._restore()
             self._publish(self.configuration)
+
+    def backup(self, folder):
+        'make a temp copy of the asset'
+        tmp = os.path.join(const.TMPDIR, folder)
+        if os.path.isdir(tmp):
+            shutil.rmtree(tmp)
+        shutil.copytree(folder, tmp)
+
 
     def _publish(self, configuration: str):
         self.project.publish(configuration=configuration,
