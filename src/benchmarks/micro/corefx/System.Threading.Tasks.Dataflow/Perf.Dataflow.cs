@@ -163,12 +163,12 @@ namespace System.Threading.Tasks.Dataflow.Tests
                 });
 
         [Benchmark(OperationsPerInvoke = 100_000)]
-        public Task PostMultiReceiveParallel() => MultiParallel(Post());
+        public Task PostMultiReceiveParallel() => MultiParallel(() => Post());
 
         [Benchmark(OperationsPerInvoke = 100_000)]
-        public Task SendMultiReceiveAsyncParallel() => MultiParallel(SendAsync());
+        public Task SendMultiReceiveAsyncParallel() => MultiParallel(() => SendAsync());
 
-        private async Task MultiParallel(Task task)
+        private async Task MultiParallel(Func<Task> doTask)
         {
             var options = new DataflowLinkOptions { PropagateCompletion = true };
             var action1 = new ActionBlock<int>(i => { });
@@ -176,7 +176,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
             block.LinkTo(action1, options);
             block.LinkTo(action2, options);
 
-            await task;
+            await doTask();
             block.Complete();
 
             await Task.WhenAll(action1.Completion, action2.Completion);
@@ -271,11 +271,11 @@ namespace System.Threading.Tasks.Dataflow.Tests
             await block.Completion;
         }
 
-        protected static Task Post(ITargetBlock<int> target) => Task.Run(() =>
+        protected static Task Post(ITargetBlock<int> target, bool retry = false) => Task.Run(() =>
         {
             for (int i = 0; i < 100_000; i++)
             {
-                while (!target.Post(i)) ;
+                while (!target.Post(i) && retry) ;
             }
         });
 
@@ -371,7 +371,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
         [Benchmark(OperationsPerInvoke = 100_000)]
         public async Task PostReceiveParallel()
         {
-            await Task.WhenAll(Post(block), Receive(block));
+            await Task.WhenAll(Post(block, retry: true), Receive(block));
         }
 
         [Benchmark(OperationsPerInvoke = 100_000)]
