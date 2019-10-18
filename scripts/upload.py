@@ -1,5 +1,5 @@
 from azure.storage.blob import BlobClient, ContentSettings
-from azure.storage.queue import QueueClient
+from azure.storage.queue import QueueClient, TextBase64EncodePolicy
 from traceback import format_exc
 from glob import glob
 import os
@@ -34,7 +34,7 @@ def upload(globpath, container, queue, sas_token_env, storage_account_uri):
                 blob_client.upload_blob(data, blob_type="BlockBlob", content_settings=ContentSettings(content_type="application/json"))
 
             if queue is not None:
-                queue_client = QueueClient(storage_account_uri.format('queue'), queue=queue, credential=sas_token)
+                queue_client = QueueClient(storage_account_uri.format('queue'), queue=queue, credential=sas_token, message_encode_policy=TextBase64EncodePolicy())
                 queue_client.enqueue_message(blob_client.url)
 
             getLogger().info("upload complete")
