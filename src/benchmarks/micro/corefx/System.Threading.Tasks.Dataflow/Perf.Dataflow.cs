@@ -9,12 +9,12 @@ using MicroBenchmarks;
 namespace System.Threading.Tasks.Dataflow.Tests
 {
     #region BufferBlock
-    public class UnboundedBufferBlockPerfTests : DefaultPropagatorPerfTests
+    public class UnboundedBufferBlockPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>, int>
     {
         public override IPropagatorBlock<int, int> CreateBlock() => new BufferBlock<int>();
     }
 
-    public class BoundedBufferBlockPerfTests : DefaultBoundedPropagatorPerfTests
+    public class BoundedBufferBlockPerfTests : BoundedPropagatorPerfTests<IPropagatorBlock<int, int>, int>
     {
         public override IPropagatorBlock<int, int> CreateBlock() =>
             new BufferBlock<int>(
@@ -26,12 +26,12 @@ namespace System.Threading.Tasks.Dataflow.Tests
     #endregion
 
     #region ActionBlock
-    public class ActionBlockPerfTests : DefaultTargetPerfTests
+    public class ActionBlockPerfTests : TargetPerfTests<ITargetBlock<int>>
     {
         public override ITargetBlock<int> CreateBlock() => new ActionBlock<int>(i => { });
     }
 
-    public class ParallelActionBlockPerfTests : DefaultTargetPerfTests
+    public class ParallelActionBlockPerfTests : TargetPerfTests<ITargetBlock<int>>
     {
         public override ITargetBlock<int> CreateBlock() =>
             new ActionBlock<int>(
@@ -43,7 +43,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
             );
     }
 
-    public class UnorderedParallelActionBlockPerfTests : DefaultTargetPerfTests
+    public class UnorderedParallelActionBlockPerfTests : TargetPerfTests<ITargetBlock<int>>
     {
         public override ITargetBlock<int> CreateBlock() =>
             new ActionBlock<int>(
@@ -56,7 +56,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
             );
     }
 
-    public class SingleProducerConstrainedActionBlockPerfTests : DefaultTargetPerfTests
+    public class SingleProducerConstrainedActionBlockPerfTests : TargetPerfTests<ITargetBlock<int>>
     {
         public override ITargetBlock<int> CreateBlock() =>
             new ActionBlock<int>(
@@ -71,7 +71,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
 
     #region TransformBlock
     [BenchmarkCategory(Categories.CoreFX)]
-    public class TransformBlockPerfTests : DefaultPropagatorPerfTests
+    public class TransformBlockPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>, int>
     {
         public override IPropagatorBlock<int, int> CreateBlock() =>
             new TransformBlock<int, int>(i => i);
@@ -99,7 +99,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
         #endregion
     }
 
-    public class ParallelTransformBlockPerfTests : DefaultPropagatorPerfTests
+    public class ParallelTransformBlockPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>, int>
     {
         public override IPropagatorBlock<int, int> CreateBlock() =>
             new TransformBlock<int, int>(
@@ -111,7 +111,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
             );
     }
 
-    public class UnorderedParallelTransformBlockPerfTests : DefaultPropagatorPerfTests
+    public class UnorderedParallelTransformBlockPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>, int>
     {
         public override IPropagatorBlock<int, int> CreateBlock() =>
             new TransformBlock<int, int>(
@@ -124,7 +124,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
             );
     }
 
-    public class EncapsulateBlockPerfTests : DefaultPropagatorPerfTests
+    public class EncapsulateBlockPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>, int>
     {
         public override IPropagatorBlock<int, int> CreateBlock()
         {
@@ -138,7 +138,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
     #endregion
 
     #region TransformManyBlock
-    public class TransformManyBlockPerfTests : DefaultPropagatorPerfTests
+    public class TransformManyBlockPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>, int>
     {
         public override IPropagatorBlock<int, int> CreateBlock() =>
             new TransformManyBlock<int, int>(
@@ -152,7 +152,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
 
     #region BroadcastBlock
     [BenchmarkCategory(Categories.CoreFX)]
-    public class BroadcastBlockPerfTests : DefaultPropagatorPerfTests
+    public class BroadcastBlockPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>, int>
     {
         public override IPropagatorBlock<int, int> CreateBlock() =>
             new BroadcastBlock<int>(
@@ -313,9 +313,6 @@ namespace System.Threading.Tasks.Dataflow.Tests
     }
 
     [BenchmarkCategory(Categories.CoreFX)]
-    public abstract class DefaultTargetPerfTests : TargetPerfTests<ITargetBlock<int>> { }
-
-    [BenchmarkCategory(Categories.CoreFX)]
     public abstract class TargetPerfTests<T> : PerfTests<T> where T : ITargetBlock<int>
     {
         [Benchmark(OperationsPerInvoke = 100_000)]
@@ -324,12 +321,6 @@ namespace System.Threading.Tasks.Dataflow.Tests
         [Benchmark(OperationsPerInvoke = 100_000)]
         public Task SendAsync() => SendAsync(block);
     }
-
-    [BenchmarkCategory(Categories.CoreFX)]
-    public abstract class DefaultBoundedPropagatorPerfTests : BoundedPropagatorPerfTests<IPropagatorBlock<int, int>, int> { }
-
-    [BenchmarkCategory(Categories.CoreFX)]
-    public abstract class DefaultPropagatorPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>, int> { }
 
     [BenchmarkCategory(Categories.CoreFX)]
     public abstract class PropagatorPerfTests<T, U> : TargetPerfTests<IPropagatorBlock<int, U>> where T : IPropagatorBlock<int, U>
