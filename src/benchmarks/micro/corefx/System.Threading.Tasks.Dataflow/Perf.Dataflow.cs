@@ -56,7 +56,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
             );
     }
 
-    public class SPCActionBlockPerfTests : DefaultTargetPerfTests
+    public class SingleProducerConstrainedActionBlockPerfTests : DefaultTargetPerfTests
     {
         public override ITargetBlock<int> CreateBlock() =>
             new ActionBlock<int>(
