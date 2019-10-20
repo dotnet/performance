@@ -36,7 +36,7 @@ namespace System.Tests
 
             for (int i = 0; i < 1000000; i++)
             {
-                result &= float.IsNaN(value);
+                result |= float.IsNaN(value);
                 value += 1.0f;
             }
 
