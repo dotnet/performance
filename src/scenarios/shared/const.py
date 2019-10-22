@@ -1,6 +1,8 @@
 '''
 constant values for strings
 '''
+import os
+import shared
 
 STARTUP = 'startup'
 SDK = 'sdk'
@@ -19,5 +21,9 @@ TMPDIR = 'tmp'
 DOTNET = 'dotnet'
 PYTHON = 'python'
 
-BUILD_CLEAN = 'Build Clean'
+BUILD_CLEAN = 'Clean Build'
 BUILD_NO_CHANGES = 'Build No Changes'
+ITERATION_SETUP_FILE = os.path.join(os.path.dirname(shared.__file__), 'sdk_iteration_setup.py')
+
+STARTUP_PROCESSTIME = "ProcessTime"
+
