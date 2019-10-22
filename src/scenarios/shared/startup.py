@@ -53,16 +53,26 @@ class StartupWrapper(object):
             '--app-exe', apptorun,
             '--metric-type', kwargs['startupmetric'], 
             '--scenario-name', "%s - %s" % (kwargs['scenarioname'], kwargs['scenariotypename']),
-            '--trace-file-name', '%s_startup.etl' % kwargs['exename'],
+            '--trace-file-name', '%s_%s_startup.etl' % (kwargs['exename'], kwargs['scenariotypename']),
             '--process-will-exit', 'true', # ???
             '--iterations', '%s' % (kwargs['iterations'] or '5'),
             '--timeout', '%s' % (kwargs['timeout'] or '20'),
             '--warmup', '%s' % (kwargs['warmup'] or 'true'),
             '--gui-app', kwargs['guiapp'],
-            '--working-dir', sys.path[0],
+            '--working-dir', '%s' % (kwargs['workingdir'] or sys.path[0]),
             '--report-json-path', reportjson,
             '--trace-directory', TRACEDIR
         ]
+
+        # optional arguments
+        if kwargs['appargs']:
+            startup_args.extend(['--app-args', kwargs['appargs']])
+        if kwargs['iterationsetup']:
+            startup_args.extend(['--iteration-setup', kwargs['iterationsetup']])
+        if kwargs['setupargs']:
+            startup_args.extend(['--setup-args', kwargs['setupargs']])
+            print(kwargs['setupargs'])
+
         RunCommand(startup_args, verbose=True).run()
 
 
