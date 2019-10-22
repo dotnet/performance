@@ -9,7 +9,7 @@ from argparse import ArgumentParser
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
 from performance.common import get_packages_directory
-from performance.common import remove_directory
+from performance.common import remove_directory, copy_directory
 
 BUILD = 'build'
 PUBLISH = 'publish'
@@ -103,7 +103,7 @@ class PreCommands:
     def _backup(self):
         'make a temp copy of the asset'
         remove_directory(const.TMPDIR)
-        shutil.copytree(const.APPDIR, const.TMPDIR)
+        copy_directory(const.APPDIR, const.TMPDIR)
 
 
     def _publish(self, configuration: str):
