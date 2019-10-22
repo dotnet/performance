@@ -9,16 +9,19 @@ from argparse import ArgumentParser
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
 from performance.common import get_packages_directory
+from performance.common import remove_directory
 
 BUILD = 'build'
 PUBLISH = 'publish'
 RESTORE = 'restore'
+BACKUP = 'backup'
 DEBUG = 'Debug'
 RELEASE = 'Release'
 
 OPERATIONS = (BUILD,
               RESTORE,
-              PUBLISH
+              PUBLISH,
+              BACKUP
              )
 
 class PreCommands:
@@ -41,6 +44,9 @@ class PreCommands:
 
         publish_parser = subparsers.add_parser(PUBLISH, help='Publishes the project')
         self.add_common_arguments(publish_parser)
+
+        backup_parser = subparsers.add_parser(BACKUP, help='Backs up the project to tmp folder')
+        self.add_common_arguments(backup_parser)
 
         args = parser.parse_args()
         self.configuration = args.configuration
@@ -91,13 +97,13 @@ class PreCommands:
         if self.operation == PUBLISH:
             self._restore()
             self._publish(self.configuration)
+        if self.operation == BACKUP:
+            self._backup()
 
-    def backup(self, folder):
+    def _backup(self):
         'make a temp copy of the asset'
-        tmp = os.path.join(const.TMPDIR, folder)
-        if os.path.isdir(tmp):
-            shutil.rmtree(tmp)
-        shutil.copytree(folder, tmp)
+        remove_directory(const.TMPDIR)
+        shutil.copytree(const.APPDIR, const.TMPDIR)
 
 
     def _publish(self, configuration: str):
