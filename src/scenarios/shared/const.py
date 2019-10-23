@@ -19,7 +19,7 @@ TRACEDIR = 'traces'
 TMPDIR = 'tmp'
 
 DOTNET = 'dotnet'
-PYTHON = 'python'
+PYTHON = 'py'
 
 BUILD_CLEAN = 'Clean Build'
 BUILD_NO_CHANGES = 'Build No Changes'
