@@ -87,7 +87,7 @@ class Runner:
                              scenariotypename='%s (%s)' % (const.SCENARIO_NAMES[const.SDK], const.BUILD_CLEAN),
                              apptorun=const.DOTNET,  # TODO: not using traits.exename here bc we want to use dotnet.exe
                              iterationsetup=const.PYTHON,
-                             setupargs=const.ITERATION_SETUP_FILE,
+                             setupargs='-3 %s' % const.ITERATION_SETUP_FILE,
                              workingdir=const.APPDIR,
                              )
             # build(no changes)
