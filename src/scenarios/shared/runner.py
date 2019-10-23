@@ -22,6 +22,9 @@ optfields = ('guiapp',
              'iterations',
              'timeout',
              'warmup',
+             'workingdir',
+             'iterationsetup',
+             'setupargs',
              )
 
 # These are the kinds of scenarios we run. Default here indicates whether ALL
