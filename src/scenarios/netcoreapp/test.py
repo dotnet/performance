@@ -11,6 +11,7 @@ def main():
                         guiapp='false',  # string passed through to tool
                         sdk=True,
                         startup=True,
+                        iterations='10'
                         )
     runner = Runner(traits)
     runner.parseargs()

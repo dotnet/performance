@@ -308,6 +308,13 @@ namespace ScenarioMeasurement
             logger.Log($"---------------|---------------|---------------|---------------");
             foreach (var counter in counters)
             {
+                string resultList = "";
+                foreach(double num in counter.Results)
+                {
+                    resultList += "  ";
+                    resultList += Math.Ceiling(num);
+                }
+                logger.Log($"results: {resultList}");
                 string average = $"{counter.Results.Average():F3} {counter.MetricName}";
                 string max = $"{counter.Results.Max():F3} {counter.MetricName}";
                 string min = $"{counter.Results.Min():F3} {counter.MetricName}";
