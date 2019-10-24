@@ -36,7 +36,6 @@ TestTraits = namedtuple('TestTraits',
                         reqfields  + tuple(testtypes.keys()) + optfields, 
                         defaults=tuple(testtypes.values()) + (None,) * len(optfields))
 
-
 class Runner:
     '''
     Wrapper for running all the things
@@ -58,7 +57,6 @@ class Runner:
             getLogger().error("Test type %s is not supported by this scenario", args.testtype)
             sys.exit(1)
         self.testtype = args.testtype
-
     def run(self):
         '''
         Runs the specified scenario
