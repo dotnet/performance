@@ -15,6 +15,8 @@ namespace System.Collections
     [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
+    [GenericTypeArguments(typeof(CustomValue))] // custom value type (more overhead)
+    [GenericTypeArguments(typeof(CustomObject))] // custom reference type (less overhead)
     public class CopyAndRemove<T>
     {
         private T[] _items;
