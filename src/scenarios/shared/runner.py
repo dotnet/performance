@@ -86,7 +86,7 @@ class Runner:
                              apptorun=const.DOTNET,  # TODO: not using traits.exename here bc we want to use dotnet.exe
                              iterationsetup=const.PYTHON,
                              setupargs='-3 %s' % const.ITERATION_SETUP_FILE,
-                             workingdir=const.APPDIR,
+                             workingdir=const.TMPDIR,
                              )
             # build(no changes)
             startup.runtests(scenarioname=self.traits.scenarioname,
@@ -101,5 +101,5 @@ class Runner:
                              apptorun=const.DOTNET,
                              iterationsetup=None,
                              setupargs=None,
-                             workingdir=const.APPDIR,
+                             workingdir=const.TMPDIR,
                              )
