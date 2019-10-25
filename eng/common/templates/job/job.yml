@@ -191,7 +191,7 @@ jobs:
     - task: PublishBuildArtifacts@1
       displayName: Publish Trace Files
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/traces'
+        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/traces'
         PublishLocation: Container
         ArtifactName: ${{ coalesce(parameters.enablePublishBuildArtifacts.artifactName, '$(Agent.Os)_$(Agent.JobName)_traces' ) }}
       continueOnError: true
