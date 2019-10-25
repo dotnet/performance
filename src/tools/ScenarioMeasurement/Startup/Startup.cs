@@ -142,6 +142,63 @@ namespace ScenarioMeasurement
                     //    break;
             }
 
+            if (!skipProfileIteration)
+            {
+                string profileTraceFileName = $"{Path.GetFileNameWithoutExtension(traceFileName)}_profile_first_iteration.etl";
+                string profileKernelTraceFile = Path.ChangeExtension(profileTraceFileName, ".kernel.etl");
+                string profileUserTraceFile = Path.ChangeExtension(profileTraceFileName, ".user.etl");
+                profileTraceFileName = Path.Join(traceDirectory, profileTraceFileName);
+                profileKernelTraceFile = Path.Join(traceDirectory, profileKernelTraceFile);
+                profileUserTraceFile = Path.Join(traceDirectory, profileUserTraceFile);
+                logger.Log($"=============== First Profile Iteration ================ ");
+                ProfileParser profiler = new ProfileParser(parser);
+                using (var kernel = new TraceEventSession(KernelTraceEventParser.KernelSessionName, profileKernelTraceFile))
+                {
+                    profiler.EnableKernelProvider(kernel);
+                    using (var user = new TraceEventSession("ProfileSession", profileUserTraceFile))
+                    {
+                        profiler.EnableUserProviders(user);
+
+                        // setup iteration
+                        if (setupProcHelper != null)
+                        {
+                            var setupResult = setupProcHelper.Run().result;
+                            if (setupResult != ProcessHelper.Result.Success)
+                            {
+                                logger.Log($"Failed to set up. Result: {setupResult}");
+                                failed = true;
+                            }
+                        }
+
+                        var result = procHelper.Run().result;
+                        if (result != ProcessHelper.Result.Success)
+                        {
+                            logger.Log($"Failed to run. Result: {result}");
+                            failed = true;
+                        }
+
+                        // cleanup iteration
+                        if (cleanupProcHelper != null)
+                        {
+                            var cleanupResult = cleanupProcHelper.Run().result;
+                            if (cleanupResult != ProcessHelper.Result.Success)
+                            {
+                                logger.Log($"Failed to clean up. Result: {cleanupResult}");
+                                failed = true;
+                            }
+                        }
+                    }
+                }
+                if (!failed)
+                {
+                    logger.Log("Merging profile..");
+                    TraceEventSession.Merge(new[] { profileKernelTraceFile, profileUserTraceFile }, profileTraceFileName);
+                }
+                File.Delete(profileKernelTraceFile);
+                File.Delete(profileUserTraceFile);
+            }
+
+
             var pids = new List<int>();
             using (var kernel = new TraceEventSession(KernelTraceEventParser.KernelSessionName, kernelTraceFile))
             {
