@@ -187,6 +187,16 @@ jobs:
       continueOnError: true
       condition: always()
 
+  - ${{ if ne(parameters.enablePublishBuildArtifacts, 'false') }}:
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Trace Files
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/traces'
+        PublishLocation: Container
+        ArtifactName: ${{ coalesce(parameters.enablePublishBuildArtifacts.artifactName, '$(Agent.Os)_$(Agent.JobName)_traces' ) }}
+      continueOnError: true
+      condition: always()
+
   - ${{ if eq(parameters.enablePublishTestResults, 'true') }}:
     - task: PublishTestResults@2
       displayName: Publish Test Results
