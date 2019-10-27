@@ -8,11 +8,11 @@ using MicroBenchmarks;
 namespace System.Threading.Tasks.Dataflow.Tests
 {
     [BenchmarkCategory(Categories.CoreFX)]
-    public class JoinBlockPerfTests : SourceBlockPerfTests<JoinBlock<int, int>, Tuple<int, int>>
+    public class JoinBlockPerfTests : ReceivableSourceBlockPerfTests<JoinBlock<int, int>, Tuple<int, int>>
     {
         public override JoinBlock<int, int> CreateBlock() => new JoinBlock<int, int>();
 
-        [Benchmark(OperationsPerInvoke = 100_000)]
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
         public async Task PostTwiceReceiveOnceParallel()
         {
             await Task.WhenAll(
@@ -22,7 +22,27 @@ namespace System.Threading.Tasks.Dataflow.Tests
             );
         }
 
-        [Benchmark(OperationsPerInvoke = 100_000)]
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
+        public async Task PostTwiceTryReceiveOnceParallel()
+        {
+            await Task.WhenAll(
+                Post(block.Target1),
+                Post(block.Target2),
+                TryReceive()
+            );
+        }
+
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
+        public async Task PostTwiceTryReceiveAllOnce()
+        {
+            await Task.WhenAll(
+                Post(block.Target1),
+                Post(block.Target2)
+            );
+            await TryReceiveAll();
+        }
+
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
         public async Task SendAsyncTwiceReceiveAsyncOnceParallel()
         {
             await Task.WhenAll(

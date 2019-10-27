@@ -10,6 +10,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public abstract class PerfTests<T> where T : IDataflowBlock
     {
+        protected const int MessagesCount = 100_000;
         protected T block;
 
         public abstract T CreateBlock();
@@ -29,7 +30,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
 
         protected static Task Post(ITargetBlock<int> target, bool retry = false) => Task.Run(() =>
         {
-            for (int i = 0; i < 100_000; i++)
+            for (int i = 0; i < MessagesCount; i++)
             {
                 while (!target.Post(i) && retry) ;
             }
@@ -37,26 +38,44 @@ namespace System.Threading.Tasks.Dataflow.Tests
 
         protected static Task Receive<U>(ISourceBlock<U> source, int receiveSize = 1) => Task.Run(() =>
         {
-            for (int i = 0; i < 100_000 / receiveSize; i++)
+            for (int i = 0; i < MessagesCount / receiveSize; i++)
             {
                 source.Receive();
             }
         });
 
+        protected static Task TryReceive<U>(IReceivableSourceBlock<U> source, int receiveSize = 1, bool retry = false) => Task.Run(() =>
+        {
+            for (int i = 0; i < MessagesCount / receiveSize; i++)
+            {
+                while (!source.TryReceive(out _) && retry) ;
+            }
+        });
+
+        protected static Task TryReceiveAll<U>(IReceivableSourceBlock<U> source) => Task.Run(() =>
+        {
+            source.TryReceiveAll(out _);
+        });
+
         protected static async Task SendAsync(ITargetBlock<int> target)
         {
-            for (int i = 0; i < 100_000; i++)
+            for (int i = 0; i < MessagesCount; i++)
             {
                 await target.SendAsync(i);
             }
+            target.Complete();
         }
 
         protected static async Task ReceiveAsync<U>(ISourceBlock<U> source, int receiveSize = 1)
         {
-            for (int i = 0; i < 100_000 / receiveSize; i++)
+            for (int i = 0; i < MessagesCount / receiveSize; i++)
             {
-                await source.ReceiveAsync();
+                if (await source.OutputAvailableAsync())
+                {
+                    await source.ReceiveAsync();
+                }
             }
+            await source.Completion;
         }
     }
 
@@ -69,43 +88,44 @@ namespace System.Threading.Tasks.Dataflow.Tests
     }
 
     [BenchmarkCategory(Categories.CoreFX)]
+    public abstract class ReceivableSourceBlockPerfTests<T, U> : SourceBlockPerfTests<T, U> where T : IReceivableSourceBlock<U>
+    {
+        protected Task TryReceive() => TryReceive(block, ReceiveSize);
+        protected Task TryReceiveAll() => TryReceiveAll(block);
+    }
+
+    [BenchmarkCategory(Categories.CoreFX)]
     public abstract class TargetPerfTests<T> : PerfTests<T> where T : ITargetBlock<int>
     {
-        [Benchmark(OperationsPerInvoke = 100_000)]
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
         public Task Post() => Post(block);
 
-        [Benchmark(OperationsPerInvoke = 100_000)]
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
         public Task SendAsync() => SendAsync(block);
     }
 
     [BenchmarkCategory(Categories.CoreFX)]
-    public abstract class PropagatorPerfTests<T, U> : TargetPerfTests<IPropagatorBlock<int, U>> where T : IPropagatorBlock<int, U>
+    public abstract class PropagatorPerfTests<T, U> : TargetPerfTests<T> where T : IPropagatorBlock<int, U>
     {
         protected virtual int ReceiveSize { get; } = 1;
         protected Task Receive() => Receive(block, ReceiveSize);
         protected Task ReceiveAsync() => ReceiveAsync(block, ReceiveSize);
 
-        [Benchmark(OperationsPerInvoke = 100_000)]
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
         public async Task PostReceiveSequential()
         {
             await Post();
             await Receive();
         }
 
-        [Benchmark(OperationsPerInvoke = 100_000)]
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
         public async Task SendReceiveAsyncSequential()
         {
             await SendAsync();
             await ReceiveAsync();
         }
 
-        [Benchmark(OperationsPerInvoke = 100_000)]
-        public async Task PostReceiveParallel()
-        {
-            await Task.WhenAll(Post(), Receive());
-        }
-
-        [Benchmark(OperationsPerInvoke = 100_000)]
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
         public async Task SendReceiveAsyncParallel()
         {
             await Task.WhenAll(SendAsync(), ReceiveAsync());
@@ -113,15 +133,42 @@ namespace System.Threading.Tasks.Dataflow.Tests
     }
 
     [BenchmarkCategory(Categories.CoreFX)]
-    public abstract class BoundedPropagatorPerfTests<T, U> : PerfTests<T> where T : IPropagatorBlock<int, U>
+    public abstract class ReceivablePropagatorPerfTests<T, U> : PropagatorPerfTests<T, U> where T : IPropagatorBlock<int, U>, IReceivableSourceBlock<U>
     {
-        [Benchmark(OperationsPerInvoke = 100_000)]
-        public async Task PostReceiveParallel()
+        protected Task TryReceive() => TryReceive(block, ReceiveSize);
+        protected Task TryReceiveAll() => TryReceiveAll(block);
+
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
+        public async Task PostTryReceiveSequential()
         {
-            await Task.WhenAll(Post(block, retry: true), Receive(block));
+            await Post();
+            await TryReceive();
         }
 
-        [Benchmark(OperationsPerInvoke = 100_000)]
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
+        public async Task PostTryReceiveParallel()
+        {
+            await Task.WhenAll(Post(), TryReceive());
+        }
+
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
+        public async Task PostTryReceiveAllSequential()
+        {
+            await Post();
+            await TryReceiveAll();
+        }
+    }
+
+    [BenchmarkCategory(Categories.CoreFX)]
+    public abstract class BoundedReceivablePropagatorPerfTests<T, U> : PerfTests<T> where T : IPropagatorBlock<int, U>, IReceivableSourceBlock<U>
+    {
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
+        public async Task PostTryReceiveParallel()
+        {
+            await Task.WhenAll(Post(block, retry: true), TryReceive(block, retry: true));
+        }
+
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
         public async Task SendReceiveAsyncParallel()
         {
             await Task.WhenAll(SendAsync(block), ReceiveAsync(block));

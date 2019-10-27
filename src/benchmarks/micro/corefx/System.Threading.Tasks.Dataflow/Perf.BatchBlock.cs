@@ -4,9 +4,9 @@
 
 namespace System.Threading.Tasks.Dataflow.Tests
 {
-    public class BatchBlockPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int[]>, int[]>
+    public class BatchBlockPerfTests : ReceivablePropagatorPerfTests<BatchBlock<int>, int[]>
     {
         protected override int ReceiveSize { get; } = 100;
-        public override IPropagatorBlock<int, int[]> CreateBlock() => new BatchBlock<int>(ReceiveSize);
+        public override BatchBlock<int> CreateBlock() => new BatchBlock<int>(ReceiveSize);
     }
 }

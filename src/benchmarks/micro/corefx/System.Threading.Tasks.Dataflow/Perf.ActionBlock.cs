@@ -4,14 +4,14 @@
 
 namespace System.Threading.Tasks.Dataflow.Tests
 {
-    public class ActionBlockPerfTests : TargetPerfTests<ITargetBlock<int>>
+    public class ActionBlockPerfTests : TargetPerfTests<ActionBlock<int>>
     {
-        public override ITargetBlock<int> CreateBlock() => new ActionBlock<int>(i => { });
+        public override ActionBlock<int> CreateBlock() => new ActionBlock<int>(i => { });
     }
 
-    public class ParallelActionBlockPerfTests : TargetPerfTests<ITargetBlock<int>>
+    public class ParallelActionBlockPerfTests : TargetPerfTests<ActionBlock<int>>
     {
-        public override ITargetBlock<int> CreateBlock() =>
+        public override ActionBlock<int> CreateBlock() =>
             new ActionBlock<int>(
                 i => { },
                 new ExecutionDataflowBlockOptions

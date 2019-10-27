@@ -9,28 +9,51 @@ using MicroBenchmarks;
 namespace System.Threading.Tasks.Dataflow.Tests
 {
     [BenchmarkCategory(Categories.CoreFX)]
-    public class BatchedJoinBlockPerfTests : SourceBlockPerfTests<BatchedJoinBlock<int, int>, Tuple<IList<int>, IList<int>>>
+    public class BatchedJoinBlockPerfTests : ReceivableSourceBlockPerfTests<BatchedJoinBlock<int, int>, Tuple<IList<int>, IList<int>>>
     {
         protected override int ReceiveSize { get; } = 100;
 
         public override BatchedJoinBlock<int, int> CreateBlock() => new BatchedJoinBlock<int, int>(ReceiveSize);
 
-        [Benchmark(OperationsPerInvoke = 100_000)]
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
         public async Task PostTwiceReceiveOnceParallel()
         {
             await Task.WhenAll(
                 Post(block.Target1),
                 Post(block.Target2),
+                Receive(),
                 Receive()
             );
         }
 
-        [Benchmark(OperationsPerInvoke = 100_000)]
-        public async Task SendAsyncTwiceReceiveAsyncOnceParallel()
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
+        public async Task PostTwiceTryReceiveParallel()
+        {
+            await Task.WhenAll(
+                Post(block.Target1),
+                Post(block.Target2),
+                TryReceive(),
+                TryReceive()
+            );
+        }
+
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
+        public async Task PostTwiceTryReceiveAllOnce()
+        {
+            await Task.WhenAll(
+                Post(block.Target1),
+                Post(block.Target2)
+            );
+            await TryReceiveAll();
+        }
+
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
+        public async Task SendAsyncTwiceReceiveAsyncParallel()
         {
             await Task.WhenAll(
                 SendAsync(block.Target1),
                 SendAsync(block.Target2),
+                ReceiveAsync(),
                 ReceiveAsync()
             );
         }

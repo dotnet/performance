@@ -4,9 +4,9 @@
 
 namespace System.Threading.Tasks.Dataflow.Tests
 {
-    public class TransformManyBlockPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>, int>
+    public class TransformManyBlockPerfTests : ReceivablePropagatorPerfTests<TransformManyBlock<int, int>, int>
     {
-        public override IPropagatorBlock<int, int> CreateBlock() =>
+        public override TransformManyBlock<int, int> CreateBlock() =>
             new TransformManyBlock<int, int>(
                 i => new int[] { i },
                 new ExecutionDataflowBlockOptions

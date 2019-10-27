@@ -8,19 +8,19 @@ using MicroBenchmarks;
 namespace System.Threading.Tasks.Dataflow.Tests
 {
     [BenchmarkCategory(Categories.CoreFX)]
-    public class TransformBlockPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>, int>
+    public class TransformBlockPerfTests : ReceivablePropagatorPerfTests<TransformBlock<int, int>, int>
     {
-        public override IPropagatorBlock<int, int> CreateBlock() =>
+        public override TransformBlock<int, int> CreateBlock() =>
             new TransformBlock<int, int>(i => i);
 
         #region Reactive Extensions
-        [Benchmark(OperationsPerInvoke = 100_000)]
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
         public void RxPublishSubscribe()
         {
             var observer = block.AsObserver();
             var observable = block.AsObservable();
             observable.Subscribe(new IgnoreObserver<int>());
-            for (int i = 0; i < 100_000; i++)
+            for (int i = 0; i < MessagesCount; i++)
             {
                 observer.OnNext(i);
             }
@@ -36,9 +36,9 @@ namespace System.Threading.Tasks.Dataflow.Tests
         #endregion
     }
 
-    public class ParallelTransformBlockPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>, int>
+    public class ParallelTransformBlockPerfTests : ReceivablePropagatorPerfTests<TransformBlock<int, int>, int>
     {
-        public override IPropagatorBlock<int, int> CreateBlock() =>
+        public override TransformBlock<int, int> CreateBlock() =>
             new TransformBlock<int, int>(
                 i => i,
                 new ExecutionDataflowBlockOptions
@@ -48,9 +48,9 @@ namespace System.Threading.Tasks.Dataflow.Tests
             );
     }
 
-    public class UnorderedParallelTransformBlockPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>, int>
+    public class UnorderedParallelTransformBlockPerfTests : ReceivablePropagatorPerfTests<TransformBlock<int, int>, int>
     {
-        public override IPropagatorBlock<int, int> CreateBlock() =>
+        public override TransformBlock<int, int> CreateBlock() =>
             new TransformBlock<int, int>(
                 i => i,
                 new ExecutionDataflowBlockOptions

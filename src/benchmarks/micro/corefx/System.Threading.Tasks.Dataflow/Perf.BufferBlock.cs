@@ -4,14 +4,14 @@
 
 namespace System.Threading.Tasks.Dataflow.Tests
 {
-    public class UnboundedBufferBlockPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>, int>
+    public class UnboundedBufferBlockPerfTests : ReceivablePropagatorPerfTests<BufferBlock<int>, int>
     {
-        public override IPropagatorBlock<int, int> CreateBlock() => new BufferBlock<int>();
+        public override BufferBlock<int> CreateBlock() => new BufferBlock<int>();
     }
 
-    public class BoundedBufferBlockPerfTests : BoundedPropagatorPerfTests<IPropagatorBlock<int, int>, int>
+    public class BoundedBufferBlockPerfTests : BoundedReceivablePropagatorPerfTests<BufferBlock<int>, int>
     {
-        public override IPropagatorBlock<int, int> CreateBlock() =>
+        public override BufferBlock<int> CreateBlock() =>
             new BufferBlock<int>(
                 new DataflowBlockOptions
                 {

@@ -8,9 +8,9 @@ using MicroBenchmarks;
 namespace System.Threading.Tasks.Dataflow.Tests
 {
     [BenchmarkCategory(Categories.CoreFX)]
-    public class BroadcastBlockPerfTests : PropagatorPerfTests<IPropagatorBlock<int, int>, int>
+    public class BroadcastBlockPerfTests : ReceivablePropagatorPerfTests<BroadcastBlock<int>, int>
     {
-        public override IPropagatorBlock<int, int> CreateBlock() =>
+        public override BroadcastBlock<int> CreateBlock() =>
             new BroadcastBlock<int>(
                 i => i,
                 new ExecutionDataflowBlockOptions
@@ -18,10 +18,10 @@ namespace System.Threading.Tasks.Dataflow.Tests
                     MaxDegreeOfParallelism = Environment.ProcessorCount
                 });
 
-        [Benchmark(OperationsPerInvoke = 100_000)]
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
         public Task PostMultiReceiveParallel() => MultiParallel(() => Post());
 
-        [Benchmark(OperationsPerInvoke = 100_000)]
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
         public Task SendMultiReceiveAsyncParallel() => MultiParallel(() => SendAsync());
 
         private async Task MultiParallel(Func<Task> doTask)
