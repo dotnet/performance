@@ -67,10 +67,6 @@ class Runner:
             startup.runtests(**self.traits._asdict(),
                              scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
                              apptorun=publishedexe(self.traits.exename))
-        # TODO: what if we want to use other tools to test SDK in the future? adding more tests?
-        # TODO: for SDK tests, choosing to run clean build or build(no changes) in test.py will make different measurements
-        # TODO: more scalable --> ex: doing clean build and build no change in parallel
-        # TODO: created another branch for separating clean build, build no change, and other scenarios  --> add more subcommands
         elif self.testtype == const.SDK:
             startup = StartupWrapper()
             # clean build
