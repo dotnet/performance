@@ -4,7 +4,7 @@ Common functionality used by the repository scripts.
 
 from contextlib import contextmanager
 from logging import getLogger
-from shutil import rmtree, copytree
+from shutil import rmtree
 from stat import S_IWRITE
 from subprocess import CalledProcessError
 from subprocess import list2cmdline
@@ -48,10 +48,10 @@ def remove_directory(path: str) -> None:
     '''Recursively deletes a directory tree.'''
     if not path:
         raise TypeError('Undefined path.')
-    if not isinstance(path, str):        #TODO: why checking the type?
+    if not isinstance(path, str):
         raise TypeError('Invalid type.')
 
-    if os.path.isdir(path):  #TODO: any message for successful or failed deletion?
+    if os.path.isdir(path):
         def handle_rmtree_errors(func, path, excinfo):
             """
             Helper function to handle long path errors on Windows.
@@ -64,17 +64,6 @@ def remove_directory(path: str) -> None:
             func(long_path)
 
         rmtree(path, onerror=handle_rmtree_errors)
-
-
-def copy_directory(from_path: str, to_path:str) -> None:
-    '''Recursively copies a directory.'''
-    if not from_path:
-        raise TypeError('Undefined source path.')
-    if not to_path:
-        raise TypeError('Undefined destination path.')
-
-    if os.path.isdir(from_path): #TODO: not checking the dest folder; will throw exception when dest folder exists
-        copytree(from_path, to_path)
 
 
 def get_script_path() -> str:
