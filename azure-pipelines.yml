@@ -63,129 +63,129 @@ jobs:
         - netcoreapp5.0
         
   # Windows x64 micro benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: windows
-  #     osVersion: RS5
-  #     kind: micro
-  #     architecture: x64
-  #     pool: Hosted VS2017
-  #     queue: Windows.10.Amd64.ClientRS5.Open
-  #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-  #     runCategories: 'coreclr corefx' 
-  #     frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-  #       - netcoreapp5.0
-  #       - netcoreapp3.0
-  #       - netcoreapp2.2
-  #       - netcoreapp2.1
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      kind: micro
+      architecture: x64
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.ClientRS5.Open
+      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+      runCategories: 'coreclr corefx' 
+      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - netcoreapp5.0
+        - netcoreapp3.0
+        - netcoreapp2.2
+        - netcoreapp2.1
 
-  # # Windows x64 net461 micro benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: windows
-  #     osVersion: RS4
-  #     kind: micro_net461
-  #     architecture: x64
-  #     pool: Hosted VS2017
-  #     queue: Windows.10.Amd64.ClientRS4.DevEx.15.8.Open
-  #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-  #     runCategories: 'coreclr corefx'
-  #     frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-  #       - net461
+  # Windows x64 net461 micro benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS4
+      kind: micro_net461
+      architecture: x64
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.ClientRS4.DevEx.15.8.Open
+      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+      runCategories: 'coreclr corefx'
+      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - net461
 
-  # # Windows x86 micro benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: windows
-  #     osVersion: RS5
-  #     kind: micro
-  #     architecture: x86
-  #     pool: Hosted VS2017
-  #     queue: Windows.10.Amd64.ClientRS5.Open
-  #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-  #     runCategories: 'coreclr corefx'
-  #     frameworks: # for public jobs we want to make sure that the PRs don't break x86
-  #       - netcoreapp5.0
+  # Windows x86 micro benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      kind: micro
+      architecture: x86
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.ClientRS5.Open
+      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+      runCategories: 'coreclr corefx'
+      frameworks: # for public jobs we want to make sure that the PRs don't break x86
+        - netcoreapp5.0
 
-  # # Windows x64 ML.NET benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: windows
-  #     osVersion: RS5
-  #     kind: mlnet
-  #     architecture: x64
-  #     pool: Hosted VS2017
-  #     queue: Windows.10.Amd64.ClientRS5.Open
-  #     csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-  #     runCategories: 'mldotnet'
-  #     frameworks: # for ML.NET jobs we want to check .NET Core 3.0 and 5.0 only
-  #       - netcoreapp5.0
-  #       - netcoreapp3.0
+  # Windows x64 ML.NET benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      kind: mlnet
+      architecture: x64
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.ClientRS5.Open
+      csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
+      runCategories: 'mldotnet'
+      frameworks: # for ML.NET jobs we want to check .NET Core 3.0 and 5.0 only
+        - netcoreapp5.0
+        - netcoreapp3.0
 
-  # # Windows x64 Roslyn benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: windows
-  #     osVersion: RS5
-  #     kind: roslyn
-  #     architecture: x64
-  #     pool: Hosted VS2017
-  #     queue: Windows.10.Amd64.ClientRS5.Open
-  #     csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
-  #     runCategories: 'roslyn'
-  #     frameworks: # for Roslyn jobs we want to check .NET Core 3.0 and 5.0 only
-  #       - netcoreapp5.0
-  #       - netcoreapp3.0
+  # Windows x64 Roslyn benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      kind: roslyn
+      architecture: x64
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.ClientRS5.Open
+      csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
+      runCategories: 'roslyn'
+      frameworks: # for Roslyn jobs we want to check .NET Core 3.0 and 5.0 only
+        - netcoreapp5.0
+        - netcoreapp3.0
         
-  # # Ubuntu 1804 x64 micro benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: ubuntu
-  #     osVersion: 1804
-  #     kind: micro
-  #     architecture: x64
-  #     pool: Hosted Ubuntu 1604
-  #     queue: Ubuntu.1804.Amd64.Open
-  #     container: ubuntu_x64_build_container
-  #     csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-  #     runCategories: 'coreclr corefx'
-  #     frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-  #       - netcoreapp5.0
-  #       - netcoreapp3.0
-  #       - netcoreapp2.2
-  #       - netcoreapp2.1
+  # Ubuntu 1804 x64 micro benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: micro
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1804.Amd64.Open
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
+      runCategories: 'coreclr corefx'
+      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - netcoreapp5.0
+        - netcoreapp3.0
+        - netcoreapp2.2
+        - netcoreapp2.1
 
-  # # Ubuntu 1804 x64 ML.NET benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: ubuntu
-  #     osVersion: 1804
-  #     kind: mlnet
-  #     architecture: x64
-  #     pool: Hosted Ubuntu 1604
-  #     queue: Ubuntu.1804.Amd64.Open
-  #     container: ubuntu_x64_build_container
-  #     runCategories: 'mldotnet'
-  #     csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
-  #     frameworks: # for ML.NET jobs we want to check .NET Core 3.0 and 5.0 only
-  #       - netcoreapp5.0
-  #       - netcoreapp3.0
+  # Ubuntu 1804 x64 ML.NET benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: mlnet
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1804.Amd64.Open
+      container: ubuntu_x64_build_container
+      runCategories: 'mldotnet'
+      csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
+      frameworks: # for ML.NET jobs we want to check .NET Core 3.0 and 5.0 only
+        - netcoreapp5.0
+        - netcoreapp3.0
 
-  # # Ubuntu 1804 x64 Roslyn benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: ubuntu
-  #     osVersion: 1804
-  #     kind: roslyn
-  #     architecture: x64
-  #     pool: Hosted Ubuntu 1604
-  #     queue: Ubuntu.1804.Amd64.Open
-  #     container: ubuntu_x64_build_container
-  #     runCategories: 'roslyn'
-  #     csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
-  #     frameworks: # for Roslyn jobs we want to check .NET Core 3.0 and 5.0 only
-  #       - netcoreapp5.0
-  #       - netcoreapp3.0
+  # Ubuntu 1804 x64 Roslyn benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: roslyn
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1804.Amd64.Open
+      container: ubuntu_x64_build_container
+      runCategories: 'roslyn'
+      csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
+      frameworks: # for Roslyn jobs we want to check .NET Core 3.0 and 5.0 only
+        - netcoreapp5.0
+        - netcoreapp3.0
 
 ###########################################
 # Private Jobs
