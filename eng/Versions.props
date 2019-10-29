@@ -12,7 +12,6 @@
       https://dotnetfeed.blob.core.windows.net/aspnet-aspnetcore/index.json;
       https://dotnet.myget.org/F/symreader-converter/api/v3/index.json;
       https://dotnet.myget.org/F/symreader/api/v3/index.json;
-      https://ci.appveyor.com/nuget/benchmarkdotnet;
     </RestoreSources>
   </PropertyGroup>
   <!--Package versions-->
