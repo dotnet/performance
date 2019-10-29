@@ -8,48 +8,18 @@ using MicroBenchmarks;
 namespace System.Threading.Tasks.Dataflow.Tests
 {
     [BenchmarkCategory(Categories.CoreFX)]
-    public class JoinBlockPerfTests : ReceivableSourceBlockPerfTests<JoinBlock<int, int>, Tuple<int, int>>
+    public class JoinBlock2PerfTests : MultiTargetReceivableSourceBlockPerfTests<JoinBlock<int, int>, Tuple<int, int>>
     {
         public override JoinBlock<int, int> CreateBlock() => new JoinBlock<int, int>();
 
-        [Benchmark(OperationsPerInvoke = MessagesCount)]
-        public async Task PostTwiceReceiveOnceParallel()
-        {
-            await Task.WhenAll(
-                Post(block.Target1),
-                Post(block.Target2),
-                Receive()
-            );
-        }
+        protected override ITargetBlock<int>[] Targets => new[] { block.Target1, block.Target2 };
+    }
 
-        [Benchmark(OperationsPerInvoke = MessagesCount)]
-        public async Task PostTwiceTryReceiveOnceParallel()
-        {
-            await Task.WhenAll(
-                Post(block.Target1),
-                Post(block.Target2),
-                TryReceive()
-            );
-        }
+    [BenchmarkCategory(Categories.CoreFX)]
+    public class JoinBlock3PerfTests : MultiTargetReceivableSourceBlockPerfTests<JoinBlock<int, int, int>, Tuple<int, int, int>>
+    {
+        public override JoinBlock<int, int, int> CreateBlock() => new JoinBlock<int, int, int>();
 
-        [Benchmark(OperationsPerInvoke = MessagesCount)]
-        public async Task PostTwiceTryReceiveAllOnce()
-        {
-            await Task.WhenAll(
-                Post(block.Target1),
-                Post(block.Target2)
-            );
-            await TryReceiveAll();
-        }
-
-        [Benchmark(OperationsPerInvoke = MessagesCount)]
-        public async Task SendAsyncTwiceReceiveAsyncOnceParallel()
-        {
-            await Task.WhenAll(
-                SendAsync(block.Target1),
-                SendAsync(block.Target2),
-                ReceiveAsync()
-            );
-        }
+        protected override ITargetBlock<int>[] Targets => new[] { block.Target1, block.Target2, block.Target3 };
     }
 }
