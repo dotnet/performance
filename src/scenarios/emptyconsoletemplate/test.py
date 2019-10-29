@@ -12,6 +12,7 @@ if __name__ == "__main__":
     traits = TestTraits(scenarioname=SCENARIONAME, 
                         exename=EXENAME, 
                         startupmetric='TimeToMain',
+                        startup=True,
                         guiapp='false', # string passed through to tool
                         )
     Runner(traits).run()
