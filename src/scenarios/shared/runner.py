@@ -24,8 +24,8 @@ optfields = ('guiapp',
 
 # These are the kinds of scenarios we run. Default here indicates whether ALL
 # scenarios should try and run a given test type.
-testtypes = {const.STARTUP: True,
-             const.SDK: True}
+testtypes = {const.STARTUP: False,
+             const.SDK: False}
 
 TestTraits = namedtuple('TestTraits', 
                         reqfields  + tuple(testtypes.keys()) + optfields, 
