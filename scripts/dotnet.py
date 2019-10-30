@@ -300,7 +300,8 @@ class CSharpProject:
             verbose: bool,
             working_directory: str,
             force: bool = False,
-            exename: str = None
+            exename: str = None,
+            target_framework_moniker: str = None
             ):
         '''
         Creates a new project with the specified template
@@ -316,6 +317,9 @@ class CSharpProject:
         
         if exename:
             cmdline += ['--name', exename]
+
+        if target_framework_moniker:
+            cmdline += ['--framework', target_framework_moniker]
 
         RunCommand(cmdline, verbose=verbose).run(
             working_directory
