@@ -36,5 +36,12 @@ namespace System.Tests
 
         [Benchmark]
         public string[] GetLogicalDrives() => Environment.GetLogicalDrives();
+
+        [Benchmark(OperationsPerInvoke = 2)]
+        public void SetEnvironmentVariable()
+        {
+            Environment.SetEnvironmentVariable(Key, "some value 1");
+            Environment.SetEnvironmentVariable(Key, "some value 2");
+        }
     }
 }
