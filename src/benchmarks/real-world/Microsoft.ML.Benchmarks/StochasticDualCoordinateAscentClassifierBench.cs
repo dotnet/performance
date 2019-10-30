@@ -61,11 +61,11 @@ namespace Microsoft.ML.Benchmarks
                 },
                 HasHeader = true,
             };
-            var loader = new TextLoader(mlContext, options: options);
+            var loader = mlContext.Data.CreateTextLoader(options: options);
 
             IDataView data = loader.Load(dataPath);
 
-            var pipeline = new ColumnConcatenatingEstimator(mlContext, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
+            var pipeline = mlContext.Transforms.Concatenate("Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
                 .Append(mlContext.Transforms.Conversion.MapValueToKey("Label"))
                 .Append(mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy());
 
@@ -130,12 +130,11 @@ namespace Microsoft.ML.Benchmarks
                 },
                 HasHeader = true,
             };
-            var loader = new TextLoader(mlContext, options: options);
+            var loader = mlContext.Data.CreateTextLoader(options: options);
 
             IDataView testData = loader.Load(_dataPath);
             IDataView scoredTestData = _trainedModel.Transform(testData);
-            var evaluator = new MulticlassClassificationEvaluator(mlContext, new MulticlassClassificationEvaluator.Arguments());
-            _metrics = evaluator.Evaluate(scoredTestData, DefaultColumnNames.Label, DefaultColumnNames.Score, DefaultColumnNames.PredictedLabel);
+            _metrics = mlContext.MulticlassClassification.Evaluate(scoredTestData);
 
             _batches = new IrisData[_batchSizes.Length][];
             for (int i = 0; i < _batches.Length; i++)

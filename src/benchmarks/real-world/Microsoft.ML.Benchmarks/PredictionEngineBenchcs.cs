@@ -55,11 +55,11 @@ namespace Microsoft.ML.Benchmarks
                 },
                 HasHeader = true,
             };
-            var loader = new TextLoader(env, options: options);
+            var loader = env.Data.CreateTextLoader(options: options);
 
             IDataView data = loader.Load(_irisDataPath);
 
-            var pipeline = new ColumnConcatenatingEstimator(env, "Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
+            var pipeline = env.Transforms.Concatenate("Features", new[] { "SepalLength", "SepalWidth", "PetalLength", "PetalWidth" })
                 .Append(env.Transforms.Conversion.MapValueToKey("Label"))
                 .Append(env.MulticlassClassification.Trainers.SdcaMaximumEntropy(
                     new SdcaMaximumEntropyMulticlassTrainer.Options { NumberOfThreads = 1, ConvergenceTolerance = 1e-2f, }));
@@ -91,7 +91,7 @@ namespace Microsoft.ML.Benchmarks
                 },
                 HasHeader = true,
             };
-            var loader = new TextLoader(mlContext, options: options);
+            var loader = mlContext.Data.CreateTextLoader(options: options);
 
             IDataView data = loader.Load(_sentimentDataPath);
 
@@ -126,7 +126,7 @@ namespace Microsoft.ML.Benchmarks
                 },
                 HasHeader = false,
             };
-            var loader = new TextLoader(env, options: options);
+            var loader = env.Data.CreateTextLoader(options: options);
 
             IDataView data = loader.Load(_breastCancerDataPath);
 
