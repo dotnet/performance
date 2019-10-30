@@ -50,8 +50,16 @@ class PreCommands:
         args = parser.parse_args()
         self.configuration = args.configuration
         self.operation = args.operation
+        self.framework = args.framework
+        self.runtime = args.runtime
+        self.msbuild = args.msbuild
 
-    def new(self, template: str, output_dir: str, bin_dir: str, exename: str, working_directory: str):
+    def new(self,
+            template: str,
+            output_dir: str,
+            bin_dir: str,
+            exename: str,
+            working_directory: str):
         'makes a new app with the given template'
         self.project = CSharpProject.new(template=template,
                                  output_dir=output_dir,
@@ -59,7 +67,8 @@ class PreCommands:
                                  exename=exename,
                                  working_directory=working_directory,
                                  force=True,
-                                 verbose=True)
+                                 verbose=True,
+                                 target_framework_moniker=self.framework)
         return self
 
     def add_common_arguments(self, parser: ArgumentParser):
@@ -90,7 +99,7 @@ class PreCommands:
         'Parses args and runs precommands'
         if self.operation == BUILD:
             self._restore()
-            self._build(self.configuration)
+            self._build(configuration=self.configuration, framework=self.framework)
         if self.operation == RESTORE:
             self._restore()
         if self.operation == PUBLISH:
@@ -106,19 +115,20 @@ class PreCommands:
         shutil.copytree(const.APPDIR, const.TMPDIR)
 
 
-    def _publish(self, configuration: str):
+    def _publish(self, configuration: str, framework: str = None):
         self.project.publish(configuration=configuration,
                              output_dir=const.PUBDIR, 
                              verbose=True,
-                             packages_path=get_packages_directory()
+                             packages_path=get_packages_directory(),
+                             target_framework_moniker=framework
                              )
 
     def _restore(self):
         self.project.restore(packages_path=get_packages_directory(), verbose=True)
 
-    def _build(self, configuration: str):
+    def _build(self, configuration: str, framework: str = None):
         self.project.build(configuration=configuration,
                                verbose=True,
                                packages_path=get_packages_directory(),
-                               target_framework_monikers=None,
+                               target_framework_monikers=framework,
                                output_to_bindir=True)
