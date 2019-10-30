@@ -13,12 +13,14 @@ from shared.util import publishedexe
 from shared import const
 from performance.logger import setup_loggers
 
+
 reqfields = ('scenarioname',
              'exename',
              )
 optfields = ('guiapp',
              'startupmetric',
              'appargs',
+             'environmentvariables',
              'iterations',
              'timeout',
              'warmup',
@@ -57,6 +59,7 @@ class Runner:
             getLogger().error("Test type %s is not supported by this scenario", args.testtype)
             sys.exit(1)
         self.testtype = args.testtype
+
     def run(self):
         '''
         Runs the specified scenario
@@ -69,6 +72,8 @@ class Runner:
                              apptorun=publishedexe(self.traits.exename))
         elif self.testtype == const.SDK:
             startup = StartupWrapper()
+            envlistbuild = 'DOTNET_MULTILEVEL_LOOKUP=0'
+            envlistcleanbuild= envlistbuild+';'+'MSBUILDDISABLENODEREUSE=1'
             # clean build
             startup.runtests(scenarioname=self.traits.scenarioname,
                              exename=self.traits.exename,
@@ -79,10 +84,11 @@ class Runner:
                              warmup='false',
                              iterations=self.traits.iterations,
                              scenariotypename='%s (%s)' % (const.SCENARIO_NAMES[const.SDK], const.BUILD_CLEAN),
-                             apptorun=const.DOTNET,  # TODO: not using traits.exename here bc we want to use dotnet.exe
+                             apptorun=const.DOTNET,
                              iterationsetup=const.PYTHON,
                              setupargs='-3 %s' % const.ITERATION_SETUP_FILE,
                              workingdir=const.TMPDIR,
+                             environmentvariables=envlistcleanbuild
                              )
             # build(no changes)
             startup.runtests(scenarioname=self.traits.scenarioname,
@@ -98,4 +104,5 @@ class Runner:
                              iterationsetup=None,
                              setupargs=None,
                              workingdir=const.TMPDIR,
+                             environmentvariables=envlistbuild
                              )

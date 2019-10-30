@@ -67,6 +67,8 @@ class StartupWrapper(object):
         # optional arguments
         if kwargs['appargs']:
             startup_args.extend(['--app-args', kwargs['appargs']])
+        if kwargs['environmentvariables']:
+            startup_args.extend(['--environment-variables', kwargs['environmentvariables']])
         if kwargs['iterationsetup']:
             startup_args.extend(['--iteration-setup', kwargs['iterationsetup']])
         if kwargs['setupargs']:
