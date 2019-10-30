@@ -19,7 +19,14 @@ from .collection_util import zip_check
 from .frozen_dict import FrozenDict
 from .option import non_null, optional_to_iter
 from .result_utils import all_non_err, as_err, map_ok, map_ok_2, unwrap
-from .type_utils import check_cast, construct_class_from_fields, match_type, T, with_slots
+from .type_utils import (
+    check_cast,
+    construct_class_from_fields,
+    match_type,
+    NO_DEFAULT,
+    T,
+    with_slots,
+)
 
 
 # Parse the first member to succeed; else return all failure messages
@@ -201,8 +208,9 @@ def _try_yaml_to_typed(
                     if all_optional:
                         return Ok(None)
                     else:
-                        assert (
-                            fld.default is not MISSING
+                        assert fld.default not in (
+                            MISSING,
+                            NO_DEFAULT,
                         ), f"At {desc}: Did not find field {fld.name} (and it has no default)"
                         return Ok(fld.default)
 

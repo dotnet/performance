@@ -259,7 +259,16 @@ def get_process_info_from_process(
     show_name: str,
 ) -> ProcessInfo:
     mang = non_null(try_get_runtime(clr, process))
+    return get_process_info_from_mang(p, trace_path, process, show_name, mang)
 
+
+def get_process_info_from_mang(
+    p: AbstractTracedProcesses,
+    trace_path: Path,
+    process: AbstractTraceProcess,
+    show_name: str,
+    mang: AbstractTraceLoadedDotNetRuntime,
+) -> ProcessInfo:
     return ProcessInfo(
         event_names=p.event_names,
         name=show_name,

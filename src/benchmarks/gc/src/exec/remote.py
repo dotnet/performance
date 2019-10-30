@@ -138,7 +138,7 @@ class RemoteDoArgs(_CommonArgs):
 
 def remote_do(argv: Sequence[str]) -> None:
     # Loading this lazily as it imports this
-    from ..all_commands import ALL_COMMANDS
+    from ..all_commands import ALL_COMMANDS  # pylint:disable=import-outside-toplevel
 
     # Separated by a `--`
     local_argv, remote_cmd_and_argv = split_once(argv, lambda a: a == "--")

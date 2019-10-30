@@ -2,6 +2,7 @@
 # The .NET Foundation licenses this file to you under the MIT license.
 # See the LICENSE file in the project root for more information.
 
+from collections import Counter
 from dataclasses import dataclass
 from math import inf
 from pathlib import Path
@@ -12,16 +13,13 @@ from ..commonlib.collection_util import cat_unique, identity, is_empty, items_so
 from ..commonlib.command import Command, CommandKind, CommandsMapping
 from ..commonlib.document import (
     Cell,
+    DocOutputArgs,
     Document,
     handle_doc,
-    OutputOptions,
-    OutputWidth,
-    OUTPUT_WIDTH_DOC,
+    output_options_from_args,
     Row,
     Section,
     Table,
-    TABLE_INDENT_DOC,
-    TXT_DOC,
 )
 from ..commonlib.option import map_option, non_null, optional_to_iter
 from ..commonlib.result_utils import match
@@ -59,7 +57,7 @@ from .where import get_where_filter_for_gcs, GC_WHERE_DOC
 
 @with_slots
 @dataclass(frozen=True)
-class _AnalyzeSingleArgs:
+class _AnalyzeSingleArgs(DocOutputArgs):
     path: Path = argument(doc=SINGLE_PATH_DOC, name_optional=True)
     process: ProcessQuery = argument(default=None, doc=PROCESS_DOC)
     run_metrics: Optional[Sequence[str]] = argument(default=None, doc=RUN_METRICS_DOC)
@@ -95,17 +93,11 @@ class _AnalyzeSingleArgs:
     Should not be set if '--show-first-n-gcs' is.
     """,
     )
-
-    output_width: Optional[OutputWidth] = argument(default=None, doc=OUTPUT_WIDTH_DOC)
-    table_indent: Optional[int] = argument(default=None, doc=TABLE_INDENT_DOC)
-    txt: Optional[Path] = argument(default=None, doc=TXT_DOC)
+    show_reasons: bool = argument(default=False, doc="Show the reason for each GC")
 
 
 def analyze_single(args: _AnalyzeSingleArgs) -> None:
-    handle_doc(
-        _get_analyze_single_document(args),
-        OutputOptions(width=args.output_width, table_indent=args.table_indent, txt=args.txt),
-    )
+    handle_doc(_get_analyze_single_document(args), output_options_from_args(args))
 
 
 @with_slots
@@ -142,7 +134,7 @@ def analyze_single_gc_for_processed_trace_file(
 ) -> Document:
     gc = get_gc_with_number(trace.gcs, gc_number)
     rows = [
-        (Cell(metric.name), _value_cell(metric, gc.metric(metric))) for metric in single_gc_metrics
+        (Cell(metric.name), value_cell(metric, gc.metric(metric))) for metric in single_gc_metrics
     ]
     name = f"GC {gc_number} ({show_time_span_start_end(gc.StartRelativeMSec, gc.EndRelativeMSec)})"
     section = Section(name=name, tables=(Table(rows=rows),))
@@ -202,6 +194,7 @@ def _get_analyze_single_document(args: _AnalyzeSingleArgs) -> Document:
         show_first_n_gcs=args.show_first_n_gcs,
         show_last_n_gcs=args.show_last_n_gcs,
         single_heap_metrics=single_heap_metrics,
+        show_reasons=args.show_reasons,
     )
 
 
@@ -215,6 +208,7 @@ def analyze_single_for_processed_trace(
     single_heap_metrics: SingleHeapMetrics,
     show_first_n_gcs: Optional[int],
     show_last_n_gcs: Optional[int],
+    show_reasons: bool,
 ) -> Document:
 
     sections: List[Section] = []
@@ -232,15 +226,28 @@ def analyze_single_for_processed_trace(
     gcs_to_print = _get_sorted_gcs_to_print(show_first_n_gcs, show_last_n_gcs, gcs, sort_gcs_by)
 
     if is_empty(gcs_to_print.gcs):
-        if not is_empty(all_single_gc_metrics) or not is_empty(single_heap_metrics):
+        if not is_empty(all_single_gc_metrics) or not is_empty(single_heap_metrics) or show_reasons:
             sections.append(Section(text="No GCs in trace"))
     else:
         if not is_empty(all_single_gc_metrics):
-            sections.append(_get_single_gcs_section(gcs_to_print, all_single_gc_metrics))
+            sections.append(
+                _get_single_gcs_section(gcs_to_print, all_single_gc_metrics, show_reasons)
+            )
         if not is_empty(single_heap_metrics):
             sections.extend(_get_single_heaps_sections(gcs_to_print.gcs, single_heap_metrics))
 
+    if show_reasons:
+        sections.append(_get_reasons_summary(gcs))
+
     return Document(sections=sections)
+
+
+def _get_reasons_summary(gcs: Sequence[ProcessedGC]) -> Section:
+    rows = [
+        (Cell(reason.name), Cell(count))
+        for reason, count in Counter(gc.reason for gc in gcs).items()
+    ]
+    return Section(tables=(Table(headers=("Reason", "Count"), rows=rows),))
 
 
 def _get_run_metrics_section(trace: ProcessedTrace, run_metrics: RunMetrics) -> Optional[Section]:
@@ -250,7 +257,7 @@ def _get_run_metrics_section(trace: ProcessedTrace, run_metrics: RunMetrics) -> 
         run_metrics_table = Table(
             headers=("Name", "Value"),
             rows=[
-                (Cell(run_metric.name), _value_cell(run_metric, trace.metric(run_metric)))
+                (Cell(run_metric.name), value_cell(run_metric, trace.metric(run_metric)))
                 for run_metric in run_metrics
             ],
         )
@@ -276,12 +283,22 @@ class _GCsAndDescription:
     descr: Optional[str]
 
 
-def _get_single_gcs_section(gcs: _GCsAndDescription, single_gc_metrics: SingleGCMetrics) -> Section:
+def _get_single_gcs_section(
+    gcs: _GCsAndDescription, single_gc_metrics: SingleGCMetrics, show_reasons: bool
+) -> Section:
     def get_row_for_gc(gc: ProcessedGC) -> Optional[Row]:
-        return [Cell(gc.Number), *(_value_cell(m, gc.metric(m)) for m in single_gc_metrics)]
+        return (
+            Cell(gc.Number),
+            *optional_to_iter(Cell(str(gc.reason)) if show_reasons else None),
+            *(value_cell(m, gc.metric(m)) for m in single_gc_metrics),
+        )
 
     gcs_table = Table(
-        headers=["gc number", *(metric.name for metric in single_gc_metrics)],
+        headers=(
+            "gc number",
+            *optional_to_iter("reason" if show_reasons else None),
+            *(metric.name for metric in single_gc_metrics),
+        ),
         rows=[row for gc in gcs.gcs for row in optional_to_iter(get_row_for_gc(gc))],
     )
     name = "Single gcs" + ("" if gcs.descr is None else f" ({gcs.descr})")
@@ -295,7 +312,7 @@ def _get_single_heaps_sections(
         heaps_table = Table(
             headers=("heap", *(metric.name for metric in single_heap_metrics)),
             rows=[
-                (Cell(heap_i), *(_value_cell(m, heap.metric(m)) for m in single_heap_metrics))
+                (Cell(heap_i), *(value_cell(m, heap.metric(m)) for m in single_heap_metrics))
                 for heap_i, heap in enumerate(gc.heaps)
             ],
         )
@@ -346,7 +363,7 @@ def _last_n(gcs: Sequence[ProcessedGC], n: int) -> _GCsAndDescription:
     return _GCsAndDescription(gcs[-n:], f"last {n}" if n < len(gcs) else None)
 
 
-def _value_cell(metric: MetricBase, value: FailableValue) -> Cell:
+def value_cell(metric: MetricBase, value: FailableValue) -> Cell:
     return match(
         value,
         cb_ok=lambda v: Cell("%.4f" % v) if metric.do_not_use_scientific_notation else Cell(v),

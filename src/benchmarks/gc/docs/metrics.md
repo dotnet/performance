@@ -224,6 +224,9 @@ IsNonBackground
 IsNonConcurrent
 ReasonIs_alloc_loh
 ReasonIs_alloc_soh
+ReasonIs_bgc_stepping
+ReasonIs_bgc_tuning_loh
+ReasonIs_bgc_tuning_soh
 ReasonIs_empty
 ReasonIs_gcstress
 ReasonIs_induced
@@ -246,6 +249,7 @@ UsesPromotion
 ## float metrics
 
 AllocRateMBSec
+AllocedMBAccumulated
 AllocedSinceLastGCMB
 BGCFinalPauseMSec
 BGCLohConcurrentRevisitedPages
@@ -301,6 +305,7 @@ LastPerHeapHistToEndMSec
 MaxBGCWaitMSec
 MbAllocatedOnLOHSinceLastGen2Gc
 MbAllocatedOnSOHSinceLastSameGenGc
+MemoryPressure
 Number
 PauseDurationMSec
 PauseDurationSeconds
@@ -342,6 +347,8 @@ Gen0Size
 Gen1CollectionCount
 Gen2CollectionCount
 InternalSecondsTaken
+NumCreatedWithFinalizers
+NumFinalized
 ThreadCount
 TotalSecondsTaken
 
@@ -349,9 +356,8 @@ TotalSecondsTaken
 
 FinalYoungestDesiredMB
 FirstEventToFirstGCSeconds
-FirstToLastEventSeconds
 FirstToLastGCSeconds
-NumHeaps
+HeapCount
 PctTimePausedInGC
 TotalAllocatedMB
 TotalLOHAllocatedMB

@@ -26,17 +26,27 @@ from typing import (
 
 from result import Err, Ok, Result
 
-from ..commonlib.bench_file import TestResult, TestRunStatus
+from ..commonlib.bench_file import GCPerfSimResult, TestResult, TestRunStatus
 from ..commonlib.collection_util import count, empty_mapping, is_empty, map_to_mapping
 from ..commonlib.document import Cell
 from ..commonlib.frozen_dict import FrozenDict
 from ..commonlib.option import map_option, non_null
-from ..commonlib.result_utils import all_non_err, fn_to_ok, flat_map_ok, map_ok, unwrap
+from ..commonlib.result_utils import (
+    all_non_err,
+    fn_to_ok,
+    flat_map_ok,
+    map_ok,
+    map_ok_2,
+    option_to_result,
+    unwrap,
+)
 from ..commonlib.score_spec import ScoreElement, ScoreSpec
 from ..commonlib.type_utils import check_cast, enum_value, E, T, U, with_slots
 from ..commonlib.util import (
+    bytes_to_gb,
     bytes_to_mb,
     float_to_str_smaller,
+    get_95th_percentile,
     get_or_did_you_mean,
     get_percent,
     mb_to_gb,
@@ -545,6 +555,7 @@ class ProcessedHeap:
         return self.gc.clr
 
     def metric(self, metric: SingleHeapMetric) -> FailableValue:
+        # pylint:disable=import-outside-toplevel
         from .single_heap_metrics import get_single_heap_stat
 
         return get_single_heap_stat(self, metric)
@@ -657,6 +668,7 @@ class GenInfoGetter:
     def BudgetMB(self) -> float:
         return _fixup_mb(self._trace_gc.GenBudgetMB(self._gen_value))
 
+    @property
     def ObjSizeAfterMB(self) -> float:
         return _fixup_mb(self._trace_gc.GenObjSizeAfterMB(self._gen_value))
 
@@ -688,6 +700,15 @@ class ProcessedGC:
     heaps: Sequence[ProcessedHeap]
 
     @property
+    def prev_gc(self) -> Optional["ProcessedGC"]:
+        if self.index == 0:
+            return None
+        else:
+            res = self.proc.gcs[self.index - 1]
+            assert res.index == self.index - 1
+            return res
+
+    @property
     def clr(self) -> Clr:
         return self.proc.clr
 
@@ -696,11 +717,12 @@ class ProcessedGC:
         return self.trace_gc.SuspendDurationMSec
 
     def metric(self, single_gc_metric: SingleGCMetric) -> FailableValue:
-        from .single_gc_metrics import get_single_gc_stat
+        from .single_gc_metrics import get_single_gc_stat  # pylint:disable=import-outside-toplevel
 
         return get_single_gc_stat(self.proc, self.proc.gcs, self.index, single_gc_metric)
 
     def metric_from_name(self, name: str) -> FailableValue:
+        # pylint:disable=import-outside-toplevel
         from .parse_metrics import parse_single_gc_metric_arg
 
         return self.metric(parse_single_gc_metric_arg(name))
@@ -727,6 +749,17 @@ class ProcessedGC:
     @property
     def AllocedSinceLastGCMB(self) -> float:
         return self.trace_gc.AllocedSinceLastGCMB
+
+    _alloced_mb_accumulated: Optional[float] = None
+
+    @property
+    def AllocedMBAccumulated(self) -> float:
+        if self._alloced_mb_accumulated is None:
+            prev = 0 if self.prev_gc is None else self.prev_gc.AllocedMBAccumulated
+            self._alloced_mb_accumulated = prev + self.AllocedSinceLastGCMB
+            return self._alloced_mb_accumulated
+        else:
+            return self._alloced_mb_accumulated
 
     @property
     def AllocRateMBSec(self) -> float:
@@ -1065,6 +1098,16 @@ class ProcessedGC:
         # return has_mechanisms(gc, lambda m: m.loh_compaction)
 
     @property
+    def MemoryPressure(self) -> FailableFloat:
+        ghh = self.trace_gc.GlobalHeapHistory
+        if ghh is None:
+            return Err("No GlobalHeapHistory")
+        elif ghh.HasMemoryPressure:
+            return Ok(ghh.MemoryPressure)
+        else:
+            return Err("GlobalHeapHistory#HasMemoryPressure was false")
+
+    @property
     def HeapCount(self) -> int:
         return len(self.heaps)
 
@@ -1186,7 +1229,7 @@ ProcessQuery = Optional[Sequence[str]]
 class ProcessedTrace:
     clr: Clr
     test_result: TestResult
-    test_status: Optional[TestRunStatus]
+    test_status: Failable[TestRunStatus]
     process_info: Optional[ProcessInfo]
     process_names: ThreadToProcessToName
     # '--process' that was used to get this
@@ -1195,17 +1238,126 @@ class ProcessedTrace:
     mechanisms_and_reasons: Optional[MechanismsAndReasons]
     join_info: Result[str, AbstractJoinInfoForProcess]
 
+    def Aggregate(
+        self,
+        cb_gc: Callable[[ProcessedGC], FailableFloat],
+        cb_aggregate: Callable[[Iterable[float]], float],
+    ) -> FailableFloat:
+        return flat_map_ok(
+            self.gcs_result,
+            lambda gcs: Err("<no gcs>")
+            if is_empty(gcs)
+            else map_ok(all_non_err(cb_gc(gc) for gc in gcs), cb_aggregate),
+        )
+
+    def Max(self, cb: Callable[[ProcessedGC], FailableFloat]) -> FailableFloat:
+        return self.Aggregate(cb, max)
+
+    def Sum(self, cb: Callable[[ProcessedGC], FailableFloat]) -> FailableFloat:
+        return self.Aggregate(cb, sum)
+
+    @property
+    def HeapSizePeakMB_Max(self) -> FailableFloat:
+        return self.Max(lambda gc: Ok(gc.HeapSizePeakMB))
+
+    def Get95P(self, cb: Callable[[ProcessedGC], float]) -> FailableFloat:
+        return get_95th_percentile([cb(gc) for gc in self.gcs])
+
+    @property
+    def gcperfsim_result(self) -> Failable[GCPerfSimResult]:
+        return flat_map_ok(
+            self.test_status,
+            lambda ts: option_to_result(
+                ts.gcperfsim_result, lambda: "This metric only available for GCPerfSim"
+            ),
+        )
+
+    @property
+    def TotalSecondsTaken(self) -> FailableFloat:
+        return map_ok(self.gcperfsim_result, lambda r: r.seconds_taken)
+
+    @property
+    def Gen0Size(self) -> FailableFloat:
+        return flat_map_ok(
+            self.test_status,
+            lambda ts: option_to_result(
+                ts.test.config.config.complus_gcgen0size, lambda: "Gen0size not specified in config"
+            ),
+        )
+
+    @property
+    def ThreadCount(self) -> FailableFloat:
+        return flat_map_ok(
+            self.test_status,
+            lambda ts: option_to_result(
+                map_option(ts.test.benchmark.benchmark.get_argument("-tc"), int),
+                lambda: "tc not specified in benchmark",
+            ),
+        )
+
+    @property
+    def InternalSecondsTaken(self) -> FailableFloat:
+        return map_ok(self.gcperfsim_result, lambda g: g.seconds_taken)
+
+    @property
+    def FinalHeapSizeGB(self) -> FailableFloat:
+        return flat_map_ok(
+            self.gcperfsim_result,
+            lambda g: Err(
+                "final_heap_size_bytes was not in test result\n"
+                + "this can happen on runtimes < 3.0"
+            )
+            if g.final_heap_size_bytes is None
+            else Ok(bytes_to_gb(g.final_heap_size_bytes)),
+        )
+
+    @property
+    def FinalFragmentationGB(self) -> FailableFloat:
+        return flat_map_ok(
+            self.gcperfsim_result,
+            lambda g: Err(
+                "final_fragmentation_bytes was not in test result\n"
+                + "this can happen on runtimes < 3.0"
+            )
+            if g.final_fragmentation_bytes is None
+            else Ok(bytes_to_gb(g.final_fragmentation_bytes)),
+        )
+
+    @property
+    def FinalTotalMemoryGB(self) -> FailableFloat:
+        return map_ok(self.gcperfsim_result, lambda g: bytes_to_gb(g.final_total_memory_bytes))
+
+    @property
+    def NumCreatedWithFinalizers(self) -> FailableValue:
+        return map_ok(self.gcperfsim_result, lambda g: g.num_created_with_finalizers)
+
+    @property
+    def NumFinalized(self) -> FailableValue:
+        return map_ok(self.gcperfsim_result, lambda g: g.num_finalized)
+
+    @property
+    def Gen0CollectionCount(self) -> FailableValue:
+        return map_ok(self.gcperfsim_result, lambda g: g.collection_counts[0])
+
+    @property
+    def Gen1CollectionCount(self) -> FailableValue:
+        return map_ok(self.gcperfsim_result, lambda g: g.collection_counts[1])
+
+    @property
+    def Gen2CollectionCount(self) -> FailableValue:
+        return map_ok(self.gcperfsim_result, lambda g: g.collection_counts[2])
+
     @property
     def gcs(self) -> Sequence[ProcessedGC]:
         return unwrap(self.gcs_result)
 
     def metric(self, run_metric: RunMetric) -> FailableValue:
-        from .run_metrics import stat_for_proc
+        from .run_metrics import stat_for_proc  # pylint:disable=import-outside-toplevel
 
         return stat_for_proc(self, run_metric)
 
     def metric_from_name(self, name: str) -> FailableValue:
-        from .parse_metrics import parse_run_metric_arg
+        from .parse_metrics import parse_run_metric_arg  # pylint:disable=import-outside-toplevel
 
         return self.metric(parse_run_metric_arg(name))
 
@@ -1267,32 +1419,37 @@ class ProcessedTrace:
 
     @property
     def TotalNonGCSeconds(self) -> FailableFloat:
-        return map_ok(
-            self.FirstToLastEventSeconds,
-            lambda t: t - msec_to_seconds(sum(gc.PauseDurationMSec for gc in self.gcs)),
+        return map_ok_2(
+            self.TotalSecondsTaken,
+            self.gcs_result,
+            lambda t, gcs: t - msec_to_seconds(sum(gc.PauseDurationMSec for gc in gcs)),
         )
 
     @property
-    def FirstToLastEventSeconds(self) -> FailableFloat:
-        ts = map_option(self.process_info, lambda p: p.events_time_span)
-        if ts is None:
-            return Err("Did not specify to collect events")
-        else:
-            return Ok(msec_to_seconds(ts.DurationMSec))
-
-    @property
     def TotalAllocatedMB(self) -> FailableFloat:
-        if self.process_info is None:
-            return Err("Need a trace")
-        else:
-            return Ok(sum(gc.AllocedSinceLastGCMB for gc in self.gcs))
+        return self.Sum(lambda gc: Ok(gc.AllocedSinceLastGCMB))
 
     @property
     def HeapCount(self) -> int:
-        n = self.gcs[0].HeapCount
-        for gc in self.gcs:
-            assert gc.HeapCount == n
-        return n
+        return unwrap(self.HeapCountResult)
+
+    @property
+    def HeapCountResult(self) -> FailableInt:
+        def f(gcs: Sequence[ProcessedGC]) -> int:
+            n_heaps = gcs[0].trace_gc.HeapCount
+            for i, gc in enumerate(gcs):
+                assert gc.trace_gc.HeapCount == n_heaps
+                if gc.trace_gc.GlobalHeapHistory is None:
+                    print(f"WARN: GC{i} has null GlobalHeapHistory. It's a {gc.Type}")
+                phh_count = gc.HeapCount
+                if n_heaps != phh_count:
+                    print(
+                        f"WARN: GC{i} has {phh_count} PerHeapHistories but {n_heaps} heaps. "
+                        + f"It's a {gc.Type}"
+                    )
+            return n_heaps
+
+        return map_ok(self.gcs_result, f)
 
     @property
     def NumberGCs(self) -> int:

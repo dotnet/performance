@@ -7,28 +7,18 @@ from typing import Callable, Dict, List, Mapping, Sequence, Tuple
 
 from result import Err, Ok, Result
 
-from ..commonlib.bench_file import GCPerfSimResult, TestRunStatus
 from ..commonlib.collection_util import (
     combine_mappings,
     DequeWithSum,
     indices,
     is_empty,
     make_mapping,
-    map_mapping_values,
 )
-from ..commonlib.option import map_option, non_null
-from ..commonlib.result_utils import (
-    all_non_err,
-    flat_map_ok,
-    fn2_to_ok,
-    map_ok,
-    match,
-    option_to_result,
-    unwrap,
-)
+from ..commonlib.option import non_null
+from ..commonlib.result_utils import all_non_err, flat_map_ok, fn2_to_ok, map_ok, match, unwrap
 from ..commonlib.score_spec import ScoreElement
 from ..commonlib.type_utils import enum_value
-from ..commonlib.util import bytes_to_gb, bytes_to_mb, geometric_mean, get_percent, seconds_to_msec
+from ..commonlib.util import bytes_to_mb, geometric_mean, get_percent, seconds_to_msec
 
 from .aggregate_stats import get_aggregate_stats
 from .enums import Gens, ServerGCThreadState
@@ -37,7 +27,6 @@ from .types import (
     Failable,
     FailableFloat,
     fn_of_property,
-    FailableInt,
     NamedRunMetric,
     ProcessedGC,
     ProcessInfo,
@@ -49,63 +38,6 @@ from .types import (
     FailableValue,
     FailableValues,
 )
-
-_GCPERFSIM_RESULT_GETTERS: Mapping[NamedRunMetric, Callable[[GCPerfSimResult], FailableValue]] = {
-    NamedRunMetric("InternalSecondsTaken", is_from_test_status=True): lambda g: Ok(g.seconds_taken),
-    NamedRunMetric("FinalHeapSizeGB", is_from_test_status=True): lambda g: Err(
-        "final_heap_size_bytes was not in test result, this can happen on runtimes < 3.0"
-    )
-    if g.final_heap_size_bytes is None
-    else Ok(bytes_to_gb(g.final_heap_size_bytes)),
-    NamedRunMetric("FinalFragmentationGB", is_from_test_status=True): lambda g: Err(
-        "final_fragmentation_bytes was not in test result, this can happen on runtimes < 3.0"
-    )
-    if g.final_fragmentation_bytes is None
-    else Ok(bytes_to_gb(g.final_fragmentation_bytes)),
-    NamedRunMetric("FinalTotalMemoryGB", is_from_test_status=True): lambda g: Ok(
-        bytes_to_gb(g.final_total_memory_bytes)
-    ),
-    NamedRunMetric("Gen0CollectionCount", is_from_test_status=True): lambda g: Ok(
-        g.collection_counts[0]
-    ),
-    NamedRunMetric("Gen1CollectionCount", is_from_test_status=True): lambda g: Ok(
-        g.collection_counts[1]
-    ),
-    NamedRunMetric("Gen2CollectionCount", is_from_test_status=True): lambda g: Ok(
-        g.collection_counts[2]
-    ),
-}
-
-
-def _gcperfsim_getter(
-    cb: Callable[[GCPerfSimResult], FailableValue]
-) -> Callable[[TestRunStatus], FailableValue]:
-    return (
-        lambda ts: Err("No gcperfsim_result")
-        if ts.gcperfsim_result is None
-        else cb(ts.gcperfsim_result)
-    )
-
-
-_TEST_STATUS_METRIC_GETTERS: Mapping[
-    NamedRunMetric, Callable[[TestRunStatus], FailableValue]
-] = combine_mappings(
-    {
-        NamedRunMetric("TotalSecondsTaken", is_from_test_status=True): lambda ts: Ok(
-            ts.seconds_taken
-        ),
-        NamedRunMetric("Gen0Size", is_from_test_status=True): lambda ts: option_to_result(
-            ts.test.config.config.complus_gcgen0size, lambda: "Gen0size not specified in config"
-        ),
-        NamedRunMetric("ThreadCount", is_from_test_status=True): lambda ts: option_to_result(
-            map_option(ts.test.benchmark.benchmark.get_argument("-tc"), int),
-            lambda: "tc not specified in benchmark",
-        ),
-    },
-    map_mapping_values(_gcperfsim_getter, _GCPERFSIM_RESULT_GETTERS),
-)
-
-TEST_STATUS_METRICS: Sequence[NamedRunMetric] = tuple(_TEST_STATUS_METRIC_GETTERS.keys())
 
 
 def stat_for_proc(proc: ProcessedTrace, metric: RunMetric) -> FailableValue:
@@ -305,32 +237,13 @@ def _get_gc_aggregate_stats() -> Mapping[NamedRunMetric, Callable[[ProcessedTrac
     )
 
 
-def _get_num_heaps(proc: ProcessedTrace) -> FailableInt:
-    def f(gcs: Sequence[ProcessedGC]) -> int:
-        n_heaps = proc.gcs[0].trace_gc.HeapCount
-        for i, gc in enumerate(gcs):
-            assert gc.trace_gc.HeapCount == n_heaps
-            if gc.trace_gc.GlobalHeapHistory is None:
-                print(f"WARN: GC{i} has null GlobalHeapHistory. It's a {gc.Type}")
-            phh_count = gc.HeapCount
-            if n_heaps != phh_count:
-                print(
-                    f"WARN: GC{i} has {phh_count} PerHeapHistories but {n_heaps} heaps. "
-                    + f"It's a {gc.Type}"
-                )
-        return n_heaps
-
-    return map_ok(proc.gcs_result, f)
 
 
 _RUN_METRIC_GETTERS: Mapping[
     NamedRunMetric, Callable[[ProcessedTrace], FailableFloat]
 ] = combine_mappings(
     {
-        NamedRunMetric("NumHeaps"): _get_num_heaps,
-        NamedRunMetric("FirstToLastEventSeconds"): fn_of_property(
-            ProcessedTrace.FirstToLastEventSeconds
-        ),
+        NamedRunMetric("HeapCount"): fn_of_property(ProcessedTrace.HeapCountResult),
         NamedRunMetric("TotalNonGCSeconds"): fn_of_property(ProcessedTrace.TotalNonGCSeconds),
         NamedRunMetric("FirstToLastGCSeconds"): fn_of_property(ProcessedTrace.FirstToLastGCSeconds),
         NamedRunMetric("FirstEventToFirstGCSeconds"): fn_of_property(
@@ -344,21 +257,51 @@ _RUN_METRIC_GETTERS: Mapping[
             flat_map_ok(proc.gcs_result, _get_total_loh_allocated_bytes), bytes_to_mb
         ),
         NamedRunMetric("PctTimePausedInGC"): _get_percent_time_paused_in_gc,
+        NamedRunMetric("TotalSecondsTaken", is_from_test_status=True): fn_of_property(
+            ProcessedTrace.TotalSecondsTaken
+        ),
+        NamedRunMetric("Gen0Size", is_from_test_status=True): fn_of_property(
+            ProcessedTrace.Gen0Size
+        ),
+        NamedRunMetric("ThreadCount", is_from_test_status=True): fn_of_property(
+            ProcessedTrace.ThreadCount
+        ),
+        NamedRunMetric("InternalSecondsTaken", is_from_test_status=True): fn_of_property(
+            ProcessedTrace.InternalSecondsTaken
+        ),
+        NamedRunMetric("FinalHeapSizeGB", is_from_test_status=True): fn_of_property(
+            ProcessedTrace.FinalHeapSizeGB
+        ),
+        NamedRunMetric("FinalFragmentationGB", is_from_test_status=True): fn_of_property(
+            ProcessedTrace.FinalFragmentationGB
+        ),
+        NamedRunMetric("FinalTotalMemoryGB", is_from_test_status=True): fn_of_property(
+            ProcessedTrace.FinalTotalMemoryGB
+        ),
+        NamedRunMetric("NumCreatedWithFinalizers", is_from_test_status=True): fn_of_property(
+            ProcessedTrace.NumCreatedWithFinalizers
+        ),
+        NamedRunMetric("NumFinalized", is_from_test_status=True): fn_of_property(
+            ProcessedTrace.NumFinalized
+        ),
+        NamedRunMetric("Gen0CollectionCount", is_from_test_status=True): fn_of_property(
+            ProcessedTrace.Gen0CollectionCount
+        ),
+        NamedRunMetric("Gen1CollectionCount", is_from_test_status=True): fn_of_property(
+            ProcessedTrace.Gen1CollectionCount
+        ),
+        NamedRunMetric("Gen2CollectionCount", is_from_test_status=True): fn_of_property(
+            ProcessedTrace.Gen2CollectionCount
+        ),
     },
     # This includes startup time so not a great metric
     # {NamedRunMetric("ProcessDurationMSec"): lambda proc: proc.stats.ProcessDuration},
     _STOLEN_CPU_TIMES_GETTERS,
     _get_gc_aggregate_stats(),
-    map_mapping_values(
-        lambda test_status_getter: lambda trace: Err("no test status")
-        if trace.test_status is None
-        else test_status_getter(trace.test_status),
-        _TEST_STATUS_METRIC_GETTERS,
-    ),
 )
 
-ALL_RUN_METRICS: Sequence[RunMetric] = tuple(_RUN_METRIC_GETTERS.keys())
-
+ALL_RUN_METRICS: RunMetrics = tuple(_RUN_METRIC_GETTERS.keys())
+TEST_STATUS_METRICS: RunMetrics = [m for m in ALL_RUN_METRICS if m.is_from_test_status]
 
 # Note: excludes bytes allocated after the last GC
 def _get_total_loh_allocated_bytes(gcs: Sequence[ProcessedGC]) -> Result[str, int]:

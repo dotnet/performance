@@ -40,11 +40,12 @@ from .clr_types import (
 )
 
 
+# pylint:disable=import-outside-toplevel
+
 # This class contains no data, but is passed around as proof that we've set up CLR.
 class Clr:
     @property
     def _system(self) -> Any:
-        # pylint:disable=import-outside-toplevel
         import System  # type: ignore
 
         return System

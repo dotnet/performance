@@ -36,20 +36,15 @@ from ..commonlib.command import Command, CommandKind, CommandsMapping
 from ..commonlib.document import (
     Align,
     Cell,
+    DocOutputArgs,
     Document,
     handle_doc,
     HeaderGroup,
-    HTML_DOC,
-    OutputOptions,
-    OutputWidth,
-    OUTPUT_WIDTH_DOC,
+    output_options_from_args,
     print_document,
     Row,
     Section,
     Table,
-    TABLE_INDENT_DOC,
-    TXT_DOC,
-    XLSX_DOC,
 )
 from ..commonlib.option import map_option, non_null, optional_to_iter, option_or
 from ..commonlib.result_utils import all_non_err, as_err, map_ok, match, unwrap
@@ -436,7 +431,7 @@ class ReportReasonsArgs:
 
 @with_slots
 @dataclass(frozen=True)
-class DiffArgs:
+class DiffArgs(DocOutputArgs):
     trace_paths: Sequence[Path] = argument(name_optional=True, doc=DIFFABLE_PATHS_DOC)
 
     vary: Optional[Vary] = argument(default=None, doc=VARY_DOC)
@@ -461,12 +456,6 @@ class DiffArgs:
         default=0,
         doc="Only show metrics where there is this much difference between configurations.",
     )
-
-    output_width: Optional[OutputWidth] = argument(default=None, doc=OUTPUT_WIDTH_DOC)
-    table_indent: Optional[int] = argument(default=None, doc=TABLE_INDENT_DOC)
-    txt: Optional[Path] = argument(default=None, doc=TXT_DOC)
-    html: Optional[Path] = argument(default=None, doc=HTML_DOC)
-    excel: Optional[Path] = argument(default=None, hidden=True, doc=XLSX_DOC)
 
     sample_kind: SampleKind = argument(default=0, doc=SAMPLE_KIND_DOC)
     max_iterations: Optional[int] = argument(default=None, doc=MAX_ITERATIONS_FOR_ANALYZE_DOC)
@@ -525,16 +514,7 @@ def diff(args: DiffArgs) -> None:
         sort_by_metric=sort_by_metric,
         min_difference_pct=args.min_difference_pct,
     )
-    handle_doc(
-        doc,
-        OutputOptions(
-            width=args.output_width,
-            table_indent=args.table_indent,
-            html=args.html,
-            txt=args.txt,
-            excel=args.excel,
-        ),
-    )
+    handle_doc(doc, output_options_from_args(args))
 
 
 def diff_for_jupyter(
@@ -801,18 +781,19 @@ def get_mechanisms_and_reasons_for_test(
 
 @with_slots
 @dataclass(frozen=True)
-class _PrintAllRunsArgs:
+class _PrintAllRunsArgs(DocOutputArgs):
     bench_file_path: Path = argument(name_optional=True, doc="Path to a benchfile")
     run_metrics: Sequence[str] = argument(doc=RUN_METRICS_DOC)
 
 
 def _print_all_runs(args: _PrintAllRunsArgs) -> None:
-    print_document(
+    handle_doc(
         print_all_runs_for_jupyter(
             traces=ProcessedTraces(),
             bench_file_path=args.bench_file_path,
             run_metrics=parse_run_metrics_arg(args.run_metrics, default_to_important=False),
-        )
+        ),
+        output_options_from_args(args),
     )
 
 

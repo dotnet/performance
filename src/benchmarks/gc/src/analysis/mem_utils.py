@@ -11,9 +11,11 @@ from ..commonlib.collection_util import empty_sequence, get_diff, is_empty, try_
 from ..commonlib.command import Command, CommandKind, CommandsMapping
 from ..commonlib.document import (
     Cell,
+    DocOutputArgs,
     Document,
     handle_doc,
     OutputOptions,
+    output_options_from_args,
     Section,
     single_table_document,
     Table,
@@ -583,9 +585,8 @@ def _parse_fragmented_block(line: str) -> _DumpHeapFragmentedBlock:
 
 @with_slots
 @dataclass(frozen=True)
-class _DiffDumpHeapArgs:
+class _DiffDumpHeapArgs(DocOutputArgs):
     paths: Tuple[Path, Path] = argument(name_optional=True, doc="Paths of heap dumps to diff")
-    txt: Optional[Path] = argument(default=None, doc="Output file")
 
 
 @with_slots
@@ -761,7 +762,7 @@ def _diff_dump_heap(args: _DiffDumpHeapArgs) -> None:
             rows=rows,
         )
     )
-    handle_doc(doc, OutputOptions(txt=args.txt))
+    handle_doc(doc, output_options_from_args(args))
 
 
 MEM_UTILS_COMMANDS: CommandsMapping = {

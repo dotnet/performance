@@ -63,7 +63,7 @@ def _get_platform_name() -> str:
         return "arm64"
     else:
         p = processor()
-        assert any(x in p for x in ("Intel64", "AMD64"))
+        assert any(x in p for x in ("AMD64", "Intel64", "x86_64"))
         return "x64"
 
 
@@ -313,6 +313,9 @@ class _CopyBuildArgs:
     name: Optional[str] = argument(
         default=None, doc="Name of the output directory. Defaults to the commit hash."
     )
+    overwrite: bool = argument(
+        default=False, doc="If true, the output directory will be copied over if it exists."
+    )
 
 
 _BUILDS_PATH = BENCH_DIR_PATH / "builds"
@@ -321,7 +324,7 @@ _BUILDS_PATH = BENCH_DIR_PATH / "builds"
 def _copy_build(args: _CopyBuildArgs) -> None:
     core_root = _get_core_root(args.coreclr, args.kind)
     name = _get_default_build_name(args.coreclr, args.kind) if args.name is None else args.name
-    cp_dir(core_root, _BUILDS_PATH / name)
+    cp_dir(core_root, _BUILDS_PATH / name, args.overwrite)
 
 
 def _get_default_build_name(coreclr: Path, kind: _DebugKind) -> str:
@@ -360,11 +363,14 @@ def rebuild_coreclr(args: RebuildCoreclrArgs) -> None:
             _do_rebuild_coreclr(coreclr, args.just_copy, debug_kind)
 
 
+def _get_debug_or_release(debug_kind: _DebugKind) -> str:
+    return {_DebugKind.debug: "debug", _DebugKind.release: "release"}[debug_kind]
+
+
 def _get_debug_or_release_dir_name(debug_kind: _DebugKind) -> str:
-    plat = _get_platform_name()
-    debug_release = {_DebugKind.debug: "debug", _DebugKind.release: "release"}[debug_kind]
-    debug_release_dir_name = f"{_get_os_name()}.{plat}.{debug_release.capitalize()}"
-    return debug_release_dir_name
+    return (
+        f"{_get_os_name()}.{_get_platform_name()}.{_get_debug_or_release(debug_kind).capitalize()}"
+    )
 
 
 def _get_core_root(coreclr: Path, debug_kind: _DebugKind) -> Path:
@@ -382,7 +388,7 @@ def _do_rebuild_coreclr(coreclr: Path, just_copy: bool, debug_kind: _DebugKind) 
                 cmd=(
                     str(coreclr / f"build.{get_build_ext()}"),
                     plat,
-                    debug_release,
+                    _get_debug_or_release(debug_kind),
                     # build.sh does not support --skiptests
                     *optional_to_iter("skiptests" if os_is_windows() else None),
                     "skipmscorlib",
@@ -412,8 +418,13 @@ def _do_rebuild_coreclr(coreclr: Path, just_copy: bool, debug_kind: _DebugKind) 
             cp(from_path=product_dir / name, to_path=core_root / name)
 
 
-def cp_dir(from_dir: Path, to_dir: Path) -> None:
-    print(f"Copy {from_dir} to {to_dir}")
+def cp_dir(from_dir: Path, to_dir: Path, overwrite: bool) -> None:
+    if to_dir.exists():
+        if overwrite:
+            to_dir.unlink()
+        else:
+            raise Exception(f"{to_dir} already exists. (Maybe you want to '--overwrite'?)")
+    print(f"Copy directory {from_dir} to {to_dir}")
     copytree(from_dir, to_dir)
 
 

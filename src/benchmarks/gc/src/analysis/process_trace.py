@@ -8,10 +8,10 @@ from typing import cast, Dict, Iterable, Sequence
 
 from result import Err, Ok, Result
 
-from ..commonlib.bench_file import is_trace_path, load_test_status, TestResult
+from ..commonlib.bench_file import is_trace_path, load_test_status, TestResult, TestRunStatus
 from ..commonlib.collection_util import indices, map_to_mapping, repeat, zip_check, zip_check_3
 from ..commonlib.option import map_option, non_null
-from ..commonlib.result_utils import map_ok, match
+from ..commonlib.result_utils import map_err, map_ok, match, option_to_result, unwrap
 from ..commonlib.util import change_extension, show_size_bytes
 
 from .clr import Clr, get_clr
@@ -22,9 +22,13 @@ from .clr_types import (
     AbstractMarkInfo,
     AbstractServerGcHistory,
     AbstractTraceGC,
+    AbstractTraceLoadedDotNetRuntime,
+    AbstractTraceProcess,
+    AbstractTracedProcesses,
     cs_result_to_result,
 )
 from .core_analysis import (
+    get_process_info_from_mang,
     get_process_names_and_process_info,
     process_predicate_from_id,
     process_predicate_from_parts,
@@ -36,6 +40,7 @@ from .types import (
     MaybeMetricValuesForSingleIteration,
     ProcessedGC,
     ProcessedHeap,
+    ProcessInfo,
     ProcessedTrace,
     ProcessQuery,
     RunMetrics,
@@ -66,7 +71,9 @@ def get_processed_trace(
     need_mechanisms_and_reasons: bool,
     need_join_info: bool,
 ) -> Result[str, ProcessedTrace]:
-    test_status = test_result.load_test_status()
+    test_status = option_to_result(
+        test_result.load_test_status(), lambda: "Need a test status file"
+    )
 
     if test_result.trace_path is None:
         if need_join_info:
@@ -88,59 +95,109 @@ def get_processed_trace(
                 )
             )
     else:
-        if process is None:
-            assert test_status is not None, (
-                "Didn't specify --process and there's no test status to specify PID\n"
-                " (hint: maybe specify the test output '.yaml' file instead of the trace file)"
+        return Ok(
+            _get_processed_trace_from_process(
+                clr,
+                test_status,
+                test_result,
+                test_result.trace_path,
+                process,
+                need_join_info=need_join_info,
+                need_mechanisms_and_reasons=need_mechanisms_and_reasons,
             )
-            process_predicate = process_predicate_from_id(test_status.process_id)
-        else:
-            assert (
-                test_status is None
-            ), "'--process' is unnecessary as the test result specifies the PID"
-            process_predicate = process_predicate_from_parts(process)
-
-        process_names, proc = get_process_names_and_process_info(
-            clr,
-            test_result.trace_path,
-            str(test_result),
-            process_predicate,
-            # TODO: make this optional; though the metric FirstEventToFirstGCSeconds needs this too.
-            collect_event_names=True,
         )
 
-        # TODO: just do this lazily (getting join info)
-        join_info = (
-            get_join_info_for_all_gcs(clr, proc)
-            if need_join_info
-            else Err("Did not request join info")
-        )
-        res = ProcessedTrace(
+
+def get_processed_trace_from_just_process(
+    clr: Clr,
+    trace_path: Path,
+    p: AbstractTracedProcesses,
+    process: AbstractTraceProcess,
+    mang: AbstractTraceLoadedDotNetRuntime,
+) -> ProcessedTrace:
+    proc_info = get_process_info_from_mang(p, trace_path, process, trace_path.name, mang)
+    return _init_processed_trace(
+        ProcessedTrace(
             clr=clr,
-            test_result=test_result,
-            test_status=test_status,
-            process_info=proc,
-            process_names=process_names,
-            process_query=process,
-            join_info=join_info,
-            # TODO: just do this lazily
-            mechanisms_and_reasons=get_mechanisms_and_reasons_for_process_info(proc)
-            if need_mechanisms_and_reasons
-            else None,
-            gcs_result=Err("temporary err, will be overwritten"),
+            test_result=TestResult(trace_path=trace_path),
+            test_status=Err("get_processed_trace_from_just_process has no test status"),
+            process_info=proc_info,
+            process_names=cast(ThreadToProcessToName, None),
+            process_query=None,
+            join_info=Err("did not request join info"),
+            mechanisms_and_reasons=None,
+            gcs_result=Err("temp"),
+        ),
+        proc_info,
+    )
+
+
+def _get_processed_trace_from_process(
+    clr: Clr,
+    test_status: Failable[TestRunStatus],
+    test_result: TestResult,
+    trace_path: Path,
+    process: ProcessQuery,
+    need_join_info: bool,
+    need_mechanisms_and_reasons: bool,
+) -> ProcessedTrace:
+    if process is None:
+        ts = unwrap(
+            map_err(
+                test_status,
+                lambda _: "Didn't specify --process and there's no test status to specify PID\n"
+                " (hint: maybe specify the test output '.yaml' file instead of the trace file)",
+            )
         )
-        gc_join_infos: Iterable[Result[str, AbstractJoinInfoForGC]] = match(
-            join_info,
-            lambda j: [cs_result_to_result(jgc) for jgc in j.GCs],
-            lambda e: repeat(Err(e), len(proc.gcs)),
-        )
-        res.gcs_result = Ok(
-            [
-                _get_processed_gc(res, i, gc_join_info)
-                for i, gc_join_info in zip_check(indices(proc.gcs), gc_join_infos)
-            ]
-        )
-        return Ok(res)
+        process_predicate = process_predicate_from_id(ts.process_id)
+    else:
+        assert (
+            test_status is None
+        ), "'--process' is unnecessary as the test result specifies the PID"
+        process_predicate = process_predicate_from_parts(process)
+    process_names, proc = get_process_names_and_process_info(
+        clr,
+        trace_path,
+        str(test_result),
+        process_predicate,
+        # TODO: make this optional; though the metric FirstEventToFirstGCSeconds needs this too.
+        collect_event_names=True,
+    )
+
+    # TODO: just do this lazily (getting join info)
+    join_info = (
+        get_join_info_for_all_gcs(clr, proc) if need_join_info else Err("Did not request join info")
+    )
+    res = ProcessedTrace(
+        clr=clr,
+        test_result=test_result,
+        test_status=test_status,
+        process_info=proc,
+        process_names=process_names,
+        process_query=process,
+        join_info=join_info,
+        # TODO: just do this lazily
+        mechanisms_and_reasons=get_mechanisms_and_reasons_for_process_info(proc)
+        if need_mechanisms_and_reasons
+        else None,
+        gcs_result=Err("temporary err, will be overwritten"),
+    )
+    return _init_processed_trace(res, proc)
+
+
+def _init_processed_trace(res: ProcessedTrace, process_info: ProcessInfo) -> ProcessedTrace:
+    gc_join_infos: Iterable[Result[str, AbstractJoinInfoForGC]] = match(
+        res.join_info,
+        lambda j: [cs_result_to_result(jgc) for jgc in j.GCs],
+        lambda e: repeat(Err(e), len(process_info.gcs)),
+    )
+    res.gcs_result = Ok(
+        [
+            _get_processed_gc(res, i, gc_join_info)
+            for i, gc_join_info in zip_check(indices(process_info.gcs), gc_join_infos)
+        ]
+    )
+    return res
 
 
 def _get_processed_gc(

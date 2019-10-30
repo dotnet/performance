@@ -6,7 +6,7 @@ from typing import Callable, cast, Iterable, Optional, Sequence, Union
 
 from result import Err, Ok, Result
 
-from .type_utils import E, T, U, V, W
+from .type_utils import E, F, T, U, V, W
 
 
 def all_non_err(xs: Iterable[Result[E, T]]) -> Result[E, Sequence[T]]:
@@ -37,6 +37,10 @@ def unwrap(r: Result[E, T]) -> T:
 
 def ignore_err(r: Result[E, T]) -> Optional[T]:
     return match(r, lambda x: x, lambda _: None)
+
+
+def map_err(r: Result[E, T], cb: Callable[[E], F]) -> Result[F, T]:
+    return match(r, Ok, lambda e: Err(cb(e)))
 
 
 def map_ok(r: Result[E, T], cb: Callable[[T], U]) -> Result[E, U]:

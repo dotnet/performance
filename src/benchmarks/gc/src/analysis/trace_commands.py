@@ -6,30 +6,34 @@ from dataclasses import dataclass
 from itertools import islice
 from pathlib import Path
 from re import compile as compile_regexp, IGNORECASE
-from typing import Mapping, Optional, Tuple
+from typing import Optional, Sequence, Tuple
+
+from ..analysis.analyze_single import value_cell
+from ..analysis.parse_metrics import parse_run_metrics_arg
+from ..analysis.types import ProcessedTrace, RunMetrics, RUN_METRICS_DOC
+
 
 from ..commonlib.collection_util import map_to_mapping
 from ..commonlib.command import Command, CommandKind, CommandsMapping
 from ..commonlib.document import (
     Cell,
+    DocOutputArgs,
     Document,
     handle_doc,
-    OutputOptions,
-    OutputWidth,
-    OUTPUT_WIDTH_DOC,
+    output_options_from_args,
     Row,
     Section,
     Table,
-    TXT_DOC,
 )
 from ..commonlib.option import map_option, non_null, option_or
+from ..commonlib.result_utils import ignore_err
 from ..commonlib.type_utils import argument, with_slots
-from ..commonlib.util import opt_max, seconds_to_msec
+from ..commonlib.util import seconds_to_msec
 
-from .clr import Clr, get_clr
+from .clr import get_clr
 from .clr_types import AbstractEtlxTraceProcess, AbstractTracedProcesses
 from .core_analysis import get_traced_processes, TRACE_PATH_DOC, try_get_runtime
-from .process_trace import test_result_from_path
+from .process_trace import get_processed_trace_from_just_process, test_result_from_path
 
 
 @with_slots
@@ -76,66 +80,89 @@ def print_events_for_jupyter(
 
 @with_slots
 @dataclass(frozen=True)
-class _PrintProcessesArgs:
+class _PrintProcessesArgs(DocOutputArgs):
     trace_path: Path = argument(name_optional=True, doc=TRACE_PATH_DOC)
+    name_regex: Optional[str] = argument(
+        default=None, doc="Regular expression used to filter processes by their name"
+    )
     command_line_regex: Optional[str] = argument(
         default=None,
         doc="Regular expression used to filter processes by their command-line arguments",
     )
     clr_only: bool = argument(default=False, doc="Only include CLR processes")
     hide_threads: bool = argument(default=False, doc="Don't show threads for each process")
-    txt: Optional[Path] = argument(default=None, doc=TXT_DOC)
-    output_width: Optional[OutputWidth] = argument(default=None, doc=OUTPUT_WIDTH_DOC)
+    run_metrics: Optional[Sequence[str]] = argument(default=None, doc=RUN_METRICS_DOC)
 
 
 def _print_processes(args: _PrintProcessesArgs) -> None:
     trace_path = non_null(test_result_from_path(args.trace_path).trace_path)
     clr = get_clr()
     processes = get_traced_processes(clr, trace_path)
-    rgx = map_option(args.command_line_regex, lambda s: compile_regexp(s, IGNORECASE))
-    proc_to_peak_heap_size = map_to_mapping(
-        processes.processes, lambda p: _get_peak_clr_heap_size(clr, p)
+    name_regex = map_option(args.name_regex, lambda s: compile_regexp(s, IGNORECASE))
+    command_line_regex = map_option(
+        args.command_line_regex, lambda s: compile_regexp(s, IGNORECASE)
+    )
+    proc_to_processed_trace = map_to_mapping(
+        processes.processes,
+        lambda p: map_option(
+            try_get_runtime(clr, p),
+            lambda rt: get_processed_trace_from_just_process(clr, trace_path, processes, p, rt),
+        ),
     )
     filtered_processes = [
         p
         for p in processes.processes
-        if (rgx is None or rgx.search(p.CommandLine) is not None)
-        and (not args.clr_only or proc_to_peak_heap_size[p] is not None)
+        if (name_regex is None or name_regex.search(p.Name) is not None)
+        and (command_line_regex is None or command_line_regex.search(p.CommandLine) is not None)
+        and (not args.clr_only or proc_to_processed_trace[p] is not None)
     ]
+    # TODO: can only show threads with updated PerfView,
+    # otherwise thread_id_to_process_id will be none
+    hide_threads = args.hide_threads or processes.thread_id_to_process_id is None
+
+    run_metrics = parse_run_metrics_arg(
+        option_or(args.run_metrics, ["HeapSizePeakMB_Max", "TotalAllocatedMB"])
+    )
 
     table = Table(
         headers=(
             "pid",
             "name",
-            "peak heap size (MB)",
-            *([] if args.hide_threads else ["threads", "threads (my version)"]),
+            *(m.name for m in run_metrics),
+            *([] if hide_threads else ["threads", "threads (my version)"]),
             "command-line args",
         ),
         rows=[
-            _process_row(p, processes, proc_to_peak_heap_size, args.hide_threads)
+            _process_row(p, processes, proc_to_processed_trace[p], run_metrics, hide_threads)
             for p in sorted(
                 filtered_processes,
-                key=lambda p: option_or(proc_to_peak_heap_size[p], 0),
+                key=lambda p: option_or(
+                    map_option(
+                        proc_to_processed_trace[p], lambda pt: ignore_err(pt.HeapSizePeakMB_Max)
+                    ),
+                    0,
+                ),
                 reverse=True,
             )
         ],
     )
-    handle_doc(
-        Document(sections=(Section(tables=(table,)),)),
-        OutputOptions(txt=args.txt, width=args.output_width),
-    )
+    handle_doc(Document(sections=(Section(tables=(table,)),)), output_options_from_args(args))
 
 
 def _process_row(
     p: AbstractEtlxTraceProcess,
     processes: AbstractTracedProcesses,
-    proc_to_peak_heap_size: Mapping[AbstractEtlxTraceProcess, Optional[float]],
+    trace: Optional[ProcessedTrace],
+    run_metrics: RunMetrics,
     hide_threads: bool,
 ) -> Row:
     return (
         Cell(p.ProcessID),
         Cell(p.Name),
-        Cell(proc_to_peak_heap_size[p]),
+        *(
+            Cell() if trace is None else value_cell(run_metric, trace.metric(run_metric))
+            for run_metric in run_metrics
+        ),
         *(
             []
             if hide_threads
@@ -159,13 +186,6 @@ def _process_row(
             ]
         ),
         Cell(p.CommandLine),
-    )
-
-
-def _get_peak_clr_heap_size(clr: Clr, p: AbstractEtlxTraceProcess) -> Optional[float]:
-    return map_option(
-        try_get_runtime(clr, p),
-        lambda rt: option_or(opt_max(gc.HeapSizePeakMB for gc in rt.GC.GCs), 0),
     )
 
 

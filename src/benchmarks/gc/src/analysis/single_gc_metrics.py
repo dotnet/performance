@@ -177,17 +177,17 @@ def _get_total_gc_time(gc: ProcessedGC) -> FailableFloat:
 
 _PER_GEN_METRIC_GETTERS: Mapping[str, Callable[[GenInfoGetter], FailableFloat]] = {
     # NOTE: these names will be prefixed with the generation name
-    "SurvivalPercent": GenInfoGetter.SurvivalPct,
-    "SizeBeforeMB": fn_to_ok(GenInfoGetter.SizeBeforeMB),
-    "SizeAfterMB": fn_to_ok(GenInfoGetter.SizeAfterMB),
+    "SurvivalPercent": fn_of_property(GenInfoGetter.SurvivalPct),
+    "SizeBeforeMB": ok_of_property(GenInfoGetter.SizeBeforeMB),
+    "SizeAfterMB": ok_of_property(GenInfoGetter.SizeAfterMB),
     # TODO: this is just the heap's FragmentationMB_Sum
-    "FragmentationMB": fn_to_ok(GenInfoGetter.FragmentationMB),
-    "FragmentationPercent": fn_to_ok(GenInfoGetter.FragmentationPct),
+    "FragmentationMB": ok_of_property(GenInfoGetter.FragmentationMB),
+    "FragmentationPercent": ok_of_property(GenInfoGetter.FragmentationPct),
     # TODO: this is just GenData[gen].In, already exposed elsewhere?
-    "InMB": fn_to_ok(GenInfoGetter.InMB),
-    "PromotedMB": fn_to_ok(GenInfoGetter.PromotedMB),
-    "BudgetMB": fn_to_ok(GenInfoGetter.BudgetMB),
-    "ObjSizeAfterMB": fn_to_ok(GenInfoGetter.ObjSizeAfterMB),
+    "InMB": ok_of_property(GenInfoGetter.InMB),
+    "PromotedMB": ok_of_property(GenInfoGetter.PromotedMB),
+    "BudgetMB": ok_of_property(GenInfoGetter.BudgetMB),
+    "ObjSizeAfterMB": ok_of_property(GenInfoGetter.ObjSizeAfterMB),
 }
 
 
@@ -255,6 +255,7 @@ SINGLE_GC_METRIC_GETTERS_SIMPLE: Mapping[
         ),
         SingleGCMetric("Type", doc="Value of GCType enum"): lambda gc: Ok(enum_value(gc.Type)),
         SingleGCMetric("AllocedSinceLastGCMB"): ok_of_property(ProcessedGC.AllocedSinceLastGCMB),
+        SingleGCMetric("AllocedMBAccumulated"): ok_of_property(ProcessedGC.AllocedMBAccumulated),
         SingleGCMetric("AllocRateMBSec"): ok_of_property(ProcessedGC.AllocRateMBSec),
         SingleGCMetric("BGCFinalPauseMSec"): ok_of_property(ProcessedGC.BGCFinalPauseMSec),
         SingleGCMetric("DurationMSec"): ok_of_property(ProcessedGC.DurationMSec),
@@ -275,6 +276,7 @@ SINGLE_GC_METRIC_GETTERS_SIMPLE: Mapping[
         SingleGCMetric("PromotedMB"): ok_of_property(ProcessedGC.PromotedMB),
         SingleGCMetric("RatioPeakAfter"): ok_of_property(ProcessedGC.RatioPeakAfter),
         SingleGCMetric("SuspendDurationMSec"): ok_of_property(ProcessedGC.suspend_duration_msec),
+        SingleGCMetric("MemoryPressure"): fn_of_property(ProcessedGC.MemoryPressure),
     },
     {
         # Unrelated to the total PercentTimeInGc which is for the entire process

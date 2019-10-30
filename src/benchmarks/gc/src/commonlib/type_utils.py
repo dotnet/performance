@@ -5,7 +5,7 @@
 from __future__ import annotations  # Allow subscripting Field
 
 from collections.abc import Mapping as abc_Mapping, Sequence as abc_Sequence
-from dataclasses import dataclass, field, fields, Field, is_dataclass, MISSING
+from dataclasses import dataclass, field, fields, Field, is_dataclass
 from enum import Enum
 from functools import total_ordering
 from inspect import isclass
@@ -17,6 +17,7 @@ from .option import map_option, non_null, option_or
 
 
 E = TypeVar("E")
+F = TypeVar("F")
 K = TypeVar("K")
 V = TypeVar("V")
 T = TypeVar("T")
@@ -89,9 +90,20 @@ def get_field_info_from_name(cls: Type[Any], fld_name: str) -> FieldInfo:
         raise Exception(f"You forgot to document the field {cls.__name__}#{fld_name}") from None
 
 
+# Unlike dataclass.MISSING,
+# python won't object if a field with default of _NO_DEFAULT follows one with a default.
+# Normally you can just sort the default-less fields first,
+# but if we inherit from another class, those fields always go first.
+class _NO_DEFAULT:
+    pass
+
+
+NO_DEFAULT = _NO_DEFAULT()
+
+
 # Shorthand for creating a field in an arguments dataclass.
 def argument(
-    doc: str, default: Any = MISSING, hidden: bool = False, name_optional: bool = False
+    doc: str, default: Any = NO_DEFAULT, hidden: bool = False, name_optional: bool = False
 ) -> Any:
     return field(
         default=default,
@@ -318,3 +330,30 @@ def enum_count(e: Type[Enum]) -> int:
     xs = sorted(enum_value(x) for x in e)
     assert xs == list(range(len(xs))), "Enum values should be 0..N"
     return len(xs)
+
+
+def combine_dataclasses_with_optional_fields(t: Type[T], a: T, b: Optional[T]) -> T:
+    if b is None:
+        return a
+    else:
+
+        def combiner(field_name: str, from_a: object, from_b: object) -> object:
+            if from_a is None:
+                return from_b
+            elif from_b is None:
+                return from_a
+            else:
+                raise Exception(f"Conflicting values for field '{field_name}'")
+
+        return combine_dataclasses(t, a, b, combiner)
+
+
+def combine_dataclasses(
+    t: Type[T], a: T, b: T, combiner: Callable[[str, object, object], object]
+) -> T:
+    """
+    Combines dataclass instances 'a' and 'b' by calling 'combiner' on corresponding fields.
+    'combiner' should be a generic function (str, U, U) -> U
+    """
+
+    return t(*(combiner(f.name, getattr(a, f.name), getattr(b, f.name)) for f in fields(t)))

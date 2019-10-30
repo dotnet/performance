@@ -102,6 +102,7 @@ typedef struct Args
 {
     double desired_mem_usage_fraction;
     bool never_release;
+    bool no_readjust;
 } Args;
 
 const char* USAGE = "Usage: make_memory_load.exe -percent 50 [-neverRelease]\n";
@@ -110,6 +111,7 @@ static int parse_args(Args* args, const int argc, char** argv)
 {
     double percent = 0.0;
     bool never_release = FALSE;
+    bool no_readjust = FALSE;
 
     for (int i = 1; i < argc; i++)
     {
@@ -123,6 +125,10 @@ static int parse_args(Args* args, const int argc, char** argv)
         else if (streq(argv[i], "-neverRelease"))
         {
             never_release = TRUE;
+        }
+        else if (streq(argv[i], "-noReadjust"))
+        {
+            no_readjust = TRUE;
         }
         else
         {
@@ -139,7 +145,7 @@ static int parse_args(Args* args, const int argc, char** argv)
         return fail("Percent must be > 0 and <= 99\n");
     }
 
-    *args = (Args) { .desired_mem_usage_fraction = percent / 100, .never_release = never_release };
+    *args = (Args) { .desired_mem_usage_fraction = percent / 100, .never_release = never_release, .no_readjust = no_readjust };
     return 0;
 }
 
@@ -322,7 +328,10 @@ int main(const int argc, char** argv)
     while (TRUE)
     {
         Sleep(100); // milliseconds
-        adjust(&mem);
+        if (!args.no_readjust)
+        {
+            adjust(&mem);
+        }
     }
 
     return 0;

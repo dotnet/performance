@@ -211,6 +211,18 @@ complus_threadpool_forcemaxworkerthreads: `int | None`
 complus_tieredcompilation: `bool | None`
   Set to true to enable tiered compilation
 
+complus_bgcfltuningenabled: `bool | None`
+  Set to true to enable https://github.com/dotnet/coreclr/pull/26695
+
+complus_bgcmemgoal: `int | None`
+  See comment on https://github.com/dotnet/coreclr/pull/26695
+
+complus_bgcmemgoalslack: `int | None`
+  See comment on https://github.com/dotnet/coreclr/pull/26695
+
+complus_gcconcurrentfinalization: `bool | None`
+  Enable concurrent finalization (not available in normal coreclr builds)
+
 container: `[TestConfigContainer](#TestConfigContainer) | None`
   Set to run the test in a container.
   A container is a job object on Windows, or cgroups / docker container on non-Windows.
@@ -220,7 +232,83 @@ affinitize: `bool | None`
   Only works on Windows.
   See `run_in_job.c`'s `--affinitize` option.
 
-memory_load_percent: `float | None`
+memory_load: `[MemoryLoadOptions](#MemoryLoadOptions) | None`
+  If set, the test runner will launch a second process that ensures this percentage of the system's memory is consumed.
+
+coreclr_specific: `Mapping[str, [ConfigOptions](#ConfigOptions)] | None`
+  Maps coreclr name to config options for only that coreclr.
+  If present, should have an entry for every coreclr.
+
+
+
+## ConfigOptions
+
+complus_gcserver: `bool | None`
+  Set to true to use server GC.
+
+complus_gcconcurrent: `bool | None`
+  Set to true to allow background GCs.
+
+complus_gcgen0size: `int | None`
+  gen0size in bytes. (decimal)
+
+complus_gcgen0maxbudget: `int | None`
+  Max gen0 budget in bytes. (decimal)
+
+complus_gcheapaffinitizeranges: `str | None`
+  On non-Windows, this should look like: 1,3,5,7-9,12
+  On Windows, this should include group numbers, like: 0:1,0:3,0:5,1:7-9,1:12
+
+complus_gcheapcount: `int | None`
+  Number of heaps. (decimal)
+  Only has effect when complus_gcserver is set.
+
+complus_gcheaphardlimit: `int | None`
+  Hard limit on heap size, in bytes. (decimal)
+
+complus_gclargepages: `bool | None`
+  Set to true to enable large pages.
+
+complus_gcnoaffinitize: `bool | None`
+  Set to true to prevent affinitizing GC threads to cpu cores.
+
+complus_gccpugroup: `bool | None`
+  Set to true to enable CPU groups.
+
+complus_gcnumaaware: `bool | None`
+  Set to false to disable NUMA-awareness in GC
+
+complus_thread_useallcpugroups: `bool | None`
+  Set to true to automatically distribute threads across CPU Groups
+
+complus_threadpool_forcemaxworkerthreads: `int | None`
+  Overrides the MaxThreads setting for the ThreadPool worker pool
+
+complus_tieredcompilation: `bool | None`
+  Set to true to enable tiered compilation
+
+complus_bgcfltuningenabled: `bool | None`
+  Set to true to enable https://github.com/dotnet/coreclr/pull/26695
+
+complus_bgcmemgoal: `int | None`
+  See comment on https://github.com/dotnet/coreclr/pull/26695
+
+complus_bgcmemgoalslack: `int | None`
+  See comment on https://github.com/dotnet/coreclr/pull/26695
+
+complus_gcconcurrentfinalization: `bool | None`
+  Enable concurrent finalization (not available in normal coreclr builds)
+
+container: `[TestConfigContainer](#TestConfigContainer) | None`
+  Set to run the test in a container.
+  A container is a job object on Windows, or cgroups / docker container on non-Windows.
+
+affinitize: `bool | None`
+  If true, this will be run in a job object affinitized to a single core.
+  Only works on Windows.
+  See `run_in_job.c`'s `--affinitize` option.
+
+memory_load: `[MemoryLoadOptions](#MemoryLoadOptions) | None`
   If set, the test runner will launch a second process that ensures this percentage of the system's memory is consumed.
 
 
@@ -288,6 +376,17 @@ sohfi: `int`
 lohfi: `int`
 allocType: `"simple" | "reference"`
 testKind: `"time" | "highSurvival"`
+
+
+## MemoryLoadOptions
+
+percent: `float`
+  The memory load process will allocate memory until the system's memory load is this high.
+
+no_readjust: `bool | None`
+  If true, the memory load process will never allocate or free any more memory after it's started.
+  If false, it will allocate or free in order to keep the system's memory at `percent`.
+
 
 
 ## ScoreElement

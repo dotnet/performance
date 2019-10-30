@@ -248,7 +248,7 @@ def how_to_run_test(args: HowToRunTestArgs) -> None:
     benchmark = benchmark_and_name.benchmark
 
     env = combine_mappings(
-        config.env(map_option(coreclr_paths, lambda c: c.core_root)),
+        config.with_coreclr(coreclr.name).env(map_option(coreclr_paths, lambda c: c.core_root)),
         log_env(bench.options.log, Path.cwd() / "log"),
     )
     container = config.container

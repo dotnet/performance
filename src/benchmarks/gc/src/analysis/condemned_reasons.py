@@ -11,11 +11,11 @@ from ..commonlib.collection_util import indices, is_empty, map_to_mapping_option
 from ..commonlib.command import Command, CommandKind, CommandsMapping
 from ..commonlib.document import (
     Cell,
+    DocOutputArgs,
     Document,
     handle_doc,
     OutputOptions,
-    OutputWidth,
-    OUTPUT_WIDTH_DOC,
+    output_options_from_args,
     Row,
     Section,
     single_table_document,
@@ -255,11 +255,10 @@ def _show_condemned_reasons(args: _ShowCondemnedReasonsArgs) -> None:
 
 @with_slots
 @dataclass(frozen=True)
-class _ShowCondemnedReasonsForGCArgs:
+class _ShowCondemnedReasonsForGCArgs(DocOutputArgs):
     path: Path = argument(name_optional=True, doc=SINGLE_PATH_DOC)
     gc_number: int = argument(doc=GC_NUMBER_DOC)
     process: ProcessQuery = argument(default=None, doc=PROCESS_DOC)
-    output_width: Optional[OutputWidth] = argument(default=None, doc=OUTPUT_WIDTH_DOC)
 
 
 def _show_condemned_reasons_for_gc(args: _ShowCondemnedReasonsForGCArgs) -> None:
@@ -272,7 +271,7 @@ def _show_condemned_reasons_for_gc(args: _ShowCondemnedReasonsForGCArgs) -> None
     ).unwrap()
     handle_doc(
         show_condemned_reasons_for_gc_for_jupyter(trace, args.gc_number),
-        OutputOptions(width=args.output_width),
+        output_options_from_args(args),
     )
 
 

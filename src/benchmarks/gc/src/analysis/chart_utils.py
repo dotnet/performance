@@ -12,29 +12,34 @@ from matplotlib.cm import get_cmap
 from matplotlib.lines import lineStyles, lineMarkers
 import matplotlib.pyplot as plt
 
-from ..commonlib.collection_util import flatten, indices, XYRanges, zip_check, zip_shorten_former
+from ..commonlib.collection_util import flatten, indices, XYRanges, zip_check, zip_shorten_latter
 from ..commonlib.option import map_option, option_or
 from ..commonlib.type_utils import check_cast, T, with_slots
-from ..commonlib.util import ensure_dir, remove_str_end
+from ..commonlib.util import change_extension, ensure_dir, get_command_line, remove_str_end
 
 # TODO: add more styles if necessary
 # Solid, dashed with dots, dotted
 LINE_STYLES: Sequence[str] = ["-", "-.", ":"]
 assert all(l in lineStyles.keys() for l in LINE_STYLES)
 
-_MARKER_STYLES: Sequence[str] = [
-    ".",
-    "x",
-    # triangle_up,
-    "^",
-    # pentagon
-    "p",
-]
-assert all(m in lineMarkers.keys() for m in _MARKER_STYLES)
+def _get_marker_styles() -> Sequence[str]:
+    first_four = (
+        ".",
+        "x",
+        # triangle_up,
+        "^",
+        # pentagon
+        "p"
+    )
+    assert all(m in lineMarkers.keys() for m in first_four)
+    return (*first_four, *(m for m in lineMarkers if m not in first_four))
+
+_MARKER_STYLES: Sequence[str] = _get_marker_styles()
 
 
 def zip_with_marker_styles(s: Sequence[T]) -> Iterable[Tuple[T, str]]:
-    return zip_shorten_former(s, _MARKER_STYLES)
+    assert len(s) <= len(_MARKER_STYLES), f"Drawing {len(s)} lines, need to add more marker styles"
+    return zip_shorten_latter(s, _MARKER_STYLES)
 
 
 Color = Tuple[float, float, float, float]
@@ -90,6 +95,11 @@ def show_or_save(out: Optional[Path], width_factor: Optional[float] = None) -> N
         plt.savefig(str(out), bbox_inches="tight", pad_inches=0)
         if width_factor is not None:
             _fix_svg_width(out, out, width_factor)
+        # Also write out the command used
+
+        out_txt = change_extension(out, "txt")
+        assert out_txt != out
+        out_txt.write_text(get_command_line())
         print(f"Saved to {out}")
 
 
