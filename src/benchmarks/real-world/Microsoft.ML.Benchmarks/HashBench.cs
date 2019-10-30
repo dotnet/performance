@@ -5,9 +5,9 @@
 using System;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
-using Microsoft.Data.DataView;
 using Microsoft.ML.Data;
-using Microsoft.ML.Transforms.Conversions;
+using Microsoft.ML.Runtime;
+using Microsoft.ML.Transforms;
 
 namespace Microsoft.ML.Benchmarks
 {
@@ -20,46 +20,56 @@ namespace Microsoft.ML.Benchmarks
     [BenchmarkCategory(Categories.MachineLearning)]
     public class HashBench
     {
-        private sealed class RowImpl : Row
+        private sealed class RowImpl : DataViewRow
         {
             public long PositionValue;
 
-            public override Schema Schema { get; }
+            public override DataViewSchema Schema { get; }
             public override long Position => PositionValue;
             public override long Batch => 0;
-            public override ValueGetter<RowId> GetIdGetter()
-                => (ref RowId val) => val = new RowId((ulong)Position, 0);
+            public override ValueGetter<DataViewRowId> GetIdGetter()
+                => (ref DataViewRowId val) => val = new DataViewRowId((ulong)Position, 0);
 
             private readonly Delegate _getter;
 
-            public override bool IsColumnActive(int col)
+            /// <summary>
+            /// Returns whether the given column is active in this row.
+            /// </summary>
+            public override bool IsColumnActive(DataViewSchema.Column column)
             {
-                if (col != 0)
+                if (column.Index != 0)
                     throw new Exception();
                 return true;
             }
 
-            public override ValueGetter<TValue> GetGetter<TValue>(int col)
+            /// <summary>
+            /// Returns a value getter delegate to fetch the valueof column with the given columnIndex, from the row.
+            /// This throws if the column is not active in this row, or if the type
+            /// <typeparamref name="TValue"/> differs from this column's type.
+            /// </summary>
+            /// <typeparam name="TValue"> is the output column's content type.</typeparam>
+            /// <param name="column"> is the index of a output column whose getter should be returned.</param>
+            public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
             {
-                if (col != 0)
+                if (column.Index != 0)
                     throw new Exception();
                 if (_getter is ValueGetter<TValue> typedGetter)
                     return typedGetter;
                 throw new Exception();
             }
 
-            public static RowImpl Create<T>(ColumnType type, ValueGetter<T> getter)
+            public static RowImpl Create<T>(DataViewType type, ValueGetter<T> getter)
             {
                 if (type.RawType != typeof(T))
                     throw new Exception();
                 return new RowImpl(type, getter);
             }
 
-            private RowImpl(ColumnType type, Delegate getter)
+            private RowImpl(DataViewType type, Delegate getter)
             {
-                var builder = new SchemaBuilder();
+                var builder = new DataViewSchema.Builder();
                 builder.AddColumn("Foo", type, null);
-                Schema = builder.GetSchema();
+                Schema = builder.ToSchema();
                 _getter = getter;
             }
         }
@@ -72,21 +82,21 @@ namespace Microsoft.ML.Benchmarks
         private ValueGetter<uint> _getter;
         private ValueGetter<VBuffer<uint>> _vecGetter;
 
-        private void InitMap<T>(T val, ColumnType type, int hashBits = 20, ValueGetter<T> getter = null)
+        private void InitMap<T>(T val, DataViewType type, int numberOfBits = 20, ValueGetter<T> getter = null)
         {
             if (getter == null)
                 getter = (ref T dst) => dst = val;
             _inRow = RowImpl.Create(type, getter);
             // One million features is a nice, typical number.
-            var info = new HashingTransformer.ColumnInfo("Bar", "Foo", hashBits: hashBits);
+            var info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: numberOfBits);
             var xf = new HashingTransformer(_env, new[] { info });
-            var mapper = xf.GetRowToRowMapper(_inRow.Schema);
+            var mapper = ((ITransformer)xf).GetRowToRowMapper(_inRow.Schema);
             var column = mapper.OutputSchema["Bar"];
-            var outRow = mapper.GetRow(_inRow, c => c == column.Index);
-            if (type is VectorType)
-                _vecGetter = outRow.GetGetter<VBuffer<uint>>(column.Index);
+            var outRow = mapper.GetRow(_inRow, column);
+            if (type is VectorDataViewType)
+                _vecGetter = outRow.GetGetter<VBuffer<uint>>(column);
             else
-                _getter = outRow.GetGetter<uint>(column.Index);
+                _getter = outRow.GetGetter<uint>(column);
         }
 
         /// <summary>
@@ -102,10 +112,10 @@ namespace Microsoft.ML.Benchmarks
             }
         }
 
-        private void InitDenseVecMap<T>(T[] vals, PrimitiveType itemType, int hashBits = 20)
+        private void InitDenseVecMap<T>(T[] vals, PrimitiveDataViewType itemType, int numberOfBits = 20)
         {
             var vbuf = new VBuffer<T>(vals.Length, vals);
-            InitMap(vbuf, new VectorType(itemType, vals.Length), hashBits, vbuf.CopyTo);
+            InitMap(vbuf, new VectorDataViewType(itemType, vals.Length), numberOfBits, vbuf.CopyTo);
         }
 
         /// <summary>
@@ -122,25 +132,25 @@ namespace Microsoft.ML.Benchmarks
         }
 
         [GlobalSetup(Target = nameof(HashScalarString))]
-        public void SetupHashScalarString() => InitMap("Hello".AsMemory(), TextType.Instance);
+        public void SetupHashScalarString() => InitMap("Hello".AsMemory(), TextDataViewType.Instance);
 
         [Benchmark]
         public void HashScalarString() => RunScalar();
 
         [GlobalSetup(Target = nameof(HashScalarFloat))]
-        public void SetupHashScalarFloat() => InitMap(5.0f, NumberType.R4);
+        public void SetupHashScalarFloat() => InitMap(5.0f, NumberDataViewType.Single);
 
         [Benchmark]
         public void HashScalarFloat() => RunScalar();
 
         [GlobalSetup(Target = nameof(HashScalarDouble))]
-        public void SetupHashScalarDouble() => InitMap(5.0, NumberType.R8);
+        public void SetupHashScalarDouble() => InitMap(5.0, NumberDataViewType.Double);
 
         [Benchmark]
         public void HashScalarDouble() => RunScalar();
 
         [GlobalSetup(Target = nameof(HashScalarKey))]
-        public void SetupHashScalarKey() => InitMap(6u, new KeyType(typeof(uint), 100));
+        public void SetupHashScalarKey() => InitMap(6u, new KeyDataViewType(typeof(uint), 100));
 
         [Benchmark]
         public void HashScalarKey() => RunScalar();
@@ -149,27 +159,27 @@ namespace Microsoft.ML.Benchmarks
         public void SetupHashVectorString()
         {
             var tokens = "Hello my friend, stay awhile and listen! ".Split().Select(token => token.AsMemory()).ToArray();
-            InitDenseVecMap(tokens, TextType.Instance);
+            InitDenseVecMap(tokens, TextDataViewType.Instance);
         }
 
         [Benchmark]
         public void HashVectorString() => RunVector();
 
         [GlobalSetup(Target = nameof(HashVectorFloat))]
-        public void SetupHashVectorFloat() => InitDenseVecMap(new[] { 1f, 2f, 3f, 4f, 5f }, NumberType.R4);
+        public void SetupHashVectorFloat() => InitDenseVecMap(new[] { 1f, 2f, 3f, 4f, 5f }, NumberDataViewType.Single);
 
         [Benchmark]
         public void HashVectorFloat() => RunVector();
 
 
         [GlobalSetup(Target = nameof(HashVectorDouble))]
-        public void SetupHashVectorDouble() => InitDenseVecMap(new[] { 1d, 2d, 3d, 4d, 5d }, NumberType.R8);
+        public void SetupHashVectorDouble() => InitDenseVecMap(new[] { 1d, 2d, 3d, 4d, 5d }, NumberDataViewType.Double);
 
         [Benchmark]
         public void HashVectorDouble() => RunVector();
 
         [GlobalSetup(Target = nameof(HashVectorKey))]
-        public void SetupHashVectorKey() => InitDenseVecMap(new[] { 1u, 2u, 0u, 4u, 5u }, new KeyType(typeof(uint), 100));
+        public void SetupHashVectorKey() => InitDenseVecMap(new[] { 1u, 2u, 0u, 4u, 5u }, new KeyDataViewType(typeof(uint), 100));
 
         [Benchmark]
         public void HashVectorKey() => RunVector();
