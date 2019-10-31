@@ -85,8 +85,8 @@ class Runner:
                              iterations=self.traits.iterations,
                              scenariotypename='%s (%s)' % (const.SCENARIO_NAMES[const.SDK], 'Clean Build'),
                              apptorun=const.DOTNET,
-                             iterationsetup='py',
-                             setupargs='-3 %s' % const.ITERATION_SETUP_FILE,
+                             iterationsetup='py' if sys.platform == 'win32' else 'py3',
+                             setupargs='-3 %s' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
                              workingdir=const.TMPDIR,
                              environmentvariables=envlistcleanbuild
                              )
