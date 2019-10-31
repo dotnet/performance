@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
 using BenchmarkDotNet.Attributes;
 using Microsoft.ML.Data;
 using Microsoft.ML.Runtime;
@@ -76,7 +77,7 @@ namespace Microsoft.ML.Benchmarks
 
         private const int Count = 100_000;
 
-        private readonly IHostEnvironment _env = new MLContext();
+        private readonly MLContext _env = new MLContext();
 
         private RowImpl _inRow;
         private ValueGetter<uint> _getter;
@@ -88,11 +89,21 @@ namespace Microsoft.ML.Benchmarks
                 getter = (ref T dst) => dst = val;
             _inRow = RowImpl.Create(type, getter);
             // One million features is a nice, typical number.
-            var info = new HashingEstimator.ColumnOptions("Bar", "Foo", numberOfBits: numberOfBits);
-            var xf = new HashingTransformer(_env, new[] { info });
+            var info = _env.Transforms.Conversion.Hash("Bar", "Foo", numberOfBits: numberOfBits);
+            var columns = typeof(HashingEstimator)
+                .GetFields(BindingFlags.NonPublic | BindingFlags.Instance)
+                .Single(field => field.Name == "_columns")
+                .GetValue(info);
+            var xf = typeof(HashingTransformer)
+                .GetConstructor(
+                    BindingFlags.NonPublic | BindingFlags.Instance, 
+                    null, 
+                    new[] { typeof(IHostEnvironment), columns.GetType() }, 
+                    Array.Empty<ParameterModifier>())
+                .Invoke(new object[] { _env, columns });
             var mapper = ((ITransformer)xf).GetRowToRowMapper(_inRow.Schema);
             var column = mapper.OutputSchema["Bar"];
-            var outRow = mapper.GetRow(_inRow, column);
+            var outRow = mapper.GetRow(_inRow, new[] { column });
             if (type is VectorDataViewType)
                 _vecGetter = outRow.GetGetter<VBuffer<uint>>(column);
             else
