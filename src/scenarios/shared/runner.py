@@ -73,7 +73,7 @@ class Runner:
         elif self.testtype == const.SDK:
             startup = StartupWrapper()
             envlistbuild = 'DOTNET_MULTILEVEL_LOOKUP=0'
-            envlistcleanbuild= envlistbuild+';'+'MSBUILDDISABLENODEREUSE=1'
+            envlistcleanbuild= ';'.join(['MSBUILDDISABLENODEREUSE=1', envlistbuild])
             # clean build
             startup.runtests(scenarioname=self.traits.scenarioname,
                              exename=self.traits.exename,
@@ -81,11 +81,11 @@ class Runner:
                              startupmetric=const.STARTUP_PROCESSTIME,
                              appargs='build',
                              timeout=self.traits.timeout,
-                             warmup='false',
+                             warmup='true',
                              iterations=self.traits.iterations,
-                             scenariotypename='%s (%s)' % (const.SCENARIO_NAMES[const.SDK], const.BUILD_CLEAN),
+                             scenariotypename='%s (%s)' % (const.SCENARIO_NAMES[const.SDK], 'Clean Build'),
                              apptorun=const.DOTNET,
-                             iterationsetup=const.PYTHON,
+                             iterationsetup='py',
                              setupargs='-3 %s' % const.ITERATION_SETUP_FILE,
                              workingdir=const.TMPDIR,
                              environmentvariables=envlistcleanbuild
@@ -99,7 +99,7 @@ class Runner:
                              timeout=self.traits.timeout,
                              warmup='true',
                              iterations=self.traits.iterations,
-                             scenariotypename='%s (%s)' % (const.SCENARIO_NAMES[const.SDK], const.BUILD_NO_CHANGES),
+                             scenariotypename='%s (%s)' % (const.SCENARIO_NAMES[const.SDK], 'Build(no changes)'),
                              apptorun=const.DOTNET,
                              iterationsetup=None,
                              setupargs=None,

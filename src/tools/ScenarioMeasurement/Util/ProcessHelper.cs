@@ -56,7 +56,7 @@ namespace ScenarioMeasurement
 
             if (EnvironmentVariables != null)
             {
-                foreach (KeyValuePair<string, string> pair in EnvironmentVariables)
+                foreach (var pair in EnvironmentVariables)
                 {
                     psi.EnvironmentVariables[pair.Key] = pair.Value;
                     Logger.Log($"Added environment variable: {pair.Key}={pair.Value}");

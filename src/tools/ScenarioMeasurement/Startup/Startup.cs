@@ -87,10 +87,10 @@ namespace ScenarioMeasurement
                 }
             }
 
-            Dictionary<string, string> envDict = null;
+            Dictionary<string, string> envVariables = null;
             if (!String.IsNullOrEmpty(environmentVariables))
             {
-                envDict = ParseStringToDictionary(environmentVariables);
+                envVariables = ParseStringToDictionary(environmentVariables);
             }
 
             bool failed = false;
@@ -106,7 +106,7 @@ namespace ScenarioMeasurement
                 Arguments = appArgs,
                 WorkingDirectory = workingDir,
                 GuiApp = guiApp,
-                EnvironmentVariables = envDict
+                EnvironmentVariables = envVariables
             };
             
             // create iteration setup process helper
@@ -330,14 +330,11 @@ namespace ScenarioMeasurement
 
         private static Dictionary<string, string> ParseStringToDictionary(string s)
         {
-            Dictionary<string, string> dict = new Dictionary<string, string>();
+            var dict = new Dictionary<string, string>();
             foreach (string substring in s.Split(';', StringSplitOptions.RemoveEmptyEntries))
             {
-                string key = substring.Split('=').First();
-                string value = substring.Split('=').Last();
-                if(!String.IsNullOrWhiteSpace(key) && !String.IsNullOrWhiteSpace(value)){
-                    dict.Add(key, value);
-                }
+                var pair = substring.Split('=');
+                dict.Add(pair[0], pair[1]);
             }
             return dict;
         }

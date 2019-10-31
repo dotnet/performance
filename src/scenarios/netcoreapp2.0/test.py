@@ -8,12 +8,10 @@ EXE_NAME = 'NetCoreApp'
 def main():
     traits = TestTraits(scenarioname=SCENARIO_NAME,
                         exename=EXE_NAME,
-                        guiapp='false',  # string passed through to tool
+                        guiapp='false', 
                         sdk=True,
-                        startup=True,
                         )
     runner = Runner(traits)
-    runner.parseargs()
     runner.run()
 
 
