@@ -1,0 +1,16 @@
+.mypy_cache
+.vs
+.vscode
+.idea
+__pycache__
+difftool/dist
+difftool/difftool.spec
+*.exe
+*.obj
+src/exec/env/out
+
+bench/**/*
+# We put PerfView and SigCheck here on Windows.
+src/dependencies
+!src/dependencies/dlls
+src/exec/env/build

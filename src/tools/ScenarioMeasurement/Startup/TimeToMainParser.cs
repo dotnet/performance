@@ -19,7 +19,7 @@ namespace ScenarioMeasurement
             user.EnableProvider(ClrPrivateTraceEventParser.ProviderGuid, TraceEventLevel.Verbose, (ulong)ClrPrivateTraceEventParser.Keywords.Startup);
         }
 
-        public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids)
+        public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
         {
             var results = new List<double>();
             double threadTime = 0;
@@ -32,7 +32,7 @@ namespace ScenarioMeasurement
                 
                 source.Kernel.ProcessStart += evt =>
                 {
-                    if(evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase) && pids.Contains(evt.ProcessID))
+                    if(processName.Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase) && pids.Contains(evt.ProcessID) && evt.CommandLine == commandLine)
                     {
                         if(pid.HasValue)
                         {

@@ -6,6 +6,7 @@ using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Exporters.Json;
 using BenchmarkDotNet.Horology;
 using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Reports;
 
 namespace BenchmarkDotNet.Extensions
 {
@@ -39,7 +40,8 @@ namespace BenchmarkDotNet.Extensions
                 .With(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
                 .With(TooManyTestCasesValidator.FailOnError)
                 .With(new UniqueArgumentsValidator()) // don't allow for duplicated arguments #404
-                .With(new MandatoryCategoryValidator(mandatoryCategories));
+                .With(new MandatoryCategoryValidator(mandatoryCategories))
+                .With(SummaryStyle.Default.WithMaxParameterColumnWidth(36)); // the default is 20 and trims too aggressively some benchmark results
         }
     }
 }

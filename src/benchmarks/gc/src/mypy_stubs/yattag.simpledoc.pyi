@@ -1,0 +1,6 @@
+from typing import Any
+
+class SimpleDoc:
+    class Tag:
+        def __enter__(self) -> None: ...
+        def __exit__(self, tpe: Any, value: Any, traceback: Any) -> None: ...

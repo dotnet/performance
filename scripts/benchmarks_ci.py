@@ -4,7 +4,7 @@
 Additional information:
 
 This script wraps all the logic of how to build/run the .NET micro benchmarks,
-acquire tools, gather data into BenchView format and upload it, archive
+acquire tools, gather data into perflab format and upload it, archive
 results, etc.
 
 This is meant to be used on CI runs and available for local runs,
@@ -28,10 +28,10 @@ import os
 import platform
 import sys
 
-from performance.common import validate_supported_runtime
+from performance.common import validate_supported_runtime, get_artifacts_directory
 from performance.logger import setup_loggers
+from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 
-import benchview
 import dotnet
 import micro_benchmarks
 
@@ -73,7 +73,6 @@ def init_tools(
         versions=dotnet_versions,
         verbose=verbose,
     )
-    benchview.install()
 
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
@@ -174,9 +173,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Attempts to run the benchmarks without building.',
     )
 
-    # BenchView acquisition, and fuctionality
-    parser = benchview.add_arguments(parser)
-
     return parser
 
 
@@ -197,15 +193,10 @@ def __main(args: list) -> int:
     verbose = not args.quiet
     setup_loggers(verbose=verbose)
 
-    # This validation could be cleaner
-    if args.generate_benchview_data and not args.benchview_submission_name:
-        raise RuntimeError("""In order to generate BenchView data,
-            `--benchview-submission-name` must be provided.""")
-
     target_framework_monikers = micro_benchmarks \
         .FrameworkAction \
         .get_target_framework_monikers(args.frameworks)
-    # Acquire necessary tools (dotnet, and BenchView)
+    # Acquire necessary tools (dotnet)
     init_tools(
         architecture=args.architecture,
         dotnet_versions=args.dotnet_versions,
@@ -254,8 +245,6 @@ def __main(args: list) -> int:
             
         dotnet.shutdown_server(verbose)
 
-        benchview.run_scripts(args, verbose, BENCHMARKS_CSPROJ)
-
         if args.upload_to_perflab_container:
             import upload
             globpath = os.path.join(
@@ -263,7 +252,10 @@ def __main(args: list) -> int:
                 '**',
                 '*perf-lab-report.json')
 
-            upload.upload(globpath, 'results', 'PERFLAB_UPLOAD_TOKEN', 'https://pvscmdupload.blob.core.windows.net')
+            #No queue insertion
+            upload.upload(globpath, UPLOAD_CONTAINER, None, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+            #With queue insertion
+            upload.upload(globpath, 'resultsandbox', UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
                 
         # TODO: Archive artifacts.
 

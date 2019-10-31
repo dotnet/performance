@@ -1,0 +1,3 @@
+from typing import Callable, Tuple
+
+def get_cmap(name: str) -> Callable[[float], Tuple[float, float, float, float]]: ...

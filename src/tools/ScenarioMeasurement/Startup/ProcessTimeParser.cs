@@ -19,7 +19,7 @@ namespace ScenarioMeasurement
         {
         }
 
-        public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids)
+        public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
         {
             var results = new List<double>();
             double threadTime = 0;
@@ -29,10 +29,9 @@ namespace ScenarioMeasurement
             int? pid = null;
             using (var source = new ETWTraceEventSource(mergeTraceFile))
             {
-
                 source.Kernel.ProcessStart += evt =>
                 {
-                    if (processName.Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase) && pids.Contains(evt.ProcessID))
+                    if (processName.Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase) && pids.Contains(evt.ProcessID) && evt.CommandLine == commandLine)
                     {
                         if (pid.HasValue)
                         {
@@ -68,6 +67,7 @@ namespace ScenarioMeasurement
 
                 source.Kernel.ProcessEndGroup += evt =>
                 {
+                    // is it possible that neither pid and evt.ProcessID has value?
                     if (pid.HasValue && pid == evt.ProcessID)
                     {
                         results.Add(evt.TimeStampRelativeMSec - start);

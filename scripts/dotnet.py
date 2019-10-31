@@ -253,9 +253,10 @@ class CSharpProject:
 
     def build(self,
               configuration: str,
-              target_framework_monikers: list,
               verbose: bool,
               packages_path: str,
+              target_framework_monikers: list = None,
+              output_to_bindir: bool = False,
               *args) -> None:
         '''Calls dotnet to build the specified project.'''
         if not target_framework_monikers:  # Build all supported frameworks.
@@ -266,6 +267,10 @@ class CSharpProject:
                 '--no-restore',
                 "/p:NuGetPackageRoot={}".format(packages_path),
             ]
+
+            if output_to_bindir:
+                cmdline = cmdline + ['--output', self.__bin_directory]
+
             if args:
                 cmdline = cmdline + list(args)
             RunCommand(cmdline, verbose=verbose).run(
@@ -280,10 +285,74 @@ class CSharpProject:
                     '--no-restore',
                     "/p:NuGetPackageRoot={}".format(packages_path),
                 ]
+
+                if output_to_bindir:
+                    cmdline = cmdline + ['--output', self.__bin_directory]
+
                 if args:
                     cmdline = cmdline + list(args)
                 RunCommand(cmdline, verbose=verbose).run(
                     self.working_directory)
+    @staticmethod
+    def new(template: str,
+            output_dir: str,
+            bin_dir: str,
+            verbose: bool,
+            working_directory: str,
+            force: bool = False,
+            exename: str = None
+            ):
+        '''
+        Creates a new project with the specified template
+        '''
+        cmdline = [
+            'dotnet', 'new',
+            template,
+            '--output', output_dir,
+            '--no-restore'
+        ]
+        if force:
+            cmdline += ['--force']
+        
+        if exename:
+            cmdline += ['--name', exename]
+
+        RunCommand(cmdline, verbose=verbose).run(
+            working_directory
+        )
+        # the file could be any project type. let's guess.
+
+        return CSharpProject(CSharpProjFile(path.join(output_dir, '%s.csproj' % (exename or output_dir)),
+                                            working_directory),
+                             bin_dir)
+
+    def publish(self,
+                configuration: str,
+                output_dir: str,
+                verbose: bool,
+                packages_path,
+                target_framework_moniker: str = None,
+                runtime_identifier: str = None,
+               ) -> None:
+        '''
+        Invokes publish on the specified project
+        '''
+        cmdline = [
+            'dotnet', 'publish',
+            self.csproj_file,
+            '--configuration', configuration,
+            '--output', output_dir,
+            "/p:NuGetPackageRoot={}".format(packages_path)
+        ]
+        if runtime_identifier:
+            cmdline += ['--runtime', runtime_identifier]
+
+        if target_framework_moniker:
+            cmdline += ['--framework', target_framework_moniker]
+
+        RunCommand(cmdline, verbose=verbose).run(
+            self.working_directory
+        )
 
     @staticmethod
     def __print_complus_environment() -> None:

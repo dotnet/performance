@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+
+  <ItemGroup>
+    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
+      <PayloadDirectory>%(Identity)</PayloadDirectory>
+    </HelixCorrelationPayload>
+  </ItemGroup>
+  
+  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
+    <ScenariosDir>$(WorkItemDirectory)\src\scenarios\</ScenariosDir>
+    <HelixPreCommands>$(HelixPreCommands);set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\scripts%3B%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
+    <ScenariosDir>$(WorkItemDirectory)/src/scenarios/</ScenariosDir>
+    <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <HelixWorkItem Include="Static Console Template">
+      <PayloadDirectory>$(ScenariosDir)50consoletemplate</PayloadDirectory>
+      <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release</PreCommands>
+      <Command>$(Python) test.py startup</Command>
+      <PostCommands>$(Python) post.py</PostCommands>
+      <Timeout>4:00</Timeout>
+    </HelixWorkItem>
+  </ItemGroup>
+</Project>

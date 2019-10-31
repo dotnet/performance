@@ -23,7 +23,8 @@ def init_tools(
         architecture: str,
         dotnet_versions: str,
         target_framework_monikers: list,
-        verbose: bool) -> None:
+        verbose: bool,
+        install_dir: str=None) -> None:
     '''
     Install tools used by this repository into the tools folder.
     This function writes a semaphore file when tools have been successfully
@@ -40,6 +41,7 @@ def init_tools(
         channels=channels,
         versions=dotnet_versions,
         verbose=verbose,
+        install_dir=install_dir
     )
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
@@ -125,6 +127,14 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Filename to write the setup script to'
     )
 
+    parser.add_argument(
+        '--install-dir',
+        dest='install_dir',
+        required=False,
+        type=str,
+        help='Directory to install dotnet to'
+    )
+
     # Generic arguments.
     parser.add_argument(
         '-q', '--quiet',
@@ -171,7 +181,7 @@ def __main(args: list) -> int:
         .FrameworkAction \
         .get_target_framework_monikers(args.frameworks)
 
-    # Acquire necessary tools (dotnet, and BenchView)
+    # Acquire necessary tools (dotnet)
     # For arm64 runs, download the x64 version so we can get the information we need, but set all variables
     # as if we were running normally. This is a workaround due to the fact that arm64 binaries cannot run
     # in the cross containers, so we are running the ci setup script in a normal ubuntu container
@@ -181,7 +191,8 @@ def __main(args: list) -> int:
         architecture=architecture,
         dotnet_versions=args.dotnet_versions,
         target_framework_monikers=target_framework_monikers,
-        verbose=verbose
+        verbose=verbose,
+        install_dir=args.install_dir
     )
 
     # dotnet --info
@@ -192,6 +203,8 @@ def __main(args: list) -> int:
     repo_url = None if args.repository is None else args.repository.replace('-','/')
 
     variable_format = 'set %s=%s\n' if sys.platform == 'win32' else 'export %s=%s\n'
+    path_variable = 'set PATH=%%PATH%%;%s\n' if sys.platform == 'win32' else 'export PATH=$PATH:%s\n'
+    dotnet_path = '%HELIX_CORRELATION_PAYLOAD%\dotnet' if sys.platform == 'win32' else '$HELIX_CORRELATION_PAYLOAD/dotnet'
     owner, repo = ('dotnet', 'core-sdk') if args.repository is None else (dotnet.get_repository(repo_url))
     config_string = ';'.join(args.build_configs) if sys.platform == 'win32' else '"%s"' % ';'.join(args.build_configs)
 
@@ -240,11 +253,17 @@ def __main(args: list) -> int:
                 out_file.write(variable_format % ('PERFLAB_CONFIGS', config_string))
                 out_file.write(variable_format % ('DOTNET_VERSION', dotnet_version))
                 out_file.write(variable_format % ('PERFLAB_TARGET_FRAMEWORKS', framework))
+                out_file.write(variable_format % ('DOTNET_CLI_TELEMETRY_OPTOUT', '1'))
+                out_file.write(variable_format % ('DOTNET_MULTILEVEL_LOOKUP', '0'))
+                out_file.write(variable_format % ('UseSharedCompilation', 'false'))
+                out_file.write(variable_format % ('DOTNET_ROOT', dotnet_path))
+                out_file.write(path_variable % dotnet_path)
 
         else:
             with open(args.output_file, 'w') as out_file:
                 out_file.write(variable_format % ('PERFLAB_INLAB', '0'))
                 out_file.write(variable_format % ('PERFLAB_TARGET_FRAMEWORKS', framework))
+                out_file.write(path_variable % dotnet_path)
 
     # On non-windows platforms, delete dotnet, so that we don't have to deal with chmoding it on the helix machines
     # This is only necessary for netcoreapp3.0 and netcoreapp5.0

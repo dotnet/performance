@@ -25,6 +25,25 @@ namespace System.Tests
         public static IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
 
         [Benchmark]
+        [Arguments(0.0f)]
+        [Arguments(float.NaN)]
+        public bool IsNaN(float value)
+        {
+            // float.IsNaN takes very little time to execute,
+            // so we need to boost the execution time a bit.
+
+            bool result = false;
+
+            for (int i = 0; i < 1000000; i++)
+            {
+                result |= float.IsNaN(value);
+                value += 1.0f;
+            }
+
+            return result;
+        }
+
+        [Benchmark]
         [ArgumentsSource(nameof(Values))]
         public string ToString(float value) => value.ToString(); 
 

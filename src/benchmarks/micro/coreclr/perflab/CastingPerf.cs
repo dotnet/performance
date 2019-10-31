@@ -114,6 +114,7 @@ namespace PerfLabTests
 
         public static Object[] myClass1Arr;
         public static Object[] myClass2Arr;
+        public static Object myObj;
 
         static CastingPerf()
         {
@@ -372,6 +373,60 @@ namespace PerfLabTests
             for (int i = 0; i < InnerIterationCount; i++)
                 res = myClass2Arr is IMyInterface1[];
             return res;
+        }
+
+        [GlobalSetup(Targets = new[] { 
+            nameof(CheckArrayIsNonvariantGenericInterface), 
+            nameof(CheckArrayIsNonvariantGenericInterfaceNo),
+            nameof(CheckArrayIsArrayByVariance),
+            nameof(CheckListIsVariantGenericInterface),
+            nameof(CheckArrayIsVariantGenericInterfaceNo)})]
+        public void SetupMyObj() => myObj = new MyClass2[5];
+
+        [Benchmark]
+        public bool CheckArrayIsNonvariantGenericInterface()
+        {
+            return myObj is ICollection<MyClass2>;
+        }
+
+        [Benchmark]
+        public bool CheckArrayIsNonvariantGenericInterfaceNo()
+        {
+            return myObj is ICollection<Exception>;
+        }
+
+        [Benchmark]
+        public bool CheckArrayIsArrayByVariance()
+        {
+            return myObj is IMyInterface2[];
+        }
+
+        [Benchmark]
+        public bool CheckListIsVariantGenericInterface()
+        {
+            return myObj is IReadOnlyCollection<object>;
+        }
+
+        [Benchmark]
+        public bool CheckArrayIsVariantGenericInterfaceNo()
+        {
+            return myObj is IReadOnlyCollection<Exception>;
+        }
+
+        [GlobalSetup(Target = nameof(AssignArrayElementByVariance))]
+        public void SetupAssignArrayElementByVariance() => myClass2Arr = new IReadOnlyCollection<object>[5];
+
+        [Benchmark]
+        public void AssignArrayElementByVariance()
+        {
+            // no return is needed. The cast is potentially throwing and thus is not optimizable.
+            myClass2Arr[0] = myClass2Arr;
+        }
+
+        [Benchmark]
+        public bool CheckArrayIsVariantGenericInterfaceReflection()
+        {
+            return typeof(IReadOnlyCollection<object>).IsAssignableFrom(typeof(MyClass2[]));
         }
     }
 }

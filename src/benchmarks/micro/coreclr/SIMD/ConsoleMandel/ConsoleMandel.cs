@@ -51,6 +51,18 @@ namespace SIMD
         }
 
         [Benchmark]
+        public void ScalarFloatSinglethreadRaw() => XBench(10, 0);
+
+        [Benchmark]
+        public void ScalarFloatSinglethreadADT() => XBench(10, 1);
+
+        [Benchmark]
+        public void ScalarDoubleSinglethreadRaw() => XBench(10, 4);
+
+        [Benchmark]
+        public void ScalarDoubleSinglethreadADT() => XBench(10, 5);
+
+        [Benchmark]
         public void VectorFloatSinglethreadRaw() => XBench(10, 16);
 
         [Benchmark]

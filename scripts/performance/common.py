@@ -68,12 +68,12 @@ def remove_directory(path: str) -> None:
 
 def get_script_path() -> str:
     '''Gets this script directory.'''
-    return sys.path[0]
+    return os.path.dirname(os.path.realpath(__file__))
 
 
 def get_repo_root_path() -> str:
     '''Gets repository root directory.'''
-    return os.path.abspath(os.path.join(get_script_path(), '..'))
+    return os.path.abspath(os.path.join(get_script_path(), '..', '..'))
 
 
 def get_tools_directory() -> str:
@@ -86,6 +86,12 @@ def get_artifacts_directory() -> str:
     Gets the default artifacts directory where arcade builds the benchmarks.
     '''
     return os.path.join(get_repo_root_path(), 'artifacts')
+
+def get_packages_directory() -> str:
+    '''
+    The path to directory where packages should get restored
+    '''
+    return os.path.join(get_artifacts_directory(), 'packages')
 
 @contextmanager
 def push_dir(path: str = None) -> None:

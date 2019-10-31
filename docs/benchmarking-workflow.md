@@ -58,7 +58,7 @@ The project contains few thousands of benchmarks and you most probably don't nee
 
 The benchmarks are:
 
-- grouped into coresponding namespaces. If given .NET class belongs to `System.XYZ` namespace, it's benchmarks do so as well.
+- grouped into corresponding namespaces. If given .NET class belongs to `System.XYZ` namespace, it's benchmarks do so as well.
 - grouped into categories. CoreCLR benchmarks belong to `CoreCLR` category, CoreFX to `CoreFX` category. Features that are partially implemented in the Runtime and Base Class Library belong to common categories like `Span`, `LINQ`. (See [Categories.cs](../src/benchmarks/micro/Categories.cs) for more).
 
 The harness (BenchmarkDotNet) allows to:
@@ -68,7 +68,7 @@ The harness (BenchmarkDotNet) allows to:
 - print a list of available benchmarks by using `--list flat` or `--list tree` command line arguments.
 - `--list` can be  combined with `--filter` and (`--allCategories` or `--anyCategories`).
 
-The best way to find the benchmarks you want to run is either to open [MicroBenchmarks.sln](../src/benchmarks/micro/MicroBenchmarks.sln) in your favourite IDE and search for type usages or use command line arguments to filter. We expect that our users will start with the IDE approach and over the time switch to console line arguments once they got used to exsisting conventions.
+The best way to find the benchmarks you want to run is either to open [MicroBenchmarks.sln](../src/benchmarks/micro/MicroBenchmarks.sln) in your favourite IDE and search for type usages or use command line arguments to filter. We expect that our users will start with the IDE approach and over the time switch to console line arguments once they got used to existing conventions.
 
 ### Filtering Examples
 
@@ -348,4 +348,4 @@ Please:
 
 1. Try to re-run the command once.
 2. If re-run does not help, please remove `bin` and `obj` folders and try again.
-3. If it still does not work, follow [Troubleshooting guidlines](https://benchmarkdotnet.org/articles/guides/troubleshooting.html)
+3. If it still does not work, follow [Troubleshooting guidelines](https://benchmarkdotnet.org/articles/guides/troubleshooting.html)

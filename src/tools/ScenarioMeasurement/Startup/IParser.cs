@@ -8,6 +8,6 @@ namespace ScenarioMeasurement
     {
         void EnableUserProviders(TraceEventSession user);
         void EnableKernelProvider(TraceEventSession kernel);
-        IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids);
+        IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine);
     }
 }

@@ -53,7 +53,10 @@ namespace System.Globalization.Tests
         public void Setup()
         {
             // we are using simple input to mimic "real world test case"
-            char[] characters = ".NET Conf provides a wide selection of live sessions streaming here that feature speakers from the community and .NET product teams. It is a chance to learn, ask questions live, and get inspired for your next software project.".ToArray();
+            char[] characters = "NET Conf provides a wide selection of live sessions streaming here that feature speakers from the community and .NET product teams. It is a chance to learn, ask questions live, and get inspired for your next software project".ToArray();
+
+            if (!ContainsSimpleCharactersOnly(characters))
+                throw new Exception("The sentence must contain only simple characters to ensure that it contains high chars only when Options.highChars is set to true");
 
             // we ensure that high chars are present by inserting one
             if (Options.highChars)
@@ -66,11 +69,19 @@ namespace System.Globalization.Tests
             _firstHalf = new string(characters.Take(characters.Length / 2).ToArray());
             _secondHalf = new string(characters.Skip(characters.Length / 2).ToArray());
             char[] copy = characters.ToArray();
-            copy[0] = (char)(copy[0] + 1);
+            // to get a different char we can not just increment the first|last char because for the HighChars=true
+            // CultureInfo.GetCultureInfo("en-US").CompareInfo.IsSuffix(new string((char)0x81, 1), new string((char)0x82, 1)) returns true
+            copy[0] = (char)(Options.highChars ? copy[0] * 2 : copy[0] + 1);
             _diffAtFirstChar = new string(copy);
             copy = characters.ToArray();
-            copy[characters.Length - 1] = (char)(copy[characters.Length - 1] + 1);
+            copy[characters.Length - 1] = (char)(Options.highChars ? copy[characters.Length - 1] * 2 : copy[characters.Length - 1] + 1);
             _diffAtLastChar = new string(copy);
+
+            // now we need to ensure that the test data is correct to avoid issues like https://github.com/dotnet/performance/pull/909
+            if (Options.CultureInfo.CompareInfo.IsPrefix(new string(_value.First(), 1), new string(_diffAtFirstChar.First(), 1), Options.CompareOptions))
+                throw new Exception(nameof(_diffAtFirstChar));
+            if (Options.CultureInfo.CompareInfo.IsSuffix(new string(_value.Last(), 1), new string(_diffAtLastChar.Last(), 1), Options.CompareOptions))
+                throw new Exception(nameof(_diffAtLastChar));
         }
 
         [Benchmark]
@@ -90,5 +101,7 @@ namespace System.Globalization.Tests
 
         [Benchmark]
         public int LastIndexOf_Word_NotFound() => Options.CultureInfo.CompareInfo.LastIndexOf(_value, "word", Options.CompareOptions);
+
+        private static bool ContainsSimpleCharactersOnly(char[] text) => text.All(c => c == ' ' || c == '.' || c == ',' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
     }
 }
