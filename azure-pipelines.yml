@@ -133,7 +133,7 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
-      libraryVersion: '1.*'
+      libraryVersion: '1.4*'
       frameworks: # for rolling ML.NET version we want to use stable .NET Core release (to detect regressions in ML.NET)
         - netcoreapp3.0
 
@@ -198,7 +198,7 @@ jobs:
       container: ubuntu_x64_build_container
       runCategories: 'mldotnet'
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
-      libraryVersion: '1.*'
+      libraryVersion: '1.4*'
       frameworks: # for rolling ML.NET version we want to use stable .NET Core release (to detect regressions in ML.NET)
         - netcoreapp3.0
 
