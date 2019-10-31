@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using BenchmarkDotNet.Attributes;
@@ -90,17 +91,7 @@ namespace Microsoft.ML.Benchmarks
             _inRow = RowImpl.Create(type, getter);
             // One million features is a nice, typical number.
             var info = _env.Transforms.Conversion.Hash("Bar", "Foo", numberOfBits: numberOfBits);
-            var columns = typeof(HashingEstimator)
-                .GetFields(BindingFlags.NonPublic | BindingFlags.Instance)
-                .Single(field => field.Name == "_columns")
-                .GetValue(info);
-            var xf = typeof(HashingTransformer)
-                .GetConstructor(
-                    BindingFlags.NonPublic | BindingFlags.Instance, 
-                    null, 
-                    new[] { typeof(IHostEnvironment), columns.GetType() }, 
-                    Array.Empty<ParameterModifier>())
-                .Invoke(new object[] { _env, columns });
+            var xf = info.Fit(new EmptyDataView(_inRow.Schema));
             var mapper = ((ITransformer)xf).GetRowToRowMapper(_inRow.Schema);
             var column = mapper.OutputSchema["Bar"];
             var outRow = mapper.GetRow(_inRow, new[] { column });
@@ -194,5 +185,58 @@ namespace Microsoft.ML.Benchmarks
 
         [Benchmark]
         public void HashVectorKey() => RunVector();
+
+        /// <summary>
+        /// An empty IDataView that has a schema, but no rows.
+        /// </sumary>
+        private sealed class EmptyDataView : IDataView
+        {
+            public bool CanShuffle => true;
+            public DataViewSchema Schema { get; }
+
+            public EmptyDataView(DataViewSchema schema)
+            {
+                Schema = schema;
+            }
+
+            public long? GetRowCount() => 0;
+
+            public DataViewRowCursor GetRowCursor(IEnumerable<DataViewSchema.Column> columnsNeeded, Random rand = null)
+            {
+                return new Cursor(Schema);
+            }
+
+            public DataViewRowCursor[] GetRowCursorSet(IEnumerable<DataViewSchema.Column> columnsNeeded, int n, Random rand = null)
+            {
+                return new[] { new Cursor(Schema) };
+            }
+
+            private sealed class Cursor : DataViewRowCursor
+            {
+                public override DataViewSchema Schema { get; }
+                public override long Batch => 0;
+
+                public override long Position => -1;
+
+                public Cursor(DataViewSchema schema)
+                {
+                    Schema = schema;
+                }
+
+                public override ValueGetter<DataViewRowId> GetIdGetter()
+                {
+                    return (ref DataViewRowId val) => throw new InvalidOperationException("No rows");
+                }
+
+                public override bool MoveNext() => false;
+
+                public override bool IsColumnActive(DataViewSchema.Column column) => false;
+
+                public override ValueGetter<TValue> GetGetter<TValue>(DataViewSchema.Column column)
+                {
+                    return (ref TValue value) => throw new Exception("No rows");
+                }
+            }
+        }
     }
 }
