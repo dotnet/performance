@@ -59,7 +59,8 @@ class PreCommands:
             output_dir: str,
             bin_dir: str,
             exename: str,
-            working_directory: str):
+            working_directory: str,
+            language: str = None):
         'makes a new app with the given template'
         self.project = CSharpProject.new(template=template,
                                  output_dir=output_dir,
@@ -68,7 +69,8 @@ class PreCommands:
                                  working_directory=working_directory,
                                  force=True,
                                  verbose=True,
-                                 target_framework_moniker=self.framework)
+                                 target_framework_moniker=self.framework,
+                                 language=language)
         return self
 
     def add_common_arguments(self, parser: ArgumentParser):
