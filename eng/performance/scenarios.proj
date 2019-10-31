@@ -28,7 +28,7 @@
 
   <ItemGroup>
     <HelixWorkItem Include="SDK .NET 2.0 Console Template">
-      <PayloadDirectory>$(ScenariosDir)netcoreapp</PayloadDirectory>
+      <PayloadDirectory>$(ScenariosDir)netcoreapp2.0</PayloadDirectory>
       <PreCommands>$(Python) pre.py backup</PreCommands>
       <Command>$(Python) test.py sdk</Command>
       <PostCommands>$(Python) post.py</PostCommands>
