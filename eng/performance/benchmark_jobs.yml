@@ -9,7 +9,7 @@ parameters:
   csproj: ''            # required -- relative path to csproj with benchmarks
   frameworks: []        # required -- list of frameworks. Allowed values: net461, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
   runCategories: ''     # required -- string of space separated categories supplied to BenchmarkDotNet
-  libraryVersion: ''    # optional -- ML.NET|Roslyn version
+  libraryVersion: ''    # optional -- fixed|rolling, used by ML.NET
 
 jobs:
 - template: ../common/templates/jobs/jobs.yml
