@@ -16,6 +16,10 @@
     <WorkItemCommand>$(WorkItemCommand) $(CliArguments)</WorkItemCommand>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(LibraryVersion)' != ''">
+    <WorkItemCommand>$(WorkItemCommand) --lib-version $(LibraryVersion)</WorkItemCommand>
+  </PropertyGroup>
+
   <ItemGroup>
     <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
       <PayloadDirectory>%(Identity)</PayloadDirectory>

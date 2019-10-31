@@ -122,6 +122,13 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         type=str,
         help='Product repository.'
     )
+    parser.add_argument(
+        '--lib-version',
+        dest='lib_version',
+        required=False,
+        type=str,
+        help='Version of the tested library. Supported only by some projects'
+    )
 
     def __is_valid_datetime(dt: str) -> str:
         try:
@@ -212,6 +219,10 @@ def __main(args: list) -> int:
     os.environ['PERFLAB_TARGET_FRAMEWORKS'] = ';'.join(
         target_framework_monikers
     )
+
+    # set the product version using Env Vars handled by the MSBuild project file
+    if args.lib_version:
+        os.environ['PERFLAB_LIBRARY_VERSION'] = args.lib_version
 
     # dotnet --info
     dotnet.info(verbose=verbose)

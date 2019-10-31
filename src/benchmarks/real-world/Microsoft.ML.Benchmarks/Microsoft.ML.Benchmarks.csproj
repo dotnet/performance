@@ -4,10 +4,13 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
     <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp3.0;netcoreapp5.0</TargetFrameworks>
+    <!-- defined in .yml file, passed by CI python script -->
+    <LibraryVersion>$(PERFLAB_LIBRARY_VERSION)</LibraryVersion>
+    <LibraryVersion Condition="'$(LibraryVersion)' == ''">1.4.0-preview2</LibraryVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ML" Version="1.4.0-preview2" />
+    <PackageReference Include="Microsoft.ML" Version="$(LibraryVersion)" />
   </ItemGroup>
 
   <ItemGroup>
