@@ -61,6 +61,7 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - netcoreapp5.0
+        - netcoreapp3.0
         
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -206,6 +207,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - netcoreapp5.0
+        - netcoreapp3.0
 
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
