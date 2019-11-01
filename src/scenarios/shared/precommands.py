@@ -8,6 +8,7 @@ import shutil
 from argparse import ArgumentParser
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
+from shared.codefixes import replace_line
 from performance.common import get_packages_directory
 
 BUILD = 'build'
@@ -95,6 +96,7 @@ class PreCommands:
         'create a project from existing project file'
         csproj = CSharpProjFile(projectfile, sys.path[0])
         self.project = CSharpProject(csproj, const.BINDIR)
+        self._updateframework(csproj.file_name)
         return self
 
     def execute(self):
@@ -116,6 +118,9 @@ class PreCommands:
             shutil.rmtree(const.TMPDIR)
         shutil.copytree(const.APPDIR, const.TMPDIR)
 
+    def _updateframework(self, projectfile: str):
+        if self.framework:
+            replace_line(projectfile, "$FRAMEWORK", self.framework)
 
     def _publish(self, configuration: str, framework: str = None):
         self.project.publish(configuration=configuration,
