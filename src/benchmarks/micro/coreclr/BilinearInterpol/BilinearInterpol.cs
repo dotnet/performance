@@ -1,4 +1,9 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+//
+
+using System;
 using System.Linq;
 using System.Numerics;
 
@@ -123,8 +128,10 @@ public class BilinearTest
         var vMinXB = new Vector<double>(minXB);
         var vMaxXB = new Vector<double>(maxXB);
 
-        var vDeltaA = new Vector<double>((maxXA - minXA) * (1.0 / (double)(A.Length - 1)));
-        var vDeltaB = new Vector<double>((maxXB - minXB) * (1.0 / (double)(B.Length - 1)));
+        var deltaA = (maxXA - minXA) / (double)(A.Length - 1);
+        var deltaB = (maxXB - minXB) / (double)(B.Length - 1);
+        var vDeltaA = new Vector<double>(deltaA);
+        var vDeltaB = new Vector<double>(deltaB);
 
         var vInvDeltaA = Vector<double>.One / vDeltaA;
         var vInvDeltaB = Vector<double>.One / vDeltaB;
@@ -230,7 +237,7 @@ public class BilinearTest
                 // Determine the largest a, such that A[i] = f(xA) and xA <= x[i].
                 // This involves casting from double to int; here we use a Vector conversion.
                 Vector256<double> aDouble = Avx.Multiply(Avx.Subtract(currentX, vMinXA), vInvDeltaA);
-                Vector128<int> a = Avx.ConvertToVector128Int32(aDouble);
+                Vector128<int> a = Avx.ConvertToVector128Int32WithTruncation(aDouble);
                 a = Sse41.Min(Sse41.Max(a, Vector128<int>.Zero), ALengthMinusOne);
                 Vector128<int> aPlusOne = Sse41.Min(Sse2.Add(a, One), ALengthMinusOne);
 
@@ -248,7 +255,7 @@ public class BilinearTest
 
                 // Now, do the all of the above for our B reference point.
                 Vector256<double> bDouble = Avx.Multiply(Avx.Subtract(currentX, vMinXB), vInvDeltaB);
-                Vector128<int> b = Avx.ConvertToVector128Int32(bDouble);
+                Vector128<int> b = Avx.ConvertToVector128Int32WithTruncation(bDouble);
                 b = Sse41.Min(Sse41.Max(b, Vector128<int>.Zero), BLengthMinusOne);
                 Vector128<int> bPlusOne = Sse41.Min(Sse2.Add(b, One), BLengthMinusOne);
 
@@ -261,7 +268,7 @@ public class BilinearTest
 
                 Vector256<double> newZ = Avx.Add(Avx.Multiply(vWeightA, Avx.Add(AVector, Avx.Multiply(lambdaA, Avx.Subtract(AVectorPlusOne, AVector)))),
                                              Avx.Multiply(vWeightB, Avx.Add(BVector, Avx.Multiply(lambdaB, Avx.Subtract(BVectorPlusOne, BVector)))));
-                Avx.Store(pZ, newZ);
+                Avx.Store(pZ + i, newZ);
             }
         }
         return z;
