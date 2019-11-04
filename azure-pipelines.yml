@@ -75,6 +75,7 @@ jobs:
       runCategories: 'coreclr corefx' 
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - netcoreapp5.0
+        - netcoreapp3.1
         - netcoreapp3.0
         - netcoreapp2.2
         - netcoreapp2.1
@@ -150,7 +151,7 @@ jobs:
       runCategories: 'roslyn'
       frameworks: # for Roslyn jobs we want to check .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
-        - netcoreapp3.0
+        - netcoreapp3.1
         
   # Ubuntu 1804 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -166,6 +167,7 @@ jobs:
       runCategories: 'coreclr corefx'
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - netcoreapp5.0
+        - netcoreapp3.1
         - netcoreapp3.0
         - netcoreapp2.2
         - netcoreapp2.1
@@ -200,7 +202,6 @@ jobs:
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
       libraryVersion: 'rolling'
       frameworks: # for rolling ML.NET version we want to use stable .NET Core release (to detect regressions in ML.NET)
-        - netcoreapp3.0
 
   # Ubuntu 1804 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -216,7 +217,7 @@ jobs:
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       frameworks: # for Roslyn jobs we want to check .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
-        - netcoreapp3.0
+        - netcoreapp3.1
 
 ###########################################
 # Private Jobs
@@ -249,7 +250,7 @@ jobs:
       runCategories: 'coreclr corefx'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
-        - netcoreapp3.0
+        - netcoreapp3.1
       
   # Windows x86 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -264,7 +265,7 @@ jobs:
       runCategories: 'coreclr corefx'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
-        - netcoreapp3.0
+        - netcoreapp3.1
 
   # Windows x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -279,7 +280,7 @@ jobs:
       runCategories: 'mldotnet'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
-        - netcoreapp3.0
+        - netcoreapp3.1
 
   # Windows x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -294,7 +295,7 @@ jobs:
       runCategories: 'roslyn'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
-        - netcoreapp3.0
+        - netcoreapp3.1
 
   # Ubuntu 1804 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -310,7 +311,7 @@ jobs:
       runCategories: 'coreclr corefx'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
-        - netcoreapp3.0
+        - netcoreapp3.1
 
   # Ubuntu 1804 x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -326,7 +327,7 @@ jobs:
       runCategories: 'mldotnet'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
-        - netcoreapp3.0
+        - netcoreapp3.1
   
   # Ubuntu 1804 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -342,7 +343,7 @@ jobs:
       runCategories: 'roslyn'
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
-        - netcoreapp3.0
+        - netcoreapp3.1
 
 ################################################
 # Scheduled Private jobs
@@ -361,8 +362,9 @@ jobs:
       queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'coreclr corefx'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
-        - netcoreapp3.0
+      frameworks: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
+        - netcoreapp5.0
+        - netcoreapp3.1
       
   # Windows x86 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -375,8 +377,9 @@ jobs:
       queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'coreclr corefx'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
-        - netcoreapp3.0
+      frameworks: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
+        - netcoreapp5.0
+        - netcoreapp3.1
 
   # Windows x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -389,8 +392,9 @@ jobs:
       queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
-        - netcoreapp3.0
+      frameworks: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
+        - netcoreapp5.0
+        - netcoreapp3.1
 
   # Windows x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -403,8 +407,9 @@ jobs:
       queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
-        - netcoreapp3.0
+      frameworks: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
+        - netcoreapp5.0
+        - netcoreapp3.1
 
   # Ubuntu 1604 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -418,8 +423,9 @@ jobs:
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       runCategories: 'coreclr corefx'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
-        - netcoreapp3.0
+      frameworks: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
+        - netcoreapp5.0
+        - netcoreapp3.1
 
   # Ubuntu 1604 x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -433,8 +439,9 @@ jobs:
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
-        - netcoreapp3.0
+      frameworks: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
+        - netcoreapp5.0
+        - netcoreapp3.1
   
   # Ubuntu 1604 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -448,8 +455,9 @@ jobs:
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       runCategories: 'roslyn'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
-        - netcoreapp3.0
+      frameworks: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
+        - netcoreapp5.0
+        - netcoreapp3.1
 
   # Ubuntu 1804 ARM64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -463,5 +471,6 @@ jobs:
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       runCategories: 'coreclr corefx'
-      frameworks: # currently ARM64 is supported only by .NET Core 3.0 https://github.com/dotnet/core/blob/master/release-notes/3.0/3.0-supported-os.md
-        - netcoreapp3.0
+      frameworks: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
+        - netcoreapp5.0
+        - netcoreapp3.1

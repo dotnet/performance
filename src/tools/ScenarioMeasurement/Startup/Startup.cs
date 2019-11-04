@@ -40,6 +40,7 @@ namespace ScenarioMeasurement
         /// <param name="iterationCleanup">command to clean up after each iteration</param>
         /// <param name="cleanupArgs">arguments of iterationCleanup</param>
         /// <param name="traceDirectory">Directory to put files in (defaults to current directory)</param>
+        /// <param name="environmentVariables">Environment variables set for test processes (example: var1=value1;var2=value2)</param>
         /// <returns></returns>
         static int Main(string appExe,
                         MetricType metricType,
@@ -60,7 +61,9 @@ namespace ScenarioMeasurement
                         bool guiApp = true,
                         bool skipProfileIteration = false,
                         string reportJsonPath = "",
-                        string traceDirectory = null)
+                        string traceDirectory = null,
+                        string environmentVariables = null
+                        )
         {
             Logger logger = new Logger(String.IsNullOrEmpty(logFileName) ? $"{appExe}.startup.log" : logFileName);
             static void checkArg(string arg, string name)
@@ -83,8 +86,17 @@ namespace ScenarioMeasurement
                     Directory.CreateDirectory(traceDirectory);
                 }
             }
+
+            Dictionary<string, string> envVariables = null;
+            if (!String.IsNullOrEmpty(environmentVariables))
+            {
+                envVariables = ParseStringToDictionary(environmentVariables);
+            }
+
             bool failed = false;
             logger.Log($"Running {appExe} (args: \"{appArgs}\")");
+            logger.Log($"Working Directory: {workingDir}");
+
             var procHelper = new ProcessHelper(logger)
             {
                 ProcessWillExit = processWillExit,
@@ -93,7 +105,8 @@ namespace ScenarioMeasurement
                 Executable = appExe,
                 Arguments = appArgs,
                 WorkingDirectory = workingDir,
-                GuiApp = guiApp
+                GuiApp = guiApp,
+                EnvironmentVariables = envVariables
             };
             
             // create iteration setup process helper
@@ -313,6 +326,17 @@ namespace ScenarioMeasurement
                 string min = $"{counter.Results.Min():F3} {counter.MetricName}";
                 logger.Log($"{counter.Name,-15}|{average,-15}|{min,-15}|{max,-15}");
             }
+        }
+
+        private static Dictionary<string, string> ParseStringToDictionary(string s)
+        {
+            var dict = new Dictionary<string, string>();
+            foreach (string substring in s.Split(';', StringSplitOptions.RemoveEmptyEntries))
+            {
+                var pair = substring.Split('=');
+                dict.Add(pair[0], pair[1]);
+            }
+            return dict;
         }
     }
 }

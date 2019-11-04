@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Text;
 using System.Threading;
 
@@ -31,11 +30,13 @@ namespace ScenarioMeasurement
 
         public bool GuiApp { get; set; } = false;
 
-        public Logger logger;
+        public Logger Logger;
+
+        public Dictionary<string, string> EnvironmentVariables = null;
 
         public ProcessHelper(Logger logger)
         {
-            this.logger = logger;
+            this.Logger = logger;
         }
 
         /// <summary>
@@ -52,6 +53,16 @@ namespace ScenarioMeasurement
             psi.Arguments = Arguments;
             psi.WorkingDirectory = WorkingDirectory;
             psi.UseShellExecute = GuiApp;
+
+            if (EnvironmentVariables != null)
+            {
+                foreach (var pair in EnvironmentVariables)
+                {
+                    psi.EnvironmentVariables[pair.Key] = pair.Value;
+                    Logger.Log($"Added environment variable: {pair.Key}={pair.Value}");
+                }
+            }
+
             if (!GuiApp)
             {
                 psi.RedirectStandardOutput = true;
@@ -110,8 +121,8 @@ namespace ScenarioMeasurement
                     }
                 }
 
-                logger.Log(output.ToString());
-                logger.Log(error.ToString());
+                Logger.Log(output.ToString());
+                Logger.Log(error.ToString());
 
                 // Be aware a successful exit could be non-zero
                 if (process.ExitCode != 0)

@@ -3,6 +3,8 @@ Module for running scenario tasks
 '''
 
 import sys
+import os
+
 from logging import getLogger
 from collections import namedtuple
 from argparse import ArgumentParser
@@ -11,15 +13,20 @@ from shared.util import publishedexe
 from shared import const
 from performance.logger import setup_loggers
 
+
 reqfields = ('scenarioname',
              'exename',
              )
 optfields = ('guiapp',
              'startupmetric',
              'appargs',
+             'environmentvariables',
              'iterations',
              'timeout',
              'warmup',
+             'workingdir',
+             'iterationsetup',
+             'setupargs',
              )
 
 # These are the kinds of scenarios we run. Default here indicates whether ALL
@@ -52,6 +59,7 @@ class Runner:
             getLogger().error("Test type %s is not supported by this scenario", args.testtype)
             sys.exit(1)
         self.testtype = args.testtype
+
     def run(self):
         '''
         Runs the specified scenario
@@ -62,11 +70,39 @@ class Runner:
             startup.runtests(**self.traits._asdict(),
                              scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
                              apptorun=publishedexe(self.traits.exename))
-        # if testtype == 'sdk' and self.traits.sdk:
-        #     print("sdk")
-        #     startup = StartupWrapper()
-        #     startup.runtests(**self.traits._asdict(),
-        #         scenariotypename='Build No Changes')
-        #     # fix some other traits
-        #     startup.runtests(**self.traits._asdict(),
-        #         scenariotypename='Rebuild')
+        elif self.testtype == const.SDK:
+            startup = StartupWrapper()
+            envlistbuild = 'DOTNET_MULTILEVEL_LOOKUP=0'
+            envlistcleanbuild= ';'.join(['MSBUILDDISABLENODEREUSE=1', envlistbuild])
+            # clean build
+            startup.runtests(scenarioname=self.traits.scenarioname,
+                             exename=self.traits.exename,
+                             guiapp=self.traits.guiapp,
+                             startupmetric=const.STARTUP_PROCESSTIME,
+                             appargs='build',
+                             timeout=self.traits.timeout,
+                             warmup='true',
+                             iterations=self.traits.iterations,
+                             scenariotypename='%s (%s)' % (const.SCENARIO_NAMES[const.SDK], 'Clean Build'),
+                             apptorun=const.DOTNET,
+                             iterationsetup='py' if sys.platform == 'win32' else 'py3',
+                             setupargs='-3 %s' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
+                             workingdir=const.TMPDIR,
+                             environmentvariables=envlistcleanbuild
+                             )
+            # build(no changes)
+            startup.runtests(scenarioname=self.traits.scenarioname,
+                             exename=self.traits.exename,
+                             guiapp=self.traits.guiapp,
+                             startupmetric=const.STARTUP_PROCESSTIME,
+                             appargs='build',
+                             timeout=self.traits.timeout,
+                             warmup='true',
+                             iterations=self.traits.iterations,
+                             scenariotypename='%s (%s)' % (const.SCENARIO_NAMES[const.SDK], 'Build(no changes)'),
+                             apptorun=const.DOTNET,
+                             iterationsetup=None,
+                             setupargs=None,
+                             workingdir=const.TMPDIR,
+                             environmentvariables=envlistbuild
+                             )
