@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <RootNamespace>_50VBconsoletemplate</RootNamespace>
-    <TargetFramework>netcoreapp5.0</TargetFramework>
+    <RootNamespace>staticvbconsoletemplate</RootNamespace>
+    <TargetFramework>$FRAMEWORK</TargetFramework>
   </PropertyGroup>
 
 </Project>
