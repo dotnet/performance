@@ -116,7 +116,7 @@ class PreCommands:
             self._restore()
             self._publish(self.configuration)
         if self.operation == BACKUP:
-            self.backup()
+            self._backup()
 
     def add_startup_logging(self, file: str, line: str):
         self.add_event_source(file, line, "PerfLabGenericEventSource.Log.Startup();")
@@ -138,7 +138,7 @@ class PreCommands:
         insert_after(filepath, line, trace_statement)
         
 
-    def backup(self):
+    def _backup(self):
         'make a temp copy of the asset'
         if os.path.isdir(const.TMPDIR):
             shutil.rmtree(const.TMPDIR)
