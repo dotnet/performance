@@ -2,8 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp5.0</TargetFramework>
-    <RootNamespace>_50consoletemplate</RootNamespace>
+    <TargetFramework>$FRAMEWORK</TargetFramework>
+    <RootNamespace>staticconsoletemplate</RootNamespace>
   </PropertyGroup>
-
 </Project>
