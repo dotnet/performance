@@ -8,8 +8,9 @@ import shutil
 from argparse import ArgumentParser
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
-from shared.codefixes import replace_line
-from performance.common import get_packages_directory
+from shared.util import helixpayload
+from shared.codefixes import replace_line, insert_after
+from performance.common import get_packages_directory, get_repo_root_path
 
 BUILD = 'build'
 PUBLISH = 'publish'
@@ -92,9 +93,14 @@ class PreCommands:
                             metavar='/p:Foo=Bar;/p:Baz=Blee;...')
         parser.set_defaults(configuration=RELEASE)
 
-    def existing(self, projectfile: str):
+    def existing(self, projectdir: str, projectfile: str):
         'create a project from existing project file'
-        csproj = CSharpProjFile(projectfile, sys.path[0])
+
+        # copy from projectdir to appdir
+        if os.path.isdir(const.APPDIR):
+            shutil.rmtree(const.APPDIR)
+        shutil.copytree(projectdir, const.APPDIR)
+        csproj = CSharpProjFile(os.path.join(const.APPDIR, projectfile), sys.path[0])
         self.project = CSharpProject(csproj, const.BINDIR)
         self._updateframework(csproj.file_name)
         return self
@@ -110,9 +116,29 @@ class PreCommands:
             self._restore()
             self._publish(self.configuration)
         if self.operation == BACKUP:
-            self._backup()
+            self.backup()
 
-    def _backup(self):
+    def add_startup_logging(self, file: str, line: str):
+        self.add_event_source(file, line, "PerfLabGenericEventSource.Log.Startup();")
+
+    def add_event_source(self, file: str, line: str, trace_statement: str):
+        '''
+        Adds a copy of the event source to the project and inserts the correct call
+        file: relative path to the root of the project (where the project file lives)
+        line: Exact line to insert trace statement after
+        trace_statement: Statement to insert
+        '''
+
+        projpath = os.path.dirname(self.project.csproj_file)
+        staticpath = os.path.join(get_repo_root_path(), "src", "scenarios", "staticdeps")
+        if helixpayload():
+            staticpath = os.path.join(helixpayload(), "staticdeps")
+        shutil.copyfile(os.path.join(staticpath, "PerfLab.cs"), os.path.join(projpath, "PerfLab.cs"))
+        filepath = os.path.join(projpath, file)
+        insert_after(filepath, line, trace_statement)
+        
+
+    def backup(self):
         'make a temp copy of the asset'
         if os.path.isdir(const.TMPDIR):
             shutil.rmtree(const.TMPDIR)
