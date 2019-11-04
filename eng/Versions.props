@@ -12,6 +12,7 @@
       https://dotnetfeed.blob.core.windows.net/aspnet-aspnetcore/index.json;
       https://dotnet.myget.org/F/symreader-converter/api/v3/index.json;
       https://dotnet.myget.org/F/symreader/api/v3/index.json;
+      https://pkgs.dev.azure.com/dnceng/public/_packaging/MachineLearning/nuget/v3/index.json;
     </RestoreSources>
   </PropertyGroup>
   <!--Package versions-->
