@@ -202,6 +202,7 @@ jobs:
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
       libraryVersion: 'rolling'
       frameworks: # for rolling ML.NET version we want to use stable .NET Core release (to detect regressions in ML.NET)
+        - netcoreapp3.0
 
   # Ubuntu 1804 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
