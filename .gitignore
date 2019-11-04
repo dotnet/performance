@@ -52,6 +52,11 @@ bld/
 # Visual Studio 2017 auto generated files
 Generated\ Files/
 
+# scenario intermediate directories
+src/scenarios/*/pub
+src/scenarios/*/app
+src/scenarios/*/bin
+
 # MSTest test Results
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
