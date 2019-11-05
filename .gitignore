@@ -56,6 +56,7 @@ Generated\ Files/
 src/scenarios/*/pub
 src/scenarios/*/app
 src/scenarios/*/bin
+src/scenarios/*/traces
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
