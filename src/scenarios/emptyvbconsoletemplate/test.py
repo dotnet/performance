@@ -6,7 +6,7 @@ import os
 from shared.runner import TestTraits, Runner
 
 SCENARIONAME = 'Empty VB Console Template'
-EXENAME = 'emptycsconsoletemplate'
+EXENAME = 'emptyvbconsoletemplate'
 
 if __name__ == "__main__":
     traits = TestTraits(scenarioname=SCENARIONAME, 
