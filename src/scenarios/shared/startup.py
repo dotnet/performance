@@ -86,6 +86,7 @@ class StartupWrapper(object):
 
         RunCommand(startup_args, verbose=True).run()
 
+        self.list_files(TRACEDIR)
         if runninginlab() and uploadtokenpresent():
             import upload
             self.list_files(TRACEDIR)
