@@ -5,8 +5,8 @@ import sys
 import os
 from shared.runner import TestTraits, Runner
 
-SCENARIONAME = '.NET Core 5.0 Console Template'
-EXENAME = '50consoletemplate'
+SCENARIONAME = 'Static Console Template'
+EXENAME = 'staticconsoletemplate'
 
 if __name__ == "__main__":
     traits = TestTraits(scenarioname=SCENARIONAME, 
