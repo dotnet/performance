@@ -14,13 +14,11 @@ from performance.common import get_packages_directory, get_repo_root_path
 
 BUILD = 'build'
 PUBLISH = 'publish'
-RESTORE = 'restore'
 BACKUP = 'backup'
 DEBUG = 'Debug'
 RELEASE = 'Release'
 
 OPERATIONS = (BUILD,
-              RESTORE,
               PUBLISH,
               BACKUP
              )
@@ -38,7 +36,6 @@ class PreCommands:
                                            description='Common preperation steps for perf tests.',
                                            required=True,
                                            dest='operation')
-        restore_parser = subparsers.add_parser(RESTORE, help='Restores the project')
 
         build_parser = subparsers.add_parser(BUILD, help='Builds the project')
         self.add_common_arguments(build_parser)
@@ -110,8 +107,6 @@ class PreCommands:
         if self.operation == BUILD:
             self._restore()
             self._build(configuration=self.configuration, framework=self.framework)
-        if self.operation == RESTORE:
-            self._restore()
         if self.operation == PUBLISH:
             self._restore()
             self._publish(self.configuration)
