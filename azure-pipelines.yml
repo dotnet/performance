@@ -119,9 +119,10 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
-      libraryVersion: 'fixed'
+      libraryVersion: fixed
       frameworks: # for fixed ML.NET version we want to check latest .NET Core bits (to detect regressions in .NET Core)
         - netcoreapp5.0
+        - netcoreapp3.1
 
   # Windows x64 ML.NET benchmarks: rolling ML.NET, fixed .NET Core
   - template: /eng/performance/benchmark_jobs.yml
@@ -134,7 +135,7 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
-      libraryVersion: 'rolling'
+      libraryVersion: rolling
       frameworks: # for rolling ML.NET version we want to use stable .NET Core release (to detect regressions in ML.NET)
         - netcoreapp3.0
 
@@ -184,9 +185,10 @@ jobs:
       container: ubuntu_x64_build_container
       runCategories: 'mldotnet'
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
-      libraryVersion: 'fixed'
+      libraryVersion: fixed
       frameworks: # for fixed ML.NET version we want to check latest .NET Core bits (to detect regressions in .NET Core)
         - netcoreapp5.0
+        - netcoreapp3.1
 
   # Ubuntu 1804 x64 ML.NET benchmarks: rolling ML.NET, fixed .NET Core
   - template: /eng/performance/benchmark_jobs.yml
@@ -200,7 +202,7 @@ jobs:
       container: ubuntu_x64_build_container
       runCategories: 'mldotnet'
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
-      libraryVersion: 'rolling'
+      libraryVersion: rolling
       frameworks: # for rolling ML.NET version we want to use stable .NET Core release (to detect regressions in ML.NET)
         - netcoreapp3.0
 
@@ -268,7 +270,7 @@ jobs:
         - netcoreapp5.0
         - netcoreapp3.1
 
-  # Windows x64 ML.NET benchmarks
+  # Windows x64 ML.NET benchmarks: fixed ML.NET, rolling .NET Core
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
@@ -279,9 +281,25 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
+      libraryVersion: fixed
+      frameworks: # for fixed ML.NET version we want to check latest .NET Core bits (to detect regressions in .NET Core)
         - netcoreapp5.0
         - netcoreapp3.1
+
+  # Windows x64 ML.NET benchmarks: rolling ML.NET, fixed .NET Core
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 19H1
+      kind: mlnet
+      architecture: x64
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+      csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
+      runCategories: 'mldotnet'
+      libraryVersion: rolling
+      frameworks: # for rolling ML.NET version we want to use stable .NET Core release (to detect regressions in ML.NET)
+        - netcoreapp3.0
 
   # Windows x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -314,7 +332,7 @@ jobs:
         - netcoreapp5.0
         - netcoreapp3.1
 
-  # Ubuntu 1804 x64 ML.NET benchmarks
+  # Ubuntu 1804 x64 ML.NET benchmarks: fixed ML.NET, rolling .NET Core
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: ubuntu
@@ -326,10 +344,27 @@ jobs:
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
+      libraryVersion: fixed
+      frameworks: # for fixed ML.NET version we want to check latest .NET Core bits (to detect regressions in .NET Core)
         - netcoreapp5.0
         - netcoreapp3.1
-  
+
+  # Ubuntu 1804 x64 ML.NET benchmarks: rolling ML.NET, fixed .NET Core
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: mlnet
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
+      runCategories: 'mldotnet'
+      libraryVersion: rolling
+      frameworks: # for rolling ML.NET version we want to use stable .NET Core release (to detect regressions in ML.NET)
+        - netcoreapp3.0
+
   # Ubuntu 1804 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
@@ -382,7 +417,7 @@ jobs:
         - netcoreapp5.0
         - netcoreapp3.1
 
-  # Windows x64 ML.NET benchmarks
+  # Windows x64 ML.NET benchmarks: fixed ML.NET, rolling .NET Core
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
@@ -393,9 +428,25 @@ jobs:
       queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
-      frameworks: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
+      libraryVersion: fixed
+      frameworks: # for fixed ML.NET version we want to check latest .NET Core bits (to detect regressions in .NET Core)
         - netcoreapp5.0
         - netcoreapp3.1
+
+  # Windows x64 ML.NET benchmarks: rolling ML.NET, fixed .NET Core
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS1
+      kind: mlnet
+      architecture: x64
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
+      csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
+      runCategories: 'mldotnet'
+      libraryVersion: rolling
+      frameworks: # for rolling ML.NET version we want to use stable .NET Core release (to detect regressions in ML.NET)
+        - netcoreapp3.0
 
   # Windows x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -428,7 +479,7 @@ jobs:
         - netcoreapp5.0
         - netcoreapp3.1
 
-  # Ubuntu 1604 x64 ML.NET benchmarks
+  # Ubuntu 1604 x64 ML.NET benchmarks: fixed ML.NET, rolling .NET Core
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: ubuntu
@@ -440,10 +491,27 @@ jobs:
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
-      frameworks: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
+      libraryVersion: fixed
+      frameworks: # for fixed ML.NET version we want to check latest .NET Core bits (to detect regressions in .NET Core)
         - netcoreapp5.0
         - netcoreapp3.1
-  
+
+  # Ubuntu 1604 x64 ML.NET benchmarks: rolling ML.NET, fixed .NET Core
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1604
+      kind: mlnet
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
+      runCategories: 'mldotnet'
+      libraryVersion: rolling
+      frameworks: # for rolling ML.NET version we want to use stable .NET Core release (to detect regressions in ML.NET)
+        - netcoreapp3.0
+
   # Ubuntu 1604 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
