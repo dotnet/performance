@@ -91,7 +91,8 @@ class Runner:
                              setupargs='-3 %s' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
                              workingdir=const.TMPDIR,
                              environmentvariables=envlistcleanbuild,
-                             processwillexit=self.traits.processwillexit
+                             processwillexit=self.traits.processwillexit,
+                             measurementdelay=self.traits.measurementdelay
                              )
             # build(no changes)
             startup.runtests(scenarioname=self.traits.scenarioname,
@@ -108,5 +109,6 @@ class Runner:
                              setupargs=None,
                              workingdir=const.TMPDIR,
                              environmentvariables=envlistbuild,
-                             processwillexit=self.traits.processwillexit
+                             processwillexit=self.traits.processwillexit,
+                             measurementdelay=self.traits.measurementdelay
                              )
