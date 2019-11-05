@@ -27,6 +27,8 @@ optfields = ('guiapp',
              'workingdir',
              'iterationsetup',
              'setupargs',
+             'processwillexit',
+             'measurementdelay'
              )
 
 # These are the kinds of scenarios we run. Default here indicates whether ALL

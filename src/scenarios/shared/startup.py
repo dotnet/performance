@@ -54,7 +54,7 @@ class StartupWrapper(object):
             '--metric-type', kwargs['startupmetric'], 
             '--scenario-name', "%s - %s" % (kwargs['scenarioname'], kwargs['scenariotypename']),
             '--trace-file-name', '%s_%s_startup.etl' % (kwargs['exename'], kwargs['scenariotypename']),
-            '--process-will-exit', 'true', # ???
+            '--process-will-exit', (kwargs['processwillexit'] or 'true'), # ???
             '--iterations', '%s' % (kwargs['iterations'] or '5'),
             '--timeout', '%s' % (kwargs['timeout'] or '20'),
             '--warmup', '%s' % (kwargs['warmup'] or 'true'),
@@ -74,6 +74,8 @@ class StartupWrapper(object):
         if kwargs['setupargs']:
             startup_args.extend(['--setup-args', kwargs['setupargs']])
             print(kwargs['setupargs'])
+        if kwargs['measurementdelay']:
+            startup_args.extend(['--measurement-delay', kwargs['measurementdelay']])
 
         RunCommand(startup_args, verbose=True).run()
 
