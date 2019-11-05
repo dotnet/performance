@@ -78,7 +78,8 @@ class StartupWrapper(object):
         RunCommand(startup_args, verbose=True).run()
 
 
-        if runninginlab() and uploadtokenpresent():
-            import upload
+        if runninginlab():
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
-            upload.upload(reportjson, UPLOAD_CONTAINER, None, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+            if uploadtokenpresent():
+                import upload
+                upload.upload(reportjson, UPLOAD_CONTAINER, None, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
