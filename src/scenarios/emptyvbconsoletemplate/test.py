@@ -1,8 +1,6 @@
 '''
 C# Console app
 '''
-import sys
-import os
 from shared.runner import TestTraits, Runner
 
 SCENARIONAME = 'Empty VB Console Template'
