@@ -57,6 +57,7 @@ src/scenarios/*/pub
 src/scenarios/*/app
 src/scenarios/*/bin
 src/scenarios/*/traces
+src/scenarios/*/tmp
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
