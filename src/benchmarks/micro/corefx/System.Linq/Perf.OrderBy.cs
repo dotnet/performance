@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections;
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
@@ -12,7 +13,7 @@ namespace System.Linq.Tests
     class FavourColourComparer
         : IComparer<System.Drawing.Color>
     {
-        public static IComparer<System.Drawing.Color> Instance => new FavourColourComparer();
+        public readonly static IComparer<System.Drawing.Color> Instance = new FavourColourComparer();
         static int TurnIntoValue(System.Drawing.Color x) => (x.R + x.G + x.B) * x.A;
         public int Compare(System.Drawing.Color lhs, System.Drawing.Color rhs) => TurnIntoValue(lhs).CompareTo(TurnIntoValue(rhs));
     }
@@ -126,26 +127,24 @@ namespace System.Linq.Tests
     {
         private readonly Consumer _consumer = new Consumer();
 
-        [Params(0, 1, 10, 100, 1000)]
+        [Params(Utils.DefaultCollectionSize)]
         public int NumberOfPeople;
 
-        private Person[] People;
+        private Person[] _people;
 
         [GlobalSetup]
         public void GlobalSetup()
         {
-            People = PersonData.Generate(NumberOfPeople);
+            _people = PersonData.Generate(NumberOfPeople);
         }
 
         [Benchmark]
-        public void OrderByFirstName() => People.OrderBy(p => p.FirstName).Consume(_consumer);
+        public void OrderByString() => _people.OrderBy(p => p.FirstName).Consume(_consumer);
+
         [Benchmark]
-        public void OrderByFullName() => People.OrderBy(p => p.FullName).Consume(_consumer);
+        public void OrderByValueType() => _people.OrderBy(p => p.DOB).Consume(_consumer);
+
         [Benchmark]
-        public void OrderByDOB() => People.OrderBy(p => p.DOB).Consume(_consumer);
-        [Benchmark]
-        public void OrderByFavouriteColour() => People.OrderBy(p => p.FavouriteColour, FavourColourComparer.Instance).Consume(_consumer);
-        [Benchmark]
-        public void OrderByIQ() => People.OrderBy(p => p.IQ).Consume(_consumer);
+        public void OrderByCustomComparer() => _people.OrderBy(p => p.FavouriteColour, FavourColourComparer.Instance).Consume(_consumer);
     }
 }
