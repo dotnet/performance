@@ -13,6 +13,6 @@ if __name__ == "__main__":
                         exename=EXENAME, 
                         startupmetric='TimeToMain',
                         startup=True,
-                        guiapp='false', # string passed through to tool
+                        guiapp='false',
                         )
     Runner(traits).run()

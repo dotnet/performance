@@ -13,7 +13,7 @@ if __name__ == "__main__":
                         exename=EXENAME, 
                         startupmetric='GenericStartup',
                         startup=True,
-                        guiapp='true', # string passed through to tool
+                        guiapp='true',
                         processwillexit='false',
                         measurementdelay='5'
                         )
