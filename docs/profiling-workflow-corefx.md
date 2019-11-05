@@ -222,6 +222,16 @@ Or just sort the methods by exclusive CPU time by clicking on the `Self CPU` col
 
 ![Most time consuming](img/vs_profiler_6_sort_by_self_cpu_time.png)
 
+Visual Studio Profiler 2019 has changed the default policy for loading symbol files.
+
+If you see "Source information is not available" message:
+
+![Source information is not available](img/vs_profiler_source_info_not_available.png)
+
+You need to switch to "Call Tree" view, right click on a method from given module and choose "Load Module Symbols" from the menu:
+
+![Load Module Symbols](img/vs_profiler_load_module_symbols.png)
+
 If you have configured everything properly you are able to see the CPU time spent per source code line!
 
 ![External code](img/vs_profiler_7_source_code.png)
