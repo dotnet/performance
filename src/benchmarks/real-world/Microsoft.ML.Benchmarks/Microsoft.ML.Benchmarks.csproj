@@ -6,7 +6,7 @@
     <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp3.0;netcoreapp5.0</TargetFrameworks>
     <LibraryVersion>1.4.0</LibraryVersion>
     <!-- PERFLAB_LIBRARY_VERSION is defined in .yml file, passed by CI python script -->
-    <LibraryVersion Condition="'$(PERFLAB_LIBRARY_VERSION)' == 'rolling'">1.5*</LibraryVersion>
+    <LibraryVersion Condition="'$(PERFLAB_LIBRARY_VERSION)' == 'rolling'">1.5.0-*</LibraryVersion>
   </PropertyGroup>
 
   <ItemGroup>
