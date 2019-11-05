@@ -93,7 +93,7 @@ jobs:
             ${{ each framework in parameters.frameworks }}:
               ${{ framework }}:
                 _Framework: ${{ framework }}
-                _Configs: CompilationMode=Tiered RunKind="${{ parameters.kind }}"
+                _Configs: CompilationMode=Tiered RunKind="${{ parameters.kind }}${{ parameters.libraryVersion }}"
                 _PerfLabArguments: $(PerfLabArguments)
                 _BuildConfig: ${{ parameters.architecture }}_$(_Framework)_${{ parameters.kind }}_${{ parameters.libraryVersion }} # needs to be unique to avoid logs overwriting in mc.dot.net
         steps:
