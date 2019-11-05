@@ -18,6 +18,9 @@ APPDIR = 'app'
 TRACEDIR = 'traces'
 TMPDIR = 'tmp'
 
+CLEAN_BUILD = 'clean_build'
+BUILD_NO_CHANGE = 'build_no_change'
+
 DOTNET = 'dotnet'
 
 ITERATION_SETUP_FILE = os.path.join(os.path.dirname(shared.__file__), 'sdk_iteration_setup.py')
