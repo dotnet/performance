@@ -36,6 +36,15 @@ class StartupWrapper(object):
                           output_to_bindir=True)
             self._setstartuppath(startup.bin_path)
 
+    def list_files(self, startpath):
+        for root, dirs, files in os.walk(startpath):
+            level = root.replace(startpath, '').count(os.sep)
+            indent = ' ' * 4 * (level)
+            print('{}{}/'.format(indent, os.path.basename(root)))
+            subindent = ' ' * 4 * (level + 1)
+            for f in files:
+                print('{}{}'.format(subindent, f))
+
     
     def _setstartuppath(self, path: str):
         self.startupexe = os.path.join(path, 'Startup.exe')
@@ -77,8 +86,10 @@ class StartupWrapper(object):
 
         RunCommand(startup_args, verbose=True).run()
 
-
         if runninginlab() and uploadtokenpresent():
             import upload
+            self.list_files(TRACEDIR)
+            print("----------------------------------------------")
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
+            self.list_files(os.path.join(helixuploaddir(), 'traces'))
             upload.upload(reportjson, UPLOAD_CONTAINER, None, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
