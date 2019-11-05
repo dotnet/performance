@@ -14,5 +14,7 @@ if __name__ == "__main__":
                         startupmetric='GenericStartup',
                         startup=True,
                         guiapp='true', # string passed through to tool
+                        processwillexit='false',
+                        measurementdelay='5'
                         )
     Runner(traits).run()
