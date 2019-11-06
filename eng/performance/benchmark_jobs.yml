@@ -67,7 +67,7 @@ jobs:
             value: 'py -3 -m venv %HELIX_WORKITEM_PAYLOAD%\.venv;call %HELIX_WORKITEM_PAYLOAD%\.venv\Scripts\activate.bat;py -3 -m pip install --user azure.storage.blob==12.0.0 --force-reinstall;py -3 -m pip install --user azure.storage.queue==12.0.0 --force-reinstall;set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
         - ${{ if ne(parameters.osName, 'windows') }}:
           - name: HelixPreCommand
-            value: 'python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv;source $HELIX_WORKITEM_PAYLOAD/.venv/Scripts/activate;pip3 install --user azure.storage.blob==12.0.0 --force-reinstall;pip3 install --user azure.storage.queue==12.0.0 --force-reinstall;export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
+            value: 'sudo apt-get install python3-venv;python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv;source $HELIX_WORKITEM_PAYLOAD/.venv/Scripts/activate;pip3 install --user azure.storage.blob==12.0.0 --force-reinstall;pip3 install --user azure.storage.queue==12.0.0 --force-reinstall;export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
           # for private runs, we want to upload perflab data
           - name: PerfLabArguments
