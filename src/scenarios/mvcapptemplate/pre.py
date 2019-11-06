@@ -5,13 +5,13 @@ import sys
 from performance.logger import setup_loggers
 from shared.precommands import PreCommands
 from shared import const
-from test import EXE_NAME
+from test import EXENAME
 
 setup_loggers(True)
 precommands = PreCommands()
 precommands.new(template='mvc',
                 output_dir=const.SRCDIR,
                 bin_dir=const.BINDIR,
-                exename=EXE_NAME,
+                exename=EXENAME,
                 working_directory=sys.path[0])
 precommands.execute()

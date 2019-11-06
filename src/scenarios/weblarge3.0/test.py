@@ -2,12 +2,12 @@ import os
 from shared.runner import TestTraits, Runner
 from shared import const
 
-SCENARIO_NAME = 'Web Large 3.0'
-EXE_NAME = 'weblarge30'
+SCENARIONAME = 'Web Large 3.0'
+EXENAME = 'weblarge30'
 
 def main():
-    traits = TestTraits(scenarioname=SCENARIO_NAME,
-                        exename=EXE_NAME,
+    traits = TestTraits(scenarioname=SCENARIONAME,
+                        exename=EXENAME,
                         guiapp='false',
                         workingdir='mvc',
                         timeout='50',   # increase timeout for the large project

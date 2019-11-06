@@ -2,12 +2,12 @@ import os
 from shared.runner import TestTraits, Runner
 from shared import const
 
-SCENARIO_NAME = 'WPF Template'
-EXE_NAME = 'wpf'
+SCENARIONAME = 'WPF Template'
+EXENAME = 'wpf'
 
 def main():
-    traits = TestTraits(scenarioname=SCENARIO_NAME,
-                        exename=EXE_NAME,
+    traits = TestTraits(scenarioname=SCENARIONAME,
+                        exename=EXENAME,
                         guiapp='false', 
                         sdk=True,
                         )

@@ -2,12 +2,12 @@ import os
 from shared.runner import TestTraits, Runner
 from shared import const
 
-SCENARIO_NAME = 'Windows Forms Template'
-EXE_NAME = 'windowsforms'
+SCENARIONAME = 'Windows Forms Template'
+EXENAME = 'windowsforms'
 
 def main():
-    traits = TestTraits(scenarioname=SCENARIO_NAME,
-                        exename=EXE_NAME,
+    traits = TestTraits(scenarioname=SCENARIONAME,
+                        exename=EXENAME,
                         guiapp='false', 
                         sdk=True,
                         )

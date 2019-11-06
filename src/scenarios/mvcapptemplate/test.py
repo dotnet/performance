@@ -2,13 +2,13 @@ import os
 from shared.runner import TestTraits, Runner
 from shared import const
 
-SCENARIO_NAME = 'ASP.NET Core MVC App Template'
-EXE_NAME = 'mvcapptemplate'
+SCENARIONAME = 'ASP.NET Core MVC App Template'
+EXENAME = 'mvcapptemplate'
 
 
 def main():
-    traits = TestTraits(scenarioname=SCENARIO_NAME,
-                        exename=EXE_NAME,
+    traits = TestTraits(scenarioname=SCENARIONAME,
+                        exename=EXENAME,
                         guiapp='false', 
                         sdk=True,
                         )
