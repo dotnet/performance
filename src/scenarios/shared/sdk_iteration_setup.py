@@ -10,10 +10,10 @@ def main():
     setup_loggers(True)
     shutdown_server(verbose=True)
     getLogger().info("Removing project directory...")
-    if os.path.isdir(const.TMPDIR):
-        shutil.rmtree(const.TMPDIR)
+    if os.path.isdir(const.APPDIR):
+        shutil.rmtree(const.APPDIR)
     getLogger().info("Copying clean project directory...")
-    shutil.copytree(const.APPDIR, const.TMPDIR)
+    shutil.copytree(const.SRCDIR, const.APPDIR)
 
 
 if __name__ == "__main__":

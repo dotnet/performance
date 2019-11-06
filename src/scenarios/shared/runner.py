@@ -99,7 +99,7 @@ class Runner:
                                 apptorun=const.DOTNET,
                                 iterationsetup='py' if sys.platform == 'win32' else 'py3',
                                 setupargs='-3 %s' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
-                                workingdir=const.TMPDIR,
+                                workingdir= const.APPDIR if not self.traits.workingdir else os.path.join(const.APPDIR, self.traits.workingdir),
                                 environmentvariables=envlistcleanbuild,
                                 processwillexit=self.traits.processwillexit,
                                 measurementdelay=self.traits.measurementdelay
@@ -118,7 +118,7 @@ class Runner:
                                 apptorun=const.DOTNET,
                                 iterationsetup=None,
                                 setupargs=None,
-                                workingdir=const.TMPDIR,
+                                workingdir= const.APPDIR if not self.traits.workingdir else os.path.join(const.APPDIR, self.traits.workingdir),
                                 environmentvariables=envlistbuild,
                                 processwillexit=self.traits.processwillexit,
                                 measurementdelay=self.traits.measurementdelay

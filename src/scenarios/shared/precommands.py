@@ -135,9 +135,9 @@ class PreCommands:
 
     def _backup(self):
         'make a temp copy of the asset'
-        if os.path.isdir(const.TMPDIR):
-            shutil.rmtree(const.TMPDIR)
-        shutil.copytree(const.APPDIR, const.TMPDIR)
+        if os.path.isdir(const.APPDIR):
+            shutil.rmtree(const.APPDIR)
+        shutil.copytree(const.SRCDIR, const.APPDIR)
 
     def _updateframework(self, projectfile: str):
         if self.framework:
