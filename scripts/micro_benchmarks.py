@@ -91,15 +91,17 @@ class FrameworkAction(Action):
         '''
         dct = {
             'netcoreapp5.0': 'master',
-            'netcoreapp3.0': 'release/3.1.1xx',
+            'netcoreapp3.1': 'release/3.1.1xx',
+            'netcoreapp3.0': 'release/3.0',
             'netcoreapp2.2': 'release/2.2',
             'netcoreapp2.1': 'release/2.1',
             # For Full Framework download the LTS for dotnet cli.
             'net461': 'LTS',
         }
-        return dct[target_framework_moniker] \
-            if target_framework_moniker in dct \
-            else None
+        if target_framework_moniker in dct:
+            return dct[target_framework_moniker]
+        else:
+            raise Exception('Branch %s is not mapped in the branch table.' % target_framework_moniker)
 
     @staticmethod
     def get_target_framework_moniker(framework: str) -> str:
