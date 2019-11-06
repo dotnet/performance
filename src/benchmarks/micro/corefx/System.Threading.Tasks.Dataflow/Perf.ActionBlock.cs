@@ -21,19 +21,6 @@ namespace System.Threading.Tasks.Dataflow.Tests
             );
     }
 
-    public class UnorderedParallelActionBlockPerfTests : TargetPerfTests<ITargetBlock<int>>
-    {
-        public override ITargetBlock<int> CreateBlock() =>
-            new ActionBlock<int>(
-                i => { },
-                new ExecutionDataflowBlockOptions
-                {
-                    MaxDegreeOfParallelism = Environment.ProcessorCount,
-                    EnsureOrdered = false
-                }
-            );
-    }
-
     public class SingleProducerConstrainedActionBlockPerfTests : TargetPerfTests<ITargetBlock<int>>
     {
         public override ITargetBlock<int> CreateBlock() =>

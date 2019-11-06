@@ -10,13 +10,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
     [BenchmarkCategory(Categories.CoreFX)]
     public class BroadcastBlockPerfTests : ReceivablePropagatorPerfTests<BroadcastBlock<int>, int>
     {
-        public override BroadcastBlock<int> CreateBlock() =>
-            new BroadcastBlock<int>(
-                i => i,
-                new ExecutionDataflowBlockOptions
-                {
-                    MaxDegreeOfParallelism = Environment.ProcessorCount
-                });
+        public override BroadcastBlock<int> CreateBlock() => new BroadcastBlock<int>(i => i);
 
         [Benchmark(OperationsPerInvoke = MessagesCount)]
         public Task PostMultiReceiveParallel() => MultiParallel(() => Post());

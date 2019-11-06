@@ -16,7 +16,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
 
         public abstract T CreateBlock();
 
-        [GlobalSetup]
+        [IterationSetup]
         public void BlockSetup()
         {
             block = CreateBlock();
