@@ -223,6 +223,7 @@ jobs:
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
         - netcoreapp3.1
+        - netcoreapp3.0
       
   # Windows x86 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -238,6 +239,7 @@ jobs:
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
         - netcoreapp3.1
+        - netcoreapp3.0
 
   # Windows x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -253,6 +255,7 @@ jobs:
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
         - netcoreapp3.1
+        - netcoreapp3.0
 
   # Windows x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -268,6 +271,7 @@ jobs:
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
         - netcoreapp3.1
+        - netcoreapp3.0
 
   # Ubuntu 1804 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -284,6 +288,7 @@ jobs:
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
         - netcoreapp3.1
+        - netcoreapp3.0
 
   # Ubuntu 1804 x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -300,6 +305,7 @@ jobs:
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
         - netcoreapp3.1
+        - netcoreapp3.0
   
   # Ubuntu 1804 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -316,6 +322,22 @@ jobs:
       frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - netcoreapp5.0
         - netcoreapp3.1
+        - netcoreapp3.0
+
+  # Ubuntu 1804 ARM64 micro benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: micro
+      architecture: arm64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1804.Arm64.Perf
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
+      runCategories: 'coreclr corefx'
+      frameworks: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
+        - netcoreapp3.0
 
 ################################################
 # Scheduled Private jobs
