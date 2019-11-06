@@ -215,6 +215,10 @@ namespace ScenarioMeasurement
                 }
                 TraceEventSession.Merge(files.ToArray(), traceFileName);
 
+                if (guiApp)
+                {
+                    appExe = Path.Join(workingDir, appExe);
+                }
                 string commandLine = $"\"{appExe}\"";
                 if (!String.IsNullOrEmpty(appArgs))
                 {

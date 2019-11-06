@@ -1,18 +1,16 @@
 '''
 C# Console app
 '''
-import sys
-import os
 from shared.runner import TestTraits, Runner
 
-SCENARIONAME = '.NET Core 5.0 Console Template'
-EXENAME = '50consoletemplate'
+SCENARIONAME = 'Static Console Template'
+EXENAME = 'staticconsoletemplate'
 
 if __name__ == "__main__":
     traits = TestTraits(scenarioname=SCENARIONAME, 
                         exename=EXENAME, 
                         startupmetric='TimeToMain',
                         startup=True,
-                        guiapp='false', # string passed through to tool
+                        guiapp='false',
                         )
     Runner(traits).run()

@@ -8,17 +8,17 @@ import shutil
 from argparse import ArgumentParser
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
-from performance.common import get_packages_directory
+from shared.util import helixpayload
+from shared.codefixes import replace_line, insert_after
+from performance.common import get_packages_directory, get_repo_root_path
 
 BUILD = 'build'
 PUBLISH = 'publish'
-RESTORE = 'restore'
 BACKUP = 'backup'
 DEBUG = 'Debug'
 RELEASE = 'Release'
 
 OPERATIONS = (BUILD,
-              RESTORE,
               PUBLISH,
               BACKUP
              )
@@ -36,7 +36,6 @@ class PreCommands:
                                            description='Common preperation steps for perf tests.',
                                            required=True,
                                            dest='operation')
-        restore_parser = subparsers.add_parser(RESTORE, help='Restores the project')
 
         build_parser = subparsers.add_parser(BUILD, help='Builds the project')
         self.add_common_arguments(build_parser)
@@ -50,8 +49,17 @@ class PreCommands:
         args = parser.parse_args()
         self.configuration = args.configuration
         self.operation = args.operation
+        self.framework = args.framework
+        self.runtime = args.runtime
+        self.msbuild = args.msbuild
 
-    def new(self, template: str, output_dir: str, bin_dir: str, exename: str, working_directory: str):
+    def new(self,
+            template: str,
+            output_dir: str,
+            bin_dir: str,
+            exename: str,
+            working_directory: str,
+            language: str = None):
         'makes a new app with the given template'
         self.project = CSharpProject.new(template=template,
                                  output_dir=output_dir,
@@ -59,7 +67,9 @@ class PreCommands:
                                  exename=exename,
                                  working_directory=working_directory,
                                  force=True,
-                                 verbose=True)
+                                 verbose=True,
+                                 target_framework_moniker=self.framework,
+                                 language=language)
         return self
 
     def add_common_arguments(self, parser: ArgumentParser):
@@ -80,24 +90,48 @@ class PreCommands:
                             metavar='/p:Foo=Bar;/p:Baz=Blee;...')
         parser.set_defaults(configuration=RELEASE)
 
-    def existing(self, projectfile: str):
+    def existing(self, projectdir: str, projectfile: str):
         'create a project from existing project file'
-        csproj = CSharpProjFile(projectfile, sys.path[0])
+
+        # copy from projectdir to appdir
+        if os.path.isdir(const.APPDIR):
+            shutil.rmtree(const.APPDIR)
+        shutil.copytree(projectdir, const.APPDIR)
+        csproj = CSharpProjFile(os.path.join(const.APPDIR, projectfile), sys.path[0])
         self.project = CSharpProject(csproj, const.BINDIR)
+        self._updateframework(csproj.file_name)
         return self
 
     def execute(self):
         'Parses args and runs precommands'
         if self.operation == BUILD:
             self._restore()
-            self._build(self.configuration)
-        if self.operation == RESTORE:
-            self._restore()
+            self._build(configuration=self.configuration, framework=self.framework)
         if self.operation == PUBLISH:
             self._restore()
             self._publish(self.configuration)
         if self.operation == BACKUP:
             self._backup()
+
+    def add_startup_logging(self, file: str, line: str):
+        self.add_event_source(file, line, "PerfLabGenericEventSource.Log.Startup();")
+
+    def add_event_source(self, file: str, line: str, trace_statement: str):
+        '''
+        Adds a copy of the event source to the project and inserts the correct call
+        file: relative path to the root of the project (where the project file lives)
+        line: Exact line to insert trace statement after
+        trace_statement: Statement to insert
+        '''
+
+        projpath = os.path.dirname(self.project.csproj_file)
+        staticpath = os.path.join(get_repo_root_path(), "src", "scenarios", "staticdeps")
+        if helixpayload():
+            staticpath = os.path.join(helixpayload(), "staticdeps")
+        shutil.copyfile(os.path.join(staticpath, "PerfLab.cs"), os.path.join(projpath, "PerfLab.cs"))
+        filepath = os.path.join(projpath, file)
+        insert_after(filepath, line, trace_statement)
+        
 
     def _backup(self):
         'make a temp copy of the asset'
@@ -105,20 +139,24 @@ class PreCommands:
             shutil.rmtree(const.TMPDIR)
         shutil.copytree(const.APPDIR, const.TMPDIR)
 
+    def _updateframework(self, projectfile: str):
+        if self.framework:
+            replace_line(projectfile, "$FRAMEWORK", self.framework)
 
-    def _publish(self, configuration: str):
+    def _publish(self, configuration: str, framework: str = None):
         self.project.publish(configuration=configuration,
                              output_dir=const.PUBDIR, 
                              verbose=True,
-                             packages_path=get_packages_directory()
+                             packages_path=get_packages_directory(),
+                             target_framework_moniker=framework
                              )
 
     def _restore(self):
         self.project.restore(packages_path=get_packages_directory(), verbose=True)
 
-    def _build(self, configuration: str):
+    def _build(self, configuration: str, framework: str = None):
         self.project.build(configuration=configuration,
                                verbose=True,
                                packages_path=get_packages_directory(),
-                               target_framework_monikers=None,
+                               target_framework_monikers=framework,
                                output_to_bindir=True)

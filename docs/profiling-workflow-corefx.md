@@ -24,6 +24,7 @@
   - [Troubleshooting](#Troubleshooting)
   - [Code](#Code)
   - [Skids](#Skids)
+  - [Linux](#Linux)
 - [PerfCollect](#PerfCollect)
   - [Preparing Your Machine](#Preparing-Your-Machine)
   - [Preparing Repro](#Preparing-Repro)
@@ -220,6 +221,16 @@ You can either click on the `Main` method and drill into interesting methods:
 Or just sort the methods by exclusive CPU time by clicking on the `Self CPU` column and clicking on the most time-consuming method name.
 
 ![Most time consuming](img/vs_profiler_6_sort_by_self_cpu_time.png)
+
+Visual Studio Profiler 2019 has changed the default policy for loading symbol files.
+
+If you see "Source information is not available" message:
+
+![Source information is not available](img/vs_profiler_source_info_not_available.png)
+
+You need to switch to "Call Tree" view, right click on a method from given module and choose "Load Module Symbols" from the menu:
+
+![Load Module Symbols](img/vs_profiler_load_module_symbols.png)
 
 If you have configured everything properly you are able to see the CPU time spent per source code line!
 
@@ -422,6 +433,8 @@ Intel VTune is a very powerful profiler that allows for low-level profiling:
 * identifies hot spots and bottlenecks
 * utilizes MSRs to get additional low-level hardware information
 
+VTune **supports Windows, Linux and macOS!**
+
 ## When to use
 
 Let's use PerfView to profile the following app that tries to reproduce [Potential regression: Dictionary of Value Types #25842 ](https://github.com/dotnet/coreclr/issues/25842):
@@ -481,7 +494,7 @@ When we open the Flame Graph we can see that the Call Stack ends at `FindEntry` 
 
 ## Identifying Hotspots
 
-Run VTune **as Administrator** and click `New Project`:
+Run VTune **as Administrator|sudo** and click `New Project`:
 
 ![New Project](img/vtune_new_project.png)
 
@@ -566,6 +579,30 @@ bool result ^= dictionary.TryGetValue(notFound, out _);
 The profiler shows that a lot of inclusive CPU time was spent on the `xor` operation. Obviously, it's not true and it was most probably spent in the `call` to `TryGetValue` method. It means that to fully understand the output of Hardware Event-Based Sampling profilers you also need to be familiar with assembly code.
 
 ![Skids](img/vtune_skids.png)
+
+## Linux
+
+VTune works great on Linux and as of today it's the only fully featured profiler that works with .NET Core on Linux. 
+
+It works best when installed and run as `sudo`:
+
+```cmd
+sudo ./install_GUI.sh
+cd /opt/intel/vtune_amplifier_2019/bin64
+sudo ./amplxe-gui
+```
+
+It can show CPU time per C++|C# source code line:
+
+![VTune Linux Cpp](img/vtune_linux_cpp.png)
+
+It's capable of solving both managed and native symbols:
+
+![VTune Linux Modules](img/vtune_linux_modules.png)
+
+It can show the disassembly of profiled methods:
+
+![VTune Linux ASM](img/vtune_linux_asm.png)
 
 # PerfCollect
 
@@ -669,6 +706,8 @@ As mentioned previously, currently only PerfView is capable of opening a `PerfCo
 ```cmd
 scp -r adsitnik@11.222.33.444:/home/adsitnik/Projects/tracing/slowStartsWith.zip C:\traces\startsWith
 ```
+
+The alternative is to use [VTune](#VTune) which allows for profiling and analyzing profile information on Linux.
 
 Once you get it there, you need to open it with PerfView and follow the [filtering instructions](#filtering) to filter the trace and [analyze the results](#Analyzing-the-Results).
 

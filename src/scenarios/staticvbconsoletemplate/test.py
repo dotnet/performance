@@ -3,8 +3,8 @@ C# Console app
 '''
 from shared.runner import TestTraits, Runner
 
-SCENARIONAME = 'Empty C# Console Template'
-EXENAME = 'emptycsconsoletemplate'
+SCENARIONAME = 'Static VB Console Template'
+EXENAME = 'staticvbconsoletemplate'
 
 if __name__ == "__main__":
     traits = TestTraits(scenarioname=SCENARIONAME, 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace _50consoletemplate
+namespace staticconsoletemplate
 {
     class Program
     {

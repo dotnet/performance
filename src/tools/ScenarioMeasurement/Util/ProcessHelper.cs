@@ -52,6 +52,8 @@ namespace ScenarioMeasurement
             psi.FileName = Executable;
             psi.Arguments = Arguments;
             psi.WorkingDirectory = WorkingDirectory;
+            // WindowStyles only get passed through if UseShellExecute=true
+            // As we only care about WindowStyles for GUI apps, we can use that value here.
             psi.UseShellExecute = GuiApp;
 
             if (EnvironmentVariables != null)
