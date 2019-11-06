@@ -36,8 +36,8 @@ optfields = ('guiapp',
 testtypes = {const.STARTUP: False,
              const.SDK: False}
 
-TestTraits = namedtuple('TestTraits', 
-                        reqfields  + tuple(testtypes.keys()) + optfields, 
+TestTraits = namedtuple('TestTraits',
+                        reqfields  + tuple(testtypes.keys()) + optfields,
                         defaults=tuple(testtypes.values()) + (None,) * len(optfields))
 
 class Runner:
@@ -48,6 +48,7 @@ class Runner:
     def __init__(self, traits: TestTraits):
         self.traits = traits
         self.testtype = None
+        self.sdktype = None
         setup_loggers(True)
 
     def parseargs(self):
@@ -55,12 +56,20 @@ class Runner:
         Parses input args to the script
         '''
         parser = ArgumentParser()
-        parser.add_argument('testtype', choices=testtypes, type=str.lower)
+        subparsers = parser.add_subparsers(title='subcommands for sdk tests', required=True, dest='testtype')
+        startupparser = subparsers.add_parser(const.STARTUP)
+        sdkparser = subparsers.add_parser(const.SDK)
+        sdkparser.add_argument('sdktype', choices=[const.CLEAN_BUILD, const.BUILD_NO_CHANGE], type=str.lower)
+
         args = parser.parse_args()
+
         if not getattr(self.traits, args.testtype):
             getLogger().error("Test type %s is not supported by this scenario", args.testtype)
             sys.exit(1)
         self.testtype = args.testtype
+
+        if self.testtype == const.SDK:
+            self.sdktype = args.sdktype
 
     def run(self):
         '''
@@ -77,38 +86,40 @@ class Runner:
             envlistbuild = 'DOTNET_MULTILEVEL_LOOKUP=0'
             envlistcleanbuild= ';'.join(['MSBUILDDISABLENODEREUSE=1', envlistbuild])
             # clean build
-            startup.runtests(scenarioname=self.traits.scenarioname,
-                             exename=self.traits.exename,
-                             guiapp=self.traits.guiapp,
-                             startupmetric=const.STARTUP_PROCESSTIME,
-                             appargs='build',
-                             timeout=self.traits.timeout,
-                             warmup='true',
-                             iterations=self.traits.iterations,
-                             scenariotypename='%s (%s)' % (const.SCENARIO_NAMES[const.SDK], 'Clean Build'),
-                             apptorun=const.DOTNET,
-                             iterationsetup='py' if sys.platform == 'win32' else 'py3',
-                             setupargs='-3 %s' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
-                             workingdir=const.TMPDIR,
-                             environmentvariables=envlistcleanbuild,
-                             processwillexit=self.traits.processwillexit,
-                             measurementdelay=self.traits.measurementdelay
+            if self.sdktype == const.CLEAN_BUILD:
+                startup.runtests(scenarioname=self.traits.scenarioname,
+                                exename=self.traits.exename,
+                                guiapp=self.traits.guiapp,
+                                startupmetric=const.STARTUP_PROCESSTIME,
+                                appargs='build',
+                                timeout=self.traits.timeout,
+                                warmup='true',
+                                iterations=self.traits.iterations,
+                                scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.CLEAN_BUILD),
+                                apptorun=const.DOTNET,
+                                iterationsetup='py' if sys.platform == 'win32' else 'py3',
+                                setupargs='-3 %s' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
+                                workingdir=const.TMPDIR,
+                                environmentvariables=envlistcleanbuild,
+                                processwillexit=self.traits.processwillexit,
+                                measurementdelay=self.traits.measurementdelay
                              )
             # build(no changes)
-            startup.runtests(scenarioname=self.traits.scenarioname,
-                             exename=self.traits.exename,
-                             guiapp=self.traits.guiapp,
-                             startupmetric=const.STARTUP_PROCESSTIME,
-                             appargs='build',
-                             timeout=self.traits.timeout,
-                             warmup='true',
-                             iterations=self.traits.iterations,
-                             scenariotypename='%s (%s)' % (const.SCENARIO_NAMES[const.SDK], 'Build(no changes)'),
-                             apptorun=const.DOTNET,
-                             iterationsetup=None,
-                             setupargs=None,
-                             workingdir=const.TMPDIR,
-                             environmentvariables=envlistbuild,
-                             processwillexit=self.traits.processwillexit,
-                             measurementdelay=self.traits.measurementdelay
-                             )
+            if self.sdktype == const.BUILD_NO_CHANGE:
+                startup.runtests(scenarioname=self.traits.scenarioname,
+                                exename=self.traits.exename,
+                                guiapp=self.traits.guiapp,
+                                startupmetric=const.STARTUP_PROCESSTIME,
+                                appargs='build',
+                                timeout=self.traits.timeout,
+                                warmup='true',
+                                iterations=self.traits.iterations,
+                                scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.BUILD_NO_CHANGE),
+                                apptorun=const.DOTNET,
+                                iterationsetup=None,
+                                setupargs=None,
+                                workingdir=const.TMPDIR,
+                                environmentvariables=envlistbuild,
+                                processwillexit=self.traits.processwillexit,
+                                measurementdelay=self.traits.measurementdelay
+                                )

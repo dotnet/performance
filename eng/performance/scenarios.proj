@@ -55,10 +55,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <HelixWorkItem Include="SDK .NET 2.0 Console Template">
+    <HelixWorkItem Include="SDK .NET 2.0 Console Template Clean Build">
       <PayloadDirectory>$(ScenariosDir)netcoreapp2.0</PayloadDirectory>
       <PreCommands>$(Python) pre.py backup</PreCommands>
-      <Command>$(Python) test.py sdk</Command>
+      <Command>$(Python) test.py sdk clean_build</Command>
+      <PostCommands>$(Python) post.py</PostCommands>
+      <Timeout>4:00</Timeout>
+    </HelixWorkItem>
+  </ItemGroup>
+
+   <ItemGroup>
+    <HelixWorkItem Include="SDK .NET 2.0 Console Template Build (No Change)">
+      <PayloadDirectory>$(ScenariosDir)netcoreapp2.0</PayloadDirectory>
+      <PreCommands>$(Python) pre.py backup</PreCommands>
+      <Command>$(Python) test.py sdk build_no_change</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
