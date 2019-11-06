@@ -86,38 +86,40 @@ class Runner:
             envlistbuild = 'DOTNET_MULTILEVEL_LOOKUP=0'
             envlistcleanbuild= ';'.join(['MSBUILDDISABLENODEREUSE=1', envlistbuild])
             # clean build
-            startup.runtests(scenarioname=self.traits.scenarioname,
-                             exename=self.traits.exename,
-                             guiapp=self.traits.guiapp,
-                             startupmetric=const.STARTUP_PROCESSTIME,
-                             appargs='build',
-                             timeout=self.traits.timeout,
-                             warmup='true',
-                             iterations=self.traits.iterations,
-                             scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.CLEAN_BUILD),
-                             apptorun=const.DOTNET,
-                             iterationsetup='py' if sys.platform == 'win32' else 'py3',
-                             setupargs='-3 %s' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
-                             workingdir=const.TMPDIR,
-                             environmentvariables=envlistcleanbuild,
-                             processwillexit=self.traits.processwillexit,
-                             measurementdelay=self.traits.measurementdelay
+            if self.sdktype == const.CLEAN_BUILD:
+                startup.runtests(scenarioname=self.traits.scenarioname,
+                                exename=self.traits.exename,
+                                guiapp=self.traits.guiapp,
+                                startupmetric=const.STARTUP_PROCESSTIME,
+                                appargs='build',
+                                timeout=self.traits.timeout,
+                                warmup='true',
+                                iterations=self.traits.iterations,
+                                scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.CLEAN_BUILD),
+                                apptorun=const.DOTNET,
+                                iterationsetup='py' if sys.platform == 'win32' else 'py3',
+                                setupargs='-3 %s' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
+                                workingdir=const.TMPDIR,
+                                environmentvariables=envlistcleanbuild,
+                                processwillexit=self.traits.processwillexit,
+                                measurementdelay=self.traits.measurementdelay
                              )
             # build(no changes)
-            startup.runtests(scenarioname=self.traits.scenarioname,
-                             exename=self.traits.exename,
-                             guiapp=self.traits.guiapp,
-                             startupmetric=const.STARTUP_PROCESSTIME,
-                             appargs='build',
-                             timeout=self.traits.timeout,
-                             warmup='true',
-                             iterations=self.traits.iterations,
-                             scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.BUILD_NO_CHANGE),
-                             apptorun=const.DOTNET,
-                             iterationsetup=None,
-                             setupargs=None,
-                             workingdir=const.TMPDIR,
-                             environmentvariables=envlistbuild,
-                             processwillexit=self.traits.processwillexit,
-                             measurementdelay=self.traits.measurementdelay
-                             )
+            if self.sdktype == const.BUILD_NO_CHANGE:
+                startup.runtests(scenarioname=self.traits.scenarioname,
+                                exename=self.traits.exename,
+                                guiapp=self.traits.guiapp,
+                                startupmetric=const.STARTUP_PROCESSTIME,
+                                appargs='build',
+                                timeout=self.traits.timeout,
+                                warmup='true',
+                                iterations=self.traits.iterations,
+                                scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.BUILD_NO_CHANGE),
+                                apptorun=const.DOTNET,
+                                iterationsetup=None,
+                                setupargs=None,
+                                workingdir=const.TMPDIR,
+                                environmentvariables=envlistbuild,
+                                processwillexit=self.traits.processwillexit,
+                                measurementdelay=self.traits.measurementdelay
+                                )
