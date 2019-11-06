@@ -12,7 +12,7 @@ To learn more about designing benchmarks, please read [Microbenchmark Design Gui
 
 ## Quick Start
 
-The first thing that you need to choose is the Target Framework. Available options are: `netcoreapp2.1|netcoreapp2.2|netcoreapp3.0|net461`. You can specify the target framework using `-f|--framework` argument. For the sake of simplicity, all examples below use `netcoreapp3.0` as the target framework.
+The first thing that you need to choose is the Target Framework. Available options are: `netcoreapp2.1|netcoreapp2.2|netcoreapp3.0|net48`. You can specify the target framework using `-f|--framework` argument. For the sake of simplicity, all examples below use `netcoreapp3.0` as the target framework.
 
 The following commands are run from the `src/benchmarks/micro` directory.
 

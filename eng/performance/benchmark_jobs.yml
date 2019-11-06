@@ -7,7 +7,7 @@ parameters:
   queue: ''             # required -- name of the Helix queue
   container: ''         # optional -- id of the container
   csproj: ''            # required -- relative path to csproj with benchmarks
-  frameworks: []        # required -- list of frameworks. Allowed values: net461, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
+  frameworks: []        # required -- list of frameworks. Allowed values: net48, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
   runCategories: ''     # required -- string of space separated categories supplied to benchmark dotnet
 
 jobs:

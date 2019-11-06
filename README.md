@@ -29,7 +29,7 @@ This project has adopted the code of conduct defined by the Contributor Covenant
 | Core 3.0  | [![micro_windows_RS5_x64_netcoreapp3.0_icon]][micro_windows_RS5_x64_netcoreapp3.0_status] |                                                                                             | [![micro_ubuntu_1804_x64_netcoreapp3.0_icon]][micro_ubuntu_1804_x64_netcoreapp3.0_status] | Disabled |
 | Core 2.2  | [![micro_windows_RS5_x64_netcoreapp2.2_icon]][micro_windows_RS5_x64_netcoreapp2.2_status] |                                                                                             | [![micro_ubuntu_1804_x64_netcoreapp2.2_icon]][micro_ubuntu_1804_x64_netcoreapp2.2_status] | N/A                                                                                             |
 | Core 2.1  | [![micro_windows_RS5_x64_netcoreapp2.1_icon]][micro_windows_RS5_x64_netcoreapp2.1_status] |                                                                                             | [![micro_ubuntu_1804_x64_netcoreapp2.1_icon]][micro_ubuntu_1804_x64_netcoreapp2.1_status] | N/A                                                                                             |
-| .NET      | [![micro_windows_RS5_x64_net461_icon]][micro_windows_RS5_x64_net461_status]               |                                                                                             | N/A                                                                                         | N/A                                                                                             |
+| .NET      | [![micro_windows_RS5_x64_net48_icon]][micro_windows_RS5_x64_net48_status]                 |                                                                                             | N/A                                                                                         | N/A                                                                                             |
 
 [//]: # (These are the repo links)
 
@@ -65,8 +65,8 @@ This project has adopted the code of conduct defined by the Contributor Covenant
 [micro_windows_RS5_x64_netcoreapp2.2_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS5%20x64%20micro&configuration=windows%20RS5%20x64%20micro%20netcoreapp2.2
 [micro_windows_RS5_x64_netcoreapp2.1_status]:     https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS5%20x64%20micro&configuration=windows%20RS5%20x64%20micro%20netcoreapp2.1
 [micro_windows_RS5_x64_netcoreapp2.1_icon]:       https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS5%20x64%20micro&configuration=windows%20RS5%20x64%20micro%20netcoreapp2.1
-[micro_windows_RS5_x64_net461_status]:            https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro_net461
-[micro_windows_RS5_x64_net461_icon]:              https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro_net461
+[micro_windows_RS5_x64_net48_status]:             https://dev.azure.com/dnceng/public/_build/latest?definitionId=271&branchName=master&jobName=windows%20RS4%20x64%20micro_net48
+[micro_windows_RS5_x64_net48_icon]:               https://dev.azure.com/dnceng/public/_apis/build/status/dotnet/performance/performance-ci?branchName=master&jobName=windows%20RS4%20x64%20micro_net48
 
 
 [//]: # (These are the windows x86 links)

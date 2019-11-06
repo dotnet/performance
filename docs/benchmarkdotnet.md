@@ -283,7 +283,7 @@ M00_L00:
 
 The `--runtimes` or just `-r` allows you to run the benchmarks for **multiple Runtimes**.
 
-Available options are: Mono, CoreRT, net461, net462, net47, net471, net472, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0.
+Available options are: Mono, CoreRT, net48, net462, net47, net471, net472, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0.
 
 Example: run the benchmarks for .NET Core 2.2 and 3.0:
 
