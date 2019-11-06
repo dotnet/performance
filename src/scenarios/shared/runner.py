@@ -27,6 +27,8 @@ optfields = ('guiapp',
              'workingdir',
              'iterationsetup',
              'setupargs',
+             'processwillexit',
+             'measurementdelay'
              )
 
 # These are the kinds of scenarios we run. Default here indicates whether ALL
@@ -88,7 +90,9 @@ class Runner:
                              iterationsetup='py' if sys.platform == 'win32' else 'py3',
                              setupargs='-3 %s' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
                              workingdir=const.TMPDIR,
-                             environmentvariables=envlistcleanbuild
+                             environmentvariables=envlistcleanbuild,
+                             processwillexit=self.traits.processwillexit,
+                             measurementdelay=self.traits.measurementdelay
                              )
             # build(no changes)
             startup.runtests(scenarioname=self.traits.scenarioname,
@@ -104,5 +108,7 @@ class Runner:
                              iterationsetup=None,
                              setupargs=None,
                              workingdir=const.TMPDIR,
-                             environmentvariables=envlistbuild
+                             environmentvariables=envlistbuild,
+                             processwillexit=self.traits.processwillexit,
+                             measurementdelay=self.traits.measurementdelay
                              )

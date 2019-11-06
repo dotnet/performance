@@ -17,6 +17,7 @@ PUBDIR = 'pub'
 APPDIR = 'app'
 TRACEDIR = 'traces'
 TMPDIR = 'tmp'
+SRCDIR = 'src' # used for checked in source.
 
 DOTNET = 'dotnet'
 

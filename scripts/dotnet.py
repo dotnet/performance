@@ -300,7 +300,9 @@ class CSharpProject:
             verbose: bool,
             working_directory: str,
             force: bool = False,
-            exename: str = None
+            exename: str = None,
+            target_framework_moniker: str = None,
+            language: str = None
             ):
         '''
         Creates a new project with the specified template
@@ -317,12 +319,22 @@ class CSharpProject:
         if exename:
             cmdline += ['--name', exename]
 
+        if target_framework_moniker:
+            cmdline += ['--framework', target_framework_moniker]
+
+        if language:
+            cmdline += ['--language', language]
+
+
         RunCommand(cmdline, verbose=verbose).run(
             working_directory
         )
         # the file could be any project type. let's guess.
+        project_type = 'csproj'
+        if language == 'vb':
+            project_type = 'vbproj'
 
-        return CSharpProject(CSharpProjFile(path.join(output_dir, '%s.csproj' % (exename or output_dir)),
+        return CSharpProject(CSharpProjFile(path.join(output_dir, '%s.%s' % (exename or output_dir, project_type)),
                                             working_directory),
                              bin_dir)
 

@@ -1,2 +1,2 @@
-$scripts = Join-Path $PSScriptRoot '..\..\scripts\' -Resolve
+$scripts = Join-Path $PSScriptRoot '..\..\scripts' -Resolve
 $env:PYTHONPATH="$scripts;$PSScriptRoot"
