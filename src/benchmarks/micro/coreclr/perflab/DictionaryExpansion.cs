@@ -139,9 +139,6 @@ namespace PerfLabTests
                 GenFunc<DictionaryExpansion>(i);
         }
 
-        public static int s_Iterations = 100000;
-
-
         //
         // This benchmark is used to measure the performance of generic dictionary lookups.
         // 
