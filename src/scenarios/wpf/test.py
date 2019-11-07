@@ -2,8 +2,8 @@ import os
 from shared.runner import TestTraits, Runner
 from shared import const
 
-SCENARIO_NAME = '.NET Core 2.0 Console Template'
-EXE_NAME = 'NetCoreApp'
+SCENARIO_NAME = 'WPF Template'
+EXE_NAME = 'wpf'
 
 def main():
     traits = TestTraits(scenarioname=SCENARIO_NAME,
