@@ -16,7 +16,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
 
         public abstract T CreateBlock();
 
-        [IterationSetup]
+        [GlobalSetup]
         public void BlockSetup()
         {
             block = CreateBlock();
@@ -25,6 +25,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
         [Benchmark]
         public async Task Completion()
         {
+            BlockSetup();
             block.Complete();
             await block.Completion;
         }
@@ -64,7 +65,6 @@ namespace System.Threading.Tasks.Dataflow.Tests
             {
                 await target.SendAsync(i);
             }
-            target.Complete();
         }
 
         protected static async Task ReceiveAsync<U>(ISourceBlock<U> source, int receiveSize = 1)
@@ -76,7 +76,6 @@ namespace System.Threading.Tasks.Dataflow.Tests
                     await source.ReceiveAsync();
                 }
             }
-            await source.Completion;
         }
     }
 

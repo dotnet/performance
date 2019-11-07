@@ -20,6 +20,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
 
         private async Task MultiParallel(Func<Task> doTask)
         {
+            BlockSetup();
             var options = new DataflowLinkOptions { PropagateCompletion = true };
             var action1 = new ActionBlock<int>(i => { });
             var action2 = new ActionBlock<int>(i => { });
