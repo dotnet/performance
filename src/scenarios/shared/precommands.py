@@ -12,12 +12,14 @@ from shared.util import helixpayload
 from shared.codefixes import replace_line, insert_after
 from performance.common import get_packages_directory, get_repo_root_path
 
+DEFAULT = 'default'
 BUILD = 'build'
 PUBLISH = 'publish'
 DEBUG = 'Debug'
 RELEASE = 'Release'
 
-OPERATIONS = (BUILD,
+OPERATIONS = (DEFAULT,
+              BUILD,
               PUBLISH
              )
 
@@ -33,7 +35,11 @@ class PreCommands:
 
         subparsers = parser.add_subparsers(title='Operations', 
                                            description='Common preperation steps for perf tests.',
+                                           required=True,
                                            dest='operation')
+
+        default_parser = subparsers.add_parser(DEFAULT, help='Default operation' )
+        self.add_common_arguments(default_parser)
 
         build_parser = subparsers.add_parser(BUILD, help='Builds the project')
         self.add_common_arguments(build_parser)
@@ -43,14 +49,11 @@ class PreCommands:
 
         args = parser.parse_args()
 
-        if args.operation:
-            self.configuration = args.configuration 
-            self.operation = args.operation
-            self.framework = args.framework
-            self.runtime = args.runtime
-            self.msbuild = args.msbuild
-        else:
-            self.framework = None # workaround for passing self.framework to self.new()
+        self.configuration = args.configuration 
+        self.operation = args.operation
+        self.framework = args.framework
+        self.runtime = args.runtime
+        self.msbuild = args.msbuild
 
     def new(self,
             template: str,
@@ -69,7 +72,8 @@ class PreCommands:
                                  verbose=True,
                                  target_framework_moniker=self.framework,
                                  language=language)
-        return self
+        if output_dir != const.APPDIR:
+            self._backup(output_dir)
 
     def add_common_arguments(self, parser: ArgumentParser):
         "Options that are common across many 'dotnet' commands"
@@ -91,17 +95,15 @@ class PreCommands:
 
     def existing(self, projectdir: str, projectfile: str):
         'create a project from existing project file'
-
-        # copy from projectdir to appdir
-        if os.path.isdir(const.APPDIR):
-            shutil.rmtree(const.APPDIR)
-        shutil.copytree(projectdir, const.APPDIR)
+        self._backup(projectdir)
         csproj = CSharpProjFile(os.path.join(const.APPDIR, projectfile), sys.path[0])
         self.project = CSharpProject(csproj, const.BINDIR)
         self._updateframework(csproj.file_name)
 
     def execute(self):
         'Parses args and runs precommands'
+        if self.operation == DEFAULT:
+            pass
         if self.operation == BUILD:
             self._restore()
             self._build(configuration=self.configuration, framework=self.framework)
@@ -149,3 +151,9 @@ class PreCommands:
                                packages_path=get_packages_directory(),
                                target_framework_monikers=framework,
                                output_to_bindir=True)
+
+    def _backup(self, projectdir:str):
+        # copy from projectdir to appdir
+        if os.path.isdir(const.APPDIR):
+            shutil.rmtree(const.APPDIR)
+        shutil.copytree(projectdir, const.APPDIR)

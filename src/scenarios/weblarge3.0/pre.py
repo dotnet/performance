@@ -10,3 +10,4 @@ from shared import const
 setup_loggers(True)
 precommands = PreCommands()
 precommands.existing(os.path.join(sys.path[0], const.SRCDIR), 'mvc\\mvc.csproj')
+precommands.execute()

@@ -62,7 +62,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK .NET 2.0 Console Template Clean Build">
       <PayloadDirectory>$(ScenariosDir)netcoreapp2.0</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk clean_build</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
@@ -72,7 +72,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK .NET 2.0 Console Template Build(No Change)">
       <PayloadDirectory>$(ScenariosDir)netcoreapp2.0</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk build_no_change</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
@@ -82,7 +82,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK .NET 2.0 Library Template Clean Build">
       <PayloadDirectory>$(ScenariosDir)netstandard2.0</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk clean_build</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
@@ -92,7 +92,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK .NET 2.0 Library Template Build(No Change)">
       <PayloadDirectory>$(ScenariosDir)netstandard2.0</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk build_no_change</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
@@ -102,7 +102,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK ASP.NET MVC App Template Clean Build">
       <PayloadDirectory>$(ScenariosDir)mvcapptemplate</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk clean_build</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
@@ -112,7 +112,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK ASP.NET MVC App Template Build(No Change)">
       <PayloadDirectory>$(ScenariosDir)mvcapptemplate</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk build_no_change</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
@@ -122,7 +122,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK Web Large 2.0 Clean Build">
       <PayloadDirectory>$(ScenariosDir)weblarge2.0</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk clean_build</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>20:00</Timeout>
@@ -132,7 +132,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK Web Large 2.0 Build(No Change)">
       <PayloadDirectory>$(ScenariosDir)weblarge2.0</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk build_no_change</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>20:00</Timeout>
@@ -142,7 +142,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK Web Large 3.0 Clean Build">
       <PayloadDirectory>$(ScenariosDir)weblarge3.0</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk clean_build</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>20:00</Timeout>
@@ -152,7 +152,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK Web Large 3.0 Build(No Change)">
       <PayloadDirectory>$(ScenariosDir)weblarge3.0</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk build_no_change</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>20:00</Timeout>
@@ -162,7 +162,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK Windows Forms Large Clean Build">
       <PayloadDirectory>$(ScenariosDir)windowsformslarge</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk clean_build</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
@@ -172,7 +172,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK Windows Forms Large Build(No Change) ">
       <PayloadDirectory>$(ScenariosDir)windowsformslarge</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk build_no_change</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
@@ -182,7 +182,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK WPF Large Clean Build">
       <PayloadDirectory>$(ScenariosDir)wpflarge</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk clean_build</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
@@ -192,7 +192,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK WPF Large Build(No Change)">
       <PayloadDirectory>$(ScenariosDir)wpflarge</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk build_no_change</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
@@ -202,7 +202,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK Windows Forms Template Clean Build">
       <PayloadDirectory>$(ScenariosDir)windowsforms</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk clean_build</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
@@ -212,7 +212,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK Windows Forms Template Build(No Change)">
       <PayloadDirectory>$(ScenariosDir)windowsforms</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk build_no_change</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
@@ -222,7 +222,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK WPF Template Clean Build">
       <PayloadDirectory>$(ScenariosDir)wpf</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk clean_build</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
@@ -232,7 +232,7 @@
   <ItemGroup>
     <HelixWorkItem Include="SDK WPF Template Build(No Change)">
       <PayloadDirectory>$(ScenariosDir)wpf</PayloadDirectory>
-      <PreCommands>$(Python) pre.py</PreCommands>
+      <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk build_no_change</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
