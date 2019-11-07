@@ -9,4 +9,4 @@ from shared import const
 
 setup_loggers(True)
 precommands = PreCommands()
-precommands.existing(os.path.join(sys.path[0], const.SRCDIR), None)
+precommands.existing(os.path.join(sys.path[0], const.SRCDIR), 'WinformsNetCorePerfApp1.csproj')
