@@ -30,21 +30,27 @@ class PreCommands:
         self.project: CSharpProject
         self.projectfile: CSharpProjFile
         parser = ArgumentParser()
-        self.add_common_arguments(parser)
+
         subparsers = parser.add_subparsers(title='Operations', 
                                            description='Common preperation steps for perf tests.',
                                            dest='operation')
 
-        subparsers.add_parser(BUILD, help='Builds the project')
-        subparsers.add_parser(PUBLISH, help='Publishes the project')
+        build_parser = subparsers.add_parser(BUILD, help='Builds the project')
+        self.add_common_arguments(build_parser)
+
+        publish_parser = subparsers.add_parser(PUBLISH, help='Publishes the project')
+        self.add_common_arguments(publish_parser)
 
         args = parser.parse_args()
 
-        self.configuration = args.configuration 
-        self.operation = args.operation
-        self.framework = args.framework
-        self.runtime = args.runtime
-        self.msbuild = args.msbuild
+        if args.operation:
+            self.configuration = args.configuration 
+            self.operation = args.operation
+            self.framework = args.framework
+            self.runtime = args.runtime
+            self.msbuild = args.msbuild
+        else:
+            self.framework = None # workaround for passing self.framework to self.new()
 
     def new(self,
             template: str,
@@ -90,10 +96,9 @@ class PreCommands:
         if os.path.isdir(const.APPDIR):
             shutil.rmtree(const.APPDIR)
         shutil.copytree(projectdir, const.APPDIR)
-        if projectfile is not None:
-            csproj = CSharpProjFile(os.path.join(const.APPDIR, projectfile), sys.path[0])
-            self.project = CSharpProject(csproj, const.BINDIR)
-            self._updateframework(csproj.file_name)
+        csproj = CSharpProjFile(os.path.join(const.APPDIR, projectfile), sys.path[0])
+        self.project = CSharpProject(csproj, const.BINDIR)
+        self._updateframework(csproj.file_name)
 
     def execute(self):
         'Parses args and runs precommands'
