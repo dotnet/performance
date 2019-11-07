@@ -14,5 +14,4 @@ precommands.new(template='winforms',
                 bin_dir=const.BINDIR,
                 exename=EXENAME,
                 working_directory=sys.path[0])
-precommands.execute()
 

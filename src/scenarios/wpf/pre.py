@@ -14,4 +14,3 @@ precommands.new(template='wpf',
                 bin_dir=const.BINDIR,
                 exename=EXENAME,
                 working_directory=sys.path[0])
-precommands.execute()

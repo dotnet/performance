@@ -14,13 +14,11 @@ from performance.common import get_packages_directory, get_repo_root_path
 
 BUILD = 'build'
 PUBLISH = 'publish'
-BACKUP = 'backup'
 DEBUG = 'Debug'
 RELEASE = 'Release'
 
 OPERATIONS = (BUILD,
-              PUBLISH,
-              BACKUP
+              PUBLISH
              )
 
 class PreCommands:
@@ -32,22 +30,17 @@ class PreCommands:
         self.project: CSharpProject
         self.projectfile: CSharpProjFile
         parser = ArgumentParser()
+        self.add_common_arguments(parser)
         subparsers = parser.add_subparsers(title='Operations', 
                                            description='Common preperation steps for perf tests.',
-                                           required=True,
                                            dest='operation')
 
-        build_parser = subparsers.add_parser(BUILD, help='Builds the project')
-        self.add_common_arguments(build_parser)
-
-        publish_parser = subparsers.add_parser(PUBLISH, help='Publishes the project')
-        self.add_common_arguments(publish_parser)
-
-        backup_parser = subparsers.add_parser(BACKUP, help='Backs up the project to tmp folder')
-        self.add_common_arguments(backup_parser)
+        subparsers.add_parser(BUILD, help='Builds the project')
+        subparsers.add_parser(PUBLISH, help='Publishes the project')
 
         args = parser.parse_args()
-        self.configuration = args.configuration
+
+        self.configuration = args.configuration 
         self.operation = args.operation
         self.framework = args.framework
         self.runtime = args.runtime
@@ -97,10 +90,10 @@ class PreCommands:
         if os.path.isdir(const.APPDIR):
             shutil.rmtree(const.APPDIR)
         shutil.copytree(projectdir, const.APPDIR)
-        csproj = CSharpProjFile(os.path.join(const.APPDIR, projectfile), sys.path[0])
-        self.project = CSharpProject(csproj, const.BINDIR)
-        self._updateframework(csproj.file_name)
-        return self
+        if projectfile is not None:
+            csproj = CSharpProjFile(os.path.join(const.APPDIR, projectfile), sys.path[0])
+            self.project = CSharpProject(csproj, const.BINDIR)
+            self._updateframework(csproj.file_name)
 
     def execute(self):
         'Parses args and runs precommands'
@@ -110,8 +103,6 @@ class PreCommands:
         if self.operation == PUBLISH:
             self._restore()
             self._publish(self.configuration)
-        if self.operation == BACKUP:
-            self._backup()
 
     def add_startup_logging(self, file: str, line: str):
         self.add_event_source(file, line, "PerfLabGenericEventSource.Log.Startup();")
@@ -131,13 +122,6 @@ class PreCommands:
         shutil.copyfile(os.path.join(staticpath, "PerfLab.cs"), os.path.join(projpath, "PerfLab.cs"))
         filepath = os.path.join(projpath, file)
         insert_after(filepath, line, trace_statement)
-        
-
-    def _backup(self):
-        'make a temp copy of the asset'
-        if os.path.isdir(const.APPDIR):
-            shutil.rmtree(const.APPDIR)
-        shutil.copytree(const.SRCDIR, const.APPDIR)
 
     def _updateframework(self, projectfile: str):
         if self.framework:
