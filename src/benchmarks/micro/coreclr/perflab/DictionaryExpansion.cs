@@ -62,20 +62,17 @@ namespace PerfLabTests
             var o2 = new GenClass<object>();
             var o3 = new GenClass<DictionaryExpansion>();
 
-            for (int j = 0; j < DictionaryExpansion.s_Iterations; j++)
-            {
-                for (int i = 0; i < 15; i++)
-                    o1.FuncOnGenClass(i);
+            for (int i = 0; i < 15; i++)
+                o1.FuncOnGenClass(i);
 
-                for (int i = 0; i < 15; i++)
-                    o2.FuncOnGenClass(i);
+            for (int i = 0; i < 15; i++)
+                o2.FuncOnGenClass(i);
 
-                for (int i = 0; i < 15; i++)
-                    o2.FuncOnGenClass2(i);
+            for (int i = 0; i < 15; i++)
+                o2.FuncOnGenClass2(i);
 
-                for (int i = 0; i < 15; i++)
-                    o3.FuncOnGenClass(i);
-            }
+            for (int i = 0; i < 15; i++)
+                o3.FuncOnGenClass(i);
         }
     }
 
@@ -129,24 +126,25 @@ namespace PerfLabTests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static void GenFuncTest()
         {
-            for (int j = 0; j < s_Iterations; j++)
-            {
-                for (int i = 0; i < 15; i++)
-                    GenFunc<string>(i);
+            for (int i = 0; i < 15; i++)
+                GenFunc<string>(i);
 
-                for (int i = 0; i < 15; i++)
-                    GenFunc<object>(i);
+            for (int i = 0; i < 15; i++)
+                GenFunc<object>(i);
 
-                for (int i = 0; i < 15; i++)
-                    GenFunc2<object>(i);
+            for (int i = 0; i < 15; i++)
+                GenFunc2<object>(i);
 
-                for (int i = 0; i < 15; i++)
-                    GenFunc<DictionaryExpansion>(i);
-            }
+            for (int i = 0; i < 15; i++)
+                GenFunc<DictionaryExpansion>(i);
         }
 
         public static int s_Iterations = 100000;
 
+
+        //
+        // This benchmark is used to measure the performance of generic dictionary lookups.
+        // 
         [Benchmark]
         public void ExpandDictionaries()
         {
