@@ -12,5 +12,12 @@ namespace System.Threading.Tests
     {
         [Benchmark]
         public Thread CurrentThread() => Thread.CurrentThread;
+
+#if !NETFRAMEWORK
+        public int ThreadGetCurrentProcessorId()
+        {
+            return System.Threading.Thread.GetCurrentProcessorId();
+        }
+#endif
     }
 }
