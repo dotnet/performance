@@ -56,7 +56,7 @@ class StartupWrapper(object):
             '--trace-file-name', '%s_%s_startup.etl' % (kwargs['exename'], kwargs['scenariotypename']),
             '--process-will-exit', (kwargs['processwillexit'] or 'true'),
             '--iterations', '%s' % (kwargs['iterations'] or '5'),
-            '--timeout', '%s' % (kwargs['timeout'] or '20'),
+            '--timeout', '%s' % (kwargs['timeout'] or '50'),
             '--warmup', '%s' % (kwargs['warmup'] or 'true'),
             '--gui-app', kwargs['guiapp'],
             '--working-dir', '%s' % (kwargs['workingdir'] or sys.path[0]),
