@@ -9,6 +9,7 @@ def main():
     traits = TestTraits(scenarioname=SCENARIONAME,
                         exename=EXENAME,
                         guiapp='false', 
+                        timeout='1000',
                         sdk=True,
                         )
     runner = Runner(traits)
