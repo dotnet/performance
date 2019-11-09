@@ -8,10 +8,31 @@ namespace System.Threading.Tasks.Dataflow.Tests
     {
         public override TransformManyBlock<int, int> CreateBlock() =>
             new TransformManyBlock<int, int>(
+                i => new int[] { i });
+    }
+
+    public class ParallelTransformManyBlockPerfTests : ReceivablePropagatorPerfTests<TransformManyBlock<int, int>, int>
+    {
+        public override TransformManyBlock<int, int> CreateBlock() =>
+            new TransformManyBlock<int, int>(
                 i => new int[] { i },
                 new ExecutionDataflowBlockOptions
                 {
                     MaxDegreeOfParallelism = Environment.ProcessorCount
-                });
+                }
+            );
+    }
+
+    public class UnorderedParallelTransformManyBlockPerfTests : ReceivablePropagatorPerfTests<TransformManyBlock<int, int>, int>
+    {
+        public override TransformManyBlock<int, int> CreateBlock() =>
+            new TransformManyBlock<int, int>(
+                i => new int[] { i },
+                new ExecutionDataflowBlockOptions
+                {
+                    MaxDegreeOfParallelism = Environment.ProcessorCount,
+                    EnsureOrdered = false
+                }
+            );
     }
 }

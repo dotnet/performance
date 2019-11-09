@@ -12,28 +12,6 @@ namespace System.Threading.Tasks.Dataflow.Tests
     {
         public override TransformBlock<int, int> CreateBlock() =>
             new TransformBlock<int, int>(i => i);
-
-        #region Reactive Extensions
-        [Benchmark(OperationsPerInvoke = MessagesCount)]
-        public void RxPublishSubscribe()
-        {
-            var observer = block.AsObserver();
-            var observable = block.AsObservable();
-            observable.Subscribe(new IgnoreObserver<int>());
-            for (int i = 0; i < MessagesCount; i++)
-            {
-                observer.OnNext(i);
-            }
-            observer.OnCompleted();
-        }
-
-        class IgnoreObserver<T> : IObserver<T>
-        {
-            public void OnCompleted() { }
-            public void OnError(Exception error) { }
-            public void OnNext(T value) { }
-        }
-        #endregion
     }
 
     public class ParallelTransformBlockPerfTests : ReceivablePropagatorPerfTests<TransformBlock<int, int>, int>

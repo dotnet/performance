@@ -13,7 +13,7 @@ namespace System.Threading.Tasks.Dataflow.Tests
         public override BroadcastBlock<int> CreateBlock() => new BroadcastBlock<int>(i => i);
 
         [Benchmark(OperationsPerInvoke = MessagesCount)]
-        public Task PostMultiReceiveParallel() => MultiParallel(() => Post());
+        public void PostMultiReceiveParallel() => MultiParallel(() => Task.Run(() => Post())).GetAwaiter().GetResult();
 
         [Benchmark(OperationsPerInvoke = MessagesCount)]
         public Task SendMultiReceiveAsyncParallel() => MultiParallel(() => SendAsync());

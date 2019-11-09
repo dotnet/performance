@@ -30,34 +30,34 @@ namespace System.Threading.Tasks.Dataflow.Tests
             await block.Completion;
         }
 
-        protected static Task Post(ITargetBlock<int> target, bool retry = false) => Task.Run(() =>
+        protected static void Post(ITargetBlock<int> target, bool retry = false)
         {
             for (int i = 0; i < MessagesCount; i++)
             {
                 while (!target.Post(i) && retry) ;
             }
-        });
+        }
 
-        protected static Task Receive<U>(ISourceBlock<U> source, int receiveSize = 1) => Task.Run(() =>
+        protected static void Receive<U>(ISourceBlock<U> source, int receiveSize = 1)
         {
             for (int i = 0; i < MessagesCount / receiveSize; i++)
             {
                 source.Receive();
             }
-        });
+        }
 
-        protected static Task TryReceive<U>(IReceivableSourceBlock<U> source, int receiveSize = 1, bool retry = false) => Task.Run(() =>
+        protected static void TryReceive<U>(IReceivableSourceBlock<U> source, int receiveSize = 1, bool retry = false)
         {
             for (int i = 0; i < MessagesCount / receiveSize; i++)
             {
                 while (!source.TryReceive(out _) && retry) ;
             }
-        });
+        }
 
-        protected static Task TryReceiveAll<U>(IReceivableSourceBlock<U> source) => Task.Run(() =>
+        protected static void TryReceiveAll<U>(IReceivableSourceBlock<U> source)
         {
             source.TryReceiveAll(out _);
-        });
+        }
 
         protected static async Task SendAsync(ITargetBlock<int> target)
         {
@@ -83,22 +83,22 @@ namespace System.Threading.Tasks.Dataflow.Tests
     public abstract class SourceBlockPerfTests<T, U> : PerfTests<T> where T : ISourceBlock<U>
     {
         protected virtual int ReceiveSize { get; } = 1;
-        protected virtual Task Receive() => Receive(block, ReceiveSize);
+        protected virtual void Receive() => Receive(block, ReceiveSize);
         protected virtual Task ReceiveAsync() => ReceiveAsync(block, ReceiveSize);
     }
 
     [BenchmarkCategory(Categories.CoreFX)]
     public abstract class ReceivableSourceBlockPerfTests<T, U> : SourceBlockPerfTests<T, U> where T : IReceivableSourceBlock<U>
     {
-        protected virtual Task TryReceive() => TryReceive(block, ReceiveSize);
-        protected virtual Task TryReceiveAll() => TryReceiveAll(block);
+        protected virtual void TryReceive() => TryReceive(block, ReceiveSize);
+        protected virtual void TryReceiveAll() => TryReceiveAll(block);
     }
 
     [BenchmarkCategory(Categories.CoreFX)]
     public abstract class TargetPerfTests<T> : PerfTests<T> where T : ITargetBlock<int>
     {
         [Benchmark(OperationsPerInvoke = MessagesCount)]
-        public Task Post() => Post(block);
+        public void Post() => Post(block);
 
         [Benchmark(OperationsPerInvoke = MessagesCount)]
         public Task SendAsync() => SendAsync(block);
@@ -108,14 +108,14 @@ namespace System.Threading.Tasks.Dataflow.Tests
     public abstract class PropagatorPerfTests<T, U> : TargetPerfTests<T> where T : IPropagatorBlock<int, U>
     {
         protected virtual int ReceiveSize { get; } = 1;
-        protected Task Receive() => Receive(block, ReceiveSize);
+        protected void Receive() => Receive(block, ReceiveSize);
         protected Task ReceiveAsync() => ReceiveAsync(block, ReceiveSize);
 
         [Benchmark(OperationsPerInvoke = MessagesCount)]
-        public async Task PostReceiveSequential()
+        public void PostReceiveSequential()
         {
-            await Post();
-            await Receive();
+            Post();
+            Receive();
         }
 
         [Benchmark(OperationsPerInvoke = MessagesCount)]
@@ -130,32 +130,56 @@ namespace System.Threading.Tasks.Dataflow.Tests
         {
             await Task.WhenAll(SendAsync(), ReceiveAsync());
         }
+
+        #region Reactive Extensions
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
+        public void RxPublishSubscribe()
+        {
+            var observer = block.AsObserver();
+            var observable = block.AsObservable();
+            observable.Subscribe(new IgnoreObserver<U>());
+            for (int i = 0; i < MessagesCount; i++)
+            {
+                observer.OnNext(i);
+            }
+            observer.OnCompleted();
+        }
+
+        class IgnoreObserver<V> : IObserver<V>
+        {
+            public void OnCompleted() { }
+            public void OnError(Exception error) { }
+            public void OnNext(V value) { }
+        }
+        #endregion
     }
 
     [BenchmarkCategory(Categories.CoreFX)]
     public abstract class ReceivablePropagatorPerfTests<T, U> : PropagatorPerfTests<T, U> where T : IPropagatorBlock<int, U>, IReceivableSourceBlock<U>
     {
-        protected Task TryReceive() => TryReceive(block, ReceiveSize);
-        protected Task TryReceiveAll() => TryReceiveAll(block);
+        protected void TryReceive() => TryReceive(block, ReceiveSize);
+        protected void TryReceiveAll() => TryReceiveAll(block);
 
         [Benchmark(OperationsPerInvoke = MessagesCount)]
-        public async Task PostTryReceiveSequential()
+        public void PostTryReceiveSequential()
         {
-            await Post();
-            await TryReceive();
+            Post();
+            TryReceive();
         }
 
         [Benchmark(OperationsPerInvoke = MessagesCount)]
         public async Task PostTryReceiveParallel()
         {
-            await Task.WhenAll(Post(), TryReceive());
+            await Task.WhenAll(
+                Task.Run(() => Post()),
+                Task.Run(() => TryReceive()));
         }
 
         [Benchmark(OperationsPerInvoke = MessagesCount)]
-        public async Task PostTryReceiveAllSequential()
+        public void PostTryReceiveAllSequential()
         {
-            await Post();
-            await TryReceiveAll();
+            Post();
+            TryReceiveAll();
         }
     }
 
@@ -165,7 +189,9 @@ namespace System.Threading.Tasks.Dataflow.Tests
         [Benchmark(OperationsPerInvoke = MessagesCount)]
         public async Task PostTryReceiveParallel()
         {
-            await Task.WhenAll(Post(block, retry: true), TryReceive(block, retry: true));
+            await Task.WhenAll(
+                Task.Run(() => Post(block, retry: true)),
+                Task.Run(() => TryReceive(block, retry: true)));
         }
 
         [Benchmark(OperationsPerInvoke = MessagesCount)]
@@ -180,15 +206,16 @@ namespace System.Threading.Tasks.Dataflow.Tests
     {
         protected abstract ITargetBlock<int>[] Targets { get; }
 
-        protected Task Post() => Task.WhenAll(Targets.Select(target => Post(target)));
+        protected void Post() => Task.WhenAll(Targets.Select(target => Task.Run(() => Post(target))));
         protected Task SendAsync() => Task.WhenAll(Targets.Select(target => SendAsync(target)));
 
-        protected override Task Receive() => MultiParallel(() => Receive(block, ReceiveSize));
-        protected override Task TryReceive() => MultiParallel(() => TryReceive(block, ReceiveSize));
+        protected override void Receive() => MultiParallel(() => Task.Run(() => Receive(block, ReceiveSize))).GetAwaiter().GetResult();
+        protected override void TryReceive() => MultiParallel(() => Task.Run(() => TryReceive(block, ReceiveSize))).GetAwaiter().GetResult();
         protected override Task ReceiveAsync() => MultiParallel(() => ReceiveAsync(block, ReceiveSize));
 
-        private Task MultiParallel(Func<Task> doTask) =>
-            Task.WhenAll(
+        private async Task MultiParallel(Func<Task> doTask)
+        {
+            await Task.WhenAll(
                 Enumerable.Range(
                     0,
                     ReceiveSize == 1 ? 1 : Targets.Length
@@ -197,22 +224,35 @@ namespace System.Threading.Tasks.Dataflow.Tests
                     _ => doTask()
                 )
             );
-
-        [Benchmark(OperationsPerInvoke = MessagesCount)]
-        public Task PostMultiReceiveOnceParallel() => Task.WhenAll(Post(), Receive());
-
-        [Benchmark(OperationsPerInvoke = MessagesCount)]
-        public Task PostMultiTryReceiveOnceParallel() => Task.WhenAll(Post(), TryReceive());
-
-        [Benchmark(OperationsPerInvoke = MessagesCount)]
-        public async Task PostMultiTryReceiveAllOnceParallel()
-        {
-            await Post();
-            await TryReceiveAll();
         }
 
         [Benchmark(OperationsPerInvoke = MessagesCount)]
-        public Task SendAsyncMultiReceiveOnceParallel() => Task.WhenAll(SendAsync(), ReceiveAsync());
+        public async Task PostMultiReceiveOnceParallel()
+        {
+            await Task.WhenAll(
+                Task.Run(() => Post()),
+                Task.Run(() => Receive()));
+        }
 
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
+        public async Task PostMultiTryReceiveOnceParallel()
+        {
+            await Task.WhenAll(
+                Task.Run(() => Post()),
+                Task.Run(() => TryReceive()));
+        }
+
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
+        public void PostMultiTryReceiveAllOnceSequential()
+        {
+            Post();
+            TryReceiveAll();
+        }
+
+        [Benchmark(OperationsPerInvoke = MessagesCount)]
+        public async Task SendAsyncMultiReceiveOnceParallel()
+        {
+            await Task.WhenAll(SendAsync(), ReceiveAsync());
+        }
     }
 }
