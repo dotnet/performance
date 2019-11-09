@@ -185,7 +185,7 @@
       <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk clean_build</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>20:00</Timeout>
+      <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemGroup>
 
@@ -195,7 +195,7 @@
       <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk build_no_change</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>20:00</Timeout>
+      <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemGroup>
 
