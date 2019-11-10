@@ -135,6 +135,8 @@ namespace System.Tests
             => s.TrimEnd(c);
 
         [Benchmark]
+        [Arguments("Hello", 'l', '!')] // Contains two 'l'
+        [Arguments("Hello", 'a', 'b')] // Contains one 'a'
         [Arguments("This is a very nice sentence", 'z', 'y')] // 'z' does not exist in the string
         [Arguments("This is a very nice sentence", 'i', 'I')] // 'i' occuress 3 times in the string
         public string Replace_Char(string text, char oldChar, char newChar)
