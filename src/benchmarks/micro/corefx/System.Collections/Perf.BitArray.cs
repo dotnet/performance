@@ -14,7 +14,7 @@ namespace System.Collections.Tests
         private const int DefaultShiftCount = 17;
         private const bool BooleanValue = true;
 
-        [Params(Utils.DefaultCollectionSize)]
+        [Params(4, Utils.DefaultCollectionSize)]
         public int Size { get; set; }
 
         private BitArray _original;
