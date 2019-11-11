@@ -1,11 +1,13 @@
+import os
 from shared.runner import TestTraits, Runner
+from shared import const
 
-SCENARIO_NAME = '.NET Core 2.0 Console Template'
-EXE_NAME = 'NetCoreApp'
+SCENARIONAME = '.NET Core 2.0 Console Template'
+EXENAME = 'NetCoreApp'
 
 def main():
-    traits = TestTraits(scenarioname=SCENARIO_NAME,
-                        exename=EXE_NAME,
+    traits = TestTraits(scenarioname=SCENARIONAME,
+                        exename=EXENAME,
                         guiapp='false', 
                         sdk=True,
                         )
