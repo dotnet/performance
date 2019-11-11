@@ -89,8 +89,8 @@ namespace ScenarioMeasurement
                 source.Process();
             }
             return new[] {
-                new Counter() { Name = "Generic Startup", MetricName = "ms", Results = results.ToArray() },
-                new Counter() { Name = "Time on Thread", MetricName = "ms", Results = threadTimes.ToArray() }
+                new Counter() { Name = "Generic Startup", MetricName = "ms", DefaultCounter=true, TopCounter=true, Results = results.ToArray() },
+                new Counter() { Name = "Time on Thread", MetricName = "ms", TopCounter=true, Results = threadTimes.ToArray() }
             };
         }
     }
