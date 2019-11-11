@@ -10,7 +10,7 @@ from test import EXENAME
 setup_loggers(True)
 precommands = PreCommands()
 precommands.new(template='winforms',
-                output_dir=const.SRCDIR,
+                output_dir=const.TMPDIR,
                 bin_dir=const.BINDIR,
                 exename=EXENAME,
                 working_directory=sys.path[0])

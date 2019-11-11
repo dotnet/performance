@@ -17,6 +17,7 @@ PUBDIR = 'pub'
 APPDIR = 'app'
 TRACEDIR = 'traces'
 SRCDIR = 'src' # used for checked in source.
+TMPDIR = 'tmp'
 
 CLEAN_BUILD = 'clean_build'
 BUILD_NO_CHANGE = 'build_no_change'

@@ -13,7 +13,8 @@ def main():
     if os.path.isdir(const.APPDIR):
         shutil.rmtree(const.APPDIR)
     getLogger().info("Copying clean project directory...")
-    shutil.copytree(const.SRCDIR, const.APPDIR)
+    copyfrom = const.TMPDIR if os.path.isdir(const.TMPDIR) else const.SRCDIR # tmp dir for dynamic templates
+    shutil.copytree(copyfrom, const.APPDIR)
 
 
 if __name__ == "__main__":
