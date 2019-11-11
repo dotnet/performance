@@ -27,3 +27,5 @@ ITERATION_SETUP_FILE = os.path.join(os.path.dirname(shared.__file__), 'sdk_itera
 
 STARTUP_PROCESSTIME = "ProcessTime"
 
+MINUTE = 60
+
