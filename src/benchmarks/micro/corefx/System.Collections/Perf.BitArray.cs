@@ -13,7 +13,8 @@ namespace System.Collections.Tests
     {
         private const int DefaultShiftCount = 17;
         private const bool BooleanValue = true;
-
+        // 4 - Small size to test non-vectorised paths
+        // DefaultCollectionSize - Big enough size to go through the vectorised paths
         [Params(4, Utils.DefaultCollectionSize)]
         public int Size { get; set; }
 
