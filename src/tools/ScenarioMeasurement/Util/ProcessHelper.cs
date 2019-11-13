@@ -46,7 +46,7 @@ namespace ScenarioMeasurement
         /// <param name="appArgs">Optional arguments</param>
         /// <param name="workingDirectory">Optional working directory (defaults to current directory)</param>
         /// <returns></returns>
-        public (Result result, int pid) Run()
+        public (Result Result, int Pid) Run()
         {
             var psi = new ProcessStartInfo();
             psi.FileName = Executable;

@@ -129,7 +129,7 @@ namespace ScenarioMeasurement
             if (warmup)
             {
                 logger.Log("=============== Warm up ================");
-                if (!RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger).success)
+                if (!RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger).Success)
                 {
                     return -1;  
                 }
@@ -169,12 +169,12 @@ namespace ScenarioMeasurement
                     {
                         logger.Log($"=============== Iteration {i} ================ ");
                         var iterationResult = RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger);
-                        if (!iterationResult.success)
+                        if (!iterationResult.Success)
                         {
                             failed = true;
                             break;
                         }
-                        pids.Add(iterationResult.pid);
+                        pids.Add(iterationResult.Pid);
                     }
                 }
             }
@@ -237,7 +237,7 @@ namespace ScenarioMeasurement
                     using (var user = new TraceEventSession("ProfileSession", profileUserTraceFile))
                     {
                         profiler.EnableUserProviders(user);
-                        if (!RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger).success)
+                        if (!RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger).Success)
                         {
                             failed = true;
                         }
@@ -269,17 +269,17 @@ namespace ScenarioMeasurement
             return procHelper;
         }
 
-        private static (bool success, int pid) RunIteration(ProcessHelper setupHelper, ProcessHelper testHelper, ProcessHelper cleanupHelper, Logger logger)
+        private static (bool Success, int Pid) RunIteration(ProcessHelper setupHelper, ProcessHelper testHelper, ProcessHelper cleanupHelper, Logger logger)
         {
-            (bool success, int pid) RunProcess(ProcessHelper helper)
+            (bool Success, int Pid) RunProcess(ProcessHelper helper)
             {
                 var runResult = helper.Run();
-                if (runResult.result != ProcessHelper.Result.Success)
+                if (runResult.Result != ProcessHelper.Result.Success)
                 {
-                    logger.Log($"Process {runResult.pid} failed to run. Result: {runResult.result}"); 
-                    return (false, runResult.pid); 
+                    logger.Log($"Process {runResult.Pid} failed to run. Result: {runResult.Result}"); 
+                    return (false, runResult.Pid); 
                 }
-                return (true, runResult.pid); 
+                return (true, runResult.Pid); 
             }
 
             bool failed = false;
@@ -287,7 +287,7 @@ namespace ScenarioMeasurement
             if (setupHelper != null)
             {
                 logger.Log($"***Iteration Setup***");
-                failed = !RunProcess(setupHelper).success;
+                failed = !RunProcess(setupHelper).Success;
             }
 
             // no need to run test process if setup failed
@@ -295,15 +295,15 @@ namespace ScenarioMeasurement
             {
                 logger.Log($"***Test***");
                 var testProcessResult = RunProcess(testHelper);
-                failed = !testProcessResult.success;
-                pid = testProcessResult.pid;
+                failed = !testProcessResult.Success;
+                pid = testProcessResult.Pid;
             }
 
             // need to clean up despite the result of setup and test
             if (cleanupHelper != null)
             {
                 logger.Log($"***Iteration Cleanup***");
-                failed = !RunProcess(cleanupHelper).success;
+                failed = !RunProcess(cleanupHelper).Success;
             }
 
             return (!failed, pid);
