@@ -17,6 +17,7 @@ namespace ScenarioMeasurement
     }
     class Startup
     {
+        static int FAILED_PID = -1;
         /// <summary>
         /// 
         /// </summary>
@@ -42,6 +43,7 @@ namespace ScenarioMeasurement
         /// <param name="traceDirectory">Directory to put files in (defaults to current directory)</param>
         /// <param name="environmentVariables">Environment variables set for test processes (example: var1=value1;var2=value2)</param>
         /// <returns></returns>
+
         static int Main(string appExe,
                         MetricType metricType,
                         string scenarioName,
@@ -93,10 +95,8 @@ namespace ScenarioMeasurement
                 envVariables = ParseStringToDictionary(environmentVariables);
             }
 
-            bool failed = false;
             logger.Log($"Running {appExe} (args: \"{appArgs}\")");
             logger.Log($"Working Directory: {workingDir}");
-
             var procHelper = new ProcessHelper(logger)
             {
                 ProcessWillExit = processWillExit,
@@ -130,14 +130,12 @@ namespace ScenarioMeasurement
             if (warmup)
             {
                 logger.Log("=============== Warm up ================");
-                procHelper.Run();
+                if (RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger) == FAILED_PID)
+                {
+                    return -1;  
+                }
             }
 
-            string kernelTraceFile = Path.ChangeExtension(traceFileName, "perflabkernel.etl");
-            string userTraceFile = Path.ChangeExtension(traceFileName, "perflabuser.etl");
-            traceFileName = Path.Join(traceDirectory, traceFileName);
-            kernelTraceFile = Path.Join(traceDirectory, kernelTraceFile);
-            userTraceFile = Path.Join(traceDirectory, userTraceFile);
             IParser parser = null;
             switch (metricType)
             {
@@ -155,7 +153,13 @@ namespace ScenarioMeasurement
                     //    break;
             }
 
+            string kernelTraceFile = Path.ChangeExtension(traceFileName, "perflabkernel.etl");
+            string userTraceFile = Path.ChangeExtension(traceFileName, "perflabuser.etl");
+            traceFileName = Path.Join(traceDirectory, traceFileName);
+            kernelTraceFile = Path.Join(traceDirectory, kernelTraceFile);
+            userTraceFile = Path.Join(traceDirectory, userTraceFile);
             var pids = new List<int>();
+            bool failed = false;
             using (var kernel = new TraceEventSession(KernelTraceEventParser.KernelSessionName, kernelTraceFile))
             {
                 parser.EnableKernelProvider(kernel);
@@ -165,42 +169,13 @@ namespace ScenarioMeasurement
                     for (int i = 0; i < iterations; i++)
                     {
                         logger.Log($"=============== Iteration {i} ================ ");
-                        // set up iteration
-                        if (setupProcHelper != null)
+                        int pid = RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger);
+                        if (pid < 0)
                         {
-                            var setupResult = setupProcHelper.Run().result;
-                            if (setupResult != ProcessHelper.Result.Success)
-                            {
-                                logger.Log($"Failed to set up. Result: {setupResult}");
-                                failed = true;
-                                break;
-                            }
-                        }
-
-                        // run iteration
-                        var runResult = procHelper.Run();
-                        if (runResult.result == ProcessHelper.Result.Success)
-                        {
-                            pids.Add(runResult.pid);
-                        }
-                        else
-                        {
-                            logger.Log($"Failed to run. Result: {runResult.result}");
                             failed = true;
                             break;
                         }
-
-                        // clean up iteration
-                        if (cleanupProcHelper != null)
-                        {
-                            var cleanupResult = cleanupProcHelper.Run().result;
-                            if (cleanupResult != ProcessHelper.Result.Success)
-                            {
-                                logger.Log($"Failed to clean up. Result: {cleanupResult}");
-                                failed = true;
-                                break;
-                            }
-                        }
+                        pids.Add(pid);
                     }
                 }
             }
@@ -247,7 +222,7 @@ namespace ScenarioMeasurement
             File.Delete(kernelTraceFile);
             File.Delete(userTraceFile);
 
-            if (!skipProfileIteration)
+            if (!failed && !skipProfileIteration)
             {
                 string profileTraceFileName = $"{Path.GetFileNameWithoutExtension(traceFileName)}_profile.etl";
                 string profileKernelTraceFile = Path.ChangeExtension(profileTraceFileName, ".kernel.etl");
@@ -263,34 +238,9 @@ namespace ScenarioMeasurement
                     using (var user = new TraceEventSession("ProfileSession", profileUserTraceFile))
                     {
                         profiler.EnableUserProviders(user);
-
-                        // setup iteration
-                        if (setupProcHelper != null)
+                        if (RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger) == FAILED_PID)
                         {
-                            var setupResult = setupProcHelper.Run().result;
-                            if (setupResult != ProcessHelper.Result.Success)
-                            {
-                                logger.Log($"Failed to set up. Result: {setupResult}");
-                                failed = true;
-                            }
-                        }
-
-                        var result = procHelper.Run().result;
-                        if (result != ProcessHelper.Result.Success)
-                        {
-                            logger.Log($"Failed to run. Result: {result}");
                             failed = true;
-                        }
-
-                        // cleanup iteration
-                        if (cleanupProcHelper != null)
-                        {
-                            var cleanupResult = cleanupProcHelper.Run().result;
-                            if (cleanupResult != ProcessHelper.Result.Success)
-                            {
-                                logger.Log($"Failed to clean up. Result: {cleanupResult}");
-                                failed = true;
-                            }
                         }
                     }
                 }
@@ -307,6 +257,7 @@ namespace ScenarioMeasurement
 
         }
 
+
         private static ProcessHelper CreateProcHelper(string command, string args, Logger logger)
         {
             var procHelper = new ProcessHelper(logger)
@@ -317,6 +268,48 @@ namespace ScenarioMeasurement
                 Timeout = 300
             };
             return procHelper;
+        }
+
+        private static int RunIteration(ProcessHelper setupHelper, ProcessHelper testHelper, ProcessHelper cleanupHelper, Logger logger)
+        {
+            int pid = 0;
+
+            if (setupHelper != null)
+            {
+                logger.Log($"***Iteration Setup***");
+                pid = RunProcess(setupHelper, logger);
+            }
+
+            // no need to run test process if setup failed
+            if (pid != FAILED_PID)
+            {
+                logger.Log($"***Test***");
+                pid = RunProcess(testHelper, logger);
+            }
+
+            // need to clean up despite the result of setup and test
+            if (cleanupHelper != null)
+            {
+                logger.Log($"***Iteration Cleanup***");
+                if(RunProcess(cleanupHelper, logger) == FAILED_PID)
+                {
+                    // cleanup failed
+                    return FAILED_PID;
+                }
+            }
+
+            return pid;
+        }
+
+        private static int RunProcess(ProcessHelper helper, Logger logger)
+        {
+            var runResult = helper.Run();
+            if (runResult.result != ProcessHelper.Result.Success)
+            {
+                logger.Log($"Process {runResult.pid} failed to run. Result: {runResult.result}"); //log pid and result on failure
+                return FAILED_PID; //possible to have negative pid in the future??
+            }
+            return runResult.pid; //return pid on success
         }
 
         private static void WriteResultTable(IEnumerable<Counter> counters, Logger logger)
