@@ -17,7 +17,6 @@ namespace ScenarioMeasurement
     }
     class Startup
     {
-        static int FAILED_PID = -1;
         /// <summary>
         /// 
         /// </summary>
@@ -130,7 +129,7 @@ namespace ScenarioMeasurement
             if (warmup)
             {
                 logger.Log("=============== Warm up ================");
-                if (RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger) == FAILED_PID)
+                if (!RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger).success)
                 {
                     return -1;  
                 }
@@ -169,13 +168,13 @@ namespace ScenarioMeasurement
                     for (int i = 0; i < iterations; i++)
                     {
                         logger.Log($"=============== Iteration {i} ================ ");
-                        int pid = RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger);
-                        if (pid < 0)
+                        var iterationResult = RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger);
+                        if (!iterationResult.success)
                         {
                             failed = true;
                             break;
                         }
-                        pids.Add(pid);
+                        pids.Add(iterationResult.pid);
                     }
                 }
             }
@@ -238,7 +237,7 @@ namespace ScenarioMeasurement
                     using (var user = new TraceEventSession("ProfileSession", profileUserTraceFile))
                     {
                         profiler.EnableUserProviders(user);
-                        if (RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger) == FAILED_PID)
+                        if (!RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger).success)
                         {
                             failed = true;
                         }
@@ -270,47 +269,46 @@ namespace ScenarioMeasurement
             return procHelper;
         }
 
-        private static int RunIteration(ProcessHelper setupHelper, ProcessHelper testHelper, ProcessHelper cleanupHelper, Logger logger)
+        private static (bool success, int pid) RunIteration(ProcessHelper setupHelper, ProcessHelper testHelper, ProcessHelper cleanupHelper, Logger logger)
         {
-            int pid = 0;
+            (bool success, int pid) RunProcess(ProcessHelper helper)
+            {
+                var runResult = helper.Run();
+                if (runResult.result != ProcessHelper.Result.Success)
+                {
+                    logger.Log($"Process {runResult.pid} failed to run. Result: {runResult.result}"); 
+                    return (false, runResult.pid); 
+                }
+                return (true, runResult.pid); 
+            }
 
+            bool failed = false;
+            int pid = 0;
             if (setupHelper != null)
             {
                 logger.Log($"***Iteration Setup***");
-                pid = RunProcess(setupHelper, logger);
+                failed = !RunProcess(setupHelper).success;
             }
 
             // no need to run test process if setup failed
-            if (pid != FAILED_PID)
+            if (!failed)
             {
                 logger.Log($"***Test***");
-                pid = RunProcess(testHelper, logger);
+                var testProcessResult = RunProcess(testHelper);
+                failed = !testProcessResult.success;
+                pid = testProcessResult.pid;
             }
 
             // need to clean up despite the result of setup and test
             if (cleanupHelper != null)
             {
                 logger.Log($"***Iteration Cleanup***");
-                if(RunProcess(cleanupHelper, logger) == FAILED_PID)
-                {
-                    // cleanup failed
-                    return FAILED_PID;
-                }
+                failed = !RunProcess(cleanupHelper).success;
             }
 
-            return pid;
+            return (!failed, pid);
         }
 
-        private static int RunProcess(ProcessHelper helper, Logger logger)
-        {
-            var runResult = helper.Run();
-            if (runResult.result != ProcessHelper.Result.Success)
-            {
-                logger.Log($"Process {runResult.pid} failed to run. Result: {runResult.result}"); //log pid and result on failure
-                return FAILED_PID; //possible to have negative pid in the future??
-            }
-            return runResult.pid; //return pid on success
-        }
 
         private static void WriteResultTable(IEnumerable<Counter> counters, Logger logger)
         {
