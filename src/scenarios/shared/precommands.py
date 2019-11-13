@@ -72,8 +72,6 @@ class PreCommands:
                                  verbose=True,
                                  target_framework_moniker=self.framework,
                                  language=language)
-        if output_dir != const.APPDIR:
-            self._backup(output_dir)
 
     def add_common_arguments(self, parser: ArgumentParser):
         "Options that are common across many 'dotnet' commands"

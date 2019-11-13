@@ -73,7 +73,10 @@ class StartupWrapper(object):
             startup_args.extend(['--iteration-setup', kwargs['iterationsetup']])
         if kwargs['setupargs']:
             startup_args.extend(['--setup-args', kwargs['setupargs']])
-            print(kwargs['setupargs'])
+        if kwargs['iterationcleanup']:
+            startup_args.extend(['--iteration-cleanup', kwargs['iterationcleanup']])
+        if kwargs['cleanupargs']:
+            startup_args.extend(['--cleanup-args', kwargs['cleanupargs']])
         if kwargs['measurementdelay']:
             startup_args.extend(['--measurement-delay', kwargs['measurementdelay']])
 
