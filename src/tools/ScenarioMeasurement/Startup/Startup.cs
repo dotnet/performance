@@ -303,7 +303,7 @@ namespace ScenarioMeasurement
             if (cleanupHelper != null)
             {
                 logger.Log($"***Iteration Cleanup***");
-                failed = !RunProcess(cleanupHelper).Success;
+                failed = failed || !RunProcess(cleanupHelper).Success;
             }
 
             return (!failed, pid);

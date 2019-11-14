@@ -10,7 +10,7 @@ from test import EXENAME
 setup_loggers(True)
 precommands = PreCommands()
 precommands.new(template='wpf',
-                output_dir=const.TMPDIR,
+                output_dir=const.APPDIR,
                 bin_dir=const.BINDIR,
                 exename=EXENAME,
                 working_directory=sys.path[0])
