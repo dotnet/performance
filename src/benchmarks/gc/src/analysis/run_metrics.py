@@ -237,8 +237,6 @@ def _get_gc_aggregate_stats() -> Mapping[NamedRunMetric, Callable[[ProcessedTrac
     )
 
 
-
-
 _RUN_METRIC_GETTERS: Mapping[
     NamedRunMetric, Callable[[ProcessedTrace], FailableFloat]
 ] = combine_mappings(

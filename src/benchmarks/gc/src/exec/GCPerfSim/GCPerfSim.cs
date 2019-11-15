@@ -667,9 +667,73 @@ readonly struct PerThreadArgs
     }
 }
 
+// .NET 4.7 does not have ReadOnlySpan<char>, so use this instead.
+ref struct CharSpan
+{
+    private readonly string text;
+    private readonly uint begin;
+    public readonly uint Length;
+
+    private CharSpan(string text, uint begin, uint length)
+    {
+        Debug.Assert(begin + length < text.Length);
+        this.text = text;
+        this.begin = begin;
+        Length = length;
+    }
+
+    public static implicit operator CharSpan(string s) =>
+        new CharSpan(s, 0, (uint) s.Length);
+
+    public static CharSpan OfString(string text) =>
+        new CharSpan(text, 0, (uint)text.Length);
+
+    public CharSpan Slice(uint begin, uint length)
+    {
+        Debug.Assert(begin + length < this.Length);
+        return new CharSpan(text: this.text, begin: this.begin + begin, length: length);
+    }
+
+    public CharSpan Slice(uint begin) =>
+        Slice(this.begin + begin, this.Length - begin);
+
+    public char this[uint index]
+    {
+        get
+        {
+            Debug.Assert(index < Length);
+            return text[(int) (begin + index)];
+        }
+    }
+
+    public static bool operator==(CharSpan a, CharSpan b)
+    {
+        // The '==' operator seems to test whether the spans refer to the same range of memory.
+        // I can't find any builtin function for comparing actual equality, which seems wierd.
+        if (a.Length != b.Length)
+            return false;
+        for (uint i = 0; i < a.Length; i++)
+            if (a[i] != b[i])
+                return false;
+        return true;
+    }
+
+    public static bool operator !=(CharSpan a, CharSpan b) =>
+        !(a == b);
+
+    public override bool Equals(object? obj) =>
+        throw new NotImplementedException();
+
+    public override int GetHashCode() =>
+        throw new NotImplementedException();
+
+    public override string ToString() =>
+        text.Substring((int) this.begin, (int) this.Length);
+}
+
 ref struct TextReader
 {
-    ReadOnlySpan<char> text;
+    CharSpan text;
     uint lineNumber;
     uint columnNumber;
 
@@ -678,7 +742,7 @@ ref struct TextReader
         // TODO: dotnet was hanging on all accesses to invalid UNC paths, even just testing if it exists. So forbid those for now.
         if (fileName.StartsWith("//") || fileName.StartsWith("\\\\"))
             throw new Exception("TODO");
-        this.text = File.ReadAllText(fileName);
+        this.text = CharSpan.OfString(File.ReadAllText(fileName));
         this.lineNumber = 1;
         this.columnNumber = 1;
     }
@@ -701,12 +765,12 @@ ref struct TextReader
         return c;
     }
 
-    private ReadOnlySpan<char> TakeN(uint n)
+    private CharSpan TakeN(uint n)
     {
-        ReadOnlySpan<char> span = text.Slice(0, (int)n);
-        for (int i = 0; i < span.Length; i++)
+        CharSpan span = text.Slice(0, n);
+        for (uint i = 0; i < span.Length; i++)
             Debug.Assert(span[i] != '\n');
-        text = text.Slice((int)n);
+        text = text.Slice(n);
         columnNumber += n;
         return span;
     }
@@ -774,23 +838,23 @@ ref struct TextReader
     {
         Assert(IsDigit(Peek), "Expected to parse a ulong");
         uint i = 1;
-        for (;  i < text.Length && IsDigit(text[(int)i]); i++) {}
-        return ulong.Parse(TakeN(i));
+        for (;  i < text.Length && IsDigit(text[i]); i++) {}
+        return ulong.Parse(TakeN(i).ToString());
     }
 
     public double TakeDouble()
     {
         Assert(IsDigitOrDot(Peek), "Expected to parse a double");
         uint i = 1;
-        for (; i < text.Length && IsDigitOrDot(text[(int)i]); i++) { }
-        return double.Parse(TakeN(i));
+        for (; i < text.Length && IsDigitOrDot(text[i]); i++) { }
+        return double.Parse(TakeN(i).ToString());
     }
 
-    public ReadOnlySpan<char> TakeWord()
+    public CharSpan TakeWord()
     {
         Assert(IsLetter(Peek), "Expected to parse a word");
         uint i = 1;
-        for (; i < text.Length && IsLetter(text[(int)i]); i++) { }
+        for (; i < text.Length && IsLetter(text[i]); i++) { }
         return TakeN(i);
     }
 
@@ -840,22 +904,22 @@ class ArgsParser
         }
     }
 
-    private static uint EnumFromNames(string[] names, ReadOnlySpan<char> name)
+    private static uint EnumFromNames(string[] names, CharSpan name)
     {
         for (uint i = 0; i < names.Length; i++)
         {
-            if (Eq(names[i], name))
+            if (names[i] == name)
             {
                 return i;
             }
         }
-        throw new Exception($"Invalid enum member {name.ToString()}, accepted: {string.Join(',', names)}");
+        throw new Exception($"Invalid enum member {name.ToString()}, accepted: {string.Join(", ", names)}");
     }
 
-    private static TestKind ParseTestKind(ReadOnlySpan<char> str) =>
+    private static TestKind ParseTestKind(CharSpan str) =>
         (TestKind)EnumFromNames(testKindNames, str);
 
-    private static ItemType ParseItemType(ReadOnlySpan<char> str) =>
+    private static ItemType ParseItemType(CharSpan str) =>
         (ItemType)EnumFromNames(itemTypeNames, str);
 
     private static void ParseRange(string str, out uint lo, out uint hi)
@@ -901,17 +965,17 @@ class ArgsParser
                     finishWithFullCollect: false,
                     endException: false);
             }
-            ReadOnlySpan<char> word = text.TakeWord();
+            CharSpan word = text.TakeWord();
             text.TakeSpace();
-            if (Eq(word, "printEveryNthIter"))
+            if (word == "printEveryNthIter")
             {
                 printEveryNthIter = text.TakeUInt();
             }
-            else if (Eq(word, "threadCount"))
+            else if (word == "threadCount")
             {
                 threadCount = text.TakeUInt();
             }
-            else if (Eq(word, "verifyLiveSize"))
+            else if (word == "verifyLiveSize")
             {
                 verifyLiveSize = true;
             }
@@ -969,12 +1033,12 @@ class ArgsParser
                 return (s2, phase);
             }
 
-            ReadOnlySpan<char> word = text.TakeWord();
+            CharSpan word = text.TakeWord();
             text.TakeSpace();
             switch (word[0])
             {
                 case 'a':
-                    if (Eq(word, "allocType"))
+                    if (word == "allocType")
                     {
                         allocType = ParseItemType(text.TakeWord());
                     }
@@ -984,20 +1048,20 @@ class ArgsParser
                     }
                     break;
                 case 't':
-                    if (Eq(word, "testKind"))
+                    if (word == "testKind")
                     {
                         testKind = ParseTestKind(text.TakeWord());
                     }
-                    else if (Eq(word, "threadCount"))
+                    else if (word == "threadCount")
                     {
                         threadCount = text.TakeUInt();
                         text.Assert(threadCount != 0, "Cannot have 0 threads");
                     }
-                    else if (Eq(word, "totalLiveMB"))
+                    else if (word == "totalLiveMB")
                     {
                         totalLiveBytes = Util.MBToBytes(text.TakeUlong());
                     }
-                    else if (Eq(word, "totalAllocMB"))
+                    else if (word == "totalAllocMB")
                     {
                         totalAllocBytes = Util.MBToBytes(text.TakeUlong());
                     }
@@ -1050,28 +1114,28 @@ class ArgsParser
                     weight: weight));
             }
 
-            ReadOnlySpan<char> word = text.TakeWord();
+            CharSpan word = text.TakeWord();
             text.TakeSpace();
             switch (word[0])
             {
                 case 'l':
-                    text.Assert(Eq(word, "lowSize"));
+                    text.Assert(word == "lowSize");
                     lowSize = text.TakeUInt();
                     break;
                 case 'h':
-                    text.Assert(Eq(word, "highSize"));
+                    text.Assert(word == "highSize");
                     highSize = text.TakeUInt();
                     break;
                 case 's':
-                    text.Assert(Eq(word, "survInterval"));
+                    text.Assert(word == "survInterval");
                     survInterval = text.TakeUInt();
                     break;
                 case 'p':
-                    text.Assert(Eq(word, "pinInterval"));
+                    text.Assert(word == "pinInterval");
                     pinInterval = text.TakeUInt();
                     break;
                 case 'w':
-                    text.Assert(Eq(word, "weight"));
+                    text.Assert(word == "weight");
                     weight = text.TakeUInt();
                     break;
                 default:
@@ -1079,18 +1143,6 @@ class ArgsParser
             }
             text.SkipBlankLines();
         }
-    }
-
-    private static bool Eq(ReadOnlySpan<char> a, ReadOnlySpan<char> b)
-    {
-        // The '==' operator seems to test whether the spans refer to the same range of memory.
-        // I can't find any builtin function for comparing actual equality, which seems wierd.
-        if (a.Length != b.Length)
-            return false;
-        for (int i = 0; i < a.Length; i++)
-            if (a[i] != b[i])
-                return false;
-        return true;
     }
 
     private static State? TryReadTag(ref TextReader text)
@@ -1101,9 +1153,11 @@ class ArgsParser
         }
         else if (text.TryTake('['))
         {
-            ReadOnlySpan<char> word = text.TakeWord();
+            CharSpan word = text.TakeWord();
             // https://github.com/dotnet/csharplang/issues/1881 -- can't switch on a span
-            State res = Eq(word, "phase") ? State.ParsePhase : Eq(word, "bucket") ? State.ParseBucket : throw text.Fail($"Bad tag '{word.ToString()}'");
+            State res = word == CharSpan.OfString("phase") ? State.ParsePhase
+                : word == CharSpan.OfString("bucket") ? State.ParseBucket
+                : throw text.Fail($"Bad tag '{word.ToString()}'");
             text.ShouldTake(']');
             text.SkipBlankLines();
             return res;
