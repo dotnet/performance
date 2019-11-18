@@ -179,7 +179,7 @@
     </HelixWorkItem>
   </ItemGroup>
 
-  <ItemGroup>
+  <!-- <ItemGroup>
     <HelixWorkItem Include="SDK WPF Large Clean Build">
       <PayloadDirectory>$(ScenariosDir)wpflarge</PayloadDirectory>
       <PreCommands>$(Python) pre.py default</PreCommands>
@@ -197,7 +197,7 @@
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
-  </ItemGroup>
+  </ItemGroup> -->
 
   <ItemGroup>
     <HelixWorkItem Include="SDK Windows Forms Template Clean Build">
