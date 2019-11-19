@@ -10,7 +10,7 @@ def main():
                         exename=EXENAME,
                         guiapp='false',
                         workingdir='mvc',
-                        timeout= f'{const.MINUTE*15}',   # increase timeout for the large project
+                        timeout= f'{const.MINUTE*30}',   # increase timeout for the large project
                         sdk=True,
                         )
     runner = Runner(traits)
