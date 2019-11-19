@@ -1274,7 +1274,7 @@ class ProcessedTrace:
 
     @property
     def TotalSecondsTaken(self) -> FailableFloat:
-        return map_ok(self.gcperfsim_result, lambda r: r.seconds_taken)
+        return map_ok(self.test_status, lambda ts: ts.seconds_taken)
 
     @property
     def Gen0Size(self) -> FailableFloat:
