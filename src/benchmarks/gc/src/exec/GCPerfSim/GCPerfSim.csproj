@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>net472;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
     <LangVersion>8.0</LangVersion>
     <RootNamespace>gcperfsim_core</RootNamespace>
   </PropertyGroup>

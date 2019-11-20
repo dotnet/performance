@@ -73,9 +73,9 @@ class Range:
 @dataclass(frozen=True)
 class NumaNodeInfo:
     numa_node_number: int
-    # None on non-Windows
-    cpu_group_number: Optional[int]
     ranges: Sequence[Range]
+    # None on non-Windows
+    cpu_group_number: Optional[int] = None
 
 
 @with_slots
