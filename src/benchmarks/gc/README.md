@@ -92,7 +92,8 @@ Navigate to `src/analysis/managed-lib` and run `dotnet publish`.
 
 ### Windows-Only Building
 
-Open a Visual Studio Developer Command Prompt, go to `src/exec/env`, and run `.\build.cmd`. This requires `cmake` to be installed.
+Open a Visual Studio Developer Command Prompt, go to `src/exec/env`, and run `.\build.cmd`.
+This requires `cmake` to be installed.
 
 
 
