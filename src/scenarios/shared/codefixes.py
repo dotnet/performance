@@ -6,6 +6,8 @@
 routines for fixing up code in templates
 '''
 
+from re import sub
+
 def readfile(file: str) -> []:
     ret = []
     with open(file, "r") as opened:
@@ -27,5 +29,5 @@ def insert_after(file: str, search: str, insert: str):
 def replace_line(file: str, search: str, replace: str):
     lines = []
     for line in readfile(file):
-        lines.append(line.replace(search, replace))
+        lines.append(sub(search, replace, line))
     writefile(file, lines)
