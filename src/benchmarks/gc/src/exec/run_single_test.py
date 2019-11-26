@@ -11,15 +11,10 @@ from signal import SIGINT
 from shutil import which
 from subprocess import PIPE, Popen
 from sys import executable as py
-from tempfile import TemporaryDirectory
 from time import sleep, time
 from typing import Iterable, Iterator, Mapping, Optional, Sequence, Tuple
 
 from psutil import process_iter
-
-from ..analysis.core_analysis import get_process_info, process_predicate_from_id
-from ..analysis.clr import Clr
-from ..analysis.types import ProcessInfo
 
 from ..commonlib.bench_file import (
     Benchmark,
@@ -190,18 +185,6 @@ def _do_run_single_test(built: Built, t: SingleTest, out: TestPaths) -> _Partial
 @contextmanager
 def NonTemporaryDirectory(name: str) -> Iterator[Path]:
     yield GC_PATH / "temp" / (name + str(randint(0, 99)))
-
-
-def run_single_test_temporary(clr: Clr, built: Built, t: SingleTest) -> ProcessInfo:
-    with TemporaryDirectory(t.coreclr_name) as td:
-        temp = Path(td)
-        paths = TestPaths(temp / "temp")
-        test_status = run_single_test(built, t, paths)
-        # TODO: configurable process_predicate
-        trace_file = non_null(paths.trace_file_path(test_status))
-        return get_process_info(
-            clr, trace_file, str(trace_file), process_predicate_from_id(test_status.process_id)
-        )
 
 
 def check_env() -> Mapping[str, str]:
