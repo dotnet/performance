@@ -9,10 +9,7 @@ from os.path import getmtime
 from pathlib import Path
 from platform import processor
 from shutil import copyfile, copytree
-from sys import version_info
 from typing import Mapping, Optional, Sequence
-
-from packaging.version import parse as parse_version
 
 from .bench_file import Architecture, Bitness, CoreclrSpecifier, get_architecture_bitness
 from .command import Command, CommandKind, CommandsMapping
@@ -234,12 +231,6 @@ def _get_built_test(name: str, build_kind: BuildKind) -> Path:
         raise Exception(
             f"You probably need to go to {test_dir} and run `dotnet build -c release`.\n{msg}"
         )
-
-
-def _assert_version(desc: str, actual: str, expected: str) -> None:
-    assert parse_version(actual) >= parse_version(
-        expected
-    ), f"Expected {desc} version {expected}, got {actual}"
 
 
 def get_current_git_commit_hash(git_repo_path: Path) -> str:
@@ -550,15 +541,12 @@ def get_corerun_path_from_core_root(core_root: Path) -> Path:
     return core_root / name
 
 
-# TODO:NAME
 def get_built(
     coreclrs: Mapping[str, CoreclrSpecifier],
     build_kind: BuildKind = BuildKind.forbid_out_of_date,
     use_debug_coreclrs: bool = False,
     skip_coreclr_checks: bool = False,
 ) -> Built:
-    _check_dependencies()
-
     test_names: Sequence[str] = ("GCPerfSim",)
     tests = {name: _get_built_test(name, build_kind) for name in test_names}
 
@@ -597,18 +585,6 @@ def _get_built_c_script(name: str) -> Path:
         + " (using a Visual Studio Developer Command Prompt)?"
     )
     return out_path
-
-
-def _check_dependencies() -> None:
-    _assert_version("python", ".".join(str(x) for x in version_info[:3]), "3.7.1")
-
-    # Skip the '.windows.2' ending
-    git_version = ".".join(
-        remove_str_start(
-            exec_and_get_output(ExecArgs(("git", "--version"), quiet_print=True)), "git version"
-        ).split(".")[:3]
-    )
-    _assert_version("git", git_version, "2.17")
 
 
 @with_slots
