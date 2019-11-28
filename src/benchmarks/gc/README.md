@@ -46,7 +46,9 @@ or:
 
     Could not load file or assembly 'Microsoft.Build.Utilities, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 
-If so, you may need to install Visual Studio 2015.
+If so, you may need to install Visual Studio 2015 (exactly, not a higher version).
+
+(The latter error message often begins by mentioning `RGiesecke.DllExport.targets`.)
 
 
 #### Pythonnet on other systems
@@ -69,6 +71,9 @@ Then to install from source:
 
 * Instructions: https://github.com/pythonnet/pythonnet/wiki/Installation
 * `py setup.py bdist_wheel --xplat`
+  (If trying to do this on Windows, it may do nothing due to the shebang at the start of `setup.py`,
+   launching `python` which opens the Windows Store or does nothing if given arguments.
+   This may be fixed by removing the shebang `#!/usr/bin/env python`.)
 * WARN: The instructions there tell you to run `pip install --no-index --find-links=.\dist\ pythonnet`.
   This may "succeed" saying `Requirement already satisfied: pythonnet in /path/to/pythonnet`.
   INSTEAD, go to the *parent* directory and use `sudo python3.7 -m pip install --no-index --find-links=./pythonnet/dist/` which circumvents this bug.
@@ -371,7 +376,7 @@ If you don't have a trace, you are limited in the metrics you can use. No single
 # Limitations
 
 
-AMD64 is not currently supported.
+ARM is not currently supported.
 The `affinitize`  and `memory_load_percent` properties of a benchfile's config are not yet implemented outside of Windows.
 
 
