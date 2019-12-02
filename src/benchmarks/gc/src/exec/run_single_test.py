@@ -36,7 +36,7 @@ from ..commonlib.collection_util import (
     is_empty,
 )
 from ..commonlib.config import GC_PATH, EXEC_ENV_PATH, PERFVIEW_PATH
-from ..commonlib.option import map_option, non_null, optional_to_iter, option_or, option_or_3
+from ..commonlib.option import map_option, optional_to_iter, option_or, option_or_3
 from ..commonlib.parse_and_serialize import parse_yaml
 from ..commonlib.type_utils import with_slots
 from ..commonlib.util import (

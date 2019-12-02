@@ -20,7 +20,9 @@ The general workflow when using the GC infra is:
 ### Install python 3.7+
 
 On Windows, just go to https://www.python.org/downloads/ and run the installer.
-On other systems it’s better to use your system’s package manager.
+It's recommended to install a 64-bit version if possible, but not required.
+
+On other systems, it’s better to use your system’s package manager.
 
 
 ### Install Python dependencies
@@ -29,70 +31,24 @@ On other systems it’s better to use your system’s package manager.
 py -m pip install -r src/requirements.txt
 ```
 
-You will likely run into trouble installing pythonnet.
 
-First, pythonnet is only needed to analyze test results, not to run tests.
-If you just want to run tests on this machine, you could comment out pythonnet from `src/requirements.txt`.
-Then when running tests, provide the `--no-check-runs` option.
+### Install pythonnet
 
+Pythonnet is only needed to analyze test results, not to run tests.
+If you just want to run tests on this machine, you can skip installing pythonnet,
+copy bench output to a different machine, and do analysis there.
+When running tests, you must provide the `--no-check-runs` option to avoid using pythonnet.
 
-#### Pythonnet on Windows
-
-On Windows, if you run into trouble installing pythonnet, look for an error like:
-
-    Cannot find the specified version of msbuild: '14' 
-
-or:
-
-    Could not load file or assembly 'Microsoft.Build.Utilities, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
-
-If so, you may need to install Visual Studio 2015 (exactly, not a higher version).
-
-(The latter error message often begins by mentioning `RGiesecke.DllExport.targets`.)
-
-
-#### Pythonnet on other systems
-
-Pythonnet [does not work](https://github.com/pythonnet/pythonnet/issues/939) with the latest version of mono, so you'll need to downgrade that to version 5.
-
-On Ubuntu the instructions are:
-
-* Change `/etc/apt/sources.list.d/mono-official-stable.list` to:
-```
-deb https://download.mono-project.com/repo/ubuntu stable-bionic/snapshots/5.20.1 main
-```
-* `sudo apt remove mono-complete`
-* `sudo apt update`
-* `sudo apt autoremove`
-* `sudo apt install mono-complete`
-* `mono --version`, should be 5.20.1
-
-Then to install from source:
-
-* Instructions: https://github.com/pythonnet/pythonnet/wiki/Installation
-* `py setup.py bdist_wheel --xplat`
-  (If trying to do this on Windows, it may do nothing due to the shebang at the start of `setup.py`,
-   launching `python` which opens the Windows Store or does nothing if given arguments.
-   This may be fixed by removing the shebang `#!/usr/bin/env python`.)
-* WARN: The instructions there tell you to run `pip install --no-index --find-links=.\dist\ pythonnet`.
-  This may "succeed" saying `Requirement already satisfied: pythonnet in /path/to/pythonnet`.
-  INSTEAD, go to the *parent* directory and use `sudo python3.7 -m pip install --no-index --find-links=./pythonnet/dist/` which circumvents this bug.
-* Run `import clr` in the python interpreter to verify that installation worked.
-
-
-If you see an error:
-```
-fatal error: Python.h: No such file or directory
-```
-
-You likely have python installed but not dev tools. See https://stackoverflow.com/questions/21530577/fatal-error-python-h-no-such-file-or-directory .
+For instructions to install pythonnet, see [docs/pythonnet.md](docs/pythonnet.md).
 
 ### Building C# dependencies
 
 Navigate to `src/exec/GCPerfSim` and run `dotnet build -c release`.
+This builds the default test benchmark. (You can use other benchmarks if you want, in which case this does not need to be built.)
 
 Navigate to `src/analysis/managed-lib` and run `dotnet publish`.
-
+This builds the C# library needed to read trace files. Python will load in this library and make calls to it.
+This intentionally uses a debug build to have added safety checks in the form of assertions.
 
 
 ### Windows-Only Building

@@ -1550,3 +1550,22 @@ def floats(s: Sequence[float]) -> FloatsOrStrs:
 
 def strs(s: Sequence[str]) -> FloatsOrStrs:
     return FloatsOrStrs(False, s)
+
+
+class GCKind(Enum):
+    NGC0 = 0
+    NGC1 = 1
+    BGC = 2
+    NGC2 = 3
+
+
+def get_gc_kind(gc: ProcessedGC) -> GCKind:
+    return get_gc_kind_for_abstract_trace_gc(gc.trace_gc)
+
+
+def get_gc_kind_for_abstract_trace_gc(gc: AbstractTraceGC) -> GCKind:
+    return {
+        Gens.Gen0: GCKind.NGC0,
+        Gens.Gen1: GCKind.NGC1,
+        Gens.Gen2: GCKind.BGC if GCType(gc.Type) == GCType.BackgroundGC else GCKind.NGC2,
+    }[Gens(gc.Generation)]

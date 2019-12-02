@@ -7,7 +7,6 @@
 #%% setup cell (must run this)
 
 from dataclasses import dataclass
-from enum import Enum
 from pathlib import Path
 from typing import List, Optional, Sequence
 
@@ -41,7 +40,7 @@ from src.analysis.condemned_reasons import (
     show_condemned_reasons_for_jupyter,
     show_condemned_reasons_for_gc_for_jupyter,
 )
-from src.analysis.enums import Gens, GCType
+from src.analysis.enums import Gens
 from src.analysis.parse_metrics import (
     parse_run_metrics_arg,
     parse_single_gc_metric_arg,
@@ -53,7 +52,7 @@ from src.analysis.report import diff_for_jupyter, report_reasons_for_jupyter
 from src.analysis.single_gc_metrics import get_bytes_allocated_since_last_gc
 from src.analysis.single_heap_metrics import ALL_GC_GENS
 from src.analysis.trace_commands import print_events_for_jupyter
-from src.analysis.types import ProcessedGC, ProcessedTrace, ProcessQuery, SpecialSampleKind
+from src.analysis.types import GCKind, get_gc_kind, ProcessedTrace, ProcessQuery, SpecialSampleKind
 
 from src.commonlib.bench_file import Vary
 from src.commonlib.collection_util import repeat
@@ -83,21 +82,6 @@ def get_trace_with_everything(
     )
 
 
-class GCKind(Enum):
-    NGC0 = 0
-    NGC1 = 1
-    BGC = 2
-    NGC2 = 3
-
-
-def get_kind(gc: ProcessedGC) -> GCKind:
-    return {
-        Gens.Gen0: GCKind.NGC0,
-        Gens.Gen1: GCKind.NGC1,
-        Gens.Gen2: GCKind.BGC if gc.Type == GCType.BackgroundGC else GCKind.NGC2,
-    }[gc.Generation]
-
-
 def show_summary(trace: ProcessedTrace) -> None:
     print(f"{trace.NumberGCs} GCs")
     for k, v in trace.number_gcs_in_each_generation.items():
@@ -113,7 +97,7 @@ def show_summary(trace: ProcessedTrace) -> None:
         [[] for _ in range(num_metrics)] for _ in range(4)
     ]
     for gc in trace.gcs:
-        gc_kind = get_kind(gc)
+        gc_kind = get_gc_kind(gc)
         for metric_index, metric in enumerate(metrics):
             metric_index_to_values = kind_to_metric_to_values[enum_value(gc_kind)]
             values = metric_index_to_values[metric_index]
