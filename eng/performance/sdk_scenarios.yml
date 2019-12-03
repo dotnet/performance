@@ -73,7 +73,8 @@ jobs:
           matrix:
             ${{ each framework in parameters.frameworks }}:
               ${{ framework.framework }}_${{ framework.channel }}:
-
+                _Framework: ${{ framework.framework}}
+                
         # steps:
         # - checkout: self
         #   clean: true
