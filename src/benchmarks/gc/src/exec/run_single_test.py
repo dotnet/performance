@@ -7,19 +7,13 @@ from dataclasses import dataclass
 from os import environ
 from pathlib import Path
 from random import randint
-from signal import SIGINT
 from shutil import which
 from subprocess import PIPE, Popen
 from sys import executable as py
-from tempfile import TemporaryDirectory
 from time import sleep, time
 from typing import Iterable, Iterator, Mapping, Optional, Sequence, Tuple
 
 from psutil import process_iter
-
-from ..analysis.core_analysis import get_process_info, process_predicate_from_id
-from ..analysis.clr import Clr
-from ..analysis.types import ProcessInfo
 
 from ..commonlib.bench_file import (
     Benchmark,
@@ -190,18 +184,6 @@ def _do_run_single_test(built: Built, t: SingleTest, out: TestPaths) -> _Partial
 @contextmanager
 def NonTemporaryDirectory(name: str) -> Iterator[Path]:
     yield GC_PATH / "temp" / (name + str(randint(0, 99)))
-
-
-def run_single_test_temporary(clr: Clr, built: Built, t: SingleTest) -> ProcessInfo:
-    with TemporaryDirectory(t.coreclr_name) as td:
-        temp = Path(td)
-        paths = TestPaths(temp / "temp")
-        test_status = run_single_test(built, t, paths)
-        # TODO: configurable process_predicate
-        trace_file = non_null(paths.trace_file_path(test_status))
-        return get_process_info(
-            clr, trace_file, str(trace_file), process_predicate_from_id(test_status.process_id)
-        )
 
 
 def check_env() -> Mapping[str, str]:
@@ -828,64 +810,6 @@ def _get_exec_args(cmd: Sequence[str], t: SingleTest, out: TestPaths) -> ExecArg
     )
 
 
-# TODO: This isn't working yet. Uses lttng instead of eventpipe
-def _run_single_test_linux_perfcollect(t: SingleTest, out: TestPaths) -> TestRunStatus:
-
-    # TODO: Could launch sudo just for the part it needs?
-    # TODO: running in sudo causes output files to only be readable by super user...
-    #  A future perfcollect may fix this.
-    assert_admin()
-
-    ensure_empty_dir(out.out_path_base)
-
-    cwd = non_null(t.coreclr).corerun.parent  # TODO: handle self-contained executables
-    env = combine_mappings(
-        t.config.with_coreclr(t.coreclr_name).env(map_option(t.coreclr, lambda c: c.core_root)),
-        {"COMPlus_PerfMapEnabled": "1", "COMPlus_EnableEventLog": "1"},
-    )
-    cmd: Sequence[str] = _benchmark_command(t)
-    print(f"cd {cwd}")
-    print(" ".join(cmd))
-    test_process = Popen(cmd, cwd=cwd, env=env)
-
-    test_process_pid = test_process.pid
-    # launch
-
-    print("PID", test_process_pid)
-
-    # Now launch that thing with the stuff
-    perfcollect_cmd = (
-        str(_PERFCOLLECT),
-        "collect",
-        str(out.out_path_base),
-        "-gccollectonly",  # TODO: if I pass this, only event I get is EventID(200) ?
-        "-pid",
-        str(test_process_pid),
-    )
-    print(" ".join(perfcollect_cmd))
-    # TODO: not sure cwd needs to be set...
-    perfcollect_process = Popen(perfcollect_cmd, cwd=_PERFCOLLECT.parent)
-
-    print("waiting on test...")
-
-    test_process.wait()
-
-    assert test_process.returncode == 0
-
-    print("sending signal...")
-
-    perfcollect_process.send_signal(SIGINT)
-
-    print("waiting on perfcollect...")
-
-    perfcollect_process.wait()
-    assert perfcollect_process.returncode == 0
-
-    print("Closed")
-
-    raise Exception("TODO:finish")
-
-
 _GC_KEYWORDS: Sequence[str] = (
     "GC",
     # Above isn't enough -- want GlobalHeapHistory ...
@@ -899,10 +823,6 @@ _GC_KEYWORDS: Sequence[str] = (
 _GC_EVENTS_ID = 1
 _GC_LEVEL = 5  # TODO: where is this documented?
 _GC_PROVIDER: str = f"Microsoft-Windows-DotNETRuntime:0xFFFFFFFFFFFFFFFF:{_GC_LEVEL}"
-
-
-# This is a bash script, no need to build
-_PERFCOLLECT = Path("/home/anhans/work/corefx-tools/src/performance/perfcollect/perfcollect")
 
 
 def _benchmark_command(t: SingleTest) -> Sequence[str]:

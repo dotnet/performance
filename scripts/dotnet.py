@@ -301,7 +301,6 @@ class CSharpProject:
             working_directory: str,
             force: bool = False,
             exename: str = None,
-            target_framework_moniker: str = None,
             language: str = None
             ):
         '''
@@ -319,12 +318,8 @@ class CSharpProject:
         if exename:
             cmdline += ['--name', exename]
 
-        if target_framework_moniker:
-            cmdline += ['--framework', target_framework_moniker]
-
         if language:
             cmdline += ['--language', language]
-
 
         RunCommand(cmdline, verbose=verbose).run(
             working_directory

@@ -110,10 +110,6 @@ class Built:
         assert "GCPerfSim" in self.tests
 
     @property
-    def gcperfsim_dll(self) -> Path:
-        return self.tests["GCPerfSim"]
-
-    @property
     def win(self) -> BuiltWindowsOnly:
         assert os_is_windows()
         return non_null(self._win)
@@ -306,7 +302,9 @@ def _to_debug_kinds(rebuild_kind: RebuildKind) -> Sequence[_DebugKind]:
 @with_slots
 @dataclass(frozen=True)
 class _CopyBuildArgs:
-    coreclr: Path = argument(name_optional=True, doc="Path to coreclr repository")
+    runtime: Path = argument(
+        name_optional=True, doc="Path to a checkout of the 'dotnet/runtime' repository"
+    )
     kind: _DebugKind = argument(
         default=_DebugKind.release, doc="Whether to copy the debug or release build"
     )
@@ -322,13 +320,13 @@ _BUILDS_PATH = BENCH_DIR_PATH / "builds"
 
 
 def _copy_build(args: _CopyBuildArgs) -> None:
-    core_root = _get_core_root(args.coreclr, args.kind)
-    name = _get_default_build_name(args.coreclr, args.kind) if args.name is None else args.name
+    core_root = _get_core_root(args.runtime, args.kind)
+    name = _get_default_build_name(args.runtime, args.kind) if args.name is None else args.name
     cp_dir(core_root, _BUILDS_PATH / name, args.overwrite)
 
 
-def _get_default_build_name(coreclr: Path, kind: _DebugKind) -> str:
-    commit_hash = get_current_git_commit_hash(coreclr)
+def _get_default_build_name(runtime_repository: Path, kind: _DebugKind) -> str:
+    commit_hash = get_current_git_commit_hash(runtime_repository)
     kind_str = {_DebugKind.debug: "_debug", _DebugKind.release: "_release"}[kind]
     return commit_hash + kind_str
 
@@ -336,7 +334,9 @@ def _get_default_build_name(coreclr: Path, kind: _DebugKind) -> str:
 @with_slots
 @dataclass(frozen=True)
 class RebuildCoreclrArgs:
-    coreclrs: Sequence[Path] = argument(name_optional=True, doc="Path(s) to coreclr repositories")
+    runtime_repo_paths: Sequence[Path] = argument(
+        name_optional=True, doc="Path(s) to a checkout(s) of the 'dotnet/runtime' repository"
+    )
     kind: RebuildKind = argument(doc="Whether to rebuild a debug or release build, or both.")
     just_copy: bool = argument(
         default=False,
@@ -359,8 +359,8 @@ _CORECLR_IMPORTANT_SO_NAMES: Sequence[str] = (
 
 def rebuild_coreclr(args: RebuildCoreclrArgs) -> None:
     for debug_kind in _to_debug_kinds(args.kind):
-        for coreclr in args.coreclrs:
-            _do_rebuild_coreclr(coreclr, args.just_copy, debug_kind)
+        for runtime_repository in args.runtime_repo_paths:
+            _do_rebuild_coreclr(runtime_repository, args.just_copy, debug_kind)
 
 
 def _get_debug_or_release(debug_kind: _DebugKind) -> str:
@@ -373,12 +373,25 @@ def _get_debug_or_release_dir_name(debug_kind: _DebugKind) -> str:
     )
 
 
-def _get_core_root(coreclr: Path, debug_kind: _DebugKind) -> Path:
+def _get_coreclr_from_runtime(runtime_repository: Path) -> Path:
+    return runtime_repository / "src" / "coreclr"
+
+
+def _get_core_root(runtime_repository: Path, debug_kind: _DebugKind) -> Path:
     debug_release = _get_debug_or_release_dir_name(debug_kind)
-    return coreclr / "bin" / "tests" / debug_release / "Tests" / "Core_Root"
+    return (
+        runtime_repository
+        / "artifacts"
+        / "tests"
+        / "coreclr"
+        / debug_release
+        / "Tests"
+        / "Core_Root"
+    )
 
 
-def _do_rebuild_coreclr(coreclr: Path, just_copy: bool, debug_kind: _DebugKind) -> None:
+def _do_rebuild_coreclr(runtime_repository: Path, just_copy: bool, debug_kind: _DebugKind) -> None:
+    coreclr = _get_coreclr_from_runtime(runtime_repository)
     plat = _get_platform_name()
     assert_dir_exists(coreclr)
     debug_release = _get_debug_or_release_dir_name(debug_kind)
@@ -402,8 +415,8 @@ def _do_rebuild_coreclr(coreclr: Path, just_copy: bool, debug_kind: _DebugKind) 
             print(output)
             raise Exception("build failed")
 
-    product_dir = coreclr / "bin" / "Product" / debug_release
-    core_root = _get_core_root(coreclr, debug_kind)
+    product_dir = runtime_repository / "artifacts" / "bin" / "coreclr" / debug_release
+    core_root = _get_core_root(runtime_repository, debug_kind)
 
     if os_is_windows():
         for name in _CORECLR_IMPORTANT_DLL_NAMES:
@@ -629,7 +642,7 @@ BUILD_COMMANDS: CommandsMapping = {
         kind=CommandKind.infra,
         fn=_copy_build,
         doc="""
-    Copy a build from a coreclr repository to bench/builds.
+    Copy a build from a 'dotnet/runtime' repository checkout to 'bench/builds'.
     Output directory name uses the commit hash.
     """,
     ),

@@ -70,8 +70,8 @@ class PreCommands:
                                  working_directory=working_directory,
                                  force=True,
                                  verbose=True,
-                                 target_framework_moniker=self.framework,
                                  language=language)
+        self._updateframework(self.project.csproj_file)
 
     def add_common_arguments(self, parser: ArgumentParser):
         "Options that are common across many 'dotnet' commands"
@@ -130,7 +130,7 @@ class PreCommands:
 
     def _updateframework(self, projectfile: str):
         if self.framework:
-            replace_line(projectfile, "$FRAMEWORK", self.framework)
+            replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
 
     def _publish(self, configuration: str, framework: str = None):
         self.project.publish(configuration=configuration,
