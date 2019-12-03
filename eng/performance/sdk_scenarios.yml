@@ -72,8 +72,8 @@ jobs:
         strategy:
           matrix:
             ${{ each framework in parameters.frameworks }}:
-              #${{ each channel in parameters.sdkMatrix['$(framework)'] }}:
-                ${{ parameters.sdkMatrix[ '${{ framework }}' ] }}:
+              ${{ each channel in ${{ parameters.sdkMatrix['$(framework)'] }} }}:
+                ${{ framework }}_${{ channel }}:
                   _Framework: ${{ framework }}
 
         # steps:
