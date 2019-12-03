@@ -71,10 +71,10 @@ jobs:
         strategy:
           matrix:
             ${{ each framework in parameters.frameworks }}:
-              ${{ framework }}:
-                _Framework: ${{ framework }}
-                ${{ each channel in ${{ framework }} }}:
-                  _Channel: ${{channel}}
+              ${{ each channel in ${{ framework.channels }} }}:
+                ${{ framework }}:
+                  _Framework: ${{ framework.name }}
+                  _Channel: ${{ channel }}
                   _Configs: RunKind="${{ parameters.kind }}"
                   _BuildConfig: ${{ parameters.architecture }}_$(_Framework)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
         steps:

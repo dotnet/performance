@@ -60,11 +60,12 @@ jobs:
       kind: scenarios
       queue: Windows.10.Amd64.ClientRS5.Open
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - netcoreapp2.1: 
-          - release/2.1.6xx 
-        - netcoreapp3.0:
-          - release/3.1.1xx
-          - release/3.1.2xx 
+        - 
+          - name: netcoreapp2.1
+          - channels: [release/2.1.6xx]
+        - 
+          - name: netcoreapp3.0
+          - channels: [release/3.1.1xx, release/3.1.2xx]
         #   - master
         # - netcoreapp3.1
         #   - release/3.1.1xx
