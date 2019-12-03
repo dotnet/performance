@@ -72,11 +72,11 @@ jobs:
           matrix:
             ${{ each framework in parameters.frameworks }}:
               ${{ framework }}:
-                ${{ if eq(${{ framework }}, 'netcoreapp2.1') }}:
+                ${{ if eq( ${{ framework }} , 'netcoreapp2.1') }}:
                   _Framework: ${{ framework }}
                   _Configs: RunKind="${{ parameters.kind }}"
                   _BuildConfig: ${{ parameters.architecture }}_$(_Framework)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
-                ${{ if eq(${{ framework }}, 'netcoreapp3.0') }}:
+                ${{ if eq( ${{ framework }} , 'netcoreapp3.0') }}:
                   _Framework: ${{ framework }}
                   _Configs: RunKind="${{ parameters.kind }}"
                   _BuildConfig: ${{ parameters.architecture }}_$(_Framework)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
