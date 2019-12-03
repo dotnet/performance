@@ -64,7 +64,7 @@ jobs:
           channel: release/2.1.6xx
         - framework: netcoreapp3.0
           channel: release/3.1.1xx
-        - frmaeowkr: netcoreapp3.0
+        - framework: netcoreapp3.0
           channel: master
         - framework: netcoreapp3.1
           channel: release/3.1.1xx

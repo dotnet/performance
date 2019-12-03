@@ -24,6 +24,7 @@ def init_tools(
         dotnet_versions: str,
         target_framework_monikers: list,
         verbose: bool,
+        channel: str,
         install_dir: str=None) -> None:
     '''
     Install tools used by this repository into the tools folder.
@@ -35,7 +36,8 @@ def init_tools(
         micro_benchmarks.FrameworkAction.get_channel(
             target_framework_moniker)
         for target_framework_moniker in target_framework_monikers
-    ]
+    ] if not channel else channel
+
     dotnet.install(
         architecture=architecture,
         channels=channels,
@@ -153,6 +155,14 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Configurations used in the build in key=value format'
     )
 
+    parser.add_argument(
+        '--channel',
+        dest='channel',
+        required=False,
+        nargs='+',
+        help='Channel to download dotnet from'
+    )
+
     return parser
 
 
@@ -192,6 +202,7 @@ def __main(args: list) -> int:
         dotnet_versions=args.dotnet_versions,
         target_framework_monikers=target_framework_monikers,
         verbose=verbose,
+        channel=args.channel,
         install_dir=args.install_dir
     )
 
