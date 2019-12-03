@@ -7,8 +7,8 @@ parameters:
   queue: ''             # required -- name of the Helix queue
   container: ''         # optional -- id of the container
   frameworks: []        # required -- list of frameworks. Allowed values: net461, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
-  channels: [release/2.1.6xx, release/3.1.1xx]
-  
+  sdkMatrix: {}
+
 jobs:
 - template: ../common/templates/jobs/jobs.yml
   parameters:
@@ -72,7 +72,7 @@ jobs:
         strategy:
           matrix:
             ${{ each framework in parameters.frameworks }}:
-              ${{ each channel in parameters.channels }}:
+              ${{ each channel in parameters.sdkMatrix.'${{ framework }}' }}:
                 ${{ framework }}_${{ channel }}:
                   _Framework: ${{ framework }}
                   _Channel: ${{ channel }}
