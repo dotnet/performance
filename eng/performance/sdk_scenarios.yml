@@ -71,10 +71,13 @@ jobs:
         container: ${{ parameters.container }}
         strategy:
           matrix:
-            ${{ each framework in $( parameters.frameworks ) }}:
-              ${{ each channel in ${{ parameters.sdkMatrix['$(framework)'] }} }}:
-                ${{ framework }}_${{ channel }}:
-                  _Framework: ${{ framework }}
+            # ${{ each framework in parameters.frameworks }}:
+            #   ${{ each channel in ${{ parameters.sdkMatrix['$(framework)'] }} }}:
+            #     ${{ framework }}_${{ channel }}:
+            #       _Framework: ${{ framework }}
+            ${{ each channel in parameters.sdkMatrix['netcoreapp3.0'] }}:
+              ${{ channel }}:
+                _Channel: ${{ channel }}
 
         # steps:
         # - checkout: self
