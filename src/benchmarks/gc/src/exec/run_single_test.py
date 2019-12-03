@@ -108,6 +108,7 @@ class SingleTest:
 def run_single_test(built: Built, t: SingleTest, out: TestPaths) -> TestRunStatus:
     check_no_test_processes()
     partial_test_status = _do_run_single_test(built, t, out)
+    seconds_taken = partial_test_status.seconds_taken
     gcperfsim_result = (
         _parse_gcperfsim_result(partial_test_status.stdout)
         if t.benchmark.executable is None
@@ -115,11 +116,11 @@ def run_single_test(built: Built, t: SingleTest, out: TestPaths) -> TestRunStatu
         else None
     )
     test_status = TestRunStatus(
-        test=t.test,
         success=partial_test_status.success,
-        process_id=partial_test_status.process_id,
-        seconds_taken=partial_test_status.seconds_taken,
         trace_file_name=partial_test_status.trace_file_name,
+        process_id=partial_test_status.process_id,
+        seconds_taken=seconds_taken,
+        test=t.test,
         stdout=partial_test_status.stdout,
         gcperfsim_result=gcperfsim_result,
     )
@@ -129,14 +130,14 @@ def run_single_test(built: Built, t: SingleTest, out: TestPaths) -> TestRunStatu
         give_user_permissions(out.test_status_path)
 
     if test_status.success:
-        print(f"Took {test_status.seconds_taken} seconds")
+        print(f"Took {seconds_taken} seconds")
         min_seconds = option_or_3(
             t.benchmark.min_seconds, t.options.default_min_seconds, _TEST_MIN_SECONDS_DEFAULT
         )
-        if test_status.seconds_taken < min_seconds:
+        if seconds_taken < min_seconds:
             desc = f"coreclr={t.coreclr_name} config={t.config_name} benchmark={t.benchmark_name}"
             raise Exception(
-                f"{desc} took {test_status.seconds_taken} seconds, minimum is {min_seconds}"
+                f"{desc} took {seconds_taken} seconds, minimum is {min_seconds}"
                 "(you could change the benchmark's min_seconds or options.default_min_seconds)"
             )
     else:

@@ -915,17 +915,25 @@ class SingleTestCombination:
 @with_slots
 @dataclass(frozen=True)
 class TestRunStatus:
-    test: SingleTestCombination
     success: bool
-    process_id: int
-    seconds_taken: float
-    stdout: str
-    # This will be missing if the test run was not GCPerfSim
-    gcperfsim_result: Optional[GCPerfSimResult] = None
-    # This will be missing if 'collect' was specified as 'none' in BenchOPtions
+    # This will be missing if 'collect' was specified as 'none' in BenchOptions
     trace_file_name: Optional[
         str
     ] = None  # File should be stored in the same directory as test status
+    process_id: Optional[int] = None
+    seconds_taken: Optional[float] = None
+    test: Optional[SingleTestCombination] = None
+    stdout: Optional[str] = None
+    # This will be missing if the test run was not GCPerfSim
+    gcperfsim_result: Optional[GCPerfSimResult] = None
+
+    def __post_init__(self) -> None:
+        if self.trace_file_name is not None:
+            assert (
+                self.process_id is not None
+            ), "Test status file must set process_id if trace_file_name is set"
+        else:
+            assert self.process_id is None, "'process_id' has no effect without 'trace_file_name'"
 
 
 @with_slots

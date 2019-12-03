@@ -150,6 +150,8 @@ def _get_processed_trace_from_process(
                 " (hint: maybe specify the test output '.yaml' file instead of the trace file)",
             )
         )
+        if ts.process_id is None:
+            raise Exception("Test status file exists but does not specify process_id")
         process_predicate = process_predicate_from_id(ts.process_id)
     else:
         assert (

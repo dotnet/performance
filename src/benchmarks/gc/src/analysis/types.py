@@ -1274,14 +1274,20 @@ class ProcessedTrace:
 
     @property
     def TotalSecondsTaken(self) -> FailableFloat:
-        return map_ok(self.test_status, lambda ts: ts.seconds_taken)
+        return flat_map_ok(
+            self.test_status,
+            lambda ts: option_to_result(
+                ts.seconds_taken, lambda: "Test status file does not contain seconds_taken"
+            ),
+        )
 
     @property
     def Gen0Size(self) -> FailableFloat:
         return flat_map_ok(
             self.test_status,
             lambda ts: option_to_result(
-                ts.test.config.config.complus_gcgen0size, lambda: "Gen0size not specified in config"
+                None if ts.test is None else ts.test.config.config.complus_gcgen0size,
+                lambda: "Gen0size not specified in config",
             ),
         )
 
@@ -1290,7 +1296,10 @@ class ProcessedTrace:
         return flat_map_ok(
             self.test_status,
             lambda ts: option_to_result(
-                map_option(ts.test.benchmark.benchmark.get_argument("-tc"), int),
+                map_option(
+                    None if ts.test is None else ts.test.benchmark.benchmark.get_argument("-tc"),
+                    int,
+                ),
                 lambda: "tc not specified in benchmark",
             ),
         )

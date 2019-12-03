@@ -140,6 +140,21 @@ Each trace file can be opened in PerfView if you need to.
 Each trace file will be named `{coreclr_name}__{config_name}__{benchmark_name}__{iteration}`, e.g.  `clr_a__smaller__nosurvive__0`.
 
 
+## Test status files
+
+Each trace has (at least) two files associated with it, `x.etl` (or `x.nettrace`) and `x.yaml`.
+The `.yaml` file is called a test status file. It provides, among other things, the process ID to focus on.
+A minimal test status file looks like:
+
+    # this file: `x.yaml`
+    success: true
+    trace_file_name: x.etl  # Should generally match the name of this file
+    process_id: 1234  # If you don't know this, use the `print-processes` command for a list
+
+Only these 3 lines are required, but a full specification is in `class TestRunStatus` in `bench_file.py`.
+You can write these files by hand for traces you got from elsewhere.
+
+
 ## Analyzing
 
 Now let's analyze the results.

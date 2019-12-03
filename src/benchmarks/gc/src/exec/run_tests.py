@@ -82,7 +82,10 @@ def check_run_output(args: CheckRunOutputArgs) -> None:
                 trace_file = t.out.trace_file_path(test_status)
                 if trace_file is not None:
                     print(f"checking {trace_file}")
-                    _check_test_run(clr, t.config, trace_file, host_info, test_status.process_id)
+                    # process_id should always be set when trace_file is
+                    _check_test_run(
+                        clr, t.config, trace_file, host_info, non_null(test_status.process_id)
+                    )
             else:
                 print(f"{t} did not succeed")
 
@@ -187,7 +190,9 @@ def _run_all_benchmarks(
             if clr is not None and test_status.success:
                 trace_file = t.out.trace_file_path(test_status)
                 if trace_file is not None:
-                    _check_test_run(clr, t.config, trace_file, host_info, test_status.process_id)
+                    _check_test_run(
+                        clr, t.config, trace_file, host_info, non_null(test_status.process_id)
+                    )
 
 
 def _assert_not_in_job(built: Built) -> None:
