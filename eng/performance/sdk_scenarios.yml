@@ -7,7 +7,8 @@ parameters:
   queue: ''             # required -- name of the Helix queue
   container: ''         # optional -- id of the container
   frameworks: []        # required -- list of frameworks. Allowed values: net461, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
-
+  channels: [release/2.1.6xx, release/3.1.1xx]
+  
 jobs:
 - template: ../common/templates/jobs/jobs.yml
   parameters:
@@ -71,14 +72,11 @@ jobs:
         strategy:
           matrix:
             ${{ each framework in parameters.frameworks }}:
-              ${{ framework }}:
-                _Framework: ${{ framework }}
-                ${{ if eq('$(_Framework)', 'netcoreapp2.1') }}:
-                  _Configs: RunKind="${{ parameters.kind }}"
-                  _BuildConfig: ${{ parameters.architecture }}_$(_Framework)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
-                ${{ if eq('$(_Framework)', 'netcoreapp3.0') }}:
-                  _Configs: RunKind="${{ parameters.kind }}"
-                  _BuildConfig: ${{ parameters.architecture }}_$(_Framework)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
+              ${{ each channel in parameters.channels }}:
+                ${{ framework }}_${{ channel }}:
+                  _Framework: ${{ framework }}
+                  _Channel: ${{ channel }}
+
         steps:
         - script: echo $(_Channel) $(_Framework)
           displayName: Test Matrix
