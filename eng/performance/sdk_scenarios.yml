@@ -105,7 +105,7 @@ jobs:
             HelixTargetQueues: ${{ parameters.queue }}
             HelixPreCommands: $(HelixPreCommand)
             CorrelationPayloadDirectory: $(CorrelationStaging)
-            ProjectFile: scenarios.proj
+            ProjectFile: sdk_scenarios.proj
             WorkItemDirectory: $(Build.SourcesDirectory)
             Creator: $(Creator)
             Architecture: ${{ parameters.architecture }}

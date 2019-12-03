@@ -57,7 +57,7 @@ jobs:
       osVersion: RS5
       architecture: x64
       pool: Hosted VS2017
-      kind: scenarios
+      kind: sdk_scenarios
       queue: Windows.10.Amd64.ClientRS5.Open
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - framework: netcoreapp2.1
