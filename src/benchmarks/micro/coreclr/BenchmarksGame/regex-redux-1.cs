@@ -15,7 +15,6 @@
  *
 */
 
-using System;
 using System.IO;
 using System.Text.RegularExpressions;
 using BenchmarkDotNet.Attributes;
@@ -34,21 +33,18 @@ namespace BenchmarksGame
             using (var inputStream = new FileStream(helpers.InputFile, FileMode.Open))
             using (var input = new StreamReader(inputStream))
             {
-                return Bench(input, false);
+                return Bench(input);
             }
         }
 
-        static int Bench(TextReader inputReader, bool verbose)
+        static int Bench(TextReader inputReader)
         {
             // read FASTA sequence
-            String sequence = inputReader.ReadToEnd();
-            int initialLength = sequence.Length;
+            string sequence = inputReader.ReadToEnd();
 
             // remove FASTA sequence descriptions and new-lines
             Regex r = new Regex(">.*\n|\n", RegexOptions.Compiled);
             sequence = r.Replace(sequence, "");
-            int codeLength = sequence.Length;
-
 
             // regex match
             string[] variants = {
@@ -70,10 +66,7 @@ namespace BenchmarksGame
                 r = new Regex(v, RegexOptions.Compiled);
 
                 for (Match m = r.Match(sequence); m.Success; m = m.NextMatch()) count++;
-                if (verbose)
-                    Console.WriteLine("{0} {1}", v, count);
             }
-
 
             // regex substitution
             IUB[] codes = {
@@ -89,12 +82,9 @@ namespace BenchmarksGame
                 r = new Regex(iub.code, RegexOptions.Compiled);
                 sequence = r.Replace(sequence, iub.alternatives);
             }
-            if (verbose)
-                Console.WriteLine("\n{0}\n{1}\n{2}", initialLength, codeLength, sequence.Length);
 
             return sequence.Length;
         }
-
 
         struct IUB
         {
