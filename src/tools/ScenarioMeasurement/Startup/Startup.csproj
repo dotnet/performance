@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFramework>
+    <TargetFramework>netcoreapp2.1;netcoreapp3.0;netcoreapp3.1;netcoreapp5.0</TargetFramework>
     <!-- Supported target frameworks -->
     <TargetFramework Condition="'$(TargetFramework)' == ''">netcoreapp3.0</TargetFramework>
     <LangVersion>Preview</LangVersion>
