@@ -68,14 +68,14 @@ namespace BenchmarksGame
             Task.WaitAll(variant1, variant2, variant3, variant4, variant5, variant6, variant7, variant8, variant9);
 
             return magicTask.Result;
+        }
 
-            static string regexCount(string s, string r, RegexOptions regexOptions)
-            {
-                int c = 0;
-                var m = Regex.Match(s, r, regexOptions);
-                while (m.Success) { c++; m = m.NextMatch(); }
-                return r + " " + c;
-            }
+        private static string regexCount(string s, string r, RegexOptions regexOptions)
+        {
+            int c = 0;
+            var m = Regex.Match(s, r, regexOptions);
+            while (m.Success) { c++; m = m.NextMatch(); }
+            return r + " " + c;
         }
     }
 }
