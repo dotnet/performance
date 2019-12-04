@@ -14,7 +14,6 @@
    order variants by execution time by Anthony Lloyd
 */
 
-using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
@@ -26,78 +25,57 @@ namespace BenchmarksGame
     [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class RegexRedux_5
     {
-        static Regex regex(string re)
-        {
-            // Not compiled on .Net Core, hence poor benchmark results.
-            return new Regex(re, RegexOptions.Compiled);
-        }
-
-        static string regexCount(string s, string r)
-        {
-            int c = 0;
-            var m = regex(r).Match(s);
-            while (m.Success) { c++; m = m.NextMatch(); }
-            return r + " " + c;
-        }
-
         RegexReduxHelpers helpers = new RegexReduxHelpers(bigInput: true);
         
         [Benchmark(Description = nameof(RegexRedux_5))]
-        public int RunBench()
+        [Arguments(RegexOptions.Compiled)]
+        [Arguments(RegexOptions.None)]
+        public int RunBench(RegexOptions options)
         {
             using (var inputStream = new FileStream(helpers.InputFile, FileMode.Open))
             using (var input = new StreamReader(inputStream))
             {
-                return Bench(input, false);
+                return Bench(input, options);
             }
         }
 
-        static int Bench(TextReader inputReader, bool verbose)
+        static int Bench(TextReader inputReader, RegexOptions options)
         {
             var sequences = inputReader.ReadToEnd();
             var initialLength = sequences.Length;
-            sequences = Regex.Replace(sequences, ">.*\n|\n", "");
+            sequences = Regex.Replace(sequences, ">.*\n|\n", "", options);
 
             var magicTask = Task.Run(() =>
             {
-                var newseq = regex("tHa[Nt]").Replace(sequences, "<4>");
-                newseq = regex("aND|caN|Ha[DS]|WaS").Replace(newseq, "<3>");
-                newseq = regex("a[NSt]|BY").Replace(newseq, "<2>");
-                newseq = regex("<[^>]*>").Replace(newseq, "|");
-                newseq = regex("\\|[^|][^|]*\\|").Replace(newseq, "-");
+                var newseq = Regex.Replace(sequences, "tHa[Nt]", "<4>", options);
+                newseq = Regex.Replace(newseq, "aND|caN|Ha[DS]|WaS", "<3>", options);
+                newseq = Regex.Replace(newseq, "a[NSt]|BY", "<2>", options);
+                newseq = Regex.Replace(newseq, "<[^>]*>", "|", options);
+                newseq = Regex.Replace(newseq, "\\|[^|][^|]*\\|", "-", options);
                 return newseq.Length;
             });
 
-            var variant2 = Task.Run(() => regexCount(sequences, "[cgt]gggtaaa|tttaccc[acg]"));
-            var variant3 = Task.Run(() => regexCount(sequences, "a[act]ggtaaa|tttacc[agt]t"));
-            var variant7 = Task.Run(() => regexCount(sequences, "agggt[cgt]aa|tt[acg]accct"));
-            var variant6 = Task.Run(() => regexCount(sequences, "aggg[acg]aaa|ttt[cgt]ccct"));
-            var variant4 = Task.Run(() => regexCount(sequences, "ag[act]gtaaa|tttac[agt]ct"));
-            var variant5 = Task.Run(() => regexCount(sequences, "agg[act]taaa|ttta[agt]cct"));
-            var variant1 = Task.Run(() => regexCount(sequences, "agggtaaa|tttaccct"));
-            var variant9 = Task.Run(() => regexCount(sequences, "agggtaa[cgt]|[acg]ttaccct"));
-            var variant8 = Task.Run(() => regexCount(sequences, "agggta[cgt]a|t[acg]taccct"));
+            var variant2 = Task.Run(() => regexCount(sequences, "[cgt]gggtaaa|tttaccc[acg]", options));
+            var variant3 = Task.Run(() => regexCount(sequences, "a[act]ggtaaa|tttacc[agt]t", options));
+            var variant7 = Task.Run(() => regexCount(sequences, "agggt[cgt]aa|tt[acg]accct", options));
+            var variant6 = Task.Run(() => regexCount(sequences, "aggg[acg]aaa|ttt[cgt]ccct", options));
+            var variant4 = Task.Run(() => regexCount(sequences, "ag[act]gtaaa|tttac[agt]ct", options));
+            var variant5 = Task.Run(() => regexCount(sequences, "agg[act]taaa|ttta[agt]cct", options));
+            var variant1 = Task.Run(() => regexCount(sequences, "agggtaaa|tttaccct", options));
+            var variant9 = Task.Run(() => regexCount(sequences, "agggtaa[cgt]|[acg]ttaccct", options));
+            var variant8 = Task.Run(() => regexCount(sequences, "agggta[cgt]a|t[acg]taccct", options));
 
-            if (verbose)
-            {
-                Console.Out.WriteLineAsync(variant1.Result);
-                Console.Out.WriteLineAsync(variant2.Result);
-                Console.Out.WriteLineAsync(variant3.Result);
-                Console.Out.WriteLineAsync(variant4.Result);
-                Console.Out.WriteLineAsync(variant5.Result);
-                Console.Out.WriteLineAsync(variant6.Result);
-                Console.Out.WriteLineAsync(variant7.Result);
-                Console.Out.WriteLineAsync(variant8.Result);
-                Console.Out.WriteLineAsync(variant9.Result);
-                Console.Out.WriteLineAsync("\n" + initialLength + "\n" + sequences.Length);
-                Console.Out.WriteLineAsync(magicTask.Result.ToString());
-            }
-            else
-            {
-                Task.WaitAll(variant1, variant2, variant3, variant4, variant5, variant6, variant7, variant8, variant9);
-            }
+            Task.WaitAll(variant1, variant2, variant3, variant4, variant5, variant6, variant7, variant8, variant9);
 
             return magicTask.Result;
+
+            static string regexCount(string s, string r, RegexOptions regexOptions)
+            {
+                int c = 0;
+                var m = Regex.Match(s, r, regexOptions);
+                while (m.Success) { c++; m = m.NextMatch(); }
+                return r + " " + c;
+            }
         }
     }
 }
