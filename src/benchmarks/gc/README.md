@@ -143,6 +143,31 @@ Each trace file can be opened in PerfView if you need to.
 Each trace file will be named `{coreclr_name}__{config_name}__{benchmark_name}__{iteration}`, e.g.  `clr_a__smaller__nosurvive__0`.
 
 
+### Running with .NET Desktop
+
+Now, it is also possible to run benchmarks using _.NET Desktop_ aside from _.NET Core_. In order to do this, we use a _self contained_ executable of _GCPerfSim_, built targeting the desktop .NET Framework. The steps to do this are described below.
+
+First, we need to tell `dotnet` to build _GCPerfSim_. Navigate to `src/exec/GCPerfSim` and open `GCPerfSim.csproj`.
+
+Within the _TargetFrameworks_ property, add the .NET Desktop version you want to build for.
+
+```xml
+<TargetFrameworks>net472;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
+```
+
+In this example, we are adding version 4.7.2 to the already existing ones of .NET Core.
+
+Next, you have to rebuild the binaries like before. Issue `dotnet build -c release` again. This will generate the new _self contained_ executable of _GCPerfSim_ back in the `artifacts` directory path at the root of the _performance_ repo. By default, it is located in `performance/artifacts/bin/GCPerfSim/release/net472/GCPerfSim.exe`, supposing you are targeting 4.7.2 as in this example. Otherwise, replace that folder with the version you selected.
+
+After this is completed, we will tell our _bench_ files to use this executable. Open your favorite one in your favorite editor.
+
+There, under the `coreclrs` section, replace the `core_root` property with `self_contained` set to `true`.
+
+On each benchmark, add an `executable` property before the `arguments` one and set it to the path of your newly built `GCPerfSim.exe`.
+
+Finally, you are ready to run your tests as explained in the previous **Running** section.
+
+
 ## Test status files
 
 Each trace has (at least) two files associated with it, `x.etl` (or `x.nettrace`) and `x.yaml`.
