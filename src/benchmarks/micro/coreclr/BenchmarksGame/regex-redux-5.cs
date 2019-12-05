@@ -25,24 +25,26 @@ namespace BenchmarksGame
     [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class RegexRedux_5
     {
-        RegexReduxHelpers helpers = new RegexReduxHelpers(bigInput: true);
+        private string _sequences;
+
+        [GlobalSetup]
+        public void Setup()
+        {
+            RegexReduxHelpers helpers = new RegexReduxHelpers(bigInput: true);
+
+            using (var inputStream = new FileStream(helpers.InputFile, FileMode.Open))
+            using (var input = new StreamReader(inputStream))
+            {
+                _sequences = input.ReadToEnd();
+            }
+        }
         
         [Benchmark(Description = nameof(RegexRedux_5))]
         [Arguments(RegexOptions.Compiled)]
         [Arguments(RegexOptions.None)]
         public int RunBench(RegexOptions options)
         {
-            using (var inputStream = new FileStream(helpers.InputFile, FileMode.Open))
-            using (var input = new StreamReader(inputStream))
-            {
-                return Bench(input, options);
-            }
-        }
-
-        static int Bench(TextReader inputReader, RegexOptions options)
-        {
-            var sequences = inputReader.ReadToEnd();
-            var initialLength = sequences.Length;
+            var sequences = _sequences;
             sequences = Regex.Replace(sequences, ">.*\n|\n", "", options);
 
             var magicTask = Task.Run(() =>

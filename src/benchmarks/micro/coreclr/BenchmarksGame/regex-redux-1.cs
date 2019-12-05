@@ -25,22 +25,24 @@ namespace BenchmarksGame
     [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
     public class RegexRedux_1
     {
-        RegexReduxHelpers helpers = new RegexReduxHelpers(bigInput: true);
-        
-        [Benchmark(Description = nameof(RegexRedux_1))]
-        public int RunBench()
+        private string _sequences;
+
+        [GlobalSetup]
+        public void Setup()
         {
+            RegexReduxHelpers helpers = new RegexReduxHelpers(bigInput: true);
+
             using (var inputStream = new FileStream(helpers.InputFile, FileMode.Open))
             using (var input = new StreamReader(inputStream))
             {
-                return Bench(input);
+                _sequences = input.ReadToEnd();
             }
         }
 
-        static int Bench(TextReader inputReader)
+        [Benchmark(Description = nameof(RegexRedux_1))]
+        public int RunBench()
         {
-            // read FASTA sequence
-            string sequence = inputReader.ReadToEnd();
+            var sequence = _sequences;
 
             // remove FASTA sequence descriptions and new-lines
             Regex r = new Regex(">.*\n|\n", RegexOptions.Compiled);
