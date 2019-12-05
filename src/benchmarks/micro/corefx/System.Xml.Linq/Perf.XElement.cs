@@ -15,6 +15,9 @@ namespace System.Xml.Linq
         [Benchmark]
         public XElement CreateElement() => new XElement("Root", "text node");
 
+        [Benchmark]
+        public XElement CreateElementWithNamespace() => new XElement("{Namespace}Root", "text node");
+
         [Benchmark(OperationsPerInvoke = 8)]
         public XElement CreateWithElements()
         {
@@ -32,22 +35,43 @@ namespace System.Xml.Linq
             return doc;
         }
 
+        [Benchmark(OperationsPerInvoke = 8)]
+        public XElement CreateElementsWithNamespace()
+        {
+            XElement doc = new XElement("Root",
+                new XElement("{namespace}elem1", "some xml element content"),
+                new XElement("{namespace}elem1", "some xml element content"),
+                new XElement("{namespace}elem1", "some xml element content"),
+                new XElement("{namespace}elem1", "some xml element content"),
+                new XElement("{namespace}elem1", "some xml element content"),
+                new XElement("{namespace}elem1", "some xml element content"),
+                new XElement("{namespace}elem1", "some xml element content"),
+                new XElement("{namespace}elem1", "some xml element content")
+            );
+
+            return doc;
+        }
+
         [GlobalSetup]
         public void Setup()
         {
             _element = new XElement("Root",
                 new XAttribute("id", 123),
                 new XElement("Child1", 1),
-                new XElement("Child2", 2),
+                new XElement("{ns}Child2", 2),
                 new XElement("Child3", 3),
                 new XElement("Child4", 4),
+                new XElement("{ns}Child4", 4),
                 new XElement("Child5", 5)
             );
         }
 
         [Benchmark]
         public XElement GetElement() => _element.Element("Child4");
-        
+
+        [Benchmark]
+        public XElement GetElementWithNamespace() => _element.Element("{ns}Child4");
+
         [Benchmark]
         public XAttribute GetAttribute() => _element.Attribute("id");
 

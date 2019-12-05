@@ -37,10 +37,13 @@ namespace System.Xml.Linq
         [GlobalSetup(Target = nameof(GetRootElement))]
         public void SetupGetRootElement()
         {
-            _doc = XDocument.Parse("<elem1 child1='' child2='duu' child3='e1;e2;' child4='a1' child5='goody'> some xml element content </elem1>");
+            _doc = XDocument.Parse("<elem1 child1='' child2='duu' child3='e1;e2;' child4='a1' child5='goody'> some xml element content <elem2>Hello</elem2></elem1>");
         }
 
         [Benchmark]
         public XElement GetRootElement() => _doc.Root;
+
+        [Benchmark]
+        public XElement Getlement() => _doc.Element("elem2");
     }
 }

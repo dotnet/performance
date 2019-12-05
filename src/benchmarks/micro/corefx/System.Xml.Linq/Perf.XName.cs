@@ -13,6 +13,15 @@ namespace System.Xml.Linq
         private XName _noNamespace;
         private XName _hasNamespace;
 
+        [Benchmark]
+        public XName CreateElement() => XName.Get("node");
+
+        [Benchmark]
+        public XName CreateElementWithNamespace() => XName.Get("Root", "http://www.example.test");
+
+        [Benchmark]
+        public XName CreateElementWithNamespaceImplicitOperator() => "{Namespace}Root";
+
         [GlobalSetup]
         public void Setup()
         {
@@ -21,13 +30,7 @@ namespace System.Xml.Linq
         }
 
         [Benchmark]
-        public XName GetLocalName() => _noNamespace.LocalName;
-
-        [Benchmark]
         public string EmptyNameSpaceToString() => _noNamespace.ToString();
-
-        [Benchmark]
-        public XName GetLocalNameFromExpandedName() => _hasNamespace.LocalName;
 
         [Benchmark]
         public string NonEmptyNameSpaceToString() => _hasNamespace.ToString();
