@@ -9,6 +9,7 @@ from typing import Callable, List, Mapping, Optional, Sequence
 from matplotlib.axes._subplots import SubplotBase
 from matplotlib.lines import Line2D
 
+from ..commonlib.bench_file import ProcessQuery
 from ..commonlib.collection_util import is_empty, map_non_null_together, zip_check
 from ..commonlib.command import Command, CommandKind, CommandsMapping
 from ..commonlib.option import non_null
@@ -28,7 +29,6 @@ from .process_trace import get_processed_trace, test_result_from_path
 from .types import (
     ProcessedGC,
     ProcessedTrace,
-    ProcessQuery,
     SingleGCMetric,
     SingleGCMetrics,
     SINGLE_GC_METRICS_DOC,
@@ -112,8 +112,7 @@ def chart_individual_gcs(args: ChartIndividualGcsArgs) -> None:
         [
             get_processed_trace(
                 clr=clr,
-                test_result=test_result_from_path(trace_path),
-                process=args.process,
+                test_result=test_result_from_path(trace_path, args.process),
                 need_mechanisms_and_reasons=False,
                 need_join_info=False,
             )
@@ -300,8 +299,7 @@ def chart_individual_gcs_histogram(args: ChartIndividualGcsHistogramArgs) -> Non
 
     trace = get_processed_trace(
         clr=get_clr(),
-        test_result=test_result_from_path(args.trace_path),
-        process=args.process,
+        test_result=test_result_from_path(args.trace_path, args.process),
         need_mechanisms_and_reasons=False,
         need_join_info=False,
     ).unwrap()

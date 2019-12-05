@@ -1119,16 +1119,24 @@ def parse_bench_file(path: Path) -> BenchFileAndPath:
     return BenchFileAndPath(load_yaml(BenchFile, path), path)
 
 
+ProcessQuery = Optional[Sequence[str]]
+
+
 @with_slots
 @dataclass(frozen=True)
 class TestResult:
     test_status_path: Optional[Path] = None
     trace_path: Optional[Path] = None
+    process: ProcessQuery = None
 
     def __post_init__(self) -> None:
+        # Making sure this is a tuple because Python requires it to be hashable.
+        assert isinstance(self.process, tuple)
         assert self.test_status_path is not None or self.trace_path is not None
         assert self.test_status_path is None or self.test_status_path.name.endswith(".yaml")
         assert self.trace_path is None or is_trace_path(self.trace_path)
+        if self.trace_path is None:
+            assert self.process is None
 
     def load_test_status(self) -> Optional[TestRunStatus]:
         return map_option(self.test_status_path, load_test_status)
@@ -1143,6 +1151,14 @@ class TestResult:
 
     def __str__(self) -> str:
         return str(self.test_status_or_trace_path)
+
+
+# @with_slots
+# @dataclass(frozen=True)
+# class TestResultWithTuples:
+#     test_status_path: Optional[Path] = None
+#     trace_path: Optional[Path] = None
+#     process: ProcessQuery = None
 
 
 class TraceKind(Enum):

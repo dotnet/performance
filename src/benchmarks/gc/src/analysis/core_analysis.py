@@ -11,7 +11,7 @@ from typing import Any, cast, Dict, Iterable, Mapping, Optional, Pattern, Sequen
 
 from overrides import overrides
 
-from ..commonlib.bench_file import get_trace_kind, TraceKind
+from ..commonlib.bench_file import get_trace_kind, ProcessQuery, TraceKind
 from ..commonlib.collection_util import find_only, is_empty, try_find_only, TryFindOnlyFailure
 from ..commonlib.option import map_option, non_null, optional_to_iter
 from ..commonlib.type_utils import check_cast, with_slots
@@ -28,7 +28,7 @@ from .clr_types import (
     AbstractTraceLoadedDotNetRuntime,
 )
 from .enums import GCType
-from .types import ProcessInfo, ThreadToProcessToName, ProcessQuery
+from .types import ProcessInfo, ThreadToProcessToName
 
 
 def get_etl_trace(clr: Clr, etl_path: Path) -> AbstractEtlTrace:

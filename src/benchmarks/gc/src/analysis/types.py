@@ -26,7 +26,7 @@ from typing import (
 
 from result import Err, Ok, Result
 
-from ..commonlib.bench_file import GCPerfSimResult, TestResult, TestRunStatus
+from ..commonlib.bench_file import GCPerfSimResult, ProcessQuery, TestResult, TestRunStatus
 from ..commonlib.collection_util import count, empty_mapping, is_empty, map_to_mapping
 from ..commonlib.document import Cell
 from ..commonlib.frozen_dict import FrozenDict
@@ -1218,9 +1218,6 @@ def union_mechanisms(a: MechanismsAndReasons, b: MechanismsAndReasons) -> Mechan
         heap_expand=a.heap_expand | b.heap_expand,
         heap_compact=a.heap_compact | b.heap_compact,
     )
-
-
-ProcessQuery = Optional[Sequence[str]]
 
 
 @with_slots

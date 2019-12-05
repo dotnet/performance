@@ -139,6 +139,9 @@ def _pad(width: int, s: str, align: Align) -> str:
     return switch[align]()
 
 
+_SUPPORTED_TERMINALS = {"ConEmuC64.exe", "WindowsTerminal.exe"}
+
+
 def _shell_supports_color() -> bool:
     if os_is_windows():
         py = _get_py_process()
@@ -148,7 +151,7 @@ def _shell_supports_color() -> bool:
         else:
             assert parent.name() in ("powershell.exe", "cmd.exe")
             shell = parent.parent()
-            return {"ConEmuC64.exe": True, "explorer.exe": False}[shell.name()]
+            return shell.name() in _SUPPORTED_TERMINALS
     else:
         return True
 

@@ -8,7 +8,7 @@ from math import inf
 from pathlib import Path
 from typing import Callable, List, Optional, Sequence
 
-from ..commonlib.bench_file import try_find_benchfile_from_trace_file_path
+from ..commonlib.bench_file import ProcessQuery, try_find_benchfile_from_trace_file_path
 from ..commonlib.collection_util import cat_unique, identity, is_empty, items_sorted_by_key
 from ..commonlib.command import Command, CommandKind, CommandsMapping
 from ..commonlib.document import (
@@ -40,7 +40,6 @@ from .types import (
     EventNames,
     MetricBase,
     ProcessedGC,
-    ProcessQuery,
     ProcessedTrace,
     RunMetrics,
     RUN_METRICS_DOC,
@@ -122,8 +121,7 @@ def _analyze_single_gc(args: _AnalyzeSingleGcArgs) -> None:
 
     trace = get_processed_trace(
         clr=get_clr(),
-        test_result=test_result_from_path(args.trace_path),
-        process=args.process,
+        test_result=test_result_from_path(args.trace_path, args.process),
         need_mechanisms_and_reasons=False,
         need_join_info=False,
     ).unwrap()
@@ -184,8 +182,7 @@ def _get_analyze_single_document(args: _AnalyzeSingleArgs) -> Document:
 
     trace = get_processed_trace(
         clr=get_clr(),
-        test_result=test_result_from_path(args.path),
-        process=args.process,
+        test_result=test_result_from_path(args.path, args.process),
         need_mechanisms_and_reasons=False,
         need_join_info=False,
     ).unwrap()
