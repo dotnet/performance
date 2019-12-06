@@ -19,6 +19,10 @@ The general workflow when using the GC infra is:
 
 ### Install python 3.7+
 
+You will need at least version 3.7 of Python.
+WARN: Python 3.8.0 is [not compatible](https://github.com/jupyter/notebook/issues/4613) with Jupyter Notebook on Windows.
+This should be fixed in 3.8.1.
+
 On Windows, just go to https://www.python.org/downloads/ and run the installer.
 It's recommended to install a 64-bit version if possible, but not required.
 

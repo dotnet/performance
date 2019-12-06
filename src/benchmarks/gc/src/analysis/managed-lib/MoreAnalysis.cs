@@ -559,6 +559,9 @@ namespace GCPerf
         // ended. This usually should be really short and interference is also important.
         restarting,
         waitingInJoin,
+        // NOTE: This will only be available if we have CPU samples or CSwitch events
+        // With CPU samples, this is an approximation.
+        // If 90% of samples for a heap are on a particular processor and then we see a sample from another process on that processor, we treat it as stolen time.
         stolen,
         idleForNoGoodReason, // TODO: Kill?
         count
