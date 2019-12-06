@@ -1274,14 +1274,20 @@ class ProcessedTrace:
 
     @property
     def TotalSecondsTaken(self) -> FailableFloat:
-        return map_ok(self.test_status, lambda ts: ts.seconds_taken)
+        return flat_map_ok(
+            self.test_status,
+            lambda ts: option_to_result(
+                ts.seconds_taken, lambda: "Test status file does not contain seconds_taken"
+            ),
+        )
 
     @property
     def Gen0Size(self) -> FailableFloat:
         return flat_map_ok(
             self.test_status,
             lambda ts: option_to_result(
-                ts.test.config.config.complus_gcgen0size, lambda: "Gen0size not specified in config"
+                None if ts.test is None else ts.test.config.config.complus_gcgen0size,
+                lambda: "Gen0size not specified in config",
             ),
         )
 
@@ -1290,7 +1296,10 @@ class ProcessedTrace:
         return flat_map_ok(
             self.test_status,
             lambda ts: option_to_result(
-                map_option(ts.test.benchmark.benchmark.get_argument("-tc"), int),
+                map_option(
+                    None if ts.test is None else ts.test.benchmark.benchmark.get_argument("-tc"),
+                    int,
+                ),
                 lambda: "tc not specified in benchmark",
             ),
         )
@@ -1550,3 +1559,22 @@ def floats(s: Sequence[float]) -> FloatsOrStrs:
 
 def strs(s: Sequence[str]) -> FloatsOrStrs:
     return FloatsOrStrs(False, s)
+
+
+class GCKind(Enum):
+    NGC0 = 0
+    NGC1 = 1
+    BGC = 2
+    NGC2 = 3
+
+
+def get_gc_kind(gc: ProcessedGC) -> GCKind:
+    return get_gc_kind_for_abstract_trace_gc(gc.trace_gc)
+
+
+def get_gc_kind_for_abstract_trace_gc(gc: AbstractTraceGC) -> GCKind:
+    return {
+        Gens.Gen0: GCKind.NGC0,
+        Gens.Gen1: GCKind.NGC1,
+        Gens.Gen2: GCKind.BGC if GCType(gc.Type) == GCType.BackgroundGC else GCKind.NGC2,
+    }[Gens(gc.Generation)]

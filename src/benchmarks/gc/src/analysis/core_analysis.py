@@ -208,18 +208,6 @@ def _get_process_names(pr: AbstractTracedProcesses) -> ThreadToProcessToName:
     return ThreadToProcessToName(pr.thread_id_to_process_id, pr.process_id_to_process_name)
 
 
-def get_process_info(
-    clr: Clr,
-    trace_path: Path,
-    show_name: str,
-    process_predicate: ProcessPredicate,
-    collect_event_names: bool = False,
-) -> ProcessInfo:
-    return get_process_names_and_process_info(
-        clr, trace_path, show_name, process_predicate, collect_event_names
-    )[1]
-
-
 def try_get_runtime(
     clr: Clr, process: AbstractTraceProcess
 ) -> Optional[AbstractTraceLoadedDotNetRuntime]:

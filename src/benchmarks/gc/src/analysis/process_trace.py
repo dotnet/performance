@@ -37,6 +37,7 @@ from .join_analysis import get_join_info_for_all_gcs
 from .mechanisms import get_mechanisms_and_reasons_for_process_info
 from .types import (
     Failable,
+    get_gc_kind_for_abstract_trace_gc,
     MaybeMetricValuesForSingleIteration,
     ProcessedGC,
     ProcessedHeap,
@@ -149,10 +150,12 @@ def _get_processed_trace_from_process(
                 " (hint: maybe specify the test output '.yaml' file instead of the trace file)",
             )
         )
+        if ts.process_id is None:
+            raise Exception("Test status file exists but does not specify process_id")
         process_predicate = process_predicate_from_id(ts.process_id)
     else:
         assert (
-            test_status is None
+            test_status.is_err()
         ), "'--process' is unnecessary as the test result specifies the PID"
         process_predicate = process_predicate_from_parts(process)
     process_names, proc = get_process_names_and_process_info(
@@ -234,7 +237,10 @@ def _get_per_heap_histories(gc: AbstractTraceGC) -> Sequence[Result[str, Abstrac
     else:
         n = len(gc.PerHeapHistories)
         if n != gc.HeapCount:
-            print(f"WARN: GC {gc.Number} has {gc.HeapCount} heaps, but {n} PerHeapHistories")
+            print(
+                f"WARN: GC {gc.Number} has {gc.HeapCount} heaps, but {n} PerHeapHistories. It's a "
+                + f" It's a {get_gc_kind_for_abstract_trace_gc(gc).name}."
+            )
             return repeat(Err("GC has wrong number of PerHeapHistories"), gc.HeapCount)
         else:
             return [Ok(h) for h in gc.PerHeapHistories]
@@ -248,7 +254,10 @@ def _get_server_gc_heap_histories(
     else:
         n = len(gc.ServerGcHeapHistories)
         if n != gc.HeapCount:
-            print(f"WARN: GC {gc.Number} has {gc.HeapCount} heaps, but {n} ServerGcHeapHistories")
+            print(
+                f"WARN: GC {gc.Number} has {gc.HeapCount} heaps, but {n} ServerGcHeapHistories."
+                + f" It's a {get_gc_kind_for_abstract_trace_gc(gc).name}."
+            )
             return repeat(Err("GC has wrong number of ServerGcHeapHistories"), gc.HeapCount)
         else:
             return [Ok(h) for h in gc.ServerGcHeapHistories]

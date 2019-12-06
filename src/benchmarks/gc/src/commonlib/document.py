@@ -213,7 +213,7 @@ def no_color(text: str, _bold: bool, _color: Optional[str]) -> str:
     return text
 
 
-def render_to_plaintext(
+def _render_to_plaintext(
     doc: Document, max_width: Optional[OutputWidth], table_indent: Optional[int]
 ) -> str:
     return _render_to_text(
@@ -225,7 +225,7 @@ def render_to_plaintext(
     )
 
 
-def render_to_excel(doc: Document, file_name: Path) -> None:
+def _render_to_excel(doc: Document, file_name: Path) -> None:
     """WARN: This is untested."""
     workbook = Workbook(str(file_name))
     worksheet = workbook.add_worksheet()
@@ -239,21 +239,21 @@ def render_to_excel(doc: Document, file_name: Path) -> None:
         return res
 
     if doc.comment is not None:
-        raise Exception("TODO")
+        raise Exception("TODO: render doc comment to excel")
 
     for section in doc.sections:
         next_row()
         if section.name is not None:
             worksheet.write(next_row(), 0, section.name)
         if section.text is not None:
-            raise Exception("TODO")
+            raise Exception("TODO: render section text to excel")
         next_row()
 
         for table in section.tables:
             if table.name is not None:
                 worksheet.write(next_row(), 0, table.name)
             if table.text is not None:
-                raise Exception("TODO")
+                raise Exception("TODO: render table text to excel")
             assert table.header_groups is None
             if table.headers is not None:
                 for i, header in enumerate(table.headers):
@@ -262,7 +262,7 @@ def render_to_excel(doc: Document, file_name: Path) -> None:
             for row in table.rows:
                 for i, value in enumerate(row):
                     if value.color is not None or value.bold is not None:
-                        raise Exception("TODO")
+                        raise Exception("TODO: render to excel with bold or colored cells")
                     worksheet.write(row_index, i, "" if value.value is None else value.value)
 
     workbook.close()
@@ -486,7 +486,7 @@ def _write_indent(write: Write, indent: int) -> None:
     write(" " * indent)
 
 
-def render_to_html(document: Document) -> str:
+def _render_to_html(document: Document) -> str:
     doc = Doc()
     tag = doc.tag
     text = doc.text
@@ -642,7 +642,8 @@ class DocOutputArgs:
     table_indent: Optional[int] = argument(default=None, doc="Indent tables by this many spaces.")
     txt: Optional[Path] = argument(default=None, doc="Output to a '.txt' file")
     html: Optional[Path] = argument(default=None, doc="Output to a '.html' file")
-    xlsx: Optional[Path] = argument(default=None, doc="Output to a '.xlsx' file")
+    # Hidden because render_to_excel is incomplete
+    xlsx: Optional[Path] = argument(default=None, hidden=True, doc="Output to a '.xlsx' file")
 
 
 def output_options_from_args(args: DocOutputArgs) -> OutputOptions:
@@ -657,12 +658,14 @@ def output_options_from_args(args: DocOutputArgs) -> OutputOptions:
 
 def handle_doc(doc: Document, output: OutputOptions = EMPTY_OUTPUT_OPTIONS) -> None:
     if output.html:
-        output.html.write_text(render_to_html(doc))
+        output.html.write_text(_render_to_html(doc))
     if output.txt:
-        doc_txt = render_to_plaintext(doc, max_width=output.width, table_indent=output.table_indent)
+        doc_txt = _render_to_plaintext(
+            doc, max_width=output.width, table_indent=output.table_indent
+        )
         txt = f"{get_command_line()}\n\n{doc_txt}"
         output.txt.write_text(txt, encoding="utf-8")
     if output.excel:
-        render_to_excel(doc, output.excel)
+        _render_to_excel(doc, output.excel)
     if not output.any_file_output():
         print_document(doc, max_width=output.width, table_indent=output.table_indent)

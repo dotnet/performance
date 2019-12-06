@@ -7,9 +7,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Mapping, Optional
 
-from ..analysis.core_analysis import get_process_info, process_predicate_from_id
-from ..analysis.clr import Clr, get_clr
-
 from ..commonlib.bench_file import (
     BenchFileAndPath,
     get_benchmark,
@@ -21,13 +18,11 @@ from ..commonlib.bench_file import (
     MAX_ITERATIONS_FOR_RUN_DOC,
     parse_bench_file,
     SingleTestCombination,
-    TestConfigCombined,
 )
 from ..commonlib.get_built import BuildKind, Built, get_built, is_arm
-from ..commonlib.collection_util import combine_mappings, is_empty
+from ..commonlib.collection_util import combine_mappings
 from ..commonlib.command import Command, CommandKind, CommandsMapping
-from ..commonlib.host_info import HostInfo, read_this_machines_host_info
-from ..commonlib.option import map_option, non_null, option_or
+from ..commonlib.option import map_option
 from ..commonlib.type_utils import argument, with_slots
 from ..commonlib.util import (
     assert_file_exists,
@@ -50,41 +45,6 @@ from .run_single_test import (
     run_single_test,
     SingleTest,
 )
-
-
-@with_slots
-@dataclass(frozen=True)
-class CheckRunOutputArgs:
-    bench_file_path: Path = argument(
-        name_optional=True, doc="Path to a benchfile that has already been run."
-    )
-    config: Optional[str] = argument(default=None, doc="Only check runs with this config name")
-    bench: Optional[str] = argument(default=None, doc="Only check runs with this benchmark name")
-    out_dir: Optional[Path] = argument(
-        default=None, doc="Use this instead of the default output directory for the benchfile."
-    )
-
-
-def check_run_output(args: CheckRunOutputArgs) -> None:
-    host_info = read_this_machines_host_info()
-    clr = get_clr()
-    for t in iter_tests_to_run(
-        parse_bench_file(args.bench_file_path),
-        get_this_machine(),
-        max_iterations=None,
-        out_dir=args.out_dir,
-    ):
-        if (args.config is None or args.config == t.config_name) and (
-            args.bench is None or args.bench == t.benchmark_name
-        ):
-            test_status = t.out.load_test_status()
-            if test_status.success:
-                trace_file = t.out.trace_file_path(test_status)
-                if trace_file is not None:
-                    print(f"checking {trace_file}")
-                    _check_test_run(clr, t.config, trace_file, host_info, test_status.process_id)
-            else:
-                print(f"{t} did not succeed")
 
 
 @with_slots
@@ -120,9 +80,6 @@ class RunArgs:
     Only works if you specified coreclrs with 'repo_path' instead of 'core_root'.
     """,
     )
-    no_check_runs: bool = argument(
-        default=False, doc="If set to true, test runs will not be validated."
-    )
 
 
 def run(args: RunArgs) -> None:
@@ -153,9 +110,7 @@ def run(args: RunArgs) -> None:
             check_no_test_processes()
         ensure_empty_dir(out_dir)
 
-    _run_all_benchmarks(
-        built, bench, args.skip_where_exists, args.max_iterations, out_dir, args.no_check_runs
-    )
+    _run_all_benchmarks(built, bench, args.skip_where_exists, args.max_iterations, out_dir)
 
 
 def _run_all_benchmarks(
@@ -164,16 +119,13 @@ def _run_all_benchmarks(
     skip_where_exists: bool,
     max_iterations: Optional[int],
     out_dir: Path,
-    no_check_runs: bool,
 ) -> None:
-    host_info = read_this_machines_host_info()
-    clr = None if no_check_runs else get_clr()
     default_env = check_env()
     for t in iter_tests_to_run(bench, get_this_machine(), max_iterations, out_dir):
         now = datetime.now().strftime("%H:%M:%S")
         print(f"{now} Running {t.out.out_path_base.name}")
         if not (skip_where_exists and t.out.exists()):
-            test_status = run_single_test(
+            run_single_test(
                 built,
                 SingleTest(
                     test=t.test,
@@ -184,10 +136,6 @@ def _run_all_benchmarks(
                 ),
                 t.out,
             )
-            if clr is not None and test_status.success:
-                trace_file = t.out.trace_file_path(test_status)
-                if trace_file is not None:
-                    _check_test_run(clr, t.config, trace_file, host_info, test_status.process_id)
 
 
 def _assert_not_in_job(built: Built) -> None:
@@ -295,27 +243,6 @@ def _env_to_shell_commands(env: Mapping[str, str]) -> str:
     return "".join(f"{prefix}{k}={_quote_if_necessary(v)}\n" for k, v in env.items())
 
 
-def _check_test_run(
-    clr: Clr, config: TestConfigCombined, trace_path: Path, host_info: HostInfo, process_id: int
-) -> None:
-    proc = get_process_info(clr, trace_path, str(trace_path), process_predicate_from_id(process_id))
-
-    assert not is_empty(proc.gcs), f"{trace_path} has no GCs"
-
-    for gc in proc.gcs:
-        ghh = non_null(gc.GlobalHeapHistory)
-        num_heaps = ghh.NumHeaps
-        if config.complus_gcheapcount is not None or not config.complus_gcserver:
-            expect_heaps = (
-                option_or(config.complus_gcheapcount, host_info.n_logical_processors)
-                if config.complus_gcserver
-                else 1
-            )
-            assert (
-                num_heaps == expect_heaps
-            ), f"{trace_path}: Expected {expect_heaps} heaps, but GlobalHeapHistory has {num_heaps}"
-
-
 def _get_path(built: Built, paths: Optional[Mapping[str, Path]], key: str) -> Path:
     path = None if paths is None else paths.get(key)
     if path is not None:
@@ -329,12 +256,6 @@ def _get_path(built: Built, paths: Optional[Mapping[str, Path]], key: str) -> Pa
 
 
 RUN_TESTS_COMMANDS: CommandsMapping = {
-    "check-run-output": Command(
-        hidden=True,
-        kind=CommandKind.run,
-        fn=check_run_output,
-        doc="Check that trace files look like they came from the given benchfile and machine.",
-    ),
     "how-to-run-test": Command(
         kind=CommandKind.run,
         fn=how_to_run_test,

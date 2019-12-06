@@ -832,7 +832,13 @@ REPORT_COMMANDS: CommandsMapping = {
         kind=CommandKind.analysis,
         fn=diff,
         doc="""
-    Compare run metrics between two traces.
+    Compares run metrics between traces or configs.
+
+    If `--trace-paths` specifies multiple paths, they should be paths to traces to diff.
+    (These should be test status `.yaml` files as we need to know the process ID for each trace.)
+
+    Otherwise, `--trace-paths` should specify a benchfile, and you should specify `--vary`.
+    If `--vary` is e.g. `config`, it will compare all the different configs from the benchfile.
     """,
     ),
     "print-all-runs": Command(

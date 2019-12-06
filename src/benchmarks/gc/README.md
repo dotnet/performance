@@ -19,8 +19,14 @@ The general workflow when using the GC infra is:
 
 ### Install python 3.7+
 
+You will need at least version 3.7 of Python.
+WARN: Python 3.8.0 is [not compatible](https://github.com/jupyter/notebook/issues/4613) with Jupyter Notebook on Windows.
+This should be fixed in 3.8.1.
+
 On Windows, just go to https://www.python.org/downloads/ and run the installer.
-On other systems it’s better to use your system’s package manager.
+It's recommended to install a 64-bit version if possible, but not required.
+
+On other systems, it’s better to use your system’s package manager.
 
 
 ### Install Python dependencies
@@ -29,65 +35,23 @@ On other systems it’s better to use your system’s package manager.
 py -m pip install -r src/requirements.txt
 ```
 
-You will likely run into trouble installing pythonnet.
 
-First, pythonnet is only needed to analyze test results, not to run tests.
-If you just want to run tests on this machine, you could comment out pythonnet from `src/requirements.txt`.
-Then when running tests, provide the `--no-check-runs` option.
+### Install pythonnet
 
+Pythonnet is only needed to analyze test results, not to run tests.
+If you just want to run tests on this machine, you can skip installing pythonnet,
+copy bench output to a different machine, and do analysis there.
 
-#### Pythonnet on Windows
-
-On Windows, if you run into trouble installing pythonnet, look for an error like:
-
-    Cannot find the specified version of msbuild: '14' 
-
-or:
-
-    Could not load file or assembly 'Microsoft.Build.Utilities, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
-
-If so, you may need to install Visual Studio 2015.
-
-
-#### Pythonnet on other systems
-
-Pythonnet [does not work](https://github.com/pythonnet/pythonnet/issues/939) with the latest version of mono, so you'll need to downgrade that to version 5.
-
-On Ubuntu the instructions are:
-
-* Change `/etc/apt/sources.list.d/mono-official-stable.list` to:
-```
-deb https://download.mono-project.com/repo/ubuntu stable-bionic/snapshots/5.20.1 main
-```
-* `sudo apt remove mono-complete`
-* `sudo apt update`
-* `sudo apt autoremove`
-* `sudo apt install mono-complete`
-* `mono --version`, should be 5.20.1
-
-Then to install from source:
-
-* Instructions: https://github.com/pythonnet/pythonnet/wiki/Installation
-* `py setup.py bdist_wheel --xplat`
-* WARN: The instructions there tell you to run `pip install --no-index --find-links=.\dist\ pythonnet`.
-  This may "succeed" saying `Requirement already satisfied: pythonnet in /path/to/pythonnet`.
-  INSTEAD, go to the *parent* directory and use `sudo python3.7 -m pip install --no-index --find-links=./pythonnet/dist/` which circumvents this bug.
-* Run `import clr` in the python interpreter to verify that installation worked.
-
-
-If you see an error:
-```
-fatal error: Python.h: No such file or directory
-```
-
-You likely have python installed but not dev tools. See https://stackoverflow.com/questions/21530577/fatal-error-python-h-no-such-file-or-directory .
+For instructions to install pythonnet, see [docs/pythonnet.md](docs/pythonnet.md).
 
 ### Building C# dependencies
 
 Navigate to `src/exec/GCPerfSim` and run `dotnet build -c release`.
+This builds the default test benchmark. (You can use other benchmarks if you want, in which case this does not need to be built.)
 
 Navigate to `src/analysis/managed-lib` and run `dotnet publish`.
-
+This builds the C# library needed to read trace files. Python will load in this library and make calls to it.
+This intentionally uses a debug build to have added safety checks in the form of assertions.
 
 
 ### Windows-Only Building
@@ -177,6 +141,21 @@ This contains a trace file (and some other small files) for each of the tests. (
 Each trace file can be opened in PerfView if you need to.
 
 Each trace file will be named `{coreclr_name}__{config_name}__{benchmark_name}__{iteration}`, e.g.  `clr_a__smaller__nosurvive__0`.
+
+
+## Test status files
+
+Each trace has (at least) two files associated with it, `x.etl` (or `x.nettrace`) and `x.yaml`.
+The `.yaml` file is called a test status file. It provides, among other things, the process ID to focus on.
+A minimal test status file looks like:
+
+    # this file: `x.yaml`
+    success: true
+    trace_file_name: x.etl  # A relative path. Should generally match the name of this file.
+    process_id: 1234  # If you don't know this, use the `print-processes` command for a list
+
+Only these 3 lines are required, but a full specification is in `class TestRunStatus` in `bench_file.py`.
+You can write these files by hand for traces you got from elsewhere.
 
 
 ## Analyzing
@@ -371,7 +350,7 @@ If you don't have a trace, you are limited in the metrics you can use. No single
 # Limitations
 
 
-AMD64 is not currently supported.
+ARM is not currently supported.
 The `affinitize`  and `memory_load_percent` properties of a benchfile's config are not yet implemented outside of Windows.
 
 

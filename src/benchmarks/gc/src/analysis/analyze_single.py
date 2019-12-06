@@ -93,7 +93,13 @@ class _AnalyzeSingleArgs(DocOutputArgs):
     Should not be set if '--show-first-n-gcs' is.
     """,
     )
-    show_reasons: bool = argument(default=False, doc="Show the reason for each GC")
+    show_reasons: bool = argument(
+        default=False,
+        doc="""
+        Show counts of how many GCs had each reason.
+        Also, in the "Single gcs" table, show the reason for each GC.
+        """,
+    )
 
 
 def analyze_single(args: _AnalyzeSingleArgs) -> None:
@@ -289,7 +295,7 @@ def _get_single_gcs_section(
     def get_row_for_gc(gc: ProcessedGC) -> Optional[Row]:
         return (
             Cell(gc.Number),
-            *optional_to_iter(Cell(str(gc.reason)) if show_reasons else None),
+            *optional_to_iter(Cell(str(gc.reason.name)) if show_reasons else None),
             *(value_cell(m, gc.metric(m)) for m in single_gc_metrics),
         )
 
