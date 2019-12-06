@@ -151,7 +151,7 @@ A minimal test status file looks like:
 
     # this file: `x.yaml`
     success: true
-    trace_file_name: x.etl  # Should generally match the name of this file
+    trace_file_name: x.etl  # A relative path. Should generally match the name of this file.
     process_id: 1234  # If you don't know this, use the `print-processes` command for a list
 
 Only these 3 lines are required, but a full specification is in `class TestRunStatus` in `bench_file.py`.
