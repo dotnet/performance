@@ -41,7 +41,6 @@ py -m pip install -r src/requirements.txt
 Pythonnet is only needed to analyze test results, not to run tests.
 If you just want to run tests on this machine, you can skip installing pythonnet,
 copy bench output to a different machine, and do analysis there.
-When running tests, you must provide the `--no-check-runs` option to avoid using pythonnet.
 
 For instructions to install pythonnet, see [docs/pythonnet.md](docs/pythonnet.md).
 

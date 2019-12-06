@@ -105,7 +105,7 @@ class SingleTest:
 
 
 # Writes to out_path.etl, out_path.yaml, and out_path as a directory
-def run_single_test(built: Built, t: SingleTest, out: TestPaths) -> TestRunStatus:
+def run_single_test(built: Built, t: SingleTest, out: TestPaths) -> None:
     check_no_test_processes()
     partial_test_status = _do_run_single_test(built, t, out)
     seconds_taken = partial_test_status.seconds_taken
@@ -145,7 +145,6 @@ def run_single_test(built: Built, t: SingleTest, out: TestPaths) -> TestRunStatu
 
     sleep(1)  # Give process time to close
     check_no_test_processes()
-    return test_status
 
 
 def _parse_gcperfsim_result(stdout: str) -> GCPerfSimResult:
