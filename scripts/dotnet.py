@@ -620,8 +620,7 @@ def install(
     # Download appropriate dotnet install script
     dotnetInstallScriptExtension = '.ps1' if platform == 'win32' else '.sh'
     dotnetInstallScriptName = 'dotnet-install' + dotnetInstallScriptExtension
-    # url = 'https://dot.net/v1/'  
-    url = 'https://pvscmdupload.blob.core.windows.net/oliviatest/' # hot-fix for installer issue; will revert
+    url = 'https://dot.net/v1/'  
     dotnetInstallScriptUrl = url + dotnetInstallScriptName
 
     dotnetInstallScriptPath = path.join(install_dir, dotnetInstallScriptName)
