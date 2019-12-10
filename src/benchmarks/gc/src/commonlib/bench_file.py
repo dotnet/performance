@@ -1131,7 +1131,7 @@ class TestResult:
 
     def __post_init__(self) -> None:
         # Making sure this is a tuple because Python requires it to be hashable.
-        assert isinstance(self.process, tuple)
+        # assert isinstance(self.process, tuple)
         assert self.test_status_path is not None or self.trace_path is not None
         assert self.test_status_path is None or self.test_status_path.name.endswith(".yaml")
         assert self.trace_path is None or is_trace_path(self.trace_path)
@@ -1151,14 +1151,6 @@ class TestResult:
 
     def __str__(self) -> str:
         return str(self.test_status_or_trace_path)
-
-
-# @with_slots
-# @dataclass(frozen=True)
-# class TestResultWithTuples:
-#     test_status_path: Optional[Path] = None
-#     trace_path: Optional[Path] = None
-#     process: ProcessQuery = None
 
 
 class TraceKind(Enum):
