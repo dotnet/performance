@@ -3,6 +3,7 @@ Utility routines
 '''
 import sys
 import os
+import platform
 from os import environ
 from shared import const
 from performance.constants import UPLOAD_TOKEN_VAR
@@ -36,3 +37,8 @@ def uploadtokenpresent():
 
 def runninginlab():
     return environ.get('PERFLAB_INLAB') is not None
+
+def getruntimeidentifier():
+    rid = 'win-' if sys.platform == 'win32' else 'linux-'
+    rid += 'x64' if platform.machine().endswith('64') else 'x86'
+    return rid

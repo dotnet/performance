@@ -3,12 +3,13 @@ Wrapper around startup tool.
 '''
 import sys
 import os
+import platform
 from shutil import copytree
 from performance.logger import setup_loggers
 from performance.common import get_artifacts_directory, get_packages_directory, RunCommand
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR
 from dotnet import CSharpProject, CSharpProjFile
-from shared.util import helixpayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent
+from shared.util import helixpayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier
 from shared.const import *
 class StartupWrapper(object):
     '''
@@ -29,11 +30,24 @@ class StartupWrapper(object):
                                                    sys.path[0]),
                                                    os.path.join(os.path.dirname(startupproj),
                                     os.path.join(get_artifacts_directory(), 'startup')))
-            startup.restore(get_packages_directory(), True)
-            startup.build(configuration='Release',
-                          verbose=True,
-                          packages_path=get_packages_directory(),
-                          output_to_bindir=True)
+
+            startup.restore(get_packages_directory(),
+                            True,
+                            getruntimeidentifier())
+            startup.build('Release',
+                          True,
+                          get_packages_directory(),
+                          None,
+                          False,
+                          getruntimeidentifier())
+            startup.publish('Release',
+                            os.path.join(get_artifacts_directory(), 'startup'),
+                            True,
+                            get_packages_directory(),
+                            None,
+                            getruntimeidentifier(),
+                            '--no-build'
+                            )
             self._setstartuppath(startup.bin_path)
 
     

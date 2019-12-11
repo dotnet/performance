@@ -233,7 +233,10 @@ class CSharpProject:
         '''Gets the directory in which the built binaries will be placed.'''
         return self.__bin_directory
 
-    def restore(self, packages_path: str, verbose: bool) -> None:
+    def restore(self, 
+                packages_path: str, 
+                verbose: bool,
+                runtime_identifier: str = None) -> None:
         '''
         Calls dotnet to restore the dependencies and tools of the specified
         project.
@@ -248,6 +251,10 @@ class CSharpProject:
             self.csproj_file,
             '--packages', packages_path
         ]
+
+        if runtime_identifier:
+            cmdline += ['--runtime', runtime_identifier]
+            
         RunCommand(cmdline, verbose=verbose).run(
             self.working_directory)
 
@@ -257,6 +264,7 @@ class CSharpProject:
               packages_path: str,
               target_framework_monikers: list = None,
               output_to_bindir: bool = False,
+              runtime_identifier: str = None,
               *args) -> None:
         '''Calls dotnet to build the specified project.'''
         if not target_framework_monikers:  # Build all supported frameworks.
@@ -270,11 +278,16 @@ class CSharpProject:
 
             if output_to_bindir:
                 cmdline = cmdline + ['--output', self.__bin_directory]
-
+            
+            if runtime_identifier:
+                cmdline = cmdline + ['--runtime', runtime_identifier]
+            
             if args:
                 cmdline = cmdline + list(args)
+            
             RunCommand(cmdline, verbose=verbose).run(
                 self.working_directory)
+
         else:  # Only build specified frameworks
             for target_framework_moniker in target_framework_monikers:
                 cmdline = [
@@ -289,8 +302,12 @@ class CSharpProject:
                 if output_to_bindir:
                     cmdline = cmdline + ['--output', self.__bin_directory]
 
+                if runtime_identifier:
+                    cmdline = cmdline + ['--runtime', runtime_identifier]
+
                 if args:
                     cmdline = cmdline + list(args)
+                
                 RunCommand(cmdline, verbose=verbose).run(
                     self.working_directory)
     @staticmethod
@@ -340,6 +357,7 @@ class CSharpProject:
                 packages_path,
                 target_framework_moniker: str = None,
                 runtime_identifier: str = None,
+                *args,
                ) -> None:
         '''
         Invokes publish on the specified project
@@ -356,6 +374,9 @@ class CSharpProject:
 
         if target_framework_moniker:
             cmdline += ['--framework', target_framework_moniker]
+
+        if args:
+            cmdline = cmdline + list(args)
 
         RunCommand(cmdline, verbose=verbose).run(
             self.working_directory
