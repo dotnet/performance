@@ -13,8 +13,6 @@ The general workflow when using the GC infra is:
 * Run the benchfile and collect traces.
 * Run analysis on the output.
 
-
-
 # Setup
 
 ### Install python 3.7+
@@ -28,13 +26,11 @@ It's recommended to install a 64-bit version if possible, but not required.
 
 On other systems, it’s better to use your system’s package manager.
 
-
 ### Install Python dependencies
 
 ```sh
 py -m pip install -r src/requirements.txt
 ```
-
 
 ### Install pythonnet
 
@@ -53,14 +49,10 @@ Navigate to `src/analysis/managed-lib` and run `dotnet publish`.
 This builds the C# library needed to read trace files. Python will load in this library and make calls to it.
 This intentionally uses a debug build to have added safety checks in the form of assertions.
 
-
 ### Windows-Only Building
 
 Open a Visual Studio Developer Command Prompt, go to `src/exec/env`, and run `.\build.cmd`.
 This requires `cmake` to be installed.
-
-
-
 
 ### Other setup
 
@@ -72,9 +64,6 @@ You should have builds of coreclr available for use in the next step.
 Finally, run `py . setup` from the same directory as this README.
 This will read information about your system that's relevant to performance analysis (such as cache sizes) and save to `bench/host_info.yaml`.
 It will also install some necessary dependencies on Windows.
-
-
-
 
 # Tutorial
 
@@ -100,8 +89,32 @@ You can omit this if you just intend to test a single coreclr.
 
 If you made a mistake, you can run `suite-create` again and pass `--overwrite`, which clears the output directory (`bench/suite` in this example) first.
 
-`suite-create` generates a set of default tests as different `.yaml` files, and a `suite.yaml` file referencing them. 
+`suite-create` generates a set of default tests as different `.yaml` files, and a `suite.yaml` file referencing them.
 
+Each test `.yaml` file looks something like the example described below:
+
+```yaml
+vary: coreclr
+coreclrs:
+  a:
+    core_root: <path to first CoreCLR core root>
+  b:
+    core_root: <path to second CoreCLR core root>
+options:
+   <option configuration such as timeouts, number of iterations, etc>
+common_config:
+   <configuration values such as number of heaps, concurrent gcs, etc>
+benchmarks:
+  0gb:
+    arguments:
+      tc: 10
+      tagb: 300
+      tlgb: 0
+      <other parameters for GCPerfSim>
+  <other benchmark tests to run>
+```
+
+The configuration values that can be used in the test `.yaml` file are described under `docs/bench_file.md`.
 
 ## Running
 
@@ -142,7 +155,6 @@ Each trace file can be opened in PerfView if you need to.
 
 Each trace file will be named `{coreclr_name}__{config_name}__{benchmark_name}__{iteration}`, e.g.  `clr_a__smaller__nosurvive__0`.
 
-
 ### Running with .NET Desktop
 
 Now, it is also possible to run benchmarks using _.NET Desktop_ aside from _.NET Core_. In order to do this, we use a _self contained_ executable of _GCPerfSim_, built targeting the desktop .NET Framework. The steps to do this are described below.
@@ -165,8 +177,32 @@ There, under the `coreclrs` section, replace the `core_root` property with `self
 
 On each benchmark, add an `executable` property before the `arguments` one and set it to the path of your newly built `GCPerfSim.exe`.
 
-Finally, you are ready to run your tests as explained in the previous **Running** section.
+For example, your benchmark file could end up looking something like the following:
 
+```yaml
+coreclrs:
+  a:
+    self_contained: true
+
+<other configuration values>
+
+benchmarks:
+  0gb:
+    executable: performance/artifacts/bin/GCPerfSim/release/net472/GCPerfSim.exe
+    arguments:
+      tc: 10
+      <other benchmark values>
+
+  2gb:
+    executable: performance/artifacts/bin/GCPerfSim/release/net472/GCPerfSim.exe
+    arguments:
+      tc: 10
+      <other benchmark values>
+
+<remaining benchmarks to be run>
+```
+
+Finally, you are ready to run your tests as explained in the previous **Running** section.
 
 ## Test status files
 
@@ -182,7 +218,6 @@ A minimal test status file looks like:
 Only these 3 lines are required, but a full specification is in `class TestRunStatus` in `bench_file.py`.
 You can write these files by hand for traces you got from elsewhere.
 
-
 ## Analyzing
 
 Now let's analyze the results.
@@ -196,7 +231,7 @@ this take the benchfile as input, not the `.out` directory.)
 
 This produces something like:
 
-```
+```text
                          ┌────────────────────────────┐
                          │ Summary of important stats │
                          └────────────────────────────┘
@@ -243,14 +278,11 @@ This is followed by a list of each metric, sorted by how significantly it differ
 In this case, all diffs should tend toward 0 since we're testing on two identical coreclrs.
 `95P` metrics tend to have high standard deviation, since we are only considering the worst instances.
 
-
-
 ## Conclusion
 
 Now you know how to create, run, and analyze a test.
 
 In many cases, all you need to use the infra is to manually modify a benchfile, then `run` and `diff` it.
-
 
 # Metrics
 
@@ -268,13 +300,13 @@ You can see all available metrics [here](docs/metrics.md).
 
 Most analysis commands require you to specify the metrics you want (although many provide defaults). The simplest example is `analyze-single` which can take a single trace and print out metrics.
 
-```
+```sh
 py . analyze-single bench/suite/low_memory_container.yaml.out/a__only_config__tlgb0.2__0.etl --run-metrics FirstToLastGCSeconds --single-gc-metrics DurationMSec --single-heap-metrics InMB OutMB
 ```
 
 The output will look like:
 
-```
+```text
                   ┌─────────────────┐
                   │ Overall metrics │
                   └─────────────────┘
@@ -347,21 +379,14 @@ The output will look like:
      6 │ 9.54 │  9.54
   ─────┼──────┼──────
      7 │ 10.2 │  10.2
- 
-... 
+...
 ```
 
-
-
 As you can see, the run-metrics appear only once for the whole trace, the single-gc-metrics have different values for each GC, and the single-heap-metrics have a different value for each different heap in each GC.
-
-
 
 # GCPerfSim
 
 Although benchmarks can run any executable, they will usually run GCPerfSim. You can read its documentation in the [source](src/exec/GCPerfSim/GCPerfSim.cs).
-
-
 
 # Running Without Traces
 
@@ -371,13 +396,10 @@ If you set `collect: none` in the `options` section of your [benchfile](docs/ben
 
 If you don't have a trace, you are limited in the metrics you can use. No single-heap or single-gc-metrics are available since individual GCs aren't collected. However, GCPerfSim outputs information at the end which is stored in the test status file (a `.yaml` file with the same name as the trace file would have). You can view those metrics in the section "float metrics that only require test status" [here](docs/metrics.md).
 
-
 # Limitations
-
 
 ARM is not currently supported.
 The `affinitize`  and `memory_load_percent` properties of a benchfile's config are not yet implemented outside of Windows.
-
 
 # Further Reading
 
@@ -390,16 +412,12 @@ Before modifying benchfiles, you should read [bench_file](docs/bench_file.md) wh
 
 Commands can be run in a Jupyter notebook instead of on the command line. See [jupyter notebook](docs/jupyter notebook.md).
 
-
-
-
 # Terms
 
 ### Metric
 
 The name of a measurement we might take.
 See more in `docs/metrics.md`.
-
 
 ### Benchfile
 
@@ -417,12 +435,10 @@ A clone of https://github.com/dotnet/coreclr,  which may be on an arbitrary comm
 When you make a change to coreclr, you will generally make two clones, one at master and one at your branch (which may be on your fork).
 Alternately, you may have only one checkout, build multiple times, copy the builds to somewhere, and specify coreclrs using `core_root` instead of `path`.
 
-
 ### Config
 
 Environment in which coreclr will be invoked on a benchmark. This includes environment variables that determine GC settings, as well as options for putting the test in a container.
 See `docs/bench_file.md` in the `## Config` section for more info.
-
 
 ### Benchmark
 
@@ -433,8 +449,6 @@ The recorded events of a test run.
 May be an ETL or netperf file.
 ETL files come from using PerfView to collect ETW events, which is the default on Windows.
 Netperf files come from using dotnet-trace, which uses EventPipe. This is the only option on non-Windows systems.
-
-
 
 # Contributing
 
