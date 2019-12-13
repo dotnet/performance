@@ -30,6 +30,7 @@ def init_tools(
     This function writes a semaphore file when tools have been successfully
     installed in order to avoid reinstalling them on every rerun.
     '''
+    getLogger.info(f"Python version: {sys.version}")
     getLogger().info('Installing tools.')
     channels = [
         micro_benchmarks.FrameworkAction.get_channel(
