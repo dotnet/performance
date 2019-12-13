@@ -147,6 +147,8 @@ This may be:
 * `id:123` to specify a process ID
 * `name:abc` to specify a regular expression to match a process name.
 * `args:abc` to specify a regular expression to match process arguments.
+
+This will only work when analyzing trace files (`.etl` extension).
 """
 
 
