@@ -34,19 +34,13 @@ class StartupWrapper(object):
             startup.restore(get_packages_directory(),
                             True,
                             getruntimeidentifier())
-            startup.build('Release',
-                          True,
-                          get_packages_directory(),
-                          None,
-                          False,
-                          getruntimeidentifier())
             startup.publish('Release',
                             os.path.join(get_artifacts_directory(), 'startup'),
                             True,
                             get_packages_directory(),
                             None,
                             getruntimeidentifier(),
-                            '--no-build'
+                            '--no-restore'
                             )
             self._setstartuppath(startup.bin_path)
 

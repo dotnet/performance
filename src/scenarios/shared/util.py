@@ -40,5 +40,8 @@ def runninginlab():
 
 def getruntimeidentifier():
     rid = 'win-' if sys.platform == 'win32' else 'linux-'
-    rid += 'x64' if platform.machine().endswith('64') else 'x86'
+    if 'aarch64' in platform.machine() or os.environ.get('PERFLAB_BUILDARCH') == 'arm64':
+        rid += 'arm64'
+    else:
+        rid += 'x64' if platform.machine().endswith('64') else 'x86'
     return rid
