@@ -63,7 +63,7 @@ def init_tools(
     '''
     getLogger().info('Installing tools.')
     channels = [
-        micro_benchmarks.FrameworkAction.get_channel(
+        dotnet.FrameworkAction.get_channel(
             target_framework_moniker)
         for target_framework_moniker in target_framework_monikers
     ]
@@ -193,7 +193,7 @@ def __main(args: list) -> int:
     verbose = not args.quiet
     setup_loggers(verbose=verbose)
 
-    target_framework_monikers = micro_benchmarks \
+    target_framework_monikers = dotnet \
         .FrameworkAction \
         .get_target_framework_monikers(args.frameworks)
     # Acquire necessary tools (dotnet)

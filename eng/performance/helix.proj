@@ -9,10 +9,10 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(WorkItemCommand)' != ''">
-    <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) -f $(_Framework) $(_BenchViewArguments) $(_PerfLabArguments)</WorkItemCommand>
+    <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) -f $(PERFLAB_TARGET_FRAMEWORKS) $(_BenchViewArguments) $(_PerfLabArguments)</WorkItemCommand>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(_Framework)' != 'net461'">
+  <PropertyGroup Condition="'$(PERFLAB_TARGET_FRAMEWORKS)' != 'net461'">
     <WorkItemCommand>$(WorkItemCommand) $(CliArguments)</WorkItemCommand>
   </PropertyGroup>
 

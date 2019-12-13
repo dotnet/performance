@@ -22,7 +22,7 @@ global_extension = ".cmd" if sys.platform == 'win32' else '.sh'
 def init_tools(
         architecture: str,
         dotnet_versions: str,
-        target_framework_monikers: list,
+        channels: list,
         verbose: bool,
         install_dir: str=None) -> None:
     '''
@@ -31,11 +31,7 @@ def init_tools(
     installed in order to avoid reinstalling them on every rerun.
     '''
     getLogger().info('Installing tools.')
-    channels = [
-        micro_benchmarks.FrameworkAction.get_channel(
-            target_framework_moniker)
-        for target_framework_moniker in target_framework_monikers
-    ]
+
     dotnet.install(
         architecture=architecture,
         channels=channels,
@@ -53,6 +49,16 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     # Download DotNet Cli
     dotnet.add_arguments(parser)
     micro_benchmarks.add_arguments(parser)
+
+    parser.add_argument(
+        '--channels',
+        dest='channels',
+        required=True,
+        nargs='+',
+        action=dotnet.ChannelAction,
+        choices=dotnet.ChannelAction.get_supported_channels(),
+        help='Channel to download product from'
+    )
 
     parser.add_argument(
         '--branch',
@@ -177,10 +183,6 @@ def __main(args: list) -> int:
     if not ((args.commit_sha is None) == (args.repository is None)):
         raise ValueError('Either both commit_sha and repository should be set or neither')
 
-    target_framework_monikers = micro_benchmarks \
-        .FrameworkAction \
-        .get_target_framework_monikers(args.frameworks)
-
     # Acquire necessary tools (dotnet)
     # For arm64 runs, download the x64 version so we can get the information we need, but set all variables
     # as if we were running normally. This is a workaround due to the fact that arm64 binaries cannot run
@@ -190,7 +192,7 @@ def __main(args: list) -> int:
     init_tools(
         architecture=architecture,
         dotnet_versions=args.dotnet_versions,
-        target_framework_monikers=target_framework_monikers,
+        channels=args.channels,
         verbose=verbose,
         install_dir=args.install_dir
     )
@@ -226,16 +228,17 @@ def __main(args: list) -> int:
 
     remove_frameworks = ['netcoreapp3.0', 'netcoreapp5.0']
 
-    for framework in target_framework_monikers:
+    for channel in args.channels:
+        framework = dotnet.ChannelAction.get_target_framework_moniker(channel)
         if framework.startswith('netcoreapp'):
             if framework in remove_frameworks:
                 remove_dotnet = True
-            target_framework_moniker = micro_benchmarks.FrameworkAction.get_target_framework_moniker(framework)
+            target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
             dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli)
-            commit_sha =  dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
+            commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
             source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
 
-            branch = micro_benchmarks.FrameworkAction.get_branch(target_framework_moniker) if not args.branch else args.branch
+            branch = dotnet.ChannelAction.get_branch(channel) if not args.branch else args.branch
 
             getLogger().info("Writing script to %s" % args.output_file)
 
