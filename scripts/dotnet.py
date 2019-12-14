@@ -357,8 +357,8 @@ class CSharpProject:
                 packages_path,
                 target_framework_moniker: str = None,
                 runtime_identifier: str = None,
-                *args,
-               ) -> None:
+                *args
+                ) -> None:
         '''
         Invokes publish on the specified project
         '''
