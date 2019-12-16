@@ -167,7 +167,6 @@ def __process_arguments(args: list):
     return parser.parse_args(args)
 
 def __main(args: list) -> int:
-    print(sys.version)
     validate_supported_runtime()
     args = __process_arguments(args)
     verbose = not args.quiet
