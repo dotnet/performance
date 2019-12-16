@@ -39,9 +39,23 @@ def runninginlab():
     return environ.get('PERFLAB_INLAB') is not None
 
 def getruntimeidentifier():
-    rid = 'win-' if sys.platform == 'win32' else 'linux-'
+    rid = None
+    if sys.platform == 'win32':
+        rid = 'win-'
+    elif sys.platform == 'linux' or sys.platform == 'linux2':
+        rid = 'linux-'
+    else:
+        raise Exception('Platform %s not supported.' % sys.platform)
+
     if 'aarch64' in platform.machine() or os.environ.get('PERFLAB_BUILDARCH') == 'arm64':
         rid += 'arm64'
+    elif platform.machine().endswith('64'):
+        rid += 'x64'
+    elif platform.machine().endswith('86'):
+        rid += 'x86'
     else:
-        rid += 'x64' if platform.machine().endswith('64') else 'x86'
+        raise Exception('Machine %s not supported.' % platform.machine())
+
     return rid
+
+
