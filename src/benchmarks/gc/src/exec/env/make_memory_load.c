@@ -208,8 +208,33 @@ static void write_to_every_page(byte* start, size_t size, size_t page_size)
 
 //#define VERBOSE TRUE
 
+typedef enum AdjustKind {
+    adjust_kind_no_adjust,
+    adjust_kind_was_too_low,
+    adjust_kind_was_too_high,
+    adjust_kind_was_too_high_and_cant_free,
+} AdjustKind;
+
+const char* adjust_kind_to_string(AdjustKind ak)
+{
+    switch (ak)
+    {
+        case adjust_kind_no_adjust:
+            return "No adjust";
+        case adjust_kind_was_too_low:
+            return "Memory usage was too low";
+        case adjust_kind_was_too_high:
+            return "Memory usage was too high";
+        case adjust_kind_was_too_high_and_cant_free:
+            return "Memory usage was too high, and make_memory_load has nothing to free";
+        default:
+            assert(0);
+            return "<<error>>";
+    }
+}
+
 // Returns true if it did adjust
-static bool adjust(Mem* mem)
+static AdjustKind adjust(Mem* mem)
 {
     assert(is_multiple(mem->total_memory_committed, mem->allocation_granularity));
     assert(is_multiple(mem->total_memory_reset, mem->allocation_granularity));
@@ -255,13 +280,13 @@ static bool adjust(Mem* mem)
             mem->total_memory_committed += size;
         }
 
-        return TRUE;
+        return adjust_kind_was_too_low;
     }
     else if (to_allocate < 0)
     {
         if (mem->args.never_release)
         {
-            return FALSE;
+            return adjust_kind_no_adjust;
         }
         else
         {
@@ -283,12 +308,12 @@ static bool adjust(Mem* mem)
 
             mem->total_memory_committed = new_total_memory_committed;
             mem->total_memory_reset += size;
-            return TRUE;
+            return size == 0 ? adjust_kind_was_too_high_and_cant_free : adjust_kind_was_too_high;
         }
     }
     else
     {
-        return FALSE;
+        return adjust_kind_no_adjust;
     }
 }
 
@@ -307,14 +332,19 @@ int main(const int argc, char** argv)
     // Just to be sure, adjust twice with a sleep in between.
     int attempts = 0;
     while (TRUE) {
-        if (!adjust(&mem))
+        AdjustKind ak = adjust(&mem);
+        if (ak == adjust_kind_no_adjust)
         {
             // No need to adjust
             break;
         }
-        if (attempts == 5)
+        else if (attempts == 5)
         {
-            fprintf(stderr, "Failed to get memory to the desired load after 5 attempts\n");
+            fprintf(
+                stderr,
+                "Failed to get memory to the desired load (%d%%) after 5 attempts: Last memory was %s\n",
+                (int) round(args.desired_mem_usage_fraction * 100),
+                adjust_kind_to_string(ak));
             return 1;
         }
         attempts++;
