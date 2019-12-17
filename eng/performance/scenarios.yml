@@ -73,7 +73,7 @@ jobs:
             ${{ each channel in parameters.channels }}:
               ${{ channel }}:
                 _Channel: ${{ channel }}
-                _Framework: $(release/3.1.2xx)
+                _Framework: $(${{ channel }})
                 _Configs: CompilationMode=Tiered RunKind="${{ parameters.kind }}"
                 _PerfLabArguments: $(PerfLabArguments)
                 _BuildConfig: ${{ parameters.architecture }}_$(_Channel)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
