@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(WorkItemCommand)' != ''">
-    <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) -f $(PERFLAB_TARGET_FRAMEWORKS) $(_BenchViewArguments) $(_PerfLabArguments)</WorkItemCommand>
+    <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) -f %PERFLAB_TARGET_FRAMEWORKS% $(_BenchViewArguments) $(_PerfLabArguments)</WorkItemCommand>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(PERFLAB_TARGET_FRAMEWORKS)' != 'net461'">
