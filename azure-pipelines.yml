@@ -44,7 +44,7 @@ schedules:
   always: true
 
 variables:
-- template: product_channels.yml
+- template: eng/performance/product_channels.yml
 
 jobs:
 
