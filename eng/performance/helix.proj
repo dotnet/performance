@@ -12,7 +12,7 @@
     <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) -f %PERFLAB_TARGET_FRAMEWORKS% $(_BenchViewArguments) $(_PerfLabArguments)</WorkItemCommand>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(PERFLAB_TARGET_FRAMEWORKS)' != 'net461'">
+  <PropertyGroup Condition="'$(_Channel)' != 'LTS'">
     <WorkItemCommand>$(WorkItemCommand) $(CliArguments)</WorkItemCommand>
   </PropertyGroup>
 
