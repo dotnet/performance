@@ -156,6 +156,9 @@ class ChannelAction(Action):
             'master': 'netcoreapp5.0',
             'release/3.1.2xx': 'netcoreapp3.1',
             'release/3.1.1xx': 'netcoreapp3.1',
+            '3.0': 'netcoreapp3.0',
+            '2.2': 'netcoreapp2.2',
+            '2.1': 'netcoreapp2.1',
             'release/2.1.6xx': 'netcoreapp2.1',
             # For Full Framework download the LTS for dotnet cli.
             'LTS': 'net461'
@@ -170,6 +173,9 @@ class ChannelAction(Action):
             'master': 'master',
             'release/3.1.2xx': 'release/3.1.2xx',
             'release/3.1.1xx': 'release/3.1.1xx',
+            '3.0': 'release/3.0',
+            '2.2': 'release/2.2',
+            '2.1': 'release/2.1',
             'release/2.1.6xx': 'release/2.1.6xx',
             # For Full Framework download the LTS for dotnet cli.
             'LTS': 'LTS'
