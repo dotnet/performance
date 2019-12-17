@@ -62,7 +62,7 @@ jobs:
       pool: Hosted VS2017
       kind: scenarios
       queue: Windows.10.Amd64.ClientRS5.Open
-      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - release/3.1.2xx
         - 3.0
   
