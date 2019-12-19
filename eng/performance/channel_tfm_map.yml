@@ -1,0 +1,24 @@
+# This template maps .NET product channels to the tfms.
+variables:
+- name: master
+  value: 
+    tfm: netcoreapp5.0
+    branch: master
+- name: release/3.1.2xx
+  value: 
+    tfm: netcoreapp3.1
+    branch: release/3.1.2xx
+- name: 3.1
+  value: 
+    tfm: netcoreapp3.1
+    branch: release/3.1
+# - name: 3.0
+#   value: netcoreapp3.0
+# - name: 2.2
+#   value: netcoreapp2.2
+# - name: release/2.1.6xx
+#   value: netcoreapp2.1
+# - name: LTS
+#   value: net461
+
+  

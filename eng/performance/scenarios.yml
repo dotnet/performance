@@ -73,7 +73,7 @@ jobs:
             ${{ each channel in parameters.channels }}:
               ${{ channel }}:
                 _Channel: ${{ channel }}
-                _Framework: $(${{ channel }})
+                _Framework: $(${{ channel }}.tfm)
                 _Configs: CompilationMode=Tiered RunKind="${{ parameters.kind }}"
                 _PerfLabArguments: $(PerfLabArguments)
                 _BuildConfig: ${{ parameters.architecture }}_$(_Channel)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
@@ -82,31 +82,31 @@ jobs:
           clean: true
         - script: $(Python) scripts/ci_setup.py --channels $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup$(ScriptExtension) --install-dir $(CorrelationStaging)dotnet
           displayName: Run ci_setup.py
-        - ${{ if eq(parameters.osName, 'windows') }}:
-          - script: xcopy .\scripts $(CorrelationStaging)scripts\/e && xcopy .\src\scenarios\shared $(CorrelationStaging)shared\/e && xcopy .\src\scenarios\staticdeps $(CorrelationStaging)staticdeps\/e
-            displayName: Copy python libraries
-          - script: $(CorrelationStaging)dotnet\dotnet publish -o $(CorrelationStaging)startup -f $(_Framework) $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\Startup\Startup.csproj
-            displayName: Build startup tool
-            env:
-              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
-        - ${{ if ne(parameters.osName, 'windows') }}:
-          - script: cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared;cp -r ./src/scenarios/staticdeps $(CorrelationStaging)staticdeps
-            displayName: Copy python libraries
-          - script: $(CorrelationStaging)dotnet/dotnet publish -o $(CorrelationStaging)startup -f $(_Framework) $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/Startup/Startup.csproj
-            displayName: Build startup tool
-            env:
-              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
-        - template: /eng/performance/send-to-helix.yml
-          parameters:
-            HelixSource: '$(HelixSourcePrefix)/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
-            HelixType: 'test/performance_$(_BuildConfig)/'
-            HelixAccessToken: $(HelixApiAccessToken)
-            HelixTargetQueues: ${{ parameters.queue }}
-            HelixPreCommands: $(HelixPreCommand)
-            CorrelationPayloadDirectory: $(CorrelationStaging)
-            ProjectFile: scenarios.proj
-            WorkItemDirectory: $(Build.SourcesDirectory)
-            Creator: $(Creator)
-            Architecture: ${{ parameters.architecture }}
-            WorkItemTimeout: 4:00 # 4 hours
-            Python: $(Python)
+        # - ${{ if eq(parameters.osName, 'windows') }}:
+        #   - script: xcopy .\scripts $(CorrelationStaging)scripts\/e && xcopy .\src\scenarios\shared $(CorrelationStaging)shared\/e && xcopy .\src\scenarios\staticdeps $(CorrelationStaging)staticdeps\/e
+        #     displayName: Copy python libraries
+        #   - script: $(CorrelationStaging)dotnet\dotnet publish -o $(CorrelationStaging)startup -f $(_Framework) $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\Startup\Startup.csproj
+        #     displayName: Build startup tool
+        #     env:
+        #       PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+        # - ${{ if ne(parameters.osName, 'windows') }}:
+        #   - script: cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared;cp -r ./src/scenarios/staticdeps $(CorrelationStaging)staticdeps
+        #     displayName: Copy python libraries
+        #   - script: $(CorrelationStaging)dotnet/dotnet publish -o $(CorrelationStaging)startup -f $(_Framework) $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/Startup/Startup.csproj
+        #     displayName: Build startup tool
+        #     env:
+        #       PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+        # - template: /eng/performance/send-to-helix.yml
+        #   parameters:
+        #     HelixSource: '$(HelixSourcePrefix)/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
+        #     HelixType: 'test/performance_$(_BuildConfig)/'
+        #     HelixAccessToken: $(HelixApiAccessToken)
+        #     HelixTargetQueues: ${{ parameters.queue }}
+        #     HelixPreCommands: $(HelixPreCommand)
+        #     CorrelationPayloadDirectory: $(CorrelationStaging)
+        #     ProjectFile: scenarios.proj
+        #     WorkItemDirectory: $(Build.SourcesDirectory)
+        #     Creator: $(Creator)
+        #     Architecture: ${{ parameters.architecture }}
+        #     WorkItemTimeout: 4:00 # 4 hours
+        #     Python: $(Python)

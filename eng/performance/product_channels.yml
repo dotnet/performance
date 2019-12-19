@@ -1,9 +1,0 @@
-variables:
-- name: master
-  value: netcoreapp5.0
-- name: release/3.1.2xx
-  value: netcoreapp3.1
-- name: 3.1
-  value: netcoreapp3.1
-- name: 3.0
-  value: netcoreapp3.0
