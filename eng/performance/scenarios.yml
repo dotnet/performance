@@ -81,7 +81,8 @@ jobs:
           clean: true
         # - script: $(Python) scripts/ci_setup.py --channels $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup$(ScriptExtension) --install-dir $(CorrelationStaging)dotnet
         #   displayName: Run ci_setup.py
-        - script: $(Python) /eng/performance/read_map.py --channel $(_Channel) --file /eng/performance/channel_tfm_map.json --setup-pipeline
+        - script: dir $(Build.SourcesDirectory)
+        - script: $(Python) scripts/read_map.py --channel $(_Channel) --file $(Build.SourcesDirectory)/eng/performance/channel_tfm_map.json --setup-pipeline
         - script: echo framework $(framework) branch $(branch) Buid.SourcesDirectory $(Build.SourcesDirectory)
 
         # - ${{ if eq(parameters.osName, 'windows') }}:
