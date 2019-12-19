@@ -43,9 +43,6 @@ schedules:
     - master
   always: true
 
-variables:
-- template: eng/performance/channel_tfm_map.yml
-
 jobs:
 
 ######################################################
