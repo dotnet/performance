@@ -81,16 +81,8 @@ jobs:
           clean: true
         # - script: $(Python) scripts/ci_setup.py --channels $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup$(ScriptExtension) --install-dir $(CorrelationStaging)dotnet
         #   displayName: Run ci_setup.py
-        - task: PythonScript@0
-          inputs:
-            scriptSource: inline
-            script: |
-              import read_map
-              map = read_map.ChannelMap("channel_tfm_map.json")
-              tfm = map.get_tfm('$(_Channel)')
-              print('##vso[task.setvariable variable=framework]%s' % tfm)
-            workingDirectory: $(Build.SourcesDirectory)/eng/performance
-        - script: echo framework $(framework)
+        - script: $(Python) /eng/performance/read_map.py --channel $(_Channel) --file /eng/performance/channel_tfm_map.json --setup-pipeline
+        - script: echo framework $(framework) branch $(branch) Buid.SourcesDirectory $(Build.SourcesDirectory)
 
         # - ${{ if eq(parameters.osName, 'windows') }}:
         #   - script: xcopy .\scripts $(CorrelationStaging)scripts\/e && xcopy .\src\scenarios\shared $(CorrelationStaging)shared\/e && xcopy .\src\scenarios\staticdeps $(CorrelationStaging)staticdeps\/e
