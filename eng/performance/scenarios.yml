@@ -89,6 +89,7 @@ jobs:
               map = read_map.ChannelMap("channel_tfm_map.json")
               tfm = map.get_tfm('$(_Channel)')
               print('##vso[task.setvariable variable=framework]%s' % tfm)
+            workingDirectory: "eng/performance"
         - script: echo framework $(framework)
 
         # - ${{ if eq(parameters.osName, 'windows') }}:
