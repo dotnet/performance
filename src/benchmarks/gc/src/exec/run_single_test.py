@@ -306,27 +306,35 @@ def _get_perfview_start_or_stop_cmd(
 
 _DEFAULT_MAX_TRACE_SIZE_GB = 1
 
+_collect_options = {
+    CollectKind.gc: ["-GCCollectOnly"],
+    CollectKind.verbose: ["-GCCollectOnly", "-ClrEventLevel:Verbose"],
+    # Need default kernel events to get the process name
+    CollectKind.cpu_samples: [
+        "-OnlyProviders:ClrPrivate:1:5,Clr:1:5",
+        "-ClrEvents:GC+Stack",
+        "-ClrEventLevel:Verbose",
+        "-KernelEvents:Default",
+    ],
+    CollectKind.thread_times: [
+        "-OnlyProviders:ClrPrivate:1:5,Clr:1:5",
+        "-ClrEvents:GC+Stack",
+        "-ClrEventLevel:Verbose",
+        "-KernelEvents:Default,ThreadTime",
+    ],
+    CollectKind.cswitch: [
+        # Use verbose events (4 instead of 5)
+        "-OnlyProviders:ClrPrivate:1:5,Clr:1:5",
+        "-ClrEvents:GC+Stack",
+        f"-KernelEvents:Default,ThreadTime,ContextSwitch",
+    ],
+}
+
 
 def _get_perfview_collect_or_run_common_args(
     t: SingleTest, log_file: Path, trace_file: Path
 ) -> Sequence[str]:
-    collect_args: Sequence[str] = {
-        CollectKind.gc: ["-GCCollectOnly"],
-        CollectKind.verbose: ["-GCCollectOnly", "-ClrEventLevel:Verbose"],
-        # Need default kernel events to get the process name
-        CollectKind.cpu_samples: [
-            "-OnlyProviders:ClrPrivate:1:5,Clr:1:5",
-            "-ClrEvents:GC+Stack",
-            "-ClrEventLevel:Verbose",
-            "-KernelEvents:Default",
-        ],
-        CollectKind.cswitch: [
-            # Use verbose events (4 instead of 5)
-            "-OnlyProviders:ClrPrivate:1:5,Clr:1:5",
-            "-ClrEvents:GC+Stack",
-            f"-KernelEvents:Default,ContextSwitch",
-        ],
-    }[t.options.get_collect]
+    collect_args: Sequence[str] = _collect_options[t.options.get_collect]
     max_trace_size_mb = round(
         gb_to_mb(option_or(t.options.max_trace_size_gb, _DEFAULT_MAX_TRACE_SIZE_GB))
     )
