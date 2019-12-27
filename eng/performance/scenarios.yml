@@ -79,7 +79,7 @@ jobs:
         - checkout: self
           clean: true
         - script: $(Python) scripts/read_map.py --channel $(_Channel) --setup-pipeline # find the channel's matching tfm 
-          displayName: Look up TFM and branch
+          displayName: Look up TFM
         - script: $(Python) scripts/ci_setup.py --channels $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup$(ScriptExtension) --install-dir $(CorrelationStaging)dotnet
           displayName: Run ci_setup.py
         - ${{ if eq(parameters.osName, 'windows') }}:

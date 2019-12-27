@@ -15,27 +15,28 @@ class ChannelMap:
         for channel in self.channels:
             if channel['name'] == channel_name or channel['status'] == channel_name:
                 return channel['tfm']
-        raise Exception(f'Channel {channel_name} is not supported. Supported channels: {self.get_supported_channels()}')
+        raise Exception('Channel %s is not supported. Supported channels: %s' % (channel_name, self.get_supported_channels()))
 
     def get_branch(self, channel_name:str):
         for channel in self.channels:
             if channel['name'] == channel_name or channel['status'] == channel_name:
                 return channel['branch']
-        raise Exception(f'Channel {channel_name} is not supported. Supported channels: {self.get_supported_channels()}')    
+        raise Exception('Channel %s is not supported. Supported channels: %s' % (channel_name, self.get_supported_channels()))
     
     def get_channel_from_tfm(self, tfm_name:str):
         for channel in self.channels:
             if channel['tfm'] == tfm_name:
                 return channel['name']
-        raise Exception(f'Framework {tfm_name} is not supported. Supported frameworks: {self.get_supported_tfms()}')
+        raise Exception('Framework %s is not supported. Supported frameworks: %s' % (tfm_name, self.get_supported_frameworks()))
 
     def get_supported_channels(self):
-        names = []
+        names = set()
         for channel in self.channels:
-            names.append(channel['name'])
+            names.add(channel['status'])
+            names.add(channel['name'])
         return names
 
-    def get_supported_tfms(self):
+    def get_supported_frameworks(self):
         names = set()
         for channel in self.channels:
             names.add(channel['tfm'])
@@ -50,8 +51,7 @@ def __main():
     map = ChannelMap()
 
     if args.setup_pipeline:
-        print('##vso[task.setvariable variable=framework]%s' % map.get_tfm(args.channel))
-        print('##vso[task.setvariable variable=branch]%s' % map.get_branch(args.channel))
+        print('##vso[task.setvariable variable=_Framework]%s' % map.get_tfm(args.channel))
 
 if __name__ == "__main__":
     __main()
