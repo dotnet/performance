@@ -63,7 +63,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument(
         '-f', '--frameworks',
         required=False,
-        choices=read_map.ChannelMap().get_supported_tfms(),
+        choices=read_map.ChannelMap().get_supported_frameworks(),
         nargs='+',
         help='''The framework to build/run for. '''
              '''The target framework must also be specified in the project '''
