@@ -16,6 +16,7 @@ from performance.logger import setup_loggers
 
 import dotnet
 import micro_benchmarks
+import read_map
 
 global_extension = ".cmd" if sys.platform == 'win32' else '.sh'
 
@@ -54,9 +55,8 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         '--channels',
         dest='channels',
         required=True,
+        choices=read_map.ChannelMap().get_supported_channels(),
         nargs='+',
-        action=dotnet.ChannelAction,
-        choices=dotnet.ChannelAction.get_supported_channels(),
         help='Channel to download product from'
     )
 
@@ -228,8 +228,9 @@ def __main(args: list) -> int:
 
     remove_frameworks = ['netcoreapp3.0', 'netcoreapp5.0']
 
+    channel_map = read_map.ChannelMap()
     for channel in args.channels:
-        framework = dotnet.ChannelAction.get_target_framework_moniker(channel)
+        framework = channel_map.get_tfm(channel)
         if framework.startswith('netcoreapp'):
             if framework in remove_frameworks:
                 remove_dotnet = True
@@ -238,7 +239,7 @@ def __main(args: list) -> int:
             commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
             source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
 
-            branch = dotnet.ChannelAction.get_branch(channel) if not args.branch else args.branch
+            branch = channel_map.get_branch(channel) if not args.branch else args.branch
 
             getLogger().info("Writing script to %s" % args.output_file)
 

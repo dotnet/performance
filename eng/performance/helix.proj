@@ -1,18 +1,18 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
 
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
-    <WorkItemCommand>%HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --csproj %HELIX_CORRELATION_PAYLOAD%\$(TargetCsproj) -f %PERFLAB_TARGET_FRAMEWORKS%</WorkItemCommand>
+    <WorkItemCommand>%HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --csproj %HELIX_CORRELATION_PAYLOAD%\$(TargetCsproj)</WorkItemCommand>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
-    <WorkItemCommand>scripts/benchmarks_ci.py --csproj $(TargetCsproj) -f $PERFLAB_TARGET_FRAMEWORKS</WorkItemCommand>
+    <WorkItemCommand>scripts/benchmarks_ci.py --csproj $(TargetCsproj)</WorkItemCommand>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(WorkItemCommand)' != ''">
-    <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) $(_BenchViewArguments) $(_PerfLabArguments)</WorkItemCommand>
+    <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) -f $(_Framework) $(_BenchViewArguments) $(_PerfLabArguments)</WorkItemCommand>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(_Channel)' != 'LTS'">
+  <PropertyGroup Condition="'$(_Framework)' != 'net461'">
     <WorkItemCommand>$(WorkItemCommand) $(CliArguments)</WorkItemCommand>
   </PropertyGroup>
 

@@ -1,0 +1,34 @@
+{
+    "channels":[
+        {
+            "name":"master",
+            "tfm": "netcoreapp5.0",
+            "branch": "master",
+            "status": "master"
+        },
+        {
+            "name":"release/3.1.2xx",
+            "tfm": "netcoreapp3.1",
+            "branch": "release/3.1.2xx",
+            "status": "active"
+        },
+        {
+            "name": "3.1",
+            "tfm": "netcoreapp3.1",
+            "branch": "release/3.1",
+            "status": "released"
+        },
+        {
+            "name": "3.0",
+            "tfm": "netcoreapp3.0",
+            "branch": "release/3.0",
+            "status": "released"
+        },
+        {
+            "name": "LTS",
+            "tfm": "net461",
+            "branch": "LTS",
+            "status": "released"
+        }
+    ]
+}

@@ -27,6 +27,7 @@ from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
 
 import dotnet
+import read_map
 
 
 def get_supported_configurations() -> list:
@@ -62,9 +63,8 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument(
         '-f', '--frameworks',
         required=False,
+        choices=read_map.ChannelMap().get_supported_tfms(),
         nargs='+',
-        action=dotnet.FrameworkAction,
-        choices=dotnet.FrameworkAction.get_supported_frameworks(),
         help='''The framework to build/run for. '''
              '''The target framework must also be specified in the project '''
              '''file.''',

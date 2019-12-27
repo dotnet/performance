@@ -34,6 +34,7 @@ from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_T
 
 import dotnet
 import micro_benchmarks
+import read_map
 
 if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
     MESSAGE = '''The `linux_distribution` method is missing from ''' \
@@ -62,11 +63,12 @@ def init_tools(
     installed in order to avoid reinstalling them on every rerun.
     '''
     getLogger().info('Installing tools.')
+    channel_map = read_map.ChannelMap()
     channels = [
-        dotnet.FrameworkAction.get_channel(
-            target_framework_moniker)
+        channel_map.get_channel_from_tfm(target_framework_moniker)
         for target_framework_moniker in target_framework_monikers
     ]
+
     dotnet.install(
         architecture=architecture,
         channels=channels,
