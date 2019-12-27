@@ -10,7 +10,19 @@ class ChannelMap:
         with open(file_name) as map_file:
             map = json.load(map_file)
             self.channels = map['channels']
+
+    def get_channel(self, channel_name):
+        for channel in self.channels:
+            if channel['name'] == channel_name or channel['status'] == channel_name:
+                return channel['name']
+        raise Exception('Channel %s is not supported. Supported channels: %s' % (channel_name, self.get_supported_channels()))
     
+    def get_channels(self, channel_names:list):
+        channels = set()
+        for channel in channel_names:
+           channels.add(self.get_channel(channel))
+        return channels
+            
     def get_tfm(self, channel_name:str):
         for channel in self.channels:
             if channel['name'] == channel_name or channel['status'] == channel_name:

@@ -189,10 +189,11 @@ def __main(args: list) -> int:
     # in the cross containers, so we are running the ci setup script in a normal ubuntu container
     architecture = 'x64' if args.architecture == 'arm64' else args.architecture
 
+    channel_map = read_map.ChannelMap()
     init_tools(
         architecture=architecture,
         dotnet_versions=args.dotnet_versions,
-        channels=args.channels,
+        channels=channel_map.get_channels(args.channels),
         verbose=verbose,
         install_dir=args.install_dir
     )
@@ -228,8 +229,7 @@ def __main(args: list) -> int:
 
     remove_frameworks = ['netcoreapp3.0', 'netcoreapp5.0']
 
-    channel_map = read_map.ChannelMap()
-    for channel in args.channels:
+    for channel in channel_map.get_channels(args.channels):
         framework = channel_map.get_tfm(channel)
         if framework.startswith('netcoreapp'):
             if framework in remove_frameworks:
