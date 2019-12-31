@@ -1,52 +1,57 @@
 from argparse import ArgumentParser
 
 class ChannelMap():
+    channel_map = {
+        'master': {
+            'tfm': 'netcoreapp5.0',
+            'branch': 'master'
+        },
+        'release/3.1.2xx': {
+            'tfm': 'netcoreapp3.1',
+            'branch': 'release/3.1.2xx'
+        },
+        'release/3.1.1xx': {
+            'tfm': 'netcoreapp3.1',
+            'branch': 'release/3.1.1xx'
+        },
+        '3.1': {
+            'tfm': 'netcoreapp3.1',
+            'branch': 'release/3.1'
+        },
+        '3.0': {
+            'tfm': 'netcoreapp3.0',
+            'branch': 'release/3.0'
+        },
+        '2.2': {
+            'tfm': 'netcoreapp2.2',
+            'branch': 'release/2.2'
+        },
+        '2.1': {
+            'tfm': 'netcoreapp2.1',
+            'branch': 'release/2.1'
+        },
+        'LTS': {
+            'tfm': 'net461', # For Full Framework download the LTS for dotnet cli.
+            'branch': 'LTS'
+        }
+    }
     @staticmethod
     def get_supported_channels() -> list:
         '''List of supported channels.'''
-        channels = list(
-            ChannelMap.__get_channel_target_framework_moniker_map().keys()
-        )
-        return channels
+        return list(ChannelMap.channel_map.keys())
 
     @staticmethod
     def get_supported_frameworks() -> list:
         '''List of supported frameworks'''
-        return list(set(ChannelMap.__get_channel_target_framework_moniker_map().values()))
-
-    @staticmethod
-    def __get_channel_target_framework_moniker_map() -> dict:
-        return {
-            'master': 'netcoreapp5.0',
-            'release/3.1.2xx': 'netcoreapp3.1',
-            'release/3.1.1xx': 'netcoreapp3.1',
-            '3.1': 'netcoreapp3.1',
-            '3.0': 'netcoreapp3.0',
-            '2.2': 'netcoreapp2.2',
-            '2.1': 'netcoreapp2.1',
-            'release/2.1.6xx': 'netcoreapp2.1',
-            # For Full Framework download the LTS for dotnet cli.
-            'LTS': 'net461'
-        }
+        frameworks = [ChannelMap.channel_map[channel]['tfm'] for channel in ChannelMap.channel_map]
+        return set(frameworks)
 
     @staticmethod
     def get_branch(channel: str) -> str:
-        dct = {
-            'master': 'master',
-            'release/3.1.2xx': 'release/3.1.2xx',
-            'release/3.1.1xx': 'release/3.1.1xx',
-            '3.1': 'release/3.1',
-            '3.0': 'release/3.0',
-            '2.2': 'release/2.2',
-            '2.1': 'release/2.1',
-            'release/2.1.6xx': 'release/2.1.6xx',
-            # For Full Framework download the LTS for dotnet cli.
-            'LTS': 'LTS'
-        }
-        if channel in dct:
-            return dct[channel]
+        if channel in ChannelMap.channel_map:
+            return ChannelMap.channel_map[channel]['branch']
         else:
-            raise Exception('Branch %s is not mapped in the branch table.' % channel)
+            raise Exception('Channel %s is not supported. Supported channels %s' % (channel, ChannelMap.get_supported_channels()))
 
     @staticmethod
     def get_target_framework_monikers(channels: list) -> list:
@@ -64,18 +69,17 @@ class ChannelMap():
         '''
         Translate channel name to Target Framework Moniker (TFM)
         '''
-        dct = ChannelMap.__get_channel_target_framework_moniker_map()
-        return dct[channel] \
-            if channel in dct \
-            else None
-    
+        if channel in ChannelMap.channel_map:
+            return ChannelMap.channel_map[channel]['tfm']
+        else:
+            raise Exception('Channel %s is not supported. Supported channels %s' % (channel, ChannelMap.get_supported_channels()))
+
     @staticmethod
     def get_channel_from_target_framework_moniker(target_framework_moniker: str) -> str:
         '''Translate Target Framework Moniker (TFM) to channel name'''
-        map = ChannelMap.__get_channel_target_framework_moniker_map()
-        for key in map:
-            if map[key] == target_framework_moniker:
-                return key
+        for channel in ChannelMap.channel_map:
+            if ChannelMap.channel_map[channel]['tfm'] == target_framework_moniker:
+                return channel
         raise Exception('Framework %s is not supported. Supported frameworks: %s' % (target_framework_moniker, ChannelMap.get_supported_frameworks()))
 
 
