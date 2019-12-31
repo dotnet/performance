@@ -25,9 +25,9 @@ from performance.common import get_packages_directory
 from performance.common import remove_directory
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
+from channel_map import ChannelMap
 
 import dotnet
-import read_map
 
 
 def get_supported_configurations() -> list:
@@ -63,7 +63,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument(
         '-f', '--frameworks',
         required=False,
-        choices=read_map.ChannelMap().get_supported_frameworks(),
+        choices=ChannelMap.get_supported_frameworks(),
         nargs='+',
         help='''The framework to build/run for. '''
              '''The target framework must also be specified in the project '''

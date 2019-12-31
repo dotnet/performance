@@ -13,10 +13,10 @@ from performance.common import get_tools_directory
 from performance.common import push_dir
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
+from channel_map import ChannelMap
 
 import dotnet
 import micro_benchmarks
-import read_map
 
 global_extension = ".cmd" if sys.platform == 'win32' else '.sh'
 
@@ -55,7 +55,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         '--channels',
         dest='channels',
         required=True,
-        choices=read_map.ChannelMap().get_supported_channels(),
+        choices=ChannelMap.get_supported_channels(),
         nargs='+',
         help='Channel to download product from'
     )
@@ -189,11 +189,10 @@ def __main(args: list) -> int:
     # in the cross containers, so we are running the ci setup script in a normal ubuntu container
     architecture = 'x64' if args.architecture == 'arm64' else args.architecture
 
-    channel_map = read_map.ChannelMap()
     init_tools(
         architecture=architecture,
         dotnet_versions=args.dotnet_versions,
-        channels=channel_map.get_channels(args.channels),
+        channels=args.channels,
         verbose=verbose,
         install_dir=args.install_dir
     )
@@ -229,8 +228,8 @@ def __main(args: list) -> int:
 
     remove_frameworks = ['netcoreapp3.0', 'netcoreapp5.0']
 
-    for channel in channel_map.get_channels(args.channels):
-        framework = channel_map.get_tfm(channel)
+    for channel in args.channels:
+        framework = ChannelMap.get_target_framework_moniker(channel)
         if framework.startswith('netcoreapp'):
             if framework in remove_frameworks:
                 remove_dotnet = True
@@ -239,7 +238,7 @@ def __main(args: list) -> int:
             commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
             source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
 
-            branch = channel_map.get_branch(channel) if not args.branch else args.branch
+            branch = ChannelMap.get_branch(channel) if not args.branch else args.branch
 
             getLogger().info("Writing script to %s" % args.output_file)
 

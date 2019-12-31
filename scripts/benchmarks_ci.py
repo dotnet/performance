@@ -31,10 +31,10 @@ import sys
 from performance.common import validate_supported_runtime, get_artifacts_directory
 from performance.logger import setup_loggers
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
+from channel_map import ChannelMap
 
 import dotnet
 import micro_benchmarks
-import read_map
 
 if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
     MESSAGE = '''The `linux_distribution` method is missing from ''' \
@@ -63,9 +63,8 @@ def init_tools(
     installed in order to avoid reinstalling them on every rerun.
     '''
     getLogger().info('Installing tools.')
-    channel_map = read_map.ChannelMap()
     channels = [
-        channel_map.get_channel_from_tfm(target_framework_moniker)
+        ChannelMap.get_channel_from_target_framework_moniker(target_framework_moniker)
         for target_framework_moniker in target_framework_monikers
     ]
 

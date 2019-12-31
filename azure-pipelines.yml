@@ -60,7 +60,7 @@ jobs:
       kind: scenarios
       queue: Windows.10.Amd64.ClientRS5.Open
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - active  # example of always running the active branch
+        - release/3.1.2xx
         - 3.0
   
   # Windows x64 micro benchmarks
@@ -76,7 +76,7 @@ jobs:
       runCategories: 'coreclr corefx' 
       channels:
         - master
-        - active
+        - release/3.1.2xx
 
   # Windows x64 net461 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
