@@ -4,8 +4,6 @@
 Builds the Benchmarks
 '''
 
-from argparse import Action
-from argparse import ArgumentError
 from argparse import ArgumentParser
 from argparse import ArgumentTypeError
 from argparse import SUPPRESS
