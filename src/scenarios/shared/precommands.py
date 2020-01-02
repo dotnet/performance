@@ -130,7 +130,14 @@ class PreCommands:
 
     def _updateframework(self, projectfile: str):
         if self.framework:
-            replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
+            if projectfile.endswith('mvc\\mvc.csproj'): # for the weblarge3.0 project, replace frameworks of all project files 
+                for (path, dirnames, filenames) in os.walk(os.path.dirname(os.path.dirname(projectfile))):
+                    for filename in filenames:
+                        if filename.endswith('.csproj'):
+                            absfilename = os.path.join(path,filename)
+                            replace_line(absfilename, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
+            else:
+                replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
 
     def _publish(self, configuration: str, framework: str = None):
         self.project.publish(configuration=configuration,
