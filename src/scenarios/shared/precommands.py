@@ -91,12 +91,16 @@ class PreCommands:
                             metavar='/p:Foo=Bar;/p:Baz=Blee;...')
         parser.set_defaults(configuration=RELEASE)
 
-    def existing(self, projectdir: str, projectfile: str):
-        'create a project from existing project file'
+    def existing(self, projectdir: str, projectfiles):
+        'create a project for each existing project file'
         self._backup(projectdir)
-        csproj = CSharpProjFile(os.path.join(const.APPDIR, projectfile), sys.path[0])
-        self.project = CSharpProject(csproj, const.BINDIR)
-        self._updateframework(csproj.file_name)
+        if type(projectfiles) is str:
+            projectfiles = [projectfiles]
+        for projectfile in projectfiles:
+            csproj = CSharpProjFile(os.path.join(const.APPDIR, projectfile), sys.path[0])
+            self.project = CSharpProject(csproj, const.BINDIR)
+            self._updateframework(csproj.file_name)
+
 
     def execute(self):
         'Parses args and runs precommands'
@@ -130,14 +134,7 @@ class PreCommands:
 
     def _updateframework(self, projectfile: str):
         if self.framework:
-            if projectfile.endswith('mvc\\mvc.csproj'): # for the weblarge3.0 project, replace frameworks of all project files 
-                for (path, dirnames, filenames) in os.walk(os.path.dirname(os.path.dirname(projectfile))):
-                    for filename in filenames:
-                        if filename.endswith('.csproj'):
-                            absfilename = os.path.join(path,filename)
-                            replace_line(absfilename, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
-            else:
-                replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
+            replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
 
     def _publish(self, configuration: str, framework: str = None):
         self.project.publish(configuration=configuration,
