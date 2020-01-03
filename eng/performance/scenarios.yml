@@ -1,12 +1,13 @@
 parameters:
   osName: ''            # required -- windows | linux | macos
   osVersion: ''         # required -- OS version
-  kind: ''              # required -- benchmark kind. As of today, only "micro" and "mlnet" benchmarks are supported, we plan to add "scenarios" soon
+  kind: ''              # required -- benchmark kind
   architecture: ''      # required -- Architecture. Allowed values: x64, x86, arm, arm64
   pool: ''              # required -- name of the Helix pool
   queue: ''             # required -- name of the Helix queue
   container: ''         # optional -- id of the container
-  frameworks: []        # required -- list of frameworks. Allowed values: net461, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0, corert
+  channels: []          # required -- list of channels to download .NET from
+  projectFile: ''       # required -- project file to build (current choices: scenarios.proj/sdk_scenarios.proj )
 
 jobs:
 - template: ../common/templates/jobs/jobs.yml
@@ -104,7 +105,7 @@ jobs:
             HelixTargetQueues: ${{ parameters.queue }}
             HelixPreCommands: $(HelixPreCommand)
             CorrelationPayloadDirectory: $(CorrelationStaging)
-            ProjectFile: scenarios.proj
+            ProjectFile: ${{ parameters.projectFile }}
             WorkItemDirectory: $(Build.SourcesDirectory)
             Creator: $(Creator)
             Architecture: ${{ parameters.architecture }}
