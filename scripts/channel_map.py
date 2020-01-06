@@ -81,16 +81,3 @@ class ChannelMap():
             if ChannelMap.channel_map[channel]['tfm'] == target_framework_moniker:
                 return channel
         raise Exception('Framework %s is not supported. Supported frameworks: %s' % (target_framework_moniker, ChannelMap.get_supported_frameworks()))
-
-
-def __main():
-    parser = ArgumentParser()
-    parser.add_argument('--channel', type=str, required=True, dest='channel', help='channel name or status')
-    parser.add_argument('--setup-pipeline', action='store_true', dest='setup_pipeline', help='channel required to set up pipeline variables')
-    args = parser.parse_args()
-
-    if args.setup_pipeline:
-        print('##vso[task.setvariable variable=_Framework]%s' % ChannelMap.get_target_framework_moniker(args.channel))
-
-if __name__ == "__main__":
-    __main()

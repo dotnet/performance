@@ -172,6 +172,11 @@ def __process_arguments(args: list):
     add_arguments(parser)
     return parser.parse_args(args)
 
+def __write_pipeline_variable(name: str, value: str):
+    # Create a variable in the build pipeline
+    getLogger().info("Writing pipeline variable %s with value %s" % (name, value))
+    print('##vso[task.setvariable variable=%s]%s' % (name, value))
+
 def __main(args: list) -> int:
     validate_supported_runtime()
     args = __process_arguments(args)
@@ -230,6 +235,8 @@ def __main(args: list) -> int:
 
     for channel in args.channels:
         framework = ChannelMap.get_target_framework_moniker(channel)
+        # The '_Framework' is needed for specifying frameworks in proj files and for building tools later in the pipeline
+        __write_pipeline_variable('_Framework', framework)
         if framework.startswith('netcoreapp'):
             if framework in remove_frameworks:
                 remove_dotnet = True
@@ -272,6 +279,8 @@ def __main(args: list) -> int:
     # This is only necessary for netcoreapp3.0 and netcoreapp5.0
     if sys.platform != 'win32' and remove_dotnet:
         dotnet.remove_dotnet(architecture)
+
+
 
 
 if __name__ == "__main__":
