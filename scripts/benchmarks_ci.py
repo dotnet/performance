@@ -194,6 +194,9 @@ def __main(args: list) -> int:
     verbose = not args.quiet
     setup_loggers(verbose=verbose)
 
+    if not args.frameworks:
+        raise Exception("Framework version (-f) must be specified.")
+
     target_framework_monikers = dotnet \
         .FrameworkAction \
         .get_target_framework_monikers(args.frameworks)
