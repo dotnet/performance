@@ -70,15 +70,17 @@ jobs:
         container: ${{ parameters.container }}
         strategy:
           matrix:
-            ${{ each framework in parameters.frameworks }}:
-              ${{ framework }}:
-                _Framework: ${{ framework }}
-                _Configs: RunKind="${{ parameters.kind }}"
-                _BuildConfig: ${{ parameters.architecture }}_$(_Framework)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
+            ${{ each channel in parameters.channels }}:
+              ${{ channel }}:
+                _Channel: ${{ channel }}
+                _Configs: CompilationMode=Tiered RunKind="${{ parameters.kind }}"
+                _BuildConfig: ${{ parameters.architecture }}_$(_Channel)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
         steps:
         - checkout: self
           clean: true
-        - script: $(Python) scripts/ci_setup.py --frameworks $(_Framework) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup$(ScriptExtension) --install-dir $(CorrelationStaging)dotnet
+        - script: $(Python) scripts/channel_map.py --channel $(_Channel) --setup-pipeline # find the channel's matching tfm 
+          displayName: Look up TFM
+        - script: $(Python) scripts/ci_setup.py --channels $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup$(ScriptExtension) --install-dir $(CorrelationStaging)dotnet
           displayName: Run ci_setup.py
         - ${{ if eq(parameters.osName, 'windows') }}:
           - script: xcopy .\scripts $(CorrelationStaging)scripts\/e && xcopy .\src\scenarios\shared $(CorrelationStaging)shared\/e && xcopy .\src\scenarios\staticdeps $(CorrelationStaging)staticdeps\/e

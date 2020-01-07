@@ -4,7 +4,7 @@
 Contains the functionality around DotNet Cli.
 """
 
-from argparse import Action, ArgumentParser, ArgumentTypeError
+from argparse import Action, ArgumentParser, ArgumentTypeError, ArgumentError
 from collections import namedtuple
 from glob import iglob
 from json import loads
@@ -48,6 +48,39 @@ CSharpProjFile = namedtuple('CSharpProjFile', [
     'working_directory'
 ])
 
+class FrameworkAction(Action):
+    '''
+    Used by the ArgumentParser to represent the information needed to parse the
+    supported .NET frameworks argument from the command line.
+    '''
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if values:
+            setattr(namespace, self.dest, list(set(values)))
+
+    @staticmethod
+    def get_target_framework_moniker(framework: str) -> str:
+        '''
+        Translates framework name to target framework moniker (TFM)
+        To run CoreRT benchmarks we need to run the host BDN process as latest
+        .NET Core the host process will build and run CoreRT benchmarks
+        '''
+        return 'netcoreapp5.0' if framework == 'corert' else framework
+
+    @staticmethod
+    def get_target_framework_monikers(frameworks: list) -> list:
+        '''
+        Translates framework names to target framework monikers (TFM)
+        Required to run CoreRT benchmarks where the host process must be .NET
+        Core, not CoreRT.
+        '''
+        monikers = [
+            FrameworkAction.get_target_framework_moniker(framework)
+            for framework in frameworks
+        ]
+
+        # ['netcoreapp5.0', 'corert'] should become ['netcoreapp5.0']
+        return list(set(monikers))
 
 class VersionsAction(Action):
     '''

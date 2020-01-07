@@ -31,6 +31,7 @@ import sys
 from performance.common import validate_supported_runtime, get_artifacts_directory
 from performance.logger import setup_loggers
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
+from channel_map import ChannelMap
 
 import dotnet
 import micro_benchmarks
@@ -63,10 +64,10 @@ def init_tools(
     '''
     getLogger().info('Installing tools.')
     channels = [
-        micro_benchmarks.FrameworkAction.get_channel(
-            target_framework_moniker)
+        ChannelMap.get_channel_from_target_framework_moniker(target_framework_moniker)
         for target_framework_moniker in target_framework_monikers
     ]
+
     dotnet.install(
         architecture=architecture,
         channels=channels,
@@ -193,7 +194,7 @@ def __main(args: list) -> int:
     verbose = not args.quiet
     setup_loggers(verbose=verbose)
 
-    target_framework_monikers = micro_benchmarks \
+    target_framework_monikers = dotnet \
         .FrameworkAction \
         .get_target_framework_monikers(args.frameworks)
     # Acquire necessary tools (dotnet)
