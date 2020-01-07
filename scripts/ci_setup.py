@@ -23,7 +23,7 @@ global_extension = ".cmd" if sys.platform == 'win32' else '.sh'
 def init_tools(
         architecture: str,
         dotnet_versions: str,
-        channels: list,
+        channel: str,
         verbose: bool,
         install_dir: str=None) -> None:
     '''
@@ -35,7 +35,7 @@ def init_tools(
 
     dotnet.install(
         architecture=architecture,
-        channels=channels,
+        channels=[channel],
         versions=dotnet_versions,
         verbose=verbose,
         install_dir=install_dir
@@ -52,11 +52,11 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     micro_benchmarks.add_arguments(parser)
 
     parser.add_argument(
-        '--channels',
-        dest='channels',
+        '--channel',
+        dest='channel',
         required=True,
         choices=ChannelMap.get_supported_channels(),
-        nargs='+',
+        type=str,
         help='Channel to download product from'
     )
 
@@ -161,7 +161,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
     return parser
 
-
 def __process_arguments(args: list):
     parser = ArgumentParser(
         description='Tool to generate a machine setup script',
@@ -197,7 +196,7 @@ def __main(args: list) -> int:
     init_tools(
         architecture=architecture,
         dotnet_versions=args.dotnet_versions,
-        channels=args.channels,
+        channel=args.channel,
         verbose=verbose,
         install_dir=args.install_dir
     )
@@ -233,52 +232,52 @@ def __main(args: list) -> int:
 
     remove_frameworks = ['netcoreapp3.0', 'netcoreapp5.0']
 
-    for channel in args.channels:
-        framework = ChannelMap.get_target_framework_moniker(channel)
-        # The '_Framework' is needed for specifying frameworks in proj files and for building tools later in the pipeline
-        __write_pipeline_variable('_Framework', framework)
-        if framework.startswith('netcoreapp'):
-            if framework in remove_frameworks:
-                remove_dotnet = True
-            target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
-            dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli)
-            commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
-            source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
+    framework = ChannelMap.get_target_framework_moniker(args.channel)
+    if framework.startswith('netcoreapp'):
+        if framework in remove_frameworks:
+            remove_dotnet = True
+        target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
+        dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli)
+        commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
+        source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
 
-            branch = ChannelMap.get_branch(channel) if not args.branch else args.branch
+        branch = ChannelMap.get_branch(args.channel) if not args.branch else args.branch
 
-            getLogger().info("Writing script to %s" % args.output_file)
+        getLogger().info("Writing script to %s" % args.output_file)
 
-            with open(args.output_file, 'w') as out_file:
-                out_file.write(variable_format % ('PERFLAB_INLAB', '1'))
-                out_file.write(variable_format % ('PERFLAB_REPO', '/'.join([owner, repo])))
-                out_file.write(variable_format % ('PERFLAB_BRANCH', branch))
-                out_file.write(variable_format % ('PERFLAB_PERFHASH', perfHash))
-                out_file.write(variable_format % ('PERFLAB_HASH', commit_sha))
-                out_file.write(variable_format % ('PERFLAB_QUEUE', args.queue))
-                out_file.write(variable_format % ('PERFLAB_BUILDNUM', args.build_number))
-                out_file.write(variable_format % ('PERFLAB_BUILDARCH', args.architecture))
-                out_file.write(variable_format % ('PERFLAB_LOCALE', args.locale))
-                out_file.write(variable_format % ('PERFLAB_BUILDTIMESTAMP', source_timestamp))
-                out_file.write(variable_format % ('PERFLAB_CONFIGS', config_string))
-                out_file.write(variable_format % ('DOTNET_VERSION', dotnet_version))
-                out_file.write(variable_format % ('PERFLAB_TARGET_FRAMEWORKS', framework))
-                out_file.write(variable_format % ('DOTNET_CLI_TELEMETRY_OPTOUT', '1'))
-                out_file.write(variable_format % ('DOTNET_MULTILEVEL_LOOKUP', '0'))
-                out_file.write(variable_format % ('UseSharedCompilation', 'false'))
-                out_file.write(variable_format % ('DOTNET_ROOT', dotnet_path))
-                out_file.write(path_variable % dotnet_path)
+        with open(args.output_file, 'w') as out_file:
+            out_file.write(variable_format % ('PERFLAB_INLAB', '1'))
+            out_file.write(variable_format % ('PERFLAB_REPO', '/'.join([owner, repo])))
+            out_file.write(variable_format % ('PERFLAB_BRANCH', branch))
+            out_file.write(variable_format % ('PERFLAB_PERFHASH', perfHash))
+            out_file.write(variable_format % ('PERFLAB_HASH', commit_sha))
+            out_file.write(variable_format % ('PERFLAB_QUEUE', args.queue))
+            out_file.write(variable_format % ('PERFLAB_BUILDNUM', args.build_number))
+            out_file.write(variable_format % ('PERFLAB_BUILDARCH', args.architecture))
+            out_file.write(variable_format % ('PERFLAB_LOCALE', args.locale))
+            out_file.write(variable_format % ('PERFLAB_BUILDTIMESTAMP', source_timestamp))
+            out_file.write(variable_format % ('PERFLAB_CONFIGS', config_string))
+            out_file.write(variable_format % ('DOTNET_VERSION', dotnet_version))
+            out_file.write(variable_format % ('PERFLAB_TARGET_FRAMEWORKS', framework))
+            out_file.write(variable_format % ('DOTNET_CLI_TELEMETRY_OPTOUT', '1'))
+            out_file.write(variable_format % ('DOTNET_MULTILEVEL_LOOKUP', '0'))
+            out_file.write(variable_format % ('UseSharedCompilation', 'false'))
+            out_file.write(variable_format % ('DOTNET_ROOT', dotnet_path))
+            out_file.write(path_variable % dotnet_path)
 
-        else:
-            with open(args.output_file, 'w') as out_file:
-                out_file.write(variable_format % ('PERFLAB_INLAB', '0'))
-                out_file.write(variable_format % ('PERFLAB_TARGET_FRAMEWORKS', framework))
-                out_file.write(path_variable % dotnet_path)
+    else:
+        with open(args.output_file, 'w') as out_file:
+            out_file.write(variable_format % ('PERFLAB_INLAB', '0'))
+            out_file.write(variable_format % ('PERFLAB_TARGET_FRAMEWORKS', framework))
+            out_file.write(path_variable % dotnet_path)
 
     # On non-windows platforms, delete dotnet, so that we don't have to deal with chmoding it on the helix machines
     # This is only necessary for netcoreapp3.0 and netcoreapp5.0
     if sys.platform != 'win32' and remove_dotnet:
         dotnet.remove_dotnet(architecture)
+    
+    # The '_Framework' is needed for specifying frameworks in proj files and for building tools later in the pipeline
+    __write_pipeline_variable('_Framework', framework)
 
 
 
