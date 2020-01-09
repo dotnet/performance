@@ -217,6 +217,7 @@ jobs:
       pool: Hosted VS2017
       kind: scenarios
       queue: Windows.10.Amd64.19H1.Tiger.Perf
+      projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
         - release/3.1.2xx
         - 3.0
