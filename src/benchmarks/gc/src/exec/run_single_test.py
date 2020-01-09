@@ -322,12 +322,6 @@ _collect_options = {
         "-ClrEventLevel:Verbose",
         "-KernelEvents:Default,ThreadTime",
     ],
-    CollectKind.cswitch: [
-        # Use verbose events (4 instead of 5)
-        "-OnlyProviders:ClrPrivate:1:5,Clr:1:5",
-        "-ClrEvents:GC+Stack",
-        f"-KernelEvents:Default,ThreadTime,ContextSwitch",
-    ],
 }
 
 
