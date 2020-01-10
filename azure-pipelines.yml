@@ -59,9 +59,24 @@ jobs:
       pool: Hosted VS2017
       kind: scenarios
       queue: Windows.10.Amd64.ClientRS5.Open
+      projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - release/3.1.2xx
         - 3.0
+
+  # Windows x64 SDK scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      architecture: x64
+      pool: Hosted VS2017
+      kind: sdk_scenarios
+      queue: Windows.10.Amd64.ClientRS5.Open
+      projectFile: sdk_scenarios.proj
+      channels:
+        - master
+        - release/3.1.2xx
   
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -202,6 +217,7 @@ jobs:
       pool: Hosted VS2017
       kind: scenarios
       queue: Windows.10.Amd64.19H1.Tiger.Perf
+      projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
         - release/3.1.2xx
         - 3.0
@@ -320,6 +336,21 @@ jobs:
 
 # Scheduled runs will run all of the jobs on the PerfTigers, as well as jobs on the PerfSnakes and the Arm64 job
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule')) }}:
+
+  # Windows x64 SDK scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      architecture: x64
+      pool: Hosted VS2017
+      kind: sdk_scenarios
+      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      projectFile: sdk_scenarios.proj
+      channels:
+        - master
+        - release/3.1.2xx
+
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
@@ -443,3 +474,23 @@ jobs:
       channels: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
         - master
         - release/3.1.2xx
+
+################################################
+# Manually Triggered Job
+################################################
+
+
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Manual')) }}:
+
+  # Windows x64 SDK scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      architecture: x64
+      pool: Hosted VS2017
+      kind: sdk_scenarios
+      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      projectFile: sdk_scenarios.proj
+      channels:
+        - $(channel) # for manual runs we can specify channel variable 
