@@ -319,8 +319,7 @@ _collect_options = {
     CollectKind.thread_times: [
         "-OnlyProviders:ClrPrivate:1:5,Clr:1:5",
         "-ClrEvents:GC+Stack",
-        "-ClrEventLevel:Verbose",
-        "-KernelEvents:Default,ThreadTime",
+        "-KernelEvents:ThreadTime",
     ],
 }
 
