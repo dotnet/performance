@@ -263,7 +263,7 @@ _show_condemned_reasons_for_gen2(_TRACE)
 #%% print-events
 
 print_events_for_jupyter(
-    path=non_null(_TRACE.test_result.trace_path), time_span_msec=(0, 100), include="cswitch"
+    path=non_null(_TRACE.test_result.trace_path), time_span_msec=(0, 100), include="thread_times"
 )
 
 

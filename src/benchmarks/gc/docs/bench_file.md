@@ -91,7 +91,7 @@ scores: `Mapping[str, Mapping[str, [ScoreElement](#ScoreElement)]] | None`
 
 ## BenchOptions
 
-collect: `"none" | "gc" | "verbose" | "cpu_samples" | "cswitch" | None`
+collect: `"none" | "gc" | "verbose" | "cpu_samples" | "thread_times" | None`
   Kind of events to collect.
   Defaults to 'gc'.
 
@@ -99,7 +99,7 @@ collect: `"none" | "gc" | "verbose" | "cpu_samples" | "cswitch" | None`
   gc: Collect normal GC events.
   verbose: Collect verbose GC events, which includes join events.
   cpu_samples: Collect all of the above, and CPU samples.
-  cswitch: Collect all of the above, and CSwitch events on Windows. No effect on Linux.
+  thread_times: Collect all of the above, and Thread Times Stacks with CSwitch events. Windows only.
 
 default_iteration_count: `int | None`
   Number of times to run the same test combination.

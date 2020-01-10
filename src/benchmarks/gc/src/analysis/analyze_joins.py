@@ -52,7 +52,7 @@ class StagesOrPhases(Enum):
 
 _DOC_N_WORST_STOLEN_TIME_INSTANCES = """
 Show the top N instances of stolen time.
-Only available if 'collect: cswitch' was specified in the BenchOptions.
+Only available if 'collect: thread_times' was specified in the BenchOptions.
 """
 
 _DOC_N_WORST_JOINS = """
