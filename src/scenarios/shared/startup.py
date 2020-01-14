@@ -56,6 +56,7 @@ class StartupWrapper(object):
             if not kwargs[key]:
                 raise Exception('startup tests require %s' % key)
         reportjson = os.path.join(TRACEDIR, 'perf-lab-report.json')
+        defaultiterations = '1' if not runninginlab() and helixpayload() else '5'
         startup_args = [
             self.startupexe,
             '--app-exe', apptorun,
@@ -63,7 +64,7 @@ class StartupWrapper(object):
             '--scenario-name', "%s - %s" % (kwargs['scenarioname'], kwargs['scenariotypename']),
             '--trace-file-name', '%s_%s_startup.etl' % (kwargs['exename'], kwargs['scenariotypename']),
             '--process-will-exit', (kwargs['processwillexit'] or 'true'),
-            '--iterations', '%s' % (kwargs['iterations'] or '5'),
+            '--iterations', '%s' % (kwargs['iterations'] or defaultiterations),
             '--timeout', '%s' % (kwargs['timeout'] or '50'),
             '--warmup', '%s' % (kwargs['warmup'] or 'true'),
             '--gui-app', kwargs['guiapp'],
