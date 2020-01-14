@@ -57,6 +57,9 @@ class StartupWrapper(object):
                 raise Exception('startup tests require %s' % key)
         reportjson = os.path.join(TRACEDIR, 'perf-lab-report.json')
         defaultiterations = '1' if not runninginlab() and helixpayload() else '5'
+        print('runninginlab: %s' % runninginlab())
+        print('helixpayload: %s' % helixpayload())
+        print('uploadtoken: %s' % uploadtokenpresent())
         startup_args = [
             self.startupexe,
             '--app-exe', apptorun,
