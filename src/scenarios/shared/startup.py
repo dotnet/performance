@@ -56,10 +56,7 @@ class StartupWrapper(object):
             if not kwargs[key]:
                 raise Exception('startup tests require %s' % key)
         reportjson = os.path.join(TRACEDIR, 'perf-lab-report.json')
-        defaultiterations = '1' if not runninginlab() and helixpayload() else '5'
-        print('runninginlab: %s' % runninginlab())
-        print('helixpayload: %s' % helixpayload())
-        print('uploadtoken: %s' % uploadtokenpresent())
+        defaultiterations = '1' if runninginlab() and not uploadtokenpresent() else '5' # only run 1 iteration for PR-triggered build
         startup_args = [
             self.startupexe,
             '--app-exe', apptorun,
