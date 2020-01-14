@@ -84,14 +84,14 @@ jobs:
         - ${{ if eq(parameters.osName, 'windows') }}:
           - script: xcopy .\scripts $(CorrelationStaging)scripts\/e && xcopy .\src\scenarios\shared $(CorrelationStaging)shared\/e && xcopy .\src\scenarios\staticdeps $(CorrelationStaging)staticdeps\/e
             displayName: Copy python libraries
-          - script: $(CorrelationStaging)dotnet\dotnet publish -o $(CorrelationStaging)startup -f $(_Framework) $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\Startup\Startup.csproj
+          - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)startup -f $(_Framework) -r win-${{parameters.architecture}} $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\Startup\Startup.csproj
             displayName: Build startup tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
         - ${{ if ne(parameters.osName, 'windows') }}:
           - script: cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared;cp -r ./src/scenarios/staticdeps $(CorrelationStaging)staticdeps
             displayName: Copy python libraries
-          - script: $(CorrelationStaging)dotnet/dotnet publish -o $(CorrelationStaging)startup -f $(_Framework) $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/Startup/Startup.csproj
+          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)startup -f $(_Framework) -r linux-${{parameters.architecture}} $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/Startup/Startup.csproj
             displayName: Build startup tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
