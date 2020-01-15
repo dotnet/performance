@@ -671,4 +671,4 @@ def handle_doc(doc: Document, output: OutputOptions = EMPTY_OUTPUT_OPTIONS) -> N
     if output.excel:
         _render_to_excel(doc, output.excel)
     if not output.any_file_output():
-        print_document(doc, max_width=output.width, table_indent=output.table_indent, color=True)
+        print_document(doc, max_width=output.width, table_indent=output.table_indent, color=False)
