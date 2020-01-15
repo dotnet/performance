@@ -22,7 +22,7 @@
       <Command>$(Python) test.py startup --scenario-name %(Identity)</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
-    <HelixWorkItem>
+    </HelixWorkItem>
   </ItemDefinitionGroup>
   
   <ItemGroup>
