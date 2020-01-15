@@ -82,10 +82,10 @@
 
   <ItemGroup>
     <HelixWorkItem Include="@(SDKWorkItem -> '%(Identity) Clean Build')">
-      <Command>%(Command) clean_build --scenario-name %(Identity)</Command>
+      <Command>%(Command) clean_build --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(SDKWorkItem -> '%(Identity) Build(No Change)')">
-      <Command>%(Command) build_no_change --scenario-name %(Identity)</Command>
+      <Command>%(Command) build_no_change --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
 </Project>
