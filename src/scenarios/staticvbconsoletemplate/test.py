@@ -7,8 +7,7 @@ SCENARIONAME = 'Static VB Console Template'
 EXENAME = 'staticvbconsoletemplate'
 
 if __name__ == "__main__":
-    traits = TestTraits(scenarioname=SCENARIONAME, 
-                        exename=EXENAME, 
+    traits = TestTraits(exename=EXENAME, 
                         startupmetric='TimeToMain',
                         startup=True,
                         guiapp='false',

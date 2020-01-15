@@ -14,9 +14,8 @@ from shared import const
 from performance.logger import setup_loggers
 
 
-reqfields = ('scenarioname',
-             'exename',
-             )
+reqfields = ('exename',
+            )
 optfields = ('guiapp',
              'startupmetric',
              'appargs',
@@ -51,6 +50,7 @@ class Runner:
         self.traits = traits
         self.testtype = None
         self.sdktype = None
+        self.scenarioname = None
         setup_loggers(True)
 
     def parseargs(self):
@@ -60,9 +60,10 @@ class Runner:
         parser = ArgumentParser()
         subparsers = parser.add_subparsers(title='subcommands for sdk tests', required=True, dest='testtype')
         startupparser = subparsers.add_parser(const.STARTUP)
+        startupparser.add_argument('--scenario-name', dest='scenarioname')
         sdkparser = subparsers.add_parser(const.SDK)
         sdkparser.add_argument('sdktype', choices=[const.CLEAN_BUILD, const.BUILD_NO_CHANGE], type=str.lower)
-
+        sdkparser.add_argument('--scenario-name', dest='scenarioname')
         args = parser.parse_args()
 
         if not getattr(self.traits, args.testtype):
@@ -72,6 +73,8 @@ class Runner:
 
         if self.testtype == const.SDK:
             self.sdktype = args.sdktype
+        if args.scenarioname:
+            self.scenarioname = args.scenarioname
 
     def run(self):
         '''
@@ -81,6 +84,7 @@ class Runner:
         if self.testtype == const.STARTUP:
             startup = StartupWrapper()
             startup.runtests(**self.traits._asdict(),
+                             scenarioname=self.scenarioname,
                              scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
                              apptorun=publishedexe(self.traits.exename))
         elif self.testtype == const.SDK:
@@ -89,7 +93,7 @@ class Runner:
             envlistcleanbuild= ';'.join(['MSBUILDDISABLENODEREUSE=1', envlistbuild])
             # clean build
             if self.sdktype == const.CLEAN_BUILD:
-                startup.runtests(scenarioname=self.traits.scenarioname,
+                startup.runtests(scenarioname=self.scenarioname,
                                 exename=self.traits.exename,
                                 guiapp=self.traits.guiapp,
                                 startupmetric=const.STARTUP_PROCESSTIME,
@@ -110,7 +114,7 @@ class Runner:
                              )
             # build(no changes)
             if self.sdktype == const.BUILD_NO_CHANGE:
-                startup.runtests(scenarioname=self.traits.scenarioname,
+                startup.runtests(scenarioname=self.scenarioname,
                                 exename=self.traits.exename,
                                 guiapp=self.traits.guiapp,
                                 startupmetric=const.STARTUP_PROCESSTIME,

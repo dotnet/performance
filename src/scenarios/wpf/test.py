@@ -6,8 +6,7 @@ SCENARIONAME = 'WPF Template'
 EXENAME = 'wpf'
 
 def main():
-    traits = TestTraits(scenarioname=SCENARIONAME,
-                        exename=EXENAME,
+    traits = TestTraits(exename=EXENAME,
                         guiapp='false', 
                         sdk=True,
                         )
