@@ -1,4 +1,4 @@
-# Profiling workflow for dotnet runtime repository
+# Profiling workflow for [dotnet/runtime](https://github.com/dotnet/runtime) repository
 
 ## Table of Contents
 
@@ -34,9 +34,9 @@
 
 # Introduction
 
-**This doc explains how to profile local dotnet runtime builds and it's targetted at dotnet runtime repository contributors.**
+**This doc explains how to profile local [dotnet/runtime](https://github.com/dotnet/runtime) builds and it's targetted at [dotnet/runtime](https://github.com/dotnet/runtime) repository contributors.**
 
-Before you start any performance investigation, you need to [build](#Build) dotnet runtime in **Release**, create a small [repro](#Repro) app and change the default [project settings](#Project-Settings).
+Before you start any performance investigation, you need to [build](#Build) [dotnet/runtime](https://github.com/dotnet/runtime) in **Release**, create a small [repro](#Repro) app and change the default [project settings](#Project-Settings).
 
 The next step is to choose the right profiler depending on the OS:
 
@@ -45,7 +45,7 @@ The next step is to choose the right profiler depending on the OS:
   * [PerfView](#PerfView) is the ultimate .NET Profiler but it has a high entry cost. If Visual Studio Profiler is not enough, you should switch to [PerfView](#PerfView).
 * Linux
   * [dotnet trace](https://github.com/dotnet/diagnostics/blob/master/documentation/dotnet-trace-instructions.md) works on every OS, it's easy to use and it should be your **default choice** on Unix systems.
-  * [PerfCollect](#PerfCollect) is a simple, yet very powerful script that allows for profiling native parts of dotnet runtime. You should use it if `dotnet trace` can not handle your case.
+  * [PerfCollect](#PerfCollect) is a simple, yet very powerful script that allows for profiling native parts of .NET Core. You should use it if `dotnet trace` can not handle your case.
 
 If you clearly need information on CPU instruction level, then depending on the hardware you should use [Intel VTune](#VTune) or [AMD uProf](https://developer.amd.com/amd-uprof/).
 
@@ -53,7 +53,7 @@ If you clearly need information on CPU instruction level, then depending on the 
 
 ## Build
 
-You need to build dotnet runtime in Release first:
+You need to build [dotnet/runtime](https://github.com/dotnet/runtime) in Release first:
 
 ```cmd
 C:\Projects\runtime> build -c Release
@@ -73,7 +73,7 @@ C:\Projects\runtime\artifacts\bin\testhost\netcoreapp5.0-Windows_NT-Release-x64\
 C:\Projects\runtime\artifacts\bin\testhost\netcoreapp5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe
 ```
 
-Once you rebuild the part of dotnet runtime you are working on, the appropriate `.dll` gets updated and the next time you run profiler, dotnet|CoreRun is going to use the updated library.
+Once you rebuild the part of [dotnet/runtime](https://github.com/dotnet/runtime) you are working on, the appropriate `.dll` gets updated and the next time you run profiler, dotnet|CoreRun is going to use the updated library.
 
 ```cmd
 C:\Projects\runtime\src\libraries\System.Text.RegularExpressions\src> dotnet msbuild /p:ConfigurationGroup=Release
@@ -147,7 +147,7 @@ It's recommended to disable Tiered JIT (to avoid the need of warmup) and emit fu
 
 Visual Studio Profiler is not as powerful as PerfView, but it's definitely more intuitive to use. If you don't know which profiler to use, you should use it by default.
 
-To profile a local build of dotnet runtime and get symbol solving working in Visual Studio Profiler you can use the produced `dotnet` or `CoreRun`.
+To profile a local build of [dotnet/runtime](https://github.com/dotnet/runtime) and get symbol solving working in Visual Studio Profiler you can use the produced `dotnet` or `CoreRun`.
 
 ## dotnet
 
@@ -172,7 +172,7 @@ SET sln=%2
 start %sln%
 ```
 
-You can just save it as `startvs.cmd` file and run providing path to the `testhost` folder produced by dotnet runtime build and a VS solution with repo project:
+You can just save it as `startvs.cmd` file and run providing path to the `testhost` folder produced by [dotnet/runtime](https://github.com/dotnet/runtime) build and a VS solution with repo project:
 
 ```cmd
 startvs.cmd "C:\Projects\runtime\artifacts\bin\testhost\netcoreapp5.0-Windows_NT-Release-x64\" "C:\Projects\repro\ProfilingDocs.sln"
@@ -192,7 +192,7 @@ Give VS a few seconds to run. It's important to execute enough code to run for a
 
 ![Few seconds](img/vs_profiler_2_few_seconds.png)
 
-By default VS Profiler does not show the [External Code](https://docs.microsoft.com/en-us/visualstudio/profiling/beginners-guide-to-performance-profiling?view=vs-2019#view-external-code) (functions in system and framework component). When you are profiling dotnet runtime this is **the most important thing you care about**. To show the external code click `Filter` then check `Show External Code` and click `Apply` button.
+By default VS Profiler does not show the [External Code](https://docs.microsoft.com/en-us/visualstudio/profiling/beginners-guide-to-performance-profiling?view=vs-2019#view-external-code) (functions in system and framework component). When you are profiling [dotnet/runtime](https://github.com/dotnet/runtime) this is **the most important thing you care about**. To show the external code click `Filter` then check `Show External Code` and click `Apply` button.
 
 ![Show External code](img/vs_profiler_3_external_code.png)
 
@@ -293,7 +293,7 @@ We can **Collect** profile data by either **Run**ning a standalone executable (o
 
 ![Collect Menu Items](img/perfview_1_collect.png)
 
-When profiling local dotnet runtime build it's recommended to **Run** a standalone repro app using CoreRun.
+When profiling local [dotnet/runtime](https://github.com/dotnet/runtime) build it's recommended to **Run** a standalone repro app using CoreRun.
 
 ![Run CoreRun](img/perfview_2_run_corerun.png)
 
@@ -397,7 +397,7 @@ If you want to view the Source Code of the given method you need to right-click 
 
 If PerfView fails to show you the source code you should read the `Log` output. If you are unable to make it work and you really care about it you should switch to Visual Studio Profiler.
 
-**Note:** As of today, PerfView keeps the `.pdb` files [opened](https://github.com/microsoft/perfview/pull/979) after showing the source code. It means that if you keep the trace file opened in PerfView and try to rebuild dotnet runtime the build is going to fail. You might need to close PerfView to rebuild dotnet runtime.
+**Note:** As of today, PerfView keeps the `.pdb` files [opened](https://github.com/microsoft/perfview/pull/979) after showing the source code. It means that if you keep the trace file opened in PerfView and try to rebuild [dotnet/runtime](https://github.com/dotnet/runtime) the build is going to fail. You might need to close PerfView to rebuild [dotnet/runtime](https://github.com/dotnet/runtime).
 
 ## Identifying Regressions
 
@@ -552,7 +552,7 @@ VTune is capable of showing not only the output assembly code but also native an
 
 If it ever fails to show the source code (the `Source` button is then greyed out), you can click on the `Search Sources/Binaries` button and specify additional folders that should be searched for symbol and source files.
 
-**Note:** According to the VTune [docs](https://software.intel.com/en-us/vtune-amplifier-help-dialog-box-source-search), the search is non-recursive. So adding just dotnet runtime repo root folder to the list is not enough.
+**Note:** According to the VTune [docs](https://software.intel.com/en-us/vtune-amplifier-help-dialog-box-source-search), the search is non-recursive. So adding just [dotnet/runtime](https://github.com/dotnet/runtime) repo root folder to the list is not enough.
 
 ![Specify Sources](img/vtune_folders.png)
 
@@ -596,9 +596,9 @@ It can show the disassembly of profiled methods:
 
 PerfCollect is a simple, yet very powerful script that allows for profiling .NET Core apps on Linux. It is internally leveraging LTTng and using perf.
 
-In contrary to `dotnet trace` it gives you native call stacks which are very useful when you need to profile native parts of dotnet runtime.
+In contrary to `dotnet trace` it gives you native call stacks which are very useful when you need to profile native parts of [dotnet/runtime](https://github.com/dotnet/runtime).
 
-It has it's own excellent [documentation](https://github.com/dotnet/coreclr/blob/master/Documentation/project-docs/linux-performance-tracing.md) (a **highly recommended read**), the goal of this doc is not to duplicate it, but rather show **how to profile local dotnet runtime build running on a Linux VM from a Windows developer machine**. We need two OSes because as of today only PerfView is capable of opening a `PerfCollect` trace file.
+It has it's own excellent [documentation](https://github.com/dotnet/coreclr/blob/master/Documentation/project-docs/linux-performance-tracing.md) (a **highly recommended read**), the goal of this doc is not to duplicate it, but rather show **how to profile local [dotnet/runtime](https://github.com/dotnet/runtime) build running on a Linux VM from a Windows developer machine**. We need two OSes because as of today only PerfView is capable of opening a `PerfCollect` trace file.
 
 ## Preparing Your Machine
 

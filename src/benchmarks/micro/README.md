@@ -48,7 +48,7 @@ dotnet run -c Release -f netcoreapp2.1 --filter * --runtimes netcoreapp2.1 netco
 
 ## Private Runtime Builds
 
-If you contribute to [dotnet/runtime](https://github.com/dotnet/runtime) and want to benchmark **local builds of .NET Core** you need to build dotnet runtime in Release (including tests) and then provide the path(s) to CoreRun(s). Provided CoreRun(s) will be used to execute every benchmark in a dedicated process:
+If you contribute to [dotnet/runtime](https://github.com/dotnet/runtime) and want to benchmark **local builds of .NET Core** you need to build [dotnet/runtime](https://github.com/dotnet/runtime) in Release (including tests) and then provide the path(s) to CoreRun(s). Provided CoreRun(s) will be used to execute every benchmark in a dedicated process:
 
 ```cmd
 dotnet run -c Release -f netcoreapp3.0 --filter $YourFilter \

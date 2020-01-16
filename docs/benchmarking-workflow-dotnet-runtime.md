@@ -1,10 +1,10 @@
-# Benchmarking workflow for dotnet runtime repository
+# Benchmarking workflow for [dotnet/runtime](https://github.com/dotnet/runtime) repository
 
 ## Table of Contents
 
 - [Introduction](#Introduction)
   - [Code Organization](#Code-Organization)
-  - [dotnet runtime Prerequisites](#dotnet-runtime-Prerequisites)
+  - [dotnet/runtime Prerequisites](#dotnet-runtime-Prerequisites)
 - [Preventing Regressions](#Preventing-Regressions)
 - [Solving Regressions](#Solving-Regressions)
   - [Repro Case](#Repro-Case)
@@ -102,15 +102,15 @@ Moreover, every Libaries benchmark belongs to a [Libraries category](../src/benc
 
 ### dotnet runtime Prerequisites
 
-In order to run the benchmarks against local dotnet runtime build you need to build the dotnet/runtime repository in **Release**:
+In order to run the benchmarks against local [dotnet/runtime](https://github.com/dotnet/runtime) build you need to build the dotnet/runtime repository in **Release**:
 
 ```cmd
 C:\Projects\runtime> build -c Release
 ```
 
-**The most important build artifact for us is CoreRun**. CoreRun is a simple host that does NOT take any dependency on NuGet. BenchmarkDotNet generates some boilerplate code, builds it using dotnet cli and tells CoreRun.exe to run the benchmarks from the auto-generated library. CoreRun runs the benchmarks using the libraries that are placed in its folder. When a benchmarked code has a dependency to `System.ABC.dll` version 4.5 and CoreRun has `System.ABC.dll` version 4.5.1 in its folder, then CoreRun is going to load and use `System.ABC.dll` version 4.5.1. **This means that with a single clone of this dotnet/performance repository you can run benchmarks against private builds of dotnet runtime from many different locations.**
+**The most important build artifact for us is CoreRun**. CoreRun is a simple host that does NOT take any dependency on NuGet. BenchmarkDotNet generates some boilerplate code, builds it using dotnet cli and tells CoreRun.exe to run the benchmarks from the auto-generated library. CoreRun runs the benchmarks using the libraries that are placed in its folder. When a benchmarked code has a dependency to `System.ABC.dll` version 4.5 and CoreRun has `System.ABC.dll` version 4.5.1 in its folder, then CoreRun is going to load and use `System.ABC.dll` version 4.5.1. **This means that with a single clone of this dotnet/performance repository you can run benchmarks against private builds of [dotnet/runtime](https://github.com/dotnet/runtime) from many different locations.**
 
-Every time you want to run the benchmarks against local build of dotnet runtime you need to provide the path to CoreRun:
+Every time you want to run the benchmarks against local build of [dotnet/runtime](https://github.com/dotnet/runtime) you need to provide the path to CoreRun:
 
 ```cmd
 dotnet run -c Release -f netcoreapp5.0 --filter $someFilter \
@@ -119,7 +119,7 @@ dotnet run -c Release -f netcoreapp5.0 --filter $someFilter \
 
 **Note:** BenchmarkDotNet expects a path to `CoreRun.exe` file (`corerun` on Unix), not to `Core_Root` folder.
 
-Once you rebuild the part of dotnet runtime you are working on, the appropriate `.dll` gets updated and the next time you run the benchmarks, CoreRun is going to load the updated library.
+Once you rebuild the part of [dotnet/runtime](https://github.com/dotnet/runtime) you are working on, the appropriate `.dll` gets updated and the next time you run the benchmarks, CoreRun is going to load the updated library.
 
 ```cmd
 C:\Projects\runtime\src\libraries\System.Text.RegularExpressions\src> dotnet msbuild /p:ConfigurationGroup=Release
@@ -142,7 +142,7 @@ Please try to **avoid running any resource-heavy processes** that could **spoil*
 
 You can also create a **copy** of the folder with CoreRun and all the libraries to be able to run the benchmarks against the **unmodified base** in the future.
 
-After you introduce the changes and rebuild the part of dotnet runtime that you are working on **in Release** you should re-run the benchmarks. Remember to store the results in a different folder.
+After you introduce the changes and rebuild the part of [dotnet/runtime](https://github.com/dotnet/runtime) that you are working on **in Release** you should re-run the benchmarks. Remember to store the results in a different folder.
 
 ```cmd
 C:\Projects\runtime\src\libraries\System.IO.Pipes\src> dotnet msbuild /p:ConfigurationGroup=Release
@@ -189,7 +189,7 @@ The next step is to send a PR to this repository with the aforementioned benchma
 
 ### Profiling
 
-The real performance investigation starts with profiling. We have a comprehensive guide about profiling dotnet runtime, we really encourage you to read it: [Profiling dotnet runtime workflow](./profiling-workflow-dotnet-runtime.md).
+The real performance investigation starts with profiling. We have a comprehensive guide about profiling [dotnet/runtime](https://github.com/dotnet/runtime), we really encourage you to read it: [Profiling [dotnet/runtime](https://github.com/dotnet/runtime) workflow](./profiling-workflow-dotnet-runtime.md).
 
 
 To profile the benchmarked code and produce an ETW Trace file ([read more](./benchmarkdotnet.md#Profiling)):
@@ -214,7 +214,7 @@ BenchmarkDotNet has some extra features that might be useful when doing performa
 
 - You can run the benchmarks against [multiple Runtimes](./benchmarkdotnet.md#Multiple-Runtimes). It can be very useful when the regression has been introduced between .NET Core releases, for example: between netcoreapp2.2 and netcoreapp3.0.
 - You can run the benchmarks using provided [dotnet cli](./benchmarkdotnet.md#dotnet-cli). You can download few dotnet SDKs, unzip them and just run the benchmarks to spot the version that has introduced the regression to narrow down your investigation.
-- You can run the benchmarks using few [CoreRuns](./benchmarkdotnet.md#CoreRun). You can build the latest dotnet runtime in Release, create a copy of the folder with CoreRun and use git to checkout an older commit. Then rebuild dotnet runtime and run the benchmarks against the old and new builds. This can narrow down your investigation to the commit that has introduced the bug.
+- You can run the benchmarks using few [CoreRuns](./benchmarkdotnet.md#CoreRun). You can build the latest [dotnet/runtime](https://github.com/dotnet/runtime) in Release, create a copy of the folder with CoreRun and use git to checkout an older commit. Then rebuild [dotnet/runtime](https://github.com/dotnet/runtime) and run the benchmarks against the old and new builds. This can narrow down your investigation to the commit that has introduced the bug.
 
 ### Confirmation
 
@@ -225,7 +225,7 @@ Please take a moment to consider how the regression managed to enter the product
 
 ## Benchmarking new API
 
-When developing new dotnet runtime features, we should be thinking about the performance from day one. One part of doing this is writing benchmarks at the same time when we write our first unit tests. Keeping the benchmarks in a separate repository makes it a little bit harder to run the benchmarks against new API, but it's still very easy.
+When developing new [dotnet/runtime](https://github.com/dotnet/runtime) features, we should be thinking about the performance from day one. One part of doing this is writing benchmarks at the same time when we write our first unit tests. Keeping the benchmarks in a separate repository makes it a little bit harder to run the benchmarks against new API, but it's still very easy.
 
 ### Reference
 
@@ -259,13 +259,13 @@ Sample project file change:
 
 ### PR
 
-Because the benchmarks are not in the dotnet runtime repository you must do two PR's.
+Because the benchmarks are not in the [dotnet/runtime](https://github.com/dotnet/runtime) repository you must do two PR's.
 
-The first thing you need to do is send a PR with the new API to the dotnet runtime repository. Once your PR gets merged and a new NuGet package is published to the dotnet runtime NuGet feed, you should remove the Reference to a `.dll` and install/update the package consumed by [MicroBenchmarks](../src/benchmarks/micro/MicroBenchmarks.csproj). You can do this by running the following script locally:
+The first thing you need to do is send a PR with the new API to the [dotnet/runtime](https://github.com/dotnet/runtime) repository. Once your PR gets merged and a new NuGet package is published to the [dotnet/runtime](https://github.com/dotnet/runtime) NuGet feed, you should remove the Reference to a `.dll` and install/update the package consumed by [MicroBenchmarks](../src/benchmarks/micro/MicroBenchmarks.csproj). You can do this by running the following script locally:
 
 ```cmd
 /home/adsitnik/projects/performance>python3 ./scripts/benchmarks_ci.py --filter $YourFilter -f netcoreapp5.0
 ```
-This script will try to pull the latest .NET Core SDK from dotnet runtime nightly build, which should contain the new API that you just merged in your first PR, and use that to build MicroBenchmarks project and then run the benchmarks that satisfy the filter you provided. 
+This script will try to pull the latest .NET Core SDK from [dotnet/runtime](https://github.com/dotnet/runtime) nightly build, which should contain the new API that you just merged in your first PR, and use that to build MicroBenchmarks project and then run the benchmarks that satisfy the filter you provided. 
 
 After you have confirmed your benchmarks successfully run locally, then your PR should be ready for performance repo.
