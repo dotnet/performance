@@ -324,7 +324,7 @@ Please use this option only when you are sure that the benchmarks you want to ru
 
 ### CoreRun
 
-It's possible to benchmark private builds of CoreCLR/FX using CoreRun.
+It's possible to benchmark private builds of dotnet runtime using CoreRun.
 
 ```cmd
 dotnet run -c Release -f netcoreapp3.0 --coreRun $thePath
