@@ -60,10 +60,12 @@ class Runner:
         parser = ArgumentParser()
         subparsers = parser.add_subparsers(title='subcommands for sdk tests', required=True, dest='testtype')
         startupparser = subparsers.add_parser(const.STARTUP)
-        startupparser.add_argument('--scenario-name', dest='scenarioname')
+        self.add_common_arguments(startupparser)
+
         sdkparser = subparsers.add_parser(const.SDK)
         sdkparser.add_argument('sdktype', choices=[const.CLEAN_BUILD, const.BUILD_NO_CHANGE], type=str.lower)
-        sdkparser.add_argument('--scenario-name', dest='scenarioname')
+        self.add_common_arguments(sdkparser)
+
         args = parser.parse_args()
 
         if not getattr(self.traits, args.testtype):
@@ -75,6 +77,11 @@ class Runner:
             self.sdktype = args.sdktype
         if args.scenarioname:
             self.scenarioname = args.scenarioname
+    
+    def add_common_arguments(self, parser: ArgumentParser):
+        "Common arguments to add to subparsers"
+        parser.add_argument('--scenario-name',
+                            dest='scenarioname')
 
     def run(self):
         '''
