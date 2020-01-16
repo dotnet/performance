@@ -98,7 +98,7 @@ Please remember that you can  filter the benchmarks using a glob pattern applied
 dotnet run -c Release -f netcoreapp5.0 --filter System.Memory*
 ```
 
-Moreover, every Libaries (new name for CoreFX) benchmark belongs to a [Libraries category](../src/benchmarks/micro/README.md#Categories). Same goes for Runtime (old name was CoreCLR).
+Moreover, every Libaries benchmark belongs to a [Libraries category](../src/benchmarks/micro/README.md#Categories). Same goes for Runtime.
 
 ### dotnet runtime Prerequisites
 

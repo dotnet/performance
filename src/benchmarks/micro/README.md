@@ -94,6 +94,6 @@ public class SomeType
 This is possible with the `AllowedOperatingSystemsAttribute`. You need to provide a mandatory comment and OS(es) that benchmark(s) can run on.
 
 ```cs
-[AllowedOperatingSystems("Hangs on non-Windows, dotnet/runtime#18290", OS.Windows)]
+[AllowedOperatingSystems("Hangs on non-Windows, dotnet/corefx#18290", OS.Windows)]
 public class Perf_PipeTest
 ```
