@@ -76,11 +76,7 @@ We once again encourage you to read the [full docs about BenchmarkDotNet](../../
 
 ### Categories
 
-Every micro benchmark should belong to either Runtime, Libraries or ThirdParty category. It allows for proper filtering for CI runs:
-
-* Runtime - benchmarks belonging to this category are executed for Runtime CI jobs
-* Libraries - benchmarks belonging to this category are executed for Libraries CI jobs
-* ThirdParty - benchmarks belonging to this category are not going to be executed as part of our daily CI runs. We are going to run them periodically to make sure we don't regress any of the most popular 3rd party libraries.
+Every micro benchmark should belong to either Runtime, Libraries or ThirdParty category. It allows for filtering by category.
 
 Adding given type/method to particular category requires using a `[BenchmarkCategory]` attribute:
 
