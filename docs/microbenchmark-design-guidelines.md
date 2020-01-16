@@ -282,7 +282,7 @@ Does it make sense to test the code paths that throw?
 Should we test the code path for an array with one or zero elements? 
 
 * No, because it does not perform any actual work. We would be benchmarking a branch and return from the method. If `Reverse` is inlinable, such a benchmark would be measuring the performance of `if (length <= 1)` and the throw checks.
-* No, because it's not a common case. Moreover, it's very unlikely that removing this check from the code would pass the CoreFX/CLR Code Review and regress the performance in the future.
+* No, because it's not a common case. Moreover, it's very unlikely that removing this check from the code would pass the dotnet runtime repository code review and regress the performance in the future.
 
 So what is left? A loop that does the actual work. Does it make sense to test it for arrays of different sizes?
 
