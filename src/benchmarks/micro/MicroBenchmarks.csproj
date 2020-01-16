@@ -43,48 +43,48 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="coreclr\BenchmarksGame\Inputs\*.txt">
+    <None Update="runtime\BenchmarksGame\Inputs\*.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="corefx\System.Net.Http\*.pfx">
+    <None Update="libraries\System.Net.Http\*.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="corefx\System.IO.Compression\TestData\**">
+    <None Update="libraries\System.IO.Compression\TestData\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework'">
-    <Compile Remove="corefx\System.IO.Compression\Brotli.cs" />
-    <Compile Remove="corefx\System.Net.Http\Perf.SocketsHttpHandler.cs" />
-    <Compile Remove="corefx\System.Net.Security\SslStreamTests.cs" />
-    <Compile Remove="corefx\System.Net.Sockets\Perf.Socket.SendReceive.cs" />
-    <Compile Remove="corefx\System.Numerics.Vectors\GenericVectorFromSpanConstructorTests.cs" />
-    <Compile Remove="corefx\System.Runtime\Perf.HashCode.cs" />
-    <Compile Remove="corefx\System.Security.Cryptography.Primitives\**" />
-    <Compile Remove="corefx\System.Security.Cryptography\Perf.Rfc2898DeriveBytes.cs" />
-    <Compile Remove="coreclr\Math\Functions\Double\Acosh.cs" />
-    <Compile Remove="coreclr\Math\Functions\Double\Asinh.cs" />
-    <Compile Remove="coreclr\Math\Functions\Double\Atanh.cs" />
-    <Compile Remove="coreclr\Math\Functions\Double\Cbrt.cs" />
-    <Compile Remove="coreclr\Math\Functions\Single\**\*.cs" />
+    <Compile Remove="libraries\System.IO.Compression\Brotli.cs" />
+    <Compile Remove="libraries\System.Net.Http\Perf.SocketsHttpHandler.cs" />
+    <Compile Remove="libraries\System.Net.Security\SslStreamTests.cs" />
+    <Compile Remove="libraries\System.Net.Sockets\Perf.Socket.SendReceive.cs" />
+    <Compile Remove="libraries\System.Numerics.Vectors\GenericVectorFromSpanConstructorTests.cs" />
+    <Compile Remove="libraries\System.Runtime\Perf.HashCode.cs" />
+    <Compile Remove="libraries\System.Security.Cryptography.Primitives\**" />
+    <Compile Remove="libraries\System.Security.Cryptography\Perf.Rfc2898DeriveBytes.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\Acosh.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\Asinh.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\Atanh.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\Cbrt.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.0')">
-    <Compile Remove="coreclr\Math\Functions\Double\FusedMultiplyAdd.cs" />
-    <Compile Remove="coreclr\Math\Functions\Double\ILogB.cs" />
-    <Compile Remove="coreclr\Math\Functions\Double\Log2.cs" />
-    <Compile Remove="coreclr\Math\Functions\Double\ScaleB.cs" />
-    <Compile Remove="coreclr\Math\Functions\Single\FusedMultiplyAdd.cs" />
-    <Compile Remove="coreclr\Math\Functions\Single\ILogB.cs" />
-    <Compile Remove="coreclr\Math\Functions\Single\Log2.cs" />
-    <Compile Remove="coreclr\Math\Functions\Single\ScaleB.cs" />
-    <Compile Remove="corefx\System.Memory\SequenceReader.cs" />
-    <Compile Remove="corefx\System.Text.Json\**\*.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\FusedMultiplyAdd.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\ILogB.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\Log2.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\ScaleB.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\FusedMultiplyAdd.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\ILogB.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\Log2.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\ScaleB.cs" />
+    <Compile Remove="libraries\System.Memory\SequenceReader.cs" />
+    <Compile Remove="libraries\System.Text.Json\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.0') OR '$(IsARM)' == 'true'">
-    <Compile Remove="coreclr\PacketTracer\**\*.cs" />
+    <Compile Remove="runtime\PacketTracer\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>
