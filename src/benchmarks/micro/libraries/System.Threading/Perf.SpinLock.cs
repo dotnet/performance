@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Threading.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_SpinLock
     {
         private SpinLock _spinLock = new SpinLock(enableThreadOwnerTracking: false);

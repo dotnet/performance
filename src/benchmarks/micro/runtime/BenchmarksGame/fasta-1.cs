@@ -29,7 +29,7 @@ using MicroBenchmarks;
 
 namespace BenchmarksGame
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
+    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame)]
     public class Fasta_1
     {
         const int LineLength = 60;

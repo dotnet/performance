@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace System.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Environment
     {
         private const string Key = "7efd538f-dcab-4806-839a-972bc463a90c";

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace System.Buffers.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     [GenericTypeArguments(typeof(byte))] // value type
     [GenericTypeArguments(typeof(object))] // reference type
     public class RentReturnArrayPoolTests<T>
@@ -148,7 +148,7 @@ namespace System.Buffers.Tests
         }
     }
 
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     [GenericTypeArguments(typeof(byte))] // value type
     [GenericTypeArguments(typeof(object))] // reference type
     public class NonStandardArrayPoolTests<T>

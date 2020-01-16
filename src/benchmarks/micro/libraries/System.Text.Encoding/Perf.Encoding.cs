@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Text.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Encoding
     {
         [Params(16, 512)]

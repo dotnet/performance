@@ -10,7 +10,7 @@ using MicroBenchmarks;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.Collections, Categories.GenericCollections)] // this benchmark does not belong to CoreFX because it's more a codegen benchmark
+    [BenchmarkCategory(Categories.Runtime, Categories.Collections, Categories.GenericCollections)] // this benchmark does not belong to CoreFX because it's more a codegen benchmark
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
     public class IndexerSetReverse<T>
@@ -58,7 +58,7 @@ namespace System.Collections
         }
 
         [Benchmark]
-        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
         public IList<T> IList() => Set(_list);
         
         [MethodImpl(MethodImplOptions.NoInlining)]

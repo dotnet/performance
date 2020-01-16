@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace PerfLabTests
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Perflab)]
     public class BlockCopyPerf
     {
         private byte[] bytes;

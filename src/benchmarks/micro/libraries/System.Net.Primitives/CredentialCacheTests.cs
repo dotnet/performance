@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace System.Net.Primitives.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class CredentialCacheTests
     {
         private const string UriPrefix = "http://name";

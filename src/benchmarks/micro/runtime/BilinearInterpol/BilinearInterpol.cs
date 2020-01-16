@@ -294,7 +294,7 @@ public class BilinearTest
     }
 
     [Benchmark]
-    [BenchmarkCategory(Categories.CoreCLR)]
+    [BenchmarkCategory(Categories.Runtime)]
     public double[] Interpol_Scalar()
     {
         output = BilinearInterpol(input, A, minXA, maxXA, B, minXB, maxXB, weightB);
@@ -302,7 +302,7 @@ public class BilinearTest
     }
 
     [Benchmark]
-    [BenchmarkCategory(Categories.CoreCLR)]
+    [BenchmarkCategory(Categories.Runtime)]
     public double[] Interpol_Vector()
     {
         double[] vectorOutput = BilinearInterpol_Vector(input, A, minXA, maxXA, B, minXB, maxXB, weightB);
@@ -310,7 +310,7 @@ public class BilinearTest
     }
 
 #if !NETCOREAPP2_1 && !NETCOREAPP2_2 && !NETFRAMEWORK
-    [BenchmarkCategory(Categories.CoreCLR)]
+    [BenchmarkCategory(Categories.Runtime)]
     [Benchmark]
     public double[] Interpol_AVX()
     {

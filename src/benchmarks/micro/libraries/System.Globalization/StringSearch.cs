@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace System.Globalization.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.CoreCLR)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
     public class StringSearch
     {
         private string _value, _diffAtFirstChar, _diffAtLastChar, _firstHalf, _secondHalf;

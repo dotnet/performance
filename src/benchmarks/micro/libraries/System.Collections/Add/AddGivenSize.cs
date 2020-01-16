@@ -11,7 +11,7 @@ using MicroBenchmarks;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
     public class AddGivenSize<T>
@@ -35,7 +35,7 @@ namespace System.Collections
         }
 
         [Benchmark]
-        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
         public ICollection<T> ICollection() => AddToICollection(new List<T>(Size));
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -70,7 +70,7 @@ namespace System.Collections
         }
 
         [Benchmark]
-        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
         public IDictionary<T, T> IDictionary() => AddToIDictionary(new Dictionary<T, T>(Size));
 
         [MethodImpl(MethodImplOptions.NoInlining)]

@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace PerfLabTests
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab, Categories.Reflection)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Perflab, Categories.Reflection)]
     public class GetMember
     {
         public static int InnerIterationCount = 1000; // do not change the value and keep it public static NOT-readonly, ported "as is" from CoreCLR repo

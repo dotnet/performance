@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Reflection
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.Reflection)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Reflection)]
     public class Attributes
     {
         private static readonly MethodInfo AttributedOverride = typeof(AttributedClass).GetMethod(nameof(AttributedClass.FooAttributed));

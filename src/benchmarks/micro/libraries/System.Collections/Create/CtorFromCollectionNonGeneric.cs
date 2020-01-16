@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.NonGenericCollections)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.NonGenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type (it shows how bad idea is to use non-generic collections for value types)
     [GenericTypeArguments(typeof(string))] // reference type
     public class CtorFromCollectionNonGeneric<T>

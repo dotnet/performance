@@ -13,7 +13,7 @@ namespace System.Globalization.Tests
     /// 
     /// Primary methods affected: Parse, ToString
     /// </summary>
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_DateTimeCultureInfo
     {
         private readonly DateTime _time = new DateTime(654321098765432109);

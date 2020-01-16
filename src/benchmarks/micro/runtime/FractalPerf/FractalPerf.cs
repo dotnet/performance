@@ -122,7 +122,7 @@ namespace FractalPerf
         }
     }
 
-    [BenchmarkCategory(Categories.CoreCLR)]
+    [BenchmarkCategory(Categories.Runtime)]
     public class Launch
     {
         [Benchmark(Description = nameof(FractalPerf))]

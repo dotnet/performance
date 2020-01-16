@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace System.IO.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_File
     {
         private const int DeleteteInnerIterations = 10;

@@ -13,7 +13,7 @@ namespace System.Memory
 {
     [GenericTypeArguments(typeof(byte))]
     [GenericTypeArguments(typeof(int))]
-    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.Span)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Libraries, Categories.Span)]
     public class MemoryMarshal<T>
         where T : struct
     {

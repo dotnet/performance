@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Threading.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Lock
     {
         ReaderWriterLockSlim _rwLock = new ReaderWriterLockSlim();

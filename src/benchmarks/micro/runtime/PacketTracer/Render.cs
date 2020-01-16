@@ -11,7 +11,7 @@ using MicroBenchmarks;
 
 namespace HardwareIntrinsics.RayTracer
 {
-    [BenchmarkCategory(Categories.CoreCLR)]
+    [BenchmarkCategory(Categories.Runtime)]
     public class SoA
     {
         private const int RunningTime = 1000;

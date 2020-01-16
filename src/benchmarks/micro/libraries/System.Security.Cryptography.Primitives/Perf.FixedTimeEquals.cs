@@ -8,7 +8,7 @@ using Test.Cryptography;
 
 namespace System.Security.Cryptography.Primitives.Tests.Performance
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_FixedTimeEquals
     {
         byte[] baseValue, errorVector;

@@ -47,7 +47,7 @@ namespace MicroBenchmarks.Serializers
             dataContractSerializer.WriteObject(memoryStream, value);
         }
 
-        [BenchmarkCategory(Categories.CoreFX, Categories.CoreCLR)]
+        [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
         [Benchmark(Description = nameof(XmlSerializer))]
         public T XmlSerializer_()
         {
@@ -55,7 +55,7 @@ namespace MicroBenchmarks.Serializers
             return (T)xmlSerializer.Deserialize(memoryStream);
         }
 
-        [BenchmarkCategory(Categories.CoreFX)]
+        [BenchmarkCategory(Categories.Libraries)]
         [Benchmark(Description = nameof(DataContractSerializer))]
         public T DataContractSerializer_()
         {

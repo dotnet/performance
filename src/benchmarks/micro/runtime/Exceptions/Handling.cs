@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace Exceptions
 {
-    [BenchmarkCategory(Categories.CoreCLR)]
+    [BenchmarkCategory(Categories.Runtime)]
     public class Handling
     {
         public enum ExceptionKind { Software,  Hardware, ReflectionSoftware, ReflectionHardware }

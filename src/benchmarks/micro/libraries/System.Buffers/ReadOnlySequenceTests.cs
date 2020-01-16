@@ -6,7 +6,7 @@ using MicroBenchmarks;
 
 namespace System.Buffers.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     [GenericTypeArguments(typeof(byte))]
     [GenericTypeArguments(typeof(char))]
     public class ReadOnlySequenceTests<T>

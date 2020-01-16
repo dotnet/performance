@@ -10,7 +10,7 @@ using MicroBenchmarks;
 
 namespace System.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Int32
     {
         private char[] _destination = new char[int.MinValue.ToString().Length];

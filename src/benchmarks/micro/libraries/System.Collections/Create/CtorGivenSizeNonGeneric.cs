@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.NonGenericCollections)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.NonGenericCollections)]
     public class CtorGivenSizeNonGeneric
     {
         [Params(Utils.DefaultCollectionSize)]

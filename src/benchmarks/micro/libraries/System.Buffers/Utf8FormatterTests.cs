@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace System.Buffers.Text.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Utf8FormatterTests
     {
         private readonly byte[] _destination = new byte[1000]; // big enough to store anything we want to format

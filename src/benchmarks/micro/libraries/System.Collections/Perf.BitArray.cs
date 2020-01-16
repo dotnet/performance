@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace System.Collections.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Collections)]
     public class Perf_BitArray
     {
         private const int DefaultShiftCount = 17;

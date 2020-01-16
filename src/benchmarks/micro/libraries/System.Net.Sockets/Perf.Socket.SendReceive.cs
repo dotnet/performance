@@ -12,7 +12,7 @@ using MicroBenchmarks;
 
 namespace System.Net.Sockets.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class SocketSendReceivePerfTest
     {
         private const int InnerIterationCount = 10_000;

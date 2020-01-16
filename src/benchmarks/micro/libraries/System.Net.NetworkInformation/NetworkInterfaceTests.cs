@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace System.Net.NetworkInformation.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class NetworkInterfaceTests
     {
         [Benchmark]

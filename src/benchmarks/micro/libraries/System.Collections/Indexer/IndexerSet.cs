@@ -12,7 +12,7 @@ using MicroBenchmarks;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
     public class IndexerSet<T>
@@ -72,7 +72,7 @@ namespace System.Collections
         }
 
         [Benchmark]
-        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
         public IList<T> IList() => Set(_list);
         
         [MethodImpl(MethodImplOptions.NoInlining)]

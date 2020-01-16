@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Xml.Linq
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_XName
     {
         private XName _noNamespace;

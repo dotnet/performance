@@ -14,7 +14,7 @@ using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-[BenchmarkCategory(Categories.CoreCLR)]
+[BenchmarkCategory(Categories.Runtime)]
 public class CscBench
 {
     public const int CompileIterations = 1500;

@@ -13,7 +13,7 @@ namespace System.Memory
 {
     [GenericTypeArguments(typeof(byte))]
     [GenericTypeArguments(typeof(char))]
-    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.Span)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Libraries, Categories.Span)]
     public class ReadOnlyMemory<T>
     {
         [Params(Utils.DefaultCollectionSize)]

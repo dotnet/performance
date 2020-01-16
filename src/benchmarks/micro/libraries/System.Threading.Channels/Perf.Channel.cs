@@ -23,7 +23,7 @@ namespace System.Threading.Channels.Tests
         public sealed override Channel<int> CreateChannel() => Channel.CreateBounded<int>(10);
     }
 
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public abstract class PerfTests
     {
         private Channel<int> _channel, _channel1, _channel2;

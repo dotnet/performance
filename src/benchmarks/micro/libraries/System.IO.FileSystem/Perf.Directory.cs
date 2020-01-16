@@ -10,7 +10,7 @@ using MicroBenchmarks;
 
 namespace System.IO.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Directory
     {
         private const int CreateInnerIterations = 10;

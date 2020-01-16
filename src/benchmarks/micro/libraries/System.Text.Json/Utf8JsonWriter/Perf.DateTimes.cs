@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace System.Text.Json.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+    [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     public class Perf_DateTimes
     {
         private const int DataSize = 100_000;

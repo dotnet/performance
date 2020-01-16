@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Diagnostics
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Process
     {
         private readonly string _nonExistingName = Guid.NewGuid().ToString();

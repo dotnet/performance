@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace XmlDocumentTests.XmlNodeListTests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_XmlNodeList
     {
         private readonly Consumer _consumer = new Consumer();

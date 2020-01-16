@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace Inlining
 {
-[BenchmarkCategory(Categories.CoreCLR, Categories.Inlining)]
+[BenchmarkCategory(Categories.Runtime, Categories.Inlining)]
 public class NoThrowInline
 {
     static void ThrowIfNull(string s)

@@ -8,7 +8,7 @@ using static System.Drawing.Color;
 
 namespace System.Drawing.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Color 
     {
         private static readonly Color[] AllKnownColors;

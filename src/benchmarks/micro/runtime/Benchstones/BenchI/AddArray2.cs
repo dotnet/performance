@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace Benchstone.BenchI
 {
-[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchI)]
+[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.BenchI)]
 public class AddArray2
 {
     private const int Dim = 200;

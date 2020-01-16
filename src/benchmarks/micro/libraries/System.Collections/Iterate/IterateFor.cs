@@ -11,7 +11,7 @@ using MicroBenchmarks;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
     public class IterateFor<T>
@@ -84,7 +84,7 @@ namespace System.Collections
         public void SetupIList() => _ilist = new List<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
-        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
         public T IList() => Get(_ilist);
 
         [MethodImpl(MethodImplOptions.NoInlining)]

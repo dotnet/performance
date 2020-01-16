@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace System.Linq.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.LINQ)]
+    [BenchmarkCategory(Categories.Libraries, Categories.LINQ)]
     public class Perf_Enumerable
     {
         private readonly Consumer _consumer = new Consumer();

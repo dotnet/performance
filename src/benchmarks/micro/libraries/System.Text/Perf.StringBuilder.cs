@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Text.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.CoreCLR)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
     public class Perf_StringBuilder
     {
         const int LOHAllocatedStringSize = 100_000;

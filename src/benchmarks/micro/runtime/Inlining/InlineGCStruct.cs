@@ -21,7 +21,7 @@ using MicroBenchmarks;
 
 namespace Inlining
 {
-[BenchmarkCategory(Categories.CoreCLR, Categories.Inlining)]
+[BenchmarkCategory(Categories.Runtime, Categories.Inlining)]
 public class InlineGCStruct
 {
     [MethodImpl(MethodImplOptions.NoInlining)]

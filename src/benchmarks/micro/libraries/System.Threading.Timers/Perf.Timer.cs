@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace System.Threading.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Timer
     {
         private readonly Timer[] _timers = new Timer[1_000_000];

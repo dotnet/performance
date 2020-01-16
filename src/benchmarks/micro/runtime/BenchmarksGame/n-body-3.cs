@@ -20,7 +20,7 @@ using MicroBenchmarks;
 
 namespace BenchmarksGame
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
+    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame)]
     public class NBody_3
     {
         [Benchmark(Description = nameof(NBody_3))]

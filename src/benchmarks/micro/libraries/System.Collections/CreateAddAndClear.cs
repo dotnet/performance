@@ -11,7 +11,7 @@ using System.Runtime.CompilerServices;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
     public class CreateAddAndClear<T>
@@ -24,7 +24,7 @@ namespace System.Collections
         [GlobalSetup]
         public void Setup() => _uniqueValues = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
-        [BenchmarkCategory(Categories.CoreCLR)]
+        [BenchmarkCategory(Categories.Runtime)]
         [Benchmark]
         public T[] Array()
         {
@@ -37,7 +37,7 @@ namespace System.Collections
             return array;
         }
 
-        [BenchmarkCategory(Categories.CoreCLR, Categories.Span)]
+        [BenchmarkCategory(Categories.Runtime, Categories.Span)]
         [Benchmark]
         public Span<T> Span()
         {
@@ -63,7 +63,7 @@ namespace System.Collections
         }
 
         [Benchmark]
-        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
         public ICollection<T> ICollection() => ICollection(new List<T>());
 
         [MethodImpl(MethodImplOptions.NoInlining)] // we want to prevent from inlining this particular method to make sure that JIT does not find out that ICollection is always List
@@ -114,7 +114,7 @@ namespace System.Collections
         }
 
         [Benchmark]
-        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
         public IDictionary<T, T> IDictionary() => IDictionary(new Dictionary<T, T>());
 
         [MethodImpl(MethodImplOptions.NoInlining)]

@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace System.MathBenchmarks
 {
-    [BenchmarkCategory(Categories.CoreCLR)]
+    [BenchmarkCategory(Categories.Runtime)]
     public partial class Single
     {
         // Tests Math.Abs(single) over 5000 iterations for the domain -1, +1

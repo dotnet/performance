@@ -32,7 +32,7 @@ namespace BenchmarksGame
         public Thread ReverseThread;
     }
 
-    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
+    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame)]
     public class ReverseComplement_6
     {
         const int READER_BUFFER_SIZE = 1024 * 1024;

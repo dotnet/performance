@@ -11,7 +11,7 @@ using MicroBenchmarks;
 
 namespace System.Net.Primitives.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class IPAddressPerformanceTests
     {
         public static IEnumerable<object> ByteAddresses()

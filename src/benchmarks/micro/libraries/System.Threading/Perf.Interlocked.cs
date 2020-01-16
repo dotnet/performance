@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Threading.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.CoreCLR)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
     public class Perf_Interlocked
     {
         private int _int = 0;

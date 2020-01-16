@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Numerics.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.SIMD)]
+    [BenchmarkCategory(Categories.Libraries, Categories.SIMD)]
     public class Perf_Vector4
     {
         [Benchmark]

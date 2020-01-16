@@ -23,7 +23,7 @@ namespace V8.Richards
     /// Support is used for a place to generate any 'miscellaneous' methods generated as part
     /// of code generation, (which do not have user-visible names)
     /// </summary>
-    [BenchmarkCategory(Categories.CoreCLR, Categories.V8)]
+    [BenchmarkCategory(Categories.Runtime, Categories.V8)]
     public class Support
     {
         public static bool runRichards()

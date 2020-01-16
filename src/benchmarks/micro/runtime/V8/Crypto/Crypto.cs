@@ -46,7 +46,7 @@ using MicroBenchmarks;
 
 namespace V8.Crypto
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.V8)]
+    [BenchmarkCategory(Categories.Runtime, Categories.V8)]
     public class Support
     {
         private const string INPUT = "The quick brown fox jumped over the extremely lazy frogs!";

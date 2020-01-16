@@ -13,7 +13,7 @@ using MicroBenchmarks;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int), typeof(int))] // value type
     [GenericTypeArguments(typeof(string), typeof(string))] // reference type
     public class TryGetValueFalse<TKey, TValue>
@@ -58,7 +58,7 @@ namespace System.Collections
         }
 
         [Benchmark]
-        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
         public bool IDictionary() => TryGetValue(_dictionary);
 
         [MethodImpl(MethodImplOptions.NoInlining)]

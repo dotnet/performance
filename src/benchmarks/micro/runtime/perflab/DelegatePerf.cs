@@ -10,7 +10,7 @@ namespace PerfLabTests
     public delegate long DelegateLong(Object obj, long x, long y);
     public delegate void MultiDelegate(Object obj, long x, long y);
 
-    [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Perflab)]
     public class DelegatePerf
     {
         public static int InnerIterationCount200000 = 200000; // do not change the value and keep it public static NOT-readonly, ported "as is" from CoreCLR repo

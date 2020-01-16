@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace System.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_DateTimeOffset
     {
         DateTimeOffset date1 = new DateTimeOffset(new DateTime(1996, 6, 3, 22, 15, 0), new TimeSpan(5, 0, 0));

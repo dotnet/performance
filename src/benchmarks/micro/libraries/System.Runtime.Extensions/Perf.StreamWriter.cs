@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace System.IO.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_StreamWriter
     {
         private const int MemoryStreamSize = 32768;

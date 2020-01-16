@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace Devirtualization
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
     public class Boxing
     {
         [Benchmark]

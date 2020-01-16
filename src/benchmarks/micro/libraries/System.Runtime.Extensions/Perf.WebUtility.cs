@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Net.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_WebUtility
     {
         [Benchmark]

@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace System.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_UInt16
     {
         public static IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();

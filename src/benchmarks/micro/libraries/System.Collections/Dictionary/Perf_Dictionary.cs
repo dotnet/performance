@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace System.Collections.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
     public class Perf_Dictionary
     {
         [Params(3_000)]

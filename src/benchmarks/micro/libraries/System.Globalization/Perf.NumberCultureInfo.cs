@@ -11,7 +11,7 @@ namespace System.Globalization.Tests
     /// <summary>
     /// Performance tests for converting numbers to different CultureInfos
     /// </summary>
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_NumberCultureInfo
     {
         public IEnumerable<object> Cultures()

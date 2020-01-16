@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace System.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_DateTime
     {
         DateTime date1 = new DateTime(1996, 6, 3, 22, 15, 0);

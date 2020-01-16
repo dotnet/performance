@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.MathBenchmarks
 {
-    [BenchmarkCategory(Categories.CoreCLR)]
+    [BenchmarkCategory(Categories.Runtime)]
     public partial class MathTests
     {
         // double has a machine epsilon of approx: 2.22e-16. However, due to floating-point precision

@@ -13,7 +13,7 @@ using MicroBenchmarks;
 
 namespace GuardedDevirtualization
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
     public class TwoClassInterface
     {
         interface I

@@ -22,7 +22,7 @@ namespace System.IO.Compression
     
     // Brotli has a dedicated file with more benchmarks
 
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public abstract class CompressionStreamPerfTestBase
     {
         public abstract Stream CreateStream(Stream stream, CompressionMode mode);

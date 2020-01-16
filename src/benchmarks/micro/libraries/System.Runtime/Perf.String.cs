@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace System.Tests
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
     public class Perf_String
     {
         // the culture-specific methods are tested in Perf_StringCultureSpecific class

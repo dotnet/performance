@@ -10,7 +10,7 @@ using System.Collections.Generic;
 namespace System.Collections
 {
     // the concurrent collections are covered with benchmarks in Add_Remove_SteadyState.cs
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
     public class CreateAddAndRemove<T>

@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Reflection
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.Reflection)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Reflection)]
     [GenericTypeArguments(typeof(EmptyStruct))] // value type
     [GenericTypeArguments(typeof(EmptyClass))] // reference type
     public class Activator<T>

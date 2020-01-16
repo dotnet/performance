@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace System.Text.Json.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+    [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     public class Perf_Basic
     {
         private static readonly byte[] ExtraArrayUtf8 = Encoding.UTF8.GetBytes("ExtraArray");

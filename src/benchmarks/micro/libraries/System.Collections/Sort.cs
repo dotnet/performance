@@ -10,7 +10,7 @@ using MicroBenchmarks;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type, Array sort in native code
     [GenericTypeArguments(typeof(string))] // reference type, Array sort in native code
     [GenericTypeArguments(typeof(IntStruct))] // custom value type, sort in managed code

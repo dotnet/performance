@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Guid
     {
         const string guidStr = "a8a110d5-fc49-43c5-bf46-802db8f843ff";

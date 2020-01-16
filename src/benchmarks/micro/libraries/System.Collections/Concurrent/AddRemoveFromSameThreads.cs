@@ -10,7 +10,7 @@ using MicroBenchmarks;
 
 namespace System.Collections.Concurrent
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
     [MinWarmupCount(6, forceAutoWarmup: true)]

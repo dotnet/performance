@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace Lowering
 {
-    [BenchmarkCategory(Categories.CoreCLR)]
+    [BenchmarkCategory(Categories.Runtime)]
     public unsafe class InstructionReplacement
     {
         [Benchmark(OperationsPerInvoke = 10_000_000)]

@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace XmlDocumentTests.XmlDocumentTests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_XmlDocument
     {
         private XmlDocument _doc;

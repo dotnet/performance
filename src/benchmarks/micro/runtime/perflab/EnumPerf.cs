@@ -18,7 +18,7 @@ namespace PerfLabTests
         Orange
     }
 
-    [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Perflab)]
     public class EnumPerf
     {
         public object blackObject = Color.Black;

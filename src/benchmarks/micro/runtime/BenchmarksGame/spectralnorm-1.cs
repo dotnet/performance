@@ -20,7 +20,7 @@ using MicroBenchmarks;
 
 namespace BenchmarksGame
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
+    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame)]
     public class SpectralNorm_1
     {
         [Benchmark(Description = nameof(SpectralNorm_1))]

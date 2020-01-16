@@ -9,7 +9,7 @@ using Consumer = BenchmarkDotNet.Engines.Consumer;
 
 namespace System.Memory
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.Span)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Libraries, Categories.Span)]
     public class ReadOnlySpan
     {
         private readonly string _sampeString = "this is a very nice sample string";

@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace System.Drawing.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Graphics_Transforms
     {
         private Bitmap _image;

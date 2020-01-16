@@ -8,7 +8,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace System.Runtime.InteropServices.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class SafeHandleTests
     {
         private readonly SafeFileHandle _sfh = new SafeFileHandle((IntPtr)12345, ownsHandle: false);

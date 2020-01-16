@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace System.Text.Json.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+    [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     public partial class Utf8JsonReaderCommentsTests
     {
         [Params(JsonCommentHandling.Skip, JsonCommentHandling.Allow)]

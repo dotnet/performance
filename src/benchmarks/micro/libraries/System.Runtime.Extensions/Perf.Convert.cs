@@ -8,7 +8,7 @@ using System.Text;
 
 namespace System
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Convert
     {
         private static byte[] InitializeBinaryDataCollection(int size)

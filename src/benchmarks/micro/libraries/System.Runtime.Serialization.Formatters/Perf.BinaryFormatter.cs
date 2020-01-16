@@ -11,7 +11,7 @@ using MicroBenchmarks;
 
 namespace System.Runtime.Serialization.Formatters.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_BinaryFormatter
     {
         private readonly BinaryFormatter _formatter = new BinaryFormatter();

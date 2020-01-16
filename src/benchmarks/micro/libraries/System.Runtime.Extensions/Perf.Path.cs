@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.IO.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Path
     {
         private readonly string _testPath = FileUtils.GetTestFilePath();

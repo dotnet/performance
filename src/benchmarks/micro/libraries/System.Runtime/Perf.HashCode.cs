@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace System.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_HashCode
     {
         private static volatile int _valueStorage;

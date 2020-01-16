@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.ComponentModel.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_TypeDescriptorTests
     {
         [Benchmark]

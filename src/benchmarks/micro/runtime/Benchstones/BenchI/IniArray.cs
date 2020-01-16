@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace Benchstone.BenchI
 {
-[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchI)]
+[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.BenchI)]
 public  class IniArray
 {
     public const int Iterations = 10000000;

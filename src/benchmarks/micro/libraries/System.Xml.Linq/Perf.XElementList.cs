@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace System.Xml.Linq
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_XElementList
     {
         private readonly Consumer _consumer = new Consumer();

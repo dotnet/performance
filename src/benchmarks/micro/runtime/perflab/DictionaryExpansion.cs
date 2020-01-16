@@ -76,7 +76,7 @@ namespace PerfLabTests
         }
     }
 
-    [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Perflab)]
     public class DictionaryExpansion
     {
         [MethodImpl(MethodImplOptions.NoInlining)]

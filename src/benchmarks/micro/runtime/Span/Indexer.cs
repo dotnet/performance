@@ -20,7 +20,7 @@ namespace Span
         public int i;
     }
 
-    [BenchmarkCategory(Categories.CoreCLR, Categories.Span)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Span)]
     public class IndexerBench
     {
         [Params(1024)]

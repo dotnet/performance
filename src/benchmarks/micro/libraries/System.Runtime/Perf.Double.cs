@@ -10,7 +10,7 @@ using MicroBenchmarks;
 
 namespace System.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Double
     {
         private readonly string[] _formats = { "R", "G", "G17", "E", "F50" };

@@ -10,7 +10,7 @@ using MicroBenchmarks;
 
 namespace System.Text.Json.Reader.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+    [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     public class Perf_Base64
     {
         private byte[] _base64NoEscaping;

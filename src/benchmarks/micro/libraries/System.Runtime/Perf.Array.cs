@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 
 namespace System.Tests
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
     public class Perf_Array
     {
         private static Array s_arr1;

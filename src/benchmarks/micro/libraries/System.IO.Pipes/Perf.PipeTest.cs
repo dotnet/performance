@@ -10,7 +10,7 @@ using MicroBenchmarks;
 namespace System.IO.Pipes.Tests
 {
     [AllowedOperatingSystems("Hangs on non-Windows, dotnet/corefx#18290", OS.Windows)]
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public abstract class Perf_PipeTest : PipeTestBase
     {
         [Params(1000000)]

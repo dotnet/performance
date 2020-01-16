@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Globalization.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_CultureInfo
     {
         [Benchmark]

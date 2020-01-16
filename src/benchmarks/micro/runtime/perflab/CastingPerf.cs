@@ -87,7 +87,7 @@ namespace PerfLabTests
     public class MyClass2 : IMyInterface2 { }
     public class MyClass4<T> : IMyInterface1 { }
 
-    [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Perflab)]
     public class CastingPerf
     {
         public const int NUM_ARRAY_ELEMENTS = 100;

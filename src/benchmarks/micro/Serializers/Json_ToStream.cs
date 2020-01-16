@@ -47,7 +47,7 @@ namespace MicroBenchmarks.Serializers
             Jil.JSON.Serialize<T>(value, streamWriter, Jil.Options.ISO8601);
         }
 
-        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.ThirdParty)]
+        [BenchmarkCategory(Categories.Runtime, Categories.Libraries, Categories.ThirdParty)]
         [Benchmark(Description = "JSON.NET")]
         public void JsonNet_()
         {
@@ -63,7 +63,7 @@ namespace MicroBenchmarks.Serializers
             Utf8Json.JsonSerializer.Serialize(memoryStream, value);
         }
 
-        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX)]
+        [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
         [Benchmark(Description = "DataContractJsonSerializer")]
         public void DataContractJsonSerializer_()
         {

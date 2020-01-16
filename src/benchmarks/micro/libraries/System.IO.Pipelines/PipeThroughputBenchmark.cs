@@ -11,7 +11,7 @@ using MicroBenchmarks;
 
 namespace Microsoft.AspNetCore.Server.Kestrel.Performance
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class PipeThroughputBenchmark
     {
         private const int InnerLoopCount = 512;

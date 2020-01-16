@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace XmlDocumentTests.XmlNodeTests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_XmlNode
     {
         private XmlNode _node; 

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace System.Threading.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_CancellationToken
     {
         private readonly CancellationToken _token = new CancellationTokenSource().Token;

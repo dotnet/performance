@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace System.Text.RegularExpressions.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Regex_Cache
     {
         private const int MaxConcurrency = 4;

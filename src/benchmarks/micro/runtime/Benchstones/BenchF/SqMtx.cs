@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace Benchstone.BenchF
 {
-[BenchmarkCategory(Categories.CoreCLR, Categories.Benchstones, Categories.BenchF)]
+[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.BenchF)]
 public class SqMtx
 {
     public const int Iterations = 4000;

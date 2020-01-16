@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace System.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Decimal
     {
         public static IEnumerable<object> Values => new object[]

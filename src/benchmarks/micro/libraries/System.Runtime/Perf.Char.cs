@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace System.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Char
     {
         public static IEnumerable<object[]> Char_ChangeCase_MemberData()

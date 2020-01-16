@@ -11,7 +11,7 @@ namespace System.Memory
 {
     [GenericTypeArguments(typeof(byte))]
     [GenericTypeArguments(typeof(string))]
-    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.Span)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Libraries, Categories.Span)]
     public class Constructors<T>
     {
         private const int Size = 10;
@@ -99,7 +99,7 @@ namespace System.Memory
 
     [GenericTypeArguments(typeof(byte))]
     [GenericTypeArguments(typeof(int))]
-    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.Span)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Libraries, Categories.Span)]
     public class Constructors_ValueTypesOnly<T>
     {
         private const int Size = 10;

@@ -81,7 +81,7 @@ namespace PerfLabTests.CastingPerf2
         public Foo m_f;
     }
 
-    [BenchmarkCategory(Categories.CoreCLR, Categories.Perflab)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Perflab)]
     public class CastingPerf
     {
         public static int InnerIterationCount200000 = 200000; // do not change the value and keep it public static NOT-readonly, ported "as is" from CoreCLR repo

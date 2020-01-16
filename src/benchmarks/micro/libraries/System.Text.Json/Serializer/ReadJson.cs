@@ -43,15 +43,15 @@ namespace System.Text.Json.Serialization.Tests
             await JsonSerializer.SerializeAsync(_memoryStream, value);
         }
 
-        [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+        [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
         public T DeserializeFromString() => JsonSerializer.Deserialize<T>(_serialized);
 
-        [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+        [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
         public T DeserializeFromUtf8Bytes() => JsonSerializer.Deserialize<T>(_utf8Serialized);
 
-        [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+        [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
         public async Task<T> DeserializeFromStream()
         {

@@ -10,7 +10,7 @@ using MicroBenchmarks;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
     public class CopyTo<T>

@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace Benchstone.BenchF
 {
-[BenchmarkCategory(Categories.CoreCLR, Categories.BenchF)]
+[BenchmarkCategory(Categories.Runtime, Categories.BenchF)]
 public class InvMt
 {
     public const int Iterations = 80;

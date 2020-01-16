@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace System.Memory
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class SequenceReader
     {
         private const int Count = 10000;

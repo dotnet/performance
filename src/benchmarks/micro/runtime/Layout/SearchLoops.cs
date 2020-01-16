@@ -12,7 +12,7 @@ using MicroBenchmarks;
 
 namespace Layout
 {
-    [BenchmarkCategory(Categories.CoreCLR)]
+    [BenchmarkCategory(Categories.Runtime)]
     public unsafe class SearchLoops
     {
         public int length = 100;

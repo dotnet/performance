@@ -250,7 +250,7 @@ public abstract class EmFloatStruct : HarnessTest
     }
 }
 
-[BenchmarkCategory(Categories.CoreCLR)]
+[BenchmarkCategory(Categories.Runtime)]
 public class ByteMark
 {
     private static int[] s_randw;

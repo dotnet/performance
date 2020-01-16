@@ -24,7 +24,7 @@ namespace System.Memory
         }
     }
 
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class ReadOnlySequence
     {
         public enum SequenceKind { Single, Multiple };

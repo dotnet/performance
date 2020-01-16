@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace System.Text.Json.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+    [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     public class Perf_Segment
     {
         // Keep the JsonStrings resource names in sync with TestCaseType enum values.

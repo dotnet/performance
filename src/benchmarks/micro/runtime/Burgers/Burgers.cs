@@ -14,7 +14,7 @@ using System.Numerics;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-[BenchmarkCategory(Categories.CoreCLR)]
+[BenchmarkCategory(Categories.Runtime)]
 public class Burgers
 {
     private static double BurgersAnalytical(double t, double x, double nu)

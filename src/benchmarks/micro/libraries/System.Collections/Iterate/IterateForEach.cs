@@ -12,7 +12,7 @@ using MicroBenchmarks;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
     public class IterateForEach<T>
@@ -83,7 +83,7 @@ namespace System.Collections
         public void SetupIEnumerable() => _ienumerable = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
         [Benchmark]
-        [BenchmarkCategory(Categories.CoreCLR, Categories.Virtual)]
+        [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
         public T IEnumerable() => Get(_ienumerable);
 
         [MethodImpl(MethodImplOptions.NoInlining)]

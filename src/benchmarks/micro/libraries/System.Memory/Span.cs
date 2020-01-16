@@ -14,7 +14,7 @@ namespace System.Memory
     [GenericTypeArguments(typeof(byte))]
     [GenericTypeArguments(typeof(char))]
     [GenericTypeArguments(typeof(int))]
-    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.Span)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Libraries, Categories.Span)]
     public class Span<T> 
         where T : struct, IComparable<T>, IEquatable<T>
     {

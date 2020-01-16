@@ -11,7 +11,7 @@ using MicroBenchmarks;
 
 namespace System.Buffers.Text.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Utf8ParserTests
     {
         public IEnumerable<object> Int64Values

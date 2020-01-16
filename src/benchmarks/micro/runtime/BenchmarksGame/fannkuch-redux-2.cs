@@ -18,7 +18,7 @@ using MicroBenchmarks;
 
 namespace BenchmarksGame
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.BenchmarksGame)]
+    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame)]
     public class FannkuchRedux_2
     {
         [Benchmark(Description = nameof(FannkuchRedux_2))]

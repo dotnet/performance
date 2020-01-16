@@ -11,7 +11,7 @@ using MicroBenchmarks;
 
 namespace Span
 {
-    [BenchmarkCategory(Categories.CoreCLR)]
+    [BenchmarkCategory(Categories.Runtime)]
     [InvocationCount(InvocationsPerIteration)]
     public class Sorting
     {

@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace System
 {
-    [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
     public class Hashing
     {
         private string _string;

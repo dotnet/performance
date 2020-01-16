@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace System.Collections.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
     public class Perf_SortedSet
     {
         private SortedSet<int> _set;

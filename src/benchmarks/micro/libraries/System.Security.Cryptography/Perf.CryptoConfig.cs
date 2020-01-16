@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Security.Cryptography.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_CryptoConfig
     {
         [Benchmark]

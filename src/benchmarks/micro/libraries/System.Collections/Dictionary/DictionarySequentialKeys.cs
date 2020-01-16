@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace System.Collections.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
     public class DictionarySequentialKeys
     {
         private const int Seventeen = 17;

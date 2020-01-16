@@ -16,7 +16,7 @@ using MicroBenchmarks;
 
 namespace System.Net.Http.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class SocketsHttpHandlerPerfTest
     {
         // the field names start with lowercase to keep to benchmark ID! do not change it
