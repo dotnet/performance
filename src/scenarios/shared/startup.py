@@ -61,8 +61,7 @@ class StartupWrapper(object):
             self.startupexe,
             '--app-exe', apptorun,
             '--metric-type', kwargs['startupmetric'], 
-            '--scenario-name', "%s - %s" % (kwargs['scenarioname'], kwargs['scenariotypename']),
-            '--trace-file-name', '%s_%s_startup.etl' % (kwargs['exename'], kwargs['scenariotypename']),
+            '--trace-file-name', '%s_startup.etl' % (kwargs['scenarioname'] or '%s_%s' % (kwargs['exename'],kwargs['scenariotypename'])),
             '--process-will-exit', (kwargs['processwillexit'] or 'true'),
             '--iterations', '%s' % (kwargs['iterations'] or defaultiterations),
             '--timeout', '%s' % (kwargs['timeout'] or '50'),
@@ -72,8 +71,9 @@ class StartupWrapper(object):
             '--report-json-path', reportjson,
             '--trace-directory', TRACEDIR
         ]
-
         # optional arguments
+        if kwargs['scenarioname']:
+            startup_args.extend(['--scenario-name', kwargs['scenarioname']])
         if kwargs['appargs']:
             startup_args.extend(['--app-args', kwargs['appargs']])
         if kwargs['environmentvariables']:

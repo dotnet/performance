@@ -6,8 +6,7 @@ SCENARIONAME = 'WPF Large'
 EXENAME = 'wpflarge'
 
 def main():
-    traits = TestTraits(scenarioname=SCENARIONAME,
-                        exename=EXENAME,
+    traits = TestTraits(exename=EXENAME,
                         guiapp='false', 
                         timeout= f'{const.MINUTE*15}',
                         sdk=True,
