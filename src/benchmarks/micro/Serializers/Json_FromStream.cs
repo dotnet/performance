@@ -84,7 +84,7 @@ namespace MicroBenchmarks.Serializers
                 return Jil.JSON.Deserialize<T>(reader, Jil.Options.ISO8601);
         }
 
-        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX, Categories.ThirdParty)] // JSON.NET is so popular that despite being 3rd Party lib we run the benchmarks for CoreFX and CoreCLR CI
+        [BenchmarkCategory(Categories.Runtime, Categories.Libraries, Categories.ThirdParty)] // JSON.NET is so popular that despite being 3rd Party lib we run the benchmarks for CoreFX and CoreCLR CI
         [Benchmark(Description = "JSON.NET")]
         public T JsonNet_()
         {
@@ -102,7 +102,7 @@ namespace MicroBenchmarks.Serializers
             return Utf8Json.JsonSerializer.Deserialize<T>(memoryStream);
         }
 
-        [BenchmarkCategory(Categories.CoreCLR, Categories.CoreFX)]
+        [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
         [Benchmark(Description = "DataContractJsonSerializer")]
         public T DataContractJsonSerializer_()
         {

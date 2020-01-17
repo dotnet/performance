@@ -12,7 +12,8 @@ Finding these benchmarks in a separate repository might be surprising. Performan
 
 * [Microbenchmarks Guide](./src/benchmarks/micro/README.md) for information on running our microbenchmarks
 * [Real-World Scenarios Guide](./src/benchmarks/real-world/JitBench/README.md) for information on running our real-world scenario benchmarks
-* [Benchmarking workflow for CoreFX](./docs/benchmarking-workflow-corefx.md) for information on working with CoreFX
+* [Benchmarking workflow for dotnet/runtime repository](./docs/benchmarking-workflow-dotnet-runtime.md) for information on benchmarking local [dotnet/runtime](https://github.com/dotnet/runtime) builds
+* [Profiling workflow for dotnet/runtime repository](./docs/profiling-workflow-dotnet-runtime.md) for information on profiling local [dotnet/runtime](https://github.com/dotnet/runtime) builds
 
 ## Contributing to Repository
 

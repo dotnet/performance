@@ -48,10 +48,11 @@ dotnet run -c Release -f netcoreapp2.1 --filter * --runtimes netcoreapp2.1 netco
 
 ## Private Runtime Builds
 
-If you contribute to CoreFX/CoreCLR and want to benchmark **local builds of .NET Core** you need to build CoreFX/CoreCLR in Release (including tests) and then provide the path(s) to CoreRun(s). Provided CoreRun(s) will be used to execute every benchmark in a dedicated process:
+If you contribute to [dotnet/runtime](https://github.com/dotnet/runtime) and want to benchmark **local builds of .NET Core** you need to build [dotnet/runtime](https://github.com/dotnet/runtime) in Release (including tests) and then provide the path(s) to CoreRun(s). Provided CoreRun(s) will be used to execute every benchmark in a dedicated process:
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 --filter $YourFilter --coreRun "C:\Projects\coreclr\bin\tests\Windows_NT.x64.Release\Tests\Core_Root\CoreRun.exe"
+dotnet run -c Release -f netcoreapp3.0 --filter $YourFilter \
+    --corerun C:\Projects\runtime\artifacts\bin\testhost\netcoreapp5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe
 ```
 
 To make sure that your changes don't introduce any regressions, you can provide paths to CoreRuns with and without your changes and use the Statistical Test feature to detect regressions/improvements ([read more](../../../docs/benchmarkdotnet.md#Regressions)):
@@ -61,8 +62,8 @@ dotnet run -c Release -f netcoreapp3.0 \
     --filter BenchmarksGame* \
     --statisticalTest 3ms \
     --coreRun \
-        "C:\Projects\corefx_upstream\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe" \
-        "C:\Projects\corefx_fork\bin\runtime\netcoreapp-Windows_NT-Release-x64\CoreRun.exe"
+        "C:\Projects\runtime_upstream\artifacts\bin\testhost\netcoreapp5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe" \
+        "C:\Projects\runtime_fork\artifacts\bin\testhost\netcoreapp5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe"
 ```
 
 If you **prefer to use dotnet cli** instead of CoreRun, you need to pass the path to cli via the `--cli` argument.
@@ -75,16 +76,12 @@ We once again encourage you to read the [full docs about BenchmarkDotNet](../../
 
 ### Categories
 
-Every micro benchmark should belong to either CoreCLR, CoreFX or ThirdParty category. It allows for proper filtering for CI runs:
-
-* CoreCLR - benchmarks belonging to this category are executed for CoreCLR CI jobs
-* CoreFX - benchmarks belonging to this category are executed for CoreFX CI jobs
-* ThirdParty - benchmarks belonging to this category are not going to be executed as part of our daily CI runs. We are going to run them periodically to make sure we don't regress any of the most popular 3rd party libraries.
+Every micro benchmark should belong to either Runtime, Libraries or ThirdParty category. It allows for filtering by category.
 
 Adding given type/method to particular category requires using a `[BenchmarkCategory]` attribute:
 
 ```cs
-[BenchmarkCategory(Categories.CoreFX)]
+[BenchmarkCategory(Categories.Libraries)]
 public class SomeType
 ```
 
