@@ -206,7 +206,7 @@ jobs:
 # Private Jobs
 ###########################################
 
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest', 'Manual')) }}:
 
   # Windows x64 scenario benchmarks
   - template: /eng/performance/scenarios.yml
