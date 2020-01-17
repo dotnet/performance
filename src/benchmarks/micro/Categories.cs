@@ -13,14 +13,14 @@ namespace MicroBenchmarks
         public const string ThirdParty = "ThirdParty";
         
         /// <summary>
-        /// benchmarks belonging to this category are executed for CoreFX CI jobs
+        /// benchmarks belonging to this category are executed for CI jobs
         /// </summary>
-        public const string Libraries = "CoreFX";
+        public const string Libraries = "Libraries";
         
         /// <summary>
-        /// benchmarks belonging to this category are executed for CoreCLR CI jobs
+        /// benchmarks belonging to this category are executed for CI jobs
         /// </summary>
-        public const string Runtime = "CoreCLR";
+        public const string Runtime = "Runtime";
             public const string BenchmarksGame = "BenchmarksGame";
             public const string Benchstones = "Benchstones";
                 public const string BenchF = "BenchF";

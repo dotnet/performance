@@ -88,7 +88,7 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx' 
+      runCategories: 'runtime libraries' 
       channels:
         - master
         - release/3.1.2xx
@@ -103,7 +103,7 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS4.DevEx.15.8.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
+      runCategories: 'runtime libraries'
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - LTS # use LTS channel for net461 framework
 
@@ -117,7 +117,7 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
+      runCategories: 'runtime libraries'
       channels: # for public jobs we want to make sure that the PRs don't break x86
         - master
 
@@ -162,7 +162,7 @@ jobs:
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
+      runCategories: 'runtime libraries'
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - master
         - release/3.1.2xx
@@ -232,7 +232,7 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
+      runCategories: 'runtime libraries'
       channels: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - master
         - release/3.1.2xx
@@ -247,7 +247,7 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
+      runCategories: 'runtime libraries'
       channels: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - master
         - release/3.1.2xx
@@ -293,7 +293,7 @@ jobs:
       queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
+      runCategories: 'runtime libraries'
       channels: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
         - master
         - release/3.1.2xx
@@ -361,7 +361,7 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
+      runCategories: 'runtime libraries'
       channels: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
         - master
         - release/3.1.2xx
@@ -376,7 +376,7 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
+      runCategories: 'runtime libraries'
       channels: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
         - master
         - release/3.1.2xx
@@ -422,7 +422,7 @@ jobs:
       queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
+      runCategories: 'runtime libraries'
       channels: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
         - master
         - release/3.1.2xx
@@ -470,7 +470,7 @@ jobs:
       queue: Ubuntu.1804.Arm64.Perf
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
+      runCategories: 'runtime libraries'
       channels: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
         - master
         - release/3.1.2xx
