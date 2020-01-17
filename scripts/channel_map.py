@@ -22,10 +22,6 @@ class ChannelMap():
             'tfm': 'netcoreapp3.0',
             'branch': 'release/3.0'
         },
-        '2.2': {
-            'tfm': 'netcoreapp2.2',
-            'branch': 'release/2.2'
-        },
         'release/2.1.6xx': {
             'tfm': 'netcoreapp2.1',
             'branch': 'release/2.1.6xx'
