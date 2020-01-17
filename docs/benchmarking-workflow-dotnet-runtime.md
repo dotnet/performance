@@ -212,7 +212,7 @@ If profiling using the `--profiler ETW` is not enough, you should use a differen
 
 BenchmarkDotNet has some extra features that might be useful when doing performance investigation:
 
-- You can run the benchmarks against [multiple Runtimes](./benchmarkdotnet.md#Multiple-Runtimes). It can be very useful when the regression has been introduced between .NET Core releases, for example: between netcoreapp2.2 and netcoreapp3.0.
+- You can run the benchmarks against [multiple Runtimes](./benchmarkdotnet.md#Multiple-Runtimes). It can be very useful when the regression has been introduced between .NET Core releases, for example: between netcoreapp3.1 and netcoreapp5.0.
 - You can run the benchmarks using provided [dotnet cli](./benchmarkdotnet.md#dotnet-cli). You can download few dotnet SDKs, unzip them and just run the benchmarks to spot the version that has introduced the regression to narrow down your investigation.
 - You can run the benchmarks using few [CoreRuns](./benchmarkdotnet.md#CoreRun). You can build the latest [dotnet/runtime](https://github.com/dotnet/runtime) in Release, create a copy of the folder with CoreRun and use git to checkout an older commit. Then rebuild [dotnet/runtime](https://github.com/dotnet/runtime) and run the benchmarks against the old and new builds. This can narrow down your investigation to the commit that has introduced the bug.
 
