@@ -167,7 +167,6 @@ jobs:
         - master
         - release/3.1.2xx
         - 3.0
-        - 2.2
         - 2.1
 
   # Ubuntu 1804 x64 ML.NET benchmarks
