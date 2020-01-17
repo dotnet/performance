@@ -92,6 +92,8 @@ jobs:
       channels:
         - master
         - release/3.1.2xx
+        - 3.0
+        - 2.1
 
   # Windows x64 net461 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
