@@ -16,11 +16,14 @@ namespace System.Collections
     [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int), typeof(int))] // value type
     [GenericTypeArguments(typeof(string), typeof(string))] // reference type
+    [GenericTypeArguments(typeof(CustomValue), typeof(CustomValue))] // custom value type (more overhead)
+    [GenericTypeArguments(typeof(CustomObject), typeof(CustomObject))] // custom reference type (less overhead)
     public class TryGetValueFalse<TKey, TValue>
     {
         private TKey[] _notFound;
         private Dictionary<TKey, TValue> _source;
 
+        private HashSet<TKey> _hashSet;
         private Dictionary<TKey, TValue> _dictionary;
         private SortedList<TKey, TValue> _sortedList;
         private SortedDictionary<TKey, TValue> _sortedDictionary;
@@ -39,11 +42,23 @@ namespace System.Collections
 
             _source = values.Skip(Size).Take(Size).ToDictionary(item => item, item => (TValue)(object)item);
             _dictionary = new Dictionary<TKey, TValue>(_source);
+            _hashSet = new HashSet<TKey>(_dictionary.Keys);
             _sortedList = new SortedList<TKey, TValue>(_source);
             _sortedDictionary = new SortedDictionary<TKey, TValue>(_source);
             _concurrentDictionary = new ConcurrentDictionary<TKey, TValue>(_source);
             _immutableDictionary = Immutable.ImmutableDictionary.CreateRange<TKey, TValue>(_source);
             _immutableSortedDictionary = Immutable.ImmutableSortedDictionary.CreateRange<TKey, TValue>(_source);
+        }
+
+        [Benchmark]
+        public bool HashSet()
+        {
+            bool result = default;
+            HashSet<TKey> collection = _hashSet;
+            TKey[] notFound = _notFound;
+            for (int i = 0; i < notFound.Length; i++)
+                result ^= collection.TryGetValue(notFound[i], out _);
+            return result;
         }
 
         [Benchmark]

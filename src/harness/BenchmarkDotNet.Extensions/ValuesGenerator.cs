@@ -91,6 +91,10 @@ namespace BenchmarkDotNet.Extensions
                 return (T)(object)(random.NextDouble() > 0.5);
             if (typeof(T) == typeof(string))
                 return (T) (object) GenerateRandomString(random, 1, 50);
+            if (typeof(T) == typeof(CustomObject))
+                return (T)(object)(new CustomObject(random.Next()));
+            if (typeof(T) == typeof(CustomValue))
+                return (T)(object)(new CustomValue(random.Next()));
             
             throw new NotImplementedException($"{typeof(T).Name} is not implemented");
         }

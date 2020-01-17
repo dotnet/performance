@@ -13,6 +13,8 @@ namespace System.Collections
     [BenchmarkCategory(Categories.CoreCLR, Categories.Collections, Categories.GenericCollections)] // this benchmark does not belong to CoreFX because it's more a codegen benchmark
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
+    [GenericTypeArguments(typeof(CustomValue))] // custom value type (more overhead)
+    [GenericTypeArguments(typeof(CustomObject))] // custom reference type (less overhead)
     public class IndexerSetReverse<T>
     {
         [Params(Utils.DefaultCollectionSize)] 

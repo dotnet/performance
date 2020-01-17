@@ -16,6 +16,8 @@ namespace System.Collections
     [BenchmarkCategory(Categories.CoreFX, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int), typeof(int))] // value type
     [GenericTypeArguments(typeof(string), typeof(string))] // reference type
+    [GenericTypeArguments(typeof(CustomValue), typeof(CustomValue))] // custom value type (more overhead)
+    [GenericTypeArguments(typeof(CustomObject), typeof(CustomObject))] // custom reference type (less overhead)
     public class ContainsKeyFalse<TKey, TValue>
     {
         private TKey[] _notFound;
