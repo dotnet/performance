@@ -1,9 +1,13 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#if !NETFRAMEWORK && !NETCOREAPP2_1 && !NETCOREAPP2_2 && !NETCOREAPP3_0 && !NETCOREAPP3_1
+
+using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 using MicroBenchmarks.Serializers;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Reflection;
 
 namespace System.Text.Json.Serialization.Tests
 {
@@ -25,8 +29,7 @@ namespace System.Text.Json.Serialization.Tests
         [GlobalSetup]
         public void Setup()
         {
-            _options = new JsonSerializerOptions();
-            _options.ReferenceHandling = ReferenceHandling.Preserve;
+            _options = new JsonSerializerOptions { ReferenceHandling = ReferenceHandling.Preserve };
 
             _settings = new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.All };
 
@@ -53,3 +56,5 @@ namespace System.Text.Json.Serialization.Tests
         public T NewtonsoftDeserializePreserved() => JsonConvert.DeserializeObject<T>(_serialized, _settings);
     }    
 }
+
+#endif
