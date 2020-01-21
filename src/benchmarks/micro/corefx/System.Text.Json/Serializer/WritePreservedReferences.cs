@@ -28,11 +28,7 @@ namespace System.Text.Json.Serialization.Tests
             _value = DataGenerator.Generate<T>();
 
             _options = new JsonSerializerOptions();
-
-            PropertyInfo referenceHandlingOption = _options.GetType().GetProperty("ReferenceHandling");
-            Type refHandlingType = referenceHandlingOption.PropertyType;
-            PropertyInfo preserve = refHandlingType.GetProperty("Preserve", BindingFlags.Public | BindingFlags.Static);
-            referenceHandlingOption.SetValue(_options, preserve.GetValue(null, null));
+            _options.ReferenceHandling = ReferenceHandling.Preserve;
 
             _settings = new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.All };
         }
@@ -42,7 +38,7 @@ namespace System.Text.Json.Serialization.Tests
         public string SerializePreserved() => JsonSerializer.Serialize(_value, _options);
 
         [BenchmarkCategory(Categories.ThirdParty, Categories.JSON)]
-        [Benchmark]
+        [Benchmark(Baseline = true)]
         public string NewtonsoftSerializePreserved() => JsonConvert.SerializeObject(_value, _settings);
     }
 }

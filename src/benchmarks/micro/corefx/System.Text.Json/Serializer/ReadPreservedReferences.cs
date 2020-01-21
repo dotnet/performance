@@ -26,12 +26,7 @@ namespace System.Text.Json.Serialization.Tests
         public void Setup()
         {
             _options = new JsonSerializerOptions();
-
-            // Once the API is merged, replace this with _options.ReferenceHandling = ReferenceHandling.Preserve;
-            PropertyInfo referenceHandlingOption = _options.GetType().GetProperty("ReferenceHandling");
-            Type refHandlingType = referenceHandlingOption.PropertyType;
-            PropertyInfo preserve = refHandlingType.GetProperty("Preserve", BindingFlags.Public | BindingFlags.Static);
-            referenceHandlingOption.SetValue(_options, preserve.GetValue(null, null));
+            _options.ReferenceHandling = ReferenceHandling.Preserve;
 
             _settings = new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.All };
 
@@ -54,7 +49,7 @@ namespace System.Text.Json.Serialization.Tests
         public T DeserializePreserved() => JsonSerializer.Deserialize<T>(_serialized, _options);
 
         [BenchmarkCategory(Categories.ThirdParty, Categories.JSON)]
-        [Benchmark]
+        [Benchmark(Baseline = true)]
         public T NewtonsoftDeserializePreserved() => JsonConvert.DeserializeObject<T>(_serialized, _settings);
     }    
 }
