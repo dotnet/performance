@@ -2,12 +2,11 @@
 *.md text working-tree-encoding=utf-8 git-encoding=utf-8 eol=lf
 *.sh text eol=lf
 
-src/benchmarks/micro/coreclr/BenchmarksGame/Inputs/knucleotide-input-big.txt text eol=lf
-src/benchmarks/micro/coreclr/BenchmarksGame/Inputs/knucleotide-input.txt text eol=lf
-src/benchmarks/micro/coreclr/BenchmarksGame/Inputs/regexdna-input25.txt text eol=lf
-src/benchmarks/micro/coreclr/BenchmarksGame/Inputs/regexdna-input25000.txt text eol=lf
-src/benchmarks/micro/coreclr/BenchmarksGame/Inputs/revcomp-input25.txt text eol=lf
-src/benchmarks/micro/coreclr/BenchmarksGame/Inputs/revcomp-input25000.txt text eol=lf
-src/benchmarks/micro/corefx/System.IO.Compression/TestData/sum text eol=lf
-src/benchmarks/micro/corefx/System.IO.Compression/TestData/alice29.txt text eol=lf
-src/benchmarks/micro/corefx/System.Text.RegularExpressions/content/200_000.in text eol=lf
+src/benchmarks/micro/runtime/BenchmarksGame/Inputs/knucleotide-input-big.txt text eol=lf
+src/benchmarks/micro/runtime/BenchmarksGame/Inputs/knucleotide-input.txt text eol=lf
+src/benchmarks/micro/runtime/BenchmarksGame/Inputs/regexdna-input25.txt text eol=lf
+src/benchmarks/micro/runtime/BenchmarksGame/Inputs/regexdna-input25000.txt text eol=lf
+src/benchmarks/micro/runtime/BenchmarksGame/Inputs/revcomp-input25.txt text eol=lf
+src/benchmarks/micro/runtime/BenchmarksGame/Inputs/revcomp-input25000.txt text eol=lf
+src/benchmarks/micro/libraries/System.IO.Compression/TestData/sum text eol=lf
+src/benchmarks/micro/libraries/System.IO.Compression/TestData/alice29.txt text eol=lf
