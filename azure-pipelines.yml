@@ -61,7 +61,7 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - release/3.1.2xx
+        # - release/3.1.2xx
         - 3.0
 
   # Windows x64 SDK scenario benchmarks
@@ -76,7 +76,7 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - master
-        - release/3.1.2xx
+        # - release/3.1.2xx
   
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -220,7 +220,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
-        - release/3.1.2xx
+        # - release/3.1.2xx
         - 3.0
 
   # Windows x64 micro benchmarks
@@ -350,7 +350,7 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - master
-        - release/3.1.2xx
+        # - release/3.1.2xx
 
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
