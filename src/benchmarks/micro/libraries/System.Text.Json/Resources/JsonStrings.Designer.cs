@@ -40,7 +40,7 @@ namespace System.Text.Json.Tests
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("MicroBenchmarks.corefx.System.Text.Json.Resources.JsonStrings", typeof(JsonStrings).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("MicroBenchmarks.libraries.System.Text.Json.Resources.JsonStrings", typeof(JsonStrings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
