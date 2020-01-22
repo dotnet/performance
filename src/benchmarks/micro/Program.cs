@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using BenchmarkDotNet.Running;
 using System.IO;
 using BenchmarkDotNet.Extensions;
-using BenchmarkDotNet.Attributes;
 
 namespace MicroBenchmarks
 {
@@ -42,12 +41,5 @@ namespace MicroBenchmarks
                     partitionIndex: partitionIndex))
                 .ToExitCode();
         }
-    }
-
-    [BenchmarkCategory(Categories.Libraries)]
-    public class Broken
-    {
-        [Benchmark]
-        public void Throwing() => throw new Exception("this should make the CI red");
     }
 }
