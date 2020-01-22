@@ -42,7 +42,8 @@ namespace System.Diagnostics
 
         private static ProcessStartInfo s_startProcessStartInfo = new ProcessStartInfo() {
             FileName = "whoami", // exists on both Windows and Unix, and has very short output
-            RedirectStandardOutput = true // avoid visible output
+            RedirectStandardOutput = true, // avoid visible output
+            UseShellExecute = false // required by Full Framework
         };
 
         private Process _startedProcess;
