@@ -35,7 +35,7 @@ namespace System.IO.Compression
         internal static string GetFilePath(string fileName) 
             => Path.Combine(
                 Path.GetDirectoryName(typeof(CompressedFile).Assembly.Location), 
-                "corefx", "System.IO.Compression", "TestData",
+                "libraries", "System.IO.Compression", "TestData",
                 fileName);
     }
 }
