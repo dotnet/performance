@@ -59,7 +59,7 @@ In order to build or run the benchmarks you will need the **.NET Core command-li
 
 ### Using .NET Cli
 
-To build the benchmarks you need to have the right `dotnet cli`. This repository allows to benchmark .NET Core 2.0, 2.1, 2.2, 3.0 and 5.0 so you need to install all of them.
+To build the benchmarks you need to have the right `dotnet cli`. This repository allows to benchmark .NET Core 2.1, 3.0, 3.1 and 5.0 so you need to install all of them.
 
 All you need to do is run the following command:
 
@@ -70,8 +70,8 @@ dotnet build -c Release
 If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [common.props](../build/common.props) file.
 
 ```diff
--<TargetFrameworks>netcoreapp2.1;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
-+<TargetFrameworks>netcoreapp3.0</TargetFrameworks>
+-<TargetFrameworks>netcoreapp2.1;netcoreapp3.0;netcoreapp3.1;netcoreapp5.0</TargetFrameworks>
++<TargetFrameworks>netcoreapp5.0</TargetFrameworks>
 ```
 
 ### Using Python script
@@ -283,30 +283,30 @@ M00_L00:
 
 The `--runtimes` or just `-r` allows you to run the benchmarks for **multiple Runtimes**.
 
-Available options are: Mono, CoreRT, net461, net462, net47, net471, net472, netcoreapp2.1, netcoreapp2.2, netcoreapp3.0.
+Available options are: Mono, CoreRT, net461, net462, net47, net471, net472, netcoreapp2.1, netcoreapp3.0, netcoreapp3.1 and netcoreapp5.0.
 
-Example: run the benchmarks for .NET Core 2.2 and 3.0:
+Example: run the benchmarks for .NET Core 3.1 and 5.0:
 
 ```cmd
-dotnet run -c Release -f netcoreapp2.2 --runtimes netcoreapp2.1 netcoreapp3.0
+dotnet run -c Release -f netcoreapp3.1 --runtimes netcoreapp3.1 netcoreapp5.0
 ```
 
-**Important: The host process needs to be the lowest common API denominator of the runtimes you want to compare!** In this case, it was`netcoreapp2.2`.
+**Important: The host process needs to be the lowest common API denominator of the runtimes you want to compare!** In this case, it was`netcoreapp3.1`.
 
 ## Regressions
 
 To perform a Mann–Whitney U Test and display the results in a dedicated column you need to provide the Threshold for Statistical Test via `--statisticalTest` argument. The value can be relative (5%) or absolute (10ms, 100ns, 1s)
 
-Example: run Mann–Whitney U test with relative ratio of 5% for `BinaryTrees_2` for .NET Core 2.1 (base) vs .NET Core 2.2 (diff). .NET Core 2.1 will be baseline because it was first.
+Example: run Mann–Whitney U test with relative ratio of 5% for `BinaryTrees_2` for .NET Core 3.1 (base) vs .NET Core 5.0 (diff). .NET Core 3.1 will be baseline because it was first.
 
 ```cmd
-dotnet run -c Release -f netcoreapp2.1 --filter *BinaryTrees_2* --runtimes netcoreapp2.1 netcoreapp2.2 --statisticalTest 5%
+dotnet run -c Release -f netcoreapp3.1 --filter *BinaryTrees_2* --runtimes netcoreapp3.1 netcoreapp5.0 --statisticalTest 5%
 ```
 
 |        Method |     Toolchain |     Mean | MannWhitney(5%) |
 |-------------- |-------------- |---------:|---------------- |
-| BinaryTrees_2 | netcoreapp2.1 | 124.4 ms |            Base |
-| BinaryTrees_2 | netcoreapp2.2 | 153.7 ms |          Slower |
+| BinaryTrees_2 | netcoreapp3.1 | 124.4 ms |            Base |
+| BinaryTrees_2 | netcoreapp5.0 | 153.7 ms |          Slower |
 
 **Note:** to compare the historical results you need to use [Results Comparer](../src/tools/ResultsComparer/README.md)
 

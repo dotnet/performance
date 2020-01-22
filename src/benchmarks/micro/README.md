@@ -12,38 +12,38 @@ To learn more about designing benchmarks, please read [Microbenchmark Design Gui
 
 ## Quick Start
 
-The first thing that you need to choose is the Target Framework. Available options are: `netcoreapp2.1|netcoreapp2.2|netcoreapp3.0|net461`. You can specify the target framework using `-f|--framework` argument. For the sake of simplicity, all examples below use `netcoreapp3.0` as the target framework.
+The first thing that you need to choose is the Target Framework. Available options are: `netcoreapp2.1|netcoreapp3.0|netcoreapp3.1|netcoreapp5.0|net461`. You can specify the target framework using `-f|--framework` argument. For the sake of simplicity, all examples below use `netcoreapp5.0` as the target framework.
 
 The following commands are run from the `src/benchmarks/micro` directory.
 
 To run the benchmarks in Interactive Mode, where you will be asked which benchmark(s) to run:
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0
+dotnet run -c Release -f netcoreapp5.0
 ```
 
 To list all available benchmarks ([read more](../../../docs/benchmarkdotnet.md#Listing-the-Benchmarks)):
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 --list flat|tree
+dotnet run -c Release -f netcoreapp5.0 --list flat|tree
 ```
 
 To filter the benchmarks using a glob pattern applied to namespace.typeName.methodName ([read more](../../../docs/benchmarkdotnet.md#Filtering-the-Benchmarks)):
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 --filter *Span*
+dotnet run -c Release -f netcoreapp5.0 --filter *Span*
 ```
 
 To profile the benchmarked code and produce an ETW Trace file ([read more](../../../docs/benchmarkdotnet.md#Profiling)):
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 --filter $YourFilter --profiler ETW
+dotnet run -c Release -f netcoreapp5.0 --filter $YourFilter --profiler ETW
 ```
 
 To run the benchmarks for multiple runtimes ([read more](../../../docs/benchmarkdotnet.md#Multiple-Runtimes)):
 
 ```cmd
-dotnet run -c Release -f netcoreapp2.1 --filter * --runtimes netcoreapp2.1 netcoreapp3.0 corert
+dotnet run -c Release -f netcoreapp3.1 --filter * --runtimes netcoreapp3.1 netcoreapp5.0 corert
 ```
 
 ## Private Runtime Builds

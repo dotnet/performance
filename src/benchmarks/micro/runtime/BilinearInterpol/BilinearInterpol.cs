@@ -8,7 +8,7 @@ using System.Linq;
 using System.Numerics;
 
 // HW Intrinsic APIs are available only in .NET Core 3.0+
-#if !NETCOREAPP2_1 && !NETCOREAPP2_2 && !NETFRAMEWORK
+#if !NETCOREAPP2_1 && !NETFRAMEWORK
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 #endif
@@ -193,7 +193,7 @@ public class BilinearTest
         return z;
     }
 
-#if !NETCOREAPP2_1 && !NETCOREAPP2_2 && !NETFRAMEWORK
+#if !NETCOREAPP2_1 && !NETFRAMEWORK
     private static unsafe double[] BilinearInterpol_AVX(
                                             double[] x,
                                             double[] A,
@@ -273,7 +273,7 @@ public class BilinearTest
         }
         return z;
     }
-#endif // !NETCOREAPP2_1 && !NETCOREAPP2_2 && !NETFRAMEWORK
+#endif // !NETCOREAPP2_1 && !NETFRAMEWORK
 
     // This method is currently unused. It is useful, when generating a new vectorized version
     // of the benchmark (e.g. with a different set of HW intrinsics), to ensure that it is
@@ -309,7 +309,7 @@ public class BilinearTest
         return vectorOutput;
     }
 
-#if !NETCOREAPP2_1 && !NETCOREAPP2_2 && !NETFRAMEWORK
+#if !NETCOREAPP2_1 && !NETFRAMEWORK
     [BenchmarkCategory(Categories.Runtime)]
     [Benchmark]
     public double[] Interpol_AVX()

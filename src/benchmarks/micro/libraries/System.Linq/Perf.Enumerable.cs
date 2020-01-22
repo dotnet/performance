@@ -402,7 +402,7 @@ namespace System.Linq.Tests
         [Benchmark]
         public void EmptyTakeSelectToArray() => Enumerable.Empty<int>().Take(10).Select(i => i).ToArray();
 
-#if !NETFRAMEWORK && !NETCOREAPP2_1 && !NETCOREAPP2_2 // API Available in .NET Core 3.0+
+#if !NETFRAMEWORK && !NETCOREAPP2_1 // API Available in .NET Core 3.0+
         // Append() has two execution paths: AppendPrependIterator (a result of another Append or Prepend) and IEnumerable, this benchmark tests both
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/AppendPrepend.cs
         [Benchmark]

@@ -813,7 +813,6 @@ def __process_arguments(args: list):
     # TODO: Could pull this information from repository.
     SUPPORTED_CHANNELS = [
         'master',  # Default channel
-        '2.2',
         '2.1',
         'LTS',
     ]
