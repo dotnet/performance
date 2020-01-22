@@ -44,6 +44,7 @@ namespace MicroBenchmarks
         }
     }
 
+    [BenchmarkCategory(Categories.Libraries)]
     public class Broken
     {
         [Benchmark]
