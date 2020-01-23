@@ -34,7 +34,7 @@ namespace System.Xml.Linq
             return new XDocument(_root);
         }
 
-        [GlobalSetup(Target = nameof(GetRootElement))]
+        [GlobalSetup(Targets = new[] { nameof(GetRootElement), nameof(GetElement) })]
         public void SetupGetRootElement()
         {
             _doc = XDocument.Parse("<elem1 child1='' child2='duu' child3='e1;e2;' child4='a1' child5='goody'> some xml element content <elem2>Hello</elem2></elem1>");
@@ -44,6 +44,6 @@ namespace System.Xml.Linq
         public XElement GetRootElement() => _doc.Root;
 
         [Benchmark]
-        public XElement Getlement() => _doc.Element("elem2");
+        public XElement GetElement() => _doc.Element("elem2");
     }
 }

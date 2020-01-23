@@ -17,7 +17,7 @@ namespace BenchmarkDotNet.Extensions
                 return 1;
 
             // if anything has failed, it's an error
-            if (summaries.Any(summary => summary.HasCriticalValidationErrors || summary.Reports.Any(report => !report.BuildResult.IsBuildSuccess || !report.ExecuteResults.Any())))
+            if (summaries.Any(summary => summary.HasCriticalValidationErrors || summary.Reports.Any(report => !report.BuildResult.IsBuildSuccess || !report.AllMeasurements.Any())))
                 return 1;
 
             return 0;
