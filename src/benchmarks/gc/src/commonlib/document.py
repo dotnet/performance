@@ -139,6 +139,9 @@ def _pad(width: int, s: str, align: Align) -> str:
     return switch[align]()
 
 
+_SUPPORTED_TERMINALS = {"ConEmuC64.exe", "WindowsTerminal.exe"}
+
+
 def _shell_supports_color() -> bool:
     if os_is_windows():
         py = _get_py_process()
@@ -146,9 +149,9 @@ def _shell_supports_color() -> bool:
         if parent.name() in ("Code.exe", "jupyter-notebook.exe"):
             return True
         else:
-            assert parent.name() in ("powershell.exe", "cmd.exe")
+            assert parent.name() in ("powershell.exe", "cmd.exe", "wsl.exe")
             shell = parent.parent()
-            return {"ConEmuC64.exe": True, "explorer.exe": False}[shell.name()]
+            return shell.name() in _SUPPORTED_TERMINALS
     else:
         return True
 
@@ -668,4 +671,4 @@ def handle_doc(doc: Document, output: OutputOptions = EMPTY_OUTPUT_OPTIONS) -> N
     if output.excel:
         _render_to_excel(doc, output.excel)
     if not output.any_file_output():
-        print_document(doc, max_width=output.width, table_indent=output.table_indent)
+        print_document(doc, max_width=output.width, table_indent=output.table_indent, color=False)

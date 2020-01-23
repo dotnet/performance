@@ -72,7 +72,6 @@ namespace ScenarioMeasurement
                 if (String.IsNullOrEmpty(arg))
                     throw new ArgumentException(name);
             };
-            checkArg(scenarioName, nameof(scenarioName));
             checkArg(appExe, nameof(appExe));
             checkArg(traceFileName, nameof(traceFileName));
 

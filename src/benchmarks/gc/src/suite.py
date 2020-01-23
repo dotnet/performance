@@ -345,6 +345,7 @@ def suite_diff(args: SuiteDiffArgs) -> None:
             test_where=None,
             sample_kind=args.sample_kind,
             max_iterations=args.max_iterations,
+            process=None,
         )
         # Print a summary -- write detailed diff to a file
         print_diff_score_summary(diffables)

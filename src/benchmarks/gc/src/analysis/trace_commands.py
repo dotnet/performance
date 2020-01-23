@@ -13,6 +13,7 @@ from ..analysis.parse_metrics import parse_run_metrics_arg
 from ..analysis.types import ProcessedTrace, RunMetrics, RUN_METRICS_DOC
 
 
+from ..commonlib.bench_file import is_trace_path
 from ..commonlib.collection_util import map_to_mapping
 from ..commonlib.command import Command, CommandKind, CommandsMapping
 from ..commonlib.document import (
@@ -25,7 +26,7 @@ from ..commonlib.document import (
     Section,
     Table,
 )
-from ..commonlib.option import map_option, non_null, option_or
+from ..commonlib.option import map_option, option_or
 from ..commonlib.result_utils import ignore_err
 from ..commonlib.type_utils import argument, with_slots
 from ..commonlib.util import seconds_to_msec
@@ -33,7 +34,7 @@ from ..commonlib.util import seconds_to_msec
 from .clr import get_clr
 from .clr_types import AbstractEtlxTraceProcess, AbstractTracedProcesses
 from .core_analysis import get_traced_processes, TRACE_PATH_DOC, try_get_runtime
-from .process_trace import get_processed_trace_from_just_process, test_result_from_path
+from .process_trace import get_processed_trace_from_just_process
 
 
 @with_slots
@@ -74,8 +75,8 @@ def print_events_for_jupyter(
 ) -> None:
     clr = get_clr()
     time = map_option(time_span_msec, lambda t: clr.TimeSpanUtil.FromStartEndMSec(*t))
-    trace_path = non_null(test_result_from_path(path).trace_path)
-    clr.Analysis.PrintEvents(str(trace_path), time, include, exclude, thread_id, max_events, False)
+    assert is_trace_path(path), f"Expected {path} to be a trace file path."
+    clr.Analysis.PrintEvents(str(path), time, include, exclude, thread_id, max_events, False)
 
 
 @with_slots
@@ -95,9 +96,9 @@ class _PrintProcessesArgs(DocOutputArgs):
 
 
 def _print_processes(args: _PrintProcessesArgs) -> None:
-    trace_path = non_null(test_result_from_path(args.trace_path).trace_path)
+    assert is_trace_path(args.trace_path), f"Expected {args.trace_path} to be a trace file path."
     clr = get_clr()
-    processes = get_traced_processes(clr, trace_path)
+    processes = get_traced_processes(clr, args.trace_path)
     name_regex = map_option(args.name_regex, lambda s: compile_regexp(s, IGNORECASE))
     command_line_regex = map_option(
         args.command_line_regex, lambda s: compile_regexp(s, IGNORECASE)
@@ -106,7 +107,9 @@ def _print_processes(args: _PrintProcessesArgs) -> None:
         processes.processes,
         lambda p: map_option(
             try_get_runtime(clr, p),
-            lambda rt: get_processed_trace_from_just_process(clr, trace_path, processes, p, rt),
+            lambda rt: get_processed_trace_from_just_process(
+                clr, args.trace_path, processes, p, rt
+            ),
         ),
     )
     filtered_processes = [

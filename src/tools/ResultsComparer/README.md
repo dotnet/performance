@@ -6,7 +6,7 @@ It can be used to compare:
 * historical results (eg. before and after my changes)
 * results for different OSes (eg. Windows vs Ubuntu)
 * results for different CPU architectures (eg. x64 vs ARM64)
-* results for different target frameworks (eg. .NET Core 2.1 vs 2.2)
+* results for different target frameworks (eg. .NET Core 3.1 vs 5.0)
 
 All you need to provide is:
 * `--base` - path to folder/file with baseline results

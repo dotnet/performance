@@ -422,14 +422,15 @@ class FullConfigAndName:
 @doc_field("verbose", "Collect verbose GC events, which includes join events.")
 @doc_field("cpu_samples", "Collect all of the above, and CPU samples.")
 @doc_field(
-    "cswitch", "Collect all of the above, and CSwitch events on Windows. No effect on Linux."
+    "thread_times",
+    "Collect all of the above and Thread Times Stacks with CSwitch events. Windows only."
 )
 class CollectKind(OrderedEnum):
     none = 0
     gc = 1
     verbose = 2
     cpu_samples = 3
-    cswitch = 4
+    thread_times = 4
 
 
 def doc_enum(e: Type[Enum]) -> str:
@@ -1119,13 +1120,24 @@ def parse_bench_file(path: Path) -> BenchFileAndPath:
     return BenchFileAndPath(load_yaml(BenchFile, path), path)
 
 
+ProcessQuery = Optional[Sequence[str]]
+
+
 @with_slots
 @dataclass(frozen=True)
 class TestResult:
     test_status_path: Optional[Path] = None
     trace_path: Optional[Path] = None
+    process: ProcessQuery = None
 
     def __post_init__(self) -> None:
+        if self.trace_path is None:
+            assert self.process is None
+
+        # Making sure this is a tuple because Python requires it to be hashable.
+        if (self.process is not None):
+            assert isinstance(self.process, tuple)
+
         assert self.test_status_path is not None or self.trace_path is not None
         assert self.test_status_path is None or self.test_status_path.name.endswith(".yaml")
         assert self.trace_path is None or is_trace_path(self.trace_path)

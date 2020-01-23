@@ -4,7 +4,7 @@
 Contains the functionality around DotNet Cli.
 """
 
-from argparse import Action, ArgumentParser, ArgumentTypeError
+from argparse import Action, ArgumentParser, ArgumentTypeError, ArgumentError
 from collections import namedtuple
 from glob import iglob
 from json import loads
@@ -48,6 +48,39 @@ CSharpProjFile = namedtuple('CSharpProjFile', [
     'working_directory'
 ])
 
+class FrameworkAction(Action):
+    '''
+    Used by the ArgumentParser to represent the information needed to parse the
+    supported .NET frameworks argument from the command line.
+    '''
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        if values:
+            setattr(namespace, self.dest, list(set(values)))
+
+    @staticmethod
+    def get_target_framework_moniker(framework: str) -> str:
+        '''
+        Translates framework name to target framework moniker (TFM)
+        To run CoreRT benchmarks we need to run the host BDN process as latest
+        .NET Core the host process will build and run CoreRT benchmarks
+        '''
+        return 'netcoreapp5.0' if framework == 'corert' else framework
+
+    @staticmethod
+    def get_target_framework_monikers(frameworks: list) -> list:
+        '''
+        Translates framework names to target framework monikers (TFM)
+        Required to run CoreRT benchmarks where the host process must be .NET
+        Core, not CoreRT.
+        '''
+        monikers = [
+            FrameworkAction.get_target_framework_moniker(framework)
+            for framework in frameworks
+        ]
+
+        # ['netcoreapp5.0', 'corert'] should become ['netcoreapp5.0']
+        return list(set(monikers))
 
 class VersionsAction(Action):
     '''
@@ -233,7 +266,10 @@ class CSharpProject:
         '''Gets the directory in which the built binaries will be placed.'''
         return self.__bin_directory
 
-    def restore(self, packages_path: str, verbose: bool) -> None:
+    def restore(self, 
+                packages_path: str, 
+                verbose: bool,
+                runtime_identifier: str = None) -> None:
         '''
         Calls dotnet to restore the dependencies and tools of the specified
         project.
@@ -248,6 +284,10 @@ class CSharpProject:
             self.csproj_file,
             '--packages', packages_path
         ]
+
+        if runtime_identifier:
+            cmdline += ['--runtime', runtime_identifier]
+            
         RunCommand(cmdline, verbose=verbose).run(
             self.working_directory)
 
@@ -257,6 +297,7 @@ class CSharpProject:
               packages_path: str,
               target_framework_monikers: list = None,
               output_to_bindir: bool = False,
+              runtime_identifier: str = None,
               *args) -> None:
         '''Calls dotnet to build the specified project.'''
         if not target_framework_monikers:  # Build all supported frameworks.
@@ -270,11 +311,16 @@ class CSharpProject:
 
             if output_to_bindir:
                 cmdline = cmdline + ['--output', self.__bin_directory]
-
+            
+            if runtime_identifier:
+                cmdline = cmdline + ['--runtime', runtime_identifier]
+            
             if args:
                 cmdline = cmdline + list(args)
+            
             RunCommand(cmdline, verbose=verbose).run(
                 self.working_directory)
+
         else:  # Only build specified frameworks
             for target_framework_moniker in target_framework_monikers:
                 cmdline = [
@@ -289,8 +335,12 @@ class CSharpProject:
                 if output_to_bindir:
                     cmdline = cmdline + ['--output', self.__bin_directory]
 
+                if runtime_identifier:
+                    cmdline = cmdline + ['--runtime', runtime_identifier]
+
                 if args:
                     cmdline = cmdline + list(args)
+                
                 RunCommand(cmdline, verbose=verbose).run(
                     self.working_directory)
     @staticmethod
@@ -340,7 +390,8 @@ class CSharpProject:
                 packages_path,
                 target_framework_moniker: str = None,
                 runtime_identifier: str = None,
-               ) -> None:
+                *args
+                ) -> None:
         '''
         Invokes publish on the specified project
         '''
@@ -356,6 +407,9 @@ class CSharpProject:
 
         if target_framework_moniker:
             cmdline += ['--framework', target_framework_moniker]
+
+        if args:
+            cmdline = cmdline + list(args)
 
         RunCommand(cmdline, verbose=verbose).run(
             self.working_directory
@@ -620,8 +674,7 @@ def install(
     # Download appropriate dotnet install script
     dotnetInstallScriptExtension = '.ps1' if platform == 'win32' else '.sh'
     dotnetInstallScriptName = 'dotnet-install' + dotnetInstallScriptExtension
-    # url = 'https://dot.net/v1/'  
-    url = 'https://pvscmdupload.blob.core.windows.net/oliviatest/' # hot-fix for installer issue; will revert
+    url = 'https://dot.net/v1/'  
     dotnetInstallScriptUrl = url + dotnetInstallScriptName
 
     dotnetInstallScriptPath = path.join(install_dir, dotnetInstallScriptName)
@@ -760,7 +813,6 @@ def __process_arguments(args: list):
     # TODO: Could pull this information from repository.
     SUPPORTED_CHANNELS = [
         'master',  # Default channel
-        '2.2',
         '2.1',
         'LTS',
     ]

@@ -33,7 +33,7 @@ namespace MicroBenchmarks.Serializers
             memoryStream = new MemoryStream(capacity: short.MaxValue);
         }
 
-        [BenchmarkCategory(Categories.CoreFX, Categories.CoreCLR)]
+        [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
         [Benchmark(Description = nameof(XmlSerializer))]
         public void XmlSerializer_()
         {
@@ -41,7 +41,7 @@ namespace MicroBenchmarks.Serializers
             xmlSerializer.Serialize(memoryStream, value);
         }
 
-        [BenchmarkCategory(Categories.CoreFX)]
+        [BenchmarkCategory(Categories.Libraries)]
         [Benchmark(Description = nameof(DataContractSerializer))]
         public void DataContractSerializer_()
         {

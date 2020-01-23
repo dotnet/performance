@@ -52,9 +52,9 @@ from src.analysis.report import diff_for_jupyter, report_reasons_for_jupyter
 from src.analysis.single_gc_metrics import get_bytes_allocated_since_last_gc
 from src.analysis.single_heap_metrics import ALL_GC_GENS
 from src.analysis.trace_commands import print_events_for_jupyter
-from src.analysis.types import GCKind, get_gc_kind, ProcessedTrace, ProcessQuery, SpecialSampleKind
+from src.analysis.types import GCKind, get_gc_kind, ProcessedTrace, SpecialSampleKind
 
-from src.commonlib.bench_file import Vary
+from src.commonlib.bench_file import ProcessQuery, Vary
 from src.commonlib.collection_util import repeat
 from src.commonlib.document import Cell, handle_doc, Row, single_table_document, Table
 from src.commonlib.option import non_null
@@ -71,8 +71,7 @@ def get_trace_with_everything(
 ) -> ProcessedTrace:
     return unwrap(
         ALL_TRACES.get(
-            test_result=test_result_from_path(path),
-            process=process,
+            test_result=test_result_from_path(path, process),
             # TODO: disabling mechanisms and join info for now
             # as it doesn't work without updating TraceEvent
             need_mechanisms_and_reasons=False,
@@ -225,6 +224,7 @@ handle_doc(
         # Only for metrics_as_columns
         sort_by_metric=None,
         min_difference_pct=5,
+        process=("name:corerun",),
     )
 )
 
@@ -233,10 +233,7 @@ handle_doc(
 
 handle_doc(
     report_reasons_for_jupyter(
-        traces=ALL_TRACES,
-        bench_file_path=_LOW_MEMORY_CONTAINER,
-        process=("name:corerun",),
-        max_iterations=None,
+        traces=ALL_TRACES, bench_file_path=_LOW_MEMORY_CONTAINER, max_iterations=None
     )
 )
 
@@ -266,7 +263,7 @@ _show_condemned_reasons_for_gen2(_TRACE)
 #%% print-events
 
 print_events_for_jupyter(
-    path=non_null(_TRACE.test_result.trace_path), time_span_msec=(0, 100), include="cswitch"
+    path=non_null(_TRACE.test_result.trace_path), time_span_msec=(0, 100), include="thread_times"
 )
 
 

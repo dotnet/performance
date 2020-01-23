@@ -15,6 +15,7 @@ from ..commonlib.bench_file import (
     iter_test_combinations,
     MAX_ITERATIONS_FOR_ANALYZE_DOC,
     parse_bench_file,
+    ProcessQuery,
     SingleTestCombination,
     TestPaths,
     Vary,
@@ -77,7 +78,6 @@ from .types import (
     MechanismsAndReasons,
     MetricValue,
     FailableMetricValue,
-    ProcessQuery,
     RegressionKind,
     RunMetric,
     run_metric_must_exist_for_name,
@@ -425,7 +425,6 @@ class ReportReasonsArgs:
     All traces produced from this will have reasons reported.
     """,
     )
-    process: ProcessQuery = argument(default=None, doc=PROCESS_DOC)
     max_iterations: Optional[int] = argument(default=None, doc=MAX_ITERATIONS_FOR_ANALYZE_DOC)
 
 
@@ -461,6 +460,7 @@ class DiffArgs(DocOutputArgs):
     max_iterations: Optional[int] = argument(default=None, doc=MAX_ITERATIONS_FOR_ANALYZE_DOC)
 
     no_summary: bool = argument(default=False, doc="Don't emit the 'summary' section.")
+    process: ProcessQuery = argument(default=None, doc=PROCESS_DOC)
 
 
 def _metrics_as_columns_table(
@@ -513,6 +513,7 @@ def diff(args: DiffArgs) -> None:
         no_summary=args.no_summary,
         sort_by_metric=sort_by_metric,
         min_difference_pct=args.min_difference_pct,
+        process=args.process,
     )
     handle_doc(doc, output_options_from_args(args))
 
@@ -530,6 +531,7 @@ def diff_for_jupyter(
     no_summary: bool,
     sort_by_metric: Optional[RunMetric],
     min_difference_pct: float,
+    process: ProcessQuery,
 ) -> Document:
     include_summary = not no_summary and not metrics_as_columns
     all_run_metrics = get_run_metrics_for_diff(
@@ -545,6 +547,7 @@ def diff_for_jupyter(
         test_where=test_where,
         sample_kind=sample_kind,
         max_iterations=max_iterations,
+        process=process,
     )
     return show_diff_from_diffables(
         diffables,
@@ -702,24 +705,20 @@ def report_reasons(args: ReportReasonsArgs) -> None:
         report_reasons_for_jupyter(
             traces=ProcessedTraces(),
             bench_file_path=args.bench_file_path,
-            process=args.process,
             max_iterations=args.max_iterations,
         )
     )
 
 
 def report_reasons_for_jupyter(
-    traces: ProcessedTraces,
-    bench_file_path: Path,
-    process: ProcessQuery,
-    max_iterations: Optional[int],
+    traces: ProcessedTraces, bench_file_path: Path, max_iterations: Optional[int]
 ) -> Document:
     bench_and_path = parse_bench_file(bench_file_path)
 
     tests = tuple(iter_test_combinations(bench_and_path.content, (get_this_machine(),)))
 
     test_results: Sequence[Tuple[SingleTestCombination, MechanismsAndReasons]] = [
-        get_mechanisms_and_reasons_for_test(traces, bench_and_path, process, test, max_iterations)
+        _get_mechanisms_and_reasons_for_test(traces, bench_and_path, test, max_iterations)
         for test in tests
     ]
 
@@ -751,10 +750,9 @@ def report_reasons_for_jupyter(
     return Document(sections=sections)
 
 
-def get_mechanisms_and_reasons_for_test(
+def _get_mechanisms_and_reasons_for_test(
     traces: ProcessedTraces,
     bench_and_path: BenchFileAndPath,
-    process: ProcessQuery,
     test: SingleTestCombination,
     max_iterations: Optional[int],
 ) -> Tuple[SingleTestCombination, MechanismsAndReasons]:
@@ -763,7 +761,6 @@ def get_mechanisms_and_reasons_for_test(
             [
                 traces.get(
                     iteration.to_test_result(),
-                    process,
                     need_mechanisms_and_reasons=True,
                     need_join_info=False,
                 )
