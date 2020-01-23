@@ -27,7 +27,6 @@ namespace System.Net.Security.Tests
         [GlobalSetup]
         public void Setup()
         {
-
             using (var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
             {
                 listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
@@ -54,16 +53,19 @@ namespace System.Net.Security.Tests
         }
 
         [Benchmark]
-        [Arguments(true)]
-        [Arguments(false)]
-        public async Task HandshakeAsync(bool useRsaCertificate)
+        public Task HandshakeAsync() => HandshakeAsync(_cert);
+
+        [Benchmark]
+        public Task HandshakeECDSACertAsync() => HandshakeAsync(_ecdsaCert);
+
+        private async Task HandshakeAsync(X509Certificate certificate)
         {
             using (var sslClient = new SslStream(_client, leaveInnerStreamOpen: true, delegate { return true; }))
             using (var sslServer = new SslStream(_server, leaveInnerStreamOpen: true, delegate { return true; }))
             {
                 await Task.WhenAll(
                     sslClient.AuthenticateAsClientAsync("localhost", null, SslProtocols.None, checkCertificateRevocation: false),
-                    sslServer.AuthenticateAsServerAsync(useRsaCertificate ? _cert : _ecdsaCert, clientCertificateRequired: false, SslProtocols.None, checkCertificateRevocation: false));
+                    sslServer.AuthenticateAsServerAsync(certificate, clientCertificateRequired: false, SslProtocols.None, checkCertificateRevocation: false));
 
                 // Workaround for corefx#37765
                 await sslServer.WriteAsync(_serverBuffer, default);
