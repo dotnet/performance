@@ -35,6 +35,8 @@ namespace MicroBenchmarks.Serializers
                 return (T)(object)CreateXmlElement();
             if (typeof(T) == typeof(SimpleStructWithProperties))
                 return (T)(object)new SimpleStructWithProperties { Num = 1, Text = "Foo" };
+            if (typeof(T) == typeof(SimpleListOfInt))
+                return (T)(object)new SimpleListOfInt { 10, 20, 30 };
             if (typeof(T) == typeof(ClassImplementingIXmlSerialiable))
                 return (T)(object)new ClassImplementingIXmlSerialiable { StringValue = "Hello world" };
             if (typeof(T) == typeof(Dictionary<string, string>))
@@ -361,6 +363,8 @@ namespace MicroBenchmarks.Serializers
         public int Num { get; set; }
         public string Text { get; set; }
     }
+
+    public class SimpleListOfInt : List<int> { }
     
     public class ClassImplementingIXmlSerialiable : IXmlSerializable
     {
