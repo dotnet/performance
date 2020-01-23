@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if !NETFRAMEWORK && !NETCOREAPP2_1 && !NETCOREAPP2_2 && !NETCOREAPP3_0 && !NETCOREAPP3_1
-
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 using MicroBenchmarks.Serializers;
@@ -42,5 +40,3 @@ namespace System.Text.Json.Serialization.Tests
         public string NewtonsoftSerializePreserved() => JsonConvert.SerializeObject(_value, _settings);
     }
 }
-
-#endif
