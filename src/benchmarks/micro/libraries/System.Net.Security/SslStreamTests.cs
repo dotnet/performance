@@ -17,6 +17,7 @@ namespace System.Net.Security.Tests
     {
         private readonly Barrier _twoParticipantBarrier = new Barrier(2);
         private readonly X509Certificate2 _cert = Test.Common.Configuration.Certificates.GetServerCertificate();
+        private readonly X509Certificate2 _ecdsaCert = Test.Common.Configuration.Certificates.GetEÇDsaCertificate();
         private readonly byte[] _clientBuffer = new byte[1], _serverBuffer = new byte[1];
         private readonly byte[] _largeClientBuffer = new byte[4096], _largeServerBuffer = new byte[4096];
 
@@ -26,6 +27,7 @@ namespace System.Net.Security.Tests
         [GlobalSetup]
         public void Setup()
         {
+
             using (var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
             {
                 listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
@@ -52,14 +54,16 @@ namespace System.Net.Security.Tests
         }
 
         [Benchmark]
-        public async Task HandshakeAsync()
+        [Arguments(true)]
+        [Arguments(false)]
+        public async Task HandshakeAsync(bool useRsaCertificate)
         {
             using (var sslClient = new SslStream(_client, leaveInnerStreamOpen: true, delegate { return true; }))
             using (var sslServer = new SslStream(_server, leaveInnerStreamOpen: true, delegate { return true; }))
             {
                 await Task.WhenAll(
                     sslClient.AuthenticateAsClientAsync("localhost", null, SslProtocols.None, checkCertificateRevocation: false),
-                    sslServer.AuthenticateAsServerAsync(_cert, clientCertificateRequired: false, SslProtocols.None, checkCertificateRevocation: false));
+                    sslServer.AuthenticateAsServerAsync(useRsaCertificate ? _cert : _ecdsaCert, clientCertificateRequired: false, SslProtocols.None, checkCertificateRevocation: false));
 
                 // Workaround for corefx#37765
                 await sslServer.WriteAsync(_serverBuffer, default);

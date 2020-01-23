@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Globalization;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 
@@ -17,7 +18,9 @@ namespace System.Net.Test.Common
 
             public static X509Certificate2 GetClientCertificate() => GetCertificate("testclienteku.contoso.com.pfx");
 
-            private static X509Certificate2 GetCertificate(string certificateFileName) 
+            public static X509Certificate2 GetEÇDsaCertificate() => GetCertificate("ecdsa.pfx");
+
+            private static X509Certificate2 GetCertificate(string certificateFileName)
                 => new X509Certificate2(
                     File.ReadAllBytes(Path.Combine("libraries", "System.Net.Http", certificateFileName)),
                     CertificatePassword,
