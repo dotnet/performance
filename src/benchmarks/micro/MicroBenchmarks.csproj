@@ -88,12 +88,12 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '5.0')">
-    <Compile Remove="corefx\System.Text.Json\Serializer\ReadPreservedReferences.cs" />
-    <Compile Remove="corefx\System.Text.Json\Serializer\WritePreservedReferences.cs" />
+    <Compile Remove="libraries\System.Text.Json\Serializer\ReadPreservedReferences.cs" />
+    <Compile Remove="libraries\System.Text.Json\Serializer\WritePreservedReferences.cs" />
   </ItemGroup>
 
   <!-- TODO: Remove package dependency for future -->
-  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &gt; '3.0'">
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(_TargetFrameworkVersionWithoutV)' &gt;= '5.0'">
     <PackageReference Include="System.Text.Json" Version="5.0.0-alpha.1.20071.1" />
   </ItemGroup>
 
