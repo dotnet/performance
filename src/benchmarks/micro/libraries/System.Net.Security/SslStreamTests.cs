@@ -17,7 +17,7 @@ namespace System.Net.Security.Tests
     {
         private readonly Barrier _twoParticipantBarrier = new Barrier(2);
         private readonly X509Certificate2 _cert = Test.Common.Configuration.Certificates.GetServerCertificate();
-        private readonly X509Certificate2 _ecdsaCert = Test.Common.Configuration.Certificates.GetEÇDsaCertificate();
+        private readonly X509Certificate2 _ecdsaCert = Test.Common.Configuration.Certificates.GetECDsaCertificate();
         private readonly byte[] _clientBuffer = new byte[1], _serverBuffer = new byte[1];
         private readonly byte[] _largeClientBuffer = new byte[4096], _largeServerBuffer = new byte[4096];
 
