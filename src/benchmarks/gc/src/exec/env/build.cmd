@@ -1,4 +1,4 @@
-del out
+rd /s out
 mkdir out
 cd out
 cmake ..
