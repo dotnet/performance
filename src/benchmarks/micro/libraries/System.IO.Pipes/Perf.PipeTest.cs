@@ -9,7 +9,6 @@ using MicroBenchmarks;
 
 namespace System.IO.Pipes.Tests
 {
-    [AllowedOperatingSystems("Hangs on non-Windows, dotnet/corefx#18290", OS.Windows)]
     [BenchmarkCategory(Categories.Libraries)]
     public abstract class Perf_PipeTest : PipeTestBase
     {
@@ -35,7 +34,13 @@ namespace System.IO.Pipes.Tests
         public async Task ReadWrite()
         {
             Task write = Task.Run(() => _serverClientPair.writeablePipe.Write(_sent, 0, _sent.Length));
-            _serverClientPair.readablePipe.Read(_received, 0, size);
+            int totalReadLength = 0;
+            while (totalReadLength < _sent.Length)
+            {
+                int readLength = _serverClientPair.readablePipe.Read(_received, totalReadLength, size - totalReadLength);
+                totalReadLength += readLength;
+            }
+
             await write;
         }
     }
