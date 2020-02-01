@@ -76,9 +76,6 @@ namespace System.Net.Security.Tests
             }
         }
 
-      //  [Benchmark]
-       // public Task HandshakeAsync() => HandshakeAsync(_cert);
-
         [Benchmark]
         public Task TLS12HandshakeECDSA256CertAsync() => HandshakeAsync(_ec256Cert, SslProtocols.Tls12);
 
@@ -119,10 +116,7 @@ namespace System.Net.Security.Tests
                     EnabledSslProtocols = sslProtocol, 
                     CertificateRevocationCheckMode = X509RevocationMode.NoCheck, 
                     ServerCertificate = certificate };
-                //  
-
-                // using (var sslClient = new SslStream(clientPipe, false, delegate { return true; }))
-                //  using (var sslServer = new SslStream(serverPipe, false, delegate { return true; }))
+     
                 using (var sslClient = new SslStream(clientPipe))
                 using (var sslServer = new SslStream(serverPipe))
 
