@@ -122,8 +122,8 @@ namespace System.Net.Security.Tests
 
                 {
                     await Task.WhenAll(
-                        sslClient.AuthenticateAsClientAsync(clientOptions),
-                        sslServer.AuthenticateAsServerAsync(serverOptions));
+                        sslClient.AuthenticateAsClientAsync(clientOptions, CancellationToken.None),
+                        sslServer.AuthenticateAsServerAsync(serverOptions, CancellationToken.None));
                 }
             }
         }
