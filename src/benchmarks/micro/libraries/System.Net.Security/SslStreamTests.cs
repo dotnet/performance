@@ -10,6 +10,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 
 namespace System.Net.Security.Tests
@@ -82,6 +83,7 @@ namespace System.Net.Security.Tests
         public Task TLS12HandshakeECDSA256CertAsync() => HandshakeAsync(_ec256Cert, SslProtocols.Tls12);
 
         [Benchmark]
+        [AllowedOperatingSystems("Not supported on Windows at the moment.", OS.Linux)]
         public Task TLS12HandshakeECDSA512CertAsync() => HandshakeAsync(_ec512Cert, SslProtocols.Tls12);
 
 
