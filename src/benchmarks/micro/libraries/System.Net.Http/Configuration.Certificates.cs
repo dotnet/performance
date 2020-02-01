@@ -17,7 +17,11 @@ namespace System.Net.Test.Common
 
             public static X509Certificate2 GetClientCertificate() => GetCertificate("testclienteku.contoso.com.pfx");
 
-            public static X509Certificate2 GetECDsaCertificate() => GetCertificate("ecdsa.pfx");
+            public static X509Certificate2 GetEC256Certificate() => GetCertificate("ec256.pfx");
+            public static X509Certificate2 GetEC512Certificate() => GetCertificate("ec512.pfx");
+            public static X509Certificate2 GetRSA1024Certificate() => GetCertificate("rsa1024.pfx");
+            public static X509Certificate2 GetRSA2048Certificate() => GetCertificate("rsa2048.pfx");
+            public static X509Certificate2 GetRSA4096Certificate() => GetCertificate("rsa4096.pfx");
 
             private static X509Certificate2 GetCertificate(string certificateFileName)
                 => new X509Certificate2(
