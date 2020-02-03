@@ -463,7 +463,7 @@ This is the build output of coreclr that is used to run benchmarks.
 
 These are specified in the `coreclrs` section of a benchfile.
 
-This can be found in a directory like `runtime/artifacts/bin/coreclr/Windows_NT.x64.Release/` (adjust for different OS or architecture) of a runtime repository. (The Core_Root can be moved anywhere and doesn't need to remain inside the runtime repository).
+This can be found in a directory like `runtime/artifacts/bin/coreclr/Windows_NT.x64.Release/` (adjust for different OS or architecture) of a runtime repository. (The Core_Root can be moved anywhere and doesn't need to remain inside the runtime repository). However, it cannot be used as is after building. Move/Copy all files within `crossgen2` to the Core_Root directory as the benchmark executable currently does not find assemblies or binaries deeper in the directory tree.
 
 A clone of https://github.com/dotnet/runtime, which may be on an arbitrary commit (including one not checked in).
 When you make a change to coreclr within runtime, you will generally make two clones, one at master and one at your branch (which may be on your fork).

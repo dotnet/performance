@@ -26,9 +26,9 @@ def setup() -> None:
         write_host_info()
     else:
         print(
-            f"Warning: Detected you are working on {get_platform_name()}. "
+            f"Warning: Detected you are working on {get_platform_name().upper()}. "
             "Don't forget to write `bench/host_info.yaml` or the tests will "
-            " not work."
+            "not work."
         )
 
 
