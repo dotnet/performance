@@ -54,18 +54,18 @@ def is_arm() -> bool:
     return machine().find("ARM") != -1
 
 
-def _get_platform_name() -> str:
+def get_platform_name() -> str:
     if is_arm():
         # On ARM, the machine() function returns the exact name we need here.
         return machine().lower()
     else:
         p = processor()
-        assert any(x in p for x in ("AMD64", "Intel64", "x86_64"))
+        assert any(x in p for x in ("AMD64", "Intel64", "x86_64")), f"Processor {p} is not supported."
         return "x64"
 
 
 def get_built_tests_dir(coreclr_repository_root: Path, debug: bool) -> Path:
-    os_dir = f"{_get_os_name()}.{_get_platform_name()}"
+    os_dir = f"{_get_os_name()}.{get_platform_name()}"
     r = "Debug" if debug else "Release"
     return coreclr_repository_root / "bin" / "tests" / f"{os_dir}.{r}"
 
@@ -362,7 +362,7 @@ def _get_debug_or_release(debug_kind: _DebugKind) -> str:
 
 def _get_debug_or_release_dir_name(debug_kind: _DebugKind) -> str:
     return (
-        f"{_get_os_name()}.{_get_platform_name()}.{_get_debug_or_release(debug_kind).capitalize()}"
+        f"{_get_os_name()}.{get_platform_name()}.{_get_debug_or_release(debug_kind).capitalize()}"
     )
 
 
@@ -385,7 +385,7 @@ def _get_core_root(runtime_repository: Path, debug_kind: _DebugKind) -> Path:
 
 def _do_rebuild_coreclr(runtime_repository: Path, just_copy: bool, debug_kind: _DebugKind) -> None:
     coreclr = _get_coreclr_from_runtime(runtime_repository)
-    plat = _get_platform_name()
+    plat = get_platform_name()
     assert_dir_exists(coreclr)
     debug_release = _get_debug_or_release_dir_name(debug_kind)
     if not just_copy:

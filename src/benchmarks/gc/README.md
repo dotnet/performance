@@ -463,10 +463,10 @@ This is the build output of coreclr that is used to run benchmarks.
 
 These are specified in the `coreclrs` section of a benchfile.
 
-This can be found in a directory like `bin/tests/Windows_NT.x64.Release/Tests/Core_Root` (adjust for different OS or architecture) of a coreclr repository. (The Core_Root can be moved anywhere and doesn't need to remain inside the coreclr repository).
+This can be found in a directory like `runtime/artifacts/bin/coreclr/Windows_NT.x64.Release/` (adjust for different OS or architecture) of a runtime repository. (The Core_Root can be moved anywhere and doesn't need to remain inside the runtime repository).
 
-A clone of https://github.com/dotnet/coreclr,  which may be on an arbitrary commit (including one not checked in).
-When you make a change to coreclr, you will generally make two clones, one at master and one at your branch (which may be on your fork).
+A clone of https://github.com/dotnet/runtime, which may be on an arbitrary commit (including one not checked in).
+When you make a change to coreclr within runtime, you will generally make two clones, one at master and one at your branch (which may be on your fork).
 Alternately, you may have only one checkout, build multiple times, copy the builds to somewhere, and specify coreclrs using `core_root` instead of `path`.
 
 ### Config
