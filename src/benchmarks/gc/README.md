@@ -69,7 +69,7 @@ Finally, run `py . setup` from the same directory as this README.
 This will read information about your system that's relevant to performance analysis (such as cache sizes) and save to `bench/host_info.yaml`.
 It will also install some necessary dependencies on Windows.
 
-_ARM NOTE_: Since build tools do not work on ARM/ARM64, `py . setup` will automatically skip reading and writing the system's information. You will have to get the machine's specs and write `bench/host_info.yaml` independently. This file follows the format shown below (it might vary depending on your machine's NUMA nodes and caches).
+_ARM NOTE_: Since build tools do not work on ARM/ARM64, `py . setup` will automatically skip reading and writing the system's information. You will have to get the machine's specs and write `bench/host_info.yaml` manually. This file follows the format shown below (it might vary depending on your machine's NUMA nodes and caches).
 
 ```yaml
 hostname:
