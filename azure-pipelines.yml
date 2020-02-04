@@ -366,7 +366,7 @@ jobs:
         - master
         # - release/3.1.2xx
   
-  # Windows x64 SDK scenario benchmarks
+  # Windows x86 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
     parameters:
       osName: windows
