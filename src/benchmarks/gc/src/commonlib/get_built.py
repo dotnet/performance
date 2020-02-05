@@ -7,7 +7,7 @@ from datetime import datetime
 from enum import Enum
 from os.path import getmtime
 from pathlib import Path
-from platform import processor
+from platform import machine, processor
 from shutil import copyfile, copytree
 from typing import Mapping, Optional, Sequence
 
@@ -51,21 +51,21 @@ def _get_os_name() -> str:
 
 
 def is_arm() -> bool:
-    return processor().startswith("ARM")
+    return machine().find("ARM") != -1
 
 
-def _get_platform_name() -> str:
+def get_platform_name() -> str:
     if is_arm():
-        # TODO: detect arm32 vs 64
-        return "arm64"
+        # On ARM, the machine() function returns the exact name we need here.
+        return machine().lower()
     else:
         p = processor()
-        assert any(x in p for x in ("AMD64", "Intel64", "x86_64"))
+        assert any(x in p for x in ("AMD64", "Intel64", "x86_64")), f"Processor {p} is not supported."
         return "x64"
 
 
 def get_built_tests_dir(coreclr_repository_root: Path, debug: bool) -> Path:
-    os_dir = f"{_get_os_name()}.{_get_platform_name()}"
+    os_dir = f"{_get_os_name()}.{get_platform_name()}"
     r = "Debug" if debug else "Release"
     return coreclr_repository_root / "bin" / "tests" / f"{os_dir}.{r}"
 
@@ -108,7 +108,9 @@ class Built:
 
     @property
     def win(self) -> BuiltWindowsOnly:
-        assert os_is_windows()
+        # Visual Studio tools are not supported on ARM. Hence, we assert we are
+        # not working on said architecture.
+        assert os_is_windows() and not is_arm()
         return non_null(self._win)
 
 
@@ -360,7 +362,7 @@ def _get_debug_or_release(debug_kind: _DebugKind) -> str:
 
 def _get_debug_or_release_dir_name(debug_kind: _DebugKind) -> str:
     return (
-        f"{_get_os_name()}.{_get_platform_name()}.{_get_debug_or_release(debug_kind).capitalize()}"
+        f"{_get_os_name()}.{get_platform_name()}.{_get_debug_or_release(debug_kind).capitalize()}"
     )
 
 
@@ -383,7 +385,7 @@ def _get_core_root(runtime_repository: Path, debug_kind: _DebugKind) -> Path:
 
 def _do_rebuild_coreclr(runtime_repository: Path, just_copy: bool, debug_kind: _DebugKind) -> None:
     coreclr = _get_coreclr_from_runtime(runtime_repository)
-    plat = _get_platform_name()
+    plat = get_platform_name()
     assert_dir_exists(coreclr)
     debug_release = _get_debug_or_release_dir_name(debug_kind)
     if not just_copy:
@@ -557,7 +559,9 @@ def get_built(
         for name, spec in coreclrs.items()
     }
 
-    # Note: not building gcperf here becuase we already did that when setting up CLR imports
+    # Note: not building gcperf here because we already did that when setting
+    # up CLR imports. Also, these scripts are not built on ARM because Visual
+    # Studio tools are not supported there. Therefore, we just skip in this case.
 
     win = (
         BuiltWindowsOnly(
@@ -566,7 +570,7 @@ def get_built(
             make_memory_load=_get_built_c_script("make_memory_load"),
             run_in_job_exe=_get_built_c_script("run_in_job"),
         )
-        if os_is_windows()
+        if os_is_windows() and not is_arm()
         else None
     )
 

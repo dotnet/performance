@@ -13,6 +13,8 @@ The general workflow when using the GC infra is:
 * Run the benchfile and collect traces.
 * Run analysis on the output.
 
+NOTE: If running under ARM/ARM64, the program's functionalities are limited to running certain benchmarks only and the setup process is slightly different. This is pointed out as necessary throughout this document. Look out for the _ARM NOTE_ labels. As for the other necessary tools without official ARM/ARM64 downloads (e.g. python, cmake), you can install and run the x86 versions.
+
 # Setup
 
 ### Install python 3.7+
@@ -54,6 +56,8 @@ This intentionally uses a debug build to have added safety checks in the form of
 Open a Visual Studio Developer Command Prompt, go to `src/exec/env`, and run `.\build.cmd`.
 This requires `cmake` to be installed.
 
+_ARM NOTE_: Skip this step. Visual Studio and its build tools are not supported on ARM/ARM64.
+
 ### Other setup
 
 You should have `dotnet` installed.
@@ -64,6 +68,34 @@ You should have builds of coreclr available for use in the next step.
 Finally, run `py . setup` from the same directory as this README.
 This will read information about your system that's relevant to performance analysis (such as cache sizes) and save to `bench/host_info.yaml`.
 It will also install some necessary dependencies on Windows.
+
+_ARM NOTE_: Since build tools do not work on ARM/ARM64, `py . setup` will automatically skip reading and writing the system's information. You will have to get the machine's specs and write `bench/host_info.yaml` manually. This file follows the format shown below (it might vary depending on your machine's NUMA nodes and caches).
+
+```yaml
+hostname:
+n_physical_processors:
+n_logical_processors:
+numa_nodes:
+- numa_node_number:
+  ranges:
+  - lo:
+    hi:
+  cpu_group_number:
+cache_info:
+  l1:
+    n_caches:
+    total_bytes:
+  l2:
+    n_caches:
+    total_bytes:
+  l3:
+    n_caches:
+    total_bytes:
+clock_ghz:
+total_physical_memory_mb:
+```
+
+Most (if not all) of these fields can be retrieved from your machine's _Task Manager_ and under _System_ within _Control Panel_.
 
 # Tutorial
 
@@ -124,8 +156,9 @@ Running the full suite would take a while, so let's just run one:
 py . run bench/suite/low_memory_container.yaml
 ```
 
-This test must be run as super user (or administrator on Windows).
-Super user is because we are creating a container for this particular test; tests without a container don't need super user privelages.
+On Windows, all tests must be run as administrator as PerfView requires this.
+(Unless `collect: none` is set the benchfile's options. See [Running Without Traces](#Running Without Traces).)
+On Linux, only tests with containers require super user privileges.
 
 You might get errors due to `dotnet` or `dotnet-trace` not being found. Or you might see an error:
 
@@ -141,9 +174,6 @@ A fatal error occurred, the default install location cannot be obtained.
 
 To fix either of these, specify `dotnet_path` and `dotnet_trace_path` in `options:` in the benchfile. (Use `which dotnet` and `which dotnet-trace` to get these values.)
 
-On Windows, all tests must be run as administrator as PerfView requires this.
-(Unless `collect: none` is set the benchfile's options. See [Running Without Traces](#Running Without Traces).)
-
 (Note that if you recently built coreclr, that probably left a `dotnet` process open that `run` will ask you to kill. Just do so and run again with `--overwrite`.)
 
 This simple test should take under 2 minutes. Other tests require more patience.
@@ -154,6 +184,8 @@ This contains a trace file (and some other small files) for each of the tests. (
 Each trace file can be opened in PerfView if you need to.
 
 Each trace file will be named `{coreclr_name}__{config_name}__{benchmark_name}__{iteration}`, e.g.  `clr_a__smaller__nosurvive__0`.
+
+_ARM NOTE_: Container tests are not supported on ARM/ARM64.
 
 ### Running with .NET Desktop
 
@@ -278,6 +310,8 @@ This is followed by a list of each metric, sorted by how significantly it differ
 In this case, all diffs should tend toward 0 since we're testing on two identical coreclrs.
 `95P` metrics tend to have high standard deviation, since we are only considering the worst instances.
 
+_ARM NOTE_: There is no support to analyze benchmark results on ARM/ARM64. In order to use these results, you will need to transfer them to another machine and perform the analysis there.
+
 ## Conclusion
 
 Now you know how to create, run, and analyze a test.
@@ -398,8 +432,8 @@ If you don't have a trace, you are limited in the metrics you can use. No single
 
 # Limitations
 
-ARM is not currently supported.
-The `affinitize`  and `memory_load_percent` properties of a benchfile's config are not yet implemented outside of Windows.
+* ARM/ARM64 are only supported to run basic tests (See above for further details).
+* The `affinitize` and `memory_load_percent` properties of a benchfile's config are not yet implemented outside of Windows.
 
 # Further Reading
 
@@ -429,10 +463,10 @@ This is the build output of coreclr that is used to run benchmarks.
 
 These are specified in the `coreclrs` section of a benchfile.
 
-This can be found in a directory like `bin/tests/Windows_NT.x64.Release/Tests/Core_Root` (adjust for different OS or architecture) of a coreclr repository. (The Core_Root can be moved anywhere and doesn't need to remain inside the coreclr repository.)
+This can be found in a directory like `runtime/artifacts/bin/coreclr/Windows_NT.x64.Release/` (adjust for different OS or architecture) of a runtime repository. (The Core_Root can be moved anywhere and doesn't need to remain inside the runtime repository). However, it cannot be used as is after building. Move/Copy all files within `crossgen2` to the Core_Root directory as the benchmark executable currently does not find assemblies or binaries deeper in the directory tree.
 
-A clone of https://github.com/dotnet/coreclr,  which may be on an arbitrary commit (including one not checked in).
-When you make a change to coreclr, you will generally make two clones, one at master and one at your branch (which may be on your fork).
+A clone of https://github.com/dotnet/runtime, which may be on an arbitrary commit (including one not checked in).
+When you make a change to coreclr within runtime, you will generally make two clones, one at master and one at your branch (which may be on your fork).
 Alternately, you may have only one checkout, build multiple times, copy the builds to somewhere, and specify coreclrs using `core_root` instead of `path`.
 
 ### Config
