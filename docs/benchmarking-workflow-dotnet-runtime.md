@@ -122,7 +122,7 @@ dotnet run -c Release -f netcoreapp5.0 --filter $someFilter \
 Once you rebuild the part of [dotnet/runtime](https://github.com/dotnet/runtime) you are working on, the appropriate `.dll` gets updated and the next time you run the benchmarks, CoreRun is going to load the updated library.
 
 ```cmd
-C:\Projects\runtime\src\libraries\System.Text.RegularExpressions\src> dotnet msbuild /p:ConfigurationGroup=Release
+C:\Projects\runtime\src\libraries\System.Text.RegularExpressions\src> dotnet msbuild /p:Configuration=Release
 ```
 
 ## Preventing Regressions
@@ -145,7 +145,7 @@ You can also create a **copy** of the folder with CoreRun and all the libraries 
 After you introduce the changes and rebuild the part of [dotnet/runtime](https://github.com/dotnet/runtime) that you are working on **in Release** you should re-run the benchmarks. Remember to store the results in a different folder.
 
 ```cmd
-C:\Projects\runtime\src\libraries\System.IO.Pipes\src> dotnet msbuild /p:ConfigurationGroup=Release
+C:\Projects\runtime\src\libraries\System.IO.Pipes\src> dotnet msbuild /p:Configuration=Release
 
 C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f netcoreapp5.0 \
     --artifacts "C:\results\after" \
