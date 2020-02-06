@@ -25,6 +25,7 @@ from performance.common import push_dir
 from performance.common import RunCommand
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
+from channel_map import ChannelMap
 
 
 def info(verbose: bool) -> None:
@@ -810,19 +811,13 @@ def __process_arguments(args: list):
         help='Installs dotnet cli',
     )
 
-    # TODO: Could pull this information from repository.
-    SUPPORTED_CHANNELS = [
-        'master',  # Default channel
-        '2.1',
-        'LTS',
-    ]
     install_parser.add_argument(
         '--channels',
         dest='channels',
         required=False,
         nargs='+',
-        default=[SUPPORTED_CHANNELS[0]],
-        choices=SUPPORTED_CHANNELS,
+        default=['master'],
+        choices= ChannelMap.get_supported_channels(),
         help='Download DotNet Cli from the Channel specified.'
     )
 
