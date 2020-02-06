@@ -224,7 +224,7 @@ def _get_gcs_from_mang(
     mang: AbstractTraceLoadedDotNetRuntime, name: str
 ) -> Sequence[AbstractTraceGC]:
     # Skip the first two GCs which often have incomplete events
-    unfiltered_gcs = mang.GC.GCs[2:]
+    unfiltered_gcs = mang.GC.GCs
 
     def flt(i: int, gc: AbstractTraceGC) -> bool:
         gc_type = GCType(gc.Type)
