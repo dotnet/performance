@@ -76,7 +76,7 @@ C:\Projects\runtime\artifacts\bin\testhost\netcoreapp5.0-Windows_NT-Release-x64\
 Once you rebuild the part of [dotnet/runtime](https://github.com/dotnet/runtime) you are working on, the appropriate `.dll` gets updated and the next time you run profiler, dotnet|CoreRun is going to use the updated library.
 
 ```cmd
-C:\Projects\runtime\src\libraries\System.Text.RegularExpressions\src> dotnet msbuild /p:ConfigurationGroup=Release
+C:\Projects\runtime\src\libraries\System.Text.RegularExpressions\src> dotnet msbuild /p:Configuration=Release
 ```
 
 ## Repro
