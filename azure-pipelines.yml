@@ -511,15 +511,29 @@ jobs:
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Manual')) }}:
 
+  - ${{ if eq($(manual_test_name), 'sdk_windows_x64') }}:
   # Windows x64 SDK scenario benchmarks
-  - template: /eng/performance/scenarios.yml
-    parameters:
-      osName: windows
-      osVersion: RS5
-      architecture: $(architecture) # specify architecture
-      pool: Hosted VS2017
-      kind: sdk_scenarios
-      queue: Windows.10.Amd64.19H1.Tiger.Perf
-      projectFile: sdk_scenarios.proj
-      channels:
-        - $(channel) # for manual runs we can specify channel variable 
+    - template: /eng/performance/scenarios.yml
+      parameters:
+        osName: windows
+        osVersion: RS5
+        architecture: x64 # specify architecture
+        pool: Hosted VS2017
+        kind: sdk_scenarios
+        queue: Windows.10.Amd64.19H1.Tiger.Perf
+        projectFile: sdk_scenarios.proj
+        channels:
+          - $(channel) # for manual runs we can specify channel variable 
+  
+  - ${{ if eq($(manual_test_name), 'sdk_windows_x86') }}: 
+    - template: /eng/performance/scenarios.yml
+      parameters:
+        osName: windows
+        osVersion: RS5
+        architecture: x86 # specify architecture
+        pool: Hosted VS2017
+        kind: sdk_scenarios
+        queue: Windows.10.Amd64.19H1.Tiger.Perf
+        projectFile: sdk_scenarios.proj
+        channels:
+          - $(channel)
