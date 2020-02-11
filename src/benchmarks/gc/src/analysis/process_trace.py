@@ -163,6 +163,8 @@ def _get_processed_trace_from_process(
         collect_event_names=True,
     )
 
+    assert len(proc.gcs) > 0, f"Trace file {proc.trace_path.name} has no GC's to analyze."
+
     # TODO: just do this lazily (getting join info)
     join_info = (
         get_join_info_for_all_gcs(clr, proc) if need_join_info else Err("Did not request join info")
