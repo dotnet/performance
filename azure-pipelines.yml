@@ -516,7 +516,7 @@ jobs:
     parameters:
       osName: windows
       osVersion: RS5
-      architecture: $(architecture)
+      architecture: $(architecture) # specify architecture
       pool: Hosted VS2017
       kind: sdk_scenarios
       queue: Windows.10.Amd64.19H1.Tiger.Perf
