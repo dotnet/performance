@@ -67,12 +67,14 @@ All you need to do is run the following command:
 dotnet build -c Release
 ```
 
-If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [common.props](../build/common.props) file.
+If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) file.
 
 ```diff
 -<TargetFrameworks>netcoreapp2.1;netcoreapp3.0;netcoreapp3.1;netcoreapp5.0</TargetFrameworks>
 +<TargetFrameworks>netcoreapp5.0</TargetFrameworks>
 ```
+
+The alternative is to set `PERFLAB_TARGET_FRAMEWORKS` environment variable to selected Target Framework Moniker.
 
 ### Using Python script
 
