@@ -564,7 +564,9 @@ def get_commit_date(
         raise ValueError('Target framework was not defined.')
     if not commit_sha:
         raise ValueError('.NET Commit sha was not defined.')
-
+    getLogger().info("DEBUG framework: %s", framework)
+    getLogger().info("DEBUG commit_sha: %s", commit_sha)
+    getLogger().info("DEBUG repository: %s", repository)
     url = None
     urlformat = 'https://api.github.com/repos/%s/%s/commits/%s'
     if repository is None:
@@ -578,6 +580,7 @@ def get_commit_date(
         url = urlformat % (owner, repo, commit_sha)
 
     build_timestamp = None
+    getLogger().info("DEBUG url: %s", url)
     with urlopen(url) as response:
         getLogger().info("Commit: %s", url)
         item = loads(response.read().decode('utf-8'))
