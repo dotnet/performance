@@ -460,12 +460,8 @@ def get_framework_version(framework: str) -> str:
     return version
 
 
-def get_sdk_path(version: str, dotnet_path: str = None) -> str:
+def get_base_path(dotnet_path: str = None) -> str:
     """Gets the dotnet Host version from the `dotnet --info` command."""
-    if not version:
-        raise TypeError(
-            "The target version to get information for was not specified."
-        )
     if not dotnet_path:
         dotnet_path = 'dotnet'
 
@@ -477,7 +473,7 @@ def get_sdk_path(version: str, dotnet_path: str = None) -> str:
         # The .NET Command Line Tools `--info` had a different output in 2.0
         # This line seems commons in all Cli, so we can use the base path to
         # get information about the .NET SDK/Runtime
-        groups = search(r"^ +Base Path\: +(\S+)$", decoded_line)
+        groups = search(r"^ +Base Path\: +(.+)$", decoded_line)
         if groups:
             break
 
@@ -486,10 +482,17 @@ def get_sdk_path(version: str, dotnet_path: str = None) -> str:
             'Did not find "Base Path:" entry on the `dotnet --info` command'
         )
 
-    base_path = groups.group(1)
-    sdk_path = path.abspath(path.join(base_path, '..'))
+    return groups.group(1)
 
+def get_sdk_path(dotnet_path: str = None) -> str:
+    base_path = get_base_path(dotnet_path)
+    sdk_path = path.abspath(path.join(base_path, '..'))
     return sdk_path
+
+def get_dotnet_path() -> str:
+    base_path = get_base_path(None)
+    dotnet_path = path.abspath(path.join(base_path, '..', '..'))
+    return dotnet_path
 
 
 def get_dotnet_version(
@@ -498,8 +501,7 @@ def get_dotnet_version(
         sdk_path: str = None) -> str:
     version = get_framework_version(framework)
 
-    sdk_path = get_sdk_path(
-        version, dotnet_path) if sdk_path is None else sdk_path
+    sdk_path = get_sdk_path(dotnet_path) if sdk_path is None else sdk_path
 
     sdks = [
         d for d in listdir(sdk_path) if path.isdir(path.join(sdk_path, d))
@@ -531,7 +533,7 @@ def get_dotnet_sdk(
         sdk: str = None) -> str:
     """Gets the dotnet Host commit sha from the `dotnet --info` command."""
 
-    sdk_path = get_sdk_path(get_framework_version(framework), dotnet_path)
+    sdk_path = get_sdk_path(dotnet_path)
     sdk = get_dotnet_version(framework, dotnet_path,
                              sdk_path) if sdk is None else sdk
 

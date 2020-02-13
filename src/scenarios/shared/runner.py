@@ -9,7 +9,7 @@ from logging import getLogger
 from collections import namedtuple
 from argparse import ArgumentParser
 from shared.startup import StartupWrapper
-from shared.util import publishedexe
+from shared.util import publishedexe, extension
 from shared import const
 from performance.logger import setup_loggers
 
@@ -35,7 +35,8 @@ optfields = ('guiapp',
 # These are the kinds of scenarios we run. Default here indicates whether ALL
 # scenarios should try and run a given test type.
 testtypes = {const.STARTUP: False,
-             const.SDK: False}
+             const.SDK: False,
+             const.CROSSGEN: False}
 
 TestTraits = namedtuple('TestTraits',
                         reqfields  + tuple(testtypes.keys()) + optfields,
@@ -51,6 +52,8 @@ class Runner:
         self.testtype = None
         self.sdktype = None
         self.scenarioname = None
+        self.coreroot = None
+        self.crossgenfile = None
         setup_loggers(True)
 
     def parseargs(self):
@@ -58,7 +61,7 @@ class Runner:
         Parses input args to the script
         '''
         parser = ArgumentParser()
-        subparsers = parser.add_subparsers(title='subcommands for sdk tests', required=True, dest='testtype')
+        subparsers = parser.add_subparsers(title='subcommands for scenario tests', required=True, dest='testtype')
         startupparser = subparsers.add_parser(const.STARTUP)
         self.add_common_arguments(startupparser)
 
@@ -66,6 +69,9 @@ class Runner:
         sdkparser.add_argument('sdktype', choices=[const.CLEAN_BUILD, const.BUILD_NO_CHANGE], type=str.lower)
         self.add_common_arguments(sdkparser)
 
+        crossgenparser = subparsers.add_parser(const.CROSSGEN)
+        crossgenparser.add_argument('--test-name', dest='testname', type=str, required=True)
+        crossgenparser.add_argument('--core-root', dest='coreroot', type=str, required=True)
         args = parser.parse_args()
 
         if not getattr(self.traits, args.testtype):
@@ -82,6 +88,10 @@ class Runner:
         "Common arguments to add to subparsers"
         parser.add_argument('--scenario-name',
                             dest='scenarioname')
+
+        if self.testtype == const.CROSSGEN:
+            self.crossgenfile = args.testname
+            self.coreroot = args.coreroot
 
     def run(self):
         '''
@@ -140,3 +150,32 @@ class Runner:
                                 processwillexit=self.traits.processwillexit,
                                 measurementdelay=self.traits.measurementdelay
                                 )
+
+        elif self.testtype == const.CROSSGEN:
+            crossgenexe = 'crossgen%s' % extension()
+            crossgenargs = '/nologo /p %s %s\%s' % (self.coreroot, self.coreroot, self.crossgenfile)
+            if self.coreroot is not None and not os.path.isdir(self.coreroot):
+                getLogger().error('Cannot find CORE_ROOT at %s', self.coreroot)
+                return
+
+            startup = StartupWrapper()
+            startup.runtests(scenarioname=self.traits.scenarioname,
+                             exename=self.traits.exename,
+                             guiapp=self.traits.guiapp,
+                             startupmetric=const.STARTUP_PROCESSTIME,
+                             appargs=crossgenargs,
+                             timeout=self.traits.timeout,
+                             warmup='true',
+                             iterations=self.traits.iterations,
+                             scenariotypename='%s - %s' % (const.SCENARIO_NAMES[const.CROSSGEN], self.crossgenfile),
+                             apptorun='%s\%s' % (self.coreroot, crossgenexe),
+                             iterationsetup=None,
+                             setupargs=None,
+                             workingdir=self.coreroot,
+                             processwillexit=self.traits.processwillexit,
+                             measurementdelay=self.traits.measurementdelay,
+                             environmentvariables=None,
+                             iterationcleanup=None,
+                             cleanupargs=None,
+
+                             )
