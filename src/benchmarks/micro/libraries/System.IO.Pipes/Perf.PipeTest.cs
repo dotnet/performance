@@ -13,7 +13,7 @@ namespace System.IO.Pipes.Tests
     public abstract class Perf_PipeTest : PipeTestBase
     {
         [Params(1000000)]
-        public int size; // the field must be called size (starts with lowercase) to keep old benchmark id in BenchView, do NOT change it
+        public int size; 
 
         private byte[] _sent;
         private byte[] _received;

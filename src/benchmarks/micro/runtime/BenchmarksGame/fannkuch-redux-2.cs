@@ -23,7 +23,7 @@ namespace BenchmarksGame
     {
         [Benchmark(Description = nameof(FannkuchRedux_2))]
         [Arguments(10, 73196)]
-        public int[] RunBench(int n, int expectedSum) => fannkuch(n); // expectedSum argument needs to remain to keep old benchmark id in BenchView, do NOT remove it
+        public int[] RunBench(int n, int expectedSum) => fannkuch(n);
 
         public int[] fannkuch(int n)
         {

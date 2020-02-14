@@ -13,7 +13,7 @@ namespace PerfLabTests
         private byte[] bytes;
 
         [Params(0, 10, 100, 1000)]
-        public int numElements; // the field must be called numElements (starts with lowercase) to keep old benchmark id in BenchView, do NOT change it
+        public int numElements; 
 
         [GlobalSetup]
         public void Setup()

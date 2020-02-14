@@ -84,7 +84,6 @@ namespace System.Drawing.Tests
                 FormatName = format.ToString();
             }
 
-            // the value returned by ToString is used in the text representation of Benchmark ID in our reporting system
             public override string ToString() => FormatName;
 
             private static Stream CreateTestImage(ImageFormat format)

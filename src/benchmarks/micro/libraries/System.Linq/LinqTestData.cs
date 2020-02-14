@@ -25,7 +25,6 @@ namespace System.Linq.Tests
 
         internal IEnumerable<int> Collection { get; }
 
-        // the value returned by ToString is used in the text representation of Benchmark ID in our reporting system
         public override string ToString()
         {
             if (object.ReferenceEquals(this, Range)) // RangeIterator is a private type

@@ -11,10 +11,10 @@ namespace System.Text.Tests
     public class Perf_Encoding
     {
         [Params(16, 512)]
-        public int size; // the field must be called length (starts with lowercase) to keep old benchmark id in BenchView, do NOT change it
+        public int size; 
         
         [Params("utf-8", "ascii")]
-        public string encName; // the field must be called length (starts with lowercase) to keep old benchmark id in BenchView, do NOT change it
+        public string encName; 
 
         private Encoding _enc;
         private string _toEncode;
