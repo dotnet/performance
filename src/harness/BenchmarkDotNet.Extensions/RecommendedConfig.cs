@@ -35,7 +35,7 @@ namespace BenchmarkDotNet.Extensions
                 .With(MemoryDiagnoser.Default) // MemoryDiagnoser is enabled by default
                 .With(new OperatingSystemFilter())
                 .With(new PartitionFilter(partitionCount, partitionIndex))
-                .With(JsonExporter.Full) // make sure we export to Json (for BenchView integration purpose)
+                .With(JsonExporter.Full) // make sure we export to Json
                 .With(new PerfLabExporter())
                 .With(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
                 .With(TooManyTestCasesValidator.FailOnError)
