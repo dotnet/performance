@@ -138,7 +138,7 @@ namespace BenchmarksGame
     {
         [Benchmark(Description = nameof(PiDigits_3))]
         [Arguments(3000, "8649423196\t:3000")]
-        public StringBuilder RunBench(int n, string expected) // the expected argument must remain to keep old benchmark id in BenchView, do NOT remove it 
+        public StringBuilder RunBench(int n, string expected)
             => pidigits.Bench(n, false);
     }
 }

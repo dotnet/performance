@@ -52,7 +52,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(Char_ChangeCase_MemberData))]
-        public char Char_ToLower(char c, CultureInfo cultureName) => char.ToLower(c, cultureName); // the argument is called "cultureName" instead of "culture" to keep benchmark ID in BenchView, do NOT rename it
+        public char Char_ToLower(char c, CultureInfo cultureName) => char.ToLower(c, cultureName);
 
         [Benchmark]
         [ArgumentsSource(nameof(Char_ChangeCase_MemberData))]

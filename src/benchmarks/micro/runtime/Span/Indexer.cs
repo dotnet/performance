@@ -24,7 +24,7 @@ namespace Span
     public class IndexerBench
     {
         [Params(1024)]
-        public int length; // the field must be called length (starts with lowercase) to keep old benchmark id in BenchView, do NOT change it
+        public int length; 
 
         private byte[] a;
         private Sink sink = Sink.NewSink();
