@@ -136,9 +136,9 @@ def run_single_test(built: Built, t: SingleTest, out: TestPaths) -> None:
         )
         if seconds_taken < min_seconds:
             desc = f"coreclr={t.coreclr_name} config={t.config_name} benchmark={t.benchmark_name}"
-            raise Exception(
-                f"{desc} took {seconds_taken} seconds, minimum is {min_seconds}"
-                "(you could change the benchmark's min_seconds or options.default_min_seconds)"
+            print(
+                f"\n*WARNING*: Test '{desc}' took {seconds_taken} seconds "
+                f"and minimum set is {min_seconds}.\n"
             )
     else:
         print("Test failed, continuing...")
