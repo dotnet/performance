@@ -6,15 +6,20 @@ using System.Buffers;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
+using MicroBenchmarks.libraries.Common;
 
 namespace System.Text.Json.Tests
 {
     [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     public class Perf_Base64
     {
-        private ArrayBufferWriter<byte> _arrayBufferWriter;
+        private SimpleArrayBufferWriter<byte> _arrayBufferWriter;
+        private SimpleMemoryManagerBufferWriter<byte> _memoryManagerBufferWriter;
         private byte[] _dataWithNoEscaping;
         private byte[] _dataWithEscaping;
+
+        [Params(true, false)]
+        public bool WithMemoryManager;
 
         [Params(100, 1000)]
         public int NumberOfBytes { get; set; }
@@ -22,7 +27,8 @@ namespace System.Text.Json.Tests
         [GlobalSetup]
         public void Setup()
         {
-            _arrayBufferWriter = new ArrayBufferWriter<byte>();
+            _arrayBufferWriter = new SimpleArrayBufferWriter<byte>(5000);
+            _memoryManagerBufferWriter = new SimpleMemoryManagerBufferWriter<byte>(5000);
 
             // Results in a number of A plus padding
             _dataWithNoEscaping = new byte[NumberOfBytes];
@@ -43,7 +49,9 @@ namespace System.Text.Json.Tests
         private void WriteByteArrayAsBase64Core(byte[] data)
         {
             _arrayBufferWriter.Clear();
-            using (var json = new Utf8JsonWriter(_arrayBufferWriter))
+            _memoryManagerBufferWriter.Clear();
+            var bufferWriter = WithMemoryManager ? (IBufferWriter<byte>)_memoryManagerBufferWriter : _arrayBufferWriter;
+            using (var json = new Utf8JsonWriter(bufferWriter))
             {
                 json.WriteBase64StringValue(data);
                 json.Flush();

@@ -97,4 +97,9 @@
     <None Include="**/*.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="libraries\Common\SimpleArrayBufferWriter.cs" />
+    <None Remove="libraries\Common\SimpleMemoryManagerBufferWriter.cs" />
+  </ItemGroup>
+
 </Project>

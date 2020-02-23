@@ -5,6 +5,7 @@
 using System.Buffers;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
+using MicroBenchmarks.libraries.Common;
 
 namespace System.Text.Json.Tests
 {
@@ -16,12 +17,16 @@ namespace System.Text.Json.Tests
         private const int DataSize = 100_000;
         private const int Depth = 500;
 
-        private ArrayBufferWriter<byte> _arrayBufferWriter;
+        private SimpleArrayBufferWriter<byte> _arrayBufferWriter;
+        private SimpleMemoryManagerBufferWriter<byte> _memoryManagerBufferWriter;
 
         private string[] _propertyNames;
         private byte[][] _propertyNamesUtf8;
         private int[] _numberArrayValues;
         private string[] _stringArrayValues;
+
+        [Params(true, false)]
+        public bool WithMemoryManager;
 
         [Params(true, false)]
         public bool Formatted;
@@ -32,7 +37,8 @@ namespace System.Text.Json.Tests
         [GlobalSetup]
         public void Setup()
         {
-            _arrayBufferWriter = new ArrayBufferWriter<byte>();
+            _arrayBufferWriter = new SimpleArrayBufferWriter<byte>(512 * 1024 * 1024);
+            _memoryManagerBufferWriter = new SimpleMemoryManagerBufferWriter<byte>(512 * 1024 * 1024);
 
             var random = new Random(42);
 
@@ -59,7 +65,9 @@ namespace System.Text.Json.Tests
         public void WriteDeepUtf8()
         {
             _arrayBufferWriter.Clear();
-            using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
+            _memoryManagerBufferWriter.Clear();
+            var bufferWriter = WithMemoryManager ? (IBufferWriter<byte>)_memoryManagerBufferWriter : _arrayBufferWriter;
+            using (var json = new Utf8JsonWriter(bufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
 
                 json.WriteStartObject();
@@ -90,7 +98,9 @@ namespace System.Text.Json.Tests
         public void WriteDeepUtf16()
         {
             _arrayBufferWriter.Clear();
-            using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
+            _memoryManagerBufferWriter.Clear();
+            var bufferWriter = WithMemoryManager ? (IBufferWriter<byte>)_memoryManagerBufferWriter : _arrayBufferWriter;
+            using (var json = new Utf8JsonWriter(bufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
 
                 json.WriteStartObject();

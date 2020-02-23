@@ -5,6 +5,7 @@
 using System.Buffers;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
+using MicroBenchmarks.libraries.Common;
 
 namespace System.Text.Json.Tests
 {
@@ -13,9 +14,13 @@ namespace System.Text.Json.Tests
     {
         private const int DataSize = 100_000;
 
-        private ArrayBufferWriter<byte> _arrayBufferWriter;
+        private SimpleArrayBufferWriter<byte> _arrayBufferWriter;
+        private SimpleMemoryManagerBufferWriter<byte> _memoryManagerBufferWriter;
 
         private DateTime[] _dateArrayValues;
+
+        [Params(true, false)]
+        public bool WithMemoryManager;
 
         [Params(true, false)]
         public bool Formatted;
@@ -26,7 +31,8 @@ namespace System.Text.Json.Tests
         [GlobalSetup]
         public void Setup()
         {
-            _arrayBufferWriter = new ArrayBufferWriter<byte>();
+            _arrayBufferWriter = new SimpleArrayBufferWriter<byte>(4 * 1024 * 1024);
+            _memoryManagerBufferWriter = new SimpleMemoryManagerBufferWriter<byte>(4 * 1024 * 1024);
 
             _dateArrayValues = new DateTime[DataSize];
 
@@ -42,8 +48,9 @@ namespace System.Text.Json.Tests
         public void WriteDateTimes()
         {
             _arrayBufferWriter.Clear();
-
-            using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
+            _memoryManagerBufferWriter.Clear();
+            var bufferWriter = WithMemoryManager ? (IBufferWriter<byte>)_memoryManagerBufferWriter : _arrayBufferWriter;
+            using (var json = new Utf8JsonWriter(bufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
 
                 json.WriteStartArray();
