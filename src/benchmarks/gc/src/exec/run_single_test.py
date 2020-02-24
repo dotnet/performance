@@ -134,11 +134,17 @@ def run_single_test(built: Built, t: SingleTest, out: TestPaths) -> None:
         min_seconds = option_or_3(
             t.benchmark.min_seconds, t.options.default_min_seconds, _TEST_MIN_SECONDS_DEFAULT
         )
+
         if seconds_taken < min_seconds:
             desc = f"coreclr={t.coreclr_name} config={t.config_name} benchmark={t.benchmark_name}"
-            raise Exception(
-                f"{desc} took {seconds_taken} seconds, minimum is {min_seconds}"
-                "(you could change the benchmark's min_seconds or options.default_min_seconds)"
+            min_secs_origin = (
+                'yaml file' if min_seconds in (t.benchmark.min_seconds,
+                                               t.options.default_min_seconds)
+                else 'default'
+            )
+            print(
+                f"\n*WARNING*: Test '{desc}' took {seconds_taken} seconds "
+                f"and {min_secs_origin} minimum set is {min_seconds}.\n"
             )
     else:
         print("Test failed, continuing...")
