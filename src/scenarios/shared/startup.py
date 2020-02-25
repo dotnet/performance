@@ -20,6 +20,7 @@ class StartupWrapper(object):
         if payload:
             self._setstartuppath(os.path.join(payload, 'Startup'))
         else:
+            relpath = os.path.join(get_artifacts_directory(), 'startup')
             startupproj = os.path.join('..',
                                        '..',
                                        'tools',
@@ -30,18 +31,18 @@ class StartupWrapper(object):
                                                    sys.path[0]),
                                                    os.path.join(os.path.dirname(startupproj),
                                     os.path.join(get_artifacts_directory(), 'startup')))
-
-            startup.restore(get_packages_directory(),
-                            True,
-                            getruntimeidentifier())
-            startup.publish('Release',
-                            os.path.join(get_artifacts_directory(), 'startup'),
-                            True,
-                            get_packages_directory(),
-                            None,
-                            getruntimeidentifier(),
-                            '--no-restore'
-                            )
+            if not os.path.exists(relpath):
+                startup.restore(get_packages_directory(),
+                                True,
+                                getruntimeidentifier())
+                startup.publish('Release',
+                                relpath,
+                                True,
+                                get_packages_directory(),
+                                None,
+                                getruntimeidentifier(),
+                                '--no-restore'
+                                )
             self._setstartuppath(startup.bin_path)
 
     
