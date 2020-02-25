@@ -14,6 +14,12 @@ def helixpayload():
     '''
     return environ.get('HELIX_CORRELATION_PAYLOAD')
 
+def helixworkitempayload():
+    '''
+    Returns the helix workitem payload. Will be None outside of helix.
+    '''
+    return environ.get('HELIX_WORKITEM_PAYLOAD')
+
 def helixuploaddir():
     '''
     Gets the directory to upload files

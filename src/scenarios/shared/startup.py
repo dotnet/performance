@@ -9,7 +9,7 @@ from performance.logger import setup_loggers
 from performance.common import get_artifacts_directory, get_packages_directory, RunCommand
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR
 from dotnet import CSharpProject, CSharpProjFile
-from shared.util import helixpayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier
+from shared.util import helixpayload, helixworkitempayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier
 from shared.const import *
 class StartupWrapper(object):
     '''
@@ -17,8 +17,11 @@ class StartupWrapper(object):
     '''
     def __init__(self):
         payload = helixpayload()
+        workitempayload = helixworkitempayload()
         if payload:
             self._setstartuppath(os.path.join(payload, 'Startup'))
+        elif workitempayload:
+            self._setstartuppath(os.path.join(workitempayload, 'Startup'))
         else:
             relpath = os.path.join(get_artifacts_directory(), 'startup')
             startupproj = os.path.join('..',
