@@ -5,15 +5,10 @@ Param(
 $scripts = Join-Path $PSScriptRoot '..\..\scripts' -Resolve
 $env:PYTHONPATH="$scripts;$PSScriptRoot"
 $dotnetScript= Join-Path "$scripts" 'dotnet.py' -Resolve
-$dotnetDirectory= Join-Path $PSScriptRoot 'dotnet'
-
-if (Test-Path $dotnetDirectory){
-    Write-Host "Removing $dotnetDirectory ..."
-    Remove-Item  $dotnetDirectory -Recurse
-}
+$dotnetDirectory = Join-Path $PSScriptRoot '..\..\tools\dotnet\x64'
 
 Write-Host "Downloading dotnet from channel $Channel"
-python $dotnetScript install --channels $Channel --install-dir $dotnetDirectory
+python $dotnetScript install --channels $Channel -v
 
 if (!$?){
     Write-Host "Dotnet installation failed."
@@ -25,7 +20,5 @@ $env:DOTNET_MULTILEVEL_LOOKUP='0'
 $env:UseSharedCompilation='false'
 $env:DOTNET_ROOT=$dotnetDirectory
 $env:Path="$dotnetDirectory;$env:Path"
-
-dotnet --info
 
 

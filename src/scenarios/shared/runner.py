@@ -72,6 +72,7 @@ class Runner:
         crossgenparser = subparsers.add_parser(const.CROSSGEN)
         crossgenparser.add_argument('--test-name', dest='testname', type=str, required=True)
         crossgenparser.add_argument('--core-root', dest='coreroot', type=str, required=True)
+        self.add_common_arguments(crossgenparser)
         args = parser.parse_args()
 
         if not getattr(self.traits, args.testtype):
@@ -83,16 +84,18 @@ class Runner:
             self.sdktype = args.sdktype
         if args.scenarioname:
             self.scenarioname = args.scenarioname
+
+        if self.testtype == const.CROSSGEN:
+            self.crossgenfile = args.testname
+            self.coreroot = args.coreroot
+
     
     def add_common_arguments(self, parser: ArgumentParser):
         "Common arguments to add to subparsers"
         parser.add_argument('--scenario-name',
                             dest='scenarioname')
 
-        if self.testtype == const.CROSSGEN:
-            self.crossgenfile = args.testname
-            self.coreroot = args.coreroot
-
+        
     def run(self):
         '''
         Runs the specified scenario
@@ -159,7 +162,7 @@ class Runner:
                 return
 
             startup = StartupWrapper()
-            startup.runtests(scenarioname=self.traits.scenarioname,
+            startup.runtests(scenarioname='Crossgen Throughput - %s' % self.crossgenfile,
                              exename=self.traits.exename,
                              guiapp=self.traits.guiapp,
                              startupmetric=const.STARTUP_PROCESSTIME,
