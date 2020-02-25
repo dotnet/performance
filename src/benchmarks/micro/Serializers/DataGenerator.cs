@@ -51,7 +51,38 @@ namespace MicroBenchmarks.Serializers
                 return (T)(object)new ArrayList(ValuesGenerator.ArrayOfUniqueValues<string>(100));
             if (typeof(T) == typeof(Hashtable))
                 return (T)(object)new Hashtable(ValuesGenerator.ArrayOfUniqueValues<string>(100).ToDictionary(value => value));
-
+            if (typeof(T) == typeof(SimpleStructWithProperties_Immutable))
+                return (T)(object)new SimpleStructWithProperties_Immutable(num: 1, text: "Foo");
+            if (typeof(T) == typeof(SimpleStructWithProperties_1Arg))
+                return (T)(object)new SimpleStructWithProperties_1Arg(text: "Foo") { Num = 1 };
+            if (typeof(T) == typeof(Parameterized_LoginViewModel_Immutable))
+                return (T)(object)CreateParameterizedLoginViewModelImmutable();
+            if (typeof(T) == typeof(Parameterized_LoginViewModel_2Args))
+                return (T)(object)CreateParameterizedLoginViewModel2Args();
+            if (typeof(T) == typeof(Parameterized_Location_Immutable))
+                return (T)(object)CreateParameterizedLocationImmutable();
+            if (typeof(T) == typeof(Parameterized_Location_5Args))
+                return (T)(object)CreateParameterizedLocation5Args();
+            if (typeof(T) == typeof(Parameterized_IndexViewModel_Immutable))
+                return (T)(object)CreateParameterizedIndexViewModelImmutable();
+            if (typeof(T) == typeof(Parameterized_IndexViewModel_2Args))
+                return (T)(object)CreateParameterizedIndexViewModel2Args();
+            if (typeof(T) == typeof(Parameterized_MyEventsListerViewModel_Immutable))
+                return (T)(object)CreateParameterizedMyEventsListerViewModelImmutable();
+            if (typeof(T) == typeof(Parameterized_MyEventsListerViewModel_2Args))
+                return (T)(object)CreateParameterizedMyEventsListerViewModel2Args();
+            if (typeof(T) == typeof(Parameterless_Point))
+                return (T)(object)CreateParameterlessPoint();
+            if (typeof(T) == typeof(Parameterized_Point_Immutable))
+                return (T)(object)CreateParameterizedPointImmutable();
+            if (typeof(T) == typeof(Parameterized_Point_1Arg))
+                return (T)(object)CreateParameterizedPoint1Arg();
+            if (typeof(T) == typeof(Parameterless_ClassWithPrimitives))
+                return (T)(object)CreateParameterlessClassWithPrimitives();
+            if (typeof(T) == typeof(Parameterized_ClassWithPrimitives_Immutable))
+                return (T)(object)CreateParameterizedClassWithPrimitivesImmutable();
+            if (typeof(T) == typeof(Parameterized_ClassWithPrimitives_4Args))
+                return (T)(object)CreateParameterizedClassWithPrimitives4Args();
 
             throw new NotImplementedException();
         }
@@ -153,18 +184,18 @@ namespace MicroBenchmarks.Serializers
         {
             DateTime[] arr = new DateTime[count];
             int kind = (int)DateTimeKind.Unspecified;
-            int maxDateTimeKind = (int) DateTimeKind.Local;
-            DateTime val = DateTime.Now.AddHours(count/2);
+            int maxDateTimeKind = (int)DateTimeKind.Local;
+            DateTime val = DateTime.Now.AddHours(count / 2);
             for (int i = 0; i < count; i++)
             {
                 arr[i] = DateTime.SpecifyKind(val, (DateTimeKind)kind);
                 val = val.AddHours(1);
-                kind = (kind + 1)%maxDateTimeKind;
+                kind = (kind + 1) % maxDateTimeKind;
             }
 
             return arr;
         }
-        
+
         private static Dictionary<int, string> CreateDictionaryOfIntString(int count)
         {
             Dictionary<int, string> dictOfIntString = new Dictionary<int, string>(count);
@@ -199,8 +230,165 @@ namespace MicroBenchmarks.Serializers
             xmlElement.InnerText = "Element innertext";
             return xmlElement;
         }
-    }
 
+        private static Parameterized_LoginViewModel_2Args CreateParameterizedLoginViewModel2Args()
+            => new Parameterized_LoginViewModel_2Args(email: "name.familyname@not.com", rememberMe: true)
+            {
+                Password = "abcdefgh123456!@",
+            };
+
+        private static Parameterized_LoginViewModel_Immutable CreateParameterizedLoginViewModelImmutable()
+            => new Parameterized_LoginViewModel_Immutable(email: "name.familyname@not.com", password: "abcdefgh123456!@", rememberMe: true);
+
+        private static Parameterized_Location_5Args CreateParameterizedLocation5Args() =>
+            new Parameterized_Location_5Args(
+                id: 1234,
+                city: "The City",
+                state: "The State",
+                postalCode: "abc-12",
+                name: "Nonexisting")
+            {
+                Address1 = "The Street Name",
+                Address2 = "20/11",
+                PhoneNumber = "+0 11 222 333 44",
+                Country = "The Greatest"
+            };
+
+        private static Parameterized_Location_Immutable CreateParameterizedLocationImmutable() =>
+            new Parameterized_Location_Immutable(
+                id: 1234,
+                address1: "The Street Name",
+                address2: "20/11",
+                city: "The City",
+                state: "The State",
+                postalCode: "abc-12",
+                name: "Nonexisting",
+                phoneNumber: "+0 11 222 333 44",
+                country: "The Greatest");
+
+        private static Parameterized_IndexViewModel_Immutable CreateParameterizedIndexViewModelImmutable()
+            => new Parameterized_IndexViewModel_Immutable(
+                isNewAccount: false,
+                featuredCampaign: new CampaignSummaryViewModel
+                {
+                    Description = "Very nice campaing",
+                    Headline = "The Headline",
+                    Id = 234235,
+                    OrganizationName = "The Company XYZ",
+                    ImageUrl = "https://www.dotnetfoundation.org/theme/img/carousel/foundation-diagram-content.png",
+                    Title = "Promoting Open Source"
+                },
+                activeOrUpcomingEvents: Enumerable.Repeat(
+                    new ActiveOrUpcomingEvent
+                    {
+                        Id = 10,
+                        CampaignManagedOrganizerName = "Name FamiltyName",
+                        CampaignName = "The very new campaing",
+                        Description = "The .NET Foundation works with Microsoft and the broader industry to increase the exposure of open source projects in the .NET community and the .NET Foundation. The .NET Foundation provides access to these resources to projects and looks to promote the activities of our communities.",
+                        EndDate = DateTime.UtcNow.AddYears(1),
+                        Name = "Just a name",
+                        ImageUrl = "https://www.dotnetfoundation.org/theme/img/carousel/foundation-diagram-content.png",
+                        StartDate = DateTime.UtcNow
+                    },
+                    count: 20).ToList());
+
+        private static Parameterized_IndexViewModel_2Args CreateParameterizedIndexViewModel2Args()
+            => new Parameterized_IndexViewModel_2Args(
+                featuredCampaign: new CampaignSummaryViewModel
+                {
+                    Description = "Very nice campaing",
+                    Headline = "The Headline",
+                    Id = 234235,
+                    OrganizationName = "The Company XYZ",
+                    ImageUrl = "https://www.dotnetfoundation.org/theme/img/carousel/foundation-diagram-content.png",
+                    Title = "Promoting Open Source"
+                },
+                isNewAccount: false
+                )
+            {
+                ActiveOrUpcomingEvents = Enumerable.Repeat(
+                    new ActiveOrUpcomingEvent
+                    {
+                        Id = 10,
+                        CampaignManagedOrganizerName = "Name FamiltyName",
+                        CampaignName = "The very new campaing",
+                        Description = "The .NET Foundation works with Microsoft and the broader industry to increase the exposure of open source projects in the .NET community and the .NET Foundation. The .NET Foundation provides access to these resources to projects and looks to promote the activities of our communities.",
+                        EndDate = DateTime.UtcNow.AddYears(1),
+                        Name = "Just a name",
+                        ImageUrl = "https://www.dotnetfoundation.org/theme/img/carousel/foundation-diagram-content.png",
+                        StartDate = DateTime.UtcNow
+                    },
+                    count: 20).ToList()
+            };
+
+        private static Parameterized_MyEventsListerViewModel_2Args CreateParameterizedMyEventsListerViewModel2Args()
+            => new Parameterized_MyEventsListerViewModel_2Args(
+                currentEvents: Enumerable.Repeat(CreateMyEventsListerItem(), 3).ToList(),
+                pastEvents: Enumerable.Repeat(CreateMyEventsListerItem(), 60).ToList() // usually  there is a lot of historical data
+                )
+            {
+                FutureEvents = Enumerable.Repeat(CreateMyEventsListerItem(), 9).ToList()
+            };
+
+        private static Parameterized_MyEventsListerViewModel_Immutable CreateParameterizedMyEventsListerViewModelImmutable()
+            => new Parameterized_MyEventsListerViewModel_Immutable(
+                currentEvents: Enumerable.Repeat(CreateMyEventsListerItem(), 3).ToList(),
+                futureEvents: Enumerable.Repeat(CreateMyEventsListerItem(), 9).ToList(),
+                pastEvents: Enumerable.Repeat(CreateMyEventsListerItem(), 60).ToList() // usually  there is a lot of historical data
+                );
+
+        private static Parameterless_Point CreateParameterlessPoint()
+            => new Parameterless_Point()
+            {
+                X = 234235,
+                Y = 912874
+            };
+
+        private static Parameterized_Point_1Arg CreateParameterizedPoint1Arg()
+            => new Parameterized_Point_1Arg(234235)
+            {
+                Y = 912874
+            };
+
+        private static Parameterized_Point_Immutable CreateParameterizedPointImmutable()
+        {
+            var point = new Parameterized_Point_Immutable(234235, 912874);
+            return point;
+        }
+
+        private static Parameterless_ClassWithPrimitives CreateParameterlessClassWithPrimitives()
+            => new Parameterless_ClassWithPrimitives()
+            {
+                FirstInt = 348943,
+                FirstString = "934sdkjfskdfssf",
+                FirstDateTime = DateTime.Now,
+                SecondDateTime = DateTime.Now.AddHours(1).AddYears(1),
+                X = 234235,
+                Y = 912874,
+                Z = 434934,
+                W = 348943,
+            };
+
+        private static Parameterized_ClassWithPrimitives_4Args CreateParameterizedClassWithPrimitives4Args()
+            => new Parameterized_ClassWithPrimitives_4Args(w: 349943, x: 234235, y: 912874, z: 434934)
+            {
+                FirstInt = 348943,
+                FirstString = "934sdkjfskdfssf",
+                FirstDateTime = DateTime.Now,
+                SecondDateTime = DateTime.Now.AddHours(1).AddYears(1)
+            };
+
+        private static Parameterized_ClassWithPrimitives_Immutable CreateParameterizedClassWithPrimitivesImmutable()
+            => new Parameterized_ClassWithPrimitives_Immutable(
+                firstDateTime: DateTime.Now,
+                secondDateTime: DateTime.Now.AddHours(1).AddYears(1),
+                x: 234235,
+                y: 912874,
+                z: 434934,
+                w: 348943,
+                firstInt: 348943,
+                firstString: "934sdkjfskdfssf");
+    }
     // the view models come from a real world app called "AllReady"
     [Serializable]
     [ProtoContract]
@@ -272,7 +460,7 @@ namespace MicroBenchmarks.Serializers
     [Serializable]
     [ProtoContract]
     [MessagePackObject]
-    public class IndexViewModel 
+    public class IndexViewModel
     {
         [ProtoMember(1)] [Key(0)] public List<ActiveOrUpcomingEvent> ActiveOrUpcomingEvents { get; set; }
         [ProtoMember(2)] [Key(1)] public CampaignSummaryViewModel FeaturedCampaign { get; set; }
@@ -351,13 +539,13 @@ namespace MicroBenchmarks.Serializers
     {
         [ProtoMember(1)] [Key(0)] public byte[] ByteArray { get; set; }
         [ProtoMember(2)] [Key(1)] public DateTime[] DateTimeArray { get; set; }
-        
+
         [XmlIgnore] // xml serializer does not support anything that implements IDictionary..
         [ProtoMember(3)] [Key(2)] public Dictionary<int, string> Dictionary { get; set; }
-        
+
         [ProtoMember(4)] [Key(3)] public List<int> ListOfInt { get; set; }
     }
-    
+
     public struct SimpleStructWithProperties
     {
         public int Num { get; set; }
@@ -365,7 +553,245 @@ namespace MicroBenchmarks.Serializers
     }
 
     public class SimpleListOfInt : List<int> { }
-    
+
+    public struct SimpleStructWithProperties_Immutable
+    {
+        public int Num { get; }
+        public string Text { get; }
+
+        //[JsonConstructor]
+        public SimpleStructWithProperties_Immutable(int num, string text) => (Num, Text) = (num, text);
+    }
+
+    public struct SimpleStructWithProperties_1Arg
+    {
+        public int Num { get; set; }
+        public string Text { get; }
+
+        //[JsonConstructor]
+        public SimpleStructWithProperties_1Arg(string text) => (Num, Text) = (0, text);
+    }
+
+    public class Parameterized_LoginViewModel_Immutable
+    {
+        public string Email { get; }
+        public string Password { get; }
+        public bool RememberMe { get; }
+
+        public Parameterized_LoginViewModel_Immutable(string email, string password, bool rememberMe)
+        {
+            Email = email;
+            Password = password;
+            RememberMe = rememberMe;
+        }
+    }
+
+    public class Parameterized_LoginViewModel_2Args
+    {
+        public string Password { get; set; }
+        public string Email { get; }
+        public bool RememberMe { get; }
+
+        public Parameterized_LoginViewModel_2Args(string email, bool rememberMe) => (Email, RememberMe) = (email, rememberMe);
+    }
+
+    public class Parameterized_Location_Immutable
+    {
+        public int Id { get; }
+        public string Address1 { get; }
+        public string Address2 { get; }
+        public string City { get; }
+        public string State { get; }
+        public string PostalCode { get; }
+        public string Name { get; }
+        public string PhoneNumber { get; }
+        public string Country { get; }
+
+        public Parameterized_Location_Immutable(
+            int id,
+            string address1,
+            string address2,
+            string city,
+            string state,
+            string postalCode,
+            string name,
+            string phoneNumber,
+            string country)
+        {
+            Id = id;
+            Address1 = address1;
+            Address2 = address2;
+            City = city;
+            State = state;
+            PostalCode = postalCode;
+            Name = name;
+            PhoneNumber = phoneNumber;
+            Country = country;
+        }
+    }
+
+    public class Parameterized_Location_5Args
+    {
+        public string Address1 { get; set; }
+        public string Address2 { get; set; }
+        public string City { get; }
+        public string State { get; }
+        public int Id { get; }
+        public string PostalCode { get; }
+        public string Name { get; }
+        public string PhoneNumber { get; set; }
+        public string Country { get; set; }
+
+        public Parameterized_Location_5Args(string city, string state, int id, string postalCode, string name)
+        {
+            City = city;
+            State = state;
+            Id = id;
+            PostalCode = postalCode;
+            Name = name;
+        }
+    }
+
+    public class Parameterized_IndexViewModel_Immutable
+    {
+        public List<ActiveOrUpcomingEvent> ActiveOrUpcomingEvents { get; }
+        public CampaignSummaryViewModel FeaturedCampaign { get; }
+        public bool IsNewAccount { get; }
+        public bool HasFeaturedCampaign => FeaturedCampaign != null;
+
+        public Parameterized_IndexViewModel_Immutable(
+            List<ActiveOrUpcomingEvent> activeOrUpcomingEvents,
+            CampaignSummaryViewModel featuredCampaign,
+            bool isNewAccount)
+        {
+            ActiveOrUpcomingEvents = activeOrUpcomingEvents;
+            FeaturedCampaign = featuredCampaign;
+            IsNewAccount = isNewAccount;
+        }
+    }
+
+    public class Parameterized_IndexViewModel_2Args
+    {
+        public List<ActiveOrUpcomingEvent> ActiveOrUpcomingEvents { get; set; }
+        public CampaignSummaryViewModel FeaturedCampaign { get; }
+        public bool IsNewAccount { get; }
+        public bool HasFeaturedCampaign => FeaturedCampaign != null;
+
+        public Parameterized_IndexViewModel_2Args(CampaignSummaryViewModel featuredCampaign, bool isNewAccount)
+        {
+            FeaturedCampaign = featuredCampaign;
+            IsNewAccount = isNewAccount;
+        }
+    }
+
+    public class Parameterized_MyEventsListerViewModel_Immutable
+    {
+        public List<MyEventsListerItem> CurrentEvents { get; } = new List<MyEventsListerItem>();
+        public List<MyEventsListerItem> FutureEvents { get; } = new List<MyEventsListerItem>();
+        public List<MyEventsListerItem> PastEvents { get; } = new List<MyEventsListerItem>();
+
+        public Parameterized_MyEventsListerViewModel_Immutable(
+            List<MyEventsListerItem> currentEvents,
+            List<MyEventsListerItem> futureEvents,
+            List<MyEventsListerItem> pastEvents)
+        {
+            CurrentEvents = currentEvents;
+            FutureEvents = futureEvents;
+            PastEvents = pastEvents;
+        }
+    }
+
+    public class Parameterized_MyEventsListerViewModel_2Args
+    {
+        public List<MyEventsListerItem> FutureEvents { get; set; } = new List<MyEventsListerItem>();
+        public List<MyEventsListerItem> CurrentEvents { get; } = new List<MyEventsListerItem>();
+        public List<MyEventsListerItem> PastEvents { get; } = new List<MyEventsListerItem>();
+
+        public Parameterized_MyEventsListerViewModel_2Args(
+            List<MyEventsListerItem> currentEvents, List<MyEventsListerItem> pastEvents
+            ) => (CurrentEvents, PastEvents) = (currentEvents, pastEvents);
+    }
+
+    public class Parameterless_Point
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+    }
+
+    public class Parameterized_Point_Immutable
+    {
+        public int X { get; }
+        public int Y { get; }
+
+        public Parameterized_Point_Immutable(int x, int y) => (X, Y) = (x, y);
+    }
+
+    public class Parameterized_Point_1Arg
+    {
+        public int X { get; }
+        public int Y { get; set; }
+
+        public Parameterized_Point_1Arg(int x) => X = x;
+    }
+
+    public class Parameterless_ClassWithPrimitives
+    {
+        public DateTime FirstDateTime { get; set; }
+        public DateTime SecondDateTime { get; set; }
+        public int W { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
+        public int Z { get; set; }
+        public int FirstInt { get; set; }
+        public string FirstString { get; set; }
+    }
+
+    public class Parameterized_ClassWithPrimitives_Immutable
+    {
+        public DateTime FirstDateTime { get; }
+        public DateTime SecondDateTime { get; }
+        public int W { get; }
+        public int X { get; }
+        public int Y { get; }
+        public int Z { get; }
+        public int FirstInt { get; }
+        public string FirstString { get; }
+
+        public Parameterized_ClassWithPrimitives_Immutable(
+            DateTime firstDateTime,
+            DateTime secondDateTime,
+            int x,
+            int y,
+            int z,
+            int w,
+            int firstInt,
+            string firstString)
+        {
+            FirstDateTime = firstDateTime;
+            SecondDateTime = secondDateTime;
+            W = w;
+            X = x;
+            Y = y;
+            Z = z;
+            FirstInt = firstInt;
+            FirstString = firstString;
+        }
+    }
+
+    public class Parameterized_ClassWithPrimitives_4Args
+    {
+        public DateTime FirstDateTime { get; set; }
+        public DateTime SecondDateTime { get; set; }
+        public int W { get; }
+        public int X { get; }
+        public int Y { get; }
+        public int Z { get; }
+        public int FirstInt { get; set; }
+        public string FirstString { get; set; }
+
+        public Parameterized_ClassWithPrimitives_4Args(int w, int x, int y, int z) => (W, X, Y, Z) = (w, x, y, z);
+    }
+
     public class ClassImplementingIXmlSerialiable : IXmlSerializable
     {
         public string StringValue { get; set; }
