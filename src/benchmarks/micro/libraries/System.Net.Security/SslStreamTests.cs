@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;  
+using System.IO;
 using System.IO.Pipes;
 using System.Net.Sockets;
 using System.Security.Authentication;
@@ -29,12 +30,15 @@ namespace System.Net.Security.Tests
         private readonly byte[] _clientBuffer = new byte[1], _serverBuffer = new byte[1];
         private readonly byte[] _largeClientBuffer = new byte[4096], _largeServerBuffer = new byte[4096];
 
-        private NetworkStream _client, _server; // used for handshake tests
-        private SslStream _sslClient, _sslServer; // used for read/write tests
+        private SslStream _sslClient, _sslServer;       // used for read/write tests
+        private NetworkStream _clientIPv4, _serverIPv4; // used for handshake tests
+        private NetworkStream _clientIPv6, _serverIPv6; // used for handshake tests
+        private PipeStream _clientPipe, _serverPipe;    // used for handshake tests
 
         [GlobalSetup]
         public void Setup()
         {
+            string pipeName = "SetupTlsHandshakePipe";
             using (var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
             {
                 listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
@@ -51,20 +55,50 @@ namespace System.Net.Security.Tests
                     _sslClient.AuthenticateAsClientAsync("localhost", null, SslProtocols.None, checkCertificateRevocation: false),
                     _sslServer.AuthenticateAsServerAsync(_cert, clientCertificateRequired: false, SslProtocols.None, checkCertificateRevocation: false));
 
-                // Create a non-SslStream pair
+                // Create a IPv4 pair
                 client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 client.Connect(listener.LocalEndPoint);
                 server = listener.Accept();
-                _client = new NetworkStream(client, ownsSocket: true);
-                _server = new NetworkStream(server, ownsSocket: true);
+                _clientIPv4 = new NetworkStream(client, ownsSocket: true);
+                _serverIPv4 = new NetworkStream(server, ownsSocket: true);
             }
+
+            // Create IPv6 TCP pair.
+            using (var listener = new Socket(AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp))
+            {
+                listener.Bind(new IPEndPoint(IPAddress.IPv6Loopback, 0));
+                listener.Listen(1);
+
+                var client = new Socket(AddressFamily.InterNetworkV6, SocketType.Stream, ProtocolType.Tcp);
+                client.Connect(listener.LocalEndPoint);
+                Socket server = listener.Accept();
+
+                _clientIPv6 = new NetworkStream(client, ownsSocket: true);
+                _serverIPv6 = new NetworkStream(server, ownsSocket: true);
+            }
+
+            // Create PIPE Pair.
+            var pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
+            var pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
+            Task.WaitAll(pipeServer.WaitForConnectionAsync(), pipeClient.ConnectAsync());
+            _serverPipe = pipeServer;
+            _clientPipe = pipeClient;
         }
 
         [Benchmark]
-        public async Task HandshakeAsync()
+        public Task DefaultHandshakeIPv4Async() => defaultHandshake(_clientIPv4, _serverIPv4);
+
+        [Benchmark]
+        public Task DefaultHandshakeIPv6Async() => defaultHandshake(_clientIPv6, _serverIPv6);
+
+        [Benchmark]
+        public Task DefaultHandshakePipeAsync() => defaultHandshake(_clientPipe, _serverPipe);
+
+
+        private async Task defaultHandshake(Stream client, Stream server)
         {
-            using (var sslClient = new SslStream(_client, leaveInnerStreamOpen: true, delegate { return true; }))
-            using (var sslServer = new SslStream(_server, leaveInnerStreamOpen: true, delegate { return true; }))
+            using (var sslClient = new SslStream(client, leaveInnerStreamOpen: true, delegate { return true; }))
+            using (var sslServer = new SslStream(server, leaveInnerStreamOpen: true, delegate { return true; }))
             {
                 await Task.WhenAll(
                     sslClient.AuthenticateAsClientAsync("localhost", null, SslProtocols.None, checkCertificateRevocation: false),
