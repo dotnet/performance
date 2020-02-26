@@ -1,9 +1,23 @@
+[CmdletBinding(PositionalBinding=$false)]
 Param(
-    [string] $InstallDotnetFromChannel,
+    [string] $Channel,
     [string] $DotnetDirectory
 )
 
-If ($DotnetDirectory -eq ""){
+function Print-Usage(){
+    Write-Host "Invalid argument. Usage:"
+    Write-Host ".\init.ps1"
+    Write-Host ".\init.ps1 -DotnetDirectory <custom dotnet directory>"
+    Write-Host ".\init.ps1 -Channel <channel to download new dotnet>"
+    Exit 1
+}
+
+# Parse arguments
+If (($Channel -ne "") -and ($DotnetDirectory -ne "")) {
+    Print-Usage
+}
+
+If ($DotnetDirectory -eq "" ){
     $DotnetDirectory = Join-Path $PSScriptRoot '..\..\tools\dotnet\x64'
 }
 
@@ -11,13 +25,11 @@ If ($DotnetDirectory -eq ""){
 $scripts = Join-Path $PSScriptRoot '..\..\scripts' -Resolve
 $env:PYTHONPATH="$scripts;$PSScriptRoot"
 
-$channel = $InstallDotnetFromChannel
-
-If (($channel -ne "")){
+If (($Channel -ne "")){
     # Download dotnet from the specified channel
     Write-Host "Downloading dotnet from channel $channel"
     $dotnetScript= Join-Path "$scripts" 'dotnet.py' -Resolve
-    python $dotnetScript install --channels $channel
+    python $dotnetScript install --channels $channel -v
     If (!$?){
         Write-Host "Dotnet installation failed."
         Exit 1
