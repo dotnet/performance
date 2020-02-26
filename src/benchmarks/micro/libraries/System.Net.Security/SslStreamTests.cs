@@ -94,7 +94,6 @@ namespace System.Net.Security.Tests
         [Benchmark]
         public Task DefaultHandshakePipeAsync() => defaultHandshake(_clientPipe, _serverPipe);
 
-
         private async Task defaultHandshake(Stream client, Stream server)
         {
             using (var sslClient = new SslStream(client, leaveInnerStreamOpen: true, delegate { return true; }))
@@ -104,9 +103,12 @@ namespace System.Net.Security.Tests
                     sslClient.AuthenticateAsClientAsync("localhost", null, SslProtocols.None, checkCertificateRevocation: false),
                     sslServer.AuthenticateAsServerAsync(_cert, clientCertificateRequired: false, SslProtocols.None, checkCertificateRevocation: false));
 
-                // Workaround for corefx#37765
-                await sslServer.WriteAsync(_serverBuffer, default);
-                await sslClient.ReadAsync(_clientBuffer, default);
+                if (sslClient.SslProtocol == SslProtocols.Tls13)
+                {
+                    // In Tls1.3 part of handshake happens with data exchange.
+                    await sslServer.WriteAsync(_serverBuffer, default);
+                    await sslClient.ReadAsync(_clientBuffer, default);
+                }
             }
         }
 
