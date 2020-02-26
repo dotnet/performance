@@ -12,21 +12,15 @@ function Print-Usage(){
     Exit 1
 }
 
-# Parse arguments
-If (($Channel -ne "") -and ($DotnetDirectory -ne "")) {
-    Print-Usage
+function Setup-Env($directory){
+    $env:Path="$directory;$env:Path"
+    $env:DOTNET_ROOT=$directory
+    $env:DOTNET_CLI_TELEMETRY_OPTOUT='1'
+    $env:DOTNET_MULTILEVEL_LOOKUP='0'
+    $env:UseSharedCompilation='false'
 }
 
-If ($DotnetDirectory -eq "" ){
-    $DotnetDirectory = Join-Path $PSScriptRoot '..\..\tools\dotnet\x64'
-}
-
-# Add scripts and current directory to PYTHONPATH
-$scripts = Join-Path $PSScriptRoot '..\..\scripts' -Resolve
-$env:PYTHONPATH="$scripts;$PSScriptRoot"
-
-If (($Channel -ne "")){
-    # Download dotnet from the specified channel
+function Download-Dotnet($channel){
     Write-Host "Downloading dotnet from channel $channel"
     $dotnetScript= Join-Path "$scripts" 'dotnet.py' -Resolve
     python $dotnetScript install --channels $channel -v
@@ -36,11 +30,19 @@ If (($Channel -ne "")){
     }
 }
 
-$env:Path="$DotnetDirectory;$env:Path"
-$env:DOTNET_ROOT=$DotnetDirectory
-$env:DOTNET_CLI_TELEMETRY_OPTOUT='1'
-$env:DOTNET_MULTILEVEL_LOOKUP='0'
-$env:UseSharedCompilation='false'
+# Add scripts and current directory to PYTHONPATH
+$scripts = Join-Path $PSScriptRoot '..\..\scripts' -Resolve
+$env:PYTHONPATH="$scripts;$PSScriptRoot"
 
-
-
+# Parse arguments
+If (($Channel -ne "") -and ($DotnetDirectory -ne "")) {
+    Print-Usage
+}
+ElseIf ($DotnetDirectory -ne ""){
+    Setup-Env -directory $DotnetDirectory
+}
+ElseIf ($Channel -ne "") {
+    $DotnetDirectory = Join-Path $PSScriptRoot '..\..\tools\dotnet\x64'
+    Setup-Env -directory $DotnetDirectory
+    Download-Dotnet -channel $Channel
+}
