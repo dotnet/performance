@@ -42,7 +42,7 @@ ElseIf ($DotnetDirectory -ne ""){
     Setup-Env -directory $DotnetDirectory
 }
 ElseIf ($Channel -ne "") {
+    Download-Dotnet -channel $Channel
     $DotnetDirectory = Join-Path $PSScriptRoot '..\..\tools\dotnet\x64'
     Setup-Env -directory $DotnetDirectory
-    Download-Dotnet -channel $Channel
 }
