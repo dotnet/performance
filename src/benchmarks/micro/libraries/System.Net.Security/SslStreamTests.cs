@@ -86,15 +86,15 @@ namespace System.Net.Security.Tests
         }
 
         [Benchmark]
-        public Task DefaultHandshakeIPv4Async() => defaultHandshake(_clientIPv4, _serverIPv4);
+        public Task DefaultHandshakeIPv4Async() => DefaultHandshake(_clientIPv4, _serverIPv4);
 
         [Benchmark]
-        public Task DefaultHandshakeIPv6Async() => defaultHandshake(_clientIPv6, _serverIPv6);
+        public Task DefaultHandshakeIPv6Async() => DefaultHandshake(_clientIPv6, _serverIPv6);
 
         [Benchmark]
-        public Task DefaultHandshakePipeAsync() => defaultHandshake(_clientPipe, _serverPipe);
+        public Task DefaultHandshakePipeAsync() => DefaultHandshake(_clientPipe, _serverPipe);
 
-        private async Task defaultHandshake(Stream client, Stream server)
+        private async Task DefaultHandshake(Stream client, Stream server)
         {
             using (var sslClient = new SslStream(client, leaveInnerStreamOpen: true, delegate { return true; }))
             using (var sslServer = new SslStream(server, leaveInnerStreamOpen: true, delegate { return true; }))
