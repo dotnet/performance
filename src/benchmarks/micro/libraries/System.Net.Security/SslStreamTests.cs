@@ -102,8 +102,8 @@ namespace System.Net.Security.Tests
                 await Task.WhenAll(
                     sslClient.AuthenticateAsClientAsync("localhost", null, SslProtocols.None, checkCertificateRevocation: false),
                     sslServer.AuthenticateAsServerAsync(_cert, clientCertificateRequired: false, SslProtocols.None, checkCertificateRevocation: false));
-
-                if (sslClient.SslProtocol == SslProtocols.Tls13)
+                // SslProtocols.Tls13 does not exist in netstandard2.0
+                if ((int)sslClient.SslProtocol > (int)SslProtocols.Tls12)
                 {
                     // In Tls1.3 part of handshake happens with data exchange.
                     await sslServer.WriteAsync(_serverBuffer, default);
