@@ -3,9 +3,11 @@
    See the LICENSE file in the project root for more information. */
 
 
+#define ACCEPTABLE_MEMORY_DELTA_PCT 5
 #define BYTES_IN_KB 1024
 #define BYTES_IN_MB (1024 * 1024)
 #define BYTES_IN_GB (1024 * 1024 * 1024)
+#define MEMORY_LOAD_NUM_ATTEMPTS 5
 
 
 static BOOL streq(const char* a, const char* b)
@@ -23,6 +25,11 @@ static size_t kb_to_bytes(double kb)
 {
     assert(kb >= 0 && kb <= 10000000);
     return (size_t) (kb * 1024.0);
+}
+
+double bytes_to_kb(const size_t bytes)
+{
+    return ((double) bytes) / BYTES_IN_KB;
 }
 
 double bytes_to_mb(const size_t bytes)
