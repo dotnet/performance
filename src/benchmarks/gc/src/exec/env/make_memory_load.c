@@ -276,7 +276,7 @@ static AdjustKind adjust(Mem* mem, int iteration_num)
     if (to_allocate != 0 && iteration_num == MEMORY_LOAD_NUM_ATTEMPTS)
     {
         double acc_mem_delta =   ((double) mem->desired_available_bytes)
-                               * ((double) ACCEPTABLE_MEMORY_DELTA_PCT / 100);
+                               * ((double) ACCEPTABLE_MEMORY_DELTA_PCT / 100.0);
         double current_delta = fabs(
             ((double) current_available_bytes) - ((double) mem->desired_available_bytes)
         );
@@ -324,9 +324,6 @@ static AdjustKind adjust(Mem* mem, int iteration_num)
             mem->total_memory_committed += size;
         }
 
-#if VERBOSE
-        printf("Current Memory Load Percentage: %.4f%%\n\n", *memory_load_pct);
-#endif
         return adjust_kind_was_too_low;
     }
     else if (to_allocate < 0)
@@ -356,10 +353,6 @@ static AdjustKind adjust(Mem* mem, int iteration_num)
 
             mem->total_memory_committed = new_total_memory_committed;
             mem->total_memory_reset += size;
-
-#if VERBOSE
-            printf("Current Memory Load Percentage: %.4f%%\n\n", *memory_load_pct);
-#endif
             return size == 0 ? adjust_kind_was_too_high_and_cant_free : adjust_kind_was_too_high;
         }
     }

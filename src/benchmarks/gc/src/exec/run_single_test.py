@@ -371,10 +371,8 @@ def _run_single_test_windows_perfview(
 
     # Start with the memory load
     mem_load = t.config.memory_load
-    # print(f"\nMemory Load: {mem_load}")
     mem_load_process = None
     if mem_load is not None:
-        # print(f"BuiltWinMakeMemLd: {str(built.win.make_memory_load)}")
         print("Setting up memory load...")
         mem_load_args: Sequence[str] = (
             str(built.win.make_memory_load),
