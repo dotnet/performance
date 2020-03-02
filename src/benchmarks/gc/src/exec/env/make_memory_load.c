@@ -93,7 +93,7 @@ static void print_memory_status()
     puts("\n=======================");
     puts("Memory Status Achieved:");
     puts("=======================");
-    printf("Memory load achieved: %d%%\n",
+    printf("Memory Load Achieved: %d%%\n",
            (int) round(100 * get_memory_used_fraction_from_mem(mem)));
     printf("Total Physical Memory: %f GB\n",     bytes_to_gb(mem.total_physical_bytes));
     printf("Available Physical Memory: %f GB\n", bytes_to_gb(mem.available_bytes));

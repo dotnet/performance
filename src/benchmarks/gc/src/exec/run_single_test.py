@@ -373,7 +373,7 @@ def _run_single_test_windows_perfview(
     mem_load = t.config.memory_load
     mem_load_process = None
     if mem_load is not None:
-        print("Setting up memory load...")
+        print("\nSetting up memory load...")
         mem_load_args: Sequence[str] = (
             str(built.win.make_memory_load),
             "-percent",
@@ -393,10 +393,10 @@ def _run_single_test_windows_perfview(
                 f"slight variations in the resulting traces.\n"
             )
         elif (mem_load_msg[0] == "make_memory_load finished starting up"):
-            print(f"Done!")
+            print(f"Done!\n")
         else:
             mem_load_process.kill()
-            assert (False), f"Error in make_memory_load: {mem_load_msg[0]}"
+            assert (False), f"\nError in make_memory_load: {mem_load_msg[0]}\n"
 
     log_file = out.add_ext("perfview-log.txt")
     trace_file = out.add_ext("etl")
