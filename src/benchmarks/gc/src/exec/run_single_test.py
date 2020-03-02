@@ -389,7 +389,11 @@ def _run_single_test_windows_perfview(
         mem_load_msg = decode_stdout(mem_load_process.stderr.readline()).split(',')
 
         if (len(mem_load_msg) == 2 and mem_load_msg[0].startswith("threshold")):
-            print(f"threshold: {mem_load_msg[1]}")
+            print(
+                f"\n*WARNING*: Desired memory load was {mem_load.percent}%, "
+                f"but {mem_load_msg[1]}% was achieved. There might be some "
+                f"slight variations in the resulting traces.\n"
+            )
         elif (mem_load_msg[0] == "make_memory_load finished starting up"):
             print(f"Done!")
         else:

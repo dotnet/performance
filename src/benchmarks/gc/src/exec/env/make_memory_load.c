@@ -403,6 +403,8 @@ int main(const int argc, char** argv)
         if (ak == adjust_kind_no_adjust)
         {
             // No need to adjust as we got the memory load we required.
+            // Do NOT change this message, as run_single_test.py is expecting it
+            // to know everything went fine here.
             fprintf(stderr, "make_memory_load finished starting up\n");
             break;
         }
@@ -414,7 +416,7 @@ int main(const int argc, char** argv)
             // which is later parsed by run_single_test.py.
             fprintf(
                 stderr,
-                "threshold memory achieved, %.5f\n",
+                "threshold memory achieved,%.5f\n",
                 get_memory_used_fraction_from_mem(get_memory_status()) * 100.0
             );
             break;
