@@ -19,7 +19,7 @@ namespace System.MathBenchmarks
 
         public static void MaxTest()
         {
-            var result = 0.0f; var val1 = -1.0f; var val2 = -1.0f - maxDelta;
+            float result = 0.0f, val1 = -1.0f, val2 = -1.0f - maxDelta;
 
             for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {

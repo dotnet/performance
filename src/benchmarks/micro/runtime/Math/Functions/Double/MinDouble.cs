@@ -19,7 +19,7 @@ namespace System.MathBenchmarks
 
         public static void MinTest()
         {
-            var result = 0.0; var val1 = 1.0; var val2 = 1.0 + minDelta;
+            double result = 0.0, val1 = 1.0, val2 = 1.0 + minDelta;
 
             for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
