@@ -37,5 +37,4 @@ namespace System.MathBenchmarks
             }
         }
     }
-
 }
