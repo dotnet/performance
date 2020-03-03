@@ -19,15 +19,15 @@ namespace System.MathBenchmarks
 
         public static void AcoshTest()
         {
-            var result = 0.0f; var value = 1.0f;
+            float result = 0.0f, value = 1.0f;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 result += MathF.Acosh(value);
                 value += acoshDelta;
             }
 
-            var diff = MathF.Abs(acoshExpectedResult - result);
+            float diff = MathF.Abs(acoshExpectedResult - result);
 
             if (float.IsNaN(result) || (diff > MathTests.SingleEpsilon))
             {

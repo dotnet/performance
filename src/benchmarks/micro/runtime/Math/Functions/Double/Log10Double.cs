@@ -22,15 +22,15 @@ namespace System.MathBenchmarks
 
         public static void Log10Test()
         {
-            var result = 0.0; var value = 0.0;
+            double result = 0.0, value = 0.0;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 value += log10Delta;
                 result += Math.Log10(value);
             }
 
-            var diff = Math.Abs(log10ExpectedResult - result);
+            double diff = Math.Abs(log10ExpectedResult - result);
 
             if (diff > MathTests.DoubleEpsilon)
             {

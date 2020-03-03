@@ -20,15 +20,15 @@ namespace System.MathBenchmarks
 
         public static void SinTest()
         {
-            var result = 0.0; var value = -1.5707963267948966;
+            double result = 0.0, value = -1.5707963267948966;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 value += sinDelta;
                 result += Math.Sin(value);
             }
 
-            var diff = Math.Abs(sinExpectedResult - result);
+            double diff = Math.Abs(sinExpectedResult - result);
 
             if (diff > MathTests.DoubleEpsilon)
             {

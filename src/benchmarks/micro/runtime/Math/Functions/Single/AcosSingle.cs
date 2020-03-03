@@ -19,15 +19,15 @@ namespace System.MathBenchmarks
 
         public static void AcosTest()
         {
-            var result = 0.0f; var value = -1.0f;
+            float result = 0.0f, value = -1.0f;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 value += acosDelta;
                 result += MathF.Acos(value);
             }
 
-            var diff = MathF.Abs(acosExpectedResult - result);
+            float diff = MathF.Abs(acosExpectedResult - result);
 
             if (diff > MathTests.SingleEpsilon)
             {

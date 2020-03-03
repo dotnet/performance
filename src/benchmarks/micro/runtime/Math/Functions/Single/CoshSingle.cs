@@ -20,15 +20,15 @@ namespace System.MathBenchmarks
 
         public static void CoshTest()
         {
-            var result = 0.0f; var value = -1.0f;
+            float result = 0.0f, value = -1.0f;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 value += coshDelta;
                 result += MathF.Cosh(value);
             }
 
-            var diff = MathF.Abs(coshExpectedResult - result);
+            float diff = MathF.Abs(coshExpectedResult - result);
 
             if (diff > MathTests.SingleEpsilon)
             {

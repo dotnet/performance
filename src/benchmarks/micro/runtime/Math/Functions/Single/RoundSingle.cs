@@ -19,15 +19,15 @@ namespace System.MathBenchmarks
 
         public static void RoundTest()
         {
-            var result = 0.0f; var value = -1.57079633f;
+            float result = 0.0f, value = -1.57079633f;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 value += roundDelta;
                 result += MathF.Round(value);
             }
 
-            var diff = MathF.Abs(roundExpectedResult - result);
+            float diff = MathF.Abs(roundExpectedResult - result);
 
             if (diff > MathTests.SingleEpsilon)
             {

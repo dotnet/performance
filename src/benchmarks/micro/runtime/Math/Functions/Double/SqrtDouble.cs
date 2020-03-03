@@ -19,15 +19,15 @@ namespace System.MathBenchmarks
 
         public static void SqrtTest()
         {
-            var result = 0.0; var value = 0.0;
+            double result = 0.0, value = 0.0;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 value += sqrtDelta;
                 result += Math.Sqrt(value);
             }
 
-            var diff = Math.Abs(sqrtExpectedResult - result);
+            double diff = Math.Abs(sqrtExpectedResult - result);
 
             if (diff > MathTests.DoubleEpsilon)
             {
