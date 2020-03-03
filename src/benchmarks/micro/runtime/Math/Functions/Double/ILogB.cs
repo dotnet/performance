@@ -19,7 +19,8 @@ namespace System.MathBenchmarks
 
         public static void ILogBTest()
         {
-            int result = 0, value = 1.0;
+            int result = 0;
+            double value = 1.0;
 
             for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
