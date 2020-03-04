@@ -12,7 +12,7 @@ To learn more about designing benchmarks, please read [Microbenchmark Design Gui
 
 ## Quick Start
 
-The first thing that you need to choose is the Target Framework. Available options are: `netcoreapp2.1|netcoreapp3.0|netcoreapp3.1|netcoreapp5.0|net461`. You can specify the target framework using `-f|--framework` argument. For the sake of simplicity, all examples below use `netcoreapp5.0` as the target framework.
+The first thing that you need to choose is the Target Framework. Available options are: `netcoreapp2.1|netcoreapp3.1|netcoreapp5.0|net461`. You can specify the target framework using `-f|--framework` argument. For the sake of simplicity, all examples below use `netcoreapp5.0` as the target framework.
 
 The following commands are run from the `src/benchmarks/micro` directory.
 
@@ -51,14 +51,14 @@ dotnet run -c Release -f netcoreapp3.1 --filter * --runtimes netcoreapp3.1 netco
 If you contribute to [dotnet/runtime](https://github.com/dotnet/runtime) and want to benchmark **local builds of .NET Core** you need to build [dotnet/runtime](https://github.com/dotnet/runtime) in Release (including tests) and then provide the path(s) to CoreRun(s). Provided CoreRun(s) will be used to execute every benchmark in a dedicated process:
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 --filter $YourFilter \
+dotnet run -c Release -f netcoreapp3.1 --filter $YourFilter \
     --corerun C:\Projects\runtime\artifacts\bin\testhost\netcoreapp5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe
 ```
 
 To make sure that your changes don't introduce any regressions, you can provide paths to CoreRuns with and without your changes and use the Statistical Test feature to detect regressions/improvements ([read more](../../../docs/benchmarkdotnet.md#Regressions)):
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 \
+dotnet run -c Release -f netcoreapp3.1 \
     --filter BenchmarksGame* \
     --statisticalTest 3ms \
     --coreRun \
