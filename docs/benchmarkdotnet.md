@@ -59,7 +59,7 @@ In order to build or run the benchmarks you will need the **.NET Core command-li
 
 ### Using .NET Cli
 
-To build the benchmarks you need to have the right `dotnet cli`. This repository allows to benchmark .NET Core 2.1, 3.0, 3.1 and 5.0 so you need to install all of them.
+To build the benchmarks you need to have the right `dotnet cli`. This repository allows to benchmark .NET Core 2.1, 3.1 and 5.0 so you need to install all of them.
 
 All you need to do is run the following command:
 
@@ -70,7 +70,7 @@ dotnet build -c Release
 If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) file.
 
 ```diff
--<TargetFrameworks>netcoreapp2.1;netcoreapp3.0;netcoreapp3.1;netcoreapp5.0</TargetFrameworks>
+-<TargetFrameworks>netcoreapp2.1;netcoreapp3.1;netcoreapp5.0</TargetFrameworks>
 +<TargetFrameworks>netcoreapp5.0</TargetFrameworks>
 ```
 
@@ -81,7 +81,7 @@ The alternative is to set `PERFLAB_TARGET_FRAMEWORKS` environment variable to se
 If you don't want to install `dotnet cli` manually, we have a Python 3 script which can do that for you. All you need to do is to provide the frameworks:
 
 ```cmd
-py .\scripts\benchmarks_ci.py --frameworks netcoreapp3.0
+py .\scripts\benchmarks_ci.py --frameworks netcoreapp3.1
 ```
 
 ## Running the Benchmarks
@@ -91,7 +91,7 @@ py .\scripts\benchmarks_ci.py --frameworks netcoreapp3.0
 To run the benchmarks in interactive mode you have to execute `dotnet run -c Release -f $targetFrameworkMoniker` in the folder with benchmarks project.
 
 ```cmd
-C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f netcoreapp3.0
+C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f netcoreapp3.1
 Available Benchmarks:
   #0   Burgers
   #1   ByteMark
@@ -122,31 +122,31 @@ The glob patterns are applied to full benchmark name: namespace.typeName.methodN
 - Run all the benchmarks from BenchmarksGame namespace:
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 --filter BenchmarksGame*
+dotnet run -c Release -f netcoreapp3.1 --filter BenchmarksGame*
 ```
 
 - Run all the benchmarks with type name Richards:
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 --filter *.Richards.*
+dotnet run -c Release -f netcoreapp3.1 --filter *.Richards.*
 ```
 
 - Run all the benchmarks with method name ToStream:
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 --filter *.ToStream
+dotnet run -c Release -f netcoreapp3.1 --filter *.ToStream
 ```
 
 - Run ALL benchmarks:
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 --filter *
+dotnet run -c Release -f netcoreapp3.1 --filter *
 ```
 
 - You can provide many filters (logical disjunction):
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 --filter System.Collections*.Dictionary* *.Perf_Dictionary.*
+dotnet run -c Release -f netcoreapp3.1 --filter System.Collections*.Dictionary* *.Perf_Dictionary.*
 ```
 
 - To print a **joined summary** for all of the benchmarks (by default printed per type), use `--join`:
@@ -329,7 +329,7 @@ Please use this option only when you are sure that the benchmarks you want to ru
 It's possible to benchmark private builds of [dotnet/runtime](https://github.com/dotnet/runtime) using CoreRun.
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 --coreRun $thePath
+dotnet run -c Release -f netcoreapp3.1 --coreRun $thePath
 ```
 
 **Note:** You can provide more than 1 path to CoreRun. In such case, the first path will be the baseline and all the benchmarks are going to be executed for all CoreRuns you have specified.
@@ -355,7 +355,7 @@ public void PrintInfo()
 You can also use any dotnet cli to build and run the benchmarks.
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 --cli "C:\Projects\performance\.dotnet\dotnet.exe"
+dotnet run -c Release -f netcoreapp3.1 --cli "C:\Projects\performance\.dotnet\dotnet.exe"
 ```
 
 This is very useful when you want to compare different builds of .NET Core SDK.
