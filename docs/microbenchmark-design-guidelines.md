@@ -588,4 +588,4 @@ var x = 1.0f; var y = 2.9; // x is float, y is double (missing f)
 var result = Math.Max(x, y); // we use double overload because float has implicit cast to double
 ```
 
-It's our responsibility to ensure that the benchmarks do exactly what we want. This is why using explicit types over `var` is preffered.
+It's our responsibility to ensure that the benchmarks do exactly what we want. This is why using explicit types over `var` is preferred.
