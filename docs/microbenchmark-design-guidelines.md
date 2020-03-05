@@ -37,6 +37,7 @@
   - [Dead Code Elimination](#Dead-Code-Elimination)
   - [Loops](#Loops)
   - [Method inlining](#Method-Inlining)
+  - [Be explicit](#Be-explicit)
 
 ## Mindset
 
@@ -562,3 +563,29 @@ By relying on the BDN mechanism you are going to avoid loop alignment issues. Be
 BenchmarkDotNet prevents from inlining the benchmarked method by wrapping it into a delegate (delegates can not be inlined as of today). The cost of delegate invocation is excluded by a separate run for Overhead calculation.
 
 The benchmark methods don't need to have `[MethodImpl(MethodImplOptions.NoInlining)]` attribute applied.
+
+### Be explicit
+
+C# language features like implicit casting and `var` allow us to introduce invisible side effects to the benchmarks.
+
+Sometimes it's just about introducing a small overhead of an implicit cast. In the following example, we cast `Span<byte>` to `ReadOnlySpan<byte>`.
+
+```cs
+private byte[] byteArray = new byte[8];
+
+[Benchmark]
+public bool TryParseBoolean()
+{
+    var bytes = byteArray.AsSpan(); // bytes is Span<byte>
+    return Utf8Parser.TryParse(bytes, out bool value, out int bytesConsumed); // TryParse expects ReadOnlySpan<byte>, we introduced implicit cast
+}
+```
+
+In extreme cases, we might be measuring the performance of a wrong method. In the following example, we measure the performance of `Math.Max` overload that accepts doubles, not floats (this is what we wanted).
+
+```cs
+var x = 1.0f; var y = 2.9; // x is float, y is double (missing f)
+var result = Math.Max(x, y); // we use double overload because float has implicit cast to double
+```
+
+It's our responsibility to ensure that the benchmarks do exactly what we want. This is why using explicit types over `var` is preferred.
