@@ -19,15 +19,15 @@ namespace System.MathBenchmarks
 
         public static void AtanhTest()
         {
-            var result = 0.0f; var value = -1.0f;
+            float result = 0.0f, value = -1.0f;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 result += MathF.Atanh(value);
                 value += atanhDelta;
             }
 
-            var diff = MathF.Abs(atanhExpectedResult - result);
+            float diff = MathF.Abs(atanhExpectedResult - result);
 
             if (float.IsNaN(result) || (diff > MathTests.SingleEpsilon))
             {

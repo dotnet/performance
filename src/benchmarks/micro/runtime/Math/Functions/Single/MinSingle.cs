@@ -21,13 +21,13 @@ namespace System.MathBenchmarks
         {
             float result = 0.0f, val1 = 1.0f, val2 = 1.0f + minDelta;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 val2 -= minDelta;
                 result += Math.Min(val1, val2);
             }
 
-            var diff = Math.Abs(minExpectedResult - result);
+            float diff = Math.Abs(minExpectedResult - result);
 
             if (diff > MathTests.SingleEpsilon)
             {

@@ -19,15 +19,15 @@ namespace System.MathBenchmarks
 
         public static void AsinhTest()
         {
-            var result = 0.0; var value = -1.0;
+            double result = 0.0, value = -1.0;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 result += Math.Asinh(value);
                 value += asinhDelta;
             }
 
-            var diff = Math.Abs(asinhExpectedResult - result);
+            double diff = Math.Abs(asinhExpectedResult - result);
 
             if (double.IsNaN(result) || (diff > MathTests.DoubleEpsilon))
             {

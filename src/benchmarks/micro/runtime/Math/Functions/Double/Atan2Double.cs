@@ -20,15 +20,15 @@ namespace System.MathBenchmarks
 
         public static void Atan2Test()
         {
-            var result = 0.0; var valueX = 1.0; var valueY = -1.0;
+            double result = 0.0, valueX = 1.0, valueY = -1.0;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 valueX += atan2DeltaX; valueY += atan2DeltaY;
                 result += Math.Atan2(valueY, valueX);
             }
 
-            var diff = Math.Abs(atan2ExpectedResult - result);
+            double diff = Math.Abs(atan2ExpectedResult - result);
 
             if (diff > MathTests.DoubleEpsilon)
             {

@@ -19,15 +19,15 @@ namespace System.MathBenchmarks
 
         public static void AsinTest()
         {
-            var result = 0.0; var value = -1.0;
+            double result = 0.0, value = -1.0;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 value += asinDelta;
                 result += Math.Asin(value);
             }
 
-            var diff = Math.Abs(asinExpectedResult - result);
+            double diff = Math.Abs(asinExpectedResult - result);
 
             if (diff > MathTests.DoubleEpsilon)
             {
