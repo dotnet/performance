@@ -106,8 +106,6 @@ typedef struct Args
     bool no_readjust;
 } Args;
 
-// TODO: Add Verbose/Debug option to show all the stats while running without
-// having to uncomment source code here.
 const char* USAGE = "Usage: make_memory_load.exe -percent 50 [-neverRelease] [-noReadjust]\n";
 
 static int parse_args(Args* args, const int argc, char** argv)
