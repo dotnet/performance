@@ -256,9 +256,28 @@ static AdjustKind adjust(Mem* mem, int iteration_num)
     assert(is_multiple(mem->total_memory_reset, mem->allocation_granularity));
     assert(is_multiple(mem->total_memory, mem->allocation_granularity));
 
-    const size_t current_available_bytes = get_current_available_bytes();
+    const double current_memload_fraction = get_memory_used_fraction_from_mem(get_memory_status());
+    const double current_memload_delta = fabs(mem->args.desired_mem_usage_fraction - current_memload_fraction);
 
-    const ptrdiff_t to_allocate = round_to_nearest((ptrdiff_t) current_available_bytes - (ptrdiff_t) mem->desired_available_bytes, mem->allocation_granularity);
+#if VERBOSE
+    printf("\nCurrent Memory Load: %.4f%%\n", current_memload_fraction * 100.0);
+    printf("Desired Memory Load: %.4f%%\n", mem->args.desired_mem_usage_fraction * 100.0);
+#endif
+
+    // If our current memory load is less than 0.01% different from the desired
+    // one, we can consider it good enough to start/continue running our tests
+    // and get accurate traces. There's no need to further adjust the memory
+    // load at this point.
+    if (current_memload_delta < 0.0001)
+    {
+        return adjust_kind_no_adjust;
+    }
+
+    const size_t current_available_bytes = get_current_available_bytes();
+    const ptrdiff_t to_allocate = round_to_nearest(
+        (ptrdiff_t) current_available_bytes - (ptrdiff_t) mem->desired_available_bytes,
+        mem->allocation_granularity
+    );
 
 #if VERBOSE
     printf("Current Available Memory: %.2f MB\n", bytes_to_mb(current_available_bytes));
@@ -273,19 +292,20 @@ static AdjustKind adjust(Mem* mem, int iteration_num)
     // memory, and is defined in util.h inside the current directory.
     if (to_allocate != 0 && iteration_num == MEMORY_LOAD_NUM_ATTEMPTS)
     {
+#if VERBOSE
         double acc_mem_delta =   ((double) mem->desired_available_bytes)
                                * ((double) ACCEPTABLE_MEMORY_DELTA_PCT / 100.0);
         double current_delta = fabs(
             ((double) current_available_bytes) - ((double) mem->desired_available_bytes)
         );
-
-#if VERBOSE
         printf("Acceptable Memory Delta: %.2f MB\n", bytes_to_mb(acc_mem_delta));
         printf("Current Memory Delta: %.2f MB\n",  bytes_to_mb(current_delta));
 #endif
 
-        if (current_delta < acc_mem_delta)
+        if ((current_memload_delta * 100.0) < ACCEPTABLE_MEMORY_DELTA_PCT)
+        {
             return adjust_kind_within_threshold;
+        }
     }
 
     if (to_allocate > 0)
