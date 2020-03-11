@@ -20,15 +20,15 @@ namespace System.MathBenchmarks
 
         public static void CosTest()
         {
-            var result = 0.0f; var value = 0.0f;
+            float result = 0.0f, value = 0.0f;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 value += cosDelta;
                 result += MathF.Cos(value);
             }
 
-            var diff = MathF.Abs(cosExpectedResult - result);
+            float diff = MathF.Abs(cosExpectedResult - result);
 
             if (diff > MathTests.SingleEpsilon)
             {

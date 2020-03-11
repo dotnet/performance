@@ -643,7 +643,7 @@ namespace ProfilingDocs
 **Note:** You can just build the repro app on your Windows dev machine and copy the output app to your Linux VM using `scp`.
 
 ```cmd
-scp -r "C:\Users\adsitnik\source\repos\ProfilingDocs\ProfilingDocs\bin\Release\netcoreapp3.0\ProfilingDocs.dll" adsitnik@11.222.33.444:/home/adsitnik/Projects/coreclr/bin/tests/Linux.x64.Release/Tests/Core_Root/ProfilingDocs.dll
+scp -r "C:\Users\adsitnik\source\repos\ProfilingDocs\ProfilingDocs\bin\Release\netcoreapp3.1\ProfilingDocs.dll" adsitnik@11.222.33.444:/home/adsitnik/Projects/coreclr/bin/tests/Linux.x64.Release/Tests/Core_Root/ProfilingDocs.dll
 ```
 
 ## Collecting a Trace

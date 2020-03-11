@@ -19,9 +19,10 @@ namespace System.MathBenchmarks
 
         public static void ILogBTest()
         {
-            var result = 0; var value = 1.0f;
+            int result = 0;
+            float value = 1.0f;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 result += MathF.ILogB(value);
                 value += iLogBDelta;

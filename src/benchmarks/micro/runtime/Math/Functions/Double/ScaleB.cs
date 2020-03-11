@@ -20,15 +20,16 @@ namespace System.MathBenchmarks
 
         public static void ScaleBTest()
         {
-            var result = 0.0; var valueX = -1.0; var valueY = 1;
+            double result = 0.0, valueX = -1.0;
+            int valueY = 1;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 result += Math.ScaleB(valueX, valueY);
                 valueX += scaleBDeltaX; valueY += scaleBDeltaY;
             }
 
-            var diff = Math.Abs(scaleBExpectedResult - result);
+            double diff = Math.Abs(scaleBExpectedResult - result);
 
             if (double.IsNaN(result) || (diff > MathTests.DoubleEpsilon))
             {

@@ -19,15 +19,15 @@ namespace System.MathBenchmarks
 
         public static void Log2Test()
         {
-            var result = 0.0f; var value = 1.0f;
+            float result = 0.0f, value = 1.0f;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 result += MathF.Log2(value);
                 value += log2Delta;
             }
 
-            var diff = MathF.Abs(log2ExpectedResult - result);
+            float diff = MathF.Abs(log2ExpectedResult - result);
 
             if (float.IsNaN(result) || (diff > MathTests.SingleEpsilon))
             {

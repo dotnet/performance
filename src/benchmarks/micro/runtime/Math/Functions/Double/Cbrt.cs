@@ -19,15 +19,15 @@ namespace System.MathBenchmarks
 
         public static void CbrtTest()
         {
-            var result = 0.0; var value = 0.0;
+            double result = 0.0, value = 0.0;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 result += Math.Cbrt(value);
                 value += cbrtDelta;
             }
 
-            var diff = Math.Abs(cbrtExpectedResult - result);
+            double diff = Math.Abs(cbrtExpectedResult - result);
 
             if (double.IsNaN(result) || (diff > MathTests.DoubleEpsilon))
             {

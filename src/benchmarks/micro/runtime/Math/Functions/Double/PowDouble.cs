@@ -21,15 +21,15 @@ namespace System.MathBenchmarks
 
         public static void PowTest()
         {
-            var result = 0.0; var valueX = 2.0; var valueY = -2.0;
+            double result = 0.0, valueX = 2.0, valueY = -2.0;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 valueX += powDeltaX; valueY += powDeltaY;
                 result += Math.Pow(valueX, valueY);
             }
 
-            var diff = Math.Abs(powExpectedResult - result);
+            double diff = Math.Abs(powExpectedResult - result);
 
             if (diff > MathTests.DoubleEpsilon)
             {

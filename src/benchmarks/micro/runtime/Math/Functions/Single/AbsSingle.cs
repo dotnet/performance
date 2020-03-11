@@ -21,15 +21,15 @@ namespace System.MathBenchmarks
 
         public static void AbsTest()
         {
-            var result = 0.0f; var value = -1.0f;
+            float result = 0.0f, value = -1.0f;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 value += absDelta;
                 result += Math.Abs(value);
             }
 
-            var diff = Math.Abs(absExpectedResult - result);
+            float diff = Math.Abs(absExpectedResult - result);
 
             if (diff > MathTests.SingleEpsilon)
             {

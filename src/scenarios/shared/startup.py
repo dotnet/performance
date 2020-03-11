@@ -7,18 +7,21 @@ import platform
 from shutil import copytree
 from performance.logger import setup_loggers
 from performance.common import get_artifacts_directory, get_packages_directory, RunCommand
-from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR
+from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from dotnet import CSharpProject, CSharpProjFile
-from shared.util import helixpayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier
+from shared.util import helixpayload, helixworkitempayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier
 from shared.const import *
 class StartupWrapper(object):
     '''
     Wraps startup.exe, building it if necessary.
     '''
     def __init__(self):
-        payload = helixpayload()
-        if payload:
-            self._setstartuppath(os.path.join(payload, 'Startup'))
+        payload_startup = os.path.join(helixpayload(), 'Startup')
+        workitem_startup = os.path.join(helixworkitempayload(), 'Startup')
+        if os.path.exists(payload_startup):
+            self._setstartuppath(payload_startup)
+        elif os.path.exists(workitem_startup):
+            self._setstartuppath(workitem_startup)
         else:
             relpath = os.path.join(get_artifacts_directory(), 'startup')
             startupproj = os.path.join('..',
@@ -97,4 +100,4 @@ class StartupWrapper(object):
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
             if uploadtokenpresent():
                 import upload
-                upload.upload(reportjson, UPLOAD_CONTAINER, None, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+                upload.upload(reportjson, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)

@@ -19,15 +19,15 @@ namespace System.MathBenchmarks
 
         public static void FloorTest()
         {
-            var result = 0.0; var value = -1.0;
+            double result = 0.0, value = -1.0;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 value += floorDelta;
                 result += Math.Floor(value);
             }
 
-            var diff = Math.Abs(floorExpectedResult - result);
+            double diff = Math.Abs(floorExpectedResult - result);
 
             if (diff > MathTests.DoubleEpsilon)
             {

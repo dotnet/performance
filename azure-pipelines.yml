@@ -106,7 +106,6 @@ jobs:
       channels:
         - master
         - release/3.1.2xx
-        - 3.0
         - 2.1
 
   # Windows x64 net461 micro benchmarks
@@ -148,7 +147,7 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
-      channels: # for ML.NET jobs we want to check .NET Core 3.0 and 5.0 only
+      channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
         - master
         - release/3.1.2xx
 
@@ -163,7 +162,7 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
-      channels: # for Roslyn jobs we want to check .NET Core 3.0 and 5.0 only
+      channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
         - master
         - release/3.1.2xx
         
@@ -182,7 +181,6 @@ jobs:
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - master
         - release/3.1.2xx
-        - 3.0
         - 2.1
 
   # Ubuntu 1804 x64 ML.NET benchmarks
@@ -197,7 +195,7 @@ jobs:
       container: ubuntu_x64_build_container
       runCategories: 'mldotnet'
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
-      channels: # for ML.NET jobs we want to check .NET Core 3.0 and 5.0 only
+      channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
         - master
         - release/3.1.2xx
 
@@ -213,7 +211,7 @@ jobs:
       container: ubuntu_x64_build_container
       runCategories: 'roslyn'
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
-      channels: # for Roslyn jobs we want to check .NET Core 3.0 and 5.0 only
+      channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
         - master
         - release/3.1.2xx
 
@@ -248,7 +246,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
-      channels: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
         - master
         - release/3.1.2xx
       
@@ -263,7 +261,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
-      channels: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
         - master
         - release/3.1.2xx
 
@@ -278,7 +276,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
-      channels: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
         - master
         - release/3.1.2xx
 
@@ -293,7 +291,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
-      channels: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
         - master
         - release/3.1.2xx
 
@@ -309,7 +307,7 @@ jobs:
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
-      channels: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
         - master
         - release/3.1.2xx
 
@@ -325,7 +323,7 @@ jobs:
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
-      channels: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
         - master
         - release/3.1.2xx
   
@@ -341,7 +339,7 @@ jobs:
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       runCategories: 'roslyn'
-      channels: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
         - master
         - release/3.1.2xx
 

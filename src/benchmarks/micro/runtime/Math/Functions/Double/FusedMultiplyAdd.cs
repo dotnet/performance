@@ -21,15 +21,15 @@ namespace System.MathBenchmarks
 
         public static void FusedMultiplyAddTest()
         {
-            var result = 0.0; var valueX = 2.0; var valueY = -2.0; var valueZ = 1.0;
+            double result = 0.0, valueX = 2.0, valueY = -2.0, valueZ = 1.0;
 
-            for (var iteration = 0; iteration < MathTests.Iterations; iteration++)
+            for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
                 result += Math.FusedMultiplyAdd(valueX, valueY, valueZ);
                 valueX += fusedMultiplyAddDeltaX; valueY += fusedMultiplyAddDeltaY; valueZ += fusedMultiplyAddDeltaZ;
             }
 
-            var diff = Math.Abs(fusedMultiplyAddExpectedResult - result);
+            double diff = Math.Abs(fusedMultiplyAddExpectedResult - result);
 
             if (double.IsNaN(result) || (diff > MathTests.DoubleEpsilon))
             {

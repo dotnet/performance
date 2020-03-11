@@ -51,6 +51,10 @@ namespace MicroBenchmarks.Serializers
                 return (T)(object)new ArrayList(ValuesGenerator.ArrayOfUniqueValues<string>(100));
             if (typeof(T) == typeof(Hashtable))
                 return (T)(object)new Hashtable(ValuesGenerator.ArrayOfUniqueValues<string>(100).ToDictionary(value => value));
+            if (typeof(T) == typeof(LargeStructWithProperties))
+                return (T)(object)CreateLargeStructWithProperties();
+            if (typeof(T) == typeof(int))
+                return (T)(object)42;
             if (typeof(T) == typeof(SimpleStructWithProperties_Immutable))
                 return (T)(object)new SimpleStructWithProperties_Immutable(num: 1, text: "Foo");
             if (typeof(T) == typeof(SimpleStructWithProperties_1Arg))
@@ -135,6 +139,16 @@ namespace MicroBenchmarks.Serializers
                         StartDate = DateTime.UtcNow
                     },
                     count: 20).ToList()
+            };
+
+        private static LargeStructWithProperties CreateLargeStructWithProperties()
+            => new LargeStructWithProperties
+            {
+                String1 = "1",
+                String2 = "2",
+                String3 = "3",
+                String4 = "4",
+                String5 = "5",
             };
 
         private static MyEventsListerViewModel CreateMyEventsListerViewModel()
@@ -544,6 +558,23 @@ namespace MicroBenchmarks.Serializers
         [ProtoMember(3)] [Key(2)] public Dictionary<int, string> Dictionary { get; set; }
 
         [ProtoMember(4)] [Key(3)] public List<int> ListOfInt { get; set; }
+    }
+
+    [Serializable]
+    [ProtoContract]
+    [MessagePackObject]
+    public struct LargeStructWithProperties
+    {
+        [ProtoMember(1)] [Key(0)] public string String1 { get; set; }
+        [ProtoMember(2)] [Key(1)] public string String2 { get; set; }
+        [ProtoMember(3)] [Key(2)] public string String3 { get; set; }
+        [ProtoMember(4)] [Key(3)] public string String4 { get; set; }
+        [ProtoMember(5)] [Key(4)] public string String5 { get; set; }
+        [ProtoMember(6)] [Key(5)] public int Int1 { get; set; }
+        [ProtoMember(7)] [Key(6)] public int Int2 { get; set; }
+        [ProtoMember(8)] [Key(7)] public int Int3 { get; set; }
+        [ProtoMember(9)] [Key(8)] public int Int4 { get; set; }
+        [ProtoMember(10)] [Key(9)] public int Int5 { get; set; }
     }
 
     public struct SimpleStructWithProperties

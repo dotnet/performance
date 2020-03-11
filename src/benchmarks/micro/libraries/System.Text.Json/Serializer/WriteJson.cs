@@ -24,6 +24,9 @@ namespace System.Text.Json.Serialization.Tests
     [GenericTypeArguments(typeof(HashSet<string>))]
     [GenericTypeArguments(typeof(ArrayList))]
     [GenericTypeArguments(typeof(Hashtable))]
+    [GenericTypeArguments(typeof(SimpleStructWithProperties))]
+    [GenericTypeArguments(typeof(LargeStructWithProperties))]
+    [GenericTypeArguments(typeof(int))]
     public class WriteJson<T>
     {
         private T _value;
