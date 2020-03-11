@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace System.Text.Json.Serialization.Tests
 {
-    //[GenericTypeArguments(typeof(SimpleStructWithProperties), typeof(SimpleStructWithProperties_Immutable), typeof(SimpleStructWithProperties_1Arg))]
+    [GenericTypeArguments(typeof(SimpleStructWithProperties), typeof(SimpleStructWithProperties_Immutable), typeof(SimpleStructWithProperties_1Arg))]
     [GenericTypeArguments(typeof(LoginViewModel), typeof(Parameterized_LoginViewModel_Immutable), typeof(Parameterized_LoginViewModel_2Args))]
     [GenericTypeArguments(typeof(Location), typeof(Parameterized_Location_Immutable), typeof(Parameterized_Location_5Args))]
     [GenericTypeArguments(typeof(IndexViewModel), typeof(Parameterized_IndexViewModel_Immutable), typeof(Parameterized_IndexViewModel_2Args))]
@@ -43,7 +43,7 @@ namespace System.Text.Json.Serialization.Tests
         public TTypeWithParameterizedCtorType2 Deserialize_Parameterized_Mutable() => JsonSerializer.Deserialize<TTypeWithParameterizedCtorType2>(_serialized);
     }
 
-    //[GenericTypeArguments(typeof(SimpleStructWithProperties), typeof(SimpleStructWithProperties_Immutable), typeof(SimpleStructWithProperties_1Arg))]
+    [GenericTypeArguments(typeof(SimpleStructWithProperties), typeof(SimpleStructWithProperties_Immutable), typeof(SimpleStructWithProperties_1Arg))]
     [GenericTypeArguments(typeof(LoginViewModel), typeof(Parameterized_LoginViewModel_Immutable), typeof(Parameterized_LoginViewModel_2Args))]
     [GenericTypeArguments(typeof(Location), typeof(Parameterized_Location_Immutable), typeof(Parameterized_Location_5Args))]
     [GenericTypeArguments(typeof(IndexViewModel), typeof(Parameterized_IndexViewModel_Immutable), typeof(Parameterized_IndexViewModel_2Args))]

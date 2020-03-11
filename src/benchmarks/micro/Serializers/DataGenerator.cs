@@ -590,7 +590,7 @@ namespace MicroBenchmarks.Serializers
         public int Num { get; }
         public string Text { get; }
 
-        //[JsonConstructor]
+        [JsonConstructor]
         public SimpleStructWithProperties_Immutable(int num, string text) => (Num, Text) = (num, text);
     }
 
@@ -599,7 +599,7 @@ namespace MicroBenchmarks.Serializers
         public int Num { get; set; }
         public string Text { get; }
 
-        //[JsonConstructor]
+        [JsonConstructor]
         public SimpleStructWithProperties_1Arg(string text) => (Num, Text) = (0, text);
     }
 
