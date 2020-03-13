@@ -18,4 +18,11 @@
     <ProjectReference Include="..\..\Reporting\Reporting\Reporting.csproj" />
   </ItemGroup>
 
+  <Target Name="DownloadPerfcollect" BeforeTargets="CoreCompile" Condition=" '$(OS)' != 'Windows_NT' ">
+    <PropertyGroup>
+      <PerfcollectUrl>https://aka.ms/perfcollect</PerfcollectUrl>
+    </PropertyGroup>
+    <DownloadFile SourceUrl="$(PerfcollectUrl)" DestinationFolder="$(MSBuildProjectDirectory)"></DownloadFile>
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)" Command="chmod +x perfcollect" />
+  </Target>
 </Project>
