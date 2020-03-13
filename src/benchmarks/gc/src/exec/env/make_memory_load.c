@@ -90,12 +90,13 @@ static size_t get_current_available_bytes()
 static void print_memory_status()
 {
     const Memory mem = get_memory_status();
-    printf(
-        "Memory load is %d%%. Total phys GB is %f, avail phys GB is %f\n",
-        (int) round(100 * get_memory_used_fraction_from_mem(mem)),
-        bytes_to_gb(mem.total_physical_bytes),
-        bytes_to_gb(mem.available_bytes)
-    );
+    puts("\n=======================");
+    puts("Memory Status Achieved:");
+    puts("=======================");
+    printf("Memory Load Achieved: %d%%\n",
+           (int) round(100 * get_memory_used_fraction_from_mem(mem)));
+    printf("Total Physical Memory: %f GB\n",     bytes_to_gb(mem.total_physical_bytes));
+    printf("Available Physical Memory: %f GB\n", bytes_to_gb(mem.available_bytes));
 }
 
 typedef struct Args
@@ -105,7 +106,7 @@ typedef struct Args
     bool no_readjust;
 } Args;
 
-const char* USAGE = "Usage: make_memory_load.exe -percent 50 [-neverRelease]\n";
+const char* USAGE = "Usage: make_memory_load.exe -percent 50 [-neverRelease] [-noReadjust]\n";
 
 static int parse_args(Args* args, const int argc, char** argv)
 {
@@ -171,6 +172,8 @@ typedef struct Mem
     byte* const memory;
 } Mem;
 
+// #define VERBOSE TRUE
+
 static Mem init_mem(const Args args)
 {
     SYSTEM_INFO system_info;
@@ -182,6 +185,18 @@ static Mem init_mem(const Args args)
     const size_t desired_available_bytes = (size_t) round((1.0 - args.desired_mem_usage_fraction) * total_phys_bytes);
 
     const size_t total_memory = round_down_to_nearest(total_phys_bytes, allocation_granularity);
+
+#if VERBOSE
+    puts("\n====================");
+    puts("System Information:");
+    puts("====================");
+    printf("Desired Available Memory: %.2f MB\n", bytes_to_mb(desired_available_bytes));
+    printf("Page Size: %.2f KB\n",                bytes_to_kb(page_size));
+    printf("Allocation Granularity: %.2f KB\n",   bytes_to_kb(allocation_granularity));
+    printf("Allocation Granularity: %zu\n",       allocation_granularity);
+    printf("Total Physical Memory: %.2f MB\n",    bytes_to_mb(total_phys_bytes));
+    printf("Total Memory: %.2f MB\n",             bytes_to_mb(total_memory));
+#endif
 
     LPVOID alloced = VirtualAlloc(NULL, total_memory, MEM_RESERVE, PAGE_READWRITE);
     assert(alloced);
@@ -206,10 +221,9 @@ static void write_to_every_page(byte* start, size_t size, size_t page_size)
     }
 }
 
-//#define VERBOSE TRUE
-
 typedef enum AdjustKind {
     adjust_kind_no_adjust,
+    adjust_kind_within_threshold,
     adjust_kind_was_too_low,
     adjust_kind_was_too_high,
     adjust_kind_was_too_high_and_cant_free,
@@ -220,13 +234,15 @@ const char* adjust_kind_to_string(AdjustKind ak)
     switch (ak)
     {
         case adjust_kind_no_adjust:
-            return "No adjust";
+            return "no adjust";
+        case adjust_kind_within_threshold:
+            return "within threshold";
         case adjust_kind_was_too_low:
-            return "Memory usage was too low";
+            return "too low";
         case adjust_kind_was_too_high:
-            return "Memory usage was too high";
+            return "too high";
         case adjust_kind_was_too_high_and_cant_free:
-            return "Memory usage was too high, and make_memory_load has nothing to free";
+            return "too high, and make_memory_load has nothing to free";
         default:
             assert(0);
             return "<<error>>";
@@ -234,31 +250,76 @@ const char* adjust_kind_to_string(AdjustKind ak)
 }
 
 // Returns true if it did adjust
-static AdjustKind adjust(Mem* mem)
+static AdjustKind adjust(Mem* mem, int iteration_num)
 {
     assert(is_multiple(mem->total_memory_committed, mem->allocation_granularity));
     assert(is_multiple(mem->total_memory_reset, mem->allocation_granularity));
     assert(is_multiple(mem->total_memory, mem->allocation_granularity));
 
-    const size_t current_available_bytes = get_current_available_bytes();
-
-    const ptrdiff_t to_allocate = round_to_nearest((ptrdiff_t) current_available_bytes - (ptrdiff_t) mem->desired_available_bytes, mem->allocation_granularity);
+    const double current_memload_fraction = get_memory_used_fraction_from_mem(get_memory_status());
+    const double current_memload_delta = fabs(mem->args.desired_mem_usage_fraction - current_memload_fraction);
 
 #if VERBOSE
-    printf("Current available GB: %.2fGB, desired: %.2fGB\n", bytes_to_gb(current_available_bytes), bytes_to_gb(mem->desired_available_bytes));
+    printf("\nCurrent Memory Load: %.4f%%\n", current_memload_fraction * 100.0);
+    printf("Desired Memory Load: %.4f%%\n", mem->args.desired_mem_usage_fraction * 100.0);
 #endif
+
+    // If our current memory load is less than 0.01% different from the desired
+    // one, we can consider it good enough to start/continue running our tests
+    // and get accurate traces. There's no need to further adjust the memory
+    // load at this point.
+    if (current_memload_delta < 0.0001)
+    {
+        return adjust_kind_no_adjust;
+    }
+
+    const size_t current_available_bytes = get_current_available_bytes();
+    const ptrdiff_t to_allocate = round_to_nearest(
+        (ptrdiff_t) current_available_bytes - (ptrdiff_t) mem->desired_available_bytes,
+        mem->allocation_granularity
+    );
+
+#if VERBOSE
+    printf("Current Available Memory: %.2f MB\n", bytes_to_mb(current_available_bytes));
+    printf("Desired Available Memory: %.2f MB\n", bytes_to_mb(mem->desired_available_bytes));
+#endif
+
+    // If we reach the final attempt to load the desired amount of memory, and
+    // we are not there yet but within an acceptable tolerance range, then allow
+    // the program to continue running rather than failing.
+    //
+    // The tolerance range is currently set to +-5% of the desired available
+    // memory, and is defined in util.h inside the current directory.
+    if (to_allocate != 0 && iteration_num == MEMORY_LOAD_NUM_ATTEMPTS)
+    {
+#if VERBOSE
+        double acc_mem_delta =   ((double) mem->desired_available_bytes)
+                               * ((double) ACCEPTABLE_MEMORY_DELTA_PCT / 100.0);
+        double current_delta = fabs(
+            ((double) current_available_bytes) - ((double) mem->desired_available_bytes)
+        );
+        printf("Acceptable Memory Delta: %.2f MB\n", bytes_to_mb(acc_mem_delta));
+        printf("Current Memory Delta: %.2f MB\n",  bytes_to_mb(current_delta));
+#endif
+
+        if ((current_memload_delta * 100.0) < ACCEPTABLE_MEMORY_DELTA_PCT)
+        {
+            return adjust_kind_within_threshold;
+        }
+    }
 
     if (to_allocate > 0)
     {
         // unreset / commit some more
         if (mem->total_memory_reset != 0)
         {
-#if VERBOSE
-            printf("Unresetting memory: %.2fMB\n", bytes_to_mb(to_allocate));
-#endif
-
             // Unreset the memory
             const size_t size = min(mem->total_memory_reset, (size_t)to_allocate);
+
+#if VERBOSE
+            printf("Unresetting Memory: %.2f MB\n\n", bytes_to_mb(size));
+#endif
+
             byte* const start = mem->memory + mem->total_memory_committed;
             //VirtualAlloc(start, size, MEM_RESET_UNDO, PAGE_READWRITE);
             // Just write to it to bring it back
@@ -268,12 +329,13 @@ static AdjustKind adjust(Mem* mem)
         }
         else
         {
-#if VERBOSE
-            printf("Committing more memory: %.2fMB\n", bytes_to_mb(to_allocate));
-#endif
-
             // Commmit some more memory
             const size_t size = min(mem->total_memory - mem->total_memory_committed, (size_t)to_allocate);
+
+#if VERBOSE
+            printf("Committing Memory: %.2f MB\n\n", bytes_to_mb(size));
+#endif
+
             byte* const start = mem->memory + mem->total_memory_committed;
             VirtualAlloc(start, size, MEM_COMMIT, PAGE_READWRITE);
             write_to_every_page(start, size, mem->page_size);
@@ -295,7 +357,8 @@ static AdjustKind adjust(Mem* mem)
             const size_t new_total_memory_committed = mem->total_memory_committed - size;
 
 #if VERBOSE
-        printf("Resetting memory: want to reset %.2fMB, actual size to reset %.2fMB\n", bytes_to_mb(-to_allocate), bytes_to_mb(size));
+            printf("Want to Reset Memory: %.2f MB\n", bytes_to_mb(-to_allocate));
+            printf("Actual Reset: %.2f MB\n\n", bytes_to_mb(size));
 #endif
 
             // Note: last argument is ignored
@@ -313,6 +376,9 @@ static AdjustKind adjust(Mem* mem)
     }
     else
     {
+#if VERBOSE
+        puts("Success!");
+#endif
         return adjust_kind_no_adjust;
     }
 }
@@ -329,38 +395,68 @@ int main(const int argc, char** argv)
     Mem mem = init_mem(args);
 
     // Initial adjust may take a while as it writes to all the pages.
-    // Just to be sure, adjust twice with a sleep in between.
+    // Therefore, do various attempts to get the right load going.
     int attempts = 0;
+
     while (TRUE) {
-        AdjustKind ak = adjust(&mem);
+
+#if VERBOSE
+        printf("\nITERATION NUMBER: %d\n", attempts + 1);
+#endif
+
+        // If by the last attempt to get the desired memory load we have an
+        // acceptable difference (+-5%), then allow the test to continue with a
+        // message warning the user of this delta.
+        //
+        // NOTE: DO NOT add commas to any fprintf messages. Run_single_test.py
+        // expects a very specific format depending on the AdjustKind result here.
+        AdjustKind ak = adjust(&mem, attempts);
         if (ak == adjust_kind_no_adjust)
         {
-            // No need to adjust
+            // No need to adjust as we got the memory load we required.
+            // Do NOT change this message, as run_single_test.py is expecting it
+            // to know everything went fine here.
+            fprintf(stderr, "make_memory_load finished starting up\n");
             break;
         }
-        else if (attempts == 5)
+        else if (ak == adjust_kind_within_threshold)
+        {
+            // No need to adjust as we are within the acceptable memory load threshold.
+            // This is the ONLY fprintf message that should have ONE comma. This
+            // is to separate the message from the achieved memory load percentage,
+            // which is later parsed by run_single_test.py.
+            fprintf(
+                stderr,
+                "threshold memory achieved,%.5f\n",
+                get_memory_used_fraction_from_mem(get_memory_status()) * 100.0
+            );
+            break;
+        }
+        else if (attempts == MEMORY_LOAD_NUM_ATTEMPTS)
         {
             fprintf(
                 stderr,
-                "Failed to get memory to the desired load (%d%%) after 5 attempts: Last memory was %s\n",
+                "Failed to get memory to the desired load (%d%%) after %d attempts: Last memory was %s\n",
                 (int) round(args.desired_mem_usage_fraction * 100),
+                attempts,
                 adjust_kind_to_string(ak));
             return 1;
         }
         attempts++;
     }
 
-    // NOTE: code in run_single_test.py is waiting for exactly this line to print to stderr.
-    fprintf(stderr, "make_memory_load finished starting up\n");
-    
-    // print_memory_status();
+#if VERBOSE
+    print_memory_status();
+#endif
 
     while (TRUE)
     {
         Sleep(100); // milliseconds
         if (!args.no_readjust)
         {
-            adjust(&mem);
+            // Memory adjustment has to happen throughout the test, so we simply
+            // no longer take into account the number of iterations.
+            adjust(&mem, 0);
         }
     }
 

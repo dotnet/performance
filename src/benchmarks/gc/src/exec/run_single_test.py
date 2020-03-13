@@ -373,7 +373,7 @@ def _run_single_test_windows_perfview(
     mem_load = t.config.memory_load
     mem_load_process = None
     if mem_load is not None:
-        print("setting up memory load...")
+        print("\nSetting up memory load...")
         mem_load_args: Sequence[str] = (
             str(built.win.make_memory_load),
             "-percent",
@@ -382,12 +382,21 @@ def _run_single_test_windows_perfview(
         )
         mem_load_process = Popen(args=mem_load_args, stderr=PIPE)
         assert mem_load_process.stderr is not None
+
         # Wait on it to start up
-        line = decode_stdout(mem_load_process.stderr.readline())
-        assert (
-            line == "make_memory_load finished starting up"
-        ), f"Unexpected make_memory_load output {line}"
-        print("done")
+        mem_load_msg = decode_stdout(mem_load_process.stderr.readline()).split(',')
+
+        if (len(mem_load_msg) == 2 and mem_load_msg[0].startswith("threshold")):
+            print(
+                f"\n*WARNING*: Desired memory load was {mem_load.percent}%, "
+                f"but {mem_load_msg[1]}% was achieved. There might be some "
+                f"slight variations in the resulting traces.\n"
+            )
+        elif (mem_load_msg[0] == "make_memory_load finished starting up"):
+            print(f"Done!\n")
+        else:
+            mem_load_process.kill()
+            assert (False), f"\nError in make_memory_load: {mem_load_msg[0]}\n"
 
     log_file = out.add_ext("perfview-log.txt")
     trace_file = out.add_ext("etl")
