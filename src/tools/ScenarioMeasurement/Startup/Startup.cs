@@ -1,9 +1,7 @@
 ﻿using Microsoft.Diagnostics.Tracing.Parsers;
-using Microsoft.Diagnostics.Tracing.Session;
 using Reporting;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
 using System.IO;
 using System.Linq;
 
@@ -141,45 +139,38 @@ namespace ScenarioMeasurement
                 case MetricType.TimeToMain:
                     parser = new TimeToMainParser();
                     break;
-/*                case MetricType.GenericStartup:
+                case MetricType.GenericStartup:
                     parser = new GenericStartupParser();
                     break;
                 case MetricType.ProcessTime:
                     parser = new ProcessTimeParser();
-                    break;*/
+                    break;
                     //case MetricType.WPF:
                     //    parser = new WPFParser();
                     //    break;
             }
 
-            string kernelTraceFile = Path.ChangeExtension(traceFileName, "perflabkernel.etl");
-            string userTraceFile = Path.ChangeExtension(traceFileName, "perflabuser.etl");
-            traceFileName = Path.Join(traceDirectory, traceFileName);
-            kernelTraceFile = Path.Join(traceDirectory, kernelTraceFile);
-            userTraceFile = Path.Join(traceDirectory, userTraceFile);
             var pids = new List<int>();
             bool failed = false;
-          /*  using (var kernel = new TraceEventSession(KernelTraceEventParser.KernelSessionName, kernelTraceFile))
-            {
-                parser.EnableKernelProvider(kernel);
-                using (var user = new TraceEventSession("StartupSession", userTraceFile))
-                {
-                    parser.EnableUserProviders(user);
-                    for (int i = 0; i < iterations; i++)
-                    {
-                        logger.LogHeader1($"Iteration {i}");
-                        var iterationResult = RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger);
-                        if (!iterationResult.Success)
-                        {
-                            failed = true;
-                            break;
-                        }
-                        pids.Add(iterationResult.Pid);
-                    }
-                }
-            }*/
 
-            if (!failed)
+            using (var traceSession = TraceSessionManager.CreateSession("StartupSession", traceFileName, traceDirectory, logger))
+            {
+                traceSession.EnableProviders(parser);
+                for (int i = 0; i < iterations; i++)
+                {
+                    logger.LogHeader1($"Iteration {i}");
+                    var iterationResult = RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger);
+                    if (!iterationResult.Success)
+                    {
+                        failed = true;
+                        break;
+                    }
+                    pids.Add(iterationResult.Pid);
+                }
+            }
+
+
+   /*         if (!failed)
             {
                 logger.Log("Parsing..");
                 var files = new List<string> { kernelTraceFile };
@@ -220,7 +211,7 @@ namespace ScenarioMeasurement
 
             File.Delete(kernelTraceFile);
             File.Delete(userTraceFile);
-/*
+*//*
             if (!failed && !skipProfileIteration)
             {
                 string profileTraceFileName = $"{Path.GetFileNameWithoutExtension(traceFileName)}_profile.etl";

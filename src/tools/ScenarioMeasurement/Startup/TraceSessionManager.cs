@@ -9,22 +9,22 @@ namespace ScenarioMeasurement
         void EnableProviders(IParser parser);
         void EnableKernelProvider(params TraceSessionManager.KernelKeyword[] keywords);
         void EnableUserProvider(params TraceSessionManager.ClrKeyword[] keywords);
+        void EnableUserProvider(string provider);
     }
 
     public static class TraceSessionManager
     {
-        public static ITraceSession CreateSession(string sessionName, string traceName, Logger logger)
+        public static ITraceSession CreateSession(string sessionName, string traceName, string traceDirectory, Logger logger)
         {
-            /*
-                        if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-                        {
-                            return new WindowsTraceSession(sessionName, traceName, logger);
-                        }
-                        else
-                        {
-                            return new LinuxTraceSession(sessionName, traceName, logger);
-                        }*/
-            return new LinuxTraceSession(sessionName, traceName, logger);
+
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                return new WindowsTraceSession(sessionName, traceName, traceDirectory, logger);
+            }
+            else
+            {
+                return new LinuxTraceSession(sessionName, traceName, traceDirectory, logger);
+            }
         }
         
         public enum KernelKeyword

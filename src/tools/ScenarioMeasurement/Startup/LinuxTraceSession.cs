@@ -10,10 +10,10 @@ namespace ScenarioMeasurement
         private Dictionary<TraceSessionManager.KernelKeyword, Perfcollect.KernelKeyword> linKwMapKernel;
         private Dictionary<TraceSessionManager.ClrKeyword, Perfcollect.ClrKeyword> linKwMapClr;
 
-        public LinuxTraceSession(string sessionName, string traceName, Logger logger)
+        public LinuxTraceSession(string sessionName, string traceName, string traceDirectory, Logger logger)
         {
-            perfcollect = new Perfcollect(traceName, logger);
-            initLinuxKeywordMaps();
+            perfcollect = new Perfcollect(traceName, traceDirectory, logger);
+            InitLinuxKeywordMaps();
         }
 
         public void EnableProviders(IParser parser)
@@ -26,7 +26,7 @@ namespace ScenarioMeasurement
 
         public void Dispose()
         {
-            Console.WriteLine("Dispose not implemented.");
+            perfcollect.Stop();
         }
 
         public void EnableKernelProvider(params TraceSessionManager.KernelKeyword[] keywords)
@@ -51,7 +51,7 @@ namespace ScenarioMeasurement
             perfcollect.ClrEvents = pcClrKeywords;
         }
 
-        private void initLinuxKeywordMaps()
+        private void InitLinuxKeywordMaps()
         {
             // initialize linux kernel keyword map
             linKwMapKernel = new Dictionary<TraceSessionManager.KernelKeyword, Perfcollect.KernelKeyword>();
@@ -62,6 +62,10 @@ namespace ScenarioMeasurement
             // initialize linux clr keyword map
             linKwMapClr = new Dictionary<TraceSessionManager.ClrKeyword, Perfcollect.ClrKeyword>();
             linKwMapClr[TraceSessionManager.ClrKeyword.Startup] = Perfcollect.ClrKeyword.DotNETRuntimePrivate_StartupKeyword;
+        }
+
+        public void EnableUserProvider(string provider)
+        {
         }
     }
 }

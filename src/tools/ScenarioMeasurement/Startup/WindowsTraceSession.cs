@@ -13,12 +13,13 @@ namespace ScenarioMeasurement
         private Dictionary<TraceSessionManager.KernelKeyword, KernelTraceEventParser.Keywords> winKwMapKernel;
         private Dictionary<TraceSessionManager.ClrKeyword, ClrPrivateTraceEventParser.Keywords> winKwMapClr;
 
-        public WindowsTraceSession(string sessionName, string traceName, Logger logger)
+        public WindowsTraceSession(string sessionName, string traceName, string traceDirectory, Logger logger)
         {
             string fileName = Path.ChangeExtension(traceName, "perflab.etl");
+            string filePath = Path.Combine(traceDirectory, fileName);
             // Currently kernel and user share the same session
-            session = new TraceEventSession(sessionName, fileName);
-            initWindowsKeywordMaps();
+            session = new TraceEventSession(sessionName, filePath);
+            InitWindowsKeywordMaps();
         }
 
         public void EnableProviders(IParser parser)
@@ -55,7 +56,7 @@ namespace ScenarioMeasurement
             session.EnableProvider(ClrPrivateTraceEventParser.ProviderGuid, TraceEventLevel.Verbose, (ulong)flags);
         }
 
-        private void initWindowsKeywordMaps()
+        private void InitWindowsKeywordMaps()
         {
             // initialize windows kernel keyword map
             winKwMapKernel = new Dictionary<TraceSessionManager.KernelKeyword, KernelTraceEventParser.Keywords>();
@@ -66,6 +67,11 @@ namespace ScenarioMeasurement
             // initialize windows clr keyword map
             winKwMapClr = new Dictionary<TraceSessionManager.ClrKeyword, ClrPrivateTraceEventParser.Keywords>();
             winKwMapClr[TraceSessionManager.ClrKeyword.Startup] = ClrPrivateTraceEventParser.Keywords.Startup;
+        }
+
+        public void EnableUserProvider(string provider)
+        {
+            session.EnableProvider(provider);
         }
     }
 }

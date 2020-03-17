@@ -9,10 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="GenericStartupParser.cs" />
-    <Compile Remove="ProcessTimeParser.cs" />
     <Compile Remove="ProfileParser.cs" />
-    <Compile Remove="WPFParser.cs" />
   </ItemGroup>
 
   <ItemGroup>
