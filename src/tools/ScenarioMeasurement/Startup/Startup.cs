@@ -3,6 +3,7 @@ using Microsoft.Diagnostics.Tracing.Session;
 using Reporting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.IO;
 using System.Linq;
 
@@ -127,7 +128,7 @@ namespace ScenarioMeasurement
 
             if (warmup)
             {
-                logger.Log("=============== Warm up ================");
+                logger.LogHeader1("Warm up");
                 if (!RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger).Success)
                 {
                     return -1;  
@@ -140,12 +141,12 @@ namespace ScenarioMeasurement
                 case MetricType.TimeToMain:
                     parser = new TimeToMainParser();
                     break;
-                case MetricType.GenericStartup:
+/*                case MetricType.GenericStartup:
                     parser = new GenericStartupParser();
                     break;
                 case MetricType.ProcessTime:
                     parser = new ProcessTimeParser();
-                    break;
+                    break;*/
                     //case MetricType.WPF:
                     //    parser = new WPFParser();
                     //    break;
@@ -158,7 +159,7 @@ namespace ScenarioMeasurement
             userTraceFile = Path.Join(traceDirectory, userTraceFile);
             var pids = new List<int>();
             bool failed = false;
-            using (var kernel = new TraceEventSession(KernelTraceEventParser.KernelSessionName, kernelTraceFile))
+          /*  using (var kernel = new TraceEventSession(KernelTraceEventParser.KernelSessionName, kernelTraceFile))
             {
                 parser.EnableKernelProvider(kernel);
                 using (var user = new TraceEventSession("StartupSession", userTraceFile))
@@ -166,7 +167,7 @@ namespace ScenarioMeasurement
                     parser.EnableUserProviders(user);
                     for (int i = 0; i < iterations; i++)
                     {
-                        logger.Log($"=============== Iteration {i} ================ ");
+                        logger.LogHeader1($"Iteration {i}");
                         var iterationResult = RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger);
                         if (!iterationResult.Success)
                         {
@@ -176,7 +177,7 @@ namespace ScenarioMeasurement
                         pids.Add(iterationResult.Pid);
                     }
                 }
-            }
+            }*/
 
             if (!failed)
             {
@@ -219,7 +220,7 @@ namespace ScenarioMeasurement
 
             File.Delete(kernelTraceFile);
             File.Delete(userTraceFile);
-
+/*
             if (!failed && !skipProfileIteration)
             {
                 string profileTraceFileName = $"{Path.GetFileNameWithoutExtension(traceFileName)}_profile.etl";
@@ -228,7 +229,7 @@ namespace ScenarioMeasurement
                 profileTraceFileName = Path.Join(traceDirectory, profileTraceFileName);
                 profileKernelTraceFile = Path.Join(traceDirectory, profileKernelTraceFile);
                 profileUserTraceFile = Path.Join(traceDirectory, profileUserTraceFile);
-                logger.Log($"=============== Profile Iteration ================ ");
+                logger.LogHeader1("Profile Iteration");
                 ProfileParser profiler = new ProfileParser(parser);
                 using (var kernel = new TraceEventSession(KernelTraceEventParser.KernelSessionName, profileKernelTraceFile))
                 {
@@ -249,7 +250,7 @@ namespace ScenarioMeasurement
                 }
                 File.Delete(profileKernelTraceFile);
                 File.Delete(profileUserTraceFile);
-            }
+            }*/
 
             return (failed ? -1 : 0);
 
@@ -285,14 +286,14 @@ namespace ScenarioMeasurement
             int pid = 0;
             if (setupHelper != null)
             {
-                logger.Log($"***Iteration Setup***");
+                logger.LogHeader2("Iteration Setup");
                 failed = !RunProcess(setupHelper).Success;
             }
 
             // no need to run test process if setup failed
             if (!failed)
             {
-                logger.Log($"***Test***");
+                logger.LogHeader2("Test");
                 var testProcessResult = RunProcess(testHelper);
                 failed = !testProcessResult.Success;
                 pid = testProcessResult.Pid;
@@ -301,7 +302,7 @@ namespace ScenarioMeasurement
             // need to clean up despite the result of setup and test
             if (cleanupHelper != null)
             {
-                logger.Log($"***Iteration Cleanup***");
+                logger.LogHeader2("Iteration Cleanup");
                 failed = failed || !RunProcess(cleanupHelper).Success;
             }
 
@@ -333,4 +334,6 @@ namespace ScenarioMeasurement
             return dict;
         }
     }
+
+ 
 }
