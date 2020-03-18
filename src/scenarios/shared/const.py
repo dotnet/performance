@@ -23,6 +23,7 @@ TMPDIR = 'tmp'
 
 CLEAN_BUILD = 'clean_build'
 BUILD_NO_CHANGE = 'build_no_change'
+NEW_CONSOLE = 'new_console'
 
 DOTNET = 'dotnet'
 

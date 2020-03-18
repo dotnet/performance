@@ -6,9 +6,10 @@ from performance.logger import setup_loggers
 from logging import getLogger
 from argparse import ArgumentParser
 
-SETUP = 'setup'
+BUILD_SETUP = 'setup_build'
+NEW_SETUP = 'setup_new'
 CLEANUP = 'cleanup'
-operations = (SETUP, CLEANUP)
+operations = (BUILD_SETUP, NEW_SETUP, CLEANUP)
 
 def main():
     parser = ArgumentParser()
@@ -17,7 +18,7 @@ def main():
 
     setup_loggers(True)
 
-    if args.operation == SETUP:
+    if args.operation == BUILD_SETUP:
         shutdown_server(verbose=True)
         if not os.path.isdir(const.TMPDIR):
             if not os.path.isdir(const.APPDIR):
@@ -29,6 +30,11 @@ def main():
                 shutil.rmtree(const.APPDIR)
             getLogger().info("Copying clean project directory...")
             shutil.copytree(const.TMPDIR, const.APPDIR) # use the copy
+
+    if args.operation == NEW_SETUP:
+        if not os.path.isdir(const.APPDIR):
+            getLogger().info("Creating new project directory...")
+            os.mkdir(const.APPDIR)
 
     if args.operation == CLEANUP:
         if os.path.isdir(const.APPDIR):
