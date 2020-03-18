@@ -16,12 +16,14 @@ class StartupWrapper(object):
     Wraps startup.exe, building it if necessary.
     '''
     def __init__(self):
-        payload_startup = os.path.join(helixpayload(), 'Startup')
-        workitem_startup = os.path.join(helixworkitempayload(), 'Startup')
-        if os.path.exists(payload_startup):
-            self._setstartuppath(payload_startup)
-        elif os.path.exists(workitem_startup):
-            self._setstartuppath(workitem_startup)
+        if helixpayload():
+            payload_startup = os.path.join(helixpayload(), 'Startup')
+            if os.path.exists(payload_startup):
+                self._setstartuppath(payload_startup)
+        elif helixworkitempayload():
+            workitem_startup = os.path.join(helixworkitempayload(), 'Startup')
+            if os.path.exists(workitem_startup):
+                self._setstartuppath(workitem_startup)
         else:
             relpath = os.path.join(get_artifacts_directory(), 'startup')
             startupproj = os.path.join('..',
