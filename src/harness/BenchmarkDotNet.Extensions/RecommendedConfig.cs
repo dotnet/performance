@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.IO;
+using System.Runtime.InteropServices;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
@@ -27,6 +28,12 @@ namespace BenchmarkDotNet.Extensions
                     .WithMinIterationCount(15)
                     .WithMaxIterationCount(20) // we don't want to run more that 20 iterations
                     .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
+
+                // See https://github.com/dotnet/roslyn/issues/42393
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && RuntimeInformation.ProcessArchitecture == Architecture.Arm64)
+                {
+                    job = job.With(new Argument[] { new MsBuildArgument("/p:DebugType=portable") });
+                }
             }
 
             return DefaultConfig.Instance
