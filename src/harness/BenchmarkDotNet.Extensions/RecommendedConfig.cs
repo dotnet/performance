@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using System.IO;
-using System.Runtime.InteropServices;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
