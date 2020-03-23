@@ -6,13 +6,13 @@ namespace ScenarioMeasurement
 {
     class LinuxTraceSession : ITraceSession
     {
-        private Perfcollect perfcollect;
-        private Dictionary<TraceSessionManager.KernelKeyword, Perfcollect.KernelKeyword> linKwMapKernel;
-        private Dictionary<TraceSessionManager.ClrKeyword, Perfcollect.ClrKeyword> linKwMapClr;
+        private PerfCollect perfCollect;
+        private Dictionary<TraceSessionManager.KernelKeyword, PerfCollect.KernelKeyword> linKwMapKernel;
+        private Dictionary<TraceSessionManager.ClrKeyword, PerfCollect.ClrKeyword> linKwMapClr;
 
         public LinuxTraceSession(string sessionName, string traceName, string traceDirectory, Logger logger)
         {
-            perfcollect = new Perfcollect(traceName, traceDirectory, logger);
+            perfCollect = new PerfCollect(traceName, traceDirectory, logger);
             InitLinuxKeywordMaps();
         }
 
@@ -21,47 +21,41 @@ namespace ScenarioMeasurement
             // Enable both providers and start the session
             parser.EnableKernelProvider(this);
             parser.EnableUserProviders(this);
-            perfcollect.Start();
+            perfCollect.Start();
         }
 
         public void Dispose()
         {
-            perfcollect.Stop();
+            perfCollect.Stop();
         }
 
         public void EnableKernelProvider(params TraceSessionManager.KernelKeyword[] keywords)
         {
-            // Create keyword list for linux events
-            var pcKernelKeywords = new List<Perfcollect.KernelKeyword>();
             foreach (var keyword in keywords)
             {
-                pcKernelKeywords.Add(linKwMapKernel[keyword]);
+                perfCollect.AddKernelKeyword(linKwMapKernel[keyword]);
             }
-            perfcollect.KernelEvents = pcKernelKeywords;
         }
 
         public void EnableUserProvider(params TraceSessionManager.ClrKeyword[] keywords)
         {
-            // Create keyword list for linux events
-            var pcClrKeywords = new List<Perfcollect.ClrKeyword>();
             foreach (var keyword in keywords)
             {
-                pcClrKeywords.Add(linKwMapClr[keyword]);
+                perfCollect.AddClrKeyword(linKwMapClr[keyword]);
             }
-            perfcollect.ClrEvents = pcClrKeywords;
         }
 
         private void InitLinuxKeywordMaps()
         {
             // initialize linux kernel keyword map
-            linKwMapKernel = new Dictionary<TraceSessionManager.KernelKeyword, Perfcollect.KernelKeyword>();
-            linKwMapKernel[TraceSessionManager.KernelKeyword.Process] = Perfcollect.KernelKeyword.ProcessLifetime;
-            linKwMapKernel[TraceSessionManager.KernelKeyword.Thread] = Perfcollect.KernelKeyword.Thread;
-            linKwMapKernel[TraceSessionManager.KernelKeyword.ContextSwitch] = Perfcollect.KernelKeyword.ContextSwitch;
+            linKwMapKernel = new Dictionary<TraceSessionManager.KernelKeyword, PerfCollect.KernelKeyword>();
+            linKwMapKernel[TraceSessionManager.KernelKeyword.Process] = PerfCollect.KernelKeyword.ProcessLifetime;
+            linKwMapKernel[TraceSessionManager.KernelKeyword.Thread] = PerfCollect.KernelKeyword.Thread;
+            linKwMapKernel[TraceSessionManager.KernelKeyword.ContextSwitch] = PerfCollect.KernelKeyword.ContextSwitch;
 
             // initialize linux clr keyword map
-            linKwMapClr = new Dictionary<TraceSessionManager.ClrKeyword, Perfcollect.ClrKeyword>();
-            linKwMapClr[TraceSessionManager.ClrKeyword.Startup] = Perfcollect.ClrKeyword.DotNETRuntimePrivate_StartupKeyword;
+            linKwMapClr = new Dictionary<TraceSessionManager.ClrKeyword, PerfCollect.ClrKeyword>();
+            linKwMapClr[TraceSessionManager.ClrKeyword.Startup] = PerfCollect.ClrKeyword.DotNETRuntimePrivate_StartupKeyword;
         }
 
         public void EnableUserProvider(string provider)

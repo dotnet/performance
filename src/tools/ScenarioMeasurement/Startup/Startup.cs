@@ -2,8 +2,10 @@
 using Reporting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace ScenarioMeasurement
 {
@@ -124,6 +126,7 @@ namespace ScenarioMeasurement
 
             Util.Init();
 
+            // Warm up iteration
             if (warmup)
             {
                 logger.LogHeader1("Warm up");
@@ -153,6 +156,7 @@ namespace ScenarioMeasurement
             var pids = new List<int>();
             bool failed = false;
 
+            // Run trace session
             using (var traceSession = TraceSessionManager.CreateSession("StartupSession", traceFileName, traceDirectory, logger))
             {
                 traceSession.EnableProviders(parser);
@@ -169,16 +173,10 @@ namespace ScenarioMeasurement
                 }
             }
 
-
-   /*         if (!failed)
+            // Parse trace files
+            if (!failed)
             {
                 logger.Log("Parsing..");
-                var files = new List<string> { kernelTraceFile };
-                if (File.Exists(userTraceFile))
-                {
-                    files.Add(userTraceFile);
-                }
-                TraceEventSession.Merge(files.ToArray(), traceFileName);
 
                 if (guiApp)
                 {
@@ -194,57 +192,25 @@ namespace ScenarioMeasurement
 
                 WriteResultTable(counters, logger);
 
-                var reporter = Reporter.CreateReporter();
-                if (reporter != null)
+                CreateTestReport(scenarioName, counters, reportJsonPath);
+            }
+
+            // Run profile session
+            if (!failed && !skipProfileIteration)
+            {
+                logger.LogHeader1("Profile Iteration");
+                ProfileParser profiler = new ProfileParser(parser);
+                using (var profileSession = TraceSessionManager.CreateProfileSession("ProfileSession", "profile_"+traceFileName, traceDirectory, logger))
                 {
-                    var test = new Test();
-                    test.Categories.Add("Startup");
-                    test.Name = scenarioName;
-                    test.AddCounter(counters);
-                    reporter.AddTest(test);
-                    if (!String.IsNullOrEmpty(reportJsonPath))
+                    profileSession.EnableProviders(profiler);
+                    if (!RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger).Success)
                     {
-                        File.WriteAllText(reportJsonPath, reporter.GetJson());
+                        failed = true;
                     }
                 }
             }
 
-            File.Delete(kernelTraceFile);
-            File.Delete(userTraceFile);
-*//*
-            if (!failed && !skipProfileIteration)
-            {
-                string profileTraceFileName = $"{Path.GetFileNameWithoutExtension(traceFileName)}_profile.etl";
-                string profileKernelTraceFile = Path.ChangeExtension(profileTraceFileName, ".kernel.etl");
-                string profileUserTraceFile = Path.ChangeExtension(profileTraceFileName, ".user.etl");
-                profileTraceFileName = Path.Join(traceDirectory, profileTraceFileName);
-                profileKernelTraceFile = Path.Join(traceDirectory, profileKernelTraceFile);
-                profileUserTraceFile = Path.Join(traceDirectory, profileUserTraceFile);
-                logger.LogHeader1("Profile Iteration");
-                ProfileParser profiler = new ProfileParser(parser);
-                using (var kernel = new TraceEventSession(KernelTraceEventParser.KernelSessionName, profileKernelTraceFile))
-                {
-                    profiler.EnableKernelProvider(kernel);
-                    using (var user = new TraceEventSession("ProfileSession", profileUserTraceFile))
-                    {
-                        profiler.EnableUserProviders(user);
-                        if (!RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger).Success)
-                        {
-                            failed = true;
-                        }
-                    }
-                }
-                if (!failed)
-                {
-                    logger.Log("Merging profile..");
-                    TraceEventSession.Merge(new[] { profileKernelTraceFile, profileUserTraceFile }, profileTraceFileName);
-                }
-                File.Delete(profileKernelTraceFile);
-                File.Delete(profileUserTraceFile);
-            }*/
-
             return (failed ? -1 : 0);
-
         }
 
 
@@ -323,6 +289,23 @@ namespace ScenarioMeasurement
                 dict.Add(pair[0], pair[1]);
             }
             return dict;
+        }
+
+        private static void CreateTestReport(string scenarioName, IEnumerable<Counter> counters, string reportJsonPath)
+        {
+            var reporter = Reporter.CreateReporter();
+            if (reporter != null)
+            {
+                var test = new Test();
+                test.Categories.Add("Startup");
+                test.Name = scenarioName;
+                test.AddCounter(counters);
+                reporter.AddTest(test);
+                if (!String.IsNullOrEmpty(reportJsonPath))
+                {
+                    File.WriteAllText(reportJsonPath, reporter.GetJson());
+                }
+            }
         }
     }
 

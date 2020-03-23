@@ -9,8 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="ProfileParser.cs" />
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>Startup.Tests</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
+ 
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="2.0.44" />
@@ -22,11 +25,14 @@
     <ProjectReference Include="..\..\Reporting\Reporting\Reporting.csproj" />
   </ItemGroup>
 
-  <Target Name="DownloadPerfcollect" BeforeTargets="CoreCompile" Condition=" '$(OS)' != 'Windows_NT' ">
+  <Target Name="DownloadPerfCollect" BeforeTargets="CoreCompile">
     <PropertyGroup>
       <PerfcollectUrl>https://aka.ms/perfcollect</PerfcollectUrl>
     </PropertyGroup>
-    <DownloadFile SourceUrl="$(PerfcollectUrl)" DestinationFolder="$(MSBuildProjectDirectory)"></DownloadFile>
-    <Exec WorkingDirectory="$(MSBuildProjectDirectory)" Command="chmod +x perfcollect" />
+    <DownloadFile SourceUrl="$(PerfcollectUrl)" DestinationFolder="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="DownloadedFile" ItemName="Content"/>
+    </DownloadFile>
+    <Copy SourceFiles="perfcollect" DestinationFolder="$(PublishDir)" />
+    <Copy SourceFiles="perfcollect" DestinationFolder="$(OutDir)" />
   </Target>
 </Project>

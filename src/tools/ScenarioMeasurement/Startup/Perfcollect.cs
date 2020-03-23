@@ -1,31 +1,31 @@
-﻿using Microsoft.Diagnostics.Tracing.Parsers;
-using ScenarioMeasurement;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.IO;
-
+using System.Reflection;
 
 namespace ScenarioMeasurement
 {
-    public class Perfcollect : IDisposable
+    public class PerfCollect : IDisposable
     {
-        private readonly string filepath = Path.Combine(Directory.GetParent(Directory.GetCurrentDirectory()).FullName, @"Startup/perfcollect");
-        private ProcessHelper perfcollectProcess;
+        private readonly string startupDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        private ProcessHelper perfCollectProcess;
         public string TraceName { get; private set; }
         public string TraceDirectory { get; private set; }
-        public List<KernelKeyword> KernelEvents { get; set; }
-        public List<ClrKeyword> ClrEvents { get; set; }
-        public Perfcollect(string traceName, Logger logger) : this (traceName, Environment.CurrentDirectory, logger)
+        private List<KernelKeyword> KernelEvents = new List<KernelKeyword>();
+        private List<ClrKeyword> ClrEvents = new List<ClrKeyword>();
+        public PerfCollect(string traceName, Logger logger) : this(traceName, Environment.CurrentDirectory, logger)
         {
         }
 
-        public Perfcollect(string traceName, string traceDirectory, Logger logger)
+        public PerfCollect(string traceName, string traceDirectory, Logger logger)
         {
             TraceName = traceName;
-/*            if (!File.Exists(filepath))
+            string perfCollectScript = Path.Combine(startupDirectory, "perfcollect");
+            if (!File.Exists(perfCollectScript))
             {
-                throw new FileNotFoundException($"Pefcollect not found at {filepath}. Please rebuild the project to download it.");
-            }*/
+                throw new FileNotFoundException($"Pefcollect not found at {perfCollectScript}. Please rebuild the project to download it.");
+            }
 
             if (String.IsNullOrEmpty(traceName))
             {
@@ -38,12 +38,12 @@ namespace ScenarioMeasurement
                 Directory.CreateDirectory(traceDirectory);
             }
             TraceDirectory = traceDirectory;
-            
 
-            perfcollectProcess = new ProcessHelper(logger)
+
+            perfCollectProcess = new ProcessHelper(logger)
             {
                 ProcessWillExit = true,
-                Executable = filepath,
+                Executable = perfCollectScript,
                 Timeout = 300
             };
         }
@@ -51,29 +51,28 @@ namespace ScenarioMeasurement
         public ProcessHelper.Result Start()
         {
             string arguments = $"start {TraceName} -events ";
-            
+
             foreach (var keyword in KernelEvents)
             {
-                arguments += Enum.GetName(typeof(KernelKeyword), keyword)+",";
+                arguments += keyword.ToString() + ",";
             }
 
             foreach (var keyword in ClrEvents)
             {
-                arguments += Enum.GetName(typeof(ClrKeyword), keyword)+",";
+                arguments += keyword.ToString() + ",";
             }
 
-            arguments.TrimEnd(',');
+            arguments = arguments.TrimEnd(',');
 
-            perfcollectProcess.Arguments = arguments;
-            return ProcessHelper.Result.Success;
-            //return perfcollectProcess.Run().Result;
+            perfCollectProcess.Arguments = arguments;
+            return perfCollectProcess.Run().Result;
         }
 
         public ProcessHelper.Result Stop()
         {
             string arguments = $"stop {TraceName} ";
-            perfcollectProcess.Arguments = arguments;
-            var result = perfcollectProcess.Run().Result;
+            perfCollectProcess.Arguments = arguments;
+            var result = perfCollectProcess.Run().Result;
 
             string traceFile = $"{TraceName}.trace.zip";
             if (!File.Exists(traceFile))
@@ -92,8 +91,8 @@ namespace ScenarioMeasurement
 
         public ProcessHelper.Result Install()
         {
-            perfcollectProcess.Arguments = "install -force";
-            return perfcollectProcess.Run().Result;
+            perfCollectProcess.Arguments = "install -force";
+            return perfCollectProcess.Run().Result;
         }
 
         public void Dispose()
@@ -101,17 +100,29 @@ namespace ScenarioMeasurement
             Stop();
         }
 
-        public enum KernelKeyword{ 
+        public void AddClrKeyword(ClrKeyword keyword)
+        {
+            ClrEvents.Add(keyword);
+        }
+
+        public void AddKernelKeyword(KernelKeyword keyword)
+        {
+            KernelEvents.Add(keyword);
+        }
+
+        public enum KernelKeyword
+        {
             Empty,
             ProcessLifetime,
             Thread,
             ContextSwitch
         }
 
-        public enum ClrKeyword { 
+        public enum ClrKeyword
+        {
             Empty,
             Threading,
-            DotNETRuntimePrivate_StartupKeyword // TODO: enable perfcollect to take a list of keywords
+            DotNETRuntimePrivate_StartupKeyword // TODO: enable perfCollect to take a list of keywords
         }
 
 

@@ -26,6 +26,15 @@ namespace ScenarioMeasurement
                 return new LinuxTraceSession(sessionName, traceName, traceDirectory, logger);
             }
         }
+
+        public static ITraceSession CreateProfileSession(string sessionName, string traceName, string traceDirectory, Logger logger)
+        {
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                return new WindowsTraceSession(sessionName, traceName, traceDirectory, logger);
+            }
+            throw new NotImplementedException("Profile iteration not implemented on Linux");
+        }
         
         public enum KernelKeyword
         {
