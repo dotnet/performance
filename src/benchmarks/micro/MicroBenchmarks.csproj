@@ -9,12 +9,11 @@
 
     <OutputType>Exe</OutputType>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
+    <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <IsARM Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().StartsWith(`arm`, System.StringComparison.OrdinalIgnoreCase))'">true</IsARM>
-    <DebugType Condition="'$(IsARM)' == 'true' AND '$(OS)' == 'Windows_NT'">portable</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
