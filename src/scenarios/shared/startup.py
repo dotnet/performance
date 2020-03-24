@@ -16,8 +16,8 @@ class StartupWrapper(object):
     Wraps startup.exe, building it if necessary.
     '''
     def __init__(self):
-        if helixpayload() and os.path.exists(os.path.join(helixpayload(), 'Startup'):
-            self._setstartuppath(os.path.join(helixpayload(), 'Startup')
+        if helixpayload() and os.path.exists(os.path.join(helixpayload(), 'Startup')):
+            self._setstartuppath(os.path.join(helixpayload(), 'Startup'))
         elif helixworkitempayload() and os.path.exists(os.path.join(helixworkitempayload(), 'Startup')):
             self._setstartuppath(os.path.join(helixworkitempayload(), 'Startup'))
         else:
