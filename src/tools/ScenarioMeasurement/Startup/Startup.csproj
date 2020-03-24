@@ -25,7 +25,7 @@
     <ProjectReference Include="..\..\Reporting\Reporting\Reporting.csproj" />
   </ItemGroup>
 
-  <Target Name="DownloadPerfCollect" BeforeTargets="CoreCompile">
+  <Target Name="DownloadPerfCollect" BeforeTargets="CoreCompile" Condition=" '$(OS)' != 'Windows_NT' ">
     <PropertyGroup>
       <PerfcollectUrl>https://aka.ms/perfcollect</PerfcollectUrl>
     </PropertyGroup>
