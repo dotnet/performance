@@ -12,6 +12,7 @@ namespace ScenarioMeasurement
         private ProcessHelper perfCollectProcess;
         public string TraceName { get; private set; }
         public string TraceDirectory { get; private set; }
+        public string TraceFilePath { get; private set; }
         private List<KernelKeyword> KernelEvents = new List<KernelKeyword>();
         private List<ClrKeyword> ClrEvents = new List<ClrKeyword>();
         public PerfCollect(string traceName, Logger logger) : this(traceName, Environment.CurrentDirectory, logger)
@@ -84,7 +85,9 @@ namespace ScenarioMeasurement
             {
                 File.Delete(destinationFile);
             }
-            File.Move(traceFile, Path.Combine(TraceDirectory, traceFile));
+            TraceFilePath = Path.Combine(TraceDirectory, traceFile);
+            File.Move(traceFile, TraceFilePath);
+
             //TODO: move logs to appropriate location
             return result;
         }

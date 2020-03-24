@@ -1,3 +1,4 @@
+using Microsoft.DotNet.PlatformAbstractions;
 using Reporting;
 using ScenarioMeasurement;
 using System;
@@ -12,7 +13,7 @@ namespace Startup.Tests
         Logger logger = new Logger("test-startup.log");
         string traceDirectory = Environment.CurrentDirectory;
 
-        [Fact]
+        [WindowsOnly]
         public void TestWindowsTraceSession()
         {
             string sessionName = "test-windows-session";
@@ -25,7 +26,7 @@ namespace Startup.Tests
             }
         }
 
-        [Fact]
+        [LinuxOnly]
         public void TestLinuxTraceSession()
         {
             string sessionName = "test-linux-session";
@@ -62,6 +63,28 @@ namespace Startup.Tests
                 GuiApp = false
             };
 
+        }
+
+        public sealed class WindowsOnly : FactAttribute
+        {
+            public WindowsOnly()
+            {
+                if (Environment.OSVersion.Platform != PlatformID.Win32NT)
+                {
+                    Skip = "Skip on non-windows platform";
+                }
+            }
+        }
+
+        public sealed class LinuxOnly : FactAttribute
+        {
+            public LinuxOnly()
+            {
+                if(Environment.OSVersion.Platform != PlatformID.Unix)
+                {
+                    Skip = "Skip on non-linux platform";
+                }
+            }
         }
     }
 }

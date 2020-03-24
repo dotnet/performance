@@ -129,7 +129,7 @@ namespace ScenarioMeasurement
             // Warm up iteration
             if (warmup)
             {
-                logger.LogHeader1("Warm up");
+                logger.LogIterationHeader("Warm up");
                 if (!RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger).Success)
                 {
                     return -1;  
@@ -155,6 +155,7 @@ namespace ScenarioMeasurement
 
             var pids = new List<int>();
             bool failed = false;
+            string traceFilePath = "";
 
             // Run trace session
             using (var traceSession = TraceSessionManager.CreateSession("StartupSession", traceFileName, traceDirectory, logger))
@@ -162,7 +163,7 @@ namespace ScenarioMeasurement
                 traceSession.EnableProviders(parser);
                 for (int i = 0; i < iterations; i++)
                 {
-                    logger.LogHeader1($"Iteration {i}");
+                    logger.LogIterationHeader($"Iteration {i}");
                     var iterationResult = RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger);
                     if (!iterationResult.Success)
                     {
@@ -171,12 +172,13 @@ namespace ScenarioMeasurement
                     }
                     pids.Add(iterationResult.Pid);
                 }
+                traceFilePath = traceSession.GetTraceFilePath();
             }
 
             // Parse trace files
             if (!failed)
             {
-                logger.Log("Parsing..");
+                logger.Log($"Parsing {traceFilePath}");
 
                 if (guiApp)
                 {
@@ -188,7 +190,7 @@ namespace ScenarioMeasurement
                     commandLine = commandLine + " " + appArgs;
                 }
 
-                var counters = parser.Parse(traceFileName, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
+                var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
 
                 WriteResultTable(counters, logger);
 
@@ -198,7 +200,7 @@ namespace ScenarioMeasurement
             // Run profile session
             if (!failed && !skipProfileIteration)
             {
-                logger.LogHeader1("Profile Iteration");
+                logger.LogIterationHeader("Profile Iteration");
                 ProfileParser profiler = new ProfileParser(parser);
                 using (var profileSession = TraceSessionManager.CreateProfileSession("ProfileSession", "profile_"+traceFileName, traceDirectory, logger))
                 {
@@ -243,14 +245,14 @@ namespace ScenarioMeasurement
             int pid = 0;
             if (setupHelper != null)
             {
-                logger.LogHeader2("Iteration Setup");
+                logger.LogStepHeader("Iteration Setup");
                 failed = !RunProcess(setupHelper).Success;
             }
 
             // no need to run test process if setup failed
             if (!failed)
             {
-                logger.LogHeader2("Test");
+                logger.LogStepHeader("Test");
                 var testProcessResult = RunProcess(testHelper);
                 failed = !testProcessResult.Success;
                 pid = testProcessResult.Pid;
@@ -259,7 +261,7 @@ namespace ScenarioMeasurement
             // need to clean up despite the result of setup and test
             if (cleanupHelper != null)
             {
-                logger.LogHeader2("Iteration Cleanup");
+                logger.LogStepHeader("Iteration Cleanup");
                 failed = failed || !RunProcess(cleanupHelper).Success;
             }
 

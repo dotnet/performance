@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace ScenarioMeasurement
@@ -7,8 +8,8 @@ namespace ScenarioMeasurement
     class LinuxTraceSession : ITraceSession
     {
         private PerfCollect perfCollect;
-        private Dictionary<TraceSessionManager.KernelKeyword, PerfCollect.KernelKeyword> linKwMapKernel;
-        private Dictionary<TraceSessionManager.ClrKeyword, PerfCollect.ClrKeyword> linKwMapClr;
+        private Dictionary<TraceSessionManager.KernelKeyword, PerfCollect.KernelKeyword> kernelKeywords;
+        private Dictionary<TraceSessionManager.ClrKeyword, PerfCollect.ClrKeyword> clrKeywords;
 
         public LinuxTraceSession(string sessionName, string traceName, string traceDirectory, Logger logger)
         {
@@ -33,7 +34,7 @@ namespace ScenarioMeasurement
         {
             foreach (var keyword in keywords)
             {
-                perfCollect.AddKernelKeyword(linKwMapKernel[keyword]);
+                perfCollect.AddKernelKeyword(kernelKeywords[keyword]);
             }
         }
 
@@ -41,25 +42,30 @@ namespace ScenarioMeasurement
         {
             foreach (var keyword in keywords)
             {
-                perfCollect.AddClrKeyword(linKwMapClr[keyword]);
+                perfCollect.AddClrKeyword(clrKeywords[keyword]);
             }
         }
 
         private void InitLinuxKeywordMaps()
         {
             // initialize linux kernel keyword map
-            linKwMapKernel = new Dictionary<TraceSessionManager.KernelKeyword, PerfCollect.KernelKeyword>();
-            linKwMapKernel[TraceSessionManager.KernelKeyword.Process] = PerfCollect.KernelKeyword.ProcessLifetime;
-            linKwMapKernel[TraceSessionManager.KernelKeyword.Thread] = PerfCollect.KernelKeyword.Thread;
-            linKwMapKernel[TraceSessionManager.KernelKeyword.ContextSwitch] = PerfCollect.KernelKeyword.ContextSwitch;
+            kernelKeywords = new Dictionary<TraceSessionManager.KernelKeyword, PerfCollect.KernelKeyword>();
+            kernelKeywords[TraceSessionManager.KernelKeyword.Process] = PerfCollect.KernelKeyword.ProcessLifetime;
+            kernelKeywords[TraceSessionManager.KernelKeyword.Thread] = PerfCollect.KernelKeyword.Thread;
+            kernelKeywords[TraceSessionManager.KernelKeyword.ContextSwitch] = PerfCollect.KernelKeyword.ContextSwitch;
 
             // initialize linux clr keyword map
-            linKwMapClr = new Dictionary<TraceSessionManager.ClrKeyword, PerfCollect.ClrKeyword>();
-            linKwMapClr[TraceSessionManager.ClrKeyword.Startup] = PerfCollect.ClrKeyword.DotNETRuntimePrivate_StartupKeyword;
+            clrKeywords = new Dictionary<TraceSessionManager.ClrKeyword, PerfCollect.ClrKeyword>();
+            clrKeywords[TraceSessionManager.ClrKeyword.Startup] = PerfCollect.ClrKeyword.DotNETRuntimePrivate_StartupKeyword;
         }
 
         public void EnableUserProvider(string provider)
         {
+        }
+
+        public string GetTraceFilePath()
+        {
+            return perfCollect.TraceFilePath;
         }
     }
 }

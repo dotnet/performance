@@ -29,7 +29,10 @@
     <PropertyGroup>
       <PerfcollectUrl>https://aka.ms/perfcollect</PerfcollectUrl>
     </PropertyGroup>
-    <DownloadFile SourceUrl="$(PerfcollectUrl)" DestinationFolder="$(MSBuildProjectDirectory)">
+    <DownloadFile SourceUrl="$(PerfcollectUrl)" 
+                  DestinationFolder="$(MSBuildProjectDirectory)"
+                  Retries="3"
+                  SkipUnchangedFiles="true">
       <Output TaskParameter="DownloadedFile" ItemName="Content"/>
     </DownloadFile>
     <Copy SourceFiles="perfcollect" DestinationFolder="$(PublishDir)" />

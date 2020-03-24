@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 
 namespace ScenarioMeasurement
 {
@@ -10,6 +9,7 @@ namespace ScenarioMeasurement
         void EnableKernelProvider(params TraceSessionManager.KernelKeyword[] keywords);
         void EnableUserProvider(params TraceSessionManager.ClrKeyword[] keywords);
         void EnableUserProvider(string provider);
+        string GetTraceFilePath();
     }
 
     public static class TraceSessionManager
