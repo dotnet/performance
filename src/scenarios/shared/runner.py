@@ -66,7 +66,7 @@ class Runner:
         self.add_common_arguments(startupparser)
 
         sdkparser = subparsers.add_parser(const.SDK)
-        sdkparser.add_argument('sdktype', choices=[const.CLEAN_BUILD, const.BUILD_NO_CHANGE], type=str.lower)
+        sdkparser.add_argument('sdktype', choices=[const.CLEAN_BUILD, const.BUILD_NO_CHANGE, const.NEW_CONSOLE], type=str.lower)
         self.add_common_arguments(sdkparser)
 
         crossgenparser = subparsers.add_parser(const.CROSSGEN)
@@ -101,14 +101,13 @@ class Runner:
         Runs the specified scenario
         '''
         self.parseargs()
+        startup = StartupWrapper()
         if self.testtype == const.STARTUP:
-            startup = StartupWrapper()
             startup.runtests(**self.traits._asdict(),
                              scenarioname=self.scenarioname,
                              scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
                              apptorun=publishedexe(self.traits.exename))
         elif self.testtype == const.SDK:
-            startup = StartupWrapper()
             envlistbuild = 'DOTNET_MULTILEVEL_LOOKUP=0'
             envlistcleanbuild= ';'.join(['MSBUILDDISABLENODEREUSE=1', envlistbuild])
             # clean build
@@ -124,7 +123,7 @@ class Runner:
                                 scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.CLEAN_BUILD),
                                 apptorun=const.DOTNET,
                                 iterationsetup='py' if sys.platform == 'win32' else 'py3',
-                                setupargs='-3 %s setup' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
+                                setupargs='-3 %s setup_build' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
                                 iterationcleanup='py' if sys.platform == 'win32' else 'py3',
                                 cleanupargs='-3 %s cleanup' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
                                 workingdir= const.APPDIR if not self.traits.workingdir else os.path.join(const.APPDIR, self.traits.workingdir),
@@ -153,6 +152,27 @@ class Runner:
                                 processwillexit=self.traits.processwillexit,
                                 measurementdelay=self.traits.measurementdelay
                                 )
+            # new console
+            if self.sdktype == const.NEW_CONSOLE:
+                startup.runtests(scenarioname=self.scenarioname,
+                                exename=self.traits.exename,
+                                guiapp=self.traits.guiapp,
+                                startupmetric=const.STARTUP_PROCESSTIME,
+                                appargs='new console',
+                                timeout=self.traits.timeout,
+                                warmup='true',
+                                iterations=self.traits.iterations,
+                                scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.NEW_CONSOLE),
+                                apptorun=const.DOTNET,
+                                iterationsetup='py' if sys.platform == 'win32' else 'py3',
+                                setupargs='-3 %s setup_new' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
+                                iterationcleanup='py' if sys.platform == 'win32' else 'py3',
+                                cleanupargs='-3 %s cleanup' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
+                                workingdir= const.APPDIR if not self.traits.workingdir else os.path.join(const.APPDIR, self.traits.workingdir),
+                                environmentvariables=envlistcleanbuild,
+                                processwillexit=self.traits.processwillexit,
+                                measurementdelay=self.traits.measurementdelay
+                                )
 
         elif self.testtype == const.CROSSGEN:
             crossgenexe = 'crossgen%s' % extension()
@@ -161,7 +181,6 @@ class Runner:
                 getLogger().error('Cannot find CORE_ROOT at %s', self.coreroot)
                 return
 
-            startup = StartupWrapper()
             startup.runtests(scenarioname='Crossgen Throughput - %s' % self.crossgenfile,
                              exename=self.traits.exename,
                              guiapp=self.traits.guiapp,
@@ -180,5 +199,4 @@ class Runner:
                              environmentvariables=None,
                              iterationcleanup=None,
                              cleanupargs=None,
-
                              )
