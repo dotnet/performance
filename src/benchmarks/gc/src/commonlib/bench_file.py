@@ -1158,7 +1158,7 @@ class TestResult:
 
 
 class TraceKind(Enum):
-    Etl = 0
+    Etl_or_Btl = 0
     Nettrace = 1
     Perfcollect = 2
 
@@ -1174,9 +1174,9 @@ def get_trace_kind(trace_path: Path) -> TraceKind:
 
 
 def _try_get_trace_kind(trace_path: Path) -> Optional[TraceKind]:
-    name = trace_path.name
-    if name.endswith(".etl"):
-        return TraceKind.Etl
+    name = trace_path.name.lower()
+    if name.endswith(".etl") or name.endswith(".btl"):
+        return TraceKind.Etl_or_Btl
     elif name.endswith(".nettrace"):
         return TraceKind.Nettrace
     elif name.endswith(".trace.zip"):
