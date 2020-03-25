@@ -509,7 +509,7 @@ namespace GCPerf
             Util.Assert(source != null, $"PrintEventsWithoutTraceLog: Bad path {tracePath}.");
 
             uint n = 0;
-            source.AllEvents += (TraceEvent te) =>
+            source!.AllEvents += (TraceEvent te) =>
             {
                 if ((maxEvents == null || n < maxEvents.Value) && filter(te))
                 {
@@ -586,7 +586,7 @@ namespace GCPerf
             if (collectPerHeapHistoryTimes)
             {
                 perHeapHistoryTimes = new List<double>();
-                source.Clr.GCPerHeapHistory += (GCPerHeapHistoryTraceData data) =>
+                source!.Clr.GCPerHeapHistory += (GCPerHeapHistoryTraceData data) =>
                 {
                     perHeapHistoryTimes.Add(data.TimeStampRelativeMSec);
                 };
@@ -602,7 +602,7 @@ namespace GCPerf
 #endif
 
             eventNames = new Dictionary<string, uint>();
-            source.AllEvents += (TraceEvent te) =>
+            source!.AllEvents += (TraceEvent te) =>
             {
                 /*if (tt is CSwitchTraceData cs)
                 {
