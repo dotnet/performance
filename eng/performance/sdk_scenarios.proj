@@ -90,7 +90,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <HelixWorkItem Include="@(Framework -> 'SDK New Console %(Identity)')">
+    <HelixWorkItem Include="SDK New Console">
       <PayloadDirectory>$(ScenariosDir)emptyconsoletemplate</PayloadDirectory>
       <Command>$(Python) test.py sdk new_console --scenario-name &quot;%(Identity)&quot;</Command>
       <PostCommands>$(Python) post.py</PostCommands>
