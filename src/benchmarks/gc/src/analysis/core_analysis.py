@@ -193,7 +193,7 @@ def get_process_names_and_process_info(
 ) -> Tuple[ThreadToProcessToName, ProcessInfo]:
     p = get_traced_processes(clr, trace_path, collect_event_names)
     kind = get_trace_kind(trace_path)
-    if kind == TraceKind.Etl:
+    if kind == TraceKind.Etl_or_Btl:
         process = find_process(clr, p.processes, process_predicate)
     else:
         processes = tuple(p.processes)
