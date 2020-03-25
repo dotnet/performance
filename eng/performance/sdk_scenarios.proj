@@ -88,5 +88,14 @@
       <Command>%(Command) build_no_change --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
+
+  <ItemGroup>
+    <HelixWorkItem Include="@(Framework -> 'SDK New Console %(Identity)')">
+      <PayloadDirectory>$(ScenariosDir)emptyconsoletemplate</PayloadDirectory>
+      <Command>$(Python) test.py sdk new_console --scenario-name &quot;%(Identity)&quot;</Command>
+      <PostCommands>$(Python) post.py</PostCommands>
+      <Timeout>4:00</Timeout>
+    </HelixWorkItem>
+  </ItemGroup>
 </Project>
 
