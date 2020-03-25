@@ -505,11 +505,11 @@ namespace GCPerf
 
         public static void PrintEventsWithoutTraceLog(string tracePath, Func<TraceEvent, bool> filter, uint? maxEvents)
         {
-            using TraceEventDispatcher source = TraceEventDispatcher.GetDispatcherFromFileName(tracePath);
+            using TraceEventDispatcher source = TraceEventDispatcher.GetDispatcherFromFileName(tracePath)!;
             Util.Assert(source != null, $"PrintEventsWithoutTraceLog: Bad path {tracePath}.");
 
             uint n = 0;
-            source!.AllEvents += (TraceEvent te) =>
+            source.AllEvents += (TraceEvent te) =>
             {
                 if ((maxEvents == null || n < maxEvents.Value) && filter(te))
                 {
@@ -517,8 +517,8 @@ namespace GCPerf
                     n++;
                 }
             };
-            TraceLoadedDotNetRuntimeExtensions.NeedLoadedDotNetRuntimes(source!);
-            source!.Process();
+            TraceLoadedDotNetRuntimeExtensions.NeedLoadedDotNetRuntimes(source);
+            source.Process();
             Console.WriteLine("done");
         }
 
@@ -574,7 +574,7 @@ namespace GCPerf
 
         public static TracedProcesses GetTracedProcesses(string tracePath, bool collectEventNames, bool collectPerHeapHistoryTimes)
         {
-            using TraceEventDispatcher source = TraceEventDispatcher.GetDispatcherFromFileName(tracePath);
+            using TraceEventDispatcher source = TraceEventDispatcher.GetDispatcherFromFileName(tracePath)!;
             Util.Assert(source != null, $"GetTracedProcesses: Bad path {tracePath}.");
 
             Dictionary<string, uint>? eventNames = null;
@@ -586,7 +586,7 @@ namespace GCPerf
             if (collectPerHeapHistoryTimes)
             {
                 perHeapHistoryTimes = new List<double>();
-                source!.Clr.GCPerHeapHistory += (GCPerHeapHistoryTraceData data) =>
+                source.Clr.GCPerHeapHistory += (GCPerHeapHistoryTraceData data) =>
                 {
                     perHeapHistoryTimes.Add(data.TimeStampRelativeMSec);
                 };
@@ -602,7 +602,7 @@ namespace GCPerf
 #endif
 
             eventNames = new Dictionary<string, uint>();
-            source!.AllEvents += (TraceEvent te) =>
+            source.AllEvents += (TraceEvent te) =>
             {
                 /*if (tt is CSwitchTraceData cs)
                 {
@@ -639,12 +639,12 @@ namespace GCPerf
             };
             
 
-            var kernelParser = new KernelTraceEventParser(source!);
+            var kernelParser = new KernelTraceEventParser(source);
 
-            TraceLoadedDotNetRuntimeExtensions.NeedLoadedDotNetRuntimes(source!);
-            source!.Process();
+            TraceLoadedDotNetRuntimeExtensions.NeedLoadedDotNetRuntimes(source);
+            source.Process();
 
-            TraceProcesses processes = TraceProcessesExtensions.Processes(source!);
+            TraceProcesses processes = TraceProcessesExtensions.Processes(source);
 
             /*Dictionary<ProcessID, string> processNames = new Dictionary<ProcessID, string>();
             foreach (TraceProcess process in processes)
@@ -665,7 +665,7 @@ namespace GCPerf
             foreach ((ProcessID pid, long timeQPC) in processIDsAndTimes)
             {
                 //Console.WriteLine($"Seen process ID: {pid} at {timeQPC}");
-                string name = source!.ProcessName(pid, timeQPC);
+                string name = source.ProcessName(pid, timeQPC);
                 if (name == "")
                 {
                     Console.WriteLine("Skipping, empty process name");
