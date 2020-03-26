@@ -2,6 +2,8 @@ using Microsoft.DotNet.PlatformAbstractions;
 using Reporting;
 using ScenarioMeasurement;
 using System;
+using System.CommandLine.Invocation;
+using System.Diagnostics;
 using System.IO;
 using System.Resources;
 using Xunit;
@@ -18,12 +20,9 @@ namespace Startup.Tests
         {
             string sessionName = "test-windows-session";
             string traceName = "test-windows-trace";
-            using(var session = new WindowsTraceSession(sessionName, traceName, traceDirectory, logger))
-            {
-                var parser = new ProcessTimeParser();
-                session.EnableProviders(parser);
-                RunTestIteration();
-            }
+            var session = new WindowsTraceSession(sessionName, traceName, traceDirectory, logger);
+            var parser = new TimeToMainParser();
+            TestSession(session, parser);
         }
 
         [LinuxOnly]
@@ -31,12 +30,9 @@ namespace Startup.Tests
         {
             string sessionName = "test-linux-session";
             string traceName = "test-linux-trace";
-            using(var session = new LinuxTraceSession(sessionName, traceName, traceDirectory, logger))
-            {
-                var parser = new ProcessTimeParser();
-                session.EnableProviders(parser);
-                RunTestIteration();
-            }
+            var session = new LinuxTraceSession(sessionName, traceName, traceDirectory, logger);
+            var parser = new TimeToMainParser();
+            TestSession(session, parser);
         }
 
         [Fact]
@@ -44,17 +40,30 @@ namespace Startup.Tests
         {
             string sessionName = "test-profile-iteration-session";
             string traceName = "test-profile-iteration-trace";
-
-            var processTimeParser = new ProcessTimeParser();
-            var profileParser = new ProfileParser(processTimeParser);
-            using(var profileSession = TraceSessionManager.CreateProfileSession(sessionName, traceName, traceDirectory, logger))
-            {
-                profileSession.EnableProviders(profileParser);
-                RunTestIteration();
-            }
+            var timeToMainParser = new TimeToMainParser();
+            var profileParser = new ProfileParser(timeToMainParser);
+            var profileSession = TraceSessionManager.CreateProfileSession(sessionName, traceName, traceDirectory, logger);
+            TestSession(profileSession, profileParser);
         }
 
-        private void RunTestIteration()
+        private void TestSession(ITraceSession session, IParser parser)
+        {
+            ProcessHelper.Result result;
+            string traceFilePath = "";
+            using (session)
+            {
+                session.EnableProviders(parser);
+                result = RunTestIteration();
+                traceFilePath = session.GetTraceFilePath();
+            }
+            if (result != ProcessHelper.Result.Success)
+            {
+                throw new Exception("Test iteration failed.");
+            }
+            Assert.True(!String.IsNullOrEmpty(traceFilePath) && File.Exists(traceFilePath));
+        }
+
+        private ProcessHelper.Result RunTestIteration()
         {
             var procHelper = new ProcessHelper(logger) {
                 Executable = "dotnet",
@@ -62,7 +71,7 @@ namespace Startup.Tests
                 ProcessWillExit = true,
                 GuiApp = false
             };
-
+            return procHelper.Run().Result;
         }
 
         public sealed class WindowsOnly : FactAttribute

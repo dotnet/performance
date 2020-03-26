@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.IO;
 using System.Reflection;
+using System.Text;
 
 namespace ScenarioMeasurement
 {
@@ -51,21 +52,23 @@ namespace ScenarioMeasurement
 
         public ProcessHelper.Result Start()
         {
-            string arguments = $"start {TraceName} -events ";
+            var arguments = new StringBuilder($"start {TraceName} -events ");
 
             foreach (var keyword in KernelEvents)
             {
-                arguments += keyword.ToString() + ",";
+                arguments.Append(keyword.ToString());
+                arguments.Append(",");
             }
 
             foreach (var keyword in ClrEvents)
             {
-                arguments += keyword.ToString() + ",";
+                arguments.Append(keyword.ToString());
+                arguments.Append(",");
             }
 
-            arguments = arguments.TrimEnd(',');
+            string args = arguments.ToString().TrimEnd(',');
 
-            perfCollectProcess.Arguments = arguments;
+            perfCollectProcess.Arguments = args;
             return perfCollectProcess.Run().Result;
         }
 
