@@ -44,15 +44,15 @@ py . diff --argsfile bench/diff_low_memory_container.yaml
 ```
 
 
-## Where arguments
+## gc-where arguments
 
-Many commands have arguments ending in `where` which take the following syntax:
+Many commands have arguments ending in `gc-where` which take the following syntax:
 
-    py . analyze-single foo.etl --gc-where Generation=2 PauseDurationMSec>100
+    py . analyze-single foo.etl --gc-where "Generation=2" "PauseDurationMSec>100"
 
 In this case the argument filters it so we only print GCs that are gen 2 and took over 100ms.
-The value of `where` consists of a number of space-separated filters.
-Each filter is of the form “name operator value”, e.g.,
+The value of `gc-where` consists of a number of space-separated filters.
+Each filter is of the form “name operator value” (don't forget to enclose them in quotes to make sure they are read correctly), e.g.,
 Generation is the name, = is the operator, 2 is the value.
 
 The operators are the usual: =, !=, <, >, <=, >=.
@@ -60,7 +60,7 @@ The value may be a number or (unquoted) string.
 
 You can also put any number of `or` in between the clauses, as in:
 
-    py . analyze-single foo.etl --gc-where Generation=2 PauseDurationMSec>100 or Generation=0 PauseDurationMSec<10
+    py . analyze-single foo.etl --gc-where "Generation=2" "PauseDurationMSec>100" or "Generation=0" "PauseDurationMSec<10"
 
 Which would print GCs that are either long gen2 or short gen0.
 Any more complicated filters should be written manually in the code.
