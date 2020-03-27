@@ -6,6 +6,7 @@ using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.IO;
 using System.Resources;
+using System.Threading;
 using Xunit;
 
 namespace Startup.Tests
@@ -48,29 +49,16 @@ namespace Startup.Tests
 
         private void TestSession(ITraceSession session, IParser parser)
         {
-            ProcessHelper.Result result;
             string traceFilePath = "";
             using (session)
             {
                 session.EnableProviders(parser);
-                result = RunTestIteration();
+                Thread.Sleep(1);
                 traceFilePath = session.GetTraceFilePath();
             }
 
-            Assert.True(result == ProcessHelper.Result.Success);
             Assert.False(String.IsNullOrEmpty(traceFilePath));
             Assert.True(File.Exists(traceFilePath));
-        }
-
-        private ProcessHelper.Result RunTestIteration()
-        {
-            var procHelper = new ProcessHelper(logger) {
-                Executable = "dotnet",
-                Arguments = "--info",
-                ProcessWillExit = true,
-                GuiApp = false
-            };
-            return procHelper.Run().Result;
         }
 
         public sealed class WindowsOnly : FactAttribute
