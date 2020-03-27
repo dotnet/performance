@@ -35,7 +35,7 @@ namespace Startup.Tests
             TestSession(session, parser);
         }
 
-        [Fact]
+        [WindowsOnly]
         public void TestProfileIteration()
         {
             string sessionName = "test-profile-iteration-session";
@@ -56,11 +56,10 @@ namespace Startup.Tests
                 result = RunTestIteration();
                 traceFilePath = session.GetTraceFilePath();
             }
-            if (result != ProcessHelper.Result.Success)
-            {
-                throw new Exception("Test iteration failed.");
-            }
-            Assert.True(!String.IsNullOrEmpty(traceFilePath) && File.Exists(traceFilePath));
+
+            Assert.True(result == ProcessHelper.Result.Success);
+            Assert.False(String.IsNullOrEmpty(traceFilePath));
+            Assert.True(File.Exists(traceFilePath));
         }
 
         private ProcessHelper.Result RunTestIteration()
