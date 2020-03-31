@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace ScenarioMeasurement
 {
-    internal class ProcessTimeParser : IParser
+    public class ProcessTimeParser : IParser
     {
         public void EnableKernelProvider(ITraceSession kernel)
         {

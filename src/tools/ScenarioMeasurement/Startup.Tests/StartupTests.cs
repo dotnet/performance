@@ -1,11 +1,6 @@
-using Microsoft.DotNet.PlatformAbstractions;
-using Reporting;
 using ScenarioMeasurement;
 using System;
-using System.CommandLine.Invocation;
-using System.Diagnostics;
 using System.IO;
-using System.Resources;
 using System.Threading;
 using Xunit;
 
@@ -15,6 +10,7 @@ namespace Startup.Tests
     {
         Logger logger = new Logger("test-startup.log");
         string traceDirectory = Environment.CurrentDirectory;
+
 
         [WindowsOnly]
         public void TestWindowsTraceSession()
@@ -43,7 +39,7 @@ namespace Startup.Tests
             string traceName = "test-profile-iteration-trace";
             var timeToMainParser = new TimeToMainParser();
             var profileParser = new ProfileParser(timeToMainParser);
-            var profileSession = TraceSessionManager.CreateProfileSession(sessionName, traceName, traceDirectory, logger);
+            var profileSession = TraceSessionManager.CreateSession(sessionName, traceName, traceDirectory, logger);
             TestSession(profileSession, profileParser);
         }
 
@@ -54,7 +50,7 @@ namespace Startup.Tests
             {
                 session.EnableProviders(parser);
                 Thread.Sleep(1);
-                traceFilePath = session.GetTraceFilePath();
+                traceFilePath = session.TraceFilePath;
             }
 
             Assert.False(String.IsNullOrEmpty(traceFilePath));

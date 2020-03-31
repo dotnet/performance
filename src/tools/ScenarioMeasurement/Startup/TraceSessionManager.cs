@@ -5,19 +5,20 @@ namespace ScenarioMeasurement
 
     public interface ITraceSession : IDisposable
     {
+        string TraceFilePath { get; }
         void EnableProviders(IParser parser);
         void EnableKernelProvider(params TraceSessionManager.KernelKeyword[] keywords);
         void EnableUserProvider(params TraceSessionManager.ClrKeyword[] keywords);
         void EnableUserProvider(string provider);
-        string GetTraceFilePath();
     }
 
     public static class TraceSessionManager
     {
+        public static bool IsWindows { get { return Environment.OSVersion.Platform == PlatformID.Win32NT; } }
         public static ITraceSession CreateSession(string sessionName, string traceName, string traceDirectory, Logger logger)
         {
 
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            if (IsWindows)
             {
                 return new WindowsTraceSession(sessionName, traceName, traceDirectory, logger);
             }
@@ -27,15 +28,6 @@ namespace ScenarioMeasurement
             }
         }
 
-        public static ITraceSession CreateProfileSession(string sessionName, string traceName, string traceDirectory, Logger logger)
-        {
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-            {
-                return new WindowsTraceSession(sessionName, traceName, traceDirectory, logger);
-            }
-            throw new NotImplementedException("Profile iteration not implemented on Linux");
-        }
-        
         public enum KernelKeyword
         {
             Process,

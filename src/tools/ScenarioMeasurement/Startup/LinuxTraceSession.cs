@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace ScenarioMeasurement
 {
-    class LinuxTraceSession : ITraceSession
+    public class LinuxTraceSession : ITraceSession
     {
+        public string TraceFilePath { get { return perfCollect?.TraceFilePath; } }
         private PerfCollect perfCollect;
         private Dictionary<TraceSessionManager.KernelKeyword, PerfCollect.KernelKeyword> kernelKeywords;
         private Dictionary<TraceSessionManager.ClrKeyword, PerfCollect.ClrKeyword> clrKeywords;
@@ -61,11 +59,6 @@ namespace ScenarioMeasurement
 
         public void EnableUserProvider(string provider)
         {
-        }
-
-        public string GetTraceFilePath()
-        {
-            return perfCollect.TraceFilePath;
         }
     }
 }

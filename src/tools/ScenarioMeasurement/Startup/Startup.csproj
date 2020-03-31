@@ -9,13 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>Startup.Tests</_Parameter1>
-    </AssemblyAttribute>
-  </ItemGroup>
- 
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="2.0.44" />
     <PackageReference Include="System.CommandLine.DragonFruit" Version="0.2.0-alpha.19213.1" />
   </ItemGroup>

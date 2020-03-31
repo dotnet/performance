@@ -1,11 +1,8 @@
-﻿using Microsoft.Diagnostics.Tracing.Parsers;
-using Reporting;
+﻿using Reporting;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace ScenarioMeasurement
 {
@@ -172,7 +169,7 @@ namespace ScenarioMeasurement
                     }
                     pids.Add(iterationResult.Pid);
                 }
-                traceFilePath = traceSession.GetTraceFilePath();
+                traceFilePath = traceSession.TraceFilePath;
             }
 
             // Parse trace files
@@ -197,12 +194,14 @@ namespace ScenarioMeasurement
                 CreateTestReport(scenarioName, counters, reportJsonPath);
             }
 
+            // Skip unimplemented Linux profiling
+            skipProfileIteration = skipProfileIteration || !TraceSessionManager.IsWindows;
             // Run profile session
             if (!failed && !skipProfileIteration)
             {
                 logger.LogIterationHeader("Profile Iteration");
                 ProfileParser profiler = new ProfileParser(parser);
-                using (var profileSession = TraceSessionManager.CreateProfileSession("ProfileSession", "profile_"+traceFileName, traceDirectory, logger))
+                using (var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_"+traceFileName, traceDirectory, logger))
                 {
                     profileSession.EnableProviders(profiler);
                     if (!RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger).Success)

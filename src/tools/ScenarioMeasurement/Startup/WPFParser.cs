@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ScenarioMeasurement
 {
-    internal class WPFParser : IParser
+    public class WPFParser : IParser
     {
         public void EnableKernelProvider(ITraceSession kernel)
         {

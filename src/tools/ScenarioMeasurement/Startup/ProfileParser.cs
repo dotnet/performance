@@ -8,7 +8,7 @@ using Reporting;
 
 namespace ScenarioMeasurement
 {
-    internal class ProfileParser : IParser
+    public class ProfileParser : IParser
     {
         IParser other;
         public ProfileParser(IParser other) => this.other = other;

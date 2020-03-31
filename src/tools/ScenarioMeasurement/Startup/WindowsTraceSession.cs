@@ -7,10 +7,10 @@ using System.IO;
 
 namespace ScenarioMeasurement
 {
-    class WindowsTraceSession : ITraceSession
+    public class WindowsTraceSession : ITraceSession
     {
         private Logger logger;
-        private string traceFilePath;
+        public string TraceFilePath { get; }
         public TraceEventSession KernelSession { get; set; }
         public TraceEventSession UserSession { get; set; }
         private Dictionary<TraceSessionManager.KernelKeyword, KernelTraceEventParser.Keywords> kernelKeywords;
@@ -22,7 +22,7 @@ namespace ScenarioMeasurement
 
             string kernelFileName = Path.ChangeExtension(traceName, "perflabkernel.etl");
             string userFileName = Path.ChangeExtension(traceName, "perflabuser.etl");
-            traceFilePath = Path.Combine(traceDirectory, Path.ChangeExtension(traceName, ".etl"));
+            TraceFilePath = Path.Combine(traceDirectory, Path.ChangeExtension(traceName, ".etl"));
 
             KernelSession = new TraceEventSession(sessionName + "_kernel", Path.Combine(traceDirectory, kernelFileName));
             UserSession = new TraceEventSession(sessionName + "_user", Path.Combine(traceDirectory, userFileName));
@@ -41,30 +41,29 @@ namespace ScenarioMeasurement
             KernelSession.Dispose();
             UserSession.Dispose();
 
-            MergeFiles(KernelSession.FileName, UserSession.FileName, traceFilePath);
-            logger.Log($"Trace Saved to {traceFilePath}");
+            MergeFiles(KernelSession.FileName, UserSession.FileName, TraceFilePath);
+            logger.Log($"Trace Saved to {TraceFilePath}");
         }
 
         private void MergeFiles(string kernelTraceFile, string userTraceFile, string traceFile)
         {
             var files = new List<string>();
-            if (File.Exists(kernelTraceFile))
+            if (!File.Exists(kernelTraceFile))
             {
-                files.Add(kernelTraceFile);
+                throw new FileNotFoundException("Kernel trace file not found.");
             }
+            files.Add(kernelTraceFile);
             if (File.Exists(userTraceFile))
             {
                 files.Add(userTraceFile);
             }
-            if (files.Count != 0)
+            
+            logger.Log($"Merging {string.Join(',',files)}... ");
+            TraceEventSession.Merge(files.ToArray(), traceFile);
+            if (File.Exists(traceFile))
             {
-                logger.Log($"Merging {string.Join(',',files)}... ");
-                TraceEventSession.Merge(files.ToArray(), traceFile);
-                if (File.Exists(traceFile))
-                {
-                    File.Delete(userTraceFile);
-                    File.Delete(kernelTraceFile);
-                }
+                File.Delete(userTraceFile);
+                File.Delete(kernelTraceFile);
             }
         }
 
@@ -106,11 +105,6 @@ namespace ScenarioMeasurement
         public void EnableUserProvider(string provider)
         {
             UserSession.EnableProvider(provider);
-        }
-
-        public string GetTraceFilePath()
-        {
-            return traceFilePath;
         }
     }
 }

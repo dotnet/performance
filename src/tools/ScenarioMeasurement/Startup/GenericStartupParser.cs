@@ -12,7 +12,7 @@ namespace ScenarioMeasurement
     //     public void Startup() => WriteEvent(1);
     // }
 
-    internal class GenericStartupParser : IParser
+    public class GenericStartupParser : IParser
     {
         public void EnableKernelProvider(ITraceSession kernel)
         {

@@ -66,7 +66,7 @@ namespace ScenarioMeasurement
                 arguments.Append(",");
             }
 
-            string args = arguments.ToString().TrimEnd(',');
+            string args = arguments.Remove(arguments.Length - 1, 1).ToString();
 
             perfCollectProcess.Arguments = args;
             return perfCollectProcess.Run().Result;
