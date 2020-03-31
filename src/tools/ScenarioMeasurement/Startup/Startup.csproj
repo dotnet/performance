@@ -18,4 +18,17 @@
     <ProjectReference Include="..\..\Reporting\Reporting\Reporting.csproj" />
   </ItemGroup>
 
+  <Target Name="DownloadPerfCollect" BeforeTargets="CoreCompile" Condition=" '$(OS)' != 'Windows_NT' ">
+    <PropertyGroup>
+      <PerfcollectUrl>https://aka.ms/perfcollect</PerfcollectUrl>
+    </PropertyGroup>
+    <DownloadFile SourceUrl="$(PerfcollectUrl)" 
+                  DestinationFolder="$(MSBuildProjectDirectory)"
+                  Retries="3"
+                  SkipUnchangedFiles="true">
+      <Output TaskParameter="DownloadedFile" ItemName="Content"/>
+    </DownloadFile>
+    <Copy SourceFiles="perfcollect" DestinationFolder="$(PublishDir)" />
+    <Copy SourceFiles="perfcollect" DestinationFolder="$(OutDir)" />
+  </Target>
 </Project>

@@ -1,22 +1,21 @@
 ﻿using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
-using Microsoft.Diagnostics.Tracing.Session;
 using Reporting;
 using System;
 using System.Collections.Generic;
 
 namespace ScenarioMeasurement
 {
-    internal class TimeToMainParser : IParser
+    public class TimeToMainParser : IParser
     {
-        public void EnableKernelProvider(TraceEventSession kernel)
+        public void EnableKernelProvider(ITraceSession kernel)
         {
-            kernel.EnableKernelProvider((KernelTraceEventParser.Keywords)(KernelTraceEventParser.Keywords.Process | KernelTraceEventParser.Keywords.Thread | KernelTraceEventParser.Keywords.ContextSwitch));
+            kernel.EnableKernelProvider(TraceSessionManager.KernelKeyword.Process, TraceSessionManager.KernelKeyword.Thread, TraceSessionManager.KernelKeyword.ContextSwitch);
         }
 
-        public void EnableUserProviders(TraceEventSession user)
+        public void EnableUserProviders(ITraceSession user)
         {
-            user.EnableProvider(ClrPrivateTraceEventParser.ProviderGuid, TraceEventLevel.Verbose, (ulong)ClrPrivateTraceEventParser.Keywords.Startup);
+            user.EnableUserProvider(TraceSessionManager.ClrKeyword.Startup);
         }
 
         public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
