@@ -50,33 +50,33 @@ jobs:
 ######################################################
 
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
-  # Windows x64 scenario benchmarks
-  - template: /eng/performance/scenarios.yml
-    parameters:
-      osName: windows
-      osVersion: RS5
-      architecture: x64
-      pool: Hosted VS2017
-      kind: scenarios
-      queue: Windows.10.Amd64.ClientRS5.Open
-      projectFile: scenarios.proj
-      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        # - release/3.1.2xx
-        - 3.0
+  # # Windows x64 scenario benchmarks
+  # - template: /eng/performance/scenarios.yml
+  #   parameters:
+  #     osName: windows
+  #     osVersion: RS5
+  #     architecture: x64
+  #     pool: Hosted VS2017
+  #     kind: scenarios
+  #     queue: Windows.10.Amd64.ClientRS5.Open
+  #     projectFile: scenarios.proj
+  #     channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+  #       # - release/3.1.2xx
+  #       - 3.0
 
-  # Windows x64 SDK scenario benchmarks
-  - template: /eng/performance/scenarios.yml
-    parameters:
-      osName: windows
-      osVersion: RS5
-      architecture: x64
-      pool: Hosted VS2017
-      kind: sdk_scenarios
-      queue: Windows.10.Amd64.ClientRS5.Open
-      projectFile: sdk_scenarios.proj
-      channels:
-        - master
-        # - release/3.1.2xx
+  # # Windows x64 SDK scenario benchmarks
+  # - template: /eng/performance/scenarios.yml
+  #   parameters:
+  #     osName: windows
+  #     osVersion: RS5
+  #     architecture: x64
+  #     pool: Hosted VS2017
+  #     kind: sdk_scenarios
+  #     queue: Windows.10.Amd64.ClientRS5.Open
+  #     projectFile: sdk_scenarios.proj
+  #     channels:
+  #       - master
+  #       # - release/3.1.2xx
 
   # Windows x86 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -92,128 +92,128 @@ jobs:
         - master
         # - release/3.1.2xx
   
-  # Windows x64 micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: windows
-      osVersion: RS5
-      kind: micro
-      architecture: x64
-      pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS5.Open
-      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'runtime libraries' 
-      channels:
-        - master
-        - release/3.1.2xx
-        - 2.1
+  # # Windows x64 micro benchmarks
+  # - template: /eng/performance/benchmark_jobs.yml
+  #   parameters:
+  #     osName: windows
+  #     osVersion: RS5
+  #     kind: micro
+  #     architecture: x64
+  #     pool: Hosted VS2017
+  #     queue: Windows.10.Amd64.ClientRS5.Open
+  #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+  #     runCategories: 'runtime libraries' 
+  #     channels:
+  #       - master
+  #       - release/3.1.2xx
+  #       - 2.1
 
-  # Windows x64 net461 micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: windows
-      osVersion: RS4
-      kind: micro_net461
-      architecture: x64
-      pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS4.DevEx.15.8.Open
-      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'runtime libraries'
-      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - LTS # use LTS channel for net461 framework
+  # # Windows x64 net461 micro benchmarks
+  # - template: /eng/performance/benchmark_jobs.yml
+  #   parameters:
+  #     osName: windows
+  #     osVersion: RS4
+  #     kind: micro_net461
+  #     architecture: x64
+  #     pool: Hosted VS2017
+  #     queue: Windows.10.Amd64.ClientRS4.DevEx.15.8.Open
+  #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+  #     runCategories: 'runtime libraries'
+  #     channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+  #       - LTS # use LTS channel for net461 framework
 
-  # Windows x86 micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: windows
-      osVersion: RS5
-      kind: micro
-      architecture: x86
-      pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS5.Open
-      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'runtime libraries'
-      channels: # for public jobs we want to make sure that the PRs don't break x86
-        - master
+  # # Windows x86 micro benchmarks
+  # - template: /eng/performance/benchmark_jobs.yml
+  #   parameters:
+  #     osName: windows
+  #     osVersion: RS5
+  #     kind: micro
+  #     architecture: x86
+  #     pool: Hosted VS2017
+  #     queue: Windows.10.Amd64.ClientRS5.Open
+  #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+  #     runCategories: 'runtime libraries'
+  #     channels: # for public jobs we want to make sure that the PRs don't break x86
+  #       - master
 
-  # Windows x64 ML.NET benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: windows
-      osVersion: RS5
-      kind: mlnet
-      architecture: x64
-      pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS5.Open
-      csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-      runCategories: 'mldotnet'
-      channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
-        - master
-        - release/3.1.2xx
+  # # Windows x64 ML.NET benchmarks
+  # - template: /eng/performance/benchmark_jobs.yml
+  #   parameters:
+  #     osName: windows
+  #     osVersion: RS5
+  #     kind: mlnet
+  #     architecture: x64
+  #     pool: Hosted VS2017
+  #     queue: Windows.10.Amd64.ClientRS5.Open
+  #     csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
+  #     runCategories: 'mldotnet'
+  #     channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
+  #       - master
+  #       - release/3.1.2xx
 
-  # Windows x64 Roslyn benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: windows
-      osVersion: RS5
-      kind: roslyn
-      architecture: x64
-      pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS5.Open
-      csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
-      runCategories: 'roslyn'
-      channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-        - master
-        - release/3.1.2xx
+  # # Windows x64 Roslyn benchmarks
+  # - template: /eng/performance/benchmark_jobs.yml
+  #   parameters:
+  #     osName: windows
+  #     osVersion: RS5
+  #     kind: roslyn
+  #     architecture: x64
+  #     pool: Hosted VS2017
+  #     queue: Windows.10.Amd64.ClientRS5.Open
+  #     csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
+  #     runCategories: 'roslyn'
+  #     channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+  #       - master
+  #       - release/3.1.2xx
         
-  # Ubuntu 1804 x64 micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: ubuntu
-      osVersion: 1804
-      kind: micro
-      architecture: x64
-      pool: Hosted Ubuntu 1604
-      queue: Ubuntu.1804.Amd64.Open
-      container: ubuntu_x64_build_container
-      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'runtime libraries'
-      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - master
-        - release/3.1.2xx
-        - 2.1
+  # # Ubuntu 1804 x64 micro benchmarks
+  # - template: /eng/performance/benchmark_jobs.yml
+  #   parameters:
+  #     osName: ubuntu
+  #     osVersion: 1804
+  #     kind: micro
+  #     architecture: x64
+  #     pool: Hosted Ubuntu 1604
+  #     queue: Ubuntu.1804.Amd64.Open
+  #     container: ubuntu_x64_build_container
+  #     csproj: src/benchmarks/micro/MicroBenchmarks.csproj
+  #     runCategories: 'runtime libraries'
+  #     channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+  #       - master
+  #       - release/3.1.2xx
+  #       - 2.1
 
-  # Ubuntu 1804 x64 ML.NET benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: ubuntu
-      osVersion: 1804
-      kind: mlnet
-      architecture: x64
-      pool: Hosted Ubuntu 1604
-      queue: Ubuntu.1804.Amd64.Open
-      container: ubuntu_x64_build_container
-      runCategories: 'mldotnet'
-      csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
-      channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
-        - master
-        - release/3.1.2xx
+  # # Ubuntu 1804 x64 ML.NET benchmarks
+  # - template: /eng/performance/benchmark_jobs.yml
+  #   parameters:
+  #     osName: ubuntu
+  #     osVersion: 1804
+  #     kind: mlnet
+  #     architecture: x64
+  #     pool: Hosted Ubuntu 1604
+  #     queue: Ubuntu.1804.Amd64.Open
+  #     container: ubuntu_x64_build_container
+  #     runCategories: 'mldotnet'
+  #     csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
+  #     channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
+  #       - master
+  #       - release/3.1.2xx
 
-  # Ubuntu 1804 x64 Roslyn benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: ubuntu
-      osVersion: 1804
-      kind: roslyn
-      architecture: x64
-      pool: Hosted Ubuntu 1604
-      queue: Ubuntu.1804.Amd64.Open
-      container: ubuntu_x64_build_container
-      runCategories: 'roslyn'
-      csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
-      channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-        - master
-        - release/3.1.2xx
+  # # Ubuntu 1804 x64 Roslyn benchmarks
+  # - template: /eng/performance/benchmark_jobs.yml
+  #   parameters:
+  #     osName: ubuntu
+  #     osVersion: 1804
+  #     kind: roslyn
+  #     architecture: x64
+  #     pool: Hosted Ubuntu 1604
+  #     queue: Ubuntu.1804.Amd64.Open
+  #     container: ubuntu_x64_build_container
+  #     runCategories: 'roslyn'
+  #     csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
+  #     channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+  #       - master
+  #       - release/3.1.2xx
 
 ###########################################
 # Private Jobs

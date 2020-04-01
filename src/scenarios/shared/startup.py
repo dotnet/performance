@@ -90,6 +90,7 @@ class StartupWrapper(object):
             startup_args.extend(['--cleanup-args', kwargs['cleanupargs']])
         if kwargs['measurementdelay']:
             startup_args.extend(['--measurement-delay', kwargs['measurementdelay']])
+        startup_args.append('--skip-profile-iteration')
 
         RunCommand(startup_args, verbose=True).run()
 
