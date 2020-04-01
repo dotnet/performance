@@ -99,7 +99,10 @@ jobs:
         steps:
         - checkout: self
           clean: true
-        - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs)
+        - ${{ if eq($(_Channel, 'master')) }}:
+          - script: $(Python) scripts/parse_props.py
+            displayName: Parse Version.props
+        - script: $(Python) scripts/ci_setup.py $(DotnetVersion) --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs)
           displayName: Run ci_setup.py
         - ${{ if eq(parameters.osName, 'windows') }}:
           - script: (robocopy $(Build.SourcesDirectory) $(Build.SourcesDirectory)\notLocked /E /XD $(Build.SourcesDirectory)\notLocked $(Build.SourcesDirectory)\artifacts $(Build.SourcesDirectory)\.git) ^& IF %ERRORLEVEL% LEQ 1 exit 0
