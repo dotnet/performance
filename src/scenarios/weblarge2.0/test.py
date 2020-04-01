@@ -9,6 +9,7 @@ def main():
     traits = TestTraits(exename=EXENAME,
                         guiapp='false',
                         workingdir='mvc',
+                        iterations='1',
                         timeout= f'{const.MINUTE*30}',  # increase timeout for the large project
                         sdk=True,
                         )
