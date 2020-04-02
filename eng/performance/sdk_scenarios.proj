@@ -77,8 +77,8 @@
     <SDKWorkItem Include="@(Framework -> 'SDK WPF Template %(Identity)')" Exclude="*2.1" Condition="'$(_Framework)' != 'netcoreapp5.0'">
       <PayloadDirectory>$(ScenariosDir)wpf</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
-    </SDKWorkItem>
-  </ItemGroup> -->
+    </SDKWorkItem>-->
+  </ItemGroup> 
 
   <ItemGroup>
     <HelixWorkItem Include="@(SDKWorkItem -> '%(Identity) Clean Build')">
