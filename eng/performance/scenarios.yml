@@ -15,6 +15,7 @@ jobs:
     enableTelemetry: false
     enablePublishBuildArtifacts: true
     helixRepo: dotnet/performance
+    continueOnError: true
     jobs:
       - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}'
         displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }}'
