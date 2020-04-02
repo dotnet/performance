@@ -190,7 +190,7 @@ namespace ScenarioMeasurement
                 var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
 
 
-                CreateTestReport(scenarioName, counters, reportJsonPath);
+                CreateTestReport(scenarioName, counters, reportJsonPath, logger);
             }
 
             // Skip unimplemented Linux profiling
@@ -280,7 +280,7 @@ namespace ScenarioMeasurement
             return dict;
         }
 
-        private static void CreateTestReport(string scenarioName, IEnumerable<Counter> counters, string reportJsonPath)
+        private static void CreateTestReport(string scenarioName, IEnumerable<Counter> counters, string reportJsonPath, Logger logger)
         {
             var reporter = Reporter.CreateReporter();
             if (reporter != null)
@@ -292,9 +292,14 @@ namespace ScenarioMeasurement
                 reporter.AddTest(test);
                 if (!String.IsNullOrEmpty(reportJsonPath))
                 {
-                    File.WriteAllText(reportJsonPath, reporter.GetJson());
+                    var json = reporter.GetJson();
+                    if(json != null)
+                    {
+                        File.WriteAllText(reportJsonPath, reporter.GetJson());
+                    }
                 }
             }
+            logger.Log(reporter.WriteResultTable());
         }
     }
 
