@@ -11,29 +11,90 @@ namespace Reporting.Tests
 {
     public class ReporterTests
     {
+        // this matches the output from the reporter made in GetReporterWithSpecifiedEnvironment
+        private string expectedTestTable = 
+@"TestName
+Metric         |Average        |Min            |Max            
+---------------|---------------|---------------|---------------
+CounterName    |1.100 ns       |1.100 ns       |1.100 ns       
+";
+        private string longCounterNameTable =
+@"TestName
+Metric                   |Average        |Min            |Max            
+-------------------------|---------------|---------------|---------------
+ThisIsALongerCounterName |1.100 ns       |1.100 ns       |1.100 ns       
+";
+        private string longResultTable =
+@"TestName
+Metric         |Average                  |Min                      |Max                      
+---------------|-------------------------|-------------------------|-------------------------
+CounterName    |10000000000000000.000 ns |10000000000000000.000 ns |10000000000000000.000 ns 
+";
+        private Reporter GetReporterWithSpecifiedEnvironment(PerfLabEnvironmentProviderMock enviroment, string counterName = null, double result = 1.1)
+        {
+            var reporter = Reporter.CreateReporter(enviroment);
+            var test = new Test();
+            test.Name = "TestName";
+            test.Categories.Add("UnitTest");
+            var counter = new Counter();
+            counter.DefaultCounter = true;
+            counter.HigherIsBetter = false;
+            counter.MetricName = "ns";
+            counter.Name = counterName ?? "CounterName";
+            counter.Results = new[] { result };
+            test.AddCounter(counter);
+            reporter.AddTest(test);
+            return reporter;
+        }
+
         [Fact]
-        public void GetReporterWithUnsetEnvironmentReturnsNull()
+        public void ReporterWithUnsetEnvironmentProducesNoJson()
         {
             var reporter = Reporter.CreateReporter(new NonPerfLabEnvironmentProviderMock());
-            Assert.Null(reporter);
+            Assert.Null(reporter.GetJson());
+        }
+
+        [Fact]
+        public void WriteReportTableWithEnvironment()
+        {
+            PerfLabEnvironmentProviderMock environment = new PerfLabEnvironmentProviderMock();
+            var reporter = GetReporterWithSpecifiedEnvironment(environment);
+            var table = reporter.WriteResultTable();
+            Assert.Equal(expectedTestTable, table);
+        }
+
+        [Fact]
+        public void WriteReportTableWithoutEnvironment()
+        {
+            PerfLabEnvironmentProviderMock environment = new NonPerfLabEnvironmentProviderMock();
+            var reporter = GetReporterWithSpecifiedEnvironment(environment);
+            var table = reporter.WriteResultTable();
+            Assert.Equal(expectedTestTable, table);
+        }
+
+        [Fact]
+        public void WriteReportWithLongNameTableWithoutEnvironment()
+        {
+            PerfLabEnvironmentProviderMock environment = new NonPerfLabEnvironmentProviderMock();
+            var reporter = GetReporterWithSpecifiedEnvironment(environment, counterName:"ThisIsALongerCounterName");
+            var table = reporter.WriteResultTable();
+            Assert.Equal(longCounterNameTable, table);
+        }
+
+        [Fact]
+        public void WriteReportWithLongResultTableWithoutEnvironment()
+        {
+            PerfLabEnvironmentProviderMock environment = new NonPerfLabEnvironmentProviderMock();
+            var reporter = GetReporterWithSpecifiedEnvironment(environment, result: 10000000000000000);
+            var table = reporter.WriteResultTable();
+            Assert.Equal(longResultTable, table);
         }
 
         [Fact]
         public void JsonCanBeGenerated()
         {
             PerfLabEnvironmentProviderMock environment = new PerfLabEnvironmentProviderMock();
-            var reporter = Reporter.CreateReporter(environment);
-            var test = new Test();
-            test.Name = "Test Test";
-            test.Categories.Add("UnitTest");
-            var counter = new Counter();
-            counter.DefaultCounter = true;
-            counter.HigherIsBetter = false;
-            counter.MetricName = "ns";
-            counter.Name = "CounterName";
-            counter.Results = new[] { 1.1 };
-            test.AddCounter(counter);
-            reporter.AddTest(test);
+            var reporter = GetReporterWithSpecifiedEnvironment(environment);
             var jsonString = reporter.GetJson();
             var jsonType = new
             {
@@ -61,7 +122,7 @@ namespace Reporting.Tests
                               a => { Assert.Equal("KEY1", a.Key); Assert.Equal("VALUE1", a.Value); },
                               a => { Assert.Equal("KEY2", a.Key); Assert.Equal("VALUE2", a.Value); });
             Assert.Equal(RuntimeInformation.OSArchitecture.ToString(), jsonObj.Os.Architecture);
-            Assert.Equal("Test Test", jsonObj.Tests[0].Name);
+            Assert.Equal("TestName", jsonObj.Tests[0].Name);
             Assert.Equal("UnitTest", jsonObj.Tests[0].Categories[0]);
             var retCounter = jsonObj.Tests[0].Counters[0];
             Assert.Equal("CounterName", retCounter.Name);

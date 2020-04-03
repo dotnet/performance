@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using RuntimeEnvironment = Microsoft.DotNet.PlatformAbstractions.RuntimeEnvironment;
 
 namespace Reporting
@@ -39,12 +40,11 @@ namespace Reporting
         {
             var ret = new Reporter();
             ret.environment = environment == null ? new EnvironmentProvider() : environment;
-            if (!ret.CheckEnvironment())
+            if (ret.CheckEnvironment())
             {
-                return null;
+                ret.Init();
             }
                         
-            ret.Init();
             return ret;
         }
 
@@ -89,6 +89,10 @@ namespace Reporting
         }
         public string GetJson()
         {
+            if (!CheckEnvironment())
+            { 
+                return null;
+            }
             var jsonobj = new
             {
                 build,
@@ -103,6 +107,46 @@ namespace Reporting
             return JsonConvert.SerializeObject(jsonobj, Formatting.Indented, settings);
         }
 
+        public string WriteResultTable()
+        {
+            StringBuilder ret = new StringBuilder();
+            foreach (var test in tests)
+            {
+                var defaultCounter = test.Counters.Single(c => c.DefaultCounter);
+                var topCounters = test.Counters.Where(c => c.TopCounter && !c.DefaultCounter);
+                var restCounters = test.Counters.Where(c => !(c.TopCounter || c.DefaultCounter));
+                var counterWidth = Math.Max(test.Counters.Max(c => c.Name.Length) + 1, 15);
+                var resultWidth = Math.Max(test.Counters.Max(c => c.Results.Max().ToString("F3").Length + c.MetricName.Length) + 2, 15);
+                ret.AppendLine(test.Name);
+                ret.AppendLine($"{LeftJustify("Metric", counterWidth)}|{LeftJustify("Average",resultWidth)}|{LeftJustify("Min", resultWidth)}|{LeftJustify("Max",resultWidth)}");
+                ret.AppendLine($"{new String('-', counterWidth)}|{new String('-', resultWidth)}|{new String('-', resultWidth)}|{new String('-', resultWidth)}");
+
+           
+                ret.AppendLine(Print(defaultCounter, counterWidth, resultWidth));
+                foreach(var counter in topCounters)
+                {
+                    ret.AppendLine(Print(counter, counterWidth, resultWidth));
+                }
+                foreach (var counter in restCounters)
+                {
+                    ret.AppendLine(Print(counter, counterWidth, resultWidth));
+                }
+            }
+            return ret.ToString();
+        }
+        private string Print(Counter counter, int counterWidth, int resultWidth)
+        {
+            string average = $"{counter.Results.Average():F3} {counter.MetricName}";
+            string max = $"{counter.Results.Max():F3} {counter.MetricName}";
+            string min = $"{counter.Results.Min():F3} {counter.MetricName}";
+            return $"{LeftJustify(counter.Name, counterWidth)}|{LeftJustify(average, resultWidth)}|{LeftJustify(min, resultWidth)}|{LeftJustify(max, resultWidth)}";
+        }
+
+        private string LeftJustify(string str, int width)
+        {
+            return String.Format("{0,-" + width + "}", str);
+        }
+        
         private bool CheckEnvironment()
         {
             return environment.GetEnvironmentVariable("PERFLAB_INLAB")?.Equals("1") ?? false;

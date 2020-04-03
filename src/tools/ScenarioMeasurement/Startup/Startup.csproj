@@ -6,6 +6,7 @@
     <!-- Supported target frameworks -->
     <TargetFramework Condition="'$(TargetFramework)' == ''">netcoreapp3.0</TargetFramework>
     <LangVersion>Preview</LangVersion>
+    <RootNamespace>ScenarioMeasurement</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

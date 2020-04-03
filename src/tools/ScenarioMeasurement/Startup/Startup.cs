@@ -189,9 +189,8 @@ namespace ScenarioMeasurement
 
                 var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
 
-                WriteResultTable(counters, logger);
 
-                CreateTestReport(scenarioName, counters, reportJsonPath);
+                CreateTestReport(scenarioName, counters, reportJsonPath, logger);
             }
 
             // Skip unimplemented Linux profiling
@@ -268,18 +267,7 @@ namespace ScenarioMeasurement
         }
 
 
-        private static void WriteResultTable(IEnumerable<Counter> counters, Logger logger)
-        {
-            logger.Log($"{"Metric",-15}|{"Average",-15}|{"Min",-15}|{"Max",-15}");
-            logger.Log($"---------------|---------------|---------------|---------------");
-            foreach (var counter in counters)
-            {
-                string average = $"{counter.Results.Average():F3} {counter.MetricName}";
-                string max = $"{counter.Results.Max():F3} {counter.MetricName}";
-                string min = $"{counter.Results.Min():F3} {counter.MetricName}";
-                logger.Log($"{counter.Name,-15}|{average,-15}|{min,-15}|{max,-15}");
-            }
-        }
+       
 
         private static Dictionary<string, string> ParseStringToDictionary(string s)
         {
@@ -292,7 +280,7 @@ namespace ScenarioMeasurement
             return dict;
         }
 
-        private static void CreateTestReport(string scenarioName, IEnumerable<Counter> counters, string reportJsonPath)
+        private static void CreateTestReport(string scenarioName, IEnumerable<Counter> counters, string reportJsonPath, Logger logger)
         {
             var reporter = Reporter.CreateReporter();
             if (reporter != null)
@@ -304,9 +292,14 @@ namespace ScenarioMeasurement
                 reporter.AddTest(test);
                 if (!String.IsNullOrEmpty(reportJsonPath))
                 {
-                    File.WriteAllText(reportJsonPath, reporter.GetJson());
+                    var json = reporter.GetJson();
+                    if(json != null)
+                    {
+                        File.WriteAllText(reportJsonPath, reporter.GetJson());
+                    }
                 }
             }
+            logger.Log(reporter.WriteResultTable());
         }
     }
 
