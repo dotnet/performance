@@ -118,7 +118,7 @@ namespace Reporting
                 var counterWidth = Math.Max(test.Counters.Max(c => c.Name.Length) + 1, 15);
                 var resultWidth = Math.Max(test.Counters.Max(c => c.Results.Max().ToString("F3").Length + c.MetricName.Length) + 2, 15);
                 ret.AppendLine(test.Name);
-                ret.AppendLine($"{Justify("Metric", counterWidth)}|{Justify("Average",resultWidth)}|{Justify("Min", resultWidth)}|{Justify("Max",resultWidth)}");
+                ret.AppendLine($"{LeftJustify("Metric", counterWidth)}|{LeftJustify("Average",resultWidth)}|{LeftJustify("Min", resultWidth)}|{LeftJustify("Max",resultWidth)}");
                 ret.AppendLine($"{new String('-', counterWidth)}|{new String('-', resultWidth)}|{new String('-', resultWidth)}|{new String('-', resultWidth)}");
 
            
@@ -139,10 +139,10 @@ namespace Reporting
             string average = $"{counter.Results.Average():F3} {counter.MetricName}";
             string max = $"{counter.Results.Max():F3} {counter.MetricName}";
             string min = $"{counter.Results.Min():F3} {counter.MetricName}";
-            return $"{Justify(counter.Name, counterWidth)}|{Justify(average, resultWidth)}|{Justify(min, resultWidth)}|{Justify(max, resultWidth)}";
+            return $"{LeftJustify(counter.Name, counterWidth)}|{LeftJustify(average, resultWidth)}|{LeftJustify(min, resultWidth)}|{LeftJustify(max, resultWidth)}";
         }
 
-        private string Justify(string str, int width)
+        private string LeftJustify(string str, int width)
         {
             return String.Format("{0,-" + width + "}", str);
         }
