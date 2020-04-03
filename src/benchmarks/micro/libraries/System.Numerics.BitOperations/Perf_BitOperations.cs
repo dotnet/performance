@@ -6,34 +6,24 @@ using System.Numerics;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 using System.Runtime.CompilerServices;
+using BenchmarkDotNet.Extensions;
 
 namespace System.Numerics.Tests
 {
     [BenchmarkCategory(Categories.Libraries, Categories.SIMD)]
     public class Perf_BitOperations
     {
-        private static Random s_random = new Random(5);
-        private static uint[] input_uint = GenerateRandomValues<uint>();
-        private static ulong[] input_ulong = GenerateRandomValues<ulong>();
-
-        private static T[] GenerateRandomValues<T>() where T : struct
-        {
-            T[] randomValues = new T[1000];
-            for (int i = 0; i < 1000; i++)
-            {
-                var randomRange = s_random.Next(minValue: 2000 * i, maxValue: 5000 * i);
-                randomValues[i] = Unsafe.As<int, T>(ref randomRange);
-            }
-            return randomValues;
-        }
+        private static uint[] input_uint = ValuesGenerator.Array<uint>(1000);
+        private static ulong[] input_ulong = ValuesGenerator.Array<ulong>(1000);
 
         [Benchmark]
         public int LeadingZeroCount_uint()
         {
             int sum = 0;
-            for (int i = 0; i < input_uint.Length; i++)
+            uint[] input = input_uint;
+            for (int i = 0; i < input.Length; i++)
             {
-                sum += BitOperations.LeadingZeroCount(input_uint[i]);
+                sum += BitOperations.LeadingZeroCount(input[i]);
             }
             return sum;
         }
@@ -42,9 +32,10 @@ namespace System.Numerics.Tests
         public int LeadingZeroCount_ulong()
         {
             int sum = 0;
-            for (int i = 0; i < input_ulong.Length; i++)
+            ulong[] input = input_ulong;
+            for (int i = 0; i < input.Length; i++)
             {
-                sum += BitOperations.LeadingZeroCount(input_ulong[i]);
+                sum += BitOperations.LeadingZeroCount(input[i]);
             }
             return sum;
         }
@@ -53,9 +44,10 @@ namespace System.Numerics.Tests
         public int Log2_uint()
         {
             int sum = 0;
-            for (int i = 0; i < input_uint.Length; i++)
+            uint[] input = input_uint;
+            for (int i = 0; i < input.Length; i++)
             {
-                sum += BitOperations.Log2(input_uint[i]);
+                sum += BitOperations.Log2(input[i]);
             }
             return sum;
         }
@@ -64,9 +56,10 @@ namespace System.Numerics.Tests
         public int Log2_ulong()
         {
             int sum = 0;
-            for (int i = 0; i < input_ulong.Length; i++)
+            ulong[] input = input_ulong;
+            for (int i = 0; i < input.Length; i++)
             {
-                sum += BitOperations.Log2(input_ulong[i]);
+                sum += BitOperations.Log2(input[i]);
             }
             return sum;
         }
@@ -75,9 +68,10 @@ namespace System.Numerics.Tests
         public int TrailingZeroCount_uint()
         {
             int sum = 0;
-            for (int i = 0; i < input_uint.Length; i++)
+            uint[] input = input_uint;
+            for (int i = 0; i < input.Length; i++)
             {
-                sum += BitOperations.TrailingZeroCount(input_uint[i]);
+                sum += BitOperations.TrailingZeroCount(input[i]);
             }
             return sum;
         }
@@ -86,9 +80,10 @@ namespace System.Numerics.Tests
         public int TrailingZeroCount_ulong()
         {
             int sum = 0;
-            for (int i = 0; i < input_ulong.Length; i++)
+            ulong[] input = input_ulong;
+            for (int i = 0; i < input.Length; i++)
             {
-                sum += BitOperations.TrailingZeroCount(input_ulong[i]);
+                sum += BitOperations.TrailingZeroCount(input[i]);
             }
             return sum;
         }

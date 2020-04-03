@@ -80,6 +80,7 @@
     <Compile Remove="runtime\Math\Functions\Single\Log2.cs" />
     <Compile Remove="runtime\Math\Functions\Single\ScaleB.cs" />
     <Compile Remove="libraries\System.Memory\SequenceReader.cs" />
+    <Compile Remove="libraries\System.Numerics.BitOperations\Perf_BitOperations.cs" />
     <Compile Remove="libraries\System.Text.Json\**\*.cs" />
   </ItemGroup>
 

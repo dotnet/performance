@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace BenchmarkDotNet.Extensions
@@ -91,7 +92,12 @@ namespace BenchmarkDotNet.Extensions
                 return (T)(object)(random.NextDouble() > 0.5);
             if (typeof(T) == typeof(string))
                 return (T) (object) GenerateRandomString(random, 1, 50);
-            
+            if (typeof(T) == typeof(uint) || typeof(T) == typeof(ulong))
+            {
+                int randomValue = random.Next(0, int.MaxValue);
+                return Unsafe.As<int, T>(ref randomValue);
+            }
+
             throw new NotImplementedException($"{typeof(T).Name} is not implemented");
         }
 
