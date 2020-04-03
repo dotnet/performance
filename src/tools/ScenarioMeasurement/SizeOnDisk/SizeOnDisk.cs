@@ -1,10 +1,8 @@
 ﻿using Reporting;
 using System;
 using System.Collections.Generic;
-using System.CommandLine.DragonFruit;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace ScenarioMeasurement
@@ -27,21 +25,19 @@ namespace ScenarioMeasurement
                 Console.WriteLine("Usage: SizeOnDisk <dir0> <dir1> <dirN>");
                 return -1;
             }
+            var directories = new Dictionary<string, Dictionary<string, long>>();
 
-            foreach(var dir in dirs)
+            foreach (var dir in dirs)
             {
                 if(!Directory.Exists(dir))
                 {
                     Console.WriteLine($"Directory {dir} does not exist");
                     return -1;
                 }
-            }
-            var directories = new Dictionary<string, Dictionary<string, long>>();
-            foreach(var dir in dirs)
-            {
                 FindVersionNumbers(dir);
                 directories.Add(dir, GetDirSize(dir));
             }
+
             var counters = new List<Counter>();
             long totalSize = 0;
             int totalCount = 0;
