@@ -109,7 +109,6 @@ namespace ScenarioMeasurement
             {
                 versions.Add(new DirectoryInfo(Directory.GetDirectories(dir).Single()).Name);
             }
-            foreach (var version in versions) Console.WriteLine(version);
         }
 
         static Dictionary<string, long> GetDirSize(string dir)
