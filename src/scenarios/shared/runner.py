@@ -101,13 +101,14 @@ class Runner:
         Runs the specified scenario
         '''
         self.parseargs()
-        startup = StartupWrapper()
         if self.testtype == const.STARTUP:
+            startup = StartupWrapper()
             startup.runtests(**self.traits._asdict(),
                              scenarioname=self.scenarioname,
                              scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
                              apptorun=publishedexe(self.traits.exename))
         elif self.testtype == const.SDK:
+            startup = StartupWrapper()
             envlistbuild = 'DOTNET_MULTILEVEL_LOOKUP=0'
             envlistcleanbuild= ';'.join(['MSBUILDDISABLENODEREUSE=1', envlistbuild])
             # clean build
@@ -175,6 +176,7 @@ class Runner:
                                 )
 
         elif self.testtype == const.CROSSGEN:
+            startup = StartupWrapper()
             crossgenexe = 'crossgen%s' % extension()
             crossgenargs = '/nologo /p %s %s\%s' % (self.coreroot, self.coreroot, self.crossgenfile)
             if self.coreroot is not None and not os.path.isdir(self.coreroot):
