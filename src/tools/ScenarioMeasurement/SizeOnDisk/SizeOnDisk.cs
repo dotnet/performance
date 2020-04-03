@@ -96,18 +96,18 @@ namespace ScenarioMeasurement
             if (!Directory.Exists(sdkDir))
                 return;
             var sharedDir = Path.Combine(path, "shared");
-            var sdkVersion =  new DirectoryInfo(Directory.GetDirectories(sdkDir).First()).Name;
+            var sdkVersion =  new DirectoryInfo(Directory.GetDirectories(sdkDir).Single()).Name;
             var templateDir = Path.Combine(path, "templates");
 
             versions.Add(sdkVersion);
             // the Templates dir seems to have the same version as the SDK version, but with a slightly different format
             versions.Add(Regex.Replace(sdkVersion, @"(\d+\.\d+\.\d)00", "$1"));
 
-            versions.Add(new DirectoryInfo(Directory.GetDirectories(templateDir).First()).Name);
+            versions.Add(new DirectoryInfo(Directory.GetDirectories(templateDir).Single()).Name);
             
             foreach(var dir in Directory.GetDirectories(sharedDir))
             {
-                versions.Add(new DirectoryInfo(Directory.GetDirectories(dir).First()).Name);
+                versions.Add(new DirectoryInfo(Directory.GetDirectories(dir).Single()).Name);
             }
             foreach (var version in versions) Console.WriteLine(version);
         }
