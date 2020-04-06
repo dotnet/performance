@@ -1,7 +1,14 @@
 import xml.etree.ElementTree as ET
 import os
+import argparse
 
-if not os.environ["_Channel"] == "master":
+parser = argparse.ArgumentParser(description='Get the branch name.')
+parser.add_argument('--branch-name', type=str, dest='branch',
+                   help='an integer for the accumulator')
+
+args = parser.parse_args()
+
+if not args.branch == "master":
     exit(0)
 if not os.path.exists('eng/Versions.props'):
     raise  ValueError("Versions.props does not exist")

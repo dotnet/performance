@@ -99,7 +99,7 @@ jobs:
         steps:
         - checkout: self
           clean: true
-        - script: $(Python) scripts/parse_props.py
+        - script: $(Python) scripts/parse_props.py --branch-name $(_Channel)
           displayName: Parse Version.props
         - script: $(Python) scripts/ci_setup.py $(DotnetVersion) --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs)
           displayName: Run ci_setup.py
