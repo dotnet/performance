@@ -4,7 +4,7 @@ using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Exporters.Json;
-using BenchmarkDotNet.Horology;
+using Perfolizer.Horology;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Reports;
 
@@ -29,22 +29,22 @@ namespace BenchmarkDotNet.Extensions
                     .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
 
                 // See https://github.com/dotnet/roslyn/issues/42393
-                job = job.With(new Argument[] { new MsBuildArgument("/p:DebugType=portable") });
+                job = job.WithArguments(new Argument[] { new MsBuildArgument("/p:DebugType=portable") });
             }
 
             return DefaultConfig.Instance
-                .With(job.AsDefault()) // tell BDN that this are our default settings
+                .AddJob(job.AsDefault()) // tell BDN that this are our default settings
                 .WithArtifactsPath(artifactsPath.FullName)
-                .With(MemoryDiagnoser.Default) // MemoryDiagnoser is enabled by default
-                .With(new OperatingSystemFilter())
-                .With(new PartitionFilter(partitionCount, partitionIndex))
-                .With(JsonExporter.Full) // make sure we export to Json
-                .With(new PerfLabExporter())
-                .With(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
-                .With(TooManyTestCasesValidator.FailOnError)
-                .With(new UniqueArgumentsValidator()) // don't allow for duplicated arguments #404
-                .With(new MandatoryCategoryValidator(mandatoryCategories))
-                .With(SummaryStyle.Default.WithMaxParameterColumnWidth(36)); // the default is 20 and trims too aggressively some benchmark results
+                .AddDiagnoser(MemoryDiagnoser.Default) // MemoryDiagnoser is enabled by default
+                .AddFilter(new OperatingSystemFilter())
+                .AddFilter(new PartitionFilter(partitionCount, partitionIndex))
+                .AddExporter(JsonExporter.Full) // make sure we export to Json
+                .AddExporter(new PerfLabExporter())
+                .AddColumn(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
+                .AddValidator(TooManyTestCasesValidator.FailOnError)
+                .AddValidator(new UniqueArgumentsValidator()) // don't allow for duplicated arguments #404
+                .AddValidator(new MandatoryCategoryValidator(mandatoryCategories))
+                .WithSummaryStyle(SummaryStyle.Default.WithMaxParameterColumnWidth(36)); // the default is 20 and trims too aggressively some benchmark results
         }
     }
 }
