@@ -1,6 +1,8 @@
 import xml.etree.ElementTree as ET
 import os
 
+if not os.environ["_Channel"] == "master":
+    exit(0)
 if not os.path.exists('eng/Versions.props'):
     raise  ValueError("Versions.props does not exist")
 tree = ET.parse('eng/Versions.props')

@@ -101,7 +101,6 @@ jobs:
           clean: true
         - script: $(Python) scripts/parse_props.py
           displayName: Parse Version.props
-          condition: eq(${{ _Channel }}, 'master')
         - script: $(Python) scripts/ci_setup.py $(DotnetVersion) --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs)
           displayName: Run ci_setup.py
         - ${{ if eq(parameters.osName, 'windows') }}:
