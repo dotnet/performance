@@ -14,6 +14,20 @@ namespace System.Numerics.Tests
     {
         private const int Iterations = 1000;
 
+        // These arrays are used for the Narrow benchmarks, so they need 2 vectors per iteration
+        private static readonly double[] s_valuesDouble = ValuesGenerator.Array<double>(Vector<double>.Count * 2 * Iterations);
+        private static readonly short[] s_valuesShort = ValuesGenerator.Array<short>(Vector<short>.Count * 2 * Iterations);
+        private static readonly ushort[] s_valuesUShort = ValuesGenerator.Array<ushort>(Vector<ushort>.Count * 2 * Iterations);
+        private static readonly int[] s_valuesInt = ValuesGenerator.Array<int>(Vector<int>.Count * 2 * Iterations);
+        private static readonly uint[] s_valuesUInt = ValuesGenerator.Array<uint>(Vector<uint>.Count * 2 * Iterations);
+        private static readonly long[] s_valuesLong = ValuesGenerator.Array<long>(Vector<long>.Count * 2 * Iterations);
+        private static readonly ulong[] s_valuesULong = ValuesGenerator.Array<ulong>(Vector<ulong>.Count * 2 * Iterations);
+
+        // The remainder are used only for Widen and same-size Convert benchmarks
+        private static readonly float[] s_valuesFloat = ValuesGenerator.Array<float>(Vector<float>.Count * Iterations);
+        private static readonly byte[] s_valuesByte = ValuesGenerator.Array<byte>(Vector<byte>.Count * Iterations);
+        private static readonly sbyte[] s_valuesSByte = ValuesGenerator.Array<sbyte>(Vector<sbyte>.Count * Iterations);
+
         // Vector.ConvertToXXX
         [Benchmark]
         public Vector<int> Convert_float_int() => Convert<float, int>(s_valuesFloat);
@@ -28,38 +42,38 @@ namespace System.Numerics.Tests
         public Vector<ulong> Convert_double_ulong() => Convert<double, ulong>(s_valuesDouble);
 
         [Benchmark]
-        public Vector<float> Convert_int_float() => Convert<int, float>(s_valuesInt32);
+        public Vector<float> Convert_int_float() => Convert<int, float>(s_valuesInt);
 
         [Benchmark]
-        public Vector<float> Convert_uint_float() => Convert<uint, float>(s_valuesUInt32);
+        public Vector<float> Convert_uint_float() => Convert<uint, float>(s_valuesUInt);
 
         [Benchmark]
-        public Vector<double> Convert_long_double() => Convert<long, double>(s_valuesInt64);
+        public Vector<double> Convert_long_double() => Convert<long, double>(s_valuesLong);
 
         [Benchmark]
-        public Vector<double> Convert_ulong_double() => Convert<ulong, double>(s_valuesUInt64);
+        public Vector<double> Convert_ulong_double() => Convert<ulong, double>(s_valuesULong);
 
         // Vector.Narrow
         [Benchmark]
         public Vector<float> Narrow_double() => Narrow<double, float>(s_valuesDouble);
 
         [Benchmark]
-        public Vector<sbyte> Narrow_short() => Narrow<short, sbyte>(s_valuesInt16);
+        public Vector<sbyte> Narrow_short() => Narrow<short, sbyte>(s_valuesShort);
 
         [Benchmark]
-        public Vector<byte> Narrow_ushort() => Narrow<ushort, byte>(s_valuesUInt16);
+        public Vector<byte> Narrow_ushort() => Narrow<ushort, byte>(s_valuesUShort);
 
         [Benchmark]
-        public Vector<short> Narrow_int() => Narrow<int, short>(s_valuesInt32);
+        public Vector<short> Narrow_int() => Narrow<int, short>(s_valuesInt);
 
         [Benchmark]
-        public Vector<ushort> Narrow_uint() => Narrow<uint, ushort>(s_valuesUInt32);
+        public Vector<ushort> Narrow_uint() => Narrow<uint, ushort>(s_valuesUInt);
 
         [Benchmark]
-        public Vector<int> Narrow_long() => Narrow<long, int>(s_valuesInt64);
+        public Vector<int> Narrow_long() => Narrow<long, int>(s_valuesLong);
 
         [Benchmark]
-        public Vector<uint> Narrow_ulong() => Narrow<ulong, uint>(s_valuesUInt64);
+        public Vector<uint> Narrow_ulong() => Narrow<ulong, uint>(s_valuesULong);
 
         // Vector.Widen
         [Benchmark]
@@ -72,31 +86,16 @@ namespace System.Numerics.Tests
         public Vector<ushort> Widen_byte() => Widen<byte, ushort>(s_valuesByte);
 
         [Benchmark]
-        public Vector<int> Widen_short() => Widen<short, int>(s_valuesInt16);
+        public Vector<int> Widen_short() => Widen<short, int>(s_valuesShort);
 
         [Benchmark]
-        public Vector<uint> Widen_ushort() => Widen<ushort, uint>(s_valuesUInt16);
+        public Vector<uint> Widen_ushort() => Widen<ushort, uint>(s_valuesUShort);
 
         [Benchmark]
-        public Vector<long> Widen_int() => Widen<int, long>(s_valuesInt32);
+        public Vector<long> Widen_int() => Widen<int, long>(s_valuesInt);
 
         [Benchmark]
-        public Vector<ulong> Widen_uint() => Widen<uint, ulong>(s_valuesUInt32);
-
-
-        // These arrays are used for the Narrow benchmarks, so they need 2 vectors per iteration
-        private static readonly double[] s_valuesDouble = ValuesGenerator.Array<double>(Vector<double>.Count * 2 * Iterations);
-        private static readonly short[] s_valuesInt16 = ValuesGenerator.Array<short>(Vector<short>.Count * 2 * Iterations);
-        private static readonly ushort[] s_valuesUInt16 = ValuesGenerator.Array<ushort>(Vector<ushort>.Count * 2 * Iterations);
-        private static readonly int[] s_valuesInt32 = ValuesGenerator.Array<int>(Vector<int>.Count * 2 * Iterations);
-        private static readonly uint[] s_valuesUInt32 = ValuesGenerator.Array<uint>(Vector<uint>.Count * 2 * Iterations);
-        private static readonly long[] s_valuesInt64 = ValuesGenerator.Array<long>(Vector<long>.Count * 2 * Iterations);
-        private static readonly ulong[] s_valuesUInt64 = ValuesGenerator.Array<ulong>(Vector<ulong>.Count * 2 * Iterations);
-
-        // The remainder are used only for Widen and same-size Convert benchmarks
-        private static readonly float[] s_valuesFloat = ValuesGenerator.Array<float>(Vector<float>.Count * Iterations);
-        private static readonly byte[] s_valuesByte = ValuesGenerator.Array<byte>(Vector<byte>.Count * Iterations);
-        private static readonly sbyte[] s_valuesSByte = ValuesGenerator.Array<sbyte>(Vector<sbyte>.Count * Iterations);
+        public Vector<ulong> Widen_uint() => Widen<uint, ulong>(s_valuesUInt);
 
         private static Vector<TTo> Convert<TFrom, TTo>(TFrom[] values) where TFrom : struct where TTo : struct
         {
@@ -134,7 +133,7 @@ namespace System.Numerics.Tests
             var accum = Vector<TTo>.Zero;
 
             ref Vector<TFrom> ptr = ref input[0];
-            for (int i = Iterations; i > 0; --i)
+            for (int i = Iterations; i >= 0; --i)
             {
                 accum ^= WidenVector<TFrom, TTo>(ptr);
                 ptr = ref Unsafe.Add(ref ptr, 1);
@@ -163,28 +162,28 @@ namespace System.Numerics.Tests
             if (typeof(TFrom) == typeof(ulong) && typeof(TTo) == typeof(double))
                 return (Vector<TTo>)(object)Vector.ConvertToDouble((Vector<ulong>)(object)value);
 
-          throw new NotSupportedException("Type combination unsupported for Vector.ConvertToXXX");
+            throw new NotSupportedException("Type combination unsupported for Vector.ConvertToXXX");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Vector<TTo> NarrowVector<TFrom, TTo>(Vector<TFrom> value1, Vector<TFrom> value2) where TFrom : struct where TTo : struct
         {
-          if (typeof(TFrom) == typeof(double) && typeof(TTo) == typeof(float))
-              return (Vector<TTo>)(object)Vector.Narrow((Vector<double>)(object)value1, (Vector<double>)(object)value2);
-          if (typeof(TFrom) == typeof(short) && typeof(TTo) == typeof(sbyte))
-              return (Vector<TTo>)(object)Vector.Narrow((Vector<short>)(object)value1, (Vector<short>)(object)value2);
-          if (typeof(TFrom) == typeof(ushort) && typeof(TTo) == typeof(byte))
-              return (Vector<TTo>)(object)Vector.Narrow((Vector<ushort>)(object)value1, (Vector<ushort>)(object)value2);
-          if (typeof(TFrom) == typeof(int) && typeof(TTo) == typeof(short))
-              return (Vector<TTo>)(object)Vector.Narrow((Vector<int>)(object)value1, (Vector<int>)(object)value2);
-          if (typeof(TFrom) == typeof(uint) && typeof(TTo) == typeof(ushort))
-              return (Vector<TTo>)(object)Vector.Narrow((Vector<uint>)(object)value1, (Vector<uint>)(object)value2);
-          if (typeof(TFrom) == typeof(long) && typeof(TTo) == typeof(int))
-              return (Vector<TTo>)(object)Vector.Narrow((Vector<long>)(object)value1, (Vector<long>)(object)value2);
-          if (typeof(TFrom) == typeof(ulong) && typeof(TTo) == typeof(uint))
-              return (Vector<TTo>)(object)Vector.Narrow((Vector<ulong>)(object)value1, (Vector<ulong>)(object)value2);
+            if (typeof(TFrom) == typeof(double) && typeof(TTo) == typeof(float))
+                return (Vector<TTo>)(object)Vector.Narrow((Vector<double>)(object)value1, (Vector<double>)(object)value2);
+            if (typeof(TFrom) == typeof(short) && typeof(TTo) == typeof(sbyte))
+                return (Vector<TTo>)(object)Vector.Narrow((Vector<short>)(object)value1, (Vector<short>)(object)value2);
+            if (typeof(TFrom) == typeof(ushort) && typeof(TTo) == typeof(byte))
+                return (Vector<TTo>)(object)Vector.Narrow((Vector<ushort>)(object)value1, (Vector<ushort>)(object)value2);
+            if (typeof(TFrom) == typeof(int) && typeof(TTo) == typeof(short))
+                return (Vector<TTo>)(object)Vector.Narrow((Vector<int>)(object)value1, (Vector<int>)(object)value2);
+            if (typeof(TFrom) == typeof(uint) && typeof(TTo) == typeof(ushort))
+                return (Vector<TTo>)(object)Vector.Narrow((Vector<uint>)(object)value1, (Vector<uint>)(object)value2);
+            if (typeof(TFrom) == typeof(long) && typeof(TTo) == typeof(int))
+                return (Vector<TTo>)(object)Vector.Narrow((Vector<long>)(object)value1, (Vector<long>)(object)value2);
+            if (typeof(TFrom) == typeof(ulong) && typeof(TTo) == typeof(uint))
+                return (Vector<TTo>)(object)Vector.Narrow((Vector<ulong>)(object)value1, (Vector<ulong>)(object)value2);
 
-          throw new NotSupportedException("Type combination unsupported for Vector.Narrow");
+            throw new NotSupportedException("Type combination unsupported for Vector.Narrow");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
