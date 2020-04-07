@@ -13,25 +13,33 @@ namespace System.Memory
     public class ReadOnlySpan
     {
         private readonly string _sampeString = "this is a very nice sample string";
-        private readonly Consumer _consumer = new Consumer();
 
         [Benchmark]
         public ReadOnlySpan<char> StringAsSpan() => _sampeString.AsSpan();
         
         [Benchmark(OperationsPerInvoke = 16)]
-        public void GetPinnableReference()
+        public char GetPinnableReference()
         {
             ReadOnlySpan<char> span = _sampeString.AsSpan();
-            var consumer = _consumer;
-            
-            consumer.Consume(span.GetPinnableReference()); consumer.Consume(span.GetPinnableReference());
-            consumer.Consume(span.GetPinnableReference()); consumer.Consume(span.GetPinnableReference());
-            consumer.Consume(span.GetPinnableReference()); consumer.Consume(span.GetPinnableReference());
-            consumer.Consume(span.GetPinnableReference()); consumer.Consume(span.GetPinnableReference());
-            consumer.Consume(span.GetPinnableReference()); consumer.Consume(span.GetPinnableReference());
-            consumer.Consume(span.GetPinnableReference()); consumer.Consume(span.GetPinnableReference());
-            consumer.Consume(span.GetPinnableReference()); consumer.Consume(span.GetPinnableReference());
-            consumer.Consume(span.GetPinnableReference()); consumer.Consume(span.GetPinnableReference());
+            char c;
+
+            c = span.GetPinnableReference(); c = span.GetPinnableReference();
+            c = span.GetPinnableReference(); c = span.GetPinnableReference();
+            c = span.GetPinnableReference(); c = span.GetPinnableReference();
+            c = span.GetPinnableReference(); c = span.GetPinnableReference();
+            c = span.GetPinnableReference(); c = span.GetPinnableReference();
+            c = span.GetPinnableReference(); c = span.GetPinnableReference();
+            c = span.GetPinnableReference(); c = span.GetPinnableReference();
+            c = span.GetPinnableReference(); c = span.GetPinnableReference();
+            c = span.GetPinnableReference(); c = span.GetPinnableReference();
+            c = span.GetPinnableReference(); c = span.GetPinnableReference();
+            c = span.GetPinnableReference(); c = span.GetPinnableReference();
+            c = span.GetPinnableReference(); c = span.GetPinnableReference();
+            c = span.GetPinnableReference(); c = span.GetPinnableReference();
+            c = span.GetPinnableReference(); c = span.GetPinnableReference();
+            c = span.GetPinnableReference(); c = span.GetPinnableReference();
+            c = span.GetPinnableReference(); c = span.GetPinnableReference();
+            return c;
         }
         
         [Benchmark(OperationsPerInvoke = 16)]
