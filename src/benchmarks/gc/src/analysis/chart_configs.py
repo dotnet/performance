@@ -16,6 +16,7 @@ from ..commonlib.bench_file import (
     MACHINE_DOC,
     MAX_ITERATIONS_FOR_ANALYZE_DOC,
     PartialTestCombination,
+    ProcessQuery,
     Vary,
     VARY_DOC,
 )
@@ -33,6 +34,7 @@ from ..commonlib.option import map_option, non_null, optional_to_iter, option_or
 from ..commonlib.result_utils import unwrap
 from ..commonlib.type_utils import argument, with_slots
 
+from .core_analysis import PROCESS_DOC
 from .chart_utils import OUT_SVG_DOC, set_axes, show_or_save, subplots, zip_with_marker_styles
 from .diffable import DIFFABLE_PATHS_DOC, Diffables, get_diffables, SingleDiffable, TEST_WHERE_DOC
 from .parse_metrics import parse_run_metric_arg, parse_run_metrics_arg
@@ -100,6 +102,7 @@ class ChartConfigurationsArgs:
     adjust: bool = argument(
         default=False, hidden=True, doc="If set, will shrink the generated chart."
     )
+    process: ProcessQuery = argument(default=None, doc=PROCESS_DOC)
 
 
 @with_slots
@@ -161,9 +164,7 @@ class _ConfigurationsData:
         return self.diffables[0].x_axis.is_floats
 
 
-def _get_chart_configs_data(
-    args: ChartConfigurationsArgs, sample_kind: SampleKind, max_iterations: Optional[int]
-) -> _ConfigurationsData:
+def _get_chart_configs_data(args: ChartConfigurationsArgs) -> _ConfigurationsData:
     x_run_metric = map_option(args.x_run_metric, parse_run_metric_arg)
     y_run_metrics = parse_run_metrics_arg(args.y_run_metrics, default_to_important=False)
     # Need an explicit type for this due to https://github.com/python/mypy/issues/6751
@@ -177,8 +178,9 @@ def _get_chart_configs_data(
         machines_arg=args.machine,
         vary=args.vary,
         test_where=args.test_where,
-        sample_kind=sample_kind,
-        max_iterations=max_iterations,
+        sample_kind=args.sample_kind,
+        max_iterations=args.max_iterations,
+        process=args.process,
     )
 
     def get_for_diffable(diffable: SingleDiffable) -> _ConfigurationsDataForDiffable:
@@ -230,9 +232,7 @@ def _get_chart_configs_data(
 
 
 def chart_configs(args: ChartConfigurationsArgs) -> None:
-    data: _ConfigurationsData = _get_chart_configs_data(
-        args, sample_kind=args.sample_kind, max_iterations=args.max_iterations
-    )
+    data: _ConfigurationsData = _get_chart_configs_data(args)
 
     # TODO: dup code above
     fig, axes = subplots(len(data.run_metrics))

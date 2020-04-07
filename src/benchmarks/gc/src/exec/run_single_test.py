@@ -7,19 +7,13 @@ from dataclasses import dataclass
 from os import environ
 from pathlib import Path
 from random import randint
-from signal import SIGINT
 from shutil import which
 from subprocess import PIPE, Popen
 from sys import executable as py
-from tempfile import TemporaryDirectory
 from time import sleep, time
 from typing import Iterable, Iterator, Mapping, Optional, Sequence, Tuple
 
 from psutil import process_iter
-
-from ..analysis.core_analysis import get_process_info, process_predicate_from_id
-from ..analysis.clr import Clr
-from ..analysis.types import ProcessInfo
 
 from ..commonlib.bench_file import (
     Benchmark,
@@ -42,7 +36,7 @@ from ..commonlib.collection_util import (
     is_empty,
 )
 from ..commonlib.config import GC_PATH, EXEC_ENV_PATH, PERFVIEW_PATH
-from ..commonlib.option import map_option, non_null, optional_to_iter, option_or, option_or_3
+from ..commonlib.option import map_option, optional_to_iter, option_or, option_or_3
 from ..commonlib.parse_and_serialize import parse_yaml
 from ..commonlib.type_utils import with_slots
 from ..commonlib.util import (
@@ -111,9 +105,10 @@ class SingleTest:
 
 
 # Writes to out_path.etl, out_path.yaml, and out_path as a directory
-def run_single_test(built: Built, t: SingleTest, out: TestPaths) -> TestRunStatus:
+def run_single_test(built: Built, t: SingleTest, out: TestPaths) -> None:
     check_no_test_processes()
     partial_test_status = _do_run_single_test(built, t, out)
+    seconds_taken = partial_test_status.seconds_taken
     gcperfsim_result = (
         _parse_gcperfsim_result(partial_test_status.stdout)
         if t.benchmark.executable is None
@@ -121,11 +116,11 @@ def run_single_test(built: Built, t: SingleTest, out: TestPaths) -> TestRunStatu
         else None
     )
     test_status = TestRunStatus(
-        test=t.test,
         success=partial_test_status.success,
-        process_id=partial_test_status.process_id,
-        seconds_taken=partial_test_status.seconds_taken,
         trace_file_name=partial_test_status.trace_file_name,
+        process_id=partial_test_status.process_id,
+        seconds_taken=seconds_taken,
+        test=t.test,
         stdout=partial_test_status.stdout,
         gcperfsim_result=gcperfsim_result,
     )
@@ -135,22 +130,27 @@ def run_single_test(built: Built, t: SingleTest, out: TestPaths) -> TestRunStatu
         give_user_permissions(out.test_status_path)
 
     if test_status.success:
-        print(f"Took {test_status.seconds_taken} seconds")
+        print(f"Took {seconds_taken} seconds")
         min_seconds = option_or_3(
             t.benchmark.min_seconds, t.options.default_min_seconds, _TEST_MIN_SECONDS_DEFAULT
         )
-        if test_status.seconds_taken < min_seconds:
+
+        if seconds_taken < min_seconds:
             desc = f"coreclr={t.coreclr_name} config={t.config_name} benchmark={t.benchmark_name}"
-            raise Exception(
-                f"{desc} took {test_status.seconds_taken} seconds, minimum is {min_seconds}"
-                "(you could change the benchmark's min_seconds or options.default_min_seconds)"
+            min_secs_origin = (
+                'yaml file' if min_seconds in (t.benchmark.min_seconds,
+                                               t.options.default_min_seconds)
+                else 'default'
+            )
+            print(
+                f"\n*WARNING*: Test '{desc}' took {seconds_taken} seconds "
+                f"and {min_secs_origin} minimum set is {min_seconds}.\n"
             )
     else:
         print("Test failed, continuing...")
 
     sleep(1)  # Give process time to close
     check_no_test_processes()
-    return test_status
 
 
 def _parse_gcperfsim_result(stdout: str) -> GCPerfSimResult:
@@ -190,18 +190,6 @@ def _do_run_single_test(built: Built, t: SingleTest, out: TestPaths) -> _Partial
 @contextmanager
 def NonTemporaryDirectory(name: str) -> Iterator[Path]:
     yield GC_PATH / "temp" / (name + str(randint(0, 99)))
-
-
-def run_single_test_temporary(clr: Clr, built: Built, t: SingleTest) -> ProcessInfo:
-    with TemporaryDirectory(t.coreclr_name) as td:
-        temp = Path(td)
-        paths = TestPaths(temp / "temp")
-        test_status = run_single_test(built, t, paths)
-        # TODO: configurable process_predicate
-        trace_file = non_null(paths.trace_file_path(test_status))
-        return get_process_info(
-            clr, trace_file, str(trace_file), process_predicate_from_id(test_status.process_id)
-        )
 
 
 def check_env() -> Mapping[str, str]:
@@ -324,27 +312,28 @@ def _get_perfview_start_or_stop_cmd(
 
 _DEFAULT_MAX_TRACE_SIZE_GB = 1
 
+_collect_options = {
+    CollectKind.gc: ["-GCCollectOnly"],
+    CollectKind.verbose: ["-GCCollectOnly", "-ClrEventLevel:Verbose"],
+    # Need default kernel events to get the process name
+    CollectKind.cpu_samples: [
+        "-OnlyProviders:ClrPrivate:1:5,Clr:1:5",
+        "-ClrEvents:GC+Stack",
+        "-ClrEventLevel:Verbose",
+        "-KernelEvents:Default",
+    ],
+    CollectKind.thread_times: [
+        "-OnlyProviders:ClrPrivate:1:5,Clr:1:5",
+        "-ClrEvents:GC+Stack",
+        "-KernelEvents:ThreadTime",
+    ],
+}
+
 
 def _get_perfview_collect_or_run_common_args(
     t: SingleTest, log_file: Path, trace_file: Path
 ) -> Sequence[str]:
-    collect_args: Sequence[str] = {
-        CollectKind.gc: ["-GCCollectOnly"],
-        CollectKind.verbose: ["-GCCollectOnly", "-ClrEventLevel:Verbose"],
-        # Need default kernel events to get the process name
-        CollectKind.cpu_samples: [
-            "-OnlyProviders:ClrPrivate:1:5,Clr:1:5",
-            "-ClrEvents:GC+Stack",
-            "-ClrEventLevel:Verbose",
-            "-KernelEvents:Default",
-        ],
-        CollectKind.cswitch: [
-            # Use verbose events (4 instead of 5)
-            "-OnlyProviders:ClrPrivate:1:5,Clr:1:5",
-            "-ClrEvents:GC+Stack",
-            f"-KernelEvents:Default,ContextSwitch",
-        ],
-    }[t.options.get_collect]
+    collect_args: Sequence[str] = _collect_options[t.options.get_collect]
     max_trace_size_mb = round(
         gb_to_mb(option_or(t.options.max_trace_size_gb, _DEFAULT_MAX_TRACE_SIZE_GB))
     )
@@ -384,7 +373,7 @@ def _run_single_test_windows_perfview(
     mem_load = t.config.memory_load
     mem_load_process = None
     if mem_load is not None:
-        print("setting up memory load...")
+        print("\nSetting up memory load...")
         mem_load_args: Sequence[str] = (
             str(built.win.make_memory_load),
             "-percent",
@@ -393,12 +382,21 @@ def _run_single_test_windows_perfview(
         )
         mem_load_process = Popen(args=mem_load_args, stderr=PIPE)
         assert mem_load_process.stderr is not None
+
         # Wait on it to start up
-        line = decode_stdout(mem_load_process.stderr.readline())
-        assert (
-            line == "make_memory_load finished starting up"
-        ), f"Unexpected make_memory_load output {line}"
-        print("done")
+        mem_load_msg = decode_stdout(mem_load_process.stderr.readline()).split(',')
+
+        if (len(mem_load_msg) == 2 and mem_load_msg[0].startswith("threshold")):
+            print(
+                f"\n*WARNING*: Desired memory load was {mem_load.percent}%, "
+                f"but {mem_load_msg[1]}% was achieved. There might be some "
+                f"slight variations in the resulting traces.\n"
+            )
+        elif (mem_load_msg[0] == "make_memory_load finished starting up"):
+            print(f"Done!\n")
+        else:
+            mem_load_process.kill()
+            assert (False), f"\nError in make_memory_load: {mem_load_msg[0]}\n"
 
     log_file = out.add_ext("perfview-log.txt")
     trace_file = out.add_ext("etl")
@@ -828,64 +826,6 @@ def _get_exec_args(cmd: Sequence[str], t: SingleTest, out: TestPaths) -> ExecArg
     )
 
 
-# TODO: This isn't working yet. Uses lttng instead of eventpipe
-def _run_single_test_linux_perfcollect(t: SingleTest, out: TestPaths) -> TestRunStatus:
-
-    # TODO: Could launch sudo just for the part it needs?
-    # TODO: running in sudo causes output files to only be readable by super user...
-    #  A future perfcollect may fix this.
-    assert_admin()
-
-    ensure_empty_dir(out.out_path_base)
-
-    cwd = non_null(t.coreclr).corerun.parent  # TODO: handle self-contained executables
-    env = combine_mappings(
-        t.config.with_coreclr(t.coreclr_name).env(map_option(t.coreclr, lambda c: c.core_root)),
-        {"COMPlus_PerfMapEnabled": "1", "COMPlus_EnableEventLog": "1"},
-    )
-    cmd: Sequence[str] = _benchmark_command(t)
-    print(f"cd {cwd}")
-    print(" ".join(cmd))
-    test_process = Popen(cmd, cwd=cwd, env=env)
-
-    test_process_pid = test_process.pid
-    # launch
-
-    print("PID", test_process_pid)
-
-    # Now launch that thing with the stuff
-    perfcollect_cmd = (
-        str(_PERFCOLLECT),
-        "collect",
-        str(out.out_path_base),
-        "-gccollectonly",  # TODO: if I pass this, only event I get is EventID(200) ?
-        "-pid",
-        str(test_process_pid),
-    )
-    print(" ".join(perfcollect_cmd))
-    # TODO: not sure cwd needs to be set...
-    perfcollect_process = Popen(perfcollect_cmd, cwd=_PERFCOLLECT.parent)
-
-    print("waiting on test...")
-
-    test_process.wait()
-
-    assert test_process.returncode == 0
-
-    print("sending signal...")
-
-    perfcollect_process.send_signal(SIGINT)
-
-    print("waiting on perfcollect...")
-
-    perfcollect_process.wait()
-    assert perfcollect_process.returncode == 0
-
-    print("Closed")
-
-    raise Exception("TODO:finish")
-
-
 _GC_KEYWORDS: Sequence[str] = (
     "GC",
     # Above isn't enough -- want GlobalHeapHistory ...
@@ -899,10 +839,6 @@ _GC_KEYWORDS: Sequence[str] = (
 _GC_EVENTS_ID = 1
 _GC_LEVEL = 5  # TODO: where is this documented?
 _GC_PROVIDER: str = f"Microsoft-Windows-DotNETRuntime:0xFFFFFFFFFFFFFFFF:{_GC_LEVEL}"
-
-
-# This is a bash script, no need to build
-_PERFCOLLECT = Path("/home/anhans/work/corefx-tools/src/performance/perfcollect/perfcollect")
 
 
 def _benchmark_command(t: SingleTest) -> Sequence[str]:

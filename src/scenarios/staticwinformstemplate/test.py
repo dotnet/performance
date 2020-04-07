@@ -7,8 +7,7 @@ SCENARIONAME = 'Winforms Template'
 EXENAME = 'staticwinformstemplate'
 
 if __name__ == "__main__":
-    traits = TestTraits(scenarioname=SCENARIONAME, 
-                        exename=EXENAME, 
+    traits = TestTraits(exename=EXENAME, 
                         startupmetric='GenericStartup',
                         startup=True,
                         guiapp='true',

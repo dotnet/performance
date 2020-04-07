@@ -422,14 +422,15 @@ class FullConfigAndName:
 @doc_field("verbose", "Collect verbose GC events, which includes join events.")
 @doc_field("cpu_samples", "Collect all of the above, and CPU samples.")
 @doc_field(
-    "cswitch", "Collect all of the above, and CSwitch events on Windows. No effect on Linux."
+    "thread_times",
+    "Collect all of the above and Thread Times Stacks with CSwitch events. Windows only."
 )
 class CollectKind(OrderedEnum):
     none = 0
     gc = 1
     verbose = 2
     cpu_samples = 3
-    cswitch = 4
+    thread_times = 4
 
 
 def doc_enum(e: Type[Enum]) -> str:
@@ -915,17 +916,25 @@ class SingleTestCombination:
 @with_slots
 @dataclass(frozen=True)
 class TestRunStatus:
-    test: SingleTestCombination
     success: bool
-    process_id: int
-    seconds_taken: float
-    stdout: str
-    # This will be missing if the test run was not GCPerfSim
-    gcperfsim_result: Optional[GCPerfSimResult] = None
-    # This will be missing if 'collect' was specified as 'none' in BenchOPtions
+    # This will be missing if 'collect' was specified as 'none' in BenchOptions
     trace_file_name: Optional[
         str
     ] = None  # File should be stored in the same directory as test status
+    process_id: Optional[int] = None
+    seconds_taken: Optional[float] = None
+    test: Optional[SingleTestCombination] = None
+    stdout: Optional[str] = None
+    # This will be missing if the test run was not GCPerfSim
+    gcperfsim_result: Optional[GCPerfSimResult] = None
+
+    def __post_init__(self) -> None:
+        if self.trace_file_name is not None:
+            assert (
+                self.process_id is not None
+            ), "Test status file must set process_id if trace_file_name is set"
+        else:
+            assert self.process_id is None, "'process_id' has no effect without 'trace_file_name'"
 
 
 @with_slots
@@ -1111,13 +1120,24 @@ def parse_bench_file(path: Path) -> BenchFileAndPath:
     return BenchFileAndPath(load_yaml(BenchFile, path), path)
 
 
+ProcessQuery = Optional[Sequence[str]]
+
+
 @with_slots
 @dataclass(frozen=True)
 class TestResult:
     test_status_path: Optional[Path] = None
     trace_path: Optional[Path] = None
+    process: ProcessQuery = None
 
     def __post_init__(self) -> None:
+        if self.trace_path is None:
+            assert self.process is None
+
+        # Making sure this is a tuple because Python requires it to be hashable.
+        if (self.process is not None):
+            assert isinstance(self.process, tuple)
+
         assert self.test_status_path is not None or self.trace_path is not None
         assert self.test_status_path is None or self.test_status_path.name.endswith(".yaml")
         assert self.trace_path is None or is_trace_path(self.trace_path)
@@ -1138,7 +1158,7 @@ class TestResult:
 
 
 class TraceKind(Enum):
-    Etl = 0
+    Etl_or_Btl = 0
     Nettrace = 1
     Perfcollect = 2
 
@@ -1154,9 +1174,9 @@ def get_trace_kind(trace_path: Path) -> TraceKind:
 
 
 def _try_get_trace_kind(trace_path: Path) -> Optional[TraceKind]:
-    name = trace_path.name
-    if name.endswith(".etl"):
-        return TraceKind.Etl
+    name = trace_path.name.lower()
+    if name.endswith(".etl") or name.endswith(".btl"):
+        return TraceKind.Etl_or_Btl
     elif name.endswith(".nettrace"):
         return TraceKind.Nettrace
     elif name.endswith(".trace.zip"):

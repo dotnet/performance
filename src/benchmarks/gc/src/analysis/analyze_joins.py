@@ -9,6 +9,7 @@ from typing import Callable, Optional, Sequence
 
 from result import Result
 
+from ..commonlib.bench_file import ProcessQuery
 from ..commonlib.collection_util import indices, is_empty, min_max_float
 from ..commonlib.command import Command, CommandKind, CommandsMapping
 from ..commonlib.document import (
@@ -40,7 +41,7 @@ from .core_analysis import GC_NUMBER_DOC, PROCESS_DOC, TRACE_PATH_DOC
 from .enums import GcJoinPhase, GcJoinStage, Gens, ServerGCState
 from .process_trace import get_processed_trace, test_result_from_path
 from .single_gc_metrics import get_gc_index_with_number
-from .types import ProcessedTrace, ThreadToProcessToName, ProcessQuery
+from .types import ProcessedTrace, ThreadToProcessToName
 
 
 class StagesOrPhases(Enum):
@@ -51,7 +52,7 @@ class StagesOrPhases(Enum):
 
 _DOC_N_WORST_STOLEN_TIME_INSTANCES = """
 Show the top N instances of stolen time.
-Only available if 'collect: cswitch' was specified in the BenchOptions.
+Only available if 'collect: thread_times' was specified in the BenchOptions.
 """
 
 _DOC_N_WORST_JOINS = """
@@ -151,8 +152,7 @@ def _get_processed_trace_with_just_join_info(
 ) -> Result[str, ProcessedTrace]:
     return get_processed_trace(
         clr=clr,
-        test_result=test_result_from_path(path),
-        process=process,
+        test_result=test_result_from_path(path, process),
         need_mechanisms_and_reasons=False,
         need_join_info=True,
     )

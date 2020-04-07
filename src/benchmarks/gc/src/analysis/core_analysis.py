@@ -11,7 +11,7 @@ from typing import Any, cast, Dict, Iterable, Mapping, Optional, Pattern, Sequen
 
 from overrides import overrides
 
-from ..commonlib.bench_file import get_trace_kind, TraceKind
+from ..commonlib.bench_file import get_trace_kind, ProcessQuery, TraceKind
 from ..commonlib.collection_util import find_only, is_empty, try_find_only, TryFindOnlyFailure
 from ..commonlib.option import map_option, non_null, optional_to_iter
 from ..commonlib.type_utils import check_cast, with_slots
@@ -28,7 +28,7 @@ from .clr_types import (
     AbstractTraceLoadedDotNetRuntime,
 )
 from .enums import GCType
-from .types import ProcessInfo, ThreadToProcessToName, ProcessQuery
+from .types import ProcessInfo, ThreadToProcessToName
 
 
 def get_etl_trace(clr: Clr, etl_path: Path) -> AbstractEtlTrace:
@@ -147,6 +147,8 @@ This may be:
 * `id:123` to specify a process ID
 * `name:abc` to specify a regular expression to match a process name.
 * `args:abc` to specify a regular expression to match process arguments.
+
+This will only work when analyzing trace files (`.etl` extension).
 """
 
 
@@ -191,7 +193,7 @@ def get_process_names_and_process_info(
 ) -> Tuple[ThreadToProcessToName, ProcessInfo]:
     p = get_traced_processes(clr, trace_path, collect_event_names)
     kind = get_trace_kind(trace_path)
-    if kind == TraceKind.Etl:
+    if kind == TraceKind.Etl_or_Btl:
         process = find_process(clr, p.processes, process_predicate)
     else:
         processes = tuple(p.processes)
@@ -208,18 +210,6 @@ def _get_process_names(pr: AbstractTracedProcesses) -> ThreadToProcessToName:
     return ThreadToProcessToName(pr.thread_id_to_process_id, pr.process_id_to_process_name)
 
 
-def get_process_info(
-    clr: Clr,
-    trace_path: Path,
-    show_name: str,
-    process_predicate: ProcessPredicate,
-    collect_event_names: bool = False,
-) -> ProcessInfo:
-    return get_process_names_and_process_info(
-        clr, trace_path, show_name, process_predicate, collect_event_names
-    )[1]
-
-
 def try_get_runtime(
     clr: Clr, process: AbstractTraceProcess
 ) -> Optional[AbstractTraceLoadedDotNetRuntime]:
@@ -234,7 +224,7 @@ def _get_gcs_from_mang(
     mang: AbstractTraceLoadedDotNetRuntime, name: str
 ) -> Sequence[AbstractTraceGC]:
     # Skip the first two GCs which often have incomplete events
-    unfiltered_gcs = mang.GC.GCs[2:]
+    unfiltered_gcs = mang.GC.GCs
 
     def flt(i: int, gc: AbstractTraceGC) -> bool:
         gc_type = GCType(gc.Type)

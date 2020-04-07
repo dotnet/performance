@@ -13,15 +13,20 @@ The general workflow when using the GC infra is:
 * Run the benchfile and collect traces.
 * Run analysis on the output.
 
-
+NOTE: If running under ARM/ARM64, the program's functionalities are limited to running certain benchmarks only and the setup process is slightly different. This is pointed out as necessary throughout this document. Look out for the _ARM NOTE_ labels. As for the other necessary tools without official ARM/ARM64 downloads (e.g. python, cmake), you can install and run the x86 versions.
 
 # Setup
 
 ### Install python 3.7+
 
-On Windows, just go to https://www.python.org/downloads/ and run the installer.
-On other systems it’s better to use your system’s package manager.
+You will need at least version 3.7 of Python.
+WARN: Python 3.8.0 is [not compatible](https://github.com/jupyter/notebook/issues/4613) with Jupyter Notebook on Windows.
+This should be fixed in 3.8.1.
 
+On Windows, just go to https://www.python.org/downloads/ and run the installer.
+It's recommended to install a 64-bit version if possible, but not required.
+
+On other systems, it’s better to use your system’s package manager.
 
 ### Install Python dependencies
 
@@ -29,73 +34,29 @@ On other systems it’s better to use your system’s package manager.
 py -m pip install -r src/requirements.txt
 ```
 
-You will likely run into trouble installing pythonnet.
+### Install pythonnet
 
-First, pythonnet is only needed to analyze test results, not to run tests.
-If you just want to run tests on this machine, you could comment out pythonnet from `src/requirements.txt`.
-Then when running tests, provide the `--no-check-runs` option.
+Pythonnet is only needed to analyze test results, not to run tests.
+If you just want to run tests on this machine, you can skip installing pythonnet,
+copy bench output to a different machine, and do analysis there.
 
-
-#### Pythonnet on Windows
-
-On Windows, if you run into trouble installing pythonnet, look for an error like:
-
-    Cannot find the specified version of msbuild: '14' 
-
-or:
-
-    Could not load file or assembly 'Microsoft.Build.Utilities, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
-
-If so, you may need to install Visual Studio 2015.
-
-
-#### Pythonnet on other systems
-
-Pythonnet [does not work](https://github.com/pythonnet/pythonnet/issues/939) with the latest version of mono, so you'll need to downgrade that to version 5.
-
-On Ubuntu the instructions are:
-
-* Change `/etc/apt/sources.list.d/mono-official-stable.list` to:
-```
-deb https://download.mono-project.com/repo/ubuntu stable-bionic/snapshots/5.20.1 main
-```
-* `sudo apt remove mono-complete`
-* `sudo apt update`
-* `sudo apt autoremove`
-* `sudo apt install mono-complete`
-* `mono --version`, should be 5.20.1
-
-Then to install from source:
-
-* Instructions: https://github.com/pythonnet/pythonnet/wiki/Installation
-* `py setup.py bdist_wheel --xplat`
-* WARN: The instructions there tell you to run `pip install --no-index --find-links=.\dist\ pythonnet`.
-  This may "succeed" saying `Requirement already satisfied: pythonnet in /path/to/pythonnet`.
-  INSTEAD, go to the *parent* directory and use `sudo python3.7 -m pip install --no-index --find-links=./pythonnet/dist/` which circumvents this bug.
-* Run `import clr` in the python interpreter to verify that installation worked.
-
-
-If you see an error:
-```
-fatal error: Python.h: No such file or directory
-```
-
-You likely have python installed but not dev tools. See https://stackoverflow.com/questions/21530577/fatal-error-python-h-no-such-file-or-directory .
+For instructions to install pythonnet, see [docs/pythonnet.md](docs/pythonnet.md).
 
 ### Building C# dependencies
 
 Navigate to `src/exec/GCPerfSim` and run `dotnet build -c release`.
+This builds the default test benchmark. (You can use other benchmarks if you want, in which case this does not need to be built.)
 
 Navigate to `src/analysis/managed-lib` and run `dotnet publish`.
-
-
+This builds the C# library needed to read trace files. Python will load in this library and make calls to it.
+This intentionally uses a debug build to have added safety checks in the form of assertions.
 
 ### Windows-Only Building
 
-Open a Visual Studio Developer Command Prompt, go to `src/exec/env`, and run `.\build.cmd`. This requires `cmake` to be installed.
+Open a Visual Studio Developer Command Prompt, go to `src/exec/env`, and run `.\build.cmd`.
+This requires `cmake` to be installed.
 
-
-
+_ARM NOTE_: Skip this step. Visual Studio and its build tools are not supported on ARM/ARM64.
 
 ### Other setup
 
@@ -108,8 +69,33 @@ Finally, run `py . setup` from the same directory as this README.
 This will read information about your system that's relevant to performance analysis (such as cache sizes) and save to `bench/host_info.yaml`.
 It will also install some necessary dependencies on Windows.
 
+_ARM NOTE_: Since build tools do not work on ARM/ARM64, `py . setup` will automatically skip reading and writing the system's information. You will have to get the machine's specs and write `bench/host_info.yaml` manually. This file follows the format shown below (it might vary depending on your machine's NUMA nodes and caches).
 
+```yaml
+hostname:
+n_physical_processors:
+n_logical_processors:
+numa_nodes:
+- numa_node_number:
+  ranges:
+  - lo:
+    hi:
+  cpu_group_number:
+cache_info:
+  l1:
+    n_caches:
+    total_bytes:
+  l2:
+    n_caches:
+    total_bytes:
+  l3:
+    n_caches:
+    total_bytes:
+clock_ghz:
+total_physical_memory_mb:
+```
 
+Most (if not all) of these fields can be retrieved from your machine's _Task Manager_ and under _System_ within _Control Panel_.
 
 # Tutorial
 
@@ -135,8 +121,32 @@ You can omit this if you just intend to test a single coreclr.
 
 If you made a mistake, you can run `suite-create` again and pass `--overwrite`, which clears the output directory (`bench/suite` in this example) first.
 
-`suite-create` generates a set of default tests as different `.yaml` files, and a `suite.yaml` file referencing them. 
+`suite-create` generates a set of default tests as different `.yaml` files, and a `suite.yaml` file referencing them.
 
+Each test `.yaml` file looks something like the example described below:
+
+```yaml
+vary: coreclr
+coreclrs:
+  a:
+    core_root: <path to first CoreCLR core root>
+  b:
+    core_root: <path to second CoreCLR core root>
+options:
+   <option configuration such as timeouts, number of iterations, etc>
+common_config:
+   <configuration values such as number of heaps, concurrent gcs, etc>
+benchmarks:
+  0gb:
+    arguments:
+      tc: 10
+      tagb: 300
+      tlgb: 0
+      <other parameters for GCPerfSim>
+  <other benchmark tests to run>
+```
+
+The configuration values that can be used in the test `.yaml` file are described under `docs/bench_file.md`.
 
 ## Running
 
@@ -146,8 +156,9 @@ Running the full suite would take a while, so let's just run one:
 py . run bench/suite/low_memory_container.yaml
 ```
 
-This test must be run as super user (or administrator on Windows).
-Super user is because we are creating a container for this particular test; tests without a container don't need super user privelages.
+On Windows, all tests must be run as administrator as PerfView requires this.
+(Unless `collect: none` is set the benchfile's options. See [Running Without Traces](#Running Without Traces).)
+On Linux, only tests with containers require super user privileges.
 
 You might get errors due to `dotnet` or `dotnet-trace` not being found. Or you might see an error:
 
@@ -163,9 +174,6 @@ A fatal error occurred, the default install location cannot be obtained.
 
 To fix either of these, specify `dotnet_path` and `dotnet_trace_path` in `options:` in the benchfile. (Use `which dotnet` and `which dotnet-trace` to get these values.)
 
-On Windows, all tests must be run as administrator as PerfView requires this.
-(Unless `collect: none` is set the benchfile's options. See [Running Without Traces](#Running Without Traces).)
-
 (Note that if you recently built coreclr, that probably left a `dotnet` process open that `run` will ask you to kill. Just do so and run again with `--overwrite`.)
 
 This simple test should take under 2 minutes. Other tests require more patience.
@@ -177,6 +185,70 @@ Each trace file can be opened in PerfView if you need to.
 
 Each trace file will be named `{coreclr_name}__{config_name}__{benchmark_name}__{iteration}`, e.g.  `clr_a__smaller__nosurvive__0`.
 
+_ARM NOTE_: Container tests are not supported on ARM/ARM64.
+
+### Running with .NET Desktop
+
+Now, it is also possible to run benchmarks using _.NET Desktop_ aside from _.NET Core_. In order to do this, we use a _self contained_ executable of _GCPerfSim_, built targeting the desktop .NET Framework. The steps to do this are described below.
+
+First, we need to tell `dotnet` to build _GCPerfSim_. Navigate to `src/exec/GCPerfSim` and open `GCPerfSim.csproj`.
+
+Within the _TargetFrameworks_ property, add the .NET Desktop version you want to build for.
+
+```xml
+<TargetFrameworks>net472;netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
+```
+
+In this example, we are adding version 4.7.2 to the already existing ones of .NET Core.
+
+Next, you have to rebuild the binaries like before. Issue `dotnet build -c release` again. This will generate the new _self contained_ executable of _GCPerfSim_ back in the `artifacts` directory path at the root of the _performance_ repo. By default, it is located in `performance/artifacts/bin/GCPerfSim/release/net472/GCPerfSim.exe`, supposing you are targeting 4.7.2 as in this example. Otherwise, replace that folder with the version you selected.
+
+After this is completed, we will tell our _bench_ files to use this executable. Open your favorite one in your favorite editor.
+
+There, under the `coreclrs` section, replace the `core_root` property with `self_contained` set to `true`.
+
+On each benchmark, add an `executable` property before the `arguments` one and set it to the path of your newly built `GCPerfSim.exe`.
+
+For example, your benchmark file could end up looking something like the following:
+
+```yaml
+coreclrs:
+  a:
+    self_contained: true
+
+<other configuration values>
+
+benchmarks:
+  0gb:
+    executable: performance/artifacts/bin/GCPerfSim/release/net472/GCPerfSim.exe
+    arguments:
+      tc: 10
+      <other benchmark values>
+
+  2gb:
+    executable: performance/artifacts/bin/GCPerfSim/release/net472/GCPerfSim.exe
+    arguments:
+      tc: 10
+      <other benchmark values>
+
+<remaining benchmarks to be run>
+```
+
+Finally, you are ready to run your tests as explained in the previous **Running** section.
+
+## Test status files
+
+Each trace has (at least) two files associated with it, `x.etl` (or `x.nettrace`) and `x.yaml`.
+The `.yaml` file is called a test status file. It provides, among other things, the process ID to focus on.
+A minimal test status file looks like:
+
+    # this file: `x.yaml`
+    success: true
+    trace_file_name: x.etl  # A relative path. Should generally match the name of this file.
+    process_id: 1234  # If you don't know this, use the `print-processes` command for a list
+
+Only these 3 lines are required, but a full specification is in `class TestRunStatus` in `bench_file.py`.
+You can write these files by hand for traces you got from elsewhere.
 
 ## Analyzing
 
@@ -191,7 +263,7 @@ this take the benchfile as input, not the `.out` directory.)
 
 This produces something like:
 
-```
+```text
                          ┌────────────────────────────┐
                          │ Summary of important stats │
                          └────────────────────────────┘
@@ -238,14 +310,13 @@ This is followed by a list of each metric, sorted by how significantly it differ
 In this case, all diffs should tend toward 0 since we're testing on two identical coreclrs.
 `95P` metrics tend to have high standard deviation, since we are only considering the worst instances.
 
-
+_ARM NOTE_: There is no support to analyze benchmark results on ARM/ARM64. In order to use these results, you will need to transfer them to another machine and perform the analysis there.
 
 ## Conclusion
 
 Now you know how to create, run, and analyze a test.
 
 In many cases, all you need to use the infra is to manually modify a benchfile, then `run` and `diff` it.
-
 
 # Metrics
 
@@ -263,13 +334,13 @@ You can see all available metrics [here](docs/metrics.md).
 
 Most analysis commands require you to specify the metrics you want (although many provide defaults). The simplest example is `analyze-single` which can take a single trace and print out metrics.
 
-```
+```sh
 py . analyze-single bench/suite/low_memory_container.yaml.out/a__only_config__tlgb0.2__0.etl --run-metrics FirstToLastGCSeconds --single-gc-metrics DurationMSec --single-heap-metrics InMB OutMB
 ```
 
 The output will look like:
 
-```
+```text
                   ┌─────────────────┐
                   │ Overall metrics │
                   └─────────────────┘
@@ -342,21 +413,14 @@ The output will look like:
      6 │ 9.54 │  9.54
   ─────┼──────┼──────
      7 │ 10.2 │  10.2
- 
-... 
+...
 ```
 
-
-
 As you can see, the run-metrics appear only once for the whole trace, the single-gc-metrics have different values for each GC, and the single-heap-metrics have a different value for each different heap in each GC.
-
-
 
 # GCPerfSim
 
 Although benchmarks can run any executable, they will usually run GCPerfSim. You can read its documentation in the [source](src/exec/GCPerfSim/GCPerfSim.cs).
-
-
 
 # Running Without Traces
 
@@ -366,13 +430,10 @@ If you set `collect: none` in the `options` section of your [benchfile](docs/ben
 
 If you don't have a trace, you are limited in the metrics you can use. No single-heap or single-gc-metrics are available since individual GCs aren't collected. However, GCPerfSim outputs information at the end which is stored in the test status file (a `.yaml` file with the same name as the trace file would have). You can view those metrics in the section "float metrics that only require test status" [here](docs/metrics.md).
 
-
 # Limitations
 
-
-AMD64 is not currently supported.
-The `affinitize`  and `memory_load_percent` properties of a benchfile's config are not yet implemented outside of Windows.
-
+* ARM/ARM64 are only supported to run basic tests (See above for further details).
+* The `affinitize` and `memory_load_percent` properties of a benchfile's config are not yet implemented outside of Windows.
 
 # Further Reading
 
@@ -385,16 +446,12 @@ Before modifying benchfiles, you should read [bench_file](docs/bench_file.md) wh
 
 Commands can be run in a Jupyter notebook instead of on the command line. See [jupyter notebook](docs/jupyter notebook.md).
 
-
-
-
 # Terms
 
 ### Metric
 
 The name of a measurement we might take.
 See more in `docs/metrics.md`.
-
 
 ### Benchfile
 
@@ -406,18 +463,16 @@ This is the build output of coreclr that is used to run benchmarks.
 
 These are specified in the `coreclrs` section of a benchfile.
 
-This can be found in a directory like `bin/tests/Windows_NT.x64.Release/Tests/Core_Root` (adjust for different OS or architecture) of a coreclr repository. (The Core_Root can be moved anywhere and doesn't need to remain inside the coreclr repository.)
+This can be found in a directory like `runtime/artifacts/bin/coreclr/Windows_NT.x64.Release/` (adjust for different OS or architecture) of a runtime repository. (The Core_Root can be moved anywhere and doesn't need to remain inside the runtime repository). However, it cannot be used as is after building. Move/Copy all files within `crossgen2` to the Core_Root directory as the benchmark executable currently does not find assemblies or binaries deeper in the directory tree.
 
-A clone of https://github.com/dotnet/coreclr,  which may be on an arbitrary commit (including one not checked in).
-When you make a change to coreclr, you will generally make two clones, one at master and one at your branch (which may be on your fork).
+A clone of https://github.com/dotnet/runtime, which may be on an arbitrary commit (including one not checked in).
+When you make a change to coreclr within runtime, you will generally make two clones, one at master and one at your branch (which may be on your fork).
 Alternately, you may have only one checkout, build multiple times, copy the builds to somewhere, and specify coreclrs using `core_root` instead of `path`.
-
 
 ### Config
 
 Environment in which coreclr will be invoked on a benchmark. This includes environment variables that determine GC settings, as well as options for putting the test in a container.
 See `docs/bench_file.md` in the `## Config` section for more info.
-
 
 ### Benchmark
 
@@ -428,8 +483,6 @@ The recorded events of a test run.
 May be an ETL or netperf file.
 ETL files come from using PerfView to collect ETW events, which is the default on Windows.
 Netperf files come from using dotnet-trace, which uses EventPipe. This is the only option on non-Windows systems.
-
-
 
 # Contributing
 

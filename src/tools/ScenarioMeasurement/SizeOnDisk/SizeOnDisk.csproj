@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFramework>
+    <!-- Supported target frameworks -->
+    <TargetFramework Condition="'$(TargetFramework)' == ''">netcoreapp3.0</TargetFramework>
+    <RootNamespace>ScenarioMeasurement</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine.DragonFruit" Version="2.0.0-beta1.20074.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Util\Util.csproj" />
+    <ProjectReference Include="..\..\Reporting\Reporting\Reporting.csproj" />
+  </ItemGroup>
+</Project>

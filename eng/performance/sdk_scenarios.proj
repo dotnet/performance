@@ -1,0 +1,101 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+
+  <ItemGroup>
+    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
+      <PayloadDirectory>%(Identity)</PayloadDirectory>
+    </HelixCorrelationPayload>
+  </ItemGroup>
+  
+  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
+    <ScenariosDir>$(WorkItemDirectory)\src\scenarios\</ScenariosDir>
+    <HelixPreCommands>$(HelixPreCommands);set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\scripts%3B%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
+    <ScenariosDir>$(WorkItemDirectory)/src/scenarios/</ScenariosDir>
+    <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
+  </PropertyGroup>  
+
+  <ItemGroup>
+      <Framework Include="netcoreapp2.1" FrameworkName="%(Identity)"/>
+      <Framework Include="netcoreapp3.0" FrameworkName="%(Identity)" Condition="'$(_Framework.Substring(10))' &gt; '2.1'"/>
+      <Framework Include="netcoreapp3.1" FrameworkName="%(Identity)" Condition="'$(_Framework.Substring(10))' &gt; '3.0'"/>
+      <Framework Include="netcoreapp5.0" FrameworkName="%(Identity)" Condition="'$(_Framework.Substring(10))' &gt; '3.1'"/>
+  </ItemGroup>
+
+  <ItemDefinitionGroup>
+    <SDKWorkItem>
+      <PreCommands>$(Python) pre.py default</PreCommands>
+      <Command>$(Python) test.py sdk</Command>
+      <PostCommands>$(Python) post.py</PostCommands>
+      <Timeout>4:00</Timeout>
+    </SDKWorkItem>
+  </ItemDefinitionGroup>
+  
+  <ItemGroup>
+    <SDKWorkItem Include="@(Framework -> 'SDK Console Template %(Identity)')">
+      <PayloadDirectory>$(ScenariosDir)emptyconsoletemplate</PayloadDirectory>
+      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
+    </SDKWorkItem>
+
+    <!-- For netstandard library we test only netstandard2.0 framework -->
+    <SDKWorkItem Include="SDK .NET 2.0 Library Template">
+      <PayloadDirectory>$(ScenariosDir)netstandard2.0</PayloadDirectory>
+    </SDKWorkItem>
+
+    <SDKWorkItem Include="@(Framework -> 'SDK ASP.NET MVC App Template %(Identity)')" Exclude="*2.1">
+      <PayloadDirectory>$(ScenariosDir)mvcapptemplate</PayloadDirectory>
+      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
+    </SDKWorkItem>
+
+    <!-- WebLarge2.0 asset is specific to netcoreapp2.1 -->
+    <!-- <SDKWorkItem Include="SDK Web Large 2.0 Clean Build netcoreapp2.1">
+      <PayloadDirectory>$(ScenariosDir)weblarge2.0</PayloadDirectory>
+    </SDKWorkItem> -->
+
+    <!-- WebLarge3.0 asset is specific to netcoreapp3.0 and netcoreapp3.1 -->
+    <!-- <SDKWorkItem Include="@(Framework -> 'SDK Web Large 3.0 %(Identity)')" Exclude="*2.1;*5.0">
+      <PayloadDirectory>$(ScenariosDir)weblarge3.0</PayloadDirectory>
+      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
+    </SDKWorkItem> -->
+
+    <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Large %(Identity)')" Exclude="*2.1" Condition="'$(_Framework)' != 'netcoreapp5.0'">
+      <PayloadDirectory>$(ScenariosDir)windowsformslarge</PayloadDirectory>
+      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
+    </SDKWorkItem>
+
+    <SDKWorkItem Include="@(Framework -> 'SDK WPF Large %(Identity)')" Exclude="*2.1" Condition="'$(_Framework)' != 'netcoreapp5.0'">
+      <PayloadDirectory>$(ScenariosDir)wpflarge</PayloadDirectory>
+      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
+    </SDKWorkItem>
+
+    <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Template %(Identity)')" Exclude="*2.1" Condition="'$(_Framework)' != 'netcoreapp5.0'">
+      <PayloadDirectory>$(ScenariosDir)windowsforms</PayloadDirectory>
+      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
+    </SDKWorkItem>
+
+    <SDKWorkItem Include="@(Framework -> 'SDK WPF Template %(Identity)')" Exclude="*2.1" Condition="'$(_Framework)' != 'netcoreapp5.0'">
+      <PayloadDirectory>$(ScenariosDir)wpf</PayloadDirectory>
+      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
+    </SDKWorkItem>
+  </ItemGroup>
+
+  <ItemGroup>
+    <HelixWorkItem Include="@(SDKWorkItem -> '%(Identity) Clean Build')">
+      <Command>%(Command) clean_build --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+    <HelixWorkItem Include="@(SDKWorkItem -> '%(Identity) Build(No Change)')">
+      <Command>%(Command) build_no_change --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+  </ItemGroup>
+
+  <ItemGroup>
+    <HelixWorkItem Include="SDK New Console">
+      <PayloadDirectory>$(ScenariosDir)emptyconsoletemplate</PayloadDirectory>
+      <Command>$(Python) test.py sdk new_console --scenario-name &quot;%(Identity)&quot;</Command>
+      <PostCommands>$(Python) post.py</PostCommands>
+      <Timeout>4:00</Timeout>
+    </HelixWorkItem>
+  </ItemGroup>
+</Project>
+

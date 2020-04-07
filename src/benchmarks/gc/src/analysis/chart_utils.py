@@ -22,6 +22,7 @@ from ..commonlib.util import change_extension, ensure_dir, get_command_line, rem
 LINE_STYLES: Sequence[str] = ["-", "-.", ":"]
 assert all(l in lineStyles.keys() for l in LINE_STYLES)
 
+
 def _get_marker_styles() -> Sequence[str]:
     first_four = (
         ".",
@@ -29,10 +30,11 @@ def _get_marker_styles() -> Sequence[str]:
         # triangle_up,
         "^",
         # pentagon
-        "p"
+        "p",
     )
     assert all(m in lineMarkers.keys() for m in first_four)
     return (*first_four, *(m for m in lineMarkers if m not in first_four))
+
 
 _MARKER_STYLES: Sequence[str] = _get_marker_styles()
 

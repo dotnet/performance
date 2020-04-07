@@ -6,11 +6,12 @@
     <!-- Supported target frameworks -->
     <TargetFramework Condition="'$(TargetFramework)' == ''">netcoreapp3.0</TargetFramework>
     <LangVersion>Preview</LangVersion>
+    <RootNamespace>ScenarioMeasurement</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="2.0.44" />
-    <PackageReference Include="System.CommandLine.DragonFruit" Version="0.2.0-alpha.19213.1" />
+    <PackageReference Include="System.CommandLine.DragonFruit" Version="0.3.0-alpha.20158.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,4 +19,17 @@
     <ProjectReference Include="..\..\Reporting\Reporting\Reporting.csproj" />
   </ItemGroup>
 
+  <Target Name="DownloadPerfCollect" BeforeTargets="CoreCompile" Condition=" '$(OS)' != 'Windows_NT' ">
+    <PropertyGroup>
+      <PerfcollectUrl>https://aka.ms/perfcollect</PerfcollectUrl>
+    </PropertyGroup>
+    <DownloadFile SourceUrl="$(PerfcollectUrl)" 
+                  DestinationFolder="$(MSBuildProjectDirectory)"
+                  Retries="3"
+                  SkipUnchangedFiles="true">
+      <Output TaskParameter="DownloadedFile" ItemName="Content"/>
+    </DownloadFile>
+    <Copy SourceFiles="perfcollect" DestinationFolder="$(PublishDir)" />
+    <Copy SourceFiles="perfcollect" DestinationFolder="$(OutDir)" />
+  </Target>
 </Project>

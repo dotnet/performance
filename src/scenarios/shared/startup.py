@@ -3,22 +3,25 @@ Wrapper around startup tool.
 '''
 import sys
 import os
+import platform
 from shutil import copytree
 from performance.logger import setup_loggers
 from performance.common import get_artifacts_directory, get_packages_directory, RunCommand
-from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR
+from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from dotnet import CSharpProject, CSharpProjFile
-from shared.util import helixpayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent
+from shared.util import helixpayload, helixworkitempayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier
 from shared.const import *
 class StartupWrapper(object):
     '''
     Wraps startup.exe, building it if necessary.
     '''
     def __init__(self):
-        payload = helixpayload()
-        if payload:
-            self._setstartuppath(os.path.join(payload, 'Startup'))
+        if helixpayload() and os.path.exists(os.path.join(helixpayload(), 'Startup')):
+            self._setstartuppath(os.path.join(helixpayload(), 'Startup'))
+        elif helixworkitempayload() and os.path.exists(os.path.join(helixworkitempayload(), 'Startup')):
+            self._setstartuppath(os.path.join(helixworkitempayload(), 'Startup'))
         else:
+            relpath = os.path.join(get_artifacts_directory(), 'startup')
             startupproj = os.path.join('..',
                                        '..',
                                        'tools',
@@ -29,11 +32,18 @@ class StartupWrapper(object):
                                                    sys.path[0]),
                                                    os.path.join(os.path.dirname(startupproj),
                                     os.path.join(get_artifacts_directory(), 'startup')))
-            startup.restore(get_packages_directory(), True)
-            startup.build(configuration='Release',
-                          verbose=True,
-                          packages_path=get_packages_directory(),
-                          output_to_bindir=True)
+            if not os.path.exists(relpath):
+                startup.restore(get_packages_directory(),
+                                True,
+                                getruntimeidentifier())
+                startup.publish('Release',
+                                relpath,
+                                True,
+                                get_packages_directory(),
+                                None,
+                                getruntimeidentifier(),
+                                '--no-restore'
+                                )
             self._setstartuppath(startup.bin_path)
 
     
@@ -48,23 +58,24 @@ class StartupWrapper(object):
             if not kwargs[key]:
                 raise Exception('startup tests require %s' % key)
         reportjson = os.path.join(TRACEDIR, 'perf-lab-report.json')
+        defaultiterations = '1' if runninginlab() and not uploadtokenpresent() else '5' # only run 1 iteration for PR-triggered build
         startup_args = [
             self.startupexe,
             '--app-exe', apptorun,
             '--metric-type', kwargs['startupmetric'], 
-            '--scenario-name', "%s - %s" % (kwargs['scenarioname'], kwargs['scenariotypename']),
-            '--trace-file-name', '%s_%s_startup.etl' % (kwargs['exename'], kwargs['scenariotypename']),
+            '--trace-file-name', '%s_startup.etl' % (kwargs['scenarioname'] or '%s_%s' % (kwargs['exename'],kwargs['scenariotypename'])),
             '--process-will-exit', (kwargs['processwillexit'] or 'true'),
-            '--iterations', '%s' % (kwargs['iterations'] or '5'),
-            '--timeout', '%s' % (kwargs['timeout'] or '20'),
+            '--iterations', '%s' % (kwargs['iterations'] or defaultiterations),
+            '--timeout', '%s' % (kwargs['timeout'] or '50'),
             '--warmup', '%s' % (kwargs['warmup'] or 'true'),
             '--gui-app', kwargs['guiapp'],
             '--working-dir', '%s' % (kwargs['workingdir'] or sys.path[0]),
             '--report-json-path', reportjson,
             '--trace-directory', TRACEDIR
         ]
-
         # optional arguments
+        if kwargs['scenarioname']:
+            startup_args.extend(['--scenario-name', kwargs['scenarioname']])
         if kwargs['appargs']:
             startup_args.extend(['--app-args', kwargs['appargs']])
         if kwargs['environmentvariables']:
@@ -73,7 +84,10 @@ class StartupWrapper(object):
             startup_args.extend(['--iteration-setup', kwargs['iterationsetup']])
         if kwargs['setupargs']:
             startup_args.extend(['--setup-args', kwargs['setupargs']])
-            print(kwargs['setupargs'])
+        if kwargs['iterationcleanup']:
+            startup_args.extend(['--iteration-cleanup', kwargs['iterationcleanup']])
+        if kwargs['cleanupargs']:
+            startup_args.extend(['--cleanup-args', kwargs['cleanupargs']])
         if kwargs['measurementdelay']:
             startup_args.extend(['--measurement-delay', kwargs['measurementdelay']])
 
@@ -84,4 +98,4 @@ class StartupWrapper(object):
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
             if uploadtokenpresent():
                 import upload
-                upload.upload(reportjson, UPLOAD_CONTAINER, None, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+                upload.upload(reportjson, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)

@@ -37,6 +37,7 @@
   - [Dead Code Elimination](#Dead-Code-Elimination)
   - [Loops](#Loops)
   - [Method inlining](#Method-Inlining)
+  - [Be explicit](#Be-explicit)
 
 ## Mindset
 
@@ -104,7 +105,7 @@ public int[] Reverse()
 Profile it using the [ETW Profiler](./benchmarkdotnet.md#Profiling):
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.0 --filter *.Reverse --profiler ETW
+dotnet run -c Release -f netcoreapp3.1 --filter *.Reverse --profiler ETW
 ```
 
 And open the produced trace file with [PerfView](https://github.com/Microsoft/perfview):
@@ -282,7 +283,7 @@ Does it make sense to test the code paths that throw?
 Should we test the code path for an array with one or zero elements? 
 
 * No, because it does not perform any actual work. We would be benchmarking a branch and return from the method. If `Reverse` is inlinable, such a benchmark would be measuring the performance of `if (length <= 1)` and the throw checks.
-* No, because it's not a common case. Moreover, it's very unlikely that removing this check from the code would pass the CoreFX/CLR Code Review and regress the performance in the future.
+* No, because it's not a common case. Moreover, it's very unlikely that removing this check from the code would pass the [dotnet/runtime](https://github.com/dotnet/runtime) repository code review and regress the performance in the future.
 
 So what is left? A loop that does the actual work. Does it make sense to test it for arrays of different sizes?
 
@@ -456,7 +457,6 @@ public class ImageTestData
         FormatName = format.ToString();
     }
 
-    // the value returned by ToString is used in the text representation of Benchmark ID in our reporting system
     public override string ToString() => FormatName;
 
     private static Stream CreateTestImage(ImageFormat format)
@@ -563,3 +563,29 @@ By relying on the BDN mechanism you are going to avoid loop alignment issues. Be
 BenchmarkDotNet prevents from inlining the benchmarked method by wrapping it into a delegate (delegates can not be inlined as of today). The cost of delegate invocation is excluded by a separate run for Overhead calculation.
 
 The benchmark methods don't need to have `[MethodImpl(MethodImplOptions.NoInlining)]` attribute applied.
+
+### Be explicit
+
+C# language features like implicit casting and `var` allow us to introduce invisible side effects to the benchmarks.
+
+Sometimes it's just about introducing a small overhead of an implicit cast. In the following example, we cast `Span<byte>` to `ReadOnlySpan<byte>`.
+
+```cs
+private byte[] byteArray = new byte[8];
+
+[Benchmark]
+public bool TryParseBoolean()
+{
+    var bytes = byteArray.AsSpan(); // bytes is Span<byte>
+    return Utf8Parser.TryParse(bytes, out bool value, out int bytesConsumed); // TryParse expects ReadOnlySpan<byte>, we introduced implicit cast
+}
+```
+
+In extreme cases, we might be measuring the performance of a wrong method. In the following example, we measure the performance of `Math.Max` overload that accepts doubles, not floats (this is what we wanted).
+
+```cs
+var x = 1.0f; var y = 2.9; // x is float, y is double (missing f)
+var result = Math.Max(x, y); // we use double overload because float has implicit cast to double
+```
+
+It's our responsibility to ensure that the benchmarks do exactly what we want. This is why using explicit types over `var` is preferred.

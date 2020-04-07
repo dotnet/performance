@@ -7,12 +7,9 @@ from datetime import datetime
 from enum import Enum
 from os.path import getmtime
 from pathlib import Path
-from platform import processor
+from platform import machine, processor
 from shutil import copyfile, copytree
-from sys import version_info
 from typing import Mapping, Optional, Sequence
-
-from packaging.version import parse as parse_version
 
 from .bench_file import Architecture, Bitness, CoreclrSpecifier, get_architecture_bitness
 from .command import Command, CommandKind, CommandsMapping
@@ -54,21 +51,21 @@ def _get_os_name() -> str:
 
 
 def is_arm() -> bool:
-    return processor().startswith("ARM")
+    return machine().find("ARM") != -1
 
 
-def _get_platform_name() -> str:
+def get_platform_name() -> str:
     if is_arm():
-        # TODO: detect arm32 vs 64
-        return "arm64"
+        # On ARM, the machine() function returns the exact name we need here.
+        return machine().lower()
     else:
         p = processor()
-        assert any(x in p for x in ("AMD64", "Intel64", "x86_64"))
+        assert any(x in p for x in ("AMD64", "Intel64", "x86_64")), f"Processor {p} is not supported."
         return "x64"
 
 
 def get_built_tests_dir(coreclr_repository_root: Path, debug: bool) -> Path:
-    os_dir = f"{_get_os_name()}.{_get_platform_name()}"
+    os_dir = f"{_get_os_name()}.{get_platform_name()}"
     r = "Debug" if debug else "Release"
     return coreclr_repository_root / "bin" / "tests" / f"{os_dir}.{r}"
 
@@ -110,12 +107,10 @@ class Built:
         assert "GCPerfSim" in self.tests
 
     @property
-    def gcperfsim_dll(self) -> Path:
-        return self.tests["GCPerfSim"]
-
-    @property
     def win(self) -> BuiltWindowsOnly:
-        assert os_is_windows()
+        # Visual Studio tools are not supported on ARM. Hence, we assert we are
+        # not working on said architecture.
+        assert os_is_windows() and not is_arm()
         return non_null(self._win)
 
 
@@ -240,12 +235,6 @@ def _get_built_test(name: str, build_kind: BuildKind) -> Path:
         )
 
 
-def _assert_version(desc: str, actual: str, expected: str) -> None:
-    assert parse_version(actual) >= parse_version(
-        expected
-    ), f"Expected {desc} version {expected}, got {actual}"
-
-
 def get_current_git_commit_hash(git_repo_path: Path) -> str:
     return exec_and_get_output(
         ExecArgs(("git", "rev-parse", "HEAD"), cwd=git_repo_path, quiet_print=True)
@@ -306,7 +295,9 @@ def _to_debug_kinds(rebuild_kind: RebuildKind) -> Sequence[_DebugKind]:
 @with_slots
 @dataclass(frozen=True)
 class _CopyBuildArgs:
-    coreclr: Path = argument(name_optional=True, doc="Path to coreclr repository")
+    runtime: Path = argument(
+        name_optional=True, doc="Path to a checkout of the 'dotnet/runtime' repository"
+    )
     kind: _DebugKind = argument(
         default=_DebugKind.release, doc="Whether to copy the debug or release build"
     )
@@ -322,13 +313,13 @@ _BUILDS_PATH = BENCH_DIR_PATH / "builds"
 
 
 def _copy_build(args: _CopyBuildArgs) -> None:
-    core_root = _get_core_root(args.coreclr, args.kind)
-    name = _get_default_build_name(args.coreclr, args.kind) if args.name is None else args.name
+    core_root = _get_core_root(args.runtime, args.kind)
+    name = _get_default_build_name(args.runtime, args.kind) if args.name is None else args.name
     cp_dir(core_root, _BUILDS_PATH / name, args.overwrite)
 
 
-def _get_default_build_name(coreclr: Path, kind: _DebugKind) -> str:
-    commit_hash = get_current_git_commit_hash(coreclr)
+def _get_default_build_name(runtime_repository: Path, kind: _DebugKind) -> str:
+    commit_hash = get_current_git_commit_hash(runtime_repository)
     kind_str = {_DebugKind.debug: "_debug", _DebugKind.release: "_release"}[kind]
     return commit_hash + kind_str
 
@@ -336,7 +327,9 @@ def _get_default_build_name(coreclr: Path, kind: _DebugKind) -> str:
 @with_slots
 @dataclass(frozen=True)
 class RebuildCoreclrArgs:
-    coreclrs: Sequence[Path] = argument(name_optional=True, doc="Path(s) to coreclr repositories")
+    runtime_repo_paths: Sequence[Path] = argument(
+        name_optional=True, doc="Path(s) to a checkout(s) of the 'dotnet/runtime' repository"
+    )
     kind: RebuildKind = argument(doc="Whether to rebuild a debug or release build, or both.")
     just_copy: bool = argument(
         default=False,
@@ -359,8 +352,8 @@ _CORECLR_IMPORTANT_SO_NAMES: Sequence[str] = (
 
 def rebuild_coreclr(args: RebuildCoreclrArgs) -> None:
     for debug_kind in _to_debug_kinds(args.kind):
-        for coreclr in args.coreclrs:
-            _do_rebuild_coreclr(coreclr, args.just_copy, debug_kind)
+        for runtime_repository in args.runtime_repo_paths:
+            _do_rebuild_coreclr(runtime_repository, args.just_copy, debug_kind)
 
 
 def _get_debug_or_release(debug_kind: _DebugKind) -> str:
@@ -369,17 +362,30 @@ def _get_debug_or_release(debug_kind: _DebugKind) -> str:
 
 def _get_debug_or_release_dir_name(debug_kind: _DebugKind) -> str:
     return (
-        f"{_get_os_name()}.{_get_platform_name()}.{_get_debug_or_release(debug_kind).capitalize()}"
+        f"{_get_os_name()}.{get_platform_name()}.{_get_debug_or_release(debug_kind).capitalize()}"
     )
 
 
-def _get_core_root(coreclr: Path, debug_kind: _DebugKind) -> Path:
+def _get_coreclr_from_runtime(runtime_repository: Path) -> Path:
+    return runtime_repository / "src" / "coreclr"
+
+
+def _get_core_root(runtime_repository: Path, debug_kind: _DebugKind) -> Path:
     debug_release = _get_debug_or_release_dir_name(debug_kind)
-    return coreclr / "bin" / "tests" / debug_release / "Tests" / "Core_Root"
+    return (
+        runtime_repository
+        / "artifacts"
+        / "tests"
+        / "coreclr"
+        / debug_release
+        / "Tests"
+        / "Core_Root"
+    )
 
 
-def _do_rebuild_coreclr(coreclr: Path, just_copy: bool, debug_kind: _DebugKind) -> None:
-    plat = _get_platform_name()
+def _do_rebuild_coreclr(runtime_repository: Path, just_copy: bool, debug_kind: _DebugKind) -> None:
+    coreclr = _get_coreclr_from_runtime(runtime_repository)
+    plat = get_platform_name()
     assert_dir_exists(coreclr)
     debug_release = _get_debug_or_release_dir_name(debug_kind)
     if not just_copy:
@@ -402,8 +408,8 @@ def _do_rebuild_coreclr(coreclr: Path, just_copy: bool, debug_kind: _DebugKind) 
             print(output)
             raise Exception("build failed")
 
-    product_dir = coreclr / "bin" / "Product" / debug_release
-    core_root = _get_core_root(coreclr, debug_kind)
+    product_dir = runtime_repository / "artifacts" / "bin" / "coreclr" / debug_release
+    core_root = _get_core_root(runtime_repository, debug_kind)
 
     if os_is_windows():
         for name in _CORECLR_IMPORTANT_DLL_NAMES:
@@ -537,15 +543,12 @@ def get_corerun_path_from_core_root(core_root: Path) -> Path:
     return core_root / name
 
 
-# TODO:NAME
 def get_built(
     coreclrs: Mapping[str, CoreclrSpecifier],
     build_kind: BuildKind = BuildKind.forbid_out_of_date,
     use_debug_coreclrs: bool = False,
     skip_coreclr_checks: bool = False,
 ) -> Built:
-    _check_dependencies()
-
     test_names: Sequence[str] = ("GCPerfSim",)
     tests = {name: _get_built_test(name, build_kind) for name in test_names}
 
@@ -556,7 +559,9 @@ def get_built(
         for name, spec in coreclrs.items()
     }
 
-    # Note: not building gcperf here becuase we already did that when setting up CLR imports
+    # Note: not building gcperf here because we already did that when setting
+    # up CLR imports. Also, these scripts are not built on ARM because Visual
+    # Studio tools are not supported there. Therefore, we just skip in this case.
 
     win = (
         BuiltWindowsOnly(
@@ -565,7 +570,7 @@ def get_built(
             make_memory_load=_get_built_c_script("make_memory_load"),
             run_in_job_exe=_get_built_c_script("run_in_job"),
         )
-        if os_is_windows()
+        if os_is_windows() and not is_arm()
         else None
     )
 
@@ -584,18 +589,6 @@ def _get_built_c_script(name: str) -> Path:
         + " (using a Visual Studio Developer Command Prompt)?"
     )
     return out_path
-
-
-def _check_dependencies() -> None:
-    _assert_version("python", ".".join(str(x) for x in version_info[:3]), "3.7.1")
-
-    # Skip the '.windows.2' ending
-    git_version = ".".join(
-        remove_str_start(
-            exec_and_get_output(ExecArgs(("git", "--version"), quiet_print=True)), "git version"
-        ).split(".")[:3]
-    )
-    _assert_version("git", git_version, "2.17")
 
 
 @with_slots
@@ -629,7 +622,7 @@ BUILD_COMMANDS: CommandsMapping = {
         kind=CommandKind.infra,
         fn=_copy_build,
         doc="""
-    Copy a build from a coreclr repository to bench/builds.
+    Copy a build from a 'dotnet/runtime' repository checkout to 'bench/builds'.
     Output directory name uses the commit hash.
     """,
     ),

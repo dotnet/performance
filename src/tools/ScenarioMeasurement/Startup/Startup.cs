@@ -1,6 +1,4 @@
-﻿using Microsoft.Diagnostics.Tracing.Parsers;
-using Microsoft.Diagnostics.Tracing.Session;
-using Reporting;
+﻿using Reporting;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,6 +40,7 @@ namespace ScenarioMeasurement
         /// <param name="traceDirectory">Directory to put files in (defaults to current directory)</param>
         /// <param name="environmentVariables">Environment variables set for test processes (example: var1=value1;var2=value2)</param>
         /// <returns></returns>
+
         static int Main(string appExe,
                         MetricType metricType,
                         string scenarioName,
@@ -71,7 +70,6 @@ namespace ScenarioMeasurement
                 if (String.IsNullOrEmpty(arg))
                     throw new ArgumentException(name);
             };
-            checkArg(scenarioName, nameof(scenarioName));
             checkArg(appExe, nameof(appExe));
             checkArg(traceFileName, nameof(traceFileName));
 
@@ -93,10 +91,8 @@ namespace ScenarioMeasurement
                 envVariables = ParseStringToDictionary(environmentVariables);
             }
 
-            bool failed = false;
             logger.Log($"Running {appExe} (args: \"{appArgs}\")");
             logger.Log($"Working Directory: {workingDir}");
-
             var procHelper = new ProcessHelper(logger)
             {
                 ProcessWillExit = processWillExit,
@@ -127,17 +123,16 @@ namespace ScenarioMeasurement
 
             Util.Init();
 
+            // Warm up iteration
             if (warmup)
             {
-                logger.Log("=============== Warm up ================");
-                procHelper.Run();
+                logger.LogIterationHeader("Warm up");
+                if (!RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger).Success)
+                {
+                    return -1;  
+                }
             }
 
-            string kernelTraceFile = Path.ChangeExtension(traceFileName, "perflabkernel.etl");
-            string userTraceFile = Path.ChangeExtension(traceFileName, "perflabuser.etl");
-            traceFileName = Path.Join(traceDirectory, traceFileName);
-            kernelTraceFile = Path.Join(traceDirectory, kernelTraceFile);
-            userTraceFile = Path.Join(traceDirectory, userTraceFile);
             IParser parser = null;
             switch (metricType)
             {
@@ -156,64 +151,31 @@ namespace ScenarioMeasurement
             }
 
             var pids = new List<int>();
-            using (var kernel = new TraceEventSession(KernelTraceEventParser.KernelSessionName, kernelTraceFile))
+            bool failed = false;
+            string traceFilePath = "";
+
+            // Run trace session
+            using (var traceSession = TraceSessionManager.CreateSession("StartupSession", traceFileName, traceDirectory, logger))
             {
-                parser.EnableKernelProvider(kernel);
-                using (var user = new TraceEventSession("StartupSession", userTraceFile))
+                traceSession.EnableProviders(parser);
+                for (int i = 0; i < iterations; i++)
                 {
-                    parser.EnableUserProviders(user);
-                    for (int i = 0; i < iterations; i++)
+                    logger.LogIterationHeader($"Iteration {i}");
+                    var iterationResult = RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger);
+                    if (!iterationResult.Success)
                     {
-                        logger.Log($"=============== Iteration {i} ================ ");
-                        // set up iteration
-                        if (setupProcHelper != null)
-                        {
-                            var setupResult = setupProcHelper.Run().result;
-                            if (setupResult != ProcessHelper.Result.Success)
-                            {
-                                logger.Log($"Failed to set up. Result: {setupResult}");
-                                failed = true;
-                                break;
-                            }
-                        }
-
-                        // run iteration
-                        var runResult = procHelper.Run();
-                        if (runResult.result == ProcessHelper.Result.Success)
-                        {
-                            pids.Add(runResult.pid);
-                        }
-                        else
-                        {
-                            logger.Log($"Failed to run. Result: {runResult.result}");
-                            failed = true;
-                            break;
-                        }
-
-                        // clean up iteration
-                        if (cleanupProcHelper != null)
-                        {
-                            var cleanupResult = cleanupProcHelper.Run().result;
-                            if (cleanupResult != ProcessHelper.Result.Success)
-                            {
-                                logger.Log($"Failed to clean up. Result: {cleanupResult}");
-                                failed = true;
-                                break;
-                            }
-                        }
+                        failed = true;
+                        break;
                     }
+                    pids.Add(iterationResult.Pid);
                 }
+                traceFilePath = traceSession.TraceFilePath;
             }
 
+            // Parse trace files
             if (!failed)
             {
-                logger.Log("Parsing..");
-                var files = new List<string> { kernelTraceFile };
-                if (File.Exists(userTraceFile))
-                {
-                    files.Add(userTraceFile);
-                }
-                TraceEventSession.Merge(files.ToArray(), traceFileName);
+                logger.Log($"Parsing {traceFilePath}");
 
                 if (guiApp)
                 {
@@ -225,87 +187,32 @@ namespace ScenarioMeasurement
                     commandLine = commandLine + " " + appArgs;
                 }
 
-                var counters = parser.Parse(traceFileName, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
+                var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
 
-                WriteResultTable(counters, logger);
 
-                var reporter = Reporter.CreateReporter();
-                if (reporter != null)
-                {
-                    var test = new Test();
-                    test.Categories.Add("Startup");
-                    test.Name = scenarioName;
-                    test.AddCounter(counters);
-                    reporter.AddTest(test);
-                    if (!String.IsNullOrEmpty(reportJsonPath))
-                    {
-                        File.WriteAllText(reportJsonPath, reporter.GetJson());
-                    }
-                }
+                CreateTestReport(scenarioName, counters, reportJsonPath, logger);
             }
 
-            File.Delete(kernelTraceFile);
-            File.Delete(userTraceFile);
-
-            if (!skipProfileIteration)
+            // Skip unimplemented Linux profiling
+            skipProfileIteration = skipProfileIteration || !TraceSessionManager.IsWindows;
+            // Run profile session
+            if (!failed && !skipProfileIteration)
             {
-                string profileTraceFileName = $"{Path.GetFileNameWithoutExtension(traceFileName)}_profile.etl";
-                string profileKernelTraceFile = Path.ChangeExtension(profileTraceFileName, ".kernel.etl");
-                string profileUserTraceFile = Path.ChangeExtension(profileTraceFileName, ".user.etl");
-                profileTraceFileName = Path.Join(traceDirectory, profileTraceFileName);
-                profileKernelTraceFile = Path.Join(traceDirectory, profileKernelTraceFile);
-                profileUserTraceFile = Path.Join(traceDirectory, profileUserTraceFile);
-                logger.Log($"=============== Profile Iteration ================ ");
+                logger.LogIterationHeader("Profile Iteration");
                 ProfileParser profiler = new ProfileParser(parser);
-                using (var kernel = new TraceEventSession(KernelTraceEventParser.KernelSessionName, profileKernelTraceFile))
+                using (var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_"+traceFileName, traceDirectory, logger))
                 {
-                    profiler.EnableKernelProvider(kernel);
-                    using (var user = new TraceEventSession("ProfileSession", profileUserTraceFile))
+                    profileSession.EnableProviders(profiler);
+                    if (!RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger).Success)
                     {
-                        profiler.EnableUserProviders(user);
-
-                        // setup iteration
-                        if (setupProcHelper != null)
-                        {
-                            var setupResult = setupProcHelper.Run().result;
-                            if (setupResult != ProcessHelper.Result.Success)
-                            {
-                                logger.Log($"Failed to set up. Result: {setupResult}");
-                                failed = true;
-                            }
-                        }
-
-                        var result = procHelper.Run().result;
-                        if (result != ProcessHelper.Result.Success)
-                        {
-                            logger.Log($"Failed to run. Result: {result}");
-                            failed = true;
-                        }
-
-                        // cleanup iteration
-                        if (cleanupProcHelper != null)
-                        {
-                            var cleanupResult = cleanupProcHelper.Run().result;
-                            if (cleanupResult != ProcessHelper.Result.Success)
-                            {
-                                logger.Log($"Failed to clean up. Result: {cleanupResult}");
-                                failed = true;
-                            }
-                        }
+                        failed = true;
                     }
                 }
-                if (!failed)
-                {
-                    logger.Log("Merging profile..");
-                    TraceEventSession.Merge(new[] { profileKernelTraceFile, profileUserTraceFile }, profileTraceFileName);
-                }
-                File.Delete(profileKernelTraceFile);
-                File.Delete(profileUserTraceFile);
             }
 
             return (failed ? -1 : 0);
-
         }
+
 
         private static ProcessHelper CreateProcHelper(string command, string args, Logger logger)
         {
@@ -319,18 +226,48 @@ namespace ScenarioMeasurement
             return procHelper;
         }
 
-        private static void WriteResultTable(IEnumerable<Counter> counters, Logger logger)
+        private static (bool Success, int Pid) RunIteration(ProcessHelper setupHelper, ProcessHelper testHelper, ProcessHelper cleanupHelper, Logger logger)
         {
-            logger.Log($"{"Metric",-15}|{"Average",-15}|{"Min",-15}|{"Max",-15}");
-            logger.Log($"---------------|---------------|---------------|---------------");
-            foreach (var counter in counters)
+            (bool Success, int Pid) RunProcess(ProcessHelper helper)
             {
-                string average = $"{counter.Results.Average():F3} {counter.MetricName}";
-                string max = $"{counter.Results.Max():F3} {counter.MetricName}";
-                string min = $"{counter.Results.Min():F3} {counter.MetricName}";
-                logger.Log($"{counter.Name,-15}|{average,-15}|{min,-15}|{max,-15}");
+                var runResult = helper.Run();
+                if (runResult.Result != ProcessHelper.Result.Success)
+                {
+                    logger.Log($"Process {runResult.Pid} failed to run. Result: {runResult.Result}"); 
+                    return (false, runResult.Pid); 
+                }
+                return (true, runResult.Pid); 
             }
+
+            bool failed = false;
+            int pid = 0;
+            if (setupHelper != null)
+            {
+                logger.LogStepHeader("Iteration Setup");
+                failed = !RunProcess(setupHelper).Success;
+            }
+
+            // no need to run test process if setup failed
+            if (!failed)
+            {
+                logger.LogStepHeader("Test");
+                var testProcessResult = RunProcess(testHelper);
+                failed = !testProcessResult.Success;
+                pid = testProcessResult.Pid;
+            }
+
+            // need to clean up despite the result of setup and test
+            if (cleanupHelper != null)
+            {
+                logger.LogStepHeader("Iteration Cleanup");
+                failed = failed || !RunProcess(cleanupHelper).Success;
+            }
+
+            return (!failed, pid);
         }
+
+
+       
 
         private static Dictionary<string, string> ParseStringToDictionary(string s)
         {
@@ -342,5 +279,29 @@ namespace ScenarioMeasurement
             }
             return dict;
         }
+
+        private static void CreateTestReport(string scenarioName, IEnumerable<Counter> counters, string reportJsonPath, Logger logger)
+        {
+            var reporter = Reporter.CreateReporter();
+            if (reporter != null)
+            {
+                var test = new Test();
+                test.Categories.Add("Startup");
+                test.Name = scenarioName;
+                test.AddCounter(counters);
+                reporter.AddTest(test);
+                if (!String.IsNullOrEmpty(reportJsonPath))
+                {
+                    var json = reporter.GetJson();
+                    if(json != null)
+                    {
+                        File.WriteAllText(reportJsonPath, reporter.GetJson());
+                    }
+                }
+            }
+            logger.Log(reporter.WriteResultTable());
+        }
     }
+
+ 
 }

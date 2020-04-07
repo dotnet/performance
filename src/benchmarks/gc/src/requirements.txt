@@ -2,20 +2,19 @@ black==19.3b0
 flask==1.1.1
 gitignore_parser==0.0.5
 jupyter==1.0.0
-jupyterlab==1.2.0
-matplotlib==3.1.1
-mypy==0.740
-numpy==1.17.3
-overrides==2.4
-packaging==19.2
-psutil==5.6.3
+jupyterlab==1.2.3
+matplotlib==3.1.2
+mypy==0.750
+overrides==2.5
+psutil==5.6.7
 pur==5.2.2
-pylint==2.4.3
-pythonnet==2.4.0
-pywin32==225; sys_platform == "win32"
+pylint==2.4.4
+# NOTE: This package provides the import `from win32com.shell.shell import IsUserAnAdmin`,
+# which we import lazily and only if the OS is Windows
+pywin32==227; sys_platform == "win32"
 result==0.4.0
 ruamel.yaml==0.16.5
 termcolor==1.1.0
-vulture==1.1
-xlsxwriter==1.2.2
+vulture==1.2
+xlsxwriter==1.2.6
 yattag==1.12.2

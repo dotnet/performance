@@ -129,7 +129,7 @@ def _pred_for_reason(reason: gc_reason) -> Callable[[ProcessedGC], bool]:
 
 
 GC_REASON_METRICS: GC_PREDICATES = {
-    SingleGCMetric(f"ReasonIs_{reason.name}", type=MetricType.bool): fn_to_ok(
+    SingleGCMetric(f"Reason_Is_{reason.name}", type=MetricType.bool): fn_to_ok(
         _pred_for_reason(reason)
     )
     for reason in gc_reason

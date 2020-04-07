@@ -1,13 +1,12 @@
-﻿using Microsoft.Diagnostics.Tracing.Session;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Reporting;
 
 namespace ScenarioMeasurement
 {
-    internal interface IParser
+    public interface IParser
     {
-        void EnableUserProviders(TraceEventSession user);
-        void EnableKernelProvider(TraceEventSession kernel);
+        void EnableUserProviders(ITraceSession user);
+        void EnableKernelProvider(ITraceSession kernel);
         IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine);
     }
 }

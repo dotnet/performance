@@ -41,6 +41,7 @@ You may need to modify TraceEvent (which is part of PerfView) when working `mana
 * Check out the PerfView repository, make your changes, and build.
 * In `src/analysis/managed-lib/GCPerf.csproj`, you can see there are two dependencies lists, one tagged `<!-- NUGET -->` and one tagged `<!-- LOCAL -->`. You can comment out the `NUGET` one and use `LOCAL` instead. 
 * Run `py . update-perfview-dlls path/to/perfview`, where `path/to/perfview` is the path to your PerfView checkout.
-* Uncomment `#define NEW_JOIN_ANALYSIS` in `Analysis.cs` and `MoreAnalysis.cs`
-* Rebuild `managed-lib` (navigate to the directory and run `dotnet publish`).
+  This does not have any effect immediately, you'll still need to do a rebuild in a later step.
+* Uncomment `#define NEW_JOIN_ANALYSIS` in `Analysis.cs` and `MoreAnalysis.cs` in `src/analysis/managed-lib`.
+* Rebuild `src/analysis/managed-lib` (navigate to the directory and run `dotnet publish`).
 * You'll need to set `need_join_info=True` in the call to `ALL_TRACES.get` in `jupyter_notebook.py` if you want join analysis to work there.

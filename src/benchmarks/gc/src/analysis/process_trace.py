@@ -8,11 +8,17 @@ from typing import cast, Dict, Iterable, Sequence
 
 from result import Err, Ok, Result
 
-from ..commonlib.bench_file import is_trace_path, load_test_status, TestResult, TestRunStatus
+from ..commonlib.bench_file import (
+    is_trace_path,
+    load_test_status,
+    ProcessQuery,
+    TestResult,
+    TestRunStatus,
+)
 from ..commonlib.collection_util import indices, map_to_mapping, repeat, zip_check, zip_check_3
 from ..commonlib.option import map_option, non_null
 from ..commonlib.result_utils import map_err, map_ok, match, option_to_result, unwrap
-from ..commonlib.util import change_extension, show_size_bytes
+from ..commonlib.util import show_size_bytes
 
 from .clr import Clr, get_clr
 from .clr_types import (
@@ -37,39 +43,36 @@ from .join_analysis import get_join_info_for_all_gcs
 from .mechanisms import get_mechanisms_and_reasons_for_process_info
 from .types import (
     Failable,
+    get_gc_kind_for_abstract_trace_gc,
     MaybeMetricValuesForSingleIteration,
     ProcessedGC,
     ProcessedHeap,
     ProcessInfo,
     ProcessedTrace,
-    ProcessQuery,
     RunMetrics,
     ThreadToProcessToName,
 )
 
 
-def test_result_from_path(path: Path) -> TestResult:
+def test_result_from_path(path: Path, process: ProcessQuery) -> TestResult:
     if path.name.endswith(".yaml"):
         # Try to find trace path
+        assert (
+            process is None
+        ), f"When working with .yaml files, --process is not needed. Check {path}."
         trace_file_name = load_test_status(path).trace_file_name
         return TestResult(
             test_status_path=path, trace_path=map_option(trace_file_name, lambda n: path.parent / n)
         )
     else:
         assert is_trace_path(path), f"{path} should be a '.yaml' test output file or a trace file."
-        # User might have specified the tracefile when a status file still exists
-        test_status = change_extension(path, ".yaml")
-        status_exists = test_status.exists()
-        assert (not status_exists) or load_test_status(test_status).trace_file_name == path.name
-        return TestResult(test_status_path=test_status if status_exists else None, trace_path=path)
+        return TestResult(
+            test_status_path=None, trace_path=path, process=_convert_to_tuple(process)
+        )
 
 
 def get_processed_trace(
-    clr: Clr,
-    test_result: TestResult,
-    process: ProcessQuery,
-    need_mechanisms_and_reasons: bool,
-    need_join_info: bool,
+    clr: Clr, test_result: TestResult, need_mechanisms_and_reasons: bool, need_join_info: bool
 ) -> Result[str, ProcessedTrace]:
     test_status = option_to_result(
         test_result.load_test_status(), lambda: "Need a test status file"
@@ -78,8 +81,6 @@ def get_processed_trace(
     if test_result.trace_path is None:
         if need_join_info:
             return Err("Can't get join info without a trace.")
-        elif process is not None:
-            return Err("Can't get process without a trace.")
         else:
             return Ok(
                 ProcessedTrace(
@@ -100,8 +101,6 @@ def get_processed_trace(
                 clr,
                 test_status,
                 test_result,
-                test_result.trace_path,
-                process,
                 need_join_info=need_join_info,
                 need_mechanisms_and_reasons=need_mechanisms_and_reasons,
             )
@@ -136,12 +135,10 @@ def _get_processed_trace_from_process(
     clr: Clr,
     test_status: Failable[TestRunStatus],
     test_result: TestResult,
-    trace_path: Path,
-    process: ProcessQuery,
     need_join_info: bool,
     need_mechanisms_and_reasons: bool,
 ) -> ProcessedTrace:
-    if process is None:
+    if test_result.process is None:
         ts = unwrap(
             map_err(
                 test_status,
@@ -149,20 +146,24 @@ def _get_processed_trace_from_process(
                 " (hint: maybe specify the test output '.yaml' file instead of the trace file)",
             )
         )
+        if ts.process_id is None:
+            raise Exception("Test status file exists but does not specify process_id")
         process_predicate = process_predicate_from_id(ts.process_id)
     else:
-#        assert (
-#            test_status is None
-#        ), "'--process' is unnecessary as the test result specifies the PID"
-        process_predicate = process_predicate_from_parts(process)
+        assert (
+            test_status.is_err()
+        ), "'--process' is unnecessary as the test result specifies the PID"
+        process_predicate = process_predicate_from_parts(test_result.process)
     process_names, proc = get_process_names_and_process_info(
         clr,
-        trace_path,
+        non_null(test_result.trace_path),
         str(test_result),
         process_predicate,
         # TODO: make this optional; though the metric FirstEventToFirstGCSeconds needs this too.
         collect_event_names=True,
     )
+
+    assert len(proc.gcs) > 0, f"Trace file {proc.trace_path.name} has no GC's to analyze."
 
     # TODO: just do this lazily (getting join info)
     join_info = (
@@ -174,7 +175,7 @@ def _get_processed_trace_from_process(
         test_status=test_status,
         process_info=proc,
         process_names=process_names,
-        process_query=process,
+        process_query=test_result.process,
         join_info=join_info,
         # TODO: just do this lazily
         mechanisms_and_reasons=get_mechanisms_and_reasons_for_process_info(proc)
@@ -234,7 +235,10 @@ def _get_per_heap_histories(gc: AbstractTraceGC) -> Sequence[Result[str, Abstrac
     else:
         n = len(gc.PerHeapHistories)
         if n != gc.HeapCount:
-            print(f"WARN: GC {gc.Number} has {gc.HeapCount} heaps, but {n} PerHeapHistories")
+            print(
+                f"WARN: GC {gc.Number} has {gc.HeapCount} heaps, but {n} PerHeapHistories. It's a "
+                + f" It's a {get_gc_kind_for_abstract_trace_gc(gc).name}."
+            )
             return repeat(Err("GC has wrong number of PerHeapHistories"), gc.HeapCount)
         else:
             return [Ok(h) for h in gc.PerHeapHistories]
@@ -248,7 +252,10 @@ def _get_server_gc_heap_histories(
     else:
         n = len(gc.ServerGcHeapHistories)
         if n != gc.HeapCount:
-            print(f"WARN: GC {gc.Number} has {gc.HeapCount} heaps, but {n} ServerGcHeapHistories")
+            print(
+                f"WARN: GC {gc.Number} has {gc.HeapCount} heaps, but {n} ServerGcHeapHistories."
+                + f" It's a {get_gc_kind_for_abstract_trace_gc(gc).name}."
+            )
             return repeat(Err("GC has wrong number of ServerGcHeapHistories"), gc.HeapCount)
         else:
             return [Ok(h) for h in gc.ServerGcHeapHistories]
@@ -281,7 +288,6 @@ class ProcessedTraces:
     def get(
         self,
         test_result: TestResult,
-        process: ProcessQuery,
         need_mechanisms_and_reasons: bool,
         need_join_info: bool,
         dont_cache: bool = False,
@@ -292,7 +298,7 @@ class ProcessedTraces:
             and current.is_ok()
             and _processed_trace_file_has_enough_info(
                 current.unwrap(),
-                process,
+                test_result.process,
                 need_mechanisms_and_reasons=need_mechanisms_and_reasons,
                 need_join_info=need_join_info,
             )
@@ -305,14 +311,13 @@ class ProcessedTraces:
             updated = get_processed_trace(
                 clr=self.clr,
                 test_result=test_result,
-                process=process,
                 need_mechanisms_and_reasons=need_mechanisms_and_reasons,
                 need_join_info=need_join_info,
             )
             if updated.is_ok():
                 assert _processed_trace_file_has_enough_info(
                     updated.unwrap(),
-                    process,
+                    test_result.process,
                     need_mechanisms_and_reasons=need_mechanisms_and_reasons,
                     need_join_info=need_join_info,
                 )
@@ -327,9 +332,7 @@ class ProcessedTraces:
         already_had = test_result in self.path_to_file
         # TODO: may need join info
         res = map_ok(
-            self.get(
-                test_result, process=None, need_mechanisms_and_reasons=False, need_join_info=False
-            ),
+            self.get(test_result, need_mechanisms_and_reasons=False, need_join_info=False),
             lambda trace: map_to_mapping(run_metrics, trace.metric),
         )
 
@@ -342,6 +345,13 @@ class ProcessedTraces:
         return res
 
 
+def _convert_to_tuple(process: ProcessQuery) -> ProcessQuery:
+    if process is None:
+        return None
+    else:
+        return tuple(process)
+
+
 def _processed_trace_file_has_enough_info(
     current: ProcessedTrace,
     process: ProcessQuery,
@@ -349,7 +359,7 @@ def _processed_trace_file_has_enough_info(
     need_join_info: bool,
 ) -> bool:
     return (
-        current.process_query == process
+        _convert_to_tuple(current.process_query) == _convert_to_tuple(process)
         and current.has_mechanisms_and_reasons >= need_mechanisms_and_reasons
         and current.has_join_info >= need_join_info
     )

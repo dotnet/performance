@@ -8,7 +8,7 @@ We're going to see how changing gen0size affects performance. We'll start by cre
 
 ```yaml
 options:
-  collect: cswitch
+  collect: thread_times
   default_iteration_count: 3
 vary: config
 coreclrs:
@@ -37,7 +37,7 @@ benchmarks:
 
 This benchfile expects a Core_Root to have been moved to `bench/coreclr`. (Meaning it is now named `coreclr` instead of `Core_Root`.)
 
-(We would normally start an investigation with `collect: gc` or `collect: none` instead of `collect: cswitch` but for an example it's more convenient to only have to run tests once.)
+(We would normally start an investigation with `collect: gc` or `collect: none` instead of `collect: thread_times` but for an example it's more convenient to only have to run tests once.)
 
 (If you're impatient you could reduce `default_iteration_count`.)
 

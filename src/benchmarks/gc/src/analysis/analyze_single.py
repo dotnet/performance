@@ -8,7 +8,7 @@ from math import inf
 from pathlib import Path
 from typing import Callable, List, Optional, Sequence
 
-from ..commonlib.bench_file import try_find_benchfile_from_trace_file_path
+from ..commonlib.bench_file import ProcessQuery, try_find_benchfile_from_trace_file_path
 from ..commonlib.collection_util import cat_unique, identity, is_empty, items_sorted_by_key
 from ..commonlib.command import Command, CommandKind, CommandsMapping
 from ..commonlib.document import (
@@ -40,7 +40,6 @@ from .types import (
     EventNames,
     MetricBase,
     ProcessedGC,
-    ProcessQuery,
     ProcessedTrace,
     RunMetrics,
     RUN_METRICS_DOC,
@@ -93,7 +92,13 @@ class _AnalyzeSingleArgs(DocOutputArgs):
     Should not be set if '--show-first-n-gcs' is.
     """,
     )
-    show_reasons: bool = argument(default=False, doc="Show the reason for each GC")
+    show_reasons: bool = argument(
+        default=False,
+        doc="""
+        Show counts of how many GCs had each reason.
+        Also, in the "Single gcs" table, show the reason for each GC.
+        """,
+    )
 
 
 def analyze_single(args: _AnalyzeSingleArgs) -> None:
@@ -116,8 +121,7 @@ def _analyze_single_gc(args: _AnalyzeSingleGcArgs) -> None:
 
     trace = get_processed_trace(
         clr=get_clr(),
-        test_result=test_result_from_path(args.trace_path),
-        process=args.process,
+        test_result=test_result_from_path(args.trace_path, args.process),
         need_mechanisms_and_reasons=False,
         need_join_info=False,
     ).unwrap()
@@ -178,8 +182,7 @@ def _get_analyze_single_document(args: _AnalyzeSingleArgs) -> Document:
 
     trace = get_processed_trace(
         clr=get_clr(),
-        test_result=test_result_from_path(args.path),
-        process=args.process,
+        test_result=test_result_from_path(args.path, args.process),
         need_mechanisms_and_reasons=False,
         need_join_info=False,
     ).unwrap()
@@ -289,7 +292,7 @@ def _get_single_gcs_section(
     def get_row_for_gc(gc: ProcessedGC) -> Optional[Row]:
         return (
             Cell(gc.Number),
-            *optional_to_iter(Cell(str(gc.reason)) if show_reasons else None),
+            *optional_to_iter(Cell(str(gc.reason.name)) if show_reasons else None),
             *(value_cell(m, gc.metric(m)) for m in single_gc_metrics),
         )
 

@@ -7,6 +7,7 @@ from enum import Enum
 from pathlib import Path
 from typing import FrozenSet, Mapping, Optional, Sequence
 
+from ..commonlib.bench_file import ProcessQuery
 from ..commonlib.collection_util import indices, is_empty, map_to_mapping_optional
 from ..commonlib.command import Command, CommandKind, CommandsMapping
 from ..commonlib.document import (
@@ -29,7 +30,7 @@ from .core_analysis import GC_NUMBER_DOC, PROCESS_DOC, SINGLE_PATH_DOC
 from .enums import Gens, gen_short_name
 from .process_trace import get_processed_trace, test_result_from_path
 from .single_gc_metrics import get_gc_with_number
-from .types import ProcessedGC, ProcessedTrace, ProcessQuery
+from .types import ProcessedGC, ProcessedTrace
 
 # From TraceManagedProcess.cs in PerfView
 class _CondemnedReasonGroup(Enum):
@@ -245,8 +246,7 @@ class _ShowCondemnedReasonsArgs:
 def _show_condemned_reasons(args: _ShowCondemnedReasonsArgs) -> None:
     trace = get_processed_trace(
         clr=get_clr(),
-        test_result=test_result_from_path(args.path),
-        process=args.process,
+        test_result=test_result_from_path(args.path, args.process),
         need_mechanisms_and_reasons=False,
         need_join_info=False,
     ).unwrap()
@@ -264,8 +264,7 @@ class _ShowCondemnedReasonsForGCArgs(DocOutputArgs):
 def _show_condemned_reasons_for_gc(args: _ShowCondemnedReasonsForGCArgs) -> None:
     trace = get_processed_trace(
         clr=get_clr(),
-        test_result=test_result_from_path(args.path),
-        process=args.process,
+        test_result=test_result_from_path(args.path, args.process),
         need_mechanisms_and_reasons=False,
         need_join_info=False,
     ).unwrap()

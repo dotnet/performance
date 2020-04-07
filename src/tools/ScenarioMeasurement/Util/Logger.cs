@@ -15,6 +15,16 @@ namespace ScenarioMeasurement
             Console.WriteLine(message);
         }
 
+        public void LogIterationHeader(string message)
+        {
+            Console.WriteLine($"=============== {message} ================ ");
+        }
+
+        public void LogStepHeader(string message)
+        {
+            Console.WriteLine($"***{message}***");
+        }
+
         public void LogVerbose(string message)
         {
             Console.WriteLine(message);

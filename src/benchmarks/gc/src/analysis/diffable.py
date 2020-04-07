@@ -17,6 +17,7 @@ from ..commonlib.bench_file import (
     parse_machines_arg,
     PartialConfigAndName,
     PartialTestCombination,
+    ProcessQuery,
     SingleTestCombination,
     Vary,
 )
@@ -34,10 +35,10 @@ from ..commonlib.type_utils import with_slots
 from .parse_metrics import get_score_metrics
 from .process_trace import ProcessedTraces, test_result_from_path
 from .types import (
+    FailableMetricValue,
     MaybeMetricStatisticsFromAllIterations,
     MaybeMetricValuesForSingleIteration,
     MetricStatisticsFromAllIterations,
-    FailableMetricValue,
     MetricValuesForSingleIteration,
     metric_value_of,
     RunMetric,
@@ -150,8 +151,10 @@ def get_diffables(
     test_where: Optional[Sequence[str]],
     sample_kind: SampleKind,
     max_iterations: Optional[int],
+    process: ProcessQuery,
 ) -> Diffables:
     if len(paths) == 1:
+        assert process is None, "If giving a bench file (yaml), then --process is not needed."
         return get_diffables_from_bench_file(
             traces=traces,
             bench_file_path=paths[0],
@@ -172,7 +175,7 @@ def get_diffables(
                 name=str(path),
                 test=None,
                 stats=iterations_to_statistics(
-                    (traces.get_run_metrics(test_result_from_path(path), run_metrics),),
+                    (traces.get_run_metrics(test_result_from_path(path, process), run_metrics),),
                     run_metrics,
                     sample_kind,
                 ),

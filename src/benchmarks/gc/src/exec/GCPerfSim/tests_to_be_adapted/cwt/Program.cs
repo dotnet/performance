@@ -75,9 +75,10 @@ namespace cwt
                     
                     SomeKey sk = new SomeKey(i.ToString(), objSize);
                     SomeSet ss = new SomeSet(i.ToString(), objSize);
-                    s_cwt.AddOrUpdate(sk, ss);
+                    // s_cwt.AddOrUpdate(sk, ss); // Not available in .net 4.7.2
                     // s_cwt_cwt.AddOrUpdate(sk, ss); // This doesn't compile!
                     bytesAllocated += (objSize * 2);
+                    throw new NotImplementedException(); // See commented-out code above
                 }
             }
         }
