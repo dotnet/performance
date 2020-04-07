@@ -151,9 +151,9 @@ def _get_processed_trace_from_process(
         )
         process_predicate = process_predicate_from_id(ts.process_id)
     else:
-        assert (
-            test_status is None
-        ), "'--process' is unnecessary as the test result specifies the PID"
+#        assert (
+#            test_status is None
+#        ), "'--process' is unnecessary as the test result specifies the PID"
         process_predicate = process_predicate_from_parts(process)
     process_names, proc = get_process_names_and_process_info(
         clr,
