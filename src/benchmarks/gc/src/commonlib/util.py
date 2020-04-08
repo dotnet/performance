@@ -23,7 +23,7 @@ from statistics import median, StatisticsError
 from sys import argv
 from threading import Event, Thread
 from time import sleep, time
-from typing import Any, Callable, cast, Iterable, Mapping, Optional, Sequence, Union
+from typing import Any, Callable, cast, Iterable, List, Mapping, Optional, Sequence, Union
 from xml.etree.ElementTree import Element, parse as parse_xml
 
 from psutil import process_iter
@@ -316,6 +316,24 @@ def _call_and_allow_interrupts(args: ExecArgs) -> timedelta:
 def exec_cmd(args: ExecArgs) -> timedelta:
     args.print()
     return _call_and_allow_interrupts(args)
+
+
+@with_slots
+@dataclass(frozen=True)
+class BenchmarkErrorInfo:
+    name: str
+    message: str
+    trace: List[str]
+
+    def print(self) -> None:
+        print(
+            f"\n=== Benchmark: '{self.name}' ===\n"
+            f"\nError Message: {self.message}\n"
+            f"\nStack Trace:\n{self.__rebuild_trace()}"
+        )
+
+    def __rebuild_trace(self) -> str:
+        return ''.join(self.trace)
 
 
 @with_slots
