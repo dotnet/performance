@@ -34,6 +34,8 @@ namespace ScenarioMeasurement
 
         public Dictionary<string, string> EnvironmentVariables = null;
 
+        public bool RootAccess { get; set; } = false;
+
         public ProcessHelper(Logger logger)
         {
             this.Logger = logger;
@@ -49,8 +51,16 @@ namespace ScenarioMeasurement
         public (Result Result, int Pid) Run()
         {
             var psi = new ProcessStartInfo();
-            psi.FileName = Executable;
-            psi.Arguments = Arguments;
+            if (!Util.IsWindows() && RootAccess)
+            {
+                psi.FileName = "sudo";
+                psi.Arguments = Executable + " " + Arguments;
+            }
+            else
+            {
+                psi.FileName = Executable;
+                psi.Arguments = Arguments;
+            }
             psi.WorkingDirectory = WorkingDirectory;
             // WindowStyles only get passed through if UseShellExecute=true
             // As we only care about WindowStyles for GUI apps, we can use that value here.

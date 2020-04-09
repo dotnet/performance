@@ -44,6 +44,12 @@ def uploadtokenpresent():
 def runninginlab():
     return environ.get('PERFLAB_INLAB') is not None
 
+def startupdir():
+    if sys.platform == 'win32':
+        return 'Startup'
+    else:
+        return 'startup'
+    
 def getruntimeidentifier():
     rid = None
     if sys.platform == 'win32':
@@ -63,5 +69,14 @@ def getruntimeidentifier():
         raise Exception('Machine %s not supported.' % platform.machine())
 
     return rid
+
+def pythoncommand():
+    if sys.platform == 'win32':
+        return 'py'
+    else:
+        return 'python3'
+
+def iswin():
+    return sys.platform == 'win32'
 
 

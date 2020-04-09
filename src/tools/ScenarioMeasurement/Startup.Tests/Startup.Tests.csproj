@@ -14,4 +14,10 @@
     <ProjectReference Include="..\Startup\Startup.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="inputs\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
