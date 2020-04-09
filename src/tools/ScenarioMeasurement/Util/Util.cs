@@ -6,13 +6,13 @@ namespace ScenarioMeasurement
 
     public class Util
     {
-        [DllImport("User32.Dll")]
-        private static extern long SetCursorPos(int x, int y);
+        // [DllImport("User32.Dll")]
+        // private static extern long SetCursorPos(int x, int y);
         
         
         public static void Init()
         {
-            SetCursorPos(0, 0);
+            //SetCursorPos(0, 0);
         }
 
         public static void TakeScreenshot()
