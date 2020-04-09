@@ -30,19 +30,8 @@ namespace ScenarioMeasurement
             {
                 source.Kernel.ProcessStart += evt =>
                 {
-                    if (processName.Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase) && pids.Contains(evt.ProcessID))
+                    if (!pid.HasValue && ParserUtility.MatchProcess(evt, source, processName, pids, commandLine))
                     {
-                        // Check command line on Windwos only since Linux process trace data doesn't have command line field
-                        // TODO: check the frequency of PID reuse on Linux
-                        if (source.IsWindows && source.Kernel.GetEventCommandLine(evt).Trim() != commandLine)
-                        {
-                            return;
-                        }
-                        if (pid.HasValue)
-                        {
-                            // Processes might be reentrant. For now this traces the first (outermost) process of a given name.
-                            return;
-                        }
                         pid = evt.ProcessID;
                         start = evt.TimeStampRelativeMSec;
                     }
@@ -76,13 +65,8 @@ namespace ScenarioMeasurement
 
                 source.Kernel.ProcessStop += evt =>
                 {
-                    if (pid.HasValue && pid == evt.ProcessID)
+                    if (pid.HasValue && ParserUtility.MatchProcessByPid(evt, source, (int)pid, processName, commandLine))
                     {
-                        // For Linux both pid and tid should match
-                        if (!source.IsWindows && source.Kernel.GetPayloadThreadID(evt) != pid)
-                        {
-                            return;
-                        }
                         results.Add(evt.TimeStampRelativeMSec - start);
                         pid = null;
                         start = 0;

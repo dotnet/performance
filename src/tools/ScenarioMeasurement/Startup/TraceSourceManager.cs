@@ -53,8 +53,6 @@ namespace ScenarioMeasurement
         public event Action<TraceEvent> ProcessStart;
         public event Action<TraceEvent> ProcessStop;
         public event Action<TraceEvent> ContextSwitch;
-        public string GetEventCommandLine(TraceEvent evt);
-        public int GetPayloadThreadID(TraceEvent evt);
     }
 
         public sealed class LinuxKernelParser : IKernelParser
