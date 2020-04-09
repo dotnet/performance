@@ -12,7 +12,7 @@ if not args.branch == "master":
     print("##vso[task.setvariable variable=DotnetVersion;isSecret=false;isOutput=false]")
 else:
     if not os.path.exists('eng/Versions.props'):
-        raise  ValueError("Versions.props does not exist")
+        raise  FileNotFoundError("Versions.props does not exist")
     tree = ET.parse('eng/Versions.props')
     root = tree.getroot().find("PropertyGroup/MicrosoftDotnetSdkInternalPackageVersion")
     if root == None:
