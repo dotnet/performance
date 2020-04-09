@@ -12,6 +12,7 @@ namespace ScenarioMeasurement
         private readonly string startupDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         private ProcessHelper perfCollectProcess;
         public string TraceName { get; private set; }
+        public string TraceFileName { get; private set; }
         public string TraceDirectory { get; private set; }
         public string TraceFilePath { get; private set; }
         private List<KernelKeyword> KernelEvents = new List<KernelKeyword>();
@@ -34,13 +35,14 @@ namespace ScenarioMeasurement
                 throw new ArgumentException("Trace file name cannot be empty.");
             }
 
-
             if (!Directory.Exists(traceDirectory))
             {
                 Directory.CreateDirectory(traceDirectory);
             }
-            TraceDirectory = traceDirectory;
 
+            TraceDirectory = traceDirectory;
+            TraceFileName = $"{traceName}.trace.zip";
+            TraceFilePath = Path.Combine(traceDirectory, TraceFileName);
 
             perfCollectProcess = new ProcessHelper(logger)
             {
@@ -77,20 +79,20 @@ namespace ScenarioMeasurement
             string arguments = $"stop {TraceName} ";
             perfCollectProcess.Arguments = arguments;
             var result = perfCollectProcess.Run().Result;
-
-            string traceFile = $"{TraceName}.trace.zip";
-            if (!File.Exists(traceFile))
+            // By default perfcollect saves traces in the current directory
+            if (!File.Exists(TraceFileName))
             {
-                throw new FileNotFoundException("Trace file not found.");
+                throw new FileNotFoundException($"Trace file not found at {Path.GetFullPath(TraceFileName)}.");
             }
-            string destinationFile = Path.Combine(TraceDirectory, traceFile);
-            if (File.Exists(destinationFile))
-            {
-                File.Delete(destinationFile);
+            // Don't move file if destination directory is current directory
+            if (Path.GetFullPath(Path.GetDirectoryName(TraceFilePath)) != Environment.CurrentDirectory){
+                // Overwrite file at destination directory
+                if(File.Exists(TraceFilePath)){
+                    Console.WriteLine($"Deleting existing file at {TraceFilePath}...");
+                    File.Delete(TraceFilePath);
+                }
+                File.Move(TraceFileName, TraceFilePath);
             }
-            TraceFilePath = Path.Combine(TraceDirectory, traceFile);
-            File.Move(traceFile, TraceFilePath);
-
             //TODO: move logs to appropriate location
             return result;
         }
@@ -119,9 +121,9 @@ namespace ScenarioMeasurement
         public enum KernelKeyword
         {
             Empty,
-            ProcessLifetime,
-            Thread,
-            ContextSwitch
+            LTTng_Kernel_ProcessLifetimeKeyword,
+            LTTng_Kernel_ThreadKeyword,
+            LTTng_Kernel_ContextSwitchKeyword
         }
 
         public enum ClrKeyword

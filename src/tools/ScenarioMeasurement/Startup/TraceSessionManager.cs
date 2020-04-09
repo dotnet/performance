@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Diagnostics.Tracing;
+using Microsoft.Diagnostics.Tracing.Parsers;
+using System;
 
 namespace ScenarioMeasurement
 {
@@ -40,4 +42,7 @@ namespace ScenarioMeasurement
             Startup
         }
     }
+
+
 }
+
