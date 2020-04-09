@@ -9,6 +9,7 @@ from logging import getLogger
 from collections import namedtuple
 from argparse import ArgumentParser
 from shared.startup import StartupWrapper
+from shared.sod import SODWrapper
 from shared.util import publishedexe, extension
 from shared import const
 from performance.logger import setup_loggers
@@ -36,7 +37,8 @@ optfields = ('guiapp',
 # scenarios should try and run a given test type.
 testtypes = {const.STARTUP: False,
              const.SDK: False,
-             const.CROSSGEN: False}
+             const.CROSSGEN: False,
+             const.SOD: False}
 
 TestTraits = namedtuple('TestTraits',
                         reqfields  + tuple(testtypes.keys()) + optfields,
@@ -54,6 +56,7 @@ class Runner:
         self.scenarioname = None
         self.coreroot = None
         self.crossgenfile = None
+        self.dirs = None
         setup_loggers(True)
 
     def parseargs(self):
@@ -73,6 +76,11 @@ class Runner:
         crossgenparser.add_argument('--test-name', dest='testname', type=str, required=True)
         crossgenparser.add_argument('--core-root', dest='coreroot', type=str, required=True)
         self.add_common_arguments(crossgenparser)
+
+        sodparser = subparsers.add_parser(const.SOD)
+        sodparser.add_argument('--dirs', dest='dirs', type=str, required=True)
+        self.add_common_arguments(sodparser)
+
         args = parser.parse_args()
 
         if not getattr(self.traits, args.testtype):
@@ -88,6 +96,9 @@ class Runner:
         if self.testtype == const.CROSSGEN:
             self.crossgenfile = args.testname
             self.coreroot = args.coreroot
+
+        if self.testtype == const.SOD:
+            self.dirs = args.dirs
 
     
     def add_common_arguments(self, parser: ArgumentParser):
@@ -202,3 +213,6 @@ class Runner:
                              iterationcleanup=None,
                              cleanupargs=None,
                              )
+        elif self.testtype == const.SOD:
+            sod = SODWrapper()
+            sod.runtests(scenarioname=self.scenarioname, dirs=self.dirs)
