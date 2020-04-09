@@ -48,7 +48,7 @@ class StartupWrapper(object):
 
     
     def _setstartuppath(self, path: str):
-        self.startupexe = os.path.join(path, 'Startup.exe')
+        self.startuppath = os.path.join(path, 'Startup.exe' if sys.platform == 'win32' else 'Startup') 
 
     def runtests(self, apptorun: str, **kwargs):
         '''
@@ -60,10 +60,10 @@ class StartupWrapper(object):
         reportjson = os.path.join(TRACEDIR, 'perf-lab-report.json')
         defaultiterations = '1' if runninginlab() and not uploadtokenpresent() else '5' # only run 1 iteration for PR-triggered build
         startup_args = [
-            self.startupexe,
+            self.startuppath,
             '--app-exe', apptorun,
             '--metric-type', kwargs['startupmetric'], 
-            '--trace-file-name', '%s_startup.etl' % (kwargs['scenarioname'] or '%s_%s' % (kwargs['exename'],kwargs['scenariotypename'])),
+            '--trace-name', '%s_startup' % (kwargs['scenarioname'] or '%s_%s' % (kwargs['exename'],kwargs['scenariotypename'])),
             '--process-will-exit', (kwargs['processwillexit'] or 'true'),
             '--iterations', '%s' % (kwargs['iterations'] or defaultiterations),
             '--timeout', '%s' % (kwargs['timeout'] or '50'),

@@ -13,13 +13,13 @@ from shared.util import publishedexe, extension
 from shared import const
 from performance.logger import setup_loggers
 
-
+# Scenario-independent traits that can be set in test.py, 
+# but can also be overriden in scenario-specific case
 reqfields = ('exename',
             )
 optfields = ('guiapp',
              'startupmetric',
              'appargs',
-             'environmentvariables',
              'iterations',
              'timeout',
              'warmup',
@@ -106,7 +106,8 @@ class Runner:
             startup.runtests(**self.traits._asdict(),
                              scenarioname=self.scenarioname,
                              scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
-                             apptorun=publishedexe(self.traits.exename))
+                             apptorun=publishedexe(self.traits.exename),
+                             environmentvariables='COMPlus_EnableEventLog=1' if sys.platform != 'win32' else '')
         elif self.testtype == const.SDK:
             envlistbuild = 'DOTNET_MULTILEVEL_LOOKUP=0'
             envlistcleanbuild= ';'.join(['MSBUILDDISABLENODEREUSE=1', envlistbuild])
