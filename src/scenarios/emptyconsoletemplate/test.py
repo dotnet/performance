@@ -11,6 +11,7 @@ if __name__ == "__main__":
                         startupmetric='TimeToMain',
                         startup=True,
                         sdk=True,
+                        sod=True,
                         guiapp='false',
                         )
     Runner(traits).run()
