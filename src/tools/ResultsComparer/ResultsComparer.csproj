@@ -10,5 +10,6 @@
     <PackageReference Include="MarkdownLog.NS20" Version="0.10.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
+    <PackageReference Include="Perfolizer" Version="0.2.1" />
   </ItemGroup>
 </Project>
