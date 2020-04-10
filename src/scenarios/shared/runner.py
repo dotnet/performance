@@ -78,7 +78,7 @@ class Runner:
         self.add_common_arguments(crossgenparser)
 
         sodparser = subparsers.add_parser(const.SOD)
-        sodparser.add_argument('--dirs', dest='dirs', type=str, required=True)
+        sodparser.add_argument('--dirs', dest='dirs', type=str)
         self.add_common_arguments(sodparser)
 
         args = parser.parse_args()
@@ -215,4 +215,11 @@ class Runner:
                              )
         elif self.testtype == const.SOD:
             sod = SODWrapper()
-            sod.runtests(scenarioname=self.scenarioname, dirs=self.dirs)
+            builtdir = const.PUBDIR if os.path.exists(const.PUBDIR) else None
+            print(builtdir)
+            if not builtdir:
+                builtdir = const.BINDIR if os.path.exists(const.BINDIR) else None
+                print(builtdir)
+            if not (self.dirs or builtdir):
+                raise Exception("Dirs was not passed in and neither %s nor %s exist" % (const.PUBDIR, const.BINDIR))
+            sod.runtests(scenarioname=self.scenarioname, dirs=self.dirs or const.APPDIR)
