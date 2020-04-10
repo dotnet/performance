@@ -54,13 +54,11 @@ class SODWrapper(object):
         '''
         Runs tests through startup
         '''
-        if dirs == None or scenarioname == None:
-            raise Exception("--dirs and --scenario-name are required")
         reportjson = os.path.join(TRACEDIR, 'perf-lab-report.json')
         sod_args = [
             self.sodexe,
             '--report-json-path', reportjson,
-            '--scenario-name', scenarioname,
+            '--scenario-name', scenarioname or "Empty Scenario Name",
             '--dirs', dirs
         ]
 
