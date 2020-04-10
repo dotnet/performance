@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.Data;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
@@ -10,30 +11,38 @@ namespace ScenarioMeasurement
 {
     class ParserUtility
     {
-        public static bool MatchProcess(TraceEvent evt, TraceSourceManager source, string processName, IList<int> pids, string commandLine)
+
+        public static bool MatchProcessStart(TraceEvent evt, TraceSourceManager source, string processName, IList<int> pids, string commandLine)
         {
-            if (!pids.Contains(evt.ProcessID))
+            return MatchCommandLine(evt, source, commandLine) &&
+                   MatchProcessName(evt, source, processName) &&
+                   MatchProcessID(evt, source, pids);
+        }
+
+        public static bool MatchCommandLine(TraceEvent evt, TraceSourceManager source, string commandLine)
+        {
+            if (source.IsWindows)
             {
-                return false;
+                if (((string)GetPayloadValue(evt, "CommandLine")).Trim() != commandLine)
+                {
+                    return false;
+                }
             }
+            // Match the command line as well because pids might be reused during the session
+            return true;
+        }
+
+        public static bool MatchProcessName(TraceEvent evt, TraceSourceManager source, string processName)
+        {
             if (source.IsWindows)
             {
                 if (!processName.Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase))
                 {
                     return false;
                 }
-                // Match the command line as well because pids might be reused during the session
-                if (((string)GetPayloadValue(evt, "CommandLine")).Trim() != commandLine)
-                {
-                    return false;
-                }
             }
             else
             {
-                // For Linux both pid and tid should match
-                if (!pids.Contains((int)GetPayloadValue(evt,"PayloadThreadID"))){
-                    return false;
-                }
                 // 15 characters is the maximum length of a process name in Linux kernel event payload
                 if (processName.Length < 15)
                 {
@@ -50,12 +59,29 @@ namespace ScenarioMeasurement
             return true;
         }
 
-        public static bool MatchProcessByPid(TraceEvent evt, TraceSourceManager source, int pid, string processName, string commandLine)
+        public static bool MatchProcessID(TraceEvent evt, TraceSourceManager source, IList<int> pids)
         {
-            return MatchProcess(evt, source, processName, new List<int> { pid }, commandLine);
+            if (!pids.Contains(evt.ProcessID))
+            {
+                return false;
+            }
+            if (!source.IsWindows)
+            {
+                // For Linux both pid and tid should match
+                if (!pids.Contains((int)GetPayloadValue(evt, "PayloadThreadID")))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
-        public static object GetPayloadValue(TraceEvent evt, string payloadName)
+        public static bool MatchSingleProcessID(TraceEvent evt, TraceSourceManager source, int pid)
+        {
+            return MatchProcessID(evt, source, new List<int> { pid});
+        }
+
+        private static object GetPayloadValue(TraceEvent evt, string payloadName)
         {
             var result = evt.PayloadByName(payloadName);
             if (result == null)
