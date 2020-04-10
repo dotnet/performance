@@ -4,7 +4,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import cast, List, Mapping, Optional, Sequence, Type
+from typing import cast, Mapping, Optional, Sequence, Type
 
 from .analysis.diffable import get_diffables
 from .analysis.process_trace import ProcessedTraces
@@ -39,9 +39,9 @@ from .commonlib.option import option_or
 from .commonlib.parse_and_serialize import load_yaml, write_yaml_file
 from .commonlib.score_spec import ScoreElement, ScoreSpec
 from .commonlib.type_utils import argument, with_slots
-from .commonlib.util import BenchmarkErrorInfo, ensure_empty_dir
+from .commonlib.util import CoreRunErrorInfo, ensure_empty_dir
 
-from .exec.run_tests import run_test, RunArgs
+from .exec.run_tests import run_test, RunArgs, RunErrorMap
 
 
 SuiteCommand = str
@@ -136,14 +136,15 @@ class SuiteRunArgs:
         doc="This is like the '--skip-where-exists' argument to the normal 'run' command.",
     )
 
+SuiteErrorMap = Mapping[str, RunErrorMap]
 
 def suite_run(args: SuiteRunArgs) -> None:
     suite = load_yaml(SuiteFile, args.suite_path)
-    suite_errors: Mapping[str, List[BenchmarkErrorInfo]] = {}
+    suite_errors: SuiteErrorMap = {}
 
     for file in suite.bench_files:
         bench_file_path = args.suite_path.parent / file
-        test_errors: List[BenchmarkErrorInfo] = []
+        testrun_errors: RunErrorMap = {}
 
         print(f"\n=== {bench_file_path} ===\n")
         run_test(
@@ -152,12 +153,12 @@ def suite_run(args: SuiteRunArgs) -> None:
                 overwrite=args.overwrite,
                 skip_where_exists=args.skip_where_exists,
             ),
-            test_errors,
+            testrun_errors,
             True
         )
 
-        if not is_empty(test_errors):
-            add(suite_errors, bench_file_path, test_errors)
+        if not is_empty(testrun_errors):
+            add(suite_errors, bench_file_path, testrun_errors)
 
     if is_empty(suite_errors):
         print("\n*** Suite run finished successfully! ***\n")
@@ -166,10 +167,10 @@ def suite_run(args: SuiteRunArgs) -> None:
             f"\n*WARNING*: One or more tests in the suite encountered errors.\n"
             "\n*** Here is a summary of the problems found: ***"
         )
-        for file, errors in suite_errors.items():
+        for file, test_errors in suite_errors.items():
             print(f"\n======= {file} =======\n")
-            for bench_err in errors:
-                bench_err.print()
+            for err in test_errors.values():
+                err.print()
 
 
 @with_slots

@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from sys import exc_info
 from traceback import format_tb
-from typing import List, Mapping, Optional
+from typing import Mapping, Optional
 
 from ..commonlib.bench_file import (
     BenchFileAndPath,
@@ -27,9 +27,10 @@ from ..commonlib.command import Command, CommandKind, CommandsMapping
 from ..commonlib.option import map_option
 from ..commonlib.type_utils import argument, with_slots
 from ..commonlib.util import (
+    add_new_error,
     assert_file_exists,
-    BenchmarkErrorInfo,
     ensure_empty_dir,
+    CoreRunErrorInfo,
     ExecArgs,
     exec_and_get_output,
     get_existing_absolute_file_path,
@@ -38,6 +39,7 @@ from ..commonlib.util import (
     mb_to_bytes,
     OS,
     os_is_windows,
+    RunErrorMap,
 )
 
 from .run_single_test import (
@@ -106,13 +108,13 @@ def run(args: RunArgs) -> None:
 
 def run_test(
     args: RunArgs,
-    run_errors: List[BenchmarkErrorInfo] = None,
+    run_errors: RunErrorMap = None,
     is_suite: bool = False
 ) -> None:
     # Receiving an already initialized List as default value is very prone
     # to unexpected side-effects. None is the convention for these cases.
     if run_errors is None:
-        run_errors = []
+        run_errors = {}
 
     bench_file_path = assert_file_exists(args.bench_file_path)
     bench = parse_bench_file(bench_file_path)
@@ -146,12 +148,11 @@ def run_test(
 
     if not is_suite and not is_empty(run_errors):
         print(
-            f"\n=== *WARNING*: Test '{bench_file_path}' encountered errors. ===\n"
-            "\n*** Here is a summary of the problems found: ***"
+            f"\n======= *WARNING*: Test '{bench_file_path}' encountered errors. =======\n"
+            "\n*** Here is a summary of the problems found: ***\n"
         )
-
-        for err in run_errors:
-            err.print()
+        for core_run in run_errors.values():
+            core_run.print()
 
 
 def _run_all_benchmarks(
@@ -160,7 +161,7 @@ def _run_all_benchmarks(
     skip_where_exists: bool,
     max_iterations: Optional[int],
     out_dir: Path,
-    run_errors: List[BenchmarkErrorInfo]
+    run_errors: RunErrorMap
 ) -> None:
     default_env = check_env()
     for t in iter_tests_to_run(bench, get_this_machine(), max_iterations, out_dir):
@@ -180,12 +181,17 @@ def _run_all_benchmarks(
                     ),
                     t.out,
                 )
+
         except Exception:
             _, exception_message, exception_trace = exc_info()
-            run_errors.append(
-                BenchmarkErrorInfo(t.benchmark_name,
-                                   exception_message,
-                                   format_tb(exception_trace))
+            add_new_error(
+                run_errors=run_errors,
+                core_name=t.coreclr_name,
+                config_name=t.config_name,
+                bench_name=t.benchmark_name,
+                iteration_num=t.iteration,
+                message=exception_message,
+                trace=format_tb(exception_trace)
             )
             continue
 
