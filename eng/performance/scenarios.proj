@@ -5,41 +5,83 @@
       <PayloadDirectory>%(Identity)</PayloadDirectory>
     </HelixCorrelationPayload>
   </ItemGroup>
-  
+
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
     <ScenariosDir>$(WorkItemDirectory)\src\scenarios\</ScenariosDir>
     <HelixPreCommands>$(HelixPreCommands);set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\scripts%3B%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
+    <RID>win-$(Architecture)</RID>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
     <ScenariosDir>$(WorkItemDirectory)/src/scenarios/</ScenariosDir>
     <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
+    <RID>linux-$(Architecture)</RID>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
-    <HelixWorkItem>
-      <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release</PreCommands>
-      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
+      <HelixWorkItem>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemDefinitionGroup>
   
+
   <ItemGroup>
-    <HelixWorkItem Include="Static Console Template">
+    <Scenario Include="Static Console Template">
       <PayloadDirectory>$(ScenariosDir)staticconsoletemplate</PayloadDirectory>
-    </HelixWorkItem>
-    <HelixWorkItem Include="Static VB Console Template">
+    </Scenario>
+    <Scenario Include="Static VB Console Template">
       <PayloadDirectory>$(ScenariosDir)staticvbconsoletemplate</PayloadDirectory>
-    </HelixWorkItem>
-    <HelixWorkItem Include="Static Winforms Template">
+    </Scenario>
+    <Scenario Include="Static Winforms Template">
       <PayloadDirectory>$(ScenariosDir)staticwinformstemplate</PayloadDirectory>
-    </HelixWorkItem>
-    <HelixWorkItem Include="New Console Template">
+    </Scenario>
+    <Scenario Include="New Console Template">
       <PayloadDirectory>$(ScenariosDir)emptyconsoletemplate</PayloadDirectory>
-    </HelixWorkItem>
-    <HelixWorkItem Include="New VB Console Template">
+    </Scenario>
+    <Scenario Include="New VB Console Template">
       <PayloadDirectory>$(ScenariosDir)emptyvbconsoletemplate</PayloadDirectory>
+    </Scenario>
+  </ItemGroup>
+
+  <ItemGroup>
+    <HelixWorkItem Include="@(Scenario)">
+      <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release</PreCommands>
+      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
+
+  <!-- SOD publish -->
+  <ItemGroup>
+    <HelixWorkItem Include="@(Scenario)">
+      <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity) - FDD Publish&quot;</Command>
+    </HelixWorkItem>
+  </ItemGroup>
+
+  <!-- SOD publish RID -->
+  <ItemGroup>
+    <HelixWorkItem Include="@(Scenario)">
+      <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release -r $(RID)</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity) - SCD Publish&quot;</Command>
+    </HelixWorkItem>
+  </ItemGroup>
+
+  <!-- SOD build -->
+  <ItemGroup>
+    <HelixWorkItem Include="@(Scenario)">
+      <PreCommands>$(Python) pre.py build -c Release</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity) - Build&quot;</Command>
+    </HelixWorkItem>
+  </ItemGroup>
+  <!-- This is useful for testing -->
+  <!-- <Target Name="t">
+        <Message Text="@(HelixWorkItem -> 'name: %(HelixWorkItem.Identity)
+     dir: %(HelixWorkItem.PayloadDirectory)
+     pre: %(HelixWorkItem.PreCommands)
+     command: %(HelixWorkItem.Command)
+     post: %(HelixWorkItem.PostCommands)
+     timeout: %(HelixWorkItem.Timeout)  '"/>
+  </Target> -->
+
 </Project>
