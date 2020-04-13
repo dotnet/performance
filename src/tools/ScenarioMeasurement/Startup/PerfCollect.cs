@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -28,6 +28,11 @@ namespace ScenarioMeasurement
             if (!File.Exists(perfCollectScript))
             {
                 throw new FileNotFoundException($"Pefcollect not found at {perfCollectScript}. Please rebuild the project to download it.");
+            }
+
+            if (Install() != ProcessHelper.Result.Success)
+            {
+                throw new Exception("Lttng installation failed. Please try manual install.");
             }
 
             if (String.IsNullOrEmpty(traceName))
@@ -99,8 +104,18 @@ namespace ScenarioMeasurement
 
         public ProcessHelper.Result Install()
         {
-            perfCollectProcess.Arguments = "install -force";
-            return perfCollectProcess.Run().Result;
+            Process checkLttngProcess = new Process();
+            checkLttngProcess.StartInfo.FileName = "command";
+            checkLttngProcess.StartInfo.Arguments = "-v lttng >/dev/null 2>&1";
+            checkLttngProcess.StartInfo.CreateNoWindow = true;
+            checkLttngProcess.Start();
+            checkLttngProcess.WaitForExit();
+            if (checkLttngProcess.ExitCode != 0)
+            {
+                perfCollectProcess.Arguments = "install -force";
+                return perfCollectProcess.Run().Result;
+            }
+            return ProcessHelper.Result.Success;
         }
 
         public void Dispose()
