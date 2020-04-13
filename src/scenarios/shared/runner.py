@@ -123,7 +123,7 @@ class Runner:
                                 scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.CLEAN_BUILD),
                                 apptorun=const.DOTNET,
                                 iterationsetup='py' if sys.platform == 'win32' else 'python3.6',
-                                setupargs='-3 %s setup_build' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
+                                setupargs='-3 %s setup_build' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else '%s setup_build' % const.ITERATION_SETUP_FILE,
                                 iterationcleanup='py' if sys.platform == 'win32' else 'python3.6',
                                 cleanupargs='-3 %s cleanup' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
                                 workingdir= const.APPDIR if not self.traits.workingdir else os.path.join(const.APPDIR, self.traits.workingdir),
