@@ -44,6 +44,12 @@ def uploadtokenpresent():
 def runninginlab():
     return environ.get('PERFLAB_INLAB') is not None
 
+def startupdir():
+    if sys.platform == 'win32':
+        return 'Startup'
+    else:
+        return 'startup'
+    
 def getruntimeidentifier():
     rid = None
     if sys.platform == 'win32':

@@ -9,17 +9,17 @@ from performance.logger import setup_loggers
 from performance.common import get_artifacts_directory, get_packages_directory, RunCommand
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from dotnet import CSharpProject, CSharpProjFile
-from shared.util import helixpayload, helixworkitempayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier
+from shared.util import startupdir, helixpayload, helixworkitempayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier
 from shared.const import *
 class StartupWrapper(object):
     '''
     Wraps startup.exe, building it if necessary.
     '''
     def __init__(self):
-        if helixpayload() and os.path.exists(os.path.join(helixpayload(), 'Startup')):
-            self._setstartuppath(os.path.join(helixpayload(), 'Startup'))
-        elif helixworkitempayload() and os.path.exists(os.path.join(helixworkitempayload(), 'Startup')):
-            self._setstartuppath(os.path.join(helixworkitempayload(), 'Startup'))
+        if helixpayload() and os.path.exists(os.path.join(helixpayload(), startupdir())):
+            self._setstartuppath(os.path.join(helixpayload(), startupdir()))
+        elif helixworkitempayload() and os.path.exists(os.path.join(helixworkitempayload(), startupdir())):
+            self._setstartuppath(os.path.join(helixworkitempayload(), startupdir()))
         else:
             relpath = os.path.join(get_artifacts_directory(), 'startup')
             startupproj = os.path.join('..',
