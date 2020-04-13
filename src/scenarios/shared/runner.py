@@ -60,7 +60,7 @@ class Runner:
         Parses input args to the script
         '''
         parser = ArgumentParser()
-        subparsers = parser.add_subparsers(title='subcommands for scenario tests', required=True, dest='testtype')
+        subparsers = parser.add_subparsers(title='subcommands for scenario tests',  dest='testtype')
         startupparser = subparsers.add_parser(const.STARTUP)
         self.add_common_arguments(startupparser)
 
@@ -69,8 +69,8 @@ class Runner:
         self.add_common_arguments(sdkparser)
 
         crossgenparser = subparsers.add_parser(const.CROSSGEN)
-        crossgenparser.add_argument('--test-name', dest='testname', type=str, required=True)
-        crossgenparser.add_argument('--core-root', dest='coreroot', type=str, required=True)
+        crossgenparser.add_argument('--test-name', dest='testname', type=str)
+        crossgenparser.add_argument('--core-root', dest='coreroot', type=str)
         self.add_common_arguments(crossgenparser)
         args = parser.parse_args()
 
