@@ -22,7 +22,8 @@ if __name__ == "__main__":
                         # iterationcleanup=None,
                         # cleanupargs=None,
                         processwillexit=None,
-                        measurementdelay=None
+                        measurementdelay=None,
+                        crossgen=True
                         )
     Runner(traits).run()
 
