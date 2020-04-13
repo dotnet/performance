@@ -50,33 +50,33 @@ jobs:
 ######################################################
 
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
-  # Windows x64 scenario benchmarks
-  - template: /eng/performance/scenarios.yml
-    parameters:
-      osName: windows
-      osVersion: RS5
-      architecture: x64
-      pool: Hosted VS2017
-      kind: scenarios
-      queue: Windows.10.Amd64.ClientRS5.Open
-      projectFile: scenarios.proj
-      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        # - release/3.1.2xx
-        - 3.0
+  # # Windows x64 scenario benchmarks
+  # - template: /eng/performance/scenarios.yml
+  #   parameters:
+  #     osName: windows
+  #     osVersion: RS5
+  #     architecture: x64
+  #     pool: Hosted VS2017
+  #     kind: scenarios
+  #     queue: Windows.10.Amd64.ClientRS5.Open
+  #     projectFile: scenarios.proj
+  #     channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+  #       # - release/3.1.2xx
+  #       - 3.0
 
-  # Windows x64 SDK scenario benchmarks
-  - template: /eng/performance/scenarios.yml
-    parameters:
-      osName: windows
-      osVersion: RS5
-      architecture: x64
-      pool: Hosted VS2017
-      kind: sdk_scenarios
-      queue: Windows.10.Amd64.ClientRS5.Open
-      projectFile: sdk_scenarios.proj
-      channels:
-        - master
-        # - release/3.1.2xx
+  # # Windows x64 SDK scenario benchmarks
+  # - template: /eng/performance/scenarios.yml
+  #   parameters:
+  #     osName: windows
+  #     osVersion: RS5
+  #     architecture: x64
+  #     pool: Hosted VS2017
+  #     kind: sdk_scenarios
+  #     queue: Windows.10.Amd64.ClientRS5.Open
+  #     projectFile: sdk_scenarios.proj
+  #     channels:
+  #       - master
+  #       # - release/3.1.2xx
   
   # Ubuntu 1804 x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -93,19 +93,19 @@ jobs:
         - master
         #- release/3.1.2xx
 
-  # Windows x86 SDK scenario benchmarks
-  - template: /eng/performance/scenarios.yml
-    parameters:
-      osName: windows
-      osVersion: RS5
-      architecture: x86
-      pool: Hosted VS2017
-      kind: sdk_scenarios
-      queue: Windows.10.Amd64.ClientRS5.Open
-      projectFile: sdk_scenarios.proj
-      channels:
-        - master
-        # - release/3.1.2xx
+  # # Windows x86 SDK scenario benchmarks
+  # - template: /eng/performance/scenarios.yml
+  #   parameters:
+  #     osName: windows
+  #     osVersion: RS5
+  #     architecture: x86
+  #     pool: Hosted VS2017
+  #     kind: sdk_scenarios
+  #     queue: Windows.10.Amd64.ClientRS5.Open
+  #     projectFile: sdk_scenarios.proj
+  #     channels:
+  #       - master
+  #       # - release/3.1.2xx
   
   # # Windows x64 micro benchmarks
   # - template: /eng/performance/benchmark_jobs.yml

@@ -12,5 +12,17 @@ if __name__ == "__main__":
                         startup=True,
                         sdk=True,
                         guiapp='false',
+                        # appargs=None,
+                        iterations=None,
+                        timeout=None,
+                        warmup=None,
+                        workingdir=None,
+                        # iterationsetup=None,
+                        # setupargs=None,
+                        # iterationcleanup=None,
+                        # cleanupargs=None,
+                        processwillexit=None,
+                        measurementdelay=None
                         )
     Runner(traits).run()
+

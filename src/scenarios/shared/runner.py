@@ -19,15 +19,15 @@ reqfields = ('exename',
             )
 optfields = ('guiapp',
              'startupmetric',
-             'appargs',
+            # 'appargs',
              'iterations',
              'timeout',
              'warmup',
              'workingdir',
-             'iterationsetup',
-             'setupargs',
-             'iterationcleanup',
-             'cleanupargs',
+            #  'iterationsetup',
+            #  'setupargs',
+            #  'iterationcleanup',
+            #  'cleanupargs',
              'processwillexit',
              'measurementdelay'
              )
@@ -39,8 +39,7 @@ testtypes = {const.STARTUP: False,
              const.CROSSGEN: False}
 
 TestTraits = namedtuple('TestTraits',
-                        reqfields  + tuple(testtypes.keys()) + optfields,
-                        defaults=tuple(testtypes.values()) + (None,) * len(optfields))
+                        reqfields  + tuple(testtypes.keys()) + optfields)
 
 class Runner:
     '''
