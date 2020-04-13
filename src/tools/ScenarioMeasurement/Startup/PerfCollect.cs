@@ -104,14 +104,14 @@ namespace ScenarioMeasurement
 
         public ProcessHelper.Result Install()
         {
-            Process checkLttngProcess = new Process();
-            checkLttngProcess.StartInfo.FileName = "lttng";
-            //checkLttngProcess.StartInfo.Arguments = "command -v lttng >/dev/null 2>&1";
-            checkLttngProcess.StartInfo.CreateNoWindow = true;
-            //checkLttngProcess.StartInfo.UseShellExecute = true;
-            checkLttngProcess.Start();
+            Process checkLttngProcess = Process.Start("lttng", ">/dev/null 2>&1");
             checkLttngProcess.WaitForExit();
-            if (checkLttngProcess.ExitCode == 127)
+            Process checkPerfProcess = Process.Start("perf", ">/dev/null 2>&1");
+            checkPerfProcess.WaitForExit();
+            // checkLttngProcess.StartInfo.FileName = "lttng";
+            // checkLttngProcess.StartInfo.Arguments = ">/dev/null 2>&1";
+            //checkLttngProcess.StartInfo.UseShellExecute = true;
+            if (checkLttngProcess.ExitCode == 127 || checkPerfProcess.ExitCode == 127)
             {
                 perfCollectProcess.Arguments = "install -force";
                 return perfCollectProcess.Run().Result;
