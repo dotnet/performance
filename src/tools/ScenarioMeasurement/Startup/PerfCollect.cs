@@ -108,6 +108,7 @@ namespace ScenarioMeasurement
             checkLttngProcess.StartInfo.FileName = "command";
             checkLttngProcess.StartInfo.Arguments = "-v lttng >/dev/null 2>&1";
             checkLttngProcess.StartInfo.CreateNoWindow = true;
+            checkLttngProcess.StartInfo.UseShellExecute = true;
             checkLttngProcess.Start();
             checkLttngProcess.WaitForExit();
             if (checkLttngProcess.ExitCode != 0)
