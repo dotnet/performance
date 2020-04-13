@@ -34,7 +34,7 @@ class PreCommands:
         parser = ArgumentParser()
 
         subparsers = parser.add_subparsers(title='Operations', 
-                                           description='Common preperation steps for perf tests.'
+                                           description='Common preperation steps for perf tests.',
                                            dest='operation')
 
         default_parser = subparsers.add_parser(DEFAULT, help='Default operation' )
