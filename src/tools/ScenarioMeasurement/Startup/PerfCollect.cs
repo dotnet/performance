@@ -51,7 +51,7 @@ namespace ScenarioMeasurement
                 Timeout = 300
             };
 
-            if (Install() != ProcessHelper.Result.Success)
+            if (Environment.GetEnvironmentVariable("PERF_INLAB")=="1" && Install() != ProcessHelper.Result.Success)
             {
                 throw new Exception("Lttng installation failed. Please try manual install.");
             }
@@ -104,18 +104,19 @@ namespace ScenarioMeasurement
 
         public ProcessHelper.Result Install()
         {
-            Process checkLttngProcess = Process.Start("command", "lttng >/dev/null 2>&1");
+            /*Process checkLttngProcess = Process.Start("command", "lttng >/dev/null 2>&1");
             checkLttngProcess.WaitForExit();        
             // checkLttngProcess.StartInfo.FileName = "lttng";
             // checkLttngProcess.StartInfo.Arguments = ">/dev/null 2>&1";
             //checkLttngProcess.StartInfo.UseShellExecute = true;
             if (checkLttngProcess.ExitCode != 0)
             {
-                Console.WriteLine();
                 perfCollectProcess.Arguments = "install -force";
                 return perfCollectProcess.Run().Result;
             }
-            return ProcessHelper.Result.Success;
+            return ProcessHelper.Result.Success;*/
+            perfCollectProcess.Arguments = "install -force";
+            return perfCollectProcess.Run().Result;
         }
 
         public void Dispose()
