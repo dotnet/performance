@@ -312,16 +312,16 @@ class Item : ITypeWithPayload
     static readonly uint Overhead = (3 + 2) * Util.POINTER_SIZE;
 
     //TODO: isWeakLong never used
-    public static Item New(uint size, bool isPinned, bool isFinalizable, bool isWeakLong=false)
+    public static Item New(uint size, bool isPinned, bool isFinalizable, bool isWeakLong=false, bool isPoh = false)
     {
         if (isFinalizable)
         {
             throw new Exception("TODO");
         }
-        return new Item(size, isPinned, isWeakLong);
+        return new Item(size, isPinned, isWeakLong, isPoh);
     }
 
-    private Item(uint size, bool isPinned, bool isWeakLong)
+    private Item(uint size, bool isPinned, bool isWeakLong, bool isPoh)
     {
 #if DEBUG
         Interlocked.Increment(ref NumConstructed);
@@ -334,7 +334,19 @@ class Item : ITypeWithPayload
             throw new InvalidOperationException("Item class does not support allocating an object of this size");
         }
         uint payloadSize = size - baseSize;
-        payload = new byte[payloadSize];
+
+        if (isPoh)
+        {
+#if NETCOREAPP5_0
+            payload = GC.AllocateArray<byte>((int)payloadSize);
+#else
+            throw new Exception("UNREACHABLE: POH allocations require netcoreapp5.0 or higher");
+#endif
+        }
+        else
+        {
+            payload = new byte[payloadSize];
+        }
 
         // We only support these 3 states right now.
         state = (isPinned ? ItemState.Pinned : (isWeakLong ? ItemState.WeakLong : ItemState.NoHandle));
@@ -407,10 +419,22 @@ class SimpleRefPayLoad
     // 'payload' itself will have an overhead of 3 words.
     public static readonly uint Overhead = (2 + 1 + 1 + 3) * Util.POINTER_SIZE;
 
-    public SimpleRefPayLoad(uint size, bool isPinned)
+    public SimpleRefPayLoad(uint size, bool isPinned, bool isPoh)
     {
         uint sizePayload = size - Overhead;
-        payload = new byte[sizePayload];
+        if (isPoh)
+        {
+#if NETCOREAPP5_0
+            payload = GC.AllocateArray<byte>((int)sizePayload);
+#else
+            throw new Exception("UNREACHABLE: POH allocations require netcoreapp5.0 or higher");
+#endif
+        }
+        else
+        {
+            payload = new byte[sizePayload];
+        }
+
         Debug.Assert(OwnSize == size);
 
         if (isPinned)
@@ -472,28 +496,28 @@ abstract class ReferenceItemWithSize : ITypeWithPayload
     // Node 'SimpleRefPayload' handles its own overhead internally.
     static readonly uint Overhead = 2 * Util.POINTER_SIZE + 2 * Util.POINTER_SIZE + sizeof(ulong);
 
-    public static ReferenceItemWithSize New(uint size, bool isPinned, bool isFinalizable)
+    public static ReferenceItemWithSize New(uint size, bool isPinned, bool isFinalizable, bool isPoh)
     {
         // Can't use conditional expression as these are two different classes
         if (isFinalizable)
         {
-            return new ReferenceItemWithSizeFinalizable(size, isPinned);
+            return new ReferenceItemWithSizeFinalizable(size, isPinned, isPoh);
         }
         else
         {
-            return new ReferenceItemWithSizeNonFinalizable(size, isPinned);
+            return new ReferenceItemWithSizeNonFinalizable(size, isPinned, isPoh);
         }
 
     }
 
-    protected ReferenceItemWithSize(uint size, bool isPinned)
+    protected ReferenceItemWithSize(uint size, bool isPinned, bool isPoh)
     {
         Debug.Assert(size >= Overhead + SimpleRefPayLoad.Overhead);
 #if DEBUG
         Interlocked.Increment(ref NumConstructed);
 #endif
         uint sizePayload = size - Overhead;
-        payload = new SimpleRefPayLoad(sizePayload, isPinned: isPinned);
+        payload = new SimpleRefPayLoad(sizePayload, isPinned: isPinned, isPoh: isPoh);
         Debug.Assert(OwnSize == size);
         TotalSize = size;
     }
@@ -537,8 +561,8 @@ abstract class ReferenceItemWithSize : ITypeWithPayload
 
     class ReferenceItemWithSizeFinalizable : ReferenceItemWithSize
     {
-        public ReferenceItemWithSizeFinalizable(uint size, bool isPinned)
-            : base(size, isPinned)
+        public ReferenceItemWithSizeFinalizable(uint size, bool isPinned, bool isPoh)
+            : base(size, isPinned, isPoh)
         {
             Interlocked.Increment(ref NumCreatedWithFinalizers);
         }
@@ -551,8 +575,8 @@ abstract class ReferenceItemWithSize : ITypeWithPayload
 
     class ReferenceItemWithSizeNonFinalizable : ReferenceItemWithSize
     {
-        public ReferenceItemWithSizeNonFinalizable(uint size, bool isPinned)
-            : base(size, isPinned) { }
+        public ReferenceItemWithSizeNonFinalizable(uint size, bool isPinned, bool isPoh)
+            : base(size, isPinned, isPoh) { }
     }
 }
 
@@ -581,9 +605,11 @@ readonly struct BucketSpec
     // Note: pinInterval and finalizableInterval only affect surviving objects
     public readonly uint pinInterval;
     public readonly uint finalizableInterval;
-    // If we have buckets with weights of 2 and 1, we'll allocate 2 objects from the first bucket, then 1 from the next.
+    // If we have buckets with weights of 2 and 1, we'll allocate, on average, 2 objects from the first bucket per 1 from the next.
     public readonly uint weight;
-    public BucketSpec(SizeRange sizeRange, uint survInterval, uint pinInterval, uint finalizableInterval, uint weight)
+
+    public readonly bool isPoh;
+    public BucketSpec(SizeRange sizeRange, uint survInterval, uint pinInterval, uint finalizableInterval, uint weight, bool isPoh = false)
     {
         Debug.Assert(weight != 0);
         this.sizeRange = sizeRange;
@@ -591,6 +617,7 @@ readonly struct BucketSpec
         this.pinInterval = pinInterval;
         this.finalizableInterval = finalizableInterval;
         this.weight = weight;
+        this.isPoh = isPoh;
 
         // Should avoid creating the bucket in this case, as our algorithm assumes it should use the bucket at least once
         Util.AlwaysAssert(weight != 0);
@@ -603,8 +630,16 @@ readonly struct BucketSpec
         }
     }
 
-    public override string ToString() =>
-        $"{sizeRange}; surv every {survInterval}; pin every {pinInterval}; weight {weight}";
+    public override string ToString()
+    {
+        string result = $"{sizeRange}; surv every {survInterval}; pin every {pinInterval}; weight {weight}";
+
+#if NETCOREAPP5_0
+        result += $"; isPoh {isPoh}";
+#endif
+
+        return result;
+    }
 }
 
 readonly struct Phase
@@ -676,7 +711,7 @@ ref struct CharSpan
 
     private CharSpan(string text, uint begin, uint length)
     {
-        Debug.Assert(begin + length < text.Length);
+        Debug.Assert(begin + length <= text.Length);
         this.text = text;
         this.begin = begin;
         Length = length;
@@ -1170,13 +1205,23 @@ class ArgsParser
 
     private const uint DEFAULT_SOH_ALLOC_LOW = 100;
     private const uint DEFAULT_SOH_ALLOC_HIGH = 4000;
+    private const uint DEFAULT_SOH_SURV_INTERVAL = 30;
+
     private const uint DEFAULT_LOH_ALLOC_LOW = 100 * 1024;
     private const uint DEFAULT_LOH_ALLOC_HIGH = 200 * 1024;
-    private const uint DEFAULT_PINNING_INTERVAL = 100;
-    private const uint DEFAULT_FINALIZABLE_INTERVAL = 0;
-    private const uint DEFAULT_SOH_SURV_INTERVAL = 30;
     private const uint DEFAULT_LOH_SURV_INTERVAL = 5;
 
+    private const uint DEFAULT_POH_ALLOC_LOW = 100;
+    private const uint DEFAULT_POH_ALLOC_HIGH = 200 * 1024;
+    private const uint DEFAULT_POH_SURV_INTERVAL = 5;
+
+#if NETCOREAPP5_0
+    private const uint DEFAULT_POH_INTERVAL = 100;
+#endif
+
+    private const uint DEFAULT_PINNING_INTERVAL = 100;
+    private const uint DEFAULT_FINALIZABLE_INTERVAL = 0;
+    
     private static Args ParseFromCommandLine(string[] args)
     {
         TestKind testKind = TestKind.time;
@@ -1197,6 +1242,19 @@ class ArgsParser
         uint lohPinInterval = DEFAULT_PINNING_INTERVAL;
         uint sohFinalizableInterval = DEFAULT_FINALIZABLE_INTERVAL;
         uint lohFinalizableInterval = DEFAULT_FINALIZABLE_INTERVAL;
+
+        uint pohAllocLow = DEFAULT_POH_ALLOC_LOW;
+        uint pohAllocHigh = DEFAULT_POH_ALLOC_HIGH;
+
+#if NETCOREAPP5_0
+        uint pohPinInterval = DEFAULT_PINNING_INTERVAL;
+        uint pohFinalizableInterval = DEFAULT_FINALIZABLE_INTERVAL;
+        uint pohSurvInterval = DEFAULT_POH_SURV_INTERVAL;
+
+        uint? pohAllocRatioArg = null;
+        uint? pohAllocIntervalArg = null;
+#endif
+
         ItemType allocType = ItemType.ReferenceItem;
         bool verifyLiveSize = false;
         uint printEveryNthIter = 0;
@@ -1225,8 +1283,23 @@ class ArgsParser
                 case "-lohar":
                     lohAllocRatioArg = ParseUInt32(args[++i]);
                     break;
+                case "-pohAllocRatio":
+                case "-pohar":
+#if NETCOREAPP5_0
+                    pohAllocRatioArg = ParseUInt32(args[++i]);
+#else
+                    Util.AlwaysAssert(false, "pohAllocRatio requires netcoreapp5.0 build");
+#endif
+                    break;
                 case "-lohAllocInterval":
                     lohAllocIntervalArg = ParseUInt32(args[++i]);
+                    break;
+                case "-pohAllocInterval":
+#if NETCOREAPP5_0
+                    pohAllocIntervalArg = ParseUInt32(args[++i]);
+#else
+                    Util.AlwaysAssert(false, "pohAllocInterval requires netcoreapp5.0 build");
+#endif
                     break;
                 case "-totalLiveGB":
                 case "-tlgb":
@@ -1249,6 +1322,14 @@ class ArgsParser
                     ParseRange(args[++i], out lohAllocLow, out lohAllocHigh);
                     Util.AlwaysAssert(lohAllocLow >= 85000, "g_lohAllocLow is below the minimum large object size");
                     break;
+                case "-pohSizeRange":
+                case "-pohsr":
+#if NETCOREAPP5_0
+                    ParseRange(args[++i], out pohAllocLow, out pohAllocHigh);
+#else
+                    Util.AlwaysAssert(false, "pohSizeRange requires netcoreapp5.0 build");
+#endif
+                    break;
                 case "-sohSurvInterval":
                 case "-sohsi":
                     sohSurvInterval = ParseUInt32(args[++i]);
@@ -1256,6 +1337,14 @@ class ArgsParser
                 case "-lohSurvInterval":
                 case "-lohsi":
                     lohSurvInterval = ParseUInt32(args[++i]);
+                    break;
+                case "-pohSurvInterval":
+                case "-pohsi":
+#if NETCOREAPP5_0
+                    pohSurvInterval = ParseUInt32(args[++i]);
+#else
+                    Util.AlwaysAssert(false, "pohSurvInterval requires netcoreapp5.0 build");
+#endif
                     break;
                 case "-sohPinningInterval":
                 case "-sohpi":
@@ -1273,6 +1362,24 @@ class ArgsParser
                 case "-lohfi":
                     lohFinalizableInterval = ParseUInt32(args[++i]);
                     break;
+
+                case "-pohPinningInterval":
+                case "-pohpi":
+#if NETCOREAPP5_0
+                    pohPinInterval = ParseUInt32(args[++i]);
+#else
+                    Util.AlwaysAssert(false, "pohPinningInterval requires netcoreapp5.0 build");
+#endif
+                    break;
+                case "-pohFinalizableInterval":
+                case "-pohfi":
+#if NETCOREAPP5_0
+                    pohFinalizableInterval = ParseUInt32(args[++i]);
+#else
+                    Util.AlwaysAssert(false, "pohFinalizableInterval requires netcoreapp5.0 build");
+#endif
+                    break;
+
                 case "-allocType":
                 case "-at":
                     allocType = ParseItemType(args[++i]);
@@ -1288,9 +1395,13 @@ class ArgsParser
             }
         }
 
-        if (totalLiveBytes == 0 && (sohSurvInterval != 0 || lohSurvInterval != 0))
+        if (totalLiveBytes == 0 && (sohSurvInterval != 0 || lohSurvInterval != 0
+#if NETCOREAPP5_0
+            || pohSurvInterval != 0
+#endif
+            ))
         {
-            throw new Exception("Can't set -sohsi or -lohsi if -tlgb is 0");
+            throw new Exception("Can't set -sohsi or -lohsi or -pohsi if -tlgb is 0");
         }
 
         if ((totalAllocBytes == null) && (totalMinutesToRun == 0))
@@ -1302,29 +1413,53 @@ class ArgsParser
         ulong allocPerThread = (totalAllocBytes ?? 0) / threadCount;
         if (allocPerThread != 0) Console.WriteLine("allocating {0:n0} per thread", allocPerThread);
 
-        (uint lohAllocInterval, uint lohAllocRatio) = GetLohAllocIntervalAndRatio(lohAllocIntervalArg, lohAllocRatioArg, sohAllocLow: sohAllocLow, sohAllocHigh: sohAllocHigh, lohAllocLow: lohAllocLow, lohAllocHigh: lohAllocHigh);
+        List<BucketSpec> bucketList = new List<BucketSpec>();
+        uint sohWeight = 1000;
 
-        BucketSpec lohBucket = new BucketSpec(
-            sizeRange: new SizeRange(lohAllocLow, lohAllocHigh),
-            survInterval: lohSurvInterval,
-            pinInterval: lohPinInterval,
-            finalizableInterval: lohFinalizableInterval,
-            weight: 1);
-        BucketSpec[] buckets;
-        if (lohAllocInterval == 1)
+        uint lohWeight = GetLohAllocWeight(lohAllocIntervalArg, lohAllocRatioArg, sohAllocLow: sohAllocLow, sohAllocHigh: sohAllocHigh, lohAllocLow: lohAllocLow, lohAllocHigh: lohAllocHigh, pohAllocLow, pohAllocHigh);
+        if (lohWeight > 0)
         {
-            buckets = new BucketSpec[] { lohBucket };
+            BucketSpec lohBucket = new BucketSpec(
+                sizeRange: new SizeRange(lohAllocLow, lohAllocHigh),
+                survInterval: lohSurvInterval,
+                pinInterval: lohPinInterval,
+                finalizableInterval: lohFinalizableInterval,
+                weight: lohWeight);
+
+            bucketList.Add(lohBucket);
+            sohWeight -= lohWeight;
         }
-        else
+
+#if NETCOREAPP5_0
+        uint pohWeight = GetPohAllocWeight(pohAllocIntervalArg, pohAllocRatioArg, sohAllocLow: sohAllocLow, sohAllocHigh: sohAllocHigh, lohAllocLow: lohAllocLow, lohAllocHigh: lohAllocHigh, pohAllocLow, pohAllocHigh);
+        if (pohWeight > 0)
+        {
+            BucketSpec pohBucket = new BucketSpec(
+                sizeRange: new SizeRange(pohAllocLow, pohAllocHigh),
+                survInterval: pohSurvInterval,
+                pinInterval: pohPinInterval,
+                finalizableInterval: pohFinalizableInterval,
+                weight: pohWeight,
+                isPoh: true);
+
+            bucketList.Add(pohBucket);
+            sohWeight -= pohWeight;
+        }
+#endif
+
+        if (sohWeight > 0)
         {
             BucketSpec sohBucket = new BucketSpec(
                 sizeRange: new SizeRange(sohAllocLow, sohAllocHigh),
                 survInterval: sohSurvInterval,
                 pinInterval: sohPinInterval,
                 finalizableInterval: sohFinalizableInterval,
-                weight: lohAllocInterval == 0 ? 1 : lohAllocInterval - 1);
-            buckets = lohAllocInterval == 0 ? new BucketSpec[] { sohBucket } : new BucketSpec[] { sohBucket, lohBucket };
+                weight: sohWeight);
+
+            bucketList.Add(sohBucket);
         }
+
+        BucketSpec[] buckets = bucketList.ToArray();
 
         Phase onlyPhase = new Phase(
             testKind: testKind,
@@ -1340,51 +1475,71 @@ class ArgsParser
             endException: endException);
     }
 
-    private static (uint interval, uint ratio) GetLohAllocIntervalAndRatio(uint? lohAllocInterval, uint? lohAllocRatio, uint sohAllocLow, uint sohAllocHigh, uint lohAllocLow, uint lohAllocHigh)
+    private static uint GetLohAllocWeight(uint? lohAllocInterval, uint? lohAllocRatio, uint sohAllocLow, uint sohAllocHigh, uint lohAllocLow, uint lohAllocHigh, uint pohAllocLow = 0, uint pohAllocHigh = 0)
     {
         ulong meanSohObjSize = Util.Mean(sohAllocLow, sohAllocHigh);
         ulong meanLohObjSize = Util.Mean(lohAllocLow, lohAllocHigh);
+        ulong meanPohObjSize = Util.Mean(pohAllocLow, pohAllocHigh);
+
+        uint ratio;
         if (lohAllocInterval != null)
         {
             Util.AlwaysAssert(lohAllocRatio == null); // Can't set both
             uint interval = lohAllocInterval.Value;
-            uint ratio = interval == 0 ? 0 : (uint)(1000 * meanLohObjSize / (meanLohObjSize + meanSohObjSize * (interval - 1)));
-            return (interval, ratio);
+            ratio = interval == 0 ? 0 : 1000 / interval;
         }
         else
         {
-            uint ratio = lohAllocRatio ?? 5;
-            uint interval = GetLohAllocInterval(ratio, sohObjSize: meanSohObjSize, lohObjSize: meanLohObjSize);
-            return (interval, ratio);
+            ratio = lohAllocRatio ?? 5;
         }
+
+        return GetLohAllocWeight(ratio, sohObjSize: meanSohObjSize, lohObjSize: meanLohObjSize, pohObjSize: meanPohObjSize);
     }
 
-    private static uint GetLohAllocInterval(uint lohAllocRatioOutOf1000, ulong sohObjSize, ulong lohObjSize)
+    // converts ratio of allocation (in bytes) to wight of allocations (in times per 1000)
+    private static uint GetLohAllocWeight(uint lohAllocRatioOutOf1000, ulong sohObjSize, ulong lohObjSize, ulong pohObjSize)
     {
-        if (lohAllocRatioOutOf1000 == 0)
+        if (lohAllocRatioOutOf1000 == 0 || lohObjSize == 0)
         {
             return 0;
         }
 
-        double lohAllocFraction = lohAllocRatioOutOf1000 / 1000.0;
-        // We want lohAllocFraction to be the fraction of bytes that are on loh, meaning:
-        // lohAllocFraction = lohObjSize / (lohObjSize + sohObjSize * (interval - 1));
-        // ... math ...
-        // interval = ((ls/lf) - ls + ss) / ss
+        return (uint)((ulong)lohAllocRatioOutOf1000 * (sohObjSize + lohObjSize + pohObjSize) / lohObjSize);
+    }
 
-        double interval = ((lohObjSize / lohAllocFraction) - lohObjSize + sohObjSize) / sohObjSize;
-        Util.AlwaysAssert(interval >= 1.0);
+#if NETCOREAPP5_0
+    private static uint GetPohAllocWeight(uint? pohAllocInterval, uint? lohAllocRatio, uint sohAllocLow, uint sohAllocHigh, uint lohAllocLow, uint lohAllocHigh, uint pohAllocLow = 0, uint pohAllocHigh = 0)
+    {
+        ulong meanSohObjSize = Util.Mean(sohAllocLow, sohAllocHigh);
+        ulong meanLohObjSize = Util.Mean(lohAllocLow, lohAllocHigh);
+        ulong meanPohObjSize = Util.Mean(pohAllocLow, pohAllocHigh);
 
-        uint res = (uint)Math.Round(interval);
-
-        double practicalAllocFraction = ((double)lohObjSize) / (lohObjSize + sohObjSize * (res - 1));
-        if (!Util.AboutEquals(lohAllocFraction, practicalAllocFraction))
+        uint ratio;
+        if (pohAllocInterval != null)
         {
-            throw new Exception($"Expected to get {lohAllocFraction}, got {practicalAllocFraction}");
+            Util.AlwaysAssert(lohAllocRatio == null); // Can't set both
+            uint interval = pohAllocInterval.Value;
+            ratio = interval == 0 ? 0 : 1000 / interval;
+        }
+        else
+        {
+            ratio = lohAllocRatio ?? 5;
         }
 
-        return res;
+        return GetPohAllocWeight(ratio, sohObjSize: meanSohObjSize, lohObjSize: meanLohObjSize, pohObjSize: meanPohObjSize);
     }
+
+    private static uint GetPohAllocWeight(uint pohAllocRatioOutOf1000, ulong sohObjSize, ulong lohObjSize, ulong pohObjSize)
+    {
+        if (pohAllocRatioOutOf1000 == 0 || pohObjSize == 0)
+        {
+            return 0;
+        }
+
+        return (uint)((ulong)pohAllocRatioOutOf1000 * (sohObjSize + lohObjSize + pohObjSize) / pohObjSize);
+    }
+#endif
+
 }
 
 readonly struct ObjectSpec
@@ -1393,13 +1548,15 @@ readonly struct ObjectSpec
     public readonly bool ShouldBePinned;
     public readonly bool ShouldBeFinalizable;
     public readonly bool ShouldSurvive;
+    public readonly bool IsPoh;
 
-    public ObjectSpec(uint size, bool shouldBePinned, bool shouldBeFinalizable, bool shouldSurvive)
+    public ObjectSpec(uint size, bool shouldBePinned, bool shouldBeFinalizable, bool shouldSurvive, bool isPoh)
     {
         Size = size;
         ShouldBeFinalizable = shouldBeFinalizable;
         ShouldBePinned = shouldBePinned;
         ShouldSurvive = shouldSurvive;
+        IsPoh = isPoh;
     }
 }
 
@@ -1432,6 +1589,7 @@ class Bucket
     public uint finalizableInterval => spec.finalizableInterval;
     // If we have buckets with weights of 2 and 1, we'll allocate 2 objects from the first bucket, then 1 from the next.
     public uint weight => spec.weight;
+    public bool isPoh => spec.isPoh;
 
     public ObjectSpec GetObjectSpec(Rand rand)
     {
@@ -1454,47 +1612,49 @@ class Bucket
             survivedCountSinceLastPrint++;
         }
 
-        return new ObjectSpec(size, shouldBePinned: shouldBePinned, shouldBeFinalizable: shouldBeFinalizable, shouldSurvive: shouldSurvive);
+        return new ObjectSpec(size, shouldBePinned: shouldBePinned, shouldBeFinalizable: shouldBeFinalizable, shouldSurvive: shouldSurvive, isPoh: isPoh);
     }
 }
 
 struct BucketChooser
 {
     public readonly Bucket[] buckets;
-    /*mutable*/ uint bucketIndex;
-    uint curLeftInBucket;
+    private readonly uint combinedWeight;
 
     public BucketChooser(BucketSpec[] bucketSpecs)
     {
         Util.AlwaysAssert(bucketSpecs.Length != 0);
         this.buckets = new Bucket[bucketSpecs.Length];
+        uint weightSum = 0;
         for (uint i = 0;  i < bucketSpecs.Length; i++)
         {
-            this.buckets[i] = new Bucket(bucketSpecs[i]);
+            var bucket = new Bucket(bucketSpecs[i]);
+            this.buckets[i] = bucket;
+            weightSum += bucket.weight;
         }
-        this.bucketIndex = 0;
-        this.curLeftInBucket = buckets[0].weight;
+        combinedWeight = weightSum;
     }
 
-    private Bucket GetNextBucket()
+    private Bucket GetNextBucket(Rand rand)
     {
-        Bucket bucket = buckets[bucketIndex];
-        Util.AlwaysAssert(curLeftInBucket != 0);
-        curLeftInBucket--;
-        if (curLeftInBucket == 0)
+        var nextRand = rand.GetRand(combinedWeight);
+
+        for (int i = 0; i < buckets.Length; i++)
         {
-            bucketIndex++;
-            if (bucketIndex == buckets.Length)
+            var curBucket = buckets[i];
+            if (nextRand < curBucket.weight)
             {
-                bucketIndex = 0;
+                return curBucket;
             }
-            curLeftInBucket = buckets[bucketIndex].weight;
+
+            nextRand -= curBucket.weight;
         }
-        return bucket;
+
+        throw new Exception("UNREACHABLE");
     }
 
     public ObjectSpec GetNextObjectSpec(Rand rand) =>
-        GetNextBucket().GetObjectSpec(rand);
+        GetNextBucket(rand).GetObjectSpec(rand);
 
     public ulong AverageObjectSize()
     {
@@ -1734,8 +1894,22 @@ class MemoryAlloc
 
             // We are allocating some temp objects here just so that it will trigger GCs.
             // It's unnecesssary if other threads are already allocating objects.
-            uint allocBytes = bucketChooser.GetNextObjectSpec(rand).Size;
-            byte[] bTemp = new byte[allocBytes];
+            var objSpec = bucketChooser.GetNextObjectSpec(rand);
+
+            byte[] bTemp;
+            if (objSpec.IsPoh)
+            {
+#if NETCOREAPP5_0
+                bTemp = GC.AllocateArray<byte>((int)objSpec.Size);
+#else
+                throw new Exception("POH allocations require netcoreapp5.0 build");
+#endif
+            }
+            else
+            {
+                bTemp = new byte[objSpec.Size];
+            }
+
             TouchPage(bTemp);
         }
 
@@ -1941,9 +2115,9 @@ class MemoryAlloc
         switch (curPhase.allocType)
         {
             case ItemType.SimpleItem:
-                return (Item.New(spec.Size, isPinned: spec.ShouldBePinned, isFinalizable: spec.ShouldBeFinalizable), spec);
+                return (Item.New(spec.Size, isPinned: spec.ShouldBePinned, isFinalizable: spec.ShouldBeFinalizable, isPoh: spec.IsPoh), spec);
             case ItemType.ReferenceItem:
-                return (ReferenceItemWithSize.New(spec.Size, isPinned: spec.ShouldBePinned, isFinalizable: spec.ShouldBeFinalizable), spec);
+                return (ReferenceItemWithSize.New(spec.Size, isPinned: spec.ShouldBePinned, isFinalizable: spec.ShouldBeFinalizable, isPoh: spec.IsPoh), spec);
             default:
                 throw new NotImplementedException();
         }
@@ -2083,7 +2257,7 @@ class MemoryAlloc
                 for (int itemModifyIndex = 0; itemModifyIndex < numItemsToModify; itemModifyIndex++)
                 {
                     // TODO: should this additional object be pinned too?
-                    ReferenceItemWithSize randomItem = ReferenceItemWithSize.New(spec.Size, isPinned: spec.ShouldBePinned, isFinalizable: spec.ShouldBeFinalizable);
+                    ReferenceItemWithSize randomItem = ReferenceItemWithSize.New(spec.Size, isPinned: spec.ShouldBePinned, isFinalizable: spec.ShouldBeFinalizable, isPoh: spec.IsPoh);
                     if (listHead != null)
                     {
                         randomItem.AddToEndOfList(listHead);
@@ -2103,7 +2277,7 @@ class MemoryAlloc
                     // This doesn't have to be allocBytes, could be randomly generated and based on
                     // the LOH alloc interval.
                     // For large objects creating a few new ones could be quite significant.
-                    ITypeWithPayload randomItemNew = ReferenceItemWithSize.New(spec.Size, isPinned: spec.ShouldBePinned, isFinalizable: spec.ShouldBeFinalizable);
+                    ITypeWithPayload randomItemNew = ReferenceItemWithSize.New(spec.Size, isPinned: spec.ShouldBePinned, isFinalizable: spec.ShouldBeFinalizable, isPoh: spec.IsPoh);
                     oldArr.Replace(rand.GetRand(oldArr.Length), randomItemNew);
                 }
                 break;
