@@ -30,7 +30,7 @@ from .commonlib.bench_file import (
     Vary,
 )
 from .commonlib.get_built import get_corerun_path_from_core_root
-from .commonlib.collection_util import combine_mappings
+from .commonlib.collection_util import add, combine_mappings, is_empty
 from .commonlib.command import Command, CommandKind, CommandsMapping, run_command_worker
 from .commonlib.document import handle_doc, OutputOptions
 from .commonlib.frozen_dict import FrozenDict
@@ -39,9 +39,9 @@ from .commonlib.option import option_or
 from .commonlib.parse_and_serialize import load_yaml, write_yaml_file
 from .commonlib.score_spec import ScoreElement, ScoreSpec
 from .commonlib.type_utils import argument, with_slots
-from .commonlib.util import ensure_empty_dir
+from .commonlib.util import CoreRunErrorInfo, ensure_empty_dir
 
-from .exec.run_tests import run, RunArgs
+from .exec.run_tests import run_test, RunArgs, RunErrorMap
 
 
 SuiteCommand = str
@@ -136,19 +136,41 @@ class SuiteRunArgs:
         doc="This is like the '--skip-where-exists' argument to the normal 'run' command.",
     )
 
+SuiteErrorMap = Mapping[str, RunErrorMap]
 
 def suite_run(args: SuiteRunArgs) -> None:
     suite = load_yaml(SuiteFile, args.suite_path)
+    suite_errors: SuiteErrorMap = {}
+
     for file in suite.bench_files:
         bench_file_path = args.suite_path.parent / file
+        testrun_errors: RunErrorMap = {}
+
         print(f"\n=== {bench_file_path} ===\n")
-        run(
+        run_test(
             RunArgs(
                 bench_file_path=bench_file_path,
                 overwrite=args.overwrite,
                 skip_where_exists=args.skip_where_exists,
-            )
+            ),
+            testrun_errors,
+            True
         )
+
+        if not is_empty(testrun_errors):
+            add(suite_errors, bench_file_path, testrun_errors)
+
+    if is_empty(suite_errors):
+        print("\n*** Suite run finished successfully! ***\n")
+    else:
+        print(
+            f"\n*WARNING*: One or more tests in the suite encountered errors.\n"
+            "\n*** Here is a summary of the problems found: ***"
+        )
+        for file, test_errors in suite_errors.items():
+            print(f"\n======= {file} =======\n")
+            for err in test_errors.values():
+                err.print()
 
 
 @with_slots
