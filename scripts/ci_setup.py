@@ -214,8 +214,6 @@ def __main(args: list) -> int:
     owner, repo = ('dotnet', 'core-sdk') if args.repository is None else (dotnet.get_repository(repo_url))
     config_string = ';'.join(args.build_configs) if sys.platform == 'win32' else '"%s"' % ';'.join(args.build_configs)
 
-    remove_dotnet = False
-
     output = ''
 
     with push_dir(get_repo_root_path()):
@@ -230,12 +228,8 @@ def __main(args: list) -> int:
 
     perfHash = decoded_output if args.get_perf_hash else args.perf_hash
 
-    remove_frameworks = ['netcoreapp3.0', 'netcoreapp5.0']
-
     framework = ChannelMap.get_target_framework_moniker(args.channel)
     if framework.startswith('netcoreapp'):
-        if framework in remove_frameworks:
-            remove_dotnet = True
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
         dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli)
         commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
@@ -270,11 +264,6 @@ def __main(args: list) -> int:
             out_file.write(variable_format % ('PERFLAB_INLAB', '0'))
             out_file.write(variable_format % ('PERFLAB_TARGET_FRAMEWORKS', framework))
             out_file.write(path_variable % dotnet_path)
-
-    # On non-windows platforms, delete dotnet, so that we don't have to deal with chmoding it on the helix machines
-    # This is only necessary for netcoreapp3.0 and netcoreapp5.0
-    #if sys.platform != 'win32' and remove_dotnet:
-        #dotnet.remove_dotnet(architecture)
     
     # The '_Framework' is needed for specifying frameworks in proj files and for building tools later in the pipeline
     __write_pipeline_variable('_Framework', framework)
