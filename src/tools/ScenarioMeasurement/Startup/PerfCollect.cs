@@ -30,11 +30,6 @@ namespace ScenarioMeasurement
                 throw new FileNotFoundException($"Pefcollect not found at {perfCollectScript}. Please rebuild the project to download it.");
             }
 
-            if (Install() != ProcessHelper.Result.Success)
-            {
-                throw new Exception("Lttng installation failed. Please try manual install.");
-            }
-
             if (String.IsNullOrEmpty(traceName))
             {
                 throw new ArgumentException("Trace file name cannot be empty.");
@@ -55,6 +50,11 @@ namespace ScenarioMeasurement
                 Executable = perfCollectScript,
                 Timeout = 300
             };
+
+            if (Install() != ProcessHelper.Result.Success)
+            {
+                throw new Exception("Lttng installation failed. Please try manual install.");
+            }
         }
 
         public ProcessHelper.Result Start()
@@ -104,14 +104,12 @@ namespace ScenarioMeasurement
 
         public ProcessHelper.Result Install()
         {
-            Process checkLttngProcess = Process.Start("lttng", ">/dev/null 2>&1");
-            checkLttngProcess.WaitForExit();
-            Process checkPerfProcess = Process.Start("perf", ">/dev/null 2>&1");
-            checkPerfProcess.WaitForExit();
+            Process checkLttngProcess = Process.Start("command", "lttng >/dev/null 2>&1");
+            checkLttngProcess.WaitForExit();        
             // checkLttngProcess.StartInfo.FileName = "lttng";
             // checkLttngProcess.StartInfo.Arguments = ">/dev/null 2>&1";
             //checkLttngProcess.StartInfo.UseShellExecute = true;
-            if (checkLttngProcess.ExitCode == 127 || checkPerfProcess.ExitCode == 127)
+            if (checkLttngProcess.ExitCode != 0)
             {
                 perfCollectProcess.Arguments = "install -force";
                 return perfCollectProcess.Run().Result;
