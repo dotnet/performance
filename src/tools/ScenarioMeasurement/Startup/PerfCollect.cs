@@ -111,10 +111,10 @@ namespace ScenarioMeasurement
             //checkLttngProcess.StartInfo.UseShellExecute = true;
             if (checkLttngProcess.ExitCode != 0)
             {
+                Console.WriteLine();
                 perfCollectProcess.Arguments = "install -force";
                 return perfCollectProcess.Run().Result;
             }
-            Console.WriteLine("Lttng checked and installed.");
             return ProcessHelper.Result.Success;
         }
 
