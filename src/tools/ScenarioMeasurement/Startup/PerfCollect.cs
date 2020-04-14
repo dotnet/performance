@@ -51,7 +51,7 @@ namespace ScenarioMeasurement
                 Timeout = 300
             };
 
-            if (Environment.GetEnvironmentVariable("PERF_INLAB")=="1" && Install() != ProcessHelper.Result.Success)
+            if (Environment.GetEnvironmentVariable("PERFLAB_INLAB")=="1" && Install() != ProcessHelper.Result.Success)
             {
                 throw new Exception("Lttng installation failed. Please try manual install.");
             }
