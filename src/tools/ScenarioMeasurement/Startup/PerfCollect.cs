@@ -23,7 +23,7 @@ namespace ScenarioMeasurement
 
         public PerfCollect(string traceName, string traceDirectory, Logger logger)
         {
-            TraceName = traceName;
+            TraceName = traceName.Replace(" ", "_");
             string perfCollectScript = Path.Combine(startupDirectory, "perfcollect");
             if (!File.Exists(perfCollectScript))
             {
