@@ -48,7 +48,8 @@ namespace ScenarioMeasurement
             {
                 ProcessWillExit = true,
                 Executable = perfCollectScript,
-                Timeout = 300
+                Timeout = 300,
+                RootAccess = true
             };
 
             if (Environment.GetEnvironmentVariable("PERFLAB_INLAB")=="1" && Install() != ProcessHelper.Result.Success)

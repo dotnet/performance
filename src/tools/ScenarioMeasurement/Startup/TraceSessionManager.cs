@@ -16,7 +16,7 @@ namespace ScenarioMeasurement
 
     public static class TraceSessionManager
     {
-        public static bool IsWindows { get { return Environment.OSVersion.Platform == PlatformID.Win32NT; } }
+        public static bool IsWindows { get { return Util.IsWindows(); } }
         public static ITraceSession CreateSession(string sessionName, string traceName, string traceDirectory, Logger logger)
         {
 

@@ -19,6 +19,11 @@ namespace ScenarioMeasurement
         {
 
         }
+
+        public static bool IsWindows()
+        {
+            return Environment.OSVersion.Platform == PlatformID.Win32NT;
+        }
         
     }
 }
