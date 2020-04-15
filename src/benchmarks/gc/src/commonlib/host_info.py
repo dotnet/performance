@@ -132,7 +132,8 @@ def _get_host_info_posix() -> HostInfo:
         return map_option(get_opt(name), float)
 
     def get_opt_kb(name: str) -> Optional[int]:
-        if _UNKNOWN_MSG in get_opt(name).lower():
+        opt = get_opt(name)
+        if opt is not None and _UNKNOWN_MSG in opt.lower():
             return None
         return map_option(get_opt(name), lambda s: int(remove_str_end(s, "K")))
 
