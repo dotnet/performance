@@ -19,15 +19,15 @@ reqfields = ('exename',
             )
 optfields = ('guiapp',
              'startupmetric',
-            # 'appargs',
+             'appargs',
              'iterations',
              'timeout',
              'warmup',
              'workingdir',
-            #  'iterationsetup',
-            #  'setupargs',
-            #  'iterationcleanup',
-            #  'cleanupargs',
+             'iterationsetup',
+             'setupargs',
+             'iterationcleanup',
+             'cleanupargs',
              'processwillexit',
              'measurementdelay'
              )
@@ -39,7 +39,8 @@ testtypes = {const.STARTUP: False,
              const.CROSSGEN: False}
 
 TestTraits = namedtuple('TestTraits',
-                        reqfields  + tuple(testtypes.keys()) + optfields)
+                        reqfields  + tuple(testtypes.keys()) + optfields,
+                        defaults=tuple(testtypes.values()) + (None,) * len(optfields))
 
 class Runner:
     '''
@@ -60,7 +61,7 @@ class Runner:
         Parses input args to the script
         '''
         parser = ArgumentParser()
-        subparsers = parser.add_subparsers(title='subcommands for scenario tests',  dest='testtype')
+        subparsers = parser.add_subparsers(title='subcommands for scenario tests', required=True, dest='testtype')
         startupparser = subparsers.add_parser(const.STARTUP)
         self.add_common_arguments(startupparser)
 
@@ -69,8 +70,8 @@ class Runner:
         self.add_common_arguments(sdkparser)
 
         crossgenparser = subparsers.add_parser(const.CROSSGEN)
-        crossgenparser.add_argument('--test-name', dest='testname', type=str)
-        crossgenparser.add_argument('--core-root', dest='coreroot', type=str)
+        crossgenparser.add_argument('--test-name', dest='testname', type=str, required=True)
+        crossgenparser.add_argument('--core-root', dest='coreroot', type=str, required=True)
         self.add_common_arguments(crossgenparser)
         args = parser.parse_args()
 
@@ -122,10 +123,10 @@ class Runner:
                                 iterations=self.traits.iterations,
                                 scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.CLEAN_BUILD),
                                 apptorun=const.DOTNET,
-                                iterationsetup='py' if sys.platform == 'win32' else 'python3.6',
-                                setupargs='-3 %s setup_build' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else '%s setup_build' % const.ITERATION_SETUP_FILE,
-                                iterationcleanup='py' if sys.platform == 'win32' else 'python3.6',
-                                cleanupargs='-3 %s cleanup' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else '%s cleanup' % const.ITERATION_SETUP_FILE,
+                                iterationsetup='py' if sys.platform == 'win32' else 'python3',
+                                setupargs='-3 %s setup_build' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
+                                iterationcleanup='py' if sys.platform == 'win32' else 'python3',
+                                cleanupargs='-3 %s cleanup' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
                                 workingdir= const.APPDIR if not self.traits.workingdir else os.path.join(const.APPDIR, self.traits.workingdir),
                                 environmentvariables=envlistcleanbuild,
                                 processwillexit=self.traits.processwillexit,
@@ -164,9 +165,9 @@ class Runner:
                                 iterations=self.traits.iterations,
                                 scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.NEW_CONSOLE),
                                 apptorun=const.DOTNET,
-                                iterationsetup='py' if sys.platform == 'win32' else 'py3',
+                                iterationsetup='py' if sys.platform == 'win32' else 'python3',
                                 setupargs='-3 %s setup_new' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
-                                iterationcleanup='py' if sys.platform == 'win32' else 'py3',
+                                iterationcleanup='py' if sys.platform == 'win32' else 'python3',
                                 cleanupargs='-3 %s cleanup' % const.ITERATION_SETUP_FILE if sys.platform == 'win32' else const.ITERATION_SETUP_FILE,
                                 workingdir= const.APPDIR if not self.traits.workingdir else os.path.join(const.APPDIR, self.traits.workingdir),
                                 environmentvariables=envlistcleanbuild,
