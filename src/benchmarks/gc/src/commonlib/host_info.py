@@ -116,7 +116,7 @@ def _get_host_info(built: Built) -> HostInfo:
     ](built)
 
 
-_UNKNOWN_SIZE_MSG: str = "unknown size"
+_UNKNOWN_MSG: str = "unknown"
 
 def _get_host_info_posix() -> HostInfo:
     # lscpu output is a bunch of lines all of the form key: value. Make a dict from that.
@@ -132,7 +132,7 @@ def _get_host_info_posix() -> HostInfo:
         return map_option(get_opt(name), float)
 
     def get_opt_kb(name: str) -> Optional[int]:
-        if name.lower() == _UNKNOWN_SIZE_MSG:
+        if _UNKNOWN_MSG in get_opt(name).lower():
             return None
         return map_option(get_opt(name), lambda s: int(remove_str_end(s, "K")))
 
