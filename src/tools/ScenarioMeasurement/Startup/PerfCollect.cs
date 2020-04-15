@@ -23,7 +23,6 @@ namespace ScenarioMeasurement
 
         public PerfCollect(string traceName, string traceDirectory, Logger logger)
         {
-            TraceName = traceName.Replace(" ", "_");
             string perfCollectScript = Path.Combine(startupDirectory, "perfcollect");
             if (!File.Exists(perfCollectScript))
             {
@@ -34,6 +33,7 @@ namespace ScenarioMeasurement
             {
                 throw new ArgumentException("Trace file name cannot be empty.");
             }
+            TraceName = traceName.Replace(" ", "_");
 
             if (!Directory.Exists(traceDirectory))
             {
@@ -41,7 +41,7 @@ namespace ScenarioMeasurement
             }
 
             TraceDirectory = traceDirectory;
-            TraceFileName = $"{traceName}.trace.zip";
+            TraceFileName = $"{TraceName}.trace.zip";
             TraceFilePath = Path.Combine(traceDirectory, TraceFileName);
 
             perfCollectProcess = new ProcessHelper(logger)
