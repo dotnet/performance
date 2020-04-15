@@ -17,7 +17,7 @@ namespace System.Memory
         [Benchmark]
         public ReadOnlySpan<char> StringAsSpan() => _sampeString.AsSpan();
         
-        [Benchmark(OperationsPerInvoke = 16)]
+        [Benchmark(OperationsPerInvoke = 16 * 2)]
         public char GetPinnableReference()
         {
             ReadOnlySpan<char> span = _sampeString.AsSpan();
