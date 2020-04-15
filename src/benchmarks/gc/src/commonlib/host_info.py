@@ -135,7 +135,7 @@ def _get_host_info_posix() -> HostInfo:
         opt = get_opt(name)
         if opt is not None and _UNKNOWN_MSG in opt.lower():
             return None
-        return map_option(get_opt(name), lambda s: int(remove_str_end(s, "K")))
+        return map_option(opt, lambda s: int(remove_str_end(s, "K")))
 
     # Note: "CPU MHz" is the *current* cpu rate which varies. Going with max here.
     # TODO: Max is probably wrong, we want a typical value.
