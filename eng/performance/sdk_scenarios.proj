@@ -7,15 +7,15 @@
   </ItemGroup>
   
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
+    <Python>python3.7</Python>
     <ScenariosDir>$(WorkItemDirectory)\src\scenarios\</ScenariosDir>
     <HelixPreCommands>$(HelixPreCommands);set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\scripts%3B%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
     <ScenariosDir>$(WorkItemDirectory)/src/scenarios/</ScenariosDir>
+    <HelixPreCommands>$(HelixPreCommands);sudo killall apt apt-get</HelixPreCommands>
     <HelixPreCommands>$(HelixPreCommands);sudo apt -y install python3.7-dev python3.7-venv </HelixPreCommands>
-    <HelixPreCommands>$(HelixPreCommands);sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 1</HelixPreCommands>
-    <HelixPreCommands>$(HelixPreCommands);sudo update-alternatives --set python3 /usr/bin/python3.7</HelixPreCommands>
     <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
   </PropertyGroup>  
 
