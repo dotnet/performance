@@ -15,6 +15,9 @@
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
     <ScenariosDir>$(WorkItemDirectory)/src/scenarios/</ScenariosDir>
     <HelixPreCommands>$(HelixPreCommands);sudo killall apt apt-get</HelixPreCommands>
+    <HelixPreCommands>$(HelixPreCommands);sudo rm /var/lib/dpkg/lock-frontend</HelixPreCommands>
+    <HelixPreCommands>$(HelixPreCommands);sudo dpkg --configure -a</HelixPreCommands>
+    <HelixPreCommands>$(HelixPreCommands);sudo apt update</HelixPreCommands>
     <HelixPreCommands>$(HelixPreCommands);sudo apt -y install python3.7-dev python3.7-venv </HelixPreCommands>
     <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
   </PropertyGroup>  
