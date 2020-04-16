@@ -7,7 +7,7 @@ print_usage() {
 }
 
 setup_python3_version() {
-    sudo apt-get -y install python3.7
+    sudo apt -y install python3.7-dev python3.7-venv
     sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 1
     sudo update-alternatives --set python3 /usr/bin/python3.7
 }
