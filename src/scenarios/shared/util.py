@@ -70,4 +70,13 @@ def getruntimeidentifier():
 
     return rid
 
+def pythoncommand():
+    if sys.platform == 'win32':
+        return 'py'
+    else:
+        return 'python3'
+
+def iswin():
+    return sys.platform == 'win32'
+
 
