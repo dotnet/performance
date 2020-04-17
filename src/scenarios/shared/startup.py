@@ -92,8 +92,8 @@ class StartupWrapper(object):
             startup_args.extend(['--measurement-delay', kwargs['measurementdelay']])
 
         if not iswin():
-            os.system('sudo lsof var/lib/dpkg/lock-frontend', verbose=True)
-            os.system('sudo killall unattende apt apt-get', verbose=True)
+            os.system('sudo lsof var/lib/dpkg/lock-frontend')
+            os.system('sudo killall unattende apt apt-get')
         RunCommand(startup_args, verbose=True).run()
 
 
