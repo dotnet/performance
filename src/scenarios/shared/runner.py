@@ -42,11 +42,19 @@ class TestTraits:
                  'environmentvariables'
                  )
 
+<<<<<<< HEAD
     def __init__(self, exename: str):
         if not exename:
             raise Exception("exename cannot be empty")
         self.traits = dict.fromkeys(self.all_traits())
         self.add_trait('exename', exename)
+=======
+    def __init__(self, **kwargs):
+        if 'exename' not in kwargs:
+            raise Exception("exename cannot be empty")
+        self.traits = dict.fromkeys(self.all_traits()) # initialize default traits
+        self.add_traits(**kwargs) # add initial traits
+>>>>>>> pr-new-test-traits
 
     # add trait if not present or overwrite existing trait if overwrite=True
     def add_trait(self, key: str, value: str, overwrite=True):
@@ -136,12 +144,23 @@ class Runner:
         self.parseargs()
         startup = StartupWrapper()
         if self.testtype == const.STARTUP:
+<<<<<<< HEAD
             startup.runtests(**self.traits._asdict(),
                              startupmetric=const.STARTUP_TIMETOMAIN,
                              scenarioname=self.scenarioname,
                              scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
                              apptorun=publishedexe(self.traits.exename),
                              environmentvariables='COMPlus_EnableEventLog=1' if iswin() else '')
+=======
+            self.traits.add_traits(overwrite=False,
+                                   environmentvariables='COMPlus_EnableEventLog=1' if iswin() else ''
+                                   )
+            startup.runtests(**self.traits.traits,
+                             scenarioname=self.scenarioname,
+                             scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
+                             apptorun=publishedexe(self.traits.exename),
+                             )
+>>>>>>> pr-new-test-traits
 
         elif self.testtype == const.SDK:
             envlistbuild = 'DOTNET_MULTILEVEL_LOOKUP=0'
@@ -196,8 +215,12 @@ class Runner:
                                  apptorun=const.DOTNET,
                                  scenarioname=self.scenarioname,
                                  scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.NEW_CONSOLE),
+<<<<<<< HEAD
                 )
                 
+=======
+                                 )
+>>>>>>> pr-new-test-traits
 
         elif self.testtype == const.CROSSGEN:
             crossgenexe = 'crossgen%s' % extension()

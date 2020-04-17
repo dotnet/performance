@@ -40,6 +40,50 @@
       <PayloadDirectory>$(ScenariosDir)emptyconsoletemplate</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
+<<<<<<< HEAD
+=======
+
+    <!-- For netstandard library we test only netstandard2.0 framework -->
+    <!-- <SDKWorkItem Include="SDK .NET 2.0 Library Template">
+      <PayloadDirectory>$(ScenariosDir)netstandard2.0</PayloadDirectory>
+    </SDKWorkItem>
+
+    <SDKWorkItem Include="@(Framework -> 'SDK ASP.NET MVC App Template %(Identity)')" Exclude="*2.1">
+      <PayloadDirectory>$(ScenariosDir)mvcapptemplate</PayloadDirectory>
+      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
+    </SDKWorkItem> -->
+
+    <!-- WebLarge2.0 asset is specific to netcoreapp2.1 -->
+    <!-- <SDKWorkItem Include="SDK Web Large 2.0 Clean Build netcoreapp2.1">
+      <PayloadDirectory>$(ScenariosDir)weblarge2.0</PayloadDirectory>
+    </SDKWorkItem> -->
+
+    <!-- WebLarge3.0 asset is specific to netcoreapp3.0 and netcoreapp3.1 -->
+    <!-- <SDKWorkItem Include="@(Framework -> 'SDK Web Large 3.0 %(Identity)')" Exclude="*2.1;*5.0">
+      <PayloadDirectory>$(ScenariosDir)weblarge3.0</PayloadDirectory>
+      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
+    </SDKWorkItem> -->
+
+    <!-- <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Large %(Identity)')" Exclude="*2.1" Condition="'$(_Framework)' != 'netcoreapp5.0'">
+      <PayloadDirectory>$(ScenariosDir)windowsformslarge</PayloadDirectory>
+      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
+    </SDKWorkItem>
+
+    <SDKWorkItem Include="@(Framework -> 'SDK WPF Large %(Identity)')" Exclude="*2.1" Condition="'$(_Framework)' != 'netcoreapp5.0'">
+      <PayloadDirectory>$(ScenariosDir)wpflarge</PayloadDirectory>
+      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
+    </SDKWorkItem>
+
+    <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Template %(Identity)')" Exclude="*2.1" Condition="'$(_Framework)' != 'netcoreapp5.0'">
+      <PayloadDirectory>$(ScenariosDir)windowsforms</PayloadDirectory>
+      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
+    </SDKWorkItem>
+
+    <SDKWorkItem Include="@(Framework -> 'SDK WPF Template %(Identity)')" Exclude="*2.1" Condition="'$(_Framework)' != 'netcoreapp5.0'">
+      <PayloadDirectory>$(ScenariosDir)wpf</PayloadDirectory>
+      <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
+    </SDKWorkItem>
+>>>>>>> pr-new-test-traits
   </ItemGroup>
 
   <ItemGroup>
@@ -49,6 +93,18 @@
     <HelixWorkItem Include="@(SDKWorkItem -> '%(Identity) Build(No Change)')">
       <Command>%(Command) build_no_change --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
+<<<<<<< HEAD
+=======
+  </ItemGroup> -->
+
+  <ItemGroup>
+    <HelixWorkItem Include="SDK New Console">
+      <PayloadDirectory>$(ScenariosDir)emptyconsoletemplate</PayloadDirectory>
+      <Command>$(Python) test.py sdk new_console --scenario-name &quot;%(Identity)&quot;</Command>
+      <PostCommands>$(Python) post.py</PostCommands>
+      <Timeout>4:00</Timeout>
+    </HelixWorkItem>
+>>>>>>> pr-new-test-traits
   </ItemGroup>
 </Project>
 
