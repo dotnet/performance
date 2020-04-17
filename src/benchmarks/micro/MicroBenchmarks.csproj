@@ -24,7 +24,7 @@
     <PackageReference Include="protobuf-net" Version="2.4.0" />
     <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
     <PackageReference Include="System.IO.Pipelines" Version="4.5.3" />
-    <PackageReference Include="System.Memory" Version="4.5.1" />
+    <PackageReference Include="System.Memory" Version="4.5.3" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.2" />
     <PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
@@ -38,14 +38,13 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0-preview.4.20202.18" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0-preview.4.20202.18" />
     <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="5.0.0-preview.4.20202.18" /> -->
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="5.0.0-preview.4.20202.18" />
     <!-- following two dependencies must point to version 4.3.0 or newer to make it possible to publish MicroBenchmarks.csproj -->
     <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="$(BenchmarkRunnerPath)BenchmarkRunner\AspNetCoreBenchmarkAttribute.cs">
+    <!-- <Compile Include="$(BenchmarkRunnerPath)BenchmarkRunner\AspNetCoreBenchmarkAttribute.cs">
       <Link>Shared\AspNetCoreBenchmarkAttribute.cs</Link>
     </Compile>
     <Compile Include="$(BenchmarkRunnerPath)BenchmarkRunner\DefaultCoreConfig.cs">
@@ -74,7 +73,7 @@
     </Compile>
     <Compile Include="C:\CodeHub\performance\src\benchmarks\micro\libraries\Internal\ServiceProviderMode.cs">
       <Link>Internal\ServiceProviderMode.cs</Link>
-    </Compile>
+    </Compile> -->
   </ItemGroup>
 
   <ItemGroup>
@@ -120,6 +119,10 @@
     <Compile Remove="runtime\Math\Functions\Single\ScaleB.cs" />
     <Compile Remove="libraries\System.Memory\SequenceReader.cs" />
     <Compile Remove="libraries\System.Text.Json\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '5.0')">
+    <Compile Remove="libraries\Microsoft.Extensions.Primitives\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.1') OR '$(IsARM)' == 'true'">
