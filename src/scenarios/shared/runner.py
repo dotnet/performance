@@ -42,19 +42,11 @@ class TestTraits:
                  'environmentvariables'
                  )
 
-<<<<<<< HEAD
-    def __init__(self, exename: str):
-        if not exename:
-            raise Exception("exename cannot be empty")
-        self.traits = dict.fromkeys(self.all_traits())
-        self.add_trait('exename', exename)
-=======
     def __init__(self, **kwargs):
         if 'exename' not in kwargs:
             raise Exception("exename cannot be empty")
         self.traits = dict.fromkeys(self.all_traits()) # initialize default traits
         self.add_traits(**kwargs) # add initial traits
->>>>>>> pr-new-test-traits
 
     # add trait if not present or overwrite existing trait if overwrite=True
     def add_trait(self, key: str, value: str, overwrite=True):
@@ -144,23 +136,14 @@ class Runner:
         self.parseargs()
         startup = StartupWrapper()
         if self.testtype == const.STARTUP:
-<<<<<<< HEAD
-            startup.runtests(**self.traits._asdict(),
-                             startupmetric=const.STARTUP_TIMETOMAIN,
-                             scenarioname=self.scenarioname,
-                             scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
-                             apptorun=publishedexe(self.traits.exename),
-                             environmentvariables='COMPlus_EnableEventLog=1' if iswin() else '')
-=======
             self.traits.add_traits(overwrite=False,
-                                   environmentvariables='COMPlus_EnableEventLog=1' if iswin() else ''
+                                   environmentvariables='COMPlus_EnableEventLog=1' if not iswin() else ''
                                    )
             startup.runtests(**self.traits.traits,
                              scenarioname=self.scenarioname,
                              scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
-                             apptorun=publishedexe(self.traits.exename),
+                             apptorun=publishedexe(self.traits.get_trait('exename')),
                              )
->>>>>>> pr-new-test-traits
 
         elif self.testtype == const.SDK:
             envlistbuild = 'DOTNET_MULTILEVEL_LOOKUP=0'
@@ -192,7 +175,7 @@ class Runner:
                     workingdir=const.APPDIR,
                     environmentvariables=envlistbuild
                 )
-                self.traits.add_trait('startupmetric', const.STARTUP_PROCESSTIME)
+                self.traits.add_trait('startupmetric', const.STARTUP_PROCESSTIME, overwrite=True)
                 startup.runtests(**self.traits.traits,
                                  scenarioname=self.scenarioname,
                                  scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.BUILD_NO_CHANGE),
@@ -215,12 +198,7 @@ class Runner:
                                  apptorun=const.DOTNET,
                                  scenarioname=self.scenarioname,
                                  scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.NEW_CONSOLE),
-<<<<<<< HEAD
-                )
-                
-=======
                                  )
->>>>>>> pr-new-test-traits
 
         elif self.testtype == const.CROSSGEN:
             crossgenexe = 'crossgen%s' % extension()
@@ -230,23 +208,11 @@ class Runner:
                 getLogger().error('Cannot find CORE_ROOT at %s', self.coreroot)
                 return
 
-            startup.runtests(scenarioname='Crossgen Throughput - %s' % self.crossgenfile,
-                             exename=self.traits.exename,
-                             guiapp=self.traits.guiapp,
-                             startupmetric=const.STARTUP_PROCESSTIME,
-                             appargs=crossgenargs,
-                             timeout=self.traits.timeout,
-                             warmup='true',
-                             iterations=self.traits.iterations,
-                             scenariotypename='%s - %s' % (
-                                 const.SCENARIO_NAMES[const.CROSSGEN], self.crossgenfile),
+            self.traits.add_trait(key='startupmetric', value=const.STARTUP_PROCESSTIME, overwrite=True)
+            self.tratis.add_trait(key='workingdir', value=self.coreroot, overwrite=True)
+            self.traits.add_trait(key='appargs', value=crossgenargs, overwrite=True)
+            startup.runtests(*self.traits.traits,
+                             scenarioname='Crossgen Throughput - %s' % self.crossgenfile,
+                             scenariotypename='%s - %s' % ( const.SCENARIO_NAMES[const.CROSSGEN], self.crossgenfile),
                              apptorun='%s\%s' % (self.coreroot, crossgenexe),
-                             iterationsetup=None,
-                             setupargs=None,
-                             workingdir=self.coreroot,
-                             processwillexit=self.traits.processwillexit,
-                             measurementdelay=self.traits.measurementdelay,
-                             environmentvariables=None,
-                             iterationcleanup=None,
-                             cleanupargs=None,
                              )

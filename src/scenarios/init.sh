@@ -6,12 +6,6 @@ print_usage() {
     exit 1
 }
 
-setup_python3_version() {
-    sudo apt -y install python3.7-dev python3.7-venv
-    sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 1
-    sudo update-alternatives --set python3 /usr/bin/python3.7
-}
-
 # $1 is dotnet directory
 setup_env() {
     export DOTNET_ROOT="$1"
@@ -28,7 +22,6 @@ download_dotnet() {
     python3 $dotnetScript install --channels $1 -v
 }
 
-setup_python3_version
 # Add scripts and current directory to PYTHONPATH
 absolutePath="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 scriptPath="$absolutePath/../../scripts"

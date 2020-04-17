@@ -7,15 +7,12 @@
   </ItemGroup>
   
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
-    <Python>python3.7</Python>
     <ScenariosDir>$(WorkItemDirectory)\src\scenarios\</ScenariosDir>
     <HelixPreCommands>$(HelixPreCommands);set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\scripts%3B%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
     <ScenariosDir>$(WorkItemDirectory)/src/scenarios/</ScenariosDir>
-    <HelixPreCommands>$(HelixPreCommands);sudo lsof /var/lib/dpkg/lock-frontend</HelixPreCommands>
-    <HelixPreCommands>$(HelixPreCommands);sudo apt -y install python3.7-dev python3.7-venv </HelixPreCommands>
     <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
   </PropertyGroup>  
 
@@ -40,18 +37,16 @@
       <PayloadDirectory>$(ScenariosDir)emptyconsoletemplate</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
-<<<<<<< HEAD
-=======
 
     <!-- For netstandard library we test only netstandard2.0 framework -->
-    <!-- <SDKWorkItem Include="SDK .NET 2.0 Library Template">
+    <SDKWorkItem Include="SDK .NET 2.0 Library Template">
       <PayloadDirectory>$(ScenariosDir)netstandard2.0</PayloadDirectory>
     </SDKWorkItem>
 
     <SDKWorkItem Include="@(Framework -> 'SDK ASP.NET MVC App Template %(Identity)')" Exclude="*2.1">
       <PayloadDirectory>$(ScenariosDir)mvcapptemplate</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
-    </SDKWorkItem> -->
+    </SDKWorkItem>
 
     <!-- WebLarge2.0 asset is specific to netcoreapp2.1 -->
     <!-- <SDKWorkItem Include="SDK Web Large 2.0 Clean Build netcoreapp2.1">
@@ -64,7 +59,7 @@
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem> -->
 
-    <!-- <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Large %(Identity)')" Exclude="*2.1" Condition="'$(_Framework)' != 'netcoreapp5.0'">
+    <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Large %(Identity)')" Exclude="*2.1" Condition="'$(_Framework)' != 'netcoreapp5.0'">
       <PayloadDirectory>$(ScenariosDir)windowsformslarge</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
@@ -83,7 +78,6 @@
       <PayloadDirectory>$(ScenariosDir)wpf</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
->>>>>>> pr-new-test-traits
   </ItemGroup>
 
   <ItemGroup>
@@ -93,9 +87,7 @@
     <HelixWorkItem Include="@(SDKWorkItem -> '%(Identity) Build(No Change)')">
       <Command>%(Command) build_no_change --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
-<<<<<<< HEAD
-=======
-  </ItemGroup> -->
+  </ItemGroup>
 
   <ItemGroup>
     <HelixWorkItem Include="SDK New Console">
@@ -104,7 +96,6 @@
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
->>>>>>> pr-new-test-traits
   </ItemGroup>
 </Project>
 

@@ -454,7 +454,7 @@ def exec_and_get_result(args: ExecArgs) -> ProcessResult:
 
 def decode_stdout(stdout: bytes) -> str:
     # Microsoft trademark confuses python
-    stdout = stdout.replace(b"\xae", b"")
+    stdout = stdout.replace(b"Microsoft\xae .NET Core", b"Microsoft .NET Core")
     return stdout.decode("utf-8").strip().replace("\r", "")
 
 
