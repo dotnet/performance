@@ -60,23 +60,19 @@ namespace ScenarioMeasurement
 
         public ProcessHelper.Result Start()
         {
-            var arguments = new StringBuilder($"start {TraceName} -events ");
+            var arguments = $"start {TraceName} -events ";
 
             foreach (var keyword in KernelEvents)
             {
-                arguments.Append(keyword.ToString());
-                arguments.Append(",");
+                arguments += keyword.ToString() + ",";
             }
 
             foreach (var keyword in ClrEvents)
             {
-                arguments.Append(keyword.ToString());
-                arguments.Append(",");
+                arguments += keyword.ToString() + ",";
             }
 
-            string args = arguments.Remove(arguments.Length - 1, 1).ToString();
-
-            perfCollectProcess.Arguments = args;
+            perfCollectProcess.Arguments = arguments.Trim(','); 
             return perfCollectProcess.Run().Result;
         }
 
