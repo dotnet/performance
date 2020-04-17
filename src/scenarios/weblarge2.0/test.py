@@ -8,7 +8,7 @@ EXENAME = 'weblarge20'
 def main():
     traits = TestTraits(exename=EXENAME,
                         guiapp='false',
-                        workingdir='mvc',
+                        workingdir=os.path.join(const.APPDIR, 'mvc'),
                         timeout= f'{const.MINUTE*30}',  # increase timeout for the large project
                         sdk=True,
                         )

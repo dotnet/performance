@@ -39,14 +39,14 @@
     </SDKWorkItem>
 
     <!-- For netstandard library we test only netstandard2.0 framework -->
-    <SDKWorkItem Include="SDK .NET 2.0 Library Template">
+    <!-- <SDKWorkItem Include="SDK .NET 2.0 Library Template">
       <PayloadDirectory>$(ScenariosDir)netstandard2.0</PayloadDirectory>
     </SDKWorkItem>
 
     <SDKWorkItem Include="@(Framework -> 'SDK ASP.NET MVC App Template %(Identity)')" Exclude="*2.1">
       <PayloadDirectory>$(ScenariosDir)mvcapptemplate</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
-    </SDKWorkItem>
+    </SDKWorkItem> -->
 
     <!-- WebLarge2.0 asset is specific to netcoreapp2.1 -->
     <!-- <SDKWorkItem Include="SDK Web Large 2.0 Clean Build netcoreapp2.1">
@@ -59,7 +59,7 @@
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem> -->
 
-    <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Large %(Identity)')" Exclude="*2.1" Condition="'$(_Framework)' != 'netcoreapp5.0'">
+    <!-- <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Large %(Identity)')" Exclude="*2.1" Condition="'$(_Framework)' != 'netcoreapp5.0'">
       <PayloadDirectory>$(ScenariosDir)windowsformslarge</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
@@ -87,7 +87,7 @@
     <HelixWorkItem Include="@(SDKWorkItem -> '%(Identity) Build(No Change)')">
       <Command>%(Command) build_no_change --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
-  </ItemGroup>
+  </ItemGroup> -->
 
   <ItemGroup>
     <HelixWorkItem Include="SDK New Console">
