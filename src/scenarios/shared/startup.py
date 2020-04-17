@@ -9,7 +9,7 @@ from performance.logger import setup_loggers
 from performance.common import get_artifacts_directory, get_packages_directory, RunCommand
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from dotnet import CSharpProject, CSharpProjFile
-from shared.util import startupdir, helixpayload, helixworkitempayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier
+from shared.util import startupdir, helixpayload, helixworkitempayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier, iswin
 from shared.const import *
 class StartupWrapper(object):
     '''
@@ -91,6 +91,9 @@ class StartupWrapper(object):
         if kwargs['measurementdelay']:
             startup_args.extend(['--measurement-delay', kwargs['measurementdelay']])
 
+        if not iswin():
+            os.system('sudo lsof var/lib/dpkg/lock-frontend', verbose=True)
+            os.system('sudo killall unattende apt apt-get', verbose=True)
         RunCommand(startup_args, verbose=True).run()
 
 
