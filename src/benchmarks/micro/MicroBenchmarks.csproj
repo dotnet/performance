@@ -12,7 +12,7 @@
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <BenchmarkRunnerPath>C:\CodeHub\performance\src\benchmarks\micro\libraries\BenchmarkRunner\</BenchmarkRunnerPath>
+    <!-- <BenchmarkRunnerPath>C:\CodeHub\performance\src\benchmarks\micro\libraries\BenchmarkRunner\</BenchmarkRunnerPath> -->
     <IsARM Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().StartsWith(`arm`, System.StringComparison.OrdinalIgnoreCase))'">true</IsARM>
     <!-- <StrongNameKeyId>MicrosoftAspNetCore</StrongNameKeyId> -->
   </PropertyGroup>
@@ -26,7 +26,7 @@
     <PackageReference Include="System.IO.Pipelines" Version="4.5.3" />
     <PackageReference Include="System.Memory" Version="4.5.3" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.2" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="5.0.0-preview.4.20214.2" />
     <PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Serialization.Json" Version="4.3.0" />
     <PackageReference Include="System.Security.Cryptography.Primitives" Version="4.3.0" />
@@ -39,6 +39,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0-preview.4.20202.18" />
     <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="5.0.0-preview.4.20202.18" /> -->
     <!-- following two dependencies must point to version 4.3.0 or newer to make it possible to publish MicroBenchmarks.csproj -->
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="5.0.0-preview.4.20214.2" />
     <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.0" />
   </ItemGroup>

@@ -23,7 +23,7 @@
     <EnableSourceLink>false</EnableSourceLink>
     <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
     
-    <!-- Re-enabling signing. CI historically needed this disabled as a workaround. -->
-    <SignAssembly>true</SignAssembly>
+    <!-- Explicit disable signing the built assemblies here to stop Arcade attempting to sign them -->
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
 </Project>
