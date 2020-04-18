@@ -35,6 +35,8 @@ namespace ScenarioMeasurement
         public Dictionary<string, string> EnvironmentVariables = null;
 
         public bool RootAccess { get; set; } = false;
+        private readonly object outputLock = new object();
+        private readonly object errorLock = new object();
 
         public ProcessHelper(Logger logger)
         {
@@ -93,11 +95,18 @@ namespace ScenarioMeasurement
                 {
                     process.OutputDataReceived += (s, e) =>
                     {
-                        output.AppendLine(e.Data);
+                        lock (outputLock)
+                        {
+                            output.AppendLine(e.Data);
+                        }
+                        
                     };
                     process.ErrorDataReceived += (s, e) =>
                     {
-                        error.AppendLine(e.Data);
+                        lock (errorLock)
+                        {
+                            error.AppendLine(e.Data);
+                        }
                     };
                 }
                 process.Start();
