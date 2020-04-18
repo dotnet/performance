@@ -64,12 +64,12 @@ namespace ScenarioMeasurement
 
             foreach (var keyword in KernelEvents)
             {
-                arguments += keyword.ToString() + ",";
+                arguments += Enum.GetName(typeof(KernelKeyword), keyword) + ",";
             }
 
             foreach (var keyword in ClrEvents)
             {
-                arguments += keyword.ToString() + ",";
+                arguments += Enum.GetName(typeof(ClrKeyword), keyword) + ",";
             }
 
             perfCollectProcess.Arguments = arguments.Trim(','); 
