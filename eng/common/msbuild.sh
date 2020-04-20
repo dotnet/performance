@@ -48,6 +48,7 @@ while (($# > 0)); do
   esac
 done
 
+echo input arguments: $@
 . "$scriptroot/tools.sh"
 
 if [[ "$ci" == true ]]; then

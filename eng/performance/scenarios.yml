@@ -111,3 +111,4 @@ jobs:
             Architecture: ${{ parameters.architecture }}
             WorkItemTimeout: 4:00 # 4 hours
             Python: $(Python)
+            DotNetCoreSdkDir: $(CorrelationStaging)dotnet/dotnet
