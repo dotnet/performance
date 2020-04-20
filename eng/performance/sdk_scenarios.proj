@@ -13,8 +13,8 @@
 
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
     <ScenariosDir>$(WorkItemDirectory)/src/scenarios/</ScenariosDir>
-    <HelixPreCommands>$(HelixPreCommands);sudo lsof var/lib/dpkg/lock-frontend</HelixPreCommands>
-    <HelixPreCommands>$(HelixPreCommands);sudo killall unattende apt apt-get</HelixPreCommands>
+    <!-- <HelixPreCommands>$(HelixPreCommands);sudo lsof var/lib/dpkg/lock-frontend</HelixPreCommands>
+    <HelixPreCommands>$(HelixPreCommands);sudo killall unattende apt apt-get</HelixPreCommands> -->
     <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
   </PropertyGroup>  
 
