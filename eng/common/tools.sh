@@ -119,6 +119,8 @@ function InitializeDotNetCli {
   # Find the first path on $PATH that contains the dotnet.exe
   if [[ "$use_installed_dotnet_cli" == true && $global_json_has_runtimes == false && -z "${DOTNET_INSTALL_DIR:-}" ]]; then
     local dotnet_path=`command -v dotnet`
+    echo "dotnet_path:${dotnet_path}"
+    echo "PATH: ${PATH}"
     if [[ -n "$dotnet_path" ]]; then
       ResolvePath "$dotnet_path"
       export DOTNET_INSTALL_DIR=`dirname "$_ResolvePath"`
