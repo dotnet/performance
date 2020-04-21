@@ -52,8 +52,10 @@ class SODWrapper(object):
 
     def runtests(self, scenarioname, dirs):
         '''
-        Runs tests through startup
+        Runs tests through sod tool
         '''
+        if not os.path.exists(TRACEDIR):
+            os.mkdir(TRACEDIR)
         reportjson = os.path.join(TRACEDIR, 'perf-lab-report.json')
         sod_args = [
             self.sodexe,
