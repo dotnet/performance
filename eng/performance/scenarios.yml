@@ -89,7 +89,7 @@ jobs:
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
           - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)SOD -f $(_Framework) -r win-${{parameters.architecture}} $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\SizeOnDisk\SizeOnDisk.csproj
-            displayName: Build sod tool
+            displayName: Build SOD tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
         - ${{ if ne(parameters.osName, 'windows') }}:
@@ -100,9 +100,9 @@ jobs:
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
           - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)SOD -f $(_Framework) -r linux-${{parameters.architecture}} $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/SizeOnDisk/SizeOnDisk.csproj
-          displayName: Build startup tool
-          env:
-            PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+            displayName: Build SOD tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
         - template: /eng/performance/send-to-helix.yml
           parameters:
             HelixSource: '$(HelixSourcePrefix)/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
