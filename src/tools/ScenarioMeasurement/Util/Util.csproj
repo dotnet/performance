@@ -4,4 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>ScenarioMeasurement</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <CSFile Include="*.cs" Exclude="Util.Windows.cs" Condition=" '$(OS)' != 'Windows_NT' "/>
+  </ItemGroup>
 </Project>

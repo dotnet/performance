@@ -273,8 +273,8 @@ def __main(args: list) -> int:
 
     # On non-windows platforms, delete dotnet, so that we don't have to deal with chmoding it on the helix machines
     # This is only necessary for netcoreapp3.0 and netcoreapp5.0
-    #if sys.platform != 'win32' and remove_dotnet:
-        #dotnet.remove_dotnet(architecture)
+    if sys.platform != 'win32' and remove_dotnet:
+        dotnet.remove_dotnet(architecture)
     
     # The '_Framework' is needed for specifying frameworks in proj files and for building tools later in the pipeline
     __write_pipeline_variable('_Framework', framework)

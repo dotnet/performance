@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace ScenarioMeasurement
 {
@@ -29,7 +28,7 @@ namespace ScenarioMeasurement
         /// <param name="logFileName">optional log file. Default is appExe.startup.log</param>
         /// <param name="workingDir">optional working directory</param>
         /// <param name="warmup">enables/disables warmup iteration</param>
-        /// <param name="traceName">trace file name</param>
+        /// <param name="traceName">trace name</param>
         /// <param name="guiApp">true: app under test is a GUI app, false: console</param>
         /// <param name="skipProfileIteration">true: skip full results iteration</param>
         /// <param name="reportJsonPath">path to save report json</param>
