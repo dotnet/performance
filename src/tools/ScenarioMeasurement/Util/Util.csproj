@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Util.Windows.cs"/>
+    <Compile Remove="Util.Windows.cs" Condition=" '$(OS)' != 'Windows_NT' "/>
   </ItemGroup>
 
   <!-- <Target Name="Test Exclude" BeforeTargets="CoreCompile">
