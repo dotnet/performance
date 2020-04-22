@@ -28,7 +28,7 @@ def helixuploaddir():
 
 def extension():
     'gets platform specific extension'
-    return '.exe' if sys.platform == 'win32' else ''
+    return '.exe' if iswin() else ''
 
 def builtexe(exename: str):
     'gets binary path'
@@ -44,15 +44,9 @@ def uploadtokenpresent():
 def runninginlab():
     return environ.get('PERFLAB_INLAB') is not None
 
-def startupdir():
-    if sys.platform == 'win32':
-        return 'Startup'
-    else:
-        return 'startup'
-    
 def getruntimeidentifier():
     rid = None
-    if sys.platform == 'win32':
+    if iswin():
         rid = 'win-'
     elif sys.platform == 'linux' or sys.platform == 'linux2':
         rid = 'linux-'
@@ -71,7 +65,7 @@ def getruntimeidentifier():
     return rid
 
 def pythoncommand():
-    if sys.platform == 'win32':
+    if iswin():
         return 'py'
     else:
         return 'python3'

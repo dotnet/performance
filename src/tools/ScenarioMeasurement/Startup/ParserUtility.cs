@@ -1,11 +1,9 @@
 ﻿using Microsoft.Diagnostics.Tracing;
 using System;
 using System.Collections.Generic;
-using System.CommandLine;
 using System.Data;
-using System.Data.Common;
-using System.Diagnostics;
-using System.Text.RegularExpressions;
+using System.IO;
+
 
 namespace ScenarioMeasurement
 {
@@ -23,7 +21,7 @@ namespace ScenarioMeasurement
         {
             if (source.IsWindows)
             {
-                if (((string)GetPayloadValue(evt, "CommandLine")).Trim() != commandLine)
+                if (!commandLine.Equals( ((string)GetPayloadValue(evt, "CommandLine")).Trim()))
                 {
                     return false;
                 }
@@ -51,9 +49,25 @@ namespace ScenarioMeasurement
                         return false;
                     }
                 }
-                else if (!processName.Substring(0, 15).Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase))
+                else 
                 {
-                    return false;
+                    if (evt.PayloadByName("FileName") == null)
+                    {
+                        // match the first 15 characters only if FileName field is not present in the payload
+                        if(!processName.Substring(0, 15).Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        // match the full process name by extracting the file name
+                        string filename = (string)GetPayloadValue(evt, "FileName");
+                        if (!processName.Equals(Path.GetFileName(filename)))
+                        {
+                            return false;
+                        }
+                    }
                 }
             }
             return true;
@@ -80,6 +94,7 @@ namespace ScenarioMeasurement
         {
             return MatchProcessID(evt, source, new List<int> { pid});
         }
+
 
         private static object GetPayloadValue(TraceEvent evt, string payloadName)
         {

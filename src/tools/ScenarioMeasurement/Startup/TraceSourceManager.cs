@@ -1,7 +1,5 @@
 ﻿using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
-using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
-using Microsoft.Diagnostics.Tracing.Parsers.LinuxKernel;
 using System;
 
 namespace ScenarioMeasurement
@@ -9,7 +7,7 @@ namespace ScenarioMeasurement
 
     public class TraceSourceManager : IDisposable
     {
-        public bool IsWindows { get { return Source?.GetType() == typeof(ETWTraceEventSource);  } }
+        public bool IsWindows { get { return Source?.GetType() == typeof(ETWTraceEventSource); } }
         public TraceEventDispatcher Source;
         private IKernelParser _kernel;
         public IKernelParser Kernel
@@ -55,13 +53,14 @@ namespace ScenarioMeasurement
         public event Action<TraceEvent> ContextSwitch;
     }
 
-        public sealed class LinuxKernelParser : IKernelParser
+    public sealed class LinuxKernelParser : IKernelParser
     {
         LinuxKernelEventParser parser;
         public event Action<TraceEvent> ProcessStart { add { parser.ProcessStart += value; } remove { parser.ProcessStart -= value; } }
         public event Action<TraceEvent> ProcessStop { add { parser.ProcessStop += value; } remove { parser.ProcessStop -= value; } }
         public event Action<TraceEvent> ContextSwitch { add { } remove { } } // not implemented
-        public LinuxKernelParser(CtfTraceEventSource source) {
+        public LinuxKernelParser(CtfTraceEventSource source)
+        {
             parser = new LinuxKernelEventParser(source);
         }
     }
@@ -71,8 +70,8 @@ namespace ScenarioMeasurement
         KernelTraceEventParser parser;
         public event Action<TraceEvent> ProcessStart { add { parser.ProcessStart += value; } remove { parser.ProcessStart -= value; } }
         public event Action<TraceEvent> ProcessStop { add { parser.ProcessEndGroup += value; } remove { parser.ProcessEndGroup -= value; } }
-        public event Action<TraceEvent> ContextSwitch { add { parser.ThreadCSwitch += value;  } remove { parser.ThreadCSwitch -= value; } } 
-        
+        public event Action<TraceEvent> ContextSwitch { add { parser.ThreadCSwitch += value; } remove { parser.ThreadCSwitch -= value; } }
+
         public WindowsKernelParser(ETWTraceEventSource source)
         {
             parser = new KernelTraceEventParser(source);
