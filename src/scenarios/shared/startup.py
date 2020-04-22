@@ -9,19 +9,20 @@ from performance.logger import setup_loggers
 from performance.common import get_artifacts_directory, get_packages_directory, RunCommand
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from dotnet import CSharpProject, CSharpProjFile
-from shared.util import startupdir, helixpayload, helixworkitempayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier, iswin
+from shared.util import extension, helixpayload, helixworkitempayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier, iswin
 from shared.const import *
 class StartupWrapper(object):
     '''
     Wraps startup.exe, building it if necessary.
     '''
     def __init__(self):
-        if helixpayload() and os.path.exists(os.path.join(helixpayload(), startupdir())):
-            self._setstartuppath(os.path.join(helixpayload(), startupdir()))
-        elif helixworkitempayload() and os.path.exists(os.path.join(helixworkitempayload(), startupdir())):
-            self._setstartuppath(os.path.join(helixworkitempayload(), startupdir()))
+        startupdir = 'startup'
+        if helixpayload() and os.path.exists(os.path.join(helixpayload(), startupdir)):
+            self._setstartuppath(os.path.join(helixpayload(), startupdir))
+        elif helixworkitempayload() and os.path.exists(os.path.join(helixworkitempayload(), startupdir)):
+            self._setstartuppath(os.path.join(helixworkitempayload(), startupdir))
         else:
-            relpath = os.path.join(get_artifacts_directory(), 'startup')
+            relpath = os.path.join(get_artifacts_directory(), startupdir)
             startupproj = os.path.join('..',
                                        '..',
                                        'tools',
@@ -31,7 +32,7 @@ class StartupWrapper(object):
             startup = CSharpProject(CSharpProjFile(startupproj,
                                                    sys.path[0]),
                                                    os.path.join(os.path.dirname(startupproj),
-                                    os.path.join(get_artifacts_directory(), 'startup')))
+                                                   os.path.join(get_artifacts_directory(), startupdir)))
             if not os.path.exists(relpath):
                 startup.restore(get_packages_directory(),
                                 True,
@@ -48,7 +49,7 @@ class StartupWrapper(object):
 
     
     def _setstartuppath(self, path: str):
-        self.startuppath = os.path.join(path, 'Startup.exe' if sys.platform == 'win32' else 'Startup') 
+        self.startuppath = os.path.join(path, "Startup%s" % extension()) 
 
     def runtests(self, apptorun: str, **kwargs):
         '''

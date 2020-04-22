@@ -12,65 +12,7 @@ from shared.startup import StartupWrapper
 from shared.util import publishedexe, extension, pythoncommand, iswin
 from shared import const
 from performance.logger import setup_loggers
-
-# These are the kinds of scenarios we run. Default here indicates whether ALL
-# scenarios should try and run a given test type.
-testtypes = {const.STARTUP: False,
-             const.SDK: False,
-             const.CROSSGEN: False}
-
-
-class TestTraits:
-    traits = {}
-    # Scenario-independent traits that can be set in test.py,
-    # but can also be overriden in scenario-specific case
-    reqfields = ('exename',
-                 )
-    optfields = ('guiapp',
-                 'startupmetric',
-                 'appargs',
-                 'iterations',
-                 'timeout',
-                 'warmup',
-                 'workingdir',
-                 'iterationsetup',
-                 'setupargs',
-                 'iterationcleanup',
-                 'cleanupargs',
-                 'processwillexit',
-                 'measurementdelay',
-                 'environmentvariables'
-                 )
-
-    def __init__(self, **kwargs):
-        if 'exename' not in kwargs:
-            raise Exception("exename cannot be empty")
-        self.traits = dict.fromkeys(self.all_traits()) # initialize default traits
-        self.add_traits(**kwargs) # add initial traits
-
-    # add trait if not present or overwrite existing trait if overwrite=True
-    def add_trait(self, key: str, value: str, overwrite=True):
-        if not self.is_valid_trait(key):
-            raise Exception("%s is not a valid trait." % key)
-        if not self.get_trait(key) or overwrite:
-            self.traits[key] = value
-
-    # add multiple traits if not present or overwrite existing traits if overwrite=True
-    def add_traits(self, overwrite=True, **kwargs):
-        for keyword in kwargs:
-            self.add_trait(keyword, kwargs[keyword], overwrite=overwrite)
-
-    def get_trait(self, key: str):
-        if key not in self.traits:
-            return None
-        else:
-            return self.traits[key]
-
-    def is_valid_trait(self, key: str):
-        return key in self.all_traits()
-
-    def all_traits(self):
-        return self.reqfields + self.optfields + tuple(testtypes.keys())
+from shared.testtraits import TestTraits
 
 
 class Runner:
@@ -110,7 +52,7 @@ class Runner:
             getLogger().error("Please specify a test type: %s" % list((testtypes.keys())))
             sys.exit(1)
 
-        if not self.traits.get_trait(args.testtype):
+        if not getattr(self.traits, args.testtype):
             getLogger().error("Test type %s is not supported by this scenario", args.testtype)
             sys.exit(1)
         self.testtype = args.testtype
@@ -139,10 +81,10 @@ class Runner:
             self.traits.add_traits(overwrite=False,
                                    environmentvariables='COMPlus_EnableEventLog=1' if not iswin() else ''
                                    )
-            startup.runtests(**self.traits.traits,
+            startup.runtests(**self.traits.get_all_traits(),
                              scenarioname=self.scenarioname,
                              scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
-                             apptorun=publishedexe(self.traits.get_trait('exename')),
+                             apptorun=publishedexe(self.traits.exename),
                              )
 
         elif self.testtype == const.SDK:
@@ -160,8 +102,8 @@ class Runner:
                     workingdir=const.APPDIR,
                     environmentvariables=envlistcleanbuild,
                 )
-                self.traits.add_trait(key='startupmetric', value=const.STARTUP_PROCESSTIME, overwrite=True)
-                startup.runtests(**self.traits.traits,
+                self.traits.add_traits(overwrite=True, startupmetric=const.STARTUP_PROCESSTIME)
+                startup.runtests(**self.traits.get_all_traits(),
                                  scenarioname=self.scenarioname,
                                  scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.CLEAN_BUILD),
                                  apptorun=const.DOTNET
@@ -175,8 +117,8 @@ class Runner:
                     workingdir=const.APPDIR,
                     environmentvariables=envlistbuild
                 )
-                self.traits.add_trait('startupmetric', const.STARTUP_PROCESSTIME, overwrite=True)
-                startup.runtests(**self.traits.traits,
+                self.traits.add_traits(overwrite=True, startupmetric=const.STARTUP_PROCESSTIME)
+                startup.runtests(**self.traits.get_all_traits(),
                                  scenarioname=self.scenarioname,
                                  scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.BUILD_NO_CHANGE),
                                  apptorun=const.DOTNET
@@ -193,8 +135,8 @@ class Runner:
                     cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
                     workingdir=const.APPDIR
                 )
-                self.traits.add_trait(key='startupmetric', value=const.STARTUP_PROCESSTIME, overwrite=True)
-                startup.runtests(**self.traits.traits,
+                self.traits.add_traits(overwrite=True, startupmetric=const.STARTUP_PROCESSTIME)
+                startup.runtests(**self.traits.get_all_traits(),
                                  apptorun=const.DOTNET,
                                  scenarioname=self.scenarioname,
                                  scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.NEW_CONSOLE),
@@ -211,8 +153,13 @@ class Runner:
             self.traits.add_trait(key='startupmetric', value=const.STARTUP_PROCESSTIME, overwrite=True)
             self.tratis.add_trait(key='workingdir', value=self.coreroot, overwrite=True)
             self.traits.add_trait(key='appargs', value=crossgenargs, overwrite=True)
-            startup.runtests(*self.traits.traits,
+            self.traits.add_traits(overwrite=True,
+                                   startupmetric=const.STARTUP_PROCESSTIME,
+                                   workingdir=self.coreroot,
+                                   appargs=crossgenargs
+                                   )
+            startup.runtests(*self.traits.get_all_traits(),
                              scenarioname='Crossgen Throughput - %s' % self.crossgenfile,
-                             scenariotypename='%s - %s' % ( const.SCENARIO_NAMES[const.CROSSGEN], self.crossgenfile),
+                             scenariotypename='%s - %s' % (const.SCENARIO_NAMES[const.CROSSGEN], self.crossgenfile),
                              apptorun='%s\%s' % (self.coreroot, crossgenexe),
                              )

@@ -75,7 +75,7 @@ namespace Startup.Tests
                 Assert.True(counter.Results.Count == pids.Count, $"Counter {counter.Name} is expected to have {pids.Count} results.");
                 count++;
             }
-            Assert.True(count==2, "Both Process Time and Time To Main counter should be present.");
+            Assert.True(count==2, "Both Process Time and Time On Thread counter should be present.");
         }
 
         [Fact]
@@ -91,7 +91,7 @@ namespace Startup.Tests
                 Assert.True(counter.Results.Count == pids.Count, $"Counter {counter.Name} is expected to have {pids.Count} results.");
                 count++;
             }
-            Assert.True(count == 2, "Only Time To Main counter should be present.");
+            Assert.True(count == 1, "Only Time To Main counter should be present.");
         }
 
 
@@ -108,7 +108,7 @@ namespace Startup.Tests
                 Assert.True(counter.Results.Count == pids.Count, $"Counter {counter.Name} is expected to have {pids.Count} results.");
                 count++;
             }
-            Assert.True(count == 2, "Both Time To Main and Time To Thread counter should be present.");
+            Assert.True(count == 2, "Both Time To Main and Time On Thread counter should be present.");
         }
 
 

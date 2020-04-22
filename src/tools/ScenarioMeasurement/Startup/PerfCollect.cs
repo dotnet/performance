@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -52,7 +51,7 @@ namespace ScenarioMeasurement
                 RootAccess = true
             };
 
-            if (Environment.GetEnvironmentVariable("PERFLAB_INLAB")=="1" && Install() != ProcessHelper.Result.Success)
+            if (Environment.GetEnvironmentVariable("PERFLAB_INLAB") == "1" && Install() != ProcessHelper.Result.Success)
             {
                 throw new Exception("Lttng installation failed. Please try manual install.");
             }
@@ -91,9 +90,11 @@ namespace ScenarioMeasurement
                 throw new FileNotFoundException($"Trace file not found at {Path.GetFullPath(TraceFileName)}.");
             }
             // Don't move file if destination directory is current directory
-            if (Path.GetFullPath(Path.GetDirectoryName(TraceFilePath)) != Environment.CurrentDirectory){
+            if (Path.GetFullPath(Path.GetDirectoryName(TraceFilePath)) != Environment.CurrentDirectory)
+            {
                 // Overwrite file at destination directory
-                if(File.Exists(TraceFilePath)){
+                if (File.Exists(TraceFilePath))
+                {
                     Console.WriteLine($"Deleting existing file at {TraceFilePath}...");
                     File.Delete(TraceFilePath);
                 }
@@ -105,17 +106,6 @@ namespace ScenarioMeasurement
 
         public ProcessHelper.Result Install()
         {
-            /*Process checkLttngProcess = Process.Start("command", "lttng >/dev/null 2>&1");
-            checkLttngProcess.WaitForExit();        
-            // checkLttngProcess.StartInfo.FileName = "lttng";
-            // checkLttngProcess.StartInfo.Arguments = ">/dev/null 2>&1";
-            //checkLttngProcess.StartInfo.UseShellExecute = true;
-            if (checkLttngProcess.ExitCode != 0)
-            {
-                perfCollectProcess.Arguments = "install -force";
-                return perfCollectProcess.Run().Result;
-            }
-            return ProcessHelper.Result.Success;*/
             perfCollectProcess.Arguments = "install -force";
             return perfCollectProcess.Run().Result;
         }

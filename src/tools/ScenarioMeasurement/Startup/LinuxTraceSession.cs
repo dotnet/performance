@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
-using System;
 
 namespace ScenarioMeasurement
 {
     public class LinuxTraceSession : ITraceSession
     {
-        public string TraceFilePath { 
-            get { return perfCollect?.TraceFilePath;} }
+        public string TraceFilePath
+        {
+            get { return perfCollect?.TraceFilePath; }
+        }
         private PerfCollect perfCollect;
         private Dictionary<TraceSessionManager.KernelKeyword, PerfCollect.KernelKeyword> kernelKeywords;
         private Dictionary<TraceSessionManager.ClrKeyword, PerfCollect.ClrKeyword> clrKeywords;
