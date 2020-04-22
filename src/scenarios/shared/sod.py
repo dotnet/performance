@@ -60,7 +60,7 @@ class SODWrapper(object):
         sod_args = [
             self.sodexe,
             '--report-json-path', reportjson,
-            '--scenario-name', "SOD: %s" % (scenarioname or "Empty Scenario Name"),
+            '--scenario-name', (scenarioname or "Empty Scenario Name"),
             '--dirs', dirs
         ]
 
