@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>ScenarioMeasurement</RootNamespace>
@@ -8,8 +7,4 @@
   <ItemGroup>
     <Compile Remove="Util.Windows.cs" Condition=" '$(OS)' != 'Windows_NT' "/>
   </ItemGroup>
-
-  <!-- <Target Name="Test Exclude" BeforeTargets="CoreCompile">
-    <Message Text="cs files: @(CSFile)"/>
-  </Target> -->
 </Project>
