@@ -8,4 +8,8 @@
   <ItemGroup>
     <CSFile Include="*.cs" Exclude="Util.Windows.cs"/>
   </ItemGroup>
+
+  <Target Name="Test Exclude" BeforeTargets="CoreCompile">
+    <Message Text="cs files: @(CSFile)"/>
+  </Target>
 </Project>
