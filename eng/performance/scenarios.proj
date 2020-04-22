@@ -46,7 +46,7 @@
 
   <!-- Startup FDD publish -->
   <ItemGroup>
-    <HelixWorkItem Include="@(Scenario -> 'Startup: %(Identity) - FDD')">
+    <HelixWorkItem Include="@(Scenario -> 'Startup - %(Identity) - FDD')">
       <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release</PreCommands>
       <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
@@ -54,7 +54,7 @@
 
   <!-- SOD FDD publish -->
   <ItemGroup>
-    <HelixWorkItem Include="@(Scenario -> 'SOD: %(Identity) - FDD')">
+    <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - FDD')">
       <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity) - FDD Publish&quot;</Command>
     </HelixWorkItem>
@@ -62,7 +62,7 @@
 
   <!-- SOD SCD publish w/ RID -->
   <ItemGroup>
-    <HelixWorkItem Include="@(Scenario -> 'SOD: %(Identity) - SCD')">
+    <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - SCD')">
       <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release -r $(RID)</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity) - SCD Publish&quot;</Command>
     </HelixWorkItem>
@@ -70,7 +70,7 @@
 
   <!-- SOD build -->
   <ItemGroup>
-    <HelixWorkItem Include="@(Scenario -> 'SOD: %(Identity) - Build')">
+    <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - Build')">
       <PreCommands>$(Python) pre.py build -c Release</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity) - Build&quot;</Command>
     </HelixWorkItem>
