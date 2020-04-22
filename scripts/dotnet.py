@@ -289,7 +289,7 @@ class CSharpProject:
         if runtime_identifier:
             cmdline += ['--runtime', runtime_identifier]
             
-        RunCommand(cmdline, verbose=verbose).run(
+        RunCommand(cmdline, verbose=verbose, retry=1).run(
             self.working_directory)
 
     def build(self,
@@ -706,7 +706,7 @@ def install(
     if versions:
         for version in versions:
             cmdline_args = common_cmdline_args + ['-Version', version]
-            RunCommand(cmdline_args, verbose=verbose).run(
+            RunCommand(cmdline_args, verbose=verbose, retry=1).run(
                 get_repo_root_path()
             )
 
@@ -718,7 +718,7 @@ def install(
     if (not versions) and channels:
         for channel in channels:
             cmdline_args = common_cmdline_args + ['-Channel', channel]
-            RunCommand(cmdline_args, verbose=verbose).run(
+            RunCommand(cmdline_args, verbose=verbose, retry=1).run(
                 get_repo_root_path()
             )
 
