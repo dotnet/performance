@@ -46,7 +46,7 @@
 
   <!-- Startup FDD publish -->
   <ItemGroup>
-    <HelixWorkItem Include="@(Scenario -> Startup: %(Identity) - FDD)">
+    <HelixWorkItem Include="@(Scenario -> 'Startup: %(Identity) - FDD')">
       <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release</PreCommands>
       <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
