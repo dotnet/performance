@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="*.cs" Exclude="Util.Windows.cs"/>
+    <Compile Remove="Util.Windows.cs"/>
   </ItemGroup>
 
   <!-- <Target Name="Test Exclude" BeforeTargets="CoreCompile">
