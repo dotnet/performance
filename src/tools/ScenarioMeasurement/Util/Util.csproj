@@ -6,6 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <CSFile Include="*.cs" Exclude="Util.Windows.cs" Condition=" '$(OS)' != 'Windows_NT' "/>
+    <CSFile Include="*.cs" Exclude="Util.Windows.cs"/>
   </ItemGroup>
 </Project>
