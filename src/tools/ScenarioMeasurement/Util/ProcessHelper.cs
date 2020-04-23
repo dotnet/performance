@@ -97,9 +97,9 @@ namespace ScenarioMeasurement
                     {
                         lock (_outputLock)
                         {
-                            total_length += e.Data.Length;
                             if (!String.IsNullOrEmpty(e.Data))
                             {
+                                total_length += e.Data.Length;
                                 output.AppendLine(e.Data);
                             }
                         }
