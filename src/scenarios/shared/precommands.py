@@ -149,7 +149,7 @@ class PreCommands:
         self.project.build(configuration=configuration,
                                verbose=True,
                                packages_path=get_packages_directory(),
-                               target_framework_monikers=framework,
+                               target_framework_monikers=[framework],
                                output_to_bindir=True)
 
     def _backup(self, projectdir:str):
