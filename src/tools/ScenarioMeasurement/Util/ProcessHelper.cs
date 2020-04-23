@@ -95,6 +95,7 @@ namespace ScenarioMeasurement
                     {
                         lock (output)
                         {
+                            Console.WriteLine($"output data received: {e.Data}");
                             output.AppendLine(e.Data);
                         }
                     };
@@ -102,6 +103,7 @@ namespace ScenarioMeasurement
                     {
                         lock (error)
                         {
+                            Console.WriteLine($"error data received: {e.Data}");
                             error.AppendLine(e.Data);
                         }
                     };
