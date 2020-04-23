@@ -33,16 +33,10 @@ optfields = ('guiapp',
              'measurementdelay'
              )
 
-# These are the kinds of scenarios we run. Default here indicates whether ALL
-# scenarios should try and run a given test type.
-testtypes = {const.STARTUP: False,
-             const.SDK: False,
-             const.CROSSGEN: False,
-             const.SOD: False}
 
 TestTraits = namedtuple('TestTraits',
-                        reqfields  + tuple(testtypes.keys()) + optfields,
-                        defaults=tuple(testtypes.values()) + (None,) * len(optfields))
+                        reqfields + optfields,
+                        defaults=(None,) * len(optfields))
 
 class Runner:
     '''
@@ -83,9 +77,6 @@ class Runner:
 
         args = parser.parse_args()
 
-        if not getattr(self.traits, args.testtype):
-            getLogger().error("Test type %s is not supported by this scenario", args.testtype)
-            sys.exit(1)
         self.testtype = args.testtype
 
         if self.testtype == const.SDK:
