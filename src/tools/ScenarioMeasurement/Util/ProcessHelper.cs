@@ -93,19 +93,20 @@ namespace ScenarioMeasurement
                 {
                     process.OutputDataReceived += (s, e) =>
                     {
-                        lock (output)
-                        {
-                            Console.WriteLine($"output data received: {e.Data}");
-                            output.AppendLine(e.Data);
-                        }
+
+                            if (!String.IsNullOrEmpty(e.Data))
+                            {
+                                output.AppendLine(e.Data);
+                            }
                     };
                     process.ErrorDataReceived += (s, e) =>
                     {
-                        lock (error)
-                        {
-                            Console.WriteLine($"error data received: {e.Data}");
-                            error.AppendLine(e.Data);
-                        }
+
+                            if (!String.IsNullOrEmpty(e.Data))
+                            {
+                                error.AppendLine(e.Data);
+                            }
+
                     };
                 }
                 process.Start();
