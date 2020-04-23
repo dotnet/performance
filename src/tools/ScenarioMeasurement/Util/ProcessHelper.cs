@@ -99,7 +99,6 @@ namespace ScenarioMeasurement
                         {
                             if (!String.IsNullOrEmpty(e.Data))
                             {
-                                total_length += e.Data.Length;
                                 output.AppendLine(e.Data);
                             }
                         }
