@@ -2,14 +2,12 @@
 
 A jupyter notebook has already been set up in `jupyter_notebook.py`. So far it's only been tested with VSCode.
 
-
 ## Using with VSCode
 
-* Run `code .` in the `dotnet-gc-infra` directory.
+* Run `code .` in the `/performance/src/benchmarks/gc` directory.
 * Open `jupyter_notebook.py`.
 * Open your settings and enable `"editor.codeLens": true,`.
 * Wait a minute for CodeLens to show up in the notebook.
-
 
 ## Overview
 
