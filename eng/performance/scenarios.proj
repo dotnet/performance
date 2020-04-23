@@ -71,7 +71,7 @@
   <!-- SOD build -->
   <ItemGroup>
     <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - Build')">
-      <PreCommands>$(Python) pre.py build -c Release</PreCommands>
+      <PreCommands>$(Python) pre.py build -c Release -f $(_Framework)</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity) - Build&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
