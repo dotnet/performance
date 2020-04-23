@@ -93,11 +93,17 @@ namespace ScenarioMeasurement
                 {
                     process.OutputDataReceived += (s, e) =>
                     {
-                        output.AppendLine(e.Data);
+                        lock (output)
+                        {
+                            output.AppendLine(e.Data);
+                        }
                     };
                     process.ErrorDataReceived += (s, e) =>
                     {
-                        error.AppendLine(e.Data);
+                        lock (error)
+                        {
+                            error.AppendLine(e.Data);
+                        }
                     };
                 }
                 process.Start();
