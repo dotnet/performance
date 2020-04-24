@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 
@@ -35,7 +36,7 @@ namespace ScenarioMeasurement
         public Dictionary<string, string> EnvironmentVariables = null;
 
         public bool RootAccess { get; set; } = false;
-
+        private static object _outputLock = new object();
         public ProcessHelper(Logger logger)
         {
             this.Logger = logger;
@@ -86,6 +87,7 @@ namespace ScenarioMeasurement
             }
             StringBuilder output = new StringBuilder();
             StringBuilder error = new StringBuilder();
+            int total_length = 0;
             using (var process = new Process())
             {
                 process.StartInfo = psi;
@@ -93,19 +95,22 @@ namespace ScenarioMeasurement
                 {
                     process.OutputDataReceived += (s, e) =>
                     {
-                        lock (output)
+                        lock (_outputLock)
                         {
-                            Console.WriteLine($"output data received: {e.Data}");
-                            output.AppendLine(e.Data);
+                            if (!String.IsNullOrEmpty(e.Data))
+                            {
+                                output.AppendLine(e.Data);
+                            }
                         }
                     };
                     process.ErrorDataReceived += (s, e) =>
                     {
-                        lock (error)
-                        {
-                            Console.WriteLine($"error data received: {e.Data}");
-                            error.AppendLine(e.Data);
-                        }
+
+                            if (!String.IsNullOrEmpty(e.Data))
+                            {
+                                error.AppendLine(e.Data);
+                            }
+
                     };
                 }
                 process.Start();
@@ -141,6 +146,8 @@ namespace ScenarioMeasurement
                     }
                 }
 
+                Console.WriteLine($"output max capacity: {output.MaxCapacity}");
+                Console.WriteLine($"actual received data length: {total_length}");
                 Logger.Log(output.ToString());
                 Logger.Log(error.ToString());
 

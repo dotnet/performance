@@ -1,5 +1,8 @@
-﻿using System;
+﻿using Reporting;
+using System;
 using System.Collections.Generic;
+using System.CommandLine.Invocation;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -107,7 +110,25 @@ namespace ScenarioMeasurement
         public ProcessHelper.Result Install()
         {
             perfCollectProcess.Arguments = "install -force";
-            return perfCollectProcess.Run().Result;
+            var result = perfCollectProcess.Run();
+            Console.WriteLine($"perfcollect install result: {result.Result}");
+
+            int retry = 10;
+            var testProcess = new System.Diagnostics.Process();
+            testProcess.StartInfo.FileName = "command";
+            testProcess.StartInfo.Arguments = "lttng";
+            testProcess.StartInfo.UseShellExecute = true;
+            for(int i=0; i<retry; i++)
+            {
+                testProcess.Start();
+                testProcess.WaitForExit();
+                if (testProcess.HasExited && testProcess.ExitCode != 0)
+                {
+                    Console.WriteLine($"Lttng not installed. Retry {i}...");
+                    perfCollectProcess.Run();
+                }
+            }
+            return 0;
         }
 
         public void Dispose()
