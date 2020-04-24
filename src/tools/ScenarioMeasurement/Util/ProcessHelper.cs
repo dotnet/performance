@@ -87,7 +87,6 @@ namespace ScenarioMeasurement
             }
             StringBuilder output = new StringBuilder();
             StringBuilder error = new StringBuilder();
-            int total_length = 0;
             using (var process = new Process())
             {
                 process.StartInfo = psi;
@@ -146,8 +145,7 @@ namespace ScenarioMeasurement
                     }
                 }
 
-                Console.WriteLine($"output max capacity: {output.MaxCapacity}");
-                Console.WriteLine($"actual received data length: {total_length}");
+
                 Logger.Log(output.ToString());
                 Logger.Log(error.ToString());
 
