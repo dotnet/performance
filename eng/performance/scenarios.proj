@@ -64,7 +64,7 @@
   <ItemGroup>
     <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - SCD Publish')">
       <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release -r $(RID)</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)quot;</Command>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
 
