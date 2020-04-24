@@ -207,10 +207,8 @@ class Runner:
         elif self.testtype == const.SOD:
             sod = SODWrapper()
             builtdir = const.PUBDIR if os.path.exists(const.PUBDIR) else None
-            print(builtdir)
             if not builtdir:
                 builtdir = const.BINDIR if os.path.exists(const.BINDIR) else None
-                print(builtdir)
             if not (self.dirs or builtdir):
                 raise Exception("Dirs was not passed in and neither %s nor %s exist" % (const.PUBDIR, const.BINDIR))
             sod.runtests(scenarioname=self.scenarioname, dirs=self.dirs or const.APPDIR)
