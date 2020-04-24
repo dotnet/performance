@@ -9,7 +9,6 @@ def main():
     traits = TestTraits(exename=EXENAME,
                         guiapp='false', 
                         timeout= f'{const.MINUTE*15}',
-                        sdk=True,
                         )
     runner = Runner(traits)
     runner.run()

@@ -6,6 +6,7 @@ import shared
 
 STARTUP = 'startup'
 SDK = 'sdk'
+SOD = 'sod'
 IL = 'il'
 R2R = 'r2r'
 CROSSGEN = 'crossgen'

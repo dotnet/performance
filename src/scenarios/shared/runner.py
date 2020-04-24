@@ -9,6 +9,7 @@ from logging import getLogger
 from collections import namedtuple
 from argparse import ArgumentParser
 from shared.startup import StartupWrapper
+from shared.sod import SODWrapper
 from shared.util import publishedexe, extension
 from shared import const
 from performance.logger import setup_loggers
@@ -32,15 +33,10 @@ optfields = ('guiapp',
              'measurementdelay'
              )
 
-# These are the kinds of scenarios we run. Default here indicates whether ALL
-# scenarios should try and run a given test type.
-testtypes = {const.STARTUP: False,
-             const.SDK: False,
-             const.CROSSGEN: False}
 
 TestTraits = namedtuple('TestTraits',
-                        reqfields  + tuple(testtypes.keys()) + optfields,
-                        defaults=tuple(testtypes.values()) + (None,) * len(optfields))
+                        reqfields + optfields,
+                        defaults=(None,) * len(optfields))
 
 class Runner:
     '''
@@ -54,6 +50,7 @@ class Runner:
         self.scenarioname = None
         self.coreroot = None
         self.crossgenfile = None
+        self.dirs = None
         setup_loggers(True)
 
     def parseargs(self):
@@ -73,11 +70,13 @@ class Runner:
         crossgenparser.add_argument('--test-name', dest='testname', type=str, required=True)
         crossgenparser.add_argument('--core-root', dest='coreroot', type=str, required=True)
         self.add_common_arguments(crossgenparser)
+
+        sodparser = subparsers.add_parser(const.SOD)
+        sodparser.add_argument('--dirs', dest='dirs', type=str)
+        self.add_common_arguments(sodparser)
+
         args = parser.parse_args()
 
-        if not getattr(self.traits, args.testtype):
-            getLogger().error("Test type %s is not supported by this scenario", args.testtype)
-            sys.exit(1)
         self.testtype = args.testtype
 
         if self.testtype == const.SDK:
@@ -88,6 +87,9 @@ class Runner:
         if self.testtype == const.CROSSGEN:
             self.crossgenfile = args.testname
             self.coreroot = args.coreroot
+
+        if self.testtype == const.SOD:
+            self.dirs = args.dirs
 
     
     def add_common_arguments(self, parser: ArgumentParser):
@@ -101,13 +103,14 @@ class Runner:
         Runs the specified scenario
         '''
         self.parseargs()
-        startup = StartupWrapper()
         if self.testtype == const.STARTUP:
+            startup = StartupWrapper()
             startup.runtests(**self.traits._asdict(),
                              scenarioname=self.scenarioname,
                              scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
                              apptorun=publishedexe(self.traits.exename))
         elif self.testtype == const.SDK:
+            startup = StartupWrapper()
             envlistbuild = 'DOTNET_MULTILEVEL_LOOKUP=0'
             envlistcleanbuild= ';'.join(['MSBUILDDISABLENODEREUSE=1', envlistbuild])
             # clean build
@@ -175,6 +178,7 @@ class Runner:
                                 )
 
         elif self.testtype == const.CROSSGEN:
+            startup = StartupWrapper()
             crossgenexe = 'crossgen%s' % extension()
             crossgenargs = '/nologo /p %s %s\%s' % (self.coreroot, self.coreroot, self.crossgenfile)
             if self.coreroot is not None and not os.path.isdir(self.coreroot):
@@ -200,3 +204,11 @@ class Runner:
                              iterationcleanup=None,
                              cleanupargs=None,
                              )
+        elif self.testtype == const.SOD:
+            sod = SODWrapper()
+            builtdir = const.PUBDIR if os.path.exists(const.PUBDIR) else None
+            if not builtdir:
+                builtdir = const.BINDIR if os.path.exists(const.BINDIR) else None
+            if not (self.dirs or builtdir):
+                raise Exception("Dirs was not passed in and neither %s nor %s exist" % (const.PUBDIR, const.BINDIR))
+            sod.runtests(scenarioname=self.scenarioname, dirs=self.dirs or builtdir)
