@@ -211,4 +211,4 @@ class Runner:
                 builtdir = const.BINDIR if os.path.exists(const.BINDIR) else None
             if not (self.dirs or builtdir):
                 raise Exception("Dirs was not passed in and neither %s nor %s exist" % (const.PUBDIR, const.BINDIR))
-            sod.runtests(scenarioname=self.scenarioname, dirs=self.dirs or const.APPDIR)
+            sod.runtests(scenarioname=self.scenarioname, dirs=self.dirs or builtdir)
