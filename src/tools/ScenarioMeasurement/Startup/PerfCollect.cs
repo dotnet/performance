@@ -122,7 +122,7 @@ namespace ScenarioMeasurement
                 testProcess.Start();
                 testProcess.WaitForExit();
                 Console.WriteLine($"testProcess ExitCode: {testProcess.ExitCode}");
-                if (testProcess.HasExited && testProcess.ExitCode == 127)
+                if (testProcess.HasExited && testProcess.ExitCode == 2)
                 {
                     Console.WriteLine($"Lttng not installed. Retry {i}...");
                     perfCollectProcess.Run();
