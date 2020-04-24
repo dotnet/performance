@@ -75,8 +75,16 @@
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
-  <!-- This is useful for testing -->
-  <!-- <Target Name="t">
+  <!--
+    This is useful for local testing to print the produced helix items
+    To use this when you are changing how items are produced, uncomment the target
+    and replace the Project item at the top of the file with this:
+    <Project DefaultTargets="printItems">
+    
+    Once you've done that you can run this to see the results:
+    dotnet msbuild .\scenarios.proj /v:n
+   -->
+  <!-- <Target Name="printItems">
         <Message Text="@(HelixWorkItem -> 'name: %(HelixWorkItem.Identity)
      dir: %(HelixWorkItem.PayloadDirectory)
      pre: %(HelixWorkItem.PreCommands)
