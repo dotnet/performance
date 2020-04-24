@@ -9,7 +9,7 @@ from performance.logger import setup_loggers
 from performance.common import get_artifacts_directory, get_packages_directory, RunCommand
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from dotnet import CSharpProject, CSharpProjFile
-from shared.util import helixpayload, helixworkitempayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier
+from shared.util import helixpayload, helixworkitempayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier, extension
 from shared.const import *
 class SODWrapper(object):
     '''
@@ -48,7 +48,7 @@ class SODWrapper(object):
 
     
     def _setsodpath(self, path: str):
-        self.sodexe = os.path.join(path, 'SizeOnDisk.exe')
+        self.sodexe = os.path.join(path, 'SizeOnDisk%s' % extension())
 
     def runtests(self, scenarioname, dirs):
         '''
