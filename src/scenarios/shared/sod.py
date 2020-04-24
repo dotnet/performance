@@ -22,15 +22,15 @@ class SODWrapper(object):
             self._setsodpath(os.path.join(helixworkitempayload(), 'SOD'))
         else:
             relpath = os.path.join(get_artifacts_directory(), 'SOD')
-            startupproj = os.path.join('..',
+            sodproj = os.path.join('..',
                                        '..',
                                        'tools',
                                        'ScenarioMeasurement',
                                        'SizeOnDisk',
                                        'SizeOnDisk.csproj')
-            sod = CSharpProject(CSharpProjFile(startupproj,
+            sod = CSharpProject(CSharpProjFile(sodproj,
                                                    sys.path[0]),
-                                                   os.path.join(os.path.dirname(startupproj),
+                                                   os.path.join(os.path.dirname(sodproj),
                                     os.path.join(get_artifacts_directory(), 'SOD')))
             if not os.path.exists(relpath):
                 sod.restore(get_packages_directory(),
