@@ -117,15 +117,19 @@ namespace ScenarioMeasurement
             var testProcess = new System.Diagnostics.Process();
             testProcess.StartInfo.FileName = "sudo";
             testProcess.StartInfo.Arguments = "lttng";
-            testProcess.StartInfo.UseShellExecute = true;
             for(int i=0; i<retry; i++)
             {
                 testProcess.Start();
                 testProcess.WaitForExit();
+                Console.WriteLine($"testProcess ExitCode: {testProcess.ExitCode}");
                 if (testProcess.HasExited && testProcess.ExitCode == 127)
                 {
                     Console.WriteLine($"Lttng not installed. Retry {i}...");
                     perfCollectProcess.Run();
+                }
+                else
+                {
+                    return 0;
                 }
             }
             return 0;
