@@ -116,6 +116,7 @@ namespace ScenarioMeasurement
             int retry = 10;
             var testProcess = new System.Diagnostics.Process();
             testProcess.StartInfo.FileName = "lttng";
+            testProcess.StartInfo.Arguments = "> /dev/null";
             for(int i=0; i<retry; i++)
             {
                 testProcess.Start();

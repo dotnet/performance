@@ -13,6 +13,7 @@
 
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
     <ScenariosDir>$(WorkItemDirectory)/src/scenarios/</ScenariosDir>
+    <HelixPreCommands>$(HelixPreCommands);sudo lsof /var/lib/dpkg/lock-frontend</HelixPreCommands>
     <HelixPreCommands>$(HelixPreCommands);sudo tail --pid=$(sudo lsof -t /var/lib/dpkg/lock-frontend) -f /dev/null</HelixPreCommands>
     <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
   </PropertyGroup>  
