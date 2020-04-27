@@ -115,18 +115,18 @@ namespace ScenarioMeasurement
             int retry = 10;
             var checkInstallProcess = new System.Diagnostics.Process();
             checkInstallProcess.StartInfo.FileName = "lttng";
-            checkInstallProcess.StartInfo.Arguments = "> /dev/null";
+            checkInstallProcess.StartInfo.Arguments = "--quiet";
             for(int i=0; i<retry; i++)
             {
                 checkInstallProcess.Start();
                 checkInstallProcess.WaitForExit();
                 Console.WriteLine($"testProcess ExitCode: {checkInstallProcess.ExitCode}");
-                if (checkInstallProcess.HasExited && checkInstallProcess.ExitCode == 2)
+                if (checkInstallProcess.HasExited && (checkInstallProcess.ExitCode == 2 || checkInstallProcess.ExitCode == 127))
                 {
                     Console.WriteLine($"Lttng not installed. Retry {i}...");
                     perfCollectProcess.Run();
                 }
-                else
+                else if (checkInstallProcess.HasExited && checkInstallProcess.ExitCode == 1)
                 {
                     return ProcessHelper.Result.Success;
                 }
