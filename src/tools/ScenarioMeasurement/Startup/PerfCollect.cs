@@ -54,7 +54,7 @@ namespace ScenarioMeasurement
                 RootAccess = true
             };
 
-            if (Environment.GetEnvironmentVariable("PERFLAB_INLAB") == "1" && Install() != ProcessHelper.Result.Success)
+            if (Install() != ProcessHelper.Result.Success)
             {
                 throw new Exception("Lttng installation failed. Please try manual install.");
             }
@@ -110,29 +110,28 @@ namespace ScenarioMeasurement
         public ProcessHelper.Result Install()
         {
             perfCollectProcess.Arguments = "install -force";
-            var result = perfCollectProcess.Run();
-            Console.WriteLine($"perfcollect install result: {result.Result}");
+            perfCollectProcess.Run();
 
             int retry = 10;
-            var testProcess = new System.Diagnostics.Process();
-            testProcess.StartInfo.FileName = "lttng";
-            testProcess.StartInfo.Arguments = "> /dev/null";
+            var checkInstallProcess = new System.Diagnostics.Process();
+            checkInstallProcess.StartInfo.FileName = "lttng";
+            checkInstallProcess.StartInfo.Arguments = "> /dev/null";
             for(int i=0; i<retry; i++)
             {
-                testProcess.Start();
-                testProcess.WaitForExit();
-                Console.WriteLine($"testProcess ExitCode: {testProcess.ExitCode}");
-                if (testProcess.HasExited && testProcess.ExitCode == 2)
+                checkInstallProcess.Start();
+                checkInstallProcess.WaitForExit();
+                Console.WriteLine($"testProcess ExitCode: {checkInstallProcess.ExitCode}");
+                if (checkInstallProcess.HasExited && checkInstallProcess.ExitCode == 2)
                 {
                     Console.WriteLine($"Lttng not installed. Retry {i}...");
                     perfCollectProcess.Run();
                 }
                 else
                 {
-                    return 0;
+                    return ProcessHelper.Result.Success;
                 }
             }
-            return 0;
+            return ProcessHelper.Result.CloseFailed;
         }
 
         public void Dispose()
