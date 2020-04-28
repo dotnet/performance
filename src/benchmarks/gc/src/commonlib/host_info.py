@@ -116,6 +116,8 @@ def _get_host_info(built: Built) -> HostInfo:
     ](built)
 
 
+_UNKNOWN_MSG: str = "unknown"
+
 def _get_host_info_posix() -> HostInfo:
     # lscpu output is a bunch of lines all of the form key: value. Make a dict from that.
     dct = _parse_keys_values_lines(exec_and_get_output(ExecArgs(("lscpu",), quiet_print=True)))
@@ -130,7 +132,10 @@ def _get_host_info_posix() -> HostInfo:
         return map_option(get_opt(name), float)
 
     def get_opt_kb(name: str) -> Optional[int]:
-        return map_option(get_opt(name), lambda s: int(remove_str_end(s, "K")))
+        opt = get_opt(name)
+        if opt is not None and _UNKNOWN_MSG in opt.lower():
+            return None
+        return map_option(opt, lambda s: int(remove_str_end(s, "K")))
 
     # Note: "CPU MHz" is the *current* cpu rate which varies. Going with max here.
     # TODO: Max is probably wrong, we want a typical value.

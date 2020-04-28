@@ -90,11 +90,19 @@ jobs:
             displayName: Build startup tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+          - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)SOD -f $(_Framework) -r win-${{parameters.architecture}} $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\SizeOnDisk\SizeOnDisk.csproj
+            displayName: Build SOD tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
         - ${{ if ne(parameters.osName, 'windows') }}:
           - script: cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared;cp -r ./src/scenarios/staticdeps $(CorrelationStaging)staticdeps
             displayName: Copy python libraries
           - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)startup -f $(_Framework) -r linux-${{parameters.architecture}} $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/Startup/Startup.csproj
             displayName: Build startup tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)SOD -f $(_Framework) -r linux-${{parameters.architecture}} $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/SizeOnDisk/SizeOnDisk.csproj
+            displayName: Build SOD tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
         - template: /eng/performance/send-to-helix.yml

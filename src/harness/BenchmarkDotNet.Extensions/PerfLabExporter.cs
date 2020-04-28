@@ -27,7 +27,7 @@ namespace BenchmarkDotNet.Extensions
         public override void ExportToLog(Summary summary, ILogger logger)
         {
             var reporter = Reporter.CreateReporter();
-            if (reporter == null) // not running in the perf lab
+            if (!reporter.InLab) // not running in the perf lab
                 return;
 
             foreach (var report in summary.Reports)

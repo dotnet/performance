@@ -7,9 +7,8 @@ SCENARIONAME = 'Empty C# Console Template'
 EXENAME = 'emptycsconsoletemplate'
 
 if __name__ == "__main__":
-    traits = TestTraits(exename=EXENAME)
-    traits.add_traits(startupmetric='TimeToMain',
-                      startup=True,
-                      sdk=True,
-                      guiapp='false',)
+    traits = TestTraits(exename=EXENAME, 
+                        startupmetric='TimeToMain',
+                        guiapp='false',
+                        )
     Runner(traits).run()

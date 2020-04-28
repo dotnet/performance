@@ -282,21 +282,14 @@ namespace ScenarioMeasurement
         private static void CreateTestReport(string scenarioName, IEnumerable<Counter> counters, string reportJsonPath, Logger logger)
         {
             var reporter = Reporter.CreateReporter();
-            if (reporter != null)
+            var test = new Test();
+            test.Categories.Add("Startup");
+            test.Name = scenarioName;
+            test.AddCounter(counters);
+            reporter.AddTest(test);
+            if (reporter.InLab && !String.IsNullOrEmpty(reportJsonPath))
             {
-                var test = new Test();
-                test.Categories.Add("Startup");
-                test.Name = scenarioName;
-                test.AddCounter(counters);
-                reporter.AddTest(test);
-                if (!String.IsNullOrEmpty(reportJsonPath))
-                {
-                    var json = reporter.GetJson();
-                    if(json != null)
-                    {
-                        File.WriteAllText(reportJsonPath, reporter.GetJson());
-                    }
-                }
+                File.WriteAllText(reportJsonPath, reporter.GetJson());
             }
             logger.Log(reporter.WriteResultTable());
         }
