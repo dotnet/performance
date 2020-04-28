@@ -11,6 +11,7 @@ from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_T
 from dotnet import CSharpProject, CSharpProjFile
 from shared.util import extension, helixpayload, helixworkitempayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier, iswin
 from shared.const import *
+from shared.testtraits import TestTraits
 class StartupWrapper(object):
     '''
     Wraps startup.exe, building it if necessary.
@@ -51,46 +52,48 @@ class StartupWrapper(object):
     def _setstartuppath(self, path: str):
         self.startuppath = os.path.join(path, "Startup%s" % extension()) 
 
-    def runtests(self, apptorun: str, **kwargs):
+    def runtests(self, traits: TestTraits):
         '''
         Runs tests through startup
         '''
-        for key in ['startupmetric', 'guiapp']:
-            if not kwargs[key]:
+        # make sure required arguments are present
+        for key in ['apptorun', 'scenariotypename', 'startupmetric', 'guiapp']:
+            if not getattr(traits, key):
                 raise Exception('startup tests require %s' % key)
         reportjson = os.path.join(TRACEDIR, 'perf-lab-report.json')
         defaultiterations = '1' if runninginlab() and not uploadtokenpresent() else '5' # only run 1 iteration for PR-triggered build
+        # required arguments & optional arguments with default values
         startup_args = [
             self.startuppath,
-            '--app-exe', apptorun,
-            '--metric-type', kwargs['startupmetric'], 
-            '--trace-name', '%s_startup' % (kwargs['scenarioname'] or '%s_%s' % (kwargs['exename'],kwargs['scenariotypename'])),
-            '--process-will-exit', (kwargs['processwillexit'] or 'true'),
-            '--iterations', '%s' % (kwargs['iterations'] or defaultiterations),
-            '--timeout', '%s' % (kwargs['timeout'] or '50'),
-            '--warmup', '%s' % (kwargs['warmup'] or 'true'),
-            '--gui-app', kwargs['guiapp'],
-            '--working-dir', '%s' % (kwargs['workingdir'] or sys.path[0]),
+            '--app-exe', traits.apptorun,
+            '--metric-type', traits.startupmetric, 
+            '--trace-name', '%s_startup' % (traits.scenarioname or '%s_%s' % (traits.exename,traits.scenariotypename)),
+            '--gui-app', traits.guiapp,
+            '--process-will-exit', (traits.processwillexit or 'true'),
+            '--iterations', '%s' % (traits.iterations or defaultiterations),
+            '--timeout', '%s' % (traits.timeout or '50'),
+            '--warmup', '%s' % (traits.warmup or 'true'),
+            '--working-dir', '%s' % (traits.workingdir or sys.path[0]),
             '--report-json-path', reportjson,
             '--trace-directory', TRACEDIR
         ]
-        # optional arguments
-        if kwargs['scenarioname']:
-            startup_args.extend(['--scenario-name', kwargs['scenarioname']])
-        if kwargs['appargs']:
-            startup_args.extend(['--app-args', kwargs['appargs']])
-        if kwargs['environmentvariables']:
-            startup_args.extend(['--environment-variables', kwargs['environmentvariables']])
-        if kwargs['iterationsetup']:
-            startup_args.extend(['--iteration-setup', kwargs['iterationsetup']])
-        if kwargs['setupargs']:
-            startup_args.extend(['--setup-args', kwargs['setupargs']])
-        if kwargs['iterationcleanup']:
-            startup_args.extend(['--iteration-cleanup', kwargs['iterationcleanup']])
-        if kwargs['cleanupargs']:
-            startup_args.extend(['--cleanup-args', kwargs['cleanupargs']])
-        if kwargs['measurementdelay']:
-            startup_args.extend(['--measurement-delay', kwargs['measurementdelay']])
+        # optional arguments without default values
+        if traits.scenarioname:
+            startup_args.extend(['--scenario-name', traits.scenarioname])
+        if traits.appargs:
+            startup_args.extend(['--app-args', traits.appargs])
+        if traits.environmentvariables:
+            startup_args.extend(['--environment-variables', traits.environmentvariables])
+        if traits.iterationsetup:
+            startup_args.extend(['--iteration-setup', traits.iterationsetup])
+        if traits.setupargs:
+            startup_args.extend(['--setup-args', traits.setupargs])
+        if traits.iterationcleanup:
+            startup_args.extend(['--iteration-cleanup', traits.iterationcleanup])
+        if traits.cleanupargs:
+            startup_args.extend(['--cleanup-args', traits.cleanupargs])
+        if traits.measurementdelay:
+            startup_args.extend(['--measurement-delay', traits.measurementdelay])
             
         RunCommand(startup_args, verbose=True).run()
 

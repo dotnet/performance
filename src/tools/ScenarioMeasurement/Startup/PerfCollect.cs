@@ -51,7 +51,7 @@ namespace ScenarioMeasurement
                 RootAccess = true
             };
 
-            if (Environment.GetEnvironmentVariable("PERFLAB_INLAB") == "1" && Install() != ProcessHelper.Result.Success)
+            if (Install() != ProcessHelper.Result.Success)
             {
                 throw new Exception("Lttng installation failed. Please try manual install.");
             }
@@ -107,7 +107,28 @@ namespace ScenarioMeasurement
         public ProcessHelper.Result Install()
         {
             perfCollectProcess.Arguments = "install -force";
-            return perfCollectProcess.Run().Result;
+            perfCollectProcess.Run();
+
+            int retry = 10;
+            var checkInstallProcess = new System.Diagnostics.Process();
+            checkInstallProcess.StartInfo.FileName = "lttng";
+            checkInstallProcess.StartInfo.Arguments = "--quiet";
+            for(int i=0; i<retry; i++)
+            {
+                checkInstallProcess.Start();
+                checkInstallProcess.WaitForExit();
+
+                if (checkInstallProcess.HasExited && (checkInstallProcess.ExitCode == 2 || checkInstallProcess.ExitCode == 127))
+                {
+                    Console.WriteLine($"Lttng not installed. Retry {i}...");
+                    perfCollectProcess.Run();
+                }
+                else if (checkInstallProcess.HasExited && checkInstallProcess.ExitCode == 1)
+                {
+                    return ProcessHelper.Result.Success;
+                }
+            }
+            return ProcessHelper.Result.CloseFailed;
         }
 
         public void Dispose()

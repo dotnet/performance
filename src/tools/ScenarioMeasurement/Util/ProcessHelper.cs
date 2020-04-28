@@ -93,11 +93,17 @@ namespace ScenarioMeasurement
                 {
                     process.OutputDataReceived += (s, e) =>
                     {
-                        output.AppendLine(e.Data);
+                        if (!String.IsNullOrEmpty(e.Data))
+                        {
+                            output.AppendLine(e.Data);
+                        }
                     };
                     process.ErrorDataReceived += (s, e) =>
                     {
-                        error.AppendLine(e.Data);
+                        if (!String.IsNullOrEmpty(e.Data))
+                        {
+                            error.AppendLine(e.Data);
+                        }
                     };
                 }
                 process.Start();
@@ -132,6 +138,7 @@ namespace ScenarioMeasurement
                         return (Result.CloseFailed, pid);
                     }
                 }
+
 
                 Logger.Log(output.ToString());
                 Logger.Log(error.ToString());

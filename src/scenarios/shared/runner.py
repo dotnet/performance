@@ -79,13 +79,12 @@ class Runner:
         startup = StartupWrapper()
         if self.testtype == const.STARTUP:
             self.traits.add_traits(overwrite=False,
-                                   environmentvariables='COMPlus_EnableEventLog=1' if not iswin() else ''
+                                   environmentvariables='COMPlus_EnableEventLog=1' if not iswin() else '',
+                                   scenarioname=self.scenarioname,
+                                   scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
+                                   apptorun=publishedexe(self.traits.exename),
                                    )
-            startup.runtests(**self.traits.get_all_traits(),
-                             scenarioname=self.scenarioname,
-                             scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
-                             apptorun=publishedexe(self.traits.exename),
-                             )
+            startup.runtests(self.traits)
 
         elif self.testtype == const.SDK:
             envlistbuild = 'DOTNET_MULTILEVEL_LOOKUP=0'
@@ -94,6 +93,9 @@ class Runner:
             if self.sdktype == const.CLEAN_BUILD:
                 self.traits.add_traits(
                     overwrite=False,
+                    scenarioname=self.scenarioname,
+                    scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.CLEAN_BUILD),
+                    apptorun=const.DOTNET,
                     appargs='build',
                     iterationsetup=pythoncommand(),
                     setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
@@ -103,32 +105,30 @@ class Runner:
                     environmentvariables=envlistcleanbuild,
                 )
                 self.traits.add_traits(overwrite=True, startupmetric=const.STARTUP_PROCESSTIME)
-                startup.runtests(**self.traits.get_all_traits(),
-                                 scenarioname=self.scenarioname,
-                                 scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.CLEAN_BUILD),
-                                 apptorun=const.DOTNET
-                                 )
+                startup.runtests(self.traits)
 
             # build(no changes)
             if self.sdktype == const.BUILD_NO_CHANGE:
                 self.traits.add_traits(
                     overwrite=False,
+                    scenarioname=self.scenarioname,
+                    scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.BUILD_NO_CHANGE),
+                    apptorun=const.DOTNET,
                     appargs='build',
                     workingdir=const.APPDIR,
                     environmentvariables=envlistbuild
                 )
                 self.traits.add_traits(overwrite=True, startupmetric=const.STARTUP_PROCESSTIME)
-                startup.runtests(**self.traits.get_all_traits(),
-                                 scenarioname=self.scenarioname,
-                                 scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.BUILD_NO_CHANGE),
-                                 apptorun=const.DOTNET
-                                 )
+                startup.runtests(self.traits)
 
             # new console
             if self.sdktype == const.NEW_CONSOLE:
                 self.traits.add_traits(
                     overwrite=False,
                     appargs='new console',
+                    apptorun=const.DOTNET,
+                    scenarioname=self.scenarioname,
+                    scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.NEW_CONSOLE),
                     iterationsetup=pythoncommand(),
                     setupargs='%s %s setup_new' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
                     iterationcleanup=pythoncommand(),
@@ -136,11 +136,7 @@ class Runner:
                     workingdir=const.APPDIR
                 )
                 self.traits.add_traits(overwrite=True, startupmetric=const.STARTUP_PROCESSTIME)
-                startup.runtests(**self.traits.get_all_traits(),
-                                 apptorun=const.DOTNET,
-                                 scenarioname=self.scenarioname,
-                                 scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.SDK], const.NEW_CONSOLE),
-                                 )
+                startup.runtests(self.traits)
 
         elif self.testtype == const.CROSSGEN:
             crossgenexe = 'crossgen%s' % extension()
@@ -150,16 +146,14 @@ class Runner:
                 getLogger().error('Cannot find CORE_ROOT at %s', self.coreroot)
                 return
 
-            self.traits.add_trait(key='startupmetric', value=const.STARTUP_PROCESSTIME, overwrite=True)
-            self.tratis.add_trait(key='workingdir', value=self.coreroot, overwrite=True)
-            self.traits.add_trait(key='appargs', value=crossgenargs, overwrite=True)
             self.traits.add_traits(overwrite=True,
                                    startupmetric=const.STARTUP_PROCESSTIME,
                                    workingdir=self.coreroot,
                                    appargs=crossgenargs
                                    )
-            startup.runtests(*self.traits.get_all_traits(),
-                             scenarioname='Crossgen Throughput - %s' % self.crossgenfile,
-                             scenariotypename='%s - %s' % (const.SCENARIO_NAMES[const.CROSSGEN], self.crossgenfile),
-                             apptorun='%s\%s' % (self.coreroot, crossgenexe),
-                             )
+            self.traits.add_traits(overwrite=False,
+                                   scenarioname='Crossgen Throughput - %s' % self.crossgenfile,
+                                   scenariotypename='%s - %s' % (const.SCENARIO_NAMES[const.CROSSGEN], self.crossgenfile),
+                                   apptorun='%s\%s' % (self.coreroot, crossgenexe),
+                                  ) 
+            startup.runtests(self.traits)

@@ -11,6 +11,9 @@ class TestTraits:
     def __init__(self, **kwargs):
         # initialize traits
         self.exename = ''
+        self.scenarioname = ''
+        self.scenariotypename = ''
+        self.apptorun = ''
         self.guiapp = ''
         self.startupmetric = ''
         self.appargs = ''
@@ -30,7 +33,7 @@ class TestTraits:
         for testtype in testtypes:
             setattr(self, testtype, '')
         
-        # add user-input intiial traits
+        # add user-input initial traits
         self.add_traits(overwrite=True, **kwargs)
 
         # validate required traits
