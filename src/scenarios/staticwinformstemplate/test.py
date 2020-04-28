@@ -9,7 +9,6 @@ EXENAME = 'staticwinformstemplate'
 if __name__ == "__main__":
     traits = TestTraits(exename=EXENAME, 
                         startupmetric='GenericStartup',
-                        startup=True,
                         guiapp='true',
                         processwillexit='false',
                         measurementdelay='5'

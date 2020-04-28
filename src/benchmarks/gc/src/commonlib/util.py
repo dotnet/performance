@@ -23,13 +23,13 @@ from statistics import median, StatisticsError
 from sys import argv
 from threading import Event, Thread
 from time import sleep, time
-from typing import Any, Callable, cast, Iterable, Mapping, Optional, Sequence, Union
+from typing import Any, Callable, cast, Iterable, List, Mapping, Optional, Sequence, Union
 from xml.etree.ElementTree import Element, parse as parse_xml
 
 from psutil import process_iter
 from result import Err, Ok, Result
 
-from .collection_util import find, identity, is_empty, min_max_float
+from .collection_util import add, find, identity, is_empty, min_max_float
 from .option import option_or
 from .type_utils import check_cast, T, U, V, with_slots
 
@@ -320,6 +320,87 @@ def exec_cmd(args: ExecArgs) -> timedelta:
 
 @with_slots
 @dataclass(frozen=True)
+class BenchmarkRunErrorInfo:
+    name: str
+    iteration_num: int
+    message: str
+    trace: List[str]
+
+    def print(self) -> None:
+        print(
+            f"- Benchmark: '{self.name}' -\n"
+            f"Iteration: {self.iteration_num}\n"
+            f"Error Message: {self.message}\n"
+            f"\nStack Trace:\n{self.__rebuild_trace()}\n"
+        )
+
+    def __rebuild_trace(self) -> str:
+        return ''.join(self.trace)
+
+
+@with_slots
+@dataclass(frozen=True)
+class ConfigRunErrorInfo:
+    name: str
+    benchmarks_run: BenchmarkErrorList
+
+    def print(self) -> None:
+        print(f"=== Configuration '{self.name}' ===\n")
+        for bench in self.benchmarks_run:
+            bench.print()
+
+    def add_benchmark(self, new_bench: BenchmarkRunErrorInfo) -> None:
+        self.benchmarks_run.append(new_bench)
+
+
+@with_slots
+@dataclass(frozen=True)
+class CoreRunErrorInfo:
+    name: str
+    configs_run: ConfigurationErrorMap
+
+    def print(self) -> None:
+        print(f"===== Core '{self.name}' =====\n")
+        for config in self.configs_run.values():
+            config.print()
+
+    def add_config(self, new_config: ConfigRunErrorInfo) -> None:
+        add(self.configs_run, new_config.name, new_config)
+
+
+RunErrorMap = Mapping[str, CoreRunErrorInfo]
+ConfigurationErrorMap = Mapping[str, ConfigRunErrorInfo]
+BenchmarkErrorList = List[BenchmarkRunErrorInfo]
+
+
+def add_new_error(
+    run_errors: RunErrorMap,
+    core_name: str,
+    config_name: str,
+    bench_name: str,
+    iteration_num: int,
+    message: str,
+    trace: List[str]
+) -> None:
+    if core_name not in run_errors:
+        bench_list = [BenchmarkRunErrorInfo(bench_name, iteration_num, message, trace)]
+        config_dict = {config_name : ConfigRunErrorInfo(config_name, bench_list)}
+        add(run_errors, core_name, CoreRunErrorInfo(core_name, config_dict))
+
+    else:
+        core_info = run_errors[core_name]
+
+        if config_name not in core_info.configs_run:
+            bench_list = [BenchmarkRunErrorInfo(bench_name, iteration_num, message, trace)]
+            core_info.add_config(ConfigRunErrorInfo(config_name, bench_list))
+
+        else:
+            config_info = core_info.configs_run[config_name]
+            config_info.add_benchmark(BenchmarkRunErrorInfo(bench_name, iteration_num, message, trace))
+
+
+@with_slots
+@dataclass(frozen=True)
 class WaitOnProcessResult:
     stdout: str
     # None if timed out
@@ -454,7 +535,7 @@ def exec_and_get_result(args: ExecArgs) -> ProcessResult:
 
 def decode_stdout(stdout: bytes) -> str:
     # Microsoft trademark confuses python
-    stdout = stdout.replace(b"Microsoft\xae .NET Core", b"Microsoft .NET Core")
+    stdout = stdout.replace(b"\xae", b"")
     return stdout.decode("utf-8").strip().replace("\r", "")
 
 

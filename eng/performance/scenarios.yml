@@ -79,7 +79,9 @@ jobs:
         steps:
         - checkout: self
           clean: true
-        - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup$(ScriptExtension) --install-dir $(CorrelationStaging)dotnet
+        - script: $(Python) scripts/parse_props.py --branch-name $(_Channel)
+          displayName: Parse Version.props
+        - script: $(Python) scripts/ci_setup.py $(DotnetVersion) --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup$(ScriptExtension) --install-dir $(CorrelationStaging)dotnet
           displayName: Run ci_setup.py
         - ${{ if eq(parameters.osName, 'windows') }}:
           - script: xcopy .\scripts $(CorrelationStaging)scripts\/e && xcopy .\src\scenarios\shared $(CorrelationStaging)shared\/e && xcopy .\src\scenarios\staticdeps $(CorrelationStaging)staticdeps\/e
@@ -88,11 +90,19 @@ jobs:
             displayName: Build startup tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+          - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)SOD -f $(_Framework) -r win-${{parameters.architecture}} $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\SizeOnDisk\SizeOnDisk.csproj
+            displayName: Build SOD tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
         - ${{ if ne(parameters.osName, 'windows') }}:
           - script: cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared;cp -r ./src/scenarios/staticdeps $(CorrelationStaging)staticdeps
             displayName: Copy python libraries
           - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)startup -f $(_Framework) -r linux-${{parameters.architecture}} $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/Startup/Startup.csproj
             displayName: Build startup tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)SOD -f $(_Framework) -r linux-${{parameters.architecture}} $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/SizeOnDisk/SizeOnDisk.csproj
+            displayName: Build SOD tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
         - template: /eng/performance/send-to-helix.yml

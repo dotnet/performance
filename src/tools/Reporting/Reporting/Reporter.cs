@@ -40,7 +40,7 @@ namespace Reporting
         {
             var ret = new Reporter();
             ret.environment = environment == null ? new EnvironmentProvider() : environment;
-            if (ret.CheckEnvironment())
+            if (ret.InLab)
             {
                 ret.Init();
             }
@@ -89,7 +89,7 @@ namespace Reporting
         }
         public string GetJson()
         {
-            if (!CheckEnvironment())
+            if (!InLab)
             { 
                 return null;
             }
@@ -146,10 +146,7 @@ namespace Reporting
         {
             return String.Format("{0,-" + width + "}", str);
         }
-        
-        private bool CheckEnvironment()
-        {
-            return environment.GetEnvironmentVariable("PERFLAB_INLAB")?.Equals("1") ?? false;
-        }
+
+        public bool InLab => environment.GetEnvironmentVariable("PERFLAB_INLAB")?.Equals("1") ?? false;
     }
 }

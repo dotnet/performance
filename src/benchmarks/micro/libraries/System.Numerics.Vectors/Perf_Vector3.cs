@@ -54,5 +54,14 @@ namespace System.Numerics.Tests
 
         [Benchmark]
         public Vector3 CrossBenchmark() => Vector3.Cross(VectorTests.Vector3Value, VectorTests.Vector3ValueInverted);
+
+        [Benchmark]
+        public Vector3 ClampBenchmark() => Vector3.Clamp(VectorTests.Vector3Value, VectorTests.Vector3Value, VectorTests.Vector3ValueInverted);
+
+        [Benchmark]
+        public Vector3 MinBenchmark() => Vector3.Min(VectorTests.Vector3Value, VectorTests.Vector3ValueInverted);
+
+        [Benchmark]
+        public Vector3 MaxBenchmark() => Vector3.Max(VectorTests.Vector3Value, VectorTests.Vector3ValueInverted);
     }
 }

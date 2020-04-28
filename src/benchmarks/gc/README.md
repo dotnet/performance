@@ -146,7 +146,7 @@ benchmarks:
   <other benchmark tests to run>
 ```
 
-The configuration values that can be used in the test `.yaml` file are described under `docs/bench_file.md`.
+The configuration values that can be used in the test `.yaml` file are described under [docs/bench_file.md](docs/bench_file.md).
 
 ## Running
 
@@ -459,15 +459,10 @@ A YAML file that describes the benchmarks to run and the configs (environment va
 
 ### Core_Root
 
-This is the build output of coreclr that is used to run benchmarks.
+This is the build output of coreclr that is used to run benchmarks. These are specified in the `coreclrs` section of a benchfile.
 
-These are specified in the `coreclrs` section of a benchfile.
-
-This can be found in a directory like `runtime/artifacts/bin/coreclr/Windows_NT.x64.Release/` (adjust for different OS or architecture) of a runtime repository. (The Core_Root can be moved anywhere and doesn't need to remain inside the runtime repository). However, it cannot be used as is after building. Move/Copy all files within `crossgen2` to the Core_Root directory as the benchmark executable currently does not find assemblies or binaries deeper in the directory tree.
-
-A clone of https://github.com/dotnet/runtime, which may be on an arbitrary commit (including one not checked in).
-When you make a change to coreclr within runtime, you will generally make two clones, one at master and one at your branch (which may be on your fork).
-Alternately, you may have only one checkout, build multiple times, copy the builds to somewhere, and specify coreclrs using `core_root` instead of `path`.
+Since the codebase of coreclr was moved to the runtime repo, the way of generating the `core_root` has changed.
+See [docs/building_coreroot.md](docs/building_coreroot.md) for detailed instructions on how to get it.
 
 ### Config
 

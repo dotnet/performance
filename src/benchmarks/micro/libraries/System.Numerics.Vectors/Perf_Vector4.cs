@@ -54,5 +54,14 @@ namespace System.Numerics.Tests
 
         [Benchmark]
         public float DotBenchmark() => Vector4.Dot(VectorTests.Vector4Value, VectorTests.Vector4ValueInverted);
+
+        [Benchmark]
+        public Vector4 ClampBenchmark() => Vector4.Clamp(VectorTests.Vector4Value, VectorTests.Vector4Value, VectorTests.Vector4ValueInverted);
+
+        [Benchmark]
+        public Vector4 MinBenchmark() => Vector4.Min(VectorTests.Vector4Value, VectorTests.Vector4ValueInverted);
+
+        [Benchmark]
+        public Vector4 MaxBenchmark() => Vector4.Max(VectorTests.Vector4Value, VectorTests.Vector4ValueInverted);
     }
 }
