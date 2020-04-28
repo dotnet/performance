@@ -109,26 +109,15 @@ namespace ScenarioMeasurement
             perfCollectProcess.Arguments = "install -force";
             perfCollectProcess.Run();
 
-            if (File.Exists("//usr/bin/lttng"))
-            {
-                Console.WriteLine("lttng file exists at //usr/bin/lttng");
-            }
-
             int retry = 10;
-            var checkInstallProcess = new System.Diagnostics.Process();
-            checkInstallProcess.StartInfo.FileName = "//usr/bin/lttng";
-            checkInstallProcess.StartInfo.Arguments = "--quiet";
             for(int i=0; i<retry; i++)
             {
-                checkInstallProcess.Start();
-                checkInstallProcess.WaitForExit();
-
-                if (checkInstallProcess.HasExited && (checkInstallProcess.ExitCode == 2 || checkInstallProcess.ExitCode == 127))
+                if (!LttngInstalled())
                 {
                     Console.WriteLine($"Lttng not installed. Retry {i}...");
                     perfCollectProcess.Run();
                 }
-                else if (checkInstallProcess.HasExited && checkInstallProcess.ExitCode == 1)
+                else
                 {
                     return ProcessHelper.Result.Success;
                 }
@@ -149,6 +138,11 @@ namespace ScenarioMeasurement
         public void AddKernelKeyword(KernelKeyword keyword)
         {
             KernelEvents.Add(keyword);
+        }
+
+        private bool LttngInstalled()
+        {
+            return File.Exists("//usr/bin/lttng");
         }
 
         public enum KernelKeyword
