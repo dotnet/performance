@@ -109,9 +109,14 @@ namespace ScenarioMeasurement
             perfCollectProcess.Arguments = "install -force";
             perfCollectProcess.Run();
 
+            if (File.Exists("//usr/bin/lttng"))
+            {
+                Console.WriteLine("lttng file exists at //usr/bin/lttng");
+            }
+
             int retry = 10;
             var checkInstallProcess = new System.Diagnostics.Process();
-            checkInstallProcess.StartInfo.FileName = "lttng";
+            checkInstallProcess.StartInfo.FileName = "//usr/bin/lttng";
             checkInstallProcess.StartInfo.Arguments = "--quiet";
             for(int i=0; i<retry; i++)
             {
