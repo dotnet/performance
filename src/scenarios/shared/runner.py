@@ -56,19 +56,14 @@ class Runner:
 
         args = parser.parse_args()
 
-        if not args.testtype:
+        if not args.testtype or args.testtype not in testtypes:
             getLogger().error("Please specify a test type: %s" % list((testtypes.keys())))
             sys.exit(1)
 
-        if not getattr(self.traits, args.testtype):
-            getLogger().error("Test type %s is not supported by this scenario", args.testtype)
-            sys.exit(1)
         self.testtype = args.testtype
 
         if self.testtype == const.SDK:
             self.sdktype = args.sdktype
-        if args.scenarioname:
-            self.scenarioname = args.scenarioname
 
         if self.testtype == const.CROSSGEN:
             self.crossgenfile = args.testname
@@ -76,6 +71,10 @@ class Runner:
 
         if self.testtype == const.SOD:
             self.dirs = args.dirs
+
+        if args.scenarioname:
+            self.scenarioname = args.scenarioname
+
 
     
     def add_common_arguments(self, parser: ArgumentParser):
