@@ -23,11 +23,15 @@ namespace ScenarioMeasurement
             {
                 if (!commandLine.Equals( ((string)GetPayloadValue(evt, "CommandLine")).Trim()))
                 {
-                    return false;
+                    return CompareResult.Mismatch;
                 }
             }
+            else
+            {
+                return CompareResult.NotApplicable;
+            }
             // Match the command line as well because pids might be reused during the session
-            return true;
+            return CompareResult.Match;
         }
 
         public static bool MatchProcessName(TraceEvent evt, TraceSourceManager source, string processName)
@@ -36,7 +40,7 @@ namespace ScenarioMeasurement
             {
                 if (!processName.Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase))
                 {
-                    return false;
+                    return CompareResult.Mismatch;
                 }
             }
             else
@@ -46,7 +50,7 @@ namespace ScenarioMeasurement
                 {
                     if (!processName.Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase))
                     {
-                        return false;
+                        return CompareResult.Mismatch;
                     }
                 }
                 else 
@@ -56,7 +60,7 @@ namespace ScenarioMeasurement
                         // match the first 15 characters only if FileName field is not present in the payload
                         if(!processName.Substring(0, 15).Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase))
                         {
-                            return false;
+                            return CompareResult.Mismatch;
                         }
                     }
                     else
@@ -65,29 +69,29 @@ namespace ScenarioMeasurement
                         string filename = (string)GetPayloadValue(evt, "FileName");
                         if (!processName.Equals(Path.GetFileName(filename)))
                         {
-                            return false;
+                            return CompareResult.Mismatch;
                         }
                     }
                 }
             }
-            return true;
+            return CompareResult.Match;
         }
 
         public static bool MatchProcessID(TraceEvent evt, TraceSourceManager source, IList<int> pids)
         {
             if (!pids.Contains(evt.ProcessID))
             {
-                return false;
+                return CompareResult.Mismatch;
             }
             if (!source.IsWindows)
             {
                 // For Linux both pid and tid should match
                 if (!pids.Contains((int)GetPayloadValue(evt, "PayloadThreadID")))
                 {
-                    return false;
+                    return CompareResult.Mismatch;
                 }
             }
-            return true;
+            return CompareResult.Match;
         }
 
         public static bool MatchSingleProcessID(TraceEvent evt, TraceSourceManager source, int pid)
@@ -104,6 +108,12 @@ namespace ScenarioMeasurement
                 throw new NoNullAllowedException($"Payload \"{payloadName}\" doesn't exist in event \"{evt.EventName}\" ");
             }
             return result;
+        }
+
+        public sealed class CompareResult {
+            public static readonly bool Match = true;
+            public static readonly bool Mismatch = false;
+            public static readonly bool NotApplicable = CompareResult.Match;
         }
     }
 }

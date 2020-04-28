@@ -1,8 +1,5 @@
-﻿using Reporting;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.CommandLine.Invocation;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -120,7 +117,7 @@ namespace ScenarioMeasurement
             {
                 checkInstallProcess.Start();
                 checkInstallProcess.WaitForExit();
-                Console.WriteLine($"testProcess ExitCode: {checkInstallProcess.ExitCode}");
+
                 if (checkInstallProcess.HasExited && (checkInstallProcess.ExitCode == 2 || checkInstallProcess.ExitCode == 127))
                 {
                     Console.WriteLine($"Lttng not installed. Retry {i}...");

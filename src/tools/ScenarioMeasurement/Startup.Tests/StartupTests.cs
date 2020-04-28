@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using Xunit;
 
+
 namespace Startup.Tests
 {
     public class StartupTests
@@ -35,7 +36,7 @@ namespace Startup.Tests
             TestSession(session, parser);
         }
 
-        [WindowsOnly]
+        [WindowsOnly(Skip = "Skipping test until asset is provided")]
         public void TestProfileIteration()
         {
             string sessionName = "test-profile-iteration-session";
@@ -46,7 +47,7 @@ namespace Startup.Tests
             TestSession(profileSession, profileParser);
         }
 
-        [Fact]
+        [Fact(Skip = "Skipping test until asset is provided")]
         public void TestProcessTimeParserLinux()
         {
             string ctfFile = Path.Combine(testAssetDirectory, "test-process-time_startup.trace.zip");
@@ -62,7 +63,7 @@ namespace Startup.Tests
             Assert.True(count == 1, "Only Process Time counter should be present.");
         }
 
-        [Fact]
+        [Fact(Skip = "Skipping test until asset is provided")]
         public void TestProcessTimeParserWindows()
         {
             string etlFile = Path.Combine(testAssetDirectory, "test-process-time_startup.etl");
@@ -78,7 +79,7 @@ namespace Startup.Tests
             Assert.True(count==2, "Both Process Time and Time On Thread counter should be present.");
         }
 
-        [Fact]
+        [Fact(Skip = "Skipping test until asset is provided")]
         public void TestTimeToMainParserLinux()
         {
             string ctfFile = Path.Combine(testAssetDirectory, "test-time-to-main_startup.trace.zip");
@@ -95,7 +96,7 @@ namespace Startup.Tests
         }
 
 
-        [Fact]
+        [Fact(Skip = "Skipping test until asset is provided")]
         public void TestTimeToMainParserWindows()
         {
             string etlFile = Path.Combine(testAssetDirectory, "test-time-to-main_startup.etl");

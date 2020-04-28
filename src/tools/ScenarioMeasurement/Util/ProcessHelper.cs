@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 
@@ -36,7 +35,7 @@ namespace ScenarioMeasurement
         public Dictionary<string, string> EnvironmentVariables = null;
 
         public bool RootAccess { get; set; } = false;
-        private static object _outputLock = new object();
+
         public ProcessHelper(Logger logger)
         {
             this.Logger = logger;
@@ -94,22 +93,17 @@ namespace ScenarioMeasurement
                 {
                     process.OutputDataReceived += (s, e) =>
                     {
-                        lock (_outputLock)
+                        if (!String.IsNullOrEmpty(e.Data))
                         {
-                            if (!String.IsNullOrEmpty(e.Data))
-                            {
-                                output.AppendLine(e.Data);
-                            }
+                            output.AppendLine(e.Data);
                         }
                     };
                     process.ErrorDataReceived += (s, e) =>
                     {
-
-                            if (!String.IsNullOrEmpty(e.Data))
-                            {
-                                error.AppendLine(e.Data);
-                            }
-
+                        if (!String.IsNullOrEmpty(e.Data))
+                        {
+                            error.AppendLine(e.Data);
+                        }
                     };
                 }
                 process.Start();
