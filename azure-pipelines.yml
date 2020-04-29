@@ -393,6 +393,21 @@ jobs:
         - master
         # - release/3.1.2xx
 
+  # Ubuntu 1604 x64 SDK scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1604
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      kind: sdk_scenarios
+      queue: Ubuntu.1604.Amd64.Perf
+      container: ubuntu_x64_build_container
+      projectFile: sdk_scenarios.proj
+      channels:
+        - master
+        # - release/3.1.2xx
+
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
