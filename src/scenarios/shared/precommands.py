@@ -5,6 +5,7 @@ Commands and utilities for pre.py scripts
 import sys
 import os
 import shutil
+from logging import getLogger
 from argparse import ArgumentParser
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
@@ -35,7 +36,6 @@ class PreCommands:
 
         subparsers = parser.add_subparsers(title='Operations', 
                                            description='Common preperation steps for perf tests.',
-                                           required=True,
                                            dest='operation')
 
         default_parser = subparsers.add_parser(DEFAULT, help='Default operation' )
@@ -48,6 +48,10 @@ class PreCommands:
         self.add_common_arguments(publish_parser)
 
         args = parser.parse_args()
+
+        if not args.operation:
+            getLogger().error("Please specify an operation: %s" % list(OPERATIONS))
+            sys.exit(1)
 
         self.configuration = args.configuration 
         self.operation = args.operation
