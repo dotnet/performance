@@ -2,9 +2,10 @@ from shared.util import const
 
 # These are the kinds of scenarios we run. Default here indicates whether ALL
 # scenarios should try and run a given test type.
-testtypes = {const.STARTUP: False,
-             const.SDK: False,
-             const.CROSSGEN: False}
+testtypes = [const.STARTUP,
+             const.SDK,
+             const.CROSSGEN,
+             const.SOD]
 
 class TestTraits:
 

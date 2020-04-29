@@ -55,8 +55,8 @@ class Runner:
 
         args = parser.parse_args()
 
-        if not args.testtype or args.testtype not in testtypes:
-            getLogger().error("Please specify a test type: %s" % list((testtypes.keys())))
+        if not args.testtype:
+            getLogger().error("Please specify a test type: %s" % testtypes)
             sys.exit(1)
 
         self.testtype = args.testtype
