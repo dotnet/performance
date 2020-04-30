@@ -47,7 +47,7 @@ This time, move to the CoreCLR directory: `/runtime/src/coreclr/`. There, issue 
 
 On Windows
 ```sh
-.\build-test.cmd -release -generatelayoutonly
+.\build-test.cmd release generatelayoutonly
 ```
 
 On Linux
