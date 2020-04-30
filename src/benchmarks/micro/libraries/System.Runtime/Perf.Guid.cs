@@ -36,6 +36,12 @@ namespace System.Tests
         public bool EqualsSame() => _guid.Equals(_same);
 
         [Benchmark]
+        public bool EqualsOperator() => _guid == _same;
+
+        [Benchmark]
+        public bool NotEqualsOperator() => _guid != _same;
+
+        [Benchmark]
         public Guid Parse() => Guid.Parse(guidStr);
 
         [Benchmark]
