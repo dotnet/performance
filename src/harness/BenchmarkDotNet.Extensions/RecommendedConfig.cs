@@ -17,6 +17,7 @@ namespace BenchmarkDotNet.Extensions
             ImmutableHashSet<string> mandatoryCategories,
             int? partitionCount = null,
             int? partitionIndex = null,
+            string exclusionFilterValue = null,
             Job job = null)
         {
             if (job is null)
@@ -38,6 +39,7 @@ namespace BenchmarkDotNet.Extensions
                 .AddDiagnoser(MemoryDiagnoser.Default) // MemoryDiagnoser is enabled by default
                 .AddFilter(new OperatingSystemFilter())
                 .AddFilter(new PartitionFilter(partitionCount, partitionIndex))
+                .AddFilter(new ExclusionFilter(exclusionFilterValue))
                 .AddExporter(JsonExporter.Full) // make sure we export to Json
                 .AddExporter(new PerfLabExporter())
                 .AddColumn(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
