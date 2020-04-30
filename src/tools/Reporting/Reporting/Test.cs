@@ -21,7 +21,15 @@ namespace Reporting
         public void AddCounter(Counter counter)
         {
             if (counter.DefaultCounter && Counters.Any(c => c.DefaultCounter))
+            {
                 throw new Exception($"Duplicate default counter, name: ${counter.Name}");
+            }
+
+            if (Counters.Any(c => c.Name.Equals(counter.Name, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new Exception($"Duplicate counter name, name: ${counter.Name}");
+            }
+
             Counters.Add(counter);
         }
 
