@@ -7,7 +7,7 @@
   </PropertyGroup>
   <!--Package versions-->
   <PropertyGroup>
-    <MicrosoftDotnetSdkInternalPackageVersion>5.0.100-preview.5.20228.1</MicrosoftDotnetSdkInternalPackageVersion>
+    <MicrosoftDotnetSdkInternalPackageVersion>5.0.100-preview.5.20230.28</MicrosoftDotnetSdkInternalPackageVersion>
   </PropertyGroup>
   <!--Package names-->
   <PropertyGroup>
