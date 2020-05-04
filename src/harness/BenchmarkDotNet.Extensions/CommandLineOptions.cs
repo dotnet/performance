@@ -30,6 +30,29 @@ namespace BenchmarkDotNet.Extensions
             return argsList;
         }
 
+        public static List<string> ParseAndRemoveStringParameter(List<string> argsList, string parameter, out string parameterValue)
+        {
+            int parameterIndex = argsList.IndexOf(parameter);
+            parameterValue = null;
+
+            if (parameterIndex != -1)
+            {
+                if (parameterIndex + 1 < argsList.Count)
+                {
+                    // remove --partition-count args
+                    parameterValue = argsList[parameterIndex+1];
+                    argsList.RemoveAt(parameterIndex + 1);
+                    argsList.RemoveAt(parameterIndex);
+                }
+                else
+                {
+                    throw new ArgumentException(String.Format("{0} must be followed by a string", parameter));
+                }
+            }
+
+            return argsList;
+        }
+
         public static void ValidatePartitionParameters(int? count, int? index)
         {
             // Either count and index must both be specified or neither specified
