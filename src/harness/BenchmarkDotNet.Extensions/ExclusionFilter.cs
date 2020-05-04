@@ -8,24 +8,23 @@ namespace BenchmarkDotNet.Extensions
 {
     class ExclusionFilter : IFilter
     {
-        private string filter;
+        private readonly GlobFilter globFilter;
 
         public ExclusionFilter(string _filter)
         {
             if (!String.IsNullOrEmpty(_filter))
             {
-                filter = _filter.ToLowerInvariant();
+                globFilter = new GlobFilter(new string[] { _filter });
             }
         }
 
         public bool Predicate(BenchmarkCase benchmarkCase)
         {
-            if(String.IsNullOrEmpty(filter))
+            if(globFilter == null)
             {
                 return true;
             }
-            string testName = benchmarkCase.DisplayInfo.ToLowerInvariant().Substring(0, benchmarkCase.DisplayInfo.IndexOf(':') + 1);
-            return !testName.Contains(filter);
+            return !globFilter.Predicate(benchmarkCase);
         }
     }
 }

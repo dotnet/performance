@@ -46,7 +46,7 @@ namespace BenchmarkDotNet.Extensions
                 }
                 else
                 {
-                    throw new ArgumentException(String.Format("{0} must be followed by an string", parameter));
+                    throw new ArgumentException(String.Format("{0} must be followed by a string", parameter));
                 }
             }
 
