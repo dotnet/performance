@@ -37,14 +37,18 @@ namespace BenchmarkDotNet.Extensions
 
             if (parameterIndex + 1 < argsList.Count)
             {
-                while (parameterIndex + 1 < argsList.Count && !argsList[parameterIndex + 1].Contains("-"))
+                while (parameterIndex + 1 < argsList.Count && !argsList[parameterIndex + 1].StartsWith("-"))
                 {
                     // remove each filter string and stop when we get to the next argument flag
                     parameterValue.Add(argsList[parameterIndex + 1]);
                     argsList.RemoveAt(parameterIndex + 1);
                 }
             }
-            argsList.RemoveAt(parameterIndex);
+            //We only want to remove the --exclusion-filter if it exists
+            if (parameterIndex != -1)
+            {
+                argsList.RemoveAt(parameterIndex);
+            }
 
             return argsList;
         }
