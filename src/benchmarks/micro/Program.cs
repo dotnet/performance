@@ -18,13 +18,13 @@ namespace MicroBenchmarks
             var argsList = new List<string>(args);
             int? partitionCount;
             int? partitionIndex;
-            string exclusionFilterValue;
+            List<string> exclusionFilterValue;
 
             // Parse and remove any additional parameters that we need that aren't part of BDN
             try {
                 argsList = CommandLineOptions.ParseAndRemoveIntParameter(argsList, "--partition-count", out partitionCount);
                 argsList = CommandLineOptions.ParseAndRemoveIntParameter(argsList, "--partition-index", out partitionIndex);
-                argsList = CommandLineOptions.ParseAndRemoveStringParameter(argsList, "--exclusion-filter", out exclusionFilterValue);
+                argsList = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--exclusion-filter", out exclusionFilterValue);
 
                 CommandLineOptions.ValidatePartitionParameters(partitionCount, partitionIndex);
             }

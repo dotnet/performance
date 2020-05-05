@@ -10,11 +10,11 @@ namespace BenchmarkDotNet.Extensions
     {
         private readonly GlobFilter globFilter;
 
-        public ExclusionFilter(string _filter)
+        public ExclusionFilter(List<string> _filter)
         {
-            if (!String.IsNullOrEmpty(_filter))
+            if (_filter.Count != 0)
             {
-                globFilter = new GlobFilter(new string[] { _filter });
+                globFilter = new GlobFilter(_filter.ToArray());
             }
         }
 

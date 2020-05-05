@@ -7,6 +7,7 @@ using BenchmarkDotNet.Exporters.Json;
 using Perfolizer.Horology;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Reports;
+using System.Collections.Generic;
 
 namespace BenchmarkDotNet.Extensions
 {
@@ -17,7 +18,7 @@ namespace BenchmarkDotNet.Extensions
             ImmutableHashSet<string> mandatoryCategories,
             int? partitionCount = null,
             int? partitionIndex = null,
-            string exclusionFilterValue = null,
+            List<string> exclusionFilterValue = null,
             Job job = null)
         {
             if (job is null)
