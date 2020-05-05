@@ -12,7 +12,7 @@ namespace BenchmarkDotNet.Extensions
 
         public ExclusionFilter(List<string> _filter)
         {
-            if (_filter.Count != 0)
+            if (_filter != null && _filter.Count != 0)
             {
                 globFilter = new GlobFilter(_filter.ToArray());
             }

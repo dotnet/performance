@@ -39,7 +39,7 @@ namespace BenchmarkDotNet.Extensions
             {
                 while (parameterIndex + 1 < argsList.Count && !argsList[parameterIndex + 1].Contains("-"))
                 {
-                    // remove --partition-count args
+                    // remove each filter string and stop when we get to the next argument flag
                     parameterValue.Add(argsList[parameterIndex + 1]);
                     argsList.RemoveAt(parameterIndex + 1);
                 }
