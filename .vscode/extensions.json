@@ -1,8 +1,0 @@
-{
-    "recommendations": [
-        "DavidAnson.vscode-markdownlint",
-        "ms-python.python",
-        "ms-dotnettools.csharp",
-        "ms-vscode.powershell",
-    ]
-}
