@@ -215,22 +215,46 @@ def _normal_benchmarks(proc_count: int) -> Mapping[str, Benchmark]:
     tagb_factor = 0.5 if proc_count == 1 else 1
     return {
         "0gb": Benchmark(
-            arguments=GCPerfSimArgs(tc=proc_count, tagb=300 * tagb_factor, tlgb=0), min_seconds=10
+            arguments=GCPerfSimArgs(
+                tc=proc_count,
+                tagb=300 * tagb_factor,
+                tlgb=0
+            ),
+            min_seconds=10
         ),
         "2gb": Benchmark(
-            arguments=GCPerfSimArgs(tc=proc_count, tagb=300 * tagb_factor, tlgb=2, sohsi=50)
+            arguments=GCPerfSimArgs(
+                tc=proc_count,
+                tagb=300 * tagb_factor,
+                tlgb=2,
+                sohsi=50,
+                pohsi=5,
+                pohpi=100
+            )
         ),
         # The pinning makes this test a lot slower, so allocate many fewer BG
         "2gb_pinning": Benchmark(
             arguments=GCPerfSimArgs(
-                tc=proc_count, tagb=100 * tagb_factor, tlgb=2, sohsi=50, sohpi=50
+                tc=proc_count,
+                tagb=100 * tagb_factor,
+                tlgb=2,
+                sohsi=50,
+                pohsi=5,
+                sohpi=50,
+                pohpi=100
             )
         ),
         # This must allocate 600GB to ensure the test isn't dominated by
         # the startup time of allocating the initial 20GB
         "20gb": Benchmark(
             arguments=GCPerfSimArgs(
-                tc=proc_count, tagb=600 * tagb_factor, tlgb=20, sohsi=50, allocType=AllocType.simple
+                tc=proc_count,
+                tagb=600 * tagb_factor,
+                tlgb=20,
+                sohsi=50,
+                pohsi=5,
+                pohpi=100,
+                allocType=AllocType.simple
             )
         ),
     }
@@ -302,7 +326,10 @@ def _create_scenario_high_memory_load(
         "90pct": Config(memory_load=MemoryLoadOptions(percent=90)),
     }
     benchmarks: Mapping[str, Benchmark] = {
-        "a": Benchmark(arguments=GCPerfSimArgs(tc=proc_count, tagb=40, tlgb=5, sohsi=30, sohpi=50))
+        "a": Benchmark(
+            arguments=GCPerfSimArgs(tc=proc_count, tagb=40, tlgb=5, sohsi=30, sohpi=50,
+                                    pohsi=5, pohpi=100)
+            )
     }
     return BenchFile(
         vary=Vary.coreclr,
@@ -328,7 +355,8 @@ def _create_scenario_low_memory_container(
     )
     benchmarks: Mapping[str, Benchmark] = {
         "tlgb0.2": Benchmark(
-            arguments=GCPerfSimArgs(tc=proc_count, tagb=80, tlgb=0.2, sohsi=30, sohpi=50)
+            arguments=GCPerfSimArgs(tc=proc_count, tagb=80, tlgb=0.2, sohsi=30, sohpi=50,
+                                    pohsi=5, pohpi=100)
         )
     }
     return BenchFile(
