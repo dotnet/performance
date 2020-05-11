@@ -102,8 +102,9 @@ function Exec-Process([string]$command, [string]$commandArgs) {
 # which writes the sdk's location into. This is only necessary for cmd --> powershell invocations
 # as dot sourcing isn't possible.
 function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
-  Write-Host "_DotNetInstallDir=$global:_DotNetInstallDirt"
+
   if (Test-Path variable:global:_DotNetInstallDir) {
+    Write-Host "_DotNetInstallDir=$global:_DotNetInstallDir"
     return $global:_DotNetInstallDir
   }
 
