@@ -104,7 +104,7 @@ function Exec-Process([string]$command, [string]$commandArgs) {
 function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
 
   if (Test-Path variable:global:_DotNetInstallDir) {
-    Write-Host "_DotNetInstallDir=$global:_DotNetInstallDir"
+    Write-Host "1_DotNetInstallDir=$global:_DotNetInstallDir"
     return $global:_DotNetInstallDir
   }
 
@@ -127,23 +127,26 @@ function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
 
   Write-Host "useInstalledDotNetCli=$useInstalledDotNetCli"
   Write-Host "globalJsonHasRuntimes=$globalJsonHasRuntimes"
-  Write-Host "DOTNET_INSTALL_DIR=$env:DOTNET_INSTALL_DIR"
+  Write-Host "2DOTNET_INSTALL_DIR=$env:DOTNET_INSTALL_DIR"
   # Find the first path on %PATH% that contains the dotnet.exe
   if ($useInstalledDotNetCli -and (-not $globalJsonHasRuntimes) -and ($env:DOTNET_INSTALL_DIR -eq $null)) {
     $dotnetCmd = Get-Command 'dotnet.exe' -ErrorAction SilentlyContinue
     Write-Host "dotnetCmd: $dotnetCmd"
     if ($dotnetCmd -ne $null) {
       $env:DOTNET_INSTALL_DIR = Split-Path $dotnetCmd.Path -Parent
+      Write-Host "3DOTNET_INSTALL_DIR=$env:DOTNET_INSTALL_DIR"
     }
   }
 
   $dotnetSdkVersion = $GlobalJson.tools.dotnet
+  Write-Host "dotnetSdkVersion=$dotnetSdkVersion"
 
   Write-Host "Test-Path: ${Test-Path(Join-Path $env:DOTNET_INSTALL_DIR "sdk\$dotnetSdkVersion")}"
   # Use dotnet installation specified in DOTNET_INSTALL_DIR if it contains the required SDK version,
   # otherwise install the dotnet CLI and SDK to repo local .dotnet directory to avoid potential permission issues.
   if ((-not $globalJsonHasRuntimes) -and ($env:DOTNET_INSTALL_DIR -ne $null) -and (Test-Path(Join-Path $env:DOTNET_INSTALL_DIR "sdk\$dotnetSdkVersion"))) {
     $dotnetRoot = $env:DOTNET_INSTALL_DIR
+    Write-Host "dotnetRoot=$dotnetRoot"
   } else {
     $dotnetRoot = Join-Path $RepoRoot '.dotnet'
 
