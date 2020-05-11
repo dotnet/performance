@@ -127,10 +127,11 @@ function InitializeDotNetCli([bool]$install, [bool]$createSdkLocationFile) {
 
   Write-Host "useInstalledDotNetCli=$useInstalledDotNetCli"
   Write-Host "globalJsonHasRuntimes=$globalJsonHasRuntimes"
-  Write-hsot "DOTNET_INSTALL_DIR=$env:DOTNET_INSTALL_DIR"
+  Write-Host "DOTNET_INSTALL_DIR=$env:DOTNET_INSTALL_DIR"
   # Find the first path on %PATH% that contains the dotnet.exe
   if ($useInstalledDotNetCli -and (-not $globalJsonHasRuntimes) -and ($env:DOTNET_INSTALL_DIR -eq $null)) {
     $dotnetCmd = Get-Command 'dotnet.exe' -ErrorAction SilentlyContinue
+    Write-Host "dotnetCmd: $dotnetCmd"
     if ($dotnetCmd -ne $null) {
       $env:DOTNET_INSTALL_DIR = Split-Path $dotnetCmd.Path -Parent
     }
