@@ -44,9 +44,6 @@ namespace System.Net.Primitives.Tests
 
         private static readonly long s_addr = IPAddress.Loopback.Address;
 
-        [Benchmark]
-        public long NetworkToHostOrder() => IPAddress.NetworkToHostOrder(s_addr);
-
 #if !NETFRAMEWORK // API added in .NET Core 2.1
         [Benchmark]
         [ArgumentsSource(nameof(ByteAddresses))]
