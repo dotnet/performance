@@ -151,6 +151,16 @@ CounterName    |10000000000000000.000 ns |10000000000000000.000 ns |100000000000
         }
 
         [Fact]
+        public void EnforceUniqueCounterName()
+        {
+            Test t = new Test();
+            t.Name = "Test";
+            Counter c = new Counter { Name = "Duplicate" };
+            t.AddCounter(c);
+            Assert.Throws<Exception>(() => { t.AddCounter(c); });
+        }
+
+        [Fact]
         public void AddCountersEnumerable()
         {
             Test t = new Test();

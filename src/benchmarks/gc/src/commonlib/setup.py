@@ -32,7 +32,7 @@ def setup() -> None:
         )
 
 
-_PERFVIEW_URL = "https://github.com/microsoft/perfview/releases/download/P2.0.44/PerfView.exe"
+_PERFVIEW_URL = "https://github.com/microsoft/perfview/releases/download/P2.0.52/PerfView.exe"
 _SIGCHECK_URL = "https://download.sysinternals.com/files/Sigcheck.zip"
 _SIGCHECK_ZIP_PATH = SIGCHECK64_PATH.parent / "Sigcheck.zip"
 _SIGCHECK_PARENT_PATH = SIGCHECK64_PATH.parent

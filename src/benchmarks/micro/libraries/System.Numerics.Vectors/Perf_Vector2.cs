@@ -52,5 +52,14 @@ namespace System.Numerics.Tests
 
         [Benchmark]
         public Vector2 NormalizeBenchmark() => Vector2.Normalize(VectorTests.Vector2Value);
+
+        [Benchmark]
+        public Vector2 ClampBenchmark() => Vector2.Clamp(VectorTests.Vector2Value, VectorTests.Vector2Value, VectorTests.Vector2ValueInverted);
+
+        [Benchmark]
+        public Vector2 MinBenchmark() => Vector2.Min(VectorTests.Vector2Value, VectorTests.Vector2ValueInverted);
+
+        [Benchmark]
+        public Vector2 MaxBenchmark() => Vector2.Max(VectorTests.Vector2Value, VectorTests.Vector2ValueInverted);
     }
 }

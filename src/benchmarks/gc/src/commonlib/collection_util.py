@@ -130,7 +130,7 @@ def index_of_max(s: Sequence[T]) -> int:
     return max(indices(s), key=lambda i: s[i])
 
 
-def is_empty(l: Union[FrozenSet[T], Mapping[K, V], Sequence[T]]) -> bool:
+def is_empty(l: Union[FrozenSet[T], List[T], Mapping[K, V], Sequence[T]]) -> bool:
     return len(l) == 0
 
 

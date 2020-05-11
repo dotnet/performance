@@ -18,11 +18,13 @@ namespace MicroBenchmarks
             var argsList = new List<string>(args);
             int? partitionCount;
             int? partitionIndex;
+            List<string> exclusionFilterValue;
 
             // Parse and remove any additional parameters that we need that aren't part of BDN
             try {
                 argsList = CommandLineOptions.ParseAndRemoveIntParameter(argsList, "--partition-count", out partitionCount);
                 argsList = CommandLineOptions.ParseAndRemoveIntParameter(argsList, "--partition-index", out partitionIndex);
+                argsList = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--exclusion-filter", out exclusionFilterValue);
 
                 CommandLineOptions.ValidatePartitionParameters(partitionCount, partitionIndex);
             }
@@ -38,7 +40,8 @@ namespace MicroBenchmarks
                     artifactsPath: new DirectoryInfo(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "BenchmarkDotNet.Artifacts")), 
                     mandatoryCategories: ImmutableHashSet.Create(Categories.Libraries, Categories.Runtime, Categories.ThirdParty),
                     partitionCount: partitionCount,
-                    partitionIndex: partitionIndex))
+                    partitionIndex: partitionIndex,
+                    exclusionFilterValue: exclusionFilterValue))
                 .ToExitCode();
         }
     }
