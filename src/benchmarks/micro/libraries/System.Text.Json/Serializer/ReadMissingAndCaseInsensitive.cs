@@ -38,20 +38,34 @@ namespace System.Text.Json.Serialization.Tests
             };
         }
 
+        /// <summary>
+        /// Uses default settings of case-sensitive comparison and JSON that matches the Pascal-casing
+        /// of the properties on the class.
+        /// </summary>
         [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
-        public T DeserializeBaseline() => JsonSerializer.Deserialize<T>(_serialized, _optionsBaseline);
+        public T Baseline() => JsonSerializer.Deserialize<T>(_serialized, _optionsBaseline);
 
+        /// <summary>
+        /// Properties are missing because the comparison is case-sensitive and the JSON uses camel-casing
+        /// which does not match the properties on the class.
+        /// </summary>
         [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
-        public T DeserializeMissing() => JsonSerializer.Deserialize<T>(_serializedCamelCased, _optionsBaseline);
+        public T MissingProperties() => JsonSerializer.Deserialize<T>(_serializedCamelCased, _optionsBaseline);
 
+        /// <summary>
+        /// Case-insensitive is enabled and the casing in JSON matches the properties on the class.
+        /// </summary>
         [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
-        public T DeserializeCaseMatching() => JsonSerializer.Deserialize<T>(_serialized, _optionsCaseInsensitive);
+        public T CaseInsensitiveMatching() => JsonSerializer.Deserialize<T>(_serialized, _optionsCaseInsensitive);
 
+        /// <summary>
+        /// Case-insensitive is enabled and the casing in JSON does not match the properties on the class.
+        /// </summary>
         [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
-        public T DeserializeCaseNotMatching() => JsonSerializer.Deserialize<T>(_serializedCamelCased, _optionsCaseInsensitive);
+        public T CaseInsensitiveNotMatching() => JsonSerializer.Deserialize<T>(_serializedCamelCased, _optionsCaseInsensitive);
     }
 }
