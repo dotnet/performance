@@ -120,6 +120,7 @@ function InitializeDotNetCli {
   if [[ "$use_installed_dotnet_cli" == true && $global_json_has_runtimes == false && -z "${DOTNET_INSTALL_DIR:-}" ]]; then
     local dotnet_path=`command -v dotnet`
     echo "dotnet_path=$dotnet_path"
+    dotnet_path="/__w/1/s/CorrelationStaging/dotnet"
     if [[ -n "$dotnet_path" ]]; then
       ResolvePath "$dotnet_path"
       export DOTNET_INSTALL_DIR=`dirname "$_ResolvePath"`
@@ -127,6 +128,7 @@ function InitializeDotNetCli {
     fi
   fi
 
+  echo "where is dotnet? ${whereis dotnet}"
   ReadGlobalVersion "dotnet"
   local dotnet_sdk_version=$_ReadGlobalVersion
   echo "dotnet_sdk_version=$dotnet_sdk_version"
