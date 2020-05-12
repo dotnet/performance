@@ -144,6 +144,7 @@ function InitializeDotNetCli {
     export DOTNET_INSTALL_DIR="$dotnet_root"
 
     if [[ ! -d "$DOTNET_INSTALL_DIR/sdk/$dotnet_sdk_version" ]]; then
+      install=false
       if [[ "$install" == true ]]; then
         InstallDotNetSdk "$dotnet_root" "$dotnet_sdk_version"
       else
