@@ -59,22 +59,22 @@
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem> -->
 
-    <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Large %(Identity)')" Exclude="*2.1" Condition="'$(_Framework)' != 'netcoreapp5.0'">
+    <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Large %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and '$(_Framework)' != 'netcoreapp5.0'">
       <PayloadDirectory>$(ScenariosDir)windowsformslarge</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
 
-    <SDKWorkItem Include="@(Framework -> 'SDK WPF Large %(Identity)')" Exclude="*2.1" Condition="'$(_Framework)' != 'netcoreapp5.0'">
+    <SDKWorkItem Include="@(Framework -> 'SDK WPF Large %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and '$(_Framework)' != 'netcoreapp5.0'">
       <PayloadDirectory>$(ScenariosDir)wpflarge</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
 
-    <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Template %(Identity)')" Exclude="*2.1" Condition="'$(_Framework)' != 'netcoreapp5.0'">
+    <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Template %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and '$(_Framework)' != 'netcoreapp5.0'">
       <PayloadDirectory>$(ScenariosDir)windowsforms</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
 
-    <SDKWorkItem Include="@(Framework -> 'SDK WPF Template %(Identity)')" Exclude="*2.1" Condition="'$(_Framework)' != 'netcoreapp5.0'">
+    <SDKWorkItem Include="@(Framework -> 'SDK WPF Template %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and '$(_Framework)' != 'netcoreapp5.0'">
       <PayloadDirectory>$(ScenariosDir)wpf</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
