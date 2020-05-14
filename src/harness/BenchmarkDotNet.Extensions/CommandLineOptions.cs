@@ -30,24 +30,24 @@ namespace BenchmarkDotNet.Extensions
             return argsList;
         }
 
-        public static List<string> ParseAndRemoveStringParameter(List<string> argsList, string parameter, out string parameterValue)
+        public static List<string> ParseAndRemoveStringsParameter(List<string> argsList, string parameter, out List<string> parameterValue)
         {
             int parameterIndex = argsList.IndexOf(parameter);
-            parameterValue = null;
+            parameterValue = new List<string>();
 
+            if (parameterIndex + 1 < argsList.Count)
+            {
+                while (parameterIndex + 1 < argsList.Count && !argsList[parameterIndex + 1].StartsWith("-"))
+                {
+                    // remove each filter string and stop when we get to the next argument flag
+                    parameterValue.Add(argsList[parameterIndex + 1]);
+                    argsList.RemoveAt(parameterIndex + 1);
+                }
+            }
+            //We only want to remove the --exclusion-filter if it exists
             if (parameterIndex != -1)
             {
-                if (parameterIndex + 1 < argsList.Count)
-                {
-                    // remove --partition-count args
-                    parameterValue = argsList[parameterIndex+1];
-                    argsList.RemoveAt(parameterIndex + 1);
-                    argsList.RemoveAt(parameterIndex);
-                }
-                else
-                {
-                    throw new ArgumentException(String.Format("{0} must be followed by a string", parameter));
-                }
+                argsList.RemoveAt(parameterIndex);
             }
 
             return argsList;

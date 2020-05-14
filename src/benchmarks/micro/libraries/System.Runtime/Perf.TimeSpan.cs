@@ -11,9 +11,6 @@ namespace System.Tests
     public class Perf_TimeSpan
     {
         [Benchmark]
-        public TimeSpan ctor_int_int_int() => new TimeSpan(7, 8, 10);
-
-        [Benchmark]
         public TimeSpan FromSeconds() => TimeSpan.FromSeconds(50);
     }
 }

@@ -53,29 +53,5 @@ namespace System.Collections
 
         [Benchmark]
         public ConcurrentBag<T> ConcurrentBag() => new ConcurrentBag<T>();
-
-        [Benchmark]
-        public ImmutableArray<T> ImmutableArray() => Immutable.ImmutableArray.Create<T>();
-
-        [Benchmark]
-        public ImmutableDictionary<T, T> ImmutableDictionary() => Immutable.ImmutableDictionary.Create<T, T>();
-
-        [Benchmark]
-        public ImmutableHashSet<T> ImmutableHashSet() => Immutable.ImmutableHashSet.Create<T>();
-
-        [Benchmark]
-        public ImmutableList<T> ImmutableList() => Immutable.ImmutableList.Create<T>();
-
-        [Benchmark]
-        public ImmutableQueue<T> ImmutableQueue() => Immutable.ImmutableQueue.Create<T>();
-
-        [Benchmark]
-        public ImmutableStack<T> ImmutableStack() => Immutable.ImmutableStack.Create<T>();
-
-        [Benchmark]
-        public ImmutableSortedDictionary<T, T> ImmutableSortedDictionary() => Immutable.ImmutableSortedDictionary.Create<T, T>();
-
-        [Benchmark]
-        public ImmutableSortedSet<T> ImmutableSortedSet() => Immutable.ImmutableSortedSet.Create<T>();
     }
 }

@@ -87,5 +87,29 @@ namespace System.Numerics.Tests
             }
             return sum;
         }
+
+        [Benchmark]
+        public int PopCount_uint()
+        {
+            int sum = 0;
+            uint[] input = input_uint;
+            for (int i = 0; i < input.Length; i++)
+            {
+                sum += BitOperations.PopCount(input[i]);
+            }
+            return sum;
+        }
+
+        [Benchmark]
+        public int PopCount_ulong()
+        {
+            int sum = 0;
+            ulong[] input = input_ulong;
+            for (int i = 0; i < input.Length; i++)
+            {
+                sum += BitOperations.PopCount(input[i]);
+            }
+            return sum;
+        }
     }
 }
