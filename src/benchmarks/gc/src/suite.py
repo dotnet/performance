@@ -324,8 +324,8 @@ def _create_scenario_high_memory_load(
     }
     benchmarks: Mapping[str, Benchmark] = {
         "a": Benchmark(
-            arguments=GCPerfSimArgs(tc=proc_count, tagb=40, tlgb=5, sohsi=30, sohpi=50,
-                                    pohsi=5, pohpi=100)
+            arguments=GCPerfSimArgs(tc=proc_count, tagb=40, tlgb=5, sohsi=30,
+                                    sohpi=50, pohsi=5)
             )
     }
     return BenchFile(
@@ -352,8 +352,8 @@ def _create_scenario_low_memory_container(
     )
     benchmarks: Mapping[str, Benchmark] = {
         "tlgb0.2": Benchmark(
-            arguments=GCPerfSimArgs(tc=proc_count, tagb=80, tlgb=0.2, sohsi=30, sohpi=50,
-                                    pohsi=5, pohpi=100)
+            arguments=GCPerfSimArgs(tc=proc_count, tagb=80, tlgb=0.2, sohsi=30,
+                                    sohpi=50, pohsi=5)
         )
     }
     return BenchFile(
