@@ -1,5 +1,5 @@
 '''
-C# Console app
+Crossgen2
 '''
 from shared.runner import TestTraits, Runner
 

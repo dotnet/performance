@@ -108,7 +108,7 @@ namespace ScenarioMeasurement
         }
 
 
-        public static object GetPayloadValue(TraceEvent evt, string payloadName)
+        private static object GetPayloadValue(TraceEvent evt, string payloadName)
         {
             var result = evt.PayloadByName(payloadName);
             if (result == null)

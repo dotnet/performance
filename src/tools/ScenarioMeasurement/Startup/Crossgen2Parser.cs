@@ -57,7 +57,7 @@ namespace ScenarioMeasurement
         }
     }
 
-    public class EventParser
+    public sealed class EventParser
     {
         string EventName;
         int? PrevPid = null;
@@ -85,7 +85,6 @@ namespace ScenarioMeasurement
                     }
                     Pid = evt.ProcessID;
                     Start = evt.TimeStampRelativeMSec;
-                    Console.WriteLine($"EventName:{EventName}, Pid:{Pid}, Start:{Start}");
                 }
             });
         }
@@ -107,7 +106,6 @@ namespace ScenarioMeasurement
                     {
                         Intervals.Push(Interval);
                     }
-                    Console.WriteLine($"EventName:{EventName}, Pid:{Pid}, Duration:{Interval}");
                     Start = 0;
                     PrevPid = Pid;
                     Pid = null;
