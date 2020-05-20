@@ -49,6 +49,11 @@ class Runner:
         crossgenparser.add_argument('--core-root', dest='coreroot', type=str, required=True)
         self.add_common_arguments(crossgenparser)
 
+        crossgen2parser = subparsers.add_parser(const.CROSSGEN2)
+        crossgen2parser.add_argument('--test-name', dest='testname', type=str, required=True)
+        crossgen2parser.add_argument('--core-root', dest='coreroot', type=str, required=True)
+        self.add_common_arguments(crossgen2parser)
+
         sodparser = subparsers.add_parser(const.SOD)
         sodparser.add_argument('--dirs', dest='dirs', type=str)
         self.add_common_arguments(sodparser)
@@ -66,6 +71,10 @@ class Runner:
 
         if self.testtype == const.CROSSGEN:
             self.crossgenfile = args.testname
+            self.coreroot = args.coreroot
+
+        if self.testtype == const.CROSSGEN2:
+            self.crossgen2file = args.testname
             self.coreroot = args.coreroot
 
         if self.testtype == const.SOD:
@@ -151,8 +160,7 @@ class Runner:
         elif self.testtype == const.CROSSGEN:
             startup = StartupWrapper()
             crossgenexe = 'crossgen%s' % extension()
-            crossgenargs = '/nologo /p %s %s\%s' % (
-                self.coreroot, self.coreroot, self.crossgenfile)
+            crossgenargs = '/nologo /p %s %s\%s' % (self.coreroot, self.coreroot, self.crossgenfile)
             if self.coreroot is not None and not os.path.isdir(self.coreroot):
                 getLogger().error('Cannot find CORE_ROOT at %s', self.coreroot)
                 return
@@ -169,6 +177,32 @@ class Runner:
                                   ) 
             startup.runtests(self.traits)
            
+        elif self.testtype == const.CROSSGEN2:
+            startup = StartupWrapper()
+            if self.coreroot is not None and not os.path.isdir(self.coreroot):
+                getLogger().error('Cannot find CORE_ROOT at %s', self.coreroot)
+                return
+
+            crossgen2exe = 'crossgen2%s' % extension()
+            referencefilenames = ['System.*.dll', 'Microsoft.*.dll', 'netstandard.dll', 'mscorlib.dll']
+            referencefiles = [os.path.join(self.coreroot, filename) for filename in referencefilenames]
+
+            filename, ext = os.path.splitext(self.crossgen2file)
+            outputfile = os.path.join(self.coreroot, filename+'.ni'+ext)
+
+            crossgen2args = '%s -o %s -O %s' % (os.path.join(self.coreroot, self.crossgen2file), outputfile, ' -r '.join(['']+referencefiles))
+            self.traits.add_traits(overwrite=True,
+                                   startupmetric=const.STARTUP_CROSSGEN2,
+                                   workingdir=self.coreroot,
+                                   appargs=crossgen2args
+                                   )
+            self.traits.add_traits(overwrite=False,
+                                   scenarioname='Crossgen2 Throughput - %s' % self.crossgen2file,
+                                   scenariotypename='%s - %s' % (const.SCENARIO_NAMES[const.CROSSGEN2], self.crossgen2file),
+                                   apptorun=os.path.join(self.coreroot, os.path.join('crossgen2', crossgen2exe))
+                                  ) 
+            startup.runtests(self.traits)
+
         elif self.testtype == const.SOD:
             sod = SODWrapper()
             builtdir = const.PUBDIR if os.path.exists(const.PUBDIR) else None

@@ -10,7 +10,8 @@ namespace ScenarioMeasurement
         TimeToMain,
         GenericStartup,
         ProcessTime,
-        WPF
+        WPF,
+        Crossgen2
     }
     class Startup
     {
@@ -144,6 +145,9 @@ namespace ScenarioMeasurement
                 case MetricType.ProcessTime:
                     parser = new ProcessTimeParser();
                     break;
+                case MetricType.Crossgen2:
+                    parser = new Crossgen2Parser();
+                    break;
                     //case MetricType.WPF:
                     //    parser = new WPFParser();
                     //    break;
@@ -185,7 +189,7 @@ namespace ScenarioMeasurement
                 {
                     commandLine = commandLine + " " + appArgs;
                 }
-
+                Console.WriteLine($"commandline: {commandLine}");
                 var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
 
 

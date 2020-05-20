@@ -104,7 +104,7 @@ namespace ScenarioMeasurement
 
         public void EnableUserProvider(string provider)
         {
-            UserSession.EnableProvider(provider);
+            UserSession.EnableProvider(provider, TraceEventLevel.Verbose);
         }
     }
 }
