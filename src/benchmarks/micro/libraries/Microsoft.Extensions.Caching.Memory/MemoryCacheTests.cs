@@ -25,7 +25,7 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
         [Benchmark]
         public object GetHit() => _memCache.Get("256");
         [Benchmark]
-        public object GetMiss() => _memCache.Get("256");
+        public object GetMiss() => _memCache.Get("-1");
 
         [Benchmark]
         public object SetOverride() => _memCache.Set("512", "512");
