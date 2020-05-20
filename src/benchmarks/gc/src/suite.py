@@ -229,7 +229,6 @@ def _normal_benchmarks(proc_count: int) -> Mapping[str, Benchmark]:
                 tlgb=2,
                 sohsi=50,
                 pohsi=5,
-                pohpi=100
             )
         ),
         # The pinning makes this test a lot slower, so allocate many fewer BG
@@ -241,7 +240,6 @@ def _normal_benchmarks(proc_count: int) -> Mapping[str, Benchmark]:
                 sohsi=50,
                 pohsi=5,
                 sohpi=50,
-                pohpi=100
             )
         ),
         # This must allocate 600GB to ensure the test isn't dominated by
@@ -253,7 +251,6 @@ def _normal_benchmarks(proc_count: int) -> Mapping[str, Benchmark]:
                 tlgb=20,
                 sohsi=50,
                 pohsi=5,
-                pohpi=100,
                 allocType=AllocType.simple
             )
         ),

@@ -1253,7 +1253,7 @@ class ArgsParser
         uint pohAllocHigh = DEFAULT_POH_ALLOC_HIGH;
 
 #if NETCOREAPP5_0
-        uint pohPinInterval = DEFAULT_PINNING_INTERVAL;
+        uint pohPinInterval = 0;
         uint pohFinalizableInterval = DEFAULT_FINALIZABLE_INTERVAL;
         uint pohSurvInterval = DEFAULT_POH_SURV_INTERVAL;
 
