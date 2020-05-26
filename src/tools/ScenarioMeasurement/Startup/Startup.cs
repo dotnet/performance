@@ -189,7 +189,6 @@ namespace ScenarioMeasurement
                 {
                     commandLine = commandLine + " " + appArgs;
                 }
-                Console.WriteLine($"commandline: {commandLine}");
                 var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
 
 

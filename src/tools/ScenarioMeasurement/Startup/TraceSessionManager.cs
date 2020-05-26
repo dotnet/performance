@@ -11,7 +11,7 @@ namespace ScenarioMeasurement
         void EnableProviders(IParser parser);
         void EnableKernelProvider(params TraceSessionManager.KernelKeyword[] keywords);
         void EnableUserProvider(params TraceSessionManager.ClrKeyword[] keywords);
-        void EnableUserProvider(string provider);
+        void EnableUserProvider(string provider, TraceEventLevel verboseLevel);
     }
 
     public static class TraceSessionManager

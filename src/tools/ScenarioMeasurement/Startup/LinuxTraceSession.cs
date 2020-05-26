@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Diagnostics.Tracing;
+using System.Collections.Generic;
 
 namespace ScenarioMeasurement
 {
@@ -60,7 +61,7 @@ namespace ScenarioMeasurement
             clrKeywords[TraceSessionManager.ClrKeyword.Startup] = PerfCollect.ClrKeyword.DotNETRuntimePrivate_StartupKeyword;
         }
 
-        public void EnableUserProvider(string provider)
+        public void EnableUserProvider(string provider, TraceEventLevel verboseLevel)
         {
         }
     }

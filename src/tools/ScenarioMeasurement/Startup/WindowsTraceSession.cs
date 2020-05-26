@@ -102,9 +102,9 @@ namespace ScenarioMeasurement
             clrKeywords[TraceSessionManager.ClrKeyword.Startup] = ClrPrivateTraceEventParser.Keywords.Startup;
         }
 
-        public void EnableUserProvider(string provider)
+        public void EnableUserProvider(string provider, TraceEventLevel verboseLevel)
         {
-            UserSession.EnableProvider(provider, TraceEventLevel.Verbose);
+            UserSession.EnableProvider(provider, verboseLevel);
         }
     }
 }

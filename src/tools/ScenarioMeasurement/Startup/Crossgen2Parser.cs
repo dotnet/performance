@@ -1,6 +1,6 @@
-﻿using Microsoft.Diagnostics.Tracing.Parsers;
+﻿using Microsoft.Diagnostics.Tracing;
+using Microsoft.Diagnostics.Tracing.Parsers;
 using Reporting;
-using System;
 using System.Collections.Generic;
 
 namespace ScenarioMeasurement
@@ -15,7 +15,7 @@ namespace ScenarioMeasurement
 
         public void EnableUserProviders(ITraceSession user)
         {
-            user.EnableUserProvider(ProviderName);
+            user.EnableUserProvider(ProviderName, TraceEventLevel.Verbose);
         }
 
         public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
@@ -59,12 +59,12 @@ namespace ScenarioMeasurement
 
     public sealed class EventParser
     {
-        string EventName;
-        int? PrevPid = null;
-        int? Pid = null;
-        double Start = 0;
-        double Interval = 0;
-        public Stack<double> Intervals = new Stack<double>();
+        public string EventName { get; private set; }
+        public Stack<double> Intervals { get; private set; } = new Stack<double>();
+        private int? PrevPid = null;
+        private int? Pid = null;
+        private double Start = 0;
+        private double Interval = 0;   
 
         public EventParser(string eventName)
         {
