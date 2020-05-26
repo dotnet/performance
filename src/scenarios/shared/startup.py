@@ -57,7 +57,7 @@ class StartupWrapper(object):
         Runs tests through startup
         '''
         # make sure required arguments are present
-        for key in ['apptorun', 'scenariotypename', 'startupmetric', 'guiapp']:
+        for key in ['apptorun', 'startupmetric', 'guiapp']:
             if not getattr(traits, key):
                 raise Exception('startup tests require %s' % key)
         reportjson = os.path.join(TRACEDIR, 'perf-lab-report.json')

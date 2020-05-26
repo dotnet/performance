@@ -45,6 +45,8 @@ class TestTraits:
     # add traits if not present or overwrite existing traits if overwrite=True
     def add_traits(self, overwrite=True, **kwargs):
         for keyword in kwargs:
+            if keyword == 'timeout':
+                    print(f"keyword: timeout value: {kwargs[keyword]}")
             if not self.is_valid_trait(keyword):
                 raise Exception("%s is not a valid trait." % keyword)
             if not getattr(self, keyword) or overwrite:
