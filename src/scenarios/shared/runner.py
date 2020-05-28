@@ -197,14 +197,20 @@ class Runner:
                 referencefiles = [os.path.join(self.coreroot, filename) for filename in referencefilenames]
                 # single assembly filename: example.dll
                 filename, ext = os.path.splitext(self.singlefile)
-                outputfile = os.path.join(self.coreroot, os.path.join('out', filename+'.ni'+ext ))
+                outputdir = os.path.join(self.coreroot, 'out')
+                if not os.path.exists(outputdir):
+                    os.mkdir(outputdir)
+                outputfile = os.path.join(outputdir, filename+'.ni'+ext )
                 crossgen2args = '%s -o %s -O %s' % (os.path.join(self.coreroot, self.singlefile), outputfile, ' -r '.join(['']+referencefiles))
             
             elif compiletype == const.CROSSGEN2_COMPOSITE:
                 # composite rsp filename: ..\example.dll.rsp
-                dllname, ext = os.path.splitext(os.path.basename(self.compositefile))
+                dllname, _ = os.path.splitext(os.path.basename(self.compositefile))
                 filename, ext = os.path.splitext(dllname)
-                outputfile = os.path.join(self.coreroot, os.path.join('composite.out', filename+'.ni'+ext ))
+                outputdir = os.path.join(self.coreroot, 'composite.out')
+                if not os.path.exists(outputdir):
+                    os.mkdir(outputdir)
+                outputfile = os.path.join(outputdir, filename+'.ni'+ext )
                 crossgen2args = '--composite -o %s -O @%s' % (outputfile, self.compositefile)
 
             self.traits.add_traits(overwrite=True,

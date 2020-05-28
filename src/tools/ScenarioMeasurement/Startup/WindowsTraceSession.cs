@@ -57,8 +57,8 @@ namespace ScenarioMeasurement
             {
                 files.Add(userTraceFile);
             }
-            
-            logger.Log($"Merging {string.Join(',',files)}... ");
+
+            logger.Log($"Merging {string.Join(',', files)}... ");
             TraceEventSession.Merge(files.ToArray(), traceFile);
             if (File.Exists(traceFile))
             {
@@ -102,7 +102,7 @@ namespace ScenarioMeasurement
             clrKeywords[TraceSessionManager.ClrKeyword.Startup] = ClrPrivateTraceEventParser.Keywords.Startup;
         }
 
-        public void EnableUserProvider(string provider, TraceEventLevel verboseLevel)
+        public void EnableUserProvider(string provider, TraceEventLevel verboseLevel = TraceEventLevel.Verbose)
         {
             UserSession.EnableProvider(provider, verboseLevel);
         }

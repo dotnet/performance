@@ -61,7 +61,7 @@ namespace ScenarioMeasurement
             clrKeywords[TraceSessionManager.ClrKeyword.Startup] = PerfCollect.ClrKeyword.DotNETRuntimePrivate_StartupKeyword;
         }
 
-        public void EnableUserProvider(string provider, TraceEventLevel verboseLevel)
+        public void EnableUserProvider(string provider, TraceEventLevel verboseLevel = TraceEventLevel.Verbose)
         {
         }
     }
