@@ -227,8 +227,7 @@ def _normal_benchmarks(proc_count: int) -> Mapping[str, Benchmark]:
                 tc=proc_count,
                 tagb=300 * tagb_factor,
                 tlgb=2,
-                sohsi=50,
-                pohsi=5,
+                sohsi=50
             )
         ),
         # The pinning makes this test a lot slower, so allocate many fewer BG
@@ -238,8 +237,7 @@ def _normal_benchmarks(proc_count: int) -> Mapping[str, Benchmark]:
                 tagb=100 * tagb_factor,
                 tlgb=2,
                 sohsi=50,
-                pohsi=5,
-                sohpi=50,
+                sohpi=50
             )
         ),
         # This must allocate 600GB to ensure the test isn't dominated by
@@ -250,7 +248,6 @@ def _normal_benchmarks(proc_count: int) -> Mapping[str, Benchmark]:
                 tagb=600 * tagb_factor,
                 tlgb=20,
                 sohsi=50,
-                pohsi=5,
                 allocType=AllocType.simple
             )
         ),
@@ -325,7 +322,7 @@ def _create_scenario_high_memory_load(
     benchmarks: Mapping[str, Benchmark] = {
         "a": Benchmark(
             arguments=GCPerfSimArgs(tc=proc_count, tagb=40, tlgb=5, sohsi=30,
-                                    sohpi=50, pohsi=5)
+                                    sohpi=50)
             )
     }
     return BenchFile(
@@ -353,7 +350,7 @@ def _create_scenario_low_memory_container(
     benchmarks: Mapping[str, Benchmark] = {
         "tlgb0.2": Benchmark(
             arguments=GCPerfSimArgs(tc=proc_count, tagb=80, tlgb=0.2, sohsi=30,
-                                    sohpi=50, pohsi=5)
+                                    sohpi=50)
         )
     }
     return BenchFile(
