@@ -36,7 +36,7 @@
 
 **This doc explains how to profile local [dotnet/runtime](https://github.com/dotnet/runtime) builds and it's targetted at [dotnet/runtime](https://github.com/dotnet/runtime) repository contributors.**
 
-Before you start any performance investigation, you need to [build](#Build) [dotnet/runtime](https://github.com/dotnet/runtime) in **Release**, create a small [repro](#Repro) app and change the default [project settings](#Project-Settings).
+Before you start any performance investigation, you need to [build](#Build) [dotnet/runtime](https://github.com/dotnet/runtime) in **Release**, create a small [repro](#Repro) app and change the default [project settings](#Project-Settings). If you want to profile a microbenchmark test, [BenchmarkDotNet has built-in profiling option](https://github.com/dotnet/performance/blob/master/docs/benchmarkdotnet.md#profiling) to collect trace.  
 
 The next step is to choose the right profiler depending on the OS:
 
