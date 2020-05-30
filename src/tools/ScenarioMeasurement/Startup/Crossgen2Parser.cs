@@ -40,12 +40,12 @@ namespace ScenarioMeasurement
 
             var processTimeParser = new ProcessTimeParser();
             Counter processTimeCounter = null;
-            foreach (var counter in processTimeParser.Parse(mergeTraceFile, processName, pids, commandLine))
+           /* foreach (var counter in processTimeParser.Parse(mergeTraceFile, processName, pids, commandLine))
             {
                 if(counter.Name == "Process Time"){
                     processTimeCounter = counter;
                 }
-            }
+            }*/
 
             return new[] {
                 processTimeCounter,
@@ -60,11 +60,10 @@ namespace ScenarioMeasurement
     public sealed class EventParser
     {
         public string EventName { get; private set; }
-        public Stack<double> Intervals { get; private set; } = new Stack<double>();
-        private int? PrevPid = null;
-        private int? Pid = null;
-        private double Start = 0;
-        private double Interval = 0;   
+        public Stack<double> Intervals { get; private set; } = new Stack<double>(); // final counter results
+        private int? PrevPid = null; // pid of the previous event, used to track multiple events of the same type (jitting) within a single process
+        private int? Pid = null; // pid of the current event
+        private double Start = 0; // start of the current event
 
         public EventParser(string eventName)
         {
@@ -77,12 +76,6 @@ namespace ScenarioMeasurement
             {
                 if (!Pid.HasValue && ParserUtility.MatchProcessID(evt, source, pids))
                 {
-                    // For jitting, get the sum of multiple start&stop duration within each process
-                    if (!PrevPid.HasValue || !ParserUtility.MatchSingleProcessID(evt, source, (int)PrevPid))
-                    {
-                        // Initialize interval for another process
-                        Interval = 0;
-                    }
                     Pid = evt.ProcessID;
                     Start = evt.TimeStampRelativeMSec;
                 }
@@ -91,20 +84,24 @@ namespace ScenarioMeasurement
 
         public void AddEventStopCallback(TraceSourceManager source, DynamicTraceEventParser dynamicParser, string provider)
         {
+            // For some crossgen2 events (ex: jitting), there could be multiple start&stop pairs within one process, thus we sum up 
+            // time elapsed between each pair as the interval of this event. 
             dynamicParser.AddCallbackForProviderEvent(provider, $"{EventName}/Stop", evt =>
             {
                 if (Pid.HasValue && ParserUtility.MatchSingleProcessID(evt, source, (int)Pid))
                 {
-                    Interval += evt.TimeStampRelativeMSec - Start;
+                    // Get time elapsed for this pair of start&stop events
+                    double interval = evt.TimeStampRelativeMSec - Start;
+                    // If previous pid exists, this is the same process and time elapsed is added to the last value in the stack.
                     if (PrevPid.HasValue && ParserUtility.MatchSingleProcessID(evt, source, (int)PrevPid))
                     {
-                        // Initialize interval for another process
                         double lastValue = Intervals.Pop();
-                        Intervals.Push(lastValue + (evt.TimeStampRelativeMSec - Start));
+                        Intervals.Push(lastValue + interval);
                     }
+                    // If previous pid doesn't exist, this is the next process and time elapsed is a new value pushed to the stack.
                     else
                     {
-                        Intervals.Push(Interval);
+                        Intervals.Push(interval);
                     }
                     Start = 0;
                     PrevPid = Pid;
