@@ -27,7 +27,7 @@ namespace System.Text.Json.Serialization.Tests
         [GlobalSetup]
         public void Setup()
         {
-            _options = new JsonSerializerOptions { ReferenceHandling = ReferenceHandling.Preserve };
+            _options = new JsonSerializerOptions { ReferenceHandler = ReferenceHandler.Preserve };
 
             _settings = new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.All };
 
