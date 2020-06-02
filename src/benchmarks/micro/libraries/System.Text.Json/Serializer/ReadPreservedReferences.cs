@@ -27,7 +27,7 @@ namespace System.Text.Json.Serialization.Tests
         [GlobalSetup]
         public void Setup()
         {
-            _options = new JsonSerializerOptions { ReferenceHandling = ReferenceHandling.Preserve };
+            _options = new JsonSerializerOptions { ReferenceHandler = ReferenceHandler.Preserve };
 
             _settings = new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.All };
 
@@ -39,7 +39,7 @@ namespace System.Text.Json.Serialization.Tests
             }
             else
             {
-                // Use payload that does not contain metadata in order to see what is the penalty of having ReferenceHandling.Preserve set.
+                // Use payload that does not contain metadata in order to see what is the penalty of having ReferenceHandler.Preserve set.
                 _serialized = JsonConvert.SerializeObject(value);
             }
         }

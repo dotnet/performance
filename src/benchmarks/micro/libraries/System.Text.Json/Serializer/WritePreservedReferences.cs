@@ -26,7 +26,7 @@ namespace System.Text.Json.Serialization.Tests
         {
             _value = DataGenerator.Generate<T>();
 
-            _options = new JsonSerializerOptions { ReferenceHandling = ReferenceHandling.Preserve };
+            _options = new JsonSerializerOptions { ReferenceHandler = ReferenceHandler.Preserve };
 
             _settings = new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.All };
         }
