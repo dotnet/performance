@@ -215,7 +215,6 @@ AnyChart = Union[BasicLineChart, BasicHistogram]
 
 def basic_chart(charts: Sequence[AnyChart]) -> None:
     _fig, axes = subplots(len(charts), individual_figure_size=(8, 4))
-    # cool = (1.0, 0.0, 0.0, 1.0)
     for ax, chart in zip(axes, charts):
         map_option(chart.name, ax.set_title)
         map_option(chart.x_label, ax.set_xlabel)
