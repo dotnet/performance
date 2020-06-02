@@ -48,6 +48,8 @@ Color = Tuple[float, float, float, float]
 
 
 def get_colors(n: int) -> Sequence[Color]:
+    # Coolwarm, RdBu, and seismic are also good neutral color palettes.
+    # If you change this, keep in mind these names are case-sensitive.
     cmap = get_cmap("rainbow")
     return [cmap(i) for i in _linspace(0.1, 0.9, n)]
 
