@@ -5,6 +5,7 @@ from shared.util import const
 testtypes = [const.STARTUP,
              const.SDK,
              const.CROSSGEN,
+             const.CROSSGEN2,
              const.SOD]
 
 class TestTraits:
