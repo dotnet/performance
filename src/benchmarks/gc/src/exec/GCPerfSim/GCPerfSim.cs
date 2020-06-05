@@ -1219,10 +1219,11 @@ class ArgsParser
 
     private const uint DEFAULT_POH_ALLOC_LOW = 100;
     private const uint DEFAULT_POH_ALLOC_HIGH = 200 * 1024;
-    private const uint DEFAULT_POH_SURV_INTERVAL = 5;
 
 #if NETCOREAPP5_0
-    private const uint DEFAULT_POH_INTERVAL = 100;
+    private const uint DEFAULT_POH_PINNING_INTERVAL = 0;
+    private const uint DEFAULT_POH_FINALIZABLE_INTERVAL = 0;
+    private const uint DEFAULT_POH_SURV_INTERVAL = 0;
 #endif
 
     private const uint DEFAULT_PINNING_INTERVAL = 100;
@@ -1253,8 +1254,8 @@ class ArgsParser
         uint pohAllocHigh = DEFAULT_POH_ALLOC_HIGH;
 
 #if NETCOREAPP5_0
-        uint pohPinInterval = 0;
-        uint pohFinalizableInterval = DEFAULT_FINALIZABLE_INTERVAL;
+        uint pohPinInterval = DEFAULT_POH_PINNING_INTERVAL;
+        uint pohFinalizableInterval = DEFAULT_POH_FINALIZABLE_INTERVAL;
         uint pohSurvInterval = DEFAULT_POH_SURV_INTERVAL;
 
         uint? pohAllocRatioArg = null;
