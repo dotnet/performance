@@ -126,7 +126,6 @@ System.Runtime.Extensions.dll
 System.Runtime.Handles.dll
 System.Runtime.InteropServices.dll
 System.Runtime.InteropServices.RuntimeInformation.dll
-System.Runtime.InteropServices.WindowsRuntime.dll
 System.Runtime.Intrinsics.dll
 System.Runtime.Intrinsics.Experimental.dll
 System.Runtime.Loader.dll
@@ -136,7 +135,6 @@ System.Runtime.Serialization.Formatters.dll
 System.Runtime.Serialization.Json.dll
 System.Runtime.Serialization.Primitives.dll
 System.Runtime.Serialization.Xml.dll
-System.Runtime.WindowsRuntime.UI.Xaml.dll
 System.Security.AccessControl.dll
 System.Security.Claims.dll
 System.Security.Cryptography.Algorithms.dll
