@@ -210,6 +210,8 @@ class Runner:
                     os.mkdir(outputdir)
                 outputfile = os.path.join(outputdir, filename+'.ni'+ext )
                 crossgen2args = '--composite -o %s -O @%s' % (outputfile, self.compositefile)
+                self.traits.add_traits( overwrite=True,
+                                        skipprofile='true')
 
             self.traits.add_traits(overwrite=True,
                                    startupmetric=const.STARTUP_CROSSGEN2,

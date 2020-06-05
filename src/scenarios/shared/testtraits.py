@@ -30,6 +30,7 @@ class TestTraits:
         self.processwillexit = ''
         self.measurementdelay = ''
         self.environmentvariables = ''
+        self.skipprofile = ''
 
         # add test types to traits
         for testtype in testtypes:
