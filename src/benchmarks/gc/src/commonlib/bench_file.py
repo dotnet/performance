@@ -931,9 +931,14 @@ class TestRunStatus:
 
     def __post_init__(self) -> None:
         if self.trace_file_name is not None:
+            # Process ID and Process Name are mutually exclusive. Only one
+            # must be set in the test status file.
             assert (
                 self.process_id is not None or self.process_name is not None
             ), "Test status file must set process_id or process_name if trace_file_name is set."
+            assert (
+                self.process_id is None or self.process_name is None
+            ), "Test status file should only set process_id or process_name."
         else:
             assert (
                 self.process_id is None and self.process_name is None
