@@ -28,7 +28,7 @@ def helixuploaddir():
 
 def extension():
     'gets platform specific extension'
-    return '.exe' if sys.platform == 'win32' else ''
+    return '.exe' if iswin() else ''
 
 def builtexe(exename: str):
     'gets binary path'
@@ -46,7 +46,7 @@ def runninginlab():
 
 def getruntimeidentifier():
     rid = None
-    if sys.platform == 'win32':
+    if iswin():
         rid = 'win-'
     elif sys.platform == 'linux' or sys.platform == 'linux2':
         rid = 'linux-'
@@ -63,5 +63,14 @@ def getruntimeidentifier():
         raise Exception('Machine %s not supported.' % platform.machine())
 
     return rid
+
+def pythoncommand():
+    if iswin():
+        return 'py'
+    else:
+        return 'python3'
+
+def iswin():
+    return sys.platform == 'win32'
 
 

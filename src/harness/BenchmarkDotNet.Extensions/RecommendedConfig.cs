@@ -7,6 +7,7 @@ using BenchmarkDotNet.Exporters.Json;
 using Perfolizer.Horology;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Reports;
+using System.Collections.Generic;
 
 namespace BenchmarkDotNet.Extensions
 {
@@ -17,6 +18,7 @@ namespace BenchmarkDotNet.Extensions
             ImmutableHashSet<string> mandatoryCategories,
             int? partitionCount = null,
             int? partitionIndex = null,
+            List<string> exclusionFilterValue = null,
             Job job = null)
         {
             if (job is null)
@@ -38,6 +40,7 @@ namespace BenchmarkDotNet.Extensions
                 .AddDiagnoser(MemoryDiagnoser.Default) // MemoryDiagnoser is enabled by default
                 .AddFilter(new OperatingSystemFilter())
                 .AddFilter(new PartitionFilter(partitionCount, partitionIndex))
+                .AddFilter(new ExclusionFilter(exclusionFilterValue))
                 .AddExporter(JsonExporter.Full) // make sure we export to Json
                 .AddExporter(new PerfLabExporter())
                 .AddColumn(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)

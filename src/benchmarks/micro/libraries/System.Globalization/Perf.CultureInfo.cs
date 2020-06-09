@@ -12,8 +12,5 @@ namespace System.Globalization.Tests
     {
         [Benchmark]
         public CultureInfo GetCurrentCulture() => CultureInfo.CurrentCulture;
-
-        [Benchmark]
-        public CultureInfo GetInvariantCulture() => CultureInfo.InvariantCulture;
     }
 }

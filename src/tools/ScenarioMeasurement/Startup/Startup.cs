@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 
 namespace ScenarioMeasurement
 {
@@ -11,7 +10,8 @@ namespace ScenarioMeasurement
         TimeToMain,
         GenericStartup,
         ProcessTime,
-        WPF
+        WPF,
+        Crossgen2
     }
     class Startup
     {
@@ -29,7 +29,7 @@ namespace ScenarioMeasurement
         /// <param name="logFileName">optional log file. Default is appExe.startup.log</param>
         /// <param name="workingDir">optional working directory</param>
         /// <param name="warmup">enables/disables warmup iteration</param>
-        /// <param name="traceFileName">trace file name</param>
+        /// <param name="traceName">trace name</param>
         /// <param name="guiApp">true: app under test is a GUI app, false: console</param>
         /// <param name="skipProfileIteration">true: skip full results iteration</param>
         /// <param name="reportJsonPath">path to save report json</param>
@@ -44,7 +44,7 @@ namespace ScenarioMeasurement
         static int Main(string appExe,
                         MetricType metricType,
                         string scenarioName,
-                        string traceFileName,
+                        string traceName,
                         bool processWillExit = false,
                         int iterations = 5,
                         string iterationSetup = "",
@@ -71,7 +71,7 @@ namespace ScenarioMeasurement
                     throw new ArgumentException(name);
             };
             checkArg(appExe, nameof(appExe));
-            checkArg(traceFileName, nameof(traceFileName));
+            checkArg(traceName, nameof(traceName));
 
             if (String.IsNullOrEmpty(traceDirectory))
             {
@@ -145,6 +145,9 @@ namespace ScenarioMeasurement
                 case MetricType.ProcessTime:
                     parser = new ProcessTimeParser();
                     break;
+                case MetricType.Crossgen2:
+                    parser = new Crossgen2Parser();
+                    break;
                     //case MetricType.WPF:
                     //    parser = new WPFParser();
                     //    break;
@@ -155,7 +158,7 @@ namespace ScenarioMeasurement
             string traceFilePath = "";
 
             // Run trace session
-            using (var traceSession = TraceSessionManager.CreateSession("StartupSession", traceFileName, traceDirectory, logger))
+            using (var traceSession = TraceSessionManager.CreateSession("StartupSession", traceName, traceDirectory, logger))
             {
                 traceSession.EnableProviders(parser);
                 for (int i = 0; i < iterations; i++)
@@ -186,7 +189,6 @@ namespace ScenarioMeasurement
                 {
                     commandLine = commandLine + " " + appArgs;
                 }
-
                 var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
 
 
@@ -200,7 +202,7 @@ namespace ScenarioMeasurement
             {
                 logger.LogIterationHeader("Profile Iteration");
                 ProfileParser profiler = new ProfileParser(parser);
-                using (var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_"+traceFileName, traceDirectory, logger))
+                using (var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_"+traceName, traceDirectory, logger))
                 {
                     profileSession.EnableProviders(profiler);
                     if (!RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger).Success)

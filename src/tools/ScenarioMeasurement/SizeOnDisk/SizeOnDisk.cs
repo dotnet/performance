@@ -50,14 +50,14 @@ namespace ScenarioMeasurement
                 totalSize += resultSize;
                 totalCount += resultCount;
                 counters.Add(new Counter { MetricName = "bytes", TopCounter = directoryIsTop, Name = $"{RemoveVersions(directory.Key)}", Results = new[] { (double)resultSize } });
-                counters.Add(new Counter { MetricName = "count", TopCounter = directoryIsTop, Name = $"{RemoveVersions(directory.Key)}", Results = new[] { (double)resultCount } });
+                counters.Add(new Counter { MetricName = "count", TopCounter = directoryIsTop, Name = $"{RemoveVersions(directory.Key)} - Count", Results = new[] { (double)resultCount } });
                 foreach (var file in directory.Value)
                 {
-                    counters.Add(new Counter { MetricName = "bytes", Name = $"{RemoveVersions(file.Key)}", Results = new[] { (double)file.Value } });
+                    counters.Add(new Counter { MetricName = "bytes", Name = $"{Path.Join(RemoveVersions(directory.Key), RemoveVersions(file.Key))}", Results = new[] { (double)file.Value } });
                 }
             }
             counters.Add(new Counter { MetricName = "bytes", Name = scenarioName, DefaultCounter = true, TopCounter = true, Results = new[] { (double)totalSize } });
-            counters.Add(new Counter { MetricName = "count", Name = scenarioName, TopCounter = true, Results = new[] { (double)totalCount } });
+            counters.Add(new Counter { MetricName = "count", Name = $"{scenarioName} - Count", TopCounter = true, Results = new[] { (double)totalCount } });
             var reporter = Reporter.CreateReporter();
             if (reporter != null)
             {

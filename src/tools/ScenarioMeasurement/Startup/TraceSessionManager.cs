@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Diagnostics.Tracing;
+using Microsoft.Diagnostics.Tracing.Parsers;
+using System;
 
 namespace ScenarioMeasurement
 {
@@ -9,12 +11,12 @@ namespace ScenarioMeasurement
         void EnableProviders(IParser parser);
         void EnableKernelProvider(params TraceSessionManager.KernelKeyword[] keywords);
         void EnableUserProvider(params TraceSessionManager.ClrKeyword[] keywords);
-        void EnableUserProvider(string provider);
+        void EnableUserProvider(string provider, TraceEventLevel verboseLevel);
     }
 
     public static class TraceSessionManager
     {
-        public static bool IsWindows { get { return Environment.OSVersion.Platform == PlatformID.Win32NT; } }
+        public static bool IsWindows { get { return Util.IsWindows(); } }
         public static ITraceSession CreateSession(string sessionName, string traceName, string traceDirectory, Logger logger)
         {
 
@@ -40,4 +42,7 @@ namespace ScenarioMeasurement
             Startup
         }
     }
+
+
 }
+

@@ -48,6 +48,8 @@ Color = Tuple[float, float, float, float]
 
 
 def get_colors(n: int) -> Sequence[Color]:
+    # Coolwarm, RdBu, and seismic are also good neutral color palettes.
+    # If you change this, keep in mind these names are case-sensitive.
     cmap = get_cmap("rainbow")
     return [cmap(i) for i in _linspace(0.1, 0.9, n)]
 
@@ -222,10 +224,12 @@ def basic_chart(charts: Sequence[AnyChart]) -> None:
         if isinstance(chart, BasicLineChart):
             map_option(chart.x_label, ax.set_xlabel)
             map_option(chart.y_label, ax.set_ylabel)
-            for line in chart.lines:
-                # line.name is Optional[str], this is fine although mypy thinks it isn't
+            for line, color in zip_with_colors(chart.lines):
+                # line.name is Optional[str], this is fine although mypy thinks
+                # it isn't.
                 # TODO: customizable marker
-                ax.plot(line.xs, line.ys, label=cast(str, line.name), marker="*")
+                ax.plot(line.xs, line.ys, label=cast(str, line.name),
+                        marker="*", color=color)
             if any(line.name is not None for line in chart.lines):
                 ax.legend()
         else:

@@ -21,7 +21,7 @@ namespace ScenarioMeasurement
 
         public void EnableUserProviders(ITraceSession user)
         {
-            user.EnableUserProvider("PerfLabGenericEventSource");
+            user.EnableUserProvider("PerfLabGenericEventSource", TraceEventLevel.Verbose);
         }
 
         public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
