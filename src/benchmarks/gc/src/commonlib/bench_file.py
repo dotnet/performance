@@ -922,6 +922,7 @@ class TestRunStatus:
         str
     ] = None  # File should be stored in the same directory as test status
     process_id: Optional[int] = None
+    process_name: Optional[str] = None
     seconds_taken: Optional[float] = None
     test: Optional[SingleTestCombination] = None
     stdout: Optional[str] = None
@@ -931,10 +932,12 @@ class TestRunStatus:
     def __post_init__(self) -> None:
         if self.trace_file_name is not None:
             assert (
-                self.process_id is not None
-            ), "Test status file must set process_id if trace_file_name is set"
+                self.process_id is not None or self.process_name is not None
+            ), "Test status file must set process_id or process_name if trace_file_name is set."
         else:
-            assert self.process_id is None, "'process_id' has no effect without 'trace_file_name'"
+            assert (
+                self.process_id is None and self.process_name is None
+            ), "'process_id' and 'process_name' have no effect without 'trace_file_name'."
 
 
 @with_slots

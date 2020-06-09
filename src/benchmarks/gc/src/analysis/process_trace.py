@@ -142,18 +142,23 @@ def _get_processed_trace_from_process(
         ts = unwrap(
             map_err(
                 test_status,
-                lambda _: "Didn't specify --process and there's no test status to specify PID\n"
+                lambda _: "Didn't specify --process and there's no test status to specify PID.\n"
                 " (hint: maybe specify the test output '.yaml' file instead of the trace file)",
             )
         )
-        if ts.process_id is None:
-            raise Exception("Test status file exists but does not specify process_id")
-        process_predicate = process_predicate_from_id(ts.process_id)
+        if ts.process_id is None and ts.process_name is None:
+            raise Exception("Test status file exists but does not specify process_id or process_name.")
+        if ts.process_id is not None:
+            process_predicate = process_predicate_from_id(ts.process_id)
+        else:
+            process_predicate = process_predicate_from_parts(_convert_to_tuple([f"name:{ts.process_name}"]))
+
     else:
         assert (
             test_status.is_err()
         ), "'--process' is unnecessary as the test result specifies the PID"
         process_predicate = process_predicate_from_parts(test_result.process)
+
     process_names, proc = get_process_names_and_process_info(
         clr,
         non_null(test_result.trace_path),
