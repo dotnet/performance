@@ -18,7 +18,9 @@ The value is some function type. Preferably, make this function an instance prop
 
 Metrics always return a `Result` -- this allows the metric to fail without causing an entire command to exit with an exception. `FloatValue` is a result of a `float`. If the metric can't fail, return e.g. `float` instead of `FloatValue`, and convert the function to a `Result`-returning function with `ok_of_property`.
 
+# Code Quality
 
+We should make sure the code is clean with respect to the linter. Run `py . lint` to make sure it is clean. For now, do not worry about upgrading the dependencies as suggested by the linter, it won't work.
 
 # C# and C dependencies
 
