@@ -323,7 +323,7 @@ def exec_cmd(args: ExecArgs) -> timedelta:
 class BenchmarkRunErrorInfo:
     name: str
     iteration_num: int
-    message: Optional[BaseException]
+    message: str
     trace: List[str]
 
     def print(self) -> None:
@@ -379,7 +379,7 @@ def add_new_error(
     config_name: str,
     bench_name: str,
     iteration_num: int,
-    message: Optional[BaseException],
+    message: str,
     trace: List[str],
 ) -> None:
     if core_name not in run_errors:

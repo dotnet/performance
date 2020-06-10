@@ -188,7 +188,7 @@ def _run_all_benchmarks(
                 config_name=t.config_name,
                 bench_name=t.benchmark_name,
                 iteration_num=t.iteration,
-                message=exception_message,
+                message=str(exception_message),
                 trace=format_tb(exception_trace),
             )
             continue
