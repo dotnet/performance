@@ -23,7 +23,7 @@ from statistics import median, StatisticsError
 from sys import argv
 from threading import Event, Thread
 from time import sleep, time
-from typing import Any, Callable, cast, Iterable, List, Mapping, Optional, Sequence, Union
+from typing import Any, Callable, cast, Dict, Iterable, List, Mapping, Optional, Sequence, Union
 from xml.etree.ElementTree import Element, parse as parse_xml
 
 from psutil import process_iter
@@ -323,7 +323,7 @@ def exec_cmd(args: ExecArgs) -> timedelta:
 class BenchmarkRunErrorInfo:
     name: str
     iteration_num: int
-    message: str
+    message: Optional[BaseException]
     trace: List[str]
 
     def print(self) -> None:
@@ -335,7 +335,7 @@ class BenchmarkRunErrorInfo:
         )
 
     def __rebuild_trace(self) -> str:
-        return ''.join(self.trace)
+        return "".join(self.trace)
 
 
 @with_slots
@@ -368,8 +368,8 @@ class CoreRunErrorInfo:
         add(self.configs_run, new_config.name, new_config)
 
 
-RunErrorMap = Mapping[str, CoreRunErrorInfo]
-ConfigurationErrorMap = Mapping[str, ConfigRunErrorInfo]
+RunErrorMap = Dict[str, CoreRunErrorInfo]
+ConfigurationErrorMap = Dict[str, ConfigRunErrorInfo]
 BenchmarkErrorList = List[BenchmarkRunErrorInfo]
 
 
@@ -379,12 +379,12 @@ def add_new_error(
     config_name: str,
     bench_name: str,
     iteration_num: int,
-    message: str,
-    trace: List[str]
+    message: Optional[BaseException],
+    trace: List[str],
 ) -> None:
     if core_name not in run_errors:
         bench_list = [BenchmarkRunErrorInfo(bench_name, iteration_num, message, trace)]
-        config_dict = {config_name : ConfigRunErrorInfo(config_name, bench_list)}
+        config_dict = {config_name: ConfigRunErrorInfo(config_name, bench_list)}
         add(run_errors, core_name, CoreRunErrorInfo(core_name, config_dict))
 
     else:
@@ -396,7 +396,9 @@ def add_new_error(
 
         else:
             config_info = core_info.configs_run[config_name]
-            config_info.add_benchmark(BenchmarkRunErrorInfo(bench_name, iteration_num, message, trace))
+            config_info.add_benchmark(
+                BenchmarkRunErrorInfo(bench_name, iteration_num, message, trace)
+            )
 
 
 @with_slots

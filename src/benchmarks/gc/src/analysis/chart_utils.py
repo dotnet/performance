@@ -228,8 +228,7 @@ def basic_chart(charts: Sequence[AnyChart]) -> None:
                 # line.name is Optional[str], this is fine although mypy thinks
                 # it isn't.
                 # TODO: customizable marker
-                ax.plot(line.xs, line.ys, label=cast(str, line.name),
-                        marker="*", color=color)
+                ax.plot(line.xs, line.ys, label=cast(str, line.name), marker="*", color=color)
             if any(line.name is not None for line in chart.lines):
                 ax.legend()
         else:
