@@ -565,10 +565,13 @@ class TestKind(Enum):
 @doc_field("lohar", None)
 @doc_field("sohsi", None)
 @doc_field("lohsi", None)
+@doc_field("pohsi", None)
 @doc_field("sohpi", None)
 @doc_field("lohpi", None)
+@doc_field("pohpi", None)
 @doc_field("sohfi", None)
 @doc_field("lohfi", None)
+@doc_field("pohfi", None)
 @doc_field("allocType", None)
 @doc_field("testKind", None)
 @with_slots
@@ -586,10 +589,13 @@ class GCPerfSimArgs:
     lohar: int = 0
     sohsi: int = 0
     lohsi: int = 0
+    pohsi: int = 0
     sohpi: int = 0
     lohpi: int = 0
+    pohpi: int = 0
     sohfi: int = 0
     lohfi: int = 0
+    pohfi: int = 0
     allocType: AllocType = AllocType.reference
     testKind: TestKind = TestKind.time
 
@@ -602,10 +608,13 @@ class GCPerfSimArgs:
             "-lohar": str(self.lohar),
             "-sohsi": str(self.sohsi),
             "-lohsi": str(self.lohsi),
+            "-pohsi": str(self.pohsi),
             "-sohpi": str(self.sohpi),
             "-lohpi": str(self.lohpi),
+            "-pohpi": str(self.pohpi),
             "-sohfi": str(self.sohfi),
             "-lohfi": str(self.lohfi),
+            "-pohfi": str(self.pohfi),
             "-allocType": self.allocType.name,
             "-testKind": self.testKind.name,
         }

@@ -84,6 +84,9 @@ to all be similiar sizes.
 -lohSurvInterval/-lohsi: g_lohSurvInterval
 meaning every Nth LOH object allocated will survive. 
 
+-pohSurvInterval/-pohsi:
+meaning every Nth POH object allocated will survive.
+
 Note that -sohSurvInterval/-lohSurvInterval are only applicable for steady state, during initialization everything
 survives.
 
@@ -92,6 +95,9 @@ meaning every Nth SOH object survived will be pinned.
 
 -lohPinningInterval/-lohpi: g_lohPinningInterval
 meaning every Nth LOH object survived will be pinned. 
+
+-pohPinningInterval/-pohpi:
+meaning every Nth POH object survived will be pinned.
 
 -allocType/-at: g_allocType
 What kind of objects are we allocating? Current supported types: 
@@ -1213,10 +1219,11 @@ class ArgsParser
 
     private const uint DEFAULT_POH_ALLOC_LOW = 100;
     private const uint DEFAULT_POH_ALLOC_HIGH = 200 * 1024;
-    private const uint DEFAULT_POH_SURV_INTERVAL = 5;
 
 #if NETCOREAPP5_0
-    private const uint DEFAULT_POH_INTERVAL = 100;
+    private const uint DEFAULT_POH_PINNING_INTERVAL = 0;
+    private const uint DEFAULT_POH_FINALIZABLE_INTERVAL = 0;
+    private const uint DEFAULT_POH_SURV_INTERVAL = 0;
 #endif
 
     private const uint DEFAULT_PINNING_INTERVAL = 100;
@@ -1247,8 +1254,8 @@ class ArgsParser
         uint pohAllocHigh = DEFAULT_POH_ALLOC_HIGH;
 
 #if NETCOREAPP5_0
-        uint pohPinInterval = DEFAULT_PINNING_INTERVAL;
-        uint pohFinalizableInterval = DEFAULT_FINALIZABLE_INTERVAL;
+        uint pohPinInterval = DEFAULT_POH_PINNING_INTERVAL;
+        uint pohFinalizableInterval = DEFAULT_POH_FINALIZABLE_INTERVAL;
         uint pohSurvInterval = DEFAULT_POH_SURV_INTERVAL;
 
         uint? pohAllocRatioArg = null;
@@ -1288,7 +1295,8 @@ class ArgsParser
 #if NETCOREAPP5_0
                     pohAllocRatioArg = ParseUInt32(args[++i]);
 #else
-                    Util.AlwaysAssert(false, "pohAllocRatio requires netcoreapp5.0 build");
+                    Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
+                                      args[i++]);
 #endif
                     break;
                 case "-lohAllocInterval":
@@ -1298,7 +1306,8 @@ class ArgsParser
 #if NETCOREAPP5_0
                     pohAllocIntervalArg = ParseUInt32(args[++i]);
 #else
-                    Util.AlwaysAssert(false, "pohAllocInterval requires netcoreapp5.0 build");
+                    Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
+                                      args[i++]);
 #endif
                     break;
                 case "-totalLiveGB":
@@ -1327,7 +1336,8 @@ class ArgsParser
 #if NETCOREAPP5_0
                     ParseRange(args[++i], out pohAllocLow, out pohAllocHigh);
 #else
-                    Util.AlwaysAssert(false, "pohSizeRange requires netcoreapp5.0 build");
+                    Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
+                                      args[i++]);
 #endif
                     break;
                 case "-sohSurvInterval":
@@ -1343,7 +1353,8 @@ class ArgsParser
 #if NETCOREAPP5_0
                     pohSurvInterval = ParseUInt32(args[++i]);
 #else
-                    Util.AlwaysAssert(false, "pohSurvInterval requires netcoreapp5.0 build");
+                    Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
+                                      args[i++]);
 #endif
                     break;
                 case "-sohPinningInterval":
@@ -1368,7 +1379,8 @@ class ArgsParser
 #if NETCOREAPP5_0
                     pohPinInterval = ParseUInt32(args[++i]);
 #else
-                    Util.AlwaysAssert(false, "pohPinningInterval requires netcoreapp5.0 build");
+                    Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
+                                      args[i++]);
 #endif
                     break;
                 case "-pohFinalizableInterval":
@@ -1376,7 +1388,8 @@ class ArgsParser
 #if NETCOREAPP5_0
                     pohFinalizableInterval = ParseUInt32(args[++i]);
 #else
-                    Util.AlwaysAssert(false, "pohFinalizableInterval requires netcoreapp5.0 build");
+                    Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
+                                      args[i++]);
 #endif
                     break;
 
