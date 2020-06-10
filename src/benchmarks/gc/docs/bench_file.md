@@ -35,10 +35,13 @@ benchmarks:
       lohar: 0
       sohsi: 50
       lohsi: 0
+      pohsi: 0
       sohpi: 0
       lohpi: 0
+      pohpi: 0
       sohfi: 0
       lohfi: 0
+      pohfi: 0
       allocType: reference
       testKind: time
 
@@ -370,10 +373,13 @@ totalMins: `float | None`
 lohar: `int`
 sohsi: `int`
 lohsi: `int`
+pohsi: `int`
 sohpi: `int`
 lohpi: `int`
+pohpi: `int`
 sohfi: `int`
 lohfi: `int`
+pohfi: `int`
 allocType: `"simple" | "reference"`
 testKind: `"time" | "highSurvival"`
 
