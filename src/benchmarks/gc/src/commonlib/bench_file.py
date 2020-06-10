@@ -128,6 +128,15 @@ Only has effect when complus_gcserver is set.
 """,
 )
 @doc_field("complus_gcheaphardlimit", "Hard limit on heap size, in bytes. (decimal)")
+@doc_field(
+    "complus_gcheaphardlimitsoh", "Hard limit on small object heap size, in bytes. (decimal)"
+)
+@doc_field(
+    "complus_gcheaphardlimitloh", "Hard limit on large object heap size, in bytes. (decimal)"
+)
+@doc_field(
+    "complus_gcheaphardlimitpoh", "Hard limit on pinned object heap size, in bytes. (decimal)"
+)
 @doc_field("complus_gclargepages", "Set to true to enable large pages.")
 @doc_field("complus_gcnoaffinitize", "Set to true to prevent affinitizing GC threads to cpu cores.")
 @doc_field("complus_gccpugroup", "Set to true to enable CPU groups.")
@@ -182,6 +191,9 @@ class ConfigOptions:
     complus_gcheapaffinitizeranges: Optional[str] = None
     complus_gcheapcount: Optional[int] = None
     complus_gcheaphardlimit: Optional[int] = None
+    complus_gcheaphardlimitsoh: Optional[int] = None
+    complus_gcheaphardlimitloh: Optional[int] = None
+    complus_gcheaphardlimitpoh: Optional[int] = None
     complus_gclargepages: Optional[bool] = None
     complus_gcnoaffinitize: Optional[bool] = None
     complus_gccpugroup: Optional[bool] = None
@@ -342,6 +354,9 @@ class TestConfigCombinedWithCoreclr:
                     ),
                     od("COMPlus_GCHeapCount", cfg.complus_gcheapcount),
                     od("COMPlus_GCHeapHardLimit", cfg.complus_gcheaphardlimit),
+                    od("COMPlus_GCHeapHardLimitSOH", cfg.complus_gcheaphardlimitsoh),
+                    od("COMPlus_GCHeapHardLimitLOH", cfg.complus_gcheaphardlimitloh),
+                    od("COMPlus_GCHeapHardLimitPOH", cfg.complus_gcheaphardlimitpoh),
                     ob("COMPlus_GCLargePages", cfg.complus_gclargepages),
                     ob("COMPlus_GCNoAffinitize", cfg.complus_gcnoaffinitize),
                     ob("COMPlus_GCCpuGroup", cfg.complus_gccpugroup),
