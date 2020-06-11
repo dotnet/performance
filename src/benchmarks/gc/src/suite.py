@@ -4,7 +4,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import cast, Mapping, Optional, Sequence, Type
+from typing import cast, Dict, Mapping, Optional, Sequence, Type
 
 from .analysis.diffable import get_diffables
 from .analysis.process_trace import ProcessedTraces
@@ -39,9 +39,9 @@ from .commonlib.option import option_or
 from .commonlib.parse_and_serialize import load_yaml, write_yaml_file
 from .commonlib.score_spec import ScoreElement, ScoreSpec
 from .commonlib.type_utils import argument, with_slots
-from .commonlib.util import CoreRunErrorInfo, ensure_empty_dir
+from .commonlib.util import ensure_empty_dir, RunErrorMap
 
-from .exec.run_tests import run_test, RunArgs, RunErrorMap
+from .exec.run_tests import run_test, RunArgs
 
 
 SuiteCommand = str
@@ -136,7 +136,9 @@ class SuiteRunArgs:
         doc="This is like the '--skip-where-exists' argument to the normal 'run' command.",
     )
 
-SuiteErrorMap = Mapping[str, RunErrorMap]
+
+SuiteErrorMap = Dict[Path, RunErrorMap]
+
 
 def suite_run(args: SuiteRunArgs) -> None:
     suite = load_yaml(SuiteFile, args.suite_path)
@@ -154,7 +156,7 @@ def suite_run(args: SuiteRunArgs) -> None:
                 skip_where_exists=args.skip_where_exists,
             ),
             testrun_errors,
-            True
+            True,
         )
 
         if not is_empty(testrun_errors):
@@ -215,40 +217,22 @@ def _normal_benchmarks(proc_count: int) -> Mapping[str, Benchmark]:
     tagb_factor = 0.5 if proc_count == 1 else 1
     return {
         "0gb": Benchmark(
-            arguments=GCPerfSimArgs(
-                tc=proc_count,
-                tagb=300 * tagb_factor,
-                tlgb=0
-            ),
-            min_seconds=10
+            arguments=GCPerfSimArgs(tc=proc_count, tagb=300 * tagb_factor, tlgb=0), min_seconds=10
         ),
         "2gb": Benchmark(
-            arguments=GCPerfSimArgs(
-                tc=proc_count,
-                tagb=300 * tagb_factor,
-                tlgb=2,
-                sohsi=50
-            )
+            arguments=GCPerfSimArgs(tc=proc_count, tagb=300 * tagb_factor, tlgb=2, sohsi=50)
         ),
         # The pinning makes this test a lot slower, so allocate many fewer BG
         "2gb_pinning": Benchmark(
             arguments=GCPerfSimArgs(
-                tc=proc_count,
-                tagb=100 * tagb_factor,
-                tlgb=2,
-                sohsi=50,
-                sohpi=50
+                tc=proc_count, tagb=100 * tagb_factor, tlgb=2, sohsi=50, sohpi=50
             )
         ),
         # This must allocate 600GB to ensure the test isn't dominated by
         # the startup time of allocating the initial 20GB
         "20gb": Benchmark(
             arguments=GCPerfSimArgs(
-                tc=proc_count,
-                tagb=600 * tagb_factor,
-                tlgb=20,
-                sohsi=50,
-                allocType=AllocType.simple
+                tc=proc_count, tagb=600 * tagb_factor, tlgb=20, sohsi=50, allocType=AllocType.simple
             )
         ),
     }
@@ -320,10 +304,7 @@ def _create_scenario_high_memory_load(
         "90pct": Config(memory_load=MemoryLoadOptions(percent=90)),
     }
     benchmarks: Mapping[str, Benchmark] = {
-        "a": Benchmark(
-            arguments=GCPerfSimArgs(tc=proc_count, tagb=40, tlgb=5, sohsi=30,
-                                    sohpi=50)
-            )
+        "a": Benchmark(arguments=GCPerfSimArgs(tc=proc_count, tagb=40, tlgb=5, sohsi=30, sohpi=50))
     }
     return BenchFile(
         vary=Vary.coreclr,
@@ -349,8 +330,7 @@ def _create_scenario_low_memory_container(
     )
     benchmarks: Mapping[str, Benchmark] = {
         "tlgb0.2": Benchmark(
-            arguments=GCPerfSimArgs(tc=proc_count, tagb=80, tlgb=0.2, sohsi=30,
-                                    sohpi=50)
+            arguments=GCPerfSimArgs(tc=proc_count, tagb=80, tlgb=0.2, sohsi=30, sohpi=50)
         )
     }
     return BenchFile(

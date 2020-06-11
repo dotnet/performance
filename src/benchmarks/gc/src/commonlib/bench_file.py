@@ -423,7 +423,7 @@ class FullConfigAndName:
 @doc_field("cpu_samples", "Collect all of the above, and CPU samples.")
 @doc_field(
     "thread_times",
-    "Collect all of the above and Thread Times Stacks with CSwitch events. Windows only."
+    "Collect all of the above and Thread Times Stacks with CSwitch events. Windows only.",
 )
 class CollectKind(OrderedEnum):
     none = 0
@@ -1144,7 +1144,7 @@ class TestResult:
             assert self.process is None
 
         # Making sure this is a tuple because Python requires it to be hashable.
-        if (self.process is not None):
+        if self.process is not None:
             assert isinstance(self.process, tuple)
 
         assert self.test_status_path is not None or self.trace_path is not None

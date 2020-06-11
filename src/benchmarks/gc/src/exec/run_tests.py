@@ -30,7 +30,6 @@ from ..commonlib.util import (
     add_new_error,
     assert_file_exists,
     ensure_empty_dir,
-    CoreRunErrorInfo,
     ExecArgs,
     exec_and_get_output,
     get_existing_absolute_file_path,
@@ -107,9 +106,7 @@ def run(args: RunArgs) -> None:
 
 
 def run_test(
-    args: RunArgs,
-    run_errors: RunErrorMap = None,
-    is_suite: bool = False
+    args: RunArgs, run_errors: Optional[RunErrorMap] = None, is_suite: bool = False
 ) -> None:
     # Receiving an already initialized List as default value is very prone
     # to unexpected side-effects. None is the convention for these cases.
@@ -143,8 +140,9 @@ def run_test(
             check_no_test_processes()
         ensure_empty_dir(out_dir)
 
-    _run_all_benchmarks(built, bench, args.skip_where_exists,
-                        args.max_iterations, out_dir, run_errors)
+    _run_all_benchmarks(
+        built, bench, args.skip_where_exists, args.max_iterations, out_dir, run_errors
+    )
 
     if not is_suite and not is_empty(run_errors):
         print(
@@ -155,13 +153,14 @@ def run_test(
             core_run.print()
 
 
+# pylint: disable=broad-except
 def _run_all_benchmarks(
     built: Built,
     bench: BenchFileAndPath,
     skip_where_exists: bool,
     max_iterations: Optional[int],
     out_dir: Path,
-    run_errors: RunErrorMap
+    run_errors: RunErrorMap,
 ) -> None:
     default_env = check_env()
     for t in iter_tests_to_run(bench, get_this_machine(), max_iterations, out_dir):
@@ -181,7 +180,6 @@ def _run_all_benchmarks(
                     ),
                     t.out,
                 )
-
         except Exception:
             _, exception_message, exception_trace = exc_info()
             add_new_error(
@@ -190,14 +188,14 @@ def _run_all_benchmarks(
                 config_name=t.config_name,
                 bench_name=t.benchmark_name,
                 iteration_num=t.iteration,
-                message=exception_message,
-                trace=format_tb(exception_trace)
+                message=str(exception_message),
+                trace=format_tb(exception_trace),
             )
             continue
 
 
 def _assert_not_in_job(built: Built) -> None:
-    # TOOD: on ARM IsProcessInJob seems to always return true
+    # TODO: on ARM IsProcessInJob seems to always return true
     if os_is_windows() and not is_arm():
         res = exec_and_get_output(ExecArgs(cmd=(str(built.win.is_in_job_exe),), quiet_print=True))
         assert not _str_to_bool(res), (
