@@ -195,13 +195,6 @@ class BasicLineChart:
     def n_values(self) -> int:
         return self.lines[0].n_values
 
-    def __post_init__(self) -> None:
-        for line in self.lines:
-            assert line.n_values == self.n_values, (
-                f"{option_or(line.name, '<unnamed>')} has {line.n_values} data points, "
-                + f"should have {self.n_values}"
-            )
-
 
 @with_slots
 @dataclass(frozen=True)
