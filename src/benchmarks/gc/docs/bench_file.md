@@ -193,6 +193,15 @@ complus_gcheapcount: `int | None`
 complus_gcheaphardlimit: `int | None`
   Hard limit on heap size, in bytes. (decimal)
 
+complus_gcheaphardlimitsoh: `int | None`
+  Hard limit on small object heap size, in bytes. (decimal)
+
+complus_gcheaphardlimitloh: `int | None`
+  Hard limit on large object heap size, in bytes. (decimal)
+
+complus_gcheaphardlimitpoh: `int | None`
+  Hard limit on pinned object heap size, in bytes. (decimal)
+
 complus_gclargepages: `bool | None`
   Set to true to enable large pages.
 
@@ -268,6 +277,15 @@ complus_gcheapcount: `int | None`
 
 complus_gcheaphardlimit: `int | None`
   Hard limit on heap size, in bytes. (decimal)
+
+complus_gcheaphardlimitsoh: `int | None`
+  Hard limit on small object heap size, in bytes. (decimal)
+
+complus_gcheaphardlimitloh: `int | None`
+  Hard limit on large object heap size, in bytes. (decimal)
+
+complus_gcheaphardlimitpoh: `int | None`
+  Hard limit on pinned object heap size, in bytes. (decimal)
 
 complus_gclargepages: `bool | None`
   Set to true to enable large pages.
