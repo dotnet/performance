@@ -146,12 +146,10 @@ def _get_processed_trace_from_process(
                 " (hint: maybe specify the test output '.yaml' file instead of the trace file)",
             )
         )
-        if ts.process_id is None and ts.process_name is None:
-            raise Exception("Test status file exists but does not specify process_id or process_name.")
         if ts.process_id is not None:
             process_predicate = process_predicate_from_id(ts.process_id)
         else:
-            process_predicate = process_predicate_from_parts(_convert_to_tuple([f"name:{ts.process_name}"]))
+            process_predicate = process_predicate_from_parts(ts.get_process_data_tuple())
 
     else:
         assert (
@@ -168,7 +166,10 @@ def _get_processed_trace_from_process(
         collect_event_names=True,
     )
 
-    assert len(proc.gcs) > 0, f"Trace file {proc.trace_path.name} has no GC's to analyze."
+    assert len(proc.gcs) > 0, (
+        f"Process '{proc.process.Name}' in Trace File '{proc.trace_path.name}' "
+        "has no GC's to analyze."
+    )
 
     # TODO: just do this lazily (getting join info)
     join_info = (

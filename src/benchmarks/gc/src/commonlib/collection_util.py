@@ -349,8 +349,9 @@ def find_only_or_none(
     elif res == TryFindOnlyFailure.NotFound:
         return None
     elif res == TryFindOnlyFailure.MoreThanOne:
+        found_matches = [show(x) for x in seq if predicate(x)]
         raise Exception(
-            f"Multiple items match {showPredicate()}: {[show(x) for x in seq if predicate(x)]}"
+            "Multiple items match {}:\n{}".format(showPredicate(), "\n".join(found_matches))
         )
     else:
         raise Exception(res)
