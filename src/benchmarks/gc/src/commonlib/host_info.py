@@ -118,6 +118,7 @@ def _get_host_info(built: Built) -> HostInfo:
 
 _UNKNOWN_MSG: str = "unknown"
 
+
 def _get_host_info_posix() -> HostInfo:
     # lscpu output is a bunch of lines all of the form key: value. Make a dict from that.
     dct = _parse_keys_values_lines(exec_and_get_output(ExecArgs(("lscpu",), quiet_print=True)))

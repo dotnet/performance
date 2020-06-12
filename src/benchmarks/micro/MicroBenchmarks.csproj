@@ -71,10 +71,12 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.1')">
+    <Compile Remove="runtime\Math\Functions\Double\CopySignDouble.cs" />
     <Compile Remove="runtime\Math\Functions\Double\FusedMultiplyAdd.cs" />
     <Compile Remove="runtime\Math\Functions\Double\ILogB.cs" />
     <Compile Remove="runtime\Math\Functions\Double\Log2.cs" />
     <Compile Remove="runtime\Math\Functions\Double\ScaleB.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\CopySignSingle.cs" />
     <Compile Remove="runtime\Math\Functions\Single\FusedMultiplyAdd.cs" />
     <Compile Remove="runtime\Math\Functions\Single\ILogB.cs" />
     <Compile Remove="runtime\Math\Functions\Single\Log2.cs" />

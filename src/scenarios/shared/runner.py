@@ -189,8 +189,6 @@ class Runner:
                 sys.exit(1)
         
             compiletype = const.CROSSGEN2_COMPOSITE if self.compositefile else const.CROSSGEN2_SINGLEFILE
-            crossgen2exe = 'crossgen2%s' % extension()
-
 
             if compiletype == const.CROSSGEN2_SINGLEFILE:
                 referencefilenames = ['System.*.dll', 'Microsoft.*.dll', 'netstandard.dll', 'mscorlib.dll']
@@ -212,15 +210,17 @@ class Runner:
                     os.mkdir(outputdir)
                 outputfile = os.path.join(outputdir, filename+'.ni'+ext )
                 crossgen2args = '--composite -o %s -O @%s' % (outputfile, self.compositefile)
+                self.traits.add_traits( overwrite=True,
+                                        skipprofile='true')
 
             self.traits.add_traits(overwrite=True,
                                    startupmetric=const.STARTUP_CROSSGEN2,
                                    workingdir=self.coreroot,
-                                   appargs=crossgen2args
+                                   appargs='%s %s' % (os.path.join('crossgen2', 'crossgen2.dll'), crossgen2args)
                                    )
             self.traits.add_traits(overwrite=False,
                                    scenarioname='Crossgen2 Throughput - %s - %s' % ( compiletype, filename),
-                                   apptorun=os.path.join(self.coreroot, os.path.join('crossgen2', crossgen2exe))
+                                   apptorun=os.path.join(self.coreroot, 'CoreRun%s' % extension())
                                   ) 
             startup.runtests(self.traits)
 
