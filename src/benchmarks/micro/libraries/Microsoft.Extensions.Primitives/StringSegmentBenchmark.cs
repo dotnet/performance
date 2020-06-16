@@ -5,9 +5,11 @@
 using System;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
+using MicroBenchmarks;
 
 namespace Microsoft.Extensions.Primitives.Performance
 {
+    [BenchmarkCategory(Categories.Libraries)]
     public class StringSegmentBenchmark
     {
         private readonly StringSegment _segment = new StringSegment("Hello world!");
