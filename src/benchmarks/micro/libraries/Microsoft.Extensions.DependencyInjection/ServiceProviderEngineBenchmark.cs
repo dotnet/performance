@@ -5,19 +5,21 @@
 using System;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace Microsoft.Extensions.DependencyInjection.Performance
 {
+    [BenchmarkCategory(Categories.Libraries)]
     public class ServiceProviderEngineBenchmark
     {
-        internal ServiceProviderMode ServiceProviderMode { get; private set; }
+        // internal ServiceProviderMode ServiceProviderMode { get; private set; }
 
-        [Params("Expressions", "Dynamic", "Runtime", "ILEmit")]
-        public string Mode {
-            set {
-                ServiceProviderMode = (ServiceProviderMode)Enum.Parse(typeof(ServiceProviderMode), value);
-            }
-        }
+        // [Params("Expressions", "Dynamic", "Runtime", "ILEmit")]
+        // public string Mode {
+        //     set {
+        //         ServiceProviderMode = (ServiceProviderMode)Enum.Parse(typeof(ServiceProviderMode), value);
+        //     }
+        // }
 
         internal class A
         {

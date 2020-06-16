@@ -5,9 +5,11 @@
 using System;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace Microsoft.Extensions.DependencyInjection.Performance
 {
+    [BenchmarkCategory(Categories.Libraries)]
     public class TimeToFirstServiceBenchmark
     {
         private IServiceProvider _transientSp;
@@ -16,12 +18,12 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
         private ServiceCollection _transientServices;
         private ServiceCollection _scopedServices;
         private ServiceCollection _singletonServices;
-        private ServiceProviderMode _mode;
+        // private ServiceProviderMode _mode;
 
         [Params("Expressions", "Dynamic", "Runtime", "ILEmit")]
         public string Mode {
             set {
-                _mode = (ServiceProviderMode)Enum.Parse(typeof(ServiceProviderMode), value);
+                // _mode = (ServiceProviderMode)Enum.Parse(typeof(ServiceProviderMode), value);
             }
         }
 
@@ -46,7 +48,7 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
         {
             _transientSp = _transientServices.BuildServiceProvider(new ServiceProviderOptions()
             {
-                Mode = _mode
+                // Mode = _mode
             });
         }
 
@@ -64,7 +66,7 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
         {
             _transientSp = _transientServices.BuildServiceProvider(new ServiceProviderOptions()
             {
-                Mode = _mode
+                // Mode = _mode
             });
             var temp = _transientSp.GetService<A>();
             temp.Foo();
@@ -84,7 +86,7 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
         {
             _scopedSp = _scopedServices.BuildServiceProvider(new ServiceProviderOptions()
             {
-                Mode = _mode
+                // Mode = _mode
             }).CreateScope();
             var temp = _scopedSp.ServiceProvider.GetService<A>();
             temp.Foo();
@@ -104,7 +106,7 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
         {
             _singletonSp = _singletonServices.BuildServiceProvider(new ServiceProviderOptions()
             {
-                Mode = _mode
+                // Mode = _mode
             });
             var temp = _singletonSp.GetService<A>();
             temp.Foo();
