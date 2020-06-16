@@ -20,12 +20,12 @@
     <PackageReference Include="Jil" Version="2.17.0" />
     <PackageReference Include="MessagePack" Version="1.9.11" />
     <PackageReference Include="MessagePackAnalyzer" Version="1.7.3.7" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0-preview.4.20251.6" />
     <PackageReference Include="protobuf-net" Version="2.4.0" />
     <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
     <PackageReference Include="System.IO.Pipelines" Version="4.5.3" />
-    <PackageReference Include="System.Memory" Version="4.5.1" />
+    <PackageReference Include="System.Memory" Version="4.5.3" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.2" />
     <PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Serialization.Json" Version="4.3.0" />
     <PackageReference Include="System.Security.Cryptography.Primitives" Version="4.3.0" />
@@ -71,15 +71,18 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.1')">
+    <Compile Remove="runtime\Math\Functions\Double\CopySignDouble.cs" />
     <Compile Remove="runtime\Math\Functions\Double\FusedMultiplyAdd.cs" />
     <Compile Remove="runtime\Math\Functions\Double\ILogB.cs" />
     <Compile Remove="runtime\Math\Functions\Double\Log2.cs" />
     <Compile Remove="runtime\Math\Functions\Double\ScaleB.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\CopySignSingle.cs" />
     <Compile Remove="runtime\Math\Functions\Single\FusedMultiplyAdd.cs" />
     <Compile Remove="runtime\Math\Functions\Single\ILogB.cs" />
     <Compile Remove="runtime\Math\Functions\Single\Log2.cs" />
     <Compile Remove="runtime\Math\Functions\Single\ScaleB.cs" />
     <Compile Remove="libraries\System.Memory\SequenceReader.cs" />
+    <Compile Remove="libraries\System.Numerics.BitOperations\Perf_BitOperations.cs" />
     <Compile Remove="libraries\System.Text.Json\**\*.cs" />
   </ItemGroup>
 
@@ -96,5 +99,4 @@
     <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
     <None Include="**/*.cs" />
   </ItemGroup>
-
 </Project>

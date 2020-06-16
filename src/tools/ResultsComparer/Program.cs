@@ -10,8 +10,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml;
-using BenchmarkDotNet.Mathematics;
-using BenchmarkDotNet.Mathematics.StatisticalTesting;
+using Perfolizer.Mathematics.Multimodality;
+using Perfolizer.Mathematics.SignificanceTesting;
+using Perfolizer.Mathematics.Thresholds;
 using CommandLine;
 using DataTransferContracts;
 using MarkdownLog;
@@ -251,7 +252,7 @@ namespace ResultsComparer
             if (benchmark.Statistics.N < 12) // not enough data to tell
                 return null;
 
-            double mValue = MathHelper.CalculateMValue(new BenchmarkDotNet.Mathematics.Statistics(benchmark.GetOriginalValues()));
+            double mValue = MValueCalculator.Calculate(benchmark.GetOriginalValues());
             if (mValue > 4.2)
                 return "multimodal";
             else if (mValue > 3.2)

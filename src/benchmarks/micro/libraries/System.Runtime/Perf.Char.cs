@@ -59,6 +59,30 @@ namespace System.Tests
         public char Char_ToUpper(char c, CultureInfo cultureName)=> char.ToUpper(c, cultureName);
 
         [Benchmark]
+        [Arguments("Hello World!")]
+        public int Char_ToUpperInvariant(string input)
+        {
+            int accum = 0;
+            for (int i = 0; i < input.Length; i++)
+            {
+                accum += char.ToUpperInvariant(input[i]);
+            }
+            return accum;
+        }
+
+        [Benchmark]
+        [Arguments("Hello World!")]
+        public int Char_ToLowerInvariant(string input)
+        {
+            int accum = 0;
+            for (int i = 0; i < input.Length; i++)
+            {
+                accum += char.ToLowerInvariant(input[i]);
+            }
+            return accum;
+        }
+
+        [Benchmark]
         [Arguments('.')]
         [Arguments('a')]
         [Arguments('\x05D0')]

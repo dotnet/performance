@@ -5,41 +5,92 @@
       <PayloadDirectory>%(Identity)</PayloadDirectory>
     </HelixCorrelationPayload>
   </ItemGroup>
-  
+
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
     <ScenariosDir>$(WorkItemDirectory)\src\scenarios\</ScenariosDir>
     <HelixPreCommands>$(HelixPreCommands);set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\scripts%3B%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
+    <RID>win-$(Architecture)</RID>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
     <ScenariosDir>$(WorkItemDirectory)/src/scenarios/</ScenariosDir>
     <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
+    <RID>linux-$(Architecture)</RID>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
-    <HelixWorkItem>
-      <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release</PreCommands>
-      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
+      <HelixWorkItem>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemDefinitionGroup>
   
+
   <ItemGroup>
-    <HelixWorkItem Include="Static Console Template">
+    <Scenario Include="Static Console Template">
       <PayloadDirectory>$(ScenariosDir)staticconsoletemplate</PayloadDirectory>
-    </HelixWorkItem>
-    <HelixWorkItem Include="Static VB Console Template">
+    </Scenario>
+    <Scenario Include="Static VB Console Template">
       <PayloadDirectory>$(ScenariosDir)staticvbconsoletemplate</PayloadDirectory>
-    </HelixWorkItem>
-    <HelixWorkItem Include="Static Winforms Template">
+    </Scenario>
+    <Scenario Include="Static Winforms Template">
       <PayloadDirectory>$(ScenariosDir)staticwinformstemplate</PayloadDirectory>
-    </HelixWorkItem>
-    <HelixWorkItem Include="New Console Template">
+    </Scenario>
+    <Scenario Include="New Console Template">
       <PayloadDirectory>$(ScenariosDir)emptyconsoletemplate</PayloadDirectory>
-    </HelixWorkItem>
-    <HelixWorkItem Include="New VB Console Template">
+    </Scenario>
+    <Scenario Include="New VB Console Template">
       <PayloadDirectory>$(ScenariosDir)emptyvbconsoletemplate</PayloadDirectory>
+    </Scenario>
+  </ItemGroup>
+
+  <!-- Startup FDD publish -->
+  <ItemGroup>
+    <HelixWorkItem Include="@(Scenario -> 'Startup - %(Identity) - FDD Publish')">
+      <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release</PreCommands>
+      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
+
+  <!-- SOD FDD publish -->
+  <ItemGroup>
+    <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - FDD Publish')">
+      <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+  </ItemGroup>
+
+  <!-- SOD SCD publish w/ RID -->
+  <ItemGroup>
+    <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - SCD Publish')">
+      <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release -r $(RID)</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+  </ItemGroup>
+
+  <!-- SOD build -->
+  <ItemGroup>
+    <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - Build')">
+      <PreCommands>$(Python) pre.py build -c Release -f $(_Framework)</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+  </ItemGroup>
+  <!--
+    This is useful for local testing to print the produced helix items
+    To use this when you are changing how items are produced, uncomment the target
+    and replace the Project item at the top of the file with this:
+    <Project DefaultTargets="printItems">
+    
+    Once you've done that you can run this to see the results:
+    dotnet msbuild .\scenarios.proj /v:n
+   -->
+  <!-- <Target Name="printItems">
+        <Message Text="@(HelixWorkItem -> 'name: %(HelixWorkItem.Identity)
+     dir: %(HelixWorkItem.PayloadDirectory)
+     pre: %(HelixWorkItem.PreCommands)
+     command: %(HelixWorkItem.Command)
+     post: %(HelixWorkItem.PostCommands)
+     timeout: %(HelixWorkItem.Timeout)  '"/>
+  </Target> -->
+
 </Project>

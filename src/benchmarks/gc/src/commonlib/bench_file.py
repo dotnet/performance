@@ -128,6 +128,15 @@ Only has effect when complus_gcserver is set.
 """,
 )
 @doc_field("complus_gcheaphardlimit", "Hard limit on heap size, in bytes. (decimal)")
+@doc_field(
+    "complus_gcheaphardlimitsoh", "Hard limit on small object heap size, in bytes. (decimal)"
+)
+@doc_field(
+    "complus_gcheaphardlimitloh", "Hard limit on large object heap size, in bytes. (decimal)"
+)
+@doc_field(
+    "complus_gcheaphardlimitpoh", "Hard limit on pinned object heap size, in bytes. (decimal)"
+)
 @doc_field("complus_gclargepages", "Set to true to enable large pages.")
 @doc_field("complus_gcnoaffinitize", "Set to true to prevent affinitizing GC threads to cpu cores.")
 @doc_field("complus_gccpugroup", "Set to true to enable CPU groups.")
@@ -182,6 +191,9 @@ class ConfigOptions:
     complus_gcheapaffinitizeranges: Optional[str] = None
     complus_gcheapcount: Optional[int] = None
     complus_gcheaphardlimit: Optional[int] = None
+    complus_gcheaphardlimitsoh: Optional[int] = None
+    complus_gcheaphardlimitloh: Optional[int] = None
+    complus_gcheaphardlimitpoh: Optional[int] = None
     complus_gclargepages: Optional[bool] = None
     complus_gcnoaffinitize: Optional[bool] = None
     complus_gccpugroup: Optional[bool] = None
@@ -342,6 +354,9 @@ class TestConfigCombinedWithCoreclr:
                     ),
                     od("COMPlus_GCHeapCount", cfg.complus_gcheapcount),
                     od("COMPlus_GCHeapHardLimit", cfg.complus_gcheaphardlimit),
+                    od("COMPlus_GCHeapHardLimitSOH", cfg.complus_gcheaphardlimitsoh),
+                    od("COMPlus_GCHeapHardLimitLOH", cfg.complus_gcheaphardlimitloh),
+                    od("COMPlus_GCHeapHardLimitPOH", cfg.complus_gcheaphardlimitpoh),
                     ob("COMPlus_GCLargePages", cfg.complus_gclargepages),
                     ob("COMPlus_GCNoAffinitize", cfg.complus_gcnoaffinitize),
                     ob("COMPlus_GCCpuGroup", cfg.complus_gccpugroup),
@@ -423,7 +438,7 @@ class FullConfigAndName:
 @doc_field("cpu_samples", "Collect all of the above, and CPU samples.")
 @doc_field(
     "thread_times",
-    "Collect all of the above and Thread Times Stacks with CSwitch events. Windows only."
+    "Collect all of the above and Thread Times Stacks with CSwitch events. Windows only.",
 )
 class CollectKind(OrderedEnum):
     none = 0
@@ -565,10 +580,13 @@ class TestKind(Enum):
 @doc_field("lohar", None)
 @doc_field("sohsi", None)
 @doc_field("lohsi", None)
+@doc_field("pohsi", None)
 @doc_field("sohpi", None)
 @doc_field("lohpi", None)
+@doc_field("pohpi", None)
 @doc_field("sohfi", None)
 @doc_field("lohfi", None)
+@doc_field("pohfi", None)
 @doc_field("allocType", None)
 @doc_field("testKind", None)
 @with_slots
@@ -586,10 +604,13 @@ class GCPerfSimArgs:
     lohar: int = 0
     sohsi: int = 0
     lohsi: int = 0
+    pohsi: int = 0
     sohpi: int = 0
     lohpi: int = 0
+    pohpi: int = 0
     sohfi: int = 0
     lohfi: int = 0
+    pohfi: int = 0
     allocType: AllocType = AllocType.reference
     testKind: TestKind = TestKind.time
 
@@ -602,10 +623,13 @@ class GCPerfSimArgs:
             "-lohar": str(self.lohar),
             "-sohsi": str(self.sohsi),
             "-lohsi": str(self.lohsi),
+            "-pohsi": str(self.pohsi),
             "-sohpi": str(self.sohpi),
             "-lohpi": str(self.lohpi),
+            "-pohpi": str(self.pohpi),
             "-sohfi": str(self.sohfi),
             "-lohfi": str(self.lohfi),
+            "-pohfi": str(self.pohfi),
             "-allocType": self.allocType.name,
             "-testKind": self.testKind.name,
         }
@@ -1135,7 +1159,7 @@ class TestResult:
             assert self.process is None
 
         # Making sure this is a tuple because Python requires it to be hashable.
-        if (self.process is not None):
+        if self.process is not None:
             assert isinstance(self.process, tuple)
 
         assert self.test_status_path is not None or self.trace_path is not None
