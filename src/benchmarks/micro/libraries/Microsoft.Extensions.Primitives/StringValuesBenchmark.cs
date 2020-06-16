@@ -6,9 +6,11 @@ using System;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
+using MicroBenchmarks;
 
 namespace Microsoft.Extensions.Primitives.Performance
 {
+    [BenchmarkCategory(Categories.Libraries)]
     public class StringValuesBenchmark
     {
         const int Iterations = 40;
