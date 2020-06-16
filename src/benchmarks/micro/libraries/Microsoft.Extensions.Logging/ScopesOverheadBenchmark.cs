@@ -4,10 +4,11 @@
 
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.DependencyInjection;
+using MicroBenchmarks;
 
 namespace Microsoft.Extensions.Logging.Performance
 {
-    [AspNetCoreBenchmark]
+    [BenchmarkCategory(Categories.Libraries)]
     public class ScopesOverheadBenchmark: LoggingBenchmarkBase
     {
         private ILogger _logger;

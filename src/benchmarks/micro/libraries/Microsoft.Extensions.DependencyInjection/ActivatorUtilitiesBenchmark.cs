@@ -4,9 +4,11 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace Microsoft.Extensions.DependencyInjection.Performance
 {
+    [BenchmarkCategory(Categories.Libraries)]
     public class ActivatorUtilitiesBenchmark
     {
         private ServiceProvider _serviceProvider;

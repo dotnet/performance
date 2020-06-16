@@ -5,10 +5,11 @@
 using System;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.DependencyInjection;
+using MicroBenchmarks;
 
 namespace Microsoft.Extensions.Logging.Performance
 {
-    [AspNetCoreBenchmark]
+    [BenchmarkCategory(Categories.Libraries)]
     public class LoggingOverheadBenchmark: LoggingBenchmarkBase
     {
         private ILogger _logger;
