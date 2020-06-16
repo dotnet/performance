@@ -1,7 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-
+/*
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 using MicroBenchmarks.Serializers;
@@ -27,7 +27,7 @@ namespace System.Text.Json.Serialization.Tests
         [GlobalSetup]
         public void Setup()
         {
-            _options = new JsonSerializerOptions { ReferenceHandling = ReferenceHandling.Preserve };
+            _options = new JsonSerializerOptions { ReferenceHandler = ReferenceHandler.Preserve };
 
             _settings = new JsonSerializerSettings { PreserveReferencesHandling = PreserveReferencesHandling.All };
 
@@ -39,7 +39,7 @@ namespace System.Text.Json.Serialization.Tests
             }
             else
             {
-                // Use payload that does not contain metadata in order to see what is the penalty of having ReferenceHandling.Preserve set.
+                // Use payload that does not contain metadata in order to see what is the penalty of having ReferenceHandler.Preserve set.
                 _serialized = JsonConvert.SerializeObject(value);
             }
         }
@@ -53,3 +53,4 @@ namespace System.Text.Json.Serialization.Tests
         public T NewtonsoftDeserializePreserved() => JsonConvert.DeserializeObject<T>(_serialized, _settings);
     }    
 }
+*/

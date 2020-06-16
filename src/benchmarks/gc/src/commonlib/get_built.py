@@ -60,7 +60,9 @@ def get_platform_name() -> str:
         return machine().lower()
     else:
         p = processor()
-        assert any(x in p for x in ("AMD64", "Intel64", "x86_64")), f"Processor {p} is not supported."
+        assert any(
+            x in p for x in ("AMD64", "Intel64", "x86_64")
+        ), f"Processor {p} is not supported."
         return "x64"
 
 
@@ -222,12 +224,13 @@ def get_built_gcperf() -> Sequence[Path]:
 
 def _get_latest_testbin_path(test_name: str) -> Path:
     base_bin_path = _ARTIFACTS_BIN_PATH / test_name / "release"
-    bin_build_dirs = [str(f.absolute()).split('\\')[-1]
-                  for f in base_bin_path.iterdir() if f.is_dir()
-                  and 'netcoreapp' in str(f)]
+    bin_build_dirs = [
+        str(f.absolute()).split("\\")[-1]
+        for f in base_bin_path.iterdir()
+        if f.is_dir() and "netcoreapp" in str(f)
+    ]
 
-    bin_versions = list(map(lambda d: float(d.split('netcoreapp')[-1]),
-                            bin_build_dirs))
+    bin_versions = list(map(lambda d: float(d.split("netcoreapp")[-1]), bin_build_dirs))
     return base_bin_path / f"netcoreapp{bin_versions[-1]}" / f"{test_name}.dll"
 
 

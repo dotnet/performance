@@ -57,7 +57,7 @@ class StartupWrapper(object):
         Runs tests through startup
         '''
         # make sure required arguments are present
-        for key in ['apptorun', 'scenariotypename', 'startupmetric', 'guiapp']:
+        for key in ['apptorun', 'startupmetric', 'guiapp']:
             if not getattr(traits, key):
                 raise Exception('startup tests require %s' % key)
         reportjson = os.path.join(TRACEDIR, 'perf-lab-report.json')
@@ -94,6 +94,8 @@ class StartupWrapper(object):
             startup_args.extend(['--cleanup-args', traits.cleanupargs])
         if traits.measurementdelay:
             startup_args.extend(['--measurement-delay', traits.measurementdelay])
+        if traits.skipprofile:
+            startup_args.extend(['--skip-profile-iteration'])
             
         RunCommand(startup_args, verbose=True).run()
 

@@ -1,0 +1,4 @@
+System.*.dll
+Microsoft.*.dll
+mscorlib.dll
+netstandard.dll
