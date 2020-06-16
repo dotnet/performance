@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 
 
@@ -21,7 +22,14 @@ namespace ScenarioMeasurement
         {
             if (source.IsWindows)
             {
-                if (!commandLine.Equals( ((string)GetPayloadValue(evt, "CommandLine")).Trim()))
+                int bufferMax = 512; 
+                string payloadCommandLine = (string)GetPayloadValue(evt, "CommandLine");
+                if (payloadCommandLine.Length >= bufferMax && commandLine.Length >= bufferMax)
+                {
+                    commandLine = commandLine.Substring(0, bufferMax);
+                    payloadCommandLine = payloadCommandLine.Substring(0, bufferMax);
+                }
+                if (!commandLine.Trim().Equals(payloadCommandLine.Trim()))
                 {
                     return CompareResult.Mismatch;
                 }

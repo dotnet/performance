@@ -61,7 +61,7 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        # - release/3.1.2xx
+        # - release/3.1.3xx
         - 3.0
 
   # Windows x64 SDK scenario benchmarks
@@ -76,7 +76,7 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - master
-        # - release/3.1.2xx
+        # - release/3.1.3xx
   
   # Ubuntu 1804 x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -91,7 +91,7 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
         - master
-        #- release/3.1.2xx
+        # - release/3.1.3xx
 
   # Windows x86 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -105,7 +105,7 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - master
-        # - release/3.1.2xx
+        # - release/3.1.3xx
   
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -120,7 +120,7 @@ jobs:
       runCategories: 'runtime libraries' 
       channels:
         - master
-        - release/3.1.2xx
+        - release/3.1.3xx
         - 2.1
 
   # Windows x64 net461 micro benchmarks
@@ -164,7 +164,7 @@ jobs:
       runCategories: 'mldotnet'
       channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
         - master
-        - release/3.1.2xx
+        - release/3.1.3xx
 
   # Windows x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -179,7 +179,7 @@ jobs:
       runCategories: 'roslyn'
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
         - master
-        - release/3.1.2xx
+        - release/3.1.3xx
         
   # Ubuntu 1804 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -195,7 +195,7 @@ jobs:
       runCategories: 'runtime libraries'
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - master
-        - release/3.1.2xx
+        - release/3.1.3xx
         - 2.1
 
   # Ubuntu 1804 x64 ML.NET benchmarks
@@ -212,7 +212,7 @@ jobs:
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
       channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
         - master
-        - release/3.1.2xx
+        - release/3.1.3xx
 
   # Ubuntu 1804 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -228,7 +228,7 @@ jobs:
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
         - master
-        - release/3.1.2xx
+        - release/3.1.3xx
 
 ###########################################
 # Private Jobs

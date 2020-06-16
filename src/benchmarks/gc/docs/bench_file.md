@@ -35,10 +35,13 @@ benchmarks:
       lohar: 0
       sohsi: 50
       lohsi: 0
+      pohsi: 0
       sohpi: 0
       lohpi: 0
+      pohpi: 0
       sohfi: 0
       lohfi: 0
+      pohfi: 0
       allocType: reference
       testKind: time
 
@@ -99,7 +102,7 @@ collect: `"none" | "gc" | "verbose" | "cpu_samples" | "thread_times" | None`
   gc: Collect normal GC events.
   verbose: Collect verbose GC events, which includes join events.
   cpu_samples: Collect all of the above, and CPU samples.
-  thread_times: Collect all of the above, and Thread Times Stacks with CSwitch events. Windows only.
+  thread_times: Collect all of the above and Thread Times Stacks with CSwitch events. Windows only.
 
 default_iteration_count: `int | None`
   Number of times to run the same test combination.
@@ -190,6 +193,15 @@ complus_gcheapcount: `int | None`
 complus_gcheaphardlimit: `int | None`
   Hard limit on heap size, in bytes. (decimal)
 
+complus_gcheaphardlimitsoh: `int | None`
+  Hard limit on small object heap size, in bytes. (decimal)
+
+complus_gcheaphardlimitloh: `int | None`
+  Hard limit on large object heap size, in bytes. (decimal)
+
+complus_gcheaphardlimitpoh: `int | None`
+  Hard limit on pinned object heap size, in bytes. (decimal)
+
 complus_gclargepages: `bool | None`
   Set to true to enable large pages.
 
@@ -265,6 +277,15 @@ complus_gcheapcount: `int | None`
 
 complus_gcheaphardlimit: `int | None`
   Hard limit on heap size, in bytes. (decimal)
+
+complus_gcheaphardlimitsoh: `int | None`
+  Hard limit on small object heap size, in bytes. (decimal)
+
+complus_gcheaphardlimitloh: `int | None`
+  Hard limit on large object heap size, in bytes. (decimal)
+
+complus_gcheaphardlimitpoh: `int | None`
+  Hard limit on pinned object heap size, in bytes. (decimal)
 
 complus_gclargepages: `bool | None`
   Set to true to enable large pages.
@@ -370,10 +391,13 @@ totalMins: `float | None`
 lohar: `int`
 sohsi: `int`
 lohsi: `int`
+pohsi: `int`
 sohpi: `int`
 lohpi: `int`
+pohpi: `int`
 sohfi: `int`
 lohfi: `int`
+pohfi: `int`
 allocType: `"simple" | "reference"`
 testKind: `"time" | "highSurvival"`
 

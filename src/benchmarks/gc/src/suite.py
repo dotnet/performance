@@ -4,7 +4,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import cast, Mapping, Optional, Sequence, Type
+from typing import cast, Dict, Mapping, Optional, Sequence, Type
 
 from .analysis.diffable import get_diffables
 from .analysis.process_trace import ProcessedTraces
@@ -39,9 +39,9 @@ from .commonlib.option import option_or
 from .commonlib.parse_and_serialize import load_yaml, write_yaml_file
 from .commonlib.score_spec import ScoreElement, ScoreSpec
 from .commonlib.type_utils import argument, with_slots
-from .commonlib.util import CoreRunErrorInfo, ensure_empty_dir
+from .commonlib.util import ensure_empty_dir, RunErrorMap
 
-from .exec.run_tests import run_test, RunArgs, RunErrorMap
+from .exec.run_tests import run_test, RunArgs
 
 
 SuiteCommand = str
@@ -136,7 +136,9 @@ class SuiteRunArgs:
         doc="This is like the '--skip-where-exists' argument to the normal 'run' command.",
     )
 
-SuiteErrorMap = Mapping[str, RunErrorMap]
+
+SuiteErrorMap = Dict[Path, RunErrorMap]
+
 
 def suite_run(args: SuiteRunArgs) -> None:
     suite = load_yaml(SuiteFile, args.suite_path)
@@ -154,7 +156,7 @@ def suite_run(args: SuiteRunArgs) -> None:
                 skip_where_exists=args.skip_where_exists,
             ),
             testrun_errors,
-            True
+            True,
         )
 
         if not is_empty(testrun_errors):

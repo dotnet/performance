@@ -5,6 +5,7 @@ from shared.util import const
 testtypes = [const.STARTUP,
              const.SDK,
              const.CROSSGEN,
+             const.CROSSGEN2,
              const.SOD]
 
 class TestTraits:
@@ -29,6 +30,7 @@ class TestTraits:
         self.processwillexit = ''
         self.measurementdelay = ''
         self.environmentvariables = ''
+        self.skipprofile = ''
 
         # add test types to traits
         for testtype in testtypes:
