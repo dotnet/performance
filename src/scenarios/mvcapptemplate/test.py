@@ -9,7 +9,7 @@ EXENAME = 'mvcapptemplate'
 def main():
     traits = TestTraits(exename=EXENAME,
                         guiapp='false', 
-                        sdk=True,
+                        timeout= f'{const.MINUTE*10}'
                         )
     runner = Runner(traits)
     runner.run()

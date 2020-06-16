@@ -8,7 +8,6 @@ EXENAME = 'wpf'
 def main():
     traits = TestTraits(exename=EXENAME,
                         guiapp='false', 
-                        sdk=True,
                         )
     runner = Runner(traits)
     runner.run()

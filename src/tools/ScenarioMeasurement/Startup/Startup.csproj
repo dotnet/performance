@@ -6,10 +6,11 @@
     <!-- Supported target frameworks -->
     <TargetFramework Condition="'$(TargetFramework)' == ''">netcoreapp3.0</TargetFramework>
     <LangVersion>Preview</LangVersion>
+    <RootNamespace>ScenarioMeasurement</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="2.0.44" />
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="2.0.54" />
     <PackageReference Include="System.CommandLine.DragonFruit" Version="0.3.0-alpha.20158.1" />
   </ItemGroup>
 
@@ -28,6 +29,7 @@
                   SkipUnchangedFiles="true">
       <Output TaskParameter="DownloadedFile" ItemName="Content"/>
     </DownloadFile>
+    <Exec Command="chmod +x perfcollect"/>
     <Copy SourceFiles="perfcollect" DestinationFolder="$(PublishDir)" />
     <Copy SourceFiles="perfcollect" DestinationFolder="$(OutDir)" />
   </Target>

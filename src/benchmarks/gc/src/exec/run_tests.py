@@ -5,6 +5,8 @@
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from sys import exc_info
+from traceback import format_tb
 from typing import Mapping, Optional
 
 from ..commonlib.bench_file import (
@@ -20,11 +22,12 @@ from ..commonlib.bench_file import (
     SingleTestCombination,
 )
 from ..commonlib.get_built import BuildKind, Built, get_built, is_arm
-from ..commonlib.collection_util import combine_mappings
+from ..commonlib.collection_util import combine_mappings, is_empty
 from ..commonlib.command import Command, CommandKind, CommandsMapping
 from ..commonlib.option import map_option
 from ..commonlib.type_utils import argument, with_slots
 from ..commonlib.util import (
+    add_new_error,
     assert_file_exists,
     ensure_empty_dir,
     ExecArgs,
@@ -35,6 +38,7 @@ from ..commonlib.util import (
     mb_to_bytes,
     OS,
     os_is_windows,
+    RunErrorMap,
 )
 
 from .run_single_test import (
@@ -83,6 +87,32 @@ class RunArgs:
 
 
 def run(args: RunArgs) -> None:
+    # We need to record exceptions, in order to display them nicely at the end
+    # of any given test run. Due to the inner gears of this tool's engine, any
+    # function directly related to a command can have ONLY ONE parameter.
+    #
+    # Therefore, we are using this function as a wrapper for the 'run' command
+    # and leave all the heavy lifting to run_test(). This is in order to
+    # provide a safe mechanism for suite-runs to be able to display any
+    # encountered errors once they are done running. To elaborate on this:
+    #
+    # Suite runs will display errors once all tests are done, as opposed to
+    # after each test finishes. This is to help the user see all this
+    # information at once, instead of having them scroll endlessly (each test
+    # yields a ton of output to the terminal). This is the reason why both,
+    # run_test() and suite_run() should have access to the errors that might
+    # have happened while these benchmarks were running.
+    run_test(args)
+
+
+def run_test(
+    args: RunArgs, run_errors: Optional[RunErrorMap] = None, is_suite: bool = False
+) -> None:
+    # Receiving an already initialized List as default value is very prone
+    # to unexpected side-effects. None is the convention for these cases.
+    if run_errors is None:
+        run_errors = {}
+
     bench_file_path = assert_file_exists(args.bench_file_path)
     bench = parse_bench_file(bench_file_path)
     out_dir = (
@@ -110,36 +140,62 @@ def run(args: RunArgs) -> None:
             check_no_test_processes()
         ensure_empty_dir(out_dir)
 
-    _run_all_benchmarks(built, bench, args.skip_where_exists, args.max_iterations, out_dir)
+    _run_all_benchmarks(
+        built, bench, args.skip_where_exists, args.max_iterations, out_dir, run_errors
+    )
+
+    if not is_suite and not is_empty(run_errors):
+        print(
+            f"\n======= *WARNING*: Test '{bench_file_path}' encountered errors. =======\n"
+            "\n*** Here is a summary of the problems found: ***\n"
+        )
+        for core_run in run_errors.values():
+            core_run.print()
 
 
+# pylint: disable=broad-except
 def _run_all_benchmarks(
     built: Built,
     bench: BenchFileAndPath,
     skip_where_exists: bool,
     max_iterations: Optional[int],
     out_dir: Path,
+    run_errors: RunErrorMap,
 ) -> None:
     default_env = check_env()
     for t in iter_tests_to_run(bench, get_this_machine(), max_iterations, out_dir):
         now = datetime.now().strftime("%H:%M:%S")
-        print(f"{now} Running {t.out.out_path_base.name}")
-        if not (skip_where_exists and t.out.exists()):
-            run_single_test(
-                built,
-                SingleTest(
-                    test=t.test,
-                    coreclr=built.coreclrs[t.coreclr_name],
-                    test_exe=_get_path(built, t.bench_file.paths, t.benchmark.get_executable),
-                    options=t.bench_file.options,
-                    default_env=default_env,
-                ),
-                t.out,
+
+        try:
+            print(f"{now} Running {t.out.out_path_base.name}")
+            if not (skip_where_exists and t.out.exists()):
+                run_single_test(
+                    built,
+                    SingleTest(
+                        test=t.test,
+                        coreclr=built.coreclrs[t.coreclr_name],
+                        test_exe=_get_path(built, t.bench_file.paths, t.benchmark.get_executable),
+                        options=t.bench_file.options,
+                        default_env=default_env,
+                    ),
+                    t.out,
+                )
+        except Exception:
+            _, exception_message, exception_trace = exc_info()
+            add_new_error(
+                run_errors=run_errors,
+                core_name=t.coreclr_name,
+                config_name=t.config_name,
+                bench_name=t.benchmark_name,
+                iteration_num=t.iteration,
+                message=str(exception_message),
+                trace=format_tb(exception_trace),
             )
+            continue
 
 
 def _assert_not_in_job(built: Built) -> None:
-    # TOOD: on ARM IsProcessInJob seems to always return true
+    # TODO: on ARM IsProcessInJob seems to always return true
     if os_is_windows() and not is_arm():
         res = exec_and_get_output(ExecArgs(cmd=(str(built.win.is_in_job_exe),), quiet_print=True))
         assert not _str_to_bool(res), (
