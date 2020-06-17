@@ -133,6 +133,10 @@ class PreCommands:
         filepath = os.path.join(projpath, file)
         insert_after(filepath, line, trace_statement)
 
+    def _add_static_msbuild_property(self, projectfile: str, propertyname: str, propertyvalue: str ):
+        propertystring = f'\n  <PropertyGroup>\n    <{propertyname}>{propertyvalue}</{propertyname}>\n  </PropertyGroup>'
+        insert_after(projectfile, r'</PropertyGroup>', propertystring )
+
     def _updateframework(self, projectfile: str):
         if self.framework:
             replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
@@ -161,3 +165,4 @@ class PreCommands:
         if os.path.isdir(const.APPDIR):
             shutil.rmtree(const.APPDIR)
         shutil.copytree(projectdir, const.APPDIR)
+
