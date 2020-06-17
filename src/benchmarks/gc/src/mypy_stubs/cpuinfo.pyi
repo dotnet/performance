@@ -1,0 +1,3 @@
+from typing import Mapping
+
+def get_cpu_info() -> Mapping[str, object]: ...

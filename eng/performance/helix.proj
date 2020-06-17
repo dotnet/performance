@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+
+  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
+    <WorkItemCommand>%HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --csproj %HELIX_CORRELATION_PAYLOAD%\$(TargetCsproj)</WorkItemCommand>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
+    <WorkItemCommand>scripts/benchmarks_ci.py --csproj $(TargetCsproj)</WorkItemCommand>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(WorkItemCommand)' != ''">
+    <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) -f $(_Framework) $(_PerfLabArguments)</WorkItemCommand>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(_Framework)' != 'net461'">
+    <WorkItemCommand>$(WorkItemCommand) $(CliArguments)</WorkItemCommand>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
+      <PayloadDirectory>%(Identity)</PayloadDirectory>
+    </HelixCorrelationPayload>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <PartitionCount>5</PartitionCount>
+  </PropertyGroup>
+  <ItemGroup>
+    <Partition Include="Partition0" Index="0" />
+    <Partition Include="Partition1" Index="1" />
+    <Partition Include="Partition2" Index="2" />
+    <Partition Include="Partition3" Index="3" />
+    <Partition Include="Partition4" Index="4" />
+  </ItemGroup>
+
+  <!-- 
+    Partition the Microbenchamrks project, but nothing else
+  -->
+  <ItemGroup Condition="$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
+    <HelixWorkItem Include="@(Partition)">
+      <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
+      <Command>$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments) --partition-count $(PartitionCount) --partition-index %(HelixWorkItem.Index)"</Command>
+      <Timeout>4:00</Timeout>
+    </HelixWorkItem>
+  </ItemGroup>
+  <ItemGroup Condition="!$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
+    <HelixWorkItem Include="WorkItem">
+      <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
+      <Command>$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments)"</Command>
+      <Timeout>4:00</Timeout>
+    </HelixWorkItem>
+  </ItemGroup>
+</Project>

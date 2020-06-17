@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp3.0;netcoreapp5.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.ML" Version="1.4.0-preview2" />
+  </ItemGroup>
+
+  <ItemGroup>
+      <ProjectReference Include="..\..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Input\" />
+    <Content Include="Input\iris.txt" Link="Input\iris.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="Input\wikipedia-detox-250-line-data.tsv" Link="Input\wikipedia-detox-250-line-data.tsv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Input\breast-cancer.txt" Link="Input\breast-cancer.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Input\adult.tiny.with-schema.txt" Link="Input\adult.tiny.with-schema.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <BenchmarkFile Update="@(BenchmarkFile)">
+      <Link>external\%(Identity)</Link>
+    </BenchmarkFile>
+    <None Condition="Exists('@(BenchmarkFile->'..\data\external\%(Identity)')')" Include="@(BenchmarkFile->'..\data\external\%(Identity)')">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

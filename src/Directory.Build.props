@@ -1,0 +1,29 @@
+<Project>
+  <!-- Microsoft.DotNet.Arcade.Sdk must be imported in explict way in every Directory.Build.props file -->
+  <Import Project="Sdk.props" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+  <PropertyGroup>
+    <!-- Avoid spawning any-long living compiler processes to avoid BenchmarkDotNet issues with "file in use",
+         and automation failing to clean up the folders once the runs are over -->
+    <UseSharedCompilation>false</UseSharedCompilation>
+    
+    <!-- Use the latest C# compiler features -->
+    <LangVersion>latest</LangVersion>
+    
+    <!-- This repo does not produce any libraries, therefore generating docs is disabled -->
+    <GenerateDocumentationFile>False</GenerateDocumentationFile>
+    
+    <!-- every warning is important, we want to enforce best practices here to keep high quality of the code and avoid common mistakes -->
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <WarningLevel>4</WarningLevel>
+    
+    <!-- we are testing latest bits and we must use preview SDK version -->
+    <SuppressNETCoreSdkPreviewMessage>True</SuppressNETCoreSdkPreviewMessage>
+
+    <!-- Disable SourceLink -->
+    <EnableSourceLink>false</EnableSourceLink>
+    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+    
+    <!-- Explicit disable signing the built assemblies here to stop Arcade attempting to sign them -->
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+</Project>

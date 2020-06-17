@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <!-- This repo version -->
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <PreReleaseVersionLabel>beta</PreReleaseVersionLabel>
+  </PropertyGroup>
+  <!--Package versions-->
+  <PropertyGroup>
+    <MicrosoftDotnetSdkInternalPackageVersion>5.0.100-preview.7.20306.5</MicrosoftDotnetSdkInternalPackageVersion>
+  </PropertyGroup>
+  <!--Package names-->
+  <PropertyGroup>
+    <MicrosoftDotnetSdkInternalPackage>Microsoft.Dotnet.Sdk.Internal</MicrosoftDotnetSdkInternalPackage>
+  </PropertyGroup>
+</Project>
