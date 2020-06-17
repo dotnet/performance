@@ -58,6 +58,7 @@ class PreCommands:
         self.framework = args.framework
         self.runtime_identifier = args.runtime
         self.msbuild = args.msbuild
+        self.msbuildstatic = args.msbuildstatic
 
     def new(self,
             template: str,
@@ -76,6 +77,7 @@ class PreCommands:
                                  verbose=True,
                                  language=language)
         self._updateframework(self.project.csproj_file)
+        self._addstaticmsbuildproperty(self.project.csproj_file)
 
     def add_common_arguments(self, parser: ArgumentParser):
         "Options that are common across many 'dotnet' commands"
@@ -93,6 +95,11 @@ class PreCommands:
                             help='Flags passed through to msbuild',
                             dest='msbuild',
                             metavar='/p:Foo=Bar;/p:Baz=Blee;...')
+        parser.add_argument('--msbuild-static',
+                            help='Properties added to csproj',
+                            dest='msbuildstatic',
+                            metavar='Foo=Bar;Bas=Blee;...'
+                           )
         parser.set_defaults(configuration=RELEASE)
 
     def existing(self, projectdir: str, projectfile: str):
@@ -133,9 +140,12 @@ class PreCommands:
         filepath = os.path.join(projpath, file)
         insert_after(filepath, line, trace_statement)
 
-    def _add_static_msbuild_property(self, projectfile: str, propertyname: str, propertyvalue: str ):
-        propertystring = f'\n  <PropertyGroup>\n    <{propertyname}>{propertyvalue}</{propertyname}>\n  </PropertyGroup>'
-        insert_after(projectfile, r'</PropertyGroup>', propertystring )
+    def _addstaticmsbuildproperty(self, projectfile: str):
+        if self.msbuildstatic:
+          for propertyarg in self.msbuildstatic.split(';'):
+            propertyname, propertyvalue = propertyarg.split('=')
+            propertystring = f'\n  <PropertyGroup>\n    <{propertyname}>{propertyvalue}</{propertyname}>\n  </PropertyGroup>'
+            insert_after(projectfile, r'</PropertyGroup>', propertystring )
 
     def _updateframework(self, projectfile: str):
         if self.framework:
