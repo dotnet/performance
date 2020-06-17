@@ -155,7 +155,7 @@ class PreCommands:
         self.project.publish(configuration=configuration,
                              output_dir=const.PUBDIR, 
                              verbose=True,
-                             packages_path=get_packages_directory(),
+                             packages_path=os.path.join(get_packages_directory(), ''), # blazor publish targets require the trailing slash for joining the paths
                              target_framework_moniker=framework,
                              runtime_identifier=runtime_identifier
                              )
