@@ -80,7 +80,8 @@
   <ItemGroup>
     <HelixWorkItem Include="SOD - New Blazor 3.2 Template - Publish" Contidion="'$(_Framework)' == 'netcoreapp3.1'">
       <PayloadDirectory>$(ScenariosDir)blazor</PayloadDirectory>
-      <PreCommands>$(Python) pre.py --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
+      <PreCommands>dotnet new -i Microsoft.AspNetCore.Components.WebAssembly.Templates::3.2.0-preview2.20160.5</PreCommands>
+      <PreCommands>$(PreCommands);$(Python) pre.py --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
