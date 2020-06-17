@@ -63,7 +63,7 @@ jobs:
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         # - release/3.1.3xx
         - 3.0
-
+        - master
   # Windows x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
     parameters:
@@ -249,6 +249,7 @@ jobs:
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
         # - release/3.1.2xx
         - 3.0
+        - master
 
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
