@@ -162,7 +162,12 @@ class Runner:
         elif self.testtype == const.CROSSGEN:
             startup = StartupWrapper()
             crossgenexe = 'crossgen%s' % extension()
-            crossgenargs = '/nologo /p %s %s\%s' % (self.coreroot, self.coreroot, self.crossgenfile)
+            filename, ext = os.path.splitext(self.crossgenfile)
+            outputdir = os.path.join(self.coreroot, 'crossgen.out')
+            if not os.path.exists(outputdir):
+                os.mkdir(outputdir)
+            outputfile = os.path.join(outputdir, filename+'.ni'+ext )
+            crossgenargs = '/nologo /out %s /p %s %s\%s' % (outputfile, self.coreroot, self.coreroot, self.crossgenfile)
             if self.coreroot is not None and not os.path.isdir(self.coreroot):
                 getLogger().error('Cannot find CORE_ROOT at %s', self.coreroot)
                 return
@@ -195,7 +200,7 @@ class Runner:
                 referencefiles = [os.path.join(self.coreroot, filename) for filename in referencefilenames]
                 # single assembly filename: example.dll
                 filename, ext = os.path.splitext(self.singlefile)
-                outputdir = os.path.join(self.coreroot, 'out')
+                outputdir = os.path.join(self.coreroot, 'single.out')
                 if not os.path.exists(outputdir):
                     os.mkdir(outputdir)
                 outputfile = os.path.join(outputdir, filename+'.ni'+ext )
