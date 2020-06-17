@@ -67,7 +67,8 @@ class SODWrapper(object):
         RunCommand(sod_args, verbose=True).run()
  
         linker_dump_file = os.path.join(APPDIR, 'obj', 'Release', 'netstandard2.1', 'blazor', 'linker', 'linker-dependencies.xml.gz')
-        copy(linker_dump_file, TRACEDIR)
+        if os.path.exists(linker_dump_file):
+            copy(linker_dump_file, TRACEDIR)
 
         if runninginlab():
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
