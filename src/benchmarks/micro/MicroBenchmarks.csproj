@@ -6,13 +6,13 @@
     <!-- Supported target frameworks -->
     <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net461;netcoreapp2.1;netcoreapp3.1;netcoreapp5.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp2.1;netcoreapp3.1;netcoreapp5.0</TargetFrameworks>
-
+    <NoWarn>$(NoWarn);CS8002</NoWarn>
     <OutputType>Exe</OutputType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    
+
     <IsARM Condition="'$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().StartsWith(`arm`, System.StringComparison.OrdinalIgnoreCase))'">true</IsARM>
   </PropertyGroup>
 
