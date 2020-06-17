@@ -4,7 +4,7 @@ Wrapper around startup tool.
 import sys
 import os
 import platform
-from shutil import copytree
+from shutil import copytree, copy
 from performance.logger import setup_loggers
 from performance.common import get_artifacts_directory, get_packages_directory, RunCommand
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
@@ -65,6 +65,9 @@ class SODWrapper(object):
         ]
 
         RunCommand(sod_args, verbose=True).run()
+ 
+        linker_dump_file = os.path.join(APPDIR, 'obj', 'Release', 'netstandard2.1', 'blazor', 'linker', 'linker-dependencies.xml.gz')
+        copy(linker_dump_file, TRACEDIR)
 
         if runninginlab():
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
