@@ -5,9 +5,11 @@
 using System;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace Microsoft.Extensions.DependencyInjection.Performance
 {
+    [BenchmarkCategory(Categories.Libraries)]
     public class ScopeValidationBenchmark
     {
         private const int OperationsPerInvoke = 50000;

@@ -5,9 +5,11 @@
 using System;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace Microsoft.Extensions.DependencyInjection.Performance
 {
+    [BenchmarkCategory(Categories.Libraries)]
     public class TimeToFirstServiceBenchmark
     {
         private IServiceProvider _transientSp;
@@ -16,12 +18,16 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
         private ServiceCollection _transientServices;
         private ServiceCollection _scopedServices;
         private ServiceCollection _singletonServices;
+#if INTERNAL_DI
         private ServiceProviderMode _mode;
+#endif
 
         [Params("Expressions", "Dynamic", "Runtime", "ILEmit")]
         public string Mode {
             set {
+#if INTERNAL_DI
                 _mode = (ServiceProviderMode)Enum.Parse(typeof(ServiceProviderMode), value);
+#endif
             }
         }
 
@@ -46,7 +52,9 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
         {
             _transientSp = _transientServices.BuildServiceProvider(new ServiceProviderOptions()
             {
+#if INTERNAL_DI
                 Mode = _mode
+#endif
             });
         }
 
@@ -64,7 +72,9 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
         {
             _transientSp = _transientServices.BuildServiceProvider(new ServiceProviderOptions()
             {
+#if INTERNAL_DI
                 Mode = _mode
+#endif
             });
             var temp = _transientSp.GetService<A>();
             temp.Foo();
@@ -84,7 +94,9 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
         {
             _scopedSp = _scopedServices.BuildServiceProvider(new ServiceProviderOptions()
             {
+#if INTERNAL_DI
                 Mode = _mode
+#endif
             }).CreateScope();
             var temp = _scopedSp.ServiceProvider.GetService<A>();
             temp.Foo();
@@ -104,7 +116,9 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
         {
             _singletonSp = _singletonServices.BuildServiceProvider(new ServiceProviderOptions()
             {
+#if INTERNAL_DI
                 Mode = _mode
+#endif
             });
             var temp = _singletonSp.GetService<A>();
             temp.Foo();

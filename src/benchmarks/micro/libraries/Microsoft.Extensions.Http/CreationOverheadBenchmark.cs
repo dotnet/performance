@@ -8,12 +8,14 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.DependencyInjection;
+using MicroBenchmarks;
 
 namespace Microsoft.Extensions.Http.Performance
 {
+    [BenchmarkCategory(Categories.Libraries)]
     public class CreationOverheadBenchmark
     {
-        private const int Iterations = 100;
+        private const int Iterations = 35000;
 
         public CreationOverheadBenchmark()
         {

@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace Microsoft.Extensions.DependencyInjection.Performance
 {
+    [BenchmarkCategory(Categories.Libraries)]
     public class GetServiceBenchmark: ServiceProviderEngineBenchmark
     {
         private const int OperationsPerInvoke = 50000;
@@ -38,7 +40,9 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
             services.AddTransient<C>();
             _transientSp = services.BuildServiceProvider(new ServiceProviderOptions()
             {
+#if INTERNAL_DI
                 Mode = ServiceProviderMode
+#endif
             });
         }
 
@@ -61,7 +65,9 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
             services.AddScoped<C>();
             _scopedSp = services.BuildServiceProvider(new ServiceProviderOptions()
             {
+#if INTERNAL_DI
                 Mode = ServiceProviderMode
+#endif
             }).CreateScope();
         }
 
@@ -84,7 +90,9 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
             services.AddSingleton<C>();
             _singletonSp = services.BuildServiceProvider(new ServiceProviderOptions()
             {
+#if INTERNAL_DI
                 Mode = ServiceProviderMode
+#endif
             });
         }
 
@@ -103,7 +111,9 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
         {
             _serviceScope = new ServiceCollection().BuildServiceProvider(new ServiceProviderOptions()
             {
+#if INTERNAL_DI
                 Mode = ServiceProviderMode
+#endif
             });
         }
 
@@ -121,7 +131,9 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
         {
             _serviceScopeFactoryProvider = new ServiceCollection().BuildServiceProvider(new ServiceProviderOptions()
             {
+#if INTERNAL_DI
                 Mode = ServiceProviderMode
+#endif
             });
         }
 
@@ -139,7 +151,9 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
         {
             _emptyEnumerable = new ServiceCollection().BuildServiceProvider(new ServiceProviderOptions()
             {
+#if INTERNAL_DI
                 Mode = ServiceProviderMode
+#endif
             });
         }
 

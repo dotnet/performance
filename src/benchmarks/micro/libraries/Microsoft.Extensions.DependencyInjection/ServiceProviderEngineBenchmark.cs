@@ -5,11 +5,14 @@
 using System;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace Microsoft.Extensions.DependencyInjection.Performance
 {
+    [BenchmarkCategory(Categories.Libraries)]
     public class ServiceProviderEngineBenchmark
     {
+#if INTERNAL_DI
         internal ServiceProviderMode ServiceProviderMode { get; private set; }
 
         [Params("Expressions", "Dynamic", "Runtime", "ILEmit")]
@@ -18,6 +21,7 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
                 ServiceProviderMode = (ServiceProviderMode)Enum.Parse(typeof(ServiceProviderMode), value);
             }
         }
+#endif
 
         internal class A
         {

@@ -9,9 +9,11 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MicroBenchmarks;
 
 namespace Microsoft.Extensions.Http.Performance
 {
+    [BenchmarkCategory(Categories.Libraries)]
     public class LoggingOverheadBenchmark
     {
         private const int Iterations = 100;

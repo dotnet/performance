@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
 
 namespace Microsoft.Extensions.DependencyInjection.Performance
 {
+    [BenchmarkCategory(Categories.Libraries)]
     public class IEnumerableGetServiceBenchmark: ServiceProviderEngineBenchmark
     {
         private const int OperationsPerInvoke = 50000;
@@ -63,7 +65,9 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
 
             _serviceProvider = services.BuildServiceProvider(new ServiceProviderOptions()
             {
+#if INTERNAL_DI
                 Mode = ServiceProviderMode
+#endif
             }).CreateScope().ServiceProvider;
         }
     }
