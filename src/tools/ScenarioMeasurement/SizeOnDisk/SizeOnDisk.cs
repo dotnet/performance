@@ -1,4 +1,4 @@
-﻿using Reporting;
+using Reporting;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -55,10 +55,10 @@ namespace ScenarioMeasurement
                 foreach (var file in directory.Value)
                 {
                     var fileName = RemoveVersions(file.Key);
-                    var extension =  $"Aggregate - {Path.GetExtension(fileName).Substring(1)}";
-                    if(!extensionBuckets.ContainsKey(extension)) 
+                    var extension = $"Aggregate - {GetExtension(fileName)}";
+                    if (!extensionBuckets.ContainsKey(extension))
                     {
-                        extensionBuckets.Add(extension, (0,0));
+                        extensionBuckets.Add(extension, (0, 0));
                     }
                     var bucket = extensionBuckets[extension];
                     bucket.size += file.Value;
@@ -91,6 +91,15 @@ namespace ScenarioMeasurement
             return 0;
         }
 
+        private static string GetExtension(string fileName)
+        {
+            var extension = Path.GetExtension(fileName);
+            if(String.IsNullOrWhiteSpace(extension))
+            {
+                return "No Extension";
+            }
+            return extension;
+        }
         static HashSet<string> versions = new HashSet<string>();
 
         static string RemoveVersions(string name)
