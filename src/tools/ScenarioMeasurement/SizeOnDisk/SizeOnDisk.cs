@@ -1,4 +1,4 @@
-﻿using Reporting;
+using Reporting;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,6 +42,7 @@ namespace ScenarioMeasurement
             long totalSize = 0;
             int totalCount = 0;
             bool directoryIsTop = dirs.Length > 1; // if we were asked to log more than one directory, include the summary info as top counters.
+            var extensionBuckets = new Dictionary<string, (long size, int count)>();
             foreach (var directory in directories)
             {
                 var resultSize = directory.Value.Values.Sum();
@@ -53,8 +54,23 @@ namespace ScenarioMeasurement
                 counters.Add(new Counter { MetricName = "count", TopCounter = directoryIsTop, Name = $"{RemoveVersions(directory.Key)} - Count", Results = new[] { (double)resultCount } });
                 foreach (var file in directory.Value)
                 {
-                    counters.Add(new Counter { MetricName = "bytes", Name = $"{Path.Join(RemoveVersions(directory.Key), RemoveVersions(file.Key))}", Results = new[] { (double)file.Value } });
+                    var fileName = RemoveVersions(file.Key);
+                    var extension = $"Aggregate - {GetExtension(fileName)}";
+                    if (!extensionBuckets.ContainsKey(extension))
+                    {
+                        extensionBuckets.Add(extension, (0, 0));
+                    }
+                    var bucket = extensionBuckets[extension];
+                    bucket.size += file.Value;
+                    bucket.count++;
+                    extensionBuckets[extension] = bucket;
+                    counters.Add(new Counter { MetricName = "bytes", Name = $"{Path.Join(RemoveVersions(directory.Key), fileName)}", Results = new[] { (double)file.Value } });
                 }
+            }
+            foreach(var bucket in extensionBuckets)
+            {
+                    counters.Add(new Counter { MetricName = "bytes", Name = bucket.Key, Results = new[] { (double)bucket.Value.size } });
+                    counters.Add(new Counter { MetricName = "count", Name = $"{bucket.Key} - Count", Results = new[] { (double)bucket.Value.count } });
             }
             counters.Add(new Counter { MetricName = "bytes", Name = scenarioName, DefaultCounter = true, TopCounter = true, Results = new[] { (double)totalSize } });
             counters.Add(new Counter { MetricName = "count", Name = $"{scenarioName} - Count", TopCounter = true, Results = new[] { (double)totalCount } });
@@ -75,6 +91,15 @@ namespace ScenarioMeasurement
             return 0;
         }
 
+        private static string GetExtension(string fileName)
+        {
+            var extension = Path.GetExtension(fileName);
+            if(String.IsNullOrWhiteSpace(extension))
+            {
+                return "No Extension";
+            }
+            return extension;
+        }
         static HashSet<string> versions = new HashSet<string>();
 
         static string RemoveVersions(string name)
