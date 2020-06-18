@@ -2,15 +2,13 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <!-- For a desktop build, you could add e.g. `net472;` here. -->
-    <TargetFramework>netcoreapp5.0</TargetFramework>
+    <TargetFrameworks>netcoreapp2.2;netcoreapp3.0;netcoreapp3.1;netcoreapp5.0</TargetFrameworks>
     <LangVersion>8.0</LangVersion>
     <RootNamespace>gcperfsim_core</RootNamespace>
-    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <PropertyGroup>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <NullableReferenceTypes>true</NullableReferenceTypes>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
 </Project>
