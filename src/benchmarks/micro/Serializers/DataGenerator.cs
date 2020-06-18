@@ -63,6 +63,7 @@ namespace MicroBenchmarks.Serializers
             => new LoginViewModel
             {
                 Email = "name.familyname@not.com",
+                // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Dummy credentials for perf testing.")]
                 Password = "abcdefgh123456!@",
                 RememberMe = true
             };
