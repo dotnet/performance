@@ -163,7 +163,7 @@ class Runner:
             startup = StartupWrapper()
             crossgenexe = 'crossgen%s' % extension()
             filename, ext = os.path.splitext(self.crossgenfile)
-            outputdir = os.path.join(self.coreroot, 'crossgen.out')
+            outputdir = os.path.join(os.getcwd(), 'crossgen.out')
             if not os.path.exists(outputdir):
                 os.mkdir(outputdir)
             outputfile = os.path.join(outputdir, filename+'.ni'+ext )
@@ -200,7 +200,7 @@ class Runner:
                 referencefiles = [os.path.join(self.coreroot, filename) for filename in referencefilenames]
                 # single assembly filename: example.dll
                 filename, ext = os.path.splitext(self.singlefile)
-                outputdir = os.path.join(self.coreroot, 'single.out')
+                outputdir = os.path.join(os.getcwd(), 'single.out')
                 if not os.path.exists(outputdir):
                     os.mkdir(outputdir)
                 outputfile = os.path.join(outputdir, filename+'.ni'+ext )
@@ -210,7 +210,7 @@ class Runner:
                 # composite rsp filename: ..\example.dll.rsp
                 dllname, _ = os.path.splitext(os.path.basename(self.compositefile))
                 filename, ext = os.path.splitext(dllname)
-                outputdir = os.path.join(self.coreroot, 'composite.out')
+                outputdir = os.path.join(os.getcwd(), 'composite.out')
                 if not os.path.exists(outputdir):
                     os.mkdir(outputdir)
                 outputfile = os.path.join(outputdir, filename+'.ni'+ext )
