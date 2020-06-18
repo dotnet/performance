@@ -2,7 +2,6 @@ import os
 from shared.runner import TestTraits, Runner
 from shared import const
 
-SCENARIONAME = '.NET Core 2.0 Library Template'
 EXENAME = 'NetCoreApp(Library)'
 
 def main():
