@@ -3,7 +3,6 @@ C# Console app
 '''
 from shared.runner import TestTraits, Runner
 
-SCENARIONAME = 'Winforms Template'
 EXENAME = 'staticwinformstemplate'
 
 if __name__ == "__main__":
