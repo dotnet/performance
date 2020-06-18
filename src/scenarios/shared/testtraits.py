@@ -31,6 +31,7 @@ class TestTraits:
         self.measurementdelay = ''
         self.environmentvariables = ''
         self.skipprofile = ''
+        self.artifact = ''
 
         # add test types to traits
         for testtype in testtypes:

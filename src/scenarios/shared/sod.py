@@ -50,7 +50,7 @@ class SODWrapper(object):
     def _setsodpath(self, path: str):
         self.sodexe = os.path.join(path, 'SizeOnDisk%s' % extension())
 
-    def runtests(self, scenarioname, dirs):
+    def runtests(self, scenarioname, dirs, artifact=None):
         '''
         Runs tests through sod tool
         '''
@@ -66,9 +66,11 @@ class SODWrapper(object):
 
         RunCommand(sod_args, verbose=True).run()
  
-        linker_dump_file = os.path.join(APPDIR, 'obj', 'Release', 'netstandard2.1', 'blazor', 'linker', 'linker-dependencies.xml.gz')
-        if os.path.exists(linker_dump_file):
-            copy(linker_dump_file, TRACEDIR)
+        if artifact:
+          if not os.path.exists(artifact):
+            raise FileNotFoundError(f'Artifact {artifact} is not found.')
+          else:
+            copy(artifact, TRACEDIR)
 
         if runninginlab():
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
