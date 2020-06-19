@@ -250,6 +250,7 @@ jobs:
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
         # - release/3.1.2xx
         - 3.0
+        - 3.1
 
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
