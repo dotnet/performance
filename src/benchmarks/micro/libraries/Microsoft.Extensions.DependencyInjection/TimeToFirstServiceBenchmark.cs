@@ -7,10 +7,10 @@ using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-namespace Microsoft.Extensions.DependencyInjection.Performance
+namespace Microsoft.Extensions.DependencyInjection
 {
     [BenchmarkCategory(Categories.Libraries)]
-    public class TimeToFirstServiceBenchmark
+    public class TimeToFirstService
     {
         private IServiceProvider _transientSp;
         private IServiceScope _scopedSp;
@@ -31,12 +31,6 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
             }
         }
 
-        [Benchmark(Baseline = true)]
-        public void NoDI()
-        {
-            var temp = new A(new B(new C()));
-            temp.Foo();
-        }
 
         [GlobalSetup(Target = nameof(BuildProvider))]
         public void SetupBuildProvider()

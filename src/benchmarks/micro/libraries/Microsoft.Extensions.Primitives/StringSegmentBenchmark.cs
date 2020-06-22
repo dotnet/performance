@@ -7,7 +7,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using MicroBenchmarks;
 
-namespace Microsoft.Extensions.Primitives.Performance
+namespace Microsoft.Extensions.Primitives
 {
     [BenchmarkCategory(Categories.Libraries)]
     public class StringSegmentBenchmark
@@ -24,16 +24,22 @@ namespace Microsoft.Extensions.Primitives.Performance
         }
 
         [Benchmark]
-        public StringSegment Ctor_String()
-        {
-            return new StringSegment("Hello world!");
-        }
+        public StringSegment Ctor_String() => new StringSegment("Hello world!");
 
         [Benchmark]
         public string GetValue() => _segment.Value;
 
         [Benchmark]
-        public char Indexer() => _segment[3];
+        public char Indexer()
+        {
+            var segment = _segment;
+            char result = default;
+            for (int i = 0; i < segment.Length; i++)
+            {
+                result ^= segment[i];
+            }
+            return result;
+        }
 
         [Benchmark]
         public bool Equals_Object_Invalid() => _segment.Equals(null as object);
@@ -48,7 +54,7 @@ namespace Microsoft.Extensions.Primitives.Performance
         public bool Equals_String() => _segment.Equals("Hello world!");
 
         [Benchmark]
-        public override int GetHashCode() => _segment.GetHashCode();
+        public int GetSegmentHashCode() => _segment.GetHashCode();
 
         [Benchmark]
         public bool StartsWith() => _largeSegment.StartsWith("Hel", StringComparison.Ordinal);

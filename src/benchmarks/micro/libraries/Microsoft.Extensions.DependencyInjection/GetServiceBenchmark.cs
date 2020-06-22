@@ -7,13 +7,11 @@ using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-namespace Microsoft.Extensions.DependencyInjection.Performance
+namespace Microsoft.Extensions.DependencyInjection
 {
     [BenchmarkCategory(Categories.Libraries)]
-    public class GetServiceBenchmark: ServiceProviderEngineBenchmark
+    public class GetService :  ServiceProviderEngineBenchmark
     {
-        private const int OperationsPerInvoke = 50000;
-
         private IServiceProvider _transientSp;
         private IServiceScope _scopedSp;
         private IServiceProvider _singletonSp;
@@ -21,15 +19,8 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
         private IServiceProvider _serviceScope;
         private IServiceProvider _emptyEnumerable;
 
-        [Benchmark(Baseline = true, OperationsPerInvoke = OperationsPerInvoke)]
-        public void NoDI()
-        {
-            for (int i = 0; i < OperationsPerInvoke; i++)
-            {
-                var temp = new A(new B(new C()));
-                temp.Foo();
-            }
-        }
+        [Benchmark(Baseline = true)]
+        public A NoDI() => new A(new B(new C()));
 
         [GlobalSetup(Target = nameof(Transient))]
         public void SetupTransient()
@@ -46,15 +37,8 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
             });
         }
 
-        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
-        public void Transient()
-        {
-            for (int i = 0; i < OperationsPerInvoke; i++)
-            {
-                var temp = _transientSp.GetService<A>();
-                temp.Foo();
-            }
-        }
+        [Benchmark]
+        public A Transient() => _transientSp.GetService<A>();
 
         [GlobalSetup(Target = nameof(Scoped))]
         public void SetupScoped()
@@ -71,15 +55,8 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
             }).CreateScope();
         }
 
-        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
-        public void Scoped()
-        {
-            for (int i = 0; i < OperationsPerInvoke; i++)
-            {
-                var temp = _scopedSp.ServiceProvider.GetService<A>();
-                temp.Foo();
-            }
-        }
+        [Benchmark]
+        public A Scoped() => _scopedSp.ServiceProvider.GetService<A>();
 
         [GlobalSetup(Target = nameof(Singleton))]
         public void SetupScopedSingleton()
@@ -96,15 +73,8 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
             });
         }
 
-        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
-        public void Singleton()
-        {
-            for (int i = 0; i < OperationsPerInvoke; i++)
-            {
-                var temp = _singletonSp.GetService<A>();
-                temp.Foo();
-            }
-        }
+        [Benchmark]
+        public A Singleton() => _singletonSp.GetService<A>();
 
         [GlobalSetup(Target = nameof(ServiceScope))]
         public void ServiceScopeSetup()
@@ -117,14 +87,8 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
             });
         }
 
-        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
-        public void ServiceScope()
-        {
-            for (int i = 0; i < OperationsPerInvoke; i++)
-            {
-                var temp = _serviceScope.CreateScope();
-            }
-        }
+        [Benchmark]
+        public IServiceScope ServiceScope() => _serviceScope.CreateScope();
 
         [GlobalSetup(Target = nameof(ServiceScopeProvider))]
         public void ServiceScopeProviderSetup()
@@ -137,14 +101,8 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
             });
         }
 
-        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
-        public void ServiceScopeProvider()
-        {
-            for (int i = 0; i < OperationsPerInvoke; i++)
-            {
-                var temp = _serviceScopeFactoryProvider.GetService<IServiceScopeFactory>();
-            }
-        }
+        [Benchmark]
+        public IServiceScopeFactory ServiceScopeProvider() => _serviceScopeFactoryProvider.GetService<IServiceScopeFactory>();
 
         [GlobalSetup(Target = nameof(EmptyEnumerable))]
         public void EmptyEnumerableSetup()
@@ -157,13 +115,7 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
             });
         }
 
-        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
-        public void EmptyEnumerable()
-        {
-            for (int i = 0; i < OperationsPerInvoke; i++)
-            {
-                _emptyEnumerable.GetService<IEnumerable<A>>();
-            }
-        }
+        [Benchmark]
+        public object EmptyEnumerable() =>_emptyEnumerable.GetService<IEnumerable<A>>();
     }
 }

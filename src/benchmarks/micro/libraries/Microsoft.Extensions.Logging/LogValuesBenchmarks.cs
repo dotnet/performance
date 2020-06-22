@@ -7,10 +7,10 @@ using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.DependencyInjection;
 using MicroBenchmarks;
 
-namespace Microsoft.Extensions.Logging.Performance
+namespace Microsoft.Extensions.Logging
 {
     [BenchmarkCategory(Categories.Libraries)]
-    public class FormattingBenchmarks : LoggingBenchmarkBase
+    public class Formatting : LoggingBenchmarkBase
     {
         private ILogger _logger;
 

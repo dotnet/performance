@@ -16,7 +16,10 @@ namespace Microsoft.Extensions.Logging.Performance
         protected static readonly Action<ILogger, int, string, Exception> TwoArgumentTraceMessage = LoggerMessage.Define<int, string>(LogLevel.Trace, 0, "Message {Argument1} {Argument2}");
         protected static readonly Action<ILogger, int, string, Exception> TwoArgumentErrorMessage = LoggerMessage.Define<int, string>(LogLevel.Error, 0, "Message {Argument1} {Argument2}");
 
-        protected static Exception Exception = ((Func<Exception>)(() => {
+        protected static Exception Exception = GetRealException();
+        
+        private static Exception GetRealException()
+        {
             try
             {
                 throw new Exception();
@@ -25,7 +28,7 @@ namespace Microsoft.Extensions.Logging.Performance
             {
                 return ex;
             }
-        }))();
+        }
 
         public class SampleScope : IEnumerable<KeyValuePair<string, object>>
         {

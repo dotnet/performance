@@ -7,41 +7,21 @@ using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-namespace Microsoft.Extensions.DependencyInjection.Performance
+namespace Microsoft.Extensions.DependencyInjection
 {
     [BenchmarkCategory(Categories.Libraries)]
-    public class IEnumerableGetServiceBenchmark: ServiceProviderEngineBenchmark
+    public class GetServiceIEnumerable : ServiceProviderEngineBenchmark
     {
-        private const int OperationsPerInvoke = 50000;
-
         private IServiceProvider _serviceProvider;
 
-        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
-        public void Transient()
-        {
-            for (int i = 0; i < OperationsPerInvoke; i++)
-            {
-                _serviceProvider.GetService<IEnumerable<A>>();
-            }
-        }
+        [Benchmark]
+        public object Transient() => _serviceProvider.GetService<IEnumerable<A>>();
 
-        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
-        public void Scoped()
-        {
-            for (int i = 0; i < OperationsPerInvoke; i++)
-            {
-                _serviceProvider.GetService<IEnumerable<A>>();
-            }
-        }
+        [Benchmark]
+        public object Scoped() => _serviceProvider.GetService<IEnumerable<A>>();
 
-        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
-        public void Singleton()
-        {
-            for (int i = 0; i < OperationsPerInvoke; i++)
-            {
-                _serviceProvider.GetService<IEnumerable<A>>();
-            }
-        }
+        [Benchmark]
+        public object Singleton() => _serviceProvider.GetService<IEnumerable<A>>();
 
         [GlobalSetup(Target = nameof(Transient))]
         public void SetupTransient() => Setup(ServiceLifetime.Transient);

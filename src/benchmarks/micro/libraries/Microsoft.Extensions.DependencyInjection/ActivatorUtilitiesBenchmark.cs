@@ -6,7 +6,7 @@ using System;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-namespace Microsoft.Extensions.DependencyInjection.Performance
+namespace Microsoft.Extensions.DependencyInjection
 {
     [BenchmarkCategory(Categories.Libraries)]
     public class ActivatorUtilitiesBenchmark
@@ -31,22 +31,13 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
         }
 
         [Benchmark]
-        public void ServiceProvider()
-        {
-           _serviceProvider.GetService<TypeToBeActivated>();
-        }
+        public TypeToBeActivated ServiceProvider() => _serviceProvider.GetService<TypeToBeActivated>();
 
         [Benchmark]
-        public void Factory()
-        {
-            _ = (TypeToBeActivated)_factory(_serviceProvider, _factoryArguments);
-        }
+        public TypeToBeActivated Factory() => (TypeToBeActivated)_factory(_serviceProvider, _factoryArguments);
 
         [Benchmark]
-        public void CreateInstance()
-        {
-            ActivatorUtilities.CreateInstance<TypeToBeActivated>(_serviceProvider, _factoryArguments);
-        }
+        public TypeToBeActivated CreateInstance() => ActivatorUtilities.CreateInstance<TypeToBeActivated>(_serviceProvider, _factoryArguments);
 
         public class TypeToBeActivated
         {

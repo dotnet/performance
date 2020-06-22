@@ -7,13 +7,11 @@ using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-namespace Microsoft.Extensions.DependencyInjection.Performance
+namespace Microsoft.Extensions.DependencyInjection
 {
     [BenchmarkCategory(Categories.Libraries)]
-    public class ScopeValidationBenchmark
+    public class ScopeValidation
     {
-        private const int OperationsPerInvoke = 50000;
-
         private IServiceProvider _transientSp;
         private IServiceProvider _transientSpScopeValidation;
 
@@ -33,51 +31,22 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
             _transientSpScopeValidation = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
         }
 
-        [Benchmark(Baseline = true, OperationsPerInvoke = OperationsPerInvoke)]
-        public void Transient()
+        [Benchmark(Baseline = true]
+        public A Transient() => _transientSp.GetService<A>();
+
+        [Benchmark]
+        public A TransientWithScopeValidation() => _transientSpScopeValidation.GetService<A>();
+
+
+        public class A
         {
-            for (int i = 0; i < OperationsPerInvoke; i++)
-            {
-                var temp = _transientSp.GetService<A>();
-                temp.Foo();
-            }
-        }
-
-        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
-        public void TransientWithScopeValidation()
-        {
-            for (int i = 0; i < OperationsPerInvoke; i++)
-            {
-                var temp = _transientSpScopeValidation.GetService<A>();
-                temp.Foo();
-            }
-        }
-
-        private class A
-        {
-            public A(B b)
-            {
-
-            }
-
-            [MethodImpl(MethodImplOptions.NoInlining)]
-            public void Foo()
-            {
-
-            }
+            public A(B b) { }
         }
 
         private class B
         {
-            public B(C c)
-            {
-
-            }
+            public B(C c) { }
         }
-
-        private class C
-        {
-
-        }
+        private class C { }
     }
 }

@@ -14,13 +14,11 @@ namespace Microsoft.Extensions.Http.Performance
     {
         public TimeSpan Latency { get; set; } = TimeSpan.FromMilliseconds(10);
 
-        protected async override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            await Task.Yield();
-
             var response = new HttpResponseMessage(HttpStatusCode.OK);
             response.RequestMessage = request;
-            return response;
+            return Task.FromResult(response);
         }
     }
 }

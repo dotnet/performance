@@ -9,10 +9,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.EventSource;
 using MicroBenchmarks;
 
-namespace Microsoft.Extensions.Logging.Performance
+namespace Microsoft.Extensions.Logging
 {
     [BenchmarkCategory(Categories.Libraries)]
-    public class EventSourceBenchmark: LoggingBenchmarkBase
+    public class EventSourceLogger : LoggingBenchmarkBase
     {
         private ILogger _logger;
         private ILogger _noopLogger;
@@ -26,7 +26,7 @@ namespace Microsoft.Extensions.Logging.Performance
         public bool Json { get; set; } = false;
 
         [Benchmark]
-        public void EventSourceLogger()
+        public void NestedScopes_TwoMessages()
         {
             using (_logger.BeginScope("String scope"))
             {

@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-namespace Microsoft.Extensions.DependencyInjection.Performance
+namespace Microsoft.Extensions.DependencyInjection
 {
     [BenchmarkCategory(Categories.Libraries)]
     public class ServiceProviderEngineBenchmark
@@ -23,32 +23,16 @@ namespace Microsoft.Extensions.DependencyInjection.Performance
         }
 #endif
 
-        internal class A
+        public class A
         {
-            public A(B b)
-            {
-
-            }
-
-            [MethodImpl(MethodImplOptions.NoInlining)]
-            public void Foo()
-            {
-
-            }
+            public A(B b) { }
         }
 
         internal class B
         {
-            public B(C c)
-            {
-
-            }
+            public B(C c) { }
         }
 
-        internal class C
-        {
-
-        }
-
+        internal class C { }
     }
 }
