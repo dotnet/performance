@@ -23,6 +23,7 @@
     <EnableSourceLink>false</EnableSourceLink>
     <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
     
-    <StrongNameKeyId>Open</StrongNameKeyId>
+    <!-- Explicit disable signing the built assemblies here to stop Arcade attempting to sign them -->
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
 </Project>

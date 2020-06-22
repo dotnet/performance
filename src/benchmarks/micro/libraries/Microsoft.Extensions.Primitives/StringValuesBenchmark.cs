@@ -49,7 +49,7 @@ namespace Microsoft.Extensions.Primitives.Performance
         }
 
         [Benchmark]
-        public void ForEach_Array()
+        public int ForEach_Array()
         {
             int result = 0;
             foreach (var item in _arrayBased)

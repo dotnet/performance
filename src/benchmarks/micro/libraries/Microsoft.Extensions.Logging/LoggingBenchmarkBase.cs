@@ -6,7 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Microsoft.Extensions.Logging.Performance
+namespace Microsoft.Extensions.Logging
 {
     public class LoggingBenchmarkBase
     {

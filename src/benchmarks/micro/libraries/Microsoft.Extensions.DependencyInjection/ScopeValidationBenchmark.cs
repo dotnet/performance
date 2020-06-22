@@ -31,22 +31,21 @@ namespace Microsoft.Extensions.DependencyInjection
             _transientSpScopeValidation = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
         }
 
-        [Benchmark(Baseline = true]
+        [Benchmark(Baseline = true)]
         public A Transient() => _transientSp.GetService<A>();
 
         [Benchmark]
         public A TransientWithScopeValidation() => _transientSpScopeValidation.GetService<A>();
-
 
         public class A
         {
             public A(B b) { }
         }
 
-        private class B
+        public class B
         {
             public B(C c) { }
         }
-        private class C { }
+        public class C { }
     }
 }

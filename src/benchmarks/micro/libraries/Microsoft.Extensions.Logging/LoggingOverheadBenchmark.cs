@@ -14,6 +14,15 @@ namespace Microsoft.Extensions.Logging
     {
         private ILogger _logger;
 
+        [GlobalSetup]
+        public void Setup()
+        {
+            var services = new ServiceCollection();
+            services.AddLogging();
+            services.AddSingleton<ILoggerProvider, LoggerProvider<NoopLogger>>();
+            _logger = services.BuildServiceProvider().GetService<ILoggerFactory>().CreateLogger("Logger");
+        }
+
         [Benchmark]
         public void NoArguments_FilteredByLevel()
         {
@@ -61,15 +70,6 @@ namespace Microsoft.Extensions.Logging
         public void TwoArguments_DefineMessage_FilteredByLevel()
         {
             TwoArgumentTraceMessage(_logger, 1, "string", Exception);
-        }
-
-        [GlobalSetup]
-        public void Setup()
-        {
-            var services = new ServiceCollection();
-            services.AddLogging();
-            services.AddSingleton<ILoggerProvider, LoggerProvider<NoopLogger>>();
-            _logger = services.BuildServiceProvider().GetService<ILoggerFactory>().CreateLogger("Logger");
         }
     }
 }

@@ -14,15 +14,6 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         private IServiceProvider _serviceProvider;
 
-        [Benchmark]
-        public object Transient() => _serviceProvider.GetService<IEnumerable<A>>();
-
-        [Benchmark]
-        public object Scoped() => _serviceProvider.GetService<IEnumerable<A>>();
-
-        [Benchmark]
-        public object Singleton() => _serviceProvider.GetService<IEnumerable<A>>();
-
         [GlobalSetup(Target = nameof(Transient))]
         public void SetupTransient() => Setup(ServiceLifetime.Transient);
 
@@ -50,5 +41,14 @@ namespace Microsoft.Extensions.DependencyInjection
 #endif
             }).CreateScope().ServiceProvider;
         }
+
+        [Benchmark]
+        public object Transient() => _serviceProvider.GetService<IEnumerable<A>>();
+
+        [Benchmark]
+        public object Scoped() => _serviceProvider.GetService<IEnumerable<A>>();
+
+        [Benchmark]
+        public object Singleton() => _serviceProvider.GetService<IEnumerable<A>>();
     }
 }
