@@ -19,7 +19,8 @@ namespace BenchmarkDotNet.Extensions
             int? partitionCount = null,
             int? partitionIndex = null,
             List<string> exclusionFilterValue = null,
-            Job job = null)
+            Job job = null,
+            bool getDiffableDisasm = false)
         {
             if (job is null)
             {
@@ -34,7 +35,7 @@ namespace BenchmarkDotNet.Extensions
                 job = job.WithArguments(new Argument[] { new MsBuildArgument("/p:DebugType=portable") });
             }
 
-            return DefaultConfig.Instance
+            var config = DefaultConfig.Instance
                 .AddJob(job.AsDefault()) // tell BDN that this are our default settings
                 .WithArtifactsPath(artifactsPath.FullName)
                 .AddDiagnoser(MemoryDiagnoser.Default) // MemoryDiagnoser is enabled by default
@@ -48,6 +49,24 @@ namespace BenchmarkDotNet.Extensions
                 .AddValidator(new UniqueArgumentsValidator()) // don't allow for duplicated arguments #404
                 .AddValidator(new MandatoryCategoryValidator(mandatoryCategories))
                 .WithSummaryStyle(SummaryStyle.Default.WithMaxParameterColumnWidth(36)); // the default is 20 and trims too aggressively some benchmark results
+
+            if (getDiffableDisasm)
+            {
+                config = config.AddDiagnoser(CreateDisassembler());
+            }
+
+            return config;
         }
+
+        private static DisassemblyDiagnoser CreateDisassembler()
+            => new DisassemblyDiagnoser(new DisassemblyDiagnoserConfig(
+                maxDepth: 1, // TODO: is depth == 1 enough?
+                formatter: null, // TODO: enable diffable format
+                printSource: false, // we are not interested in getting C#
+                printInstructionAddresses: false, // would make the diffing hard, however could be useful to determine alignment
+                exportGithubMarkdown: false,
+                exportHtml: false,
+                exportCombinedDisassemblyReport: false,
+                exportDiff: false));
     }
 }
