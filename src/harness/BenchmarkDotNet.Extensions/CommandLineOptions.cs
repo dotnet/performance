@@ -53,6 +53,22 @@ namespace BenchmarkDotNet.Extensions
             return argsList;
         }
 
+        public static void ParseAndRemoveBooleanParameter(List<string> argsList, string parameter, out bool parameterValue)
+        {
+            int parameterIndex = argsList.IndexOf(parameter);
+
+            if (parameterIndex != -1)
+            {
+                argsList.RemoveAt(parameterIndex);
+
+                parameterValue = true;
+            }
+            else
+            {
+                parameterValue = false;
+            }
+        }
+
         public static void ValidatePartitionParameters(int? count, int? index)
         {
             // Either count and index must both be specified or neither specified
