@@ -1,0 +1,19 @@
+{
+    "tool": "Credential Scanner",
+    "suppressions": [
+     {
+       "file": [
+         "/src/benchmarks/micro/libraries/System.Net.Http/ec256.pfx",
+         "/src/benchmarks/micro/libraries/System.Net.Http/ec512.pfx",
+         "/src/benchmarks/micro/libraries/System.Net.Http/ecdsa.pfx",
+         "/src/benchmarks/micro/libraries/System.Net.Http/rsa1024.pfx",
+         "/src/benchmarks/micro/libraries/System.Net.Http/rsa2048.pfx",
+         "/src/benchmarks/micro/libraries/System.Net.Http/rsa4096.pfx",
+         "/src/benchmarks/micro/libraries/System.Net.Http/testclienteku.contoso.com.pfx",
+         "/src/benchmarks/micro/libraries/System.Net.Http/testservereku.contoso.com.pfx"
+       ],
+       "_justification": "Mostly test files. Other files contain harmless examples or constants."
+     }
+    ]
+   }
+   
