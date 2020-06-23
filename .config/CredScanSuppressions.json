@@ -12,7 +12,7 @@
          "/src/benchmarks/micro/libraries/System.Net.Http/testclienteku.contoso.com.pfx",
          "/src/benchmarks/micro/libraries/System.Net.Http/testservereku.contoso.com.pfx"
        ],
-       "_justification": "Mostly test files. Other files contain harmless examples or constants."
+       "_justification": "Test certificates."
      }
     ]
    }
