@@ -28,11 +28,11 @@ namespace Microsoft.Extensions.DependencyInjection
             public A(B b) { }
         }
 
-        internal class B
+        public class B
         {
             public B(C c) { }
         }
 
-        internal class C { }
+        public class C { }
     }
 }
