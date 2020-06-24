@@ -238,16 +238,24 @@ Finally, you are ready to run your tests as explained in the previous **Running*
 
 ## Test status files
 
-Each trace has (at least) two files associated with it, `x.etl` (or `x.nettrace`) and `x.yaml`.
-The `.yaml` file is called a test status file. It provides, among other things, the process ID to focus on.
-A minimal test status file looks like:
+Each trace has (at least) two files associated with it: A `.etl` (or also could be`.etlx`,
+`.btl`, `.nettrace`), and a `.yaml`. This last one is called a test status file,
+which provides information about the process to focus on, among other things.
 
+A minimal test status file would look like this:
+
+```yml
     # this file: `x.yaml`
     success: true
-    trace_file_name: x.etl  # A relative path. Should generally match the name of this file.
-    process_id: 1234  # If you don't know this, use the `print-processes` command for a list
+    trace_file_name: x.etl
+    process_id: 1234
+```
 
-Only these 3 lines are required, but a full specification is in `class TestRunStatus` in `bench_file.py`.
+In this example, we are using `process_id` to identify the process we want to analyze.
+However, you can give the `process_name` and/or `process_args` instead. Only
+these 3 lines are required, but for more information and a full specification,
+check the detailed documentation found [here](docs/test_status_files.md).
+
 You can write these files by hand for traces you got from elsewhere.
 
 ## Analyzing

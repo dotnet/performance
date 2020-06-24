@@ -37,9 +37,9 @@ benchmarks:
 
 This benchfile expects a Core_Root to have been moved to `bench/coreclr`. (Meaning it is now named `coreclr` instead of `Core_Root`.)
 
-(We would normally start an investigation with `collect: gc` or `collect: none` instead of `collect: thread_times` but for an example it's more convenient to only have to run tests once.)
+We would normally start an investigation with `collect: gc` or `collect: none` instead of `collect: thread_times` but for an example it's more convenient to only have to run tests once.
 
-(If you're impatient you could reduce `default_iteration_count`.)
+You can reduce the `default_iteration_count` to have your tests finish faster, although this might likely cause your results to be less accurate.
 
 Run with:
 
@@ -55,7 +55,7 @@ py . diff bench/compare_gen0size.yaml
 
 The summary shows the most interesting metrics -- when gen0 size increased, the PctTimePausedInGC went down, but `HeapSizeBeforeMB_Mean` went up. These are shown more in the detailed tables:
 
-```
+```text
 Large Regressions (Regression of >20%)
 
      Metric │ Base (run 0 │ Stdev % │ New (run 0) │ Stdev % │ % Diff │  Abs Diff
@@ -68,7 +68,7 @@ HeapSizeBef │         149 │    0.26 │         222 │    0.17 │   48.7 �
 oreMB_Mean  │             │         │             │         │        │
 ```
 
-```
+```text
 Large Improvements (Improvement of >20%)
 
      Metric │ Base (run 0 │ Stdev % │ New (run 0) │ Stdev % │ % Diff │  Abs Diff
@@ -87,8 +87,6 @@ onSeconds_S │             │         │             │         │        �
 um          │             │         │             │         │        │
 ```
 
-
-
 Increasing gen0size increased the time of individual GCs, but reduced the number of GCs and thus reduced total time spent in GC.
 
 To get a more detailed look, we can chart their GCs side by side.
@@ -103,13 +101,9 @@ This shows us a default set of metrics. You'll notice that PauseDurationMSec has
 py . chart-individual-gcs bench/compare_gen0size.yaml.out/a__20MB__nosurvive__0.yaml bench/compare_gen0size.yaml.out/a__30MB__nosurvive__0.yaml --gc-where Generation=0 Index<100 --x-single-gc-metric Index --y-single-gc-metrics PauseDurationMSec
 ```
 
-
-
 The chart should look something like:
 
 ![Output of the above command](images/compare_gen0size.svg)
-
-
 
 Looks good -- the greater size doesn't increase pause durations.
 
@@ -121,7 +115,7 @@ py . analyze-single bench/compare_gen0size.yaml.out\a__30MB__nosurvive__0.yaml -
 
 In the output you'll see a list of GCs.
 
-```
+```text
                           ┌───────────────────────┐
                           │ Single gcs (first 20) │
                           └───────────────────────┘
@@ -142,8 +136,6 @@ In the output you'll see a list of GCs.
          │        │     04 │        │        │        │        │        │
 ```
 
-
-
 The output is fairly homogenous. You may see gaps in `gc number` since  these are only the gen 0 GCs. This textual output can be a good first step for investigation since it shows you many metrics at once on one screen, rather than having to make many different charts.
 
 Another way to look for pause times is by a histogram.
@@ -156,15 +148,13 @@ py . chart-individual-gcs-histogram  bench/compare_gen0size.yaml.out/a__30MB__no
 
 Looking good, most gen0 GCs have low pauses.
 
-
-
 Just for fun, let's look for the worst gen 0 GC.
 
 ```sh
 py . analyze-single bench/compare_gen0size.yaml.out/a__30MB__nosurvive__0.yaml --gc-where Generation=0 --sort-gcs-descending PauseDurationMSec
 ```
 
-```
+```text
                           ┌───────────────────────┐
                           │ Single gcs (first 10) │
                           └───────────────────────┘
@@ -189,7 +179,7 @@ Not too interesting -- the very worst is only 12MS. Remember the gc number, 1680
 py . analyze-joins-single-gc bench/compare_gen0size.yaml.out/a__30MB__nosurvive__0.yaml --gc-number 1680
 ```
 
-```
+```text
 
                                       ┌────────┐
                                       │ phases │
@@ -221,7 +211,7 @@ mark -- approx. 0.138ms (1.15%) (span 15716.24 15716.38) (EE suspended)
 
 According to this, most of the time for this GC was spent in init. (You probably won't see this in your own analysis if you're following along, as this was due to chance.) This shows heap 7 spending 11.73 seconds working in init and holding the other threads up. This is often due to stolen time, but in this case that is 0. Just to verify, stolen time instances are listed at the bottom.
 
-```
+```text
 Top 1 worst stolen time instances:
 
   time span ( │ process │ duration (m │ heap │ prior state │       stage │ phase
