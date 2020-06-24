@@ -2475,7 +2475,7 @@ class MemoryAlloc
         Console.WriteLine($"final_total_memory_bytes: {GC.GetTotalMemory(forceFullCollection: false)}");
 
         // Use reflection to detect GC.GetGCMemoryInfo because it doesn't exist in dotnet core 2.0 or in .NET framework.
-        var getGCMemoryInfo = typeof(GC).GetMethod("GetGCMemoryInfo");
+        var getGCMemoryInfo = typeof(GC).GetMethod("GetGCMemoryInfo", new Type[] {});
         if (getGCMemoryInfo != null)
         {
             object info = Util.NonNull(getGCMemoryInfo.Invoke(null, parameters: null));
