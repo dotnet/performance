@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using BenchmarkDotNet.Disassemblers;
 using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Parameters;
@@ -35,6 +36,7 @@ namespace BenchmarkDotNet.Extensions
                 var test = new Test();
                 test.Name = FullNameProvider.GetBenchmarkName(report.BenchmarkCase);
                 test.Categories = report.BenchmarkCase.Descriptor.Categories;
+
                 var results = from result in report.AllMeasurements
                               where result.IterationMode == Engines.IterationMode.Workload && result.IterationStage == Engines.IterationStage.Result
                               orderby result.LaunchIndex, result.IterationIndex
