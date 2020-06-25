@@ -42,7 +42,7 @@ namespace ScenarioMeasurement
             long totalSize = 0;
             int totalCount = 0;
             bool directoryIsTop = dirs.Length > 1; // if we were asked to log more than one directory, include the summary info as top counters.
-            var buckets = new Dictionary<string, (long size, int count)>();
+            var buckets = new Dictionary<string, (long size, int count, bool isTop)>();
             foreach (var directory in directories)
             {
                 var resultSize = directory.Value.Values.Sum();
@@ -56,7 +56,7 @@ namespace ScenarioMeasurement
                 {
                     var fileName = RemoveVersions(file.Key);
                     var fileExtension = GetExtension(fileName);
-                    counters.Add(new Counter { MetricName = "bytes", Name = $"{Path.Join(RemoveVersions(directory.Key), fileName)}", Results = new[] { (double)file.Value } });
+                    counters.Add(new Counter { MetricName = "bytes", Name = $"{Path.Join(name, fileName)}", Results = new[] { (double)file.Value } });
 
                     AddToBucket(buckets, $"Aggregate - {fileExtension}", file.Value);
                     if(fileName.Contains(Path.Join("wwwroot", "_framework")))
@@ -68,8 +68,8 @@ namespace ScenarioMeasurement
 
             foreach (var bucket in buckets)
             {
-                counters.Add(new Counter { MetricName = "bytes", Name = bucket.Key, Results = new[] { (double)bucket.Value.size } });
-                counters.Add(new Counter { MetricName = "count", Name = $"{bucket.Key} - Count", Results = new[] { (double)bucket.Value.count } });
+                counters.Add(new Counter { MetricName = "bytes", TopCounter = bucket.Value.isTop, Name = bucket.Key, Results = new[] { (double)bucket.Value.size } });
+                counters.Add(new Counter { MetricName = "count", TopCounter = bucket.Value.isTop, Name = $"{bucket.Key} - Count", Results = new[] { (double)bucket.Value.count } });
             }
             counters.Add(new Counter { MetricName = "bytes", Name = scenarioName, DefaultCounter = true, TopCounter = true, Results = new[] { (double)totalSize } });
             counters.Add(new Counter { MetricName = "count", Name = $"{scenarioName} - Count", TopCounter = true, Results = new[] { (double)totalCount } });
@@ -149,31 +149,32 @@ namespace ScenarioMeasurement
         }
 
 
-        static void AddToBucket(Dictionary<string, (long size, int count)> buckets, string bucketName, long size)
+        static void AddToBucket(Dictionary<string, (long size, int count, bool isTop)> buckets, string bucketName, long size, bool isTop=false)
         {
             if (!buckets.ContainsKey(bucketName))
             {
-                buckets.Add(bucketName, (0, 0));
+                buckets.Add(bucketName, (0, 0, false));
             }
             var bucket = buckets[bucketName];
             bucket.size += size;
             bucket.count++;
+            bucket.isTop = isTop;
             buckets[bucketName] = bucket;
         }
 
-        static void AggregateBlazorCounters(Dictionary<string, (long size, int count)> buckets, string extension, long size)
+        static void AggregateBlazorCounters(Dictionary<string, (long size, int count, bool isTop)> buckets, string extension, long size)
         {
             if (extension == ".br")
             {
-                AddToBucket(buckets, "Synthetic Wire Size - .br", size);
+                AddToBucket(buckets, "Synthetic Wire Size - .br", size, true);
             }
             else if (extension == ".gz")
             {
-                AddToBucket(buckets, "Synthetic Wire Size - .gz", size);
+                AddToBucket(buckets, "Synthetic Wire Size - .gz", size, true);
             }
             else
             {
-                AddToBucket(buckets, "Total Uncompressed _framework", size);
+                AddToBucket(buckets, "Total Uncompressed _framework", size, true);
             }
 
         }
