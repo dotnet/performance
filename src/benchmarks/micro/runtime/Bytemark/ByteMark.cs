@@ -419,6 +419,7 @@ public class ByteMark
     const int EmFloatIterations = 10;
 
     [Benchmark]
+    [BenchmarkCategory("NoInterpreter")]
     public void BenchEmFloat()
     {
         EmFloatStruct t = new EMFloat();
@@ -470,6 +471,7 @@ public class ByteMark
     const int AssignRectangularIterations = 5;
 
     [Benchmark]
+    [BenchmarkCategory("TestTestTest")]
     public void BenchAssignRectangular()
     {
         AssignStruct t = new AssignRect();

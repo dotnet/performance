@@ -81,6 +81,7 @@ namespace System.Buffers.Tests
         }
 
         [Benchmark(OperationsPerInvoke = Iterations)]
+        [BenchmarkCategory("NoInterpreter")]
         public async Task MultipleSerial()
         {
             ArrayPool<T> pool = Pool;
