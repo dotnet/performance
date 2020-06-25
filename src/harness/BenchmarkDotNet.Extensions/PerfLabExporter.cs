@@ -86,14 +86,16 @@ namespace BenchmarkDotNet.Extensions
                     });
                 }
 
-                reporter.AddTest(test);
-
                 if (disassemblyDiagnoser != null && disassemblyDiagnoser.Results.TryGetValue(report.BenchmarkCase, out var disassemblyResult))
                 {
                     string disassembly = DiffableDisassemblyExporter.BuildDisassemblyString(disassemblyResult, disassemblyDiagnoser.Config);
 
-                    // TODO: do sth with the disassembly
+                    test.AddData("disasm", disassembly);
                 }
+
+                reporter.AddTest(test);
+
+                
             }
 
             logger.WriteLine(reporter.GetJson());
