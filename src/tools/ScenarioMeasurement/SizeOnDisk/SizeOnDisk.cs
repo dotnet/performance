@@ -29,7 +29,7 @@ namespace ScenarioMeasurement
 
             foreach (var dir in dirs)
             {
-                if(!Directory.Exists(dir))
+                if (!Directory.Exists(dir))
                 {
                     Console.WriteLine($"Directory {dir} does not exist");
                     return -1;
@@ -42,7 +42,7 @@ namespace ScenarioMeasurement
             long totalSize = 0;
             int totalCount = 0;
             bool directoryIsTop = dirs.Length > 1; // if we were asked to log more than one directory, include the summary info as top counters.
-            var extensionBuckets = new Dictionary<string, (long size, int count)>();
+            var buckets = new Dictionary<string, (long size, int count, bool isTop)>();
             foreach (var directory in directories)
             {
                 var resultSize = directory.Value.Values.Sum();
@@ -50,30 +50,31 @@ namespace ScenarioMeasurement
                 var name = RemoveVersions(directory.Key);
                 totalSize += resultSize;
                 totalCount += resultCount;
-                counters.Add(new Counter { MetricName = "bytes", TopCounter = directoryIsTop, Name = $"{RemoveVersions(directory.Key)}", Results = new[] { (double)resultSize } });
-                counters.Add(new Counter { MetricName = "count", TopCounter = directoryIsTop, Name = $"{RemoveVersions(directory.Key)} - Count", Results = new[] { (double)resultCount } });
+                counters.Add(new Counter { MetricName = "bytes", TopCounter = directoryIsTop, Name = name, Results = new[] { (double)resultSize } });
+                counters.Add(new Counter { MetricName = "count", TopCounter = directoryIsTop, Name = $"{name} - Count", Results = new[] { (double)resultCount } });
                 foreach (var file in directory.Value)
                 {
                     var fileName = RemoveVersions(file.Key);
-                    var extension = $"Aggregate - {GetExtension(fileName)}";
-                    if (!extensionBuckets.ContainsKey(extension))
+                    var fileExtension = GetExtension(fileName);
+                    counters.Add(new Counter { MetricName = "bytes", Name = $"{Path.Join(name, fileName)}", Results = new[] { (double)file.Value } });
+
+                    AddToBucket(buckets, $"Aggregate - {fileExtension}", file.Value);
+                    if(fileName.Contains(Path.Join("wwwroot", "_framework")))
                     {
-                        extensionBuckets.Add(extension, (0, 0));
+                        AggregateBlazorCounters(buckets, fileExtension, file.Value);
                     }
-                    var bucket = extensionBuckets[extension];
-                    bucket.size += file.Value;
-                    bucket.count++;
-                    extensionBuckets[extension] = bucket;
-                    counters.Add(new Counter { MetricName = "bytes", Name = $"{Path.Join(RemoveVersions(directory.Key), fileName)}", Results = new[] { (double)file.Value } });
                 }
             }
-            foreach(var bucket in extensionBuckets)
+
+            foreach (var bucket in buckets)
             {
-                    counters.Add(new Counter { MetricName = "bytes", Name = bucket.Key, Results = new[] { (double)bucket.Value.size } });
-                    counters.Add(new Counter { MetricName = "count", Name = $"{bucket.Key} - Count", Results = new[] { (double)bucket.Value.count } });
+                counters.Add(new Counter { MetricName = "bytes", TopCounter = bucket.Value.isTop, Name = bucket.Key, Results = new[] { (double)bucket.Value.size } });
+                counters.Add(new Counter { MetricName = "count", TopCounter = bucket.Value.isTop, Name = $"{bucket.Key} - Count", Results = new[] { (double)bucket.Value.count } });
             }
             counters.Add(new Counter { MetricName = "bytes", Name = scenarioName, DefaultCounter = true, TopCounter = true, Results = new[] { (double)totalSize } });
             counters.Add(new Counter { MetricName = "count", Name = $"{scenarioName} - Count", TopCounter = true, Results = new[] { (double)totalCount } });
+
+
             var reporter = Reporter.CreateReporter();
             if (reporter != null)
             {
@@ -94,7 +95,7 @@ namespace ScenarioMeasurement
         private static string GetExtension(string fileName)
         {
             var extension = Path.GetExtension(fileName);
-            if(String.IsNullOrWhiteSpace(extension))
+            if (String.IsNullOrWhiteSpace(extension))
             {
                 return "No Extension";
             }
@@ -104,7 +105,7 @@ namespace ScenarioMeasurement
 
         static string RemoveVersions(string name)
         {
-            foreach(var version in versions)
+            foreach (var version in versions)
             {
                 name = name.Replace(version, "VERSION");
             }
@@ -117,7 +118,7 @@ namespace ScenarioMeasurement
             if (!Directory.Exists(sdkDir))
                 return;
             var sharedDir = Path.Combine(path, "shared");
-            var sdkVersion =  new DirectoryInfo(Directory.GetDirectories(sdkDir).Single()).Name;
+            var sdkVersion = new DirectoryInfo(Directory.GetDirectories(sdkDir).Single()).Name;
             var templateDir = Path.Combine(path, "templates");
 
             versions.Add(sdkVersion);
@@ -125,8 +126,8 @@ namespace ScenarioMeasurement
             versions.Add(Regex.Replace(sdkVersion, @"(\d+\.\d+\.\d)00", "$1"));
 
             versions.Add(new DirectoryInfo(Directory.GetDirectories(templateDir).Single()).Name);
-            
-            foreach(var dir in Directory.GetDirectories(sharedDir))
+
+            foreach (var dir in Directory.GetDirectories(sharedDir))
             {
                 versions.Add(new DirectoryInfo(Directory.GetDirectories(dir).Single()).Name);
             }
@@ -145,6 +146,37 @@ namespace ScenarioMeasurement
                 ret.Add(fileInfo.FullName.Replace(dirInfo.FullName, ""), fileInfo.Length);
             }
             return ret;
+        }
+
+
+        static void AddToBucket(Dictionary<string, (long size, int count, bool isTop)> buckets, string bucketName, long size, bool isTop=false)
+        {
+            if (!buckets.ContainsKey(bucketName))
+            {
+                buckets.Add(bucketName, (0, 0, false));
+            }
+            var bucket = buckets[bucketName];
+            bucket.size += size;
+            bucket.count++;
+            bucket.isTop = isTop;
+            buckets[bucketName] = bucket;
+        }
+
+        static void AggregateBlazorCounters(Dictionary<string, (long size, int count, bool isTop)> buckets, string extension, long size)
+        {
+            if (extension == ".br")
+            {
+                AddToBucket(buckets, "Synthetic Wire Size - .br", size, true);
+            }
+            else if (extension == ".gz")
+            {
+                AddToBucket(buckets, "Synthetic Wire Size - .gz", size, true);
+            }
+            else
+            {
+                AddToBucket(buckets, "Total Uncompressed _framework", size, true);
+            }
+
         }
     }
 }
