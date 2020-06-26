@@ -58,7 +58,7 @@ public class SeekUnroll
 
     [Benchmark(Description = nameof(SeekUnroll))]
     [ArgumentsSource(nameof(ArrayedBoxedIndicesToTest))]
-    [BenchmarkCategory("NoInterpreter")]
+    [BenchmarkCategory(Categories.NoInterpreter)]
     public bool Test(int boxedIndex) 
     {
         int index = boxedIndex;

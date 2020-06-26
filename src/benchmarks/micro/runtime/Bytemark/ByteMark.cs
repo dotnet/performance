@@ -419,7 +419,7 @@ public class ByteMark
     const int EmFloatIterations = 10;
 
     [Benchmark]
-    [BenchmarkCategory("NoInterpreter")]
+    [BenchmarkCategory(Categories.NoInterpreter)]
     public void BenchEmFloat()
     {
         EmFloatStruct t = new EMFloat();
