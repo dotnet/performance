@@ -27,4 +27,26 @@ namespace BenchmarkDotNet.Extensions
             return !globFilter.Predicate(benchmarkCase);
         }
     }
+
+    class CategoryExclusionFilter : IFilter
+    {
+        private readonly AnyCategoriesFilter filter;
+
+        public CategoryExclusionFilter(List<string> patterns)
+        {
+            if (patterns != null)
+            {
+                filter = new AnyCategoriesFilter(patterns.ToArray());
+            }
+        }
+
+        public bool Predicate(BenchmarkCase benchmarkCase)
+        {
+            if (filter == null)
+            {
+                return true;
+            }
+            return !filter.Predicate(benchmarkCase);
+        }
+    }
 }

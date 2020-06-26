@@ -35,6 +35,7 @@ namespace BenchmarkDotNet.Extensions
                 var test = new Test();
                 test.Name = FullNameProvider.GetBenchmarkName(report.BenchmarkCase);
                 test.Categories = report.BenchmarkCase.Descriptor.Categories;
+
                 var results = from result in report.AllMeasurements
                               where result.IterationMode == Engines.IterationMode.Workload && result.IterationStage == Engines.IterationStage.Result
                               orderby result.LaunchIndex, result.IterationIndex

@@ -19,6 +19,7 @@ namespace BenchmarkDotNet.Extensions
             int? partitionCount = null,
             int? partitionIndex = null,
             List<string> exclusionFilterValue = null,
+            List<string> categoryExclusionFilterValue = null,
             Job job = null)
         {
             if (job is null)
@@ -41,6 +42,7 @@ namespace BenchmarkDotNet.Extensions
                 .AddFilter(new OperatingSystemFilter())
                 .AddFilter(new PartitionFilter(partitionCount, partitionIndex))
                 .AddFilter(new ExclusionFilter(exclusionFilterValue))
+                .AddFilter(new CategoryExclusionFilter(categoryExclusionFilterValue))
                 .AddExporter(JsonExporter.Full) // make sure we export to Json
                 .AddExporter(new PerfLabExporter())
                 .AddColumn(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
