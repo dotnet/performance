@@ -344,7 +344,7 @@ class Item : ITypeWithPayload
         if (isPoh)
         {
 #if NETCOREAPP5_0
-            payload = GC.AllocateArray<byte>((int)payloadSize);
+            payload = GC.AllocateArray<byte>((int)payloadSize, pinned: true);
 #else
             throw new Exception("UNREACHABLE: POH allocations require netcoreapp5.0 or higher");
 #endif
@@ -431,7 +431,7 @@ class SimpleRefPayLoad
         if (isPoh)
         {
 #if NETCOREAPP5_0
-            payload = GC.AllocateArray<byte>((int)sizePayload);
+            payload = GC.AllocateArray<byte>((int)sizePayload, pinned: true);
 #else
             throw new Exception("UNREACHABLE: POH allocations require netcoreapp5.0 or higher");
 #endif
@@ -1550,7 +1550,7 @@ class ArgsParser
     }
 
 #if NETCOREAPP5_0
-    private static uint GetPohAllocWeight(uint? pohAllocInterval, uint? lohAllocRatio, uint sohAllocLow, uint sohAllocHigh, uint lohAllocLow, uint lohAllocHigh, uint pohAllocLow = 0, uint pohAllocHigh = 0)
+    private static uint GetPohAllocWeight(uint? pohAllocInterval, uint? pohAllocRatio, uint sohAllocLow, uint sohAllocHigh, uint lohAllocLow, uint lohAllocHigh, uint pohAllocLow = 0, uint pohAllocHigh = 0)
     {
         ulong meanSohObjSize = Util.Mean(sohAllocLow, sohAllocHigh);
         ulong meanLohObjSize = Util.Mean(lohAllocLow, lohAllocHigh);
@@ -1559,13 +1559,13 @@ class ArgsParser
         uint ratio;
         if (pohAllocInterval != null)
         {
-            Util.AlwaysAssert(lohAllocRatio == null); // Can't set both
+            Util.AlwaysAssert(pohAllocRatio == null); // Can't set both
             uint interval = pohAllocInterval.Value;
             ratio = interval == 0 ? 0 : 1000 / interval;
         }
         else
         {
-            ratio = lohAllocRatio ?? 5;
+            ratio = pohAllocRatio ?? 0;
         }
 
         return GetPohAllocWeight(ratio, sohObjSize: meanSohObjSize, lohObjSize: meanLohObjSize, pohObjSize: meanPohObjSize);
@@ -1892,7 +1892,7 @@ class MemoryAlloc
             if (objSpec.IsPoh)
             {
 #if NETCOREAPP5_0
-                bTemp = GC.AllocateArray<byte>((int)objSpec.Size);
+                bTemp = GC.AllocateArray<byte>((int)objSpec.Size, pinned: true);
 #else
                 throw new Exception("POH allocations require netcoreapp5.0 build");
 #endif
