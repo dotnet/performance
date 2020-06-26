@@ -24,9 +24,9 @@
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemDefinitionGroup>
-  
+   
   <!-- New Blazor 3.2 Template SOD -->
-  <ItemGroup Condition="'$(_Framework)' == 'netcoreapp3.1'">
+  <ItemGroup>
     <HelixWorkItem Include="SOD - New Blazor 3.2 Template - Publish">
       <PayloadDirectory>$(ScenariosDir)blazor</PayloadDirectory>
       <PreCommands>$(Python) pre.py publish --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
