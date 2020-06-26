@@ -76,14 +76,6 @@
     </HelixWorkItem>
   </ItemGroup>
 
-  <!-- New Blazor 3.2 Template SOD -->
-  <ItemGroup Condition="'$(_Framework)' == 'netcoreapp3.1'">
-    <HelixWorkItem Include="SOD - New Blazor 3.2 Template - Publish">
-      <PayloadDirectory>$(ScenariosDir)blazor</PayloadDirectory>
-      <PreCommands>$(Python) pre.py publish --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
-    </HelixWorkItem>
-  </ItemGroup>
   <!--
     This is useful for local testing to print the produced helix items
     To use this when you are changing how items are produced, uncomment the target
