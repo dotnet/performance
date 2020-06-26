@@ -54,7 +54,7 @@ namespace BenchmarkDotNet.Extensions
             }
             foreach (var category in benchmarkCase.Descriptor.Categories)
             {
-                if(patterns.Any(pattern => category.ToLowerInvariant().Equals(pattern.userValue.ToLowerInvariant()) || pattern.regex.IsMatch(category)))
+                if(patterns.Any(pattern => category.Equals(pattern.userValue, StringComparison.OrdinalIgnoreCase) || pattern.regex.IsMatch(category)))
                 {
                     return false;
                 }
