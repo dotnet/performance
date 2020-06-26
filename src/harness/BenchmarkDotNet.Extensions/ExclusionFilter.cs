@@ -35,10 +35,23 @@ namespace BenchmarkDotNet.Extensions
         private readonly List<(string userValue, Regex regex)> patterns;
 
         public CategoryExclusionFilter(List<string> patterns)
-        => this.patterns = patterns.Select(pattern => (pattern, new Regex(WildcardToRegex(pattern), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))).ToList();
+        {
+            if (patterns != null)
+            {
+                this.patterns = patterns.Select(pattern => (pattern, new Regex(WildcardToRegex(pattern), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))).ToList();
+            }
+            else
+            {
+                patterns = null;
+            }
+        }
 
         public bool Predicate(BenchmarkCase benchmarkCase)
         {
+            if(patterns == null)
+            {
+                return true;
+            }
             foreach (var category in benchmarkCase.Descriptor.Categories)
             {
                 if(patterns.Any(pattern => category.ToLowerInvariant().Equals(pattern.userValue.ToLowerInvariant()) || pattern.regex.IsMatch(category)))
