@@ -94,8 +94,6 @@ namespace BenchmarkDotNet.Extensions
                 }
 
                 reporter.AddTest(test);
-
-                
             }
 
             logger.WriteLine(reporter.GetJson());
