@@ -9,7 +9,6 @@
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
     <ScenariosDir>$(WorkItemDirectory)\src\scenarios\</ScenariosDir>
     <HelixPreCommands>$(HelixPreCommands);set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\scripts%3B%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
-    <HelixPreCommands>$(HelixPreCommands);dotnet nuget add source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5/nuget/v3/index.json</HelixPreCommands>
     <RID>win-$(Architecture)</RID>
   </PropertyGroup>
 
