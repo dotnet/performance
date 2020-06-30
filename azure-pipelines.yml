@@ -64,6 +64,19 @@ jobs:
         # - release/3.1.3xx
         - 3.1
         - 3.0
+  
+  # Windows x64 Blazor 3.2 scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      architecture: x64
+      pool: Hosted VS2017
+      kind: blazor_scenarios
+      queue: Windows.10.Amd64.ClientRS5.Open
+      projectFile: blazor_scenarios.proj
+      channels:
+        - master
 
   # Windows x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
