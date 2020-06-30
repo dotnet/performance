@@ -10,20 +10,55 @@ namespace System.Text.Json.Tests
     [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     public class Perf_Get
     {
-        private static readonly byte[] _jsonSByteBytes = Encoding.UTF8.GetBytes(sbyte.MaxValue.ToString());
-        private static readonly byte[] _jsonInt16Bytes = Encoding.UTF8.GetBytes(short.MaxValue.ToString());
-        private static readonly byte[] _jsonInt32Bytes = Encoding.UTF8.GetBytes(int.MaxValue.ToString());
-        private static readonly byte[] _jsonInt64Bytes = Encoding.UTF8.GetBytes(long.MaxValue.ToString());
+        private byte[] _jsonSByteBytes;
+        private byte[] _jsonInt16Bytes;
+        private byte[] _jsonInt32Bytes;
+        private byte[] _jsonInt64Bytes;
 
+        private byte[] _jsonSingleBytes;
+        private byte[] _jsonDoubleBytes;
+        private byte[] _jsonDecimalBytes;
 
-        private static readonly byte[] _jsonSingleBytes = Encoding.UTF8.GetBytes(float.MaxValue.ToString());
-        private static readonly byte[] _jsonDoubleBytes = Encoding.UTF8.GetBytes(double.MaxValue.ToString());
-        private static readonly byte[] _jsonDecimalBytes = Encoding.UTF8.GetBytes(decimal.MaxValue.ToString());
+        private byte[] _jsonStringBytes;
+        private byte[] _jsonGuidBytes;
+        private byte[] _jsonDateTimeBytes;
+        private byte[] _jsonDateTimeOffsetBytes;
 
-        private static readonly byte[] _jsonGuidBytes = Encoding.UTF8.GetBytes($"\"{Guid.Empty}\"");
-        private static readonly byte[] _jsonDateTimeBytes = Encoding.UTF8.GetBytes($"\"{DateTime.MaxValue:O}\"");
-        private static readonly byte[] _jsonDateTimeOffsetBytes = Encoding.UTF8.GetBytes($"\"{DateTimeOffset.MaxValue:O}\"");
-        private static readonly byte[] _jsonStringBytes = Encoding.UTF8.GetBytes("\"The quick brown fox jumps over the lazy dog.\"");
+        [Params(true, false)]
+        public bool UseLargeValue;
+
+        [GlobalSetup]
+        public void Setup()
+        {
+            if (UseLargeValue)
+            {
+                _jsonSByteBytes = Encoding.UTF8.GetBytes(sbyte.MaxValue.ToString());
+                _jsonInt16Bytes = Encoding.UTF8.GetBytes(short.MaxValue.ToString());
+                _jsonInt32Bytes = Encoding.UTF8.GetBytes(int.MaxValue.ToString());
+                _jsonInt64Bytes = Encoding.UTF8.GetBytes(long.MaxValue.ToString());
+
+                _jsonSingleBytes = Encoding.UTF8.GetBytes(float.MaxValue.ToString("F"));
+                _jsonDoubleBytes = Encoding.UTF8.GetBytes(double.MaxValue.ToString("F"));
+                _jsonDecimalBytes = Encoding.UTF8.GetBytes(decimal.MaxValue.ToString("F"));
+                _jsonStringBytes = Encoding.UTF8.GetBytes($"\"{new string('a', 1024 * 2)}\"");
+            }
+            else
+            {
+                _jsonSByteBytes = Encoding.UTF8.GetBytes(default(sbyte).ToString());
+                _jsonInt16Bytes = Encoding.UTF8.GetBytes(default(short).ToString());
+                _jsonInt32Bytes = Encoding.UTF8.GetBytes(default(int).ToString());
+                _jsonInt64Bytes = Encoding.UTF8.GetBytes(default(long).ToString());
+
+                _jsonSingleBytes = Encoding.UTF8.GetBytes(default(float).ToString());
+                _jsonDoubleBytes = Encoding.UTF8.GetBytes(default(double).ToString());
+                _jsonDecimalBytes = Encoding.UTF8.GetBytes(default(decimal).ToString());
+                _jsonStringBytes = Encoding.UTF8.GetBytes("\"The quick brown fox jumps over the lazy dog.\"");
+            }
+
+            _jsonGuidBytes = Encoding.UTF8.GetBytes($"\"{Guid.Empty}\"");
+            _jsonDateTimeBytes = Encoding.UTF8.GetBytes($"\"{DateTime.MaxValue:O}\"");
+            _jsonDateTimeOffsetBytes = Encoding.UTF8.GetBytes($"\"{DateTimeOffset.MaxValue:O}\"");
+        }
 
         [Benchmark]
         public byte GetByte()
