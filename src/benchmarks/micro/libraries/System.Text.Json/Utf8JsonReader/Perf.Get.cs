@@ -4,180 +4,262 @@
 
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
+using System.Linq;
 
 namespace System.Text.Json.Tests
 {
     [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     public class Perf_Get
     {
-        private byte[] _jsonSByteBytes;
-        private byte[] _jsonInt16Bytes;
-        private byte[] _jsonInt32Bytes;
-        private byte[] _jsonInt64Bytes;
+        private static readonly byte[] _jsonNumberBytes = GetJsonBytes(default(int));
+        private static readonly byte[] _jsonStringBytes = GetJsonBytes("\"The quick brown fox jumps over the lazy dog.\"");
+        private static readonly byte[] _jsonGuidBytes = GetJsonBytes($"\"{Guid.Empty}\"");
+        private static readonly byte[] _jsonDateTimeBytes = GetJsonBytes($"\"{DateTime.MaxValue:O}\"");
+        private static readonly byte[] _jsonDateTimeOffsetBytes = GetJsonBytes($"\"{DateTimeOffset.MaxValue:O}\"");
 
-        private byte[] _jsonSingleBytes;
-        private byte[] _jsonDoubleBytes;
-        private byte[] _jsonDecimalBytes;
-
-        private byte[] _jsonStringBytes;
-        private byte[] _jsonGuidBytes;
-        private byte[] _jsonDateTimeBytes;
-        private byte[] _jsonDateTimeOffsetBytes;
-
-        [Params(true, false)]
-        public bool UseLargeValue;
-
-        [GlobalSetup]
-        public void Setup()
+        private static byte[] GetJsonBytes<T>(T elem)
         {
-            if (UseLargeValue)
-            {
-                _jsonSByteBytes = Encoding.UTF8.GetBytes(sbyte.MaxValue.ToString());
-                _jsonInt16Bytes = Encoding.UTF8.GetBytes(short.MaxValue.ToString());
-                _jsonInt32Bytes = Encoding.UTF8.GetBytes(int.MaxValue.ToString());
-                _jsonInt64Bytes = Encoding.UTF8.GetBytes(long.MaxValue.ToString());
+            StringBuilder sb = new StringBuilder();
+            sb.Append('[');
+            sb.Append(string.Join(',', Enumerable.Repeat(elem, 100)));
+            sb.Append(']');
 
-                _jsonSingleBytes = Encoding.UTF8.GetBytes(float.MaxValue.ToString("F"));
-                _jsonDoubleBytes = Encoding.UTF8.GetBytes(double.MaxValue.ToString("F"));
-                _jsonDecimalBytes = Encoding.UTF8.GetBytes(decimal.MaxValue.ToString("F"));
-                _jsonStringBytes = Encoding.UTF8.GetBytes($"\"{new string('a', 1024 * 2)}\"");
-            }
-            else
-            {
-                _jsonSByteBytes = Encoding.UTF8.GetBytes(default(sbyte).ToString());
-                _jsonInt16Bytes = Encoding.UTF8.GetBytes(default(short).ToString());
-                _jsonInt32Bytes = Encoding.UTF8.GetBytes(default(int).ToString());
-                _jsonInt64Bytes = Encoding.UTF8.GetBytes(default(long).ToString());
+            return Encoding.UTF8.GetBytes(sb.ToString());
+        }
 
-                _jsonSingleBytes = Encoding.UTF8.GetBytes(default(float).ToString());
-                _jsonDoubleBytes = Encoding.UTF8.GetBytes(default(double).ToString());
-                _jsonDecimalBytes = Encoding.UTF8.GetBytes(default(decimal).ToString());
-                _jsonStringBytes = Encoding.UTF8.GetBytes("\"The quick brown fox jumps over the lazy dog.\"");
-            }
+        [Benchmark]
+        public void ReadToEndNumber()
+        {
+            var reader = new Utf8JsonReader(_jsonNumberBytes);
+            reader.Read();
+            while (reader.Read() && reader.TokenType == JsonTokenType.Number) ;
+        }
 
-            _jsonGuidBytes = Encoding.UTF8.GetBytes($"\"{Guid.Empty}\"");
-            _jsonDateTimeBytes = Encoding.UTF8.GetBytes($"\"{DateTime.MaxValue:O}\"");
-            _jsonDateTimeOffsetBytes = Encoding.UTF8.GetBytes($"\"{DateTimeOffset.MaxValue:O}\"");
+        [Benchmark]
+        public void ReadToEndString()
+        {
+            var reader = new Utf8JsonReader(_jsonStringBytes);
+            reader.Read();
+            while (reader.Read() && reader.TokenType == JsonTokenType.String) ;
+        }
+
+        [Benchmark]
+        public void ReadToEndGuid()
+        {
+            var reader = new Utf8JsonReader(_jsonGuidBytes);
+            reader.Read();
+            while (reader.Read() && reader.TokenType == JsonTokenType.String) ;
+        }
+
+        [Benchmark]
+        public void ReadToEndDateTime()
+        {
+            var reader = new Utf8JsonReader(_jsonDateTimeBytes);
+            reader.Read();
+            while (reader.Read() && reader.TokenType == JsonTokenType.String) ;
+        }
+
+        [Benchmark]
+        public void ReadToEndDateTimeOffset()
+        {
+            var reader = new Utf8JsonReader(_jsonDateTimeOffsetBytes);
+            reader.Read();
+            while (reader.Read() && reader.TokenType == JsonTokenType.String) ;
         }
 
         [Benchmark]
         public byte GetByte()
         {
-            var reader = new Utf8JsonReader(_jsonSByteBytes);
+            byte result = 0;
+            var reader = new Utf8JsonReader(_jsonNumberBytes);
             reader.Read();
-            return reader.GetByte();
+            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+            {
+                result += reader.GetByte();
+            }
+            return result;
         }
 
         [Benchmark]
         public sbyte GetSByte()
         {
-            var reader = new Utf8JsonReader(_jsonSByteBytes);
+            sbyte result = 0;
+            var reader = new Utf8JsonReader(_jsonNumberBytes);
             reader.Read();
-            return reader.GetSByte();
+            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+            {
+                result += reader.GetSByte();
+            }
+            return result;
         }
 
         [Benchmark]
         public short GetInt16()
         {
-            var reader = new Utf8JsonReader(_jsonInt16Bytes);
+            short result = 0;
+            var reader = new Utf8JsonReader(_jsonNumberBytes);
             reader.Read();
-            return reader.GetInt16();
+            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+            {
+                result += reader.GetInt16();
+            }
+            return result;
         }
 
         [Benchmark]
         public int GetInt32()
         {
-            var reader = new Utf8JsonReader(_jsonInt32Bytes);
+            int result = 0;
+            var reader = new Utf8JsonReader(_jsonNumberBytes);
             reader.Read();
-            return reader.GetInt32();
+            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+            {
+                result += reader.GetInt32();
+            }
+            return result;
         }
 
         [Benchmark]
         public long GetInt64()
         {
-            var reader = new Utf8JsonReader(_jsonInt64Bytes);
+            long result = 0;
+            var reader = new Utf8JsonReader(_jsonNumberBytes);
             reader.Read();
-            return reader.GetInt64();
+            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+            {
+                result += reader.GetInt64();
+            }
+            return result;
         }
 
         [Benchmark]
         public ushort GetUInt16()
         {
-            var reader = new Utf8JsonReader(_jsonInt16Bytes);
+            ushort result = 0;
+            var reader = new Utf8JsonReader(_jsonNumberBytes);
             reader.Read();
-            return reader.GetUInt16();
+            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+            {
+                result += reader.GetUInt16();
+            }
+            return result;
         }
 
         [Benchmark]
         public uint GetUInt32()
         {
-            var reader = new Utf8JsonReader(_jsonInt32Bytes);
+            uint result = 0;
+            var reader = new Utf8JsonReader(_jsonNumberBytes);
             reader.Read();
-            return reader.GetUInt32();
+            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+            {
+                result += reader.GetUInt32();
+            }
+            return result;
         }
 
         [Benchmark]
         public ulong GetUInt64()
         {
-            var reader = new Utf8JsonReader(_jsonInt64Bytes);
+            ulong result = 0;
+            var reader = new Utf8JsonReader(_jsonNumberBytes);
             reader.Read();
-            return reader.GetUInt64();
+            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+            {
+                result += reader.GetUInt64();
+            }
+            return result;
         }
 
         [Benchmark]
         public float GetSingle()
         {
-            var reader = new Utf8JsonReader(_jsonSingleBytes);
+            float result = 0;
+            var reader = new Utf8JsonReader(_jsonNumberBytes);
             reader.Read();
-            return reader.GetSingle();
+            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+            {
+                result += reader.GetSingle();
+            }
+            return result;
         }
 
         [Benchmark]
         public double GetDouble()
         {
-            var reader = new Utf8JsonReader(_jsonDoubleBytes);
+            double result = 0;
+            var reader = new Utf8JsonReader(_jsonNumberBytes);
             reader.Read();
-            return reader.GetDouble();
+            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+            {
+                result += reader.GetDouble();
+            }
+            return result;
         }
 
         [Benchmark]
         public decimal GetDecimal()
         {
-            var reader = new Utf8JsonReader(_jsonDecimalBytes);
+            decimal result = 0;
+            var reader = new Utf8JsonReader(_jsonNumberBytes);
             reader.Read();
-            return reader.GetDecimal();
+            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+            {
+                result += reader.GetDecimal();
+            }
+            return result;
         }
 
         [Benchmark]
         public DateTime GetDateTime()
         {
+            DateTime result = default;
             var reader = new Utf8JsonReader(_jsonDateTimeBytes);
             reader.Read();
-            return reader.GetDateTime();
+            while (reader.Read() && reader.TokenType == JsonTokenType.String)
+            {
+                result = reader.GetDateTime();
+            }
+            return result;
         }
 
         [Benchmark]
         public DateTimeOffset GetDateTimeOffset()
         {
+            DateTimeOffset result = default;
             var reader = new Utf8JsonReader(_jsonDateTimeOffsetBytes);
             reader.Read();
-            return reader.GetDateTimeOffset();
+            while (reader.Read() && reader.TokenType == JsonTokenType.String)
+            {
+                result = reader.GetDateTimeOffset();
+            }
+            return result;
         }
 
         [Benchmark]
         public Guid GetGuid()
         {
+            Guid result = default;
             var reader = new Utf8JsonReader(_jsonGuidBytes);
             reader.Read();
-            return reader.GetGuid();
+            while (reader.Read() && reader.TokenType == JsonTokenType.String)
+            {
+                result = reader.GetGuid();
+            }
+            return result;
         }
 
         [Benchmark]
         public string GetString()
         {
+            string result = default;
             var reader = new Utf8JsonReader(_jsonStringBytes);
             reader.Read();
-            return reader.GetString();
+            while (reader.Read() && reader.TokenType == JsonTokenType.String)
+            {
+                result = reader.GetString();
+            }
+            return result;
         }
     }
 }
