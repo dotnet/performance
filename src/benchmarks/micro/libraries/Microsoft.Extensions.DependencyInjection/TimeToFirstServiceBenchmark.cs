@@ -18,16 +18,12 @@ namespace Microsoft.Extensions.DependencyInjection
         private ServiceCollection _transientServices;
         private ServiceCollection _scopedServices;
         private ServiceCollection _singletonServices;
-#if INTERNAL_DI
         private ServiceProviderMode _mode;
-#endif
 
         [Params("Expressions", "Dynamic", "Runtime", "ILEmit")]
         public string Mode {
             set {
-#if INTERNAL_DI
                 _mode = (ServiceProviderMode)Enum.Parse(typeof(ServiceProviderMode), value);
-#endif
             }
         }
 
@@ -46,9 +42,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             _transientSp = _transientServices.BuildServiceProvider(new ServiceProviderOptions()
             {
-#if INTERNAL_DI
                 Mode = _mode
-#endif
             });
         }
 
@@ -66,9 +60,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             _transientSp = _transientServices.BuildServiceProvider(new ServiceProviderOptions()
             {
-#if INTERNAL_DI
                 Mode = _mode
-#endif
             });
             var temp = _transientSp.GetService<A>();
             temp.Foo();
@@ -88,9 +80,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             _scopedSp = _scopedServices.BuildServiceProvider(new ServiceProviderOptions()
             {
-#if INTERNAL_DI
                 Mode = _mode
-#endif
             }).CreateScope();
             var temp = _scopedSp.ServiceProvider.GetService<A>();
             temp.Foo();
@@ -110,9 +100,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             _singletonSp = _singletonServices.BuildServiceProvider(new ServiceProviderOptions()
             {
-#if INTERNAL_DI
                 Mode = _mode
-#endif
             });
             var temp = _singletonSp.GetService<A>();
             temp.Foo();

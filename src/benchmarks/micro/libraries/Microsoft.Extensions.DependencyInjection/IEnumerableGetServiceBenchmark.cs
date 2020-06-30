@@ -36,9 +36,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             _serviceProvider = services.BuildServiceProvider(new ServiceProviderOptions()
             {
-#if INTERNAL_DI
                 Mode = ServiceProviderMode
-#endif
             }).CreateScope().ServiceProvider;
         }
 

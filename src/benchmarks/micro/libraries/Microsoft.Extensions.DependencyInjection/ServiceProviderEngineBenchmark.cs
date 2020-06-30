@@ -12,7 +12,6 @@ namespace Microsoft.Extensions.DependencyInjection
     [BenchmarkCategory(Categories.Libraries)]
     public class ServiceProviderEngineBenchmark
     {
-#if INTERNAL_DI
         internal ServiceProviderMode ServiceProviderMode { get; private set; }
 
         [Params("Expressions", "Dynamic", "Runtime", "ILEmit")]
@@ -21,7 +20,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 ServiceProviderMode = (ServiceProviderMode)Enum.Parse(typeof(ServiceProviderMode), value);
             }
         }
-#endif
 
         public class A
         {

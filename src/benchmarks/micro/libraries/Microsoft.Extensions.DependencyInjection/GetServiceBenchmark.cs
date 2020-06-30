@@ -31,9 +31,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddTransient<C>();
             _transientSp = services.BuildServiceProvider(new ServiceProviderOptions()
             {
-#if INTERNAL_DI
                 Mode = ServiceProviderMode
-#endif
             });
         }
 
@@ -49,9 +47,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<C>();
             _scopedSp = services.BuildServiceProvider(new ServiceProviderOptions()
             {
-#if INTERNAL_DI
                 Mode = ServiceProviderMode
-#endif
             }).CreateScope();
         }
 
@@ -67,9 +63,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<C>();
             _singletonSp = services.BuildServiceProvider(new ServiceProviderOptions()
             {
-#if INTERNAL_DI
                 Mode = ServiceProviderMode
-#endif
             });
         }
 
@@ -81,9 +75,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             _serviceScope = new ServiceCollection().BuildServiceProvider(new ServiceProviderOptions()
             {
-#if INTERNAL_DI
                 Mode = ServiceProviderMode
-#endif
             });
         }
 
@@ -95,9 +87,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             _serviceScopeFactoryProvider = new ServiceCollection().BuildServiceProvider(new ServiceProviderOptions()
             {
-#if INTERNAL_DI
                 Mode = ServiceProviderMode
-#endif
             });
         }
 
@@ -109,9 +99,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             _emptyEnumerable = new ServiceCollection().BuildServiceProvider(new ServiceProviderOptions()
             {
-#if INTERNAL_DI
                 Mode = ServiceProviderMode
-#endif
             });
         }
 
