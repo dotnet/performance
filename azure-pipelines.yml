@@ -377,7 +377,7 @@ jobs:
 # Scheduled Private jobs
 ################################################
 
-# Scheduled runs will run all of the jobs on the PerfTigers, as well as jobs on the PerfSnakes and the Arm64 job
+# Scheduled runs will run all of the jobs on the PerfTigers, as well as the Arm64 job
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule')) }}:
 
   # Windows x64 SDK scenario benchmarks
@@ -422,6 +422,19 @@ jobs:
       channels:
         - master
         # - release/3.1.2xx
+
+  # Windows x64 Blazor 3.2 scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      architecture: x64
+      pool: Hosted VS2017
+      kind: blazor_scenarios
+      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      projectFile: blazor_scenarios.proj
+      channels:
+        - master
   
   # Ubuntu 1804 ARM64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
