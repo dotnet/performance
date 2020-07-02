@@ -28,6 +28,8 @@ jobs:
             value: 'call %HELIX_CORRELATION_PAYLOAD%\tools\machine-setup.cmd'
           - name: Python
             value: 'py -3'
+          - name: PythonBuild
+            value: 'py -3'
           - ${{ if ne(parameters.osVersion, 'RS1')}}:
             - name: ArtifactsDirectory
               value: '%HELIX_WORKITEM_UPLOAD_ROOT%\BenchmarkDotNet.Artifacts'
@@ -40,6 +42,8 @@ jobs:
           - name: AdditionalHelixPreCommands
             value: 'chmod +x ./tools/machine-setup.sh;. ./tools/machine-setup.sh'
           - name: Python
+            value: python3.7
+          - name: PythonBuild
             value: python3
           - ${{ if eq(parameters.osVersion, '1804')}}:
             - name: ArtifactsDirectory
@@ -75,11 +79,10 @@ jobs:
             value: 'official'
           - ${{ if eq(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'py -3 -m venv %HELIX_WORKITEM_PAYLOAD%\.venv;call %HELIX_WORKITEM_PAYLOAD%\.venv\Scripts\activate.bat;set PYTHONPATH=;py -3 -m pip install azure.storage.blob==12.0.0 --force-reinstall;py -3 -m pip install azure.storage.queue==12.0.0 --force-reinstall;set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
+              value: '$(Python) -m venv %HELIX_WORKITEM_PAYLOAD%\.venv;call %HELIX_WORKITEM_PAYLOAD%\.venv\Scripts\activate.bat;set PYTHONPATH=;$(Python) -m pip install azure.storage.blob==12.0.0 --force-reinstall;$(Python) -m pip install azure.storage.queue==12.0.0 --force-reinstall;set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
           - ${{ if ne(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'sudo apt-get -y install python3-venv;python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv;. $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate;export PYTHONPATH=;pip3 install azure.storage.blob==12.0.0 --force-reinstall;pip3 install azure.storage.queue==12.0.0 --force-reinstall;export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
-
+              value: 'sudo apt-get -y install $(Python)-venv;$(Python) -m venv $HELIX_WORKITEM_PAYLOAD/.venv;. $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate;export PYTHONPATH=;pip3 install azure.storage.blob==12.0.0 --force-reinstall;pip3 install azure.storage.queue==12.0.0 --force-reinstall;export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
           - group: DotNet-HelixApi-Access
           # perflab upload tokens still exist in this variable group
           - group: dotnet-benchview
@@ -99,9 +102,9 @@ jobs:
         steps:
         - checkout: self
           clean: true
-        - script: $(Python) scripts/parse_props.py --branch-name $(_Channel)
+        - script: $(PythonBuild) scripts/parse_props.py --branch-name $(_Channel)
           displayName: Parse Version.props
-        - script: $(Python) scripts/ci_setup.py $(DotnetVersion) --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs)
+        - script: $(PythonBuild) scripts/ci_setup.py $(DotnetVersion) --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs)
           displayName: Run ci_setup.py
         - ${{ if eq(parameters.osName, 'windows') }}:
           - script: (robocopy $(Build.SourcesDirectory) $(Build.SourcesDirectory)\notLocked /E /XD $(Build.SourcesDirectory)\notLocked $(Build.SourcesDirectory)\artifacts $(Build.SourcesDirectory)\.git) ^& IF %ERRORLEVEL% LEQ 1 exit 0

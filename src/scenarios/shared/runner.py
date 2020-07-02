@@ -36,7 +36,7 @@ class Runner:
         Parses input args to the script
         '''
         parser = ArgumentParser()
-        subparsers = parser.add_subparsers(title='subcommands for scenario tests', dest='testtype')
+        subparsers = parser.add_subparsers(title='subcommands for scenario tests', required=True, dest='testtype')
         startupparser = subparsers.add_parser(const.STARTUP)
         self.add_common_arguments(startupparser)
 
@@ -60,10 +60,6 @@ class Runner:
         self.add_common_arguments(sodparser)
 
         args = parser.parse_args()
-
-        if not args.testtype:
-            getLogger().error("Please specify a test type: %s" % testtypes)
-            sys.exit(1)
 
         self.testtype = args.testtype
     

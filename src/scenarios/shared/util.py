@@ -68,7 +68,7 @@ def pythoncommand():
     if iswin():
         return 'py'
     else:
-        return 'python3'
+        return 'python3.7'
 
 def iswin():
     return sys.platform == 'win32'
