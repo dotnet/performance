@@ -19,11 +19,13 @@ def writefile(file: str, lines: []):
     with open(file, "w") as opened:
         opened.writelines(lines)
 
+# insert string after the first occurance of the search string
 def insert_after(file: str, search: str, insert: str):
     lines = readfile(file)
     for i in range(len(lines)):
         if search in lines[i]:
             lines.insert(i+1, ("%s\n" % insert))
+            break
     writefile(file, lines)
 
 def replace_line(file: str, search: str, replace: str):

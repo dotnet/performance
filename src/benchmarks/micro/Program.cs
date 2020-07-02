@@ -19,12 +19,16 @@ namespace MicroBenchmarks
             int? partitionCount;
             int? partitionIndex;
             List<string> exclusionFilterValue;
+            List<string> categoryExclusionFilterValue;
+            bool getDiffableDisasm;
 
             // Parse and remove any additional parameters that we need that aren't part of BDN
             try {
                 argsList = CommandLineOptions.ParseAndRemoveIntParameter(argsList, "--partition-count", out partitionCount);
                 argsList = CommandLineOptions.ParseAndRemoveIntParameter(argsList, "--partition-index", out partitionIndex);
                 argsList = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--exclusion-filter", out exclusionFilterValue);
+                argsList = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--category-exclusion-filter", out categoryExclusionFilterValue);
+                CommandLineOptions.ParseAndRemoveBooleanParameter(argsList, "--disasm-diff", out getDiffableDisasm);
 
                 CommandLineOptions.ValidatePartitionParameters(partitionCount, partitionIndex);
             }
@@ -41,7 +45,9 @@ namespace MicroBenchmarks
                     mandatoryCategories: ImmutableHashSet.Create(Categories.Libraries, Categories.Runtime, Categories.ThirdParty),
                     partitionCount: partitionCount,
                     partitionIndex: partitionIndex,
-                    exclusionFilterValue: exclusionFilterValue))
+                    exclusionFilterValue: exclusionFilterValue,
+                    categoryExclusionFilterValue: categoryExclusionFilterValue,
+                    getDiffableDisasm: getDiffableDisasm))
                 .ToExitCode();
         }
     }

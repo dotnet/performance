@@ -177,7 +177,7 @@ def find_process(
         return find_only(
             predicate.match,
             processes_with_gcs,
-            show=lambda p: f"{p.ProcessID} {p.Name} {p.CommandLine}",
+            show=lambda p: f"{p.ProcessID} - {p.Name} {p.CommandLine}",
             show_predicate=lambda: f"{predicate.describe()} (including processes with GCs only)",
         )
     else:

@@ -2,7 +2,6 @@ import os
 from shared.runner import TestTraits, Runner
 from shared import const
 
-SCENARIONAME = 'Web Large 3.0'
 EXENAME = 'weblarge30'
 
 def main():

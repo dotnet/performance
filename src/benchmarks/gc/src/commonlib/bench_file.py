@@ -945,7 +945,9 @@ class TestRunStatus:
     trace_file_name: Optional[
         str
     ] = None  # File should be stored in the same directory as test status
+    process_args: Optional[str] = None
     process_id: Optional[int] = None
+    process_name: Optional[str] = None
     seconds_taken: Optional[float] = None
     test: Optional[SingleTestCombination] = None
     stdout: Optional[str] = None
@@ -954,11 +956,31 @@ class TestRunStatus:
 
     def __post_init__(self) -> None:
         if self.trace_file_name is not None:
-            assert (
-                self.process_id is not None
-            ), "Test status file must set process_id if trace_file_name is set"
+            # Process ID is mutually exclusive with Name and Args. If any of the
+            # latter are set, then the former should not be there, and viceversa.
+
+            assert any(
+                val is not None for val in [self.process_args, self.process_id, self.process_name]
+            ), (
+                "Test status file must set process_id, process_name, or process_args"
+                " if trace_file_name is set."
+            )
+
+            if self.process_id is not None:
+                assert (
+                    self.process_name is None and self.process_args is None
+                ), "Process Name and Args should not be set if Process ID is given."
         else:
-            assert self.process_id is None, "'process_id' has no effect without 'trace_file_name'"
+            assert (
+                self.process_id is None and self.process_name is None
+            ), "'process_id' and 'process_name' have no effect without 'trace_file_name'."
+
+    def get_process_data_tuple(self) -> Sequence[str]:
+        return tuple(
+            f"{k}:{v}"
+            for k, v in {"name": self.process_name, "args": self.process_args}.items()
+            if v is not None
+        )
 
 
 @with_slots

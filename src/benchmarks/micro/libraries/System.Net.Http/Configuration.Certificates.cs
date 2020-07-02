@@ -11,6 +11,7 @@ namespace System.Net.Test.Common
     {
         public static class Certificates
         {
+            // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Test certificate password.")]
             private const string CertificatePassword = "testcertificate";
 
             public static X509Certificate2 GetServerCertificate() => GetCertificate("testservereku.contoso.com.pfx");

@@ -3,7 +3,6 @@ C# Console app
 '''
 from shared.runner import TestTraits, Runner
 
-SCENARIONAME = 'Static VB Console Template'
 EXENAME = 'staticvbconsoletemplate'
 
 if __name__ == "__main__":

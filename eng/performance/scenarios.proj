@@ -75,6 +75,7 @@
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
+
   <!--
     This is useful for local testing to print the produced helix items
     To use this when you are changing how items are produced, uncomment the target

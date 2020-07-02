@@ -15,6 +15,7 @@ namespace Reporting
         public IList<string> Categories { get; set; } = new List<string>();
 
         public string Name { get; set; }
+        public Dictionary<string, string> AdditionalData { get; set; } = new Dictionary<string, string>();
 
         public IList<Counter> Counters { get; set; } = new List<Counter>();
 
@@ -37,6 +38,11 @@ namespace Reporting
         {
             foreach (var counter in counters)
                 AddCounter(counter);
+        }
+
+        public void AddData(string key, string payload)
+        {
+            AdditionalData.Add(key, payload);
         }
     }
 }

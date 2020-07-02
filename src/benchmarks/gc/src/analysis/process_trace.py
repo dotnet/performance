@@ -142,18 +142,21 @@ def _get_processed_trace_from_process(
         ts = unwrap(
             map_err(
                 test_status,
-                lambda _: "Didn't specify --process and there's no test status to specify PID\n"
+                lambda _: "Didn't specify --process and there's no test status to specify PID.\n"
                 " (hint: maybe specify the test output '.yaml' file instead of the trace file)",
             )
         )
-        if ts.process_id is None:
-            raise Exception("Test status file exists but does not specify process_id")
-        process_predicate = process_predicate_from_id(ts.process_id)
+        if ts.process_id is not None:
+            process_predicate = process_predicate_from_id(ts.process_id)
+        else:
+            process_predicate = process_predicate_from_parts(ts.get_process_data_tuple())
+
     else:
         assert (
             test_status.is_err()
         ), "'--process' is unnecessary as the test result specifies the PID"
         process_predicate = process_predicate_from_parts(test_result.process)
+
     process_names, proc = get_process_names_and_process_info(
         clr,
         non_null(test_result.trace_path),
@@ -163,7 +166,10 @@ def _get_processed_trace_from_process(
         collect_event_names=True,
     )
 
-    assert len(proc.gcs) > 0, f"Trace file {proc.trace_path.name} has no GC's to analyze."
+    assert len(proc.gcs) > 0, (
+        f"Process '{proc.process.Name}' in Trace File '{proc.trace_path.name}' "
+        "has no GC's to analyze."
+    )
 
     # TODO: just do this lazily (getting join info)
     join_info = (

@@ -731,12 +731,12 @@ ref struct CharSpan
 
     public CharSpan Slice(uint begin, uint length)
     {
-        Debug.Assert(begin + length < this.Length);
+        Debug.Assert(begin + length <= this.Length);
         return new CharSpan(text: this.text, begin: this.begin + begin, length: length);
     }
 
     public CharSpan Slice(uint begin) =>
-        Slice(this.begin + begin, this.Length - begin);
+        Slice(begin, this.Length - begin);
 
     public char this[uint index]
     {
@@ -858,6 +858,13 @@ ref struct TextReader
         }
     }
 
+    public void SkipWhite()
+    {
+        while (!Eof && IsWhite(Peek))
+        {
+            Take();
+        }
+    }
     public bool Eof =>
         text.Length == 0;
 
@@ -893,6 +900,7 @@ ref struct TextReader
 
     public CharSpan TakeWord()
     {
+        SkipWhite();
         Assert(IsLetter(Peek), "Expected to parse a word");
         uint i = 1;
         for (; i < text.Length && IsLetter(text[i]); i++) { }
@@ -905,6 +913,8 @@ ref struct TextReader
         '0' <= c && c <= '9';
     private static bool IsDigitOrDot(char c) =>
         IsDigit(c) || c == '.';
+    private static bool IsWhite(char c) =>
+        c == ' ' || c == '\t';
 }
 
 class Args
@@ -995,6 +1005,16 @@ class ArgsParser
         while (true)
         {
             State? s = TryReadTag(ref text);
+            BucketSpec[] bucketSpecs = new BucketSpec[0];
+            if (s == State.ParseBucket)
+            {
+                (s, bucketSpecs) = ParseBuckets(ref text);
+            }
+            Phase[] phases = new Phase[0];
+            if (s == State.ParsePhase)
+            {
+                (s, phases) = ParsePhases(ref text, threadCount);
+            }
             if (s == State.Eof)
             {
                 return new Args(
@@ -1002,7 +1022,7 @@ class ArgsParser
                     perThreadArgs: new PerThreadArgs(
                         verifyLiveSize: verifyLiveSize,
                         printEveryNthIter: printEveryNthIter,
-                        phases: ParsePhases(ref text, threadCount)),
+                        phases: phases),
                     finishWithFullCollect: false,
                     endException: false);
             }
@@ -1029,7 +1049,7 @@ class ArgsParser
     }
     
     // Called after we see the first [phase]; ends at EOF
-    static Phase[] ParsePhases(ref TextReader text, uint threadCount)
+    static (State, Phase[]) ParsePhases(ref TextReader text, uint threadCount)
     {
         List<Phase> res = new List<Phase>();
         while (true)
@@ -1039,7 +1059,7 @@ class ArgsParser
             if (s != State.ParsePhase)
             {
                 Util.AlwaysAssert(s == State.Eof);
-                return res.ToArray();
+                return (s, res.ToArray());
             }
         }
     }
@@ -1097,6 +1117,14 @@ class ArgsParser
                     {
                         threadCount = text.TakeUInt();
                         text.Assert(threadCount != 0, "Cannot have 0 threads");
+                    }
+                    else if (word == "totalLiveGB")
+                    {
+                        totalLiveBytes = Util.GBToBytes(text.TakeUlong());
+                    }
+                    else if (word == "totalAllocGB")
+                    {
+                        totalAllocBytes = Util.GBToBytes(text.TakeUlong());
                     }
                     else if (word == "totalLiveMB")
                     {
@@ -1188,6 +1216,7 @@ class ArgsParser
 
     private static State? TryReadTag(ref TextReader text)
     {
+        text.SkipWhite();
         if (text.Eof)
         {
             return State.Eof;
@@ -1803,8 +1832,10 @@ class MemoryAlloc
     // and pause buckets.
     public List<double> lohAllocPauses = new List<double>(10);
 
-    // TODO: should be mutable, change when we switch phases
-    readonly Phase curPhase;
+    // changes when we switch phases
+    Phase curPhase;
+
+    int curPhaseIndex;
 
     public MemoryAlloc(uint _threadIndex, in PerThreadArgs args)
     {
@@ -1812,60 +1843,8 @@ class MemoryAlloc
         threadIndex = _threadIndex;
 
         this.args = args;
-        this.curPhase = args.phases[0];
-        this.totalAllocBytesLeft = (long) curPhase.totalAllocBytes;
-
-        Util.AlwaysAssert(args.phases.Length == 1, "TODO: Phase switching");
-        //printIterInfo = true;
-
-        this.bucketChooser = new BucketChooser(curPhase.buckets);
-
-        ulong numElements = curPhase.totalLiveBytes / bucketChooser.AverageObjectSize();
-        oldArr = new OldArr(numElements);
-
-        for (uint i = 0; i < numElements; i++)
-        {
-            (ITypeWithPayload item, ObjectSpec _) = MakeObjectAndTouchPage();
-            oldArr.Initialize(i, item);
-        }
-
-        if (curPhase.totalLiveBytes == 0)
-            Util.AlwaysAssert(oldArr.TotalLiveBytes < 100);
-        else
-            Util.AssertAboutEqual(oldArr.TotalLiveBytes, curPhase.totalLiveBytes);
-
-        /*
-        if (args.print)
-        {
-            Console.WriteLine("T{0}: allocated {1} ({2}MB) on SOH, {3} ({4}MB) on LOH",
-                threadIndex,
-                sohAllocatedElements, Util.BytesToMB(sohAllocatedBytes),
-                lohAllocatedElements, Util.BytesToMB(lohAllocatedBytes));
-        }
-        */
-
-        if (args.verifyLiveSize)
-        {
-            oldArr.VerifyLiveSize();
-            if (!Util.AboutEquals(oldArr.TotalLiveBytes, curPhase.totalLiveBytes))
-            {
-                Console.WriteLine($"totalLiveBytes: {oldArr.TotalLiveBytes}, args.totalLiveBytes: {curPhase.totalLiveBytes}");
-                throw new Exception("TODO");
-            }
-        }
-
-        //GC.Collect();
-        //Console.WriteLine("init done");
-        //Console.ReadLine();
-
-        if (curPhase.totalAllocBytes != 0)
-        {
-            Console.WriteLine("Thread {0} stopping phase after {1}MB", threadIndex, Util.BytesToMB(curPhase.totalAllocBytes));
-        }
-        else
-        {
-            Console.WriteLine("Stopping phase after {0} mins", curPhase.totalMinutesToRun);
-        }
+        this.curPhaseIndex = -1;
+        this.GoToNextPhase();
     }
 
     // This really doesn't belong in this class - this should be a building blocking that takes
@@ -2114,11 +2093,66 @@ class MemoryAlloc
     // Returns false if no next phase
     bool GoToNextPhase()
     {
-#if DEBUG
-        Util.AssertAboutEqual(bucketChooser.GetTotalAllocatedInAllBuckets(), curPhase.totalAllocBytes);
-#endif
-        Util.AlwaysAssert(this.args.phases.Length == 1); // If more, we should be switching phases
-        return false;
+        curPhaseIndex++;
+        if (curPhaseIndex < args.phases.Length)
+        {
+            curPhase = args.phases[curPhaseIndex];
+            totalAllocBytesLeft = (long)curPhase.totalAllocBytes;
+
+            bucketChooser = new BucketChooser(curPhase.buckets);
+
+            ulong numElements = curPhase.totalLiveBytes / bucketChooser.AverageObjectSize();
+            oldArr = new OldArr(numElements);
+
+            for (uint i = 0; i < numElements; i++)
+            {
+                (ITypeWithPayload item, ObjectSpec _) = MakeObjectAndTouchPage();
+                oldArr.Initialize(i, item);
+            }
+
+            if (curPhase.totalLiveBytes == 0)
+                Util.AlwaysAssert(oldArr.TotalLiveBytes < 100);
+            else
+                Util.AssertAboutEqual(oldArr.TotalLiveBytes, curPhase.totalLiveBytes);
+
+            /*
+            if (args.print)
+            {
+                Console.WriteLine("T{0}: allocated {1} ({2}MB) on SOH, {3} ({4}MB) on LOH",
+                    threadIndex,
+                    sohAllocatedElements, Util.BytesToMB(sohAllocatedBytes),
+                    lohAllocatedElements, Util.BytesToMB(lohAllocatedBytes));
+            }
+            */
+
+            if (args.verifyLiveSize)
+            {
+                oldArr.VerifyLiveSize();
+                if (!Util.AboutEquals(oldArr.TotalLiveBytes, curPhase.totalLiveBytes))
+                {
+                    Console.WriteLine($"totalLiveBytes: {oldArr.TotalLiveBytes}, args.totalLiveBytes: {curPhase.totalLiveBytes}");
+                    throw new Exception("TODO");
+                }
+            }
+
+            //GC.Collect();
+            //Console.WriteLine("init done");
+            //Console.ReadLine();
+
+            if (curPhase.totalAllocBytes != 0)
+            {
+                Console.WriteLine("Thread {0} stopping phase after {1}MB", threadIndex, Util.BytesToMB(curPhase.totalAllocBytes));
+            }
+            else
+            {
+                Console.WriteLine("Stopping phase after {0} mins", curPhase.totalMinutesToRun);
+            }
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
     (ITypeWithPayload, ObjectSpec spec) JustMakeObject()
@@ -2475,7 +2509,7 @@ class MemoryAlloc
         Console.WriteLine($"final_total_memory_bytes: {GC.GetTotalMemory(forceFullCollection: false)}");
 
         // Use reflection to detect GC.GetGCMemoryInfo because it doesn't exist in dotnet core 2.0 or in .NET framework.
-        var getGCMemoryInfo = typeof(GC).GetMethod("GetGCMemoryInfo");
+        var getGCMemoryInfo = typeof(GC).GetMethod("GetGCMemoryInfo", new Type[] {});
         if (getGCMemoryInfo != null)
         {
             object info = Util.NonNull(getGCMemoryInfo.Invoke(null, parameters: null));

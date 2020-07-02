@@ -4,7 +4,7 @@ Wrapper around startup tool.
 import sys
 import os
 import platform
-from shutil import copytree
+from shutil import copytree, copy
 from performance.logger import setup_loggers
 from performance.common import get_artifacts_directory, get_packages_directory, RunCommand
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
@@ -50,7 +50,7 @@ class SODWrapper(object):
     def _setsodpath(self, path: str):
         self.sodexe = os.path.join(path, 'SizeOnDisk%s' % extension())
 
-    def runtests(self, scenarioname, dirs):
+    def runtests(self, scenarioname, dirs, artifact=None):
         '''
         Runs tests through sod tool
         '''
@@ -65,6 +65,12 @@ class SODWrapper(object):
         ]
 
         RunCommand(sod_args, verbose=True).run()
+ 
+        if artifact:
+          if not os.path.exists(artifact):
+            raise FileNotFoundError(f'Artifact {artifact} is not found.')
+          else:
+            copy(artifact, TRACEDIR)
 
         if runninginlab():
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
