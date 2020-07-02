@@ -150,7 +150,12 @@ The configuration values that can be used in the test `.yaml` file are described
 
 ## Running
 
-Running the full suite would take a while, so let's just run one:
+The benchmark tests created in the previous step can be run as a whole bundle, or individually.
+This is explained in the following sections.
+
+### Running a Single Test
+
+Let's run *low_memory_container* for this example.
 
 ```sh
 py . run bench/suite/low_memory_container.yaml
@@ -177,7 +182,7 @@ To fix either of these, specify `dotnet_path` and `dotnet_trace_path` in `option
 (Note that if you recently built coreclr, that probably left a `dotnet` process open that `run` will ask you to kill. Just do so and run again with `--overwrite`.)
 
 This simple test should take under 2 minutes. Other tests require more patience.
-We aim for an individual test to take about 20 seconds and this does 2 iterations for each of the 2 coreclrs.
+We aim for an individual test to take about 20 seconds and this does 2 iterations for each of the 2 *coreclrs*.
 
 Running the test produced a directory `bench/suite/low_memory_container.yaml.out`.
 This contains a trace file (and some other small files) for each of the tests. (If you had specified `collect: none` in `options:` in the benchfile, there would be no trace file and the other files would contain all information.)
@@ -186,6 +191,34 @@ Each trace file can be opened in PerfView if you need to.
 Each trace file will be named `{coreclr_name}__{config_name}__{benchmark_name}__{iteration}`, e.g.  `clr_a__smaller__nosurvive__0`.
 
 _ARM NOTE_: Container tests are not supported on ARM/ARM64.
+
+### Running the Entire Suite
+
+If you want to run several tests at once, you can perform a *suite-run* instead.
+
+```sh
+py . suite-run bench/suite/suite.yaml
+```
+
+The `suite.yaml` file contains a list of all the tests you wish to run in the following format:
+
+```yml
+bench_files:
+- normal_workstation.yaml
+- normal_server.yaml
+- high_memory.yaml
+- low_memory_container.yaml
+command_groups: {}
+```
+
+GC Benchmarking Infra will read one by one each of the specified files under *bench_files*,
+and run *GCPerfSim* accordingly. If any test fails, Infra will proceed to run the next one
+and will display a summary of the encountered problems at the end of the run.
+
+The *command_groups* tag is used to store sets of other commands you might want to run in bulk,
+rather than individually. For simplicity, it is left empty in this example.
+
+For full information regarding suites, check the full documentation [here](docs/suites.md).
 
 ### Running with .NET Desktop
 
