@@ -11,7 +11,8 @@ namespace System.Text.Json.Tests
     [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     public class Perf_Get
     {
-        private static readonly byte[] _jsonNumberBytes = GetJsonBytes(default(int));
+        private static readonly byte[] _jsonIntegerNumberBytes = GetJsonBytes(123);
+        private static readonly byte[] _jsonDecimalNumberBytes = GetJsonBytes(123.456f);
         private static readonly byte[] _jsonStringBytes = GetJsonBytes("\"The quick brown fox jumps over the lazy dog.\"");
         private static readonly byte[] _jsonGuidBytes = GetJsonBytes($"\"{Guid.Empty}\"");
         private static readonly byte[] _jsonDateTimeBytes = GetJsonBytes($"\"{DateTime.MaxValue:O}\"");
@@ -19,61 +20,17 @@ namespace System.Text.Json.Tests
 
         private static byte[] GetJsonBytes<T>(T elem)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.Append('[');
-            sb.Append(string.Join(',', Enumerable.Repeat(elem, 100)));
-            sb.Append(']');
-
-            return Encoding.UTF8.GetBytes(sb.ToString());
-        }
-
-        [Benchmark]
-        public void ReadToEndNumber()
-        {
-            var reader = new Utf8JsonReader(_jsonNumberBytes);
-            reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.Number) ;
-        }
-
-        [Benchmark]
-        public void ReadToEndString()
-        {
-            var reader = new Utf8JsonReader(_jsonStringBytes);
-            reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.String) ;
-        }
-
-        [Benchmark]
-        public void ReadToEndGuid()
-        {
-            var reader = new Utf8JsonReader(_jsonGuidBytes);
-            reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.String) ;
-        }
-
-        [Benchmark]
-        public void ReadToEndDateTime()
-        {
-            var reader = new Utf8JsonReader(_jsonDateTimeBytes);
-            reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.String) ;
-        }
-
-        [Benchmark]
-        public void ReadToEndDateTimeOffset()
-        {
-            var reader = new Utf8JsonReader(_jsonDateTimeOffsetBytes);
-            reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.String) ;
+            return Encoding.UTF8.GetBytes(elem.ToString());
         }
 
         [Benchmark]
         public byte GetByte()
         {
             byte result = 0;
-            var reader = new Utf8JsonReader(_jsonNumberBytes);
+            var reader = new Utf8JsonReader(_jsonIntegerNumberBytes);
             reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+
+            for (int i = 0; i < 100; i++)
             {
                 result += reader.GetByte();
             }
@@ -84,9 +41,10 @@ namespace System.Text.Json.Tests
         public sbyte GetSByte()
         {
             sbyte result = 0;
-            var reader = new Utf8JsonReader(_jsonNumberBytes);
+            var reader = new Utf8JsonReader(_jsonIntegerNumberBytes);
             reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+
+            for (int i = 0; i < 100; i++)
             {
                 result += reader.GetSByte();
             }
@@ -97,9 +55,10 @@ namespace System.Text.Json.Tests
         public short GetInt16()
         {
             short result = 0;
-            var reader = new Utf8JsonReader(_jsonNumberBytes);
+            var reader = new Utf8JsonReader(_jsonIntegerNumberBytes);
             reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+
+            for (int i = 0; i < 100; i++)
             {
                 result += reader.GetInt16();
             }
@@ -110,9 +69,10 @@ namespace System.Text.Json.Tests
         public int GetInt32()
         {
             int result = 0;
-            var reader = new Utf8JsonReader(_jsonNumberBytes);
+            var reader = new Utf8JsonReader(_jsonIntegerNumberBytes);
             reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+
+            for (int i = 0; i < 100; i++)
             {
                 result += reader.GetInt32();
             }
@@ -123,9 +83,10 @@ namespace System.Text.Json.Tests
         public long GetInt64()
         {
             long result = 0;
-            var reader = new Utf8JsonReader(_jsonNumberBytes);
+            var reader = new Utf8JsonReader(_jsonIntegerNumberBytes);
             reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+
+            for (int i = 0; i < 100; i++)
             {
                 result += reader.GetInt64();
             }
@@ -136,9 +97,10 @@ namespace System.Text.Json.Tests
         public ushort GetUInt16()
         {
             ushort result = 0;
-            var reader = new Utf8JsonReader(_jsonNumberBytes);
+            var reader = new Utf8JsonReader(_jsonIntegerNumberBytes);
             reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+
+            for (int i = 0; i < 100; i++)
             {
                 result += reader.GetUInt16();
             }
@@ -149,9 +111,10 @@ namespace System.Text.Json.Tests
         public uint GetUInt32()
         {
             uint result = 0;
-            var reader = new Utf8JsonReader(_jsonNumberBytes);
+            var reader = new Utf8JsonReader(_jsonIntegerNumberBytes);
             reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+
+            for (int i = 0; i < 100; i++)
             {
                 result += reader.GetUInt32();
             }
@@ -162,9 +125,10 @@ namespace System.Text.Json.Tests
         public ulong GetUInt64()
         {
             ulong result = 0;
-            var reader = new Utf8JsonReader(_jsonNumberBytes);
+            var reader = new Utf8JsonReader(_jsonIntegerNumberBytes);
             reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+
+            for (int i = 0; i < 100; i++)
             {
                 result += reader.GetUInt64();
             }
@@ -175,9 +139,10 @@ namespace System.Text.Json.Tests
         public float GetSingle()
         {
             float result = 0;
-            var reader = new Utf8JsonReader(_jsonNumberBytes);
+            var reader = new Utf8JsonReader(_jsonDecimalNumberBytes);
             reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+
+            for (int i = 0; i < 100; i++)
             {
                 result += reader.GetSingle();
             }
@@ -188,9 +153,10 @@ namespace System.Text.Json.Tests
         public double GetDouble()
         {
             double result = 0;
-            var reader = new Utf8JsonReader(_jsonNumberBytes);
+            var reader = new Utf8JsonReader(_jsonDecimalNumberBytes);
             reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+
+            for (int i = 0; i < 100; i++)
             {
                 result += reader.GetDouble();
             }
@@ -201,9 +167,10 @@ namespace System.Text.Json.Tests
         public decimal GetDecimal()
         {
             decimal result = 0;
-            var reader = new Utf8JsonReader(_jsonNumberBytes);
+            var reader = new Utf8JsonReader(_jsonDecimalNumberBytes);
             reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.Number)
+
+            for (int i = 0; i < 100; i++)
             {
                 result += reader.GetDecimal();
             }
@@ -216,7 +183,8 @@ namespace System.Text.Json.Tests
             DateTime result = default;
             var reader = new Utf8JsonReader(_jsonDateTimeBytes);
             reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.String)
+
+            for (int i = 0; i < 100; i++)
             {
                 result = reader.GetDateTime();
             }
@@ -229,7 +197,8 @@ namespace System.Text.Json.Tests
             DateTimeOffset result = default;
             var reader = new Utf8JsonReader(_jsonDateTimeOffsetBytes);
             reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.String)
+
+            for (int i = 0; i < 100; i++)
             {
                 result = reader.GetDateTimeOffset();
             }
@@ -242,7 +211,8 @@ namespace System.Text.Json.Tests
             Guid result = default;
             var reader = new Utf8JsonReader(_jsonGuidBytes);
             reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.String)
+
+            for (int i = 0; i < 100; i++)
             {
                 result = reader.GetGuid();
             }
@@ -255,7 +225,8 @@ namespace System.Text.Json.Tests
             string result = default;
             var reader = new Utf8JsonReader(_jsonStringBytes);
             reader.Read();
-            while (reader.Read() && reader.TokenType == JsonTokenType.String)
+
+            for (int i = 0; i < 100; i++)
             {
                 result = reader.GetString();
             }
