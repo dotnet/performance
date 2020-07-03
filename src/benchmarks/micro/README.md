@@ -52,7 +52,7 @@ If you contribute to [dotnet/runtime](https://github.com/dotnet/runtime) and wan
 
 ```cmd
 dotnet run -c Release -f netcoreapp3.1 --filter $YourFilter \
-    --corerun C:\Projects\runtime\artifacts\bin\testhost\netcoreapp5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe
+    --corerun C:\Projects\runtime\artifacts\bin\testhost\net5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe
 ```
 
 To make sure that your changes don't introduce any regressions, you can provide paths to CoreRuns with and without your changes and use the Statistical Test feature to detect regressions/improvements ([read more](../../../docs/benchmarkdotnet.md#Regressions)):
@@ -62,8 +62,8 @@ dotnet run -c Release -f netcoreapp3.1 \
     --filter BenchmarksGame* \
     --statisticalTest 3ms \
     --coreRun \
-        "C:\Projects\runtime_upstream\artifacts\bin\testhost\netcoreapp5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe" \
-        "C:\Projects\runtime_fork\artifacts\bin\testhost\netcoreapp5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe"
+        "C:\Projects\runtime_upstream\artifacts\bin\testhost\net5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe" \
+        "C:\Projects\runtime_fork\artifacts\bin\testhost\net5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe"
 ```
 
 If you **prefer to use dotnet cli** instead of CoreRun, you need to pass the path to cli via the `--cli` argument.
