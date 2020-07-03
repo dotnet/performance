@@ -114,7 +114,7 @@ Every time you want to run the benchmarks against local build of [dotnet/runtime
 
 ```cmd
 dotnet run -c Release -f netcoreapp5.0 --filter $someFilter \
-    --coreRun C:\Projects\runtime\artifacts\bin\testhost\netcoreapp5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe
+    --coreRun C:\Projects\runtime\artifacts\bin\testhost\net5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe
 ```
 
 **Note:** BenchmarkDotNet expects a path to `CoreRun.exe` file (`corerun` on Unix), not to `Core_Root` folder.
@@ -134,7 +134,7 @@ Preventing regressions is a fundamental part of our performance culture. The che
 ```cmd
 C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f netcoreapp5.0 \
     --artifacts "C:\results\before" \
-    --coreRun "C:\Projects\runtime\artifacts\bin\testhost\netcoreapp5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe" \
+    --coreRun "C:\Projects\runtime\artifacts\bin\testhost\net5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe" \
     --filter System.IO.Pipes*
 ```
 
@@ -149,7 +149,7 @@ C:\Projects\runtime\src\libraries\System.IO.Pipes\src> dotnet msbuild /p:Configu
 
 C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f netcoreapp5.0 \
     --artifacts "C:\results\after" \
-    --coreRun "C:\Projects\runtime\artifacts\bin\testhost\netcoreapp5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe" \
+    --coreRun "C:\Projects\runtime\artifacts\bin\testhost\net5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe" \
     --filter System.IO.Pipes*
 ```
 
