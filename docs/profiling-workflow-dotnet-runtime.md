@@ -64,13 +64,13 @@ The build produces two things that we care about:
 * `dotnet` and all `System.XYZ.dlls` used internally to run Libraries unit tests. It can be used by Visual Studio Profiler to run the code that you want to profile. Example:
 
 ```log
-C:\Projects\runtime\artifacts\bin\testhost\netcoreapp5.0-Windows_NT-Release-x64\dotnet.exe
+C:\Projects\runtime\artifacts\bin\testhost\net5.0-Windows_NT-Release-x64\dotnet.exe
 ```
 
 * `CoreRun` and all `System.XYZ.dlls` that can be used to run the code that you want to profile. Example:
 
 ```log
-C:\Projects\runtime\artifacts\bin\testhost\netcoreapp5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe
+C:\Projects\runtime\artifacts\bin\testhost\net5.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\5.0.0\CoreRun.exe
 ```
 
 Once you rebuild the part of [dotnet/runtime](https://github.com/dotnet/runtime) you are working on, the appropriate `.dll` gets updated and the next time you run profiler, dotnet|CoreRun is going to use the updated library.
@@ -175,7 +175,7 @@ start %sln%
 You can just save it as `startvs.cmd` file and run providing path to the `testhost` folder produced by [dotnet/runtime](https://github.com/dotnet/runtime) build and a VS solution with repo project:
 
 ```cmd
-startvs.cmd "C:\Projects\runtime\artifacts\bin\testhost\netcoreapp5.0-Windows_NT-Release-x64\" "C:\Projects\repro\ProfilingDocs.sln"
+startvs.cmd "C:\Projects\runtime\artifacts\bin\testhost\net5.0-Windows_NT-Release-x64\" "C:\Projects\repro\ProfilingDocs.sln"
 ```
 
 ## CPU Usage
