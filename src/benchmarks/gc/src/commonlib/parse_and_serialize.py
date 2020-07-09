@@ -292,3 +292,22 @@ def write_yaml_file(path: Path, content: object, overwrite: bool = False) -> Non
     serializable = to_serializable(content)
     with path.open("w") as f:
         dump(serializable, f, Dumper=MyDumper, default_flow_style=False)
+
+
+def _format_result_yaml_fields(content: OrderedDict, indent_size: int, result: [str]) -> None:
+    for k, v in content:
+        if isinstance(v, Dict):
+            text = f"{k}:\n"
+            result.append('{field: >{width}}'.format(field=text, width=len(text) + indent_size))
+            _format_result_yaml_fields(v.items(), indent_size + 2, result)
+        else:
+            text = f"{k}: \"{v}\"\n" if k == 'stdout' else f"{k}: {v}\n"
+            result.append('{field: >{width}}'.format(field=text, width=len(text) + indent_size))
+
+
+def write_test_yaml_file(path: Path, content: object) -> None:
+    yaml_items = []
+    _format_result_yaml_fields(to_serializable(content).items(), 0, yaml_items)
+
+    with path.open("w") as f:
+        f.writelines(yaml_items)
