@@ -13,7 +13,7 @@ namespace System.Text.Experimental
     {
         public static IEnumerable<string> TranscodingTestData()
         {
-            yield return "Hello World";
+            yield return "This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. ";
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < 256; i++)
             {
