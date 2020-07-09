@@ -36,6 +36,7 @@
     <PackageReference Include="System.Security.Cryptography.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Threading.Channels" Version="4.5.0" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.3" />
+    <PackageReference Include="System.Utf8String.Experimental" Version="5.0.0-preview.8.20359.4" />
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
     <PackageReference Include="Utf8Json" Version="1.3.7" />
     <!-- following two dependencies must point to version 4.3.0 or newer to make it possible to publish MicroBenchmarks.csproj -->
