@@ -301,7 +301,11 @@ def _format_result_yaml_fields(content: OrderedDict, indent_size: int, result: [
             result.append('{field: >{width}}'.format(field=text, width=len(text) + indent_size))
             _format_result_yaml_fields(v.items(), indent_size + 2, result)
         else:
-            text = f"{k}: \"{v}\"\n" if k == 'stdout' else f"{k}: {v}\n"
+            if (k == 'stdout'):
+                v = v.rstrip("\n").replace("\n", "\n  ")
+                text = f"{k}:\n  \"{v}\"\n"
+            else:
+                text = f"{k}: {v}\n"
             result.append('{field: >{width}}'.format(field=text, width=len(text) + indent_size))
 
 
