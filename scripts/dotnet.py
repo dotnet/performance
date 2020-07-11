@@ -391,7 +391,7 @@ class CSharpProject:
                 verbose: bool,
                 packages_path,
                 target_framework_moniker: str = None,
-                runtime_identifier: str = None,
+                runtime_identifier: str = None
                 ) -> None:
         '''
         Invokes publish on the specified project
