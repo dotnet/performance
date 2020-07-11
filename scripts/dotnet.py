@@ -385,13 +385,13 @@ class CSharpProject:
                              bin_dir)
 
     def publish(self,
-                *args,
                 configuration: str,
                 output_dir: str,
                 verbose: bool,
                 packages_path,
                 target_framework_moniker: str = None,
-                runtime_identifier: str = None
+                runtime_identifier: str = None,
+                *args
                 ) -> None:
         '''
         Invokes publish on the specified project
