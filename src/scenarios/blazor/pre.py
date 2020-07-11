@@ -15,6 +15,5 @@ precommands.new(template='blazorwasm',
                 output_dir=const.APPDIR,
                 bin_dir=const.BINDIR,
                 exename=EXENAME,
-                working_directory=sys.path[0]
-                )
+                working_directory=sys.path[0])
 precommands.execute()

@@ -109,7 +109,7 @@ class PreCommands:
         self.project = CSharpProject(csproj, const.BINDIR)
         self._updateframework(csproj.file_name)
 
-    def execute(self, *args):
+    def execute(self):
         'Parses args and runs precommands'
         if self.operation == DEFAULT:
             pass
@@ -119,8 +119,7 @@ class PreCommands:
         if self.operation == PUBLISH:
             self._restore()
             self._publish(configuration=self.configuration,
-                          runtime_identifier=self.runtime_identifier,
-                          *args)
+                          runtime_identifier=self.runtime_identifier)
 
     def add_startup_logging(self, file: str, line: str):
         self.add_event_source(file, line, "PerfLabGenericEventSource.Log.Startup();")
