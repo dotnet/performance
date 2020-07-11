@@ -109,7 +109,7 @@ class PreCommands:
         self.project = CSharpProject(csproj, const.BINDIR)
         self._updateframework(csproj.file_name)
 
-    def execute(self):
+    def execute(self, *args):
         'Parses args and runs precommands'
         if self.operation == DEFAULT:
             pass
@@ -119,7 +119,8 @@ class PreCommands:
         if self.operation == PUBLISH:
             self._restore()
             self._publish(configuration=self.configuration,
-                          runtime_identifier=self.runtime_identifier)
+                          runtime_identifier=self.runtime_identifier,
+                          *args)
 
     def add_startup_logging(self, file: str, line: str):
         self.add_event_source(file, line, "PerfLabGenericEventSource.Log.Startup();")
@@ -152,7 +153,8 @@ class PreCommands:
             replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
 
     def _publish(self, configuration: str, framework: str = None, runtime_identifier: str = None):
-        self.project.publish(configuration=configuration,
+        self.project.publish(self.msbuild,
+                             configuration=configuration,
                              output_dir=const.PUBDIR, 
                              verbose=True,
                              packages_path=os.path.join(get_packages_directory(), ''), # blazor publish targets require the trailing slash for joining the paths
