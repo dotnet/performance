@@ -158,7 +158,7 @@ class PreCommands:
                              os.path.join(get_packages_directory(), ''), # blazor publish targets require the trailing slash for joining the paths
                              framework,
                              runtime_identifier,
-                             self.msbuild
+                             self.msbuild or ""
                              )
 
     def _restore(self):
