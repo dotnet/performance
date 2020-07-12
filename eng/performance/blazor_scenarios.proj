@@ -27,9 +27,10 @@
    
   <!-- New Blazor 3.2 Template SOD -->
   <ItemGroup>
-    <HelixWorkItem Include="SOD - New Blazor 3.2 Template - Publish">
+    <HelixWorkItem Include="SOD - New Blazor Template - Publish">
       <PayloadDirectory>$(ScenariosDir)blazor</PayloadDirectory>
-      <PreCommands>$(Python) pre.py publish --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
+      <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
+      <PreCommands>$(Python) pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
