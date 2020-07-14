@@ -1,7 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#if !NETFRAMEWORK
+
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 using System.Text.Encodings.Web;
@@ -56,4 +56,3 @@ namespace System.Text.Tests
         public void EncodeUtf16() => _encoder.Encode(_sourceBufferUtf16, _destinationBufferUtf16, out int _, out int _);
     }
 }
-#endif

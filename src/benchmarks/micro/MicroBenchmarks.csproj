@@ -68,6 +68,7 @@
     <Compile Remove="libraries\System.Runtime\Perf.HashCode.cs" />
     <Compile Remove="libraries\System.Security.Cryptography.Primitives\**" />
     <Compile Remove="libraries\System.Security.Cryptography\Perf.Rfc2898DeriveBytes.cs" />
+    <Compile Remove="libraries\System.Text.Encodings.Web\**\*.cs" />
     <Compile Remove="runtime\Math\Functions\Double\Acosh.cs" />
     <Compile Remove="runtime\Math\Functions\Double\Asinh.cs" />
     <Compile Remove="runtime\Math\Functions\Double\Atanh.cs" />
