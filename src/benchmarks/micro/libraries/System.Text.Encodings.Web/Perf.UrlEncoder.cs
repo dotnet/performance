@@ -11,7 +11,7 @@ namespace System.Text.Tests
     [BenchmarkCategory(Categories.Libraries)]
     public class Perf_UrlEncoder
     {
-        [Params("&lorem ipsum=dolor sit amet")]
+        [Params("&lorem ipsum=dolor sit amet", "©2020")]
         public string sourceString;
 
         // pads the string with a pseudorandom number of non-escapable characters
