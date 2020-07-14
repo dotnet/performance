@@ -578,6 +578,28 @@ class AbstractTimeSpan(ABC):
     DurationMSec: float
 
 
+# StackView class. Currently in Analysis.cs, in the future it will be part
+# of TraceEvent.
+class AbstractCallTreeNodeBase(ABC):
+    Name: str
+    InclusiveCount: float
+    ExclusiveCount: float
+    InclusiveMetricPercent: float
+    ExclusiveMetricPercent: float
+    FirstTimeRelativeMSec: float
+    LastTimeRelativeMSec: float
+
+    @abstractmethod
+    def ToString(self) -> str:
+        raise NotImplementedError()
+
+
+class AbstractStackView(ABC):
+    @abstractmethod
+    def FindNodeByName(self, nodeNamePat: str) -> AbstractCallTreeNodeBase:
+        raise NotImplementedError()
+
+
 # See Analysis.cs
 
 
@@ -694,6 +716,15 @@ class AbstractAnalysis(ABC):
     def SliceTraceFile(
         inputTracePath: str, outputTracePath: str, timeSpan: AbstractTimeSpan
     ) -> None:
+        raise NotImplementedError()
+
+    @staticmethod
+    @abstractmethod
+    def GetStackViewForInfra(
+        tracePath: str,
+        symPath: str,
+        processName: str,
+    ) -> AbstractStackView:
         raise NotImplementedError()
 
 

@@ -9,6 +9,7 @@ from typing import Sequence
 from webbrowser import open as open_in_browser
 from urllib.parse import urlencode
 
+from .analysis.analyze_cpu_samples import ANALYZE_CPU_SAMPLES_COMMANDS
 from .analysis.analyze_joins import ANALYZE_JOINS_COMMANDS
 from .analysis.analyze_single import ANALYZE_SINGLE_COMMANDS
 from .analysis.chart_configs import CHART_CONFIGS_COMMANDS
@@ -119,6 +120,7 @@ ALL_COMMANDS: CommandsMapping = combine_mappings(
         """,
         ),
     },
+    ANALYZE_CPU_SAMPLES_COMMANDS,
     ANALYZE_JOINS_COMMANDS,
     ANALYZE_SINGLE_COMMANDS,
     BUILD_COMMANDS,

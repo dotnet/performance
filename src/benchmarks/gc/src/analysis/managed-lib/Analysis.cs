@@ -10,6 +10,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Diagnostics.Tracing.StackSources;
+using Microsoft.Diagnostics.Symbols;
 using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Analysis;
 using Microsoft.Diagnostics.Tracing.Stacks;
@@ -27,6 +29,209 @@ namespace GCPerf
 {
     using ProcessID = Int32;
     using ThreadID = Int32;
+    using EtlxNS = Microsoft.Diagnostics.Tracing.Etlx;
+
+    public class StackView
+    {
+        private static readonly char[] SymbolSeparator = new char[] { '!' };
+
+        private EtlxNS.TraceLog _traceLog;
+        private StackSource _rawStackSource;
+        private SymbolReader _symbolReader;
+        private CallTree _callTree;
+        private List<CallTreeNodeBase> _byName;
+        private HashSet<string> _resolvedSymbolModules = new HashSet<string>();
+
+        public StackView(EtlxNS.TraceLog traceLog, StackSource stackSource, SymbolReader symbolReader)
+        {
+            _traceLog = traceLog;
+            _rawStackSource = stackSource;
+            _symbolReader = symbolReader;
+            LookupWarmNGENSymbols();
+        }
+
+        public CallTree CallTree
+        {
+            get
+            {
+                if (_callTree == null)
+                {
+                    FilterStackSource filterStackSource = new FilterStackSource(new FilterParams(), _rawStackSource, ScalingPolicyKind.ScaleToData);
+                    _callTree = new CallTree(ScalingPolicyKind.ScaleToData)
+                    {
+                        StackSource = filterStackSource
+                    };
+                }
+                return _callTree;
+            }
+        }
+
+        private IEnumerable<CallTreeNodeBase> ByName
+        {
+            get
+            {
+                if (_byName == null)
+                {
+                    _byName = CallTree.ByIDSortedExclusiveMetric();
+                }
+
+                return _byName;
+            }
+        }
+
+        public CallTreeNodeBase FindNodeByName(string nodeNamePat)
+        {
+            var regEx = new Regex(nodeNamePat, RegexOptions.IgnoreCase);
+            foreach (var node in ByName)
+            {
+                if (regEx.IsMatch(node.Name))
+                {
+                    return node;
+                }
+            }
+            return CallTree.Root;
+        }
+        public CallTreeNode GetCallers(string focusNodeName)
+        {
+            var focusNode = FindNodeByName(focusNodeName);
+            return AggregateCallTreeNode.CallerTree(focusNode);
+        }
+        public CallTreeNode GetCallees(string focusNodeName)
+        {
+            var focusNode = FindNodeByName(focusNodeName);
+            return AggregateCallTreeNode.CalleeTree(focusNode);
+        }
+
+        public CallTreeNodeBase GetCallTreeNode(string symbolName)
+        {
+            string[] symbolParts = symbolName.Split(SymbolSeparator);
+            if (symbolParts.Length != 2)
+            {
+                return null;
+            }
+
+            // Try to get the call tree node.
+            CallTreeNodeBase node = FindNodeByName(Regex.Escape(symbolName));
+
+            // Check to see if the node matches.
+            if (node.Name.StartsWith(symbolName, StringComparison.OrdinalIgnoreCase))
+            {
+                return node;
+            }
+
+            // Check to see if we should attempt to load symbols.
+            if (!_resolvedSymbolModules.Contains(symbolParts[0]))
+            {
+                // Look for an unresolved symbols node for the module.
+                string unresolvedSymbolsNodeName = symbolParts[0] + "!?";
+                node = FindNodeByName(unresolvedSymbolsNodeName);
+                if (node.Name.Equals(unresolvedSymbolsNodeName, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Symbols haven't been resolved yet.  Try to resolve them now.
+                    EtlxNS.TraceModuleFile moduleFile = _traceLog.ModuleFiles.Where(m => m.Name.Equals(symbolParts[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                    if (moduleFile != null)
+                    {
+                        // Special handling for NGEN images.
+                        if(symbolParts[0].EndsWith(".ni", StringComparison.OrdinalIgnoreCase))
+                        {
+                            SymbolReaderOptions options = _symbolReader.Options;
+                            try
+                            {
+                                _symbolReader.Options = SymbolReaderOptions.CacheOnly;
+                                _traceLog.CallStacks.CodeAddresses.LookupSymbolsForModule(_symbolReader, moduleFile);
+                            }
+                            finally
+                            {
+                                _symbolReader.Options = options;
+                            }
+                        }
+                        else
+                        {
+                            _traceLog.CallStacks.CodeAddresses.LookupSymbolsForModule(_symbolReader, moduleFile);
+                        }
+                        InvalidateCachedStructures();
+                    }
+                }
+
+                // Mark the module as resolved so that we don't try again.
+                _resolvedSymbolModules.Add(symbolParts[0]);
+
+                // Try to get the call tree node one more time.
+                node = FindNodeByName(Regex.Escape(symbolName));
+
+                // Check to see if the node matches.
+                if (node.Name.StartsWith(symbolName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return node;
+                }
+            }
+
+            return null;
+        }
+
+        private void LookupWarmNGENSymbols()
+        {
+            TraceEventStackSource asTraceEventStackSource = GetTraceEventStackSource(_rawStackSource);
+            if (asTraceEventStackSource == null)
+            {
+                return;
+            }
+
+            SymbolReaderOptions savedOptions = _symbolReader.Options;
+            try
+            {
+                // NGEN PDBs (even those not yet produced) are considered to be in the cache.
+                _symbolReader.Options = SymbolReaderOptions.CacheOnly;
+
+                // Resolve all NGEN images.
+                asTraceEventStackSource.LookupWarmSymbols(1, _symbolReader, _rawStackSource, s => s.Name.EndsWith(".ni", StringComparison.OrdinalIgnoreCase));
+
+                // Invalidate cached data structures to finish resolving symbols.
+                InvalidateCachedStructures();
+            }
+            finally
+            {
+                _symbolReader.Options = savedOptions;
+            }
+        }
+
+        /// <summary>
+        /// Unwind the wrapped sources to get to a TraceEventStackSource if possible. 
+        /// </summary>
+        private static TraceEventStackSource GetTraceEventStackSource(StackSource source)
+        {
+            StackSourceStacks rawSource = source;
+            TraceEventStackSource asTraceEventStackSource = null;
+            for (; ; )
+            {
+                asTraceEventStackSource = rawSource as TraceEventStackSource;
+                if (asTraceEventStackSource != null)
+                {
+                    return asTraceEventStackSource;
+                }
+
+                var asCopyStackSource = rawSource as CopyStackSource;
+                if (asCopyStackSource != null)
+                {
+                    rawSource = asCopyStackSource.SourceStacks;
+                    continue;
+                }
+                var asStackSource = rawSource as StackSource;
+                if (asStackSource != null && asStackSource != asStackSource.BaseStackSource)
+                {
+                    rawSource = asStackSource.BaseStackSource;
+                    continue;
+                }
+                return null;
+            }
+        }
+
+        private void InvalidateCachedStructures()
+        {
+            _byName = null;
+            _callTree = null;
+        }
+    }
 
 #if !NEW_JOIN_ANALYSIS
     // With new join analysis, this will come from PerfView 
@@ -1173,191 +1378,6 @@ namespace GCPerf
             }
         }
 
-        static string GetFrameNameAtIndex(TraceEventStackSource stackSource, StackSourceSample sample)
-        {
-            StackSourceCallStackIndex currIdx = sample.StackIndex;
-            return stackSource.GetFrameName(stackSource.GetFrameIndex(currIdx), false);
-        }
-
-        /// <summary>
-        /// Filter a set of stacks and return a StackSource containing the filtered set.
-        /// </summary>
-        /// <param name="traceLog">The tracelog the stacks came from</param>
-        /// <param name="stackSource">The input set of stacks to filter</param>
-        /// <param name="timeRanges">The time ranges to filter to, sorted by begin time</param>
-        /// <param name="functionName">The functions to filter to (stacks that don't contain this function will be filtered out)</param>
-        /// <param name="functionMetrics">[out] The metrics for each function specified</param>
-        /// <returns></returns>
-        public static StackSource FilterStacks(
-            Microsoft.Diagnostics.Tracing.Etlx.TraceLog traceLog,
-            TraceEventStackSource stackSource,
-            List<TraceTimeRange>? timeRanges,
-            string functionName,
-            out SampleMetrics functionMetrics
-            )
-        {
-            int localIncCount = 0;
-            int localExcCount = 0;
-
-            bool filterByFunction = !string.IsNullOrWhiteSpace(functionName);
-
-            var filteredStackSource = new MutableTraceEventStackSource(traceLog);
-            stackSource.ForEach(sample =>
-            {
-                bool includeSample = false;
-
-                if (timeRanges != null && !IsTimeWithinTimeRanges(sample.TimeRelativeMSec, timeRanges))
-                    return;
-
-                if (filterByFunction)
-                {
-                    StackSampleContainsFunctionKind? f = DoesStackSampleContainFunction(stackSource, sample, functionName);
-                    if (f != null)
-                    {
-                        localIncCount++;
-                        if (f == StackSampleContainsFunctionKind.exclusive) localExcCount++;
-                        includeSample = true;
-                    }
-                }
-                else
-                {
-                    includeSample = true;
-                }
-
-                // DO THE ADDRESS METHOD MENTIONED ABOVE
-                //var frameIdx = stackSource.GetFrameIndex(sample.StackIndex);
-                //if (frameIdx != StackSourceFrameIndex.Invalid)
-                //{
-                //    var addrIdx = stackSource.GetFrameCodeAddress(frameIdx);
-                //    if (addrIdx != Microsoft.Diagnostics.Tracing.Etlx.CodeAddressIndex.Invalid)
-                //    {
-                //        var addr = traceLog.CodeAddresses.Address(addrIdx);
-                //    }
-                //}
-
-                if (includeSample)
-                    filteredStackSource.AddSample(sample);
-            });
-
-            functionMetrics.ExclusiveSamples = localExcCount;
-            functionMetrics.InclusiveSamples = localIncCount;
-            functionMetrics.Identifier = functionName;
-
-            return filteredStackSource;
-        }
-
-        public enum StackSampleContainsFunctionKind
-        {
-            inclusive,
-            exclusive
-        }
-
-
-        public static StackSampleContainsFunctionKind? DoesStackSampleContainFunction(TraceEventStackSource stackSource, StackSourceSample sample, string functionName)
-        {
-            StackSourceCallStackIndex currIdx = sample.StackIndex;
-
-            // Check each frame in the stack for the desired function
-            bool isLeafFrame = true;
-            while (currIdx != StackSourceCallStackIndex.Invalid)
-            {
-                // TODO: This is a poor way of filtering stacks containing a function: we're using string comparison 
-                // after symbol lookup. A better way is to find the VA range for the function with DIA and then 
-                // filtering samples by address
-                var frameName = stackSource.GetFrameName(stackSource.GetFrameIndex(currIdx), false);
-                // Unfortunately it can't seem to find the names of functions ... just the module name
-
-                if (frameName.Contains(functionName))
-                    return isLeafFrame ? StackSampleContainsFunctionKind.exclusive : StackSampleContainsFunctionKind.inclusive;
-
-                isLeafFrame = false;
-                currIdx = stackSource.GetCallerIndex(currIdx);
-            }
-
-            return null;
-        }
-
-        static readonly string[] modulesToLoad = new string[] { "clr", "kernel32", "ntdll", "ntoskrnl", "mscorlib" };
-        const string symbolPath = "SRV*C:\\symbols*http://symweb.corp.microsoft.com;SRV*C:\\symbols*http://msdl.microsoft.com/download/symbols;SRV*C:\\symbols*https://dotnet.myget.org/F/dotnet-core/symbols";
-        public static void SIMPLIFIED(Microsoft.Diagnostics.Tracing.Etlx.TraceLog traceLog)
-        {
-            var sym_log_writer = File.CreateText("C:\\tmp.txt");
-            var symbolReader = new Microsoft.Diagnostics.Symbols.SymbolReader(sym_log_writer, symbolPath);
-
-            foreach (Microsoft.Diagnostics.Tracing.Etlx.TraceModuleFile module in traceLog.ModuleFiles)
-            {
-                if (modulesToLoad.Any(m => module.Name.ToLower().Contains(m)))
-                {
-                    traceLog.CodeAddresses.LookupSymbolsForModule(symbolReader, module);
-                    Console.WriteLine($"Loaded symbols for module {module}");
-                }
-            }
-            
-            StackSource stacks = traceLog.CPUStacks(null);
-            int n = 0;
-            stacks.ForEach(sample =>
-            {
-                if (n++ > 100) throw new Exception("bai"); // Prevent excessive output
-                StackSourceCallStackIndex callStackIndex = sample.StackIndex;
-                StackSourceFrameIndex frameIndex = stacks.GetFrameIndex(callStackIndex);
-                string frameName = stacks.GetFrameName(frameIndex, verboseName: true);
-                Console.WriteLine(frameName);
-            });
-        }
-
-        // Load a trace and get all the CPU stacks from it.
-        public static (TraceEventStackSource, int) LoadTraceAndGetStacks(Microsoft.Diagnostics.Tracing.Etlx.TraceLog traceLog, Microsoft.Diagnostics.Symbols.SymbolReader symReader)
-        {
-            foreach (var module in traceLog.ModuleFiles)
-            {
-                // TODO: Make this configurable?
-                if (module.Name.ToLower().Contains("clr"))
-                {
-                    // Only resolve symbols for modules whose name includes "clr".
-                    traceLog.CodeAddresses.LookupSymbolsForModule(symReader, module);
-                }
-            }
-
-            // Put all the CPU stacks into our own mutable StackSource.
-            var stackSource = new MutableTraceEventStackSource(traceLog);
-            int stackCountLocal = 0;
-            traceLog.CPUStacks(null).ForEach(
-                sample =>
-                {
-                    stackCountLocal++;
-                    stackSource.AddSample(sample);
-                });
-
-            return (stackSource, stackCountLocal);
-        }
-
-        // TODO: Rename this?
-        /// <summary>
-        /// Process a set of traces for information about a set of functions over a set of time ranges.
-        /// </summary>
-        /// <param name="traces">The ETL traces to process</param>
-        /// <param name="functionsOfInterest">The functions for which to get information</param>
-        /// <param name="timeRangesOfInterest">The time ranges (specified in milliseconds relative to trace start) of interest</param>
-        /// <param name="symlogWriter">The TextWriter to use for logging symbol resolution information</param>
-        public static void ProcessTracesForFunction(EtlTrace trace, string functionOfInterest) //, List<TraceTimeRange> timeRangesOfInterest, TextWriter symlogWriter)
-        {
-            var traceLog = Microsoft.Diagnostics.Tracing.Etlx.TraceLog.OpenOrConvert(trace.FilePath);
-
-            if (trace.AllCpuStacks == null)
-            {
-                TextWriter symlogWriter = File.CreateText("C:\\killme.txt");
-                var symReader = new Microsoft.Diagnostics.Symbols.SymbolReader(symlogWriter, trace.SymPath);
-                (trace.AllCpuStacks, trace.TotalCpuSampleCount) = LoadTraceAndGetStacks(traceLog, symReader);
-            }
-
-            SampleMetrics counts;
-            StackSource filteredStacks = FilterStacks(traceLog, Util.NonNull(trace.AllCpuStacks), /*timeRangesOfInterest*/
-            null, functionOfInterest, out counts);
-
-            trace.FunctionNameToStacks[functionOfInterest] = filteredStacks;
-            trace.FunctionNameToMetrics[functionOfInterest] = counts;
-        }
-
         // Helper function for removing illegal characters from filenames. This is here for convenience
         // since it's often desirable to include a function name in the name of a file, but function
         // names can contain characters that aren't allowed in filenames.
@@ -1395,5 +1415,271 @@ namespace GCPerf
 
             return false;
         }
+
+        public static StackSource LoadTraceAndGetStacks2(
+            EtlxNS.TraceLog traceLog,
+            SymbolReader symReader,
+            string processName)
+        {
+            foreach (var module in traceLog.ModuleFiles)
+            {
+                if (module.Name.ToLower().Contains("clr"))
+                {
+                    // Only resolve symbols for modules whose name includes "clr".
+                    traceLog.CodeAddresses.LookupSymbolsForModule(symReader, module);
+                }
+            }
+
+            EtlxNS.TraceProcess processToAnalyze = traceLog.Processes.FirstProcessWithName(processName);
+            return traceLog.CPUStacks(processToAnalyze);
+        }
+
+        public static StackView GetStackViewForInfra(
+            string tracePath,
+            string symPath,
+            string processName)
+        {
+            EtlxNS.TraceLog traceLog = EtlxNS.TraceLog.OpenOrConvert(tracePath);
+            TextWriter symlogWriter  = File.CreateText("C:\\Git\\disposablelog.txt");
+            SymbolReader symReader   = new SymbolReader(symlogWriter, symPath);
+            StackSource stackSource  =  LoadTraceAndGetStacks2(traceLog, symReader, processName);
+            return new StackView(traceLog, stackSource, symReader);
+        }
+
+        /* ************************************************************ */
+        /*                         Drafts to Learn                      */
+        /* ************************************************************ */
+
+        public static void CPUSamplesAnalysis(string tracePath, string symPath)
+        {
+            // int numCPUStacks         = 0;
+            EtlxNS.TraceLog traceLog = EtlxNS.TraceLog.OpenOrConvert(tracePath);
+            TextWriter symlogWriter  = File.CreateText("C:\\Git\\disposablelog.txt");
+            SymbolReader symReader   = new SymbolReader(symlogWriter, symPath);
+
+            // foreach (var module in traceLog.ModuleFiles)
+            // {
+            //     if (module.Name.ToLower().Contains("clr"))
+            //     {
+            //         Console.WriteLine(module.Name);
+            //     }
+            // }
+
+            // (stackSource, numCPUStacks) = LoadTraceAndGetStacks(traceLog, symReader);
+            // Console.WriteLine(numCPUStacks);
+
+            StackSource stackSource = LoadTraceAndGetStacks2(traceLog, symReader, "Corerun");
+            StackView stackView = new StackView(traceLog, stackSource, symReader);
+            CallTreeNodeBase node = stackView.FindNodeByName("gc_heap::plan_phase");
+            // Console.WriteLine(node.ToString());
+
+            Console.WriteLine($"Name: {node.Name}");
+            Console.WriteLine($"Inclusive Metric %: {node.InclusiveMetricPercent}");
+            Console.WriteLine($"Exclusive Metric %: {node.ExclusiveMetricPercent}");
+            Console.WriteLine($"Inclusive Count: {node.InclusiveCount}");
+            Console.WriteLine($"Exclusive Count: {node.ExclusiveCount}");
+            Console.WriteLine($"Exclusive Folded: {node.ExclusiveFoldedCount}");
+            Console.WriteLine($"First Time Relative MSec: {node.FirstTimeRelativeMSec}");
+            Console.WriteLine($"Last Time Relative MSec: {node.LastTimeRelativeMSec}");
+            Console.WriteLine($"\nHistogram:\n{node.InclusiveMetricByScenarioString}");
+
+            // CallTreeNode node = stackView.GetCallees("gc_heap::plan_phase");
+            // while (node.HasChildren)
+            // {
+            //     Console.WriteLine($"{node.ToString()}");
+            //     node = (CallTreeNode) node.Callees[0];
+            // }
+
+            return ;
+        }
+
+        /* ************************************************************ */
+        /*                         Unused Code                          */
+        /* ************************************************************ */
+
+        // static string GetFrameNameAtIndex(TraceEventStackSource stackSource, StackSourceSample sample)
+        // {
+        //     StackSourceCallStackIndex currIdx = sample.StackIndex;
+        //     return stackSource.GetFrameName(stackSource.GetFrameIndex(currIdx), false);
+        // }
+
+        // /// <summary>
+        // /// Filter a set of stacks and return a StackSource containing the filtered set.
+        // /// </summary>
+        // /// <param name="traceLog">The tracelog the stacks came from</param>
+        // /// <param name="stackSource">The input set of stacks to filter</param>
+        // /// <param name="timeRanges">The time ranges to filter to, sorted by begin time</param>
+        // /// <param name="functionName">The functions to filter to (stacks that don't contain this function will be filtered out)</param>
+        // /// <param name="functionMetrics">[out] The metrics for each function specified</param>
+        // /// <returns></returns>
+        // public static StackSource FilterStacks(
+        //     Microsoft.Diagnostics.Tracing.Etlx.TraceLog traceLog,
+        //     TraceEventStackSource stackSource,
+        //     List<TraceTimeRange>? timeRanges,
+        //     string functionName,
+        //     out SampleMetrics functionMetrics
+        //     )
+        // {
+        //     int localIncCount = 0;
+        //     int localExcCount = 0;
+
+        //     bool filterByFunction = !string.IsNullOrWhiteSpace(functionName);
+
+        //     var filteredStackSource = new MutableTraceEventStackSource(traceLog);
+        //     stackSource.ForEach(sample =>
+        //     {
+        //         bool includeSample = false;
+
+        //         if (timeRanges != null && !IsTimeWithinTimeRanges(sample.TimeRelativeMSec, timeRanges))
+        //             return;
+
+        //         if (filterByFunction)
+        //         {
+        //             StackSampleContainsFunctionKind? f = DoesStackSampleContainFunction(stackSource, sample, functionName);
+        //             if (f != null)
+        //             {
+        //                 localIncCount++;
+        //                 if (f == StackSampleContainsFunctionKind.exclusive) localExcCount++;
+        //                 includeSample = true;
+        //             }
+        //         }
+        //         else
+        //         {
+        //             includeSample = true;
+        //         }
+
+        //         // DO THE ADDRESS METHOD MENTIONED ABOVE
+        //         //var frameIdx = stackSource.GetFrameIndex(sample.StackIndex);
+        //         //if (frameIdx != StackSourceFrameIndex.Invalid)
+        //         //{
+        //         //    var addrIdx = stackSource.GetFrameCodeAddress(frameIdx);
+        //         //    if (addrIdx != Microsoft.Diagnostics.Tracing.Etlx.CodeAddressIndex.Invalid)
+        //         //    {
+        //         //        var addr = traceLog.CodeAddresses.Address(addrIdx);
+        //         //    }
+        //         //}
+
+        //         if (includeSample)
+        //             filteredStackSource.AddSample(sample);
+        //     });
+
+        //     functionMetrics.ExclusiveSamples = localExcCount;
+        //     functionMetrics.InclusiveSamples = localIncCount;
+        //     functionMetrics.Identifier = functionName;
+
+        //     return filteredStackSource;
+        // }
+
+        // public enum StackSampleContainsFunctionKind
+        // {
+        //     inclusive,
+        //     exclusive
+        // }
+
+
+        // public static StackSampleContainsFunctionKind? DoesStackSampleContainFunction(TraceEventStackSource stackSource, StackSourceSample sample, string functionName)
+        // {
+        //     StackSourceCallStackIndex currIdx = sample.StackIndex;
+
+        //     // Check each frame in the stack for the desired function
+        //     bool isLeafFrame = true;
+        //     while (currIdx != StackSourceCallStackIndex.Invalid)
+        //     {
+        //         // TODO: This is a poor way of filtering stacks containing a function: we're using string comparison 
+        //         // after symbol lookup. A better way is to find the VA range for the function with DIA and then 
+        //         // filtering samples by address
+        //         var frameName = stackSource.GetFrameName(stackSource.GetFrameIndex(currIdx), false);
+        //         // Unfortunately it can't seem to find the names of functions ... just the module name
+
+        //         if (frameName.Contains(functionName))
+        //             return isLeafFrame ? StackSampleContainsFunctionKind.exclusive : StackSampleContainsFunctionKind.inclusive;
+
+        //         isLeafFrame = false;
+        //         currIdx = stackSource.GetCallerIndex(currIdx);
+        //     }
+
+        //     return null;
+        // }
+
+        // static readonly string[] modulesToLoad = new string[] { "clr", "kernel32", "ntdll", "ntoskrnl", "mscorlib" };
+        // const string symbolPath = "SRV*C:\\symbols*http://symweb.corp.microsoft.com;SRV*C:\\symbols*http://msdl.microsoft.com/download/symbols;SRV*C:\\symbols*https://dotnet.myget.org/F/dotnet-core/symbols";
+        // public static void SIMPLIFIED(Microsoft.Diagnostics.Tracing.Etlx.TraceLog traceLog)
+        // {
+        //     var sym_log_writer = File.CreateText("C:\\tmp.txt");
+        //     var symbolReader = new Microsoft.Diagnostics.Symbols.SymbolReader(sym_log_writer, symbolPath);
+
+        //     foreach (Microsoft.Diagnostics.Tracing.Etlx.TraceModuleFile module in traceLog.ModuleFiles)
+        //     {
+        //         if (modulesToLoad.Any(m => module.Name.ToLower().Contains(m)))
+        //         {
+        //             traceLog.CodeAddresses.LookupSymbolsForModule(symbolReader, module);
+        //             Console.WriteLine($"Loaded symbols for module {module}");
+        //         }
+        //     }
+        //     
+        //     StackSource stacks = traceLog.CPUStacks(null);
+        //     int n = 0;
+        //     stacks.ForEach(sample =>
+        //     {
+        //         if (n++ > 100) throw new Exception("bai"); // Prevent excessive output
+        //         StackSourceCallStackIndex callStackIndex = sample.StackIndex;
+        //         StackSourceFrameIndex frameIndex = stacks.GetFrameIndex(callStackIndex);
+        //         string frameName = stacks.GetFrameName(frameIndex, verboseName: true);
+        //         Console.WriteLine(frameName);
+        //     });
+        // }
+
+        // // Load a trace and get all the CPU stacks from it.
+        // public static (TraceEventStackSource, int) LoadTraceAndGetStacks(Microsoft.Diagnostics.Tracing.Etlx.TraceLog traceLog, Microsoft.Diagnostics.Symbols.SymbolReader symReader)
+        // {
+        //     foreach (var module in traceLog.ModuleFiles)
+        //     {
+        //         // TODO: Make this configurable?
+        //         if (module.Name.ToLower().Contains("clr"))
+        //         {
+        //             // Only resolve symbols for modules whose name includes "clr".
+        //             traceLog.CodeAddresses.LookupSymbolsForModule(symReader, module);
+        //         }
+        //     }
+
+        //     // Put all the CPU stacks into our own mutable StackSource.
+        //     var stackSource = new MutableTraceEventStackSource(traceLog);
+        //     int stackCountLocal = 0;
+        //     traceLog.CPUStacks(null).ForEach(
+        //         sample =>
+        //         {
+        //             stackCountLocal++;
+        //             stackSource.AddSample(sample);
+        //         });
+
+        //     return (stackSource, stackCountLocal);
+        // }
+
+        // // TODO: Rename this?
+        // /// <summary>
+        // /// Process a set of traces for information about a set of functions over a set of time ranges.
+        // /// </summary>
+        // /// <param name="traces">The ETL traces to process</param>
+        // /// <param name="functionsOfInterest">The functions for which to get information</param>
+        // /// <param name="timeRangesOfInterest">The time ranges (specified in milliseconds relative to trace start) of interest</param>
+        // /// <param name="symlogWriter">The TextWriter to use for logging symbol resolution information</param>
+        // public static void ProcessTracesForFunction(EtlTrace trace, string functionOfInterest) //, List<TraceTimeRange> timeRangesOfInterest, TextWriter symlogWriter)
+        // {
+        //     var traceLog = Microsoft.Diagnostics.Tracing.Etlx.TraceLog.OpenOrConvert(trace.FilePath);
+
+        //     if (trace.AllCpuStacks == null)
+        //     {
+        //         TextWriter symlogWriter = File.CreateText("C:\\killme.txt");
+        //         var symReader = new Microsoft.Diagnostics.Symbols.SymbolReader(symlogWriter, trace.SymPath);
+        //         (trace.AllCpuStacks, trace.TotalCpuSampleCount) = LoadTraceAndGetStacks(traceLog, symReader);
+        //     }
+
+        //     SampleMetrics counts;
+        //     StackSource filteredStacks = FilterStacks(traceLog, Util.NonNull(trace.AllCpuStacks), /*timeRangesOfInterest*/
+        //     null, functionOfInterest, out counts);
+
+        //     trace.FunctionNameToStacks[functionOfInterest] = filteredStacks;
+        //     trace.FunctionNameToMetrics[functionOfInterest] = counts;
+        // }
     }
 }
