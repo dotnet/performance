@@ -1442,8 +1442,43 @@ namespace GCPerf
             EtlxNS.TraceLog traceLog = EtlxNS.TraceLog.OpenOrConvert(tracePath);
             TextWriter symlogWriter  = File.CreateText("C:\\Git\\disposablelog.txt");
             SymbolReader symReader   = new SymbolReader(symlogWriter, symPath);
-            StackSource stackSource  =  LoadTraceAndGetStacks2(traceLog, symReader, processName);
-            return new StackView(traceLog, stackSource, symReader);
+            StackSource stackSource  = LoadTraceAndGetStacks2(traceLog, symReader, processName);
+
+            // MutableTraceEventStackSource filteredStackSource =
+            //     new MutableTraceEventStackSource(traceLog);
+            double startMsec = 1000.0;
+            double endMsec   = 5000.0;
+            int    added     = 0;
+            int    all       = 0;
+
+            FilterParams filterParams = new FilterParams();
+            filterParams.StartTimeRelativeMSec = startMsec.ToString("0.######");
+            filterParams.EndTimeRelativeMSec = endMsec.ToString("0.######");
+            
+            Console.WriteLine(filterParams.StartTimeRelativeMSec);
+            Console.WriteLine(filterParams.EndTimeRelativeMSec);
+
+            FilterStackSource filteredStackSource =
+                new FilterStackSource(filterParams, stackSource, ScalingPolicyKind.ScaleToData);
+
+            // stackSource.ForEach(sample =>
+            // {
+            //     double sampleTime = sample.TimeRelativeMSec;
+
+            //     // Make this a function once this functionality acquires its
+            //     // final shape, or close to it.
+            //     if (sampleTime >= startMsec && sampleTime <= endMsec)
+            //     {
+            //         filteredStackSource.AddSample(sample);
+            //         added++;
+            //     }
+            //     all++;
+            // });
+
+            // filteredStackSource.DoneAddingSamples();
+            Console.WriteLine($"Added Samples: {added}");
+            Console.WriteLine($"All: {all}");
+            return new StackView(traceLog, filteredStackSource, symReader);
         }
 
         /* ************************************************************ */
@@ -1452,24 +1487,18 @@ namespace GCPerf
 
         public static void CPUSamplesAnalysis(string tracePath, string symPath)
         {
-            // int numCPUStacks         = 0;
-            EtlxNS.TraceLog traceLog = EtlxNS.TraceLog.OpenOrConvert(tracePath);
-            TextWriter symlogWriter  = File.CreateText("C:\\Git\\disposablelog.txt");
-            SymbolReader symReader   = new SymbolReader(symlogWriter, symPath);
+            StackView stackView = GetStackViewForInfra(tracePath, symPath, "CoreRun");
 
-            // foreach (var module in traceLog.ModuleFiles)
-            // {
-            //     if (module.Name.ToLower().Contains("clr"))
-            //     {
-            //         Console.WriteLine(module.Name);
-            //     }
-            // }
+            // int numCPUStacks         = 0;
+            // EtlxNS.TraceLog traceLog = EtlxNS.TraceLog.OpenOrConvert(tracePath);
+            // TextWriter symlogWriter  = File.CreateText("C:\\Git\\disposablelog.txt");
+            // SymbolReader symReader   = new SymbolReader(symlogWriter, symPath);
 
             // (stackSource, numCPUStacks) = LoadTraceAndGetStacks(traceLog, symReader);
             // Console.WriteLine(numCPUStacks);
 
-            StackSource stackSource = LoadTraceAndGetStacks2(traceLog, symReader, "Corerun");
-            StackView stackView = new StackView(traceLog, stackSource, symReader);
+            // StackSource stackSource = LoadTraceAndGetStacks2(traceLog, symReader, "Corerun");
+            // StackView stackView = new StackView(traceLog, stackSource, symReader);
             CallTreeNodeBase node = stackView.FindNodeByName("gc_heap::plan_phase");
             // Console.WriteLine(node.ToString());
 
@@ -1481,7 +1510,7 @@ namespace GCPerf
             Console.WriteLine($"Exclusive Folded: {node.ExclusiveFoldedCount}");
             Console.WriteLine($"First Time Relative MSec: {node.FirstTimeRelativeMSec}");
             Console.WriteLine($"Last Time Relative MSec: {node.LastTimeRelativeMSec}");
-            Console.WriteLine($"\nHistogram:\n{node.InclusiveMetricByScenarioString}");
+            // Console.WriteLine($"\nHistogram:\n{node.InclusiveMetricByScenarioString}");
 
             // CallTreeNode node = stackView.GetCallees("gc_heap::plan_phase");
             // while (node.HasChildren)
