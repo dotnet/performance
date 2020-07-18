@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
+using ustring = System.Utf8String;
+
 namespace System.Text.Experimental
 {
     [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
@@ -30,6 +32,19 @@ namespace System.Text.Experimental
             Memory<char> memory = new char[expected.Length];
             Span<char> destination = memory.Span;
             span.ToChars(destination);
+        }
+
+        [Benchmark]
+        [Arguments("hello", "HELLO")]
+        [Arguments("HELLO", "HELLO")]
+        [Arguments("hElLo", "HELLO")]
+        [Arguments("HeLlO", "HELLO")]
+        [Arguments("", "")]
+        public static void ToUpperInvariant(string s, string expected)
+        {
+            ustring string1 = new ustring(s);
+            Utf8Span span = new Utf8Span(string1);
+            var upper = span.ToUpperInvariant();
         }
     }
 }
