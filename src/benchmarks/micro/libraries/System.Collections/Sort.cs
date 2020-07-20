@@ -35,7 +35,6 @@ namespace System.Collections
 
         private readonly struct SpecificComparerStruct : IComparer<int>
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Compare(int x, int y) => x.CompareTo(y);
         }
 //#endif
@@ -63,7 +62,6 @@ namespace System.Collections
 
         private readonly struct SpecificComparerStruct : IComparer<IntStruct>
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Compare(IntStruct x, IntStruct y) => x.CompareTo(y);
         }
 //#endif
@@ -92,7 +90,6 @@ namespace System.Collections
 
         private readonly struct SpecificComparerStruct : IComparer<IntClass>
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Compare(IntClass x, IntClass y) => x.CompareTo(y);
         }
 //#endif
@@ -120,7 +117,6 @@ namespace System.Collections
 
         private readonly struct SpecificComparerStruct : IComparer<BigStruct>
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Compare(BigStruct x, BigStruct y) => x.CompareTo(y);
         }
 //#endif
@@ -151,7 +147,6 @@ namespace System.Collections
 
         private readonly struct SpecificComparerStruct : IComparer<string>
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Compare(string x, string y) => x.CompareTo(y);
         }
 
@@ -167,7 +162,6 @@ namespace System.Collections
             public static CompareInfoComparerStruct CreateForCurrentCulture() =>
                 new CompareInfoComparerStruct(CultureInfo.CurrentCulture.CompareInfo);
 
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Compare(string x, string y) => x.CompareTo(y);
         }
 //#endif
@@ -195,7 +189,6 @@ namespace System.Collections
 
         private readonly struct SpecificComparerStruct : IComparer<float>
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Compare(float x, float y) => x.CompareTo(y);
         }
 //#endif
@@ -223,7 +216,6 @@ namespace System.Collections
 
         private readonly struct SpecificComparerStruct : IComparer<double>
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Compare(double x, double y) => x.CompareTo(y);
         }
 //#endif
@@ -345,7 +337,6 @@ namespace System.Collections
 
         private readonly struct ComparableComparerStruct : IComparer<T>
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Compare(T x, T y) => x.CompareTo(y);
         }
     }
