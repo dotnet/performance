@@ -3,32 +3,185 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.Runtime, Categories.Collections, Categories.GenericCollections)]
-    [GenericTypeArguments(typeof(int))] // value type, Array sort in native code
-    [GenericTypeArguments(typeof(string))] // reference type, Array sort in native code
-    [GenericTypeArguments(typeof(IntStruct))] // custom value type, sort in managed code
-    [GenericTypeArguments(typeof(IntClass))] // custom reference type, sort in managed code
-    [GenericTypeArguments(typeof(BigStruct))] // custom value type, sort in managed code
     [InvocationCount(InvocationsPerIteration)]
-    public class Sort<T> where T : IComparable<T>
+    [BenchmarkCategory(Categories.Runtime, Categories.Collections, Categories.GenericCollections)]
+    public class SortInt32 : Sort<int>
+    {
+        private static readonly SpecificComparerClass _specificComparerClass = new SpecificComparerClass();
+        private const int InvocationsPerIteration = 15000;
+        public SortInt32() : base(InvocationsPerIteration) { }
+
+//#if NETCOREAPP5_0
+        [Benchmark]
+        public void Span_ComparerClassSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(_specificComparerClass);
+
+        [Benchmark]
+        public void Span_ComparerStructSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(new SpecificComparerStruct());
+//#endif
+        private sealed class SpecificComparerClass : IComparer<int>
+        {
+            public int Compare(int x, int y) => x.CompareTo(y);
+        }
+
+        private readonly struct SpecificComparerStruct : IComparer<int>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int Compare(int x, int y) => x.CompareTo(y);
+        }
+    }
+
+    [InvocationCount(InvocationsPerIteration)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Collections, Categories.GenericCollections)]
+    public class SortIntStruct : Sort<IntStruct>
+    {
+        private static readonly SpecificComparerClass _specificComparerClass = new SpecificComparerClass();
+        private const int InvocationsPerIteration = 15000;
+        public SortIntStruct() : base(InvocationsPerIteration) { }
+
+//#if NETCOREAPP5_0
+        [Benchmark]
+        public void Span_ComparerClassSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(_specificComparerClass);
+
+        [Benchmark]
+        public void Span_ComparerStructSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(new SpecificComparerStruct());
+//#endif
+        private sealed class SpecificComparerClass : IComparer<IntStruct>
+        {
+            public int Compare(IntStruct x, IntStruct y) => x.CompareTo(y);
+        }
+
+        private readonly struct SpecificComparerStruct : IComparer<IntStruct>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int Compare(IntStruct x, IntStruct y) => x.CompareTo(y);
+        }
+    }
+
+
+    [InvocationCount(InvocationsPerIteration)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Collections, Categories.GenericCollections)]
+    public class SortIntClass : Sort<IntClass>
+    {
+        private static readonly SpecificComparerClass _specificComparerClass = new SpecificComparerClass();
+        private const int InvocationsPerIteration = 15000;
+        public SortIntClass() : base(InvocationsPerIteration) { }
+
+//#if NETCOREAPP5_0
+        [Benchmark]
+        public void Span_ComparerClassSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(_specificComparerClass);
+
+        [Benchmark]
+        public void Span_ComparerStructSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(new SpecificComparerStruct());
+//#endif
+        private sealed class SpecificComparerClass : IComparer<IntClass>
+        {
+            public int Compare(IntClass x, IntClass y) => x.CompareTo(y);
+        }
+
+        private readonly struct SpecificComparerStruct : IComparer<IntClass>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int Compare(IntClass x, IntClass y) => x.CompareTo(y);
+        }
+    }
+
+    [InvocationCount(InvocationsPerIteration)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Collections, Categories.GenericCollections)]
+    public class SortBigStruct : Sort<BigStruct>
+    {
+        private static readonly SpecificComparerClass _specificComparerClass = new SpecificComparerClass();
+        private const int InvocationsPerIteration = 5000;
+        public SortBigStruct() : base(InvocationsPerIteration) { }
+
+//#if NETCOREAPP5_0
+        [Benchmark]
+        public void Span_ComparerClassSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(_specificComparerClass);
+
+        [Benchmark]
+        public void Span_ComparerStructSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(new SpecificComparerStruct());
+//#endif
+        private sealed class SpecificComparerClass : IComparer<BigStruct>
+        {
+            public int Compare(BigStruct x, BigStruct y) => x.CompareTo(y);
+        }
+
+        private readonly struct SpecificComparerStruct : IComparer<BigStruct>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int Compare(BigStruct x, BigStruct y) => x.CompareTo(y);
+        }
+    }
+
+    [InvocationCount(InvocationsPerIteration)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Collections, Categories.GenericCollections)]
+    public class SortString : Sort<string>
+    {
+        private static readonly SpecificComparerClass _specificComparerClass = new SpecificComparerClass();
+        private const int InvocationsPerIteration = 2500;
+        public SortString() : base(InvocationsPerIteration) { }
+
+//#if NETCOREAPP5_0
+        [Benchmark]
+        public void Span_ComparerClassSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(_specificComparerClass);
+
+        [Benchmark]
+        public void Span_ComparerStructSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(new SpecificComparerStruct());
+
+        [Benchmark]
+        public void Span_ComparerStructCompareInfo() => _arrays[_iterationIndex++].AsSpan().Sort(new CompareInfoComparerStruct());
+//#endif
+        private sealed class SpecificComparerClass : IComparer<string>
+        {
+            public int Compare(string x, string y) => x.CompareTo(y);
+        }
+
+        private readonly struct SpecificComparerStruct : IComparer<string>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int Compare(string x, string y) => x.CompareTo(y);
+        }
+
+        private readonly struct CompareInfoComparerStruct : IComparer<string>
+        {
+            private readonly CompareInfo m_compareInfo;
+
+            public CompareInfoComparerStruct(CompareInfo compareInfo) =>
+                m_compareInfo = compareInfo;
+
+            // Getting CurrentCulture.CompareInfo for each compare is slower,
+            // so instead we get it once "caching it" and use it for default string sorting.
+            public static CompareInfoComparerStruct CreateForCurrentCulture() =>
+                new CompareInfoComparerStruct(CultureInfo.CurrentCulture.CompareInfo);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int Compare(string x, string y) => x.CompareTo(y);
+        }
+    }
+
+    [BenchmarkCategory(Categories.Runtime, Categories.Collections, Categories.GenericCollections)]
+    public abstract class Sort<T> where T : IComparable<T>
     {
         private static readonly ComparableComparerClass _comparableComparerClass = new ComparableComparerClass();
-        private const int InvocationsPerIteration = 5000;
+        private readonly int _invocationsPerIteration;
+
+        public Sort(int invocationsPerIteration) => _invocationsPerIteration = invocationsPerIteration;
 
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
 
-        private int _iterationIndex = 0;
-        private T[] _values;
-        private T[][] _arrays;
-        private List<T>[] _lists;
+        protected int _iterationIndex = 0;
+        protected T[] _values;
+        protected T[][] _arrays;
+        protected List<T>[] _lists;
 
         [GlobalSetup]
         public void Setup() => _values = GenerateValues();
@@ -36,23 +189,25 @@ namespace System.Collections
         [IterationCleanup]
         public void CleanupIteration() => _iterationIndex = 0; // after every iteration end we set the index to 0
 
-        [IterationSetup(Targets = new []{ nameof(Array), nameof(Array_ComparerClass),
-            nameof(Array_ComparerStruct), nameof(Array_Comparison),
-//#if NETCOREAPP5_0
-            nameof(Span), nameof(Span_ComparerClass),
-            nameof(Span_ComparerStruct), nameof(Span_Comparison)})
-            //#endif
-            ]
-        public void SetupArrayIteration() => Utils.FillArrays(ref _arrays, InvocationsPerIteration, _values);
+//        [IterationSetup(Targets = new []{ nameof(Array), nameof(Array_ComparerClassGeneric),
+//            nameof(Array_ComparerStructGeneric), nameof(Array_Comparison),
+////#if NETCOREAPP5_0
+//            nameof(Span), nameof(Span_ComparerClassGeneric),
+//            nameof(Span_ComparerStructGeneric), nameof(Span_Comparison)})
+////#endif
+//            ]
+        // Can't do iteration setup with targets in a clean way
+        [IterationSetup()]
+        public virtual void SetupArrayIteration() => Utils.FillArrays(ref _arrays, _invocationsPerIteration, _values);
 
         [Benchmark]
         public void Array() => System.Array.Sort(_arrays[_iterationIndex++], 0, Size);
 
         [Benchmark]
-        public void Array_ComparerClass() => System.Array.Sort(_arrays[_iterationIndex++], 0, Size, _comparableComparerClass);
+        public void Array_ComparerClassGeneric() => System.Array.Sort(_arrays[_iterationIndex++], 0, Size, _comparableComparerClass);
 
         [Benchmark]
-        public void Array_ComparerStruct() => System.Array.Sort(_arrays[_iterationIndex++], 0, Size, new ComparableComparerStruct());
+        public void Array_ComparerStructGeneric() => System.Array.Sort(_arrays[_iterationIndex++], 0, Size, new ComparableComparerStruct());
 
         [Benchmark]
         public void Array_Comparison() => System.Array.Sort(_arrays[_iterationIndex++], (x, y) => x.CompareTo(y));
@@ -61,16 +216,18 @@ namespace System.Collections
         public void Span() => _arrays[_iterationIndex++].AsSpan().Sort();
 
         [Benchmark]
-        public void Span_ComparerClass() => _arrays[_iterationIndex++].AsSpan().Sort(_comparableComparerClass);
-
-        [Benchmark]
-        public void Span_ComparerStruct() => _arrays[_iterationIndex++].AsSpan().Sort(new ComparableComparerStruct());
-
-        [Benchmark]
         public void Span_Comparison() => _arrays[_iterationIndex++].AsSpan().Sort((x, y) => x.CompareTo(y));
+
+        [Benchmark]
+        public void Span_ComparerClassGeneric() => _arrays[_iterationIndex++].AsSpan().Sort(_comparableComparerClass);
+
+        [Benchmark]
+        public void Span_ComparerStructGeneric() => _arrays[_iterationIndex++].AsSpan().Sort(new ComparableComparerStruct());
+
 //#endif
+
         [IterationSetup(Target = nameof(List))]
-        public void SetupListIteration() => Utils.ClearAndFillCollections(ref _lists, InvocationsPerIteration, _values);
+        public void SetupListIteration() => Utils.ClearAndFillCollections(ref _lists, _invocationsPerIteration, _values);
 
         [Benchmark]
         public void List() => _lists[_iterationIndex++].Sort();
@@ -125,6 +282,7 @@ namespace System.Collections
 
         private readonly struct ComparableComparerStruct : IComparer<T>
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Compare(T x, T y) => x.CompareTo(y);
         }
     }
