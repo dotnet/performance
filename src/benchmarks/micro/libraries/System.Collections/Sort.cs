@@ -131,7 +131,7 @@ namespace System.Collections
     public class SortString : Sort<string>
     {
         private static readonly SpecificComparerClass _specificComparerClass = new SpecificComparerClass();
-        private const int InvocationsPerIteration = 2500;
+        private const int InvocationsPerIteration = 1000;
         public SortString() : base(InvocationsPerIteration) { }
 
 //#if NETCOREAPP5_0
