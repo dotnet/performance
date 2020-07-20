@@ -103,7 +103,7 @@ namespace System.Collections
     public class SortBigStruct : Sort<BigStruct>
     {
         private static readonly SpecificComparerClass _specificComparerClass = new SpecificComparerClass();
-        private const int InvocationsPerIteration = 5000;
+        private const int InvocationsPerIteration = 10000;
         public SortBigStruct() : base(InvocationsPerIteration) { }
 
 //#if NETCOREAPP5_0
