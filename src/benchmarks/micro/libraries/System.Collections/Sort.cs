@@ -173,6 +173,63 @@ namespace System.Collections
 //#endif
     }
 
+    [InvocationCount(InvocationsPerIteration)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Collections, Categories.GenericCollections)]
+    public class SortFloat : Sort<float>
+    {
+        private static readonly SpecificComparerClass _specificComparerClass = new SpecificComparerClass();
+        private const int InvocationsPerIteration = 5000;
+        public SortFloat() : base(InvocationsPerIteration) { }
+
+//#if NETCOREAPP5_0
+        [Benchmark]
+        public void Span_ComparerClassSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(_specificComparerClass);
+
+        [Benchmark]
+        public void Span_ComparerStructSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(new SpecificComparerStruct());
+
+        private sealed class SpecificComparerClass : IComparer<float>
+        {
+            public int Compare(float x, float y) => x.CompareTo(y);
+        }
+
+        private readonly struct SpecificComparerStruct : IComparer<float>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int Compare(float x, float y) => x.CompareTo(y);
+        }
+//#endif
+    }
+
+    [InvocationCount(InvocationsPerIteration)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Collections, Categories.GenericCollections)]
+    public class SortDouble : Sort<double>
+    {
+        private static readonly SpecificComparerClass _specificComparerClass = new SpecificComparerClass();
+        private const int InvocationsPerIteration = 5000;
+        public SortDouble() : base(InvocationsPerIteration) { }
+
+//#if NETCOREAPP5_0
+        [Benchmark]
+        public void Span_ComparerClassSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(_specificComparerClass);
+
+        [Benchmark]
+        public void Span_ComparerStructSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(new SpecificComparerStruct());
+
+        private sealed class SpecificComparerClass : IComparer<double>
+        {
+            public int Compare(double x, double y) => x.CompareTo(y);
+        }
+
+        private readonly struct SpecificComparerStruct : IComparer<double>
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int Compare(double x, double y) => x.CompareTo(y);
+        }
+//#endif
+    }
+
+
     [Orderer(SummaryOrderPolicy.Method, MethodOrderPolicy.Alphabetical)]
     [BenchmarkCategory(Categories.Runtime, Categories.Collections, Categories.GenericCollections)]
     public abstract class Sort<T> where T : IComparable<T>
