@@ -27,7 +27,7 @@ namespace System.Collections
 
         [Benchmark]
         public void Span_ComparerStructSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(new SpecificComparerStruct());
-//#endif
+
         private sealed class SpecificComparerClass : IComparer<int>
         {
             public int Compare(int x, int y) => x.CompareTo(y);
@@ -38,6 +38,7 @@ namespace System.Collections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Compare(int x, int y) => x.CompareTo(y);
         }
+//#endif
     }
 
     [InvocationCount(InvocationsPerIteration)]
@@ -54,7 +55,7 @@ namespace System.Collections
 
         [Benchmark]
         public void Span_ComparerStructSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(new SpecificComparerStruct());
-//#endif
+
         private sealed class SpecificComparerClass : IComparer<IntStruct>
         {
             public int Compare(IntStruct x, IntStruct y) => x.CompareTo(y);
@@ -65,6 +66,7 @@ namespace System.Collections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Compare(IntStruct x, IntStruct y) => x.CompareTo(y);
         }
+//#endif
     }
 
 
@@ -82,7 +84,7 @@ namespace System.Collections
 
         [Benchmark]
         public void Span_ComparerStructSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(new SpecificComparerStruct());
-//#endif
+
         private sealed class SpecificComparerClass : IComparer<IntClass>
         {
             public int Compare(IntClass x, IntClass y) => x.CompareTo(y);
@@ -93,6 +95,7 @@ namespace System.Collections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Compare(IntClass x, IntClass y) => x.CompareTo(y);
         }
+//#endif
     }
 
     [InvocationCount(InvocationsPerIteration)]
@@ -109,7 +112,7 @@ namespace System.Collections
 
         [Benchmark]
         public void Span_ComparerStructSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(new SpecificComparerStruct());
-//#endif
+
         private sealed class SpecificComparerClass : IComparer<BigStruct>
         {
             public int Compare(BigStruct x, BigStruct y) => x.CompareTo(y);
@@ -120,6 +123,7 @@ namespace System.Collections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Compare(BigStruct x, BigStruct y) => x.CompareTo(y);
         }
+//#endif
     }
 
     [InvocationCount(InvocationsPerIteration)]
@@ -139,7 +143,7 @@ namespace System.Collections
 
         [Benchmark]
         public void Span_ComparerStructCompareInfo() => _arrays[_iterationIndex++].AsSpan().Sort(new CompareInfoComparerStruct());
-//#endif
+
         private sealed class SpecificComparerClass : IComparer<string>
         {
             public int Compare(string x, string y) => x.CompareTo(y);
@@ -166,6 +170,7 @@ namespace System.Collections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Compare(string x, string y) => x.CompareTo(y);
         }
+//#endif
     }
 
     [Orderer(SummaryOrderPolicy.Method, MethodOrderPolicy.Alphabetical)]
@@ -198,7 +203,7 @@ namespace System.Collections
 //            nameof(Span_ComparerStructGeneric), nameof(Span_Comparison)})
 ////#endif
 //            ]
-        // Can't do iteration setup with targets in a clean way
+        // Can't do iteration setup with targets in a clean way, setup is fast enough compared to sort not a big concern
         [IterationSetup()]
         public virtual void SetupArrayIteration() => Utils.FillArrays(ref _arrays, _invocationsPerIteration, _values);
 
@@ -225,7 +230,6 @@ namespace System.Collections
 
         [Benchmark]
         public void Span_ComparerStructGeneric() => _arrays[_iterationIndex++].AsSpan().Sort(new ComparableComparerStruct());
-
 //#endif
 
         [IterationSetup(Target = nameof(List))]
