@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Extensions;
+using BenchmarkDotNet.Order;
 using MicroBenchmarks;
 
 namespace System.Collections
@@ -167,6 +168,7 @@ namespace System.Collections
         }
     }
 
+    [Orderer(SummaryOrderPolicy.Method, MethodOrderPolicy.Alphabetical)]
     [BenchmarkCategory(Categories.Runtime, Categories.Collections, Categories.GenericCollections)]
     public abstract class Sort<T> where T : IComparable<T>
     {
