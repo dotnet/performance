@@ -37,7 +37,12 @@ namespace System.Collections
         public void CleanupIteration() => _iterationIndex = 0; // after every iteration end we set the index to 0
 
         [IterationSetup(Targets = new []{ nameof(Array), nameof(Array_ComparerClass),
-            nameof(Array_ComparerStruct), nameof(Array_Comparison) })]
+            nameof(Array_ComparerStruct), nameof(Array_Comparison),
+//#if NETCOREAPP5_0
+            nameof(Span), nameof(Span_ComparerClass),
+            nameof(Span_ComparerStruct), nameof(Span_Comparison)})
+            //#endif
+            ]
         public void SetupArrayIteration() => Utils.FillArrays(ref _arrays, InvocationsPerIteration, _values);
 
         [Benchmark]
@@ -51,7 +56,19 @@ namespace System.Collections
 
         [Benchmark]
         public void Array_Comparison() => System.Array.Sort(_arrays[_iterationIndex++], (x, y) => x.CompareTo(y));
+//#if NETCOREAPP5_0
+        [Benchmark]
+        public void Span() => _arrays[_iterationIndex++].AsSpan().Sort();
 
+        [Benchmark]
+        public void Span_ComparerClass() => _arrays[_iterationIndex++].AsSpan().Sort(_comparableComparerClass);
+
+        [Benchmark]
+        public void Span_ComparerStruct() => _arrays[_iterationIndex++].AsSpan().Sort(new ComparableComparerStruct());
+
+        [Benchmark]
+        public void Span_Comparison() => _arrays[_iterationIndex++].AsSpan().Sort((x, y) => x.CompareTo(y));
+//#endif
         [IterationSetup(Target = nameof(List))]
         public void SetupListIteration() => Utils.ClearAndFillCollections(ref _lists, InvocationsPerIteration, _values);
 
