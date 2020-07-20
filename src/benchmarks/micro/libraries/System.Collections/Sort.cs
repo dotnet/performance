@@ -142,7 +142,7 @@ namespace System.Collections
         public void Span_ComparerStructSpecific() => _arrays[_iterationIndex++].AsSpan().Sort(new SpecificComparerStruct());
 
         [Benchmark]
-        public void Span_ComparerStructCompareInfo() => _arrays[_iterationIndex++].AsSpan().Sort(new CompareInfoComparerStruct());
+        public void Span_ComparerStructCompareInfo() => _arrays[_iterationIndex++].AsSpan().Sort(CompareInfoComparerStruct.CreateForCurrentCulture());
 
         private sealed class SpecificComparerClass : IComparer<string>
         {
