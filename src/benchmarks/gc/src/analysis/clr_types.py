@@ -14,7 +14,7 @@ from typing import (
     Sequence,
     Tuple,
     Type,
-)
+    List)
 
 from result import Err, Ok, Result
 
@@ -636,6 +636,12 @@ class AbstractTracedProcesses(ABC):
     per_heap_history_times: Sequence[float]
 
 
+class AbstractStackSource(ABC):
+    @abstractmethod
+    def ForEach(self, callback: AbstractAction[AbstractStackSourceSample]) -> None:
+        raise NotImplementedError()
+
+
 class AbstractTraceEventStackSource(ABC):
     @abstractmethod
     def ForEach(self, action: AbstractAction[AbstractStackSourceSample]) -> None:
@@ -720,11 +726,37 @@ class AbstractAnalysis(ABC):
 
     @staticmethod
     @abstractmethod
-    def GetStackViewForInfra(
-        tracePath: str,
+    def GetOpenedTraceLog(
+        tracePath: str
+    ) -> AbstractTraceLog:
+        raise NotImplementedError()
+
+    @staticmethod
+    @abstractmethod
+    def GetSymbolReader(
+        logFile: str,
         symPath: str,
+    ) -> AbstractSymbolReader:
+        raise NotImplementedError()
+
+    @staticmethod
+    @abstractmethod
+    def GetProcessFullStackSource(
+        traceLog: AbstractTraceLog,
+        symReader: AbstractSymbolReader,
         processName: str,
-    ) -> AbstractStackView:
+    ) -> AbstractStackSource:
+        raise NotImplementedError()
+
+    @staticmethod
+    @abstractmethod
+    def GetFunctionMetricsWithinTimeRange(
+        traceLog: AbstractTraceLog,
+        symReader: AbstractSymbolReader,
+        fullStackSource: AbstractStackSource,
+        timeRange: AbstractTimeSpan,
+        functionToAnalyze: str,
+    ) -> AbstractCallTreeNodeBase:
         raise NotImplementedError()
 
 
