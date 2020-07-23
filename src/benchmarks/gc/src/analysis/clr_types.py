@@ -77,8 +77,14 @@ class AbstractTextWriter(ABC):
 
 
 class AbstractSymbolReader(ABC):
+    Log: AbstractTextWriter
+
     @abstractmethod
     def __init__(self, log: AbstractTextWriter, nt_symbol_path: Optional[str]):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def Dispose(self) -> None:
         raise NotImplementedError()
 
 

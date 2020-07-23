@@ -1,6 +1,7 @@
-# Using with jupyter notebook
+# Using with Jupyter Notebook
 
-A jupyter notebook has already been set up in `jupyter_notebook.py`. So far it's only been tested with VSCode.
+A jupyter notebook has already been set up in `jupyter_notebook.py`. So far,
+it's only been tested with VSCode.
 
 ## Using with VSCode
 
@@ -12,14 +13,137 @@ A jupyter notebook has already been set up in `jupyter_notebook.py`. So far it's
 ## Overview
 
 * Click on `Run cell` in the top cell. This is the only cell that is not optional to run.
-* Each of the other cells corresponds to some command.
-  Instead of providing command line arguments, edit the code to provide different arguments to the function.
+* Each of the other cells corresponds to some command. Instead of providing command
+  line arguments, edit the code to provide different arguments to the function.
   You can then re-run that cell without needing to reload traces.
 * The top cell specifies all the trace files and metrics that will be available.
   If you need to add new files or metrics you will need to rerun the top cell.
 * If you edit code in any other file you will have to reload the whole notebook.
   See the ⟲ icon in the top-right.
-* You can also do any custom analysis on the trace. The `custom` section at the bottom shows how to manually sum all GC times.
+* You can also do any custom analysis on the trace. The `custom` section at the
+  bottom shows how to manually sum all GC times.
+
+## CPU Samples Analysis
+
+CPU Samples Analysis is a set of features in active development. It is currently
+only usable through Jupyter Notebook, as will be described in this section.
+
+The following functionalities are supported:
+
+* Chart CPU Samples metrics of one or more functions, for one or more GC's,
+  given one or more traces. A list of supported metrics is described later on.
+* Show various CPU Samples metrics, such as inclusive and exclusive sample count,
+  for a function within a given time range.
+
+### Requirements and Setup
+ 
+To begin with, capture a trace with CPU Samples enabled. If you use GC Infra, then
+you're good to go. If you capture it elsewhere, make sure to include the `process_name`
+and the `seconds_taken` fields in the [test status yaml file](test_status_files.md).
+
+You will also need to provide the path to where you have your _Core\_Root's_ PDB's
+with the symbols. If you built it from the runtime repo as specified [here](building_coreroot.md),
+they should be in the following path (assuming you built for Windows x64):
+
+```sh
+/runtime/artifacts/bin/coreclr/Windows_NT.x64.Release/PDB/
+```
+
+Once the previous requirements are fulfilled, open the _Jupyter Notebook_ in VS Code.
+There, make sure to run the first cell, which is in charge of setting up and loading
+all the libraries and components required for analysis. Then, read your trace
+with the following code:
+
+```python
+_MY_TRACE = get_trace_with_everything("Path/To/Test/Status/File.yaml")
+```
+
+Now you can choose between the two functionalities mentioned above. But before
+that, don't forget to import their respective functions:
+
+```python
+from src.analysis.analyze_cpu_samples import chart_cpu_samples_per_gcs, show_cpu_samples_metrics
+```
+
+### Charting CPU Samples per GC's
+
+The following function will create a chart from the given CPU Samples metric from
+the given function(s) per individual GC's. You can filter those to a certain criteria
+as well (e.g. Gen1 GC's only). Also, you can provide more than one trace for a
+more complex comparison.
+
+The currently supported metrics to chart from a given function are the following:
+
+* Inclusive Number of CPU Samples _("inclusive\_count")_
+* Exclusive Number of CPU Samples _("exclusive\_count")_
+* Inclusive Percent of CPU Samples _("inclusive\_metric\_percent")_
+* Exclusive Percent of CPU Samples _("exclusive\_metric\_percent")_
+* Time of First Sample _("first\_time\_msec")_
+* Time of Last Sample _("last\_time\_msec")_
+
+In this example, we will be charting the _inclusive number of samples_ from the
+functions `gc_heap::plan_phase` and `gc_heap::mark_phase`, for all Generation 1 GC's.
+
+```python
+chart_cpu_samples_per_gcs(
+    ptraces=(_MY_TRACE,),
+    symbol_path=Path("Path/To/PDB/Directory"),
+    functions_to_chart=("gc_heap::plan_phase", "gc_heap::mark_phase",),
+    x_property_name="gc_index",
+    y_property_names=("inclusive_count",),
+    gc_filter=lambda gc: gc.Generation == Gens.Gen1,
+)
+```
+
+Splitting this function call's parts:
+
+* `ptraces`: List of all processed traces you wish to chart. This parameter must
+  be a list, so don't forget the parentheses even if it's just one trace.
+* `symbol_path`: _Path_ wrapper with the path to your PDB directory.
+* `functions_to_chart`: List of the functions you wish to chart.
+* `x_property_name`: The chart's X-Axis metric. We want to enlist the individual
+  GC's in this example, so we use the _gc\_index_ as the metric.
+* `y_property_names`: List of the metrics you wish to chart.
+* `gc_filter`: Function to filter the GC's you wish to chart. If you want all of
+  the GC's in your trace, you can simply omit this parameter.
+
+Running this yields the following output:
+
+![CPU Samples Chart](images/SamplesChart.PNG)
+
+### Show CPU Samples Metrics
+
+The following function will show you the main CPU Samples Metrics of a given
+function from your trace, in the specified time range (if any).
+
+In this example, we will be looking at the samples metrics for the `gc_heap::plan_phase`
+function, from the 1,000 msec mark to the 5,000 msec mark of the test's execution.
+
+```python
+show_cpu_samples_metrics(
+    ptrace=_MY_TRACE,
+    symbol_path=Path("Path/To/PDB/Directory"),
+    function="gc_heap::plan_phase",
+    start_time_msec=1000.0,
+    end_time_msec=5000.0,
+)
+```
+
+Splitting this function call's parts:
+
+* `ptrace`: The processed trace you wish to analyze. Note that as opposed to the
+  charting function, this one only receives one trace instead of a list.
+* `symbol_path`: _Path_ wrapper with the path to your PDB directory.
+* `function`: Name of the function you wish to see samples metrics values.
+* `start_time_msec`: Timestamp in msec where you want to begin your analysis.
+  You can omit this parameter to analyze since the beginning of the trace.
+* `end_time_msec`: Timestamp in msec where you want to end your analysis. You can
+  omit this parameter to analyze until the end of the trace. This is the main
+  reason it is vital to have the `seconds_taken` field in your _test status yaml file_.
+
+Running this yields the following output:
+
+![CPU Samples Metrics](images/SamplesMetrics.PNG)
 
 ## Programming Notes
 

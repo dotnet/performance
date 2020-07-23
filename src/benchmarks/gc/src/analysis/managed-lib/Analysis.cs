@@ -1416,33 +1416,38 @@ namespace GCPerf
             return false;
         }
 
-    
-        public static StackSource LoadTraceAndGetStacks(
-            EtlxNS.TraceLog traceLog,
-            SymbolReader symReader,
-            string processName)
-        {
-            foreach (var module in traceLog.ModuleFiles)
-            {
-                if (module.Name.ToLower().Contains("clr"))
-                {
-                    // Only resolve symbols for modules whose name includes "clr".
-                    traceLog.CodeAddresses.LookupSymbolsForModule(symReader, module);
-                }
-            }
+        /* ********************************************************** */
+        /*               CPU Samples Analysis Functions               */
+        /* ********************************************************** */
 
-            EtlxNS.TraceProcess processToAnalyze = traceLog.Processes.FirstProcessWithName(processName);
-            return traceLog.CPUStacks(processToAnalyze);
-        }
-
-        /* The following three methods will probably be combined into a single
-         * bigger one, once the new class is created. */
-
+        /// <summary>
+        /// Creates a new TraceLog object and associates it to the trace in
+        /// the given path.
+        /// </summary>
+        /// <param name="tracePath">
+        /// Path to the trace file we want to analyze.
+        /// </param>
+        /// <returns>
+        /// The new TraceLog object.
+        /// </returns>
         public static EtlxNS.TraceLog GetOpenedTraceLog(string tracePath)
         {
             return EtlxNS.TraceLog.OpenOrConvert(tracePath);
         }
 
+        /// <summary>
+        /// Creates a new SymbolReader object, which will be in charge of
+        /// looking up the symbols to analyze the trace.
+        /// </summary>
+        /// <param name="logFile">
+        /// Path to where the symbols lookup log will be written.
+        /// </param>
+        /// <param name="symPath">
+        /// Path where the PDB's with the symbols are located.
+        /// </param>
+        /// <returns>
+        /// The new SymbolReader object.
+        /// </returns>
         public static SymbolReader GetSymbolReader(
             string logFile,
             string symPath
@@ -1452,15 +1457,78 @@ namespace GCPerf
             return new SymbolReader(symlogWriter, symPath);
         }
 
+        /// <summary>
+        /// Gets all the CPU Stacks of the given process from the trace specified
+        /// in the TraceLog parameter.
+        /// </summary>
+        /// <param name="traceLog">
+        /// TraceLog object associated to the analyzed trace.
+        /// </param>
+        /// <param name="symReader">
+        /// SymbolReader object to find the symbols of the captured functions in
+        /// the trace.
+        /// </param>
+        /// <param name="processName">
+        /// The name of the process we want to analyze.
+        /// </param>
+        /// <returns>
+        /// A StackSource object with all the samples from the given process.
+        /// </returns>
         public static StackSource GetProcessFullStackSource(
             EtlxNS.TraceLog traceLog,
             SymbolReader symReader,
-            string processName
-        )
+            string processName)
         {
-            return LoadTraceAndGetStacks(traceLog, symReader, processName);
+            /* As of now, analysis is only done in CLR modules, so we only look
+             * up the symbols for them. If necessary, this can be modified to
+             * be able to find any process. */
+
+            foreach (var module in traceLog.ModuleFiles)
+            {
+                if (module.Name.ToLower().Contains("clr"))
+                {
+                    // Only resolve symbols for modules whose name includes "clr".
+                    traceLog.CodeAddresses.LookupSymbolsForModule(symReader, module);
+                }
+            }
+
+            /* GC Infra will fail if more than one process with the same name is
+             * found, so asking for the first one is fine. */
+
+            EtlxNS.TraceProcess processToAnalyze = traceLog.Processes.FirstProcessWithName(processName);
+            return traceLog.CPUStacks(processToAnalyze);
         }
 
+        /// <summary>
+        /// Gets and returns the given function's CPU Samples metrics within the
+        /// specified time range. To achieve this, first it filters the given
+        /// StackSource to the desired time range, and then creates a new
+        /// StackView object, which is internally a tree data structure, which
+        /// allows to find all the sample information easily by finding functions'
+        /// corresponding nodes.
+        /// </summary>
+        /// <param name="traceLog">
+        /// TraceLog object associated to the analyzed trace.
+        /// </param>
+        /// <param name="symReader">
+        /// SymbolReader object to find the symbols of the captured functions in
+        /// the trace.
+        /// </param>
+        /// <param name="fullStackSource">
+        /// StackSource object with all the samples stacks.
+        /// </param>
+        /// <param name="timeRange">
+        /// TimeSpan object containing the start and end times of the desired
+        /// lapse to analyze.
+        /// </param>
+        /// <param name="functionToAnalyze">
+        /// Name of the function to fetch the samples of. This can be a regular
+        /// expression and StackView will resolve it accordingly.
+        /// </param>
+        /// <returns>
+        /// A CallTreeNodeBase object containing all the samples information of
+        /// the given function in the specified time lapse.
+        /// </returns>
         public static CallTreeNodeBase GetFunctionMetricsWithinTimeRange(
             EtlxNS.TraceLog traceLog,
             SymbolReader symReader,
@@ -1469,12 +1537,25 @@ namespace GCPerf
             string functionToAnalyze
         )
         {
+            /* A FilteredStackSource constructor requires the filtering criteria
+             * to be given in a FilterParams object. While it can accept many
+             * different parameters, most are used for PerfView's GUI. For our
+             * use cases, specifying the time range start and end points is what
+             * we need. */
+
             FilterParams filterParams = new FilterParams();
             filterParams.StartTimeRelativeMSec = timeRange.StartMSec.ToString("0.######");
             filterParams.EndTimeRelativeMSec = timeRange.EndMSec.ToString("0.######");
 
+            /* Create the FilterStackSource. ScaleToData is the default policy kind
+             * used by PerfView and is the most accurate one for our requirements. */
+
             FilterStackSource timeFilteredStackSource =
                 new FilterStackSource(filterParams, fullStackSource, ScalingPolicyKind.ScaleToData);
+
+            /* Create the StackView object from our new FilterStackSource, and
+             * and return the node corresponding to our function of interest. */
+
             StackView stackView = new StackView(traceLog, timeFilteredStackSource, symReader);
             return stackView.FindNodeByName(functionToAnalyze);
         }
