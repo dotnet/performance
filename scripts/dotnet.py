@@ -17,7 +17,8 @@ from subprocess import check_output
 from sys import argv, platform
 from typing import Tuple
 from urllib.parse import urlparse
-from urllib.request import urlopen, urlretrieve
+from urllib.request import urlopen
+from time import sleep
 
 from performance.common import get_repo_root_path
 from performance.common import get_tools_directory
@@ -683,7 +684,20 @@ def install(
     dotnetInstallScriptPath = path.join(install_dir, dotnetInstallScriptName)
 
     getLogger().info('Downloading %s', dotnetInstallScriptUrl)
-    urlretrieve(dotnetInstallScriptUrl, dotnetInstallScriptPath)
+    count = 0
+    while count < 3:
+        with urlopen(dotnetInstallScriptUrl) as response:
+            if "html" in response.info()['Content-Type']:
+                count = count + 1
+                sleep(1) # sleep one second
+                continue
+            with open(dotnetInstallScriptPath, 'wb') as outfile:
+                outfile.write(response.read())
+                break
+
+    if count is 3:
+        getLogger().error("Fatal error: could not download dotnet-install script")
+        raise Exception("Fatal error: could not download dotnet-install script")
 
     if platform != 'win32':
         chmod(dotnetInstallScriptPath, S_IRWXU)
