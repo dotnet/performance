@@ -22,9 +22,6 @@ public static class Program
             case "analyze-single":
                 AnalyzeSingle(args.Skip(1).ToArray());
                 break;
-            case "cpu-samples":
-                CPUSamples();
-                break;
             default:
                 throw new Exception($"Bad command {cmd}");
         }
@@ -35,15 +32,5 @@ public static class Program
         string path = args[0];
         var processes = Analysis.GetTracedProcesses(path, collectEventNames: true, collectPerHeapHistoryTimes: true);
         // do something with them
-    }
-
-    public static void CPUSamples()
-    {
-        string tracePath =
-            "C:\\Git\\performance\\src\\benchmarks\\gc\\bench\\suite\\normal_server.yaml.out\\a__only_config__2gb__0.etl";
-        string symPath =
-            "C:\\Git\\OtherStuff\\CoreCLR-Builds-Tools\\PDB";
-        Analysis.CPUSamplesAnalysis(tracePath, symPath);
-        return ;
     }
 }
