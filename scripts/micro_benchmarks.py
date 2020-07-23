@@ -128,6 +128,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         return []
 
     parser.add_argument(
+        '--wasm',
+        dest='wasm',
+        required=False,
+        default=False,
+        action='store_true',
+        help='''Tests should be run with the wasm runtime'''
+    )
+
+    parser.add_argument(
         '--bdn-arguments',
         dest='bdn_arguments',
         required=False,
@@ -239,7 +248,10 @@ def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
 
     # Required for CoreRT where:
     #   host process framework != benchmark process framework
-    run_args += ['--runtimes', framework]
+    if args.wasm:
+        run_args += ['--runtimes', 'wasm']
+    else:
+        run_args += ['--runtimes', framework]
 
     return run_args
 
