@@ -58,6 +58,18 @@ with the following code:
 _MY_TRACE = get_trace_with_everything("Path/To/Test/Status/File.yaml")
 ```
 
+Next, you need to create an _"utilities"_ object associated with your trace.
+This object will create and store for you the necessary components used by
+GCPerf and TraceEvent to read and analyze the trace as you require. Build it
+with the following code:
+
+```python
+_MY_TRACE_ALL_DATA = TraceReadAndParseUtils(
+    ptrace=_MY_TRACE,
+    symbol_path=Path("Path/To/PDB/Directory"),
+)
+```
+
 Now you can choose between the two functionalities mentioned above. But before
 that, don't forget to import their respective functions:
 
@@ -86,8 +98,7 @@ functions `gc_heap::plan_phase` and `gc_heap::mark_phase`, for all Generation 1 
 
 ```python
 chart_cpu_samples_per_gcs(
-    ptraces=(_MY_TRACE,),
-    symbol_path=Path("Path/To/PDB/Directory"),
+    ptraces_utils=(_MY_TRACE_ALL_DATA,),
     functions_to_chart=("gc_heap::plan_phase", "gc_heap::mark_phase",),
     x_property_name="gc_index",
     y_property_names=("inclusive_count",),
@@ -97,9 +108,9 @@ chart_cpu_samples_per_gcs(
 
 Splitting this function call's parts:
 
-* `ptraces`: List of all processed traces you wish to chart. This parameter must
-  be a list, so don't forget the parentheses even if it's just one trace.
-* `symbol_path`: _Path_ wrapper with the path to your PDB directory.
+* `ptraces_utils`: List of all the utilities objects of the traces you wish
+  to chart. This parameter must be a list, so don't forget the parentheses even
+  if it's just one trace.
 * `functions_to_chart`: List of the functions you wish to chart.
 * `x_property_name`: The chart's X-Axis metric. We want to enlist the individual
   GC's in this example, so we use the _gc\_index_ as the metric.
@@ -121,8 +132,7 @@ function, from the 1,000 msec mark to the 5,000 msec mark of the test's executio
 
 ```python
 show_cpu_samples_metrics(
-    ptrace=_MY_TRACE,
-    symbol_path=Path("Path/To/PDB/Directory"),
+    ptrace_utils=_MY_TRACE_ALL_DATA,
     function="gc_heap::plan_phase",
     start_time_msec=1000.0,
     end_time_msec=5000.0,
@@ -131,9 +141,9 @@ show_cpu_samples_metrics(
 
 Splitting this function call's parts:
 
-* `ptrace`: The processed trace you wish to analyze. Note that as opposed to the
-  charting function, this one only receives one trace instead of a list.
-* `symbol_path`: _Path_ wrapper with the path to your PDB directory.
+* `ptrace_utils`: The utilities object of the trace you wish to analyze. Note
+  that as opposed to the charting function, this one only receives one trace
+  instead of a list.
 * `function`: Name of the function you wish to see samples metrics values.
 * `start_time_msec`: Timestamp in msec where you want to begin your analysis.
   You can omit this parameter to analyze since the beginning of the trace.
