@@ -317,11 +317,6 @@ def show_cpu_samples_metrics(
     # this boundary.
 
     if (end_time_msec == 0.0):
-        # assert trace_utils.trace_info.TotalSecondsTaken is not None, (
-        #     "No end timestamp found. Make sure to pass the time boundary for the",
-        #     " range you wish to analyze, or specify the test's running time in",
-        #     " the test result yaml file under the 'seconds_taken' field."
-        # )
         end_time_msec = ptrace_utils.trace_duration_msec
 
     # Make sure we have a positive time range to look at.
