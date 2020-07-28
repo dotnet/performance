@@ -39,7 +39,13 @@ namespace BenchmarkDotNet.Extensions
                 var results = from result in report.AllMeasurements
                               where result.IterationMode == Engines.IterationMode.Workload && result.IterationStage == Engines.IterationStage.Result
                               orderby result.LaunchIndex, result.IterationIndex
-                              select new { result.Nanoseconds, result.Operations };
+                              select new { result.Nanoseconds, result.Operations};
+
+                var overheadResults = from result in report.AllMeasurements
+                                      where result.IsOverhead()
+                                      orderby result.LaunchIndex, result.IterationIndex
+                                      select new { result.Nanoseconds, result.Operations };
+
                 test.Counters.Add(new Counter
                 {
                     Name = "Duration of single invocation",
@@ -48,6 +54,16 @@ namespace BenchmarkDotNet.Extensions
                     HigherIsBetter = false,
                     MetricName = "ns",
                     Results = (from result in results
+                               select result.Nanoseconds / result.Operations).ToList()
+                });
+                test.Counters.Add(new Counter
+                {
+                    Name = "Overhead invocation",
+                    TopCounter = false,
+                    DefaultCounter = false,
+                    HigherIsBetter = false,
+                    MetricName = "ns",
+                    Results = (from result in overheadResults
                                select result.Nanoseconds / result.Operations).ToList()
                 });
                 test.Counters.Add(new Counter
