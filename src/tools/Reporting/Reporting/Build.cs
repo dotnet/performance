@@ -25,5 +25,12 @@ namespace Reporting
         public string BuildName { get; set; }
 
         public DateTime TimeStamp { get; set; }
+
+        public Dictionary<string, string> AdditionalData { get; set; } = new Dictionary<string, string>();
+
+        public void AddData(string key, string payload)
+        {
+            AdditionalData.Add(key, payload);
+        }
     }
 }
