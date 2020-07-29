@@ -105,8 +105,7 @@ namespace BenchmarkDotNet.Extensions
                 if (disassemblyDiagnoser != null && disassemblyDiagnoser.Results.TryGetValue(report.BenchmarkCase, out var disassemblyResult))
                 {
                     string disassembly = DiffableDisassemblyExporter.BuildDisassemblyString(disassemblyResult, disassemblyDiagnoser.Config);
-
-                    test.AddData("disasm", disassembly);
+                    test.AdditionalData["disasm"] = disassembly;
                 }
 
                 reporter.AddTest(test);

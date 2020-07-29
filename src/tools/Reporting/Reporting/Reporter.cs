@@ -86,6 +86,7 @@ namespace Reporting
                 BuildName = environment.GetEnvironmentVariable("PERFLAB_BUILDNUM"),
                 TimeStamp = DateTime.Parse(environment.GetEnvironmentVariable("PERFLAB_BUILDTIMESTAMP")),
             };
+            build.AdditionalData["productVersion"] = environment.GetEnvironmentVariable("DOTNET_VERSION");
         }
         public string GetJson()
         {
