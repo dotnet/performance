@@ -42,7 +42,7 @@ namespace BenchmarkDotNet.Extensions
                               select new { result.Nanoseconds, result.Operations};
 
                 var overheadResults = from result in report.AllMeasurements
-                                      where result.IsOverhead()
+                                      where result.IsOverhead() && result.IterationStage != Engines.IterationStage.Jitting
                                       orderby result.LaunchIndex, result.IterationIndex
                                       select new { result.Nanoseconds, result.Operations };
 
