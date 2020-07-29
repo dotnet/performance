@@ -39,10 +39,5 @@ namespace Reporting
             foreach (var counter in counters)
                 AddCounter(counter);
         }
-
-        public void AddData(string key, string payload)
-        {
-            AdditionalData.Add(key, payload);
-        }
     }
 }
