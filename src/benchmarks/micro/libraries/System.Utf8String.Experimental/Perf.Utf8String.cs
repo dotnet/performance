@@ -15,13 +15,14 @@ namespace System.Text.Experimental
     {
         public static IEnumerable<string> TranscodingTestData()
         {
-            yield return "This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. ";
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < 256; i++)
-            {
-                sb.Append(i);
-            }
-            yield return sb.ToString();
+            //yield return "This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. ";
+            //StringBuilder sb = new StringBuilder();
+            //for (int i = 0; i < 256; i++)
+            //{
+            //    sb.Append(i);
+            //}
+            //yield return sb.ToString();
+            yield return "Mexicanos, al grito de guerra el acero aprestad y el bridón. Y retiemble en sus centros la Tierra, al sonoro rugir del cañón. Y retiemble en sus centros la Tierra, ¡al sonoro rugir del cañón! Ciña ¡oh Patria! tus sienes de oliva de la paz el arcángel divino, que en el cielo tu eterno destino por el dedo de Dios se escribió. Mas si osare un extraño enemigo profanar con su planta tu suelo, piensa ¡oh Patria querida! que el cielo un soldado en cada hijo te dio.";
         }
 
         [Benchmark]
@@ -35,16 +36,11 @@ namespace System.Text.Experimental
         }
 
         [Benchmark]
-        [Arguments("hello", "HELLO")]
-        [Arguments("HELLO", "HELLO")]
-        [Arguments("hElLo", "HELLO")]
-        [Arguments("HeLlO", "HELLO")]
-        [Arguments("", "")]
-        public static void ToUpperInvariant(string s, string expected)
+        [ArgumentsSource(nameof(TranscodingTestData))]
+        public void IsAscii(string expected)
         {
-            ustring string1 = new ustring(s);
-            Utf8Span span = new Utf8Span(string1);
-            var upper = span.ToUpperInvariant();
+            Utf8Span span = new Utf8Span(new Utf8String(expected));
+            span.IsAscii();
         }
     }
 }
