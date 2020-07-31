@@ -155,7 +155,8 @@ _SAMPLES_TRACE_ALL_DATA = TraceReadAndParseUtils(
     symbol_path=Path("C:/runtime/artifacts/bin/coreclr/Windows_NT.x64.Release/PDB"),
 )
 
-#%% Example: Chart the number of samples per individual GC's, for all Gen1 GC's.
+#%% Example: Chart the number of samples per individual GC's, for all Gen1 GC's,
+# for the functions "gc_heap::plan_phase" and "gc_heap::mark_phase", and their callees.
 
 chart_cpu_samples_per_gcs(
     ptraces_utils=(_SAMPLES_TRACE_ALL_DATA,),
@@ -165,7 +166,8 @@ chart_cpu_samples_per_gcs(
     gc_filter=lambda gc: gc.Generation == Gens.Gen1,
 )
 
-#%% Example: Show CPU Samples metrics within a specified interval of time.
+#%% Example: Show CPU Samples metrics within a specified interval of time (1-5 secs),
+# for the function "gc_heap::plan_phase".
 
 show_cpu_samples_metrics(
     ptrace_utils=_SAMPLES_TRACE_ALL_DATA,
