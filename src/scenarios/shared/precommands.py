@@ -152,12 +152,13 @@ class PreCommands:
             replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
 
     def _publish(self, configuration: str, framework: str = None, runtime_identifier: str = None):
-        self.project.publish(configuration=configuration,
-                             output_dir=const.PUBDIR, 
-                             verbose=True,
-                             packages_path=os.path.join(get_packages_directory(), ''), # blazor publish targets require the trailing slash for joining the paths
-                             target_framework_moniker=framework,
-                             runtime_identifier=runtime_identifier
+        self.project.publish(configuration,
+                             const.PUBDIR, 
+                             True,
+                             os.path.join(get_packages_directory(), ''), # blazor publish targets require the trailing slash for joining the paths
+                             framework,
+                             runtime_identifier,
+                             self.msbuild or ""
                              )
 
     def _restore(self):

@@ -6,8 +6,6 @@ That file contains a sample "greet" command which shows how to create a command.
 
 If the command outputs to the console, it's recommended to create a `Document` (from `document.py`) and then call `print_document`, instead of calling `print` directly and formatting text yourself. This makes it easier to construct tables and will format your text to the terminal's width.
 
-
-
 # Adding a New Metric
 
 You'll need to modify `run_metrics.md`, `single_gc_metrics.md` or `single_heap_metrics.md`.
@@ -22,13 +20,13 @@ Metrics always return a `Result` -- this allows the metric to fail without causi
 
 We should make sure the code is clean with respect to the linter. Run `py . lint` to make sure it is clean. For now, do not worry about upgrading the dependencies as suggested by the linter, it won't work.
 
+When GCPerfSim is modified, it is important to run the full default suite again to ensure no functionality was broken with the new changes and GCPerfSim works properly.
+
 # C# and C dependencies
 
 Non-Python code is handled by `build.py` which builds C# and C dependencies.
 When you modify C# or C code (or dlls they depend on), they should automatically be rebuilt.
 The code for building C dependencies is Windows-specific as currently only Windows needs these dependencies.
-
-
 
 ## TraceEvent (from PerfView)
 
