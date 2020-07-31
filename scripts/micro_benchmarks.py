@@ -133,7 +133,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         required=False,
         default=False,
         action='store_true',
-        help='''Tests should be run with the wasm runtime'''
+        help='Tests should be run with the wasm runtime'
     )
 
     parser.add_argument(
