@@ -13,28 +13,31 @@ from .types import ProcessedTrace, ProcessedGC
 from .clr import get_clr, Clr
 from .clr_types import (
     AbstractCallTreeNodeBase,
-    AbstractTimeSpan, AbstractSymbolReader, AbstractTraceLog, AbstractStackSource)
+    AbstractTimeSpan,
+    AbstractSymbolReader,
+    AbstractTraceLog,
+    AbstractStackSource,
+)
 from ..commonlib.type_utils import with_slots, doc_field
 
 
 @doc_field(
-    "trace_info",
-    "ProcessedTrace object with all the trace's data. Definition is in types.py."
+    "trace_info", "ProcessedTrace object with all the trace's data. Definition is in types.py."
 )
 @doc_field(
     "trace_log",
     "TraceLog object associated with the trace. This is part of TraceEvent, and "
-    "contains all the streams of events in the trace and is used by GCPerf."
+    "contains all the streams of events in the trace and is used by GCPerf.",
 )
 @doc_field(
     "symbol_reader",
     "SymbolReader object in charge of finding and applying the PDB's to resolve "
-    "the trace's symbols. This is part of TraceEvent."
+    "the trace's symbols. This is part of TraceEvent.",
 )
 @doc_field(
     "stack_source",
     "StackSource object that contains a list of all the samples captured in the "
-    "trace. This is part of TraceEvent."
+    "trace. This is part of TraceEvent.",
 )
 @with_slots
 @dataclass(frozen=False)
@@ -44,11 +47,7 @@ class TraceReadAndParseUtils:
     symbol_reader: AbstractSymbolReader
     stack_source: AbstractStackSource
 
-    def __init__(
-        self,
-        ptrace: ProcessedTrace,
-        symbol_path: Path,
-    ):
+    def __init__(self, ptrace: ProcessedTrace, symbol_path: Path):
         clr = get_clr()
         workdir = Path(getcwd())
 
@@ -57,7 +56,7 @@ class TraceReadAndParseUtils:
 
         assert ptrace.process_name is not None, (
             "Unknown error occurred. Was not able to get the process name ",
-            "from test status yaml file."
+            "from test status yaml file.",
         )
         process_to_analyze = ptrace.process_name
 
@@ -65,17 +64,12 @@ class TraceReadAndParseUtils:
         # associated with this trace.
 
         self.trace_info = ptrace
-        self.trace_log = clr.Analysis.GetOpenedTraceLog(
-            str(ptrace.test_result.trace_path)
-        )
+        self.trace_log = clr.Analysis.GetOpenedTraceLog(str(ptrace.test_result.trace_path))
         self.symbol_reader = clr.Analysis.GetSymbolReader(
-            str(workdir / "GCPerf-Symbols-Log.txt"),
-            str(symbol_path),
+            str(workdir / "GCPerf-Symbols-Log.txt"), str(symbol_path)
         )
         self.stack_source = clr.Analysis.GetProcessFullStackSource(
-            self.trace_log,
-            self.symbol_reader,
-            process_to_analyze,
+            self.trace_log, self.symbol_reader, process_to_analyze
         )
 
     # Clean up resources and print the metrics data. Also free the usage on
@@ -104,30 +98,14 @@ class TraceReadAndParseUtils:
 
 @doc_field("gc_index", "Index/Number/ID of the GC.")
 @doc_field("function", "Function to analyze samples of.")
+@doc_field("inclusive_count", "Number of CPU Samples of the analyzed function and its callees.")
+@doc_field("exclusive_count", "Number of CPU Samples of the analyzed function only.")
 @doc_field(
-    "inclusive_count",
-    "Number of CPU Samples of the analyzed function and its callees."
+    "inclusive_metric_percent", "Percent of CPU Samples belonging to this function and its callees."
 )
-@doc_field(
-    "exclusive_count",
-    "Number of CPU Samples of the analyzed function only."
-)
-@doc_field(
-    "inclusive_metric_percent",
-    "Percent of CPU Samples belonging to this function and its callees."
-)
-@doc_field(
-    "exclusive_metric_percent",
-    "Percent of CPU Samples belonging to this function only."
-)
-@doc_field(
-    "first_time_msec",
-    "Timestamp in msec where this function's first sample was found."
-)
-@doc_field(
-    "last_time_msec",
-    "Timestamp in msec where this function's last sample was found."
-)
+@doc_field("exclusive_metric_percent", "Percent of CPU Samples belonging to this function only.")
+@doc_field("first_time_msec", "Timestamp in msec where this function's first sample was found.")
+@doc_field("last_time_msec", "Timestamp in msec where this function's last sample was found.")
 @with_slots
 @dataclass(frozen=True)
 class GCAndCPUSamples:
@@ -164,9 +142,8 @@ def _print_node(node: AbstractCallTreeNodeBase) -> None:
 #    List with the time ranges of each GC. This list is later used in
 #    _get_cpu_samples_from_trace() to fetch each GC's sample metrics.
 
-def _get_gcs_time_ranges(
-        gcs: Sequence[ProcessedGC]
-) -> List[AbstractTimeSpan]:
+
+def _get_gcs_time_ranges(gcs: Sequence[ProcessedGC]) -> List[AbstractTimeSpan]:
     time_ranges = []
     clr = get_clr()
     for gc in gcs:
@@ -194,6 +171,7 @@ def _get_gcs_time_ranges(
 #
 # Returns: Nothing
 
+
 def _get_cpu_samples_from_trace(
     clr: Clr,
     ptrace_utils: TraceReadAndParseUtils,
@@ -219,12 +197,12 @@ def _get_cpu_samples_from_trace(
     for func in functions:
         sample_points = []
 
-        for gc, range in zip(gcs_to_analyze, gcs_time_ranges):
+        for gc, trange in zip(gcs_to_analyze, gcs_time_ranges):
             node_metrics = clr.Analysis.GetFunctionMetricsWithinTimeRange(
                 ptrace_utils.trace_log,
                 ptrace_utils.symbol_reader,
                 ptrace_utils.stack_source,
-                range,
+                trange,
                 func,
             )
             sample_points.append(
@@ -239,8 +217,9 @@ def _get_cpu_samples_from_trace(
                     last_time_msec=node_metrics.LastTimeRelativeMSec,
                 )
             )
-        all_data_to_chart.append(Trace(name=f"{ptrace_utils.trace_name}---{func}",
-                                       data=sample_points))
+        all_data_to_chart.append(
+            Trace(name=f"{ptrace_utils.trace_name}---{func}", data=sample_points)
+        )
 
 
 # Summary: Reads all the given traces and calls _get_cpu_samples_from_trace()
@@ -257,6 +236,7 @@ def _get_cpu_samples_from_trace(
 #       optional and can be omitted to chart all the GC's samples.
 #
 # Returns: Nothing
+
 
 def chart_cpu_samples_per_gcs(
     ptraces_utils: Sequence[TraceReadAndParseUtils],
@@ -305,6 +285,7 @@ def chart_cpu_samples_per_gcs(
 #
 # Returns: Nothing
 
+
 def show_cpu_samples_metrics(
     ptrace_utils: TraceReadAndParseUtils,
     function: str,
@@ -316,14 +297,14 @@ def show_cpu_samples_metrics(
     # If end time was not specified, search for the trace's length to set
     # this boundary.
 
-    if (end_time_msec == 0.0):
+    if end_time_msec == 0.0:
         end_time_msec = ptrace_utils.trace_duration_msec
 
     # Make sure we have a positive time range to look at.
 
     assert start_time_msec < end_time_msec, (
         f"Check the timestamp values. Start time is {start_time_msec}, ",
-        f"which is later than End time {end_time_msec}."
+        f"which is later than End time {end_time_msec}.",
     )
 
     # Get the samples metrics data.

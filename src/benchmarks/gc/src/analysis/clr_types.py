@@ -14,7 +14,7 @@ from typing import (
     Sequence,
     Tuple,
     Type,
-    List)
+)
 
 from result import Err, Ok, Result
 
@@ -732,25 +732,18 @@ class AbstractAnalysis(ABC):
 
     @staticmethod
     @abstractmethod
-    def GetOpenedTraceLog(
-        tracePath: str
-    ) -> AbstractTraceLog:
+    def GetOpenedTraceLog(tracePath: str) -> AbstractTraceLog:
         raise NotImplementedError()
 
     @staticmethod
     @abstractmethod
-    def GetSymbolReader(
-        logFile: str,
-        symPath: str,
-    ) -> AbstractSymbolReader:
+    def GetSymbolReader(logFile: str, symPath: str) -> AbstractSymbolReader:
         raise NotImplementedError()
 
     @staticmethod
     @abstractmethod
     def GetProcessFullStackSource(
-        traceLog: AbstractTraceLog,
-        symReader: AbstractSymbolReader,
-        processName: str,
+        traceLog: AbstractTraceLog, symReader: AbstractSymbolReader, processName: str
     ) -> AbstractStackSource:
         raise NotImplementedError()
 
