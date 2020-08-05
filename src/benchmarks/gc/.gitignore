@@ -14,3 +14,6 @@ bench/**/*
 src/dependencies
 !src/dependencies/dlls
 src/exec/env/build
+
+# Log created by the SymbolReader when doing CPU Samples Analysis
+GCPerf-Symbols-Log.txt

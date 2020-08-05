@@ -236,6 +236,10 @@ class ProcessInfo:
         return self.process.ProcessID
 
     @property
+    def process_name(self) -> str:
+        return self.process.Name
+
+    @property
     def startup_flags(self) -> StartupFlags:
         return StartupFlags(self.mang.StartupFlags)
 
@@ -1380,6 +1384,10 @@ class ProcessedTrace:
     @property
     def process_id(self) -> Optional[int]:
         return map_option(self.process_info, lambda p: p.id)
+
+    @property
+    def process_name(self) -> Optional[str]:
+        return map_option(self.process_info, lambda p: p.process_name)
 
     @property
     def UsesServerGC(self) -> Optional[bool]:

@@ -363,6 +363,12 @@ In this case, all diffs should tend toward 0 since we're testing on two identica
 
 _ARM NOTE_: There is no support to analyze benchmark results on ARM/ARM64. In order to use these results, you will need to transfer them to another machine and perform the analysis there.
 
+## CPU Samples Analysis
+
+GC Benchmarking Infrastructure also supports analyzing CPU Samples from traces.
+This is only supported on Jupyter Notebook and you can find the full instructions
+on how to run it [here](docs/jupyter%20notebook.md).
+
 ## Conclusion
 
 Now you know how to create, run, and analyze a test.

@@ -11,6 +11,11 @@ from pathlib import Path
 from typing import List, Optional, Sequence
 
 
+from src.analysis.analyze_cpu_samples import (
+    chart_cpu_samples_per_gcs,
+    show_cpu_samples_metrics,
+    TraceReadAndParseUtils,
+)
 from src.analysis.analyze_joins import (
     analyze_joins_all_gcs_for_jupyter,
     analyze_joins_single_gc_for_jupyter,
@@ -120,13 +125,56 @@ def show_summary(trace: ProcessedTrace) -> None:
 
 _BENCH = Path("bench")
 _SUITE = Path("bench") / "suite"
+
 _LOW_MEMORY_CONTAINER = _SUITE / "low_memory_container.yaml"
 _OUT = add_extension(_LOW_MEMORY_CONTAINER, ".out")
-
 
 _TRACE = get_trace_with_everything(_OUT / "a__only_config__tlgb0.2__0.yaml")
 _TRACE2 = get_trace_with_everything(_OUT / "b__only_config__tlgb0.2__0.yaml")
 
+#%% Load and read trace with CPU Samples
+
+# This example will only work if the normal_server scenario was run with "collect"
+# set to, either "cpu_samples" or "thread_times". If you captured your trace
+# elsewhere, or ran another scenario, feel free to use that here instead. Just
+# make sure to not commit those changes in case you modify this codebase further.
+
+_BENCH = Path("bench")
+_SUITE = Path("bench") / "suite"
+
+_NORMAL_SERVER_WSAMPLES = add_extension(_SUITE / "normal_server", "yaml.out")
+_SAMPLES_TRACE = get_trace_with_everything(_NORMAL_SERVER_WSAMPLES / "a__only_config__2gb__0.yaml")
+
+#%% Set up the trace, symbols, etc and get it ready for CPU Samples Analysis.
+
+# The "symbol_path" value set here is just a placeholder. Change it to point to
+# where you have your PDB's stored.
+
+_SAMPLES_TRACE_ALL_DATA = TraceReadAndParseUtils(
+    ptrace=_SAMPLES_TRACE,
+    symbol_path=Path("C:/runtime/artifacts/bin/coreclr/Windows_NT.x64.Release/PDB"),
+)
+
+#%% Example: Chart the number of samples per individual GC's, for all Gen1 GC's,
+# for the functions "gc_heap::plan_phase" and "gc_heap::mark_phase", and their callees.
+
+chart_cpu_samples_per_gcs(
+    ptraces_utils=(_SAMPLES_TRACE_ALL_DATA,),
+    functions_to_chart=("gc_heap::plan_phase", "gc_heap::mark_phase"),
+    x_property_name="gc_index",
+    y_property_names=("inclusive_count",),
+    gc_filter=lambda gc: gc.Generation == Gens.Gen1,
+)
+
+#%% Example: Show CPU Samples metrics within a specified interval of time (1-5 secs),
+# for the function "gc_heap::plan_phase".
+
+show_cpu_samples_metrics(
+    ptrace_utils=_SAMPLES_TRACE_ALL_DATA,
+    function="gc_heap::plan_phase",
+    start_time_msec=1000.00,
+    end_time_msec=5000.00,
+)
 
 #%% show summary
 
