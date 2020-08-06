@@ -10,7 +10,7 @@ using MicroBenchmarks;
 
 namespace Benchstone.BenchF
 {
-[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.BenchF)]
+[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.JIT, Categories.BenchF)]
 public class BenchMk2
 {
     public const int Iterations = 4000000;

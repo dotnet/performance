@@ -21,7 +21,7 @@ using MicroBenchmarks;
 
 namespace BenchmarksGame
 {
-    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame)]
+    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame, Categories.JIT)]
     public class Mandelbrot_2
     {
         // Commented out data left in source to provide checksums for each case

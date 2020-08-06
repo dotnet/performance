@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace SIMD
 {
-    [BenchmarkCategory(Categories.Runtime, Categories.SIMD)]
+    [BenchmarkCategory(Categories.Runtime, Categories.SIMD, Categories.JIT)]
     public class ConsoleMandel
     {
         private static void DoNothing(int x, int y, int count) { }

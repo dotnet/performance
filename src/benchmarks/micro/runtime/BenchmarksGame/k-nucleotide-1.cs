@@ -82,7 +82,7 @@ namespace BenchmarksGame
         }
     }
 
-    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame)]
+    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame, Categories.JIT)]
     public class KNucleotide_1
     {
         private NucleotideHelpers _nucleotideHarnessHelpers = new NucleotideHelpers(bigInput: true);

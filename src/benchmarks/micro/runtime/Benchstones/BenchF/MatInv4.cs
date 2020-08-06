@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace Benchstone.BenchF
 {
-[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.BenchF)]
+[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.JIT, Categories.BenchF)]
 public class MatInv4
 {
     public const int Iterations = 60;

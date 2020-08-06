@@ -10,7 +10,7 @@ using MicroBenchmarks;
 
 namespace Benchstone.BenchF
 {
-[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.BenchF)]
+[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.JIT, Categories.BenchF)]
 public class NewtE
 {
     public const int Iterations = 1000000;

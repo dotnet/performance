@@ -28,7 +28,7 @@ namespace BenchmarksGame
 {
     class Wrapper { public int v = 1; }
     
-    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame)]
+    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame, Categories.JIT)]
     public class KNucleotide_9
     {
         const int BLOCK_SIZE = 1024 * 1024 * 8;
