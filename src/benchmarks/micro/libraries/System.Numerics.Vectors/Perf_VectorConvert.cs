@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace System.Numerics.Tests
 {
-    [BenchmarkCategory(Categories.Libraries, Categories.SIMD)]
+    [BenchmarkCategory(Categories.Libraries, Categories.SIMD, Categories.JIT)]
     public class Perf_VectorConvert
     {
         private const int Iterations = 1000;

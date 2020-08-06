@@ -133,7 +133,7 @@ namespace BenchmarksGame
         }
     }
 
-    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame)]
+    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame, Categories.JIT)]
     public class PiDigits_3
     {
         [Benchmark(Description = nameof(PiDigits_3))]

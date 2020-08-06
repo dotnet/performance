@@ -23,7 +23,7 @@ using MicroBenchmarks;
 
 namespace BenchmarksGame
 {
-    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame)]
+    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame, Categories.JIT)]
     public class FannkuchRedux_5
     {
         static int[] fact, chkSums, maxFlips;

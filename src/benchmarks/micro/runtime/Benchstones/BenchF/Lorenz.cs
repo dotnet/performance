@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace Benchstone.BenchF
 {
-[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.BenchF)]
+[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.JIT, Categories.BenchF)]
 public class Lorenz
 {
     public const int Iterations = 8000000;

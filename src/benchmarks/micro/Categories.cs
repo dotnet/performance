@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Data;
+
 namespace MicroBenchmarks
 {
     public static class Categories
@@ -21,15 +23,20 @@ namespace MicroBenchmarks
         /// benchmarks belonging to this category are executed for CI jobs
         /// </summary>
         public const string Runtime = "Runtime";
-            public const string BenchmarksGame = "BenchmarksGame";
-            public const string Benchstones = "Benchstones";
-                public const string BenchF = "BenchF";
-                public const string BenchI = "BenchI";
-            public const string Inlining = "Inlining";
-            public const string V8 = "V8";
-            public const string Perflab = "Perflab";
-            public const string Virtual = "Virtual";
+        public const string BenchmarksGame = "BenchmarksGame";
+        public const string Benchstones = "Benchstones";
+        public const string BenchF = "BenchF";
+        public const string BenchI = "BenchI";
+        public const string Inlining = "Inlining";
+        public const string V8 = "V8";
+        public const string Perflab = "Perflab";
+        public const string Virtual = "Virtual";
+        public const string ByteMark = "ByteMark";
+        public const string Burgers = "Burgers";
+        public const string SciMark = "SciMark";
+        public const string CscBench = "CscBench";
 
+        public const string JIT = "JIT";
         public const string JSON = "JSON";
         public const string LINQ = "LINQ";
         public const string Reflection = "Reflection";

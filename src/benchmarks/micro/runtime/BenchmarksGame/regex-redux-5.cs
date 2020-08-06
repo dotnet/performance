@@ -22,7 +22,7 @@ using MicroBenchmarks;
 
 namespace BenchmarksGame
 {
-    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame)]
+    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame, Categories.JIT)]
     public class RegexRedux_5
     {
         private string _sequences;
