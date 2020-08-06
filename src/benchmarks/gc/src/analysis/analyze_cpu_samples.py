@@ -17,7 +17,7 @@ from .clr_types import (
     AbstractSymbolReader,
     AbstractTraceLog,
     AbstractStackSource,
-)
+    AbstractStackView)
 from ..commonlib.type_utils import with_slots, doc_field
 
 
@@ -46,8 +46,9 @@ class TraceReadAndParseUtils:
     trace_log: AbstractTraceLog
     symbol_reader: AbstractSymbolReader
     stack_source: AbstractStackSource
+    gcs_stack_views: List[AbstractStackView]
 
-    def __init__(self, ptrace: ProcessedTrace, symbol_path: Path):
+    def __init__(self, ptrace: ProcessedTrace, symbol_path: Path, init_gcs_samples: bool = True):
         clr = get_clr()
         workdir = Path(getcwd())
 
@@ -72,9 +73,13 @@ class TraceReadAndParseUtils:
             self.trace_log, self.symbol_reader, process_to_analyze
         )
 
-    # Clean up resources and print the metrics data. Also free the usage on
-    # the symbols log file, as future calls to CPU Samples Analysis functions
-    # with different traces would fail otherwise, due to the resource being used.
+        self.gcs_stack_views = []
+        if (init_gcs_samples):
+            self.init_gcs_samples_data()
+
+    # Clean up resources and free the usage on the symbols log file, as future
+    # calls to CPU Samples Analysis functions with different traces would fail
+    # otherwise, due to the resource being used.
     def __del__(self) -> None:
         self.symbol_reader.Dispose()
         self.symbol_reader.Log.Close()
@@ -94,6 +99,33 @@ class TraceReadAndParseUtils:
     @property
     def trace_name(self) -> str:
         return self.trace_info.name
+
+    # Retrieve the corresponding StackView object with all the samples data
+    # for each GC in the trace. This collection is later accessed by the
+    # charting functions to read the metrics values and create the points.
+    def init_gcs_samples_data(self) -> None:
+        clr = get_clr()
+
+        # Ensure GC sample data has not been initialized.
+
+        assert not self.gcs_stack_views, (
+            "This trace already has the GC Samples data. Can't initialize "
+            "it again."
+        )
+
+        gcs_time_ranges = _get_gcs_time_ranges(self.trace_processed_gcs)
+
+        # Call GCPerf to get the samples metrics for each GC, by passing the
+        # time range where each one occurred.
+
+        for gc_trange in gcs_time_ranges:
+            gc_stack_view = clr.Analysis.GetSamplesDataWithinTimeRange(
+                self.trace_log,
+                self.symbol_reader,
+                self.stack_source,
+                gc_trange,
+            )
+            self.gcs_stack_views.append(gc_stack_view)
 
 
 @doc_field("gc_index", "Index/Number/ID of the GC.")
@@ -173,17 +205,22 @@ def _get_gcs_time_ranges(gcs: Sequence[ProcessedGC]) -> List[AbstractTimeSpan]:
 
 
 def _get_cpu_samples_from_trace(
-    clr: Clr,
     ptrace_utils: TraceReadAndParseUtils,
     functions: Sequence[str],
     all_data_to_chart: List[Trace[GCAndCPUSamples]],
-    gc_filter: Optional[Callable[[ProcessedGC], bool]] = None,
+    gc_filter: Optional[Callable[[ProcessedGC], bool]],
 ) -> None:
 
-    # Filter the GC's we want and obtain their time lapses.
+    # Filter the GC's we want. Here is something interesting happening.
+    # We are applying the received GC Filter, and retrieving a list with the
+    # matching GC's indices. This is because when the TraceReadAndParseUtils
+    # object was initialized, it stored each GC's StackView with the samples
+    # in an array, where each index matches the GC index.
 
-    gcs_to_analyze = list(filter(gc_filter, ptrace_utils.trace_processed_gcs))
-    gcs_time_ranges = _get_gcs_time_ranges(gcs_to_analyze)
+    gcs_to_analyze = list(map(
+        lambda filtered: filtered.index,
+        list(filter(gc_filter, ptrace_utils.trace_processed_gcs))
+    ))
 
     # Read each GC's metrics for each of the given functions and create a new
     # GCAndCPUSamples object with this data and add it to a list of points.
@@ -197,17 +234,14 @@ def _get_cpu_samples_from_trace(
     for func in functions:
         sample_points = []
 
-        for gc, trange in zip(gcs_to_analyze, gcs_time_ranges):
-            node_metrics = clr.Analysis.GetFunctionMetricsWithinTimeRange(
-                ptrace_utils.trace_log,
-                ptrace_utils.symbol_reader,
-                ptrace_utils.stack_source,
-                trange,
-                func,
-            )
+        # Retrieve the GC information from the array in the Trace Utils object
+        # using the GC index. This is explained more thoroughly above.
+
+        for gc_num in gcs_to_analyze:
+            node_metrics = ptrace_utils.gcs_stack_views[gc_num].FindNodeByName(func)
             sample_points.append(
                 GCAndCPUSamples(
-                    gc_index=gc.index,
+                    gc_index=gc_num,
                     function=func,
                     inclusive_count=node_metrics.InclusiveCount,
                     exclusive_count=node_metrics.ExclusiveCount,
@@ -218,11 +252,11 @@ def _get_cpu_samples_from_trace(
                 )
             )
         all_data_to_chart.append(
-            Trace(name=f"{ptrace_utils.trace_name}---{func}", data=sample_points)
+            Trace(name=f"{ptrace_utils.trace_name}---{func}:", data=sample_points)
         )
 
 
-# Summary: Reads all the given traces and calls _get_cpu_samples_from_trace()
+# Summary: Reads all the given traces' data and calls _get_cpu_samples_from_trace()
 #          accordingly to get all the samples data to chart. Then, calls
 #          chart_lines_from_fields() to display the chart.
 #
@@ -245,14 +279,24 @@ def chart_cpu_samples_per_gcs(
     y_property_names: Sequence[str],
     gc_filter: Optional[Callable[[ProcessedGC], bool]] = None,
 ) -> None:
-    clr = get_clr()
+
+    # Make sure the samples data has been initialized for all the given traces,
+    # or there will be nothing to chart.
+
+    for ptrace in ptraces_utils:
+        assert ptrace.gcs_stack_views, (
+            f"The Trace Utils for {ptrace.trace_name} does not have the GC samples "
+            "data. Make sure you pass `init_gcs_samples=True` when creating the "
+            "object or call `init_gcs_samples_data() on it."
+        )
+
     all_data_to_chart: List[Trace[GCAndCPUSamples]] = []
 
-    # Read each trace and get the samples data to chart.
+    # Read each trace's information and get the samples data to chart,
+    # using the received GC filter, if any.
 
     for ptrace in ptraces_utils:
         _get_cpu_samples_from_trace(
-            clr=clr,
             ptrace_utils=ptrace,
             functions=functions_to_chart,
             all_data_to_chart=all_data_to_chart,
@@ -309,11 +353,14 @@ def show_cpu_samples_metrics(
 
     # Get the samples metrics data.
 
-    node_metrics = clr.Analysis.GetFunctionMetricsWithinTimeRange(
+    samples_data = clr.Analysis.GetSamplesDataWithinTimeRange(
         ptrace_utils.trace_log,
         ptrace_utils.symbol_reader,
         ptrace_utils.stack_source,
         clr.TimeSpanUtil.FromStartEndMSec(start_time_msec, end_time_msec),
-        function,
     )
+
+    # Ask for the metrics related to the function of interest and print them.
+
+    node_metrics = samples_data.FindNodeByName(function)
     _print_node(node_metrics)

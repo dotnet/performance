@@ -1420,6 +1420,7 @@ namespace GCPerf
         /*               CPU Samples Analysis Functions               */
         /* ********************************************************** */
 
+
         /// <summary>
         /// Creates a new TraceLog object and associates it to the trace in
         /// the given path.
@@ -1434,6 +1435,7 @@ namespace GCPerf
         {
             return EtlxNS.TraceLog.OpenOrConvert(tracePath);
         }
+
 
         /// <summary>
         /// Creates a new SymbolReader object, which will be in charge of
@@ -1456,6 +1458,7 @@ namespace GCPerf
             TextWriter symlogWriter = File.CreateText(logFile);
             return new SymbolReader(symlogWriter, symPath);
         }
+
 
         /// <summary>
         /// Gets all the CPU Stacks of the given process from the trace specified
@@ -1499,13 +1502,14 @@ namespace GCPerf
             return traceLog.CPUStacks(processToAnalyze);
         }
 
+
         /// <summary>
-        /// Gets and returns the given function's CPU Samples metrics within the
-        /// specified time range. To achieve this, first it filters the given
-        /// StackSource to the desired time range, and then creates a new
-        /// StackView object, which is internally a tree data structure, which
-        /// allows to find all the sample information easily by finding functions'
-        /// corresponding nodes.
+        /// Gets and returns the CPU Samples metrics within the specified time
+        /// range. To achieve this, first it filters the given StackSource to
+        /// the desired time range, and then creates a new StackView object,
+        /// which is internally a tree data structure, and returns it. This
+        /// object can be later used to easily get all the metrics data for
+        /// any given function, which is a node of the StackView.
         /// </summary>
         /// <param name="traceLog">
         /// TraceLog object associated to the analyzed trace.
@@ -1521,20 +1525,15 @@ namespace GCPerf
         /// TimeSpan object containing the start and end times of the desired
         /// lapse to analyze.
         /// </param>
-        /// <param name="functionToAnalyze">
-        /// Name of the function to fetch the samples of. This can be a regular
-        /// expression and StackView will resolve it accordingly.
-        /// </param>
         /// <returns>
-        /// A CallTreeNodeBase object containing all the samples information of
-        /// the given function in the specified time lapse.
+        /// A StackView object containing all the samples information in the
+        /// specified time lapse.
         /// </returns>
-        public static CallTreeNodeBase GetFunctionMetricsWithinTimeRange(
+        public static StackView GetSamplesDataWithinTimeRange(
             EtlxNS.TraceLog traceLog,
             SymbolReader symReader,
             StackSource fullStackSource,
-            TimeSpan timeRange,
-            string functionToAnalyze
+            TimeSpan timeRange
         )
         {
             /* A FilteredStackSource constructor requires the filtering criteria
@@ -1554,10 +1553,9 @@ namespace GCPerf
                 new FilterStackSource(filterParams, fullStackSource, ScalingPolicyKind.ScaleToData);
 
             /* Create the StackView object from our new FilterStackSource, and
-             * and return the node corresponding to our function of interest. */
+             * and return it. */
 
-            StackView stackView = new StackView(traceLog, timeFilteredStackSource, symReader);
-            return stackView.FindNodeByName(functionToAnalyze);
+            return new StackView(traceLog, timeFilteredStackSource, symReader);
         }
     }
 }
