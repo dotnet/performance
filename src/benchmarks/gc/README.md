@@ -20,11 +20,14 @@ NOTE: If running under ARM/ARM64, the program's functionalities are limited to r
 ### Install python 3.7+
 
 You will need at least version 3.7 of Python.
-WARN: Python 3.8.0 is [not compatible](https://github.com/jupyter/notebook/issues/4613) with Jupyter Notebook on Windows.
-This should be fixed in 3.8.1.
+
+WARNING: Python 3.8.0+ is known to cause issues while setting up, so make sure
+you use a 3.7 flavor.
 
 On Windows, just go to https://www.python.org/downloads/ and run the installer.
-It's recommended to install a 64-bit version if possible, but not required.
+For CPU Samples Analysis, it is required to have the 64-bit version. If you're
+not planning to use this functionality, any version works but 64-bit is still
+highly recommended.
 
 On other systems, it’s better to use your system’s package manager.
 
@@ -199,8 +202,9 @@ Let's run *low_memory_container* for this example.
 py . run bench/suite/low_memory_container.yaml
 ```
 
-On Windows, all tests must be run as administrator as PerfView requires this.
-(Unless `collect: none` is set the benchfile's options. See [Running Without Traces](#Running Without Traces).)
+On Windows, all tests must be run as administrator as PerfView requires this,
+unless `collect: none` is set the benchfile's options.
+See [Running Without Traces](#Running%20Without%20Traces) for more information.
 On Linux, only tests with containers require super user privileges.
 
 You might get errors due to `dotnet` or `dotnet-trace` not being found. Or you might see an error:
@@ -367,7 +371,7 @@ _ARM NOTE_: There is no support to analyze benchmark results on ARM/ARM64. In or
 
 GC Benchmarking Infrastructure also supports analyzing CPU Samples from traces.
 This is only supported on Jupyter Notebook and you can find the full instructions
-on how to run it [here](docs/jupyter%20notebook.md).
+on how to run it [here](docs/jupyter_notebook.md).
 
 ## Conclusion
 
@@ -497,18 +501,18 @@ If you don't have a trace, you are limited in the metrics you can use. No single
 See [example](docs/example.md) for a more detailed example involving more commands.
 
 Use `py . help` to see all commands.
-Also see the `docs` directory for other topics, especially [commands syntax](docs/commands syntax.md).
+Also see the `docs` directory for other topics, especially [commands syntax](docs/commands_syntax.md).
 
-Before modifying benchfiles, you should read [bench_file](docs/bench_file.md) which lists everything you can specify in a benchfile.
+Before modifying benchfiles, you should read the [bench file doc](docs/bench_file.md) which lists everything you can specify in a benchfile.
 
-Commands can be run in a Jupyter notebook instead of on the command line. See [jupyter notebook](docs/jupyter notebook.md).
+Commands can be run in a Jupyter notebook instead of on the command line. See [jupyter notebook](docs/jupyter_notebook.md).
 
 # Terms
 
 ### Metric
 
 The name of a measurement we might take.
-See more in `docs/metrics.md`.
+See more in [metrics](docs/metrics.md).
 
 ### Benchfile
 

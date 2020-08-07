@@ -1,18 +1,20 @@
 # Using with Jupyter Notebook
 
-A jupyter notebook has already been set up in `jupyter_notebook.py`. So far,
+A Jupyter Notebook has already been set up in `jupyter_notebook.py`. So far,
 it's only been tested with VSCode.
 
 ## Using with VSCode
 
-* Run `code .` in the `/performance/src/benchmarks/gc` directory.
+* Run `code .` in the `/performance/src/benchmarks/gc` directory or use VS Code's
+`Open Folder` option from the `File` menu.
 * Open `jupyter_notebook.py`.
 * Open your settings and enable `"editor.codeLens": true,`.
 * Wait a minute for CodeLens to show up in the notebook.
 
 ## Overview
 
-* Click on `Run cell` in the top cell. This is the only cell that is not optional to run.
+* Click on `Run cell` in the top cell. This is the only cell that is not optional
+to run.
 * Each of the other cells corresponds to some command. Instead of providing command
   line arguments, edit the code to provide different arguments to the function.
   You can then re-run that cell without needing to reload traces.
@@ -70,12 +72,27 @@ _MY_TRACE_ALL_DATA = TraceReadAndParseUtils(
 )
 ```
 
-Now you can choose between the two functionalities mentioned above. But before
-that, don't forget to import their respective functions:
+Creating this object by default will also initialize all the samples data for
+all the GC's in the trace. When working with bigger traces, this can take up a
+longer time to finish (even a few minutes with traces 1GB+ in size). However,
+since all the information will be ready and accessible, the chart queries you
+call will run and display in a very timely manner (<= 10 seconds on average).
+
+If you will be using the metrics display mentioned in the second bullet at the
+beginning of this section, you can optionally pass another parameter to tell
+`TraceReadAndParseUtils` to not initialize the information of the GC's and skip
+this wait:
 
 ```python
-from src.analysis.analyze_cpu_samples import chart_cpu_samples_per_gcs, show_cpu_samples_metrics
+_MY_TRACE_ALL_DATA = TraceReadAndParseUtils(
+    ptrace=_MY_TRACE,
+    symbol_path=Path("Path/To/PDB/Directory"),
+    init_gcs_samples=False,
+)
 ```
+
+Once that's finished, now you can choose between the two functionalities
+mentioned above.
 
 ### Charting CPU Samples per GC's
 
@@ -157,7 +174,8 @@ Running this yields the following output:
 
 ## Programming Notes
 
-Here are some internal implementation notes to be aware of when doing simple tests using the Jupyter Notebook.
+Here are some internal implementation notes to be aware of when doing simple
+tests using the Jupyter Notebook.
 
 ### Individual GC Information
 
@@ -177,4 +195,4 @@ functions:
 
 * To validate: Use `.is_ok()` or `.is_err()`.
 * To extract the value: Use `.value`.
-    * If you know what behavior happened, you can also use `.ok()` and `.err()` respectively.
+  * If you know what behavior happened, you can also use `.ok()` and `.err()` respectively.
