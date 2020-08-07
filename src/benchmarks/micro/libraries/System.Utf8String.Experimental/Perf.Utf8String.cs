@@ -52,6 +52,12 @@ namespace System.Text.Experimental
             Utf8Span span = new Utf8Span(new Utf8String(expected));
             span.IsAscii();
         }
+        
+        public void IsNormalized_GetIndexOfFirstNonAsciiChar()
+        {
+            string expected = "";
+            expected.IsNormalized();
+        }
 
     }
 }
