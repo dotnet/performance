@@ -44,13 +44,10 @@ namespace System.Text.Experimental
         }
 
         [Benchmark]
-        // [ArgumentsSource(nameof(TranscodingTestData))]
-        public void IsAscii()
+        public void IsNormalized_GetIndexOfFirstNonAsciiChar()
         {
-            string expected = "This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. This is a big string of words. ";
-
-            Utf8Span span = new Utf8Span(new Utf8String(expected));
-            span.IsAscii();
+            string expected = "";
+            expected.IsNormalized();
         }
 
     }
