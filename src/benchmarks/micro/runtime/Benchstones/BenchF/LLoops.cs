@@ -104,13 +104,8 @@ public class LLoops
         0.171449024000e+06, -0.510829560800e+07
     };
 
-    public static volatile object VolatileObject;
-
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void Escape(object obj)
-    {
-        VolatileObject = obj;
-    }
+    private static void Escape(object _) { }
 
     private static T[][] AllocArray<T>(int n1, int n2)
     {
