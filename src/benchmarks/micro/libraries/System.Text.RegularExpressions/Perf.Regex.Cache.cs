@@ -13,7 +13,6 @@ namespace System.Text.RegularExpressions.Tests
     public class Perf_Regex_Cache
     {
         private const int MaxConcurrency = 4;
-        private volatile bool _isMatch;
         private int _cacheSizeOld;
         private IReadOnlyDictionary<(int total, int unique), string[]> _patterns;
 
@@ -42,20 +41,22 @@ namespace System.Text.RegularExpressions.Tests
         [Arguments(40_000, 1_600, 15)]    // default size, to compare when cache used
         [Arguments(40_000, 1_600, 800)]    // larger size, to test cache is not O(n)
         [Arguments(40_000, 1_600, 3_200)]  // larger size, to test cache always hit
-        public void IsMatch(int total, int unique, int cacheSize)
+        public bool IsMatch(int total, int unique, int cacheSize)
         {
             if (Regex.CacheSize != cacheSize)
                 Regex.CacheSize = cacheSize;
             
             string[] patterns = _patterns[(total, unique)];
 
-            RunTest(0, total, patterns);        
+            return RunTest(0, total, patterns);
         }
 
-        private void RunTest(int start, int total, string[] regexps)
+        private bool RunTest(int start, int total, string[] regexps)
         {
+            bool isMatch = false;
             for (var i = 0; i < total; i++)
-                _isMatch = Regex.IsMatch("0123456789", regexps[start + i]);
+                isMatch ^= Regex.IsMatch("0123456789", regexps[start + i]);
+            return isMatch;
         }
 
         [Benchmark]
