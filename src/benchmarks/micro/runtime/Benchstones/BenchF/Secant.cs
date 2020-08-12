@@ -15,13 +15,8 @@ public class Secant
 {
     public const int Iterations = 3000000;
 
-    public static volatile object VolatileObject;
-
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void Escape(object obj)
-    {
-        VolatileObject = obj;
-    }
+    private static void Escape(object _) { }
 
     [Benchmark(Description = nameof(Secant))]
     public bool Test()

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -11,23 +10,6 @@ namespace System.Tests
     [BenchmarkCategory(Categories.Libraries)]
     public class Perf_HashCode
     {
-        private static volatile int _valueStorage;
-
-        // Prevents the jitter from eliminating code that
-        // we want to test.
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void DontDiscard(int value)
-        {
-            _valueStorage = value;
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static int DontFold(int value)
-        {
-            return value + _valueStorage;
-        }
-
         [Benchmark]
         public int Add()
         { 
@@ -41,114 +23,128 @@ namespace System.Tests
             return hc.ToHashCode();
         }
 
-        
         [Benchmark]
-        public void Combine_1()
-        { 
+        public int Combine_1()
+        {
+            int result = 0;
             for (int i = 0; i < 10000; i++)
             { 
-                DontDiscard(HashCode.Combine(
-                    DontFold(i)));
+                result = HashCode.Combine(
+                    i + result);
             }
-        }
-
-
-        [Benchmark]
-        public void Combine_2()
-        {
-            for (int i = 0; i < 10000; i++)
-            {
-                DontDiscard(HashCode.Combine(
-                    DontFold(i),
-                    DontFold(i)));
-            }
+            return result;
         }
 
         [Benchmark]
-        public void Combine_3()
+        public int Combine_2()
         {
+            int result = 0;
             for (int i = 0; i < 10000; i++)
             {
-                DontDiscard(HashCode.Combine(
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i)));
+                result = HashCode.Combine(
+                    i + result,
+                    i + result);
             }
+            return result;
         }
 
         [Benchmark]
-        public void Combine_4()
+        public int Combine_3()
         {
+            int result = 0;
             for (int i = 0; i < 10000; i++)
             {
-                DontDiscard(HashCode.Combine(
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i)));
+                result = HashCode.Combine(
+                    i + result,
+                    i + result,
+                    i + result);
             }
+            return result;
         }
 
         [Benchmark]
-        public void Combine_5()
+        public int Combine_4()
         {
+            int result = 0;
             for (int i = 0; i < 10000; i++)
             {
-                DontDiscard(HashCode.Combine(
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i)));
+                result = HashCode.Combine(
+                    i + result,
+                    i + result,
+                    i + result,
+                    i + result);
             }
+            return result;
         }
 
         [Benchmark]
-        public void Combine_6()
+        public int Combine_5()
         {
+            int result = 0;
             for (int i = 0; i < 10000; i++)
             {
-                DontDiscard(HashCode.Combine(
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i)));
+                result = HashCode.Combine(
+                    i + result,
+                    i + result,
+                    i + result,
+                    i + result,
+                    i + result);
             }
+            return result;
         }
 
         [Benchmark]
-        public void Combine_7()
+        public int Combine_6()
         {
+            int result = 0;
             for (int i = 0; i < 10000; i++)
             {
-                DontDiscard(HashCode.Combine(
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i)));
+                result = HashCode.Combine(
+                    i + result,
+                    i + result,
+                    i + result,
+                    i + result,
+                    i + result,
+                    i + result);
             }
+            return result;
         }
 
         [Benchmark]
-        public void Combine_8()
+        public int Combine_7()
         {
+            int result = 0;
             for (int i = 0; i < 10000; i++)
             {
-                DontDiscard(HashCode.Combine(
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i),
-                    DontFold(i)));
+                result = HashCode.Combine(
+                    i + result,
+                    i + result,
+                    i + result,
+                    i + result,
+                    i + result,
+                    i + result,
+                    i + result);
             }
+            return result;
+        }
+
+        [Benchmark]
+        public int Combine_8()
+        {
+            int result = 0;
+            for (int i = 0; i < 10000; i++)
+            {
+                result = HashCode.Combine(
+                    i + result,
+                    i + result,
+                    i + result,
+                    i + result,
+                    i + result,
+                    i + result,
+                    i + result,
+                    i + result);
+            }
+            return result;
         }
     }
 }
