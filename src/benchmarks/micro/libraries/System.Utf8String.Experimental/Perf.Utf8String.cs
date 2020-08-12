@@ -31,11 +31,11 @@ namespace System.Text.Experimental
         [GlobalSetup]
         public void InitializeData()
         {
-            string path = Path.Combine(Environment.CurrentDirectory, "../");
+            string path = System.IO.Directory.GetParent(Environment.CurrentDirectory).ToString();
             int cc = 0;
             while (!path.EndsWith("performance"))
             {
-                path = Path.Combine(Environment.CurrentDirectory, "../");
+                path = System.IO.Directory.GetParent(path).ToString();
                 cc++;
                 if (cc > 20)
                 {
