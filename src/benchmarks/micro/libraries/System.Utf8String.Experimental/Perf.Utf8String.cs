@@ -15,17 +15,23 @@ namespace System.Text.Experimental
     [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
     public class Perf
     {
-        public static string ascii_11;
-        public static string nonascii_110;
-        public static string nonascii_chinese;
-        public static string nonascii_cyrillic;
-        public static string nonascii_greek;
-        public static IEnumerable<string> NonAsciiData()
+        public string ascii_11;
+        public string nonascii_110;
+        public string nonascii_chinese;
+        public string nonascii_cyrillic;
+        public string nonascii_greek;
+
+        public IEnumerable<string> NonAsciiData()
         {
             yield return nonascii_110;
             yield return nonascii_chinese;
             yield return nonascii_cyrillic;
             yield return nonascii_greek;
+        }
+
+        public IEnumerable<string> AsciiData()
+        {
+            yield return ascii_11;
         }
 
         [GlobalSetup]
@@ -36,6 +42,7 @@ namespace System.Text.Experimental
             while (!path.EndsWith("performance"))
             {
                 path = System.IO.Directory.GetParent(path).ToString();
+                Console.WriteLine(path);
                 cc++;
                 if (cc > 20)
                 {
@@ -43,17 +50,13 @@ namespace System.Text.Experimental
                     throw new Exception("Unable to determine path to test files");
                 }
             }
-            path = Path.Combine(path, "src/benchmarks/micro/libraries/System.Utf8String.Experimental/");
-            ascii_11 = File.ReadAllText(path + "11.txt");
-            nonascii_110 = File.ReadAllText(path + "11-0.txt");
-            nonascii_chinese = File.ReadAllText(path + "25249-0.txt");
-            nonascii_cyrillic = File.ReadAllText(path + "30774-0.txt");
-            nonascii_greek = File.ReadAllText(path + "39251-0.txt");
-        }
-
-        public static IEnumerable<string> AsciiData()
-        {
-            yield return ascii_11;
+            path = Path.Combine(path, "src", "benchmarks", "micro", "libraries", "System.Utf8String.Experimental");
+            Console.WriteLine(path);
+            ascii_11 = File.ReadAllText(Path.Combine(path, "11.txt"));
+            nonascii_110 = File.ReadAllText(Path.Combine(path, "11-0.txt"));
+            nonascii_chinese = File.ReadAllText(Path.Combine(path, "25249-0.txt"));
+            nonascii_cyrillic = File.ReadAllText(Path.Combine(path, "30774-0.txt"));
+            nonascii_greek = File.ReadAllText(Path.Combine(path, "39251-0.txt"));
         }
 
         [Benchmark]
