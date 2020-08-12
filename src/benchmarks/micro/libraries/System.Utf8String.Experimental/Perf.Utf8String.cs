@@ -45,36 +45,29 @@ namespace System.Text.Experimental
 
         [Benchmark]
         [ArgumentsSource(nameof(NonAsciiData))]
-        public void ToUtf16(string expected)
+        public int ToUtf16(string expected)
         {
             Utf8Span span = new Utf8Span(new Utf8String(expected));
             Memory<char> memory = new char[expected.Length];
             Span<char> destination = memory.Span;
-            span.ToChars(destination);
-        }
-
-        [Benchmark]
-        [ArgumentsSource(nameof(NonAsciiData))]
-        public void IsAscii(string expected)
-        {
-            Utf8Span span = new Utf8Span(new Utf8String(expected));
-            span.IsAscii();
+            return span.ToChars(destination);
         }
 
         [Benchmark]
         [ArgumentsSource(nameof(AsciiData))]
-        public void IsAscii_GetIndexOfFirstNonAsciiByte(string expected)
+        public bool IsAscii_GetIndexOfFirstNonAsciiByte(string expected)
         {
             Utf8Span span = new Utf8Span(new Utf8String(expected));
-            span.IsAscii();
+            return span.IsAscii();
         }
 
         [Benchmark]
         [ArgumentsSource(nameof(AsciiData))]
-        public void IsNormalized_GetIndexOfFirstNonAsciiChar(string expected)
+        public bool IsNormalized_GetIndexOfFirstNonAsciiChar(string expected)
         {
-            expected.IsNormalized();
-            expected.IsNormalized();
+            bool b1 = expected.IsNormalized();
+            bool b2 = expected.IsNormalized();
+            return b1 & b2;
         }
 
         [Benchmark]
@@ -84,6 +77,10 @@ namespace System.Text.Experimental
             Utf8Span span = new Utf8Span(new Utf8String(expected));
             char[] returned = span.ToCharArray();
             char[] second = span.ToCharArray();
+            if (returned[0] != second[0])
+            {
+                Console.WriteLine("Just a line to consume returned and second");
+            }
         }
     }
 }
