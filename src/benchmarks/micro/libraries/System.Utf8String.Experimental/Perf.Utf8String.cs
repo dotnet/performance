@@ -31,11 +31,24 @@ namespace System.Text.Experimental
         [GlobalSetup]
         public void InitializeData()
         {
-            ascii_11 = File.ReadAllText("../../../../../src/benchmarks/micro/libraries/System.Utf8String.Experimental/11.txt");
-            nonascii_110 = File.ReadAllText("../../../../../src/benchmarks/micro/libraries/System.Utf8String.Experimental/11-0.txt");
-            nonascii_chinese = File.ReadAllText("../../../../../src/benchmarks/micro/libraries/System.Utf8String.Experimental/25249-0.txt");
-            nonascii_cyrillic = File.ReadAllText("../../../../../src/benchmarks/micro/libraries/System.Utf8String.Experimental/30774-0.txt");
-            nonascii_greek = File.ReadAllText("../../../../../src/benchmarks/micro/libraries/System.Utf8String.Experimental/39251-0.txt");
+            string path = Path.Combine(Environment.CurrentDirectory, "../");
+            int cc = 0;
+            while (!path.EndsWith("performance"))
+            {
+                path = Path.Combine(Environment.CurrentDirectory, "../");
+                cc++;
+                if (cc > 20)
+                {
+                    // An infinite loop?
+                    throw new Exception("Unable to determine path to test files");
+                }
+            }
+            path = Path.Combine(path, "src/benchmarks/micro/libraries/System.Utf8String.Experimental/");
+            ascii_11 = File.ReadAllText(path + "11.txt");
+            nonascii_110 = File.ReadAllText(path + "11-0.txt");
+            nonascii_chinese = File.ReadAllText(path + "25249-0.txt");
+            nonascii_cyrillic = File.ReadAllText(path + "30774-0.txt");
+            nonascii_greek = File.ReadAllText(path + "39251-0.txt");
         }
 
         public static IEnumerable<string> AsciiData()
