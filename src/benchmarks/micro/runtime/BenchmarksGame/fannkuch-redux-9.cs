@@ -139,8 +139,9 @@ namespace BenchmarksGame
             maxFlips[-taskId - 1] = maxflips;
         }
 
+        // Official runs use [Arguments(12, 3968050)] which takes ~4.2 sec vs ~330ms for 11
         [Benchmark(Description = nameof(FannkuchRedux_5))]
-        [Arguments(12, 3968050)]
+        [Arguments(11, 556355)]
         public int RunBench(int n, int expectedSum)
         {
             int chkSum = Bench(n, false);
