@@ -1,3 +1,11 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+// Adapted from fannkuch-redux C# .NET Core #9 program
+// https://benchmarksgame-team.pages.debian.net/benchmarksgame/program/fannkuchredux-csharpcore-9.html
+// Best-scoring single-threaded C# .NET Core version as of 2020-08-13
+
 // The Computer Language Benchmarks Game
 // https://benchmarksgame-team.pages.debian.net/benchmarksgame/
 //
