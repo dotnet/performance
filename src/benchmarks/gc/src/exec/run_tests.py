@@ -121,7 +121,7 @@ def run_test(
         else args.out
     )
     built = get_built(
-        bench.content.coreclrs,
+        coreclrs=bench.content.coreclrs,
         build_kind=BuildKind.forbid_out_of_date,
         use_debug_coreclrs=args.use_debug_coreclrs,
         skip_coreclr_checks=args.skip_coreclr_checks,
@@ -174,7 +174,7 @@ def _run_all_benchmarks(
                     SingleTest(
                         test=t.test,
                         coreclr=built.coreclrs[t.coreclr_name],
-                        test_exe=_get_path(built, t.bench_file.paths, t.benchmark.get_executable),
+                        test_exe=t.test.executable.executable_path,
                         options=t.bench_file.options,
                         default_env=default_env,
                     ),
