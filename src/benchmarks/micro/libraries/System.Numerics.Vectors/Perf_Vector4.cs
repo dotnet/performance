@@ -89,7 +89,7 @@ namespace System.Numerics.Tests
         public Vector4 DivideBenchmark() => Vector4.Divide(VectorTests.Vector4Value, VectorTests.Vector4Delta);
 
         [Benchmark]
-        public Vector4 DivideByScalarrBenchmark() => Vector4.Divide(VectorTests.Vector4Value, 0.5f);
+        public Vector4 DivideByScalarBenchmark() => Vector4.Divide(VectorTests.Vector4Value, 0.5f);
 
         [Benchmark]
         public float DotBenchmark() => Vector4.Dot(VectorTests.Vector4Value, VectorTests.Vector4ValueInverted);
