@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using ustring = System.Utf8String;
 
 namespace System.Text.Experimental
 {
@@ -16,83 +13,93 @@ namespace System.Text.Experimental
     public class Perf
     {
         public string ascii_11;
+        public Utf8String ascii_11_ustring;
         public string nonascii_110;
+        public Utf8String nonascii_110_ustring;
         public string nonascii_chinese;
+        public Utf8String nonascii_chinese_ustring;
         public string nonascii_cyrillic;
+        public Utf8String nonascii_cyrillic_ustring;
         public string nonascii_greek;
-
-        public IEnumerable<string> NonAsciiData()
-        {
-            yield return nonascii_110;
-            yield return nonascii_chinese;
-            yield return nonascii_cyrillic;
-            yield return nonascii_greek;
-        }
-
-        public IEnumerable<string> AsciiData()
-        {
-            yield return ascii_11;
-        }
+        public Utf8String nonascii_greek_ustring;
 
         [GlobalSetup]
-        public void InitializeData()
+        public void Setup()
         {
-            string path = System.IO.Directory.GetParent(Environment.CurrentDirectory).ToString();
-            int cc = 0;
-            while (!path.EndsWith("performance"))
-            {
-                path = System.IO.Directory.GetParent(path).ToString();
-                Console.WriteLine(path);
-                cc++;
-                if (cc > 20)
-                {
-                    // An infinite loop?
-                    throw new Exception("Unable to determine path to test files");
-                }
-            }
-            path = Path.Combine(path, "src", "benchmarks", "micro", "libraries", "System.Utf8String.Experimental");
-            Console.WriteLine(path);
+            string path = Path.Combine(Environment.CurrentDirectory, "libraries", "System.Utf8String.Experimental");
             ascii_11 = File.ReadAllText(Path.Combine(path, "11.txt"));
+            ascii_11_ustring = new Utf8String(ascii_11);
             nonascii_110 = File.ReadAllText(Path.Combine(path, "11-0.txt"));
+            nonascii_110_ustring = new Utf8String(nonascii_110);
             nonascii_chinese = File.ReadAllText(Path.Combine(path, "25249-0.txt"));
+            nonascii_chinese_ustring = new Utf8String(nonascii_chinese);
             nonascii_cyrillic = File.ReadAllText(Path.Combine(path, "30774-0.txt"));
+            nonascii_cyrillic_ustring = new Utf8String(nonascii_cyrillic);
             nonascii_greek = File.ReadAllText(Path.Combine(path, "39251-0.txt"));
+            nonascii_greek_ustring = new Utf8String(nonascii_greek);
         }
 
         [Benchmark]
-        [ArgumentsSource(nameof(NonAsciiData))]
-        public int ToUtf16(string expected)
+        public int ToUtf16_nonascii_110()
         {
-            Utf8Span span = new Utf8Span(new Utf8String(expected));
-            Memory<char> memory = new char[expected.Length];
+            string str = nonascii_110;
+            Utf8Span span = new Utf8Span(nonascii_110_ustring);
+            Memory<char> memory = new char[str.Length];
             Span<char> destination = memory.Span;
             return span.ToChars(destination);
         }
 
         [Benchmark]
-        [ArgumentsSource(nameof(AsciiData))]
-        public bool IsAscii_GetIndexOfFirstNonAsciiByte(string expected)
+        public int ToUtf16_nonascii_chinese()
         {
-            Utf8Span span = new Utf8Span(new Utf8String(expected));
-            return span.IsAscii();
+            string str = nonascii_chinese;
+            Utf8Span span = new Utf8Span(nonascii_chinese_ustring);
+            Memory<char> memory = new char[str.Length];
+            Span<char> destination = memory.Span;
+            return span.ToChars(destination);
         }
 
         [Benchmark]
-        [ArgumentsSource(nameof(AsciiData))]
-        public bool IsNormalized_GetIndexOfFirstNonAsciiChar(string expected)
+        public int ToUtf16_nonascii_cyrillic()
         {
-            bool b1 = expected.IsNormalized();
-            bool b2 = expected.IsNormalized();
+            string str = nonascii_cyrillic;
+            Utf8Span span = new Utf8Span(nonascii_cyrillic_ustring);
+            Memory<char> memory = new char[str.Length];
+            Span<char> destination = memory.Span;
+            return span.ToChars(destination);
+        }
+
+        [Benchmark]
+        public int ToUtf16_nonascii_greek()
+        {
+            string str = nonascii_greek;
+            Utf8Span span = new Utf8Span(nonascii_greek_ustring);
+            Memory<char> memory = new char[str.Length];
+            Span<char> destination = memory.Span;
+            return span.ToChars(destination);
+        }
+
+        [Benchmark]
+        public bool IsAscii_GetIndexOfFirstNonAsciiByte()
+        {
+            Utf8Span ascii_11_span = new Utf8Span(ascii_11_ustring);
+            return ascii_11_span.IsAscii();
+        }
+
+        [Benchmark]
+        public bool IsNormalized_GetIndexOfFirstNonAsciiChar()
+        {
+            bool b1 = ascii_11.IsNormalized();
+            bool b2 = ascii_11.IsNormalized();
             return b1 & b2;
         }
 
         [Benchmark]
-        [ArgumentsSource(nameof(AsciiData))]
-        public void IsNormalized_WidenAsciiToUtf16(string expected)
+        public void IsNormalized_WidenAsciiToUtf16()
         {
-            Utf8Span span = new Utf8Span(new Utf8String(expected));
-            char[] returned = span.ToCharArray();
-            char[] second = span.ToCharArray();
+            Utf8Span ascii_11_span = new Utf8Span(ascii_11_ustring);
+            char[] returned = ascii_11_span.ToCharArray();
+            char[] second = ascii_11_span.ToCharArray();
             if (returned[0] != second[0])
             {
                 Console.WriteLine("Just a line to consume returned and second");
