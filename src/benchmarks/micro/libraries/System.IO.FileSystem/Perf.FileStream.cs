@@ -66,6 +66,7 @@ namespace System.IO.Tests
         }
         
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
         public async Task<int> ReadAsync()
         {
             byte[] buffer = _buffer;
@@ -83,6 +84,7 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
         public async Task CopyToAsync()
         {
             using (var reader = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, FileOptions.Asynchronous))

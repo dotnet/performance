@@ -33,6 +33,7 @@ namespace MicroBenchmarks
         public const string Burgers = "Burgers";
         public const string SciMark = "SciMark";
         public const string CscBench = "CscBench";
+        public const string NoWASM = "NoWASM";
 
         public const string JIT = "JIT";
         public const string JSON = "JSON";

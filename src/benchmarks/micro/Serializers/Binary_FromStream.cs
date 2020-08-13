@@ -15,6 +15,7 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(IndexViewModel))]
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
+    [BenchmarkCategory(Categories.NoWASM)]
     public class Binary_FromStream<T>
     {
         private readonly T value;

@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.IO.Compression
 {
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class Brotli : CompressionStreamPerfTestBase
     {
         private const int Window = 22;

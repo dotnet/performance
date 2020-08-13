@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace System.Buffers.Tests
 {
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     [GenericTypeArguments(typeof(byte))] // value type
     [GenericTypeArguments(typeof(object))] // reference type
     public class RentReturnArrayPoolTests<T>
