@@ -140,7 +140,7 @@ namespace BenchmarksGame
         }
 
         // Official runs use [Arguments(12, 3968050)] which takes ~4.2 sec vs ~330ms for 11
-        [Benchmark(Description = nameof(FannkuchRedux_5))]
+        [Benchmark(Description = nameof(FannkuchRedux_9))]
         [Arguments(11, 556355)]
         public int RunBench(int n, int expectedSum)
         {
