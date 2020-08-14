@@ -62,6 +62,7 @@ namespace System.Net.Sockets.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
         public async Task SendAsyncThenReceiveAsync_SocketAsyncEventArgs()
         {
             Socket client = _client, server = _server;
@@ -86,6 +87,7 @@ namespace System.Net.Sockets.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
         public async Task ReceiveAsyncThenSendAsync_SocketAsyncEventArgs()
         {
             Socket client = _client, server = _server;

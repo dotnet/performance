@@ -60,6 +60,7 @@ namespace System.Text.RegularExpressions.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
         [Arguments(400_000, 7, 15)]         // default size, most common
         [Arguments(400_000, 1, 15)]         // default size, to test MRU
         [Arguments(40_000, 7, 0)]          // cache turned off

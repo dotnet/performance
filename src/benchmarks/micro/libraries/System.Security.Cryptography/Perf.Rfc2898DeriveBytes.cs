@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Security.Cryptography.Tests
 {
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class Perf_Rfc2898DeriveBytes
     {
         private static readonly Rfc2898DeriveBytes s_db = new Rfc2898DeriveBytes("verysafepassword", 32, 10_000, HashAlgorithmName.SHA256);

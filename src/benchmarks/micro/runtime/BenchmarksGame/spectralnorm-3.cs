@@ -24,7 +24,7 @@ using MicroBenchmarks;
 namespace BenchmarksGame
 {
     [MaxIterationCount(40)] // the default 20 is not enough, the benchmark has multimodal distribution and needs more runs
-    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame, Categories.JIT)]
+    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame, Categories.JIT, Categories.NoWASM)]
     public class SpectralNorm_3
     {
         [Benchmark(Description = nameof(SpectralNorm_3))]

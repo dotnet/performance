@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Threading.Tests
 {
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public partial class Perf_ThreadPool
     {
         [Params(20_000_000)]

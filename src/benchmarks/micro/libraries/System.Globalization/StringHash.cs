@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace System.Globalization.Tests
 {
-    [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Runtime, Categories.NoWASM)]
     public class StringHash
     {
         public static IEnumerable<(CultureInfo CultureInfo, CompareOptions CompareOptions)> GetOptions()
