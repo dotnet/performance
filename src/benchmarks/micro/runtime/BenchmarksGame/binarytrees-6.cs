@@ -67,10 +67,10 @@ namespace BenchmarksGame
                 {
                     tasks[t] = Task.Run(() =>
                     {
-                        var check = 0;
-                        for (int i = n; i > 0; i--)
-                            check += TreeNode.Create(depth).Check();
-                        return check;
+                        var check2 = 0;
+                        for (int i2 = n; i2 > 0; i--)
+                            check2 += TreeNode.Create(depth).Check();
+                        return check2;
                     });
                 }
                 var check = tasks[0].Result;
