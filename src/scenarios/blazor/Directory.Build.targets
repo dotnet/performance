@@ -1,7 +1,7 @@
 <Project>
  <Target Name="UpdateTargetingAndRuntimePack"
          AfterTargets="ResolveFrameworkReferences"
-         Condition="'$(HELIX_CORRELATION_PAYLOAD)' != ''">
+         Condition="Exists('$(HELIX_CORRELATION_PAYLOAD)/microsoft.netcore.app.ref')">
     <PropertyGroup>
         <MicrosoftNetCoreAppRefPackDir>$(HELIX_CORRELATION_PAYLOAD)/microsoft.netcore.app.ref</MicrosoftNetCoreAppRefPackDir>
         <MicrosoftNetCoreAppRuntimePackDir>$(HELIX_CORRELATION_PAYLOAD)/microsoft.netcore.app.runtime.browser-wasm/$(Configuration)</MicrosoftNetCoreAppRuntimePackDir>
