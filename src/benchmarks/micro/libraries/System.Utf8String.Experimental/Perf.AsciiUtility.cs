@@ -2,43 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.IO;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
 namespace System.Text.Experimental
 {
     [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
-    public class Perf
+    public class Perf_AsciiUtility : Perf_Utf8String_Base
     {
-        public string ascii_11;
-        public Utf8String ascii_11_ustring;
-        public string nonascii_110;
-        public Utf8String nonascii_110_ustring;
-        public string nonascii_chinese;
-        public Utf8String nonascii_chinese_ustring;
-        public string nonascii_cyrillic;
-        public Utf8String nonascii_cyrillic_ustring;
-        public string nonascii_greek;
-        public Utf8String nonascii_greek_ustring;
-
-        [GlobalSetup]
-        public void Setup()
-        {
-            string path = Path.Combine(Environment.CurrentDirectory, "libraries", "System.Utf8String.Experimental");
-            ascii_11 = File.ReadAllText(Path.Combine(path, "11.txt"));
-            ascii_11_ustring = new Utf8String(ascii_11);
-            nonascii_110 = File.ReadAllText(Path.Combine(path, "11-0.txt"));
-            nonascii_110_ustring = new Utf8String(nonascii_110);
-            nonascii_chinese = File.ReadAllText(Path.Combine(path, "25249-0.txt"));
-            nonascii_chinese_ustring = new Utf8String(nonascii_chinese);
-            nonascii_cyrillic = File.ReadAllText(Path.Combine(path, "30774-0.txt"));
-            nonascii_cyrillic_ustring = new Utf8String(nonascii_cyrillic);
-            nonascii_greek = File.ReadAllText(Path.Combine(path, "39251-0.txt"));
-            nonascii_greek_ustring = new Utf8String(nonascii_greek);
-        }
-
         [Benchmark]
         public int ToUtf16_nonascii_110()
         {
