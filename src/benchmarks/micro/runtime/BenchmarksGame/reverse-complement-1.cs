@@ -21,7 +21,7 @@ using MicroBenchmarks;
 
 namespace BenchmarksGame
 {
-    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame, Categories.JIT)]
+    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame, Categories.JIT, Categories.NoWASM)]
     public class ReverseComplement_1
     {
         struct Block

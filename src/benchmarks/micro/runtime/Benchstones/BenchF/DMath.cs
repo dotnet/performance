@@ -16,12 +16,9 @@ public class DMath
     public const int Iterations = 100000;
 
     private const double Deg2Rad = 57.29577951;
-    private static volatile object s_volatileObject;
 
-    private static void Escape(object obj)
-    {
-        s_volatileObject = obj;
-    }
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void Escape(object _) { }
 
     private static double Fact(double n)
     {

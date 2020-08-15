@@ -15,13 +15,8 @@ public class NewtR
 {
     public const int Iterations = 80000000;
 
-    public static volatile object VolatileObject;
-
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void Escape(object obj)
-    {
-        VolatileObject = obj;
-    }
+    private static void Escape(object _) { }
 
     [Benchmark(Description = nameof(NewtR))]
     public bool Test()

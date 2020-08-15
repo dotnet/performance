@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace System.Threading.Tasks.Tests
 {
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class Perf_AsyncMethods
     {
         [Benchmark(OperationsPerInvoke = 100_000)]
