@@ -14,27 +14,27 @@ namespace System.Diagnostics
 {
     [MemoryDiagnoser]
     [BenchmarkCategory(Categories.Libraries)]
-    public class Perf_Activity : IDisposable
+    public class Perf_Activity
     {
-        private readonly ActivitySource _ActivitySource;
-        private readonly ActivityListener _ActivityListener;
-        private readonly Activity _Activity;
-        private readonly ActivityLink _ActivityLink;
+        private static readonly ActivitySource s_ActivitySource;
+        private static readonly ActivityListener s_ActivityListener;
+        private static readonly Activity s_Activity;
+        private static readonly ActivityLink s_ActivityLink;
 
-        public Perf_Activity()
+        static Perf_Activity()
         {
-            _ActivitySource = new ActivitySource("TestActivitySource");
+            s_ActivitySource = new ActivitySource("TestActivitySource");
 
-            _ActivityListener = new ActivityListener
+            s_ActivityListener = new ActivityListener
             {
                 ShouldListenTo = s => s.Name == "TestActivitySource",
 
                 GetRequestedDataUsingContext = (ref ActivityCreationOptions<ActivityContext> o) => ActivityDataRequest.AllDataAndRecorded
             };
 
-            ActivitySource.AddActivityListener(_ActivityListener);
+            ActivitySource.AddActivityListener(s_ActivityListener);
 
-            _Activity = _ActivitySource.StartActivity(
+            s_Activity = s_ActivitySource.StartActivity(
                 "TestActivity",
                 ActivityKind.Internal,
                 parentContext: default,
@@ -53,14 +53,14 @@ namespace System.Diagnostics
                     new ActivityLink(default),
                 });
 
-            _Activity.AddEvent(new ActivityEvent("TestEvent1"));
-            _Activity.AddEvent(new ActivityEvent("TestEvent2"));
-            _Activity.AddEvent(new ActivityEvent("TestEvent3"));
-            _Activity.AddEvent(new ActivityEvent("TestEvent4"));
+            s_Activity.AddEvent(new ActivityEvent("TestEvent1"));
+            s_Activity.AddEvent(new ActivityEvent("TestEvent2"));
+            s_Activity.AddEvent(new ActivityEvent("TestEvent3"));
+            s_Activity.AddEvent(new ActivityEvent("TestEvent4"));
 
-            _Activity.Stop();
+            s_Activity.Stop();
 
-            _ActivityLink = new ActivityLink(
+            s_ActivityLink = new ActivityLink(
                 default,
                 new ActivityTagsCollection(
                     new Dictionary<string, object>
@@ -70,12 +70,6 @@ namespace System.Diagnostics
                         ["tag3"] = "string2",
                         ["tag4"] = false,
                     }));
-        }
-
-        public void Dispose()
-        {
-            _ActivityListener.Dispose();
-            _ActivitySource.Dispose();
         }
 
         [Params(5000)]
@@ -88,7 +82,7 @@ namespace System.Diagnostics
 
             for (int i = 0; i < NumberOfActivities; i++)
             {
-                foreach (var tagString in _Activity.Tags)
+                foreach (var tagString in s_Activity.Tags)
                 {
                     total++;
                 }
@@ -102,7 +96,7 @@ namespace System.Diagnostics
 
             for (int i = 0; i < NumberOfActivities; i++)
             {
-                foreach (var tagObject in _Activity.TagObjects)
+                foreach (var tagObject in s_Activity.TagObjects)
                 {
                     total++;
                 }
@@ -115,11 +109,11 @@ namespace System.Diagnostics
             int total = 0;
 
             Enumerator<IEnumerable<KeyValuePair<string, object>>, KeyValuePair<string, object>, int>.AllocationFreeForEachDelegate foreachDelegate
-                = Enumerator<IEnumerable<KeyValuePair<string, object>>, KeyValuePair<string, object>, int>.FindAllocationFreeForEach(_Activity.TagObjects);
+                = Enumerator<IEnumerable<KeyValuePair<string, object>>, KeyValuePair<string, object>, int>.FindAllocationFreeForEach(s_Activity.TagObjects);
 
             for (int i = 0; i < NumberOfActivities; i++)
             {
-                foreachDelegate(_Activity.TagObjects, ref total, ForeachTagObjectRef);
+                foreachDelegate(s_Activity.TagObjects, ref total, ForeachTagObjectRef);
             }
         }
 
@@ -138,7 +132,7 @@ namespace System.Diagnostics
 
             for (int i = 0; i < NumberOfActivities; i++)
             {
-                foreach (var link in _Activity.Links)
+                foreach (var link in s_Activity.Links)
                 {
                     total++;
                 }
@@ -151,11 +145,11 @@ namespace System.Diagnostics
             int total = 0;
 
             Enumerator<IEnumerable<ActivityLink>, ActivityLink, int>.AllocationFreeForEachDelegate foreachDelegate
-                = Enumerator<IEnumerable<ActivityLink>, ActivityLink, int>.FindAllocationFreeForEach(_Activity.Links);
+                = Enumerator<IEnumerable<ActivityLink>, ActivityLink, int>.FindAllocationFreeForEach(s_Activity.Links);
 
             for (int i = 0; i < NumberOfActivities; i++)
             {
-                foreachDelegate(_Activity.Links, ref total, ForeachLinkRef);
+                foreachDelegate(s_Activity.Links, ref total, ForeachLinkRef);
             }
         }
 
@@ -174,7 +168,7 @@ namespace System.Diagnostics
 
             for (int i = 0; i < NumberOfActivities; i++)
             {
-                foreach (var @event in _Activity.Events)
+                foreach (var @event in s_Activity.Events)
                 {
                     total++;
                 }
@@ -187,11 +181,11 @@ namespace System.Diagnostics
             int total = 0;
 
             Enumerator<IEnumerable<ActivityEvent>, ActivityEvent, int>.AllocationFreeForEachDelegate foreachDelegate
-                = Enumerator<IEnumerable<ActivityEvent>, ActivityEvent, int>.FindAllocationFreeForEach(_Activity.Events);
+                = Enumerator<IEnumerable<ActivityEvent>, ActivityEvent, int>.FindAllocationFreeForEach(s_Activity.Events);
 
             for (int i = 0; i < NumberOfActivities; i++)
             {
-                foreachDelegate(_Activity.Events, ref total, ForeachEventRef);
+                foreachDelegate(s_Activity.Events, ref total, ForeachEventRef);
             }
         }
 
@@ -210,7 +204,7 @@ namespace System.Diagnostics
 
             for (int i = 0; i < NumberOfActivities; i++)
             {
-                foreach (var tag in _ActivityLink.Tags)
+                foreach (var tag in s_ActivityLink.Tags)
                 {
                     total++;
                 }
@@ -223,11 +217,11 @@ namespace System.Diagnostics
             int total = 0;
 
             Enumerator<IEnumerable<KeyValuePair<string, object>>, KeyValuePair<string, object>, int>.AllocationFreeForEachDelegate foreachDelegate
-                = Enumerator<IEnumerable<KeyValuePair<string, object>>, KeyValuePair<string, object>, int>.FindAllocationFreeForEach(_ActivityLink.Tags);
+                = Enumerator<IEnumerable<KeyValuePair<string, object>>, KeyValuePair<string, object>, int>.FindAllocationFreeForEach(s_ActivityLink.Tags);
 
             for (int i = 0; i < NumberOfActivities; i++)
             {
-                foreachDelegate(_ActivityLink.Tags, ref total, ForeachTagObjectRef);
+                foreachDelegate(s_ActivityLink.Tags, ref total, ForeachTagObjectRef);
             }
         }
 
