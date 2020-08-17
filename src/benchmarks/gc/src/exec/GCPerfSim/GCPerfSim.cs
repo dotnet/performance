@@ -1442,6 +1442,8 @@ class ArgsParser
             totalMinutesToRun = 1;
         }
 
+        Console.WriteLine(Process.GetCurrentProcess().ProcessName + " " + Environment.CommandLine);
+
         ulong livePerThread = (totalLiveBytes ?? 0) / threadCount;
         ulong allocPerThread = (totalAllocBytes ?? 0) / threadCount;
         if (allocPerThread != 0) Console.WriteLine("allocating {0:n0} per thread", allocPerThread);
