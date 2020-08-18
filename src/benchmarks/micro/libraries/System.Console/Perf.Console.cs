@@ -14,7 +14,7 @@ namespace System.ConsoleTests
     /// - OpenStandardInput, OpenStandardOutput, OpenStandardError
     /// - ForegroundColor, BackgroundColor, ResetColor
     /// </summary>
-    [BenchmarkCategory(Categories.Libraries, Categories.NoWSAM)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class Perf_Console
     {
         private readonly Consumer consumer = new Consumer();
