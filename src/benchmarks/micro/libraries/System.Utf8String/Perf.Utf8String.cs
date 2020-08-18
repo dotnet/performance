@@ -21,100 +21,30 @@ namespace System.Text
             Greek, // Greek, similar to the Cyrillic case but with a different distribution of ASCII and non-ASCII chars
         }
 
-        private string _englishAllAsciiUnicode;
-        private Utf8String _englishAllAsciiUtf8;
-        private string _englishMostlyAsciiUnicode;
-        private Utf8String _englishMostlyAsciiUtf8;
-        private string _chineseUnicode;
-        private Utf8String _chineseUtf8;
-        private string _cyrillicUnicode;
-        private Utf8String _cyrillicUtf8;
-        private string _greekUnicode;
-        private Utf8String _greekUtf8;
+        [ParamsAllValues] // BDN uses all values of given enum
+        public InputFile Input { get; set; }
+
+        private Utf8String _utf8;
+        private Memory<char> _destination;
 
         [GlobalSetup]
         public void Setup()
         {
-            _englishAllAsciiUnicode = LoadFile(InputFile.EnglishAllAscii);
-            _englishAllAsciiUtf8 = new Utf8String(_englishAllAsciiUnicode);
-            _englishMostlyAsciiUnicode = LoadFile(InputFile.EnglishMostlyAscii);
-            _englishMostlyAsciiUtf8 = new Utf8String(_englishMostlyAsciiUnicode);
-            _chineseUnicode = LoadFile(InputFile.Chinese);
-            _chineseUtf8 = new Utf8String(_chineseUnicode);
-            _cyrillicUnicode = LoadFile(InputFile.Cyrillic);
-            _cyrillicUtf8 = new Utf8String(_cyrillicUnicode);
-            _greekUnicode = LoadFile(InputFile.Greek);
-            _greekUtf8 = new Utf8String(_greekUnicode);
-        }
-
-        private string LoadFile(InputFile inputFile) => File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "libraries", "System.Utf8String", $"{inputFile}.txt"));
-
-
-        [Benchmark]
-        public int ToUtf16_nonascii_110()
-        {
-            string str = _englishMostlyAsciiUnicode;
-            Utf8Span span = new Utf8Span(_englishMostlyAsciiUtf8);
-            Memory<char> memory = new char[str.Length];
-            Span<char> destination = memory.Span;
-            return span.ToChars(destination);
+            string unicode = File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "libraries", "System.Utf8String", $"{Input}.txt"));
+            _utf8 = new Utf8String(unicode);
+            _destination = new char[unicode.Length];
         }
 
         [Benchmark]
-        public int ToUtf16_nonascii_chinese()
-        {
-            string str = _chineseUnicode;
-            Utf8Span span = new Utf8Span(_chineseUtf8);
-            Memory<char> memory = new char[str.Length];
-            Span<char> destination = memory.Span;
-            return span.ToChars(destination);
-        }
+        public int ToChars() => new Utf8Span(_utf8).ToChars(_destination.Span);
 
         [Benchmark]
-        public int ToUtf16_nonascii_cyrillic()
-        {
-            string str = _cyrillicUnicode;
-            Utf8Span span = new Utf8Span(_cyrillicUtf8);
-            Memory<char> memory = new char[str.Length];
-            Span<char> destination = memory.Span;
-            return span.ToChars(destination);
-        }
+        public bool IsAscii() => new Utf8Span(_utf8).IsAscii();
 
         [Benchmark]
-        public int ToUtf16_nonascii_greek()
-        {
-            string str = _greekUnicode;
-            Utf8Span span = new Utf8Span(_greekUtf8);
-            Memory<char> memory = new char[str.Length];
-            Span<char> destination = memory.Span;
-            return span.ToChars(destination);
-        }
+        public bool IsNormalized() => new Utf8Span(_utf8).IsNormalized();
 
         [Benchmark]
-        public bool IsAscii_GetIndexOfFirstNonAsciiByte()
-        {
-            Utf8Span ascii_11_span = new Utf8Span(_englishAllAsciiUtf8);
-            return ascii_11_span.IsAscii();
-        }
-
-        [Benchmark]
-        public bool IsNormalized_GetIndexOfFirstNonAsciiChar()
-        {
-            bool b1 = _englishAllAsciiUnicode.IsNormalized();
-            bool b2 = _englishAllAsciiUnicode.IsNormalized();
-            return b1 & b2;
-        }
-
-        [Benchmark]
-        public void IsNormalized_WidenAsciiToUtf16()
-        {
-            Utf8Span ascii_11_span = new Utf8Span(_englishAllAsciiUtf8);
-            char[] returned = ascii_11_span.ToCharArray();
-            char[] second = ascii_11_span.ToCharArray();
-            if (returned[0] != second[0])
-            {
-                Console.WriteLine("Just a line to consume returned and second");
-            }
-        }
+        public char[] ToCharArray() => new Utf8Span(_utf8).ToCharArray();
     }
 }
