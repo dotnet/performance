@@ -101,9 +101,6 @@
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '5.0')">
     <Compile Remove="libraries\System.Text.Json\Serializer\ReadPreservedReferences.cs" />
     <Compile Remove="libraries\System.Text.Json\Serializer\WritePreservedReferences.cs" />
-  </ItemGroup>
-  
-  <ItemGroup Condition="'$(TargetFramework)' != 'netcoreapp5.0'">
     <Compile Remove="libraries\System.Formats.Cbor\*.cs" />
   </ItemGroup>
 
