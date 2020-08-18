@@ -58,6 +58,9 @@
     <None Update="libraries\System.IO.Compression\TestData\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="libraries\System.Utf8String.Experimental\*.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework'">
@@ -106,21 +109,4 @@
     <None Include="**/*.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="libraries\System.Utf8String.Experimental\11-0.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="libraries\System.Utf8String.Experimental\11.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="libraries\System.Utf8String.Experimental\25249-0.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="libraries\System.Utf8String.Experimental\30774-0.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="libraries\System.Utf8String.Experimental\39251-0.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
 </Project>
