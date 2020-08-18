@@ -6,10 +6,10 @@ using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 using System.IO;
 
-namespace System.Text.Experimental
+namespace System.Text
 {
     [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
-    public class Perf_AsciiUtility
+    public class Perf_Utf8String
     {
         // the benchmark uses text files from Project Gutenberg
         public enum InputFile
@@ -47,7 +47,7 @@ namespace System.Text.Experimental
             _greekUtf8 = new Utf8String(_greekUnicode);
         }
 
-        private string LoadFile(InputFile inputFile) => File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "libraries", "System.Utf8String.Experimental", $"{inputFile}.txt"));
+        private string LoadFile(InputFile inputFile) => File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "libraries", "System.Utf8String", $"{inputFile}.txt"));
 
 
         [Benchmark]
