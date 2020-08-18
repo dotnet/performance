@@ -10,7 +10,7 @@ using MicroBenchmarks;
 
 namespace System.Security.Cryptography.X509Certificates.Tests
 {
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class X509Certificate2Tests
     {
         private readonly X509Certificate2 _cert = GetMicrosoftComCert();

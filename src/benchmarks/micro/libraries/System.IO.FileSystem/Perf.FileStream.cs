@@ -120,6 +120,7 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
         public async Task WriteAsync()
         {
             byte[] bytes = _buffer;
