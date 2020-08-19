@@ -60,7 +60,7 @@
     <None Update="libraries\System.IO.Compression\TestData\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="libraries\System.Utf8String\*.txt">
+    <None Update="libraries\Common\*.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
