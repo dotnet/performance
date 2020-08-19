@@ -12,7 +12,7 @@ namespace PerfLabTests
     {
         private byte[] bytes;
 
-        [Params(0, 10, 100, 1000)]
+        [Params(10, 100, 1000)]
         public int numElements; 
 
         [GlobalSetup]
