@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace System.Formats.Cbor.Tests
 {
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class Perf_CborWriter
     {
         private CborWriter _ctap2Writer = new CborWriter(CborConformanceMode.Ctap2Canonical, convertIndefiniteLengthEncodings: true);

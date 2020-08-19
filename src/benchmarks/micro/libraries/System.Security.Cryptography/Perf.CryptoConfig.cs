@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Security.Cryptography.Tests
 {
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class Perf_CryptoConfig
     {
         [Benchmark]

@@ -9,7 +9,7 @@ using Test.Cryptography;
 
 namespace System.Formats.Cbor.Tests
 {
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class Perf_CborReader
     {
         [Benchmark]
