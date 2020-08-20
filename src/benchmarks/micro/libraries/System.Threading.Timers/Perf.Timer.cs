@@ -56,6 +56,7 @@ namespace System.Threading.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
         public void AsynchronousContention()
         {
             Task[] tasks = _tasks;
