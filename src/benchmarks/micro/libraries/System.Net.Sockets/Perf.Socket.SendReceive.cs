@@ -12,7 +12,7 @@ using MicroBenchmarks;
 
 namespace System.Net.Sockets.Tests
 {
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class SocketSendReceivePerfTest
     {
         private const int InnerIterationCount = 10_000;
@@ -62,7 +62,6 @@ namespace System.Net.Sockets.Tests
         }
 
         [Benchmark]
-        [BenchmarkCategory(Categories.NoWASM)]
         public async Task SendAsyncThenReceiveAsync_SocketAsyncEventArgs()
         {
             Socket client = _client, server = _server;
@@ -87,7 +86,6 @@ namespace System.Net.Sockets.Tests
         }
 
         [Benchmark]
-        [BenchmarkCategory(Categories.NoWASM)]
         public async Task ReceiveAsyncThenSendAsync_SocketAsyncEventArgs()
         {
             Socket client = _client, server = _server;

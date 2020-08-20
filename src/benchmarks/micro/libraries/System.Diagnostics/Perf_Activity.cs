@@ -27,7 +27,7 @@ namespace System.Diagnostics
             {
                 ShouldListenTo = s => s.Name == "TestActivitySource",
 
-                GetRequestedDataUsingContext = (ref ActivityCreationOptions<ActivityContext> o) => ActivityDataRequest.AllDataAndRecorded
+                Sample = (ref ActivityCreationOptions<ActivityContext> o) => ActivitySamplingResult.AllDataAndRecorded
             };
 
             Dictionary<string, object> LargeTagSet = new Dictionary<string, object>();

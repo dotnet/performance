@@ -14,7 +14,7 @@ namespace System.ConsoleTests
     /// - OpenStandardInput, OpenStandardOutput, OpenStandardError
     /// - ForegroundColor, BackgroundColor, ResetColor
     /// </summary>
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class Perf_Console
     {
         private readonly Consumer consumer = new Consumer();
@@ -47,7 +47,6 @@ namespace System.ConsoleTests
         }
 
         [Benchmark(OperationsPerInvoke = 8)]
-        [BenchmarkCategory(Categories.NoWASM)]
         public void ForegroundColor()
         {
             Console.ForegroundColor = ConsoleColor.Black;
@@ -64,7 +63,6 @@ namespace System.ConsoleTests
         public void ForegroundColorCleanup() => Console.ResetColor();
 
         [Benchmark(OperationsPerInvoke = 8)]
-        [BenchmarkCategory(Categories.NoWASM)]
         public void BackgroundColor()
         {
             Console.BackgroundColor = ConsoleColor.Black;
