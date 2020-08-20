@@ -999,6 +999,7 @@ class TestRunStatus:
 @dataclass(frozen=True)
 class PartialTestCombination:
     machine: Optional[Machine] = None
+    executable_and_name: Optional[TestExecutableAndName] = None
     coreclr_and_name: Optional[CoreclrAndName] = None
     config_and_name: Optional[PartialConfigAndName] = None
     benchmark_and_name: Optional[BenchmarkAndName] = None
@@ -1006,6 +1007,14 @@ class PartialTestCombination:
     @property
     def machine_name(self) -> Optional[str]:
         return None if self.machine is None else self.machine.name
+
+    @property
+    def executable(self) -> Optional[Path]:
+        return None if self.executable_and_name is None else self.executable_and_name.executable_path
+
+    @property
+    def executable_name(self) -> Optional[str]:
+        return None if self.executable_and_name is None else self.executable_and_name.name
 
     @property
     def coreclr_name(self) -> Optional[str]:
@@ -1031,6 +1040,7 @@ class PartialTestCombination:
     def name(self) -> str:
         parts: Sequence[str] = (
             *optional_to_iter(self.machine_name),
+            *optional_to_iter(self.executable_name),
             *optional_to_iter(self.coreclr_name),
             *optional_to_iter(self.config_name),
             *optional_to_iter(self.benchmark_name),
@@ -1043,6 +1053,7 @@ class Vary(Enum):
     coreclr = 1
     config = 2
     benchmark = 3
+    executable = 4
 
 
 VARY_DOC = """
