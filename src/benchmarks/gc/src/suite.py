@@ -172,7 +172,7 @@ def suite_run(args: SuiteRunArgs) -> None:
             "\n*** Here is a summary of the problems found: ***"
         )
         for file, test_errors in suite_errors.items():
-            print(f"\n======= {file} =======\n")
+            print(f"\n========= {file} =========\n")
             for err in test_errors.values():
                 err.print()
 

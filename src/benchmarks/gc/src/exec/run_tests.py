@@ -146,11 +146,11 @@ def run_test(
 
     if not is_suite and not is_empty(run_errors):
         print(
-            f"\n======= *WARNING*: Test '{bench_file_path}' encountered errors. =======\n"
+            f"\n========= *WARNING*: Test '{bench_file_path}' encountered errors. =========\n"
             "\n*** Here is a summary of the problems found: ***\n"
         )
-        for core_run in run_errors.values():
-            core_run.print()
+        for executable in run_errors.values():
+            executable.print()
 
 
 # pylint: disable=broad-except
@@ -184,6 +184,7 @@ def _run_all_benchmarks(
             _, exception_message, exception_trace = exc_info()
             add_new_error(
                 run_errors=run_errors,
+                exec_name=t.executable_name,
                 core_name=t.coreclr_name,
                 config_name=t.config_name,
                 bench_name=t.benchmark_name,

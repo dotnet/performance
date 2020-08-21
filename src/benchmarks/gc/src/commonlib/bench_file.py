@@ -1312,6 +1312,14 @@ class SingleTestToRun:
     out: TestPaths
 
     @property
+    def executable_name(self) -> str:
+        return self.test.executable_name
+
+    @property
+    def executable(self) -> Path:
+        return self.test.executable.executable_path
+
+    @property
     def coreclr_name(self) -> str:
         return self.test.coreclr_name
 
