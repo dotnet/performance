@@ -45,5 +45,6 @@ namespace MicroBenchmarks
         public const string GenericCollections = "GenericCollections";
         public const string NonGenericCollections = "NonGenericCollections";
         public const string NoInterpreter = "NoInterpreter";
+        public const string NoMono = "NoMono";
     }
 }
