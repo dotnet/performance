@@ -14,6 +14,7 @@ from ..commonlib.bench_file import (
     get_benchmark,
     get_config,
     get_coreclr,
+    get_test_executable,
     get_this_machine,
     iter_tests_to_run,
     out_dir_for_bench_yaml,
@@ -218,6 +219,9 @@ def _str_to_bool(s: str) -> bool:
 @dataclass(frozen=True)
 class HowToRunTestArgs:
     bench_file: Path = argument(name_optional=True, doc="Path to a benchfile.")
+    executable: Optional[str] = argument(
+        default=None, doc="Executable name for the test. May omit if there is only one executable."
+    )
     coreclr: Optional[str] = argument(
         default=None, doc="Coreclr name for the test. May omit if there is only one coreclr."
     )
@@ -238,6 +242,7 @@ class HowToRunTestArgs:
 
 def how_to_run_test(args: HowToRunTestArgs) -> None:
     bench = parse_bench_file(args.bench_file).content
+    executable = get_test_executable(bench, args.executable)
     coreclr = get_coreclr(bench, args.coreclr)
     built = get_built(
         {coreclr.name: coreclr.coreclr},
@@ -272,12 +277,13 @@ def how_to_run_test(args: HowToRunTestArgs) -> None:
     t = SingleTest(
         test=SingleTestCombination(
             machine=get_this_machine(),
+            executable=executable,
             coreclr=coreclr,
             config=config_and_name.as_partial,
             benchmark=benchmark_and_name,
         ),
         coreclr=coreclr_paths,
-        test_exe=_get_path(built, bench.paths, benchmark.get_executable),
+        test_exe=executable.executable_path,
         options=bench.options,
         default_env={},
     )

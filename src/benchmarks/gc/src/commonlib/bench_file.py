@@ -1430,6 +1430,12 @@ def combine_test_configs(
     )
 
 
+def get_test_executable(bench_file: BenchFile, executable_name: Optional[str]) -> TestExecutableAndName:
+    return find_only_or_only_matching(
+        lambda exn: exn.name, "--executable", executable_name, bench_file.executables_and_names
+    )
+
+
 def get_coreclr(bench_file: BenchFile, coreclr_name: Optional[str]) -> CoreclrAndName:
     return find_only_or_only_matching(
         lambda cn: cn.name, "--coreclr", coreclr_name, bench_file.coreclrs_and_names
