@@ -46,7 +46,7 @@ namespace System.IO.Tests
         public void CleanupDirectoryIteration()
         {
             foreach (var directory in _directoriesToCreate)
-                Directory.Delete(directory);
+                Directory.Delete(directory, recursive: true);
         }
 
         [GlobalSetup(Target = nameof(Exists))]
@@ -56,7 +56,7 @@ namespace System.IO.Tests
         public bool Exists() => Directory.Exists(_testFile);
         
         [GlobalCleanup(Target = nameof(Exists))]
-        public void CleanupExists() => Directory.Delete(_testFile);
+        public void CleanupExists() => Directory.Delete(_testFile, recursive: true);
 
         public IEnumerable<object> RecursiveDepthData()
             => new object[] { 10, 100, 1000 } // Most Unix distributions have a maximum path length of 1024 characters (1024 UTF-8 bytes). 
