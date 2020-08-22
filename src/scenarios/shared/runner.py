@@ -225,7 +225,8 @@ class Runner:
                                    )
             self.traits.add_traits(overwrite=False,
                                    scenarioname='Crossgen2 Throughput - %s - %s' % ( compiletype, filename),
-                                   apptorun=os.path.join(self.coreroot, 'CoreRun%s' % extension())
+                                   apptorun=os.path.join(self.coreroot, 'corerun%s' % extension()),
+                                   environmentvariables='COMPlus_EnableEventLog=1' if not iswin() else '' # turn on clr user events
                                   ) 
             startup.runtests(self.traits)
 

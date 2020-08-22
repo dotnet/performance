@@ -106,6 +106,11 @@ namespace ScenarioMeasurement
 
         public ProcessHelper.Result Install()
         {
+            if (LttngInstalled())
+            {
+                Console.WriteLine("Lttng is already installed.");
+                return ProcessHelper.Result.Success;
+            }
             perfCollectProcess.Arguments = "install -force";
             perfCollectProcess.Run();
 
@@ -157,7 +162,8 @@ namespace ScenarioMeasurement
         {
             Empty,
             Threading,
-            DotNETRuntimePrivate_StartupKeyword // TODO: enable perfCollect to take a list of keywords
+            DotNETRuntimePrivate_StartupKeyword,
+            EventSource
         }
 
 
