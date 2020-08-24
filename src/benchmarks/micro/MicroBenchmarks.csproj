@@ -29,6 +29,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="5.0.0-rc.1.20417.14" />
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="5.0.0-rc.1.20417.14" />
     <PackageReference Include="protobuf-net" Version="2.4.0" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="5.0.0-rc.1.20417.14" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.0-rc.1.20417.14" />
     <PackageReference Include="System.Formats.Cbor" Version="5.0.0-rc.1.20417.14" Condition="'$(TargetFramework)' == 'netcoreapp5.0'" />
     <PackageReference Include="System.IO.Pipelines" Version="5.0.0-rc.1.20417.14" />

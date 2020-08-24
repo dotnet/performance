@@ -59,6 +59,7 @@ class PreCommands:
         self.runtime_identifier = args.runtime
         self.msbuild = args.msbuild
         self.msbuildstatic = args.msbuildstatic
+        self.binlog = args.binlog
 
     def new(self,
             template: str,
@@ -100,6 +101,10 @@ class PreCommands:
                             dest='msbuildstatic',
                             metavar='Foo=Bar;Bas=Blee;...'
                            )
+        parser.add_argument('--binlog',
+                            help='Flag to enable binlog',
+                            dest='binlog',
+                            metavar='<file-name>.binlog')
         parser.set_defaults(configuration=RELEASE)
 
     def existing(self, projectdir: str, projectfile: str):
@@ -158,7 +163,8 @@ class PreCommands:
                              os.path.join(get_packages_directory(), ''), # blazor publish targets require the trailing slash for joining the paths
                              framework,
                              runtime_identifier,
-                             self.msbuild or ""
+                             self.msbuild or "",
+                             '-bl:%s' % self.binlog if self.binlog else ""
                              )
 
     def _restore(self):
