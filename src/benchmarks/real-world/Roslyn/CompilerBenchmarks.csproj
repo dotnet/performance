@@ -5,7 +5,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp3.1;netcoreapp5.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp3.1;netcoreapp5.0;netcoreapp6.0</TargetFrameworks>
     <IsShipping>false</IsShipping>
     <!-- this app is using internal Roslyn API and needs to be signed -->
     <SignAssembly>true</SignAssembly>
