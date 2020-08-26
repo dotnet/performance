@@ -22,7 +22,6 @@
       <Framework Include="netcoreapp3.0" FrameworkName="%(Identity)" Condition="'$(_Framework.Substring(10))' &gt; '2.1'"/>
       <Framework Include="netcoreapp3.1" FrameworkName="%(Identity)" Condition="'$(_Framework.Substring(10))' &gt; '3.0'"/>
       <Framework Include="netcoreapp5.0" FrameworkName="%(Identity)" Condition="'$(_Framework.Substring(10))' &gt; '3.1'"/>
-      <Framework Include="netcoreapp6.0" FrameworkName="%(Identity)" Condition="'$(_Framework.Substring(10))' &gt; '5.0'">
   </ItemGroup>
 
   <ItemDefinitionGroup>
