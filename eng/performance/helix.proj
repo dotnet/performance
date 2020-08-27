@@ -22,6 +22,10 @@
     </HelixCorrelationPayload>
   </ItemGroup>
 
+  <PropertyGroup Condition="'$(Architecture)' == 'arm64'">
+    <ExclusionPattern> --exclusion-filter *FannkuchRedux_9*</ExclusionPattern>
+  </PropertyGroup>
+
   <PropertyGroup>
     <PartitionCount>5</PartitionCount>
   </PropertyGroup>
@@ -39,7 +43,7 @@
   <ItemGroup Condition="$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
     <HelixWorkItem Include="@(Partition)">
       <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
-      <Command>$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments) --partition-count $(PartitionCount) --partition-index %(HelixWorkItem.Index)"</Command>
+      <Command>$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments) --partition-count $(PartitionCount) --partition-index %(HelixWorkItem.Index)$(ExclusionPattern)"</Command>
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemGroup>
