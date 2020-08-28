@@ -12,6 +12,7 @@ namespace System.Text
     public class Perf_Utf8Encoding : Perf_TextBase
     {
         private string _unicode;
+        private byte[] _bytes;
         private UTF8Encoding _utf8Encoding;
 
         [GlobalSetup]
@@ -19,9 +20,16 @@ namespace System.Text
         {
             _unicode = File.ReadAllText(Path.Combine(TextFilesRootPath, $"{Input}.txt"));
             _utf8Encoding = new UTF8Encoding();
+            _bytes = _utf8Encoding.GetBytes(_unicode);
         }
 
         [Benchmark]
         public int GetByteCount() => _utf8Encoding.GetByteCount(_unicode);
+
+        [Benchmark]
+        public byte[] GetBytes() => _utf8Encoding.GetBytes(_unicode);
+
+        [Benchmark]
+        public string GetString() => _utf8Encoding.GetString(_bytes);
     }
 }
