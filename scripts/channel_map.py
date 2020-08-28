@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 class ChannelMap():
     channel_map = {
         'master': {
-            'tfm': 'netcoreapp6.0',
+            'tfm': 'netcoreapp5.0',
             'branch': 'master'
         },
         'release/5.0.1xx':{

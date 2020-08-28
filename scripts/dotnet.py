@@ -519,7 +519,7 @@ def get_dotnet_version(
             "{}.{}".format(version.major, version.minor + 1))), None)
     if not sdk:
         sdk = next((f for f in sdks if f.startswith(
-            "{}.{}".format('5', '0'))), None)
+            "{}.{}".format('6', '0'))), None)
     if not sdk:
         raise RuntimeError(
             "Unable to determine the .NET SDK used for {}".format(framework)
@@ -574,6 +574,7 @@ def get_commit_date(
         # The origin of the repo where the commit belongs to has changed
         # between release. Here we attempt to naively guess the repo.
         core_sdk_frameworks = ChannelMap.get_supported_frameworks()
+        core_sdk_frameworks.remove('netcoreapp2.1')
         repo = 'core-sdk' if framework  in core_sdk_frameworks else 'cli'
         url = urlformat % ('dotnet', repo, commit_sha)
     else:
