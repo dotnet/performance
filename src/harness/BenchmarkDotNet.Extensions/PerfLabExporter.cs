@@ -23,8 +23,6 @@ namespace BenchmarkDotNet.Extensions
         public override void ExportToLog(Summary summary, ILogger logger)
         {
             var reporter = Reporter.CreateReporter();
-            if (!reporter.InLab) // not running in the perf lab
-                return;
 
             DisassemblyDiagnoser disassemblyDiagnoser = summary.Reports
                 .FirstOrDefault()? // dissasembler was either enabled for all or none of them (so we use the first one)
