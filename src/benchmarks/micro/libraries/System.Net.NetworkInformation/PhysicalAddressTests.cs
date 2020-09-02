@@ -11,11 +11,11 @@ namespace System.Net.NetworkInformation.Tests
     [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class PhysicalAddressTests
     {
-        private readonly PhysicalAddress _short = new PhysicalAddress(new byte[1] { 42 });
+        private readonly PhysicalAddress _medium = new PhysicalAddress(new byte[6] { 42, 64, 128, 0, 8, 12 });
         private readonly PhysicalAddress _long = new PhysicalAddress(Enumerable.Range(0, 256).Select(i => (byte)i).ToArray());
 
         [Benchmark]
-        public void PAShort() => _short.ToString();
+        public void PAMedium() => _medium.ToString();
 
         [Benchmark]
         public void PALong() => _long.ToString();
