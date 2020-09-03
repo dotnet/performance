@@ -63,6 +63,10 @@ namespace ScenarioMeasurement
 
         public void EnableUserProvider(string provider, TraceEventLevel verboseLevel = TraceEventLevel.Verbose)
         {
+            // Enable all EventSource events on Linux
+            perfCollect.AddClrKeyword(PerfCollect.ClrKeyword.EventSource);
+            // Filter events from the provider
+            Startup.AddTestProcessEnvironmentVariable("COMPlus_EventSourceFilter", provider);
         }
     }
 }

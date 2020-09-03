@@ -15,6 +15,7 @@ namespace ScenarioMeasurement
     }
     class Startup
     {
+        private static ProcessHelper TestProcess { get; set; }
         /// <summary>
         /// 
         /// </summary>
@@ -85,15 +86,11 @@ namespace ScenarioMeasurement
                 }
             }
 
-            Dictionary<string, string> envVariables = null;
-            if (!String.IsNullOrEmpty(environmentVariables))
-            {
-                envVariables = ParseStringToDictionary(environmentVariables);
-            }
+            Dictionary<string, string> envVariables = new Dictionary<string, string>(ParseStringToDictionary(environmentVariables));
 
             logger.Log($"Running {appExe} (args: \"{appArgs}\")");
             logger.Log($"Working Directory: {workingDir}");
-            var procHelper = new ProcessHelper(logger)
+            TestProcess = new ProcessHelper(logger)
             {
                 ProcessWillExit = processWillExit,
                 Timeout = timeout,
@@ -127,7 +124,7 @@ namespace ScenarioMeasurement
             if (warmup)
             {
                 logger.LogIterationHeader("Warm up");
-                if (!RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger).Success)
+                if (!RunIteration(setupProcHelper, TestProcess, cleanupProcHelper, logger).Success)
                 {
                     return -1;  
                 }
@@ -164,7 +161,7 @@ namespace ScenarioMeasurement
                 for (int i = 0; i < iterations; i++)
                 {
                     logger.LogIterationHeader($"Iteration {i}");
-                    var iterationResult = RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger);
+                    var iterationResult = RunIteration(setupProcHelper, TestProcess, cleanupProcHelper, logger);
                     if (!iterationResult.Success)
                     {
                         failed = true;
@@ -205,7 +202,7 @@ namespace ScenarioMeasurement
                 using (var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_"+traceName, traceDirectory, logger))
                 {
                     profileSession.EnableProviders(profiler);
-                    if (!RunIteration(setupProcHelper, procHelper, cleanupProcHelper, logger).Success)
+                    if (!RunIteration(setupProcHelper, TestProcess, cleanupProcHelper, logger).Success)
                     {
                         failed = true;
                     }
@@ -274,10 +271,13 @@ namespace ScenarioMeasurement
         private static Dictionary<string, string> ParseStringToDictionary(string s)
         {
             var dict = new Dictionary<string, string>();
-            foreach (string substring in s.Split(';', StringSplitOptions.RemoveEmptyEntries))
+            if (!String.IsNullOrEmpty(s))
             {
-                var pair = substring.Split('=');
-                dict.Add(pair[0], pair[1]);
+                foreach (string substring in s.Split(';', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var pair = substring.Split('=');
+                    dict.Add(pair[0], pair[1]);
+                }
             }
             return dict;
         }
@@ -295,6 +295,11 @@ namespace ScenarioMeasurement
                 File.WriteAllText(reportJsonPath, reporter.GetJson());
             }
             logger.Log(reporter.WriteResultTable());
+        }
+    
+        public static void AddTestProcessEnvironmentVariable(string name, string value)
+        {
+            TestProcess.EnvironmentVariables.Add(name, value);
         }
     }
 

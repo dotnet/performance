@@ -142,13 +142,7 @@ namespace BenchmarksGame
         // Official runs use [Arguments(12, 3968050)] which takes ~4.2 sec vs ~330ms for 11
         [Benchmark(Description = nameof(FannkuchRedux_9))]
         [Arguments(11, 556355)]
-        public int RunBench(int n, int expectedSum)
-        {
-            int chkSum = Bench(n, false);
-            if (chkSum != expectedSum)
-                    throw new Exception($"Expected {expectedSum} actual {chkSum}");
-            return chkSum;
-        }
+        public int RunBench(int n, int expectedSum) => Bench(n, false);
 
         public static int Bench(int n, bool verbose)
         {

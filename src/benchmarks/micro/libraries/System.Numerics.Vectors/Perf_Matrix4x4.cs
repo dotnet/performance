@@ -13,6 +13,15 @@ namespace System.Numerics.Tests
         public const float PI = 3.14159265f;
 
         [Benchmark]
+        public Matrix4x4 CreateFromMatrix3x2() => new Matrix4x4(Matrix3x2.Identity);
+
+        [Benchmark]
+        public Matrix4x4 CreateFromScalars() => new Matrix4x4(1.1f, 1.2f, 1.3f, 1.4f,
+                                                              2.1f, 2.2f, 2.3f, 2.4f,
+                                                              3.1f, 3.2f, 3.3f, 3.4f,
+                                                              4.1f, 4.2f, 4.3f, 4.4f);
+
+        [Benchmark]
         public Matrix4x4 IdentityBenchmark() => Matrix4x4.Identity;
 
         [Benchmark]
