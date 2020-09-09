@@ -1,15 +1,18 @@
-﻿using Microsoft.Diagnostics.Tracing;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Session;
 using System.Collections.Generic;
 using System.IO;
 
-
 namespace ScenarioMeasurement
 {
     public class WindowsTraceSession : ITraceSession
     {
-        private Logger logger;
+        private readonly Logger logger;
         public string TraceFilePath { get; }
         public TraceEventSession KernelSession { get; set; }
         public TraceEventSession UserSession { get; set; }
@@ -92,14 +95,18 @@ namespace ScenarioMeasurement
         private void InitWindowsKeywordMaps()
         {
             // initialize windows kernel keyword map
-            kernelKeywords = new Dictionary<TraceSessionManager.KernelKeyword, KernelTraceEventParser.Keywords>();
-            kernelKeywords[TraceSessionManager.KernelKeyword.Process] = KernelTraceEventParser.Keywords.Process;
-            kernelKeywords[TraceSessionManager.KernelKeyword.Thread] = KernelTraceEventParser.Keywords.Thread;
-            kernelKeywords[TraceSessionManager.KernelKeyword.ContextSwitch] = KernelTraceEventParser.Keywords.ContextSwitch;
+            kernelKeywords = new Dictionary<TraceSessionManager.KernelKeyword, KernelTraceEventParser.Keywords>
+            {
+                [TraceSessionManager.KernelKeyword.Process] = KernelTraceEventParser.Keywords.Process,
+                [TraceSessionManager.KernelKeyword.Thread] = KernelTraceEventParser.Keywords.Thread,
+                [TraceSessionManager.KernelKeyword.ContextSwitch] = KernelTraceEventParser.Keywords.ContextSwitch
+            };
 
             // initialize windows clr keyword map
-            clrKeywords = new Dictionary<TraceSessionManager.ClrKeyword, ClrPrivateTraceEventParser.Keywords>();
-            clrKeywords[TraceSessionManager.ClrKeyword.Startup] = ClrPrivateTraceEventParser.Keywords.Startup;
+            clrKeywords = new Dictionary<TraceSessionManager.ClrKeyword, ClrPrivateTraceEventParser.Keywords>
+            {
+                [TraceSessionManager.ClrKeyword.Startup] = ClrPrivateTraceEventParser.Keywords.Startup
+            };
         }
 
         public void EnableUserProvider(string provider, TraceEventLevel verboseLevel = TraceEventLevel.Verbose)

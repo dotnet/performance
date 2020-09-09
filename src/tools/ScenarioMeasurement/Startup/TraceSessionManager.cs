@@ -1,10 +1,12 @@
-﻿using Microsoft.Diagnostics.Tracing;
-using Microsoft.Diagnostics.Tracing.Parsers;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.Diagnostics.Tracing;
 using System;
 
 namespace ScenarioMeasurement
 {
-
     public interface ITraceSession : IDisposable
     {
         string TraceFilePath { get; }
@@ -19,7 +21,6 @@ namespace ScenarioMeasurement
         public static bool IsWindows { get { return Util.IsWindows(); } }
         public static ITraceSession CreateSession(string sessionName, string traceName, string traceDirectory, Logger logger)
         {
-
             if (IsWindows)
             {
                 return new WindowsTraceSession(sessionName, traceName, traceDirectory, logger);
@@ -42,7 +43,5 @@ namespace ScenarioMeasurement
             Startup
         }
     }
-
-
 }
 

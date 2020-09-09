@@ -19,7 +19,7 @@ namespace Reporting
         private Run run;
         private Os os;
         private Build build;
-        private List<Test> tests = new List<Test>();
+        private readonly List<Test> tests = new List<Test>();
         protected IEnvironment environment;
 
         private Reporter() { }
@@ -38,8 +38,10 @@ namespace Reporting
         /// <returns>A Reporter instance or null if the environment is incorrect.</returns>
         public static Reporter CreateReporter(IEnvironment environment = null)
         {
-            var ret = new Reporter();
-            ret.environment = environment == null ? new EnvironmentProvider() : environment;
+            var ret = new Reporter
+            {
+                environment = environment ?? new EnvironmentProvider()
+            };
             if (ret.InLab)
             {
                 ret.Init();
@@ -57,10 +59,10 @@ namespace Reporting
                 Name = environment.GetEnvironmentVariable("PERFLAB_RUNNAME"),
                 Queue = environment.GetEnvironmentVariable("PERFLAB_QUEUE"),
             };
-            Boolean.TryParse(environment.GetEnvironmentVariable("PERFLAB_HIDDEN"), out bool hidden);
+            bool.TryParse(environment.GetEnvironmentVariable("PERFLAB_HIDDEN"), out bool hidden);
             run.Hidden = hidden;
             var configs = environment.GetEnvironmentVariable("PERFLAB_CONFIGS");
-            if (!String.IsNullOrEmpty(configs)) // configs should be optional.
+            if (!string.IsNullOrEmpty(configs)) // configs should be optional.
             {
                 foreach (var kvp in configs.Split(';'))
                 {
@@ -101,10 +103,14 @@ namespace Reporting
                 run,
                 tests
             };
-            var settings = new JsonSerializerSettings();
-            var resolver = new DefaultContractResolver();
-            resolver.NamingStrategy = new CamelCaseNamingStrategy() { ProcessDictionaryKeys = false };
-            settings.ContractResolver = resolver;
+            var resolver = new DefaultContractResolver
+            {
+                NamingStrategy = new CamelCaseNamingStrategy() { ProcessDictionaryKeys = false }
+            };
+            var settings = new JsonSerializerSettings
+            {
+                ContractResolver = resolver
+            };
             return JsonConvert.SerializeObject(jsonobj, Formatting.Indented, settings);
         }
 
@@ -145,7 +151,7 @@ namespace Reporting
 
         private string LeftJustify(string str, int width)
         {
-            return String.Format("{0,-" + width + "}", str);
+            return string.Format("{0,-" + width + "}", str);
         }
 
         public bool InLab => environment.GetEnvironmentVariable("PERFLAB_INLAB")?.Equals("1") ?? false;

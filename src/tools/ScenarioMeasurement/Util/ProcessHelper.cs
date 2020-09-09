@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -25,8 +28,8 @@ namespace ScenarioMeasurement
 
         public string Executable { get; set; }
 
-        public string Arguments { get; set; } = String.Empty;
-        public string WorkingDirectory { get; set; } = String.Empty;
+        public string Arguments { get; set; } = string.Empty;
+        public string WorkingDirectory { get; set; } = string.Empty;
 
         public bool GuiApp { get; set; } = false;
 
@@ -86,70 +89,70 @@ namespace ScenarioMeasurement
             }
             StringBuilder output = new StringBuilder();
             StringBuilder error = new StringBuilder();
-            using (var process = new Process())
+            using var process = new Process
             {
-                process.StartInfo = psi;
-                if (!GuiApp)
+                StartInfo = psi
+            };
+            if (!GuiApp)
+            {
+                process.OutputDataReceived += (s, e) =>
                 {
-                    process.OutputDataReceived += (s, e) =>
+                    if (!string.IsNullOrEmpty(e.Data))
                     {
-                        if (!String.IsNullOrEmpty(e.Data))
-                        {
-                            output.AppendLine(e.Data);
-                        }
-                    };
-                    process.ErrorDataReceived += (s, e) =>
-                    {
-                        if (!String.IsNullOrEmpty(e.Data))
-                        {
-                            error.AppendLine(e.Data);
-                        }
-                    };
-                }
-                process.Start();
-                int pid = process.Id;
-                if (!GuiApp)
-                {
-                    process.BeginOutputReadLine();
-                    process.BeginErrorReadLine();
-                }
-
-                if (ProcessWillExit)
-                {
-                    bool exited = process.WaitForExit(Timeout * 1000);
-                    if (!exited)
-                    {
-                        process.Kill();
-                        return (Result.TimeoutExceeded, pid);
+                        output.AppendLine(e.Data);
                     }
+                };
+                process.ErrorDataReceived += (s, e) =>
+                {
+                    if (!string.IsNullOrEmpty(e.Data))
+                    {
+                        error.AppendLine(e.Data);
+                    }
+                };
+            }
+            process.Start();
+            int pid = process.Id;
+            if (!GuiApp)
+            {
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+            }
+
+            if (ProcessWillExit)
+            {
+                bool exited = process.WaitForExit(Timeout * 1000);
+                if (!exited)
+                {
+                    process.Kill();
+                    return (Result.TimeoutExceeded, pid);
                 }
+            }
+            else
+            {
+                Thread.Sleep(MeasurementDelay * 1000);
+                if (!process.HasExited) { process.CloseMainWindow(); }
                 else
                 {
-                    Thread.Sleep(MeasurementDelay * 1000);
-                    if (!process.HasExited) { process.CloseMainWindow(); }
-                    else
-                    {
-                        return (Result.ExitedEarly, pid);
-                    }
-                    bool exited = process.WaitForExit(5000);
-                    if (!exited)
-                    {
-                        process.Kill();
-                        return (Result.CloseFailed, pid);
-                    }
+                    return (Result.ExitedEarly, pid);
                 }
-
-
-                Logger.Log(output.ToString());
-                Logger.Log(error.ToString());
-
-                // Be aware a successful exit could be non-zero
-                if (process.ExitCode != 0)
+                bool exited = process.WaitForExit(5000);
+                if (!exited)
                 {
-                    return (Result.ExitedWithError, pid);
+                    process.Kill();
+                    return (Result.CloseFailed, pid);
                 }
-                return (Result.Success, pid);
             }
+
+
+            Logger.Log(output.ToString());
+            Logger.Log(error.ToString());
+
+            // Be aware a successful exit could be non-zero
+            if (process.ExitCode != 0)
+            {
+                return (Result.ExitedWithError, pid);
+            }
+            return (Result.Success, pid);
         }
         public enum Result
         {

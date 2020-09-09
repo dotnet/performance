@@ -1,4 +1,8 @@
-﻿using Reporting;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Reporting;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -65,16 +69,16 @@ namespace ScenarioMeasurement
                         string environmentVariables = null
                         )
         {
-            Logger logger = new Logger(String.IsNullOrEmpty(logFileName) ? $"{appExe}.startup.log" : logFileName);
+            Logger logger = new Logger(string.IsNullOrEmpty(logFileName) ? $"{appExe}.startup.log" : logFileName);
             static void checkArg(string arg, string name)
             {
-                if (String.IsNullOrEmpty(arg))
+                if (string.IsNullOrEmpty(arg))
                     throw new ArgumentException(name);
             };
             checkArg(appExe, nameof(appExe));
             checkArg(traceName, nameof(traceName));
 
-            if (String.IsNullOrEmpty(traceDirectory))
+            if (string.IsNullOrEmpty(traceDirectory))
             {
                 traceDirectory = Environment.CurrentDirectory;
             }
@@ -105,7 +109,7 @@ namespace ScenarioMeasurement
             // create iteration setup process helper
             logger.Log($"Iteration set up: {iterationSetup} (args: {setupArgs})");
             ProcessHelper setupProcHelper = null;
-            if (!String.IsNullOrEmpty(iterationSetup))
+            if (!string.IsNullOrEmpty(iterationSetup))
             {
                 setupProcHelper = CreateProcHelper(iterationSetup, setupArgs, logger);
             }
@@ -113,7 +117,7 @@ namespace ScenarioMeasurement
             // create iteration cleanup process helper
             logger.Log($"Iteration clean up: {iterationCleanup} (args: {cleanupArgs})");
             ProcessHelper cleanupProcHelper = null;
-            if (!String.IsNullOrEmpty(iterationCleanup))
+            if (!string.IsNullOrEmpty(iterationCleanup))
             {
                 cleanupProcHelper = CreateProcHelper(iterationCleanup, cleanupArgs, logger);
             }
@@ -161,13 +165,13 @@ namespace ScenarioMeasurement
                 for (int i = 0; i < iterations; i++)
                 {
                     logger.LogIterationHeader($"Iteration {i}");
-                    var iterationResult = RunIteration(setupProcHelper, TestProcess, cleanupProcHelper, logger);
-                    if (!iterationResult.Success)
+                    var (Success, Pid) = RunIteration(setupProcHelper, TestProcess, cleanupProcHelper, logger);
+                    if (!Success)
                     {
                         failed = true;
                         break;
                     }
-                    pids.Add(iterationResult.Pid);
+                    pids.Add(Pid);
                 }
                 traceFilePath = traceSession.TraceFilePath;
             }
@@ -182,7 +186,7 @@ namespace ScenarioMeasurement
                     appExe = Path.Join(workingDir, appExe);
                 }
                 string commandLine = $"\"{appExe}\"";
-                if (!String.IsNullOrEmpty(appArgs))
+                if (!string.IsNullOrEmpty(appArgs))
                 {
                     commandLine = commandLine + " " + appArgs;
                 }
@@ -199,13 +203,11 @@ namespace ScenarioMeasurement
             {
                 logger.LogIterationHeader("Profile Iteration");
                 ProfileParser profiler = new ProfileParser(parser);
-                using (var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_"+traceName, traceDirectory, logger))
+                using var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_" + traceName, traceDirectory, logger);
+                profileSession.EnableProviders(profiler);
+                if (!RunIteration(setupProcHelper, TestProcess, cleanupProcHelper, logger).Success)
                 {
-                    profileSession.EnableProviders(profiler);
-                    if (!RunIteration(setupProcHelper, TestProcess, cleanupProcHelper, logger).Success)
-                    {
-                        failed = true;
-                    }
+                    failed = true;
                 }
             }
 
@@ -229,13 +231,13 @@ namespace ScenarioMeasurement
         {
             (bool Success, int Pid) RunProcess(ProcessHelper helper)
             {
-                var runResult = helper.Run();
-                if (runResult.Result != ProcessHelper.Result.Success)
+                var (Result, Pid) = helper.Run();
+                if (Result != ProcessHelper.Result.Success)
                 {
-                    logger.Log($"Process {runResult.Pid} failed to run. Result: {runResult.Result}"); 
-                    return (false, runResult.Pid); 
+                    logger.Log($"Process {Pid} failed to run. Result: {Result}"); 
+                    return (false, Pid); 
                 }
-                return (true, runResult.Pid); 
+                return (true, Pid); 
             }
 
             bool failed = false;
@@ -250,9 +252,9 @@ namespace ScenarioMeasurement
             if (!failed)
             {
                 logger.LogStepHeader("Test");
-                var testProcessResult = RunProcess(testHelper);
-                failed = !testProcessResult.Success;
-                pid = testProcessResult.Pid;
+                var (Success, Pid) = RunProcess(testHelper);
+                failed = !Success;
+                pid = Pid;
             }
 
             // need to clean up despite the result of setup and test
@@ -271,7 +273,7 @@ namespace ScenarioMeasurement
         private static Dictionary<string, string> ParseStringToDictionary(string s)
         {
             var dict = new Dictionary<string, string>();
-            if (!String.IsNullOrEmpty(s))
+            if (!string.IsNullOrEmpty(s))
             {
                 foreach (string substring in s.Split(';', StringSplitOptions.RemoveEmptyEntries))
                 {
@@ -290,7 +292,7 @@ namespace ScenarioMeasurement
             test.Name = scenarioName;
             test.AddCounter(counters);
             reporter.AddTest(test);
-            if (reporter.InLab && !String.IsNullOrEmpty(reportJsonPath))
+            if (reporter.InLab && !string.IsNullOrEmpty(reportJsonPath))
             {
                 File.WriteAllText(reportJsonPath, reporter.GetJson());
             }

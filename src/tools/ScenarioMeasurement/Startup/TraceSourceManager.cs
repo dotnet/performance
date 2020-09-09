@@ -1,10 +1,13 @@
-﻿using Microsoft.Diagnostics.Tracing;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using System;
 
 namespace ScenarioMeasurement
 {
-
     public class TraceSourceManager : IDisposable
     {
         public bool IsWindows { get { return Source?.GetType() == typeof(ETWTraceEventSource); } }
@@ -43,7 +46,6 @@ namespace ScenarioMeasurement
         {
             Source.Dispose();
         }
-
     }
 
     public interface IKernelParser
@@ -55,7 +57,7 @@ namespace ScenarioMeasurement
 
     public sealed class LinuxKernelParser : IKernelParser
     {
-        LinuxKernelEventParser parser;
+        readonly LinuxKernelEventParser parser;
         public event Action<TraceEvent> ProcessStart { add { parser.ProcessStart += value; } remove { parser.ProcessStart -= value; } }
         public event Action<TraceEvent> ProcessStop { add { parser.ProcessStop += value; } remove { parser.ProcessStop -= value; } }
         public event Action<TraceEvent> ContextSwitch { add { } remove { } } // not implemented
@@ -67,7 +69,7 @@ namespace ScenarioMeasurement
 
     public sealed class WindowsKernelParser : IKernelParser
     {
-        KernelTraceEventParser parser;
+        readonly KernelTraceEventParser parser;
         public event Action<TraceEvent> ProcessStart { add { parser.ProcessStart += value; } remove { parser.ProcessStart -= value; } }
         public event Action<TraceEvent> ProcessStop { add { parser.ProcessEndGroup += value; } remove { parser.ProcessEndGroup -= value; } }
         public event Action<TraceEvent> ContextSwitch { add { parser.ThreadCSwitch += value; } remove { parser.ThreadCSwitch -= value; } }

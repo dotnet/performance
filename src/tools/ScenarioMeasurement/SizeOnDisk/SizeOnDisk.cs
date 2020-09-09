@@ -1,3 +1,7 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using Reporting;
 using System;
 using System.Collections.Generic;
@@ -83,7 +87,7 @@ namespace ScenarioMeasurement
                 test.Name = scenarioName;
                 test.AddCounter(counters);
                 reporter.AddTest(test);
-                if (reporter.InLab && !String.IsNullOrEmpty(reportJsonPath))
+                if (reporter.InLab && !string.IsNullOrEmpty(reportJsonPath))
                 {
                     File.WriteAllText(reportJsonPath, reporter.GetJson());
                 }
@@ -95,13 +99,13 @@ namespace ScenarioMeasurement
         private static string GetExtension(string fileName)
         {
             var extension = Path.GetExtension(fileName);
-            if (String.IsNullOrWhiteSpace(extension))
+            if (string.IsNullOrWhiteSpace(extension))
             {
                 return "No Extension";
             }
             return extension;
         }
-        static HashSet<string> versions = new HashSet<string>();
+        static readonly HashSet<string> versions = new HashSet<string>();
 
         static string RemoveVersions(string name)
         {

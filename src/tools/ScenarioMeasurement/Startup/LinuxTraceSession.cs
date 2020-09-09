@@ -1,4 +1,8 @@
-﻿using Microsoft.Diagnostics.Tracing;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.Diagnostics.Tracing;
 using System.Collections.Generic;
 
 namespace ScenarioMeasurement
@@ -9,7 +13,7 @@ namespace ScenarioMeasurement
         {
             get { return perfCollect?.TraceFilePath; }
         }
-        private PerfCollect perfCollect;
+        private readonly PerfCollect perfCollect;
         private Dictionary<TraceSessionManager.KernelKeyword, PerfCollect.KernelKeyword> kernelKeywords;
         private Dictionary<TraceSessionManager.ClrKeyword, PerfCollect.ClrKeyword> clrKeywords;
 
@@ -51,14 +55,18 @@ namespace ScenarioMeasurement
         private void InitLinuxKeywordMaps()
         {
             // initialize linux kernel keyword map
-            kernelKeywords = new Dictionary<TraceSessionManager.KernelKeyword, PerfCollect.KernelKeyword>();
-            kernelKeywords[TraceSessionManager.KernelKeyword.Process] = PerfCollect.KernelKeyword.LTTng_Kernel_ProcessLifetimeKeyword;
-            kernelKeywords[TraceSessionManager.KernelKeyword.Thread] = PerfCollect.KernelKeyword.LTTng_Kernel_ThreadKeyword;
-            kernelKeywords[TraceSessionManager.KernelKeyword.ContextSwitch] = PerfCollect.KernelKeyword.LTTng_Kernel_ContextSwitchKeyword;
+            kernelKeywords = new Dictionary<TraceSessionManager.KernelKeyword, PerfCollect.KernelKeyword>
+            {
+                [TraceSessionManager.KernelKeyword.Process] = PerfCollect.KernelKeyword.LTTng_Kernel_ProcessLifetimeKeyword,
+                [TraceSessionManager.KernelKeyword.Thread] = PerfCollect.KernelKeyword.LTTng_Kernel_ThreadKeyword,
+                [TraceSessionManager.KernelKeyword.ContextSwitch] = PerfCollect.KernelKeyword.LTTng_Kernel_ContextSwitchKeyword
+            };
 
             // initialize linux clr keyword map
-            clrKeywords = new Dictionary<TraceSessionManager.ClrKeyword, PerfCollect.ClrKeyword>();
-            clrKeywords[TraceSessionManager.ClrKeyword.Startup] = PerfCollect.ClrKeyword.DotNETRuntimePrivate_StartupKeyword;
+            clrKeywords = new Dictionary<TraceSessionManager.ClrKeyword, PerfCollect.ClrKeyword>
+            {
+                [TraceSessionManager.ClrKeyword.Startup] = PerfCollect.ClrKeyword.DotNETRuntimePrivate_StartupKeyword
+            };
         }
 
         public void EnableUserProvider(string provider, TraceEventLevel verboseLevel = TraceEventLevel.Verbose)

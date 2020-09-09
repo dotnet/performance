@@ -1,16 +1,18 @@
-﻿using Microsoft.Diagnostics.Tracing.Session;
-using ScenarioMeasurement;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using Microsoft.Diagnostics.Tracing.Parsers;
+using Microsoft.Diagnostics.Tracing.Session;
+using Reporting;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using Microsoft.Diagnostics.Tracing.Parsers;
-using Reporting;
 
 namespace ScenarioMeasurement
 {
     public class ProfileParser : IParser
     {
-        IParser other;
+        readonly IParser other;
         public ProfileParser(IParser other) => this.other = other;
 
         public void EnableKernelProvider(ITraceSession kernel)
