@@ -12,19 +12,19 @@ namespace Reporting.Tests
     public class ReporterTests
     {
         // this matches the output from the reporter made in GetReporterWithSpecifiedEnvironment
-        private string expectedTestTable = 
+        private readonly string expectedTestTable = 
 @"TestName
 Metric         |Average        |Min            |Max            
 ---------------|---------------|---------------|---------------
 CounterName    |1.100 ns       |1.100 ns       |1.100 ns       
 ";
-        private string longCounterNameTable =
+        private readonly string longCounterNameTable =
 @"TestName
 Metric                   |Average        |Min            |Max            
 -------------------------|---------------|---------------|---------------
 ThisIsALongerCounterName |1.100 ns       |1.100 ns       |1.100 ns       
 ";
-        private string longResultTable =
+        private readonly string longResultTable =
 @"TestName
 Metric         |Average                  |Min                      |Max                      
 ---------------|-------------------------|-------------------------|-------------------------
@@ -33,15 +33,16 @@ CounterName    |10000000000000000.000 ns |10000000000000000.000 ns |100000000000
         private Reporter GetReporterWithSpecifiedEnvironment(PerfLabEnvironmentProviderMock enviroment, string counterName = null, double result = 1.1)
         {
             var reporter = Reporter.CreateReporter(enviroment);
-            var test = new Test();
-            test.Name = "TestName";
+            var test = new Test { Name = "TestName" };
             test.Categories.Add("UnitTest");
-            var counter = new Counter();
-            counter.DefaultCounter = true;
-            counter.HigherIsBetter = false;
-            counter.MetricName = "ns";
-            counter.Name = counterName ?? "CounterName";
-            counter.Results = new[] { result };
+            var counter = new Counter
+            {
+                DefaultCounter = true,
+                HigherIsBetter = false,
+                MetricName = "ns",
+                Name = counterName ?? "CounterName",
+                Results = new[] { result }
+            };
             test.AddCounter(counter);
             reporter.AddTest(test);
             return reporter;
@@ -134,8 +135,7 @@ CounterName    |10000000000000000.000 ns |10000000000000000.000 ns |100000000000
         public void EnforceDefaultCounterConstraint()
         {
             Test t = new Test();
-            Counter c = new Counter();
-            c.DefaultCounter = true;
+            Counter c = new Counter { DefaultCounter = true };
             t.AddCounter(c);
             Assert.Throws<Exception>(() => t.AddCounter(c));
         }
@@ -144,8 +144,7 @@ CounterName    |10000000000000000.000 ns |10000000000000000.000 ns |100000000000
         public void EnforceUniqueTestNames()
         {
             Reporter r = Reporter.CreateReporter(new PerfLabEnvironmentProviderMock());
-            Test t = new Test();
-            t.Name = "Duplicate";
+            Test t = new Test { Name = "Duplicate" };
             r.AddTest(t);
             Assert.Throws<Exception>(() => { r.AddTest(t); });
         }
@@ -153,8 +152,7 @@ CounterName    |10000000000000000.000 ns |10000000000000000.000 ns |100000000000
         [Fact]
         public void EnforceUniqueCounterName()
         {
-            Test t = new Test();
-            t.Name = "Test";
+            Test t = new Test { Name = "Test" };
             Counter c = new Counter { Name = "Duplicate" };
             t.AddCounter(c);
             Assert.Throws<Exception>(() => { t.AddCounter(c); });
