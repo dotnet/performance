@@ -29,7 +29,7 @@ from .commonlib.bench_file import (
     Config,
     Vary,
 )
-from .commonlib.get_built import get_corerun_path_from_core_root
+from .commonlib.get_built import get_corerun_path_from_core_root, get_latest_testbin_path
 from .commonlib.collection_util import add, combine_mappings, is_empty
 from .commonlib.command import Command, CommandKind, CommandsMapping, run_command_worker
 from .commonlib.document import handle_doc, OutputOptions
@@ -78,13 +78,15 @@ def suite_create(args: SuiteCreateArgs) -> None:
     coreclrs: Mapping[str, CoreclrSpecifier] = _parse_coreclrs(args.coreclrs)
     options = BenchOptions(default_iteration_count=2, default_max_seconds=300)
     proc_count = option_or(args.proc_count, _get_default_proc_count())
+    gcperfsim_path = get_latest_testbin_path("GCPerfSim")
+
     tests: Mapping[str, BenchFile] = {
-        "normal_workstation": _create_scenario_normal_workstation(coreclrs, options),
-        "normal_server": _create_scenario_normal_server(coreclrs, options, proc_count),
-        "high_memory": _create_scenario_high_memory_load(coreclrs, options, proc_count),
+        "normal_workstation": _create_scenario_normal_workstation(coreclrs, options, gcperfsim_path),
+        "normal_server": _create_scenario_normal_server(coreclrs, options, proc_count, gcperfsim_path),
+        "high_memory": _create_scenario_high_memory_load(coreclrs, options, proc_count, gcperfsim_path),
         # TODO: use a low proc_count here?
         "low_memory_container": _create_scenario_low_memory_container(
-            coreclrs, options, proc_count
+            coreclrs, options, proc_count, gcperfsim_path
         ),
     }
 
@@ -170,7 +172,7 @@ def suite_run(args: SuiteRunArgs) -> None:
             "\n*** Here is a summary of the problems found: ***"
         )
         for file, test_errors in suite_errors.items():
-            print(f"\n======= {file} =======\n")
+            print(f"\n========= {file} =========\n")
             for err in test_errors.values():
                 err.print()
 
@@ -263,11 +265,12 @@ LOW_MEMORY_SCORES: Mapping[str, ScoreSpec] = combine_mappings(
 
 
 def _create_scenario_normal_workstation(
-    coreclrs: Mapping[str, CoreclrSpecifier], options: BenchOptions
+    coreclrs: Mapping[str, CoreclrSpecifier], options: BenchOptions, gcperfsim: Path,
 ) -> BenchFile:
     common_config = Config(complus_gcserver=False, complus_gcconcurrent=False)
     return BenchFile(
         vary=Vary.coreclr,
+        test_executables={"defgcperfsim": gcperfsim},
         coreclrs=coreclrs,
         options=options,
         common_config=common_config,
@@ -277,13 +280,17 @@ def _create_scenario_normal_workstation(
 
 
 def _create_scenario_normal_server(
-    coreclrs: Mapping[str, CoreclrSpecifier], options: BenchOptions, proc_count: int
+    coreclrs: Mapping[str, CoreclrSpecifier],
+    options: BenchOptions,
+    proc_count: int,
+    gcperfsim: Path,
 ) -> BenchFile:
     common_config = Config(
         complus_gcserver=True, complus_gcconcurrent=False, complus_gcheapcount=proc_count
     )
     return BenchFile(
         vary=Vary.coreclr,
+        test_executables={"defgcperfsim": gcperfsim},
         coreclrs=coreclrs,
         options=options,
         common_config=common_config,
@@ -293,7 +300,10 @@ def _create_scenario_normal_server(
 
 
 def _create_scenario_high_memory_load(
-    coreclrs: Mapping[str, CoreclrSpecifier], options: BenchOptions, proc_count: int
+    coreclrs: Mapping[str, CoreclrSpecifier],
+    options: BenchOptions,
+    proc_count: int,
+    gcperfsim: Path,
 ) -> BenchFile:
     common_config = Config(
         complus_gcserver=True, complus_gcconcurrent=False, complus_gcheapcount=proc_count
@@ -308,6 +318,7 @@ def _create_scenario_high_memory_load(
     }
     return BenchFile(
         vary=Vary.coreclr,
+        test_executables={"defgcperfsim": gcperfsim},
         coreclrs=coreclrs,
         options=options,
         common_config=common_config,
@@ -318,7 +329,10 @@ def _create_scenario_high_memory_load(
 
 
 def _create_scenario_low_memory_container(
-    coreclrs: Mapping[str, CoreclrSpecifier], options: BenchOptions, proc_count: int
+    coreclrs: Mapping[str, CoreclrSpecifier],
+    options: BenchOptions,
+    proc_count: int,
+    gcperfsim: Path,
 ) -> BenchFile:
     # In a small container, coreclr should choose a low heap count for itself
     common_config = Config(
@@ -335,6 +349,7 @@ def _create_scenario_low_memory_container(
     }
     return BenchFile(
         vary=Vary.coreclr,
+        test_executables={"defgcperfsim": gcperfsim},
         coreclrs=coreclrs,
         options=options,
         common_config=common_config,

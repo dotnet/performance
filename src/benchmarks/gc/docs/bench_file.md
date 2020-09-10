@@ -7,6 +7,8 @@ Each is a map with keys being arbitrary names.
 Here's an example benchfile:
 
 ```yaml
+test_executables:
+  defgcperfsim: /performance/artifacts/bin/GCPerfSim/release/netcoreapp5.0/GCPerfSim.dll
 coreclrs:
   clr_a:
     core_root: coreclr
@@ -56,8 +58,12 @@ benchmarks:
 comment: `str | None`
   (ignored)
 
-vary: `"machine" | "coreclr" | "config" | "benchmark" | None`
+vary: `"machine" | "executable" | "coreclr" | "config" | "benchmark" | None`
   Preferred property to vary when using `py . diff`
+
+test_executables: `Mapping[str, Path]`
+  Mapping from an (arbitrary) executable name to its path.
+  Paths to the dll's that will be run with the Core_Root.
 
 configs_vary_by: `[ConfigsVaryBy](#ConfigsVaryBy) | None`
   This is mostly set just for information.

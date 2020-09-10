@@ -20,7 +20,9 @@ Metrics always return a `Result` -- this allows the metric to fail without causi
 
 We should make sure the code is clean with respect to the linter. Run `py . lint` to make sure it is clean. For now, do not worry about upgrading the dependencies as suggested by the linter, it won't work.
 
-When GCPerfSim is modified, it is important to run the full default suite again to ensure no functionality was broken with the new changes and GCPerfSim works properly.
+When GCPerfSim is modified, it is important to run the full default suite with both versions, the unchanged one and the modified one, to ensure no functionality was broken with the new changes and GCPerfSim works properly.
+
+A full example on how to do this is [found here](modifying_and_testing_gcperfsim.md).
 
 # C# and C dependencies
 

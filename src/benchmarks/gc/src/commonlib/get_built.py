@@ -105,9 +105,6 @@ class Built:
     coreclrs: Mapping[str, Optional[CoreclrPaths]]
     _win: Optional[BuiltWindowsOnly]
 
-    def __post_init__(self) -> None:
-        assert "GCPerfSim" in self.tests
-
     @property
     def win(self) -> BuiltWindowsOnly:
         # Visual Studio tools are not supported on ARM. Hence, we assert we are
@@ -222,7 +219,7 @@ def get_built_gcperf() -> Sequence[Path]:
     return [assert_file_exists(p) for p in (gcperf_dll_path, traceevent_dll_path)]
 
 
-def _get_latest_testbin_path(test_name: str) -> Path:
+def get_latest_testbin_path(test_name: str) -> Path:
     base_bin_path = _ARTIFACTS_BIN_PATH / test_name / "release"
     bin_build_dirs = [
         str(f.absolute()).split("\\")[-1]
@@ -237,7 +234,7 @@ def _get_latest_testbin_path(test_name: str) -> Path:
 def _get_built_test(name: str, build_kind: BuildKind) -> Path:
     # Apparently, built files go to the root of the performance repo instead of next to the source.
     test_dir = _get_test_path(name)
-    out_path = _get_latest_testbin_path(name)
+    out_path = get_latest_testbin_path(name)
     test_cs = test_dir / f"{name}.cs"
     assert_file_exists(test_cs)
     msg = _is_build_is_out_of_date(_get_cs_files(test_dir), out_path, build_kind)
