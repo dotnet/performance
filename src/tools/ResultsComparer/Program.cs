@@ -64,11 +64,11 @@ namespace ResultsComparer
 
         private static IEnumerable<(string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)> GetNotSameResults(CommandLineOptions args, Threshold testThreshold, Threshold noiseThreshold)
         {
-            foreach (var pair in ReadResults(args)
+            foreach ((string id, Benchmark baseResult, Benchmark diffResult) in ReadResults(args)
                 .Where(result => result.baseResult.Statistics != null && result.diffResult.Statistics != null)) // failures
             {
-                var baseValues = pair.baseResult.GetOriginalValues();
-                var diffValues = pair.diffResult.GetOriginalValues();
+                var baseValues = baseResult.GetOriginalValues();
+                var diffValues = diffResult.GetOriginalValues();
 
                 var userTresholdResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, testThreshold);
                 if (userTresholdResult.Conclusion == EquivalenceTestConclusion.Same)
@@ -78,7 +78,7 @@ namespace ResultsComparer
                 if (noiseResult.Conclusion == EquivalenceTestConclusion.Same)
                     continue;
 
-                yield return (pair.id, pair.baseResult, pair.diffResult, userTresholdResult.Conclusion);
+                yield return (id, baseResult, diffResult, userTresholdResult.Conclusion);
             }
         }
 
@@ -178,10 +178,10 @@ namespace ResultsComparer
 
             using (var textWriter = csvPath.CreateText())
             {
-                foreach (var result in notSame)
+                foreach (var (id, baseResult, diffResult, conclusion) in notSame)
                 {
-                    textWriter.WriteLine($"\"{result.id.Replace("\"", "\"\"")}\";base;{result.conclusion};{string.Join(';', result.baseResult.GetOriginalValues())}");
-                    textWriter.WriteLine($"\"{result.id.Replace("\"", "\"\"")}\";diff;{result.conclusion};{string.Join(';', result.diffResult.GetOriginalValues())}");
+                    textWriter.WriteLine($"\"{id.Replace("\"", "\"\"")}\";base;{conclusion};{string.Join(';', baseResult.GetOriginalValues())}");
+                    textWriter.WriteLine($"\"{id.Replace("\"", "\"\"")}\";diff;{conclusion};{string.Join(';', diffResult.GetOriginalValues())}");
                 }
             }
 
@@ -202,29 +202,29 @@ namespace ResultsComparer
             using (XmlWriter writer = XmlWriter.Create(xmlPath.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write)))
             {
                 writer.WriteStartElement("performance-tests");
-                foreach (var slower in notSame.Where(x => x.conclusion == EquivalenceTestConclusion.Slower))
+                foreach (var (id, baseResult, diffResult, conclusion) in notSame.Where(x => x.conclusion == EquivalenceTestConclusion.Slower))
                 {
                     writer.WriteStartElement("test");
-                    writer.WriteAttributeString("name", slower.id);
-                    writer.WriteAttributeString("type", slower.baseResult.Type);
-                    writer.WriteAttributeString("method", slower.baseResult.Method);
+                    writer.WriteAttributeString("name", id);
+                    writer.WriteAttributeString("type", baseResult.Type);
+                    writer.WriteAttributeString("method", baseResult.Method);
                     writer.WriteAttributeString("time", "0");
                     writer.WriteAttributeString("result", "Fail");
                     writer.WriteStartElement("failure");
                     writer.WriteAttributeString("exception-type", "Regression");
-                    writer.WriteElementString("message", $"{slower.id} has regressed, was {slower.baseResult.Statistics.Median} is {slower.diffResult.Statistics.Median}.");
+                    writer.WriteElementString("message", $"{id} has regressed, was {baseResult.Statistics.Median} is {diffResult.Statistics.Median}.");
                     writer.WriteEndElement();
                 }
 
-                foreach (var faster in notSame.Where(x => x.conclusion == EquivalenceTestConclusion.Faster))
+                foreach (var (id, baseResult, diffResult, conclusion) in notSame.Where(x => x.conclusion == EquivalenceTestConclusion.Faster))
                 {
                     writer.WriteStartElement("test");
-                    writer.WriteAttributeString("name", faster.id);
-                    writer.WriteAttributeString("type", faster.baseResult.Type);
-                    writer.WriteAttributeString("method", faster.baseResult.Method);
+                    writer.WriteAttributeString("name", id);
+                    writer.WriteAttributeString("type", baseResult.Type);
+                    writer.WriteAttributeString("method", baseResult.Method);
                     writer.WriteAttributeString("time", "0");
                     writer.WriteAttributeString("result", "Skip");
-                    writer.WriteElementString("reason", $"{faster.id} has improved, was {faster.baseResult.Statistics.Median} is {faster.diffResult.Statistics.Median}.");
+                    writer.WriteElementString("reason", $"{id} has improved, was {baseResult.Statistics.Median} is {diffResult.Statistics.Median}.");
                     writer.WriteEndElement();
                 }
 
