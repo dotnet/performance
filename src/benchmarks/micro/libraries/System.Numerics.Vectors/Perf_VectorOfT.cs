@@ -9,26 +9,16 @@ using MicroBenchmarks;
 
 namespace System.Numerics.Tests
 {
-    public class Perf_VectorOfByte : Perf_VectorOf<byte> { }
-
-    public class Perf_VectorOfDouble : Perf_VectorOf<double> { }
-
-    public class Perf_VectorOfInt16 : Perf_VectorOf<short> { }
-
-    public class Perf_VectorOfInt32 : Perf_VectorOf<int> { }
-
-    public class Perf_VectorOfInt64 : Perf_VectorOf<long> { }
-
-    public class Perf_VectorOfSByte : Perf_VectorOf<sbyte> { }
-
-    public class Perf_VectorOfSingle : Perf_VectorOf<float> { }
-
-    public class Perf_VectorOfUInt16 : Perf_VectorOf<ushort> { }
-
-    public class Perf_VectorOfUInt32 : Perf_VectorOf<uint> { }
-
-    public class Perf_VectorOfUInt64 : Perf_VectorOf<ulong> { }
-
+    [GenericTypeArguments(typeof(byte))]
+    [GenericTypeArguments(typeof(double))]
+    [GenericTypeArguments(typeof(short))]
+    [GenericTypeArguments(typeof(int))]
+    [GenericTypeArguments(typeof(long))]
+    [GenericTypeArguments(typeof(sbyte))]
+    [GenericTypeArguments(typeof(float))]
+    [GenericTypeArguments(typeof(ushort))]
+    [GenericTypeArguments(typeof(uint))]
+    [GenericTypeArguments(typeof(ulong))]
     [BenchmarkCategory(Categories.Libraries, Categories.SIMD, Categories.JIT)]
     public class Perf_VectorOf<T>
         where T : struct
