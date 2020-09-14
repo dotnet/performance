@@ -26,7 +26,7 @@ namespace Reporting
                 throw new Exception($"Duplicate default counter, name: ${counter.Name}");
             }
 
-            if (Counters.Any(c => c.Name.Equals(counter.Name, StringComparison.OrdinalIgnoreCase)))
+            if (Counters.Any(c => c.Name.Equals(counter.Name)))
             {
                 throw new Exception($"Duplicate counter name, name: ${counter.Name}");
             }

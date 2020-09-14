@@ -128,6 +128,8 @@ Each test `.yaml` file looks something like the example described below:
 
 ```yaml
 vary: coreclr
+test_executables:
+  defgcperfsim: <path to the GCPerfSim dll built in the earlier steps>
 coreclrs:
   a:
     core_root: <path to first CoreCLR core root>
@@ -179,15 +181,18 @@ command_groups: {}
 ```
 
 GC Benchmarking Infra will read one by one each of the specified files under *bench_files*,
-and run *GCPerfSim* accordingly. If any test fails, Infra will proceed to run the next one
-and will display a summary of the encountered problems at the end of the run.
+and run their specified executables accordingly. If any test fails, Infra will
+proceed to run the next one and will display a summary of the encountered problems
+at the end of the run.
 
 The *command_groups* tag is used to store sets of other commands you might want to run in bulk,
 rather than individually. For simplicity, it is left empty in this example.
 
-It is important that a full suite-run of the default scenarios is run when *GCPerfSim*
-is modified. This is to ensure no regressions have occurred and the tool continues
-to work properly.
+When *GCPerfSim* is modified, it is important to run the full suite of default
+scenarios with both, the original and the modified versions of *GCPerfSim*. You
+only need to make sure to keep a copy before rebuilding it, and then specify
+both dll's under the `test_executables` group in the `yaml` file. This is to
+ensure no regressions have occurred and the tool continues to work properly.
 
 For full information regarding suites, check the full documentation [here](docs/suites.md).
 
@@ -199,8 +204,10 @@ Let's run *low_memory_container* for this example.
 py . run bench/suite/low_memory_container.yaml
 ```
 
-On Windows, all tests must be run as administrator as PerfView requires this.
-(Unless `collect: none` is set the benchfile's options. See [Running Without Traces](#Running Without Traces).)
+On Windows, all tests must be run as administrator as PerfView requires this,
+unless `collect: none` is set the benchfile's options. See [Running Without Traces](#Running%20Without%20Traces)
+for more details.
+
 On Linux, only tests with containers require super user privileges.
 
 You might get errors due to `dotnet` or `dotnet-trace` not being found. Or you might see an error:
@@ -217,7 +224,7 @@ A fatal error occurred, the default install location cannot be obtained.
 
 To fix either of these, specify `dotnet_path` and `dotnet_trace_path` in `options:` in the benchfile. (Use `which dotnet` and `which dotnet-trace` to get these values.)
 
-(Note that if you recently built coreclr, that probably left a `dotnet` process open that `run` will ask you to kill. Just do so and run again with `--overwrite`.)
+Note that if you recently built coreclr, that probably left a `dotnet` process open that `run` will ask you to kill. Just do so and run again with `--overwrite`.
 
 This simple scenario should take under 2 minutes. Other ones require more time.
 We aim for an individual test to take about 20 seconds and this does 2 iterations for each of the 2 *coreclrs*.
@@ -226,9 +233,9 @@ Running this produced a directory called `bench/suite/low_memory_container.yaml.
 This contains a trace file (and some other small files) for each of the tests. (If you had specified `collect: none` in `options:` in the benchfile, there would be no trace file and the other files would contain all information.)
 Each trace file can be opened in PerfView if you need to.
 
-Each trace file will be named `{coreclr_name}__{config_name}__{benchmark_name}__{iteration}`, e.g.  `clr_a__smaller__nosurvive__0`.
+Each trace file will be named `{executable_name}__{coreclr_name}__{config_name}__{benchmark_name}__{iteration}`, e.g.  `defgcperfsim__clr_a__smaller__nosurvive__0`.
 
-_ARM NOTE_: Container tests are not supported on ARM/ARM64.
+_ARM NOTE_: Container tests and high memory loading tests are not supported on ARM/ARM64.
 
 ### Running with .NET Desktop
 
@@ -309,8 +316,8 @@ Now let's analyze the results.
 py . diff bench/suite/low_memory_container.yaml
 ```
 
-(Like most commands operating on the output of the benchfile,
-this take the benchfile as input, not the `.out` directory.)
+Like most commands operating on the output of the benchfile,
+this takes the benchfile as input, not the `.out` directory.
 
 This produces something like:
 
@@ -381,7 +388,7 @@ Analysis commands are based on metrics.
 
 A metric is the name of a measurement we might take. The 'metric' is the *name* of the measurement, not the metric itself. Length is a metric, 3 meters is a 'metric value'.
 
-A run-metric is the name a measurement of some property of an entire run of a test. For example, `FirstToLastGCSeconds` is the metric that measures the time a test took. Another example is `PauseDurationMSec_Mean` which is the mean pause duration of a GC. (Since getting the average requires looking at every GC, it is considered a metric of the whole run, not a single-gc-metric.)
+A run-metric is the name a measurement of some property of an entire run of a test. For example, `FirstToLastGCSeconds` is the metric that measures the time a test took. Another example is `PauseDurationMSec_Mean` which is the mean pause duration of a GC. Since getting the average requires looking at every GC, it is considered a metric of the whole run, not a single-gc-metric.
 
 A single-gc-metric is the name of a measurement of some property of a single GC within a test. For example, `PauseDurationMSec` measures the time of that individual GC (and as we've seen, we can add `_Mean` to get a run-metric.)
 
@@ -497,18 +504,18 @@ If you don't have a trace, you are limited in the metrics you can use. No single
 See [example](docs/example.md) for a more detailed example involving more commands.
 
 Use `py . help` to see all commands.
-Also see the `docs` directory for other topics, especially [commands syntax](docs/commands syntax.md).
+Also see the `docs` directory for other topics, especially [commands syntax](docs/commands%20syntax.md).
 
 Before modifying benchfiles, you should read [bench_file](docs/bench_file.md) which lists everything you can specify in a benchfile.
 
-Commands can be run in a Jupyter notebook instead of on the command line. See [jupyter notebook](docs/jupyter notebook.md).
+Commands can be run in a Jupyter notebook instead of on the command line. See [jupyter notebook](docs/jupyter%20notebook.md).
 
 # Terms
 
 ### Metric
 
 The name of a measurement we might take.
-See more in `docs/metrics.md`.
+See more in the [metrics doc](docs/metrics.md).
 
 ### Benchfile
 

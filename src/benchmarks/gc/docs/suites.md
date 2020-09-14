@@ -67,7 +67,9 @@ format:
 
 *** Here is a summary of the problems found: ***
 
-======= <Yaml Filename> =======
+========= <Yaml Filename> =========
+
+======= <Executable Name> =======
 
 ===== <Coreclr Name> =====
 
