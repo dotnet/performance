@@ -1,6 +1,6 @@
 
 # Crossgen Scenarios
-An introduction of how to run scenario tests can be found in [Scenarios Tests Guide](link).  The current document has specific instruction to run:
+An introduction of how to run scenario tests can be found in [Scenarios Tests Guide](./scenarios-workflow.md).  The current document has specific instruction to run:
 
 - [Crossgen Throughput](#crossgen-throughput)
 - [Crossgen2 Throughput](#crossgen2-throughput)
@@ -11,7 +11,7 @@ An introduction of how to run scenario tests can be found in [Scenarios Tests Gu
 ### Step 0 Generate Core Root
 Build CoreCLR in dotnet/runtime repo, which creates Core Root. Instruction can be found [here](https://github.com/dotnet/runtime/blob/master/docs/workflow/building/coreclr/README.md). A detailed introduction of Core Root can be found [here](https://github.com/dotnet/runtime/blob/master/docs/workflow/testing/using-corerun.md).
 ### Step 1 Initialize Environment
-Same instruction of [Step 1 in Scenario Tests Guide](Link).
+Same instruction of [Step 1 in Scenario Tests Guide](./scenarios-workflow#step-1-initialize-environment).
 ### Step 2 Run Precommand
 ```
 cd crossgen
@@ -23,7 +23,7 @@ py -3 test.py crossgen --core-root <path to Core Root directory> --test-name <as
 ```
 The above command runs the test. Note `--test-name <assembly to compile>` option refers to the relative path of an assembly that's under Core Root directory. For example, the option can be `--test-name System.Private.Xml.dll` so the test measures the throughput of crossgen compiling `System.Private.Xml.dll`.
 ### Step 4 Run Postcommand
-Same instruction of [Step 4 of Scenario Tests Guide](Link).
+Same instruction of [Step 4 of Scenario Tests Guide](./scenarios-workflow#step-4-run-postcommand).
 
 ## Crossgen2 Throughput
 Refer to [Crossgen Throughput](crossgen-throughput) for Step 0,1 and 4
