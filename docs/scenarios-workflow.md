@@ -3,7 +3,7 @@
 
 ## Overview
 
-Our existing scenario tests are under `src\scenarios` in this repo, where each subdirectory contains a test asset that can be combined with a specific set of commands to do measurements. Currently we have scenario tests for [SDK](link), [Crossgen](link), [Blazor](link) and [other scenarios]().
+Our existing scenario tests are under `src\scenarios` in this repo, where each subdirectory contains a test asset that can be combined with a specific set of commands to do measurements. Currently we have scenario tests for [SDK](link), [Crossgen](link), [Blazor](blazor_scenarios.md) and [other scenarios]().
 
 
 ## Running scenario tests
@@ -16,7 +16,7 @@ This is a general guideline on how the scenario tests are arranged in this repo.
 
 -  [How to run Crossgen scenario tests](link)
 
--  [How to run Blazor tests](link)
+-  [How to run Blazor tests](blazor_scenarios.md)
 
 -  [How to run other Scenario tests](link)
 
@@ -24,7 +24,7 @@ This is a general guideline on how the scenario tests are arranged in this repo.
 
 Go to `src\scenarios` and run the following command:
 
-On Windows, start a new PowerShell environment and run:
+On Windows, start a new PowerShell environment ***in Admin Mode*** and run:
 
 ```
 cd src\scenarios
