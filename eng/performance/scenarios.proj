@@ -33,7 +33,7 @@
     <Scenario Include="Static VB Console Template">
       <PayloadDirectory>$(ScenariosDir)staticvbconsoletemplate</PayloadDirectory>
     </Scenario>
-    <Scenario Include="Static Winforms Template">
+    <Scenario Include="Static Winforms Template" Condition="'$(_Framework)' != 'netcoreapp5.0'">
       <PayloadDirectory>$(ScenariosDir)staticwinformstemplate</PayloadDirectory>
     </Scenario>
     <Scenario Include="New Console Template">
