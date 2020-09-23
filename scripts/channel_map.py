@@ -6,6 +6,10 @@ class ChannelMap():
             'tfm': 'netcoreapp5.0',
             'branch': 'master'
         },
+        'release/5.0.1xx-rc2':{
+            'tfm': 'netcoreapp5.0',
+            'branch': 'release/5.0.1xx-rc2'
+        },
         'release/5.0.1xx':{
             'tfm': 'netcoreapp5.0',
             'branch': 'release/5.0.1xx'
