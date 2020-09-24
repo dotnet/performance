@@ -8,6 +8,7 @@ import os
 from logging import getLogger
 from collections import namedtuple
 from argparse import ArgumentParser
+from argparse import RawTextHelpFormatter
 from shared.startup import StartupWrapper
 from shared.util import publishedexe, extension, pythoncommand, iswin
 from shared.sod import SODWrapper
@@ -35,34 +36,107 @@ class Runner:
         '''
         Parses input args to the script
         '''
-        parser = ArgumentParser()
-        subparsers = parser.add_subparsers(title='subcommands for scenario tests', dest='testtype')
-        startupparser = subparsers.add_parser(const.STARTUP)
+        parser = ArgumentParser(description='test.py runs the test with specified commands. Usage: test.py <command> <optional subcommands> <options>',
+                                formatter_class=RawTextHelpFormatter)
+        subparsers = parser.add_subparsers(title='subcommands for scenario tests', 
+                                           dest='testtype')
+
+        # startup command
+        startupparser = subparsers.add_parser(const.STARTUP,
+                                              description='measure time to main of running the project')
         self.add_common_arguments(startupparser)
 
-        sdkparser = subparsers.add_parser(const.SDK)
-        sdkparser.add_argument('sdktype', choices=[const.CLEAN_BUILD, const.BUILD_NO_CHANGE, const.NEW_CONSOLE], type=str.lower)
+        # sdk command
+        sdkparser = subparsers.add_parser(const.SDK, 
+                                          description='subcommands for sdk scenario',
+                                          formatter_class=RawTextHelpFormatter)
+        sdkparser.add_argument('sdktype', 
+                                choices=[const.CLEAN_BUILD, const.BUILD_NO_CHANGE, const.NEW_CONSOLE], 
+                                type=str.lower,
+                                nargs=1,
+                                help= 
+'''
+clean_build:     measure duration of building from source in each iteration
+build_no_change: measure duration of building with existing output in each iteration
+new_console:     measure duration of creating a new console template
+'''
+                               )
         self.add_common_arguments(sdkparser)
 
-        crossgenparser = subparsers.add_parser(const.CROSSGEN)
-        crossgenparser.add_argument('--test-name', dest='testname', type=str, required=True)
-        crossgenparser.add_argument('--core-root', dest='coreroot', type=str, required=True)
+        crossgenparser = subparsers.add_parser(const.CROSSGEN,
+                                               description='measure duration of the crossgen compilation',
+                                               formatter_class=RawTextHelpFormatter)
+        crossgenparser.add_argument('--assembly-name', 
+                                    dest='assemblyname', 
+                                    type=str, 
+                                    required=True,
+                                    help=
+'''
+input assembly under Core_Root to compile
+ex: System.Private.Xml.dll
+'''
+                                    )
+
+        crossgenparser.add_argument('--core-root', 
+                                    dest='coreroot', 
+                                    type=str, 
+                                    required=True,
+                                    help=
+r'''
+path of Core_Root generated from runtime build
+ex: C:\repos\runtime\artifacts\tests\coreclr\Windows_NT.x64.Release\Tests\Core_Root
+'''                                 )
         self.add_common_arguments(crossgenparser)
 
-        crossgen2parser = subparsers.add_parser(const.CROSSGEN2)
-        crossgen2parser.add_argument('--core-root', dest='coreroot', type=str, required=True)
-        crossgen2parser.add_argument('--single', dest='single', type=str, required=False)
-        crossgen2parser.add_argument('--composite', dest='composite', type=str, required=False)
+        crossgen2parser = subparsers.add_parser(const.CROSSGEN2,
+                                                description='measure duration of the crossgen compilation',
+                                                formatter_class=RawTextHelpFormatter)
+        crossgen2parser.add_argument('--core-root', 
+                                     dest='coreroot', 
+                                     type=str, 
+                                     required=True,
+                                     help=
+r'''
+path of Core_Root generated from runtime build
+ex: C:\repos\runtime\artifacts\tests\coreclr\Windows_NT.x64.Release\Tests\Core_Root
+'''
+                                     )
+        crossgen2parser.add_argument('--single', 
+                                     dest='single', 
+                                     type=str, 
+                                     required=False,
+                                     help=
+r'''
+a single input assembly under Core_Root to compile
+ex: System.Private.Xml.dll
+'''                                  )
+        crossgen2parser.add_argument('--composite', 
+                                     dest='composite', 
+                                     type=str, 
+                                     required=False,
+                                     help=
+r'''
+path to an rsp file that represents a collection of assemblies
+ex: C:\repos\performance\src\scenarios\crossgen2\framework-r2r.dll.rsp
+'''                                  )
         self.add_common_arguments(crossgen2parser)
 
-        sodparser = subparsers.add_parser(const.SOD)
-        sodparser.add_argument('--dirs', dest='dirs', type=str)
+        sodparser = subparsers.add_parser(const.SOD,
+                                          description='measure size on disk of the specified directory and its children')
+        sodparser.add_argument('--dirs', 
+                               dest='dirs', 
+                               type=str,
+                               help=
+r'''
+directories to measure separated by semicolon
+ex: C:\repos\performance;C:\repos\runtime
+'''                            )
         self.add_common_arguments(sodparser)
 
         args = parser.parse_args()
 
         if not args.testtype:
-            getLogger().error("Please specify a test type: %s" % testtypes)
+            getLogger().error("Please specify a test type: %s. Type test.py <test type> -- help for more type-specific subcommands" % testtypes)
             sys.exit(1)
 
         self.testtype = args.testtype
@@ -71,7 +145,7 @@ class Runner:
             self.sdktype = args.sdktype
 
         if self.testtype == const.CROSSGEN:
-            self.crossgenfile = args.testname
+            self.crossgenfile = args.assemblyname
             self.coreroot = args.coreroot
 
         if self.testtype == const.CROSSGEN2:
