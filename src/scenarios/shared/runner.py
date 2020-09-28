@@ -53,7 +53,6 @@ class Runner:
         sdkparser.add_argument('sdktype', 
                                 choices=[const.CLEAN_BUILD, const.BUILD_NO_CHANGE, const.NEW_CONSOLE], 
                                 type=str.lower,
-                                nargs=1,
                                 help= 
 '''
 clean_build:     measure duration of building from source in each iteration
