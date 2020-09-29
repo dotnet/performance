@@ -65,6 +65,7 @@ def _name_for_vary(test: SingleTestCombination, vary: Vary) -> str:
         Vary.coreclr: test.coreclr_name,
         Vary.config: test.config_name,
         Vary.benchmark: test.benchmark_name,
+        Vary.executable: test.executable_name,
     }[vary]
 
 
@@ -216,8 +217,9 @@ def get_diffables_from_bench_file(
     vary = non_null(bench.vary, "Must provide --vary") if arg_vary is None else arg_vary
 
     unfiltered_all_combinations = [
-        SingleTestCombination(machine=machine, coreclr=coreclr, config=config, benchmark=benchmark)
+        SingleTestCombination(machine=machine, executable=executable, coreclr=coreclr, config=config, benchmark=benchmark)
         for machine in machines
+        for executable in bench.executables_and_names
         for coreclr in bench.coreclrs_and_names
         for config in bench.partial_configs_and_names
         for benchmark in bench.benchmarks_and_names
@@ -228,6 +230,7 @@ def get_diffables_from_bench_file(
 
     common = PartialTestCombination(
         machine=find_common(lambda c: c.machine, filtered_all_combinations),
+        executable_and_name=find_common(lambda c: c.executable, filtered_all_combinations),
         coreclr_and_name=find_common(lambda c: c.coreclr, filtered_all_combinations),
         config_and_name=find_common(lambda c: c.config, filtered_all_combinations),
         benchmark_and_name=find_common(lambda c: c.benchmark, filtered_all_combinations),
@@ -299,6 +302,7 @@ def _get_diffables_by_vary(
 def _rm_varied(c: SingleTestCombination, vary: Vary) -> PartialTestCombination:
     return PartialTestCombination(
         machine=None if vary == Vary.machine else c.machine,
+        executable_and_name=None if vary == Vary.executable else c.executable,
         coreclr_and_name=None if vary == Vary.coreclr else c.coreclr,
         config_and_name=None if vary == Vary.config else c.config,
         benchmark_and_name=None if vary == Vary.benchmark else c.benchmark,

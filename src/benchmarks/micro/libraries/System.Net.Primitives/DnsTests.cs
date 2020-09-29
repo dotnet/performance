@@ -7,7 +7,7 @@ using MicroBenchmarks;
 
 namespace System.Net.Tests
 {
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class DnsTests
     {
         [Benchmark]

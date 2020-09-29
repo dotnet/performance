@@ -7,13 +7,15 @@ This document uses command line syntax for simplicity, but the same things can b
 We're going to see how changing gen0size affects performance. We'll start by creating a benchfile `bench/compare_gen0size.yaml`.
 
 ```yaml
-options:
-  collect: thread_times
-  default_iteration_count: 3
 vary: config
+test_executables:
+  defgcperfsim: /performance/artifacts/bin/GCPerfSim/release/netcoreapp5.0/GCPerfSim.dll
 coreclrs:
   a:
     core_root: ./coreclr
+options:
+  collect: thread_times
+  default_iteration_count: 3
 common_config:
   complus_gcserver: true
   complus_gcconcurrent: false
@@ -36,6 +38,10 @@ benchmarks:
 ```
 
 This benchfile expects a Core_Root to have been moved to `bench/coreclr`. (Meaning it is now named `coreclr` instead of `Core_Root`.)
+
+The path in `defgcperfsim` under `test_executables` is just the default where
+`GCPerfSim.dll` is built inside the repo. Make sure you write the full path in
+your bench files.
 
 We would normally start an investigation with `collect: gc` or `collect: none` instead of `collect: thread_times` but for an example it's more convenient to only have to run tests once.
 

@@ -119,13 +119,6 @@ public class LinqBenchmarks
     public const int IterationsCount00 = 1000000;
     public const int IterationsOrder00 = 25000;
     
-    private static volatile object s_volatileObject;
-
-    private static void Escape(object obj)
-    {
-        s_volatileObject = obj;
-    }
-    
     #region Where00
 
     [Benchmark]
@@ -327,7 +320,6 @@ public class LinqBenchmarks
             var productsInPriceOrder = from prod in products orderby prod.UnitPrice descending select prod;
             int count = productsInPriceOrder.Count();
             medianPricedProduct = productsInPriceOrder.ElementAt<Product>(count / 2);
-            Escape(medianPricedProduct);
         }
 
         return (medianPricedProduct.ProductID == 57);
@@ -343,7 +335,6 @@ public class LinqBenchmarks
             var productsInPriceOrder = products.OrderByDescending(p => p.UnitPrice);
             int count = productsInPriceOrder.Count();
             medianPricedProduct = productsInPriceOrder.ElementAt<Product>(count / 2);
-            Escape(medianPricedProduct);
         }
 
         return (medianPricedProduct.ProductID == 57);
@@ -360,7 +351,6 @@ public class LinqBenchmarks
             Array.Sort<Product>(productsInPriceOrder, delegate (Product x, Product y) { return -x.UnitPrice.CompareTo(y.UnitPrice); });
             int count = productsInPriceOrder.Count();
             medianPricedProduct = productsInPriceOrder[count / 2];
-            Escape(medianPricedProduct);
         }
 
         return (medianPricedProduct.ProductID == 57);

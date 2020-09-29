@@ -11,19 +11,15 @@ using MicroBenchmarks;
 
 namespace Benchstone.BenchF
 {
-[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.BenchF)]
+[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.JIT, Categories.BenchF)]
 public class FFT
 {
     public const int Iterations = 300000;
 
     private static readonly int s_points = 16;
-    public static volatile object VolatileObject;
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private static void Escape(object obj)
-    {
-        VolatileObject = obj;
-    }
+    private static void Escape(object _) { }
 
     [Benchmark(Description = nameof(FFT))]
     public bool Test()

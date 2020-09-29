@@ -18,7 +18,7 @@ using MicroBenchmarks;
 
 namespace SciMark2
 {
-    [BenchmarkCategory(Categories.Runtime)]
+    [BenchmarkCategory(Categories.Runtime, Categories.JIT, Categories.SciMark)]
     public class kernel 
     {
         double[] inputFFT;

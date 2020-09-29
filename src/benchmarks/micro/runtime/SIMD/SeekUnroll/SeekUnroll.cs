@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-[BenchmarkCategory(Categories.Runtime, Categories.SIMD)]
+[BenchmarkCategory(Categories.Runtime, Categories.SIMD, Categories.JIT)]
 public class SeekUnroll
 {
     // The purpose of this micro-benchmark is to measure the effect of unrolling

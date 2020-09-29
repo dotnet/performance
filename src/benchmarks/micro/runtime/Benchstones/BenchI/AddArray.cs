@@ -9,17 +9,13 @@ using MicroBenchmarks;
 
 namespace Benchstone.BenchI
 {
-[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.BenchI)]
+[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.JIT, Categories.BenchI)]
 public class AddArray
 {
     const int Size = 6000;
 
-    public static volatile object VolatileObject;
-
     [MethodImpl(MethodImplOptions.NoInlining)]
-    static void Escape(object obj) {
-        VolatileObject = obj;
-    }
+    static void Escape(object _) { }
 
     [Benchmark(Description = nameof(AddArray))]
     public bool Test() {

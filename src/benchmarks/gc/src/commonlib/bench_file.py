@@ -908,8 +908,16 @@ def parse_machines_arg(machine_args: Optional[Sequence[str]]) -> Sequence[Machin
 
 @with_slots
 @dataclass(frozen=True)
+class TestExecutableAndName:
+    name: str
+    executable_path: Path
+
+
+@with_slots
+@dataclass(frozen=True)
 class SingleTestCombination:
     machine: Machine
+    executable: TestExecutableAndName
     coreclr: CoreclrAndName
     config: PartialConfigAndName
     benchmark: BenchmarkAndName
@@ -917,6 +925,10 @@ class SingleTestCombination:
     @property
     def machine_name(self) -> str:
         return self.machine.name
+
+    @property
+    def executable_name(self) -> str:
+        return self.executable.name
 
     @property
     def coreclr_name(self) -> str:
@@ -933,7 +945,7 @@ class SingleTestCombination:
     @property
     def name(self) -> str:
         return (
-            f"{self.machine_name}__{self.coreclr_name}__{self.config_name}__{self.benchmark_name}"
+            f"{self.machine_name}__{self.executable_name}__{self.coreclr_name}__{self.config_name}__{self.benchmark_name}"
         )
 
 
@@ -987,6 +999,7 @@ class TestRunStatus:
 @dataclass(frozen=True)
 class PartialTestCombination:
     machine: Optional[Machine] = None
+    executable_and_name: Optional[TestExecutableAndName] = None
     coreclr_and_name: Optional[CoreclrAndName] = None
     config_and_name: Optional[PartialConfigAndName] = None
     benchmark_and_name: Optional[BenchmarkAndName] = None
@@ -994,6 +1007,14 @@ class PartialTestCombination:
     @property
     def machine_name(self) -> Optional[str]:
         return None if self.machine is None else self.machine.name
+
+    @property
+    def executable(self) -> Optional[Path]:
+        return None if self.executable_and_name is None else self.executable_and_name.executable_path
+
+    @property
+    def executable_name(self) -> Optional[str]:
+        return None if self.executable_and_name is None else self.executable_and_name.name
 
     @property
     def coreclr_name(self) -> Optional[str]:
@@ -1019,6 +1040,7 @@ class PartialTestCombination:
     def name(self) -> str:
         parts: Sequence[str] = (
             *optional_to_iter(self.machine_name),
+            *optional_to_iter(self.executable_name),
             *optional_to_iter(self.coreclr_name),
             *optional_to_iter(self.config_name),
             *optional_to_iter(self.benchmark_name),
@@ -1031,6 +1053,7 @@ class Vary(Enum):
     coreclr = 1
     config = 2
     benchmark = 3
+    executable = 4
 
 
 VARY_DOC = """
@@ -1083,6 +1106,7 @@ If omitted, common_config will be used.
 class BenchFile:
     comment: Optional[str] = None
     vary: Optional[Vary] = None
+    test_executables: Mapping[str, Path] = empty_mapping()
     configs_vary_by: Optional[ConfigsVaryBy] = None
     coreclrs: Mapping[str, CoreclrSpecifier] = empty_mapping()
     paths: Optional[Mapping[str, Path]] = None  # Maps name to path
@@ -1096,6 +1120,10 @@ class BenchFile:
         assert not is_empty(self.coreclrs), "Benchfile must have at least one coreclr"
         assert not is_empty(self.benchmarks), "Benchfile must have at least one benchmark"
         assert self.configs is None or not is_empty(self.configs)
+
+    @property
+    def executables_and_names(self) -> Sequence[TestExecutableAndName]:
+        return [TestExecutableAndName(k, v) for k, v in self.test_executables.items()]
 
     @property
     def coreclrs_and_names(self) -> Sequence[CoreclrAndName]:
@@ -1284,6 +1312,14 @@ class SingleTestToRun:
     out: TestPaths
 
     @property
+    def executable_name(self) -> str:
+        return self.test.executable_name
+
+    @property
+    def executable(self) -> Path:
+        return self.test.executable.executable_path
+
+    @property
     def coreclr_name(self) -> str:
         return self.test.coreclr_name
 
@@ -1312,10 +1348,11 @@ def iter_test_combinations(
     bench_file: BenchFile, machines: Sequence[Machine]
 ) -> Iterable[SingleTestCombination]:
     for machine in machines:
-        for coreclr in bench_file.coreclrs_and_names:
-            for config in bench_file.partial_configs_and_names:
-                for benchmark in bench_file.benchmarks_and_names:
-                    yield SingleTestCombination(machine, coreclr, config, benchmark)
+        for executable in bench_file.executables_and_names:
+            for coreclr in bench_file.coreclrs_and_names:
+                for config in bench_file.partial_configs_and_names:
+                    for benchmark in bench_file.benchmarks_and_names:
+                        yield SingleTestCombination(machine, executable, coreclr, config, benchmark)
 
 
 def iter_tests_to_run(
@@ -1337,6 +1374,7 @@ def iter_tests_to_run(
                     bench_file=bench_file,
                     test=SingleTestCombination(
                         machine=machine,
+                        executable=t.executable,
                         coreclr=t.coreclr,
                         config=PartialConfigAndName(
                             name=t.config_name,
@@ -1381,7 +1419,7 @@ def get_test_path(
     out_dir: Optional[Path] = None,
 ) -> TestPaths:
     out = out_dir_for_bench_yaml(bench.path, t.machine) if out_dir is None else out_dir
-    return TestPaths(out / f"{t.coreclr.name}__{t.config.name}__{t.benchmark.name}__{iteration}")
+    return TestPaths(out / f"{t.executable_name}__{t.coreclr.name}__{t.config.name}__{t.benchmark.name}__{iteration}")
 
 
 def combine_test_configs(
@@ -1389,6 +1427,12 @@ def combine_test_configs(
 ) -> TestConfigCombined:
     return TestConfigCombined(
         combine_dataclasses_with_optional_fields(Config, named_config, common_config)
+    )
+
+
+def get_test_executable(bench_file: BenchFile, executable_name: Optional[str]) -> TestExecutableAndName:
+    return find_only_or_only_matching(
+        lambda exn: exn.name, "--executable", executable_name, bench_file.executables_and_names
     )
 
 

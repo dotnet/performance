@@ -4,6 +4,7 @@
     <LangVersion>8.0</LangVersion>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <NullableReferenceTypes>true</NullableReferenceTypes>
+    <NoWarn>8600;8603;8618;8625</NoWarn>
   </PropertyGroup>
 
   <!-- NUGET -->

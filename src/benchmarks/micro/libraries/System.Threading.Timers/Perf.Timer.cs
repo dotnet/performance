@@ -4,6 +4,7 @@
 
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
+using System.ComponentModel;
 using System.Threading.Tasks;
 
 namespace System.Threading.Tests
@@ -37,6 +38,7 @@ namespace System.Threading.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
         public void SynchronousContention()
         {
             Task[] tasks = _tasks;
@@ -54,6 +56,7 @@ namespace System.Threading.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
         public void AsynchronousContention()
         {
             Task[] tasks = _tasks;

@@ -77,8 +77,14 @@ class AbstractTextWriter(ABC):
 
 
 class AbstractSymbolReader(ABC):
+    Log: AbstractTextWriter
+
     @abstractmethod
     def __init__(self, log: AbstractTextWriter, nt_symbol_path: Optional[str]):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def Dispose(self) -> None:
         raise NotImplementedError()
 
 
@@ -578,6 +584,28 @@ class AbstractTimeSpan(ABC):
     DurationMSec: float
 
 
+# StackView class. Currently in Analysis.cs, in the future it will be part
+# of TraceEvent.
+class AbstractCallTreeNodeBase(ABC):
+    Name: str
+    InclusiveCount: float
+    ExclusiveCount: float
+    InclusiveMetricPercent: float
+    ExclusiveMetricPercent: float
+    FirstTimeRelativeMSec: float
+    LastTimeRelativeMSec: float
+
+    @abstractmethod
+    def ToString(self) -> str:
+        raise NotImplementedError()
+
+
+class AbstractStackView(ABC):
+    @abstractmethod
+    def FindNodeByName(self, nodeNamePat: str) -> AbstractCallTreeNodeBase:
+        raise NotImplementedError()
+
+
 # See Analysis.cs
 
 
@@ -612,6 +640,12 @@ class AbstractTracedProcesses(ABC):
     process_id_to_process_name: AbstractIProcessIDToProcessName
     events_time_span: AbstractTimeSpan
     per_heap_history_times: Sequence[float]
+
+
+class AbstractStackSource(ABC):
+    @abstractmethod
+    def ForEach(self, callback: AbstractAction[AbstractStackSourceSample]) -> None:
+        raise NotImplementedError()
 
 
 class AbstractTraceEventStackSource(ABC):
@@ -694,6 +728,34 @@ class AbstractAnalysis(ABC):
     def SliceTraceFile(
         inputTracePath: str, outputTracePath: str, timeSpan: AbstractTimeSpan
     ) -> None:
+        raise NotImplementedError()
+
+    @staticmethod
+    @abstractmethod
+    def GetOpenedTraceLog(tracePath: str) -> AbstractTraceLog:
+        raise NotImplementedError()
+
+    @staticmethod
+    @abstractmethod
+    def GetSymbolReader(logFile: str, symPath: str) -> AbstractSymbolReader:
+        raise NotImplementedError()
+
+    @staticmethod
+    @abstractmethod
+    def GetProcessFullStackSource(
+        traceLog: AbstractTraceLog, symReader: AbstractSymbolReader, processName: str
+    ) -> AbstractStackSource:
+        raise NotImplementedError()
+
+    @staticmethod
+    @abstractmethod
+    def GetFunctionMetricsWithinTimeRange(
+        traceLog: AbstractTraceLog,
+        symReader: AbstractSymbolReader,
+        fullStackSource: AbstractStackSource,
+        timeRange: AbstractTimeSpan,
+        functionToAnalyze: str,
+    ) -> AbstractCallTreeNodeBase:
         raise NotImplementedError()
 
 

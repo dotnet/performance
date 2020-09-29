@@ -368,13 +368,30 @@ class CoreRunErrorInfo:
         add(self.configs_run, new_config.name, new_config)
 
 
-RunErrorMap = Dict[str, CoreRunErrorInfo]
+@with_slots
+@dataclass(frozen=True)
+class ExecutableRunErrorInfo:
+    name: str
+    coreclrs_run: CoreErrorMap
+
+    def print(self) -> None:
+        print(f"======= Executable '{self.name}' =======\n")
+        for coreclr in self.coreclrs_run.values():
+            coreclr.print()
+
+    def add_coreclr(self, new_coreclr: CoreRunErrorInfo) -> None:
+        add(self.coreclrs_run, new_coreclr.name, new_coreclr)
+
+
+RunErrorMap = Dict[str, ExecutableRunErrorInfo]
+CoreErrorMap = Dict[str, CoreRunErrorInfo]
 ConfigurationErrorMap = Dict[str, ConfigRunErrorInfo]
 BenchmarkErrorList = List[BenchmarkRunErrorInfo]
 
 
 def add_new_error(
     run_errors: RunErrorMap,
+    exec_name: str,
     core_name: str,
     config_name: str,
     bench_name: str,
@@ -382,23 +399,32 @@ def add_new_error(
     message: str,
     trace: List[str],
 ) -> None:
-    if core_name not in run_errors:
+    if exec_name not in run_errors:
         bench_list = [BenchmarkRunErrorInfo(bench_name, iteration_num, message, trace)]
         config_dict = {config_name: ConfigRunErrorInfo(config_name, bench_list)}
-        add(run_errors, core_name, CoreRunErrorInfo(core_name, config_dict))
+        coreclr_dict = {core_name: CoreRunErrorInfo(core_name, config_dict)}
+        add(run_errors, exec_name, ExecutableRunErrorInfo(exec_name, coreclr_dict))
 
     else:
-        core_info = run_errors[core_name]
+        exec_info = run_errors[exec_name]
 
-        if config_name not in core_info.configs_run:
+        if core_name not in exec_info.coreclrs_run:
             bench_list = [BenchmarkRunErrorInfo(bench_name, iteration_num, message, trace)]
-            core_info.add_config(ConfigRunErrorInfo(config_name, bench_list))
+            config_dict = {config_name: ConfigRunErrorInfo(config_name, bench_list)}
+            exec_info.add_coreclr(CoreRunErrorInfo(core_name, config_dict))
 
         else:
-            config_info = core_info.configs_run[config_name]
-            config_info.add_benchmark(
-                BenchmarkRunErrorInfo(bench_name, iteration_num, message, trace)
-            )
+            core_info = exec_info.coreclrs_run[core_name]
+
+            if config_name not in core_info.configs_run:
+                bench_list = [BenchmarkRunErrorInfo(bench_name, iteration_num, message, trace)]
+                core_info.add_config(ConfigRunErrorInfo(config_name, bench_list))
+
+            else:
+                config_info = core_info.configs_run[config_name]
+                config_info.add_benchmark(
+                    BenchmarkRunErrorInfo(bench_name, iteration_num, message, trace)
+                )
 
 
 @with_slots

@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace Benchstone.BenchI
 {
-[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.BenchI)]
+[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.JIT, Categories.BenchI)]
 public class HeapSort
 {
     const int ArraySize = 5500;

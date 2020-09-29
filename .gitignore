@@ -2,6 +2,10 @@
 **/logs/
 /tools/
 
+# Local perf run folders
+.dotnet/
+.packages/
+
 # Python files
 **/.pytest_cache/
 

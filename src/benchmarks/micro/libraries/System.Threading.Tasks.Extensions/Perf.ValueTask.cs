@@ -81,6 +81,7 @@ namespace System.Threading.Tasks
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
         public async Task CreateAndAwait_FromYieldingAsyncMethod()
         {
             await new ValueTask<int>(YieldOnce());

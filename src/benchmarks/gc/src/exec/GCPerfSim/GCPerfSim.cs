@@ -51,8 +51,10 @@ LOH alloc ratio (this controls the bytes we allocate on LOH out of all allocatio
 It's in in per thousands (not percents! even though in the output it says %). So if it's 5, that means 
 5‰ of the allocations will be on LOH.
 
--lohAllocInterval:
-    One out of this many objects will be large. Can't use combined with -lohAllocRatio.
+-pohAllocRatio/-pohar: g_pohAllocRatio
+POH alloc ratio (this controls the bytes we allocate on POH out of all allocations we do)
+It's in in per thousands (not percents! even though in the output it says %). So if it's 5, that means 
+5‰ of the allocations will be on POH.
 
 -totalLiveGB/-tlgb: g_totalLiveBytesGB
 this is the total live data size in GB
@@ -74,7 +76,9 @@ we allocate SOH that's randomly chosen between this range.
 
 -lohSizeRange/-lohsr: g_lohAllocLow, g_lohAllocHigh
 we allocate LOH that's randomly chosen between this range.
-    And if it is used, the calculation of lohAllocInterval is wrong.
+
+-pohSizeRange/-pohsr: g_pohAllocLow, g_pohAllocHigh
+we allocate POH that's randomly chosen between this range.
 
 -sohSurvInterval/-sohsi: g_sohSurvInterval
 meaning every Nth SOH object allocated will survive. This is something we will consider changing to survival rate
@@ -344,7 +348,7 @@ class Item : ITypeWithPayload
         if (isPoh)
         {
 #if NETCOREAPP5_0
-            payload = GC.AllocateArray<byte>((int)payloadSize);
+            payload = GC.AllocateArray<byte>((int)payloadSize, pinned: true);
 #else
             throw new Exception("UNREACHABLE: POH allocations require netcoreapp5.0 or higher");
 #endif
@@ -431,7 +435,7 @@ class SimpleRefPayLoad
         if (isPoh)
         {
 #if NETCOREAPP5_0
-            payload = GC.AllocateArray<byte>((int)sizePayload);
+            payload = GC.AllocateArray<byte>((int)sizePayload, pinned: true);
 #else
             throw new Exception("UNREACHABLE: POH allocations require netcoreapp5.0 or higher");
 #endif
@@ -1263,7 +1267,6 @@ class ArgsParser
         TestKind testKind = TestKind.time;
         uint threadCount = 4;
         uint? lohAllocRatioArg = null;
-        uint? lohAllocIntervalArg = null;
         ulong? totalLiveBytes = null;
         ulong? totalAllocBytes = null;
         double totalMinutesToRun = 0.0;
@@ -1288,7 +1291,6 @@ class ArgsParser
         uint pohSurvInterval = DEFAULT_POH_SURV_INTERVAL;
 
         uint? pohAllocRatioArg = null;
-        uint? pohAllocIntervalArg = null;
 #endif
 
         ItemType allocType = ItemType.ReferenceItem;
@@ -1323,17 +1325,6 @@ class ArgsParser
                 case "-pohar":
 #if NETCOREAPP5_0
                     pohAllocRatioArg = ParseUInt32(args[++i]);
-#else
-                    Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
-                                      args[i++]);
-#endif
-                    break;
-                case "-lohAllocInterval":
-                    lohAllocIntervalArg = ParseUInt32(args[++i]);
-                    break;
-                case "-pohAllocInterval":
-#if NETCOREAPP5_0
-                    pohAllocIntervalArg = ParseUInt32(args[++i]);
 #else
                     Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
                                       args[i++]);
@@ -1451,6 +1442,8 @@ class ArgsParser
             totalMinutesToRun = 1;
         }
 
+        Console.WriteLine(Process.GetCurrentProcess().ProcessName + " " + Environment.CommandLine);
+
         ulong livePerThread = (totalLiveBytes ?? 0) / threadCount;
         ulong allocPerThread = (totalAllocBytes ?? 0) / threadCount;
         if (allocPerThread != 0) Console.WriteLine("allocating {0:n0} per thread", allocPerThread);
@@ -1458,7 +1451,7 @@ class ArgsParser
         List<BucketSpec> bucketList = new List<BucketSpec>();
         uint sohWeight = 1000;
 
-        uint lohWeight = GetLohAllocWeight(lohAllocIntervalArg, lohAllocRatioArg, sohAllocLow: sohAllocLow, sohAllocHigh: sohAllocHigh, lohAllocLow: lohAllocLow, lohAllocHigh: lohAllocHigh, pohAllocLow, pohAllocHigh);
+        uint lohWeight = GetLohAllocWeight(lohAllocRatioArg, sohAllocLow: sohAllocLow, sohAllocHigh: sohAllocHigh, lohAllocLow: lohAllocLow, lohAllocHigh: lohAllocHigh, pohAllocLow, pohAllocHigh);
         if (lohWeight > 0)
         {
             BucketSpec lohBucket = new BucketSpec(
@@ -1473,7 +1466,7 @@ class ArgsParser
         }
 
 #if NETCOREAPP5_0
-        uint pohWeight = GetPohAllocWeight(pohAllocIntervalArg, pohAllocRatioArg, sohAllocLow: sohAllocLow, sohAllocHigh: sohAllocHigh, lohAllocLow: lohAllocLow, lohAllocHigh: lohAllocHigh, pohAllocLow, pohAllocHigh);
+        uint pohWeight = GetPohAllocWeight(pohAllocRatioArg, sohAllocLow: sohAllocLow, sohAllocHigh: sohAllocHigh, lohAllocLow: lohAllocLow, lohAllocHigh: lohAllocHigh, pohAllocLow, pohAllocHigh);
         if (pohWeight > 0)
         {
             BucketSpec pohBucket = new BucketSpec(
@@ -1517,23 +1510,13 @@ class ArgsParser
             endException: endException);
     }
 
-    private static uint GetLohAllocWeight(uint? lohAllocInterval, uint? lohAllocRatio, uint sohAllocLow, uint sohAllocHigh, uint lohAllocLow, uint lohAllocHigh, uint pohAllocLow = 0, uint pohAllocHigh = 0)
+    private static uint GetLohAllocWeight(uint? lohAllocRatio, uint sohAllocLow, uint sohAllocHigh, uint lohAllocLow, uint lohAllocHigh, uint pohAllocLow = 0, uint pohAllocHigh = 0)
     {
         ulong meanSohObjSize = Util.Mean(sohAllocLow, sohAllocHigh);
         ulong meanLohObjSize = Util.Mean(lohAllocLow, lohAllocHigh);
         ulong meanPohObjSize = Util.Mean(pohAllocLow, pohAllocHigh);
 
-        uint ratio;
-        if (lohAllocInterval != null)
-        {
-            Util.AlwaysAssert(lohAllocRatio == null); // Can't set both
-            uint interval = lohAllocInterval.Value;
-            ratio = interval == 0 ? 0 : 1000 / interval;
-        }
-        else
-        {
-            ratio = lohAllocRatio ?? 5;
-        }
+        uint ratio = lohAllocRatio ?? 5;
 
         return GetLohAllocWeight(ratio, sohObjSize: meanSohObjSize, lohObjSize: meanLohObjSize, pohObjSize: meanPohObjSize);
     }
@@ -1550,23 +1533,13 @@ class ArgsParser
     }
 
 #if NETCOREAPP5_0
-    private static uint GetPohAllocWeight(uint? pohAllocInterval, uint? lohAllocRatio, uint sohAllocLow, uint sohAllocHigh, uint lohAllocLow, uint lohAllocHigh, uint pohAllocLow = 0, uint pohAllocHigh = 0)
+    private static uint GetPohAllocWeight(uint? pohAllocRatio, uint sohAllocLow, uint sohAllocHigh, uint lohAllocLow, uint lohAllocHigh, uint pohAllocLow = 0, uint pohAllocHigh = 0)
     {
         ulong meanSohObjSize = Util.Mean(sohAllocLow, sohAllocHigh);
         ulong meanLohObjSize = Util.Mean(lohAllocLow, lohAllocHigh);
         ulong meanPohObjSize = Util.Mean(pohAllocLow, pohAllocHigh);
 
-        uint ratio;
-        if (pohAllocInterval != null)
-        {
-            Util.AlwaysAssert(lohAllocRatio == null); // Can't set both
-            uint interval = pohAllocInterval.Value;
-            ratio = interval == 0 ? 0 : 1000 / interval;
-        }
-        else
-        {
-            ratio = lohAllocRatio ?? 5;
-        }
+        uint ratio = pohAllocRatio ?? 0;
 
         return GetPohAllocWeight(ratio, sohObjSize: meanSohObjSize, lohObjSize: meanLohObjSize, pohObjSize: meanPohObjSize);
     }
@@ -1892,7 +1865,7 @@ class MemoryAlloc
             if (objSpec.IsPoh)
             {
 #if NETCOREAPP5_0
-                bTemp = GC.AllocateArray<byte>((int)objSpec.Size);
+                bTemp = GC.AllocateArray<byte>((int)objSpec.Size, pinned: true);
 #else
                 throw new Exception("POH allocations require netcoreapp5.0 build");
 #endif
