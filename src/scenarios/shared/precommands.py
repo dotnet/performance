@@ -107,7 +107,7 @@ class PreCommands:
         parser.add_argument('--binlog',
                             dest='binlog',
                             metavar='<file-name>.binlog',
-                            help='Flag to turn on binlog for build or publish; ex: <file-name>.binlog')
+                            help='flag to turn on binlog for build or publish; ex: <file-name>.binlog')
         parser.set_defaults(configuration=RELEASE)
 
     def existing(self, projectdir: str, projectfile: str):
