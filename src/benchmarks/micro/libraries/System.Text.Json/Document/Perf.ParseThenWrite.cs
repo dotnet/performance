@@ -28,7 +28,6 @@ namespace System.Text.Json.Document.Tests
         }
 
         private byte[] _dataUtf8;
-		private ArrayBufferWriter<byte> _arrayBufferWriter;
 
         [ParamsAllValues]
         public TestCaseType TestCase;
@@ -55,14 +54,16 @@ namespace System.Text.Json.Document.Tests
             }
 
             _dataUtf8 = Encoding.UTF8.GetBytes(jsonString);
-            _arrayBufferWriter = new ArrayBufferWriter<byte>();
         }
 
         [Benchmark]
         public void ParseThenWrite()
         {
+
+            var arrayBufferWriter = new ArrayBufferWriter<byte>();
+
             using (JsonDocument document = JsonDocument.Parse(_dataUtf8))
-            using (Utf8JsonWriter writer = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = !IsDataCompact }))
+            using (Utf8JsonWriter writer = new Utf8JsonWriter(arrayBufferWriter, new JsonWriterOptions { Indented = !IsDataCompact }))
             {
                 document.WriteTo(writer);
             }
