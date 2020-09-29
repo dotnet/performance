@@ -15,6 +15,7 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(IndexViewModel))]
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
+    [BenchmarkCategory(Categories.NoWASM)]
     public class Binary_FromStream<T>
     {
         private readonly T value;
@@ -53,7 +54,7 @@ namespace MicroBenchmarks.Serializers
             MessagePack.MessagePackSerializer.Serialize<T>(memoryStream, value);
         }
 
-        [BenchmarkCategory(Categories.CoreFX)]
+        [BenchmarkCategory(Categories.Libraries)]
         [Benchmark(Description = nameof(BinaryFormatter))]
         public T BinaryFormatter_()
         {

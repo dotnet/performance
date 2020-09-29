@@ -68,12 +68,12 @@ def remove_directory(path: str) -> None:
 
 def get_script_path() -> str:
     '''Gets this script directory.'''
-    return sys.path[0]
+    return os.path.dirname(os.path.realpath(__file__))
 
 
 def get_repo_root_path() -> str:
     '''Gets repository root directory.'''
-    return os.path.abspath(os.path.join(get_script_path(), '..'))
+    return os.path.abspath(os.path.join(get_script_path(), '..', '..'))
 
 
 def get_tools_directory() -> str:
@@ -86,6 +86,12 @@ def get_artifacts_directory() -> str:
     Gets the default artifacts directory where arcade builds the benchmarks.
     '''
     return os.path.join(get_repo_root_path(), 'artifacts')
+
+def get_packages_directory() -> str:
+    '''
+    The path to directory where packages should get restored
+    '''
+    return os.path.join(get_artifacts_directory(), 'packages')
 
 @contextmanager
 def push_dir(path: str = None) -> None:
@@ -117,7 +123,8 @@ class RunCommand:
             self,
             cmdline: list,
             success_exit_codes: list = None,
-            verbose: bool = False):
+            verbose: bool = False,
+            retry: int = 0):
         if cmdline is None:
             raise TypeError('Unspecified command line to be executed.')
         if not cmdline:
@@ -125,6 +132,7 @@ class RunCommand:
 
         self.__cmdline = cmdline
         self.__verbose = verbose
+        self.__retry = retry
 
         if success_exit_codes is None:
             self.__success_exit_codes = [0]
@@ -149,8 +157,7 @@ class RunCommand:
         '''Enables/Disables verbosity.'''
         return self.__verbose
 
-    def run(self, working_directory: str = None) -> None:
-        '''Executes specified shell command.'''
+    def __runinternal(self, working_directory: str = None) -> tuple:
         should_pipe = self.verbose
         with push_dir(working_directory):
             quoted_cmdline = '$ '
@@ -174,9 +181,20 @@ class RunCommand:
                                 getLogger().info(line)
 
                     proc.wait()
+                    return (proc.returncode, quoted_cmdline)
 
-                    if proc.returncode not in self.success_exit_codes:
-                        getLogger().error(
-                            "Process exited with status %s", proc.returncode)
-                        raise CalledProcessError(
-                            proc.returncode, quoted_cmdline)
+
+    def run(self, working_directory: str = None) -> None:
+        '''Executes specified shell command.'''
+
+        retrycount = 0
+        (returncode, quoted_cmdline) = self.__runinternal(working_directory)
+        while returncode not in self.success_exit_codes and retrycount < self.__retry:
+            (returncode, _) = self.__runinternal(working_directory)
+            retrycount += 1
+
+        if returncode not in self.success_exit_codes:
+            getLogger().error(
+                "Process exited with status %s", returncode)
+            raise CalledProcessError(
+                returncode, quoted_cmdline)

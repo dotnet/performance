@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Text;
 using System.Threading;
 
@@ -31,6 +30,17 @@ namespace ScenarioMeasurement
 
         public bool GuiApp { get; set; } = false;
 
+        public Logger Logger;
+
+        public Dictionary<string, string> EnvironmentVariables = null;
+
+        public bool RootAccess { get; set; } = false;
+
+        public ProcessHelper(Logger logger)
+        {
+            this.Logger = logger;
+        }
+
         /// <summary>
         /// Runs the specified process and waits for it to exit.
         /// </summary>
@@ -38,13 +48,33 @@ namespace ScenarioMeasurement
         /// <param name="appArgs">Optional arguments</param>
         /// <param name="workingDirectory">Optional working directory (defaults to current directory)</param>
         /// <returns></returns>
-        public (Result result, int pid) Run()
+        public (Result Result, int Pid) Run()
         {
             var psi = new ProcessStartInfo();
-            psi.FileName = Executable;
-            psi.Arguments = Arguments;
+            if (!Util.IsWindows() && RootAccess)
+            {
+                psi.FileName = "sudo";
+                psi.Arguments = Executable + " " + Arguments;
+            }
+            else
+            {
+                psi.FileName = Executable;
+                psi.Arguments = Arguments;
+            }
             psi.WorkingDirectory = WorkingDirectory;
+            // WindowStyles only get passed through if UseShellExecute=true
+            // As we only care about WindowStyles for GUI apps, we can use that value here.
             psi.UseShellExecute = GuiApp;
+
+            if (EnvironmentVariables != null)
+            {
+                foreach (var pair in EnvironmentVariables)
+                {
+                    psi.EnvironmentVariables[pair.Key] = pair.Value;
+                    Logger.Log($"Added environment variable: {pair.Key}={pair.Value}");
+                }
+            }
+
             if (!GuiApp)
             {
                 psi.RedirectStandardOutput = true;
@@ -63,11 +93,17 @@ namespace ScenarioMeasurement
                 {
                     process.OutputDataReceived += (s, e) =>
                     {
-                        output.AppendLine(e.Data);
+                        if (!String.IsNullOrEmpty(e.Data))
+                        {
+                            output.AppendLine(e.Data);
+                        }
                     };
                     process.ErrorDataReceived += (s, e) =>
                     {
-                        error.AppendLine(e.Data);
+                        if (!String.IsNullOrEmpty(e.Data))
+                        {
+                            error.AppendLine(e.Data);
+                        }
                     };
                 }
                 process.Start();
@@ -102,13 +138,11 @@ namespace ScenarioMeasurement
                         return (Result.CloseFailed, pid);
                     }
                 }
-                using (var sw = new StreamWriter($"testlog_{Path.GetFileName(Executable)}_{process.Id}.log"))
-                {
-                    sw.WriteLine("Standard output:");
-                    sw.WriteLine(output.ToString());
-                    sw.WriteLine("Standard error:");
-                    sw.WriteLine(error.ToString());
-                }
+
+
+                Logger.Log(output.ToString());
+                Logger.Log(error.ToString());
+
                 // Be aware a successful exit could be non-zero
                 if (process.ExitCode != 0)
                 {

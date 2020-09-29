@@ -4,8 +4,6 @@
 Builds the Benchmarks
 '''
 
-from argparse import Action
-from argparse import ArgumentError
 from argparse import ArgumentParser
 from argparse import ArgumentTypeError
 from argparse import SUPPRESS
@@ -21,108 +19,13 @@ import sys
 
 from performance.common import get_repo_root_path
 from performance.common import get_artifacts_directory
+from performance.common import get_packages_directory
 from performance.common import remove_directory
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
+from channel_map import ChannelMap
 
 import dotnet
-
-
-class FrameworkAction(Action):
-    '''
-    Used by the ArgumentParser to represent the information needed to parse the
-    supported .NET frameworks argument from the command line.
-    '''
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        if values:
-            wrong_choices = []
-            supported_frameworks = FrameworkAction\
-                .get_supported_frameworks()
-
-            for value in values:
-                if value not in supported_frameworks:
-                    wrong_choices.append(value)
-            if wrong_choices:
-                message = ', '.join(wrong_choices)
-                message = 'Invalid choice(s): {}'.format(message)
-                raise ArgumentError(self, message)
-            setattr(namespace, self.dest, list(set(values)))
-
-    @staticmethod
-    def get_supported_frameworks() -> list:
-        '''List of supported .NET frameworks.'''
-        frameworks = list(
-            FrameworkAction.__get_target_framework_moniker_channel_map().keys()
-        )
-        frameworks.append('corert')
-        if sys.platform == 'win32' and 'net461' not in frameworks:
-            frameworks.append('net461')
-        return frameworks
-
-    @staticmethod
-    def __get_target_framework_moniker_channel_map() -> dict:
-        return {
-            'netcoreapp5.0': 'master',
-            'netcoreapp3.0': 'release/3.0.1xx',
-            'netcoreapp2.2': '2.2',
-            'netcoreapp2.1': '2.1',
-            # For Full Framework download the LTS for dotnet cli.
-            'net461': 'LTS',
-        }
-
-    @staticmethod
-    def get_channel(target_framework_moniker: str) -> str:
-        '''
-        Attemps to retrieve the channel that can be used to download the
-        DotNet Cli tools.
-        '''
-        dct = FrameworkAction.__get_target_framework_moniker_channel_map()
-        return dct[target_framework_moniker] \
-            if target_framework_moniker in dct \
-            else None
-
-    @staticmethod
-    def get_branch(target_framework_moniker: str) -> str:
-        '''
-        Attemps to retrieve the channel that can be used to download the
-        DotNet Cli tools.
-        '''
-        dct = {
-            'netcoreapp5.0': 'master',
-            'netcoreapp3.0': 'release/3.0.1xx',
-            'netcoreapp2.2': 'release/2.2',
-            'netcoreapp2.1': 'release/2.1',
-            # For Full Framework download the LTS for dotnet cli.
-            'net461': 'LTS',
-        }
-        return dct[target_framework_moniker] \
-            if target_framework_moniker in dct \
-            else None
-
-    @staticmethod
-    def get_target_framework_moniker(framework: str) -> str:
-        '''
-        Translates framework name to target framework moniker (TFM)
-        To run CoreRT benchmarks we need to run the host BDN process as latest
-        .NET Core the host process will build and run CoreRT benchmarks
-        '''
-        return 'netcoreapp5.0' if framework == 'corert' else framework
-
-    @staticmethod
-    def get_target_framework_monikers(frameworks: list) -> list:
-        '''
-        Translates framework names to target framework monikers (TFM)
-        Required to run CoreRT benchmarks where the host process must be .NET
-        Core, not CoreRT.
-        '''
-        monikers = [
-            FrameworkAction.get_target_framework_moniker(framework)
-            for framework in frameworks
-        ]
-
-        # ['netcoreapp5.0', 'corert'] should become ['netcoreapp5.0']
-        return list(set(monikers))
 
 
 def get_supported_configurations() -> list:
@@ -131,13 +34,6 @@ def get_supported_configurations() -> list:
     projects is 'Release'
     '''
     return ['Release', 'Debug']
-
-
-def get_packages_directory() -> str:
-    '''
-    The path to directory where packages should get restored
-    '''
-    return path.join(get_artifacts_directory(), 'packages')
 
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
@@ -164,10 +60,9 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
     parser.add_argument(
         '-f', '--frameworks',
-        required=True,
+        required=False,
+        choices=ChannelMap.get_supported_frameworks(),
         nargs='+',
-        action=FrameworkAction,
-        choices=FrameworkAction.get_supported_frameworks(),
         help='''The framework to build/run for. '''
              '''The target framework must also be specified in the project '''
              '''file.''',
@@ -231,6 +126,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         for args in reader:
             return args
         return []
+
+    parser.add_argument(
+        '--wasm',
+        dest='wasm',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Tests should be run with the wasm runtime'
+    )
 
     parser.add_argument(
         '--bdn-arguments',
@@ -344,7 +248,10 @@ def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
 
     # Required for CoreRT where:
     #   host process framework != benchmark process framework
-    run_args += ['--runtimes', framework]
+    if args.wasm:
+        run_args += ['--runtimes', 'wasm']
+    else:
+        run_args += ['--runtimes', framework]
 
     return run_args
 
@@ -377,7 +284,10 @@ def build(
         ' '.join(target_framework_monikers))
     __log_script_header(build_title)
     BENCHMARKS_CSPROJ.build(
-        configuration, target_framework_monikers, verbose, packages)
+        configuration=configuration,
+        target_framework_monikers=target_framework_monikers,
+        verbose=verbose,
+        packages_path=packages)
 
 
 def run(
@@ -392,7 +302,7 @@ def run(
     ))
     # dotnet run
     run_args = __get_benchmarkdotnet_arguments(framework, *args)
-    target_framework_moniker = FrameworkAction.get_target_framework_moniker(
+    target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(
         framework
     )
     BENCHMARKS_CSPROJ.run(
@@ -418,7 +328,7 @@ def __main(args: list) -> int:
         frameworks = args.frameworks
         incremental = args.incremental
         verbose = args.verbose
-        target_framework_monikers = FrameworkAction. \
+        target_framework_monikers = dotnet.FrameworkAction. \
             get_target_framework_monikers(frameworks)
 
         setup_loggers(verbose=verbose)

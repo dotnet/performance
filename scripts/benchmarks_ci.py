@@ -4,7 +4,7 @@
 Additional information:
 
 This script wraps all the logic of how to build/run the .NET micro benchmarks,
-acquire tools, gather data into BenchView format and upload it, archive
+acquire tools, gather data into perflab format and upload it, archive
 results, etc.
 
 This is meant to be used on CI runs and available for local runs,
@@ -25,31 +25,15 @@ from datetime import datetime
 from logging import getLogger
 
 import os
-import platform
 import sys
 
-from performance.common import validate_supported_runtime
+from performance.common import validate_supported_runtime, get_artifacts_directory
 from performance.logger import setup_loggers
+from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
+from channel_map import ChannelMap
 
-import benchview
 import dotnet
 import micro_benchmarks
-
-if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
-    MESSAGE = '''The `linux_distribution` method is missing from ''' \
-        '''the `platform` module, which is used to find out information ''' \
-        '''about the OS flavor/version we are using.%s''' \
-        '''The Python Docs state that `platform.linux_distribution` is ''' \
-        '''"Deprecated since version 3.5, will be removed in version 3.8: ''' \
-        '''See alternative like the distro package.%s"''' \
-        '''Most systems in the lab have Python versions 3.5 and 3.6 ''' \
-        '''installed, so we are good at the moment.%s''' \
-        '''If we are hitting this issue, then it might be time to look ''' \
-        '''into using the `distro` module, and possibly packaing as part ''' \
-        '''of the dependencies of these scripts/repo.'''
-    getLogger().error(MESSAGE, os.linesep, os.linesep, os.linesep)
-    exit(1)
-
 
 def init_tools(
         architecture: str,
@@ -63,17 +47,16 @@ def init_tools(
     '''
     getLogger().info('Installing tools.')
     channels = [
-        micro_benchmarks.FrameworkAction.get_channel(
-            target_framework_moniker)
+        ChannelMap.get_channel_from_target_framework_moniker(target_framework_moniker)
         for target_framework_moniker in target_framework_monikers
     ]
+
     dotnet.install(
         architecture=architecture,
         channels=channels,
         versions=dotnet_versions,
         verbose=verbose,
     )
-    benchview.install()
 
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
@@ -174,9 +157,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Attempts to run the benchmarks without building.',
     )
 
-    # BenchView acquisition, and fuctionality
-    parser = benchview.add_arguments(parser)
-
     return parser
 
 
@@ -197,15 +177,13 @@ def __main(args: list) -> int:
     verbose = not args.quiet
     setup_loggers(verbose=verbose)
 
-    # This validation could be cleaner
-    if args.generate_benchview_data and not args.benchview_submission_name:
-        raise RuntimeError("""In order to generate BenchView data,
-            `--benchview-submission-name` must be provided.""")
+    if not args.frameworks:
+        raise Exception("Framework version (-f) must be specified.")
 
-    target_framework_monikers = micro_benchmarks \
+    target_framework_monikers = dotnet \
         .FrameworkAction \
         .get_target_framework_monikers(args.frameworks)
-    # Acquire necessary tools (dotnet, and BenchView)
+    # Acquire necessary tools (dotnet)
     init_tools(
         architecture=args.architecture,
         dotnet_versions=args.dotnet_versions,
@@ -214,7 +192,7 @@ def __main(args: list) -> int:
     )
 
     # WORKAROUND
-    # The MicroBenchmarks.csproj targets .NET Core 2.0, 2.1, 2.2 and 3.0
+    # The MicroBenchmarks.csproj targets .NET Core 2.1, 3.0, 3.1 and 5.0
     # to avoid a build failure when using older frameworks (error NETSDK1045:
     # The current .NET SDK does not support targeting .NET Core $XYZ)
     # we set the TFM to what the user has provided.
@@ -254,8 +232,6 @@ def __main(args: list) -> int:
             
         dotnet.shutdown_server(verbose)
 
-        benchview.run_scripts(args, verbose, BENCHMARKS_CSPROJ)
-
         if args.upload_to_perflab_container:
             import upload
             globpath = os.path.join(
@@ -263,8 +239,7 @@ def __main(args: list) -> int:
                 '**',
                 '*perf-lab-report.json')
 
-            upload.upload(globpath, 'results', 'PERFLAB_UPLOAD_TOKEN', 'https://pvscmdupload.blob.core.windows.net')
-                
+            upload.upload(globpath, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
         # TODO: Archive artifacts.
 
 

@@ -50,6 +50,81 @@ jobs:
 ######################################################
 
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  # Windows x64 scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      architecture: x64
+      pool: Hosted VS2017
+      kind: scenarios
+      queue: Windows.10.Amd64.ClientRS5.Open
+      projectFile: scenarios.proj
+      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        # - release/3.1.3xx
+        - 3.0
+        - release/5.0.1xx
+  
+  # Windows x64 Blazor scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      architecture: x64
+      pool: Hosted VS2017
+      kind: blazor_scenarios
+      queue: Windows.10.Amd64.ClientRS5.Open
+      projectFile: blazor_scenarios.proj
+      channels:
+        - master
+        - release/5.0.1xx
+
+  # Windows x64 SDK scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      architecture: x64
+      pool: Hosted VS2017
+      kind: sdk_scenarios
+      queue: Windows.10.Amd64.ClientRS5.Open
+      projectFile: sdk_scenarios.proj
+      channels:
+        - master
+        - release/5.0.1xx
+        # - release/3.1.3xx
+  
+  # Ubuntu 1804 x64 SDK scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: sdk_scenarios
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1804.Amd64.Open
+      container: ubuntu_x64_build_container
+      projectFile: sdk_scenarios.proj
+      channels:
+        - master
+        - release/5.0.1xx
+        # - release/3.1.3xx
+
+  # Windows x86 SDK scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      architecture: x86
+      pool: Hosted VS2017
+      kind: sdk_scenarios
+      queue: Windows.10.Amd64.ClientRS5.Open
+      projectFile: sdk_scenarios.proj
+      channels:
+        - master
+        - release/5.0.1xx
+        # - release/3.1.3xx
+  
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
@@ -60,12 +135,12 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx' 
-      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - netcoreapp5.0
-        - netcoreapp3.0
-        - netcoreapp2.2
-        - netcoreapp2.1
+      runCategories: 'runtime libraries' 
+      channels:
+        - master
+        - release/5.0.1xx
+        - release/3.1.3xx
+        - 2.1
 
   # Windows x64 net461 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -77,9 +152,9 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS4.DevEx.15.8.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
-      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - net461
+      runCategories: 'runtime libraries'
+      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - LTS # use LTS channel for net461 framework
 
   # Windows x86 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -91,9 +166,10 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
-      frameworks: # for public jobs we want to make sure that the PRs don't break x86
-        - netcoreapp5.0
+      runCategories: 'runtime libraries'
+      channels: # for public jobs we want to make sure that the PRs don't break x86
+        - master
+        - release/5.0.1xx
 
   # Windows x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -106,9 +182,10 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
-      frameworks: # for ML.NET jobs we want to check .NET Core 3.0 and 5.0 only
-        - netcoreapp5.0
-        - netcoreapp3.0
+      channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
+        - master
+        - release/5.0.1xx
+        - release/3.1.3xx
 
   # Windows x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -121,9 +198,10 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
-      frameworks: # for Roslyn jobs we want to check .NET Core 3.0 and 5.0 only
-        - netcoreapp5.0
-        - netcoreapp3.0
+      channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+        - master
+        - release/5.0.1xx
+        - release/3.1.3xx
         
   # Ubuntu 1804 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -136,12 +214,12 @@ jobs:
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
-      frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - netcoreapp5.0
-        - netcoreapp3.0
-        - netcoreapp2.2
-        - netcoreapp2.1
+      runCategories: 'runtime libraries'
+      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - master
+        - release/5.0.1xx
+        - release/3.1.3xx
+        - 2.1
 
   # Ubuntu 1804 x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -155,9 +233,10 @@ jobs:
       container: ubuntu_x64_build_container
       runCategories: 'mldotnet'
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
-      frameworks: # for ML.NET jobs we want to check .NET Core 3.0 and 5.0 only
-        - netcoreapp5.0
-        - netcoreapp3.0
+      channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
+        - master
+        - release/5.0.1xx
+        - release/3.1.3xx
 
   # Ubuntu 1804 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -171,15 +250,32 @@ jobs:
       container: ubuntu_x64_build_container
       runCategories: 'roslyn'
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
-      frameworks: # for Roslyn jobs we want to check .NET Core 3.0 and 5.0 only
-        - netcoreapp5.0
-        - netcoreapp3.0
+      channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+        - master
+        - release/5.0.1xx
+        - release/3.1.3xx
 
 ###########################################
 # Private Jobs
 ###########################################
 
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest', 'Manual')) }}:
+
+  # Windows x64 scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: windows
+      osVersion: 19H1
+      architecture: x64
+      pool: Hosted VS2017
+      kind: scenarios
+      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      projectFile: scenarios.proj
+      channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
+        # - release/3.1.2xx
+        - release/5.0.1xx
+        - 3.0
+
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
@@ -190,11 +286,11 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
-      benchviewCategory: 'coreclr'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
-        - netcoreapp5.0
-        - netcoreapp3.0
+      runCategories: 'runtime libraries'
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+        - master
+        - release/5.0.1xx
+        - release/3.1.2xx
       
   # Windows x86 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -206,11 +302,11 @@ jobs:
       pool: Hosted VS2017
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
-      benchviewCategory: 'coreclr'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
-        - netcoreapp5.0
-        - netcoreapp3.0
+      runCategories: 'runtime libraries'
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+        - master
+        - release/5.0.1xx
+        - release/3.1.2xx
 
   # Windows x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -223,10 +319,10 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
-      benchviewCategory: 'mldotnet'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
-        - netcoreapp5.0
-        - netcoreapp3.0
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+        - master
+        - release/5.0.1xx
+        - release/3.1.2xx
 
   # Windows x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -239,10 +335,10 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
-      benchviewCategory: 'roslyn'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
-        - netcoreapp5.0
-        - netcoreapp3.0
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+        - master
+        - release/5.0.1xx
+        - release/3.1.2xx
 
   # Ubuntu 1804 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -255,11 +351,11 @@ jobs:
       queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
-      benchviewCategory: 'coreclr'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
-        - netcoreapp5.0
-        - netcoreapp3.0
+      runCategories: 'runtime libraries'
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+        - master
+        - release/5.0.1xx
+        - release/3.1.2xx
 
   # Ubuntu 1804 x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -273,10 +369,10 @@ jobs:
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
-      benchviewCategory: 'mldotnet'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
-        - netcoreapp5.0
-        - netcoreapp3.0
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+        - master
+        - release/5.0.1xx
+        - release/3.1.2xx
   
   # Ubuntu 1804 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -290,125 +386,78 @@ jobs:
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       runCategories: 'roslyn'
-      benchviewCategory: 'roslyn'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 and 5.0 only
-        - netcoreapp5.0
-        - netcoreapp3.0
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+        - master
+        - release/5.0.1xx
+        - release/3.1.2xx
 
 ################################################
 # Scheduled Private jobs
 ################################################
 
-# Scheduled runs will run all of the jobs on the PerfTigers, as well as jobs on the PerfSnakes and the Arm64 job
+# Scheduled runs will run all of the jobs on the PerfTigers, as well as the Arm64 job
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule')) }}:
-  # Windows x64 micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
+
+  # Windows x64 SDK scenario benchmarks
+  - template: /eng/performance/scenarios.yml
     parameters:
       osName: windows
-      osVersion: RS1
-      kind: micro
+      osVersion: RS5
       architecture: x64
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
-      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
-      benchviewCategory: 'coreclr'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
-        - netcoreapp3.0
-      
-  # Windows x86 micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
+      kind: sdk_scenarios
+      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      projectFile: sdk_scenarios.proj
+      channels:
+        - master
+        - release/5.0.1xx
+        # - release/3.1.2xx
+  
+  # Windows x86 SDK scenario benchmarks
+  - template: /eng/performance/scenarios.yml
     parameters:
       osName: windows
-      osVersion: RS1
-      kind: micro
+      osVersion: RS5
       architecture: x86
       pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
-      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
-      benchviewCategory: 'coreclr'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
-        - netcoreapp3.0
+      kind: sdk_scenarios
+      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      projectFile: sdk_scenarios.proj
+      channels:
+        - master
+        - release/5.0.1xx
+        # - release/3.1.2xx
 
-  # Windows x64 ML.NET benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: windows
-      osVersion: RS1
-      kind: mlnet
-      architecture: x64
-      pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
-      csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-      runCategories: 'mldotnet'
-      benchviewCategory: 'mldotnet'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
-        - netcoreapp3.0
-
-  # Windows x64 Roslyn benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: windows
-      osVersion: RS1
-      kind: roslyn
-      architecture: x64
-      pool: Hosted VS2017
-      queue: Windows.10.Amd64.ClientRS1.Perf # using a dedicated private Helix queue (perfsnakes)
-      csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
-      runCategories: 'roslyn'
-      benchviewCategory: 'roslyn'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
-        - netcoreapp3.0
-
-  # Ubuntu 1604 x64 micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
+  # Ubuntu 1804 x64 SDK scenario benchmarks
+  - template: /eng/performance/scenarios.yml
     parameters:
       osName: ubuntu
-      osVersion: 1604
-      kind: micro
+      osVersion: 1804
       architecture: x64
       pool: Hosted Ubuntu 1604
-      queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
+      kind: sdk_scenarios
+      queue: Ubuntu.1804.Amd64.Tiger.Perf
       container: ubuntu_x64_build_container
-      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
-      benchviewCategory: 'coreclr'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
-        - netcoreapp3.0
+      projectFile: sdk_scenarios.proj
+      channels:
+        - master
+        - release/5.0.1xx
+        # - release/3.1.2xx
 
-  # Ubuntu 1604 x64 ML.NET benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
+  # Windows x64 Blazor 3.2 scenario benchmarks
+  - template: /eng/performance/scenarios.yml
     parameters:
-      osName: ubuntu
-      osVersion: 1604
-      kind: mlnet
+      osName: windows
+      osVersion: RS5
       architecture: x64
-      pool: Hosted Ubuntu 1604
-      queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
-      container: ubuntu_x64_build_container
-      csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
-      runCategories: 'mldotnet'
-      benchviewCategory: 'mldotnet'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
-        - netcoreapp3.0
+      pool: Hosted VS2017
+      kind: blazor_scenarios
+      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      projectFile: blazor_scenarios.proj
+      channels:
+        - master
+        - release/5.0.1xx
   
-  # Ubuntu 1604 x64 Roslyn benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: ubuntu
-      osVersion: 1604
-      kind: roslyn
-      architecture: x64
-      pool: Hosted Ubuntu 1604
-      queue: Ubuntu.1604.Amd64.Perf # using a dedicated private Helix queue (perfsnakes)
-      container: ubuntu_x64_build_container
-      csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
-      runCategories: 'roslyn'
-      benchviewCategory: 'roslyn'
-      frameworks: # for private jobs we want to benchmark .NET Core 3.0 only
-        - netcoreapp3.0
-
   # Ubuntu 1804 ARM64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
@@ -420,7 +469,71 @@ jobs:
       queue: Ubuntu.1804.Arm64.Perf
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx'
-      benchviewCategory: 'coreclr'
-      frameworks: # currently ARM64 is supported only by .NET Core 3.0 https://github.com/dotnet/core/blob/master/release-notes/3.0/3.0-supported-os.md
-        - netcoreapp3.0
+      runCategories: 'runtime libraries'
+      channels: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
+        - master
+        - release/5.0.1xx
+        - release/3.1.2xx
+
+    # Ubuntu 1804 ARM64 micro benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      kind: micro
+      architecture: arm64
+      pool: Hosted VS2017
+      queue: Windows.10.Arm64.Perf
+      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
+      runCategories: 'runtime libraries'
+      channels: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
+        - master
+        - release/5.0.1xx
+        - release/3.1.2xx
+
+################################################
+# Manually Triggered Job
+################################################
+
+
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Manual')) }}:
+
+  # Windows x64 SDK scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      architecture: x64
+      pool: Hosted VS2017
+      kind: sdk_scenarios
+      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      projectFile: sdk_scenarios.proj
+      channels:
+        - $(channel) # for manual runs we can specify channel variable 
+
+  # Windows x86 SDK scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      architecture: x86
+      pool: Hosted VS2017
+      kind: sdk_scenarios
+      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      projectFile: sdk_scenarios.proj
+      channels:
+        - $(channel) # for manual runs we can specify channel variable 
+
+  # Ubuntu 1804 x64 SDK scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      kind: sdk_scenarios
+      queue: Ubuntu.1804.Amd64.Tiger.Perf
+      container: ubuntu_x64_build_container
+      projectFile: sdk_scenarios.proj
+      channels:
+        - $(channel)

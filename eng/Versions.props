@@ -5,19 +5,9 @@
     <VersionPrefix>1.0.0</VersionPrefix>
     <PreReleaseVersionLabel>beta</PreReleaseVersionLabel>
   </PropertyGroup>
-  <PropertyGroup>
-    <RestoreSources>
-      $(RestoreSources);
-      https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json;
-      https://dotnetfeed.blob.core.windows.net/aspnet-aspnetcore/index.json;
-      https://dotnet.myget.org/F/symreader-converter/api/v3/index.json;
-      https://dotnet.myget.org/F/symreader/api/v3/index.json;
-      https://ci.appveyor.com/nuget/benchmarkdotnet;
-    </RestoreSources>
-  </PropertyGroup>
   <!--Package versions-->
   <PropertyGroup>
-    <MicrosoftDotnetSdkInternalPackageVersion>1.0.0-preview.19427.12</MicrosoftDotnetSdkInternalPackageVersion>
+    <MicrosoftDotnetSdkInternalPackageVersion>6.0.100-alpha.1.20464.5</MicrosoftDotnetSdkInternalPackageVersion>
   </PropertyGroup>
   <!--Package names-->
   <PropertyGroup>

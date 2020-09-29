@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- For a desktop build, you could add e.g. `net472;` here. -->
+    <TargetFrameworks>netcoreapp2.2;netcoreapp3.0;netcoreapp3.1;netcoreapp5.0</TargetFrameworks>
+    <LangVersion>8.0</LangVersion>
+    <RootNamespace>gcperfsim_core</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <NullableReferenceTypes>true</NullableReferenceTypes>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+</Project>

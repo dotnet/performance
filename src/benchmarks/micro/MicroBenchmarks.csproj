@@ -1,15 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- Used by Python script to narrow down the the specified target frameworks to test, and avoid downloading all supported SDKs -->
+    <!-- Used by Python script to narrow down the specified target frameworks to test, and avoid downloading all supported SDKs -->
     <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
     <!-- Supported target frameworks -->
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net461;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0;netcoreapp5.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp2.1;netcoreapp2.2;netcoreapp3.0;netcoreapp5.0</TargetFrameworks>
-
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net461;netcoreapp2.1;netcoreapp3.1;netcoreapp5.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp2.1;netcoreapp3.1;netcoreapp5.0</TargetFrameworks>
+    <NoWarn>$(NoWarn);CS8002</NoWarn>
+    <!-- Suppress binaryformatter obsolete warning -->
+    <NoWarn>$(NoWarn);SYSLIB0011</NoWarn>
     <OutputType>Exe</OutputType>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
+    <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
@@ -18,24 +20,30 @@
 
   <ItemGroup>
     <PackageReference Include="Jil" Version="2.17.0" />
-    <PackageReference Include="MessagePack" Version="1.7.3.7" />
+    <PackageReference Include="MessagePack" Version="1.9.11" />
     <PackageReference Include="MessagePackAnalyzer" Version="1.7.3.7" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0-rc.1.20417.14" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.0-rc.1.20417.14" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0-rc.1.20417.14" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0-rc.1.20417.14" />
+    <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="5.0.0-rc.1.20417.14" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="5.0.0-rc.1.20417.14" />
     <PackageReference Include="protobuf-net" Version="2.4.0" />
-    <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
-    <PackageReference Include="System.IO.Pipelines" Version="4.5.3" />
-    <PackageReference Include="System.Memory" Version="4.5.1" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="5.0.0-rc.1.20417.14" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.0-rc.1.20417.14" />
+    <PackageReference Include="System.Formats.Cbor" Version="5.0.0-rc.1.20417.14" Condition="'$(TargetFramework)' == 'netcoreapp5.0'" />
+    <PackageReference Include="System.IO.Pipelines" Version="5.0.0-rc.1.20417.14" />
+    <PackageReference Include="System.Memory" Version="4.5.4" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.2" />
     <PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Serialization.Json" Version="4.3.0" />
-    <PackageReference Include="System.Security.Cryptography.Primitives" Version="4.3.0" />
-    <PackageReference Include="System.Threading.Channels" Version="4.5.0" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.2" />
+    <PackageReference Include="System.Threading.Channels" Version="5.0.0-rc.1.20417.14" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
     <PackageReference Include="Utf8Json" Version="1.3.7" />
     <!-- following two dependencies must point to version 4.3.0 or newer to make it possible to publish MicroBenchmarks.csproj -->
     <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
-    <PackageReference Include="System.Net.Primitives" Version="4.3.0" />
+    <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -43,51 +51,61 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="coreclr\BenchmarksGame\Inputs\*.txt">
+    <None Update="runtime\BenchmarksGame\Inputs\*.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="corefx\System.Net.Http\*.pfx">
+    <None Update="libraries\System.Net.Http\*.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="corefx\System.IO.Compression\TestData\**">
+    <None Update="libraries\System.IO.Compression\TestData\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="corefx\System.Text.RegularExpressions\content\200_000.in">
+    <None Update="libraries\Common\*.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework'">
-    <Compile Remove="corefx\System.IO.Compression\Brotli.cs" />
-    <Compile Remove="corefx\System.Net.Http\Perf.SocketsHttpHandler.cs" />
-    <Compile Remove="corefx\System.Net.Security\SslStreamTests.cs" />
-    <Compile Remove="corefx\System.Net.Sockets\Perf.Socket.SendReceive.cs" />
-    <Compile Remove="corefx\System.Numerics.Vectors\GenericVectorFromSpanConstructorTests.cs" />
-    <Compile Remove="corefx\System.Runtime\Perf.HashCode.cs" />
-    <Compile Remove="corefx\System.Security.Cryptography.Primitives\**" />
-    <Compile Remove="corefx\System.Security.Cryptography\Perf.Rfc2898DeriveBytes.cs" />
-    <Compile Remove="coreclr\Math\Functions\Double\Acosh.cs" />
-    <Compile Remove="coreclr\Math\Functions\Double\Asinh.cs" />
-    <Compile Remove="coreclr\Math\Functions\Double\Atanh.cs" />
-    <Compile Remove="coreclr\Math\Functions\Double\Cbrt.cs" />
-    <Compile Remove="coreclr\Math\Functions\Single\**\*.cs" />
+    <Compile Remove="libraries\System.IO.Compression\Brotli.cs" />
+    <Compile Remove="libraries\System.Net.Http\Perf.SocketsHttpHandler.cs" />
+    <Compile Remove="libraries\System.Net.Security\SslStreamTests.cs" />
+    <Compile Remove="libraries\System.Net.Sockets\Perf.Socket.SendReceive.cs" />
+    <Compile Remove="libraries\System.Numerics.Vectors\GenericVectorFromSpanConstructorTests.cs" />
+    <Compile Remove="libraries\System.Runtime\Perf.HashCode.cs" />
+    <Compile Remove="libraries\System.Security.Cryptography.Primitives\**" />
+    <Compile Remove="libraries\System.Security.Cryptography\Perf.Rfc2898DeriveBytes.cs" />
+    <Compile Remove="libraries\System.Text.Encodings.Web\**\*.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\Acosh.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\Asinh.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\Atanh.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\Cbrt.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\**\*.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.0')">
-    <Compile Remove="coreclr\Math\Functions\Double\FusedMultiplyAdd.cs" />
-    <Compile Remove="coreclr\Math\Functions\Double\ILogB.cs" />
-    <Compile Remove="coreclr\Math\Functions\Double\Log2.cs" />
-    <Compile Remove="coreclr\Math\Functions\Double\ScaleB.cs" />
-    <Compile Remove="coreclr\Math\Functions\Single\FusedMultiplyAdd.cs" />
-    <Compile Remove="coreclr\Math\Functions\Single\ILogB.cs" />
-    <Compile Remove="coreclr\Math\Functions\Single\Log2.cs" />
-    <Compile Remove="coreclr\Math\Functions\Single\ScaleB.cs" />
-    <Compile Remove="corefx\System.Memory\SequenceReader.cs" />
-    <Compile Remove="corefx\System.Text.Json\**\*.cs" />
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.1')">
+    <Compile Remove="runtime\Math\Functions\Double\CopySignDouble.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\FusedMultiplyAdd.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\ILogB.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\Log2.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\ScaleB.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\CopySignSingle.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\FusedMultiplyAdd.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\ILogB.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\Log2.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\ScaleB.cs" />
+    <Compile Remove="libraries\System.Memory\SequenceReader.cs" />
+    <Compile Remove="libraries\System.Numerics.BitOperations\Perf_BitOperations.cs" />
+    <Compile Remove="libraries\System.Text.Json\**\*.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.0') OR '$(IsARM)' == 'true'">
-    <Compile Remove="coreclr\PacketTracer\**\*.cs" />
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.1') OR '$(IsARM)' == 'true'">
+    <Compile Remove="runtime\PacketTracer\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '5.0')">
+    <Compile Remove="libraries\System.Text.Json\Serializer\ReadPreservedReferences.cs" />
+    <Compile Remove="libraries\System.Text.Json\Serializer\WritePreservedReferences.cs" />
+    <Compile Remove="libraries\System.Formats.Cbor\*.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,121 @@
+parameters:
+  osName: ''            # required -- windows | linux | macos
+  osVersion: ''         # required -- OS version
+  kind: ''              # required -- benchmark kind
+  architecture: ''      # required -- Architecture. Allowed values: x64, x86, arm, arm64
+  pool: ''              # required -- name of the Helix pool
+  queue: ''             # required -- name of the Helix queue
+  container: ''         # optional -- id of the container
+  channels: []          # required -- list of channels to download .NET from
+  projectFile: ''       # required -- project file to build (current choices: scenarios.proj/sdk_scenarios.proj )
+
+jobs:
+- template: ../common/templates/jobs/jobs.yml
+  parameters:
+    enableTelemetry: false
+    enablePublishBuildArtifacts: true
+    helixRepo: dotnet/performance
+    jobs:
+      - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}'
+        displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }}'
+        timeoutInMinutes: 320
+        variables:
+        - ${{ if eq(parameters.osName, 'windows') }}:
+          - name: ScriptExtension
+            value: .cmd
+          - name: CorrelationStaging
+            value: $(Build.SourcesDirectory)\CorrelationStaging\
+          - name: AdditionalHelixPreCommands
+            value: 'call %HELIX_CORRELATION_PAYLOAD%\machine-setup$(ScriptExtension);xcopy %HELIX_CORRELATION_PAYLOAD%\NuGet.config %$HELIX_WORKITEM_ROOT%'
+          - name: Python
+            value: 'py -3'
+          - name: ArtifactsDirectory
+            value: '%HELIX_WORKITEM_UPLOAD_ROOT%\Scenarios'
+        - ${{ if ne(parameters.osName, 'windows') }}:
+          - name: ScriptExtension
+            value: .sh
+          - name: CorrelationStaging
+            value: $(Build.SourcesDirectory)/CorrelationStaging/
+          - name: AdditionalHelixPreCommands
+            value: 'chmod +x $HELIX_CORRELATION_PAYLOAD/machine-setup.sh;. $HELIX_CORRELATION_PAYLOAD/machine-setup$(ScriptExtension);cp $HELIX_CORRELATION_PAYLOAD/NuGet.config $$HELIX_WORKITEM_ROOT'
+          - name: Python
+            value: python3
+          - name: ArtifactsDirectory
+            value: '$HELIX_WORKITEM_UPLOAD_ROOT/Scenarios'
+        - ${{ if eq(variables['System.TeamProject'], 'public') }}:
+          - name: HelixApiAccessToken
+            value: ''
+          - name: HelixPreCommand
+            value: '$(AdditionalHelixPreCommands)'
+          - name: HelixSourcePrefix
+            value: "pr"
+          - name: Creator
+            value: dotnet-performance
+        - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+          - name: HelixSourcePrefix
+            value: 'official'
+          - name: Creator
+            value: ''
+          - ${{ if eq(parameters.osName, 'windows') }}:
+            - name: HelixPreCommand
+              value: 'py -3 -m venv %HELIX_WORKITEM_PAYLOAD%\.venv;call %HELIX_WORKITEM_PAYLOAD%\.venv\Scripts\activate.bat;set PYTHONPATH=;py -3 -m pip install azure.storage.blob==12.0.0 --force-reinstall;py -3 -m pip install azure.storage.queue==12.0.0 --force-reinstall;set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
+          - ${{ if ne(parameters.osName, 'windows') }}:
+            - name: HelixPreCommand
+              value: 'sudo apt-get -y install python3-venv;python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv;. $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate;export PYTHONPATH=;pip3 install azure.storage.blob==12.0.0 --force-reinstall;pip3 install azure.storage.queue==12.0.0 --force-reinstall;export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
+          - group: DotNet-HelixApi-Access
+          - group: dotnet-benchview
+        workspace:
+          clean: all
+        pool:
+          name: ${{ parameters.pool }}
+        container: ${{ parameters.container }}
+        strategy:
+          matrix:
+            ${{ each channel in parameters.channels }}:
+              ${{ channel }}:
+                _Channel: ${{ channel }}
+                _Configs: CompilationMode=Tiered RunKind="${{ parameters.kind }}"
+                _BuildConfig: ${{ parameters.architecture }}_$(_Channel)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
+        steps:
+        - checkout: self
+          clean: true
+        - script: $(Python) scripts/parse_props.py --branch-name $(_Channel)
+          displayName: Parse Version.props
+        - script: $(Python) scripts/ci_setup.py $(DotnetVersion) --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup$(ScriptExtension) --install-dir $(CorrelationStaging)dotnet
+          displayName: Run ci_setup.py
+        - ${{ if eq(parameters.osName, 'windows') }}:
+          - script: xcopy .\NuGet.config $(CorrelationStaging) && xcopy .\scripts $(CorrelationStaging)scripts\/e && xcopy .\src\scenarios\shared $(CorrelationStaging)shared\/e && xcopy .\src\scenarios\staticdeps $(CorrelationStaging)staticdeps\/e
+            displayName: Copy python libraries and NuGet.config
+          - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)startup -f $(_Framework) -r win-${{parameters.architecture}} $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\Startup\Startup.csproj
+            displayName: Build startup tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+          - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)SOD -f $(_Framework) -r win-${{parameters.architecture}} $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\SizeOnDisk\SizeOnDisk.csproj
+            displayName: Build SOD tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+        - ${{ if ne(parameters.osName, 'windows') }}:
+          - script: cp ./NuGet.config $(CorrelationStaging);cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared;cp -r ./src/scenarios/staticdeps $(CorrelationStaging)staticdeps
+            displayName: Copy python libraries and NuGet.config
+          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)startup -f $(_Framework) -r linux-${{parameters.architecture}} $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/Startup/Startup.csproj
+            displayName: Build startup tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)SOD -f $(_Framework) -r linux-${{parameters.architecture}} $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/SizeOnDisk/SizeOnDisk.csproj
+            displayName: Build SOD tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+        - template: /eng/performance/send-to-helix.yml
+          parameters:
+            HelixSource: '$(HelixSourcePrefix)/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
+            HelixType: 'test/performance_$(_BuildConfig)/'
+            HelixAccessToken: $(HelixApiAccessToken)
+            HelixTargetQueues: ${{ parameters.queue }}
+            HelixPreCommands: $(HelixPreCommand)
+            CorrelationPayloadDirectory: $(CorrelationStaging)
+            ProjectFile: ${{ parameters.projectFile }}
+            WorkItemDirectory: $(Build.SourcesDirectory)
+            Creator: $(Creator)
+            Architecture: ${{ parameters.architecture }}
+            WorkItemTimeout: 4:00 # 4 hours
+            Python: $(Python)

@@ -35,6 +35,8 @@ namespace MicroBenchmarks.Serializers
                 return (T)(object)CreateXmlElement();
             if (typeof(T) == typeof(SimpleStructWithProperties))
                 return (T)(object)new SimpleStructWithProperties { Num = 1, Text = "Foo" };
+            if (typeof(T) == typeof(SimpleListOfInt))
+                return (T)(object)new SimpleListOfInt { 10, 20, 30 };
             if (typeof(T) == typeof(ClassImplementingIXmlSerialiable))
                 return (T)(object)new ClassImplementingIXmlSerialiable { StringValue = "Hello world" };
             if (typeof(T) == typeof(Dictionary<string, string>))
@@ -49,7 +51,10 @@ namespace MicroBenchmarks.Serializers
                 return (T)(object)new ArrayList(ValuesGenerator.ArrayOfUniqueValues<string>(100));
             if (typeof(T) == typeof(Hashtable))
                 return (T)(object)new Hashtable(ValuesGenerator.ArrayOfUniqueValues<string>(100).ToDictionary(value => value));
-
+            if (typeof(T) == typeof(LargeStructWithProperties))
+                return (T)(object)CreateLargeStructWithProperties();
+            if (typeof(T) == typeof(int))
+                return (T)(object)42;
 
             throw new NotImplementedException();
         }
@@ -58,6 +63,7 @@ namespace MicroBenchmarks.Serializers
             => new LoginViewModel
             {
                 Email = "name.familyname@not.com",
+                // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Dummy credentials for perf testing.")]
                 Password = "abcdefgh123456!@",
                 RememberMe = true
             };
@@ -102,6 +108,16 @@ namespace MicroBenchmarks.Serializers
                         StartDate = DateTime.UtcNow
                     },
                     count: 20).ToList()
+            };
+
+        private static LargeStructWithProperties CreateLargeStructWithProperties()
+            => new LargeStructWithProperties
+            {
+                String1 = "1",
+                String2 = "2",
+                String3 = "3",
+                String4 = "4",
+                String5 = "5",
             };
 
         private static MyEventsListerViewModel CreateMyEventsListerViewModel()
@@ -355,12 +371,31 @@ namespace MicroBenchmarks.Serializers
         
         [ProtoMember(4)] [Key(3)] public List<int> ListOfInt { get; set; }
     }
-    
+
+    [Serializable]
+    [ProtoContract]
+    [MessagePackObject]
+    public struct LargeStructWithProperties
+    {
+        [ProtoMember(1)] [Key(0)] public string String1 { get; set; }
+        [ProtoMember(2)] [Key(1)] public string String2 { get; set; }
+        [ProtoMember(3)] [Key(2)] public string String3 { get; set; }
+        [ProtoMember(4)] [Key(3)] public string String4 { get; set; }
+        [ProtoMember(5)] [Key(4)] public string String5 { get; set; }
+        [ProtoMember(6)] [Key(5)] public int Int1 { get; set; }
+        [ProtoMember(7)] [Key(6)] public int Int2 { get; set; }
+        [ProtoMember(8)] [Key(7)] public int Int3 { get; set; }
+        [ProtoMember(9)] [Key(8)] public int Int4 { get; set; }
+        [ProtoMember(10)] [Key(9)] public int Int5 { get; set; }
+    }
+
     public struct SimpleStructWithProperties
     {
         public int Num { get; set; }
         public string Text { get; set; }
     }
+
+    public class SimpleListOfInt : List<int> { }
     
     public class ClassImplementingIXmlSerialiable : IXmlSerializable
     {

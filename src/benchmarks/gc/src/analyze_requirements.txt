@@ -1,0 +1,13 @@
+black==19.3b0
+flask==1.1.1
+jupyter==1.0.0
+jupyterlab==1.1.1
+matplotlib==3.1.1
+mypy==0.720
+numpy==1.17.1
+pur==5.2.2
+pylint==2.3.1
+#pythonnet==2.4.0
+vulture==1.0
+xlsxwriter==1.2.0
+yattag==1.12.2

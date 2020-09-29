@@ -30,6 +30,45 @@ namespace BenchmarkDotNet.Extensions
             return argsList;
         }
 
+        public static List<string> ParseAndRemoveStringsParameter(List<string> argsList, string parameter, out List<string> parameterValue)
+        {
+            int parameterIndex = argsList.IndexOf(parameter);
+            parameterValue = new List<string>();
+
+            if (parameterIndex + 1 < argsList.Count)
+            {
+                while (parameterIndex + 1 < argsList.Count && !argsList[parameterIndex + 1].StartsWith("-"))
+                {
+                    // remove each filter string and stop when we get to the next argument flag
+                    parameterValue.Add(argsList[parameterIndex + 1]);
+                    argsList.RemoveAt(parameterIndex + 1);
+                }
+            }
+            //We only want to remove the --exclusion-filter if it exists
+            if (parameterIndex != -1)
+            {
+                argsList.RemoveAt(parameterIndex);
+            }
+
+            return argsList;
+        }
+
+        public static void ParseAndRemoveBooleanParameter(List<string> argsList, string parameter, out bool parameterValue)
+        {
+            int parameterIndex = argsList.IndexOf(parameter);
+
+            if (parameterIndex != -1)
+            {
+                argsList.RemoveAt(parameterIndex);
+
+                parameterValue = true;
+            }
+            else
+            {
+                parameterValue = false;
+            }
+        }
+
         public static void ValidatePartitionParameters(int? count, int? index)
         {
             // Either count and index must both be specified or neither specified

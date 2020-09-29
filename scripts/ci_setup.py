@@ -13,6 +13,7 @@ from performance.common import get_tools_directory
 from performance.common import push_dir
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
+from channel_map import ChannelMap
 
 import dotnet
 import micro_benchmarks
@@ -22,24 +23,22 @@ global_extension = ".cmd" if sys.platform == 'win32' else '.sh'
 def init_tools(
         architecture: str,
         dotnet_versions: str,
-        target_framework_monikers: list,
-        verbose: bool) -> None:
+        channel: str,
+        verbose: bool,
+        install_dir: str=None) -> None:
     '''
     Install tools used by this repository into the tools folder.
     This function writes a semaphore file when tools have been successfully
     installed in order to avoid reinstalling them on every rerun.
     '''
     getLogger().info('Installing tools.')
-    channels = [
-        micro_benchmarks.FrameworkAction.get_channel(
-            target_framework_moniker)
-        for target_framework_moniker in target_framework_monikers
-    ]
+
     dotnet.install(
         architecture=architecture,
-        channels=channels,
+        channels=[channel],
         versions=dotnet_versions,
         verbose=verbose,
+        install_dir=install_dir
     )
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
@@ -51,6 +50,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     # Download DotNet Cli
     dotnet.add_arguments(parser)
     micro_benchmarks.add_arguments(parser)
+
+    parser.add_argument(
+        '--channel',
+        dest='channel',
+        required=True,
+        choices=ChannelMap.get_supported_channels(),
+        type=str,
+        help='Channel to download product from'
+    )
 
     parser.add_argument(
         '--branch',
@@ -125,6 +133,14 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Filename to write the setup script to'
     )
 
+    parser.add_argument(
+        '--install-dir',
+        dest='install_dir',
+        required=False,
+        type=str,
+        help='Directory to install dotnet to'
+    )
+
     # Generic arguments.
     parser.add_argument(
         '-q', '--quiet',
@@ -145,7 +161,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
     return parser
 
-
 def __process_arguments(args: list):
     parser = ArgumentParser(
         description='Tool to generate a machine setup script',
@@ -155,6 +170,11 @@ def __process_arguments(args: list):
     )
     add_arguments(parser)
     return parser.parse_args(args)
+
+def __write_pipeline_variable(name: str, value: str):
+    # Create a variable in the build pipeline
+    getLogger().info("Writing pipeline variable %s with value %s" % (name, value))
+    print('##vso[task.setvariable variable=%s]%s' % (name, value))
 
 def __main(args: list) -> int:
     validate_supported_runtime()
@@ -167,11 +187,7 @@ def __main(args: list) -> int:
     if not ((args.commit_sha is None) == (args.repository is None)):
         raise ValueError('Either both commit_sha and repository should be set or neither')
 
-    target_framework_monikers = micro_benchmarks \
-        .FrameworkAction \
-        .get_target_framework_monikers(args.frameworks)
-
-    # Acquire necessary tools (dotnet, and BenchView)
+    # Acquire necessary tools (dotnet)
     # For arm64 runs, download the x64 version so we can get the information we need, but set all variables
     # as if we were running normally. This is a workaround due to the fact that arm64 binaries cannot run
     # in the cross containers, so we are running the ci setup script in a normal ubuntu container
@@ -180,8 +196,9 @@ def __main(args: list) -> int:
     init_tools(
         architecture=architecture,
         dotnet_versions=args.dotnet_versions,
-        target_framework_monikers=target_framework_monikers,
-        verbose=verbose
+        channel=args.channel,
+        verbose=verbose,
+        install_dir=args.install_dir
     )
 
     # dotnet --info
@@ -192,10 +209,10 @@ def __main(args: list) -> int:
     repo_url = None if args.repository is None else args.repository.replace('-','/')
 
     variable_format = 'set %s=%s\n' if sys.platform == 'win32' else 'export %s=%s\n'
+    path_variable = 'set PATH=%%PATH%%;%s\n' if sys.platform == 'win32' else 'export PATH=$PATH:%s\n'
+    dotnet_path = '%HELIX_CORRELATION_PAYLOAD%\dotnet' if sys.platform == 'win32' else '$HELIX_CORRELATION_PAYLOAD/dotnet'
     owner, repo = ('dotnet', 'core-sdk') if args.repository is None else (dotnet.get_repository(repo_url))
     config_string = ';'.join(args.build_configs) if sys.platform == 'win32' else '"%s"' % ';'.join(args.build_configs)
-
-    remove_dotnet = False
 
     output = ''
 
@@ -211,43 +228,47 @@ def __main(args: list) -> int:
 
     perfHash = decoded_output if args.get_perf_hash else args.perf_hash
 
-    for framework in target_framework_monikers:
-        if framework.startswith('netcoreapp'):
-            if framework == 'netcoreapp3.0' or framework == 'netcoreapp5.0':
-                remove_dotnet = True
-            target_framework_moniker = micro_benchmarks.FrameworkAction.get_target_framework_moniker(framework)
-            dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli)
-            commit_sha =  dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
-            source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
+    framework = ChannelMap.get_target_framework_moniker(args.channel)
+    if framework.startswith('netcoreapp'):
+        target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
+        dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli)
+        commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
+        source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
 
-            branch = micro_benchmarks.FrameworkAction.get_branch(target_framework_moniker) if not args.branch else args.branch
+        branch = ChannelMap.get_branch(args.channel) if not args.branch else args.branch
 
-            getLogger().info("Writing script to %s" % args.output_file)
+        getLogger().info("Writing script to %s" % args.output_file)
 
-            with open(args.output_file, 'w') as out_file:
-                out_file.write(variable_format % ('PERFLAB_INLAB', '1'))
-                out_file.write(variable_format % ('PERFLAB_REPO', '/'.join([owner, repo])))
-                out_file.write(variable_format % ('PERFLAB_BRANCH', branch))
-                out_file.write(variable_format % ('PERFLAB_PERFHASH', perfHash))
-                out_file.write(variable_format % ('PERFLAB_HASH', commit_sha))
-                out_file.write(variable_format % ('PERFLAB_QUEUE', args.queue))
-                out_file.write(variable_format % ('PERFLAB_BUILDNUM', args.build_number))
-                out_file.write(variable_format % ('PERFLAB_BUILDARCH', args.architecture))
-                out_file.write(variable_format % ('PERFLAB_LOCALE', args.locale))
-                out_file.write(variable_format % ('PERFLAB_BUILDTIMESTAMP', source_timestamp))
-                out_file.write(variable_format % ('PERFLAB_CONFIGS', config_string))
-                out_file.write(variable_format % ('DOTNET_VERSION', dotnet_version))
-                out_file.write(variable_format % ('PERFLAB_TARGET_FRAMEWORKS', framework))
+        with open(args.output_file, 'w') as out_file:
+            out_file.write(variable_format % ('PERFLAB_INLAB', '1'))
+            out_file.write(variable_format % ('PERFLAB_REPO', '/'.join([owner, repo])))
+            out_file.write(variable_format % ('PERFLAB_BRANCH', branch))
+            out_file.write(variable_format % ('PERFLAB_PERFHASH', perfHash))
+            out_file.write(variable_format % ('PERFLAB_HASH', commit_sha))
+            out_file.write(variable_format % ('PERFLAB_QUEUE', args.queue))
+            out_file.write(variable_format % ('PERFLAB_BUILDNUM', args.build_number))
+            out_file.write(variable_format % ('PERFLAB_BUILDARCH', args.architecture))
+            out_file.write(variable_format % ('PERFLAB_LOCALE', args.locale))
+            out_file.write(variable_format % ('PERFLAB_BUILDTIMESTAMP', source_timestamp))
+            out_file.write(variable_format % ('PERFLAB_CONFIGS', config_string))
+            out_file.write(variable_format % ('DOTNET_VERSION', dotnet_version))
+            out_file.write(variable_format % ('PERFLAB_TARGET_FRAMEWORKS', framework))
+            out_file.write(variable_format % ('DOTNET_CLI_TELEMETRY_OPTOUT', '1'))
+            out_file.write(variable_format % ('DOTNET_MULTILEVEL_LOOKUP', '0'))
+            out_file.write(variable_format % ('UseSharedCompilation', 'false'))
+            out_file.write(variable_format % ('DOTNET_ROOT', dotnet_path))
+            out_file.write(path_variable % dotnet_path)
 
-        else:
-            with open(args.output_file, 'w') as out_file:
-                out_file.write(variable_format % ('PERFLAB_INLAB', '0'))
-                out_file.write(variable_format % ('PERFLAB_TARGET_FRAMEWORKS', framework))
+    else:
+        with open(args.output_file, 'w') as out_file:
+            out_file.write(variable_format % ('PERFLAB_INLAB', '0'))
+            out_file.write(variable_format % ('PERFLAB_TARGET_FRAMEWORKS', framework))
+            out_file.write(path_variable % dotnet_path)
+    
+    # The '_Framework' is needed for specifying frameworks in proj files and for building tools later in the pipeline
+    __write_pipeline_variable('_Framework', framework)
 
-    # On non-windows platforms, delete dotnet, so that we don't have to deal with chmoding it on the helix machines
-    # This is only necessary for netcoreapp3.0 and netcoreapp5.0
-    if sys.platform != 'win32' and remove_dotnet:
-        dotnet.remove_dotnet(architecture)
+
 
 
 if __name__ == "__main__":

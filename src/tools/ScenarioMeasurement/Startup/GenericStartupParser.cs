@@ -1,10 +1,7 @@
 ﻿using Microsoft.Diagnostics.Tracing;
-using Microsoft.Diagnostics.Tracing.Parsers;
-using Microsoft.Diagnostics.Tracing.Session;
 using Reporting;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ScenarioMeasurement
 {
@@ -15,19 +12,19 @@ namespace ScenarioMeasurement
     //     public void Startup() => WriteEvent(1);
     // }
 
-    internal class GenericStartupParser : IParser
+    public class GenericStartupParser : IParser
     {
-        public void EnableKernelProvider(TraceEventSession kernel)
+        public void EnableKernelProvider(ITraceSession kernel)
         {
-            kernel.EnableKernelProvider((KernelTraceEventParser.Keywords)(KernelTraceEventParser.Keywords.Process | KernelTraceEventParser.Keywords.Thread | KernelTraceEventParser.Keywords.ContextSwitch));
+            kernel.EnableKernelProvider(TraceSessionManager.KernelKeyword.Process, TraceSessionManager.KernelKeyword.Thread, TraceSessionManager.KernelKeyword.ContextSwitch);
         }
 
-        public void EnableUserProviders(TraceEventSession user)
+        public void EnableUserProviders(ITraceSession user)
         {
-            user.EnableProvider("PerfLabGenericEventSource");
+            user.EnableUserProvider("PerfLabGenericEventSource", TraceEventLevel.Verbose);
         }
 
-        public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids)
+        public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
         {
             var results = new List<double>();
             var threadTimes = new List<double>();
@@ -40,7 +37,7 @@ namespace ScenarioMeasurement
 
                 source.Kernel.ProcessStart += evt =>
                 {
-                    if (evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase) && pids.Contains(evt.ProcessID))
+                    if (processName.Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase) && pids.Contains(evt.ProcessID) && evt.CommandLine.Trim() == commandLine.Trim())
                     {
                         if (pid.HasValue)
                         {
@@ -89,8 +86,8 @@ namespace ScenarioMeasurement
                 source.Process();
             }
             return new[] {
-                new Counter() { Name = "Generic Startup", MetricName = "ms", Results = results.ToArray() },
-                new Counter() { Name = "Time on Thread", MetricName = "ms", Results = threadTimes.ToArray() }
+                new Counter() { Name = "Generic Startup", MetricName = "ms", DefaultCounter=true, TopCounter=true, Results = results.ToArray() },
+                new Counter() { Name = "Time on Thread", MetricName = "ms", TopCounter=true, Results = threadTimes.ToArray() }
             };
         }
     }

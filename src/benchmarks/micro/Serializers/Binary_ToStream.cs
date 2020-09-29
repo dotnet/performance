@@ -15,6 +15,7 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(IndexViewModel))]
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
+    [BenchmarkCategory(Categories.NoWASM)]
     public class Binary_ToStream<T>
     {
         private readonly T value;
@@ -32,7 +33,7 @@ namespace MicroBenchmarks.Serializers
             ProtoBuf.Meta.RuntimeTypeModel.Default.Add(typeof(DateTimeOffset), false).SetSurrogate(typeof(DateTimeOffsetSurrogate)); // https://stackoverflow.com/a/7046868
         }
 
-        [BenchmarkCategory(Categories.CoreFX)]
+        [BenchmarkCategory(Categories.Libraries)]
         [Benchmark(Description = nameof(BinaryFormatter))]
         public void BinaryFormatter_()
         {

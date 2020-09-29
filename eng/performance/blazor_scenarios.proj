@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+
+  <ItemGroup>
+    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
+      <PayloadDirectory>%(Identity)</PayloadDirectory>
+    </HelixCorrelationPayload>
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
+    <ScenariosDir>$(WorkItemDirectory)\src\scenarios\</ScenariosDir>
+    <HelixPreCommands>$(HelixPreCommands);set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\scripts%3B%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
+    <RID>win-$(Architecture)</RID>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
+    <ScenariosDir>$(WorkItemDirectory)/src/scenarios/</ScenariosDir>
+    <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
+    <RID>linux-$(Architecture)</RID>
+  </PropertyGroup>
+
+  <ItemDefinitionGroup>
+      <HelixWorkItem>
+      <PostCommands>$(Python) post.py</PostCommands>
+      <Timeout>4:00</Timeout>
+    </HelixWorkItem>
+  </ItemDefinitionGroup>
+   
+  <!-- New Blazor 3.2 Template SOD -->
+  <ItemGroup>
+    <HelixWorkItem Include="SOD - New Blazor Template - Publish">
+      <PayloadDirectory>$(ScenariosDir)blazor</PayloadDirectory>
+      <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
+      <PreCommands>$(Python) pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+  </ItemGroup>
+
+</Project>

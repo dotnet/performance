@@ -2,6 +2,10 @@
 **/logs/
 /tools/
 
+# Local perf run folders
+.dotnet/
+.packages/
+
 # Python files
 **/.pytest_cache/
 
@@ -51,6 +55,13 @@ bld/
 
 # Visual Studio 2017 auto generated files
 Generated\ Files/
+
+# scenario intermediate directories
+src/scenarios/*/pub
+src/scenarios/*/app
+src/scenarios/*/bin
+src/scenarios/*/traces
+src/scenarios/*/tmp
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
@@ -242,7 +253,6 @@ ClientBin/
 *.dbmdl
 *.dbproj.schemaview
 *.jfm
-*.pfx
 *.publishsettings
 orleans.codegen.cs
 
@@ -321,6 +331,9 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+# Python .env file for VS Code
+.env
 
 # Cake - Uncomment if you are using it
 # tools/**
