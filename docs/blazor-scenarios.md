@@ -1,5 +1,7 @@
 
 # Blazor Scenarios
+An introduction of how to run scenario tests can be found in [Scenarios Tests Guide](./scenarios-workflow.md). The current document has specific instruction to run:
+- [New Blazorwasm Template Size On Disk](#new-blazorwasm-template-size-on-disk)
 
 ## New Blazorwasm Template Size On Disk
 **New Blazorwasm Template Size On Disk** is a scenario test that meausres the size of published output of blazorwasm template. In other words, our test harness *implicitly* calls 

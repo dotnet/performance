@@ -1,4 +1,6 @@
 # SDK Scenarios
+An introduction of how to run scenario tests can be found in [Scenarios Tests Guide](./scenarios-workflow.md). The current document has specific instruction to run:
+- [SDK Build Throughput Scenario](#sdk-build-throughput-scenario)
 ## SDK Build Throughput Scenario
 **SDK Build Throughput** is a scenario test that measures the throughput of SDK build process. To be more specific, our test *implicitly calls*
 ```
@@ -72,6 +74,16 @@ The test result should look like the following:
 Same instruction of [Step 4 in Scenario Tests Guide](scenarios-workflow.md#step-4-run-postcommand).
 
 ## Command Matrix
+- \<tfm> values:
+    - netcoreapp2.1
+    - netcoreapp3.0
+    - netcoreapp3.1
+    - net5.0
+- \<build option> values:
+    - clean_build
+    - build_no_change
+
+
 | Scenario                  | Asset Directory      | Precommand               | Testcommand                 | Postcommand | Supported Framework                                  | Supported Platform |
 |-------------------------------|----------------------|--------------------------|-----------------------------|-------------|---------------------------------------------------------|---------------------|
 | SDK Console Template          | emptyconsoletemplate | pre.py default -f \<tfm> | test.py sdk \<build option> | post.py     | netcoreapp2.1;netcoreapp3.0;netcoreapp3.1;netcoreapp5.0 | Windows;Linux       |
