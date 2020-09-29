@@ -7,16 +7,17 @@ using MicroBenchmarks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
+using System.Text.Json.Tests;
 
-namespace System.Text.Json.Tests
+namespace System.Text.Json.Document.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+    [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     public class Perf_DocumentParse
     {
         public enum TestCaseType
         {
             HelloWorld,
-			BasicJson,
+            BasicJson,
             Json400B,
             Json400KB
         }

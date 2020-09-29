@@ -8,10 +8,11 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Buffers;
 using System.IO;
+using System.Text.Json.Tests;
 
-namespace System.Text.Json.Tests
+namespace System.Text.Json.Document.Tests
 {
-    [BenchmarkCategory(Categories.CoreFX, Categories.JSON)]
+    [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     public class Perf_ParseThenWrite
     {
         public enum TestCaseType
