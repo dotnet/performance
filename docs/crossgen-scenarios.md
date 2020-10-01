@@ -42,7 +42,7 @@ cd crossgen
 Now run the test, in our example we use `System.Private.Xml.dll` under Core_Root as the input assembly to compile, and you can replace it with other assemblies **under Core_Root**.
 
 ```
-python3 test.py crossgen --core-root <path to core_root>\Core_Root --assembly-name System.Private.Xml.dll
+python3 test.py crossgen --core-root <path to core_root>\Core_Root --test-name System.Private.Xml.dll
 ```
 This will run the test harness [Startup Tool](https://github.com/dotnet/performance/tree/master/src/tools/ScenarioMeasurement/Startup), which runs crossgen compilation in several iterations and measures its throughput. The result will be something like this:
 
@@ -113,7 +113,7 @@ Same instruction of [Scenario Tests Guide - Step 4](./scenarios-workflow#step-4-
 For the purpose of quick reference, the commands can be summarized into the following matrix:
 | Scenario                               | Asset Directory | Precommand | Testcommand                                                                      | Postcommand | Supported Framework | Supported Platform      |
 |----------------------------------------|-----------------|------------|----------------------------------------------------------------------------------|-------------|---------------------|-------------------------|
-| Crossgen Throughput                    | crossgen        | N/A        | test.py crossgen --core-root <path to Core_Root> --assembly-name <assembly name> | post.py     | N/A                 | Windows-x64;Windows-x86 |
+| Crossgen Throughput                    | crossgen        | N/A        | test.py crossgen --core-root <path to Core_Root> --test-name <assembly name> | post.py     | N/A                 | Windows-x64;Windows-x86 |
 | Crossgen2 Throughput (single assembly) | crossgen2       | N/A        | test.py crossgen2 --core-root <path to Core_Root> --single <assembly name>       | post.py     | N/A                 | Windows-x64;Linux       |
 | Crossgen2 Throughput (composite)       | crossgen2       | N/A        | test.py crossgen2 --core-root <path to Core_Root> --composite <path to .rsp>     | post.py     | N/A                 | Windows-x64;Linux       |
 

@@ -65,8 +65,8 @@ new_console:     measure duration of creating a new console template
         crossgenparser = subparsers.add_parser(const.CROSSGEN,
                                                description='measure duration of the crossgen compilation',
                                                formatter_class=RawTextHelpFormatter)
-        crossgenparser.add_argument('--assembly-name', 
-                                    dest='assemblyname', 
+        crossgenparser.add_argument('--test-name', 
+                                    dest='testname', 
                                     type=str, 
                                     required=True,
                                     help=
@@ -144,7 +144,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.sdktype = args.sdktype
 
         if self.testtype == const.CROSSGEN:
-            self.crossgenfile = args.assemblyname
+            self.crossgenfile = args.testname
             self.coreroot = args.coreroot
 
         if self.testtype == const.CROSSGEN2:
