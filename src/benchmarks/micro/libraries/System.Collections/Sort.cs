@@ -17,6 +17,7 @@ namespace System.Collections
     [GenericTypeArguments(typeof(IntClass))] // custom reference type, sort in managed code
     [GenericTypeArguments(typeof(BigStruct))] // custom value type, sort in managed code
     [InvocationCount(InvocationsPerIteration)]
+    [MinWarmupCount(6, forceAutoWarmup: true)] // when InvocationCount is set, BDN does not run Pilot Stage, so to get the code promoted to Tier 1 before Actual Workload, we enforce more Warmups
     public class Sort<T> where T : IComparable<T>
     {
         private static readonly ComparableComparerClass _comparableComparerClass = new ComparableComparerClass();
