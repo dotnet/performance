@@ -250,7 +250,7 @@ public abstract class EmFloatStruct : HarnessTest
     }
 }
 
-[BenchmarkCategory(Categories.Runtime)]
+[BenchmarkCategory(Categories.Runtime, Categories.JIT, Categories.ByteMark)]
 public class ByteMark
 {
     private static int[] s_randw;
@@ -471,7 +471,6 @@ public class ByteMark
     const int AssignRectangularIterations = 5;
 
     [Benchmark]
-    [BenchmarkCategory("TestTestTest")]
     public void BenchAssignRectangular()
     {
         AssignStruct t = new AssignRect();

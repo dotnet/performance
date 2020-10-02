@@ -5,7 +5,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import FrozenSet, Mapping, Optional, Sequence
+from typing import Callable, FrozenSet, Mapping, Optional, Sequence
 
 from ..commonlib.bench_file import ProcessQuery
 from ..commonlib.collection_util import indices, is_empty, map_to_mapping_optional
@@ -250,7 +250,10 @@ def _show_condemned_reasons(args: _ShowCondemnedReasonsArgs) -> None:
         need_mechanisms_and_reasons=False,
         need_join_info=False,
     ).unwrap()
-    handle_doc(show_condemned_reasons_for_jupyter(trace, args.max_gcs), OutputOptions())
+    handle_doc(
+        show_condemned_reasons_for_jupyter(trace, lambda gc: gc.Number < args.max_gcs),
+        OutputOptions(),
+    )
 
 
 @with_slots
@@ -288,8 +291,10 @@ def _show_brief_reasons(reasons: CondemnedReasonsForHeap) -> str:
     )
 
 
-def show_condemned_reasons_for_jupyter(trace: ProcessedTrace, max_gcs: int) -> Document:
-    gcs = trace.gcs[:max_gcs]
+def show_condemned_reasons_for_jupyter(
+    trace: ProcessedTrace, gc_where_filter: Callable[[ProcessedGC], bool]
+) -> Document:
+    gcs = [gc for gc in trace.gcs if gc_where_filter(gc)]
     table = Table(
         headers=("gc number", "condemned reasons"),
         rows=[(Cell(gc.Number), Cell(show_brief_condemned_reasons_for_gc(gc))) for gc in gcs],

@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace System.IO.Pipes.Tests
 {
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public abstract class Perf_PipeTest : PipeTestBase
     {
         [Params(1000000)]

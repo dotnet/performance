@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace System.Security.Cryptography.Tests
 {
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class Perf_Hashing
     {
         private readonly byte[] _data = ValuesGenerator.Array<byte>(100 * 1024 * 1024);

@@ -25,7 +25,6 @@ from datetime import datetime
 from logging import getLogger
 
 import os
-import platform
 import sys
 
 from performance.common import validate_supported_runtime, get_artifacts_directory
@@ -35,22 +34,6 @@ from channel_map import ChannelMap
 
 import dotnet
 import micro_benchmarks
-
-if sys.platform == 'linux' and "linux_distribution" not in dir(platform):
-    MESSAGE = '''The `linux_distribution` method is missing from ''' \
-        '''the `platform` module, which is used to find out information ''' \
-        '''about the OS flavor/version we are using.%s''' \
-        '''The Python Docs state that `platform.linux_distribution` is ''' \
-        '''"Deprecated since version 3.5, will be removed in version 3.8: ''' \
-        '''See alternative like the distro package.%s"''' \
-        '''Most systems in the lab have Python versions 3.5 and 3.6 ''' \
-        '''installed, so we are good at the moment.%s''' \
-        '''If we are hitting this issue, then it might be time to look ''' \
-        '''into using the `distro` module, and possibly packaing as part ''' \
-        '''of the dependencies of these scripts/repo.'''
-    getLogger().error(MESSAGE, os.linesep, os.linesep, os.linesep)
-    exit(1)
-
 
 def init_tools(
         architecture: str,

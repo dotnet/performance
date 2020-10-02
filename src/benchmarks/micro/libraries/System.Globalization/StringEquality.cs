@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace System.Globalization.Tests
 {
-    [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Runtime, Categories.NoWASM)]
     public class StringEquality
     {
         private string _value, _same, _sameUpper, _diffAtFirstChar;

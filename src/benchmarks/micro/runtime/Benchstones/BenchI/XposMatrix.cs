@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace Benchstone.BenchI
 {
-[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.BenchI)]
+[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.JIT, Categories.BenchI)]
 public class XposMatrix
 {
     public const int ArraySize = 100;

@@ -1,0 +1,31 @@
+resources:
+  containers:
+    - container: ubuntu_x64_build_container
+      image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-c103199-20180628134544
+
+# Trigger builds for PR's targeting master
+pr:
+  branches:
+    include:
+    - master
+  paths:
+    exclude: # Need to change this
+    - docs/*
+    - eng/common/README.md
+    - src/benchmarks/micro/Serializers/README.md
+    - src/benchmarks/micro/README.md
+    - src/benchmarks/real-world/JitBench/README.md
+    - src/benchmarks/real-world/Microsoft.ML.Benchmarks/Input/README.md
+    - src/tools/ResultsComparer/README.md
+    - README.md
+
+jobs:
+
+- template: /eng/performance/gc_jobs.yml
+  parameters:
+    osName: windows
+    osVersion: RS5
+    architecture: x64
+    pool: Hosted VS2017
+    kind: scenarios
+    queue: Windows.10.Amd64.ClientRS5.Open

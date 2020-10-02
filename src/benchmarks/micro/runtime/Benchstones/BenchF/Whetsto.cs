@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace Benchstone.BenchF
 {
-[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.BenchF)]
+[BenchmarkCategory(Categories.Runtime, Categories.Benchstones, Categories.JIT, Categories.BenchF)]
 public class Whetsto
 {
     public const int Iterations = 50000;
@@ -17,21 +17,8 @@ public class Whetsto
     private static int s_j, s_k, s_l;
     private static double s_t, s_t2;
 
-    public static volatile int Volatile_out;
-
-    private static void Escape(int n, int j, int k, double x1, double x2, double x3, double x4)
-    {
-        Volatile_out = n;
-        Volatile_out = j;
-        Volatile_out = k;
-        Volatile_out = (int)x1;
-        Volatile_out = (int)x2;
-        Volatile_out = (int)x3;
-        Volatile_out = (int)x4;
-    }
-
     [Benchmark(Description = nameof(Whetsto))]
-    public bool Test()
+    public double Test()
     {
         double[] e1 = new double[4];
         double x1, x2, x3, x4, x, y, z, t1;
@@ -60,7 +47,6 @@ public class Whetsto
             x3 = (x1 - x2 + x3 + x4) * s_t;
             x4 = (-x1 + x2 + x3 + x4) * s_t;
         }
-        Escape(n1, n1, n1, x1, x2, x3, x4);
 
         /* MODULE 2:  array elements */
         e1[0] = 1.0;
@@ -72,14 +58,12 @@ public class Whetsto
             e1[2] = (e1[0] - e1[1] + e1[2] + e1[3]) * s_t;
             e1[3] = (-e1[0] + e1[1] + e1[2] + e1[3]) * s_t;
         }
-        Escape(n2, n3, n2, e1[0], e1[1], e1[2], e1[3]);
 
         /* MODULE 3:  array as parameter */
         for (i = 1; i <= n3; i += 1)
         {
             PA(e1);
         }
-        Escape(n3, n2, n2, e1[0], e1[1], e1[2], e1[3]);
 
         /* MODULE 4:  conditional jumps */
         s_j = 1;
@@ -110,7 +94,6 @@ public class Whetsto
                 s_j = 0;
             }
         }
-        Escape(n4, s_j, s_j, x1, x2, x3, x4);
 
         /* MODULE 5:  omitted */
         /* MODULE 6:  integer Math */
@@ -125,7 +108,6 @@ public class Whetsto
             e1[s_l - 2] = s_j + s_k + s_l;
             e1[s_k - 2] = s_j * s_k * s_l;
         }
-        Escape(n6, s_j, s_k, e1[0], e1[1], e1[2], e1[3]);
 
         /* MODULE 7:  trig. functions */
         x = y = 0.5;
@@ -134,7 +116,6 @@ public class Whetsto
             x = s_t * System.Math.Atan(s_t2 * System.Math.Sin(x) * System.Math.Cos(x) / (System.Math.Cos(x + y) + System.Math.Cos(x - y) - 1.0));
             y = s_t * System.Math.Atan(s_t2 * System.Math.Sin(y) * System.Math.Cos(y) / (System.Math.Cos(x + y) + System.Math.Cos(x - y) - 1.0));
         }
-        Escape(n7, s_j, s_k, x, x, y, y);
 
         /* MODULE 8:  procedure calls */
         x = y = z = 1.0;
@@ -142,7 +123,6 @@ public class Whetsto
         {
             P3(x, y, out z);
         }
-        Escape(n8, s_j, s_k, x, y, z, z);
 
         /* MODULE9:  array references */
         s_j = 1;
@@ -155,7 +135,6 @@ public class Whetsto
         {
             P0(e1);
         }
-        Escape(n9, s_j, s_k, e1[0], e1[1], e1[2], e1[3]);
 
         /* MODULE10:  integer System.Math */
         s_j = 2;
@@ -167,7 +146,6 @@ public class Whetsto
             s_j = s_k - s_j;
             s_k = s_k - s_j - s_j;
         }
-        Escape(n10, s_j, s_k, x1, x2, x3, x4);
 
         /* MODULE11:  standard functions */
         x = 0.75;
@@ -175,9 +153,12 @@ public class Whetsto
         {
             x = System.Math.Sqrt(System.Math.Exp(System.Math.Log(x) / t1));
         }
-        Escape(n11, s_j, s_k, x, x, x, x);
 
-        return true;
+        return n1 + n2 + n3 + n4 + n6 + n7 +n8 + n9 + n10 + n11
+                + x1 + x2 + x3 + x4
+                + x + y + z
+                + e1[0] + e1[1] + e1[2] + e1[3]
+                + s_j + s_k;
     }
 
     private static void PA(double[] e)

@@ -12,6 +12,8 @@ namespace System.Numerics.Tests
 
         private const float SingleNegativeDelta = -1.0f / DefaultInnerIterationsCount;
 
+        public static readonly Plane PlaneValue = new Plane(Vector3.UnitY, 0.0f);
+
         public static readonly Vector2 Vector2Delta = new Vector2(SinglePositiveDelta, SingleNegativeDelta);
 
         public static readonly Vector2 Vector2Value = new Vector2(-1.0f, 1.0f);

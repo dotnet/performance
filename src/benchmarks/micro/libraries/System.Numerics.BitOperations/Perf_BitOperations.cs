@@ -10,7 +10,7 @@ using BenchmarkDotNet.Extensions;
 
 namespace System.Numerics.Tests
 {
-    [BenchmarkCategory(Categories.Libraries, Categories.SIMD)]
+    [BenchmarkCategory(Categories.Libraries, Categories.SIMD, Categories.JIT)]
     public class Perf_BitOperations
     {
         private static uint[] input_uint = ValuesGenerator.Array<uint>(1000);

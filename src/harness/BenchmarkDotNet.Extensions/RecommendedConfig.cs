@@ -8,6 +8,7 @@ using Perfolizer.Horology;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Reports;
 using System.Collections.Generic;
+using Reporting;
 
 namespace BenchmarkDotNet.Extensions
 {
@@ -45,12 +46,16 @@ namespace BenchmarkDotNet.Extensions
                 .AddFilter(new ExclusionFilter(exclusionFilterValue))
                 .AddFilter(new CategoryExclusionFilter(categoryExclusionFilterValue))
                 .AddExporter(JsonExporter.Full) // make sure we export to Json
-                .AddExporter(new PerfLabExporter())
                 .AddColumn(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
                 .AddValidator(TooManyTestCasesValidator.FailOnError)
                 .AddValidator(new UniqueArgumentsValidator()) // don't allow for duplicated arguments #404
                 .AddValidator(new MandatoryCategoryValidator(mandatoryCategories))
                 .WithSummaryStyle(SummaryStyle.Default.WithMaxParameterColumnWidth(36)); // the default is 20 and trims too aggressively some benchmark results
+
+            if (Reporter.CreateReporter().InLab)
+            {
+                config = config.AddExporter(new PerfLabExporter());
+            }
 
             if (getDiffableDisasm)
             {

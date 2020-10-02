@@ -287,7 +287,12 @@ handle_doc(
 
 #%% show-condemned-reasons
 
-handle_doc(show_condemned_reasons_for_jupyter(trace=_TRACE, max_gcs=16))
+handle_doc(
+    show_condemned_reasons_for_jupyter(
+        trace=_TRACE,
+        gc_where_filter=lambda gc: ((gc.Generation != Gens.Gen0) and (gc.Number < 1000)),
+    )
+)
 
 #%% show-condemned-reasons-for-gc
 

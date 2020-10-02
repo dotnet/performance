@@ -14,6 +14,7 @@ from ..commonlib.bench_file import (
     get_benchmark,
     get_config,
     get_coreclr,
+    get_test_executable,
     get_this_machine,
     iter_tests_to_run,
     out_dir_for_bench_yaml,
@@ -121,7 +122,7 @@ def run_test(
         else args.out
     )
     built = get_built(
-        bench.content.coreclrs,
+        coreclrs=bench.content.coreclrs,
         build_kind=BuildKind.forbid_out_of_date,
         use_debug_coreclrs=args.use_debug_coreclrs,
         skip_coreclr_checks=args.skip_coreclr_checks,
@@ -146,11 +147,11 @@ def run_test(
 
     if not is_suite and not is_empty(run_errors):
         print(
-            f"\n======= *WARNING*: Test '{bench_file_path}' encountered errors. =======\n"
+            f"\n========= *WARNING*: Test '{bench_file_path}' encountered errors. =========\n"
             "\n*** Here is a summary of the problems found: ***\n"
         )
-        for core_run in run_errors.values():
-            core_run.print()
+        for executable in run_errors.values():
+            executable.print()
 
 
 # pylint: disable=broad-except
@@ -174,7 +175,7 @@ def _run_all_benchmarks(
                     SingleTest(
                         test=t.test,
                         coreclr=built.coreclrs[t.coreclr_name],
-                        test_exe=_get_path(built, t.bench_file.paths, t.benchmark.get_executable),
+                        test_exe=t.test.executable.executable_path,
                         options=t.bench_file.options,
                         default_env=default_env,
                     ),
@@ -184,6 +185,7 @@ def _run_all_benchmarks(
             _, exception_message, exception_trace = exc_info()
             add_new_error(
                 run_errors=run_errors,
+                exec_name=t.executable_name,
                 core_name=t.coreclr_name,
                 config_name=t.config_name,
                 bench_name=t.benchmark_name,
@@ -217,6 +219,9 @@ def _str_to_bool(s: str) -> bool:
 @dataclass(frozen=True)
 class HowToRunTestArgs:
     bench_file: Path = argument(name_optional=True, doc="Path to a benchfile.")
+    executable: Optional[str] = argument(
+        default=None, doc="Executable name for the test. May omit if there is only one executable."
+    )
     coreclr: Optional[str] = argument(
         default=None, doc="Coreclr name for the test. May omit if there is only one coreclr."
     )
@@ -237,6 +242,7 @@ class HowToRunTestArgs:
 
 def how_to_run_test(args: HowToRunTestArgs) -> None:
     bench = parse_bench_file(args.bench_file).content
+    executable = get_test_executable(bench, args.executable)
     coreclr = get_coreclr(bench, args.coreclr)
     built = get_built(
         {coreclr.name: coreclr.coreclr},
@@ -271,12 +277,13 @@ def how_to_run_test(args: HowToRunTestArgs) -> None:
     t = SingleTest(
         test=SingleTestCombination(
             machine=get_this_machine(),
+            executable=executable,
             coreclr=coreclr,
             config=config_and_name.as_partial,
             benchmark=benchmark_and_name,
         ),
         coreclr=coreclr_paths,
-        test_exe=_get_path(built, bench.paths, benchmark.get_executable),
+        test_exe=executable.executable_path,
         options=bench.options,
         default_env={},
     )

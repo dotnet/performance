@@ -48,6 +48,7 @@ namespace System.Threading.Channels.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
         public async Task WriteAsyncThenReadAsync()
         {
             await _writer.WriteAsync(default);
@@ -55,6 +56,7 @@ namespace System.Threading.Channels.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
         public async Task ReadAsyncThenWriteAsync()
         {
             ValueTask<int> r = _reader.ReadAsync();
@@ -70,6 +72,7 @@ namespace System.Threading.Channels.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
         public async Task PingPong()
         {
             const int PingPongCount = 10_000;
