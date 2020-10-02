@@ -35,10 +35,10 @@ class PreCommands:
         parser = ArgumentParser()
 
         subparsers = parser.add_subparsers(title='Operations', 
-                                           description='Common preperation steps for perf tests.',
+                                           description='Common preperation steps for perf tests. Should run under src\scenarios\<test asset folder>',
                                            dest='operation')
 
-        default_parser = subparsers.add_parser(DEFAULT, help='Default operation' )
+        default_parser = subparsers.add_parser(DEFAULT, help='Default operation (placeholder command and no specific operation will be executed)' )
         self.add_common_arguments(default_parser)
 
         build_parser = subparsers.add_parser(BUILD, help='Builds the project')
@@ -85,26 +85,29 @@ class PreCommands:
         parser.add_argument('-c', '--configuration',
                             dest='configuration',
                             choices=[DEBUG, RELEASE],
-                            metavar='config')
+                            metavar='config',
+                            help='configuration for build or publish - ex: Release or Debug')
         parser.add_argument('-f', '--framework',
                             dest='framework',
-                            metavar='framework')
+                            metavar='framework',
+                            help='framework for build or publish - ex: netcoreapp3.0')
         parser.add_argument('-r', '--runtime',
                             dest='runtime',
-                            metavar='runtime')
+                            metavar='runtime',
+                            help='runtime for build or publish - ex: win-x64')
         parser.add_argument('--msbuild',
-                            help='Flags passed through to msbuild',
                             dest='msbuild',
-                            metavar='/p:Foo=Bar;/p:Baz=Blee;...')
+                            metavar='msbuild',
+                            help='a list of msbuild flags passed to build or publish command separated by semicolons - ex: /p:Foo=Bar;/p:Baz=Blee;...')
         parser.add_argument('--msbuild-static',
-                            help='Properties added to csproj',
                             dest='msbuildstatic',
-                            metavar='Foo=Bar;Bas=Blee;...'
+                            metavar='msbuildstatic',
+                            help='a list of msbuild properties inserted into .csproj file of the project - ex: Foo=Bar;Bas=Blee;'
                            )
         parser.add_argument('--binlog',
-                            help='Flag to enable binlog',
                             dest='binlog',
-                            metavar='<file-name>.binlog')
+                            metavar='<file-name>.binlog',
+                            help='flag to turn on binlog for build or publish; ex: <file-name>.binlog')
         parser.set_defaults(configuration=RELEASE)
 
     def existing(self, projectdir: str, projectfile: str):
@@ -146,6 +149,7 @@ class PreCommands:
         insert_after(filepath, line, trace_statement)
 
     def _addstaticmsbuildproperty(self, projectfile: str):
+        'Insert static msbuild property in the specified project file'
         if self.msbuildstatic:
           for propertyarg in self.msbuildstatic.split(';'):
             propertyname, propertyvalue = propertyarg.split('=')
@@ -153,6 +157,7 @@ class PreCommands:
             insert_after(projectfile, r'</PropertyGroup>', propertystring )
 
     def _updateframework(self, projectfile: str):
+        'Update the <TargetFramework> property so we can re-use the template'
         if self.framework:
             replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
 
@@ -178,7 +183,7 @@ class PreCommands:
                                output_to_bindir=True)
 
     def _backup(self, projectdir:str):
-        # copy from projectdir to appdir
+        'Copy from projectdir to appdir so we do not modify the source code'
         if os.path.isdir(const.APPDIR):
             shutil.rmtree(const.APPDIR)
         shutil.copytree(projectdir, const.APPDIR)
