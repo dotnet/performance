@@ -945,7 +945,11 @@ class SingleTestCombination:
     @property
     def name(self) -> str:
         return (
-            f"{self.machine_name}__{self.executable_name}__{self.coreclr_name}__{self.config_name}__{self.benchmark_name}"
+            f"{self.machine_name}"
+            f"__{self.executable_name}"
+            f"__{self.coreclr_name}"
+            f"__{self.config_name}"
+            f"__{self.benchmark_name}"
         )
 
 
@@ -1010,7 +1014,9 @@ class PartialTestCombination:
 
     @property
     def executable(self) -> Optional[Path]:
-        return None if self.executable_and_name is None else self.executable_and_name.executable_path
+        return (
+            None if self.executable_and_name is None else self.executable_and_name.executable_path
+        )
 
     @property
     def executable_name(self) -> Optional[str]:
@@ -1066,6 +1072,9 @@ Defaults to the bench file's specified 'vary'.
 
 @doc_field("comment", "(ignored)")
 @doc_field("vary", "Preferred property to vary when using `py . diff`")
+@doc_field(
+    "test_executables", "Mapping of dll's to run when issuing `py . run` or `py . suite-run`"
+)
 @doc_field(
     "configs_vary_by",
     """
@@ -1419,7 +1428,10 @@ def get_test_path(
     out_dir: Optional[Path] = None,
 ) -> TestPaths:
     out = out_dir_for_bench_yaml(bench.path, t.machine) if out_dir is None else out_dir
-    return TestPaths(out / f"{t.executable_name}__{t.coreclr.name}__{t.config.name}__{t.benchmark.name}__{iteration}")
+    return TestPaths(
+        out
+        / f"{t.executable_name}__{t.coreclr.name}__{t.config.name}__{t.benchmark.name}__{iteration}"
+    )
 
 
 def combine_test_configs(
@@ -1430,7 +1442,9 @@ def combine_test_configs(
     )
 
 
-def get_test_executable(bench_file: BenchFile, executable_name: Optional[str]) -> TestExecutableAndName:
+def get_test_executable(
+    bench_file: BenchFile, executable_name: Optional[str]
+) -> TestExecutableAndName:
     return find_only_or_only_matching(
         lambda exn: exn.name, "--executable", executable_name, bench_file.executables_and_names
     )

@@ -217,7 +217,13 @@ def get_diffables_from_bench_file(
     vary = non_null(bench.vary, "Must provide --vary") if arg_vary is None else arg_vary
 
     unfiltered_all_combinations = [
-        SingleTestCombination(machine=machine, executable=executable, coreclr=coreclr, config=config, benchmark=benchmark)
+        SingleTestCombination(
+            machine=machine,
+            executable=executable,
+            coreclr=coreclr,
+            config=config,
+            benchmark=benchmark,
+        )
         for machine in machines
         for executable in bench.executables_and_names
         for coreclr in bench.coreclrs_and_names
