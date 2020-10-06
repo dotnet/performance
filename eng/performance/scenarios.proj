@@ -14,13 +14,13 @@
 
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
     <ScenariosDir>$(WorkItemDirectory)/src/scenarios/</ScenariosDir>
+    <HelixPreCommands>$(HelixPreCommands);sudo apt-get update;chmod +x $HELIX_CORRELATION_PAYLOAD/startup/perfcollect</HelixPreCommands>
     <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
     <RID>linux-$(Architecture)</RID>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
       <HelixWorkItem>
-      <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemDefinitionGroup>

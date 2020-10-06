@@ -26,7 +26,7 @@ jobs:
           - name: CorrelationStaging
             value: $(Build.SourcesDirectory)\CorrelationStaging\
           - name: AdditionalHelixPreCommands
-            value: 'call %HELIX_CORRELATION_PAYLOAD%\machine-setup$(ScriptExtension);xcopy %HELIX_CORRELATION_PAYLOAD%\NuGet.config %$HELIX_WORKITEM_ROOT%'
+            value: 'call %HELIX_CORRELATION_PAYLOAD%\machine-setup$(ScriptExtension);xcopy %HELIX_CORRELATION_PAYLOAD%\NuGet.config %HELIX_WORKITEM_ROOT%'
           - name: Python
             value: 'py -3'
           - name: ArtifactsDirectory
@@ -37,7 +37,7 @@ jobs:
           - name: CorrelationStaging
             value: $(Build.SourcesDirectory)/CorrelationStaging/
           - name: AdditionalHelixPreCommands
-            value: 'chmod +x $HELIX_CORRELATION_PAYLOAD/machine-setup.sh;. $HELIX_CORRELATION_PAYLOAD/machine-setup$(ScriptExtension);cp $HELIX_CORRELATION_PAYLOAD/NuGet.config $$HELIX_WORKITEM_ROOT'
+            value: 'chmod +x $HELIX_CORRELATION_PAYLOAD/machine-setup.sh;. $HELIX_CORRELATION_PAYLOAD/machine-setup$(ScriptExtension);cp $HELIX_CORRELATION_PAYLOAD/NuGet.config $HELIX_WORKITEM_ROOT'
           - name: Python
             value: python3
           - name: ArtifactsDirectory

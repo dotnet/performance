@@ -94,9 +94,14 @@ namespace ScenarioMeasurement
             if (!source.IsWindows)
             {
                 // For Linux both pid and tid should match
-                if (!pids.Contains((int)GetPayloadValue(evt, "PayloadThreadID")))
+                // Check default payload value
+                if (!pids.Contains(evt.ThreadID))
                 {
-                    return CompareResult.Mismatch;
+                    // Check event-specific payload value
+                    if (!pids.Contains((int)GetPayloadValue(evt, "PayloadThreadID")))
+                    {
+                        return CompareResult.Mismatch;
+                    }
                 }
             }
             return CompareResult.Match;
