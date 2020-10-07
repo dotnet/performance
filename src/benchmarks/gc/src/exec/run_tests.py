@@ -255,7 +255,6 @@ def how_to_run_test(args: HowToRunTestArgs) -> None:
     config_and_name = get_config(bench, args.config)
     config = config_and_name.config
     benchmark_and_name = get_benchmark(bench, args.benchmark)
-    benchmark = benchmark_and_name.benchmark
 
     env = combine_mappings(
         config.with_coreclr(coreclr.name).env(map_option(coreclr_paths, lambda c: c.core_root)),
