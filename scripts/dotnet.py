@@ -451,7 +451,7 @@ class CSharpProject:
 
 
 def get_framework_version(framework: str) -> str:
-    groups = search(r"^netcoreapp(\d)\.(\d)$", framework)
+    groups = search(r".*(\d)\.(\d)$", framework)
     if not groups:
         raise ValueError("Unknown target framework: {}".format(framework))
 
