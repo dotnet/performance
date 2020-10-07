@@ -229,7 +229,7 @@ def __main(args: list) -> int:
     perfHash = decoded_output if args.get_perf_hash else args.perf_hash
 
     framework = ChannelMap.get_target_framework_moniker(args.channel)
-    if framework.startswith('netcoreapp'):
+    if not framework.startswith('net4'):
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
         dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli)
         commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
