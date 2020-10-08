@@ -230,7 +230,7 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\real-world\FSharp\FSharpBenchmarks.fsproj
       runCategories: 'fsharp'
-      channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+      channels: # for FSharp jobs we want to check .NET Core 3.1 and 5.0 only
         - master
         - release/5.0.1xx
         - release/3.1.3xx
