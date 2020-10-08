@@ -117,3 +117,34 @@ jobs:
       frameworks: # for Roslyn jobs we want to check .NET Core 3.0 only
         - netcoreapp3.0
         
+
+# Windows x64 FSharp benchmarks, public correctness job
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS4
+      kind: fsharp
+      architecture: x64
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.ClientRS4.Open
+      csproj: src\benchmarks\real-world\FSharp\FSharpBenchmarks.fsproj
+      runCategories: 'fsharp'
+      frameworks: # for FSharp jobs we want to check .NET Core 3.0 only
+        - netcoreapp3.0
+
+# Ubuntu 1604 x64 FSharp benchmarks, public correctness job
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1604
+      kind: fsharp
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1604.Amd64.Open
+      container: ubuntu_x64_build_container
+      runCategories: 'fsharp'
+      csproj: src/benchmarks/real-world/FSharp/FSharpBenchmarks.fsproj
+      frameworks: # for FSharp jobs we want to check .NET Core 3.0 only
+        - netcoreapp3.0
