@@ -6,7 +6,7 @@ open System.Diagnostics
 
 let testProjectEnvVarName = "FSHARP_TEST_PROJECT_DIR"
 
-let getNet5References () =
+let getNet31References () =
 
     let programFs = """
 open System
@@ -19,7 +19,7 @@ let main argv = 0"""
     
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>netcoreapp5.0</TargetFramework>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
         <UseFSharpPreview>true</UseFSharpPreview>
     </PropertyGroup>
     
