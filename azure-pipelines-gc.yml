@@ -10,14 +10,10 @@ pr:
     - master
   paths:
     exclude: # Need to change this
-    - docs/*
-    - eng/common/README.md
-    - src/benchmarks/micro/Serializers/README.md
-    - src/benchmarks/micro/README.md
-    - src/benchmarks/real-world/JitBench/README.md
-    - src/benchmarks/real-world/Microsoft.ML.Benchmarks/Input/README.md
-    - src/tools/ResultsComparer/README.md
-    - README.md
+    - src/benchmarks/gc/docs/*
+    - src/benchmarks/gc/.gitignore
+    - src/benchmarks/gc/README.md
+    - src/benchmarks/gc/jupyter_notebook.py
 
 jobs:
 
