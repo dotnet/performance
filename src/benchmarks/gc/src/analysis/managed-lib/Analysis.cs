@@ -24,6 +24,8 @@ using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
 using System.Diagnostics;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Utilities;
+using Microsoft.Diagnostics.Tracing.AutomatedAnalysis;
+using System.Runtime.InteropServices;
 
 namespace GCPerf
 {
@@ -31,207 +33,207 @@ namespace GCPerf
     using ThreadID = Int32;
     using EtlxNS = Microsoft.Diagnostics.Tracing.Etlx;
 
-    public class StackView
-    {
-        private static readonly char[] SymbolSeparator = new char[] { '!' };
+    // public class StackView
+    // {
+    //     private static readonly char[] SymbolSeparator = new char[] { '!' };
 
-        private EtlxNS.TraceLog _traceLog;
-        private StackSource _rawStackSource;
-        private SymbolReader _symbolReader;
-        private CallTree _callTree;
-        private List<CallTreeNodeBase> _byName;
-        private HashSet<string> _resolvedSymbolModules = new HashSet<string>();
+    //     private EtlxNS.TraceLog _traceLog;
+    //     private StackSource _rawStackSource;
+    //     private SymbolReader _symbolReader;
+    //     private CallTree _callTree;
+    //     private List<CallTreeNodeBase> _byName;
+    //     private HashSet<string> _resolvedSymbolModules = new HashSet<string>();
 
-        public StackView(EtlxNS.TraceLog traceLog, StackSource stackSource, SymbolReader symbolReader)
-        {
-            _traceLog = traceLog;
-            _rawStackSource = stackSource;
-            _symbolReader = symbolReader;
-            LookupWarmNGENSymbols();
-        }
+    //     public StackView(EtlxNS.TraceLog traceLog, StackSource stackSource, SymbolReader symbolReader)
+    //     {
+    //         _traceLog = traceLog;
+    //         _rawStackSource = stackSource;
+    //         _symbolReader = symbolReader;
+    //         LookupWarmNGENSymbols();
+    //     }
 
-        public CallTree CallTree
-        {
-            get
-            {
-                if (_callTree == null)
-                {
-                    FilterStackSource filterStackSource = new FilterStackSource(new FilterParams(), _rawStackSource, ScalingPolicyKind.ScaleToData);
-                    _callTree = new CallTree(ScalingPolicyKind.ScaleToData)
-                    {
-                        StackSource = filterStackSource
-                    };
-                }
-                return _callTree;
-            }
-        }
+    //     public CallTree CallTree
+    //     {
+    //         get
+    //         {
+    //             if (_callTree == null)
+    //             {
+    //                 FilterStackSource filterStackSource = new FilterStackSource(new FilterParams(), _rawStackSource, ScalingPolicyKind.ScaleToData);
+    //                 _callTree = new CallTree(ScalingPolicyKind.ScaleToData)
+    //                 {
+    //                     StackSource = filterStackSource
+    //                 };
+    //             }
+    //             return _callTree;
+    //         }
+    //     }
 
-        private IEnumerable<CallTreeNodeBase> ByName
-        {
-            get
-            {
-                if (_byName == null)
-                {
-                    _byName = CallTree.ByIDSortedExclusiveMetric();
-                }
+    //     private IEnumerable<CallTreeNodeBase> ByName
+    //     {
+    //         get
+    //         {
+    //             if (_byName == null)
+    //             {
+    //                 _byName = CallTree.ByIDSortedExclusiveMetric();
+    //             }
 
-                return _byName;
-            }
-        }
+    //             return _byName;
+    //         }
+    //     }
 
-        public CallTreeNodeBase FindNodeByName(string nodeNamePat)
-        {
-            var regEx = new Regex(nodeNamePat, RegexOptions.IgnoreCase);
-            foreach (var node in ByName)
-            {
-                if (regEx.IsMatch(node.Name))
-                {
-                    return node;
-                }
-            }
-            return CallTree.Root;
-        }
-        public CallTreeNode GetCallers(string focusNodeName)
-        {
-            var focusNode = FindNodeByName(focusNodeName);
-            return AggregateCallTreeNode.CallerTree(focusNode);
-        }
-        public CallTreeNode GetCallees(string focusNodeName)
-        {
-            var focusNode = FindNodeByName(focusNodeName);
-            return AggregateCallTreeNode.CalleeTree(focusNode);
-        }
+    //     public CallTreeNodeBase FindNodeByName(string nodeNamePat)
+    //     {
+    //         var regEx = new Regex(nodeNamePat, RegexOptions.IgnoreCase);
+    //         foreach (var node in ByName)
+    //         {
+    //             if (regEx.IsMatch(node.Name))
+    //             {
+    //                 return node;
+    //             }
+    //         }
+    //         return CallTree.Root;
+    //     }
+    //     public CallTreeNode GetCallers(string focusNodeName)
+    //     {
+    //         var focusNode = FindNodeByName(focusNodeName);
+    //         return AggregateCallTreeNode.CallerTree(focusNode);
+    //     }
+    //     public CallTreeNode GetCallees(string focusNodeName)
+    //     {
+    //         var focusNode = FindNodeByName(focusNodeName);
+    //         return AggregateCallTreeNode.CalleeTree(focusNode);
+    //     }
 
-        public CallTreeNodeBase GetCallTreeNode(string symbolName)
-        {
-            string[] symbolParts = symbolName.Split(SymbolSeparator);
-            if (symbolParts.Length != 2)
-            {
-                return null;
-            }
+    //     public CallTreeNodeBase GetCallTreeNode(string symbolName)
+    //     {
+    //         string[] symbolParts = symbolName.Split(SymbolSeparator);
+    //         if (symbolParts.Length != 2)
+    //         {
+    //             return null;
+    //         }
 
-            // Try to get the call tree node.
-            CallTreeNodeBase node = FindNodeByName(Regex.Escape(symbolName));
+    //         // Try to get the call tree node.
+    //         CallTreeNodeBase node = FindNodeByName(Regex.Escape(symbolName));
 
-            // Check to see if the node matches.
-            if (node.Name.StartsWith(symbolName, StringComparison.OrdinalIgnoreCase))
-            {
-                return node;
-            }
+    //         // Check to see if the node matches.
+    //         if (node.Name.StartsWith(symbolName, StringComparison.OrdinalIgnoreCase))
+    //         {
+    //             return node;
+    //         }
 
-            // Check to see if we should attempt to load symbols.
-            if (!_resolvedSymbolModules.Contains(symbolParts[0]))
-            {
-                // Look for an unresolved symbols node for the module.
-                string unresolvedSymbolsNodeName = symbolParts[0] + "!?";
-                node = FindNodeByName(unresolvedSymbolsNodeName);
-                if (node.Name.Equals(unresolvedSymbolsNodeName, StringComparison.OrdinalIgnoreCase))
-                {
-                    // Symbols haven't been resolved yet.  Try to resolve them now.
-                    EtlxNS.TraceModuleFile moduleFile = _traceLog.ModuleFiles.Where(m => m.Name.Equals(symbolParts[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-                    if (moduleFile != null)
-                    {
-                        // Special handling for NGEN images.
-                        if(symbolParts[0].EndsWith(".ni", StringComparison.OrdinalIgnoreCase))
-                        {
-                            SymbolReaderOptions options = _symbolReader.Options;
-                            try
-                            {
-                                _symbolReader.Options = SymbolReaderOptions.CacheOnly;
-                                _traceLog.CallStacks.CodeAddresses.LookupSymbolsForModule(_symbolReader, moduleFile);
-                            }
-                            finally
-                            {
-                                _symbolReader.Options = options;
-                            }
-                        }
-                        else
-                        {
-                            _traceLog.CallStacks.CodeAddresses.LookupSymbolsForModule(_symbolReader, moduleFile);
-                        }
-                        InvalidateCachedStructures();
-                    }
-                }
+    //         // Check to see if we should attempt to load symbols.
+    //         if (!_resolvedSymbolModules.Contains(symbolParts[0]))
+    //         {
+    //             // Look for an unresolved symbols node for the module.
+    //             string unresolvedSymbolsNodeName = symbolParts[0] + "!?";
+    //             node = FindNodeByName(unresolvedSymbolsNodeName);
+    //             if (node.Name.Equals(unresolvedSymbolsNodeName, StringComparison.OrdinalIgnoreCase))
+    //             {
+    //                 // Symbols haven't been resolved yet.  Try to resolve them now.
+    //                 EtlxNS.TraceModuleFile moduleFile = _traceLog.ModuleFiles.Where(m => m.Name.Equals(symbolParts[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+    //                 if (moduleFile != null)
+    //                 {
+    //                     // Special handling for NGEN images.
+    //                     if(symbolParts[0].EndsWith(".ni", StringComparison.OrdinalIgnoreCase))
+    //                     {
+    //                         SymbolReaderOptions options = _symbolReader.Options;
+    //                         try
+    //                         {
+    //                             _symbolReader.Options = SymbolReaderOptions.CacheOnly;
+    //                             _traceLog.CallStacks.CodeAddresses.LookupSymbolsForModule(_symbolReader, moduleFile);
+    //                         }
+    //                         finally
+    //                         {
+    //                             _symbolReader.Options = options;
+    //                         }
+    //                     }
+    //                     else
+    //                     {
+    //                         _traceLog.CallStacks.CodeAddresses.LookupSymbolsForModule(_symbolReader, moduleFile);
+    //                     }
+    //                     InvalidateCachedStructures();
+    //                 }
+    //             }
 
-                // Mark the module as resolved so that we don't try again.
-                _resolvedSymbolModules.Add(symbolParts[0]);
+    //             // Mark the module as resolved so that we don't try again.
+    //             _resolvedSymbolModules.Add(symbolParts[0]);
 
-                // Try to get the call tree node one more time.
-                node = FindNodeByName(Regex.Escape(symbolName));
+    //             // Try to get the call tree node one more time.
+    //             node = FindNodeByName(Regex.Escape(symbolName));
 
-                // Check to see if the node matches.
-                if (node.Name.StartsWith(symbolName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return node;
-                }
-            }
+    //             // Check to see if the node matches.
+    //             if (node.Name.StartsWith(symbolName, StringComparison.OrdinalIgnoreCase))
+    //             {
+    //                 return node;
+    //             }
+    //         }
 
-            return null;
-        }
+    //         return null;
+    //     }
 
-        private void LookupWarmNGENSymbols()
-        {
-            TraceEventStackSource asTraceEventStackSource = GetTraceEventStackSource(_rawStackSource);
-            if (asTraceEventStackSource == null)
-            {
-                return;
-            }
+    //     private void LookupWarmNGENSymbols()
+    //     {
+    //         TraceEventStackSource asTraceEventStackSource = GetTraceEventStackSource(_rawStackSource);
+    //         if (asTraceEventStackSource == null)
+    //         {
+    //             return;
+    //         }
 
-            SymbolReaderOptions savedOptions = _symbolReader.Options;
-            try
-            {
-                // NGEN PDBs (even those not yet produced) are considered to be in the cache.
-                _symbolReader.Options = SymbolReaderOptions.CacheOnly;
+    //         SymbolReaderOptions savedOptions = _symbolReader.Options;
+    //         try
+    //         {
+    //             // NGEN PDBs (even those not yet produced) are considered to be in the cache.
+    //             _symbolReader.Options = SymbolReaderOptions.CacheOnly;
 
-                // Resolve all NGEN images.
-                asTraceEventStackSource.LookupWarmSymbols(1, _symbolReader, _rawStackSource, s => s.Name.EndsWith(".ni", StringComparison.OrdinalIgnoreCase));
+    //             // Resolve all NGEN images.
+    //             asTraceEventStackSource.LookupWarmSymbols(1, _symbolReader, _rawStackSource, s => s.Name.EndsWith(".ni", StringComparison.OrdinalIgnoreCase));
 
-                // Invalidate cached data structures to finish resolving symbols.
-                InvalidateCachedStructures();
-            }
-            finally
-            {
-                _symbolReader.Options = savedOptions;
-            }
-        }
+    //             // Invalidate cached data structures to finish resolving symbols.
+    //             InvalidateCachedStructures();
+    //         }
+    //         finally
+    //         {
+    //             _symbolReader.Options = savedOptions;
+    //         }
+    //     }
 
-        /// <summary>
-        /// Unwind the wrapped sources to get to a TraceEventStackSource if possible. 
-        /// </summary>
-        private static TraceEventStackSource GetTraceEventStackSource(StackSource source)
-        {
-            StackSourceStacks rawSource = source;
-            TraceEventStackSource asTraceEventStackSource = null;
-            for (; ; )
-            {
-                asTraceEventStackSource = rawSource as TraceEventStackSource;
-                if (asTraceEventStackSource != null)
-                {
-                    return asTraceEventStackSource;
-                }
+    //     /// <summary>
+    //     /// Unwind the wrapped sources to get to a TraceEventStackSource if possible. 
+    //     /// </summary>
+    //     private static TraceEventStackSource GetTraceEventStackSource(StackSource source)
+    //     {
+    //         StackSourceStacks rawSource = source;
+    //         TraceEventStackSource asTraceEventStackSource = null;
+    //         for (; ; )
+    //         {
+    //             asTraceEventStackSource = rawSource as TraceEventStackSource;
+    //             if (asTraceEventStackSource != null)
+    //             {
+    //                 return asTraceEventStackSource;
+    //             }
 
-                var asCopyStackSource = rawSource as CopyStackSource;
-                if (asCopyStackSource != null)
-                {
-                    rawSource = asCopyStackSource.SourceStacks;
-                    continue;
-                }
-                var asStackSource = rawSource as StackSource;
-                if (asStackSource != null && asStackSource != asStackSource.BaseStackSource)
-                {
-                    rawSource = asStackSource.BaseStackSource;
-                    continue;
-                }
-                return null;
-            }
-        }
+    //             var asCopyStackSource = rawSource as CopyStackSource;
+    //             if (asCopyStackSource != null)
+    //             {
+    //                 rawSource = asCopyStackSource.SourceStacks;
+    //                 continue;
+    //             }
+    //             var asStackSource = rawSource as StackSource;
+    //             if (asStackSource != null && asStackSource != asStackSource.BaseStackSource)
+    //             {
+    //                 rawSource = asStackSource.BaseStackSource;
+    //                 continue;
+    //             }
+    //             return null;
+    //         }
+    //     }
 
-        private void InvalidateCachedStructures()
-        {
-            _byName = null;
-            _callTree = null;
-        }
-    }
+    //     private void InvalidateCachedStructures()
+    //     {
+    //         _byName = null;
+    //         _callTree = null;
+    //     }
+    // }
 
 #if !NEW_JOIN_ANALYSIS
     // With new join analysis, this will come from PerfView 
@@ -775,6 +777,127 @@ namespace GCPerf
                 }
             };
             relogger.Process();
+        }
+
+        public static TracedProcesses GetTracedProcesses(TraceEventDispatcher source, bool collectEventNames, bool collectPerHeapHistoryTimes)
+        {
+            Dictionary<string, uint>? eventNames = null;
+            List<double>? perHeapHistoryTimes = null;
+
+            double? firstEventTimeMSec = null;
+            double? lastEventTimeMSec = null;
+
+            if (collectPerHeapHistoryTimes)
+            {
+                perHeapHistoryTimes = new List<double>();
+                source!.Clr.GCPerHeapHistory += (GCPerHeapHistoryTraceData data) =>
+                {
+                    perHeapHistoryTimes.Add(data.TimeStampRelativeMSec);
+                };
+            }
+
+            //HistoryDictionary<string> processNames = new HistoryDictionary<string>();
+            List<(ProcessID, long)> processIDsAndTimes = new List<(int, long)>();
+            //HashSet<ProcessID> seenProcessIDs = new HashSet<ProcessID>();
+
+#if NEW_JOIN_ANALYSIS
+            // PerfView should do this, but checking their work ... looks like my version gets more!
+            HistoryDictionary<ProcessID> myThreadIDToProcessID = new HistoryDictionary<ProcessID>(1<<12);
+#endif
+
+            eventNames = new Dictionary<string, uint>();
+            source!.AllEvents += (TraceEvent te) =>
+            {
+                /*if (tt is CSwitchTraceData cs)
+                {
+                    //processNames.Add(cs.OldProcessID, )
+                    //seenProcessIDs.Add(cs.OldProcessID);
+                    //seenProcessIDs.Add(cs.NewProcessID);
+                    processIDsAndTimes.Add((cs.OldProcessID, cs.TimeStampQPC));
+                    processIDsAndTimes.Add((cs.NewProcessID, cs.TimeStampQPC));
+                }*/
+
+#if NEW_JOIN_ANALYSIS
+                if (te.ThreadID != -1 && te.ProcessID != -1)
+                {
+                    //TODO: HistoryDictionary do this automatically in Add?
+                    if (myThreadIDToProcessID.TryGetValue((ulong)te.ThreadID, GetTimeQpc(te), out ProcessID pid) && pid == te.ProcessID)
+                    {
+                        // do nothing, already handled
+                    }
+                    else
+                    {
+                        myThreadIDToProcessID.Add((ulong)te.ThreadID, GetTimeQpc(te), te.ProcessID);
+                    }
+                }
+#endif
+
+                firstEventTimeMSec = firstEventTimeMSec ?? te.TimeStampRelativeMSec;
+                lastEventTimeMSec = te.TimeStampRelativeMSec;
+
+                if (collectEventNames)
+                {
+                    eventNames.TryGetValue(te.EventName, out uint eventCount);
+                    eventNames[te.EventName] = eventCount + 1;
+                }
+            };
+            
+
+            var kernelParser = new KernelTraceEventParser(source);
+
+            TraceLoadedDotNetRuntimeExtensions.NeedLoadedDotNetRuntimes(source);
+            source.Process();
+
+            TraceProcesses processes = TraceProcessesExtensions.Processes(source);
+
+            /*Dictionary<ProcessID, string> processNames = new Dictionary<ProcessID, string>();
+            foreach (TraceProcess process in processes)
+            {
+                if (processNames.TryGetValue(process.ProcessID, out string name))
+                {
+                    Debug.Assert(name == process.Name,
+                        $"process {process.ProcessID} name was {name}, but now is {process.Name}");
+                }
+                else
+                {
+                    processNames.Add(process.ProcessID, process.Name);
+                }
+            }*/
+
+#if NEW_JOIN_ANALYSIS
+            HistoryDictionary<string> processNames = new HistoryDictionary<string>(initialSize: 1024);
+            foreach ((ProcessID pid, long timeQPC) in processIDsAndTimes)
+            {
+                //Console.WriteLine($"Seen process ID: {pid} at {timeQPC}");
+                string name = source.ProcessName(pid, timeQPC);
+                if (name == "")
+                {
+                    Console.WriteLine("Skipping, empty process name");
+                }
+                else
+                {
+                    processNames.Add(Util.IntToULong(pid), timeQPC, name);
+                }
+            }
+#endif
+
+            TimeSpan? events_time_span = firstEventTimeMSec == null || lastEventTimeMSec == null
+                ? (TimeSpan?)null
+                : TimeSpan.FromStartEndMSec(firstEventTimeMSec.Value, lastEventTimeMSec.Value);
+            return new TracedProcesses(
+                event_names: eventNames,
+                per_heap_history_times: perHeapHistoryTimes,
+                processes: processes,
+#if NEW_JOIN_ANALYSIS
+                my_thread_id_to_process_id: new MyThreadIDToProcessIDImpl(myThreadIDToProcessID),
+                thread_id_to_process_id: kernelParser.ThreadIDToProcessIDGetter,
+                process_id_to_process_name: new ProcessIDToProcessNameFromHistoryDictionary(processNames),
+#else
+                my_thread_id_to_process_id: null,
+                thread_id_to_process_id: null,
+                process_id_to_process_name: null,
+#endif
+                events_time_span: events_time_span);
         }
 
         public static TracedProcesses GetTracedProcesses(string tracePath, bool collectEventNames, bool collectPerHeapHistoryTimes)
@@ -1551,11 +1674,130 @@ namespace GCPerf
 
             FilterStackSource timeFilteredStackSource =
                 new FilterStackSource(filterParams, fullStackSource, ScalingPolicyKind.ScaleToData);
+            Console.WriteLine("FilterStackSource used memory: {0} Bytes.",
+                              Marshal.SizeOf(timeFilteredStackSource));
 
             /* Create the StackView object from our new FilterStackSource, and
              * and return it. */
 
-            return new StackView(traceLog, timeFilteredStackSource, symReader);
+            // long prevMemory = GC.GetTotalMemory(false);
+            // long currMemory = prevMemory;
+            StackView sv = new StackView(traceLog, timeFilteredStackSource, symReader);
+            // currMemory = GC.GetTotalMemory(false);
+            return sv;
+            // return new StackView(traceLog, timeFilteredStackSource, symReader);
+        }
+
+        /* ********************************************************** */
+        /*              For Debugging Memory Consumption              */
+        /* ********************************************************** */
+
+        public static List<StackView> TestForCPUSamples(string tPath, string pName)
+        {
+            // long prevMemory = 0;
+            // long currMemory = 0;
+
+            // TracedProcesses wrappedProcesses = GetTracedProcesses(
+            //     tracePath: tPath,
+            //     collectEventNames: true,
+            //     collectPerHeapHistoryTimes: true
+            // );
+            // Console.WriteLine("Used TraceEventDispatcher to get Traced Processes.");
+
+            // prevMemory = GC.GetTotalMemory(false);
+            EtlxNS.TraceLog traceLog = GetOpenedTraceLog(tPath);
+            // currMemory = GC.GetTotalMemory(false);
+            // Console.WriteLine("Created TraceLog. Memory it used is {0} Bytes.",
+            //                   currMemory - prevMemory);
+
+            TracedProcesses wrappedProcesses = null;
+            Console.WriteLine("Opened Trace Log");
+
+            using (TraceEventDispatcher source = traceLog.Events.GetSource())
+            {
+                wrappedProcesses = GetTracedProcesses(source, true, true);
+            }
+            Console.WriteLine("Used TraceEventDispatcher to get Traced Processes.");
+
+            TraceProcesses allProcesses = wrappedProcesses.processes;
+            TraceProcess process = null;
+
+            Console.WriteLine("Going to read processes.");
+            foreach (TraceProcess proc in allProcesses)
+            {
+                if (proc.Name == pName)
+                {
+                    process = proc;
+                    break;
+                }
+            }
+            Console.WriteLine("Finished reading processes.");
+
+            // Console.WriteLine("Process Found: {0} - {1}",
+            //                   process.ProcessID,
+            //                   process.Name);
+            // return new List<StackView>();
+
+            TraceLoadedDotNetRuntime mang =
+                TraceLoadedDotNetRuntimeExtensions.LoadedDotNetRuntime(process);
+            Console.WriteLine("Got the mang.");
+            List<TraceGC> allGCs = mang.GC.GCs;
+            Console.WriteLine("Got all the GCs.");
+
+            string logFilePath = "C:\\ivdiazsa\\GCPerf-Symbols-Log.txt";
+            string symPath = "C:\\ivdiazsa\\Bing-Trace-PDB";
+
+            SymbolReader symReader = GetSymbolReader(logFilePath, symPath);
+            StackSource fullStackSource = GetProcessFullStackSource(traceLog, symReader, pName);
+            Console.WriteLine("Created SymbolReader and full Stack Source.");
+
+            Console.WriteLine("Going to get GCs time ranges.");
+            Console.WriteLine("Number of GCs: {0}", allGCs.Count);
+            List<TimeSpan> gcsTimeRanges = new List<TimeSpan>();
+            foreach (var gc in allGCs)
+            {
+                double start = gc.StartRelativeMSec;
+                double end = gc.StartRelativeMSec + gc.DurationMSec;
+                gcsTimeRanges.Add(TimeSpanUtil.FromStartEndMSec(start, end));
+            }
+            Console.WriteLine("Got all time ranges.");
+
+            List<StackView> gcsStackViews = new List<StackView>();
+            Console.WriteLine("Going to get StackViews.");
+
+            int i = 1;
+            // long currMemory = 0;
+            // long prevMemory = 0;
+
+            foreach (var gc_trange in gcsTimeRanges)
+            {
+                if (i > 10) break;
+
+                Console.WriteLine("\nCreating index {0}", i);
+                StackView gcStackView = GetSamplesDataWithinTimeRange(
+                    traceLog,
+                    symReader,
+                    fullStackSource,
+                    gc_trange
+                );
+                // Console.WriteLine("\nTimespan: {0} msec - {1} msec",
+                //                   gc_trange.StartMSec,
+                //                   gc_trange.EndMSec);
+                Console.WriteLine("Created StackView {0}. Memory it used is {1} Bytes.",
+                                  i,
+                                  Marshal.SizeOf(gcStackView));
+                // prevMemory = currMemory;
+
+                gcsStackViews.Add(gcStackView);
+                // currMemory = GC.GetTotalMemory(false);
+                // Console.WriteLine("Added StackView {0}. Memory it used is {1} Bytes.",
+                //                   i,
+                //                   currMemory - prevMemory);
+                // prevMemory = currMemory;
+                i++;
+            }
+            Console.WriteLine("Got StackViews.");
+            return gcsStackViews;
         }
     }
 }

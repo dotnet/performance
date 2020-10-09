@@ -142,38 +142,77 @@ _TRACE2 = get_trace_with_everything(_OUT / "b__only_config__tlgb0.2__0.yaml")
 _BENCH = Path("bench")
 _SUITE = Path("bench") / "suite"
 
-_NORMAL_SERVER_WSAMPLES = add_extension(_SUITE / "normal_server", "yaml.out")
-_SAMPLES_TRACE = get_trace_with_everything(_NORMAL_SERVER_WSAMPLES / "a__only_config__2gb__0.yaml")
+# _NORMAL_SERVER_WSAMPLES = add_extension(_SUITE / "normal_server", "yaml.out")
+# _SAMPLES_TRACE = get_trace_with_everything(_NORMAL_SERVER_WSAMPLES / "a__only_config__2gb__0.yaml")
+
+_BING_TRACE_PATH = _SUITE / "bing-trace"
+_BING_TRACE = get_trace_with_everything(_BING_TRACE_PATH / "decommit_32-cpu.yaml")
 
 #%% Set up the trace, symbols, etc and get it ready for CPU Samples Analysis.
 
 # The "symbol_path" value set here is just a placeholder. Change it to point to
 # where you have your PDB's stored.
 
-_SAMPLES_TRACE_ALL_DATA = TraceReadAndParseUtils(
-    ptrace=_SAMPLES_TRACE,
-    symbol_path=Path("C:/runtime/artifacts/bin/coreclr/Windows_NT.x64.Release/PDB"),
+_BING_TRACE_ALL_DATA = TraceReadAndParseUtils(
+    ptrace=_BING_TRACE,
+    symbol_path=Path("C:\ivdiazsa\Bing-Trace-PDB"),
 )
 
 #%% Example: Chart the number of samples per individual GC's, for all Gen1 GC's,
 # for the functions "gc_heap::plan_phase" and "gc_heap::mark_phase", and their callees.
 
 chart_cpu_samples_per_gcs(
-    ptraces_utils=(_SAMPLES_TRACE_ALL_DATA,),
-    functions_to_chart=("gc_heap::plan_phase", "gc_heap::mark_phase"),
+    ptraces_utils=(_BING_TRACE_ALL_DATA,),
+    functions_to_chart=("gc_heap::try_allocate_more_space",),
     x_property_name="gc_index",
-    y_property_names=("inclusive_count",),
-    gc_filter=lambda gc: gc.Generation == Gens.Gen1,
+    y_property_names=("exclusive_count",),
+    gc_filter=lambda gc: gc.index < 300,
 )
 
 #%% Example: Show CPU Samples metrics within a specified interval of time (1-5 secs),
 # for the function "gc_heap::plan_phase".
 
+gc0 = _BING_TRACE_ALL_DATA.trace_processed_gcs[0]
+gc1 = _BING_TRACE_ALL_DATA.trace_processed_gcs[1]
+gc10 = _BING_TRACE_ALL_DATA.trace_processed_gcs[10]
+
+print("GC0")
+print(f"Startgc0: {gc0.StartRelativeMSec}")
+print(f"Indxgc0: {gc0.Number}")
+print(f"Durationgc0: {gc0.DurationMSec}")
+print(f"Endgc0: {gc0.EndRelativeMSec}")
+
 show_cpu_samples_metrics(
-    ptrace_utils=_SAMPLES_TRACE_ALL_DATA,
+    ptrace_utils=_BING_TRACE_ALL_DATA,
     function="gc_heap::plan_phase",
-    start_time_msec=1000.00,
-    end_time_msec=5000.00,
+    start_time_msec=gc0.StartRelativeMSec,
+    end_time_msec=gc0.EndRelativeMSec,
+)
+
+print("GC1")
+print(f"Startgc1: {gc1.StartRelativeMSec}")
+print(f"Indxgc1: {gc1.Number}")
+print(f"Durationgc1: {gc1.DurationMSec}")
+print(f"Endgc1: {gc1.EndRelativeMSec}")
+
+show_cpu_samples_metrics(
+    ptrace_utils=_BING_TRACE_ALL_DATA,
+    function="gc_heap::plan_phase",
+    start_time_msec=gc1.StartRelativeMSec,
+    end_time_msec=gc1.EndRelativeMSec,
+)
+
+print("GC10")
+print(f"Startgc10: {gc10.StartRelativeMSec}")
+print(f"Indxgc10: {gc10.Number}")
+print(f"Durationgc10: {gc10.DurationMSec}")
+print(f"Endgc10: {gc10.EndRelativeMSec}")
+
+show_cpu_samples_metrics(
+    ptrace_utils=_BING_TRACE_ALL_DATA,
+    function="gc_heap::plan_phase",
+    start_time_msec=gc10.StartRelativeMSec,
+    end_time_msec=gc10.EndRelativeMSec,
 )
 
 #%% show summary
