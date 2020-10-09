@@ -4,10 +4,7 @@
 
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Buffers;
-using System.IO;
 using System.Text.Json.Tests;
 
 namespace System.Text.Json.Document.Tests
@@ -28,45 +25,46 @@ namespace System.Text.Json.Document.Tests
         }
 
         private byte[] _dataUtf8;
-        private ArrayBufferWriter<byte> _arrayBufferWriter;
+        private Utf8JsonWriter _writer;
 
         [ParamsAllValues]
         public TestCaseType TestCase;
 
         [Params(true, false)]
-        public bool IsDataCompact;
+        public bool IsDataIndented;
 
         [GlobalSetup]
         public void Setup()
         {
             string jsonString = JsonStrings.ResourceManager.GetString(TestCase.ToString());
 
-            if (IsDataCompact)
+            if (!IsDataIndented)
             {
-                // Remove all formatting/indentation
-                using (var jsonReader = new JsonTextReader(new StringReader(jsonString)))
-                using (var stringWriter = new StringWriter())
-                using (var jsonWriter = new JsonTextWriter(stringWriter))
-                {
-                    JToken obj = JToken.ReadFrom(jsonReader);
-                    obj.WriteTo(jsonWriter);
-                    jsonString = stringWriter.ToString();
-                }
+                _dataUtf8 = DocumentHelpers.RemoveFormatting(jsonString);
+            }
+            else
+            {
+                _dataUtf8 = Encoding.UTF8.GetBytes(jsonString);
             }
 
-            _dataUtf8 = Encoding.UTF8.GetBytes(jsonString);
-            _arrayBufferWriter = new ArrayBufferWriter<byte>();
+            var abw = new ArrayBufferWriter<byte>();
+            _writer = new Utf8JsonWriter(abw, new JsonWriterOptions { Indented = IsDataIndented });
+        }
+
+        [GlobalCleanup]
+        public void CleanUp()
+        {
+            _writer.Dispose();
         }
 
         [Benchmark]
         public void ParseThenWrite()
         {
-            _arrayBufferWriter.Clear();
+            _writer.Reset();
 
             using (JsonDocument document = JsonDocument.Parse(_dataUtf8))
-            using (Utf8JsonWriter writer = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = !IsDataCompact }))
             {
-                document.WriteTo(writer);
+                document.WriteTo(_writer);
             }
         }
     }
