@@ -60,18 +60,8 @@ namespace System.Text.Json.Document.Tests
         [Benchmark]
         public void PropertyIndexer()
         {
-            {
-                JsonElement first = _element.GetProperty("first_property");
-                JsonElement middle = _element.GetProperty("middle_property");
-            }
-            {
-                JsonElement first = _element.GetProperty("first_property");
-                JsonElement middle = _element.GetProperty("middle_property");
-            }
-            {
-                JsonElement first = _element.GetProperty("first_property");
-                JsonElement middle = _element.GetProperty("middle_property");
-            }
+            JsonElement first = _element.GetProperty("first_property");
+            JsonElement middle = _element.GetProperty("middle_property");
         }
     }
 }
