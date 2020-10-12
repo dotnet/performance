@@ -79,94 +79,82 @@ namespace System.Text.Json.Document.Tests
             return message;
         }
 
-        private static int ReadJson400B(JsonElement elem)
+        private static void ReadJson400B(JsonElement elem)
         {
-            int result = 0;
-
             for (int i = 0; i < elem.GetArrayLength(); i++)
             {
-                result += elem[i].GetProperty("_id").GetString().Length;
-                result += elem[i].GetProperty("index").GetInt32();
-                result += elem[i].GetProperty("isActive").GetBoolean() ? 1 : 0;
-                result += elem[i].GetProperty("balance").GetString().Length;
-                result += elem[i].GetProperty("picture").GetString().Length;
-                result += elem[i].GetProperty("age").GetInt32();
-                result += elem[i].GetProperty("email").GetString().Length;
-                result += elem[i].GetProperty("phone").GetString().Length;
-                result += elem[i].GetProperty("address").GetString().Length;
-                result += elem[i].GetProperty("registered").GetString().Length;
-                result += (int)elem[i].GetProperty("latitude").GetDouble();
-                result += (int)elem[i].GetProperty("longitude").GetDouble();
+                elem[i].GetProperty("_id").GetString();
+                elem[i].GetProperty("index").GetInt32();
+                elem[i].GetProperty("isActive").GetBoolean();
+                elem[i].GetProperty("balance").GetString();
+                elem[i].GetProperty("picture").GetString();
+                elem[i].GetProperty("age").GetInt32();
+                elem[i].GetProperty("email").GetString();
+                elem[i].GetProperty("phone").GetString();
+                elem[i].GetProperty("address").GetString();
+                elem[i].GetProperty("registered").GetString();
+                elem[i].GetProperty("latitude").GetDouble();
+                elem[i].GetProperty("longitude").GetDouble();
             }
-
-            return result;
         }
 
-        private static int ReadJsonBasic(JsonElement elem)
+        private static void ReadJsonBasic(JsonElement elem)
         {
-            int result = 0;
-
-            result += elem.GetProperty("age").GetInt32();
-            result += elem.GetProperty("first").GetString().Length;
-            result += elem.GetProperty("last").GetString().Length;
+            elem.GetProperty("age").GetInt32();
+            elem.GetProperty("first").GetString();
+            elem.GetProperty("last").GetString();
             
-			JsonElement phoneNumbers = elem.GetProperty("phoneNumbers");
+            JsonElement phoneNumbers = elem.GetProperty("phoneNumbers");
             for (int i = 0; i < phoneNumbers.GetArrayLength(); i++)
             {
-                result += phoneNumbers[i].GetString().Length;
+                phoneNumbers[i].GetString();
             }
 
             JsonElement address = elem.GetProperty("address");
-            result += address.GetProperty("street").GetString().Length;
-            result += address.GetProperty("city").GetString().Length;
-            result += address.GetProperty("zip").GetInt32();
-
-            return result;
+            address.GetProperty("street").GetString();
+            address.GetProperty("city").GetString();
+            address.GetProperty("zip").GetInt32();
         }
 
-        private static int ReadJson400KB(JsonElement elem)
+        private static void ReadJson400KB(JsonElement elem)
         {
-            int result = 0;
-
             for (int i = 0; i < elem.GetArrayLength(); i++)
             {
-                result += elem[i].GetProperty("_id").GetString().Length;
-                result += elem[i].GetProperty("index").GetInt32();
-                result += elem[i].GetProperty("guid").GetString().Length;
-                result += elem[i].GetProperty("isActive").GetBoolean() ? 1 : 0;
-                result += elem[i].GetProperty("balance").GetString().Length;
-                result += elem[i].GetProperty("picture").GetString().Length;
-                result += elem[i].GetProperty("age").GetInt32();
-                result += elem[i].GetProperty("eyeColor").GetString().Length;
-                result += elem[i].GetProperty("name").GetString().Length;
-                result += elem[i].GetProperty("gender").GetString().Length;
-                result += elem[i].GetProperty("company").GetString().Length;
-                result += elem[i].GetProperty("email").GetString().Length;
-                result += elem[i].GetProperty("phone").GetString().Length;
-                result += elem[i].GetProperty("address").GetString().Length;
-                result += elem[i].GetProperty("about").GetString().Length;
-                result += elem[i].GetProperty("registered").GetString().Length;
-                result += (int)elem[i].GetProperty("latitude").GetDouble();
-                result += (int)elem[i].GetProperty("longitude").GetDouble();
+                elem[i].GetProperty("_id").GetString();
+                elem[i].GetProperty("index").GetInt32();
+                elem[i].GetProperty("guid").GetString();
+                elem[i].GetProperty("isActive").GetBoolean();
+                elem[i].GetProperty("balance").GetString();
+                elem[i].GetProperty("picture").GetString();
+                elem[i].GetProperty("age").GetInt32();
+                elem[i].GetProperty("eyeColor").GetString();
+                elem[i].GetProperty("name").GetString();
+                elem[i].GetProperty("gender").GetString();
+                elem[i].GetProperty("company").GetString();
+                elem[i].GetProperty("email").GetString();
+                elem[i].GetProperty("phone").GetString();
+                elem[i].GetProperty("address").GetString();
+                elem[i].GetProperty("about").GetString();
+                elem[i].GetProperty("registered").GetString();
+                elem[i].GetProperty("latitude").GetDouble();
+                elem[i].GetProperty("longitude").GetDouble();
 
                 JsonElement tagsObject = elem[i].GetProperty("tags");
                 for (int j = 0; j < tagsObject.GetArrayLength(); j++)
                 {
-                    result += tagsObject[j].GetString().Length;
+                    tagsObject[j].GetString();
                 }
 
                 JsonElement friendsObject = elem[i].GetProperty("friends");
                 for (int j = 0; j < friendsObject.GetArrayLength(); j++)
                 {
-                    result += friendsObject[j].GetProperty("id").GetInt32();
-                    result += friendsObject[j].GetProperty("name").GetString().Length;
+                    friendsObject[j].GetProperty("id").GetInt32();
+                    friendsObject[j].GetProperty("name").GetString();
                 }
 
-                result += elem[i].GetProperty("greeting").GetString().Length;
-                result += elem[i].GetProperty("favoriteFruit").GetString().Length;
+                elem[i].GetProperty("greeting").GetString();
+                elem[i].GetProperty("favoriteFruit").GetString();
             }
-
-            return result;
         }
     }
 }

@@ -19,6 +19,7 @@ namespace System.Text.Json.Document.Tests
         }
 
         private byte[] _dataUtf8;
+        private JsonDocument _document;
         private JsonElement _element;
 
         [ParamsAllValues]
@@ -30,8 +31,14 @@ namespace System.Text.Json.Document.Tests
             string jsonString = JsonStrings.ResourceManager.GetString(TestCase.ToString());
             _dataUtf8 = DocumentHelpers.RemoveFormatting(jsonString);
 
-            JsonDocument document = JsonDocument.Parse(_dataUtf8);
-            _element = document.RootElement;
+            _document = JsonDocument.Parse(_dataUtf8);
+            _element = _document.RootElement;
+        }
+
+        [GlobalCleanup]
+        public void CleanUp()
+        {
+            _document.Dispose();
         }
 
         [Benchmark]
@@ -39,21 +46,32 @@ namespace System.Text.Json.Document.Tests
         {
             using (JsonDocument obj = JsonDocument.Parse(_dataUtf8))
             {
-                JsonElement _ = obj.RootElement;
+                JsonElement dummy = obj.RootElement;
             }
         }
 
         [Benchmark]
         public void EnumerateProperties()
         {
-            foreach (JsonProperty withinArray in _element.EnumerateObject()) { }
+
+            foreach (JsonProperty property in _element.EnumerateObject()) { }
         }
 
         [Benchmark]
         public void PropertyIndexer()
         {
-            JsonElement first = _element.GetProperty("first_property");
-            JsonElement middle = _element.GetProperty("middle_property");
+            {
+                JsonElement first = _element.GetProperty("first_property");
+                JsonElement middle = _element.GetProperty("middle_property");
+            }
+            {
+                JsonElement first = _element.GetProperty("first_property");
+                JsonElement middle = _element.GetProperty("middle_property");
+            }
+            {
+                JsonElement first = _element.GetProperty("first_property");
+                JsonElement middle = _element.GetProperty("middle_property");
+            }
         }
     }
 }

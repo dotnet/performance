@@ -20,6 +20,7 @@ namespace System.Text.Json.Document.Tests
         }
 
         private byte[] _dataUtf8;
+        private JsonDocument _document;
         private JsonElement _element;
 
         [ParamsAllValues]
@@ -31,8 +32,14 @@ namespace System.Text.Json.Document.Tests
             string jsonString = JsonStrings.ResourceManager.GetString(TestCase.ToString());
             _dataUtf8 = DocumentHelpers.RemoveFormatting(jsonString);
 
-            JsonDocument document = JsonDocument.Parse(_dataUtf8);
-            _element = document.RootElement;
+            _document = JsonDocument.Parse(_dataUtf8);
+            _element = _document.RootElement;
+        }
+
+        [GlobalCleanup]
+        public void CleanUp()
+        {
+            _document.Dispose();
         }
 
         [Benchmark]
@@ -40,20 +47,14 @@ namespace System.Text.Json.Document.Tests
         {
             using (JsonDocument obj = JsonDocument.Parse(_dataUtf8))
             {
-                JsonElement elem = obj.RootElement;
+                JsonElement dummy = obj.RootElement;
             }
         }
 
         [Benchmark]
-        public int Enumerate()
+        public void Enumerate()
         {
-            int count = 0;
-            foreach (JsonElement withinArray in _element.EnumerateArray())
-            {
-                count++;
-            }
-
-            return count;
+            foreach (JsonElement withinArray in _element.EnumerateArray()) { }
         }
 
         [Benchmark]
@@ -62,7 +63,7 @@ namespace System.Text.Json.Document.Tests
             int arrayLength = _element.GetArrayLength();
             for (int j = 0; j < arrayLength; j++)
             {
-                _ = _element[j];
+                JsonElement dummy = _element[j];
             }
         }
     }
