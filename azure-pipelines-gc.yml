@@ -9,7 +9,10 @@ pr:
     include:
     - master
   paths:
-    exclude: # Need to change this
+    include:
+    - src/benchmarks/gc/__main__.py
+    - src/benchmarks/gc/src/*
+    exclude:
     - src/benchmarks/gc/docs/*
     - src/benchmarks/gc/.gitignore
     - src/benchmarks/gc/README.md
