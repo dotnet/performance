@@ -20,7 +20,7 @@ from ..commonlib.bench_file import (
     TestPaths,
     Vary,
     VARY_DOC,
-)
+    parse_machines_arg)
 from ..commonlib.collection_util import (
     empty_sequence,
     flatten,
@@ -32,7 +32,7 @@ from ..commonlib.collection_util import (
     unique_preserve_order,
     zip_check,
     zip_with_is_first,
-)
+    cat_unique)
 from ..commonlib.command import Command, CommandKind, CommandsMapping
 from ..commonlib.document import (
     Align,
@@ -67,8 +67,8 @@ from .diffable import (
     SingleDiffable,
     SingleDiffed,
     TEST_WHERE_DOC,
-)
-from .parse_metrics import parse_run_metrics_arg
+    supports_config, get_test_combinations)
+from .parse_metrics import parse_run_metrics_arg, get_score_metrics
 from .process_trace import ProcessedTraces
 from .types import (
     Better,
@@ -822,6 +822,72 @@ def print_all_runs_for_jupyter(
 
     tables = [get_table(it) for it in iters]
     return Document(sections=(Section(tables=tables),))
+
+
+# Summary: Iterates through a set of test runs (currently only available for
+#          GCPerfSim tests due to how the infra is consolidated), and fetches
+#          all the GC metrics from their respective traces (e.g. PctinGC).
+#          Then, saves this information in a list of dictionaries, where each
+#          entry contains the metric values of an iteration of the test that
+#          was run.
+#
+# Parameters:
+#   traces:
+#       ProcessedTraces object which stores tarce file information. This
+#       is commonly initialized by calling ProcessedTraces() in Jupyter Notebook.
+#   bench_file_path:
+#       Path to the test's spec yaml bench file.
+#   run_metrics:
+#       RunMetrics object which later contains the GC metrics extracted
+#       from the trace. Usually initialized with a dummy in Jupyter Notebook.
+#       For example: parse_run_metrics_arg(("important",))
+#   machines:
+#       Optional list with the names of the machines where the tests
+#       were run. Usually left blank and then infra reads and uses the current
+#       machine's name.
+#
+# Returns: Nothing
+
+
+def get_gc_metrics_numbers_for_jupyter(
+    traces: ProcessedTraces,
+    bench_file_path: Path,
+    run_metrics: RunMetrics,
+    machines: Optional[Sequence[str]],
+) -> Sequence[Mapping[str, float]]:
+    initial_run_metrics = get_run_metrics_for_diff(
+        include_summary=True, sort_by_metric=None, run_metrics=run_metrics
+    )
+
+    raw_numbers_data = []
+    bench_and_path = parse_bench_file(bench_file_path)
+    bench = bench_and_path.content
+
+    all_combinations = get_test_combinations(
+        machines_arg=machines,
+        bench=bench,
+        test_where=None,
+    )
+    all_run_metrics = cat_unique(initial_run_metrics, get_score_metrics(bench))
+
+    for t in all_combinations:
+        iterations = [
+            traces.get_run_metrics(iteration.to_test_result(), all_run_metrics)
+            for iteration in get_test_paths_for_each_iteration(
+                bench=bench_and_path,
+                t=t,
+                max_iterations=None)
+        ]
+
+        for iteration in iterations:
+            iter_ok_result = iteration.ok()
+            data_map = {}
+
+            for iter_key in iter_ok_result:
+                iter_value = iter_ok_result[iter_key]
+                data_map[iter_key.name] = iter_value.ok()
+            raw_numbers_data.append(data_map)
+    return raw_numbers_data
 
 
 REPORT_COMMANDS: CommandsMapping = {

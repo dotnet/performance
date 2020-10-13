@@ -9,7 +9,7 @@ from enum import Enum
 from inspect import isclass
 from json import dumps
 from pathlib import Path
-from typing import Any, Callable, cast, Dict, Mapping, Optional, Sequence, Tuple, Type, List
+from typing import Any, Callable, cast, Dict, Mapping, Optional, Sequence, Tuple, Type
 
 from overrides import overrides
 from result import Err, Ok, Result
@@ -292,27 +292,3 @@ def write_yaml_file(path: Path, content: object, overwrite: bool = False) -> Non
     serializable = to_serializable(content)
     with path.open("w") as f:
         dump(serializable, f, Dumper=MyDumper, default_flow_style=False)
-
-
-def _format_result_yaml_fields(content: object, indent_size: int, result: List[str]) -> None:
-    if isinstance(content, OrderedDict):
-        for k, v in content.items():
-            if isinstance(v, Dict):
-                text = f"{k}:\n"
-                result.append("{field: >{width}}".format(field=text, width=len(text) + indent_size))
-                _format_result_yaml_fields(v.items(), indent_size + 2, result)
-            else:
-                if k == "stdout":
-                    v = v.rstrip("\n").replace("\n", "\n  ")
-                    text = f'{k}:\n  "{v}"\n'
-                else:
-                    text = f"{k}: {v}\n"
-                result.append("{field: >{width}}".format(field=text, width=len(text) + indent_size))
-
-
-def write_test_yaml_file(path: Path, content: object) -> None:
-    yaml_items: List[str] = []
-    _format_result_yaml_fields(to_serializable(content), 0, yaml_items)
-
-    with path.open("w") as f:
-        f.writelines(yaml_items)

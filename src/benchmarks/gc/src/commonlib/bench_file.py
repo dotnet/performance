@@ -24,7 +24,7 @@ from .collection_util import (
     optional_mapping,
 )
 from .option import map_option, non_null, optional_to_iter, option_or, option_or_3
-from .parse_and_serialize import HexInt, load_yaml, SerializeMappings, write_test_yaml_file
+from .parse_and_serialize import HexInt, load_yaml, SerializeMappings, write_yaml_file
 from .score_spec import ScoreSpec
 from .type_utils import (
     combine_dataclasses_with_optional_fields,
@@ -1308,7 +1308,7 @@ class TestPaths:
         return map_option(test_status.trace_file_name, lambda n: self.out_path_base.parent / n)
 
     def write_test_status(self, test_status: TestRunStatus) -> None:
-        write_test_yaml_file(self.test_status_path, test_status)
+        write_yaml_file(self.test_status_path, test_status)
 
 
 @with_slots
