@@ -9,6 +9,7 @@ from typing import Mapping, Optional, Sequence, Tuple
 from result import Ok
 
 from ..commonlib.bench_file import (
+    BenchFile,
     BenchFileAndPath,
     Benchmark,
     BenchmarkAndName,
@@ -20,7 +21,7 @@ from ..commonlib.bench_file import (
     ProcessQuery,
     SingleTestCombination,
     Vary,
-    BenchFile)
+)
 from ..commonlib.collection_util import (
     cat_unique,
     find_common,
@@ -201,9 +202,7 @@ def supports_config(benchmark: BenchmarkAndName, config: PartialConfigAndName) -
 
 
 def get_test_combinations(
-    machines_arg: Optional[Sequence[str]],
-    bench: BenchFile,
-    test_where: Optional[Sequence[str]],
+    machines_arg: Optional[Sequence[str]], bench: BenchFile, test_where: Optional[Sequence[str]]
 ) -> Sequence[SingleTestCombination]:
     machines = parse_machines_arg(machines_arg)
 
@@ -223,7 +222,7 @@ def get_test_combinations(
         if supports_config(benchmark, config)
     ]
 
-    if (test_where is not None):
+    if test_where is not None:
         return _filter_test_combinations(unfiltered_all_combinations, test_where)
     return unfiltered_all_combinations
 
@@ -243,9 +242,7 @@ def get_diffables_from_bench_file(
 
     vary = non_null(bench.vary, "Must provide --vary") if arg_vary is None else arg_vary
     filtered_all_combinations = get_test_combinations(
-        machines_arg=machines_arg,
-        bench=bench,
-        test_where=test_where
+        machines_arg=machines_arg, bench=bench, test_where=test_where
     )
 
     common = PartialTestCombination(

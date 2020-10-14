@@ -20,8 +20,10 @@ from ..commonlib.bench_file import (
     TestPaths,
     Vary,
     VARY_DOC,
-    parse_machines_arg)
+)
 from ..commonlib.collection_util import (
+    add,
+    cat_unique,
     empty_sequence,
     flatten,
     is_empty,
@@ -32,7 +34,7 @@ from ..commonlib.collection_util import (
     unique_preserve_order,
     zip_check,
     zip_with_is_first,
-    cat_unique)
+)
 from ..commonlib.command import Command, CommandKind, CommandsMapping
 from ..commonlib.document import (
     Align,
@@ -64,30 +66,32 @@ from .diffable import (
     DIFFABLE_PATHS_DOC,
     Diffables,
     get_diffables,
+    get_test_combinations,
     SingleDiffable,
     SingleDiffed,
     TEST_WHERE_DOC,
-    supports_config, get_test_combinations)
+)
 from .parse_metrics import parse_run_metrics_arg, get_score_metrics
 from .process_trace import ProcessedTraces
 from .types import (
     Better,
     FailableFloat,
+    FailableMetricValue,
+    FailableValue,
     get_regression_kind,
     invert_mechanisms,
     MechanismsAndReasons,
     MetricValue,
-    FailableMetricValue,
+    MetricValuesForSingleIteration,
     RegressionKind,
     RunMetric,
-    run_metric_must_exist_for_name,
     RunMetrics,
+    run_metric_must_exist_for_name,
     RUN_METRICS_DOC,
     SampleKind,
-    SAMPLE_KIND_DOC,
     ScoreRunMetric,
+    SAMPLE_KIND_DOC,
     union_all_mechanisms,
-    FailableValue,
 )
 
 
@@ -848,6 +852,7 @@ def print_all_runs_for_jupyter(
 #
 # Returns: Nothing
 
+
 def get_gc_metrics_numbers_for_jupyter(
     traces: ProcessedTraces,
     bench_file_path: Path,
@@ -862,29 +867,33 @@ def get_gc_metrics_numbers_for_jupyter(
     bench_and_path = parse_bench_file(bench_file_path)
     bench = bench_and_path.content
 
-    all_combinations = get_test_combinations(
-        machines_arg=machines,
-        bench=bench,
-        test_where=None,
-    )
+    all_combinations = get_test_combinations(machines_arg=machines, bench=bench, test_where=None)
     all_run_metrics = cat_unique(initial_run_metrics, get_score_metrics(bench))
 
     for t in all_combinations:
         iterations = [
             traces.get_run_metrics(iteration.to_test_result(), all_run_metrics)
             for iteration in get_test_paths_for_each_iteration(
-                bench=bench_and_path,
-                t=t,
-                max_iterations=None)
+                bench=bench_and_path, t=t, max_iterations=None
+            )
         ]
 
         for iteration in iterations:
-            iter_ok_result = iteration.value
+            # MetricValuesForSingleIteration - Mapping[RunMetric, FailableValue]
+            # RunMetric can either be a NamedRunMetric or a ScoreRunMetric. In this case,
+            # it is the former.
+            # However, it originally comes from a MaybeMetricValuesForSingleIteration,
+            # which has to be unwrapped.
+            iter_ok_result: MetricValuesForSingleIteration = unwrap(iteration)
             data_map: Dict[str, float] = {}
 
-            for iter_key in iter_ok_result:
-                iter_value = iter_ok_result[iter_key]
-                data_map[iter_key.name] = iter_value.value
+            for iter_key, iter_value in iter_ok_result.items():
+                # iter_key = RunMetric, iter_value = FailableValue(Union(bool, int, float))
+                # We are adding an annotation to ask mypy to ignore the type checking.
+                # No matter what, it will always complain and make the code unusable.
+                # This was the closest way to have functioning code while silencing the
+                # least amount of complaints from mypy.
+                add(data_map, iter_key.name, iter_value.ok())  # type: ignore
             raw_numbers_data.append(data_map)
     return raw_numbers_data
 

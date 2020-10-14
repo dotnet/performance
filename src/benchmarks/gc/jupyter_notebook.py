@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Sequence
 
+import pandas
+
 from src.analysis.analyze_cpu_samples import (
     chart_cpu_samples_per_gcs,
     show_cpu_samples_metrics,
@@ -52,7 +54,11 @@ from src.analysis.parse_metrics import (
     parse_single_heap_metrics_arg,
 )
 from src.analysis.process_trace import ProcessedTraces, test_result_from_path
-from src.analysis.report import diff_for_jupyter, report_reasons_for_jupyter, get_gc_metrics_numbers_for_jupyter
+from src.analysis.report import (
+    diff_for_jupyter,
+    get_gc_metrics_numbers_for_jupyter,
+    report_reasons_for_jupyter,
+)
 from src.analysis.single_gc_metrics import get_bytes_allocated_since_last_gc
 from src.analysis.single_heap_metrics import ALL_GC_GENS
 from src.analysis.trace_commands import print_events_for_jupyter
@@ -679,28 +685,24 @@ _BENCH = Path("bench")
 _SUITE = Path("bench") / "suite"
 _TRACE_PATH = _SUITE / "normal_server.yaml"
 
-data = get_gc_metrics_numbers_for_jupyter(
+metrics_data = get_gc_metrics_numbers_for_jupyter(
     traces=ALL_TRACES,
     bench_file_path=_TRACE_PATH,
     run_metrics=parse_run_metrics_arg(("important",)),
     machines=None,
 )
 
-# Mapping[RunMetric, FailableValue]
-
 # %% Import pandas and read the array created in the previous cell, into a
 # pandas Data Frame.
 # This imports are not done before because the file where the array is stored
 # is only created in the previous cell.
-
-import pandas
 
 # This loop only searches for the metrics currently found in the data set and
 # stores them for lookup later. The reason we use a dictionary is because we
 # require to preserve order and Python does not natively have Ordered Sets.
 
 metric_names_found = {}
-for test_iteration in data:
+for test_iteration in metrics_data:
     for metric_key in test_iteration:
         metric_names_found[metric_key] = True
 
@@ -713,10 +715,9 @@ for test_iteration in data:
 
 data_dict = {}
 for metric_name in metric_names_found:
-    print(metric_name)
     metric_values = []
 
-    for test_iteration in data:
+    for test_iteration in metrics_data:
         value = test_iteration[metric_name]
         metric_values.append(value)
     data_dict[metric_name] = metric_values
