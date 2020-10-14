@@ -117,7 +117,16 @@ ex: System.Private.Xml.dll
 r'''
 path to an rsp file that represents a collection of assemblies
 ex: C:\repos\performance\src\scenarios\crossgen2\framework-r2r.dll.rsp
-'''                                  )
+'''
+                                     )
+        crossgen2parser.add_argument('--singlethreaded', 
+                                     dest='singlethreaded', 
+                                     required=False,
+                                     help=
+r'''
+Suppress internal Crossgen2 parallelism
+'''
+                                     )
         self.add_common_arguments(crossgen2parser)
 
         sodparser = subparsers.add_parser(const.SOD,
@@ -151,6 +160,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.coreroot = args.coreroot
             self.singlefile = args.single
             self.compositefile = args.composite
+            self.singlethreaded = args.singlethreaded
 
         if self.testtype == const.SOD:
             self.dirs = args.dirs
@@ -290,6 +300,9 @@ ex: C:\repos\performance;C:\repos\runtime
                 crossgen2args = '--composite -o %s -O @%s' % (outputfile, self.compositefile)
                 self.traits.add_traits( overwrite=True,
                                         skipprofile='true')
+
+            if self.singlethreaded:
+                crossgen2args = '%s --parallelism 1' % (crossgen2args)
 
             self.traits.add_traits(overwrite=True,
                                    startupmetric=const.STARTUP_CROSSGEN2,
