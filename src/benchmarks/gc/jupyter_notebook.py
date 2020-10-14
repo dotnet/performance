@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Sequence
 
-
 from src.analysis.analyze_cpu_samples import (
     chart_cpu_samples_per_gcs,
     show_cpu_samples_metrics,
@@ -687,6 +686,8 @@ data = get_gc_metrics_numbers_for_jupyter(
     machines=None,
 )
 
+# Mapping[RunMetric, FailableValue]
+
 # %% Import pandas and read the array created in the previous cell, into a
 # pandas Data Frame.
 # This imports are not done before because the file where the array is stored
@@ -694,13 +695,25 @@ data = get_gc_metrics_numbers_for_jupyter(
 
 import pandas
 
+# This loop only searches for the metrics currently found in the data set and
+# stores them for lookup later. The reason we use a dictionary is because we
+# require to preserve order and Python does not natively have Ordered Sets.
+
 metric_names_found = {}
 for test_iteration in data:
     for metric_key in test_iteration:
         metric_names_found[metric_key] = True
 
+# This is the main loop. It creates the dictionary with the information
+# that pandas is expecting. It iterates the set of metrics retrieved in the
+# previous loop, and gets the numbers from each iteration of the test.
+# In the end, this dictionary is composed by:
+# Keys: Metric Names
+# Values: List with said metric's values from each run
+
 data_dict = {}
 for metric_name in metric_names_found:
+    print(metric_name)
     metric_values = []
 
     for test_iteration in data:
@@ -713,5 +726,10 @@ data_frame = pandas.DataFrame.from_dict(data_dict)
 # %% Do pandas numbers analysis here.
 
 data_frame.describe()
+
+# %% Graph and compare the Heap Sizes throughout all the test runs.
+
+heap_sizes = data_frame[["HeapSizeBeforeMB_Mean", "HeapSizeAfterMB_Mean"]]
+heap_sizes.plot()
 
 # %%

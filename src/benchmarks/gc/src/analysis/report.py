@@ -4,7 +4,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterable, Mapping, Optional, Sequence, Tuple
+from typing import Callable, Iterable, Mapping, Optional, Sequence, Tuple, List, Dict
 
 from result import Err, Ok, Result
 
@@ -848,13 +848,12 @@ def print_all_runs_for_jupyter(
 #
 # Returns: Nothing
 
-
 def get_gc_metrics_numbers_for_jupyter(
     traces: ProcessedTraces,
     bench_file_path: Path,
     run_metrics: RunMetrics,
     machines: Optional[Sequence[str]],
-) -> Sequence[Mapping[str, float]]:
+) -> List[Dict[str, float]]:
     initial_run_metrics = get_run_metrics_for_diff(
         include_summary=True, sort_by_metric=None, run_metrics=run_metrics
     )
@@ -880,12 +879,12 @@ def get_gc_metrics_numbers_for_jupyter(
         ]
 
         for iteration in iterations:
-            iter_ok_result = iteration.ok()
-            data_map = {}
+            iter_ok_result = iteration.value
+            data_map: Dict[str, float] = {}
 
             for iter_key in iter_ok_result:
                 iter_value = iter_ok_result[iter_key]
-                data_map[iter_key.name] = iter_value.ok()
+                data_map[iter_key.name] = iter_value.value
             raw_numbers_data.append(data_map)
     return raw_numbers_data
 

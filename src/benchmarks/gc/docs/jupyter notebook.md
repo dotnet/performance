@@ -155,6 +155,117 @@ Running this yields the following output:
 
 ![CPU Samples Metrics](images/SamplesMetrics.PNG)
 
+## Numeric Analysis
+
+Numeric Analysis is a feature that allows you to use the `pandas` library to
+analyze GC metrics from various runs of a *GCPerfSim* test. It reads all these
+metrics numbers from all the iterations for the test run, and builds a list
+with them, ready for `pandas` to consume and interpret it. Some of the main
+tasks you can do with your data are, but not limited to:
+
+* See summary statistical values (e.g. mean, min, max)
+* Filter subsets of data
+* Create various types of plots to graphically visualize data (scatter, histogram, line)
+* Add new calculated columns for ease of access and more complicated calculations.
+
+This feature is currently only available by means of the Jupyter Notebook.
+Following are the steps to set this up, as well as a simple example showing
+this feature in action.
+
+For the full pandas documentation, you can check their [website](https://pandas.pydata.org/docs/).
+
+### Requirements
+
+First, run any *GCPerfSim* test you want to analyze multiple times. It all depends
+on your goal for how many, but when working with statistics, the more the merrier.
+
+Once your tests are done running, open up `jupyter_notebook.py` in *VSCode* and
+run the first cell for general setup. Once that is done, there is a basic
+working template at the end of the notebook.
+
+### Setting up in Jupyter Notebook
+
+```python
+_BENCH = Path("bench")
+_SUITE = Path("bench") / "suite"
+_TRACE_PATH = _SUITE / "normal_server.yaml"
+
+data = get_gc_metrics_numbers_for_jupyter(
+    traces=ALL_TRACES,
+    bench_file_path=_TRACE_PATH,
+    run_metrics=parse_run_metrics_arg(("important",)),
+    machines=None,
+)
+```
+
+In this example, we ran multiple times the `normal_server` test with the `2gb` benchmark.
+As shown above, the `get_gc_metrics_numbers_for_jupyter()` function is in charge
+of reading the traces of each time the test was run, fetching the numbers data,
+and returning a list of dictionaries. Each dictionary contains each metric's value
+mapped to the metric's name of a specific run. These are the same that are shown
+when issuing `py . diff`.
+
+We have all the data now, but it's not ready to be consumed by `pandas`. `Pandas`
+expects a dictionary which symbolizes the table you would usually build in statistics,
+and transforms it into a `DataFrame` of its own. The next cell arranges the information
+and builds this dictionary:
+
+```python
+import pandas
+
+metric_names_found = {}
+for test_iteration in data:
+    for metric_key in test_iteration:
+        metric_names_found[metric_key] = True
+
+data_dict = {}
+for metric_name in metric_names_found:
+    metric_values = []
+
+    for test_iteration in data:
+        value = test_iteration[metric_name]
+        metric_values.append(value)
+    data_dict[metric_name] = metric_values
+
+data_frame = pandas.DataFrame.from_dict(data_dict)
+```
+
+The first loop is to look up which metrics are found in the data we extracted
+in the previous step. The second loop creates the dictionary `pandas` expects
+to create the `DataFrame`, which is composed of the following way:
+
+* **Keys**: Metric Name
+* **Values**: List with said metric's numbers from each iteration of the test run.
+
+### Perform Data Analysis
+
+Now you're ready to do any statistical analysis, chart plotting, and more using
+the capabilities `pandas` has to offer. The most basic example is asking for
+the `describe()` method:
+
+```python
+data_frame.describe()
+```
+
+This shows a table with the main statistics values using the numbers you provided.
+
+![Describe Method](images/PandasDescribe.PNG)
+
+Another important use case to mention, is that you can also extract subsets of
+data and analyze them separately. For example, here we want to visualize the
+heap sizes before and after garbage collection throughout the tests we ran.
+
+```python
+heap_sizes = data_frame[["HeapSizeBeforeMB_Mean", "HeapSizeAfterMB_Mean"]]
+heap_sizes.plot()
+```
+
+![Plot Heap Sizes](images/PandasPlot.PNG)
+
+We can observe here that the heap sizes didn't change much between tests. You might
+observe different behaviors depending on what tests you run and how the settings
+are changes (e.g. a `2gb` benchmark will probably look different than a `4gb` one).
+
 ## Programming Notes
 
 Here are some internal implementation notes to be aware of when doing simple tests using the Jupyter Notebook.
