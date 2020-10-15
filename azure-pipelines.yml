@@ -442,7 +442,6 @@ jobs:
       channels:
         - master
         - release/5.0.1xx
-        # - release/3.1.2xx
   
   # Windows x86 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -457,7 +456,6 @@ jobs:
       channels:
         - master
         - release/5.0.1xx
-        # - release/3.1.2xx
 
   # Ubuntu 1804 x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -504,7 +502,6 @@ jobs:
       channels: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
         - master
         - release/5.0.1xx
-        - release/3.1.2xx
 
     # Ubuntu 1804 ARM64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -520,7 +517,6 @@ jobs:
       channels: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
         - master
         - release/5.0.1xx
-        - release/3.1.2xx
 
 ################################################
 # Manually Triggered Job
