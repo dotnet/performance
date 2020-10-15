@@ -53,7 +53,6 @@ namespace System.Text.Json.Document.Tests
         [Benchmark]
         public void EnumerateProperties()
         {
-
             foreach (JsonProperty property in _element.EnumerateObject()) { }
         }
 

@@ -52,7 +52,7 @@ namespace System.Text.Json.Document.Tests
         }
 
         [Benchmark]
-        public void Enumerate()
+        public void EnumerateArray()
         {
             foreach (JsonElement withinArray in _element.EnumerateArray()) { }
         }
