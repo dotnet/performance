@@ -32,7 +32,7 @@ If the build's successful, you should have Core_Root with the path like:
 ```
 
 ### Step 1 Initialize Environment
-Same instruction of [Scenario Tests Guide - Step 1](./scenarios-workflow#step-1-initialize-environment).
+Same instruction of [Scenario Tests Guide - Step 1](./scenarios-workflow.md#step-1-initialize-environment).
 ### Step 2 Run Precommand
 For **Crossgen Throughput** scenario, unlike other scenarios there's no need to run any precommand (`pre.py`). Just switch to the test asset directory:
 ```
