@@ -886,6 +886,8 @@ def get_gc_metrics_numbers_for_jupyter(
             # which has to be unwrapped.
             iter_ok_result: MetricValuesForSingleIteration = unwrap(iteration)
             data_map: Dict[str, float] = {}
+            data_map["config_name"] = t.config_name
+            data_map["benchmark_name"] = t.benchmark_name
 
             for iter_key, iter_value in iter_ok_result.items():
                 # iter_key = RunMetric, iter_value = FailableValue(Union(bool, int, float))

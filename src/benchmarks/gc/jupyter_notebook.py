@@ -703,4 +703,8 @@ data_frame.describe()
 heap_sizes = data_frame[["HeapSizeBeforeMB_Mean", "HeapSizeAfterMB_Mean"]]
 heap_sizes.plot()
 
+# %% Obtain the statistics grouped by config and benchmark
+
+data_frame.groupby(["config_name","benchmark_name"]).mean()
+
 # %%
