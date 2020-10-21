@@ -22,7 +22,7 @@ There are 2 types of SDK build --- *Clean Build* and *Build No Change*.
   
 We will walk through **SDK Console Template** as an example.
 ### Step 1 Initialize Environment
-Same instruction of [Scenario Tests Guide - Step 1](./scenarios-workflow#step-1-initialize-environment).
+Same instruction of [Scenario Tests Guide - Step 1](./scenarios-workflow.md#step-1-initialize-environment).
 ### Step 2 Run Precommand
 If you are running the test NOT for the first time and `app\` folder exists under the asset directory, make sure it's removed so the previous test artifact won't be used. You can use `post.py` to clean it up:
 ```

@@ -32,7 +32,7 @@ If the build's successful, you should have Core_Root with the path like:
 ```
 
 ### Step 1 Initialize Environment
-Same instruction of [Scenario Tests Guide - Step 1](./scenarios-workflow#step-1-initialize-environment).
+Same instruction of [Scenario Tests Guide - Step 1](./scenarios-workflow.md#step-1-initialize-environment).
 ### Step 2 Run Precommand
 For **Crossgen Throughput** scenario, unlike other scenarios there's no need to run any precommand (`pre.py`). Just switch to the test asset directory:
 ```
@@ -57,7 +57,7 @@ This will run the test harness [Startup Tool](https://github.com/dotnet/performa
 
 
 ### Step 4 Run Postcommand
-Same instruction of [Scenario Tests Guide - Step 4](./scenarios-workflow#step-4-run-postcommand).
+Same instruction of [Scenario Tests Guide - Step 4](./scenarios-workflow.md#step-4-run-postcommand).
  
 ## Crossgen2 Throughput Scenario
 Compared to `Crossgen Throughput` scenario, `Crossgen2 Throughput` Scenario measures more metrics, which are:
@@ -107,7 +107,7 @@ The test command runs the test harness [Startup Tool](https://github.com/dotnet/
 [2020/09/25 10:25:15][INFO] Compilation Interval |12827.350 ms   |12827.350 ms   |12827.350 ms
  ```
  ### Step 4 Run Postcommand
-Same instruction of [Scenario Tests Guide - Step 4](./scenarios-workflow#step-4-run-postcommand).
+Same instruction of [Scenario Tests Guide - Step 4](./scenarios-workflow.md#step-4-run-postcommand).
 
 ## Command Matrix
 For the purpose of quick reference, the commands can be summarized into the following matrix:
