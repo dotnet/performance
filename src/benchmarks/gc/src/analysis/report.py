@@ -858,7 +858,7 @@ def get_gc_metrics_numbers_for_jupyter(
     bench_file_path: Path,
     run_metrics: RunMetrics,
     machines: Optional[Sequence[str]],
-) -> List[Dict[str, float]]:
+) -> Dict[str, List[float]]:
     initial_run_metrics = get_run_metrics_for_diff(
         include_summary=True, sort_by_metric=None, run_metrics=run_metrics
     )
@@ -886,6 +886,8 @@ def get_gc_metrics_numbers_for_jupyter(
             # which has to be unwrapped.
             iter_ok_result: MetricValuesForSingleIteration = unwrap(iteration)
             data_map: Dict[str, float] = {}
+            data_map["config_name"] = t.config_name
+            data_map["benchmark_name"] = t.benchmark_name
 
             for iter_key, iter_value in iter_ok_result.items():
                 # iter_key = RunMetric, iter_value = FailableValue(Union(bool, int, float))
@@ -895,7 +897,33 @@ def get_gc_metrics_numbers_for_jupyter(
                 # least amount of complaints from mypy.
                 add(data_map, iter_key.name, iter_value.ok())  # type: ignore
             raw_numbers_data.append(data_map)
-    return raw_numbers_data
+
+    # This loop only searches for the metrics currently found in the data set and
+    # stores them for lookup later. The reason we use a dictionary is because we
+    # require to preserve order and Python does not natively have Ordered Sets.
+
+    metric_names_found = {}
+    for test_iteration in raw_numbers_data:
+        for metric_key in test_iteration:
+            metric_names_found[metric_key] = True
+
+    # This is the main loop. It creates the dictionary with the information
+    # that pandas is expecting. It iterates the set of metrics retrieved in the
+    # previous loop, and gets the numbers from each iteration of the test.
+    # In the end, this dictionary is composed by:
+    # Keys: Metric Names
+    # Values: List with said metric's values from each run
+
+    data_dict = {}
+    for metric_name in metric_names_found:
+        metric_values = []
+
+        for test_iteration in raw_numbers_data:
+            value = test_iteration[metric_name]
+            metric_values.append(value)
+        data_dict[metric_name] = metric_values
+
+    return data_dict
 
 
 REPORT_COMMANDS: CommandsMapping = {
