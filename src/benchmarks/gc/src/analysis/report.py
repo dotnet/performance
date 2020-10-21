@@ -4,7 +4,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterable, Mapping, Optional, Sequence, Tuple, List, Dict
+from typing import Any, Callable, Dict, Iterable, Mapping, Optional, Sequence, Tuple
 
 from result import Err, Ok, Result
 
@@ -831,9 +831,9 @@ def print_all_runs_for_jupyter(
 # Summary: Iterates through a set of test runs (currently only available for
 #          GCPerfSim tests due to how the infra is consolidated), and fetches
 #          all the GC metrics from their respective traces (e.g. PctinGC).
-#          Then, saves this information in a list of dictionaries, where each
-#          entry contains the metric values of an iteration of the test that
-#          was run.
+#          Then, processes and stores this information in a big Dictionary
+#          where the metric's name is the key, and the value is a list with
+#          that metric's numbers from all test iterations run and analyzed.
 #
 # Parameters:
 #   traces:
@@ -850,7 +850,16 @@ def print_all_runs_for_jupyter(
 #       were run. Usually left blank and then infra reads and uses the current
 #       machine's name.
 #
-# Returns: Nothing
+# Returns:
+#   Dictionary with values sorted by metrics.
+#
+# Note:
+#   We are setting the return type to Dict[str, Any] due to a special case.
+#   While each metric is mapped to its list of values, we are adding two more
+#   keys: "Config_Name" and "Benchmark_Name"
+#
+#   These contain the names of the configurations and benchmarks run in the
+#   tests for grouping in Jupyter Notebook.
 
 
 def get_gc_metrics_numbers_for_jupyter(
@@ -858,7 +867,7 @@ def get_gc_metrics_numbers_for_jupyter(
     bench_file_path: Path,
     run_metrics: RunMetrics,
     machines: Optional[Sequence[str]],
-) -> Dict[str, List[float]]:
+) -> Dict[str, Any]:
     initial_run_metrics = get_run_metrics_for_diff(
         include_summary=True, sort_by_metric=None, run_metrics=run_metrics
     )
@@ -885,7 +894,7 @@ def get_gc_metrics_numbers_for_jupyter(
             # However, it originally comes from a MaybeMetricValuesForSingleIteration,
             # which has to be unwrapped.
             iter_ok_result: MetricValuesForSingleIteration = unwrap(iteration)
-            data_map: Dict[str, float] = {}
+            data_map = {}
             data_map["config_name"] = t.config_name
             data_map["benchmark_name"] = t.benchmark_name
 

@@ -190,52 +190,36 @@ _BENCH = Path("bench")
 _SUITE = Path("bench") / "suite"
 _TRACE_PATH = _SUITE / "normal_server.yaml"
 
-data = get_gc_metrics_numbers_for_jupyter(
+metrics_data = get_gc_metrics_numbers_for_jupyter(
     traces=ALL_TRACES,
     bench_file_path=_TRACE_PATH,
     run_metrics=parse_run_metrics_arg(("important",)),
     machines=None,
 )
+
+data_frame = pandas.DataFrame.from_dict(metrics_data)
 ```
 
 In this example, we ran multiple times the `normal_server` test with the `2gb` benchmark.
 As shown above, the `get_gc_metrics_numbers_for_jupyter()` function is in charge
 of reading the traces of each time the test was run, fetching the numbers data,
-and returning a list of dictionaries. Each dictionary contains each metric's value
-mapped to the metric's name of a specific run. These are the same that are shown
-when issuing `py . diff`.
+processing it, and returning the dictionary with the lists of values of each metric.
 
 We have all the data now, but it's not ready to be consumed by `pandas`. `Pandas`
 expects a dictionary which symbolizes the table you would usually build in statistics,
-and transforms it into a `DataFrame` of its own. The next cell arranges the information
-and builds this dictionary:
-
-```python
-import pandas
-
-metric_names_found = {}
-for test_iteration in data:
-    for metric_key in test_iteration:
-        metric_names_found[metric_key] = True
-
-data_dict = {}
-for metric_name in metric_names_found:
-    metric_values = []
-
-    for test_iteration in data:
-        value = test_iteration[metric_name]
-        metric_values.append(value)
-    data_dict[metric_name] = metric_values
-
-data_frame = pandas.DataFrame.from_dict(data_dict)
-```
-
-The first loop is to look up which metrics are found in the data we extracted
-in the previous step. The second loop creates the dictionary `pandas` expects
-to create the `DataFrame`, which is composed of the following way:
+and transforms it into a `DataFrame` of its own. The last line in the previous
+code snippet does this. To summarize, the dictionary is composed as follows:
 
 * **Keys**: Metric Name
 * **Values**: List with said metric's numbers from each iteration of the test run.
+
+NOTE: Aside from the metric's names, this dictionary also holds two additional keys:
+
+* **Config_Name**: Name of the configuration run (e.g. _only\_config_).
+* **Benchmark_Name**: Name of the benchmark run (e.g. _2gb_)
+
+These are used to group values by configuration and/or benchmark for more
+specific analysis. There is an example at the end of the next section.
 
 ### Perform Data Analysis
 
@@ -265,6 +249,26 @@ heap_sizes.plot()
 We can observe here that the heap sizes didn't change much between tests. You might
 observe different behaviors depending on what tests you run and how the settings
 are changes (e.g. a `2gb` benchmark will probably look different than a `4gb` one).
+
+If you ran more than one configuration and/or more than one benchmark, you can
+also get statistics from each one.
+
+```python
+data_frame.groupby(["config_name", "benchmark_name"]).mean()
+```
+
+![Mean By Grouping Parameter](images/PandasMeanGroupBy.PNG)
+
+In this example, we repeated the entire setup but this time we ran 4 different
+benchmarks of a test:
+
+* _1gb_ and _2gb_ without concurrent GC's.
+* _1gb_ and _2gb_ with concurrent GC's.
+
+We want to see the mean value for each metric from each flavor's iterations.
+The `groupby()` code snippet separates the values as we require them, and then
+`pandas' mean()` method calculates for each flavor, resulting in the table
+shown in the picture above.
 
 ## Programming Notes
 

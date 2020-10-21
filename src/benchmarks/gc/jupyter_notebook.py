@@ -705,6 +705,6 @@ heap_sizes.plot()
 
 # %% Obtain the statistics grouped by config and benchmark
 
-data_frame.groupby(["config_name","benchmark_name"]).mean()
+data_frame.groupby(["config_name", "benchmark_name"]).mean()
 
 # %%
