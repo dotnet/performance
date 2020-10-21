@@ -679,7 +679,7 @@ def install(
     # Download appropriate dotnet install script
     dotnetInstallScriptExtension = '.ps1' if platform == 'win32' else '.sh'
     dotnetInstallScriptName = 'dotnet-install' + dotnetInstallScriptExtension
-    url = 'https://dot.net/v1/'  
+    url = 'https://raw.githubusercontent.com/dotnet/arcade/master/eng/common/dotnet-install-scripts/'  
     dotnetInstallScriptUrl = url + dotnetInstallScriptName
 
     dotnetInstallScriptPath = path.join(install_dir, dotnetInstallScriptName)
@@ -696,7 +696,7 @@ def install(
                 outfile.write(response.read())
                 break
 
-    if count is 3:
+    if count == 3:
         getLogger().error("Fatal error: could not download dotnet-install script")
         raise Exception("Fatal error: could not download dotnet-install script")
 
