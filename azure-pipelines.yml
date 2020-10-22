@@ -163,7 +163,7 @@ jobs:
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        #- LTS # use LTS channel for net461 framework
+        - LTS # use LTS channel for net461 framework
 
   # Windows x86 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
