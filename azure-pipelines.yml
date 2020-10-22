@@ -36,8 +36,8 @@ pr:
     - README.md
 
 schedules:
-- cron: "0 */4 * * *"
-  displayName: Every 4 hour build
+- cron: "0 */12 * * *"
+  displayName: Every 12 hours build
   branches:
     include:
     - master
@@ -155,8 +155,8 @@ jobs:
       channels:
         - master
         - release/5.0.1xx
-        - release/3.1.3xx
-        - 2.1
+        #- release/3.1.3xx
+        #- 2.1
 
   # Windows x64 net461 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -170,7 +170,7 @@ jobs:
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - LTS # use LTS channel for net461 framework
+        #- LTS # use LTS channel for net461 framework
 
   # Windows x86 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -201,7 +201,7 @@ jobs:
       channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
         - master
         - release/5.0.1xx
-        - release/3.1.3xx
+        #- release/3.1.3xx
 
   # Windows x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -217,7 +217,7 @@ jobs:
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
         - master
         - release/5.0.1xx
-        - release/3.1.3xx
+        #- release/3.1.3xx
         
   # Ubuntu 1804 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -234,8 +234,8 @@ jobs:
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - master
         - release/5.0.1xx
-        - release/3.1.3xx
-        - 2.1
+        #- release/3.1.3xx
+        #- 2.1
 
   # Ubuntu 1804 x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -252,7 +252,7 @@ jobs:
       channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
         - master
         - release/5.0.1xx
-        - release/3.1.3xx
+        #- release/3.1.3xx
 
   # Ubuntu 1804 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -269,7 +269,7 @@ jobs:
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
         - master
         - release/5.0.1xx
-        - release/3.1.3xx
+        #- release/3.1.3xx
 
 ###########################################
 # Private Jobs
@@ -304,7 +304,7 @@ jobs:
       container: ubuntu_x64_build_container
       projectFile: scenarios.proj
       channels:
-        - master
+        #- master
         - release/5.0.1xx
 
   # Windows x64 micro benchmarks
@@ -319,9 +319,9 @@ jobs:
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
       channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        - master
+        #- master
         - release/5.0.1xx
-        - release/3.1.2xx
+        #- release/3.1.2xx
       
   # Windows x86 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -335,9 +335,9 @@ jobs:
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
       channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        - master
+        #- master
         - release/5.0.1xx
-        - release/3.1.2xx
+        #- release/3.1.2xx
 
   # Windows x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -351,9 +351,9 @@ jobs:
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
       channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        - master
+        #- master
         - release/5.0.1xx
-        - release/3.1.2xx
+        #- release/3.1.2xx
 
   # Windows x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -367,9 +367,9 @@ jobs:
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
       channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        - master
+        #- master
         - release/5.0.1xx
-        - release/3.1.2xx
+        #- release/3.1.2xx
 
   # Ubuntu 1804 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -384,9 +384,9 @@ jobs:
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
       channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        - master
+        #- master
         - release/5.0.1xx
-        - release/3.1.2xx
+        #- release/3.1.2xx
 
   # Ubuntu 1804 x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -401,9 +401,9 @@ jobs:
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
       channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        - master
+        #- master
         - release/5.0.1xx
-        - release/3.1.2xx
+        #- release/3.1.2xx
   
   # Ubuntu 1804 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -418,9 +418,9 @@ jobs:
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       runCategories: 'roslyn'
       channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        - master
+        #- master
         - release/5.0.1xx
-        - release/3.1.2xx
+        #- release/3.1.2xx
 
 ################################################
 # Scheduled Private jobs
@@ -441,7 +441,7 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - master
-        - release/5.0.1xx
+        #- release/5.0.1xx
   
   # Windows x86 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -455,7 +455,7 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - master
-        - release/5.0.1xx
+        #- release/5.0.1xx
 
   # Ubuntu 1804 x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -470,7 +470,7 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - master
-        - release/5.0.1xx
+        #- release/5.0.1xx
         # - release/3.1.2xx
 
   # Windows x64 Blazor 3.2 scenario benchmarks
@@ -485,7 +485,7 @@ jobs:
       projectFile: blazor_scenarios.proj
       channels:
         - master
-        - release/5.0.1xx
+        #- release/5.0.1xx
   
   # Ubuntu 1804 ARM64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
