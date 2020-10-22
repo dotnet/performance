@@ -7,9 +7,8 @@
   </PropertyGroup>
   <!--Package versions-->
   <PropertyGroup>
-    <MicrosoftDotnetSdkInternalPackageVersion>6.0.100-alpha.1.20474.5</MicrosoftDotnetSdkInternalPackageVersion>
-    <MicrosoftNETCoreAppInternalPackageVersion>
-    </MicrosoftNETCoreAppInternalPackageVersion>
+    <MicrosoftDotnetSdkInternalPackageVersion>5.0.100-rtm.20522.4</MicrosoftDotnetSdkInternalPackageVersion>
+    <MicrosoftNETCoreAppRuntimewinx64PackageVersion>5.0.0</MicrosoftNETCoreAppRuntimewinx64PackageVersion>
     <MicrosoftNETSdkInternalPackageVersion>
     </MicrosoftNETSdkInternalPackageVersion>
   </PropertyGroup>
