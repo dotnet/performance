@@ -182,5 +182,23 @@ namespace System.Diagnostics
             {
             }
         }
+
+        [Benchmark]
+        public void ActivityAllocationsHierarchical()
+        {
+            Activity activity = new Activity("TestActivity");
+            activity.SetIdFormat(ActivityIdFormat.Hierarchical);
+            activity.Start();
+            activity.Stop();
+        }
+
+        [Benchmark]
+        public void ActivityAllocationsW3C()
+        {
+            Activity activity = new Activity("TestActivity");
+            activity.SetIdFormat(ActivityIdFormat.W3C);
+            activity.Start();
+            activity.Stop();
+        }
     }
 }
