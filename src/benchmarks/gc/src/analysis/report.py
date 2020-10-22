@@ -4,7 +4,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterable, Mapping, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, Iterable, Mapping, Optional, Sequence, Tuple
 
 from result import Err, Ok, Result
 
@@ -22,6 +22,8 @@ from ..commonlib.bench_file import (
     VARY_DOC,
 )
 from ..commonlib.collection_util import (
+    add,
+    cat_unique,
     empty_sequence,
     flatten,
     is_empty,
@@ -64,30 +66,32 @@ from .diffable import (
     DIFFABLE_PATHS_DOC,
     Diffables,
     get_diffables,
+    get_test_combinations,
     SingleDiffable,
     SingleDiffed,
     TEST_WHERE_DOC,
 )
-from .parse_metrics import parse_run_metrics_arg
+from .parse_metrics import parse_run_metrics_arg, get_score_metrics
 from .process_trace import ProcessedTraces
 from .types import (
     Better,
     FailableFloat,
+    FailableMetricValue,
+    FailableValue,
     get_regression_kind,
     invert_mechanisms,
     MechanismsAndReasons,
     MetricValue,
-    FailableMetricValue,
+    MetricValuesForSingleIteration,
     RegressionKind,
     RunMetric,
-    run_metric_must_exist_for_name,
     RunMetrics,
+    run_metric_must_exist_for_name,
     RUN_METRICS_DOC,
     SampleKind,
-    SAMPLE_KIND_DOC,
     ScoreRunMetric,
+    SAMPLE_KIND_DOC,
     union_all_mechanisms,
-    FailableValue,
 )
 
 
@@ -822,6 +826,113 @@ def print_all_runs_for_jupyter(
 
     tables = [get_table(it) for it in iters]
     return Document(sections=(Section(tables=tables),))
+
+
+# Summary: Iterates through a set of test runs (currently only available for
+#          GCPerfSim tests due to how the infra is consolidated), and fetches
+#          all the GC metrics from their respective traces (e.g. PctinGC).
+#          Then, processes and stores this information in a big Dictionary
+#          where the metric's name is the key, and the value is a list with
+#          that metric's numbers from all test iterations run and analyzed.
+#
+# Parameters:
+#   traces:
+#       ProcessedTraces object which stores tarce file information. This
+#       is commonly initialized by calling ProcessedTraces() in Jupyter Notebook.
+#   bench_file_path:
+#       Path to the test's spec yaml bench file.
+#   run_metrics:
+#       RunMetrics object which later contains the GC metrics extracted
+#       from the trace. Usually initialized with a dummy in Jupyter Notebook.
+#       For example: parse_run_metrics_arg(("important",))
+#   machines:
+#       Optional list with the names of the machines where the tests
+#       were run. Usually left blank and then infra reads and uses the current
+#       machine's name.
+#
+# Returns:
+#   Dictionary with values sorted by metrics.
+#
+# Note:
+#   We are setting the return type to Dict[str, Any] due to a special case.
+#   While each metric is mapped to its list of values, we are adding two more
+#   keys: "Config_Name" and "Benchmark_Name"
+#
+#   These contain the names of the configurations and benchmarks run in the
+#   tests for grouping in Jupyter Notebook.
+
+
+def get_gc_metrics_numbers_for_jupyter(
+    traces: ProcessedTraces,
+    bench_file_path: Path,
+    run_metrics: RunMetrics,
+    machines: Optional[Sequence[str]],
+) -> Dict[str, Any]:
+    initial_run_metrics = get_run_metrics_for_diff(
+        include_summary=True, sort_by_metric=None, run_metrics=run_metrics
+    )
+
+    raw_numbers_data = []
+    bench_and_path = parse_bench_file(bench_file_path)
+    bench = bench_and_path.content
+
+    all_combinations = get_test_combinations(machines_arg=machines, bench=bench, test_where=None)
+    all_run_metrics = cat_unique(initial_run_metrics, get_score_metrics(bench))
+
+    for t in all_combinations:
+        iterations = [
+            traces.get_run_metrics(iteration.to_test_result(), all_run_metrics)
+            for iteration in get_test_paths_for_each_iteration(
+                bench=bench_and_path, t=t, max_iterations=None
+            )
+        ]
+
+        for iteration in iterations:
+            # MetricValuesForSingleIteration - Mapping[RunMetric, FailableValue]
+            # RunMetric can either be a NamedRunMetric or a ScoreRunMetric. In this case,
+            # it is the former.
+            # However, it originally comes from a MaybeMetricValuesForSingleIteration,
+            # which has to be unwrapped.
+            iter_ok_result: MetricValuesForSingleIteration = unwrap(iteration)
+            data_map = {}
+            data_map["config_name"] = t.config_name
+            data_map["benchmark_name"] = t.benchmark_name
+
+            for iter_key, iter_value in iter_ok_result.items():
+                # iter_key = RunMetric, iter_value = FailableValue(Union(bool, int, float))
+                # We are adding an annotation to ask mypy to ignore the type checking.
+                # No matter what, it will always complain and make the code unusable.
+                # This was the closest way to have functioning code while silencing the
+                # least amount of complaints from mypy.
+                add(data_map, iter_key.name, iter_value.ok())  # type: ignore
+            raw_numbers_data.append(data_map)
+
+    # This loop only searches for the metrics currently found in the data set and
+    # stores them for lookup later. The reason we use a dictionary is because we
+    # require to preserve order and Python does not natively have Ordered Sets.
+
+    metric_names_found = {}
+    for test_iteration in raw_numbers_data:
+        for metric_key in test_iteration:
+            metric_names_found[metric_key] = True
+
+    # This is the main loop. It creates the dictionary with the information
+    # that pandas is expecting. It iterates the set of metrics retrieved in the
+    # previous loop, and gets the numbers from each iteration of the test.
+    # In the end, this dictionary is composed by:
+    # Keys: Metric Names
+    # Values: List with said metric's values from each run
+
+    data_dict = {}
+    for metric_name in metric_names_found:
+        metric_values = []
+
+        for test_iteration in raw_numbers_data:
+            value = test_iteration[metric_name]
+            metric_values.append(value)
+        data_dict[metric_name] = metric_values
+
+    return data_dict
 
 
 REPORT_COMMANDS: CommandsMapping = {

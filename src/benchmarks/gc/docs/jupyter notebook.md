@@ -155,6 +155,121 @@ Running this yields the following output:
 
 ![CPU Samples Metrics](images/SamplesMetrics.PNG)
 
+## Numeric Analysis
+
+Numeric Analysis is a feature that allows you to use the `pandas` library to
+analyze GC metrics from various runs of a *GCPerfSim* test. It reads all these
+metrics numbers from all the iterations for the test run, and builds a list
+with them, ready for `pandas` to consume and interpret it. Some of the main
+tasks you can do with your data are, but not limited to:
+
+* See summary statistical values (e.g. mean, min, max)
+* Filter subsets of data
+* Create various types of plots to graphically visualize data (scatter, histogram, line)
+* Add new calculated columns for ease of access and more complicated calculations.
+
+This feature is currently only available by means of the Jupyter Notebook.
+Following are the steps to set this up, as well as a simple example showing
+this feature in action.
+
+For the full pandas documentation, you can check their [website](https://pandas.pydata.org/docs/).
+
+### Requirements
+
+First, run any *GCPerfSim* test you want to analyze multiple times. It all depends
+on your goal for how many, but when working with statistics, the more the merrier.
+
+Once your tests are done running, open up `jupyter_notebook.py` in *VSCode* and
+run the first cell for general setup. Once that is done, there is a basic
+working template at the end of the notebook.
+
+### Setting up in Jupyter Notebook
+
+```python
+_BENCH = Path("bench")
+_SUITE = Path("bench") / "suite"
+_TRACE_PATH = _SUITE / "normal_server.yaml"
+
+metrics_data = get_gc_metrics_numbers_for_jupyter(
+    traces=ALL_TRACES,
+    bench_file_path=_TRACE_PATH,
+    run_metrics=parse_run_metrics_arg(("important",)),
+    machines=None,
+)
+
+data_frame = pandas.DataFrame.from_dict(metrics_data)
+```
+
+In this example, we ran multiple times the `normal_server` test with the `2gb` benchmark.
+As shown above, the `get_gc_metrics_numbers_for_jupyter()` function is in charge
+of reading the traces of each time the test was run, fetching the numbers data,
+processing it, and returning the dictionary with the lists of values of each metric.
+
+We have all the data now, but it's not ready to be consumed by `pandas`. `Pandas`
+expects a dictionary which symbolizes the table you would usually build in statistics,
+and transforms it into a `DataFrame` of its own. The last line in the previous
+code snippet does this. To summarize, the dictionary is composed as follows:
+
+* **Keys**: Metric Name
+* **Values**: List with said metric's numbers from each iteration of the test run.
+
+NOTE: Aside from the metric's names, this dictionary also holds two additional keys:
+
+* **Config_Name**: Name of the configuration run (e.g. _only\_config_).
+* **Benchmark_Name**: Name of the benchmark run (e.g. _2gb_)
+
+These are used to group values by configuration and/or benchmark for more
+specific analysis. There is an example at the end of the next section.
+
+### Perform Data Analysis
+
+Now you're ready to do any statistical analysis, chart plotting, and more using
+the capabilities `pandas` has to offer. The most basic example is asking for
+the `describe()` method:
+
+```python
+data_frame.describe()
+```
+
+This shows a table with the main statistics values using the numbers you provided.
+
+![Describe Method](images/PandasDescribe.PNG)
+
+Another important use case to mention, is that you can also extract subsets of
+data and analyze them separately. For example, here we want to visualize the
+heap sizes before and after garbage collection throughout the tests we ran.
+
+```python
+heap_sizes = data_frame[["HeapSizeBeforeMB_Mean", "HeapSizeAfterMB_Mean"]]
+heap_sizes.plot()
+```
+
+![Plot Heap Sizes](images/PandasPlot.PNG)
+
+We can observe here that the heap sizes didn't change much between tests. You might
+observe different behaviors depending on what tests you run and how the settings
+are changes (e.g. a `2gb` benchmark will probably look different than a `4gb` one).
+
+If you ran more than one configuration and/or more than one benchmark, you can
+also get statistics from each one.
+
+```python
+data_frame.groupby(["config_name", "benchmark_name"]).mean()
+```
+
+![Mean By Grouping Parameter](images/PandasMeanGroupBy.PNG)
+
+In this example, we repeated the entire setup but this time we ran 4 different
+benchmarks of a test:
+
+* _1gb_ and _2gb_ without concurrent GC's.
+* _1gb_ and _2gb_ with concurrent GC's.
+
+We want to see the mean value for each metric from each flavor's iterations.
+The `groupby()` code snippet separates the values as we require them, and then
+`pandas' mean()` method calculates for each flavor, resulting in the table
+shown in the picture above.
+
 ## Programming Notes
 
 Here are some internal implementation notes to be aware of when doing simple tests using the Jupyter Notebook.

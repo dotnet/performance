@@ -62,8 +62,7 @@ vary: `"machine" | "executable" | "coreclr" | "config" | "benchmark" | None`
   Preferred property to vary when using `py . diff`
 
 test_executables: `Mapping[str, Path]`
-  Mapping from an (arbitrary) executable name to its path.
-  Paths to the dll's that will be run with the Core_Root.
+  Mapping of dll's to run when issuing `py . run` or `py . suite-run`
 
 configs_vary_by: `[ConfigsVaryBy](#ConfigsVaryBy) | None`
   This is mostly set just for information.
