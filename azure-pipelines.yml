@@ -11,8 +11,6 @@ trigger:
   paths:
     include:
     - eng/Version.Details.xml
-    exclude: # don't trigger the CI if only a doc file was changed
-    - *
 
 # Trigger builds for PR's targeting master
 pr:
