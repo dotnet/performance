@@ -11,6 +11,7 @@
     <MicrosoftNETCoreAppRuntimewinx64PackageVersion>5.0.0</MicrosoftNETCoreAppRuntimewinx64PackageVersion>
     <MicrosoftNETSdkInternalPackageVersion>
     </MicrosoftNETSdkInternalPackageVersion>
+    <MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>5.0.0</MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>
   </PropertyGroup>
   <!--Package names-->
   <PropertyGroup>
