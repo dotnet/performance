@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
+    <Dependency Name="Microsoft.NETCore.App.Internal" Version="" CoherentParentDependency="Microsoft.NET.Sdk.Internal">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha />
+    </Dependency>
+    <Dependency Name="Microsoft.NET.Sdk.Internal" Version="">
+      <Uri>https://github.com/dotnet/installer</Uri>
+      <Sha>04ebe46f5432924c9fdf243e5e53fd8580f5730e</Sha>
+    </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
     <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="5.0.0-beta.20472.36">

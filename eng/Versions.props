@@ -8,6 +8,10 @@
   <!--Package versions-->
   <PropertyGroup>
     <MicrosoftDotnetSdkInternalPackageVersion>6.0.100-alpha.1.20474.5</MicrosoftDotnetSdkInternalPackageVersion>
+    <MicrosoftNETCoreAppInternalPackageVersion>
+    </MicrosoftNETCoreAppInternalPackageVersion>
+    <MicrosoftNETSdkInternalPackageVersion>
+    </MicrosoftNETSdkInternalPackageVersion>
   </PropertyGroup>
   <!--Package names-->
   <PropertyGroup>
