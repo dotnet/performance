@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
+    <Dependency Name="Microsoft.NETCore.App.Runtime.win-x64" Version="5.0.0" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>cf258a14b70ad9069470a108f13765e0e5988f51</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.Dotnet.Sdk.Internal" Version="5.0.100-rtm.20522.4">
+      <Uri>https://github.com/dotnet/installer</Uri>
+      <Sha>bd53d66266c4a733a19a391bd423db81fea36b49</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.WindowsDesktop.App.Runtime.win-x64" Version="5.0.0" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
+      <Uri>https://github.com/dotnet/windowsdesktop</Uri>
+      <Sha>ec2af60c1eb8b2665745750f6445b3ff133178fb</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.AspNetCore.App.Runtime.win-x64" Version="5.0.0" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
+      <Uri>https://github.com/dotnet/aspnetcore</Uri>
+      <Sha>074069f9c9b0dff8e52eb640b2cc998cecf50b8e</Sha>
+    </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
     <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="5.0.0-beta.20472.36">
@@ -10,10 +26,6 @@
     <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="5.0.0-beta.20472.36">
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>06ad7cf82dbf56b3facf8a7d3a00944f5116663d</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.Dotnet.Sdk.Internal" Version="6.0.100-alpha.1.20474.5">
-      <Uri>https://github.com/dotnet/installer</Uri>
-      <Sha>0b940dce993e369ebac36f04909ec62de75b12a4</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
