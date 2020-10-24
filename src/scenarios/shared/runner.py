@@ -301,8 +301,11 @@ ex: C:\repos\performance;C:\repos\runtime
                 self.traits.add_traits( overwrite=True,
                                         skipprofile='true')
 
+            scenarioname = 'Crossgen2 Throughput - %s - %s' % ( compiletype, filename)
             if self.singlethreaded:
                 crossgen2args = '%s --parallelism 1' % (crossgen2args)
+                scenarioname = 'Crossgen2 Throughput - Single Threaded - %s - %s' % ( compiletype, filename)
+
 
             self.traits.add_traits(overwrite=True,
                                    startupmetric=const.STARTUP_CROSSGEN2,
@@ -310,7 +313,7 @@ ex: C:\repos\performance;C:\repos\runtime
                                    appargs='%s %s' % (os.path.join('crossgen2', 'crossgen2.dll'), crossgen2args)
                                    )
             self.traits.add_traits(overwrite=False,
-                                   scenarioname='Crossgen2 Throughput - %s - %s' % ( compiletype, filename),
+                                   scenarioname=scenarioname,
                                    apptorun=os.path.join(self.coreroot, 'corerun%s' % extension()),
                                    environmentvariables='COMPlus_EnableEventLog=1' if not iswin() else '' # turn on clr user events
                                   ) 
