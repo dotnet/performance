@@ -1,5 +1,5 @@
 '''
-Module for running Crossgen
+Module for parsing Crossgen args
 '''
 
 import sys
