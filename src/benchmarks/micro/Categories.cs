@@ -27,6 +27,7 @@ namespace MicroBenchmarks
         public const string BenchI = "BenchI";
         public const string Inlining = "Inlining";
         public const string V8 = "V8";
+        public const string JetStream = "JetStream";
         public const string Perflab = "Perflab";
         public const string Virtual = "Virtual";
         public const string ByteMark = "ByteMark";
