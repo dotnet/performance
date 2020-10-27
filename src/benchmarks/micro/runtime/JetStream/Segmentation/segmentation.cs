@@ -134,21 +134,6 @@ namespace JetStream {
             return Math.Sqrt(squareSum / (numberOfSamples - 1) - sum * sum / (numberOfSamples - 1) / numberOfSamples);
         }
 
-        // FIXME
-        public static double[] supportedConfidenceIntervalProbabilities () {
-            var supportedProbabilities = new List<double>();
-            foreach (var probability in tDistributionByOneSidedProbability.Keys) {
-                var p = oneSidedToTwoSidedProbability(probability);
-                supportedProbabilities.Add(Math.Round(p, 2));
-            }
-            return supportedProbabilities.ToArray();
-        }
-
-        // FIXME
-        public static double[] supportedOneSideTTestProbabilities () {
-            return tDistributionByOneSidedProbability.Keys.ToArray();
-        }
-
         // Computes the delta d s.t. (mean - d, mean + d) is the confidence interval with the specified probability in O(1).
         public static double confidenceIntervalDelta (double probability, int numberOfSamples, double sum, double squareSum) {
             var oneSidedProbability = twoSidedToOneSidedProbability(probability);
