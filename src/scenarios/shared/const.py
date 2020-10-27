@@ -24,6 +24,7 @@ TRACEDIR = 'traces'
 SRCDIR = 'src' # used for checked in source.
 TMPDIR = 'tmp'
 ARTIFACTDIR = 'artifacts'
+CROSSGENDIR = 'crossgen.out'
 
 CLEAN_BUILD = 'clean_build'
 BUILD_NO_CHANGE = 'build_no_change'
