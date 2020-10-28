@@ -160,8 +160,6 @@ Suppress internal Crossgen2 parallelism
 
             for reffile in referencefilenames:
                 crossgen2args.extend(['-r', os.path.join(self.coreroot, reffile)])
-            
-            return crossgen2args
         
         elif compiletype == const.CROSSGEN2_COMPOSITE:
             # composite rsp filename: ..\example.dll.rsp
