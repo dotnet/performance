@@ -17,11 +17,16 @@
     <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
   </PropertyGroup>  
 
+  <PropertyGroup>
+    <FrameworkVersion>$(_Framework.Substring($([MSBuild]::Subtract($(_Framework.Length), 3))))</FrameworkVersion>
+  </PropertyGroup>
+
   <ItemGroup>
       <Framework Include="netcoreapp2.1" FrameworkName="%(Identity)"/>
-      <Framework Include="netcoreapp3.0" FrameworkName="%(Identity)" Condition="'$(_Framework.Substring(10))' &gt; '2.1'"/>
-      <Framework Include="netcoreapp3.1" FrameworkName="%(Identity)" Condition="'$(_Framework.Substring(10))' &gt; '3.0'"/>
-      <Framework Include="netcoreapp5.0" FrameworkName="%(Identity)" Condition="'$(_Framework.Substring(10))' &gt; '3.1'"/>
+      <Framework Include="netcoreapp3.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '2.1'"/>
+      <Framework Include="netcoreapp3.1" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '3.0'"/>
+      <Framework Include="netcoreapp5.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '3.1'"/>
+      <!-- <Framework Include="net6.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '5.0'"/> -->
   </ItemGroup>
 
   <ItemDefinitionGroup>
