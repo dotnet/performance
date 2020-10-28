@@ -16,7 +16,11 @@ An introduction of how to run scenario tests can be found in [Scenarios Tests Gu
 ### 1. Generate Core_Root
 These performance tests use the built runtime test directory [Core_Root](https://github.com/dotnet/runtime/blob/master/docs/workflow/testing/using-corerun.md) for the crossgen tool itself and other runtime assmblies as compilation input. Core_Root is an intermediate output from the runtime build, which contains runtime assemblies and tools.
 
-You can skip this step if you already have Core_Root. To generate Core_Root directory, first clone [dotnet/runtime repo](https://github.com/dotnet/runtime) and follow [the instruction of building coreclr tests](https://github.com/dotnet/runtime/blob/master/docs/workflow/testing/coreclr/windows-test-instructions.md), which creates Core_Root directory.
+You can skip this step if you already have Core_Root. To generate Core_Root directory, first clone [dotnet/runtime repo](https://github.com/dotnet/runtime) and run:
+```
+src\tests\build.cmd Release <arch> generatelayoutonly
+```
+[the instruction of building coreclr tests](https://github.com/dotnet/runtime/blob/master/docs/workflow/testing/coreclr/windows-test-instructions.md), which creates Core_Root directory.
 
 If the build's successful, you should have Core_Root with the path like:
 ```
