@@ -250,8 +250,6 @@ def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
     #   host process framework != benchmark process framework
     if args.wasm:
         run_args += ['--runtimes', 'wasm']
-    else:
-        run_args += ['--runtimes', framework]
 
     return run_args
 
