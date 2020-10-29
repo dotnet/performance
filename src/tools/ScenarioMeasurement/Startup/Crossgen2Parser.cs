@@ -42,6 +42,7 @@ namespace ScenarioMeasurement
 
             var processTimeParser = new ProcessTimeParser();
             Counter processTimeCounter = null;
+            Counter timeOnThread = null;
             if (!Util.IsWindows())
             {
                 processName = "corerun"; 
@@ -52,15 +53,27 @@ namespace ScenarioMeasurement
                 {
                     processTimeCounter = counter;
                 }
+                if (counter.Name == "Time on Thread")
+                {
+                    timeOnThread = counter;
+                }
             }
 
-            return new[] {
+            var counters =  new List<Counter> {
                 processTimeCounter,
                 new Counter() { Name = "Loading Interval", MetricName = "ms", DefaultCounter=false, TopCounter=true, Results = loadingParser.Intervals.ToArray() },
                 new Counter() { Name = "Emitting Interval", MetricName = "ms", DefaultCounter=false, TopCounter=true, Results = emittingParser.Intervals.ToArray() },
                 new Counter() { Name = "Jit Interval", MetricName = "ms", DefaultCounter=false, TopCounter=true, Results = jittingParser.Intervals.ToArray() },
                 new Counter() { Name = "Compilation Interval", MetricName = "ms", DefaultCounter=false, TopCounter=true, Results = compilationParser.Intervals.ToArray() }
             };
+
+            // Time on Thread is currently only supported on Windows.
+            if(timeOnThread != null)
+            {
+                counters.Add(timeOnThread);
+            }
+            
+            return counters.ToArray();
         }
     }
 
