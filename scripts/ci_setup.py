@@ -231,7 +231,7 @@ def __main(args: list) -> int:
     framework = ChannelMap.get_target_framework_moniker(args.channel)
     if not framework.startswith('net4'):
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
-        dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions is None else args.dotnet_versions
+        dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions is [] else args.dotnet_versions
         commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
         source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
 
