@@ -43,9 +43,16 @@
       <PayloadDirectory>$(ScenariosDir)emptyvbconsoletemplate</PayloadDirectory>
     </Scenario>
   </ItemGroup>
-
+ <ItemGroup>
+    <HelixWorkItem Include="whereispython">
+      <Command>ls /usr/bin/python*</Command>
+    </HelixWorkItem>
+    <HelixWorkItem Include="whatversion">
+      <Command>/usr/bin/python3 --version</Command>
+    </HelixWorkItem>
+  </ItemGroup>
   <!-- Startup FDD publish -->
-  <ItemGroup>
+  <!-- <ItemGroup>
     <HelixWorkItem Include="@(Scenario -> 'Startup - %(Identity) - FDD Publish')">
       <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release</PreCommands>
       <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
@@ -74,7 +81,7 @@
       <PreCommands>$(Python) pre.py build -c Release -f $(_Framework)</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
-  </ItemGroup>
+  </ItemGroup> -->
 
   <!--
     This is useful for local testing to print the produced helix items
