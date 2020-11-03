@@ -589,12 +589,13 @@ def get_built(
 
 
 _EXEC_ENV_BUILD_CMD_PATH = EXEC_ENV_PATH / "build.cmd"
-_EXEC_ENV_BUILD_DEBUG_PATH = EXEC_ENV_PATH / "out" / "Debug"
+# _EXEC_ENV_BUILD_DEBUG_PATH = EXEC_ENV_PATH / "out" / "Debug"
+_EXEC_ENV_BUILD_RELEASE_PATH = EXEC_ENV_PATH / "out" / "Release"
 assert_file_exists(_EXEC_ENV_BUILD_CMD_PATH)
 
 
 def _get_built_c_script(name: str) -> Path:
-    out_path = _EXEC_ENV_BUILD_DEBUG_PATH / f"{name}.exe"
+    out_path = _EXEC_ENV_BUILD_RELEASE_PATH / f"{name}.exe"
     assert out_path.exists(), (
         f"Could not find {out_path}\nMaybe you need to run {_EXEC_ENV_BUILD_CMD_PATH}"
         + " (using a Visual Studio Developer Command Prompt)?"
