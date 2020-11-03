@@ -589,7 +589,7 @@ def get_built(
 
 
 _EXEC_ENV_BUILD_CMD_PATH = EXEC_ENV_PATH / "build.cmd"
-_EXEC_ENV_BUILD_DEBUG_PATH = EXEC_ENV_PATH / "out" / "Debug"
+# _EXEC_ENV_BUILD_DEBUG_PATH = EXEC_ENV_PATH / "out" / "Debug"
 _EXEC_ENV_BUILD_RELEASE_PATH = EXEC_ENV_PATH / "out" / "Release"
 assert_file_exists(_EXEC_ENV_BUILD_CMD_PATH)
 
