@@ -35,12 +35,12 @@ benchmarks:
       tagb: 500
       tlgb: 1
       lohar: 0
+      pohar: 0
       sohsi: 50
       lohsi: 0
       pohsi: 0
       sohpi: 0
       lohpi: 0
-      pohpi: 0
       sohfi: 0
       lohfi: 0
       pohfi: 0
@@ -394,12 +394,12 @@ tagb: `float`
 tlgb: `float`
 totalMins: `float | None`
 lohar: `int`
+pohar: `int`
 sohsi: `int`
 lohsi: `int`
 pohsi: `int`
 sohpi: `int`
 lohpi: `int`
-pohpi: `int`
 sohfi: `int`
 lohfi: `int`
 pohfi: `int`

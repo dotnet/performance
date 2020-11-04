@@ -1286,7 +1286,6 @@ class ArgsParser
         uint pohAllocHigh = DEFAULT_POH_ALLOC_HIGH;
 
 #if NET5_0
-        uint pohPinInterval = DEFAULT_POH_PINNING_INTERVAL;
         uint pohFinalizableInterval = DEFAULT_POH_FINALIZABLE_INTERVAL;
         uint pohSurvInterval = DEFAULT_POH_SURV_INTERVAL;
 
@@ -1394,15 +1393,6 @@ class ArgsParser
                     lohFinalizableInterval = ParseUInt32(args[++i]);
                     break;
 
-                case "-pohPinningInterval":
-                case "-pohpi":
-#if NET5_0
-                    pohPinInterval = ParseUInt32(args[++i]);
-#else
-                    Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
-                                      args[i++]);
-#endif
-                    break;
                 case "-pohFinalizableInterval":
                 case "-pohfi":
 #if NET5_0
@@ -1451,7 +1441,15 @@ class ArgsParser
         List<BucketSpec> bucketList = new List<BucketSpec>();
         uint sohWeight = 1000;
 
-        uint lohWeight = GetLohAllocWeight(lohAllocRatioArg, sohAllocLow: sohAllocLow, sohAllocHigh: sohAllocHigh, lohAllocLow: lohAllocLow, lohAllocHigh: lohAllocHigh, pohAllocLow, pohAllocHigh);
+        uint lohWeight = GetLohAllocWeight(
+            lohAllocRatio: lohAllocRatioArg,
+            sohAllocLow: sohAllocLow,
+            sohAllocHigh: sohAllocHigh,
+            lohAllocLow: lohAllocLow,
+            lohAllocHigh: lohAllocHigh,
+            pohAllocLow: pohAllocLow,
+            pohAllocHigh: pohAllocHigh);
+
         if (lohWeight > 0)
         {
             BucketSpec lohBucket = new BucketSpec(
@@ -1466,13 +1464,21 @@ class ArgsParser
         }
 
 #if NET5_0
-        uint pohWeight = GetPohAllocWeight(pohAllocRatioArg, sohAllocLow: sohAllocLow, sohAllocHigh: sohAllocHigh, lohAllocLow: lohAllocLow, lohAllocHigh: lohAllocHigh, pohAllocLow, pohAllocHigh);
+        uint pohWeight = GetPohAllocWeight(
+            pohAllocRatio: pohAllocRatioArg,
+            sohAllocLow: sohAllocLow,
+            sohAllocHigh: sohAllocHigh,
+            lohAllocLow: lohAllocLow,
+            lohAllocHigh: lohAllocHigh,
+            pohAllocLow: pohAllocLow,
+            pohAllocHigh: pohAllocHigh);
+
         if (pohWeight > 0)
         {
             BucketSpec pohBucket = new BucketSpec(
                 sizeRange: new SizeRange(pohAllocLow, pohAllocHigh),
                 survInterval: pohSurvInterval,
-                pinInterval: pohPinInterval,
+                pinInterval: 0,
                 finalizableInterval: pohFinalizableInterval,
                 weight: pohWeight,
                 isPoh: true);
