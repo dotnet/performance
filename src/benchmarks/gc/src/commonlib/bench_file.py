@@ -578,6 +578,7 @@ class TestKind(Enum):
 @doc_field("tlgb", None)
 @doc_field("totalMins", None)
 @doc_field("lohar", None)
+@doc_field("pohar", None)
 @doc_field("sohsi", None)
 @doc_field("lohsi", None)
 @doc_field("pohsi", None)
@@ -602,6 +603,7 @@ class GCPerfSimArgs:
     tlgb: float
     totalMins: Optional[float] = None
     lohar: int = 0
+    pohar: int = 0
     sohsi: int = 0
     lohsi: int = 0
     pohsi: int = 0
@@ -621,6 +623,7 @@ class GCPerfSimArgs:
             "-tlgb": str(self.tlgb),
             **(empty_mapping() if self.totalMins is None else {"totalMins": str(self.totalMins)}),
             "-lohar": str(self.lohar),
+            "-pohar": str(self.pohar),
             "-sohsi": str(self.sohsi),
             "-lohsi": str(self.lohsi),
             "-pohsi": str(self.pohsi),
