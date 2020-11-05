@@ -61,6 +61,9 @@ class GCPerfSimResult:
     # missing on older .NET versions
     final_heap_size_bytes: Optional[int] = None
     final_fragmentation_bytes: Optional[int] = None
+    sohAllocatedBytes: Optional[int] = None
+    lohAllocatedBytes: Optional[int] = None
+    pohAllocatedBytes: Optional[int] = None
 
 
 @doc_field("memory_mb", "Size of the container in mebibytes.")
