@@ -11,7 +11,7 @@ using MicroBenchmarks;
 
 namespace System.Drawing.Tests
 {
-    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM, Categories.NoInterpreter)]
     public class Perf_Image_Load
     {
         // this field is lazy to avoid the exception during static ctor initialization of this type (harder to catch and handle properly)
