@@ -82,8 +82,8 @@ we allocate POH that's randomly chosen between this range.
 
 -sohSurvInterval/-sohsi: g_sohSurvInterval
 meaning every Nth SOH object allocated will survive. This is something we will consider changing to survival rate
-later. When the allocated objects are of similiar sizes the surv rate is 1/g_sohSurvInterval but we may not want them
-to all be similiar sizes.
+later. When the allocated objects are of similar sizes the surv rate is 1/g_sohSurvInterval but we may not want them
+to all be similar sizes.
 
 -lohSurvInterval/-lohsi: g_lohSurvInterval
 meaning every Nth LOH object allocated will survive. 
@@ -91,17 +91,14 @@ meaning every Nth LOH object allocated will survive.
 -pohSurvInterval/-pohsi:
 meaning every Nth POH object allocated will survive.
 
-Note that -sohSurvInterval/-lohSurvInterval are only applicable for steady state, during initialization everything
-survives.
+Note that -sohSurvInterval/-lohSurvInterval are only applicable for steady state.
+During initialization everything survives.
 
 -sohPinningInterval/-sohpi: g_sohPinningInterval
 meaning every Nth SOH object survived will be pinned. 
 
 -lohPinningInterval/-lohpi: g_lohPinningInterval
 meaning every Nth LOH object survived will be pinned. 
-
--pohPinningInterval/-pohpi:
-meaning every Nth POH object survived will be pinned.
 
 -allocType/-at: g_allocType
 What kind of objects are we allocating? Current supported types: 
