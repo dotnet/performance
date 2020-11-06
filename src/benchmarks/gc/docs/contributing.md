@@ -30,12 +30,6 @@ Non-Python code is handled by `build.py` which builds C# and C dependencies.
 When you modify C# or C code (or dlls they depend on), they should automatically be rebuilt.
 The code for building C dependencies is Windows-specific as currently only Windows needs these dependencies.
 
-## TraceEvent (from PerfView)
-
-You may need to modify TraceEvent (which is part of PerfView) when working `managed-lib`, which uses it heavily.
-
-Run `py . use-local-trace-event path/to/perfview` to set NuGet to use the TraceEvent your local build of PerfView. Running an analysis command will cause `managed-lib` to be rebuilt using your local PerfVIew build. Use `py . undo-use-local-trace-event` to go back to using the PerfView from nuget.org.
-
 # Using a Custom TraceEvent
 
 You may need to modify TraceEvent (which is part of PerfView) when working `managed-lib`, which uses it heavily. To do this:
