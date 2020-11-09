@@ -20,17 +20,18 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(ClassImplementingIXmlSerialiable))]
     public class Xml_ToStream<T>
     {
-        private readonly T value;
-        private readonly XmlSerializer xmlSerializer;
-        private readonly DataContractSerializer dataContractSerializer;
-        private readonly MemoryStream memoryStream;
+        private T value;
+        private XmlSerializer xmlSerializer;
+        private DataContractSerializer dataContractSerializer;
+        private MemoryStream memoryStream;
 
-        public Xml_ToStream()
+        [GlobalSetup]
+        public void Setup()
         {
             value = DataGenerator.Generate<T>();
+            memoryStream = new MemoryStream(capacity: short.MaxValue);
             xmlSerializer = new XmlSerializer(typeof(T));
             dataContractSerializer = new DataContractSerializer(typeof(T));
-            memoryStream = new MemoryStream(capacity: short.MaxValue);
         }
 
         [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]

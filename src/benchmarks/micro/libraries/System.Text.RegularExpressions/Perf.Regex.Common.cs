@@ -15,6 +15,7 @@ namespace System.Text.RegularExpressions.Tests
     {
         private Regex _email, _date, _ip, _uri;
         private Regex _searchWord, _searchWords, _searchSet, _searchBoundary;
+        private string _loremIpsum;
 
         [Params(RegexOptions.None, RegexOptions.Compiled, RegexOptions.Compiled | RegexOptions.IgnoreCase)]
         public RegexOptions Options { get; set; }
@@ -31,6 +32,7 @@ namespace System.Text.RegularExpressions.Tests
             _searchWords = new Regex(@"tempus|magna|semper", Options);
             _searchSet = new Regex(@"\w{10,}", Options);
             _searchBoundary = new Regex(@"\b\w{10,}\b", Options);
+            _loremIpsum = LoremIpsum.ToString();
         }
 
         [Benchmark] public void Email_IsMatch() => _email.IsMatch("yay.performance@dot.net");
@@ -45,14 +47,14 @@ namespace System.Text.RegularExpressions.Tests
         [Benchmark] public void Uri_IsMatch() => _uri.IsMatch("http://example.org");
         [Benchmark] public void Uri_IsNotMatch() => _uri.IsMatch("http://a http://b");
 
-        [Benchmark] public int MatchesSet() => _searchSet.Matches(LoremIpsum).Count;
-        [Benchmark] public int MatchesBoundary() => _searchBoundary.Matches(LoremIpsum).Count;
-        [Benchmark] public int MatchesWord() => _searchWord.Matches(LoremIpsum).Count;
-        [Benchmark] public int MatchesWords() => _searchWords.Matches(LoremIpsum).Count;
+        [Benchmark] public int MatchesSet() => _searchSet.Matches(_loremIpsum).Count;
+        [Benchmark] public int MatchesBoundary() => _searchBoundary.Matches(_loremIpsum).Count;
+        [Benchmark] public int MatchesWord() => _searchWord.Matches(_loremIpsum).Count;
+        [Benchmark] public int MatchesWords() => _searchWords.Matches(_loremIpsum).Count;
 
-        [Benchmark] public Match MatchWord() => _searchWords.Match(LoremIpsum);
-        [Benchmark] public string ReplaceWords() => _searchWords.Replace(LoremIpsum, "amoveatur");
-        [Benchmark] public string[] SplitWords() => _searchWords.Split(LoremIpsum);
+        [Benchmark] public Match MatchWord() => _searchWords.Match(_loremIpsum);
+        [Benchmark] public string ReplaceWords() => _searchWords.Replace(_loremIpsum, "amoveatur");
+        [Benchmark] public string[] SplitWords() => _searchWords.Split(_loremIpsum);
 
         [Benchmark] public void Ctor() => new Regex(WarningPattern, Options);
         [Benchmark] public void CtorInvoke() => new Regex(WarningPattern, Options).IsMatch(@"(1");

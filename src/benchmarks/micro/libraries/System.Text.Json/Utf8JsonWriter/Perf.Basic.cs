@@ -11,19 +11,17 @@ namespace System.Text.Json.Tests
     [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     public class Perf_Basic
     {
-        private static readonly byte[] ExtraArrayUtf8 = Encoding.UTF8.GetBytes("ExtraArray");
-        private static readonly byte[] FirstUtf8 = Encoding.UTF8.GetBytes("first");
-        private static readonly byte[] LastUtf8 = Encoding.UTF8.GetBytes("last");
-        private static readonly byte[] AgeUtf8 = Encoding.UTF8.GetBytes("age");
-        private static readonly byte[] PhoneNumbersUtf8 = Encoding.UTF8.GetBytes("phoneNumbers");
-        private static readonly byte[] AddressUtf8 = Encoding.UTF8.GetBytes("address");
-        private static readonly byte[] StreetUtf8 = Encoding.UTF8.GetBytes("street");
-        private static readonly byte[] CityUtf8 = Encoding.UTF8.GetBytes("city");
-        private static readonly byte[] ZipUtf8 = Encoding.UTF8.GetBytes("zip");
-
         private ArrayBufferWriter<byte> _arrayBufferWriter;
-
         private int[] _numberArrayValues;
+        private byte[] _extraArrayUtf8;
+        private byte[] _firstUtf8;
+        private byte[] _lastUtf8;
+        private byte[] _ageUtf8;
+        private byte[] _phoneNumbersUtf8;
+        private byte[] _addressUtf8;
+        private byte[] _streetUtf8;
+        private byte[] _cityUtf8;
+        private byte[] _zipUtf8;
 
         [Params(true, false)]
         public bool Formatted;
@@ -47,30 +45,40 @@ namespace System.Text.Json.Tests
             {
                 _numberArrayValues[i] = random.Next(-10000, 10000);
             }
+
+            _extraArrayUtf8 = Encoding.UTF8.GetBytes("ExtraArray");
+            _firstUtf8 = Encoding.UTF8.GetBytes("first");
+            _lastUtf8 = Encoding.UTF8.GetBytes("last");
+            _ageUtf8 = Encoding.UTF8.GetBytes("age");
+            _phoneNumbersUtf8 = Encoding.UTF8.GetBytes("phoneNumbers");
+            _addressUtf8 = Encoding.UTF8.GetBytes("address");
+            _streetUtf8 = Encoding.UTF8.GetBytes("street");
+            _cityUtf8 = Encoding.UTF8.GetBytes("city");
+            _zipUtf8 = Encoding.UTF8.GetBytes("zip");
         }
 
         [Benchmark]
         public void WriteBasicUtf8()
         {
             _arrayBufferWriter.Clear();
+
             using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
-
                 json.WriteStartObject();
-                json.WriteNumber(AgeUtf8, 42);
-                json.WriteString(FirstUtf8, "John");
-                json.WriteString(LastUtf8, "Smith");
-                json.WriteStartArray(PhoneNumbersUtf8);
+                json.WriteNumber(_ageUtf8, 42);
+                json.WriteString(_firstUtf8, "John");
+                json.WriteString(_lastUtf8, "Smith");
+                json.WriteStartArray(_phoneNumbersUtf8);
                 json.WriteStringValue("425-000-1212");
                 json.WriteStringValue("425-000-1213");
                 json.WriteEndArray();
-                json.WriteStartObject(AddressUtf8);
-                json.WriteString(StreetUtf8, "1 Microsoft Way");
-                json.WriteString(CityUtf8, "Redmond");
-                json.WriteNumber(ZipUtf8, 98052);
+                json.WriteStartObject(_addressUtf8);
+                json.WriteString(_streetUtf8, "1 Microsoft Way");
+                json.WriteString(_cityUtf8, "Redmond");
+                json.WriteNumber(_zipUtf8, 98052);
                 json.WriteEndObject();
 
-                json.WriteStartArray(ExtraArrayUtf8);
+                json.WriteStartArray(_extraArrayUtf8);
                 for (int i = 0; i < DataSize; i++)
                 {
                     json.WriteNumberValue(_numberArrayValues[i]);
@@ -86,9 +94,9 @@ namespace System.Text.Json.Tests
         public void WriteBasicUtf16()
         {
             _arrayBufferWriter.Clear();
+
             using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
-
                 json.WriteStartObject();
                 json.WriteNumber("age", 42);
                 json.WriteString("first", "John");
