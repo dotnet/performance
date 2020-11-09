@@ -31,7 +31,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
         }
 
-        [GlobalSetup(Targets = new[] { nameof(BuildProvider), nameof(Transient) }]
+        [GlobalSetup(Targets = new[] { nameof(BuildProvider), nameof(Transient) })]
         public void SetupTransient()
         {
             _transientServices = new ServiceCollection();
