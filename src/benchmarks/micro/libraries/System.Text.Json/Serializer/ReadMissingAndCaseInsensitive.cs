@@ -5,10 +5,10 @@
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 using MicroBenchmarks.Serializers;
-using Newtonsoft.Json.Serialization;
 
 namespace System.Text.Json.Serialization.Tests
 {
+    [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     [GenericTypeArguments(typeof(Location))]
     public class ReadMissingAndCaseInsensitive<T>
     {
@@ -42,7 +42,6 @@ namespace System.Text.Json.Serialization.Tests
         /// Uses default settings of case-sensitive comparison and JSON that matches the Pascal-casing
         /// of the properties on the class.
         /// </summary>
-        [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
         public T Baseline() => JsonSerializer.Deserialize<T>(_serialized, _optionsBaseline);
 
@@ -50,21 +49,18 @@ namespace System.Text.Json.Serialization.Tests
         /// Properties are missing because the comparison is case-sensitive and the JSON uses camel-casing
         /// which does not match the properties on the class.
         /// </summary>
-        [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
         public T MissingProperties() => JsonSerializer.Deserialize<T>(_serializedCamelCased, _optionsBaseline);
 
         /// <summary>
         /// Case-insensitive is enabled and the casing in JSON matches the properties on the class.
         /// </summary>
-        [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
         public T CaseInsensitiveMatching() => JsonSerializer.Deserialize<T>(_serialized, _optionsCaseInsensitive);
 
         /// <summary>
         /// Case-insensitive is enabled and the casing in JSON does not match the properties on the class.
         /// </summary>
-        [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
         public T CaseInsensitiveNotMatching() => JsonSerializer.Deserialize<T>(_serializedCamelCased, _optionsCaseInsensitive);
     }

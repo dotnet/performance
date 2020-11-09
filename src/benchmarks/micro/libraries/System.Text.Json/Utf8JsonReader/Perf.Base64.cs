@@ -27,8 +27,7 @@ namespace System.Text.Json.Reader.Tests
 
             // Results in a lot + and /
             byte[] dataWithEscaping = Enumerable.Range(0, NumberOfBytes)
-                .Select(i => i % 2 == 0 ? 0xFB : 0xFF)
-                .Select(i => (byte)i)
+                .Select(i => i % 2 == 0 ? (byte)0xFB : (byte)0xFF)
                 .ToArray();
 
             _base64NoEscaping = Write(dataWithNoEscaping);

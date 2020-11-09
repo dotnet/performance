@@ -63,7 +63,7 @@ namespace System.Text.Json.Document.Tests
             int arrayLength = _element.GetArrayLength();
             for (int j = 0; j < arrayLength; j++)
             {
-                JsonElement dummy = _element[j];
+                _ = _element[j];
             }
         }
     }

@@ -21,7 +21,7 @@ namespace System
         /// see https://github.com/dotnet/corefx/blob/8252ecc2eb0da08cd474a303b646e111d74d2a71/src/Common/src/CoreLib/System/String.Comparison.cs#L749
         /// </summary>
         [GlobalSetup]
-        public void Setup() => _string = new string(Enumerable.Repeat('a', BytesCount / (sizeof(char)/ sizeof(byte))).ToArray());
+        public void Setup() => _string = new string('a', BytesCount / (sizeof(char)/ sizeof(byte)));
 
         [Benchmark]
         public int GetStringHashCode() => _string.GetHashCode();

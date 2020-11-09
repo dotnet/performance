@@ -59,9 +59,9 @@ namespace System.Text.Json.Tests
         public void WriteDeepUtf8()
         {
             _arrayBufferWriter.Clear();
+
             using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
-
                 json.WriteStartObject();
                 for (int i = 0; i < Depth; i++)
                 {
@@ -90,9 +90,9 @@ namespace System.Text.Json.Tests
         public void WriteDeepUtf16()
         {
             _arrayBufferWriter.Clear();
+
             using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
-
                 json.WriteStartObject();
                 for (int i = 0; i < Depth; i++)
                 {

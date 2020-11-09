@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace System.Text.Json.Serialization.Tests
 {
+    [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     [GenericTypeArguments(typeof(LoginViewModel))]
     [GenericTypeArguments(typeof(Location))]
     [GenericTypeArguments(typeof(IndexViewModel))]
@@ -44,15 +45,15 @@ namespace System.Text.Json.Serialization.Tests
             _objectWithObjectProperty = new { Prop = (object)_value };
         }
 
-        [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
+        [GlobalCleanup]
+        public void Cleanup() => _memoryStream.Dispose();
+
         [Benchmark]
         public string SerializeToString() => JsonSerializer.Serialize(_value);
 
-        [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
         public byte[] SerializeToUtf8Bytes() => JsonSerializer.SerializeToUtf8Bytes(_value);
 
-        [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
         public async Task SerializeToStream()
         {
@@ -60,11 +61,7 @@ namespace System.Text.Json.Serialization.Tests
             await JsonSerializer.SerializeAsync(_memoryStream, _value);
         }
 
-        [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
         public string SerializeObjectProperty() => JsonSerializer.Serialize(_objectWithObjectProperty);
-
-        [GlobalCleanup]
-        public void Cleanup() => _memoryStream.Dispose();
     }
 }

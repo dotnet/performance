@@ -7,7 +7,6 @@ using MicroBenchmarks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Buffers;
-using System.Collections.Generic;
 using System.IO;
 using System.Memory;
 
