@@ -31,9 +31,8 @@ namespace Microsoft.Extensions.DependencyInjection
             }
         }
 
-
-        [GlobalSetup(Target = nameof(BuildProvider))]
-        public void SetupBuildProvider()
+        [GlobalSetup(Targets = new[] { nameof(BuildProvider), nameof(Transient) })]
+        public void SetupTransient()
         {
             _transientServices = new ServiceCollection();
             _transientServices.AddTransient<A>();
@@ -52,15 +51,6 @@ namespace Microsoft.Extensions.DependencyInjection
             });
         }
 
-        [GlobalSetup(Target = nameof(Transient))]
-        public void SetupTransient()
-        {
-            _transientServices = new ServiceCollection();
-            _transientServices.AddTransient<A>();
-            _transientServices.AddTransient<B>();
-            _transientServices.AddTransient<C>();
-        }
-
         [Benchmark]
         public void Transient()
         {
@@ -73,6 +63,9 @@ namespace Microsoft.Extensions.DependencyInjection
             var temp = _transientSp.GetService<A>();
             temp.Foo();
         }
+
+        [GlobalCleanup(Targets = new[] { nameof(BuildProvider), nameof(Transient)})]
+        public void ClenaupTransient() => ((IDisposable)_transientSp).Dispose();
 
         [GlobalSetup(Target = nameof(Scoped))]
         public void SetupScoped()
@@ -96,6 +89,9 @@ namespace Microsoft.Extensions.DependencyInjection
             temp.Foo();
         }
 
+        [GlobalCleanup(Target = nameof(Scoped))]
+        public void ScopedCleanup() => _scopedSp.Dispose();
+
         [GlobalSetup(Target = nameof(Singleton))]
         public void SetupSingleton()
         {
@@ -118,31 +114,22 @@ namespace Microsoft.Extensions.DependencyInjection
             temp.Foo();
         }
 
+        [GlobalCleanup(Target = nameof(Singleton))]
+        public void SingletonCleanup() => ((IDisposable)_singletonSp).Dispose();
+
         private class A
         {
-            public A(B b)
-            {
-
-            }
+            public A(B b) { }
 
             [MethodImpl(MethodImplOptions.NoInlining)]
-            public void Foo()
-            {
-
-            }
+            public void Foo() { }
         }
 
         private class B
         {
-            public B(C c)
-            {
-
-            }
+            public B(C c) { }
         }
 
-        private class C
-        {
-
-        }
+        private class C { }
     }
 }

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -29,6 +28,13 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddTransient<B>();
             services.AddTransient<C>();
             _transientSpScopeValidation = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        }
+
+        [GlobalCleanup]
+        public void Cleanup()
+        {
+            ((IDisposable)_transientSp).Dispose();
+            ((IDisposable)_transientSpScopeValidation).Dispose();
         }
 
         [Benchmark(Baseline = true)]

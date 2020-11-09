@@ -40,6 +40,9 @@ namespace Microsoft.Extensions.DependencyInjection
         [Benchmark]
         public A Transient() => _transientSp.GetService<A>();
 
+        [GlobalCleanup(Target = nameof(Transient))]
+        public void CleanupTransient() => ((IDisposable)_transientSp).Dispose();
+
         [GlobalSetup(Target = nameof(Scoped))]
         public void SetupScoped()
         {
@@ -57,6 +60,9 @@ namespace Microsoft.Extensions.DependencyInjection
 
         [Benchmark]
         public A Scoped() => _scopedSp.ServiceProvider.GetService<A>();
+
+        [GlobalCleanup(Target = nameof(Scoped))]
+        public void CleanupScoped() => ((IDisposable)_scopedSp).Dispose();
 
         [GlobalSetup(Target = nameof(Singleton))]
         public void SetupScopedSingleton()
@@ -76,6 +82,9 @@ namespace Microsoft.Extensions.DependencyInjection
         [Benchmark]
         public A Singleton() => _singletonSp.GetService<A>();
 
+        [GlobalCleanup(Target = nameof(Singleton))]
+        public void CleanupSingleton() => ((IDisposable)_singletonSp).Dispose();
+
         [GlobalSetup(Target = nameof(ServiceScope))]
         public void ServiceScopeSetup()
         {
@@ -89,6 +98,9 @@ namespace Microsoft.Extensions.DependencyInjection
 
         [Benchmark]
         public IServiceScope ServiceScope() => _serviceScope.CreateScope();
+
+        [GlobalCleanup(Target = nameof(ServiceScope))]
+        public void ServiceScopeCleanup() => ((IDisposable)_serviceScope).Dispose();
 
         [GlobalSetup(Target = nameof(ServiceScopeProvider))]
         public void ServiceScopeProviderSetup()
@@ -104,6 +116,9 @@ namespace Microsoft.Extensions.DependencyInjection
         [Benchmark]
         public IServiceScopeFactory ServiceScopeProvider() => _serviceScopeFactoryProvider.GetService<IServiceScopeFactory>();
 
+        [GlobalCleanup(Target = nameof(ServiceScopeProvider))]
+        public void ServiceScopeProviderTransient() => ((IDisposable)_serviceScopeFactoryProvider).Dispose();
+
         [GlobalSetup(Target = nameof(EmptyEnumerable))]
         public void EmptyEnumerableSetup()
         {
@@ -117,5 +132,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
         [Benchmark]
         public object EmptyEnumerable() =>_emptyEnumerable.GetService<IEnumerable<A>>();
+
+        [GlobalCleanup(Target = nameof(EmptyEnumerable))]
+        public void EmptyEnumerableCleanup() => ((IDisposable)_emptyEnumerable).Dispose();
     }
 }
