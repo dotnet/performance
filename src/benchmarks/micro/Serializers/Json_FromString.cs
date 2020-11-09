@@ -13,32 +13,24 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
     public class Json_FromString<T>
     {
-        private readonly T value;
         private string serialized;
 
-        public Json_FromString() => value = DataGenerator.Generate<T>();
-
         [GlobalSetup(Target = nameof(Jil_))]
-        public void SerializeJil()
-        {
-            serialized = Jil.JSON.Serialize<T>(value, Jil.Options.ISO8601);
-
-            Jil_(); // workaround for https://github.com/dotnet/BenchmarkDotNet/issues/837
-        }
-
-        [GlobalSetup(Target = nameof(JsonNet_))]
-        public void SerializeJsonNet() => serialized = Newtonsoft.Json.JsonConvert.SerializeObject(value);
-
-        [GlobalSetup(Target = nameof(Utf8Json_))]
-        public void SerializeUtf8Json_() => serialized = Utf8Json.JsonSerializer.ToJsonString(value);
+        public void SetupJil() => serialized = Jil.JSON.Serialize<T>(DataGenerator.Generate<T>(), Jil.Options.ISO8601);
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]
         public T Jil_() => Jil.JSON.Deserialize<T>(serialized, Jil.Options.ISO8601);
 
+        [GlobalSetup(Target = nameof(JsonNet_))]
+        public void SerializeJsonNet() => serialized = Newtonsoft.Json.JsonConvert.SerializeObject(DataGenerator.Generate<T>());
+
         [BenchmarkCategory(Categories.Runtime, Categories.Libraries, Categories.ThirdParty)]
         [Benchmark(Description = "JSON.NET")]
         public T JsonNet_() => Newtonsoft.Json.JsonConvert.DeserializeObject<T>(serialized);
+
+        [GlobalSetup(Target = nameof(Utf8Json_))]
+        public void SerializeUtf8Json_() => serialized = Utf8Json.JsonSerializer.ToJsonString(DataGenerator.Generate<T>());
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Utf8Json")]

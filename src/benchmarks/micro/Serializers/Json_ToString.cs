@@ -13,12 +13,10 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
     public class Json_ToString<T>
     {
-        private readonly T value;
+        private T value;
 
-        public Json_ToString() => value = DataGenerator.Generate<T>();
-
-        [GlobalSetup(Target = nameof(Jil_))]
-        public void WarmupJil() => Jil_(); // workaround for https://github.com/dotnet/BenchmarkDotNet/issues/837
+        [GlobalSetup]
+        public void Setup() => value = DataGenerator.Generate<T>();
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]

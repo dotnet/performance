@@ -13,14 +13,10 @@ namespace PerfLabTests
         private byte[] bytes;
 
         [Params(10, 100, 1000)]
-        public int numElements; 
+        public int numElements;
 
         [GlobalSetup]
-        public void Setup()
-        {
-            bytes = new byte[numElements * 2];
-            Buffer.BlockCopy(bytes, 0, bytes, numElements, numElements);
-        }
+        public void Setup() => bytes = new byte[numElements * 2];
 
         [Benchmark]
         public void CallBlockCopy() => Buffer.BlockCopy(bytes, 0, bytes, numElements, numElements);   
