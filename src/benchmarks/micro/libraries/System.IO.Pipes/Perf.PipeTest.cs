@@ -4,7 +4,6 @@
 
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 
 namespace System.IO.Pipes.Tests
@@ -29,6 +28,9 @@ namespace System.IO.Pipes.Tests
             
             _serverClientPair = CreateServerClientPair();
         }
+
+        [GlobalCleanup]
+        public void Cleanup() => _serverClientPair.Dispose();
         
         [Benchmark]
         public async Task ReadWrite()

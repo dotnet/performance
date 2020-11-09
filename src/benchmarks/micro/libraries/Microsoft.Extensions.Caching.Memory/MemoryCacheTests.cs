@@ -22,6 +22,9 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
             }
         }
 
+        [GlobalCleanup]
+        public void Cleanup() => _memCache.Dispose();
+
         [Benchmark]
         public object GetHit() => _memCache.Get("256");
 

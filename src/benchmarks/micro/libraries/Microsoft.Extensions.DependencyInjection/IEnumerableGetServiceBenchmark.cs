@@ -23,6 +23,9 @@ namespace Microsoft.Extensions.DependencyInjection
         [GlobalSetup(Target = nameof(Singleton))]
         public void SetupSingleton() => Setup(ServiceLifetime.Singleton);
 
+        [GlobalCleanup]
+        public void Cleanup() => ((IDisposable)_serviceProvider).Dispose();
+
         private void Setup(ServiceLifetime lifetime)
         {
             IServiceCollection services = new ServiceCollection();
