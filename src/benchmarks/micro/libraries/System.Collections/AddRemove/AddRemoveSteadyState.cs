@@ -24,16 +24,8 @@ namespace System.Collections.Tests
         [Params(Utils.DefaultCollectionSize)]
         public int Count;
 
-        [GlobalSetup]
-        public void Setup()
-        {
-            T[] uniqueValues = ValuesGenerator.ArrayOfUniqueValues<T>(Count);
-            _concurrentBag = new ConcurrentBag<T>(uniqueValues);
-            _concurrentQueue = new ConcurrentQueue<T>(uniqueValues);
-            _concurrentStack = new ConcurrentStack<T>(uniqueValues);
-            _queue = new Queue<T>(uniqueValues);
-            _stack = new Stack<T>(uniqueValues);
-        }
+        [GlobalSetup(Target = nameof(ConcurrentBag))]
+        public void SetupConcurrentBag() => _concurrentBag = new ConcurrentBag<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Count));
 
         [Benchmark]
         public void ConcurrentBag()
@@ -42,12 +34,18 @@ namespace System.Collections.Tests
             _concurrentBag.Add(item);
         }
 
+        [GlobalSetup(Target = nameof(ConcurrentQueue))]
+        public void SetupConcurrentQueue() => _concurrentQueue = new ConcurrentQueue<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Count));
+
         [Benchmark]
         public void ConcurrentQueue()
         {
             _concurrentQueue.TryDequeue(out T item);
             _concurrentQueue.Enqueue(item);
         }
+
+        [GlobalSetup(Target = nameof(ConcurrentStack))]
+        public void SetupConcurrentStack() => _concurrentStack = new ConcurrentStack<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Count));
 
         [Benchmark]
         public void ConcurrentStack()
@@ -56,12 +54,18 @@ namespace System.Collections.Tests
             _concurrentStack.Push(item);
         }
 
+        [GlobalSetup(Target = nameof(Queue))]
+        public void SetupQueue() => _queue = new Queue<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Count));
+
         [Benchmark]
         public void Queue()
         {
             T item = _queue.Dequeue();
             _queue.Enqueue(item);
         }
+
+        [GlobalSetup(Target = nameof(Stack))]
+        public void SetupStack() => _stack = new Stack<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Count));
 
         [Benchmark]
         public void Stack()

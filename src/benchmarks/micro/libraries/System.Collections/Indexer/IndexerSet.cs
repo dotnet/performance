@@ -29,18 +29,8 @@ namespace System.Collections
         private SortedDictionary<T, T> _sortedDictionary;
         private ConcurrentDictionary<T, T> _concurrentDictionary;
 
-        [GlobalSetup]
-        public void Setup()
-        {
-            _keys = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
-
-            _array = _keys.ToArray();
-            _list = new List<T>(_keys);
-            _dictionary = new Dictionary<T, T>(_keys.ToDictionary(i => i, i => i));
-            _sortedList = new SortedList<T, T>(_keys.ToDictionary(i => i, i => i));
-            _sortedDictionary = new SortedDictionary<T, T>(_keys.ToDictionary(i => i, i => i));
-            _concurrentDictionary = new ConcurrentDictionary<T, T>(_keys.ToDictionary(i => i, i => i));
-        }
+        [GlobalSetup(Targets = new[] { nameof(Array), nameof(Span) })]
+        public void SetupArray() => _array = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
         [Benchmark]
         public T[] Array()
@@ -61,6 +51,9 @@ namespace System.Collections
                 collection[i] = default;
             return result;
         }
+
+        [GlobalSetup(Targets = new[] { nameof(List), nameof(IList) })]
+        public void SetupList() => _list = new List<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public List<T> List()
@@ -83,6 +76,13 @@ namespace System.Collections
             return collection;
         }
 
+        [GlobalSetup(Target = nameof(Dictionary))]
+        public void SetupDictionary()
+        {
+            _keys = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _dictionary = new Dictionary<T, T>(_keys.ToDictionary(i => i, i => i));
+        }
+
         [Benchmark]
         public Dictionary<T, T> Dictionary()
         {
@@ -92,6 +92,14 @@ namespace System.Collections
                 dictionary[keys[i]] = default;
             return dictionary;
         }
+
+        [GlobalSetup(Target = nameof(SortedList))]
+        public void SetupSortedList()
+        {
+            _keys = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _sortedList = new SortedList<T, T>(_keys.ToDictionary(i => i, i => i));
+        }
+
         [Benchmark]
         public SortedList<T, T> SortedList()
         {
@@ -102,6 +110,13 @@ namespace System.Collections
             return sortedList;
         }
 
+        [GlobalSetup(Target = nameof(SortedDictionary))]
+        public void SetupSortedDictionary()
+        {
+            _keys = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _sortedDictionary = new SortedDictionary<T, T>(_keys.ToDictionary(i => i, i => i));
+        }
+
         [Benchmark]
         public SortedDictionary<T, T> SortedDictionary()
         {
@@ -110,6 +125,13 @@ namespace System.Collections
             for (int i = 0; i < keys.Length; i++)
                 dictionary[keys[i]] = default;
             return dictionary;
+        }
+
+        [GlobalSetup(Target = nameof(ConcurrentDictionary))]
+        public void SetupConcurrentDictionary()
+        {
+            _keys = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _concurrentDictionary = new ConcurrentDictionary<T, T>(_keys.ToDictionary(i => i, i => i));
         }
 
         [Benchmark]

@@ -52,7 +52,7 @@ namespace System.Xml.Linq
             return doc;
         }
 
-        [GlobalSetup]
+        [GlobalSetup(Targets = new[] { nameof(GetElement), nameof(GetElementWithNamespace), nameof(GetAttribute), nameof(GetValue) })]
         public void Setup()
         {
             _element = new XElement("Root",

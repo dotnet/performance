@@ -13,9 +13,32 @@ namespace System.Buffers.Tests
     {
         private const int Size = 10_000;
 
-        private readonly T[] _array = ValuesGenerator.Array<T>(Size);
+        private T[] _array;
         private BufferSegment<T> _startSegment, _endSegment;
         private ReadOnlyMemory<T> _memory;
+
+        [GlobalSetup(Targets = new[] { nameof(IterateTryGetArray), nameof(IterateForEachArray), nameof(IterateGetPositionArray), nameof(FirstArray), "FirstSpanArray", nameof(SliceArray) })]
+        public void SetupArray() => _array = ValuesGenerator.Array<T>(Size);
+
+        [GlobalSetup(Targets = new[] { nameof(IterateTryGetSingleSegment), nameof(IterateForEachSingleSegment), nameof(IterateGetPositionSingleSegment), nameof(FirstSingleSegment), nameof(SliceSingleSegment), "FirstSpanSingleSegment" })]
+        public void SetupSingleSegment() => _startSegment = _endSegment = new BufferSegment<T>(new ReadOnlyMemory<T>(_array = ValuesGenerator.Array<T>(Size)));
+
+        [GlobalSetup(Targets = new[] { nameof(FirstMemory), nameof(SliceMemory), nameof(IterateTryGetMemory), nameof(IterateForEachMemory), nameof(IterateGetPositionMemory), "FirstSpanMemory" })]
+        public void MemorySegment() => _memory = new ReadOnlyMemory<T>(_array = ValuesGenerator.Array<T>(Size));
+
+        [GlobalSetup(Targets = new[] { nameof(IterateTryGetTenSegments), nameof(IterateForEachTenSegments), nameof(IterateGetPositionTenSegments), nameof(FirstTenSegments), nameof(SliceTenSegments), "FirstSpanTenSegments" })]
+        public void SetupTenSegments()
+        {
+            const int segmentsCount = 10;
+            const int segmentSize = Size / segmentsCount;
+            SetupArray();
+            _startSegment = new BufferSegment<T>(new ReadOnlyMemory<T>(_array.Take(segmentSize).ToArray()));
+            _endSegment = _startSegment;
+            for (int i = 1; i < segmentsCount; i++)
+            {
+                _endSegment = _endSegment.Append(new ReadOnlyMemory<T>(_array.Skip(i * segmentSize).Take(Size / segmentsCount).ToArray()));
+            }
+        }
 
         [Benchmark]
         public int IterateTryGetArray() => IterateTryGet(new ReadOnlySequence<T>(_array));
@@ -61,15 +84,6 @@ namespace System.Buffers.Tests
 
             return consume;
         }
-
-        [GlobalSetup(Targets = new [] { nameof(FirstSpanSingleSegment) })]
-        public void SetupFirstSpanSingleSegment() => SetupSingleSegment();
-
-        [GlobalSetup(Targets = new [] { nameof(FirstSpanMemory) })]
-        public void MemoryFirstSpanMemory() => MemorySegment();
-
-        [GlobalSetup(Targets = new [] { nameof(FirstSpanTenSegments) })]
-        public void SetupFirstSpanTenSegments() => SetupTenSegments();
 #endif
 
         [Benchmark(OperationsPerInvoke = 10)]
@@ -90,12 +104,6 @@ namespace System.Buffers.Tests
         [Benchmark(OperationsPerInvoke = 10)]
         public long SliceMemory() => Slice(new ReadOnlySequence<T>(_memory));
 
-        [GlobalSetup(Targets = new [] { nameof(IterateTryGetSingleSegment), nameof(IterateForEachSingleSegment), nameof(IterateGetPositionSingleSegment), nameof(FirstSingleSegment), nameof(SliceSingleSegment) })]
-        public void SetupSingleSegment() => _startSegment = _endSegment = new BufferSegment<T>(new ReadOnlyMemory<T>(_array));
-
-        [GlobalSetup(Targets = new [] { nameof(FirstMemory), nameof(SliceMemory), nameof(IterateTryGetMemory), nameof(IterateForEachMemory), nameof(IterateGetPositionMemory) })]
-        public void MemorySegment() => _memory = new ReadOnlyMemory<T>(_array);
-
         [Benchmark]
         public int IterateTryGetSingleSegment()
             => IterateTryGet(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size));
@@ -115,19 +123,6 @@ namespace System.Buffers.Tests
         [Benchmark(OperationsPerInvoke = 10)]
         public long SliceSingleSegment()
             => Slice(new ReadOnlySequence<T>(startSegment: _startSegment, startIndex: 0, endSegment: _endSegment, endIndex: Size));
-
-        [GlobalSetup(Targets = new [] { nameof(IterateTryGetTenSegments), nameof(IterateForEachTenSegments), nameof(IterateGetPositionTenSegments), nameof(FirstTenSegments), nameof(SliceTenSegments) })]
-        public void SetupTenSegments()
-        {
-            const int segmentsCount = 10;
-            const int segmentSize = Size / segmentsCount;
-            _startSegment = new BufferSegment<T>(new ReadOnlyMemory<T>(_array.Take(segmentSize).ToArray()));
-            _endSegment = _startSegment;
-            for (int i = 1; i < segmentsCount; i++)
-            {
-                _endSegment = _endSegment.Append(new ReadOnlyMemory<T>(_array.Skip(i * segmentSize).Take(Size / segmentsCount).ToArray()));
-            }
-        }
 
         [Benchmark]
         public int IterateTryGetTenSegments()
