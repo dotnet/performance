@@ -95,7 +95,9 @@ namespace PerfLabTests
         public void SetupMulticastDelegateInvoke()
         {
             objField = new Object();
-            
+            md100Field = null;
+            md1000Field = null;
+
             for (long i = 0; i < 100; i++)
                 md100Field = (MultiDelegate)Delegate.Combine(new MultiDelegate(this.Invocable2), md100Field);
             
