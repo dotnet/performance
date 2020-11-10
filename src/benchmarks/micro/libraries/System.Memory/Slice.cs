@@ -15,7 +15,10 @@ namespace System.Memory
     {
         private const int Size = 10;
 
-        private T[] _nonEmptyArray = new T[Size];
+        private T[] _nonEmptyArray;
+
+        [GlobalSetup]
+        public void Setup() => _nonEmptyArray = new T[Size];
 
         [Benchmark(OperationsPerInvoke = 16)]
         public System.Span<T> SpanStart()
