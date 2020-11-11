@@ -47,7 +47,7 @@ _EXAMPLE_BENCHFILE = BenchFile(
         "bigger": Config(complus_gcgen0size=0x2000000),
     },
     benchmarks={
-        "nosurvive": Benchmark(
+        "surv_2percent": Benchmark(
             executable="GCPerfSim",
             arguments=GCPerfSimArgs(
                 tc=8,

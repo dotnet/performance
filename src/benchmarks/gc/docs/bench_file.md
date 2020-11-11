@@ -28,7 +28,7 @@ configs:
   bigger:
     complus_gcgen0size: 33554432
 benchmarks:
-  nosurvive:
+  surv_2percent:
     executable: GCPerfSim
     arguments:
       tc: 8
