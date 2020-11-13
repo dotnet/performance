@@ -5,13 +5,13 @@
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>7ef6d50b312217d2f7c17b9697891fa8ab98a19d</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Dotnet.Sdk.Internal" Version="5.0.101-servicing.20560.6">
+    <Dependency Name="Microsoft.Dotnet.Sdk.Internal" Version="5.0.101-servicing.20563.3">
       <Uri>https://github.com/dotnet/installer</Uri>
-      <Sha>bf6f0780842d85276fac6118062f407397d4687a</Sha>
+      <Sha>22cbde3a36f8e5df92cafadb649acf51907a94e4</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.WindowsDesktop.App.Runtime.win-x64" Version="5.0.0" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
+    <Dependency Name="Microsoft.WindowsDesktop.App.Runtime.win-x64" Version="5.0.1" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
       <Uri>https://github.com/dotnet/windowsdesktop</Uri>
-      <Sha>5848b16d1fc803ea4892692b3b5dd9ee79955428</Sha>
+      <Sha>31f95185b05655dda70e43968fe69a9361af8b2d</Sha>
     </Dependency>
     <Dependency Name="Microsoft.AspNetCore.App.Runtime.win-x64" Version="5.0.0" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
       <Uri>https://github.com/dotnet/aspnetcore</Uri>
