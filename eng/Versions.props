@@ -7,11 +7,11 @@
   </PropertyGroup>
   <!--Package versions-->
   <PropertyGroup>
-    <MicrosoftDotnetSdkInternalPackageVersion>5.0.101-servicing.20560.8</MicrosoftDotnetSdkInternalPackageVersion>
+    <MicrosoftDotnetSdkInternalPackageVersion>5.0.101-servicing.20562.10</MicrosoftDotnetSdkInternalPackageVersion>
     <MicrosoftNETCoreAppRuntimewinx64PackageVersion>5.0.0</MicrosoftNETCoreAppRuntimewinx64PackageVersion>
     <MicrosoftNETSdkInternalPackageVersion>
     </MicrosoftNETSdkInternalPackageVersion>
-    <MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>5.0.0</MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>
+    <MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>5.0.1</MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>
     <MicrosoftAspNetCoreAppRuntimewinx64PackageVersion>5.0.0</MicrosoftAspNetCoreAppRuntimewinx64PackageVersion>
   </PropertyGroup>
   <!--Package names-->
