@@ -27,7 +27,7 @@ from typing import (
 from result import Err, Ok, Result
 
 from ..commonlib.bench_file import GCPerfSimResult, ProcessQuery, TestResult, TestRunStatus
-from ..commonlib.collection_util import count, empty_mapping, is_empty, map_to_mapping
+from ..commonlib.collection_util import count, empty_mapping, is_empty, map_to_mapping, add
 from ..commonlib.document import Cell
 from ..commonlib.frozen_dict import FrozenDict
 from ..commonlib.option import map_option, non_null
@@ -39,6 +39,7 @@ from ..commonlib.result_utils import (
     map_ok_2,
     option_to_result,
     unwrap,
+    ignore_err,
 )
 from ..commonlib.score_spec import ScoreElement, ScoreSpec
 from ..commonlib.type_utils import check_cast, enum_value, E, T, U, with_slots
@@ -703,6 +704,27 @@ class ProcessedGC:
     join_info: Result[str, AbstractJoinInfoForGC]
     heaps: Sequence[ProcessedHeap]
 
+    def get_gc_metrics_values(self) -> Dict[str, Any]:
+        metric_return_values = (float, int, bool)
+        prop_return_values = metric_return_values + (Result,)
+        processed_gc_attrs = dir(self)
+
+        gc_metrics_values: Dict[str, Any] = {}
+
+        for attr_name in processed_gc_attrs:
+            attr_value = getattr(self, attr_name)
+
+            if not attr_name.startswith("_") and isinstance(attr_value, prop_return_values):
+                if isinstance(attr_value, Result):
+                    unwrapped = ignore_err(attr_value)
+                    if isinstance(unwrapped, metric_return_values):
+                        attr_value = unwrapped
+                    else:
+                        attr_value = None
+                add(gc_metrics_values, attr_name, attr_value)
+
+        return gc_metrics_values
+
     @property
     def prev_gc(self) -> Optional["ProcessedGC"]:
         if self.index == 0:
@@ -968,9 +990,9 @@ class ProcessedGC:
     def RatioPeakAfter(self) -> float:
         return self.trace_gc.RatioPeakAfter
 
-    @property
-    def suspend_duration_msec(self) -> float:
-        return self.trace_gc.SuspendDurationMSec
+    # @property
+    # def suspend_duration_msec(self) -> float:
+    #     return self.trace_gc.SuspendDurationMSec
 
     @property
     def PauseStartRelativeMSec(self) -> float:

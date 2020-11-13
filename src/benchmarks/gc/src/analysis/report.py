@@ -887,6 +887,7 @@ def get_gc_metrics_numbers_for_jupyter(
             )
         ]
 
+        iter_num = 0
         for iteration in iterations:
             # MetricValuesForSingleIteration - Mapping[RunMetric, FailableValue]
             # RunMetric can either be a NamedRunMetric or a ScoreRunMetric. In this case,
@@ -897,6 +898,7 @@ def get_gc_metrics_numbers_for_jupyter(
             data_map = {}
             data_map["config_name"] = t.config_name
             data_map["benchmark_name"] = t.benchmark_name
+            data_map["iteration_number"] = f"i{iter_num}"
 
             for iter_key, iter_value in iter_ok_result.items():
                 # iter_key = RunMetric, iter_value = FailableValue(Union(bool, int, float))
@@ -905,7 +907,9 @@ def get_gc_metrics_numbers_for_jupyter(
                 # This was the closest way to have functioning code while silencing the
                 # least amount of complaints from mypy.
                 add(data_map, iter_key.name, iter_value.ok())  # type: ignore
+            # print(data_map)
             raw_numbers_data.append(data_map)
+            iter_num += 1
 
     # This loop only searches for the metrics currently found in the data set and
     # stores them for lookup later. The reason we use a dictionary is because we

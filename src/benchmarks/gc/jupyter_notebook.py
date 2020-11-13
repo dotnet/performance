@@ -705,6 +705,32 @@ heap_sizes.plot()
 
 # %% Obtain the statistics grouped by config and benchmark
 
-data_frame.groupby(["config_name", "benchmark_name"]).mean()
+data_frame.groupby(["config_name", "benchmark_name", "iteration_number"]).mean()
+
+# %% Draft to get GC data for Pandas.
+
+_BENCH = Path("bench")
+_SUITE = Path("bench") / "suite"
+_TRACE_PATH = _SUITE / "normal_server.yaml.out"
+_TRACE_DATA = get_trace_with_everything(_TRACE_PATH / "defgcperfsim__a__noconc__2gb__1.yaml")
+
+gcsdata = _TRACE_DATA.gcs[100]
+gcmetricsvalues = gcsdata.get_gc_metrics_values()
+
+for gcm, gcv in gcmetricsvalues.items():
+    print(f"{gcm}: {gcv}\n")
+
+# gcsmetricsvalues = dir(gcsdata)
+# gcmetrics = []
+#
+# TheValues = (float, int, bool, Result)
+#
+# for name in gcsmetricsvalues:
+#     value = getattr(gcsdata, name)
+#     if not name.startswith('_') and isinstance(value, TheValues):
+#         gcmetrics.append((name, type(value)))
+#
+# for item in gcmetrics:
+#     print(f"{item}\n")
 
 # %%
