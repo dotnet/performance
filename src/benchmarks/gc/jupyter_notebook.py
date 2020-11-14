@@ -56,7 +56,8 @@ from src.analysis.parse_metrics import (
 from src.analysis.process_trace import ProcessedTraces, test_result_from_path
 from src.analysis.report import (
     diff_for_jupyter,
-    get_gc_metrics_numbers_for_jupyter,
+    get_test_metrics_numbers_for_jupyter,
+    get_pergc_metrics_numbers_for_jupyter,
     report_reasons_for_jupyter,
 )
 from src.analysis.single_gc_metrics import get_bytes_allocated_since_last_gc
@@ -685,7 +686,7 @@ _BENCH = Path("bench")
 _SUITE = Path("bench") / "suite"
 _TRACE_PATH = _SUITE / "normal_server.yaml"
 
-metrics_data = get_gc_metrics_numbers_for_jupyter(
+metrics_data = get_test_metrics_numbers_for_jupyter(
     traces=ALL_TRACES,
     bench_file_path=_TRACE_PATH,
     run_metrics=parse_run_metrics_arg(("important",)),
@@ -703,34 +704,27 @@ data_frame.describe()
 heap_sizes = data_frame[["HeapSizeBeforeMB_Mean", "HeapSizeAfterMB_Mean"]]
 heap_sizes.plot()
 
-# %% Obtain the statistics grouped by config and benchmark
+# %% Obtain the statistics grouped by config and benchmark.
 
 data_frame.groupby(["config_name", "benchmark_name", "iteration_number"]).mean()
 
-# %% Draft to get GC data for Pandas.
+# %% Get individual GC metrics numbers from a given trace.
 
 _BENCH = Path("bench")
 _SUITE = Path("bench") / "suite"
 _TRACE_PATH = _SUITE / "normal_server.yaml.out"
 _TRACE_DATA = get_trace_with_everything(_TRACE_PATH / "defgcperfsim__a__noconc__2gb__1.yaml")
 
-gcsdata = _TRACE_DATA.gcs[100]
-gcmetricsvalues = gcsdata.get_gc_metrics_values()
+gc_metrics_values = get_pergc_metrics_numbers_for_jupyter(_TRACE_DATA.gcs[0:2])
 
-for gcm, gcv in gcmetricsvalues.items():
-    print(f"{gcm}: {gcv}\n")
+dframe = pandas.DataFrame.from_dict(gc_metrics_values)
 
-# gcsmetricsvalues = dir(gcsdata)
-# gcmetrics = []
-#
-# TheValues = (float, int, bool, Result)
-#
-# for name in gcsmetricsvalues:
-#     value = getattr(gcsdata, name)
-#     if not name.startswith('_') and isinstance(value, TheValues):
-#         gcmetrics.append((name, type(value)))
-#
-# for item in gcmetrics:
-#     print(f"{item}\n")
+# %% Show GC statistics by GC number.
+
+dframe.groupby(["Number"]).mean()
+
+# %% See only a subset of statistics from individual GC's by number as well.
+
+dframe[["Number", "AllocRateMBSec", "LOHSizeAfterMB", "LOHSizeBeforeMB"]].groupby("Number").mean()
 
 # %%

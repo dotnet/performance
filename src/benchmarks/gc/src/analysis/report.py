@@ -83,6 +83,7 @@ from .types import (
     MechanismsAndReasons,
     MetricValue,
     MetricValuesForSingleIteration,
+    ProcessedGC,
     RegressionKind,
     RunMetric,
     RunMetrics,
@@ -862,7 +863,7 @@ def print_all_runs_for_jupyter(
 #   tests for grouping in Jupyter Notebook.
 
 
-def get_gc_metrics_numbers_for_jupyter(
+def get_test_metrics_numbers_for_jupyter(
     traces: ProcessedTraces,
     bench_file_path: Path,
     run_metrics: RunMetrics,
@@ -937,6 +938,25 @@ def get_gc_metrics_numbers_for_jupyter(
         data_dict[metric_name] = metric_values
 
     return data_dict
+
+
+def get_pergc_metrics_numbers_for_jupyter(trace_gcs: Sequence[ProcessedGC]) -> Dict[str, Any]:
+    assert len(trace_gcs) > 0, "There are no GC's to analyze in the given list."
+    pergc_metrics: Dict[str, Any] = {}
+    metric_names = trace_gcs[0].get_gc_metrics_values().keys()
+
+    for metric in metric_names:
+        add(pergc_metrics, metric, [])
+
+    for gc in trace_gcs:
+        gc_metrics = gc.get_gc_metrics_values()
+        # print(gc_metrics)
+
+        for metric, value in gc_metrics.items():
+            values_list = pergc_metrics[metric]
+            values_list.append(value)
+
+    return pergc_metrics
 
 
 REPORT_COMMANDS: CommandsMapping = {
