@@ -348,8 +348,8 @@ namespace JetStream {
         }
     }
 
-    [BenchmarkCategory(Categories.Runtime, Categories.JetStream)]
-    public class PokerBenchmark {
+    [BenchmarkCategory(Categories.Runtime)]
+    public class Poker {
         public List<Player> _players = new List<Player> {
             new Player("Player 1"),
             new Player("Player 2"),
@@ -357,8 +357,8 @@ namespace JetStream {
             new Player("Player 4")
         };
 
-        [Benchmark(Description = nameof(PokerBenchmark))]
-        public void runIteration()
+        [Benchmark]
+        public void Play()
         {
             Hands.playHands(this._players);
         }
