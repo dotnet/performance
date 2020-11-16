@@ -79,9 +79,10 @@ namespace JetStream {
         {
             this.newDeck();
 
+            var random = new Random(12345); // const seed to always have the same data generated
             for (int index = 52; index != 0;) {
                 // Select a random card
-                var randomIndex = (int)Math.Floor(Compat.random() * index);
+                var randomIndex = (int)Math.Floor(random.NextDouble() * index);
                 index--;
 
                 // Swap the current card with the random card
