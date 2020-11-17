@@ -27,7 +27,7 @@ from typing import (
 from result import Err, Ok, Result
 
 from ..commonlib.bench_file import GCPerfSimResult, ProcessQuery, TestResult, TestRunStatus
-from ..commonlib.collection_util import count, empty_mapping, is_empty, map_to_mapping, add
+from ..commonlib.collection_util import add, count, empty_mapping, is_empty, map_to_mapping
 from ..commonlib.document import Cell
 from ..commonlib.frozen_dict import FrozenDict
 from ..commonlib.option import map_option, non_null
@@ -35,11 +35,11 @@ from ..commonlib.result_utils import (
     all_non_err,
     fn_to_ok,
     flat_map_ok,
+    ignore_err,
     map_ok,
     map_ok_2,
     option_to_result,
     unwrap,
-    ignore_err,
 )
 from ..commonlib.score_spec import ScoreElement, ScoreSpec
 from ..commonlib.type_utils import check_cast, enum_value, E, T, U, with_slots
@@ -989,10 +989,6 @@ class ProcessedGC:
     @property
     def RatioPeakAfter(self) -> float:
         return self.trace_gc.RatioPeakAfter
-
-    # @property
-    # def suspend_duration_msec(self) -> float:
-    #     return self.trace_gc.SuspendDurationMSec
 
     @property
     def PauseStartRelativeMSec(self) -> float:
