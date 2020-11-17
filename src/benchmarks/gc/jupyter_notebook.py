@@ -715,9 +715,17 @@ _SUITE = Path("bench") / "suite"
 _TRACE_PATH = _SUITE / "normal_server.yaml.out"
 _TRACE_DATA = get_trace_with_everything(_TRACE_PATH / "defgcperfsim__a__noconc__2gb__1.yaml")
 
-gc_metrics_values = get_pergc_metrics_numbers_for_jupyter(_TRACE_DATA.gcs[0:2])
+# Here, we are only fetching the first 10 GC's to make our example simpler.
+# You can omit the indices to analyze all the GC's in the trace, or you can give
+# any custom range you might be interested in looking at.
+
+gc_metrics_values = get_pergc_metrics_numbers_for_jupyter(_TRACE_DATA.gcs[0:10])
 
 dframe = pandas.DataFrame.from_dict(gc_metrics_values)
+
+# %% Pandas main 'Describe()' method.
+
+dframe.describe()
 
 # %% Show GC statistics by GC number.
 

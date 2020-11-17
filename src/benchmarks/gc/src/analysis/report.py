@@ -940,13 +940,43 @@ def get_test_metrics_numbers_for_jupyter(
     return data_dict
 
 
+# Summary: Given a trace, this function extracts each individual GC's metrics
+#          values (e.g. AllocRateMBSec) and constructs a dictionary with all
+#          this data for pandas to consume in Jupyter Notebook. The keys are
+#          the metric names, and they are mapped to lists with each GC's values
+#          corresponding to said metric.
+#
+# Parameters:
+#   trace_gcs:
+#       List with the trace's gcs. These objects' class is ProcessedGC.
+#
+# Returns:
+#   Dictionary with values sorted by metrics.
+
+
 def get_pergc_metrics_numbers_for_jupyter(trace_gcs: Sequence[ProcessedGC]) -> Dict[str, Any]:
+    # Ensure there are GC's to analyze. Otherwise, the function will fail later.
     assert len(trace_gcs) > 0, "There are no GC's to analyze in the given list."
     pergc_metrics: Dict[str, Any] = {}
-    metric_names = trace_gcs[0].get_gc_metrics_values().keys()
 
+    # Initialize the dictionary with all the metrics' names. We added the
+    # method `get_gc_metrics_values()` to the ProcessedGC class, which searches
+    # through all the object's properties, and returns a dictionary with those
+    # that actually provide measurements, as well as their actual values.
+    #
+    # We are asking this from the first GC because at this point, we have
+    # ensured there is at least 1 to analyze. It is guaranteed that no matter
+    # which GC we pick, we will get the same metrics, regardless of whether
+    # any given GC lacks values for any metrics. In such case, we set that
+    # metric value to None in the main loop after this one. This is of utmost
+    # importance, as pandas requires the lists to be consistent with one another.
+
+    metric_names = trace_gcs[0].get_gc_metrics_values().keys()
     for metric in metric_names:
         add(pergc_metrics, metric, [])
+
+    # Iterate through each GC in the given list, fetch its metrics, and add
+    # them to the corresponding list in the resulting dictionary for pandas.
 
     for gc in trace_gcs:
         gc_metrics = gc.get_gc_metrics_values()
