@@ -115,16 +115,17 @@ namespace ResultsComparer
         private static void PrintTable((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame, EquivalenceTestConclusion conclusion, CommandLineOptions args)
         {
             var data = notSame
-                .Where(result => result.conclusion == conclusion)
+                .Where(result => result.conclusion == conclusion && GetModalInfo(result.diffResult) != null)
                 .OrderByDescending(result => GetRatio(conclusion, result.baseResult, result.diffResult))
                 .Take(args.TopCount ?? int.MaxValue)
                 .Select(result => new
                 {
-                    Id = result.id.Length > 80 ? result.id.Substring(0, 80) : result.id,
+                    Id = result.id.Length > 120 ? result.id.Substring(0, 120) : result.id,
                     DisplayValue = GetRatio(conclusion, result.baseResult, result.diffResult),
                     BaseMedian = result.baseResult.Statistics.Median,
                     DiffMedian = result.diffResult.Statistics.Median,
-                    Modality = GetModalInfo(result.baseResult) ?? GetModalInfo(result.diffResult)
+                    BaseModality = GetModalInfo(result.baseResult),
+                    DiffModality = GetModalInfo(result.diffResult)
                 })
                 .ToArray();
 
@@ -135,7 +136,7 @@ namespace ResultsComparer
                 return;
             }
 
-            var table = data.ToMarkdownTable().WithHeaders(conclusion.ToString(), conclusion == EquivalenceTestConclusion.Faster ? "base/diff" : "diff/base", "Base Median (ns)", "Diff Median (ns)", "Modality");
+            var table = data.ToMarkdownTable().WithHeaders(conclusion.ToString(), conclusion == EquivalenceTestConclusion.Faster ? "base/diff" : "diff/base", "Base Median (ns)", "Diff Median (ns)", "Base Modality", "Diff Modality");
 
             foreach (var line in table.ToMarkdown().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries))
                 Console.WriteLine($"| {line.TrimStart()}|"); // the table starts with \t and does not end with '|' and it looks bad so we fix it

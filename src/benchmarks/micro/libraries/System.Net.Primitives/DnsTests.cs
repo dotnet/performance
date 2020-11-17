@@ -10,7 +10,7 @@ namespace System.Net.Tests
     [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class DnsTests
     {
-        [Benchmark]
+        //[Benchmark]
         public IPHostEntry GetHostEntry() => Dns.GetHostEntry("34.206.253.53");
 
         [Benchmark]

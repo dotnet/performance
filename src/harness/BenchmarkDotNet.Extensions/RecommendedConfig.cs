@@ -24,21 +24,27 @@ namespace BenchmarkDotNet.Extensions
             Job job = null,
             bool getDiffableDisasm = false)
         {
-            if (job is null)
-            {
-                job = Job.Default
+                Job job1 = Job.Default
                     .WithWarmupCount(1) // 1 warmup is enough for our purpose
                     .WithIterationTime(TimeInterval.FromMilliseconds(250)) // the default is 0.5s per iteration, which is slighlty too much for us
-                    .WithMinIterationCount(15)
-                    .WithMaxIterationCount(20) // we don't want to run more that 20 iterations
+                    .WithMinIterationCount(35)
+                    .WithMaxIterationCount(40) // we don't want to run more that 20 iterations
+                    .WithOutlierMode(Perfolizer.Mathematics.OutlierDetection.OutlierMode.RemoveUpper)
+                    .WithMemoryRandomization(false)
+                    .DontEnforcePowerPlan()
+                    .AsBaseline(); // make sure BDN does not try to enforce High Performance power plan on Windows
+
+                Job job2 = Job.Default
+                    .WithWarmupCount(1) // 1 warmup is enough for our purpose
+                    .WithIterationTime(TimeInterval.FromMilliseconds(250)) // the default is 0.5s per iteration, which is slighlty too much for us
+                    .WithMinIterationCount(35)
+                    .WithMaxIterationCount(40) // we don't want to run more that 20 iterations
+                    .WithOutlierMode(Perfolizer.Mathematics.OutlierDetection.OutlierMode.DontRemove)
+                    .WithMemoryRandomization(true)
                     .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
 
-                // See https://github.com/dotnet/roslyn/issues/42393
-                job = job.WithArguments(new Argument[] { new MsBuildArgument("/p:DebugType=portable") });
-            }
-
             var config = DefaultConfig.Instance
-                .AddJob(job.AsDefault()) // tell BDN that this are our default settings
+                .AddJob(job1).AddJob(job2) // tell BDN that this are our default settings
                 .WithArtifactsPath(artifactsPath.FullName)
                 .AddDiagnoser(MemoryDiagnoser.Default) // MemoryDiagnoser is enabled by default
                 .AddFilter(new OperatingSystemFilter())
