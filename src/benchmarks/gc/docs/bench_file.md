@@ -28,7 +28,7 @@ configs:
   bigger:
     complus_gcgen0size: 33554432
 benchmarks:
-  nosurvive:
+  surv_2percent:
     executable: GCPerfSim
     arguments:
       tc: 8
@@ -36,6 +36,9 @@ benchmarks:
       tlgb: 1
       lohar: 0
       pohar: 0
+      sohsr: 10-4000
+      lohsr: 102400-204800
+      pohsr: 100-204800
       sohsi: 50
       lohsi: 0
       pohsi: 0
@@ -58,7 +61,7 @@ benchmarks:
 comment: `str | None`
   (ignored)
 
-vary: `"machine" | "executable" | "coreclr" | "config" | "benchmark" | None`
+vary: `"machine" | "coreclr" | "config" | "benchmark" | "executable" | None`
   Preferred property to vary when using `py . diff`
 
 test_executables: `Mapping[str, Path]`
@@ -395,6 +398,9 @@ tlgb: `float`
 totalMins: `float | None`
 lohar: `int`
 pohar: `int`
+sohsr: `str`
+lohsr: `str`
+pohsr: `str`
 sohsi: `int`
 lohsi: `int`
 pohsi: `int`
