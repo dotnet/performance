@@ -686,27 +686,35 @@ _BENCH = Path("bench")
 _SUITE = Path("bench") / "suite"
 _TRACE_PATH = _SUITE / "normal_server.yaml"
 
-metrics_data = get_test_metrics_numbers_for_jupyter(
+run_metrics, gc_metrics = get_test_metrics_numbers_for_jupyter(
     traces=ALL_TRACES,
     bench_file_path=_TRACE_PATH,
     run_metrics=parse_run_metrics_arg(("important",)),
     machines=None,
 )
 
-data_frame = pandas.DataFrame.from_dict(metrics_data)
+run_data_frame = pandas.DataFrame.from_dict(run_metrics).set_index("iteration_number")
+gc_data_frame = pandas.DataFrame.from_dict(gc_metrics).set_index("iteration_number")
 
 # %% Do pandas numbers analysis here.
 
-data_frame.describe()
+run_data_frame.describe()
 
-# %% Graph and compare the Heap Sizes throughout all the test runs.
+# %% Obtain the run statistics grouped by config, benchmark, and
+# iteration number.
 
-heap_sizes = data_frame[["HeapSizeBeforeMB_Mean", "HeapSizeAfterMB_Mean"]]
-heap_sizes.plot()
+run_data_frame.groupby(["config_name", "benchmark_name", "iteration_number"]).mean()
 
-# %% Obtain the statistics grouped by config and benchmark.
+# %% View the individual GC's metrics grouped by GC number and iteration number.
 
-data_frame.groupby(["config_name", "benchmark_name", "iteration_number"]).mean()
+gc_data_frame.groupby(["Number", "iteration_number"]).mean()
+
+# %% Join run and gc metrics tables for a wider analysis. View individual
+# Gen1 GC's only, from all the iterations, grouped by benchmark name.
+
+joined_data_frame = run_data_frame.join(gc_data_frame, rsuffix="_gc")
+gen1_only = joined_data_frame[joined_data_frame["IsGen1"] == True]
+gen1_only.groupby("benchmark_name").mean()
 
 # %% Get individual GC metrics numbers from a given trace.
 

@@ -58,7 +58,7 @@ benchmarks:
 comment: `str | None`
   (ignored)
 
-vary: `"machine" | "executable" | "coreclr" | "config" | "benchmark" | None`
+vary: `"machine" | "coreclr" | "config" | "benchmark" | "executable" | None`
   Preferred property to vary when using `py . diff`
 
 test_executables: `Mapping[str, Path]`
