@@ -62,6 +62,102 @@ namespace System.Text.Json.Tests
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [  
+        ///    5957425176,
+        ///    8643,
+        ///    5807096065,
+        ///    7783,
+        ///    4472383761,
+        ///    4732,
+        ///    7115361679,
+        ///    4182,
+        ///    7135052469,
+        ///    9529,
+        ///    5897146321,
+        ///    7032,
+        ///    9662544180,
+        ///    6889,
+        ///    2829833657,
+        ///    4145,
+        ///    6358760299,
+        ///    4908,
+        ///    1013268274,
+        ///    1232,
+        ///    9736001947,
+        ///    2862,
+        ///    1894113199,
+        ///    2227,
+        ///    902733738,
+        ///    7842,
+        ///    2312785117,
+        ///    6642,
+        ///    2863132973,
+        ///    9525,
+        ///    7456449161,
+        ///    1558,
+        ///    4525178434,
+        ///    6411,
+        ///    6617967188,
+        ///    8358,
+        ///     [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string ArrayOfNumbers {
+            get {
+                return ResourceManager.GetString("ArrayOfNumbers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [
+        ///  &quot;laborum&quot;,
+        ///  &quot;cupidatat&quot;,
+        ///  &quot;fugiat&quot;,
+        ///  &quot;ullamco&quot;,
+        ///  &quot;cupidatat&quot;,
+        ///  &quot;nisi&quot;,
+        ///  &quot;esse&quot;,
+        ///  &quot;nostrud&quot;,
+        ///  &quot;est&quot;,
+        ///  &quot;cillum&quot;,
+        ///  &quot;ut&quot;,
+        ///  &quot;officia&quot;,
+        ///  &quot;ipsum&quot;,
+        ///  &quot;anim&quot;,
+        ///  &quot;excepteur&quot;,
+        ///  &quot;esse&quot;,
+        ///  &quot;veniam&quot;,
+        ///  &quot;ad&quot;,
+        ///  &quot;nulla&quot;,
+        ///  &quot;culpa&quot;,
+        ///  &quot;nulla&quot;,
+        ///  &quot;excepteur&quot;,
+        ///  &quot;nulla&quot;,
+        ///  &quot;velit&quot;,
+        ///  &quot;adipisicing&quot;,
+        ///  &quot;sint&quot;,
+        ///  &quot;tempor&quot;,
+        ///  &quot;amet&quot;,
+        ///  &quot;tempor&quot;,
+        ///  &quot;magna&quot;,
+        ///  &quot;deserunt&quot;,
+        ///  &quot;id&quot;,
+        ///  &quot;dolore&quot;,
+        ///  &quot;in&quot;,
+        ///  &quot;excepteur&quot;,
+        ///  &quot;reprehenderit&quot;,
+        ///  &quot;ea&quot;,
+        ///  &quot;magna&quot;,
+        ///  &quot;eu&quot;,
+        ///  &quot;cillum&quot;,
+        ///  &quot; [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string ArrayOfStrings {
+            get {
+                return ResourceManager.GetString("ArrayOfStrings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {
         ///   &quot;age&quot; : 30,
         ///   &quot;first&quot; : &quot;John&quot;,
@@ -448,6 +544,62 @@ namespace System.Text.Json.Tests
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {
+        ///    &quot;first_property&quot; : 8700407415,
+        ///    &quot;short_0&quot;: 7746,
+        ///    &quot;long_1&quot; : 4345323528,
+        ///    &quot;short_1&quot;: 6467,
+        ///    &quot;long_2&quot; : 1680808724,
+        ///    &quot;short_2&quot;: 8510,
+        ///    &quot;long_3&quot; : 1697132206,
+        ///    &quot;short_3&quot;: 2234,
+        ///    &quot;long_4&quot; : 3110961299,
+        ///    &quot;short_4&quot;: 4049,
+        ///    &quot;long_5&quot; : 8843621629,
+        ///    &quot;short_5&quot;: 7036,
+        ///    &quot;long_6&quot; : 3359957105,
+        ///    &quot;short_6&quot;: 2317,
+        ///    &quot;long_7&quot; : 5539085245,
+        ///    &quot;short_7&quot;: 9215,
+        ///    &quot;long_8&quot; : 4469283919,
+        ///    &quot;short_8&quot;: 2397,
+        ///    &quot;long_9&quot; : 5507480974,
+        ///    &quot;short_9&quot;: 7742,
+        ///  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string NumericProperties {
+            get {
+                return ResourceManager.GetString("NumericProperties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///    &quot;first_property&quot;:
+        ///		{
+        ///      &quot;index&quot;: 0,
+        ///      &quot;guid&quot;: &quot;8919dbf2-75d8-4939-b8e3-6b068b6db4e2&quot;,
+        ///      &quot;isActive&quot;: true,
+        ///      &quot;balance&quot;: &quot;$3,480.82&quot;,
+        ///      &quot;picture&quot;: &quot;http://placehold.it/32x32&quot;,
+        ///      &quot;age&quot;: 33,
+        ///      &quot;eyeColor&quot;: &quot;green&quot;,
+        ///      &quot;name&quot;: {
+        ///        &quot;first&quot;: &quot;Gamble&quot;,
+        ///        &quot;last&quot;: &quot;Sharpe&quot;
+        ///      },
+        ///      &quot;company&quot;: &quot;ENTOGROK&quot;,
+        ///      &quot;email&quot;: &quot;gamble.sharpe@entogrok.tv&quot;,
+        ///      &quot;phone&quot;: &quot;+1 (947) 415-2321&quot;,
+        ///      &quot;address&quot;: &quot;431 Radde Place, Gouglersville, California, 507 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string ObjectProperties {
+            get {
+                return ResourceManager.GetString("ObjectProperties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {  &quot;locked&quot;: false,  &quot;version&quot;: 1,  &quot;targets&quot;: {    &quot;DNXCore,Version=v5.0&quot;: {      &quot;Microsoft.CSharp/4.0.0&quot;: {        &quot;dependencies&quot;: {          &quot;System.Runtime&quot;: &quot;[4.0.20, )&quot;,          &quot;System.Dynamic.Runtime&quot;: &quot;[4.0.0, )&quot;,          &quot;System.Linq.Expressions&quot;: &quot;[4.0.0, )&quot;,          &quot;System.Runtime.InteropServices&quot;: &quot;[4.0.20, )&quot;,          &quot;System.Resources.ResourceManager&quot;: &quot;[4.0.0, )&quot;,          &quot;System.Linq&quot;: &quot;[4.0.0, )&quot;,          &quot;System.Reflection.TypeExtensions&quot;: &quot;[4.0.0, )&quot;,          &quot;System.Reflection. [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string ProjectLockJson {
@@ -462,6 +614,34 @@ namespace System.Text.Json.Tests
         internal static string SpecialNumForm {
             get {
                 return ResourceManager.GetString("SpecialNumForm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///    &quot;first_property&quot;: &quot;pariatur&quot;,
+        ///    &quot;ipsum_0&quot;: &quot;elit&quot;,
+        ///    &quot;lorem_1&quot;: &quot;esse&quot;,
+        ///    &quot;ipsum_1&quot;: &quot;fugiat&quot;,
+        ///    &quot;lorem_2&quot;: &quot;excepteur&quot;,
+        ///    &quot;ipsum_2&quot;: &quot;reprehenderit&quot;,
+        ///    &quot;lorem_3&quot;: &quot;enim&quot;,
+        ///    &quot;ipsum_3&quot;: &quot;consequat&quot;,
+        ///    &quot;lorem_4&quot;: &quot;cupidatat&quot;,
+        ///    &quot;ipsum_4&quot;: &quot;nulla&quot;,
+        ///    &quot;lorem_5&quot;: &quot;mollit&quot;,
+        ///    &quot;ipsum_5&quot;: &quot;commodo&quot;,
+        ///    &quot;lorem_6&quot;: &quot;non&quot;,
+        ///    &quot;ipsum_6&quot;: &quot;magna&quot;,
+        ///    &quot;lorem_7&quot;: &quot;voluptate&quot;,
+        ///    &quot;ipsum_7&quot;: &quot;laborum&quot;,
+        ///    &quot;lorem_8&quot;: &quot;laborum&quot;,
+        ///    &quot;ipsum_8&quot;: &quot;deserunt&quot;,
+        ///    &quot;lorem_9&quot;: &quot;fug [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string StringProperties {
+            get {
+                return ResourceManager.GetString("StringProperties", resourceCulture);
             }
         }
     }

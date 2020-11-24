@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Sequence
 
+import pandas
 
 from src.analysis.analyze_cpu_samples import (
     chart_cpu_samples_per_gcs,
@@ -53,7 +54,11 @@ from src.analysis.parse_metrics import (
     parse_single_heap_metrics_arg,
 )
 from src.analysis.process_trace import ProcessedTraces, test_result_from_path
-from src.analysis.report import diff_for_jupyter, report_reasons_for_jupyter
+from src.analysis.report import (
+    diff_for_jupyter,
+    get_gc_metrics_numbers_for_jupyter,
+    report_reasons_for_jupyter,
+)
 from src.analysis.single_gc_metrics import get_bytes_allocated_since_last_gc
 from src.analysis.single_heap_metrics import ALL_GC_GENS
 from src.analysis.trace_commands import print_events_for_jupyter
@@ -672,5 +677,34 @@ def _more_custom(trace: ProcessedTrace) -> None:
 
 _more_custom(_TRACE)
 
+
+# %% Read the bench file and get all the GC stat numbers from all the iterations
+# said test was run.
+
+_BENCH = Path("bench")
+_SUITE = Path("bench") / "suite"
+_TRACE_PATH = _SUITE / "normal_server.yaml"
+
+metrics_data = get_gc_metrics_numbers_for_jupyter(
+    traces=ALL_TRACES,
+    bench_file_path=_TRACE_PATH,
+    run_metrics=parse_run_metrics_arg(("important",)),
+    machines=None,
+)
+
+data_frame = pandas.DataFrame.from_dict(metrics_data)
+
+# %% Do pandas numbers analysis here.
+
+data_frame.describe()
+
+# %% Graph and compare the Heap Sizes throughout all the test runs.
+
+heap_sizes = data_frame[["HeapSizeBeforeMB_Mean", "HeapSizeAfterMB_Mean"]]
+heap_sizes.plot()
+
+# %% Obtain the statistics grouped by config and benchmark
+
+data_frame.groupby(["config_name", "benchmark_name"]).mean()
 
 # %%

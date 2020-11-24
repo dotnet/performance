@@ -1,19 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
+    <Dependency Name="Microsoft.NETCore.App.Runtime.win-x64" Version="5.0.0" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>56b65e0f66bdf66ad011b94cc0e27d9f714c5721</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.Dotnet.Sdk.Internal" Version="5.0.101-servicing.20567.6">
+      <Uri>https://github.com/dotnet/installer</Uri>
+      <Sha>01e0bbc24ee884d261086654f9c70898e7f04bfd</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.WindowsDesktop.App.Runtime.win-x64" Version="5.0.1" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
+      <Uri>https://github.com/dotnet/windowsdesktop</Uri>
+      <Sha>31f95185b05655dda70e43968fe69a9361af8b2d</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.AspNetCore.App.Runtime.win-x64" Version="5.0.0" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
+      <Uri>https://github.com/dotnet/aspnetcore</Uri>
+      <Sha>80f8669450b2b79085d624f81f74c8d7ad5be089</Sha>
+    </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="5.0.0-beta.20472.36">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="6.0.0-beta.20526.10">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>06ad7cf82dbf56b3facf8a7d3a00944f5116663d</Sha>
+      <Sha>c0f916d7f45834c080bf6cce60cf2bcfa00bc0a7</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="5.0.0-beta.20472.36">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="6.0.0-beta.20526.10">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>06ad7cf82dbf56b3facf8a7d3a00944f5116663d</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.Dotnet.Sdk.Internal" Version="6.0.100-alpha.1.20474.5">
-      <Uri>https://github.com/dotnet/installer</Uri>
-      <Sha>0b940dce993e369ebac36f04909ec62de75b12a4</Sha>
+      <Sha>c0f916d7f45834c080bf6cce60cf2bcfa00bc0a7</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>

@@ -8,6 +8,8 @@ import os
 from logging import getLogger
 from collections import namedtuple
 from argparse import ArgumentParser
+from argparse import RawTextHelpFormatter
+from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
 from shared.util import publishedexe, extension, pythoncommand, iswin
 from shared.sod import SODWrapper
@@ -29,40 +31,67 @@ class Runner:
         self.coreroot = None
         self.crossgenfile = None
         self.dirs = None
+        self.crossgen_arguments = CrossgenArguments()
         setup_loggers(True)
 
     def parseargs(self):
         '''
         Parses input args to the script
         '''
-        parser = ArgumentParser()
-        subparsers = parser.add_subparsers(title='subcommands for scenario tests', dest='testtype')
-        startupparser = subparsers.add_parser(const.STARTUP)
+        parser = ArgumentParser(description='test.py runs the test with specified commands. Usage: test.py <command> <optional subcommands> <options>',
+                                formatter_class=RawTextHelpFormatter)
+        subparsers = parser.add_subparsers(title='subcommands for scenario tests', 
+                                           dest='testtype')
+
+        # startup command
+        startupparser = subparsers.add_parser(const.STARTUP,
+                                              description='measure time to main of running the project')
         self.add_common_arguments(startupparser)
 
-        sdkparser = subparsers.add_parser(const.SDK)
-        sdkparser.add_argument('sdktype', choices=[const.CLEAN_BUILD, const.BUILD_NO_CHANGE, const.NEW_CONSOLE], type=str.lower)
+        # sdk command
+        sdkparser = subparsers.add_parser(const.SDK, 
+                                          description='subcommands for sdk scenario',
+                                          formatter_class=RawTextHelpFormatter)
+        sdkparser.add_argument('sdktype', 
+                                choices=[const.CLEAN_BUILD, const.BUILD_NO_CHANGE, const.NEW_CONSOLE], 
+                                type=str.lower,
+                                help= 
+'''
+clean_build:     measure duration of building from source in each iteration
+build_no_change: measure duration of building with existing output in each iteration
+new_console:     measure duration of creating a new console template
+'''
+                               )
         self.add_common_arguments(sdkparser)
 
-        crossgenparser = subparsers.add_parser(const.CROSSGEN)
-        crossgenparser.add_argument('--test-name', dest='testname', type=str, required=True)
-        crossgenparser.add_argument('--core-root', dest='coreroot', type=str, required=True)
+        crossgenparser = subparsers.add_parser(const.CROSSGEN,
+                                               description='measure duration of the crossgen compilation',
+                                               formatter_class=RawTextHelpFormatter)
+        self.crossgen_arguments.add_crossgen_arguments(crossgenparser)
         self.add_common_arguments(crossgenparser)
 
-        crossgen2parser = subparsers.add_parser(const.CROSSGEN2)
-        crossgen2parser.add_argument('--core-root', dest='coreroot', type=str, required=True)
-        crossgen2parser.add_argument('--single', dest='single', type=str, required=False)
-        crossgen2parser.add_argument('--composite', dest='composite', type=str, required=False)
+        crossgen2parser = subparsers.add_parser(const.CROSSGEN2,
+                                                description='measure duration of the crossgen compilation',
+                                                formatter_class=RawTextHelpFormatter)
+        self.crossgen_arguments.add_crossgen2_arguments(crossgen2parser)
         self.add_common_arguments(crossgen2parser)
 
-        sodparser = subparsers.add_parser(const.SOD)
-        sodparser.add_argument('--dirs', dest='dirs', type=str)
+        sodparser = subparsers.add_parser(const.SOD,
+                                          description='measure size on disk of the specified directory and its children')
+        sodparser.add_argument('--dirs', 
+                               dest='dirs', 
+                               type=str,
+                               help=
+r'''
+directories to measure separated by semicolon
+ex: C:\repos\performance;C:\repos\runtime
+'''                            )
         self.add_common_arguments(sodparser)
 
         args = parser.parse_args()
 
         if not args.testtype:
-            getLogger().error("Please specify a test type: %s" % testtypes)
+            getLogger().error("Please specify a test type: %s. Type test.py <test type> -- help for more type-specific subcommands" % testtypes)
             sys.exit(1)
 
         self.testtype = args.testtype
@@ -71,13 +100,10 @@ class Runner:
             self.sdktype = args.sdktype
 
         if self.testtype == const.CROSSGEN:
-            self.crossgenfile = args.testname
-            self.coreroot = args.coreroot
+            self.crossgen_arguments.parse_crossgen_args(args)
 
         if self.testtype == const.CROSSGEN2:
-            self.coreroot = args.coreroot
-            self.singlefile = args.single
-            self.compositefile = args.composite
+            self.crossgen_arguments.parse_crossgen2_args(args)
 
         if self.testtype == const.SOD:
             self.dirs = args.dirs
@@ -162,70 +188,43 @@ class Runner:
         elif self.testtype == const.CROSSGEN:
             startup = StartupWrapper()
             crossgenexe = 'crossgen%s' % extension()
-            filename, ext = os.path.splitext(self.crossgenfile)
-            outputdir = os.path.join(os.getcwd(), 'crossgen.out')
-            if not os.path.exists(outputdir):
-                os.mkdir(outputdir)
-            outputfile = os.path.join(outputdir, filename+'.ni'+ext )
-            crossgenargs = '/nologo /out %s /p %s %s\%s' % (outputfile, self.coreroot, self.coreroot, self.crossgenfile)
-            if self.coreroot is not None and not os.path.isdir(self.coreroot):
-                getLogger().error('Cannot find CORE_ROOT at %s', self.coreroot)
-                return
+            crossgenargs = self.crossgen_arguments.get_crossgen_command_line()
+            coreroot = self.crossgen_arguments.coreroot
+            scenario_filename = self.crossgen_arguments.crossgen2_scenario_filename()
 
             self.traits.add_traits(overwrite=True,
                                    startupmetric=const.STARTUP_PROCESSTIME,
-                                   workingdir=self.coreroot,
-                                   appargs=crossgenargs
+                                   workingdir=coreroot,
+                                   appargs=' '.join(crossgenargs)
                                    )
             self.traits.add_traits(overwrite=False,
-                                   scenarioname='Crossgen Throughput - %s' % self.crossgenfile,
-                                   scenariotypename='%s - %s' % (const.SCENARIO_NAMES[const.CROSSGEN], self.crossgenfile),
-                                   apptorun='%s\%s' % (self.coreroot, crossgenexe),
+                                   scenarioname='Crossgen Throughput - %s' % scenario_filename,
+                                   scenariotypename='%s - %s' % (const.SCENARIO_NAMES[const.CROSSGEN], scenario_filename),
+                                   apptorun='%s\%s' % (coreroot, crossgenexe),
                                   ) 
             startup.runtests(self.traits)
            
         elif self.testtype == const.CROSSGEN2:
             startup = StartupWrapper()
-            if self.coreroot is not None and not os.path.isdir(self.coreroot):
-                getLogger().error('Cannot find CORE_ROOT at %s', self.coreroot)
-                sys.exit(1)
-            if bool(self.singlefile) == bool(self.compositefile):
-                getLogger().error("Please specify either --single <single assembly name> or --composite <absolute path of rsp file>")
-                sys.exit(1)
-        
-            compiletype = const.CROSSGEN2_COMPOSITE if self.compositefile else const.CROSSGEN2_SINGLEFILE
+            scenario_filename = self.crossgen_arguments.crossgen2_scenario_filename()
+            crossgen2args = self.crossgen_arguments.get_crossgen2_command_line()
+            compiletype = self.crossgen_arguments.crossgen2_compiletype()
+            scenarioname = 'Crossgen2 Throughput - %s - %s' % (compiletype, scenario_filename)
+            if self.crossgen_arguments.singlethreaded:
+                scenarioname = 'Crossgen2 Throughput - Single Threaded - %s - %s' % (compiletype, scenario_filename)
 
-            if compiletype == const.CROSSGEN2_SINGLEFILE:
-                referencefilenames = ['System.*.dll', 'Microsoft.*.dll', 'netstandard.dll', 'mscorlib.dll']
-                referencefiles = [os.path.join(self.coreroot, filename) for filename in referencefilenames]
-                # single assembly filename: example.dll
-                filename, ext = os.path.splitext(self.singlefile)
-                outputdir = os.path.join(os.getcwd(), 'single.out')
-                if not os.path.exists(outputdir):
-                    os.mkdir(outputdir)
-                outputfile = os.path.join(outputdir, filename+'.ni'+ext )
-                crossgen2args = '%s -o %s -O %s' % (os.path.join(self.coreroot, self.singlefile), outputfile, ' -r '.join(['']+referencefiles))
-            
-            elif compiletype == const.CROSSGEN2_COMPOSITE:
-                # composite rsp filename: ..\example.dll.rsp
-                dllname, _ = os.path.splitext(os.path.basename(self.compositefile))
-                filename, ext = os.path.splitext(dllname)
-                outputdir = os.path.join(os.getcwd(), 'composite.out')
-                if not os.path.exists(outputdir):
-                    os.mkdir(outputdir)
-                outputfile = os.path.join(outputdir, filename+'.ni'+ext )
-                crossgen2args = '--composite -o %s -O @%s' % (outputfile, self.compositefile)
-                self.traits.add_traits( overwrite=True,
-                                        skipprofile='true')
+            if compiletype == const.CROSSGEN2_COMPOSITE:
+                self.traits.add_traits(overwrite=True,
+                                       skipprofile='true')
 
             self.traits.add_traits(overwrite=True,
                                    startupmetric=const.STARTUP_CROSSGEN2,
-                                   workingdir=self.coreroot,
-                                   appargs='%s %s' % (os.path.join('crossgen2', 'crossgen2.dll'), crossgen2args)
+                                   workingdir=self.crossgen_arguments.coreroot,
+                                   appargs='%s %s' % (os.path.join('crossgen2', 'crossgen2.dll'), ' '.join(crossgen2args))
                                    )
             self.traits.add_traits(overwrite=False,
-                                   scenarioname='Crossgen2 Throughput - %s - %s' % ( compiletype, filename),
-                                   apptorun=os.path.join(self.coreroot, 'corerun%s' % extension()),
+                                   scenarioname=scenarioname,
+                                   apptorun=os.path.join(self.crossgen_arguments.coreroot, 'corerun%s' % extension()),
                                    environmentvariables='COMPlus_EnableEventLog=1' if not iswin() else '' # turn on clr user events
                                   ) 
             startup.runtests(self.traits)

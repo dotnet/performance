@@ -47,7 +47,7 @@ namespace ScenarioMeasurement
             {
                 ProcessWillExit = true,
                 Executable = perfCollectScript,
-                Timeout = 300,
+                Timeout = 1200,
                 RootAccess = true
             };
 

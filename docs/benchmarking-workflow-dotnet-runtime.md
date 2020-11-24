@@ -125,6 +125,14 @@ Once you rebuild the part of [dotnet/runtime](https://github.com/dotnet/runtime)
 C:\Projects\runtime\src\libraries\System.Text.RegularExpressions\src> dotnet msbuild /p:Configuration=Release
 ```
 
+**Note:** the exception to this rule are libraries that **are not part of the shared SDK**. The `build` script of the runtime repo does not copy them to the CoreRun folder so you need to do it on your own:
+
+```cmd
+cp artifacts\bin\runtime\net6.0-Windows_NT-Release-x64\Microsoft.Extensions.Caching.Memory.dll artifacts\bin\testhost\net6.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\6.0.0\
+```
+
+Of course only if you want to benchmark these specific libraries. If you don't, the default versions defined in [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) project file are going to get used.
+
 ## Preventing Regressions
 
 Preventing regressions is a fundamental part of our performance culture. The cheapest regression is one that does not get into the product.

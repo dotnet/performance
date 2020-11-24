@@ -18,17 +18,6 @@ namespace System.Net.Sockets.Tests
         private const int InnerIterationCount = 10_000;
 
         private Socket _listener, _client, _server;
-
-        [GlobalSetup]
-        public void Setup() => OpenLoopbackConnectionAsync().GetAwaiter().GetResult(); // BenchmarkDotNet does not support async Setup https://github.com/dotnet/BenchmarkDotNet/issues/521
-
-        [GlobalCleanup]
-        public void Cleanup()
-        {
-            _server.Dispose();
-            _client.Dispose();
-            _listener.Dispose();
-        }
         
         [Benchmark]
         public async Task SendAsyncThenReceiveAsync_Task()
@@ -112,7 +101,8 @@ namespace System.Net.Sockets.Tests
             }
         }
 
-        private async Task OpenLoopbackConnectionAsync()
+        [GlobalSetup]
+        public async Task OpenLoopbackConnectionAsync()
         {
             _listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             _client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -127,6 +117,14 @@ namespace System.Net.Sockets.Tests
             await Task.WhenAll(acceptTask, connectTask);
 
             _server = await acceptTask;
+        }
+
+        [GlobalCleanup]
+        public void Cleanup()
+        {
+            _server.Dispose();
+            _client.Dispose();
+            _listener.Dispose();
         }
 
         internal sealed class AwaitableSocketAsyncEventArgs : SocketAsyncEventArgs, ICriticalNotifyCompletion

@@ -9,19 +9,24 @@ from logging import getLogger
 from argparse import ArgumentParser
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
-from shared.util import helixpayload
+from shared.crossgen import CrossgenArguments
+from shared.util import extension, helixpayload
 from shared.codefixes import replace_line, insert_after
-from performance.common import get_packages_directory, get_repo_root_path
+from performance.common import get_packages_directory, get_repo_root_path, RunCommand
 
 DEFAULT = 'default'
 BUILD = 'build'
 PUBLISH = 'publish'
+CROSSGEN = 'crossgen'
+CROSSGEN2 = 'crossgen2'
 DEBUG = 'Debug'
 RELEASE = 'Release'
 
 OPERATIONS = (DEFAULT,
               BUILD,
-              PUBLISH
+              PUBLISH,
+              CROSSGEN,
+              CROSSGEN2
              )
 
 class PreCommands:
@@ -32,13 +37,14 @@ class PreCommands:
     def __init__(self):
         self.project: CSharpProject
         self.projectfile: CSharpProjFile
+        self.crossgen_arguments = CrossgenArguments()
         parser = ArgumentParser()
 
         subparsers = parser.add_subparsers(title='Operations', 
-                                           description='Common preperation steps for perf tests.',
+                                           description='Common preperation steps for perf tests. Should run under src\scenarios\<test asset folder>',
                                            dest='operation')
 
-        default_parser = subparsers.add_parser(DEFAULT, help='Default operation' )
+        default_parser = subparsers.add_parser(DEFAULT, help='Default operation (placeholder command and no specific operation will be executed)' )
         self.add_common_arguments(default_parser)
 
         build_parser = subparsers.add_parser(BUILD, help='Builds the project')
@@ -46,6 +52,14 @@ class PreCommands:
 
         publish_parser = subparsers.add_parser(PUBLISH, help='Publishes the project')
         self.add_common_arguments(publish_parser)
+
+        crossgen_parser = subparsers.add_parser(CROSSGEN, help='Runs crossgen on a particular file')
+        self.add_common_arguments(crossgen_parser)
+        self.crossgen_arguments.add_crossgen_arguments(crossgen_parser)
+
+        crossgen2_parser = subparsers.add_parser(CROSSGEN2, help='Runs crossgen2 on a particular file')
+        self.add_common_arguments(crossgen2_parser)
+        self.crossgen_arguments.add_crossgen2_arguments(crossgen2_parser)
 
         args = parser.parse_args()
 
@@ -60,6 +74,12 @@ class PreCommands:
         self.msbuild = args.msbuild
         self.msbuildstatic = args.msbuildstatic
         self.binlog = args.binlog
+
+        if self.operation == CROSSGEN:
+            self.crossgen_arguments.parse_crossgen_args(args)
+        if self.operation == CROSSGEN2:
+            self.crossgen_arguments.parse_crossgen2_args(args)
+
 
     def new(self,
             template: str,
@@ -85,26 +105,29 @@ class PreCommands:
         parser.add_argument('-c', '--configuration',
                             dest='configuration',
                             choices=[DEBUG, RELEASE],
-                            metavar='config')
+                            metavar='config',
+                            help='configuration for build or publish - ex: Release or Debug')
         parser.add_argument('-f', '--framework',
                             dest='framework',
-                            metavar='framework')
+                            metavar='framework',
+                            help='framework for build or publish - ex: netcoreapp3.0')
         parser.add_argument('-r', '--runtime',
                             dest='runtime',
-                            metavar='runtime')
+                            metavar='runtime',
+                            help='runtime for build or publish - ex: win-x64')
         parser.add_argument('--msbuild',
-                            help='Flags passed through to msbuild',
                             dest='msbuild',
-                            metavar='/p:Foo=Bar;/p:Baz=Blee;...')
+                            metavar='msbuild',
+                            help='a list of msbuild flags passed to build or publish command separated by semicolons - ex: /p:Foo=Bar;/p:Baz=Blee;...')
         parser.add_argument('--msbuild-static',
-                            help='Properties added to csproj',
                             dest='msbuildstatic',
-                            metavar='Foo=Bar;Bas=Blee;...'
+                            metavar='msbuildstatic',
+                            help='a list of msbuild properties inserted into .csproj file of the project - ex: Foo=Bar;Bas=Blee;'
                            )
         parser.add_argument('--binlog',
-                            help='Flag to enable binlog',
                             dest='binlog',
-                            metavar='<file-name>.binlog')
+                            metavar='<file-name>.binlog',
+                            help='flag to turn on binlog for build or publish; ex: <file-name>.binlog')
         parser.set_defaults(configuration=RELEASE)
 
     def existing(self, projectdir: str, projectfile: str):
@@ -125,6 +148,19 @@ class PreCommands:
             self._restore()
             self._publish(configuration=self.configuration,
                           runtime_identifier=self.runtime_identifier)
+        if self.operation == CROSSGEN:
+            startup_args = [
+                os.path.join(self.crossgen_arguments.coreroot, 'crossgen%s' % extension()),
+            ]
+            startup_args += self.crossgen_arguments.get_crossgen_command_line()
+            RunCommand(startup_args, verbose=True).run(self.crossgen_arguments.coreroot)
+        if self.operation == CROSSGEN2:
+            startup_args = [
+                os.path.join(self.crossgen_arguments.coreroot, 'corerun%s' % extension()),
+                os.path.join(self.crossgen_arguments.coreroot, 'crossgen2', 'crossgen2.dll'),
+            ]
+            startup_args += self.crossgen_arguments.get_crossgen2_command_line()
+            RunCommand(startup_args, verbose=True).run(self.crossgen_arguments.coreroot)
 
     def add_startup_logging(self, file: str, line: str):
         self.add_event_source(file, line, "PerfLabGenericEventSource.Log.Startup();")
@@ -146,6 +182,7 @@ class PreCommands:
         insert_after(filepath, line, trace_statement)
 
     def _addstaticmsbuildproperty(self, projectfile: str):
+        'Insert static msbuild property in the specified project file'
         if self.msbuildstatic:
           for propertyarg in self.msbuildstatic.split(';'):
             propertyname, propertyvalue = propertyarg.split('=')
@@ -153,6 +190,7 @@ class PreCommands:
             insert_after(projectfile, r'</PropertyGroup>', propertystring )
 
     def _updateframework(self, projectfile: str):
+        'Update the <TargetFramework> property so we can re-use the template'
         if self.framework:
             replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
 
@@ -178,7 +216,7 @@ class PreCommands:
                                output_to_bindir=True)
 
     def _backup(self, projectdir:str):
-        # copy from projectdir to appdir
+        'Copy from projectdir to appdir so we do not modify the source code'
         if os.path.isdir(const.APPDIR):
             shutil.rmtree(const.APPDIR)
         shutil.copytree(projectdir, const.APPDIR)

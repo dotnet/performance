@@ -61,8 +61,9 @@ class SODWrapper(object):
             self.sodexe,
             '--report-json-path', reportjson,
             '--scenario-name', (scenarioname or "Empty Scenario Name"),
-            '--dirs', dirs
+            '--dirs'
         ]
+        sod_args += dirs.split(';')
 
         RunCommand(sod_args, verbose=True).run()
  

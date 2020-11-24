@@ -1,9 +1,10 @@
 ﻿using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Session;
+using System;
 using System.Collections.Generic;
 using System.IO;
-
+using System.Security.Principal;
 
 namespace ScenarioMeasurement
 {
@@ -19,7 +20,11 @@ namespace ScenarioMeasurement
         public WindowsTraceSession(string sessionName, string traceName, string traceDirectory, Logger logger)
         {
             this.logger = logger;
-
+            if (!IsAdministrator())
+            {
+                Console.WriteLine("Admin mode is required to start ETW.");
+                Environment.Exit(1);
+            }
             string kernelFileName = Path.ChangeExtension(traceName, "perflabkernel.etl");
             string userFileName = Path.ChangeExtension(traceName, "perflabuser.etl");
             TraceFilePath = Path.Combine(traceDirectory, Path.ChangeExtension(traceName, ".etl"));
@@ -42,6 +47,7 @@ namespace ScenarioMeasurement
             UserSession.Dispose();
 
             MergeFiles(KernelSession.FileName, UserSession.FileName, TraceFilePath);
+
             logger.Log($"Trace Saved to {TraceFilePath}");
         }
 
@@ -50,7 +56,8 @@ namespace ScenarioMeasurement
             var files = new List<string>();
             if (!File.Exists(kernelTraceFile))
             {
-                throw new FileNotFoundException("Kernel trace file not found.");
+                Console.WriteLine("Kernel trace file not found.");
+                Environment.Exit(1);
             }
             files.Add(kernelTraceFile);
             if (File.Exists(userTraceFile))
@@ -59,7 +66,15 @@ namespace ScenarioMeasurement
             }
 
             logger.Log($"Merging {string.Join(',', files)}... ");
-            TraceEventSession.Merge(files.ToArray(), traceFile);
+            try
+            {
+                TraceEventSession.Merge(files.ToArray(), traceFile);
+            }
+            catch (System.Runtime.InteropServices.COMException)
+            {
+                Console.WriteLine("Unable to merge the trace files due to insufficient system resources. Try freeing some memory.");
+                Environment.Exit(1);
+            }
             if (File.Exists(traceFile))
             {
                 File.Delete(userTraceFile);
@@ -75,7 +90,23 @@ namespace ScenarioMeasurement
             {
                 flags |= kernelKeywords[keyword];
             }
-            KernelSession.EnableKernelProvider(flags);
+            bool enabled = false;
+            try
+            {
+                enabled = KernelSession.EnableKernelProvider(flags);
+            }
+            catch (System.Runtime.InteropServices.COMException)
+            {
+            }
+            finally
+            {
+                if (!enabled)
+                {
+                    Console.WriteLine("Unable to enable kernel provider. Try freeing some memory.");
+                    Environment.Exit(1);
+                }
+            }
+
         }
 
         public void EnableUserProvider(params TraceSessionManager.ClrKeyword[] keywords)
@@ -86,7 +117,21 @@ namespace ScenarioMeasurement
             {
                 flags |= clrKeywords[keyword];
             }
-            UserSession.EnableProvider(ClrPrivateTraceEventParser.ProviderGuid, TraceEventLevel.Verbose, (ulong)flags);
+            bool enabled = false;
+            try
+            {
+                enabled = UserSession.EnableProvider(ClrPrivateTraceEventParser.ProviderGuid, TraceEventLevel.Verbose, (ulong)flags);
+            }
+            catch (System.Runtime.InteropServices.COMException)
+            {
+            }
+            finally{
+                if (!enabled)
+                {
+/*                    Console.WriteLine("Unable to enable user provider due to insufficient system resources. Try freeing some memory.");
+                    Environment.Exit(1);*/
+                }
+            }
         }
 
         private void InitWindowsKeywordMaps()
@@ -105,6 +150,15 @@ namespace ScenarioMeasurement
         public void EnableUserProvider(string provider, TraceEventLevel verboseLevel = TraceEventLevel.Verbose)
         {
             UserSession.EnableProvider(provider, verboseLevel);
+        }
+
+        public static bool IsAdministrator()
+        {
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
         }
     }
 }
