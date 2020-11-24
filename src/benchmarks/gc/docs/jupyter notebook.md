@@ -199,35 +199,44 @@ _BENCH = Path("bench")
 _SUITE = Path("bench") / "suite"
 _TRACE_PATH = _SUITE / "normal_server.yaml"
 
-metrics_data = get_test_metrics_numbers_for_jupyter(
+run_metrics, gc_metrics = get_test_metrics_numbers_for_jupyter(
     traces=ALL_TRACES,
     bench_file_path=_TRACE_PATH,
     run_metrics=parse_run_metrics_arg(("important",)),
     machines=None,
 )
 
-data_frame = pandas.DataFrame.from_dict(metrics_data)
+run_data_frame = pandas.DataFrame.from_dict(run_metrics).set_index("iteration_number")
+gc_data_frame = pandas.DataFrame.from_dict(gc_metrics).set_index("iteration_number")
 ```
 
 In this example, we ran multiple times the `normal_server` test with the `2gb` benchmark.
-As shown above, the `get_gc_metrics_numbers_for_jupyter()` function is in charge
+As shown above, the `get_test_metrics_numbers_for_jupyter()` function is in charge
 of reading the traces of each time the test was run, fetching the numbers data,
-processing it, and returning the dictionary with the lists of values of each metric.
+processing it, and returning the dictionaries with the lists of values of each metric.
 
 We have all the data now, but it's not ready to be consumed by `pandas`. `Pandas`
 expects a dictionary which symbolizes the table you would usually build in statistics,
-and transforms it into a `DataFrame` of its own. The last line in the previous
-code snippet does this. To summarize, the dictionary is composed as follows:
+and transforms it into a `DataFrame` of its own. The last lines in the previous
+code snippet do this. To summarize, the dictionaries are composed as follows:
+
+**Run Metrics Dictionary**
 
 * **Keys**: Metric Name
 * **Values**: List with said metric's numbers from each iteration of the test run.
 
-NOTE: Aside from the metric's names, this dictionary also holds two additional keys:
+**GC Metrics Dictionary**
+
+* **Keys**: GC Metric Name
+* **Values**: List with said metric's numbers from each processed GC.
+
+NOTE: Aside from the metric's names, the dictionaries also hold three additional keys:
 
 * **Config_Name**: Name of the configuration run (e.g. _only\_config_).
 * **Benchmark_Name**: Name of the benchmark run (e.g. _2gb_)
+* **Iteration_Number**: Number of test iteration (e.g. 1)
 
-These are used to group values by configuration and/or benchmark for more
+These are used to group values by iteration, configuration and/or benchmark for more
 specific analysis. There is an example at the end of the next section.
 
 #### Perform Run Data Analysis
@@ -237,7 +246,7 @@ the capabilities `pandas` has to offer. The most basic example is asking for
 the `describe()` method:
 
 ```python
-data_frame.describe()
+run_data_frame.describe()
 ```
 
 This shows a table with the main statistics values using the numbers you provided.
@@ -249,7 +258,7 @@ data and analyze them separately. For example, here we want to visualize the
 heap sizes before and after garbage collection throughout the tests we ran.
 
 ```python
-heap_sizes = data_frame[["HeapSizeBeforeMB_Mean", "HeapSizeAfterMB_Mean"]]
+heap_sizes = run_data_frame[["HeapSizeBeforeMB_Mean", "HeapSizeAfterMB_Mean"]]
 heap_sizes.plot()
 ```
 
@@ -263,7 +272,7 @@ If you ran more than one configuration and/or more than one benchmark, you can
 also get statistics from each one.
 
 ```python
-data_frame.groupby(["config_name", "benchmark_name"]).mean()
+run_data_frame.groupby(["config_name", "benchmark_name", "iteration_number"]).mean()
 ```
 
 ![Mean By Grouping Parameter](images/PandasMeanGroupBy.PNG)
@@ -278,6 +287,12 @@ We want to see the mean value for each metric from each flavor's iterations.
 The `groupby()` code snippet separates the values as we require them, and then
 `pandas' mean()` method calculates for each flavor, resulting in the table
 shown in the picture above.
+
+#### More Examples
+
+The Jupyter Notebook at the root of the GC Benchmarking Infrastructure codebase
+has a number of more detailed and complex examples you can follow and use for
+your analysis.
 
 ### Individual GC's Metrics Analysis
 
