@@ -15,6 +15,7 @@ namespace System.IO.Tests
         private readonly string _testPath200 = PerfUtils.CreateString(200);
         private readonly string _testPath500 = PerfUtils.CreateString(500);
         private readonly string _testPath1000 = PerfUtils.CreateString(1000);
+        private readonly string _testPathNoRedundantSegments = "/home/user/runtime/src/coreclr/runtime/src/libraries/System.Private.CoreLib/src/System/IO/Path.cs";
 
         [Benchmark]
         public string Combine() => Path.Combine(_testPath, _testPath10);
@@ -44,6 +45,9 @@ namespace System.IO.Tests
         [Benchmark]
         public void GetFullPathForReallyLongPath() => Path.GetFullPath(_testPath1000);
 #endif
+
+        [Benchmark]
+        public void GetFullPathNoRedundantSegments() => Path.GetFullPath(_testPathNoRedundantSegments);
 
         [Benchmark]
         public string GetPathRoot() => Path.GetPathRoot(_testPath);
