@@ -3,7 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
+using System;
+using System.Linq;
 
 namespace Microsoft.Extensions.Caching.Memory.Tests
 {
@@ -11,9 +14,10 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
     public class MemoryCacheTests
     {
         private MemoryCache _memCache;
+        private (object key, object value)[] _items;
 
-        [GlobalSetup]
-        public void Setup()
+        [GlobalSetup(Targets = new[] { nameof(GetHit), nameof(TryGetValueHit), nameof(GetMiss), nameof(TryGetValueMiss), nameof(SetOverride) })]
+        public void SetupBasic()
         {
             _memCache = new MemoryCache(new MemoryCacheOptions());
             for (var i = 0; i < 1024; i++)
@@ -22,7 +26,7 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
             }
         }
 
-        [GlobalCleanup]
+        [GlobalCleanup(Targets = new[] { nameof(GetHit), nameof(TryGetValueHit), nameof(GetMiss), nameof(TryGetValueMiss), nameof(SetOverride) })]
         public void Cleanup() => _memCache.Dispose();
 
         [Benchmark]
@@ -39,5 +43,66 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
 
         [Benchmark]
         public object SetOverride() => _memCache.Set("512", "512");
+
+        [GlobalSetup(Targets = new[] { nameof(AddThenRemove_NoExpiration), nameof(AddThenRemove_AbsoluteExpiration), nameof(AddThenRemove_RelativeExpiration) })]
+        public void Setup_AddThenRemove()
+        {
+            _items = ValuesGenerator.ArrayOfUniqueValues<int>(100).Select(x => ((object)x.ToString(), (object)x.ToString())).ToArray();
+        }
+
+        [Benchmark]
+        public void AddThenRemove_NoExpiration()
+        {
+            using (MemoryCache cache = new MemoryCache(new MemoryCacheOptions()))
+            {
+                foreach (var item in _items)
+                {
+                    cache.Set(item.key, item.value);
+                }
+
+                foreach (var item in _items)
+                {
+                    cache.Remove(item.key);
+                }
+            }
+        }
+
+        [Benchmark]
+        public void AddThenRemove_AbsoluteExpiration()
+        {
+            DateTimeOffset absolute = DateTimeOffset.UtcNow.AddHours(1);
+
+            using (MemoryCache cache = new MemoryCache(new MemoryCacheOptions()))
+            {
+                foreach (var item in _items)
+                {
+                    cache.Set(item.key, item.value, absolute);
+                }
+
+                foreach (var item in _items)
+                {
+                    cache.Remove(item.key);
+                }
+            }
+        }
+
+        [Benchmark]
+        public void AddThenRemove_RelativeExpiration()
+        {
+            TimeSpan relative = TimeSpan.FromHours(1);
+
+            using (MemoryCache cache = new MemoryCache(new MemoryCacheOptions()))
+            {
+                foreach (var item in _items)
+                {
+                    cache.Set(item.key, item.value, relative);
+                }
+
+                foreach (var item in _items)
+                {
+                    cache.Remove(item.key);
+                }
+            }
+        }
     }
 }
