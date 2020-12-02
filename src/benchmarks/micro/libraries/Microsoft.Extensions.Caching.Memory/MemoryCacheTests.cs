@@ -44,7 +44,7 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
         [Benchmark]
         public object SetOverride() => _memCache.Set("512", "512");
 
-        [GlobalSetup(Targets = new[] { nameof(AddThenRemove_NoExpiration), nameof(AddThenRemove_AbsoluteExpiration), nameof(AddThenRemove_RelativeExpiration) })]
+        [GlobalSetup(Targets = new[] { nameof(AddThenRemove_NoExpiration), nameof(AddThenRemove_AbsoluteExpiration), nameof(AddThenRemove_RelativeExpiration), nameof(AddThenRemove_SlidingExpiration) })]
         public void Setup_AddThenRemove()
         {
             _items = ValuesGenerator.ArrayOfUniqueValues<int>(100).Select(x => ((object)x.ToString(), (object)x.ToString())).ToArray();
