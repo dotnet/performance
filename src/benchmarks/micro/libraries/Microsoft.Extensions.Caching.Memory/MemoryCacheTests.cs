@@ -3,7 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
+using System;
+using System.Linq;
 
 namespace Microsoft.Extensions.Caching.Memory.Tests
 {
@@ -11,9 +14,10 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
     public class MemoryCacheTests
     {
         private MemoryCache _memCache;
+        private (object key, object value)[] _items;
 
-        [GlobalSetup]
-        public void Setup()
+        [GlobalSetup(Targets = new[] { nameof(GetHit), nameof(TryGetValueHit), nameof(GetMiss), nameof(TryGetValueMiss), nameof(SetOverride) })]
+        public void SetupBasic()
         {
             _memCache = new MemoryCache(new MemoryCacheOptions());
             for (var i = 0; i < 1024; i++)
@@ -22,8 +26,8 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
             }
         }
 
-        [GlobalCleanup]
-        public void Cleanup() => _memCache.Dispose();
+        [GlobalCleanup(Targets = new[] { nameof(GetHit), nameof(TryGetValueHit), nameof(GetMiss), nameof(TryGetValueMiss), nameof(SetOverride) })]
+        public void CleanupBasic() => _memCache.Dispose();
 
         [Benchmark]
         public object GetHit() => _memCache.Get("256");
@@ -39,5 +43,100 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
 
         [Benchmark]
         public object SetOverride() => _memCache.Set("512", "512");
+
+        [GlobalSetup(Targets = new[] { nameof(AddThenRemove_NoExpiration), nameof(AddThenRemove_AbsoluteExpiration), nameof(AddThenRemove_RelativeExpiration), nameof(AddThenRemove_SlidingExpiration) })]
+        public void Setup_AddThenRemove()
+        {
+            _items = ValuesGenerator.ArrayOfUniqueValues<int>(100).Select(x => ((object)x.ToString(), (object)x.ToString())).ToArray();
+        }
+
+        [Benchmark]
+        public void AddThenRemove_NoExpiration()
+        {
+            using (MemoryCache cache = new MemoryCache(new MemoryCacheOptions()))
+            {
+                foreach (var item in _items)
+                {
+                    using (ICacheEntry entry = cache.CreateEntry(item.key))
+                    {
+                        entry.Value = item.value;
+                    } // entry.Dispose is adding it to the cache
+                }
+
+                foreach (var item in _items)
+                {
+                    cache.Remove(item.key);
+                }
+            }
+        }
+
+        [Benchmark]
+        public void AddThenRemove_AbsoluteExpiration()
+        {
+            DateTimeOffset absolute = DateTimeOffset.UtcNow.AddHours(1);
+
+            using (MemoryCache cache = new MemoryCache(new MemoryCacheOptions()))
+            {
+                foreach (var item in _items)
+                {
+                    using (ICacheEntry entry = cache.CreateEntry(item.key))
+                    {
+                        entry.AbsoluteExpiration = absolute;
+                        entry.Value = item.value;
+                    }
+                }
+
+                foreach (var item in _items)
+                {
+                    cache.Remove(item.key);
+                }
+            }
+        }
+
+        [Benchmark]
+        public void AddThenRemove_RelativeExpiration()
+        {
+            TimeSpan relative = TimeSpan.FromHours(1);
+
+            using (MemoryCache cache = new MemoryCache(new MemoryCacheOptions()))
+            {
+                foreach (var item in _items)
+                {
+                    using (ICacheEntry entry = cache.CreateEntry(item.key))
+                    {
+                        entry.AbsoluteExpirationRelativeToNow = relative;
+                        entry.Value = item.value;
+                    }
+                }
+
+                foreach (var item in _items)
+                {
+                    cache.Remove(item.key);
+                }
+            }
+        }
+
+        [Benchmark]
+        public void AddThenRemove_SlidingExpiration()
+        {
+            TimeSpan relative = TimeSpan.FromHours(1);
+
+            using (MemoryCache cache = new MemoryCache(new MemoryCacheOptions()))
+            {
+                foreach (var item in _items)
+                {
+                    using (ICacheEntry entry = cache.CreateEntry(item.key))
+                    {
+                        entry.SlidingExpiration = relative;
+                        entry.Value = item.value;
+                    }
+                }
+
+                foreach (var item in _items)
+                {
+                    cache.Remove(item.key);
+                }
+            }
+        }
     }
 }
