@@ -27,7 +27,7 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
         }
 
         [GlobalCleanup(Targets = new[] { nameof(GetHit), nameof(TryGetValueHit), nameof(GetMiss), nameof(TryGetValueMiss), nameof(SetOverride) })]
-        public void Cleanup() => _memCache.Dispose();
+        public void CleanupBasic() => _memCache.Dispose();
 
         [Benchmark]
         public object GetHit() => _memCache.Get("256");
