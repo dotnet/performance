@@ -57,7 +57,10 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
             {
                 foreach (var item in _items)
                 {
-                    cache.Set(item.key, item.value);
+                    using (ICacheEntry entry = cache.CreateEntry(item.key))
+                    {
+                        entry.Value = item.value;
+                    } // entry.Dispose is adding it to the cache
                 }
 
                 foreach (var item in _items)
@@ -76,7 +79,11 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
             {
                 foreach (var item in _items)
                 {
-                    cache.Set(item.key, item.value, absolute);
+                    using (ICacheEntry entry = cache.CreateEntry(item.key))
+                    {
+                        entry.AbsoluteExpiration = absolute;
+                        entry.Value = item.value;
+                    }
                 }
 
                 foreach (var item in _items)
@@ -95,7 +102,34 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
             {
                 foreach (var item in _items)
                 {
-                    cache.Set(item.key, item.value, relative);
+                    using (ICacheEntry entry = cache.CreateEntry(item.key))
+                    {
+                        entry.AbsoluteExpirationRelativeToNow = relative;
+                        entry.Value = item.value;
+                    }
+                }
+
+                foreach (var item in _items)
+                {
+                    cache.Remove(item.key);
+                }
+            }
+        }
+
+        [Benchmark]
+        public void AddThenRemove_SlidingExpiration()
+        {
+            TimeSpan relative = TimeSpan.FromHours(1);
+
+            using (MemoryCache cache = new MemoryCache(new MemoryCacheOptions()))
+            {
+                foreach (var item in _items)
+                {
+                    using (ICacheEntry entry = cache.CreateEntry(item.key))
+                    {
+                        entry.SlidingExpiration = relative;
+                        entry.Value = item.value;
+                    }
                 }
 
                 foreach (var item in _items)
