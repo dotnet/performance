@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace System.Drawing.Tests
 {
-    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM, Categories.NoInterpreter)]
     public class Perf_Graphics_DrawBeziers
     {
         private Bitmap _image;

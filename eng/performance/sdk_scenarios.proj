@@ -17,11 +17,16 @@
     <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
   </PropertyGroup>  
 
+  <PropertyGroup>
+    <FrameworkVersion>$(_Framework.Substring($([MSBuild]::Subtract($(_Framework.Length), 3))))</FrameworkVersion>
+  </PropertyGroup>
+
   <ItemGroup>
       <Framework Include="netcoreapp2.1" FrameworkName="%(Identity)"/>
-      <Framework Include="netcoreapp3.0" FrameworkName="%(Identity)" Condition="'$(_Framework.Substring(10))' &gt; '2.1'"/>
-      <Framework Include="netcoreapp3.1" FrameworkName="%(Identity)" Condition="'$(_Framework.Substring(10))' &gt; '3.0'"/>
-      <Framework Include="netcoreapp5.0" FrameworkName="%(Identity)" Condition="'$(_Framework.Substring(10))' &gt; '3.1'"/>
+      <Framework Include="netcoreapp3.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '2.1'"/>
+      <Framework Include="netcoreapp3.1" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '3.0'"/>
+      <Framework Include="netcoreapp5.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '3.1'"/>
+      <!-- <Framework Include="net6.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '5.0'"/> -->
   </ItemGroup>
 
   <ItemDefinitionGroup>
@@ -60,22 +65,22 @@
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem> -->
 
-    <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Large %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and '$(_Framework)' != 'netcoreapp5.0'">
+    <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Large %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and ('$(FrameworkVersion)' == '3.0' or '$(FrameworkVersion)' == '3.1')">
       <PayloadDirectory>$(ScenariosDir)windowsformslarge</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
 
-    <SDKWorkItem Include="@(Framework -> 'SDK WPF Large %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and '$(_Framework)' != 'netcoreapp5.0'">
+    <SDKWorkItem Include="@(Framework -> 'SDK WPF Large %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and ('$(FrameworkVersion)' == '3.0' or '$(FrameworkVersion)' == '3.1')">
       <PayloadDirectory>$(ScenariosDir)wpflarge</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
 
-    <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Template %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and '$(_Framework)' != 'netcoreapp5.0'">
+    <SDKWorkItem Include="@(Framework -> 'SDK Windows Forms Template %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' and ('$(FrameworkVersion)' == '3.0' or '$(FrameworkVersion)' == '3.1')">
       <PayloadDirectory>$(ScenariosDir)windowsforms</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
 
-    <SDKWorkItem Include="@(Framework -> 'SDK WPF Template %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and '$(_Framework)' != 'netcoreapp5.0'">
+    <SDKWorkItem Include="@(Framework -> 'SDK WPF Template %(Identity)')" Exclude="*2.1" Condition="'$(TargetsWindows)' == 'true' and ('$(FrameworkVersion)' == '3.0' or '$(FrameworkVersion)' == '3.1')">
       <PayloadDirectory>$(ScenariosDir)wpf</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>

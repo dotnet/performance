@@ -82,8 +82,8 @@ we allocate POH that's randomly chosen between this range.
 
 -sohSurvInterval/-sohsi: g_sohSurvInterval
 meaning every Nth SOH object allocated will survive. This is something we will consider changing to survival rate
-later. When the allocated objects are of similiar sizes the surv rate is 1/g_sohSurvInterval but we may not want them
-to all be similiar sizes.
+later. When the allocated objects are of similar sizes the surv rate is 1/g_sohSurvInterval but we may not want them
+to all be similar sizes.
 
 -lohSurvInterval/-lohsi: g_lohSurvInterval
 meaning every Nth LOH object allocated will survive. 
@@ -91,17 +91,14 @@ meaning every Nth LOH object allocated will survive.
 -pohSurvInterval/-pohsi:
 meaning every Nth POH object allocated will survive.
 
-Note that -sohSurvInterval/-lohSurvInterval are only applicable for steady state, during initialization everything
-survives.
+Note that -sohSurvInterval/-lohSurvInterval are only applicable for steady state.
+During initialization everything survives.
 
 -sohPinningInterval/-sohpi: g_sohPinningInterval
 meaning every Nth SOH object survived will be pinned. 
 
 -lohPinningInterval/-lohpi: g_lohPinningInterval
 meaning every Nth LOH object survived will be pinned. 
-
--pohPinningInterval/-pohpi:
-meaning every Nth POH object survived will be pinned.
 
 -allocType/-at: g_allocType
 What kind of objects are we allocating? Current supported types: 
@@ -347,7 +344,7 @@ class Item : ITypeWithPayload
 
         if (isPoh)
         {
-#if NETCOREAPP5_0
+#if NET5_0
             payload = GC.AllocateArray<byte>((int)payloadSize, pinned: true);
 #else
             throw new Exception("UNREACHABLE: POH allocations require netcoreapp5.0 or higher");
@@ -434,7 +431,7 @@ class SimpleRefPayLoad
         uint sizePayload = size - Overhead;
         if (isPoh)
         {
-#if NETCOREAPP5_0
+#if NET5_0
             payload = GC.AllocateArray<byte>((int)sizePayload, pinned: true);
 #else
             throw new Exception("UNREACHABLE: POH allocations require netcoreapp5.0 or higher");
@@ -644,7 +641,7 @@ readonly struct BucketSpec
     {
         string result = $"{sizeRange}; surv every {survInterval}; pin every {pinInterval}; weight {weight}";
 
-#if NETCOREAPP5_0
+#if NET5_0
         result += $"; isPoh {isPoh}";
 #endif
 
@@ -1253,7 +1250,7 @@ class ArgsParser
     private const uint DEFAULT_POH_ALLOC_LOW = 100;
     private const uint DEFAULT_POH_ALLOC_HIGH = 200 * 1024;
 
-#if NETCOREAPP5_0
+#if NET5_0
     private const uint DEFAULT_POH_PINNING_INTERVAL = 0;
     private const uint DEFAULT_POH_FINALIZABLE_INTERVAL = 0;
     private const uint DEFAULT_POH_SURV_INTERVAL = 0;
@@ -1285,8 +1282,7 @@ class ArgsParser
         uint pohAllocLow = DEFAULT_POH_ALLOC_LOW;
         uint pohAllocHigh = DEFAULT_POH_ALLOC_HIGH;
 
-#if NETCOREAPP5_0
-        uint pohPinInterval = DEFAULT_POH_PINNING_INTERVAL;
+#if NET5_0
         uint pohFinalizableInterval = DEFAULT_POH_FINALIZABLE_INTERVAL;
         uint pohSurvInterval = DEFAULT_POH_SURV_INTERVAL;
 
@@ -1323,7 +1319,7 @@ class ArgsParser
                     break;
                 case "-pohAllocRatio":
                 case "-pohar":
-#if NETCOREAPP5_0
+#if NET5_0
                     pohAllocRatioArg = ParseUInt32(args[++i]);
 #else
                     Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
@@ -1353,7 +1349,7 @@ class ArgsParser
                     break;
                 case "-pohSizeRange":
                 case "-pohsr":
-#if NETCOREAPP5_0
+#if NET5_0
                     ParseRange(args[++i], out pohAllocLow, out pohAllocHigh);
 #else
                     Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
@@ -1370,7 +1366,7 @@ class ArgsParser
                     break;
                 case "-pohSurvInterval":
                 case "-pohsi":
-#if NETCOREAPP5_0
+#if NET5_0
                     pohSurvInterval = ParseUInt32(args[++i]);
 #else
                     Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
@@ -1394,18 +1390,9 @@ class ArgsParser
                     lohFinalizableInterval = ParseUInt32(args[++i]);
                     break;
 
-                case "-pohPinningInterval":
-                case "-pohpi":
-#if NETCOREAPP5_0
-                    pohPinInterval = ParseUInt32(args[++i]);
-#else
-                    Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
-                                      args[i++]);
-#endif
-                    break;
                 case "-pohFinalizableInterval":
                 case "-pohfi":
-#if NETCOREAPP5_0
+#if NET5_0
                     pohFinalizableInterval = ParseUInt32(args[++i]);
 #else
                     Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
@@ -1429,7 +1416,7 @@ class ArgsParser
         }
 
         if (totalLiveBytes == 0 && (sohSurvInterval != 0 || lohSurvInterval != 0
-#if NETCOREAPP5_0
+#if NET5_0
             || pohSurvInterval != 0
 #endif
             ))
@@ -1451,7 +1438,15 @@ class ArgsParser
         List<BucketSpec> bucketList = new List<BucketSpec>();
         uint sohWeight = 1000;
 
-        uint lohWeight = GetLohAllocWeight(lohAllocRatioArg, sohAllocLow: sohAllocLow, sohAllocHigh: sohAllocHigh, lohAllocLow: lohAllocLow, lohAllocHigh: lohAllocHigh, pohAllocLow, pohAllocHigh);
+        uint lohWeight = GetLohAllocWeight(
+            lohAllocRatio: lohAllocRatioArg,
+            sohAllocLow: sohAllocLow,
+            sohAllocHigh: sohAllocHigh,
+            lohAllocLow: lohAllocLow,
+            lohAllocHigh: lohAllocHigh,
+            pohAllocLow: pohAllocLow,
+            pohAllocHigh: pohAllocHigh);
+
         if (lohWeight > 0)
         {
             BucketSpec lohBucket = new BucketSpec(
@@ -1465,14 +1460,22 @@ class ArgsParser
             sohWeight -= lohWeight;
         }
 
-#if NETCOREAPP5_0
-        uint pohWeight = GetPohAllocWeight(pohAllocRatioArg, sohAllocLow: sohAllocLow, sohAllocHigh: sohAllocHigh, lohAllocLow: lohAllocLow, lohAllocHigh: lohAllocHigh, pohAllocLow, pohAllocHigh);
+#if NET5_0
+        uint pohWeight = GetPohAllocWeight(
+            pohAllocRatio: pohAllocRatioArg,
+            sohAllocLow: sohAllocLow,
+            sohAllocHigh: sohAllocHigh,
+            lohAllocLow: lohAllocLow,
+            lohAllocHigh: lohAllocHigh,
+            pohAllocLow: pohAllocLow,
+            pohAllocHigh: pohAllocHigh);
+
         if (pohWeight > 0)
         {
             BucketSpec pohBucket = new BucketSpec(
                 sizeRange: new SizeRange(pohAllocLow, pohAllocHigh),
                 survInterval: pohSurvInterval,
-                pinInterval: pohPinInterval,
+                pinInterval: 0,
                 finalizableInterval: pohFinalizableInterval,
                 weight: pohWeight,
                 isPoh: true);
@@ -1532,7 +1535,7 @@ class ArgsParser
         return (uint)((ulong)lohAllocRatioOutOf1000 * (sohObjSize + lohObjSize + pohObjSize) / lohObjSize);
     }
 
-#if NETCOREAPP5_0
+#if NET5_0
     private static uint GetPohAllocWeight(uint? pohAllocRatio, uint sohAllocLow, uint sohAllocHigh, uint lohAllocLow, uint lohAllocHigh, uint pohAllocLow = 0, uint pohAllocHigh = 0)
     {
         ulong meanSohObjSize = Util.Mean(sohAllocLow, sohAllocHigh);
@@ -1864,7 +1867,7 @@ class MemoryAlloc
             byte[] bTemp;
             if (objSpec.IsPoh)
             {
-#if NETCOREAPP5_0
+#if NET5_0
                 bTemp = GC.AllocateArray<byte>((int)objSpec.Size, pinned: true);
 #else
                 throw new Exception("POH allocations require netcoreapp5.0 build");

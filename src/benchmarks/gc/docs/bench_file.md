@@ -28,19 +28,22 @@ configs:
   bigger:
     complus_gcgen0size: 33554432
 benchmarks:
-  nosurvive:
+  surv_2percent:
     executable: GCPerfSim
     arguments:
       tc: 8
       tagb: 500
       tlgb: 1
       lohar: 0
+      pohar: 0
+      sohsr: 10-4000
+      lohsr: 102400-204800
+      pohsr: 100-204800
       sohsi: 50
       lohsi: 0
       pohsi: 0
       sohpi: 0
       lohpi: 0
-      pohpi: 0
       sohfi: 0
       lohfi: 0
       pohfi: 0
@@ -58,12 +61,11 @@ benchmarks:
 comment: `str | None`
   (ignored)
 
-vary: `"machine" | "executable" | "coreclr" | "config" | "benchmark" | None`
+vary: `"machine" | "coreclr" | "config" | "benchmark" | "executable" | None`
   Preferred property to vary when using `py . diff`
 
 test_executables: `Mapping[str, Path]`
-  Mapping from an (arbitrary) executable name to its path.
-  Paths to the dll's that will be run with the Core_Root.
+  Mapping of dll's to run when issuing `py . run` or `py . suite-run`
 
 configs_vary_by: `[ConfigsVaryBy](#ConfigsVaryBy) | None`
   This is mostly set just for information.
@@ -395,12 +397,15 @@ tagb: `float`
 tlgb: `float`
 totalMins: `float | None`
 lohar: `int`
+pohar: `int`
+sohsr: `str`
+lohsr: `str`
+pohsr: `str`
 sohsi: `int`
 lohsi: `int`
 pohsi: `int`
 sohpi: `int`
 lohpi: `int`
-pohpi: `int`
 sohfi: `int`
 lohfi: `int`
 pohfi: `int`

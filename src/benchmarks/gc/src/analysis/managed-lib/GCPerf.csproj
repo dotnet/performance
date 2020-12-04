@@ -24,6 +24,9 @@
       <Reference Include="TraceReloggerLib">
         <HintPath>../../dependencies/dlls/TraceReloggerLib.dll</HintPath>
       </Reference>
+      <Reference Include="System.Runtime.CompilerServices.Unsafe">
+        <HintPath>../../dependencies/dlls/System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      </Reference>
     </ItemGroup>
   -->
 </Project>

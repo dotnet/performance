@@ -81,9 +81,15 @@ def suite_create(args: SuiteCreateArgs) -> None:
     gcperfsim_path = get_latest_testbin_path("GCPerfSim")
 
     tests: Mapping[str, BenchFile] = {
-        "normal_workstation": _create_scenario_normal_workstation(coreclrs, options, gcperfsim_path),
-        "normal_server": _create_scenario_normal_server(coreclrs, options, proc_count, gcperfsim_path),
-        "high_memory": _create_scenario_high_memory_load(coreclrs, options, proc_count, gcperfsim_path),
+        "normal_workstation": _create_scenario_normal_workstation(
+            coreclrs, options, gcperfsim_path
+        ),
+        "normal_server": _create_scenario_normal_server(
+            coreclrs, options, proc_count, gcperfsim_path
+        ),
+        "high_memory": _create_scenario_high_memory_load(
+            coreclrs, options, proc_count, gcperfsim_path
+        ),
         # TODO: use a low proc_count here?
         "low_memory_container": _create_scenario_low_memory_container(
             coreclrs, options, proc_count, gcperfsim_path
@@ -265,7 +271,7 @@ LOW_MEMORY_SCORES: Mapping[str, ScoreSpec] = combine_mappings(
 
 
 def _create_scenario_normal_workstation(
-    coreclrs: Mapping[str, CoreclrSpecifier], options: BenchOptions, gcperfsim: Path,
+    coreclrs: Mapping[str, CoreclrSpecifier], options: BenchOptions, gcperfsim: Path
 ) -> BenchFile:
     common_config = Config(complus_gcserver=False, complus_gcconcurrent=False)
     return BenchFile(

@@ -9,6 +9,7 @@ from typing import Mapping, Optional, Sequence, Tuple
 from result import Ok
 
 from ..commonlib.bench_file import (
+    BenchFile,
     BenchFileAndPath,
     Benchmark,
     BenchmarkAndName,
@@ -200,6 +201,32 @@ def supports_config(benchmark: BenchmarkAndName, config: PartialConfigAndName) -
     return only_configs is None or config.name in only_configs
 
 
+def get_test_combinations(
+    machines_arg: Optional[Sequence[str]], bench: BenchFile, test_where: Optional[Sequence[str]]
+) -> Sequence[SingleTestCombination]:
+    machines = parse_machines_arg(machines_arg)
+
+    unfiltered_all_combinations = [
+        SingleTestCombination(
+            machine=machine,
+            executable=executable,
+            coreclr=coreclr,
+            config=config,
+            benchmark=benchmark,
+        )
+        for machine in machines
+        for executable in bench.executables_and_names
+        for coreclr in bench.coreclrs_and_names
+        for config in bench.partial_configs_and_names
+        for benchmark in bench.benchmarks_and_names
+        if supports_config(benchmark, config)
+    ]
+
+    if test_where is not None:
+        return _filter_test_combinations(unfiltered_all_combinations, test_where)
+    return unfiltered_all_combinations
+
+
 def get_diffables_from_bench_file(
     traces: ProcessedTraces,
     bench_file_path: Path,
@@ -210,23 +237,13 @@ def get_diffables_from_bench_file(
     sample_kind: SampleKind,
     max_iterations: Optional[int],
 ) -> Diffables:
-    machines = parse_machines_arg(machines_arg)
     bench_and_path = parse_bench_file(bench_file_path)
     bench = bench_and_path.content
 
     vary = non_null(bench.vary, "Must provide --vary") if arg_vary is None else arg_vary
-
-    unfiltered_all_combinations = [
-        SingleTestCombination(machine=machine, executable=executable, coreclr=coreclr, config=config, benchmark=benchmark)
-        for machine in machines
-        for executable in bench.executables_and_names
-        for coreclr in bench.coreclrs_and_names
-        for config in bench.partial_configs_and_names
-        for benchmark in bench.benchmarks_and_names
-        if supports_config(benchmark, config)
-    ]
-
-    filtered_all_combinations = _filter_test_combinations(unfiltered_all_combinations, test_where)
+    filtered_all_combinations = get_test_combinations(
+        machines_arg=machines_arg, bench=bench, test_where=test_where
+    )
 
     common = PartialTestCombination(
         machine=find_common(lambda c: c.machine, filtered_all_combinations),

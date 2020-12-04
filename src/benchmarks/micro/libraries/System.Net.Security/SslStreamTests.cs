@@ -85,6 +85,19 @@ namespace System.Net.Security.Tests
             _clientPipe = pipeClient;
         }
 
+        [GlobalCleanup]
+        public void Cleanup()
+        {
+            _sslClient.Dispose();
+            _sslServer.Dispose();
+            _clientIPv4.Dispose();
+            _serverIPv4.Dispose();
+            _clientIPv6.Dispose();
+            _serverIPv6.Dispose();
+            _clientPipe.Dispose();
+            _serverPipe.Dispose();
+        }
+
         [Benchmark]
         public Task DefaultHandshakeIPv4Async() => DefaultHandshake(_clientIPv4, _serverIPv4);
 

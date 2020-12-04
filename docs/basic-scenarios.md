@@ -12,7 +12,7 @@ Size On Disk, as the name suggests, is a metric that recursively measures the si
 
 We will walk through **Self-Contained Empty Console App Size On Disk** scenario as an example.
 ### Step 1 Initialize Environment
-Same instruction of [Scenario Tests Guide - Step 1](./scenarios-workflow#step-1-initialize-environment).
+Same instruction of [Scenario Tests Guide - Step 1](./scenarios-workflow.md#step-1-initialize-environment).
 ### Step 2 Run Precommand
 For **Self-Contained Empty Console App Size On Disk** scenario, run precommand to create an empty console template and publish it: 
 ```
@@ -51,7 +51,7 @@ python3 test.py sod
 [2020/09/29 04:21:36][INFO] pub\api-ms-win-core-file-l2-1-0.dll                       |18696.000 bytes    |18696.000 bytes    |18696.000 bytes34
 ```
 ### Step 4 Run Postcommand
-Same instruction of [Scenario Tests Guide - Step 4](./scenarios-workflow#step-4-run-postcommand).
+Same instruction of [Scenario Tests Guide - Step 4](./scenarios-workflow.md#step-4-run-postcommand).
 ## Command Matrix
 - \<tfm> values:
     - netcoreapp2.1
