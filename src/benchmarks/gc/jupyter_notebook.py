@@ -160,26 +160,38 @@ _BING_TRACE = get_trace_with_everything(_BING_TRACE_PATH / "decommit_32-cpu.yaml
 
 _BING_TRACE_ALL_DATA = TraceReadAndParseUtils(
     ptrace=_BING_TRACE,
-    symbol_path=Path("C:\ivdiazsa\Bing-Trace-PDB"),
+    symbol_path=Path("/Path/To/PDB/Directory"),
 )
+
+# %% Test
+
+functions_list = [
+    "gc_heap::plan_phase",
+    "gc_heap::mark_phase",
+    "gc_heap::relocate_phase",
+    "gc_heap::compact_phase",
+    "gc_heap::make_free_lists",
+]
+
+_BING_TRACE_ALL_DATA.init_cpu_samples_from_trace(functions_list)
 
 #%% Example: Chart the number of samples per individual GC's, for all Gen1 GC's,
 # for the functions "gc_heap::plan_phase" and "gc_heap::mark_phase", and their callees.
 
 chart_cpu_samples_per_gcs(
     ptraces_utils=(_BING_TRACE_ALL_DATA,),
-    functions_to_chart=("gc_heap::try_allocate_more_space",),
+    functions_to_chart=functions_list[2:4],
     x_property_name="gc_index",
-    y_property_names=("exclusive_count",),
-    gc_filter=lambda gc: gc.index < 300,
+    y_property_names=("inclusive_count",),
+    gc_filter=lambda gc: gc.index < 100,
 )
 
 #%% Example: Show CPU Samples metrics within a specified interval of time (1-5 secs),
 # for the function "gc_heap::plan_phase".
 
 gc0 = _BING_TRACE_ALL_DATA.trace_processed_gcs[0]
-gc1 = _BING_TRACE_ALL_DATA.trace_processed_gcs[1]
-gc10 = _BING_TRACE_ALL_DATA.trace_processed_gcs[10]
+gc1 = _BING_TRACE_ALL_DATA.trace_processed_gcs[100]
+gc10 = _BING_TRACE_ALL_DATA.trace_processed_gcs[200]
 
 print("GC0")
 print(f"Startgc0: {gc0.StartRelativeMSec}")
@@ -194,7 +206,7 @@ show_cpu_samples_metrics(
     end_time_msec=gc0.EndRelativeMSec,
 )
 
-print("GC1")
+print("GC100")
 print(f"Startgc1: {gc1.StartRelativeMSec}")
 print(f"Indxgc1: {gc1.Number}")
 print(f"Durationgc1: {gc1.DurationMSec}")
@@ -207,7 +219,7 @@ show_cpu_samples_metrics(
     end_time_msec=gc1.EndRelativeMSec,
 )
 
-print("GC10")
+print("GC200")
 print(f"Startgc10: {gc10.StartRelativeMSec}")
 print(f"Indxgc10: {gc10.Number}")
 print(f"Durationgc10: {gc10.DurationMSec}")

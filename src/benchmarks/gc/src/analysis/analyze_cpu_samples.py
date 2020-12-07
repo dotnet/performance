@@ -5,7 +5,7 @@
 from dataclasses import dataclass
 from os import getcwd
 from pathlib import Path
-from typing import Sequence, Callable, List, Optional
+from typing import Dict, Sequence, Callable, List, Optional
 
 from .chart_utils import chart_lines_from_fields, Trace
 from .types import ProcessedTrace, ProcessedGC
@@ -18,7 +18,40 @@ from .clr_types import (
     AbstractTraceLog,
     AbstractStackSource,
     AbstractStackView)
+from ..commonlib.collection_util import add
 from ..commonlib.type_utils import with_slots, doc_field
+
+
+@doc_field("gc_index", "Index/Number/ID of the GC.")
+@doc_field("function", "Function to analyze samples of.")
+@doc_field("inclusive_count", "Number of CPU Samples of the analyzed function and its callees.")
+@doc_field("exclusive_count", "Number of CPU Samples of the analyzed function only.")
+@doc_field(
+    "inclusive_metric_percent", "Percent of CPU Samples belonging to this function and its callees."
+)
+@doc_field("exclusive_metric_percent", "Percent of CPU Samples belonging to this function only.")
+@doc_field("first_time_msec", "Timestamp in msec where this function's first sample was found.")
+@doc_field("last_time_msec", "Timestamp in msec where this function's last sample was found.")
+@with_slots
+@dataclass(frozen=True)
+class GCAndCPUSamples:
+    gc_index: int
+    function: str
+    inclusive_count: float
+    exclusive_count: float
+    inclusive_metric_percent: float
+    exclusive_metric_percent: float
+    first_time_msec: float
+    last_time_msec: float
+
+
+@doc_field("gc_index", "Index/Number/ID of the GC.")
+@doc_field("timespan", "TimeSpan object containing start and end times (in msec) of this GC.")
+@with_slots
+@dataclass(frozen=True)
+class GCTimeSpan:
+    gc_index: int
+    timespan: AbstractTimeSpan
 
 
 @doc_field(
@@ -46,9 +79,10 @@ class TraceReadAndParseUtils:
     trace_log: AbstractTraceLog
     symbol_reader: AbstractSymbolReader
     stack_source: AbstractStackSource
-    gcs_stack_views: List[AbstractStackView]
+    gcs_time_ranges: List[GCTimeSpan]
+    gcs_cpu_samples: Dict[str, List[GCAndCPUSamples]]
 
-    def __init__(self, ptrace: ProcessedTrace, symbol_path: Path, init_gcs_samples: bool = True):
+    def __init__(self, ptrace: ProcessedTrace, symbol_path: Path):
         clr = get_clr()
         workdir = Path(getcwd())
 
@@ -72,10 +106,8 @@ class TraceReadAndParseUtils:
         self.stack_source = clr.Analysis.GetProcessFullStackSource(
             self.trace_log, self.symbol_reader, process_to_analyze
         )
-
-        self.gcs_stack_views = []
-        if (init_gcs_samples):
-            self.init_gcs_samples_data()
+        self.gcs_time_ranges = self.__get_gcs_time_ranges()
+        self.gcs_cpu_samples = {}
 
     # Clean up resources and free the usage on the symbols log file, as future
     # calls to CPU Samples Analysis functions with different traces would fail
@@ -100,111 +132,76 @@ class TraceReadAndParseUtils:
     def trace_name(self) -> str:
         return self.trace_info.name
 
-    # Retrieve the corresponding StackView object with all the samples data
-    # for each GC in the trace. This collection is later accessed by the
-    # charting functions to read the metrics values and create the points.
-    def init_gcs_samples_data(self) -> None:
+    # Property for easy access to the functions we currently have CPU samples from.
+    @property
+    def functions_processed(self) -> List[str]:
+        return list(self.gcs_cpu_samples.keys())
+
+    # Method that generates a list of GCTimeSpan objects, which contain the
+    # index, as well as start and end times of each individual GC from the trace
+    # associated with this object.
+    def __get_gcs_time_ranges(self) -> List[GCTimeSpan]:
+        assert len(self.trace_processed_gcs) > 0, "There are no GC's to analyze in this trace."
+        time_ranges = []
+        clr = get_clr()
+        for gc in self.trace_processed_gcs:
+            index = gc.Number
+            start = gc.StartRelativeMSec
+            end = gc.EndRelativeMSec
+            time_ranges.append(
+                GCTimeSpan(
+                    gc_index=index,
+                    timespan=clr.TimeSpanUtil.FromStartEndMSec(start, end),
+                )
+            )
+        return time_ranges
+
+    # Method that retrieves all the CPU Samples metrics defined in the GCAndCPUSamples
+    # class, for each individual GC, for the given functions, in the trace associated
+    # with this object.
+    #
+    # This method can be called multiple times with different functions if required.
+    # The functions data previously retrieved is not removed, only the new ones
+    # are added.
+    def init_cpu_samples_from_trace(self, functions: Sequence[str]) -> None:
+        functions_to_process = set()
+
+        for func in functions:
+            if func not in self.functions_processed:
+                functions_to_process.add(func)
+                add(self.gcs_cpu_samples, func, [])
+
         clr = get_clr()
 
-        # Ensure GC sample data has not been initialized.
-
-        assert not self.gcs_stack_views, (
-            "This trace already has the GC Samples data. Can't initialize "
-            "it again."
-        )
-
-        gcs_time_ranges = _get_gcs_time_ranges(self.trace_processed_gcs)
-
-        # Call GCPerf to get the samples metrics for each GC, by passing the
-        # time range where each one occurred.
-
-        for gc_trange in gcs_time_ranges:
+        for gc_trange in self.gcs_time_ranges:
             gc_stack_view = clr.Analysis.GetSamplesDataWithinTimeRange(
                 self.trace_log,
                 self.symbol_reader,
                 self.stack_source,
-                gc_trange,
+                gc_trange.timespan,
             )
-            self.gcs_stack_views.append(gc_stack_view)
+
+            for func in functions:
+                if func not in functions_to_process:
+                    break
+
+                func_samples_list = self.gcs_cpu_samples[func]
+                gc_node = gc_stack_view.FindNodeByName(func)
+                func_samples_list.append(
+                    GCAndCPUSamples(
+                        gc_index=gc_trange.gc_index,
+                        function=func,
+                        inclusive_count=gc_node.InclusiveCount,
+                        exclusive_count=gc_node.ExclusiveCount,
+                        inclusive_metric_percent=gc_node.InclusiveMetricPercent,
+                        exclusive_metric_percent=gc_node.ExclusiveMetricPercent,
+                        first_time_msec=gc_node.FirstTimeRelativeMSec,
+                        last_time_msec=gc_node.LastTimeRelativeMSec,
+                    )
+                )
 
 
-@doc_field("gc_index", "Index/Number/ID of the GC.")
-@doc_field("function", "Function to analyze samples of.")
-@doc_field("inclusive_count", "Number of CPU Samples of the analyzed function and its callees.")
-@doc_field("exclusive_count", "Number of CPU Samples of the analyzed function only.")
-@doc_field(
-    "inclusive_metric_percent", "Percent of CPU Samples belonging to this function and its callees."
-)
-@doc_field("exclusive_metric_percent", "Percent of CPU Samples belonging to this function only.")
-@doc_field("first_time_msec", "Timestamp in msec where this function's first sample was found.")
-@doc_field("last_time_msec", "Timestamp in msec where this function's last sample was found.")
-@with_slots
-@dataclass(frozen=True)
-class GCAndCPUSamples:
-    gc_index: int
-    function: str
-    inclusive_count: float
-    exclusive_count: float
-    inclusive_metric_percent: float
-    exclusive_metric_percent: float
-    first_time_msec: float
-    last_time_msec: float
-
-
-def _print_node(node: AbstractCallTreeNodeBase) -> None:
-    print(f"Name: {node.Name}")
-    print(f"Inclusive Metric %: {node.InclusiveMetricPercent}")
-    print(f"Exclusive Metric %: {node.ExclusiveMetricPercent}")
-    print(f"Inclusive Count: {node.InclusiveCount}")
-    print(f"Exclusive Count: {node.ExclusiveCount}")
-    print(f"First Time Relative MSec: {node.FirstTimeRelativeMSec}")
-    print(f"Last Time Relative MSec: {node.LastTimeRelativeMSec}")
-
-
-# Summary: Generates a list of TimeSpan objects, which contain the start and end
-# times of each individual GC from the list provided as parameter.
-#
-# The TimeSpan class is part of GCPerf and is defined in managed-lib/Analysis.cs.
-#
-# Parameters:
-#   gcs: List of ProcessedGC objects, which contain all the information of
-#        each individual GC.
-#
-# Returns:
-#    List with the time ranges of each GC. This list is later used in
-#    _get_cpu_samples_from_trace() to fetch each GC's sample metrics.
-
-
-def _get_gcs_time_ranges(gcs: Sequence[ProcessedGC]) -> List[AbstractTimeSpan]:
-    time_ranges = []
-    clr = get_clr()
-    for gc in gcs:
-        start = gc.StartRelativeMSec
-        end = gc.EndRelativeMSec
-        time_ranges.append(clr.TimeSpanUtil.FromStartEndMSec(start, end))
-    return time_ranges
-
-
-# Summary: Filters the GC's (if a filter is specified) of the given trace,
-#          and retrieves all the samples metrics of each one, for each of
-#          the specified functions. The metrics of each GC in each function
-#          create a set of "points", which is then appended to the 'all_data_to_chart'
-#          list. Chart_cpu_samples_per_gcs() uses this list to draw the final chart.
-#
-# Parameters:
-#   clr: Clr object which provides the capability to call GCPerf from here.
-#   trace_utils: TraceReadAndParseUtils object with the trace's associated
-#       ProcessedTrace, TraceLog, SymbolReader, and StackSource objects.
-#   functions: List with the names of the runtime functions to analyze.
-#   all_data_to_chart: List where Trace objects with the points to chart
-#       are appended. This class is defined in chart_utils.py.
-#   gc_filter: Function used to filter the trace's GC's. This parameter is
-#       optional and can be omitted to chart all the GC's samples.
-#
-# Returns: Nothing
-
-
-def _get_cpu_samples_from_trace(
+def _get_cpu_samples_to_chart(
     ptrace_utils: TraceReadAndParseUtils,
     functions: Sequence[str],
     all_data_to_chart: List[Trace[GCAndCPUSamples]],
@@ -213,9 +210,9 @@ def _get_cpu_samples_from_trace(
 
     # Filter the GC's we want. Here is something interesting happening.
     # We are applying the received GC Filter, and retrieving a list with the
-    # matching GC's indices. This is because when the TraceReadAndParseUtils
-    # object was initialized, it stored each GC's StackView with the samples
-    # in an array, where each index matches the GC index.
+    # matching GC's indices. These are not necessarily the actual GC ID's,
+    # but the indices where matching GC's are located in the ptrace_utils'
+    # object list, which is what we actually need to continue processing.
 
     gcs_to_analyze = list(map(
         lambda filtered: filtered.index,
@@ -232,44 +229,21 @@ def _get_cpu_samples_from_trace(
     # what the charting utilities require.
 
     for func in functions:
+        assert func in ptrace_utils.functions_processed, (
+            f"The function {func} was not found in the currently retrieved "
+            "CPU samples. Make sure you passed it as parameter when calling "
+            "init_cpu_samples_from_trace() when setting up."
+        )
+
+        gcs_data_of_func = ptrace_utils.gcs_cpu_samples[func]
         sample_points = []
 
-        # Retrieve the GC information from the array in the Trace Utils object
-        # using the GC index. This is explained more thoroughly above.
+        for gc_index in gcs_to_analyze:
+            sample_points.append(gcs_data_of_func[gc_index])
 
-        for gc_num in gcs_to_analyze:
-            node_metrics = ptrace_utils.gcs_stack_views[gc_num].FindNodeByName(func)
-            sample_points.append(
-                GCAndCPUSamples(
-                    gc_index=gc_num,
-                    function=func,
-                    inclusive_count=node_metrics.InclusiveCount,
-                    exclusive_count=node_metrics.ExclusiveCount,
-                    inclusive_metric_percent=node_metrics.InclusiveMetricPercent,
-                    exclusive_metric_percent=node_metrics.ExclusiveMetricPercent,
-                    first_time_msec=node_metrics.FirstTimeRelativeMSec,
-                    last_time_msec=node_metrics.LastTimeRelativeMSec,
-                )
-            )
         all_data_to_chart.append(
             Trace(name=f"{ptrace_utils.trace_name}---{func}:", data=sample_points)
         )
-
-
-# Summary: Reads all the given traces' data and calls _get_cpu_samples_from_trace()
-#          accordingly to get all the samples data to chart. Then, calls
-#          chart_lines_from_fields() to display the chart.
-#
-# Parameters:
-#   ptraces_utils: List with the TraceReadAndParseUtils objects containing
-#       all the information and helper objects for each trace to analyze.
-#   functions_to_chart: List with the names of the runtime functions to analyze.
-#   x_property_name: Metric to chart on the X-Axis.
-#   y_property_name: Metric(s) to chart on the Y-Axis.
-#   gc_filter: Function used to filter the trace's GC's. This parameter is
-#       optional and can be omitted to chart all the GC's samples.
-#
-# Returns: Nothing
 
 
 def chart_cpu_samples_per_gcs(
@@ -284,10 +258,10 @@ def chart_cpu_samples_per_gcs(
     # or there will be nothing to chart.
 
     for ptrace in ptraces_utils:
-        assert ptrace.gcs_stack_views, (
-            f"The Trace Utils for {ptrace.trace_name} does not have the GC samples "
-            "data. Make sure you pass `init_gcs_samples=True` when creating the "
-            "object or call `init_gcs_samples_data() on it."
+        assert len(ptrace.functions_processed) > 0, (
+            f"The Trace Utils for {ptrace.trace_name} does not have CPU samples "
+            "data. Make sure you call get_cpu_samples_from_trace() on it and "
+            "then try charting again."
         )
 
     all_data_to_chart: List[Trace[GCAndCPUSamples]] = []
@@ -296,7 +270,7 @@ def chart_cpu_samples_per_gcs(
     # using the received GC filter, if any.
 
     for ptrace in ptraces_utils:
-        _get_cpu_samples_from_trace(
+        _get_cpu_samples_to_chart(
             ptrace_utils=ptrace,
             functions=functions_to_chart,
             all_data_to_chart=all_data_to_chart,
@@ -311,6 +285,16 @@ def chart_cpu_samples_per_gcs(
         x_property_name=x_property_name,
         y_property_names=y_property_names,
     )
+
+
+def _print_node(node: AbstractCallTreeNodeBase) -> None:
+    print(f"Name: {node.Name}")
+    print(f"Inclusive Metric %: {node.InclusiveMetricPercent}")
+    print(f"Exclusive Metric %: {node.ExclusiveMetricPercent}")
+    print(f"Inclusive Count: {node.InclusiveCount}")
+    print(f"Exclusive Count: {node.ExclusiveCount}")
+    print(f"First Time Relative MSec: {node.FirstTimeRelativeMSec}")
+    print(f"Last Time Relative MSec: {node.LastTimeRelativeMSec}")
 
 
 # Summary: Displays the main CPU samples metrics of the given function, within
@@ -331,10 +315,10 @@ def chart_cpu_samples_per_gcs(
 
 
 def show_cpu_samples_metrics(
-    ptrace_utils: TraceReadAndParseUtils,
-    function: str,
-    start_time_msec: float = 0.0,
-    end_time_msec: float = 0.0,
+        ptrace_utils: TraceReadAndParseUtils,
+        function: str,
+        start_time_msec: float = 0.0,
+        end_time_msec: float = 0.0,
 ) -> None:
     clr = get_clr()
 
