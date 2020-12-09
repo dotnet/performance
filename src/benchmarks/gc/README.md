@@ -21,13 +21,14 @@ NOTE: If running under ARM/ARM64, the program's functionalities are limited to r
 
 You will need at least version 3.7 of Python.
 
-WARNING: Python 3.8.0+ is known to cause issues while setting up, so make sure
-you use a 3.7 flavor.
+WARNING: Python 3.8.0+ is known to cause issues while setting up and running,
+so make sure you use a 3.7 flavor.
 
 On Windows, just go to https://www.python.org/downloads/ and run the installer.
-For CPU Samples Analysis, it is required to have the 64-bit version. If you're
-not planning to use this functionality, any version works but 64-bit is still
-highly recommended.
+For CPU Samples Analysis, it is required to have the 64-bit version, since
+the 32-bit version is known to cause an Out of Memory exception under certain
+scenarios. If you're not planning to use this functionality, any version
+works but 64-bit is still highly recommended.
 
 On other systems, it’s better to use your system’s package manager.
 

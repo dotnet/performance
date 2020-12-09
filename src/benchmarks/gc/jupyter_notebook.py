@@ -134,8 +134,8 @@ _SUITE = Path("bench") / "suite"
 _LOW_MEMORY_CONTAINER = _SUITE / "low_memory_container.yaml"
 _OUT = add_extension(_LOW_MEMORY_CONTAINER, ".out")
 
-_TRACE = get_trace_with_everything(_OUT / "a__only_config__tlgb0.2__0.yaml")
-_TRACE2 = get_trace_with_everything(_OUT / "b__only_config__tlgb0.2__0.yaml")
+_TRACE = get_trace_with_everything(_OUT / "defgcperfsim__a__only_config__tlgb0.2__0.yaml")
+_TRACE2 = get_trace_with_everything(_OUT / "defgcperfsim__b__only_config__tlgb0.2__0.yaml")
 
 #%% Load and read trace with CPU Samples
 
@@ -147,23 +147,21 @@ _TRACE2 = get_trace_with_everything(_OUT / "b__only_config__tlgb0.2__0.yaml")
 _BENCH = Path("bench")
 _SUITE = Path("bench") / "suite"
 
-# _NORMAL_SERVER_WSAMPLES = add_extension(_SUITE / "normal_server", "yaml.out")
-# _SAMPLES_TRACE = get_trace_with_everything(_NORMAL_SERVER_WSAMPLES / "a__only_config__2gb__0.yaml")
+_NORMAL_SERVER_WSAMPLES = add_extension(_SUITE / "normal_server", "yaml.out")
+_SAMPLES_TRACE = get_trace_with_everything(_NORMAL_SERVER_WSAMPLES / "defgcperfsim__a__only_config__2gb__0.yaml")
 
-_BING_TRACE_PATH = _SUITE / "bing-trace"
-_BING_TRACE = get_trace_with_everything(_BING_TRACE_PATH / "decommit_32-cpu.yaml")
 
 #%% Set up the trace, symbols, etc and get it ready for CPU Samples Analysis.
 
 # The "symbol_path" value set here is just a placeholder. Change it to point to
 # where you have your PDB's stored.
 
-_BING_TRACE_ALL_DATA = TraceReadAndParseUtils(
-    ptrace=_BING_TRACE,
+_SAMPLES_TRACE_ALL_DATA = TraceReadAndParseUtils(
+    ptrace=_SAMPLES_TRACE,
     symbol_path=Path("/Path/To/PDB/Directory"),
 )
 
-# %% Test
+# Sample list of functions we might be interested in analyzing.
 
 functions_list = [
     "gc_heap::plan_phase",
@@ -173,63 +171,30 @@ functions_list = [
     "gc_heap::make_free_lists",
 ]
 
-_BING_TRACE_ALL_DATA.init_cpu_samples_from_trace(functions_list)
+# Initialize the CPU Samples data for all GC's, concerning the functions
+# in the given list.
+
+_SAMPLES_TRACE_ALL_DATA.init_cpu_samples_from_trace(functions_list)
 
 #%% Example: Chart the number of samples per individual GC's, for all Gen1 GC's,
 # for the functions "gc_heap::plan_phase" and "gc_heap::mark_phase", and their callees.
 
 chart_cpu_samples_per_gcs(
-    ptraces_utils=(_BING_TRACE_ALL_DATA,),
-    functions_to_chart=functions_list[2:4],
+    ptraces_utils=(_SAMPLES_TRACE_ALL_DATA,),
+    functions_to_chart=functions_list[0:2],
     x_property_name="gc_index",
-    y_property_names=("inclusive_count",),
-    gc_filter=lambda gc: gc.index < 100,
+    y_property_names=("exclusive_count",),
+    gc_filter=lambda gc: gc.Generation == Gens.Gen1,
 )
 
 #%% Example: Show CPU Samples metrics within a specified interval of time (1-5 secs),
 # for the function "gc_heap::plan_phase".
 
-gc0 = _BING_TRACE_ALL_DATA.trace_processed_gcs[0]
-gc1 = _BING_TRACE_ALL_DATA.trace_processed_gcs[100]
-gc10 = _BING_TRACE_ALL_DATA.trace_processed_gcs[200]
-
-print("GC0")
-print(f"Startgc0: {gc0.StartRelativeMSec}")
-print(f"Indxgc0: {gc0.Number}")
-print(f"Durationgc0: {gc0.DurationMSec}")
-print(f"Endgc0: {gc0.EndRelativeMSec}")
-
 show_cpu_samples_metrics(
-    ptrace_utils=_BING_TRACE_ALL_DATA,
+    ptrace_utils=_SAMPLES_TRACE_ALL_DATA,
     function="gc_heap::plan_phase",
-    start_time_msec=gc0.StartRelativeMSec,
-    end_time_msec=gc0.EndRelativeMSec,
-)
-
-print("GC100")
-print(f"Startgc1: {gc1.StartRelativeMSec}")
-print(f"Indxgc1: {gc1.Number}")
-print(f"Durationgc1: {gc1.DurationMSec}")
-print(f"Endgc1: {gc1.EndRelativeMSec}")
-
-show_cpu_samples_metrics(
-    ptrace_utils=_BING_TRACE_ALL_DATA,
-    function="gc_heap::plan_phase",
-    start_time_msec=gc1.StartRelativeMSec,
-    end_time_msec=gc1.EndRelativeMSec,
-)
-
-print("GC200")
-print(f"Startgc10: {gc10.StartRelativeMSec}")
-print(f"Indxgc10: {gc10.Number}")
-print(f"Durationgc10: {gc10.DurationMSec}")
-print(f"Endgc10: {gc10.EndRelativeMSec}")
-
-show_cpu_samples_metrics(
-    ptrace_utils=_BING_TRACE_ALL_DATA,
-    function="gc_heap::plan_phase",
-    start_time_msec=gc10.StartRelativeMSec,
-    end_time_msec=gc10.EndRelativeMSec,
+    start_time_msec=1000.0,
+    end_time_msec=5000.0,
 )
 
 #%% show summary

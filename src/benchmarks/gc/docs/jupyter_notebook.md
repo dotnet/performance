@@ -62,33 +62,25 @@ _MY_TRACE = get_trace_with_everything("Path/To/Test/Status/File.yaml")
 
 Next, you need to create an _"utilities"_ object associated with your trace.
 This object will create and store for you the necessary components used by
-GCPerf and TraceEvent to read and analyze the trace as you require. Build it
-with the following code:
+GCPerf and TraceEvent to read and analyze the trace as you require. Then, you'll
+need to give it a list with the functions you wish to retrieve samples of.
+Build and set it up with the following code:
 
 ```python
 _MY_TRACE_ALL_DATA = TraceReadAndParseUtils(
     ptrace=_MY_TRACE,
     symbol_path=Path("Path/To/PDB/Directory"),
 )
-```
 
-Creating this object by default will also initialize all the samples data for
-all the GC's in the trace. When working with bigger traces, this can take up a
-longer time to finish (even a few minutes with traces 1GB+ in size). However,
-since all the information will be ready and accessible, the chart queries you
-call will run and display in a very timely manner (<= 10 seconds on average).
+functions_list = [
+    "gc_heap::plan_phase",
+    "gc_heap::mark_phase",
+    "gc_heap::relocate_phase",
+    "gc_heap::compact_phase",
+    "gc_heap::make_free_lists",
+]
 
-If you will be using the metrics display mentioned in the second bullet at the
-beginning of this section, you can optionally pass another parameter to tell
-`TraceReadAndParseUtils` to not initialize the information of the GC's and skip
-this wait:
-
-```python
-_MY_TRACE_ALL_DATA = TraceReadAndParseUtils(
-    ptrace=_MY_TRACE,
-    symbol_path=Path("Path/To/PDB/Directory"),
-    init_gcs_samples=False,
-)
+_SAMPLES_TRACE_ALL_DATA.init_cpu_samples_from_trace(functions_list)
 ```
 
 Once that's finished, now you can choose between the two functionalities

@@ -96,7 +96,7 @@ class TraceReadAndParseUtils:
         process_to_analyze = ptrace.process_name
 
         # Create and fetch the TraceLog, SymbolReader, and StackSource objects
-        # associated with this trace.
+        # associated with this trace. Get a list with all GC's time ranges.
 
         self.trace_info = ptrace
         self.trace_log = clr.Analysis.GetOpenedTraceLog(str(ptrace.test_result.trace_path))
@@ -166,12 +166,31 @@ class TraceReadAndParseUtils:
     def init_cpu_samples_from_trace(self, functions: Sequence[str]) -> None:
         functions_to_process = set()
 
+        # Check if we don't already have samples initialized for the received
+        # functions. If yes, we skip them. Otherwise, we add them to the set
+        # of pending functions to initialize in this call.
+        #
+        # Also, if the function has not been processed before, add its entry
+        # to the dictionary with an empty list as the value.
+
         for func in functions:
             if func not in self.functions_processed:
                 functions_to_process.add(func)
                 add(self.gcs_cpu_samples, func, [])
 
         clr = get_clr()
+
+        # Fetch each GC's StackView object, and search the nodes corresponding
+        # to the functions to process. Then, make a GCAndCPUSamples object with
+        # that information and add it to the corresponding list.
+        #
+        # Here's a more graphical representation of the dictionary:
+        #
+        # {
+        #   "func1": [GCAndCPUSamples for GC1, GCAndCPUSamples for GC2, ...]
+        #   "func2": [GCAndCPUSamples for GC1, GCAndCPUSamples for GC2, ...]
+        #   "func3": [GCAndCPUSamples for GC1, GCAndCPUSamples for GC2, ...]
+        # }
 
         for gc_trange in self.gcs_time_ranges:
             gc_stack_view = clr.Analysis.GetSamplesDataWithinTimeRange(
@@ -199,6 +218,24 @@ class TraceReadAndParseUtils:
                         last_time_msec=gc_node.LastTimeRelativeMSec,
                     )
                 )
+
+
+# Summary: Collects the samples information from the TraceReadAndParseUtils
+#          object, that correspond to the GC's and functions requested. This
+#          data is stored in a list of Trace objects, ready to be processed
+#          and charted afterwards.
+#
+# Parameters:
+#   trace_utils: TraceReadAndParseUtils object with the trace's associated
+#       ProcessedTrace, TraceLog, SymbolReader, and StackSource objects.
+#       Also contains the GC time ranges and CPU Samples data.
+#   functions: Runtime functions to look at samples information.
+#   all_data_to_chart: List where Trace objects with the points to chart
+#       are appended. This class is defined in chart_utils.py.
+#   gc_filter: Function used to filter the trace's GC's. This parameter is
+#       optional and can be omitted to chart all the GC's samples.
+#
+# Returns: Nothing
 
 
 def _get_cpu_samples_to_chart(
@@ -246,6 +283,22 @@ def _get_cpu_samples_to_chart(
         )
 
 
+# Summary: Reads all the given traces and calls _get_cpu_samples_from_trace()
+#          accordingly to get all the samples data to chart. Then, calls
+#          chart_lines_from_fields() to display the chart.
+#
+# Parameters:
+#   ptraces_utils: List with the TraceReadAndParseUtils objects containing
+#       all the information and helper objects for each trace to analyze.
+#   functions_to_chart: List with the names of the runtime functions to analyze.
+#   x_property_name: Metric to chart on the X-Axis.
+#   y_property_name: Metric(s) to chart on the Y-Axis.
+#   gc_filter: Function used to filter the trace's GC's. This parameter is
+#       optional and can be omitted to chart all the GC's samples.
+#
+# Returns: Nothing
+
+
 def chart_cpu_samples_per_gcs(
     ptraces_utils: Sequence[TraceReadAndParseUtils],
     functions_to_chart: Sequence[str],
@@ -285,6 +338,17 @@ def chart_cpu_samples_per_gcs(
         x_property_name=x_property_name,
         y_property_names=y_property_names,
     )
+
+
+# Summary: Prints CPU samples metrics from a CallTreeNodeBase object. This
+#          object is derived from a StackView object, which is created to
+#          filter the CPU samples to a specified time range. This function is
+#          called by show_cpu_samples_metrics().
+#
+# Parameters:
+#   node: CallTreeNodeBase object with all the cpu samples metrics data.
+#
+# Returns: Nothing
 
 
 def _print_node(node: AbstractCallTreeNodeBase) -> None:
