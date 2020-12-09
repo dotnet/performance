@@ -148,7 +148,9 @@ _BENCH = Path("bench")
 _SUITE = Path("bench") / "suite"
 
 _NORMAL_SERVER_WSAMPLES = add_extension(_SUITE / "normal_server", "yaml.out")
-_SAMPLES_TRACE = get_trace_with_everything(_NORMAL_SERVER_WSAMPLES / "defgcperfsim__a__only_config__2gb__0.yaml")
+_SAMPLES_TRACE = get_trace_with_everything(
+    _NORMAL_SERVER_WSAMPLES / "defgcperfsim__a__only_config__2gb__0.yaml"
+)
 
 
 #%% Set up the trace, symbols, etc and get it ready for CPU Samples Analysis.
@@ -157,8 +159,7 @@ _SAMPLES_TRACE = get_trace_with_everything(_NORMAL_SERVER_WSAMPLES / "defgcperfs
 # where you have your PDB's stored.
 
 _SAMPLES_TRACE_ALL_DATA = TraceReadAndParseUtils(
-    ptrace=_SAMPLES_TRACE,
-    symbol_path=Path("/Path/To/PDB/Directory"),
+    ptrace=_SAMPLES_TRACE, symbol_path=Path("/Path/To/PDB/Directory")
 )
 
 # Sample list of functions we might be interested in analyzing.

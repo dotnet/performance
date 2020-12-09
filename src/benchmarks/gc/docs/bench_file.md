@@ -8,7 +8,7 @@ Here's an example benchfile:
 
 ```yaml
 test_executables:
-  defgcperfsim: /performance/artifacts/bin/GCPerfSim/release/netcoreapp5.0/GCPerfSim.dll
+  defgcperfsim: \performance\artifacts\bin\GCPerfSim\release\netcoreapp5.0\GCPerfSim.dll
 coreclrs:
   clr_a:
     core_root: coreclr

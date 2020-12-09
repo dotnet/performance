@@ -10,14 +10,14 @@ from typing import Dict, Sequence, Callable, List, Optional
 from .chart_utils import chart_lines_from_fields, Trace
 from .types import ProcessedTrace, ProcessedGC
 
-from .clr import get_clr, Clr
+from .clr import get_clr
 from .clr_types import (
     AbstractCallTreeNodeBase,
     AbstractTimeSpan,
     AbstractSymbolReader,
     AbstractTraceLog,
     AbstractStackSource,
-    AbstractStackView)
+)
 from ..commonlib.collection_util import add
 from ..commonlib.type_utils import with_slots, doc_field
 
@@ -149,10 +149,7 @@ class TraceReadAndParseUtils:
             start = gc.StartRelativeMSec
             end = gc.EndRelativeMSec
             time_ranges.append(
-                GCTimeSpan(
-                    gc_index=index,
-                    timespan=clr.TimeSpanUtil.FromStartEndMSec(start, end),
-                )
+                GCTimeSpan(gc_index=index, timespan=clr.TimeSpanUtil.FromStartEndMSec(start, end))
             )
         return time_ranges
 
@@ -176,7 +173,7 @@ class TraceReadAndParseUtils:
         for func in functions:
             if func not in self.functions_processed:
                 functions_to_process.add(func)
-                add(self.gcs_cpu_samples, func, [])
+                add(self.gcs_cpu_samples, func, [])  # type: ignore
 
         clr = get_clr()
 
@@ -194,10 +191,7 @@ class TraceReadAndParseUtils:
 
         for gc_trange in self.gcs_time_ranges:
             gc_stack_view = clr.Analysis.GetSamplesDataWithinTimeRange(
-                self.trace_log,
-                self.symbol_reader,
-                self.stack_source,
-                gc_trange.timespan,
+                self.trace_log, self.symbol_reader, self.stack_source, gc_trange.timespan
             )
 
             for func in functions:
@@ -251,10 +245,12 @@ def _get_cpu_samples_to_chart(
     # but the indices where matching GC's are located in the ptrace_utils'
     # object list, which is what we actually need to continue processing.
 
-    gcs_to_analyze = list(map(
-        lambda filtered: filtered.index,
-        list(filter(gc_filter, ptrace_utils.trace_processed_gcs))
-    ))
+    gcs_to_analyze = list(
+        map(
+            lambda filtered: filtered.index,
+            list(filter(gc_filter, ptrace_utils.trace_processed_gcs)),
+        )
+    )
 
     # Read each GC's metrics for each of the given functions and create a new
     # GCAndCPUSamples object with this data and add it to a list of points.
@@ -379,10 +375,10 @@ def _print_node(node: AbstractCallTreeNodeBase) -> None:
 
 
 def show_cpu_samples_metrics(
-        ptrace_utils: TraceReadAndParseUtils,
-        function: str,
-        start_time_msec: float = 0.0,
-        end_time_msec: float = 0.0,
+    ptrace_utils: TraceReadAndParseUtils,
+    function: str,
+    start_time_msec: float = 0.0,
+    end_time_msec: float = 0.0,
 ) -> None:
     clr = get_clr()
 
