@@ -606,7 +606,7 @@ class GCPerfSimArgs:
     totalMins: Optional[float] = None
     lohar: int = 0
     pohar: int = 0
-    sohsr: str = "10-4000"
+    sohsr: str = "100-4000"
     lohsr: str = "102400-204800"
     pohsr: str = "100-204800"
     sohsi: int = 0
