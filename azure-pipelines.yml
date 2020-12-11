@@ -451,6 +451,7 @@ jobs:
       channels:
         - $(channel) # for manual runs we can specify channel variable 
 
+
   # Ubuntu 1804 x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
     parameters:
