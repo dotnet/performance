@@ -5,6 +5,7 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
+using Microsoft.Extensions.Primitives;
 using System;
 using System.Linq;
 
@@ -16,7 +17,7 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
         private MemoryCache _memCache;
         private (object key, object value)[] _items;
 
-        [GlobalSetup(Targets = new[] { nameof(GetHit), nameof(TryGetValueHit), nameof(GetMiss), nameof(TryGetValueMiss), nameof(SetOverride) })]
+        [GlobalSetup(Targets = new[] { nameof(GetHit), nameof(TryGetValueHit), nameof(GetMiss), nameof(TryGetValueMiss), nameof(SetOverride), nameof(CreateEntry) })]
         public void SetupBasic()
         {
             _memCache = new MemoryCache(new MemoryCacheOptions());
@@ -26,7 +27,7 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
             }
         }
 
-        [GlobalCleanup(Targets = new[] { nameof(GetHit), nameof(TryGetValueHit), nameof(GetMiss), nameof(TryGetValueMiss), nameof(SetOverride) })]
+        [GlobalCleanup(Targets = new[] { nameof(GetHit), nameof(TryGetValueHit), nameof(GetMiss), nameof(TryGetValueMiss), nameof(SetOverride), nameof(CreateEntry) })]
         public void CleanupBasic() => _memCache.Dispose();
 
         [Benchmark]
@@ -44,7 +45,10 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
         [Benchmark]
         public object SetOverride() => _memCache.Set("512", "512");
 
-        [GlobalSetup(Targets = new[] { nameof(AddThenRemove_NoExpiration), nameof(AddThenRemove_AbsoluteExpiration), nameof(AddThenRemove_RelativeExpiration), nameof(AddThenRemove_SlidingExpiration) })]
+        [Benchmark]
+        public void CreateEntry() => _memCache.CreateEntry(this).Dispose();
+
+        [GlobalSetup(Targets = new[] { nameof(AddThenRemove_NoExpiration), nameof(AddThenRemove_AbsoluteExpiration), nameof(AddThenRemove_RelativeExpiration), nameof(AddThenRemove_SlidingExpiration), nameof(AddThenRemove_ExpirationTokens) })]
         public void Setup_AddThenRemove()
         {
             _items = ValuesGenerator.ArrayOfUniqueValues<int>(100).Select(x => ((object)x.ToString(), (object)x.ToString())).ToArray();
@@ -137,6 +141,40 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
                     cache.Remove(item.key);
                 }
             }
+        }
+
+        [Benchmark]
+        public void AddThenRemove_ExpirationTokens()
+        {
+            Token token = new Token();
+
+            using (MemoryCache cache = new MemoryCache(new MemoryCacheOptions()))
+            {
+                foreach (var item in _items)
+                {
+                    using (ICacheEntry entry = cache.CreateEntry(item.key))
+                    {
+                        entry.ExpirationTokens.Add(token);
+                        entry.Value = item.value;
+                    }
+                }
+
+                foreach (var item in _items)
+                {
+                    cache.Remove(item.key);
+                }
+            }
+        }
+
+        private sealed class Token : IChangeToken, IDisposable
+        {
+            public bool HasChanged => false;
+
+            public bool ActiveChangeCallbacks => false;
+
+            public void Dispose() { }
+
+            public IDisposable RegisterChangeCallback(Action<object> callback, object state) => this;
         }
     }
 }
