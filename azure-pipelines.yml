@@ -33,7 +33,7 @@ schedules:
   displayName: Every 12 hours build
   branches:
     include:
-    - master
+    - release/3.1.4xx
   always: true
 
 jobs:
