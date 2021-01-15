@@ -27,6 +27,8 @@ namespace System.Text.Json.Serialization.Tests
     [GenericTypeArguments(typeof(SimpleStructWithProperties))]
     [GenericTypeArguments(typeof(LargeStructWithProperties))]
     [GenericTypeArguments(typeof(int))]
+    [GenericTypeArguments(typeof(DateTime?))]
+    [GenericTypeArguments(typeof(ClassWithValueTypes))]
     public class WriteJson<T>
     {
         private T _value;

@@ -55,6 +55,10 @@ namespace MicroBenchmarks.Serializers
                 return (T)(object)CreateLargeStructWithProperties();
             if (typeof(T) == typeof(int))
                 return (T)(object)42;
+            if (typeof(T) == typeof(DateTime?))
+                return (T)(object)DateTime.UtcNow;
+            if (typeof(T) == typeof(ClassWithValueTypes))
+                return (T)(object)new ClassWithValueTypes { Value = 0, NullableValueSet = 1, NullableValueNull = null, LargeStruct = CreateLargeStructWithProperties(), NullableLargeStructSet = CreateLargeStructWithProperties(), NullableLargeStructNull = null };
 
             throw new NotImplementedException();
         }
@@ -178,7 +182,7 @@ namespace MicroBenchmarks.Serializers
 
             return arr;
         }
-        
+
         private static Dictionary<int, string> CreateDictionaryOfIntString(int count)
         {
             Dictionary<int, string> dictOfIntString = new Dictionary<int, string>(count);
@@ -286,7 +290,7 @@ namespace MicroBenchmarks.Serializers
     [Serializable]
     [ProtoContract]
     [MessagePackObject]
-    public class IndexViewModel 
+    public class IndexViewModel
     {
         [ProtoMember(1)] [Key(0)] public List<ActiveOrUpcomingEvent> ActiveOrUpcomingEvents { get; set; }
         [ProtoMember(2)] [Key(1)] public CampaignSummaryViewModel FeaturedCampaign { get; set; }
@@ -365,10 +369,10 @@ namespace MicroBenchmarks.Serializers
     {
         [ProtoMember(1)] [Key(0)] public byte[] ByteArray { get; set; }
         [ProtoMember(2)] [Key(1)] public DateTime[] DateTimeArray { get; set; }
-        
+
         [XmlIgnore] // xml serializer does not support anything that implements IDictionary..
         [ProtoMember(3)] [Key(2)] public Dictionary<int, string> Dictionary { get; set; }
-        
+
         [ProtoMember(4)] [Key(3)] public List<int> ListOfInt { get; set; }
     }
 
@@ -396,7 +400,7 @@ namespace MicroBenchmarks.Serializers
     }
 
     public class SimpleListOfInt : List<int> { }
-    
+
     public class ClassImplementingIXmlSerialiable : IXmlSerializable
     {
         public string StringValue { get; set; }
@@ -418,5 +422,20 @@ namespace MicroBenchmarks.Serializers
             writer.WriteAttributeString("StringValue", StringValue);
             writer.WriteAttributeString("BoolValue", BoolValue.ToString());
         }
+    }
+
+    public class ClassWithValueTypes
+    {
+        public int Value { get; set; }
+
+        public int? NullableValueSet { get; set; }
+
+        public int? NullableValueNull { get; set; }
+
+        public LargeStructWithProperties LargeStruct { get; set; }
+
+        public LargeStructWithProperties? NullableLargeStructSet { get; set; }
+
+        public LargeStructWithProperties? NullableLargeStructNull { get; set; }
     }
 }
