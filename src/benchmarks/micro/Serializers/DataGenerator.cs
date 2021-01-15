@@ -58,7 +58,17 @@ namespace MicroBenchmarks.Serializers
             if (typeof(T) == typeof(DateTime?))
                 return (T)(object)DateTime.UtcNow;
             if (typeof(T) == typeof(ClassWithValueTypes))
-                return (T)(object)new ClassWithValueTypes { Value = 0, NullableValueSet = 1, NullableValueNull = null, LargeStruct = CreateLargeStructWithProperties(), NullableLargeStructSet = CreateLargeStructWithProperties(), NullableLargeStructNull = null };
+            {
+                return (T)(object)new ClassWithValueTypes
+                {
+                    Value = 0,
+                    NullableValueSet = 1,
+                    NullableValueNull = null,
+                    LargeStruct = CreateLargeStructWithProperties(),
+                    NullableLargeStructSet = CreateLargeStructWithProperties(),
+                    NullableLargeStructNull = null
+                };
+            }
 
             throw new NotImplementedException();
         }
