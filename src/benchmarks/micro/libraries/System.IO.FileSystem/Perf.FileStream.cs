@@ -74,7 +74,7 @@ namespace System.IO.Tests
             
             using (FileStream reader = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, FileOptions.None))
             {
-                for (int i = 0; i < TotalSize / BufferSize; i++)
+                while (bytesRead < TotalSize)
                 {
                     bytesRead += reader.Read(buffer, 0, buffer.Length);
                 }
@@ -92,7 +92,7 @@ namespace System.IO.Tests
             
             using (FileStream reader = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, FileOptions.Asynchronous))
             {
-                for (int i = 0; i < TotalSize / BufferSize; i++)
+                while (bytesRead < TotalSize)
                 {
                     bytesRead += await reader.ReadAsync(buffer, 0, buffer.Length);
                 }
