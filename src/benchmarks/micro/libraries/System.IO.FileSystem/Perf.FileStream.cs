@@ -33,6 +33,24 @@ namespace System.IO.Tests
         public void Cleanup() => File.Delete(_filePath);
 
         [Benchmark]
+        public bool OpenClose()
+        {
+            using (FileStream reader = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, FileOptions.None))
+            {
+                return reader.IsAsync; // return something just to consume the reader
+            }
+        }
+
+        [Benchmark]
+        public bool OpenCloseAsync()
+        {
+            using (FileStream reader = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, FileOptions.Asynchronous))
+            {
+                return reader.IsAsync;
+            }
+        }
+
+        [Benchmark]
         public int ReadByte()
         {
             int result = default;
