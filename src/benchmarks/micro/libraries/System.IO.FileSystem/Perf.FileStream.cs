@@ -25,31 +25,20 @@ namespace System.IO.Tests
 
         private Dictionary<int, byte[]> _userBuffers;
 
-        [GlobalSetup]
-        public void Setup()
+        private void Setup(params long[] fileSizes)
         {
             _userBuffers = new Dictionary<int, byte[]>()
             {
                 { HalfKiloByte, ValuesGenerator.Array<byte>(HalfKiloByte) },
                 { FourKiloBytes, ValuesGenerator.Array<byte>(HalfKiloByte) },
             };
-            _sourceFilePaths = new Dictionary<long, string>()
-            {
-                {  OneKiloByte, CreateFileWithRandomContent(OneKiloByte) },
-                {  OneMegaByte, CreateFileWithRandomContent(OneMegaByte) },
-                {  HundredMegaBytes, CreateFileWithRandomContent(HundredMegaBytes) }
-            };
-            _destinationFilePaths = new Dictionary<long, string>()
-            {
-                {  OneKiloByte, CreateFileWithRandomContent(OneKiloByte) },
-                {  OneMegaByte, CreateFileWithRandomContent(OneMegaByte) },
-                {  HundredMegaBytes, CreateFileWithRandomContent(HundredMegaBytes) }
-            };
+            _sourceFilePaths = fileSizes.ToDictionary(size => size, size => CreateFileWithRandomContent(size));
+            _destinationFilePaths = fileSizes.ToDictionary(size => size, size => CreateFileWithRandomContent(size));
 
-            static string CreateFileWithRandomContent(int size)
+            static string CreateFileWithRandomContent(long fileSize)
             {
                 string filePath = FileUtils.GetTestFilePath();
-                File.WriteAllBytes(filePath, ValuesGenerator.Array<byte>(size));
+                File.WriteAllBytes(filePath, ValuesGenerator.Array<byte>((int)fileSize));
                 return filePath;
             }
         }
@@ -62,6 +51,9 @@ namespace System.IO.Tests
                 File.Delete(filePath);
             }
         }
+
+        [GlobalSetup(Targets = new[] { nameof(OpenClose), nameof(OpenCloseAsync) })]
+        public void SetupOpenBenchmarks() => Setup(OneKiloByte);
 
         [Benchmark]
         public bool OpenClose()
@@ -83,6 +75,9 @@ namespace System.IO.Tests
             }
         }
 
+        [GlobalSetup(Targets = new[] { nameof(ReadByte), nameof(WriteByte) })]
+        public void SetupByteBenchmarks() => Setup(OneKiloByte, OneMegaByte);
+
         [Benchmark]
         [Arguments(OneKiloByte)]
         [Arguments(OneMegaByte)] // calling ReadByte() on bigger files makes no sense, we so we don't have more test cases
@@ -100,7 +95,10 @@ namespace System.IO.Tests
 
             return result;
         }
-        
+
+        [GlobalSetup(Targets = new[] { nameof(Read), nameof(ReadAsync), nameof(CopyToFile), nameof(CopyToFileAsync), nameof(Write), nameof(WriteAsync) })]
+        public void SetupBigFileBenchmarks() => Setup(OneKiloByte, OneMegaByte, HundredMegaBytes);
+
         [Benchmark]
         [Arguments(OneKiloByte, HalfKiloByte)] // userBufferSize is less than StreamBufferSize, buffering makes sense
         [Arguments(OneKiloByte, FourKiloBytes)] // the buffer provided by User and internal Stream buffer are of the same size, buffering makes NO sense
@@ -147,6 +145,9 @@ namespace System.IO.Tests
 
             return bytesRead;
         }
+
+        [GlobalSetup(Targets = new[] { nameof(ReadWithCancellationTokenAsync), nameof(WriteWithCancellationTokenAsync) })]
+        public void SetupCancellationTokenBenchmarks() => Setup(OneMegaByte);
 
         [Benchmark]
         [Arguments(OneMegaByte, HalfKiloByte)] // only two test cases to compare the overhead of using CancellationToken
