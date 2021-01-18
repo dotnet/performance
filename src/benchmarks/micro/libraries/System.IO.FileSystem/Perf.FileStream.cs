@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
@@ -103,6 +104,25 @@ namespace System.IO.Tests
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoWASM)]
+        public async Task<int> ReadWithCancellationTokenAsync()
+        {
+            CancellationToken cancellationToken = CancellationToken.None;
+            byte[] buffer = _buffer;
+            int bytesRead = 0;
+
+            using (FileStream reader = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, FileOptions.Asynchronous))
+            {
+                while (bytesRead < TotalSize)
+                {
+                    bytesRead += await reader.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                }
+            }
+
+            return bytesRead;
+        }
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
         public async Task CopyToAsync()
         {
             using (var reader = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, FileOptions.Asynchronous))
@@ -148,6 +168,22 @@ namespace System.IO.Tests
                 for (int i = 0; i < TotalSize / BufferSize; i++)
                 {
                     await writer.WriteAsync(bytes, 0, bytes.Length);
+                }
+            }
+        }
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
+        public async Task WriteWithCancellationTokenAsync()
+        {
+            CancellationToken cancellationToken = CancellationToken.None;
+            byte[] bytes = _buffer;
+
+            using (FileStream writer = new FileStream(_filePath, FileMode.Create, FileAccess.Write, FileShare.Read, DefaultBufferSize, FileOptions.Asynchronous))
+            {
+                for (int i = 0; i < TotalSize / BufferSize; i++)
+                {
+                    await writer.WriteAsync(bytes, 0, bytes.Length, cancellationToken);
                 }
             }
         }
