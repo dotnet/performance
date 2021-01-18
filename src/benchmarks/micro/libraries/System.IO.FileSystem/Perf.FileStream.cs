@@ -52,8 +52,8 @@ namespace System.IO.Tests
             }
         }
 
-        [GlobalSetup(Targets = new[] { nameof(OpenClose), nameof(OpenCloseAsync) })]
-        public void SetupOpenBenchmarks() => Setup(OneKiloByte);
+        [GlobalSetup(Targets = new[] { nameof(OpenClose), nameof(OpenCloseAsync), nameof(LockUnlock), nameof(LockUnlockAsync) })]
+        public void SetupOpenAndLockBenchmarks() => Setup(OneKiloByte);
 
         [Benchmark]
         public bool OpenClose()
@@ -72,6 +72,32 @@ namespace System.IO.Tests
             using (FileStream reader = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKiloBytes, FileOptions.Asynchronous))
             {
                 return reader.IsAsync;
+            }
+        }
+
+        [Benchmark]
+        [Arguments(OneKiloByte)]
+        public void LockUnlock(long fileSize)
+        {
+            string filePath = _sourceFilePaths[fileSize];
+            using (FileStream reader = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKiloBytes, FileOptions.None))
+            {
+                reader.Lock(0, reader.Length);
+
+                reader.Unlock(0, reader.Length);
+            }
+        }
+
+        [Benchmark]
+        [Arguments(OneKiloByte)]
+        public void LockUnlockAsync(long fileSize)
+        {
+            string filePath = _sourceFilePaths[fileSize];
+            using (FileStream reader = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKiloBytes, FileOptions.Asynchronous))
+            {
+                reader.Lock(0, reader.Length);
+
+                reader.Unlock(0, reader.Length);
             }
         }
 
