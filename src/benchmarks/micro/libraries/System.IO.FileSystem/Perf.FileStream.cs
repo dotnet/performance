@@ -52,8 +52,8 @@ namespace System.IO.Tests
             }
         }
 
-        [GlobalSetup(Targets = new[] { nameof(OpenClose), nameof(OpenCloseAsync), nameof(LockUnlock), nameof(LockUnlockAsync) })]
-        public void SetupOpenAndLockBenchmarks() => Setup(OneKiloByte);
+        [GlobalSetup(Targets = new[] { nameof(OpenClose), nameof(OpenCloseAsync), nameof(LockUnlock), nameof(LockUnlockAsync), nameof(SeekForward), nameof(SeekBackward) })]
+        public void SetuOneKiloByteBenchmarks() => Setup(OneKiloByte);
 
         [Benchmark]
         public bool OpenClose()
@@ -98,6 +98,34 @@ namespace System.IO.Tests
                 reader.Lock(0, reader.Length);
 
                 reader.Unlock(0, reader.Length);
+            }
+        }
+
+        [Benchmark]
+        [Arguments(OneKiloByte)]
+        public void SeekForward(long fileSize)
+        {
+            string filePath = _sourceFilePaths[fileSize];
+            using (FileStream reader = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKiloBytes, FileOptions.None))
+            {
+                for (long offset = 0; offset < fileSize; offset++)
+                {
+                    reader.Seek(offset, SeekOrigin.Begin);
+                }
+            }
+        }
+
+        [Benchmark]
+        [Arguments(OneKiloByte)]
+        public void SeekBackward(long fileSize)
+        {
+            string filePath = _sourceFilePaths[fileSize];
+            using (FileStream reader = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKiloBytes, FileOptions.None))
+            {
+                for (long offset = fileSize - 1; offset >= 0; offset--)
+                {
+                    reader.Seek(offset, SeekOrigin.End);
+                }
             }
         }
 
