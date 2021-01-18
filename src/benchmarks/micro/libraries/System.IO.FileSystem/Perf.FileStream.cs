@@ -21,13 +21,14 @@ namespace System.IO.Tests
         public int TotalSize;
 
         private byte[] _buffer;
-        private string _filePath;
+        private string _filePath, _filePath2;
 
         [GlobalSetup]
         public void Setup()
         {
             _buffer = CreateRandomBytes(BufferSize);
             _filePath = CreateFileWithRandomContent(TotalSize);
+            _filePath2 = CreateFileWithRandomContent(TotalSize);
         }
 
         [GlobalCleanup]
@@ -122,12 +123,33 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
+        public void CopyToFile()
+        {
+            using (var reader = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, FileOptions.None))
+            using (var writer = new FileStream(_filePath2, FileMode.Create, FileAccess.Write, FileShare.Read, DefaultBufferSize, FileOptions.None))
+            {
+                reader.CopyTo(writer);
+            }
+        }
+
+        [Benchmark]
         [BenchmarkCategory(Categories.NoWASM)]
         public async Task CopyToAsync()
         {
             using (var reader = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, FileOptions.Asynchronous))
             {
                 await reader.CopyToAsync(Stream.Null);
+            }
+        }
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
+        public async Task CopyToFileAsync()
+        {
+            using (var reader = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, FileOptions.Asynchronous))
+            using (var writer = new FileStream(_filePath2, FileMode.Create, FileAccess.Write, FileShare.Read, DefaultBufferSize, FileOptions.Asynchronous))
+            {
+                await reader.CopyToAsync(writer);
             }
         }
 
