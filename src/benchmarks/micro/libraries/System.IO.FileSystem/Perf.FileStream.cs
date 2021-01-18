@@ -30,7 +30,7 @@ namespace System.IO.Tests
             _userBuffers = new Dictionary<int, byte[]>()
             {
                 { HalfKiloByte, ValuesGenerator.Array<byte>(HalfKiloByte) },
-                { FourKiloBytes, ValuesGenerator.Array<byte>(HalfKiloByte) },
+                { FourKiloBytes, ValuesGenerator.Array<byte>(FourKiloBytes) },
             };
             _sourceFilePaths = fileSizes.ToDictionary(size => size, size => CreateFileWithRandomContent(size));
             _destinationFilePaths = fileSizes.ToDictionary(size => size, size => CreateFileWithRandomContent(size));
