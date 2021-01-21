@@ -142,7 +142,7 @@ namespace System.IO.Tests
             }
         }
 
-        [GlobalSetup(Targets = new[] { nameof(Read), nameof(ReadAsyncArray), "ReadAsyncMemory", nameof(CopyToFile), nameof(CopyToFileAsync), nameof(Write), nameof(WriteAsyncArray), "WriteAsyncMemory" })]
+        [GlobalSetup(Targets = new[] { nameof(Read), "ReadAsync", nameof(Write), "WriteAsync", nameof(CopyToFile), nameof(CopyToFileAsync) })]
         public void SetupBigFileBenchmarks() => Setup(OneKibibyte , OneMibibyte, HundredMibibytes);
 
         [Benchmark]
@@ -186,39 +186,22 @@ namespace System.IO.Tests
             }
         }
 
-        [Benchmark]
-        [Arguments(OneKibibyte , HalfKibibyte, FileOptions.Asynchronous)]
-        [Arguments(OneKibibyte , FourKibibytes, FileOptions.Asynchronous)]
-        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.Asynchronous)]
-        [Arguments(OneMibibyte, FourKibibytes, FileOptions.Asynchronous)]
-        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.Asynchronous)]
-        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.Asynchronous)]
-        [BenchmarkCategory(Categories.NoWASM)]
-        public async Task<long> ReadAsyncArray(long fileSize, int userBufferSize, FileOptions options)
-        {
-            byte[] userBuffer = _userBuffers[userBufferSize];
-            long bytesRead = 0;
-            using (FileStream fileStream = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
-            {
-                while (bytesRead < fileSize)
-                {
-                    bytesRead += await fileStream.ReadAsync(userBuffer, 0, userBuffer.Length);
-                }
-            }
-
-            return bytesRead;
-        }
-
-#if !NETFRAMEWORK // API added in .NET Core 2.0
+#if !NETFRAMEWORK // APIs added in .NET Core 2.0
         [Benchmark]
         [Arguments(OneKibibyte, HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte, HalfKibibyte, FileOptions.None)] // common use case (sync open, later async usage)
         [Arguments(OneKibibyte, FourKibibytes, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte, FourKibibytes, FileOptions.None)]
         [Arguments(OneMibibyte, HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.None)]
         [Arguments(OneMibibyte, FourKibibytes, FileOptions.Asynchronous)]
+        [Arguments(OneMibibyte, FourKibibytes, FileOptions.None)]
         [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.None)]
         [Arguments(HundredMibibytes, FourKibibytes, FileOptions.Asynchronous)]
+        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.None)]
         [BenchmarkCategory(Categories.NoWASM)]
-        public async Task<long> ReadAsyncMemory(long fileSize, int userBufferSize, FileOptions options)
+        public async Task<long> ReadAsync(long fileSize, int userBufferSize, FileOptions options)
         {
             CancellationToken cancellationToken = CancellationToken.None;
             Memory<byte> userBuffer = new Memory<byte>(_userBuffers[userBufferSize]);
@@ -233,38 +216,22 @@ namespace System.IO.Tests
 
             return bytesRead;
         }
-#endif
 
-        [Benchmark]
-        [Arguments(OneKibibyte , HalfKibibyte, FileOptions.Asynchronous)]
-        [Arguments(OneKibibyte , FourKibibytes, FileOptions.Asynchronous)]
-        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.Asynchronous)]
-        [Arguments(OneMibibyte, FourKibibytes, FileOptions.Asynchronous)]
-        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.Asynchronous)]
-        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.Asynchronous)]
-        [BenchmarkCategory(Categories.NoWASM)]
-        public async Task WriteAsyncArray(long fileSize, int userBufferSize, FileOptions options)
-        {
-            byte[] userBuffer = _userBuffers[userBufferSize];
-            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
-            {
-                for (int i = 0; i < fileSize / userBufferSize; i++)
-                {
-                    await fileStream.WriteAsync(userBuffer, 0, userBuffer.Length);
-                }
-            }
-        }
-
-#if !NETFRAMEWORK // API added in .NET Core 2.0
         [Benchmark]
         [Arguments(OneKibibyte, HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte, HalfKibibyte, FileOptions.None)]
         [Arguments(OneKibibyte, FourKibibytes, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte, FourKibibytes, FileOptions.None)]
         [Arguments(OneMibibyte, HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.None)]
         [Arguments(OneMibibyte, FourKibibytes, FileOptions.Asynchronous)]
+        [Arguments(OneMibibyte, FourKibibytes, FileOptions.None)]
         [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.None)]
         [Arguments(HundredMibibytes, FourKibibytes, FileOptions.Asynchronous)]
+        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.None)]
         [BenchmarkCategory(Categories.NoWASM)]
-        public async Task WriteAsyncMemory(long fileSize, int userBufferSize, FileOptions options)
+        public async Task WriteAsync(long fileSize, int userBufferSize, FileOptions options)
         {
             CancellationToken cancellationToken = CancellationToken.None;
             Memory<byte> userBuffer = new Memory<byte>(_userBuffers[userBufferSize]);
@@ -292,8 +259,11 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [Arguments(OneKibibyte , FileOptions.None)]
+        [Arguments(OneKibibyte, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte, FileOptions.None)]
+        [Arguments(OneMibibyte, FileOptions.Asynchronous)]
         [Arguments(OneMibibyte, FileOptions.None)]
+        [Arguments(HundredMibibytes, FileOptions.Asynchronous)]
         [Arguments(HundredMibibytes, FileOptions.None)]
         [BenchmarkCategory(Categories.NoWASM)]
         public async Task CopyToFileAsync(long fileSize, FileOptions options)
