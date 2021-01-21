@@ -7,7 +7,7 @@
   </PropertyGroup>
   <!--Package versions-->
   <PropertyGroup>
-    <MicrosoftDotnetSdkInternalPackageVersion>5.0.103-servicing.21064.11</MicrosoftDotnetSdkInternalPackageVersion>
+    <MicrosoftDotnetSdkInternalPackageVersion>5.0.103-servicing.21070.29</MicrosoftDotnetSdkInternalPackageVersion>
     <MicrosoftNETCoreAppRuntimewinx64PackageVersion>5.0.2</MicrosoftNETCoreAppRuntimewinx64PackageVersion>
     <MicrosoftNETSdkInternalPackageVersion>
     </MicrosoftNETSdkInternalPackageVersion>
