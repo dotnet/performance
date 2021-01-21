@@ -304,46 +304,5 @@ namespace System.IO.Tests
                 await source.CopyToAsync(destination);
             }
         }
-
-        [GlobalSetup(Targets = new[] { nameof(ReadWithCancellationTokenAsync), nameof(WriteWithCancellationTokenAsync) })]
-        public void SetupCancellationTokenBenchmarks() => Setup(OneMibibyte);
-
-        [Benchmark]
-        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.Asynchronous)] // only two test cases to compare the overhead of using CancellationToken
-        [Arguments(OneMibibyte, FourKibibytes, FileOptions.Asynchronous)]
-        [BenchmarkCategory(Categories.NoWASM)]
-        public async Task<long> ReadWithCancellationTokenAsync(long fileSize, int userBufferSize, FileOptions options)
-        {
-            CancellationToken cancellationToken = CancellationToken.None;
-            byte[] userBuffer = _userBuffers[userBufferSize];
-            long bytesRead = 0;
-
-            using (FileStream fileStream = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
-            {
-                while (bytesRead < fileSize)
-                {
-                    bytesRead += await fileStream.ReadAsync(userBuffer, 0, userBuffer.Length, cancellationToken);
-                }
-            }
-
-            return bytesRead;
-        }
-
-        [Benchmark]
-        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.Asynchronous)]
-        [Arguments(OneMibibyte, FourKibibytes, FileOptions.Asynchronous)]
-        [BenchmarkCategory(Categories.NoWASM)]
-        public async Task WriteWithCancellationTokenAsync(long fileSize, int userBufferSize, FileOptions options)
-        {
-            CancellationToken cancellationToken = CancellationToken.None;
-            byte[] userBuffer = _userBuffers[userBufferSize];
-            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
-            {
-                for (int i = 0; i < fileSize / userBufferSize; i++)
-                {
-                    await fileStream.WriteAsync(userBuffer, 0, userBuffer.Length, cancellationToken);
-                }
-            }
-        }
     }
 }
