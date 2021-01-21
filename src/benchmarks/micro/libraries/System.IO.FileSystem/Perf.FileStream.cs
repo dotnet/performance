@@ -15,11 +15,11 @@ namespace System.IO.Tests
     [BenchmarkCategory(Categories.Libraries)]
     public class Perf_FileStream
     {
-        private const int OneKiloByte = 1_000;
-        private const int HalfKiloByte = OneKiloByte / 2;
-        private const int FourKiloBytes = OneKiloByte * 4; // default Stream buffer size
-        private const int OneMegaByte = OneKiloByte * 1_000;
-        private const int HundredMegaBytes = 1_000_000 * 100;
+        private const int OneKibibyte  = 1 << 10; // 1024
+        private const int HalfKibibyte = OneKibibyte >> 1;
+        private const int FourKibibytes = OneKibibyte << 2; // default Stream buffer size
+        private const int OneMibibyte = OneKibibyte  << 10;
+        private const int HundredMibibytes = OneMibibyte * 100;
 
         private Dictionary<long, string> _sourceFilePaths, _destinationFilePaths;
 
@@ -29,8 +29,8 @@ namespace System.IO.Tests
         {
             _userBuffers = new Dictionary<int, byte[]>()
             {
-                { HalfKiloByte, ValuesGenerator.Array<byte>(HalfKiloByte) },
-                { FourKiloBytes, ValuesGenerator.Array<byte>(FourKiloBytes) },
+                { HalfKibibyte, ValuesGenerator.Array<byte>(HalfKibibyte) },
+                { FourKibibytes, ValuesGenerator.Array<byte>(FourKibibytes) },
             };
             _sourceFilePaths = fileSizes.ToDictionary(size => size, size => CreateFileWithRandomContent(size));
             _destinationFilePaths = fileSizes.ToDictionary(size => size, size => CreateFileWithRandomContent(size));
@@ -53,27 +53,27 @@ namespace System.IO.Tests
         }
 
         [GlobalSetup(Targets = new[] { nameof(OpenClose), nameof(LockUnlock), nameof(SeekForward), nameof(SeekBackward), nameof(ReadByte), nameof(WriteByte) })]
-        public void SetuOneKiloByteBenchmarks() => Setup(OneKiloByte);
+        public void SetuOneKibibyteBenchmarks() => Setup(OneKibibyte );
 
         [Benchmark]
-        [Arguments(OneKiloByte, FileOptions.None)] // sync (default)
-        [Arguments(OneKiloByte, FileOptions.Asynchronous)] // async
+        [Arguments(OneKibibyte , FileOptions.None)] // sync (default)
+        [Arguments(OneKibibyte , FileOptions.Asynchronous)] // async
         public bool OpenClose(long fileSize, FileOptions options)
         {
             string filePath = _sourceFilePaths[fileSize];
-            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKiloBytes, options))
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
             {
                 return fileStream.IsAsync; // return something just to consume the reader
             }
         }
 
         [Benchmark]
-        [Arguments(OneKiloByte, FileOptions.None)]
-        [Arguments(OneKiloByte, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte , FileOptions.None)]
+        [Arguments(OneKibibyte , FileOptions.Asynchronous)]
         public void LockUnlock(long fileSize, FileOptions options)
         {
             string filePath = _sourceFilePaths[fileSize];
-            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKiloBytes, options))
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
             {
                 fileStream.Lock(0, fileStream.Length);
 
@@ -82,12 +82,12 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [Arguments(OneKiloByte, FileOptions.None)]
-        [Arguments(OneKiloByte, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte , FileOptions.None)]
+        [Arguments(OneKibibyte , FileOptions.Asynchronous)]
         public void SeekForward(long fileSize, FileOptions options)
         {
             string filePath = _sourceFilePaths[fileSize];
-            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKiloBytes, options))
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
             {
                 for (long offset = 0; offset < fileSize; offset++)
                 {
@@ -97,12 +97,12 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [Arguments(OneKiloByte, FileOptions.None)]
-        [Arguments(OneKiloByte, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte , FileOptions.None)]
+        [Arguments(OneKibibyte , FileOptions.Asynchronous)]
         public void SeekBackward(long fileSize, FileOptions options)
         {
             string filePath = _sourceFilePaths[fileSize];
-            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKiloBytes, options))
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
             {
                 for (long offset = -1; offset >= -fileSize; offset--)
                 {
@@ -112,12 +112,12 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [Arguments(OneKiloByte, FileOptions.None)]
-        [Arguments(OneKiloByte, FileOptions.Asynchronous)] // calling ReadByte() on bigger files makes no sense, we so we don't have more test cases
+        [Arguments(OneKibibyte , FileOptions.None)]
+        [Arguments(OneKibibyte , FileOptions.Asynchronous)] // calling ReadByte() on bigger files makes no sense, so we don't have more test cases
         public int ReadByte(long fileSize, FileOptions options)
         {
             int result = default;
-            using (FileStream fileStream = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKiloBytes, options))
+            using (FileStream fileStream = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
             {
                 for (long i = 0; i < fileSize; i++)
                 {
@@ -129,11 +129,11 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [Arguments(OneKiloByte, FileOptions.None)]
-        [Arguments(OneKiloByte, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte , FileOptions.None)]
+        [Arguments(OneKibibyte , FileOptions.Asynchronous)]
         public void WriteByte(long fileSize, FileOptions options)
         {
-            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKiloBytes, options))
+            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
             {
                 for (int i = 0; i < fileSize; i++)
                 {
@@ -143,20 +143,20 @@ namespace System.IO.Tests
         }
 
         [GlobalSetup(Targets = new[] { nameof(Read), nameof(ReadAsync), nameof(CopyToFile), nameof(CopyToFileAsync), nameof(Write), nameof(WriteAsync) })]
-        public void SetupBigFileBenchmarks() => Setup(OneKiloByte, OneMegaByte, HundredMegaBytes);
+        public void SetupBigFileBenchmarks() => Setup(OneKibibyte , OneMibibyte, HundredMibibytes);
 
         [Benchmark]
-        [Arguments(OneKiloByte, HalfKiloByte, FileOptions.None)] // userBufferSize is less than StreamBufferSize, buffering makes sense
-        [Arguments(OneKiloByte, FourKiloBytes, FileOptions.None)] // the buffer provided by User and internal Stream buffer are of the same size, buffering makes NO sense
-        [Arguments(OneMegaByte, HalfKiloByte, FileOptions.None)]
-        [Arguments(OneMegaByte, FourKiloBytes, FileOptions.None)]
-        [Arguments(HundredMegaBytes, HalfKiloByte, FileOptions.None)]
-        [Arguments(HundredMegaBytes, FourKiloBytes, FileOptions.None)]
+        [Arguments(OneKibibyte , HalfKibibyte, FileOptions.None)] // userBufferSize is less than StreamBufferSize, buffering makes sense
+        [Arguments(OneKibibyte , FourKibibytes, FileOptions.None)] // the buffer provided by User and internal Stream buffer are of the same size, buffering makes NO sense
+        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.None)]
+        [Arguments(OneMibibyte, FourKibibytes, FileOptions.None)]
+        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.None)]
+        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.None)]
         public long Read(long fileSize, int userBufferSize, FileOptions options)
         {
             byte[] userBuffer = _userBuffers[userBufferSize];
             long bytesRead = 0;
-            using (FileStream fileStream = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKiloBytes, options))
+            using (FileStream fileStream = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
             {
                 while (bytesRead < fileSize)
                 {
@@ -168,16 +168,16 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [Arguments(OneKiloByte, HalfKiloByte, FileOptions.None)]
-        [Arguments(OneKiloByte, FourKiloBytes, FileOptions.None)]
-        [Arguments(OneMegaByte, HalfKiloByte, FileOptions.None)]
-        [Arguments(OneMegaByte, FourKiloBytes, FileOptions.None)]
-        [Arguments(HundredMegaBytes, HalfKiloByte, FileOptions.None)]
-        [Arguments(HundredMegaBytes, FourKiloBytes, FileOptions.None)]
+        [Arguments(OneKibibyte , HalfKibibyte, FileOptions.None)]
+        [Arguments(OneKibibyte , FourKibibytes, FileOptions.None)]
+        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.None)]
+        [Arguments(OneMibibyte, FourKibibytes, FileOptions.None)]
+        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.None)]
+        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.None)]
         public void Write(long fileSize, int userBufferSize, FileOptions options)
         {
             byte[] userBuffer = _userBuffers[userBufferSize];
-            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKiloBytes, options))
+            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
             {
                 for (int i = 0; i < fileSize / userBufferSize; i++)
                 {
@@ -187,18 +187,18 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [Arguments(OneKiloByte, HalfKiloByte, FileOptions.Asynchronous)]
-        [Arguments(OneKiloByte, FourKiloBytes, FileOptions.Asynchronous)]
-        [Arguments(OneMegaByte, HalfKiloByte, FileOptions.Asynchronous)]
-        [Arguments(OneMegaByte, FourKiloBytes, FileOptions.Asynchronous)]
-        [Arguments(HundredMegaBytes, HalfKiloByte, FileOptions.Asynchronous)]
-        [Arguments(HundredMegaBytes, FourKiloBytes, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte , HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte , FourKibibytes, FileOptions.Asynchronous)]
+        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(OneMibibyte, FourKibibytes, FileOptions.Asynchronous)]
+        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.Asynchronous)]
         [BenchmarkCategory(Categories.NoWASM)]
         public async Task<long> ReadAsync(long fileSize, int userBufferSize, FileOptions options)
         {
             byte[] userBuffer = _userBuffers[userBufferSize];
             long bytesRead = 0;
-            using (FileStream fileStream = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKiloBytes, options))
+            using (FileStream fileStream = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
             {
                 while (bytesRead < fileSize)
                 {
@@ -210,17 +210,17 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [Arguments(OneKiloByte, HalfKiloByte, FileOptions.Asynchronous)]
-        [Arguments(OneKiloByte, FourKiloBytes, FileOptions.Asynchronous)]
-        [Arguments(OneMegaByte, HalfKiloByte, FileOptions.Asynchronous)]
-        [Arguments(OneMegaByte, FourKiloBytes, FileOptions.Asynchronous)]
-        [Arguments(HundredMegaBytes, HalfKiloByte, FileOptions.Asynchronous)]
-        [Arguments(HundredMegaBytes, FourKiloBytes, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte , HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte , FourKibibytes, FileOptions.Asynchronous)]
+        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(OneMibibyte, FourKibibytes, FileOptions.Asynchronous)]
+        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.Asynchronous)]
         [BenchmarkCategory(Categories.NoWASM)]
         public async Task WriteAsync(long fileSize, int userBufferSize, FileOptions options)
         {
             byte[] userBuffer = _userBuffers[userBufferSize];
-            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKiloBytes, options))
+            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
             {
                 for (int i = 0; i < fileSize / userBufferSize; i++)
                 {
@@ -230,38 +230,38 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [Arguments(OneKiloByte, FileOptions.None)]
-        [Arguments(OneMegaByte, FileOptions.None)]
-        [Arguments(HundredMegaBytes, FileOptions.None)]
+        [Arguments(OneKibibyte , FileOptions.None)]
+        [Arguments(OneMibibyte, FileOptions.None)]
+        [Arguments(HundredMibibytes, FileOptions.None)]
         public void CopyToFile(long fileSize, FileOptions options)
         {
-            using (FileStream source = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKiloBytes, options))
-            using (FileStream destination = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKiloBytes, options))
+            using (FileStream source = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
+            using (FileStream destination = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
             {
                 source.CopyTo(destination);
             }
         }
 
         [Benchmark]
-        [Arguments(OneKiloByte, FileOptions.None)]
-        [Arguments(OneMegaByte, FileOptions.None)]
-        [Arguments(HundredMegaBytes, FileOptions.None)]
+        [Arguments(OneKibibyte , FileOptions.None)]
+        [Arguments(OneMibibyte, FileOptions.None)]
+        [Arguments(HundredMibibytes, FileOptions.None)]
         [BenchmarkCategory(Categories.NoWASM)]
         public async Task CopyToFileAsync(long fileSize, FileOptions options)
         {
-            using (FileStream source = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKiloBytes, options))
-            using (FileStream destination = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKiloBytes, options))
+            using (FileStream source = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
+            using (FileStream destination = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
             {
                 await source.CopyToAsync(destination);
             }
         }
 
         [GlobalSetup(Targets = new[] { nameof(ReadWithCancellationTokenAsync), nameof(WriteWithCancellationTokenAsync) })]
-        public void SetupCancellationTokenBenchmarks() => Setup(OneMegaByte);
+        public void SetupCancellationTokenBenchmarks() => Setup(OneMibibyte);
 
         [Benchmark]
-        [Arguments(OneMegaByte, HalfKiloByte, FileOptions.Asynchronous)] // only two test cases to compare the overhead of using CancellationToken
-        [Arguments(OneMegaByte, FourKiloBytes, FileOptions.Asynchronous)]
+        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.Asynchronous)] // only two test cases to compare the overhead of using CancellationToken
+        [Arguments(OneMibibyte, FourKibibytes, FileOptions.Asynchronous)]
         [BenchmarkCategory(Categories.NoWASM)]
         public async Task<long> ReadWithCancellationTokenAsync(long fileSize, int userBufferSize, FileOptions options)
         {
@@ -269,7 +269,7 @@ namespace System.IO.Tests
             byte[] userBuffer = _userBuffers[userBufferSize];
             long bytesRead = 0;
 
-            using (FileStream fileStream = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKiloBytes, options))
+            using (FileStream fileStream = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
             {
                 while (bytesRead < fileSize)
                 {
@@ -281,14 +281,14 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [Arguments(OneMegaByte, HalfKiloByte, FileOptions.Asynchronous)]
-        [Arguments(OneMegaByte, FourKiloBytes, FileOptions.Asynchronous)]
+        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(OneMibibyte, FourKibibytes, FileOptions.Asynchronous)]
         [BenchmarkCategory(Categories.NoWASM)]
         public async Task WriteWithCancellationTokenAsync(long fileSize, int userBufferSize, FileOptions options)
         {
             CancellationToken cancellationToken = CancellationToken.None;
             byte[] userBuffer = _userBuffers[userBufferSize];
-            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKiloBytes, options))
+            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
             {
                 for (int i = 0; i < fileSize / userBufferSize; i++)
                 {
