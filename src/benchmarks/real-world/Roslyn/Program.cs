@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading.Tasks;
-using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Extensions;
 using BenchmarkDotNet.Jobs;
@@ -29,7 +28,7 @@ namespace CompilerBenchmarks
 
         private static async Task Setup()
         {
-            string cscSourceDownloadLink = "https://github.com/dotnet/roslyn/releases/download/perf-assets-v1/CodeAnalysisReproWithAnalyzers.zip";
+            string cscSourceDownloadLink = "https://github.com/dotnet/roslyn/releases/download/perf-assets-v2/CodeAnalysisReproWithAnalyzers.zip";
             string sourceDownloadDir = Path.Combine(AppContext.BaseDirectory, "roslynSource");
             var sourceDir = Path.Combine(sourceDownloadDir, "CodeAnalysisReproWithAnalyzers");
             if (!Directory.Exists(sourceDir))

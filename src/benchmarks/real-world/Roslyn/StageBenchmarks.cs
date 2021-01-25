@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Compilation;
 
 namespace CompilerBenchmarks
@@ -108,6 +107,11 @@ namespace CompilerBenchmarks
                 diagnostics: diagnostics,
                 filterOpt: null,
                 cancellationToken: default);
+
+            if (!success)
+            {
+                throw new InvalidOperationException("Did not successfully compile methods");
+            }
 
             _comp.GenerateResourcesAndDocumentationComments(
                 _moduleBeingBuilt,
