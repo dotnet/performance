@@ -92,11 +92,13 @@ PS C:\Projects\performance\src\benchmarks\micro> tree
 
 During the port from xunit-performance to BenchmarkDotNet, the namespaces, type and methods names were not changed. The exception to this rule are all `System.Collections` ([#92](https://github.com/dotnet/performance/pull/92)) and `Span<T>` ([#94](https://github.com/dotnet/performance/pull/94)) benchmarks which got rewritten to utilize the full capabilities of BenchmarkDotNet.
 
-Please remember that you can  filter the benchmarks using a glob pattern applied to namespace.typeName.methodName ([read more](./benchmarkdotnet.md#Filtering-the-Benchmarks)):
+Please remember that you can filter the benchmarks using a glob pattern applied to namespace.typeName.methodName ([read more](./benchmarkdotnet.md#Filtering-the-Benchmarks)):
 
 ```cmd
 dotnet run -c Release -f netcoreapp5.0 --filter System.Memory*
 ```
+
+(Run the above command on `src/benchmarks/micro/MicroBenchmarks.csproj`.)
 
 Moreover, every Libaries benchmark belongs to a [Libraries category](../src/benchmarks/micro/README.md#Categories). Same goes for Runtime.
 

@@ -10,22 +10,50 @@ namespace System.Tests
     [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Random
     {
+        Random _randomUnseeded = new Random();
         Random _random = new Random(123456);
         byte[] _bytes = new byte[1000];
-        
+
         [Benchmark]
         public Random ctor() => new Random();
+
+        [Benchmark]
+        public Random ctor_seeded() => new Random(123456);
 
         [Benchmark]
         public int Next_int() => _random.Next(10000);
 
         [Benchmark]
+        public int Next_int_unseeded() => _randomUnseeded.Next(10000);
+
+        [Benchmark]
         public int Next_int_int() => _random.Next(100, 10000);
+
+        [Benchmark]
+        public int Next_int_int_unseeded() => _randomUnseeded.Next(100, 10000);
+
+        [Benchmark]
+        public long Next_long() => _random.NextInt64(2^20);
+
+        [Benchmark]
+        public long Next_long_unseeded() => _randomUnseeded.NextInt64(2^48);
+
+        [Benchmark]
+        public long Next_long_long() => _random.NextInt64(100, 10000);
+
+        [Benchmark]
+        public long Next_long_long_unseeded() => _randomUnseeded.NextInt64(100, 10000);
 
         [Benchmark]
         public void NextBytes() => _random.NextBytes(_bytes);
 
         [Benchmark]
+        public void NextBytes_unseeded() => _randomUnseeded.NextBytes(_bytes);
+
+        [Benchmark]
         public double NextDouble() => _random.NextDouble();
+
+        [Benchmark]
+        public double NextDouble_unseeded() => _randomUnseeded.NextDouble();
     }
 }
