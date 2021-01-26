@@ -32,7 +32,28 @@ namespace System.Tests
 
         [Benchmark]
         public int Next_int_int_unseeded() => _randomUnseeded.Next(100, 10000);
-#if NET6_0 // New API in .NET 6.0
+
+        [Benchmark]
+        public void NextBytes() => _random.NextBytes(_bytes);
+
+        [Benchmark]
+        public void NextBytes_unseeded() => _randomUnseeded.NextBytes(_bytes);
+
+        [Benchmark]
+        public double NextDouble() => _random.NextDouble();
+
+        [Benchmark]
+        public double NextDouble_unseeded() => _randomUnseeded.NextDouble();
+
+#if !NETFRAMEWORK // New API in .NET Core 2.1
+        [Benchmark]
+        public void NextBytes_span() => _random.NextBytes(_bytes.AsSpan());
+
+        [Benchmark]
+        public void NextBytes_span_unseeded() => _randomUnseeded.NextBytes(_bytes.AsSpan());
+#endif
+
+#if !NETFRAMEWORK && !NETCOREAPP2_1 && !NETCOREAPP3_1 && !NET5_0 // New API in .NET 6.0
         [Benchmark]
         public long Next_long() => _random.NextInt64(2^20);
 
@@ -44,25 +65,12 @@ namespace System.Tests
 
         [Benchmark]
         public long Next_long_long_unseeded() => _randomUnseeded.NextInt64(100, 10000);
-#endif // NET6_0
-        [Benchmark]
-        public void NextBytes() => _random.NextBytes(_bytes);
 
-        [Benchmark]
-        public void NextBytes_unseeded() => _randomUnseeded.NextBytes(_bytes);
-
-#if NET6_0 // New API in .NET 6.0
         [Benchmark]
         public float NextSingle() => _random.NextSingle();
 
         [Benchmark]
         public float NextSingle_unseeded() => _randomUnseeded.NextSingle();
-#endif // NET6_0
-        [Benchmark]
-        public double NextDouble() => _random.NextDouble();
-
-        [Benchmark]
-        public double NextDouble_unseeded() => _randomUnseeded.NextDouble();
-
+#endif
     }
 }
