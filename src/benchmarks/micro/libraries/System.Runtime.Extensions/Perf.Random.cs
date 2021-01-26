@@ -15,10 +15,11 @@ namespace System.Tests
         byte[] _bytes = new byte[1000];
 
         [Benchmark]
-        public Random ctor() => new Random();
-
-        [Benchmark]
         public Random ctor_seeded() => new Random(123456);
+
+        // Retaining historical name instead of naming 'ctor' and 'ctor_unseeded'
+        [Benchmark]
+        public Random ctor() => new Random();
 
         [Benchmark]
         public int Next_int() => _random.Next(10000);
@@ -49,6 +50,12 @@ namespace System.Tests
 
         [Benchmark]
         public void NextBytes_unseeded() => _randomUnseeded.NextBytes(_bytes);
+
+        [Benchmark]
+        public single NextSingle() => _random.NextSingle();
+
+        [Benchmark]
+        public single NextSingle_unseeded() => _randomUnseeded.NextSingle();
 
         [Benchmark]
         public double NextDouble() => _random.NextDouble();
