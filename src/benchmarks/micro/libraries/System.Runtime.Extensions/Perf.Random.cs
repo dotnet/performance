@@ -32,7 +32,7 @@ namespace System.Tests
 
         [Benchmark]
         public int Next_int_int_unseeded() => _randomUnseeded.Next(100, 10000);
-
+#if NET6_0 // New API in .NET 6.0
         [Benchmark]
         public long Next_long() => _random.NextInt64(2^20);
 
@@ -44,23 +44,25 @@ namespace System.Tests
 
         [Benchmark]
         public long Next_long_long_unseeded() => _randomUnseeded.NextInt64(100, 10000);
-
+#endif // NET6_0
         [Benchmark]
         public void NextBytes() => _random.NextBytes(_bytes);
 
         [Benchmark]
         public void NextBytes_unseeded() => _randomUnseeded.NextBytes(_bytes);
 
+#if NET6_0 // New API in .NET 6.0
         [Benchmark]
-        public single NextSingle() => _random.NextSingle();
+        public float NextSingle() => _random.NextSingle();
 
         [Benchmark]
-        public single NextSingle_unseeded() => _randomUnseeded.NextSingle();
-
+        public float NextSingle_unseeded() => _randomUnseeded.NextSingle();
+#endif // NET6_0
         [Benchmark]
         public double NextDouble() => _random.NextDouble();
 
         [Benchmark]
         public double NextDouble_unseeded() => _randomUnseeded.NextDouble();
+
     }
 }
