@@ -70,6 +70,7 @@ namespace System.IO.Tests
         [Benchmark]
         [Arguments(OneKibibyte , FileOptions.None)]
         [Arguments(OneKibibyte , FileOptions.Asynchronous)]
+        [AllowedOperatingSystems("Lock and Unlock are supported only on Windows and Linux", OS.Linux, OS.Windows)]
         public void LockUnlock(long fileSize, FileOptions options)
         {
             string filePath = _sourceFilePaths[fileSize];
