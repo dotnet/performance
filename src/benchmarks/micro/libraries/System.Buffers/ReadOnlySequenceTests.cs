@@ -24,7 +24,7 @@ namespace System.Buffers.Tests
         public void SetupSingleSegment() => _startSegment = _endSegment = new BufferSegment<T>(new ReadOnlyMemory<T>(_array = ValuesGenerator.Array<T>(Size)));
 
         [GlobalSetup(Targets = new[] { nameof(FirstMemory), nameof(SliceMemory), nameof(IterateTryGetMemory), nameof(IterateForEachMemory), nameof(IterateGetPositionMemory), "FirstSpanMemory" })]
-        public void MemorySegment() => _memory = new ReadOnlyMemory<T>(_array = ValuesGenerator.Array<T>(Size));
+        public void SetupMemorySegment() => _memory = new ReadOnlyMemory<T>(_array = ValuesGenerator.Array<T>(Size));
 
         [GlobalSetup(Targets = new[] { nameof(IterateTryGetTenSegments), nameof(IterateForEachTenSegments), nameof(IterateGetPositionTenSegments), nameof(FirstTenSegments), nameof(SliceTenSegments), "FirstSpanTenSegments" })]
         public void SetupTenSegments()
