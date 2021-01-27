@@ -55,11 +55,14 @@ namespace CompilerBenchmarks
             Compilation comp,
             CommandLineArguments cmdLineArgs)
         {
-            var analyzers = cmdLineArgs.ResolveAnalyzersFromArguments(
+            cmdLineArgs.ResolveAnalyzersFromArguments(
                 LanguageNames.CSharp,
                 new List<DiagnosticInfo>(),
                 MessageProvider.Instance,
-                new CoreClrAnalyzerAssemblyLoader());
+                new CoreClrAnalyzerAssemblyLoader(),
+                skipAnalyzers: false,
+                out var analyzers,
+                out var generators);
             var additionalFiles = cmdLineArgs.AdditionalFiles
                 .SelectAsArray(f => (AdditionalText)new AdditionalTextFile(f.Path));
 

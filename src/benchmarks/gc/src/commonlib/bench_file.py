@@ -578,12 +578,15 @@ class TestKind(Enum):
 @doc_field("tlgb", None)
 @doc_field("totalMins", None)
 @doc_field("lohar", None)
+@doc_field("pohar", None)
+@doc_field("sohsr", None)
+@doc_field("lohsr", None)
+@doc_field("pohsr", None)
 @doc_field("sohsi", None)
 @doc_field("lohsi", None)
 @doc_field("pohsi", None)
 @doc_field("sohpi", None)
 @doc_field("lohpi", None)
-@doc_field("pohpi", None)
 @doc_field("sohfi", None)
 @doc_field("lohfi", None)
 @doc_field("pohfi", None)
@@ -602,12 +605,15 @@ class GCPerfSimArgs:
     tlgb: float
     totalMins: Optional[float] = None
     lohar: int = 0
+    pohar: int = 0
+    sohsr: str = "10-4000"
+    lohsr: str = "102400-204800"
+    pohsr: str = "100-204800"
     sohsi: int = 0
     lohsi: int = 0
     pohsi: int = 0
     sohpi: int = 0
     lohpi: int = 0
-    pohpi: int = 0
     sohfi: int = 0
     lohfi: int = 0
     pohfi: int = 0
@@ -621,12 +627,15 @@ class GCPerfSimArgs:
             "-tlgb": str(self.tlgb),
             **(empty_mapping() if self.totalMins is None else {"totalMins": str(self.totalMins)}),
             "-lohar": str(self.lohar),
+            "-pohar": str(self.pohar),
             "-sohsi": str(self.sohsi),
             "-lohsi": str(self.lohsi),
             "-pohsi": str(self.pohsi),
+            "-sohsr": str(self.sohsr),
+            "-lohsr": str(self.lohsr),
+            "-pohsr": str(self.pohsr),
             "-sohpi": str(self.sohpi),
             "-lohpi": str(self.lohpi),
-            "-pohpi": str(self.pohpi),
             "-sohfi": str(self.sohfi),
             "-lohfi": str(self.lohfi),
             "-pohfi": str(self.pohfi),

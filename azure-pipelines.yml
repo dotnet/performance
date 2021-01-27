@@ -8,6 +8,7 @@ trigger:
   branches:
     include:
     - master
+    - release/3.1.4xx
   paths:
     include:
     - eng/Version.Details.xml
@@ -34,6 +35,7 @@ schedules:
   branches:
     include:
     - master
+    - release/3.1.4xx
   always: true
 
 jobs:
@@ -479,37 +481,6 @@ jobs:
       channels:
         - master
         #- release/5.0.1xx
-  
-  # Ubuntu 1804 ARM64 micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: ubuntu
-      osVersion: 1804
-      kind: micro
-      architecture: arm64
-      pool: Hosted Ubuntu 1604
-      queue: Ubuntu.1804.Arm64.Perf
-      container: ubuntu_x64_build_container
-      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'runtime libraries'
-      channels: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
-        - master
-        - release/5.0.1xx
-
-    # Ubuntu 1804 ARM64 micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: windows
-      osVersion: RS5
-      kind: micro
-      architecture: arm64
-      pool: Hosted VS2017
-      queue: Windows.10.Arm64.Perf
-      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'runtime libraries'
-      channels: # for private jobs we want to benchmark .NET Core 5.0 and 3.1
-        - master
-        - release/5.0.1xx
 
 ################################################
 # Manually Triggered Job

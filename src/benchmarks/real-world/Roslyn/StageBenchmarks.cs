@@ -136,10 +136,7 @@ namespace CompilerBenchmarks
                 pdbStreamProvider: null,
                 testSymWriterFactory: null,
                 diagnostics,
-                metadataOnly: _options.EmitMetadataOnly,
-                includePrivateMembers: _options.IncludePrivateMembers,
-                emitTestCoverageData: _options.EmitTestCoverageData,
-                pePdbFilePath: _options.PdbFilePath,
+                _options,
                 privateKeyOpt: null,
                 cancellationToken: default);
 

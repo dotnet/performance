@@ -82,8 +82,8 @@ we allocate POH that's randomly chosen between this range.
 
 -sohSurvInterval/-sohsi: g_sohSurvInterval
 meaning every Nth SOH object allocated will survive. This is something we will consider changing to survival rate
-later. When the allocated objects are of similiar sizes the surv rate is 1/g_sohSurvInterval but we may not want them
-to all be similiar sizes.
+later. When the allocated objects are of similar sizes the surv rate is 1/g_sohSurvInterval but we may not want them
+to all be similar sizes.
 
 -lohSurvInterval/-lohsi: g_lohSurvInterval
 meaning every Nth LOH object allocated will survive. 
@@ -91,17 +91,14 @@ meaning every Nth LOH object allocated will survive.
 -pohSurvInterval/-pohsi:
 meaning every Nth POH object allocated will survive.
 
-Note that -sohSurvInterval/-lohSurvInterval are only applicable for steady state, during initialization everything
-survives.
+Note that -sohSurvInterval/-lohSurvInterval are only applicable for steady state.
+During initialization everything survives.
 
 -sohPinningInterval/-sohpi: g_sohPinningInterval
 meaning every Nth SOH object survived will be pinned. 
 
 -lohPinningInterval/-lohpi: g_lohPinningInterval
 meaning every Nth LOH object survived will be pinned. 
-
--pohPinningInterval/-pohpi:
-meaning every Nth POH object survived will be pinned.
 
 -allocType/-at: g_allocType
 What kind of objects are we allocating? Current supported types: 
@@ -1286,7 +1283,6 @@ class ArgsParser
         uint pohAllocHigh = DEFAULT_POH_ALLOC_HIGH;
 
 #if NET5_0
-        uint pohPinInterval = DEFAULT_POH_PINNING_INTERVAL;
         uint pohFinalizableInterval = DEFAULT_POH_FINALIZABLE_INTERVAL;
         uint pohSurvInterval = DEFAULT_POH_SURV_INTERVAL;
 
@@ -1394,15 +1390,6 @@ class ArgsParser
                     lohFinalizableInterval = ParseUInt32(args[++i]);
                     break;
 
-                case "-pohPinningInterval":
-                case "-pohpi":
-#if NET5_0
-                    pohPinInterval = ParseUInt32(args[++i]);
-#else
-                    Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
-                                      args[i++]);
-#endif
-                    break;
                 case "-pohFinalizableInterval":
                 case "-pohfi":
 #if NET5_0
@@ -1451,7 +1438,15 @@ class ArgsParser
         List<BucketSpec> bucketList = new List<BucketSpec>();
         uint sohWeight = 1000;
 
-        uint lohWeight = GetLohAllocWeight(lohAllocRatioArg, sohAllocLow: sohAllocLow, sohAllocHigh: sohAllocHigh, lohAllocLow: lohAllocLow, lohAllocHigh: lohAllocHigh, pohAllocLow, pohAllocHigh);
+        uint lohWeight = GetLohAllocWeight(
+            lohAllocRatio: lohAllocRatioArg,
+            sohAllocLow: sohAllocLow,
+            sohAllocHigh: sohAllocHigh,
+            lohAllocLow: lohAllocLow,
+            lohAllocHigh: lohAllocHigh,
+            pohAllocLow: pohAllocLow,
+            pohAllocHigh: pohAllocHigh);
+
         if (lohWeight > 0)
         {
             BucketSpec lohBucket = new BucketSpec(
@@ -1466,13 +1461,21 @@ class ArgsParser
         }
 
 #if NET5_0
-        uint pohWeight = GetPohAllocWeight(pohAllocRatioArg, sohAllocLow: sohAllocLow, sohAllocHigh: sohAllocHigh, lohAllocLow: lohAllocLow, lohAllocHigh: lohAllocHigh, pohAllocLow, pohAllocHigh);
+        uint pohWeight = GetPohAllocWeight(
+            pohAllocRatio: pohAllocRatioArg,
+            sohAllocLow: sohAllocLow,
+            sohAllocHigh: sohAllocHigh,
+            lohAllocLow: lohAllocLow,
+            lohAllocHigh: lohAllocHigh,
+            pohAllocLow: pohAllocLow,
+            pohAllocHigh: pohAllocHigh);
+
         if (pohWeight > 0)
         {
             BucketSpec pohBucket = new BucketSpec(
                 sizeRange: new SizeRange(pohAllocLow, pohAllocHigh),
                 survInterval: pohSurvInterval,
-                pinInterval: pohPinInterval,
+                pinInterval: 0,
                 finalizableInterval: pohFinalizableInterval,
                 weight: pohWeight,
                 isPoh: true);

@@ -132,10 +132,10 @@ _BENCH = Path("bench")
 _SUITE = Path("bench") / "suite"
 
 _LOW_MEMORY_CONTAINER = _SUITE / "low_memory_container.yaml"
-_OUT = add_extension(_LOW_MEMORY_CONTAINER, ".out")
+_OUT = add_extension(_LOW_MEMORY_CONTAINER, "out")
 
-_TRACE = get_trace_with_everything(_OUT / "a__only_config__tlgb0.2__0.yaml")
-_TRACE2 = get_trace_with_everything(_OUT / "b__only_config__tlgb0.2__0.yaml")
+_TRACE = get_trace_with_everything(_OUT / "defgcperfsim__a__only_config__tlgb0.2__0.yaml")
+_TRACE2 = get_trace_with_everything(_OUT / "defgcperfsim__b__only_config__tlgb0.2__0.yaml")
 
 #%% Load and read trace with CPU Samples
 
