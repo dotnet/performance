@@ -10,9 +10,9 @@ namespace System.Tests
     [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Random
     {
-        Random _randomUnseeded = new Random();
-        Random _random = new Random(123456);
-        byte[] _bytes = new byte[1000];
+        private Random _randomUnseeded = new Random();
+        private Random _random = new Random(123456);
+        private byte[] _bytes = new byte[1000];
 
         [Benchmark]
         public Random ctor_seeded() => new Random(123456);
