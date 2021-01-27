@@ -73,7 +73,7 @@ namespace System.IO.Tests
         public void LockUnlock(long fileSize, FileOptions options)
         {
             string filePath = _sourceFilePaths[fileSize];
-            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite, FourKibibytes, options))
             {
                 fileStream.Lock(0, fileStream.Length);
 
