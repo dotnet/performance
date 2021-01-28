@@ -14,7 +14,7 @@ namespace System.IO.Tests
         private char[] _inputAsChars;
         private BinaryWriter _bw;
 
-        [Params(4, 16, 512, 10_000, 100_000, 500_000, 2_000_000)]
+        [Params(32, 8_000, 2_000_000)]
         public int StringLengthInChars;
 
         [GlobalSetup]
