@@ -52,7 +52,8 @@ namespace System.IO.Tests
             }
         }
 
-        [GlobalSetup(Targets = new[] { nameof(OpenClose), nameof(LockUnlock), nameof(SeekForward), nameof(SeekBackward), nameof(ReadByte), nameof(WriteByte) })]
+        [GlobalSetup(Targets = new[] { nameof(OpenClose), nameof(LockUnlock), nameof(SeekForward), nameof(SeekBackward), 
+            nameof(ReadByte), nameof(WriteByte), nameof(Flush), nameof(FlushAsync) })]
         public void SetuOneKibibyteBenchmarks() => Setup(OneKibibyte );
 
         [Benchmark]
@@ -245,6 +246,39 @@ namespace System.IO.Tests
             }
         }
 #endif
+
+        [Benchmark]
+        [Arguments(OneKibibyte, FileOptions.None)]
+        [Arguments(OneKibibyte, FileOptions.Asynchronous)]
+        public void Flush(long fileSize, FileOptions options)
+        {
+            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
+            {
+                for (int i = 0; i < fileSize; i++)
+                {
+                    fileStream.WriteByte(default); // make sure that Flush has something to actualy flush to disk
+
+                    fileStream.Flush();
+                }
+            }
+        }
+
+        [Benchmark]
+        [Arguments(OneKibibyte, FileOptions.None)]
+        [Arguments(OneKibibyte, FileOptions.Asynchronous)]
+        public async Task FlushAsync(long fileSize, FileOptions options)
+        {
+            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
+            {
+                for (int i = 0; i < fileSize; i++)
+                {
+                    fileStream.WriteByte(default);
+
+                    await fileStream.FlushAsync();
+                }
+            }
+        }
+
 
         [Benchmark]
         [Arguments(OneKibibyte , FileOptions.None)]
