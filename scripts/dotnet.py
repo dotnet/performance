@@ -696,7 +696,7 @@ def install(
                 outfile.write(response.read())
                 break
 
-    if count is 3:
+    if count == 3:
         getLogger().error("Fatal error: could not download dotnet-install script")
         raise Exception("Fatal error: could not download dotnet-install script")
 
