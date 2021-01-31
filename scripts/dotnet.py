@@ -687,14 +687,19 @@ def install(
     getLogger().info('Downloading %s', dotnetInstallScriptUrl)
     count = 0
     while count < 3:
-        with urlopen(dotnetInstallScriptUrl) as response:
-            if "html" in response.info()['Content-Type']:
-                count = count + 1
-                sleep(1) # sleep one second
-                continue
-            with open(dotnetInstallScriptPath, 'wb') as outfile:
-                outfile.write(response.read())
-                break
+        try:
+            with urlopen(dotnetInstallScriptUrl) as response:
+                if "html" in response.info()['Content-Type']:
+                    count = count + 1
+                    sleep(1) # sleep one second
+                    continue
+                with open(dotnetInstallScriptPath, 'wb') as outfile:
+                    outfile.write(response.read())
+                    break
+        except Exception:
+            count = count + 1
+            sleep(1)
+            continue
 
     if count is 3:
         getLogger().error("Fatal error: could not download dotnet-install script")
