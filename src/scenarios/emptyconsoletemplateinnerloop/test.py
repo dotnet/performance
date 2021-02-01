@@ -3,7 +3,7 @@ C# Console app
 '''
 from shared.runner import TestTraits, Runner
 
-EXENAME = 'emptycsconsoletemplateinnerloop'
+EXENAME = 'emptyconsoletemplateinnerloop'
 
 if __name__ == "__main__":
     traits = TestTraits(exename=EXENAME, 
