@@ -135,7 +135,8 @@ namespace ScenarioMeasurement
                     if (!exited)
                     {
                         process.Kill();
-                        return (Result.CloseFailed, pid);
+                        Thread.Sleep(3000);
+                        return (Result.Success, pid);
                     }
                 }
 

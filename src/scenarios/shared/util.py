@@ -34,6 +34,10 @@ def builtexe(exename: str):
     'gets binary path'
     return os.path.join(const.BINDIR, '%s%s' % (exename, extension()))
 
+def appfolder(projname: str):
+    'gets path for callign dotnet run'
+    return os.path.join(const.APPDIR, '%s.csproj' % projname)
+
 def publishedexe(exename: str):
     'gets binary path for published exe'
     return os.path.join(const.PUBDIR, '%s%s' % (exename, extension()))

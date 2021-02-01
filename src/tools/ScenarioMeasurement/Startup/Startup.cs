@@ -1,6 +1,7 @@
 ﻿using Reporting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.IO;
 
 namespace ScenarioMeasurement
@@ -11,8 +12,17 @@ namespace ScenarioMeasurement
         GenericStartup,
         ProcessTime,
         WPF,
-        Crossgen2
+        Crossgen2,
+        InnerLoop
     }
+
+    public class InnerLoopMarkerEventSource : EventSource
+    {
+        public static InnerLoopMarkerEventSource Log = new InnerLoopMarkerEventSource();
+        public void Split() => WriteEvent(1);
+        public void EndIteration() => WriteEvent(2);
+    }
+
     class Startup
     {
         private static ProcessHelper TestProcess { get; set; }
@@ -40,6 +50,8 @@ namespace ScenarioMeasurement
         /// <param name="cleanupArgs">arguments of iterationCleanup</param>
         /// <param name="traceDirectory">Directory to put files in (defaults to current directory)</param>
         /// <param name="environmentVariables">Environment variables set for test processes (example: var1=value1;var2=value2)</param>
+        /// <param name="innerLoopCommand">Environment variables set for test processes (example: var1=value1;var2=value2)</param>
+        /// <param name="innerLoopCommandArgs">Environment variables set for test processes (example: var1=value1;var2=value2)</param>
         /// <returns></returns>
 
         static int Main(string appExe,
@@ -62,7 +74,9 @@ namespace ScenarioMeasurement
                         bool skipProfileIteration = false,
                         string reportJsonPath = "",
                         string traceDirectory = null,
-                        string environmentVariables = null
+                        string environmentVariables = null,
+                        string innerLoopCommand = "",
+                        string innerLoopCommandArgs = ""
                         )
         {
             Logger logger = new Logger(String.IsNullOrEmpty(logFileName) ? $"{appExe}.startup.log" : logFileName);
@@ -117,6 +131,11 @@ namespace ScenarioMeasurement
             {
                 cleanupProcHelper = CreateProcHelper(iterationCleanup, cleanupArgs, logger);
             }
+            ProcessHelper innerLoopProcHelper = null;
+            if (!String.IsNullOrEmpty(innerLoopCommand))
+            {
+                innerLoopProcHelper = CreateProcHelper(innerLoopCommand, innerLoopCommandArgs, logger);
+            }
 
             Util.Init();
 
@@ -145,6 +164,9 @@ namespace ScenarioMeasurement
                 case MetricType.Crossgen2:
                     parser = new Crossgen2Parser();
                     break;
+                case MetricType.InnerLoop:
+                    parser = new InnerLoopParser();
+                    break;
                     //case MetricType.WPF:
                     //    parser = new WPFParser();
                     //    break;
@@ -161,13 +183,48 @@ namespace ScenarioMeasurement
                 for (int i = 0; i < iterations; i++)
                 {
                     logger.LogIterationHeader($"Iteration {i}");
-                    var iterationResult = RunIteration(setupProcHelper, TestProcess, cleanupProcHelper, logger);
+                    (bool Success, int Pid) iterationResult;
+                    if(metricType == MetricType.InnerLoop)
+                    {
+                        iterationResult = RunIteration(setupProcHelper, TestProcess, null, logger);
+                    }
+                    else
+                    {
+                        iterationResult = RunIteration(setupProcHelper, TestProcess, cleanupProcHelper, logger);
+                    }
                     if (!iterationResult.Success)
                     {
                         failed = true;
                         break;
                     }
                     pids.Add(iterationResult.Pid);
+
+                    if(metricType == MetricType.InnerLoop)
+                    {
+                        //Do some stuff to change the project
+                        logger.LogStepHeader("Inner Loop Setup");
+                        var innerLoopReturn = innerLoopProcHelper.Run();
+                        if(innerLoopReturn.Result != ProcessHelper.Result.Success)
+                        {
+                            failed = true;
+                            break;
+                        }
+                        else
+                        {
+                            var test = InnerLoopMarkerEventSource.GetSources();
+                            InnerLoopMarkerEventSource.Log.Split();
+
+                            logger.LogIterationHeader($"Iteration {i} - Diff");
+                            iterationResult = RunIteration(null, TestProcess, cleanupProcHelper, logger);
+                            if (!iterationResult.Success)
+                            {
+                                failed = true;
+                                break;
+                            }
+                            pids.Add(iterationResult.Pid);
+                            InnerLoopMarkerEventSource.Log.EndIteration();
+                        }
+                    }
                 }
                 traceFilePath = traceSession.TraceFilePath;
             }

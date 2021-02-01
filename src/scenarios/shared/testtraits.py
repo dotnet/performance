@@ -6,7 +6,8 @@ testtypes = [const.STARTUP,
              const.SDK,
              const.CROSSGEN,
              const.CROSSGEN2,
-             const.SOD]
+             const.SOD,
+             const.INNERLOOP]
 
 class TestTraits:
 
@@ -32,6 +33,8 @@ class TestTraits:
         self.environmentvariables = ''
         self.skipprofile = ''
         self.artifact = ''
+        self.innerloopcommand = ''
+        self.innerloopcommandargs = ''
 
         # add test types to traits
         for testtype in testtypes:

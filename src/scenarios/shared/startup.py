@@ -96,6 +96,10 @@ class StartupWrapper(object):
             startup_args.extend(['--measurement-delay', traits.measurementdelay])
         if traits.skipprofile:
             startup_args.extend(['--skip-profile-iteration'])
+        if traits.innerloopcommand:
+            startup_args.extend(['--inner-loop-command', traits.innerloopcommand])
+        if traits.innerloopcommandargs:
+            startup_args.extend(['--inner-loop-command-args', traits.innerloopcommandargs])
             
         RunCommand(startup_args, verbose=True).run()
 
