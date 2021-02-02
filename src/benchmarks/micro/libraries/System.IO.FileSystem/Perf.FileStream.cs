@@ -2,8 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 
 namespace System.IO.Tests
@@ -11,72 +15,204 @@ namespace System.IO.Tests
     [BenchmarkCategory(Categories.Libraries)]
     public class Perf_FileStream
     {
-        private const int DefaultBufferSize = 4096;
-        
-        [Params(DefaultBufferSize / 8, 200000)]
-        public int BufferSize;
+        private const int OneKibibyte  = 1 << 10; // 1024
+        private const int HalfKibibyte = OneKibibyte >> 1;
+        private const int FourKibibytes = OneKibibyte << 2; // default Stream buffer size
+        private const int OneMibibyte = OneKibibyte  << 10;
+        private const int HundredMibibytes = OneMibibyte * 100;
 
-        [Params(200000)]
-        public int TotalSize;
+        private Dictionary<long, string> _sourceFilePaths, _destinationFilePaths;
 
-        private byte[] _buffer;
-        private string _filePath;
+        private Dictionary<int, byte[]> _userBuffers;
 
-        [GlobalSetup]
-        public void Setup()
+        private void Setup(params long[] fileSizes)
         {
-            _buffer = CreateRandomBytes(BufferSize);
-            _filePath = CreateFileWithRandomContent(TotalSize);
+            _userBuffers = new Dictionary<int, byte[]>()
+            {
+                { HalfKibibyte, ValuesGenerator.Array<byte>(HalfKibibyte) },
+                { FourKibibytes, ValuesGenerator.Array<byte>(FourKibibytes) },
+            };
+            _sourceFilePaths = fileSizes.ToDictionary(size => size, size => CreateFileWithRandomContent(size));
+            _destinationFilePaths = fileSizes.ToDictionary(size => size, size => CreateFileWithRandomContent(size));
+
+            static string CreateFileWithRandomContent(long fileSize)
+            {
+                string filePath = FileUtils.GetTestFilePath();
+                File.WriteAllBytes(filePath, ValuesGenerator.Array<byte>((int)fileSize));
+                return filePath;
+            }
         }
 
         [GlobalCleanup]
-        public void Cleanup() => File.Delete(_filePath);
+        public void Cleanup()
+        {
+            foreach (string filePath in _sourceFilePaths.Values.Concat(_destinationFilePaths.Values))
+            {
+                File.Delete(filePath);
+            }
+        }
+
+        [GlobalSetup(Targets = new[] { nameof(OpenClose), nameof(LockUnlock), nameof(SeekForward), nameof(SeekBackward), 
+            nameof(ReadByte), nameof(WriteByte), nameof(Flush), nameof(FlushAsync) })]
+        public void SetuOneKibibyteBenchmarks() => Setup(OneKibibyte );
 
         [Benchmark]
-        public int ReadByte()
+        [Arguments(OneKibibyte , FileOptions.None)] // sync (default)
+        [Arguments(OneKibibyte , FileOptions.Asynchronous)] // async
+        public bool OpenClose(long fileSize, FileOptions options)
+        {
+            string filePath = _sourceFilePaths[fileSize];
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
+            {
+                return fileStream.IsAsync; // return something just to consume the reader
+            }
+        }
+
+        [Benchmark]
+        [Arguments(OneKibibyte , FileOptions.None)]
+        [Arguments(OneKibibyte , FileOptions.Asynchronous)]
+        [AllowedOperatingSystems("Lock and Unlock are supported only on Windows and Linux", OS.Linux, OS.Windows)]
+        public void LockUnlock(long fileSize, FileOptions options)
+        {
+            string filePath = _sourceFilePaths[fileSize];
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite, FourKibibytes, options))
+            {
+                fileStream.Lock(0, fileStream.Length);
+
+                fileStream.Unlock(0, fileStream.Length);
+            }
+        }
+
+        [Benchmark]
+        [Arguments(OneKibibyte , FileOptions.None)]
+        [Arguments(OneKibibyte , FileOptions.Asynchronous)]
+        public void SeekForward(long fileSize, FileOptions options)
+        {
+            string filePath = _sourceFilePaths[fileSize];
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
+            {
+                for (long offset = 0; offset < fileSize; offset++)
+                {
+                    fileStream.Seek(offset, SeekOrigin.Begin);
+                }
+            }
+        }
+
+        [Benchmark]
+        [Arguments(OneKibibyte , FileOptions.None)]
+        [Arguments(OneKibibyte , FileOptions.Asynchronous)]
+        public void SeekBackward(long fileSize, FileOptions options)
+        {
+            string filePath = _sourceFilePaths[fileSize];
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
+            {
+                for (long offset = -1; offset >= -fileSize; offset--)
+                {
+                    fileStream.Seek(offset, SeekOrigin.End);
+                }
+            }
+        }
+
+        [Benchmark]
+        [Arguments(OneKibibyte , FileOptions.None)]
+        [Arguments(OneKibibyte , FileOptions.Asynchronous)] // calling ReadByte() on bigger files makes no sense, so we don't have more test cases
+        public int ReadByte(long fileSize, FileOptions options)
         {
             int result = default;
-            
-            using (FileStream reader = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, FileOptions.None))
+            using (FileStream fileStream = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
             {
-                for (int i = 0; i < TotalSize; i++)
+                for (long i = 0; i < fileSize; i++)
                 {
-                    result += reader.ReadByte();
+                    result += fileStream.ReadByte();
                 }
             }
 
             return result;
         }
-        
+
         [Benchmark]
-        public int Read()
+        [Arguments(OneKibibyte , FileOptions.None)]
+        [Arguments(OneKibibyte , FileOptions.Asynchronous)]
+        public void WriteByte(long fileSize, FileOptions options)
         {
-            byte[] buffer = _buffer;
-            int bytesRead = 0;
-            
-            using (FileStream reader = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, FileOptions.None))
+            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
             {
-                for (int i = 0; i < TotalSize / BufferSize; i++)
+                for (int i = 0; i < fileSize; i++)
                 {
-                    bytesRead += reader.Read(buffer, 0, buffer.Length);
+                    fileStream.WriteByte(default);
+                }
+            }
+        }
+
+        [GlobalSetup(Targets = new[] { nameof(Read), "ReadAsync", nameof(Write), "WriteAsync", nameof(CopyToFile), nameof(CopyToFileAsync) })]
+        public void SetupBigFileBenchmarks() => Setup(OneKibibyte , OneMibibyte, HundredMibibytes);
+
+        [Benchmark]
+        [Arguments(OneKibibyte , HalfKibibyte, FileOptions.None)] // userBufferSize is less than StreamBufferSize, buffering makes sense
+        [Arguments(OneKibibyte , FourKibibytes, FileOptions.None)] // the buffer provided by User and internal Stream buffer are of the same size, buffering makes NO sense
+        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.None)]
+        [Arguments(OneMibibyte, FourKibibytes, FileOptions.None)]
+        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.None)]
+        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.None)]
+        public long Read(long fileSize, int userBufferSize, FileOptions options)
+        {
+            byte[] userBuffer = _userBuffers[userBufferSize];
+            long bytesRead = 0;
+            using (FileStream fileStream = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
+            {
+                while (bytesRead < fileSize)
+                {
+                    bytesRead += fileStream.Read(userBuffer, 0, userBuffer.Length);
                 }
             }
 
             return bytesRead;
         }
-        
+
         [Benchmark]
-        [BenchmarkCategory(Categories.NoWASM)]
-        public async Task<int> ReadAsync()
+        [Arguments(OneKibibyte , HalfKibibyte, FileOptions.None)]
+        [Arguments(OneKibibyte , FourKibibytes, FileOptions.None)]
+        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.None)]
+        [Arguments(OneMibibyte, FourKibibytes, FileOptions.None)]
+        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.None)]
+        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.None)]
+        public void Write(long fileSize, int userBufferSize, FileOptions options)
         {
-            byte[] buffer = _buffer;
-            int bytesRead = 0;
-            
-            using (FileStream reader = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, FileOptions.Asynchronous))
+            byte[] userBuffer = _userBuffers[userBufferSize];
+            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
             {
-                for (int i = 0; i < TotalSize / BufferSize; i++)
+                for (int i = 0; i < fileSize / userBufferSize; i++)
                 {
-                    bytesRead += await reader.ReadAsync(buffer, 0, buffer.Length);
+                    fileStream.Write(userBuffer, 0, userBuffer.Length);
+                }
+            }
+        }
+
+#if !NETFRAMEWORK // APIs added in .NET Core 2.0
+        [Benchmark]
+        [Arguments(OneKibibyte, HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte, HalfKibibyte, FileOptions.None)] // common use case (sync open, later async usage)
+        [Arguments(OneKibibyte, FourKibibytes, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte, FourKibibytes, FileOptions.None)]
+        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.None)]
+        [Arguments(OneMibibyte, FourKibibytes, FileOptions.Asynchronous)]
+        [Arguments(OneMibibyte, FourKibibytes, FileOptions.None)]
+        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.None)]
+        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.Asynchronous)]
+        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.None)]
+        [BenchmarkCategory(Categories.NoWASM)]
+        public async Task<long> ReadAsync(long fileSize, int userBufferSize, FileOptions options)
+        {
+            CancellationToken cancellationToken = CancellationToken.None;
+            Memory<byte> userBuffer = new Memory<byte>(_userBuffers[userBufferSize]);
+            long bytesRead = 0;
+            using (FileStream fileStream = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
+            {
+                while (bytesRead < fileSize)
+                {
+                    bytesRead += await fileStream.ReadAsync(userBuffer, cancellationToken);
                 }
             }
 
@@ -84,70 +220,94 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
+        [Arguments(OneKibibyte, HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte, HalfKibibyte, FileOptions.None)]
+        [Arguments(OneKibibyte, FourKibibytes, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte, FourKibibytes, FileOptions.None)]
+        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.None)]
+        [Arguments(OneMibibyte, FourKibibytes, FileOptions.Asynchronous)]
+        [Arguments(OneMibibyte, FourKibibytes, FileOptions.None)]
+        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.Asynchronous)]
+        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.None)]
+        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.Asynchronous)]
+        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.None)]
         [BenchmarkCategory(Categories.NoWASM)]
-        public async Task CopyToAsync()
+        public async Task WriteAsync(long fileSize, int userBufferSize, FileOptions options)
         {
-            using (var reader = new FileStream(_filePath, FileMode.Open, FileAccess.Read, FileShare.Read, DefaultBufferSize, FileOptions.Asynchronous))
+            CancellationToken cancellationToken = CancellationToken.None;
+            Memory<byte> userBuffer = new Memory<byte>(_userBuffers[userBufferSize]);
+            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
             {
-                await reader.CopyToAsync(Stream.Null);
-            }
-        }
-
-        [Benchmark]
-        public void WriteByte()
-        {
-            using (FileStream writer = new FileStream(_filePath, FileMode.Create, FileAccess.Write, FileShare.Read, DefaultBufferSize, FileOptions.None))
-            {
-                for (int i = 0; i < TotalSize; i++)
+                for (int i = 0; i < fileSize / userBufferSize; i++)
                 {
-                    writer.WriteByte(default);
+                    await fileStream.WriteAsync(userBuffer, cancellationToken);
                 }
             }
         }
-        
-        [Benchmark]
-        public void Write()
-        {
-            byte[] bytes = _buffer;
+#endif
 
-            using (FileStream writer = new FileStream(_filePath, FileMode.Create, FileAccess.Write, FileShare.Read, DefaultBufferSize, FileOptions.None))
+        [Benchmark]
+        [Arguments(OneKibibyte, FileOptions.None)]
+        [Arguments(OneKibibyte, FileOptions.Asynchronous)]
+        public void Flush(long fileSize, FileOptions options)
+        {
+            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
             {
-                for (int i = 0; i < TotalSize / BufferSize; i++)
+                for (int i = 0; i < fileSize; i++)
                 {
-                    writer.Write(bytes, 0, bytes.Length);
+                    fileStream.WriteByte(default); // make sure that Flush has something to actualy flush to disk
+
+                    fileStream.Flush();
                 }
             }
         }
 
         [Benchmark]
+        [Arguments(OneKibibyte, FileOptions.None)]
+        [Arguments(OneKibibyte, FileOptions.Asynchronous)]
+        public async Task FlushAsync(long fileSize, FileOptions options)
+        {
+            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
+            {
+                for (int i = 0; i < fileSize; i++)
+                {
+                    fileStream.WriteByte(default);
+
+                    await fileStream.FlushAsync();
+                }
+            }
+        }
+
+
+        [Benchmark]
+        [Arguments(OneKibibyte , FileOptions.None)]
+        [Arguments(OneMibibyte, FileOptions.None)]
+        [Arguments(HundredMibibytes, FileOptions.None)]
+        public void CopyToFile(long fileSize, FileOptions options)
+        {
+            using (FileStream source = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
+            using (FileStream destination = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
+            {
+                source.CopyTo(destination);
+            }
+        }
+
+        [Benchmark]
+        [Arguments(OneKibibyte, FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte, FileOptions.None)]
+        [Arguments(OneMibibyte, FileOptions.Asynchronous)]
+        [Arguments(OneMibibyte, FileOptions.None)]
+        [Arguments(HundredMibibytes, FileOptions.Asynchronous)]
+        [Arguments(HundredMibibytes, FileOptions.None)]
         [BenchmarkCategory(Categories.NoWASM)]
-        public async Task WriteAsync()
+        public async Task CopyToFileAsync(long fileSize, FileOptions options)
         {
-            byte[] bytes = _buffer;
-            
-            using (FileStream writer = new FileStream(_filePath, FileMode.Create, FileAccess.Write, FileShare.Read, DefaultBufferSize, FileOptions.Asynchronous))
+            using (FileStream source = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
+            using (FileStream destination = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
             {
-                for (int i = 0; i < TotalSize / BufferSize; i++)
-                {
-                    await writer.WriteAsync(bytes, 0, bytes.Length);
-                }
+                await source.CopyToAsync(destination);
             }
-        }
-
-        private static byte[] CreateRandomBytes(int size)
-        {
-            byte[] bytes = new byte[size];
-            new Random(531033).NextBytes(bytes);
-            return bytes;
-        }
-
-        private static string CreateFileWithRandomContent(int size)
-        {
-            string filePath = FileUtils.GetTestFilePath();
-            byte[] bytes = new byte[size];
-            new Random(531033).NextBytes(bytes);
-            File.WriteAllBytes(filePath, bytes);
-            return filePath;
         }
     }
 }
