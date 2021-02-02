@@ -104,7 +104,7 @@
     </HelixWorkItem>
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixWorkItem Include="SDK Inner Loop Console">
       <PayloadDirectory>$(ScenariosDir)emptyconsoletemplateinnerloop</PayloadDirectory>
       <PreCommands>$(Python) pre.py default</PreCommands>
