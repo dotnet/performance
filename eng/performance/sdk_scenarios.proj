@@ -105,7 +105,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
-    <HelixWorkItem Include="SDK Inner Loop Console">
+    <HelixWorkItem Include="Inner Loop Console">
       <PayloadDirectory>$(ScenariosDir)emptyconsoletemplateinnerloop</PayloadDirectory>
       <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>

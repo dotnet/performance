@@ -131,7 +131,7 @@ ex: C:\repos\performance;C:\repos\runtime
             startup = StartupWrapper()
             self.traits.add_traits(scenarioname=self.scenarioname,
             scenariotypename=const.SCENARIO_NAMES[const.INNERLOOP],
-            apptorun='dotnet', appargs='run -p %s' % appfolder(self.traits.exename),
+            apptorun='dotnet', appargs='run -p %s' % appfolder(self.traits.exename, self.traits.projext),
             innerloopcommand=pythoncommand(),
             iterationsetup=pythoncommand(),
             setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),

@@ -35,6 +35,7 @@ class TestTraits:
         self.artifact = ''
         self.innerloopcommand = ''
         self.innerloopcommandargs = ''
+        self.projext = ''
 
         # add test types to traits
         for testtype in testtypes:
