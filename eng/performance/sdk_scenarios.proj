@@ -103,5 +103,15 @@
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
+    <HelixWorkItem Include="Inner Loop Console">
+      <PayloadDirectory>$(ScenariosDir)emptyconsoletemplateinnerloop</PayloadDirectory>
+      <PreCommands>$(Python) pre.py default</PreCommands>
+      <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
+      <PostCommands>$(Python) post.py</PostCommands>
+      <Timeout>4:00</Timeout>
+    </HelixWorkItem>
+  </ItemGroup>
 </Project>
 

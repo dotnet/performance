@@ -11,7 +11,7 @@ from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
-from shared.util import publishedexe, extension, pythoncommand, iswin
+from shared.util import publishedexe, extension, pythoncommand, iswin, appfolder
 from shared.sod import SODWrapper
 from shared import const
 from performance.logger import setup_loggers
@@ -47,6 +47,11 @@ class Runner:
         startupparser = subparsers.add_parser(const.STARTUP,
                                               description='measure time to main of running the project')
         self.add_common_arguments(startupparser)
+
+        # inner loop command
+        innerloopparser = subparsers.add_parser(const.INNERLOOP,
+                                              description='measure time to main of running the project')
+        self.add_common_arguments(innerloopparser)
 
         # sdk command
         sdkparser = subparsers.add_parser(const.SDK, 
@@ -122,6 +127,18 @@ ex: C:\repos\performance;C:\repos\runtime
         Runs the specified scenario
         '''
         self.parseargs()
+        if self.testtype == const.INNERLOOP:
+            startup = StartupWrapper()
+            self.traits.add_traits(scenarioname=self.scenarioname,
+            scenariotypename=const.SCENARIO_NAMES[const.INNERLOOP],
+            apptorun='dotnet', appargs='run -p %s' % appfolder(self.traits.exename, self.traits.projext),
+            innerloopcommand=pythoncommand(),
+            iterationsetup=pythoncommand(),
+            setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
+            iterationcleanup=pythoncommand(),
+            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE))
+            startup.runtests(self.traits)
+            
         if self.testtype == const.STARTUP:
             startup = StartupWrapper()
             self.traits.add_traits(overwrite=False,

@@ -11,11 +11,13 @@ IL = 'il'
 R2R = 'r2r'
 CROSSGEN = 'crossgen'
 CROSSGEN2 = 'crossgen2'
+INNERLOOP = 'innerloop'
 
 SCENARIO_NAMES = {STARTUP: 'Startup',
                   SDK: 'SDK',
                   CROSSGEN: 'Crossgen',
-                  CROSSGEN2: 'Crossgen2'}
+                  CROSSGEN2: 'Crossgen2',
+                  INNERLOOP: 'Innerloop'}
 
 BINDIR = 'bin'
 PUBDIR = 'pub'
