@@ -6,7 +6,6 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Sources;
 using System.Threading.Tasks.Tests;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Jobs;
 using MicroBenchmarks;
 
 namespace System.Threading.Tasks

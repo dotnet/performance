@@ -21,12 +21,8 @@ namespace System.Collections
         private T[] _array;
         private List<T> _list;
 
-        [GlobalSetup]
-        public void Setup()
-        {
-            _array = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
-            _list = new List<T>(_array);
-        }
+        [GlobalSetup(Targets = new[] { nameof(Array), nameof(Span) })]
+        public void Setup() => _array = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
         [Benchmark]
         public T[] Array()
@@ -47,6 +43,9 @@ namespace System.Collections
                 span[i] = default;
             return result;
         }
+
+        [GlobalSetup(Targets = new[] { nameof(List), nameof(IList) })]
+        public void SetupList() => _list = new List<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
 
         [Benchmark]
         public List<T> List()

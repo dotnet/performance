@@ -4,10 +4,7 @@
 
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
-using Newtonsoft.Json;
 using System.Buffers;
-using System.IO;
-using System.Runtime.CompilerServices;
 
 namespace System.Text.Json.Tests
 {

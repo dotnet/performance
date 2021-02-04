@@ -12,12 +12,19 @@ namespace System.Text.Tests
     {
         const int LOHAllocatedStringSize = 100_000;
 
-        private string _stringLOH = new string('a', LOHAllocatedStringSize);
-        private string _string100 = new string('a', 100);
-        private StringBuilder _builderSingleSegment100 = new StringBuilder(new string('a', 100));
-        private StringBuilder _builderSingleSegmentLOH = new StringBuilder(new string('a', LOHAllocatedStringSize));
+        private string _stringLOH;
+        private string _string100;
+        private StringBuilder _builderSingleSegment100;
+        private StringBuilder _builderSingleSegmentLOH;
         private StringBuilder _builderMultipleSegments100;
         private StringBuilder _builderMultipleSegmentsLOH;
+
+        [GlobalSetup(Targets = new[] { nameof(ctor_string), nameof(Append_Memory) })]
+        public void Setup_ctor_string()
+        {
+            _stringLOH = new string('a', LOHAllocatedStringSize);
+            _string100 = new string('a', 100);
+        }
 
         [Benchmark]
         [Arguments(100)]
@@ -28,6 +35,13 @@ namespace System.Text.Tests
         [Arguments(100)]
         [Arguments(LOHAllocatedStringSize)]
         public StringBuilder ctor_capacity(int length) => new StringBuilder(length);
+
+        [GlobalSetup(Target = nameof(ToString_SingleSegment))]
+        public void Setup_ToString_SingleSegment()
+        {
+            _builderSingleSegment100 = new StringBuilder(new string('a', 100));
+            _builderSingleSegmentLOH = new StringBuilder(new string('a', LOHAllocatedStringSize));
+        }
 
         [Benchmark]
         [Arguments(100)]

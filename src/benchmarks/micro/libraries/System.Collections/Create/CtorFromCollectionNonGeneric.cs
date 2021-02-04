@@ -19,13 +19,12 @@ namespace System.Collections
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
 
-        [GlobalSetup]
-        public void Setup()
-        {
-            _collection = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
-            _dictionary = ValuesGenerator.Dictionary<T, T>(Size);
-        }
-        
+        [GlobalSetup(Targets = new[] { nameof(ArrayList), nameof(Queue), nameof(Stack) })]
+        public void SetupCollection() => _collection = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+
+        [GlobalSetup(Targets = new[] { nameof(Hashtable), nameof(SortedList) })]
+        public void SetupDictionary() => _dictionary = ValuesGenerator.Dictionary<T, T>(Size);
+
         [Benchmark]
         public ArrayList ArrayList() => new ArrayList(_collection);
 

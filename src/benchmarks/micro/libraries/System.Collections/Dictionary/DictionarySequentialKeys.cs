@@ -49,7 +49,6 @@ namespace System.Collections.Tests
         public int ContainsKey_17_Int_32ByteRefsValue() 
             => ContainsKey_Int_LargeRefStruct(_dict32ByteRefsValue_17, Seventeen);
 
-
         [Benchmark(OperationsPerInvoke = ThreeThousand)]
         public int ContainsValue_3k_Int_Int() 
             => ContainsKey_Int_Int(_dict_3k, ThreeThousand);
@@ -61,7 +60,6 @@ namespace System.Collections.Tests
         [Benchmark(OperationsPerInvoke = ThreeThousand)]
         public int ContainsKey_3k_Int_32ByteRefsValue()
             => ContainsKey_Int_LargeRefStruct(_dict32ByteRefsValue_3k, ThreeThousand);
-
 
         private static int ContainsKey_Int_Int(Dictionary<int, int> d, int count)
         {
@@ -119,7 +117,6 @@ namespace System.Collections.Tests
         [Benchmark(OperationsPerInvoke = Seventeen)]
         public int TryGetValue_17_Int_32ByteRefsValue()
             => TryGetValue_Int_LargeRefStruct(_dict32ByteRefsValue_17, Seventeen);
-
 
         [Benchmark(OperationsPerInvoke = ThreeThousand)]
         public int TryGetValue_3k_Int_Int()

@@ -16,9 +16,9 @@ namespace System.IO.Tests
         private const int TotalWriteCount = 16777216; // 2^24 - should yield around 300ms runs
         private const int DefaultStreamWriterBufferSize = 1024; // Same as StreamWriter internal default
 
-        private string _string2 = new string('a', 2), _string100 = new string('a', 100);
-        private char[] _buffer2 = new string('a', 2).ToCharArray(), _buffer100 = new string('a', 100).ToCharArray();
-        private char[] _buffer12 = new string('a', 12).ToCharArray(), _buffer110 = new string('a', 110).ToCharArray();
+        private string _string2, _string100;
+        private char[] _buffer2, _buffer100;
+        private char[] _buffer12, _buffer110;
         private MemoryStream _memoryStream;
         private StreamWriter _streamWriter;
 
@@ -31,6 +31,10 @@ namespace System.IO.Tests
         [GlobalSetup]
         public void Setup()
         {
+            _string2 = new string('a', 2); _string100 = new string('a', 100);
+            _buffer2 = new string('a', 2).ToCharArray(); _buffer100 = new string('a', 100).ToCharArray();
+            _buffer12 = new string('a', 12).ToCharArray(); _buffer110 = new string('a', 110).ToCharArray();
+
             _memoryStream = new MemoryStream(MemoryStreamSize);
             _streamWriter = new StreamWriter(_memoryStream, new UTF8Encoding(false, true), DefaultStreamWriterBufferSize, leaveOpen: true);
         }

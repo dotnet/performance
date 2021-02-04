@@ -17,14 +17,12 @@ namespace System.Collections
     {
         private sealed class WrapDefaultComparer : IEqualityComparer<T>, IComparer<T>
         {
-            public static WrapDefaultComparer Instance { get; } = new WrapDefaultComparer();
             public int Compare(T x, T y) => Comparer<T>.Default.Compare(x, y);
             public bool Equals(T x, T y) => EqualityComparer<T>.Default.Equals(x, y);
             public int GetHashCode(T obj) => EqualityComparer<T>.Default.GetHashCode(obj);
         }
 
         private T[] _found;
-
         private HashSet<T> _hashSet;
         private SortedSet<T> _sortedSet;
         private ImmutableHashSet<T> _immutableHashSet;
@@ -33,14 +31,11 @@ namespace System.Collections
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
 
-        [GlobalSetup]
-        public void Setup()
+        [GlobalSetup(Target = nameof(HashSet))]
+        public void SetupHashSet()
         {
             _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
-            _hashSet = new HashSet<T>(_found, WrapDefaultComparer.Instance);
-            _sortedSet = new SortedSet<T>(_found, WrapDefaultComparer.Instance);
-            _immutableHashSet = Immutable.ImmutableHashSet.CreateRange(_found).WithComparer(WrapDefaultComparer.Instance);
-            _immutableSortedSet = Immutable.ImmutableSortedSet.CreateRange(_found).WithComparer(WrapDefaultComparer.Instance);
+            _hashSet = new HashSet<T>(_found, new WrapDefaultComparer());
         }
 
         [Benchmark]
@@ -54,6 +49,13 @@ namespace System.Collections
             return result;
         }
 
+        [GlobalSetup(Target = nameof(SortedSet))]
+        public void SetupSortedSet()
+        {
+            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _sortedSet = new SortedSet<T>(_found, new WrapDefaultComparer());
+        }
+
         [Benchmark]
         public bool SortedSet()
         {
@@ -65,6 +67,13 @@ namespace System.Collections
             return result;
         }
 
+        [GlobalSetup(Target = nameof(ImmutableHashSet))]
+        public void SetupImmutableHashSet()
+        {
+            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _immutableHashSet = Immutable.ImmutableHashSet.CreateRange(_found).WithComparer(new WrapDefaultComparer());
+        }
+
         [Benchmark]
         public bool ImmutableHashSet()
         {
@@ -74,6 +83,13 @@ namespace System.Collections
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
+        }
+
+        [GlobalSetup(Target = nameof(ImmutableSortedSet))]
+        public void SetupImmutableSortedSet()
+        {
+            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _immutableSortedSet = Immutable.ImmutableSortedSet.CreateRange(_found).WithComparer(new WrapDefaultComparer());
         }
 
         [Benchmark]

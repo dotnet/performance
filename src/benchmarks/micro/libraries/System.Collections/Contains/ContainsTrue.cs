@@ -35,23 +35,13 @@ namespace System.Collections
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
 
-        [GlobalSetup]
-        public void Setup()
+        [GlobalSetup(Targets = new[] { nameof(Array), "Span" })]
+        public void SetupArray()
         {
             _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
             _array = _found.ToArray();
-            _list = new List<T>(_found);
-            _linkedList = new LinkedList<T>(_found);
-            _hashSet = new HashSet<T>(_found);
-            _queue = new Queue<T>(_found);
-            _stack = new Stack<T>(_found);
-            _sortedSet = new SortedSet<T>(_found);
-            _immutableArray = Immutable.ImmutableArray.CreateRange<T>(_found);
-            _immutableHashSet = Immutable.ImmutableHashSet.CreateRange<T>(_found);
-            _immutableList = Immutable.ImmutableList.CreateRange<T>(_found);
-            _immutableSortedSet = Immutable.ImmutableSortedSet.CreateRange<T>(_found);
         }
-        
+
         [Benchmark]
         public bool Array()
         {
@@ -76,6 +66,12 @@ namespace System.Collections
             return result;
         }
 #endif
+        [GlobalSetup(Targets = new[] { nameof(List), nameof(ICollection) })]
+        public void SetupList()
+        {
+            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _list = new List<T>(_found);
+        }
 
         [Benchmark]
         public bool List()
@@ -102,6 +98,13 @@ namespace System.Collections
             return result;
         }
 
+        [GlobalSetup(Target = nameof(LinkedList))]
+        public void SetupLinkedList()
+        {
+            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _linkedList = new LinkedList<T>(_found);
+        }
+
         [Benchmark]
         public bool LinkedList()
         {
@@ -111,6 +114,13 @@ namespace System.Collections
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
+        }
+
+        [GlobalSetup(Target = nameof(HashSet))]
+        public void SetupHashSet()
+        {
+            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _hashSet = new HashSet<T>(_found);
         }
 
         [Benchmark]
@@ -124,6 +134,13 @@ namespace System.Collections
             return result;
         }
 
+        [GlobalSetup(Target = nameof(Queue))]
+        public void SetupQueue()
+        {
+            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _queue = new Queue<T>(_found);
+        }
+
         [Benchmark]
         public bool Queue()
         {
@@ -133,6 +150,13 @@ namespace System.Collections
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
+        }
+
+        [GlobalSetup(Target = nameof(Stack))]
+        public void SetupStack()
+        {
+            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _stack = new Stack<T>(_found);
         }
 
         [Benchmark]
@@ -146,6 +170,13 @@ namespace System.Collections
             return result;
         }
 
+        [GlobalSetup(Target = nameof(SortedSet))]
+        public void SetupSortedSet()
+        {
+            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _sortedSet = new SortedSet<T>(_found);
+        }
+
         [Benchmark]
         public bool SortedSet()
         {
@@ -155,6 +186,13 @@ namespace System.Collections
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
+        }
+
+        [GlobalSetup(Target = nameof(ImmutableArray))]
+        public void SetupImmutableArray()
+        {
+            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _immutableArray = Immutable.ImmutableArray.CreateRange<T>(_found);
         }
 
         [Benchmark]
@@ -168,6 +206,13 @@ namespace System.Collections
             return result;
         }
 
+        [GlobalSetup(Target = nameof(ImmutableHashSet))]
+        public void SetupImmutableHashSet()
+        {
+            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _immutableHashSet = Immutable.ImmutableHashSet.CreateRange<T>(_found);
+        }
+
         [Benchmark]
         public bool ImmutableHashSet()
         {
@@ -179,6 +224,13 @@ namespace System.Collections
             return result;
         }
 
+        [GlobalSetup(Target = nameof(ImmutableList))]
+        public void SetupImmutableList()
+        {
+            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _immutableList = Immutable.ImmutableList.CreateRange<T>(_found);
+        }
+
         [Benchmark]
         public bool ImmutableList()
         {
@@ -188,6 +240,13 @@ namespace System.Collections
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);
             return result;
+        }
+
+        [GlobalSetup(Target = nameof(ImmutableSortedSet))]
+        public void SetupImmutableSortedSet()
+        {
+            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _immutableSortedSet = Immutable.ImmutableSortedSet.CreateRange<T>(_found);
         }
 
         [Benchmark]

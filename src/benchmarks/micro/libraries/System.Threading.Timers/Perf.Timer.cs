@@ -4,7 +4,6 @@
 
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
-using System.ComponentModel;
 using System.Threading.Tasks;
 
 namespace System.Threading.Tests
@@ -12,14 +11,19 @@ namespace System.Threading.Tests
     [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Timer
     {
-        private readonly Timer[] _timers = new Timer[1_000_000];
-        private readonly Task[] _tasks = new Task[Environment.ProcessorCount];
+        private const int Count = 1_000_000;
+
+        private Timer[] _timers;
+        private Task[] _tasks;
 
         [Benchmark]
         public void ShortScheduleAndDispose() => new Timer(_ => { }, null, 50, -1).Dispose();
 
         [Benchmark]
         public void LongScheduleAndDispose() => new Timer(_ => { }, null, int.MaxValue, -1).Dispose();
+
+        [GlobalSetup(Target = nameof(ScheduleManyThenDisposeMany))]
+        public void SetupScheduleManyThenDisposeMany() => _timers = new Timer[Count];
 
         [Benchmark]
         public void ScheduleManyThenDisposeMany()
@@ -37,6 +41,9 @@ namespace System.Threading.Tests
             }
         }
 
+        [GlobalSetup(Targets = new[] { nameof(SynchronousContention), nameof(AsynchronousContention) })]
+        public void SetupTasks() => _tasks = new Task[Environment.ProcessorCount];
+
         [Benchmark]
         [BenchmarkCategory(Categories.NoWASM)]
         public void SynchronousContention()
@@ -46,7 +53,7 @@ namespace System.Threading.Tests
             {
                 tasks[i] = Task.Run(() =>
                 {
-                    for (int j = 0; j < 1_000_000; j++)
+                    for (int j = 0; j < Count; j++)
                     {
                         new Timer(delegate { }, null, int.MaxValue, -1).Dispose();
                     }
@@ -64,7 +71,7 @@ namespace System.Threading.Tests
             {
                 tasks[i] = Task.Run(async () =>
                 {
-                    for (int j = 0; j < 1_000_000; j++)
+                    for (int j = 0; j < Count; j++)
                     {
                         using (var t = new Timer(delegate { }, null, int.MaxValue, -1))
                         {
@@ -79,12 +86,16 @@ namespace System.Threading.Tests
         [GlobalSetup(Target = nameof(ShortScheduleAndDisposeWithFiringTimers))]
         public void SetupShortScheduleAndDisposeWithFiringTimers()
         {
+            _timers = new Timer[Count];
             for (int i = 0; i < _timers.Length; i++)
             {
                 _timers[i] = new Timer(_ => { }, null, i, i);
             }
             Thread.Sleep(1000);
         }
+
+        [Benchmark]
+        public void ShortScheduleAndDisposeWithFiringTimers() => new Timer(_ => { }, 0, 100, 100).Dispose();
 
         [GlobalCleanup(Target = nameof(ShortScheduleAndDisposeWithFiringTimers))]
         public void CleanupShortScheduleAndDisposeWithFiringTimers()
@@ -98,8 +109,5 @@ namespace System.Threading.Tests
                 }
             }
         }
-
-        [Benchmark]
-        public void ShortScheduleAndDisposeWithFiringTimers() => new Timer(_ => { }, 0, 100, 100).Dispose();
     }
 }

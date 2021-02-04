@@ -32,7 +32,10 @@ namespace System.Text.Json.Tests
         [GlobalSetup]
         public void Setup()
         {
-            _arrayBufferWriter = new ArrayBufferWriter<byte>();
+            // the "WriteDeepUtf16" benchmark can report up to x4 more time when MemoryRandmization is enabled
+            // this is due to having new _arrayBufferWriter every time and allocating a lot of memory
+            // so we don't always allocate a new instance
+            _arrayBufferWriter ??= new ArrayBufferWriter<byte>();
 
             var random = new Random(42);
 
@@ -59,9 +62,9 @@ namespace System.Text.Json.Tests
         public void WriteDeepUtf8()
         {
             _arrayBufferWriter.Clear();
+
             using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
-
                 json.WriteStartObject();
                 for (int i = 0; i < Depth; i++)
                 {
@@ -90,9 +93,9 @@ namespace System.Text.Json.Tests
         public void WriteDeepUtf16()
         {
             _arrayBufferWriter.Clear();
+
             using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
-
                 json.WriteStartObject();
                 for (int i = 0; i < Depth; i++)
                 {
