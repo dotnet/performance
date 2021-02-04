@@ -131,7 +131,7 @@ It's recommended to disable Tiered JIT (to avoid the need of warmup) and emit fu
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp5.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
 
     <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>

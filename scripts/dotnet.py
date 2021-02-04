@@ -81,7 +81,7 @@ class FrameworkAction(Action):
             for framework in frameworks
         ]
 
-        # ['netcoreapp5.0', 'corert'] should become ['netcoreapp5.0']
+        # ['net5.0', 'corert'] should become ['net5.0']
         return list(set(monikers))
 
 class VersionsAction(Action):

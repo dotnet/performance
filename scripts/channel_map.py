@@ -7,15 +7,15 @@ class ChannelMap():
             'branch': 'master'
         },
         '5.0':{
-            'tfm': 'netcoreapp5.0',
+            'tfm': 'net5.0',
             'branch': 'release/5.0'
         },
         'release/5.0.1xx-rc2':{
-            'tfm': 'netcoreapp5.0',
+            'tfm': 'net5.0',
             'branch': 'release/5.0.1xx-rc2'
         },
         'release/5.0.1xx':{
-            'tfm': 'netcoreapp5.0',
+            'tfm': 'net5.0',
             'branch': 'release/5.0.1xx'
         },
         'release/3.1.3xx':{
