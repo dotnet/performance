@@ -22,6 +22,12 @@ namespace System.Tests
         public Random ctor() => new Random();
 
         [Benchmark]
+        public int Next() => _random.Next();
+
+        [Benchmark]
+        public int Next_unseeded() => _randomUnseeded.Next();
+
+        [Benchmark]
         public int Next_int() => _random.Next(10000);
 
         [Benchmark]
