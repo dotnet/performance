@@ -44,6 +44,43 @@
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
 
+    <SDKWorkItem Include="SDK Console Template">
+      <PayloadDirectory>$(ScenariosDir)emptyconsoletemplate</PayloadDirectory>
+    </SDKWorkItem>
+    <SDKWorkItem Include="SDK ASP.Net Core Empty Template">
+      <PayloadDirectory>$(ScenariosDir)aspwebtemplate</PayloadDirectory>
+    </SDKWorkItem>
+    <SDKWorkItem Include="SDK Blazor Server App Template">
+      <PayloadDirectory>$(ScenariosDir)blazorservertemplate</PayloadDirectory>
+    </SDKWorkItem>
+    <SDKWorkItem Include="SDK Class library Template">
+      <PayloadDirectory>$(ScenariosDir)classlibtemplate</PayloadDirectory>
+    </SDKWorkItem>
+    <SDKWorkItem Include="SDK ASP.NET Core gRPC Service Template">
+      <PayloadDirectory>$(ScenariosDir)grpctemplate</PayloadDirectory>
+    </SDKWorkItem>
+    <SDKWorkItem Include="SDK ASP.NET Core Web App (Model-View-Controller) Template">
+      <PayloadDirectory>$(ScenariosDir)mvcapptemplate</PayloadDirectory>
+    </SDKWorkItem>
+    <SDKWorkItem Include="SDK MSTest Test Project (.NET Core) Template">
+      <PayloadDirectory>$(ScenariosDir)mstesttemplate</PayloadDirectory>
+    </SDKWorkItem>
+    <SDKWorkItem Include="SDK NUnit 3 Test Project Template">
+      <PayloadDirectory>$(ScenariosDir)nunittesttemplate</PayloadDirectory>
+    </SDKWorkItem>
+    <SDKWorkItem Include="SDK Razor Class Library Template">
+      <PayloadDirectory>$(ScenariosDir)razorclasslibtemplate</PayloadDirectory>
+    </SDKWorkItem>
+    <SDKWorkItem Include="SDK ASP.NET Core Web API Template">
+      <PayloadDirectory>$(ScenariosDir)webapitemplate</PayloadDirectory>
+    </SDKWorkItem>
+    <SDKWorkItem Include="SDK ASP.NET Core Web App Template">
+      <PayloadDirectory>$(ScenariosDir)webapptemplate</PayloadDirectory>
+    </SDKWorkItem>
+    <SDKWorkItem Include="SDK xUnit Test Project Template">
+      <PayloadDirectory>$(ScenariosDir)xunittesttemplate</PayloadDirectory>
+    </SDKWorkItem>
+
     <!-- For netstandard library we test only netstandard2.0 framework -->
     <SDKWorkItem Include="SDK .NET 2.0 Library Template">
       <PayloadDirectory>$(ScenariosDir)netstandard2.0</PayloadDirectory>
@@ -107,6 +144,20 @@
   <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixWorkItem Include="Inner Loop Console">
       <PayloadDirectory>$(ScenariosDir)emptyconsoletemplateinnerloop</PayloadDirectory>
+      <PreCommands>$(Python) pre.py default</PreCommands>
+      <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
+      <PostCommands>$(Python) post.py</PostCommands>
+      <Timeout>4:00</Timeout>
+    </HelixWorkItem>
+    <HelixWorkItem Include="Inner Loop MVC">
+      <PayloadDirectory>$(ScenariosDir)mvcinnerloop</PayloadDirectory>
+      <PreCommands>$(Python) pre.py default</PreCommands>
+      <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
+      <PostCommands>$(Python) post.py</PostCommands>
+      <Timeout>4:00</Timeout>
+    </HelixWorkItem>
+    <HelixWorkItem Include="Inner Loop Blazor Server">
+      <PayloadDirectory>$(ScenariosDir)blazorserverinnerloop</PayloadDirectory>
       <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
       <PostCommands>$(Python) post.py</PostCommands>
