@@ -53,6 +53,7 @@ jobs:
       architecture: x64
       pool: Hosted VS2017
       kind: scenarios
+      machinePool: Open
       queue: Windows.10.Amd64.ClientRS5.Open
       projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
@@ -68,6 +69,7 @@ jobs:
       kind: scenarios
       architecture: x64
       pool: Hosted Ubuntu 1604
+      machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
       projectFile: scenarios.proj
@@ -84,6 +86,7 @@ jobs:
       architecture: x64
       pool: Hosted VS2017
       kind: blazor_scenarios
+      machinePool: Open
       queue: Windows.10.Amd64.ClientRS5.Open
       projectFile: blazor_scenarios.proj
       channels:
@@ -98,6 +101,7 @@ jobs:
       architecture: x64
       pool: Hosted VS2017
       kind: sdk_scenarios
+      machinePool: Open
       queue: Windows.10.Amd64.ClientRS5.Open
       projectFile: sdk_scenarios.proj
       channels:
@@ -113,6 +117,7 @@ jobs:
       kind: sdk_scenarios
       architecture: x64
       pool: Hosted Ubuntu 1604
+      machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
       projectFile: sdk_scenarios.proj
@@ -129,6 +134,7 @@ jobs:
       architecture: x86
       pool: Hosted VS2017
       kind: sdk_scenarios
+      machinePool: Open
       queue: Windows.10.Amd64.ClientRS5.Open
       projectFile: sdk_scenarios.proj
       channels:
@@ -144,6 +150,7 @@ jobs:
       kind: micro
       architecture: x64
       pool: Hosted VS2017
+      machinePool: Open
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries' 
@@ -161,6 +168,7 @@ jobs:
       kind: micro_net461
       architecture: x64
       pool: Hosted VS2017
+      machinePool: Open
       queue: Windows.10.Amd64.ClientRS4.DevEx.15.8.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
@@ -175,6 +183,7 @@ jobs:
       kind: micro
       architecture: x86
       pool: Hosted VS2017
+      machinePool: Open
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
@@ -190,6 +199,7 @@ jobs:
       kind: mlnet
       architecture: x64
       pool: Hosted VS2017
+      machinePool: Open
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
@@ -206,6 +216,7 @@ jobs:
       kind: roslyn
       architecture: x64
       pool: Hosted VS2017
+      machinePool: Open
       queue: Windows.10.Amd64.ClientRS5.Open
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
@@ -222,6 +233,7 @@ jobs:
       kind: micro
       architecture: x64
       pool: Hosted Ubuntu 1604
+      machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
@@ -240,6 +252,7 @@ jobs:
       kind: mlnet
       architecture: x64
       pool: Hosted Ubuntu 1604
+      machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
       runCategories: 'mldotnet'
@@ -257,6 +270,7 @@ jobs:
       kind: roslyn
       architecture: x64
       pool: Hosted Ubuntu 1604
+      machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
       runCategories: 'roslyn'
@@ -280,6 +294,7 @@ jobs:
       architecture: x64
       pool: Hosted VS2017
       kind: scenarios
+      machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
@@ -295,6 +310,7 @@ jobs:
       kind: scenarios
       architecture: x64
       pool: Hosted Ubuntu 1604
+      machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       container: ubuntu_x64_build_container
       projectFile: scenarios.proj
@@ -310,7 +326,25 @@ jobs:
       kind: micro
       architecture: x64
       pool: Hosted VS2017
+      machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+      runCategories: 'runtime libraries'
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+        #- master
+        - release/5.0.1xx
+        #- release/3.1.2xx
+
+  # Windows AMD64 specific micro benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 20H2
+      kind: micro
+      architecture: x64
+      pool: Hosted VS2017
+      machinePool: Owl
+      queue: Windows.10.Amd64.20H2.Owl.Perf # using a dedicated private Helix queue (perfowls)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
       channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
@@ -326,6 +360,7 @@ jobs:
       kind: micro
       architecture: x86
       pool: Hosted VS2017
+      machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
@@ -342,6 +377,7 @@ jobs:
       kind: mlnet
       architecture: x64
       pool: Hosted VS2017
+      machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
@@ -358,6 +394,7 @@ jobs:
       kind: roslyn
       architecture: x64
       pool: Hosted VS2017
+      machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
@@ -374,7 +411,26 @@ jobs:
       kind: micro
       architecture: x64
       pool: Hosted Ubuntu 1604
+      machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
+      runCategories: 'runtime libraries'
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+        #- master
+        - release/5.0.1xx
+        #- release/3.1.2xx
+
+  # Ubuntu 1804 AMD64 specific micro benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: micro
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      machinePool: Owl
+      queue: Ubuntu.1804.Amd64.Owl.Perf # using a dedicated private Helix queue (perfowls)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
@@ -391,6 +447,7 @@ jobs:
       kind: mlnet
       architecture: x64
       pool: Hosted Ubuntu 1604
+      machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
@@ -408,6 +465,7 @@ jobs:
       kind: roslyn
       architecture: x64
       pool: Hosted Ubuntu 1604
+      machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
@@ -432,6 +490,7 @@ jobs:
       architecture: x64
       pool: Hosted VS2017
       kind: sdk_scenarios
+      machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: sdk_scenarios.proj
       channels:
@@ -446,6 +505,7 @@ jobs:
       architecture: x86
       pool: Hosted VS2017
       kind: sdk_scenarios
+      machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: sdk_scenarios.proj
       channels:
@@ -460,6 +520,7 @@ jobs:
       architecture: x64
       pool: Hosted Ubuntu 1604
       kind: sdk_scenarios
+      machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf
       container: ubuntu_x64_build_container
       projectFile: sdk_scenarios.proj
@@ -476,6 +537,7 @@ jobs:
       architecture: x64
       pool: Hosted VS2017
       kind: blazor_scenarios
+      machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: blazor_scenarios.proj
       channels:
@@ -497,6 +559,7 @@ jobs:
       architecture: x64
       pool: Hosted VS2017
       kind: sdk_scenarios
+      machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: sdk_scenarios.proj
       channels:
@@ -510,6 +573,7 @@ jobs:
       architecture: x86
       pool: Hosted VS2017
       kind: sdk_scenarios
+      machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: sdk_scenarios.proj
       channels:
@@ -523,6 +587,7 @@ jobs:
       architecture: x64
       pool: Hosted Ubuntu 1604
       kind: sdk_scenarios
+      machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf
       container: ubuntu_x64_build_container
       projectFile: sdk_scenarios.proj

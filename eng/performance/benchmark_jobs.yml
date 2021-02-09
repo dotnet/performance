@@ -1,7 +1,7 @@
 parameters:
   osName: ''            # required -- windows | linux | macos
   osVersion: ''         # required -- OS version
-  kind: ''              # required -- benchmark kind. As of today, only "micro" and "mlnet" benchmarks are supported, we plan to add "scenarios" soon
+  kind: ''              # required -- benchmark kind.
   architecture: ''      # required -- Architecture. Allowed values: x64, x86, arm, arm64
   pool: ''              # required -- name of the Helix pool
   queue: ''             # required -- name of the Helix queue
@@ -9,6 +9,7 @@ parameters:
   csproj: ''            # required -- relative path to csproj with benchmarks
   channels: []          # required -- list of channels to download .NET from
   runCategories: ''     # required -- string of space separated categories supplied to benchmark dotnet
+  machinePool: ''       # required -- Name of perf machine pool (Tiger, Owl, etc)
 
 jobs:
 - template: ../common/templates/jobs/jobs.yml
@@ -17,8 +18,8 @@ jobs:
     enablePublishBuildArtifacts: true
     helixRepo: dotnet/performance
     jobs:
-      - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}'
-        displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }}'
+      - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}_${{ parameters.machinePool }}'
+        displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.machinePool }}'
         timeoutInMinutes: 320
         variables:
         - ${{ if eq(parameters.osName, 'windows') }}:
