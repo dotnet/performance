@@ -8,6 +8,7 @@ parameters:
   container: ''         # optional -- id of the container
   channels: []          # required -- list of channels to download .NET from
   projectFile: ''       # required -- project file to build (current choices: scenarios.proj/sdk_scenarios.proj )
+  machinePool: ''       # required -- Name of perf machine pool (Tiger, Owl, etc)
 
 jobs:
 - template: ../common/templates/jobs/jobs.yml
@@ -16,8 +17,8 @@ jobs:
     enablePublishBuildArtifacts: true
     helixRepo: dotnet/performance
     jobs:
-      - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}'
-        displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }}'
+      - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}_${{ parameters.machinePool }}'
+        displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.machinePool }}'
         timeoutInMinutes: 320
         variables:
         - ${{ if eq(parameters.osName, 'windows') }}:
