@@ -317,6 +317,22 @@ jobs:
         #- master
         - release/5.0.1xx
         #- release/3.1.2xx
+
+  # Windows AMD64 specific micro benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 19H1
+      kind: micro
+      architecture: x64
+      pool: Hosted VS2017
+      queue: Windows.10.Amd64.20H2.Owl.Perf # using a dedicated private Helix queue (perfowls)
+      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+      runCategories: 'runtime libraries'
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+        #- master
+        - release/5.0.1xx
+        #- release/3.1.2xx
       
   # Windows x86 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -375,6 +391,23 @@ jobs:
       architecture: x64
       pool: Hosted Ubuntu 1604
       queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
+      runCategories: 'runtime libraries'
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+        #- master
+        - release/5.0.1xx
+        #- release/3.1.2xx
+
+  # Ubuntu 1804 AMD64 specific micro benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: micro
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      queue: Ubuntu.1804.Amd64.Owl.Perf # using a dedicated private Helix queue (perfowls)
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
