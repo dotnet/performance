@@ -16,15 +16,16 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
     public class Json_ToStream<T>
     {
-        private readonly T value;
+        private T value;
 
-        private readonly MemoryStream memoryStream;
-        private readonly StreamWriter streamWriter;
+        private MemoryStream memoryStream;
+        private StreamWriter streamWriter;
 
         private DataContractJsonSerializer dataContractJsonSerializer;
         private Newtonsoft.Json.JsonSerializer newtonSoftJsonSerializer;
 
-        public Json_ToStream()
+        [GlobalSetup]
+        public void Setup()
         {
             value = DataGenerator.Generate<T>();
 
@@ -35,9 +36,6 @@ namespace MicroBenchmarks.Serializers
             dataContractJsonSerializer = new DataContractJsonSerializer(typeof(T));
             newtonSoftJsonSerializer = new Newtonsoft.Json.JsonSerializer();
         }
-
-        [GlobalSetup(Target = nameof(Jil_))]
-        public void WarmupJil() => Jil_(); // workaround for https://github.com/dotnet/BenchmarkDotNet/issues/837
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]

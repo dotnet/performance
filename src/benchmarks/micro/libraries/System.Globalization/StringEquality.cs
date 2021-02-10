@@ -58,7 +58,7 @@ namespace System.Globalization.Tests
             _diffAtFirstChar = new string(copy);
         }
 
-        [Benchmark] // the most work to do: the strings have same conent, but don't point to the same memory
+        [Benchmark] // the most work to do: the strings have same content, but don't point to the same memory
         public int Compare_Same() => Options.CultureInfo.CompareInfo.Compare(_value, _same, Options.CompareOptions);
 
         [Benchmark] // the most work to do for IgnoreCase: every char needs to be compared and uppercased

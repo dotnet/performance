@@ -133,10 +133,7 @@ namespace System.Linq.Tests
         private Person[] _people;
 
         [GlobalSetup]
-        public void GlobalSetup()
-        {
-            _people = PersonData.Generate(NumberOfPeople);
-        }
+        public void GlobalSetup() => _people = PersonData.Generate(NumberOfPeople);
 
         [Benchmark]
         public void OrderByString() => _people.OrderBy(p => p.FirstName).Consume(_consumer);

@@ -104,7 +104,7 @@ namespace System.Text.RegularExpressions.Tests
             }
 
             // shuffle:
-            const int someSeed = 101;  // seed for reproducability
+            const int someSeed = 101;  // const seed for reproducability
             var random = new Random(someSeed);
             for (var i = 0; i < total; i++)
             {

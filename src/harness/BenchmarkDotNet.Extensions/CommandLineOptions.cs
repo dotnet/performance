@@ -81,7 +81,7 @@ namespace BenchmarkDotNet.Extensions
             {
                 if (count < 2)
                 {
-                    throw new ArgumentException("When specified, value of --partition-index must be greater than 1");
+                    throw new ArgumentException("When specified, value of --partition-count must be greater than 1");
                 }
                 else if (!(index < count))
                 {

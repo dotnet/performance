@@ -11,24 +11,23 @@ namespace System
     [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Convert
     {
-        private static byte[] InitializeBinaryDataCollection(int size)
-        {
-            var random = new Random(30000);
-            byte[] binaryData = new byte[size];
-            random.NextBytes(binaryData);
-
-            return binaryData;
-        }
-
         private const int Size = 1024;
         
-        private object _stringValue = "Hello World!";
-        private object _intValue = 1000;
-        private byte[] _binaryData = InitializeBinaryDataCollection(Size);
+        private object _stringValue;
+        private object _intValue;
+        private byte[] _binaryData;
         private char[] _base64CharArray;
+        private string _base64String;
+        private char[] _base64Chars;
+
+        [GlobalSetup(Target = nameof(GetTypeCode))]
+        public void SetupGetTypeCode() => _stringValue = "Hello World!";
 
         [Benchmark]
         public TypeCode GetTypeCode() => Convert.GetTypeCode(_stringValue);
+
+        [GlobalSetup(Target = nameof(ChangeType))]
+        public void SetupChangeType() => _intValue = 1000;
 
         [Benchmark]
         public object ChangeType() => Convert.ChangeType(_intValue, typeof(string));
@@ -36,6 +35,7 @@ namespace System
         [GlobalSetup(Target = nameof(ToBase64CharArray))]
         public void SetupToBase64CharArray()
         {
+            _binaryData = InitializeBinaryDataCollection(Size);
             int insertLineBreaksArraySize = Convert.ToBase64String(_binaryData, Base64FormattingOptions.InsertLineBreaks).Length;
             int noneArraySize = Convert.ToBase64String(_binaryData, Base64FormattingOptions.None).Length;
             _base64CharArray = new char[Math.Max(noneArraySize, insertLineBreaksArraySize)];
@@ -46,6 +46,9 @@ namespace System
         [Arguments(Size, Base64FormattingOptions.None)]
         public int ToBase64CharArray(int binaryDataSize, Base64FormattingOptions formattingOptions)
             => Convert.ToBase64CharArray(_binaryData, 0, binaryDataSize, _base64CharArray, 0, formattingOptions);
+
+        [GlobalSetup(Target = nameof(ToBase64String))]
+        public void SetupToBase64String() => _binaryData = InitializeBinaryDataCollection(Size);
 
         [Benchmark]
         [Arguments(Base64FormattingOptions.InsertLineBreaks)]
@@ -62,13 +65,25 @@ namespace System
         public DateTime ToDateTime_String(string value) 
             => Convert.ToDateTime(value);
 
-        private static readonly string s_base64String = Convert.ToBase64String(Encoding.ASCII.GetBytes("This is a test of Convert."));
-        private static readonly char[] s_base64Chars = s_base64String.ToCharArray();
+        [GlobalSetup(Target = nameof(FromBase64String))]
+        public void SetupFromBase64String() => _base64String = Convert.ToBase64String(Encoding.ASCII.GetBytes("This is a test of Convert."));
 
         [Benchmark]
-        public byte[] FromBase64String() => Convert.FromBase64String(s_base64String);
+        public byte[] FromBase64String() => Convert.FromBase64String(_base64String);
+
+        [GlobalSetup(Target = nameof(FromBase64Chars))]
+        public void SetupFromBase64Chars() => _base64Chars = Convert.ToBase64String(Encoding.ASCII.GetBytes("This is a test of Convert.")).ToCharArray();
 
         [Benchmark]
-        public byte[] FromBase64Chars() => Convert.FromBase64CharArray(s_base64Chars, 0, s_base64Chars.Length);
+        public byte[] FromBase64Chars() => Convert.FromBase64CharArray(_base64Chars, 0, _base64Chars.Length);
+
+        private static byte[] InitializeBinaryDataCollection(int size)
+        {
+            var random = new Random(30000);
+            byte[] binaryData = new byte[size];
+            random.NextBytes(binaryData);
+
+            return binaryData;
+        }
     }
 }

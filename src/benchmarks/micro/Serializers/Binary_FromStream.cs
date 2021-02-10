@@ -45,10 +45,13 @@ namespace MicroBenchmarks.Serializers
         public void SetupProtoBuffNet()
         {
             value = DataGenerator.Generate<T>();
+            if (memoryStream is null) // to ensure it's done only once
+            {
+                ProtoBuf.Meta.RuntimeTypeModel.Default.Add(typeof(DateTimeOffset), false).SetSurrogate(typeof(DateTimeOffsetSurrogate)); // https://stackoverflow.com/a/7046868
+            }
             // the stream is pre-allocated, we don't want the benchmarks to include stream allocaton cost
             memoryStream = new MemoryStream(capacity: short.MaxValue);
             memoryStream.Position = 0;
-            ProtoBuf.Meta.RuntimeTypeModel.Default.Add(typeof(DateTimeOffset), false).SetSurrogate(typeof(DateTimeOffsetSurrogate)); // https://stackoverflow.com/a/7046868
             ProtoBuf.Serializer.Serialize(memoryStream, value);
         }
 

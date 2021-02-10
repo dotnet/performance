@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.DependencyInjection;
@@ -59,19 +58,13 @@ namespace Microsoft.Extensions.Logging
         }
 
         [GlobalCleanup]
-        public void Cleanup()
-        {
-            _listener?.Dispose();
-        }
+        public void Cleanup() => _listener?.Dispose();
 
         private class TestEventListener : EventListener
         {
             private readonly EventKeywords _keywords;
 
-            public TestEventListener(EventKeywords keywords)
-            {
-                _keywords = keywords;
-            }
+            public TestEventListener(EventKeywords keywords) => _keywords = keywords;
 
             protected override void OnEventSourceCreated(System.Diagnostics.Tracing.EventSource eventSource)
             {

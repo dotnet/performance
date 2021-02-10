@@ -45,7 +45,6 @@ namespace System.Text.Json.Tests
 
             using (var json = new Utf8JsonWriter(_arrayBufferWriter, new JsonWriterOptions { Indented = Formatted, SkipValidation = SkipValidation }))
             {
-
                 json.WriteStartArray();
                 for (int i = 0; i < DataSize; i++)
                 {

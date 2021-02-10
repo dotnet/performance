@@ -20,31 +20,19 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(ClassImplementingIXmlSerialiable))]
     public class Xml_FromStream<T>
     {
-        private readonly T value;
-        private readonly XmlSerializer xmlSerializer;
-        private readonly DataContractSerializer dataContractSerializer;
-        private readonly MemoryStream memoryStream;
-
-        public Xml_FromStream()
-        {
-            value = DataGenerator.Generate<T>();
-            xmlSerializer = new XmlSerializer(typeof(T));
-            dataContractSerializer = new DataContractSerializer(typeof(T));
-            memoryStream = new MemoryStream(capacity: short.MaxValue);
-        }
+        private T value;
+        private XmlSerializer xmlSerializer;
+        private DataContractSerializer dataContractSerializer;
+        private MemoryStream memoryStream;
 
         [GlobalSetup(Target = nameof(XmlSerializer_))]
         public void SetupXmlSerializer()
         {
+            value = DataGenerator.Generate<T>();
+            memoryStream = new MemoryStream(capacity: short.MaxValue);
             memoryStream.Position = 0;
+            xmlSerializer = new XmlSerializer(typeof(T));
             xmlSerializer.Serialize(memoryStream, value);
-        }
-
-        [GlobalSetup(Target = nameof(DataContractSerializer_))]
-        public void SetupDataContractSerializer()
-        {
-            memoryStream.Position = 0;
-            dataContractSerializer.WriteObject(memoryStream, value);
         }
 
         [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
@@ -53,6 +41,16 @@ namespace MicroBenchmarks.Serializers
         {
             memoryStream.Position = 0;
             return (T)xmlSerializer.Deserialize(memoryStream);
+        }
+
+        [GlobalSetup(Target = nameof(DataContractSerializer_))]
+        public void SetupDataContractSerializer()
+        {
+            value = DataGenerator.Generate<T>();
+            memoryStream = new MemoryStream(capacity: short.MaxValue);
+            memoryStream.Position = 0;
+            dataContractSerializer = new DataContractSerializer(typeof(T));
+            dataContractSerializer.WriteObject(memoryStream, value);
         }
 
         [BenchmarkCategory(Categories.Libraries)]

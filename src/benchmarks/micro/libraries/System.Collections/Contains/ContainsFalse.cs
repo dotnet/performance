@@ -15,11 +15,10 @@ namespace System.Collections
     [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int))] // value type
     [GenericTypeArguments(typeof(string))] // reference type
-    public class ContainsFalse<T> 
-        where T : IEquatable<T>
+    public class ContainsFalse<T> where T : IEquatable<T>
     {
         private T[] _notFound;
-        
+
         private T[] _array;
         private List<T> _list;
         private LinkedList<T> _linkedList;
@@ -35,26 +34,9 @@ namespace System.Collections
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
 
-        [GlobalSetup]
-        public void Setup()
-        {
-            var values = ValuesGenerator.ArrayOfUniqueValues<T>(Size * 2);
-            _notFound = values.Take(Size).ToArray();
-            var secondHalf = values.Skip(Size).Take(Size).ToArray();
+        [GlobalSetup(Targets = new[] { nameof(Array), "Span" })]
+        public void SetupArray() => _array = Setup();
 
-            _array = secondHalf;
-            _list = new List<T>(secondHalf);
-            _linkedList = new LinkedList<T>(secondHalf);
-            _hashSet = new HashSet<T>(secondHalf);
-            _queue = new Queue<T>(secondHalf);
-            _stack = new Stack<T>(secondHalf);
-            _sortedSet = new SortedSet<T>(secondHalf);
-            _immutableArray = Immutable.ImmutableArray.CreateRange<T>(secondHalf);
-            _immutableHashSet = Immutable.ImmutableHashSet.CreateRange<T>(secondHalf);
-            _immutableList = Immutable.ImmutableList.CreateRange<T>(secondHalf);
-            _immutableSortedSet = Immutable.ImmutableSortedSet.CreateRange<T>(secondHalf);
-        }
-        
         [Benchmark]
         public bool Array()
         {
@@ -79,6 +61,8 @@ namespace System.Collections
             return result;
         }
 #endif
+        [GlobalSetup(Targets = new[] { nameof(List), nameof(ICollection) })]
+        public void SetupList() => _list = new List<T>(Setup());
 
         [Benchmark]
         public bool List()
@@ -94,7 +78,7 @@ namespace System.Collections
         [Benchmark]
         [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
         public bool ICollection() => Contains(_list);
-        
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private bool Contains(ICollection<T> collection)
         {
@@ -104,6 +88,9 @@ namespace System.Collections
                 result ^= collection.Contains(notFound[i]);
             return result;
         }
+
+        [GlobalSetup(Target = nameof(LinkedList))]
+        public void SetupLinkedList() => _linkedList = new LinkedList<T>(Setup());
 
         [Benchmark]
         public bool LinkedList()
@@ -116,6 +103,9 @@ namespace System.Collections
             return result;
         }
 
+        [GlobalSetup(Target = nameof(HashSet))]
+        public void SetupHashSet() => _hashSet = new HashSet<T>(Setup());
+
         [Benchmark]
         public bool HashSet()
         {
@@ -126,6 +116,9 @@ namespace System.Collections
                 result ^= collection.Contains(notFound[i]);
             return result;
         }
+
+        [GlobalSetup(Target = nameof(Queue))]
+        public void SetupQueue() => _queue = new Queue<T>(Setup());
 
         [Benchmark]
         public bool Queue()
@@ -138,6 +131,9 @@ namespace System.Collections
             return result;
         }
 
+        [GlobalSetup(Target = nameof(Stack))]
+        public void SetupStack() => _stack = new Stack<T>(Setup());
+
         [Benchmark]
         public bool Stack()
         {
@@ -148,6 +144,9 @@ namespace System.Collections
                 result ^= collection.Contains(notFound[i]);
             return result;
         }
+
+        [GlobalSetup(Target = nameof(SortedSet))]
+        public void SetupSortedSet() => _sortedSet = new SortedSet<T>(Setup());
 
         [Benchmark]
         public bool SortedSet()
@@ -160,6 +159,9 @@ namespace System.Collections
             return result;
         }
 
+        [GlobalSetup(Target = nameof(ImmutableArray))]
+        public void SetupImmutableArray() => _immutableArray = Immutable.ImmutableArray.CreateRange<T>(Setup());
+
         [Benchmark]
         public bool ImmutableArray()
         {
@@ -170,6 +172,9 @@ namespace System.Collections
                 result ^= collection.Contains(notFound[i]);
             return result;
         }
+
+        [GlobalSetup(Target = nameof(ImmutableHashSet))]
+        public void SetupImmutableHashSet() => _immutableHashSet = Immutable.ImmutableHashSet.CreateRange<T>(Setup());
 
         [Benchmark]
         public bool ImmutableHashSet()
@@ -182,6 +187,9 @@ namespace System.Collections
             return result;
         }
 
+        [GlobalSetup(Target = nameof(ImmutableList))]
+        public void SetupImmutableList() => _immutableList = Immutable.ImmutableList.CreateRange<T>(Setup());
+
         [Benchmark]
         public bool ImmutableList()
         {
@@ -193,6 +201,9 @@ namespace System.Collections
             return result;
         }
 
+        [GlobalSetup(Target = nameof(ImmutableSortedSet))]
+        public void SetupImmutableSortedSet() => _immutableSortedSet = Immutable.ImmutableSortedSet.CreateRange<T>(Setup());
+
         [Benchmark]
         public bool ImmutableSortedSet()
         {
@@ -202,6 +213,14 @@ namespace System.Collections
             for (int i = 0; i < notFound.Length; i++)
                 result ^= collection.Contains(notFound[i]);
             return result;
+        }
+
+        private T[] Setup()
+        {
+            var values = ValuesGenerator.ArrayOfUniqueValues<T>(Size * 2);
+            _notFound = values.Take(Size).ToArray();
+            var secondHalf = values.Skip(Size).Take(Size).ToArray();
+            return secondHalf;
         }
     }
 }
