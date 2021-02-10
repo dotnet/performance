@@ -5,9 +5,9 @@
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-core-setup</Uri>
       <Sha>f5eceb810586ea6138aadcef9e2bba115015ab99</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Dotnet.Sdk.Internal" Version="1.0.0-servicing.21064.39">
+    <Dependency Name="Microsoft.Dotnet.Sdk.Internal" Version="1.0.0-servicing.21110.9">
       <Uri>https://github.com/dotnet/installer</Uri>
-      <Sha>f793a92b7c9236fc97324eaeb9b5bcb651396da7</Sha>
+      <Sha>0bf7556c8374d88d93567cce0d0f605198c36964</Sha>
     </Dependency>
     <Dependency Name="Microsoft.WindowsDesktop.App.Runtime.win-x64" Version="3.1.11" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-core-setup</Uri>
