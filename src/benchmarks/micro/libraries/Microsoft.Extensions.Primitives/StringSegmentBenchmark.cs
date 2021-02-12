@@ -13,6 +13,7 @@ namespace Microsoft.Extensions.Primitives
     public class StringSegmentBenchmark
     {
         private readonly StringSegment _segment = new StringSegment("Hello world!");
+        private readonly StringSegment _segment2 = new StringSegment("Hello world!".AsSpan().ToString()); // different backing string instance
         private readonly StringSegment _largeSegment = new StringSegment("Hello, World!, Hello people! My Car Is Cool. Your Carport is blue.");
         private readonly StringSegment _trimSegment = new StringSegment("   Hello world!    ");
         private readonly object _boxedSegment;
@@ -45,13 +46,13 @@ namespace Microsoft.Extensions.Primitives
         public bool Equals_Object_Invalid() => _segment.Equals(null as object);
 
         [Benchmark]
-        public bool Equals_Object_Valid() => _segment.Equals(_boxedSegment);
+        public bool Equals_Object_Valid() => _segment2.Equals(_boxedSegment);
 
         [Benchmark]
-        public bool Equals_Valid() => _segment.Equals(_segment);
+        public bool Equals_Valid() => _segment2.Equals(_segment);
 
         [Benchmark]
-        public bool Equals_String() => _segment.Equals("Hello world!");
+        public bool Equals_String() => _segment2.Equals("Hello world!");
 
         [Benchmark]
         public int GetSegmentHashCode() => _segment.GetHashCode();
