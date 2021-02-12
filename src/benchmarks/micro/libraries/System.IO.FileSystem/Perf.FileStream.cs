@@ -72,6 +72,9 @@ namespace System.IO.Tests
         [Arguments(OneKibibyte , FileOptions.None)]
         [Arguments(OneKibibyte , FileOptions.Asynchronous)]
         [AllowedOperatingSystems("Lock and Unlock are supported only on Windows and Linux", OS.Linux, OS.Windows)]
+#if NET6_0_OR_GREATER // the method was marked as unsupported on macOS in .NET 6.0
+        [System.Runtime.Versioning.UnsupportedOSPlatform("macos")]
+#endif
         public void LockUnlock(long fileSize, FileOptions options)
         {
             string filePath = _sourceFilePaths[fileSize];
