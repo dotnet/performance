@@ -41,7 +41,7 @@ namespace System.IO.Tests
 #if NETCOREAPP2_1_OR_GREATER // these virtual methods only exist in .NET Core 2.1+
         public override void Write(ReadOnlySpan<byte> buffer) { }
 
-        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default) => ValueTask.CompletedTask;
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default) => new ValueTask(Task.CompletedTask);
 #endif
     }
 }
