@@ -109,6 +109,10 @@
     <Compile Remove="libraries\System.Formats.Cbor\*.cs" />
   </ItemGroup>
 
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '6.0')">
+    <Compile Remove="libraries\System.Collections\PriorityQueue\Perf_PriorityQueue.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
     <None Include="**/*.cs" />
