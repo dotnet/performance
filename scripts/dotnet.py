@@ -277,7 +277,11 @@ class CSharpProject:
         project.
 
         Keyword arguments:
-        packages_path -- The directory to restore packages to.
+            packages_path -- The directory to restore packages to.
+        MSBuild arguments used to avoid "process cannot access the file":
+            /p:UseSharedCompilation=false -- disable shared compilation
+            /p:BuildInParallel=false -- disable parallel builds
+            /m:1 -- don't spawn more than a single process
         '''
         if not packages_path:
             raise TypeError('Unspecified packages directory.')
