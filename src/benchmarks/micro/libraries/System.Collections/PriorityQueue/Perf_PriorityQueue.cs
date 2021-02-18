@@ -5,26 +5,27 @@
 using System.Linq;
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 
 namespace System.Collections.Tests
 {
     [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
-    public abstract class Perf_PriorityQueue<TElement, TPriority>
+    [GenericTypeArguments(typeof(int), typeof(int))]
+    [GenericTypeArguments(typeof(string), typeof(string))]
+    public class Perf_PriorityQueue<TElement, TPriority>
     {
-        [Params(10, 100, 1000, 10_000, 100_000)]
+        [Params(10, 100, 1000)]
         public int Size;
 
         private (TElement Element, TPriority Priority)[] _items;
         private PriorityQueue<TElement, TPriority> _priorityQueue;
         private PriorityQueue<TElement, TPriority> _prePopulatedPriorityQueue;
 
-        public abstract IEnumerable<(TElement Element, TPriority Priority)> GenerateItems(int count);
-
         [GlobalSetup]
         public void Setup()
         {
-            _items = GenerateItems(Size).ToArray();
+            _items = ValuesGenerator.Array<TElement>(Size).Zip(ValuesGenerator.Array<TPriority>(Size)).ToArray();
             _priorityQueue = new PriorityQueue<TElement, TPriority>(initialCapacity: Size);
             _prePopulatedPriorityQueue = new PriorityQueue<TElement, TPriority>(_items);
         }
@@ -101,41 +102,6 @@ namespace System.Collections.Tests
             for (int i = 0; i < k; i++)
             {
                 queue.Dequeue();
-            }
-        }
-    }
-
-    public class Perf_PriorityQueue_String_String : Perf_PriorityQueue<string, string>
-    {
-        public override IEnumerable<(string Element, string Priority)> GenerateItems(int count)
-        {
-            var random = new Random(42);
-            const int MaxSize = 30;
-            byte[] buffer = new byte[MaxSize];
-
-            for (int i = 0; i < count; i++)
-            {
-                yield return (GenerateString(), GenerateString());
-            }
-
-            string GenerateString()
-            {
-                int size = random.Next(MaxSize);
-                Span<byte> slice = buffer.AsSpan().Slice(size);
-                random.NextBytes(slice);
-                return Convert.ToBase64String(slice);
-            }
-        }
-    }
-
-    public class Perf_PriorityQueue_Int_Int : Perf_PriorityQueue<int, int>
-    {
-        public override IEnumerable<(int Element, int Priority)> GenerateItems(int count)
-        {
-            var random = new Random(42);
-            for (int i = 0; i < count; i++)
-            {
-                yield return (random.Next(), random.Next());
             }
         }
     }
