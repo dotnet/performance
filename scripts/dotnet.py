@@ -277,14 +277,19 @@ class CSharpProject:
         project.
 
         Keyword arguments:
-        packages_path -- The directory to restore packages to.
+            packages_path -- The directory to restore packages to.
+        MSBuild arguments used to avoid "process cannot access the file":
+            /p:UseSharedCompilation=false -- disable shared compilation
+            /p:BuildInParallel=false -- disable parallel builds
+            /m:1 -- don't spawn more than a single process
         '''
         if not packages_path:
             raise TypeError('Unspecified packages directory.')
         cmdline = [
             'dotnet', 'restore',
             self.csproj_file,
-            '--packages', packages_path
+            '--packages', packages_path,
+            '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1',
         ]
 
         if runtime_identifier:
@@ -309,6 +314,7 @@ class CSharpProject:
                 '--configuration', configuration,
                 '--no-restore',
                 "/p:NuGetPackageRoot={}".format(packages_path),
+                '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1',
             ]
 
             if output_to_bindir:
@@ -332,6 +338,7 @@ class CSharpProject:
                     '--framework', target_framework_moniker,
                     '--no-restore',
                     "/p:NuGetPackageRoot={}".format(packages_path),
+                    '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1',
                 ]
 
                 if output_to_bindir:
@@ -402,7 +409,8 @@ class CSharpProject:
             self.csproj_file,
             '--configuration', configuration,
             '--output', output_dir,
-            "/p:NuGetPackageRoot={}".format(packages_path)
+            "/p:NuGetPackageRoot={}".format(packages_path),
+            '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1'
         ]
         if runtime_identifier:
             cmdline += ['--runtime', runtime_identifier]
