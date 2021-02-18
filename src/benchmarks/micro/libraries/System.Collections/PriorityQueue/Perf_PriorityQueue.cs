@@ -25,14 +25,6 @@ namespace System.Collections.Tests
         public void Setup()
         {
             _items = GenerateItems(Size).ToArray();
-            //var random = new Random(42);
-            //_elements = new int[Size];
-            //for (int i = 0; i < Size; i++)
-            //{
-            //    _elements[i] = random.Next();
-            //}
-
-            //_items = _elements.Select((i, x) => (i, x)).ToArray();
             _priorityQueue = new PriorityQueue<TElement, TPriority>(initialCapacity: Size);
             _prePopulatedPriorityQueue = new PriorityQueue<TElement, TPriority>(_items);
         }
