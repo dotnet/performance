@@ -71,7 +71,7 @@ namespace ScenarioMeasurement
                         string workingDir = "",
                         bool warmup = true,
                         bool guiApp = true,
-                        bool skipProfileIteration = false,
+                        bool skipProfileIteration = true, //This is causing an internal CLR error, doing this to unbock us for now. Tracked by https://github.com/dotnet/performance/issues/1689
                         string reportJsonPath = "",
                         string traceDirectory = null,
                         string environmentVariables = null,
