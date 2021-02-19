@@ -57,9 +57,7 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        # - release/3.1.3xx
-        - 3.0
-        - release/5.0.1xx
+        - master
 
   # Ubuntu 1804 x64 scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -75,8 +73,6 @@ jobs:
       projectFile: scenarios.proj
       channels:
         - master
-        - release/5.0.1xx
-        # - release/3.1.3xx
   
   # Windows x64 Blazor scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -106,8 +102,6 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - master
-        - release/5.0.1xx
-        # - release/3.1.3xx
   
   # Ubuntu 1804 x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -123,8 +117,6 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - master
-        - release/5.0.1xx
-        # - release/3.1.3xx
 
   # Windows x86 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -139,8 +131,6 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - master
-        - release/5.0.1xx
-        # - release/3.1.3xx
   
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -298,9 +288,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
-        # - release/3.1.2xx
-        - release/5.0.1xx
-        - 3.0
+        - master
 
   # Ubuntu 1804 x64 micro benchmarks
   - template: /eng/performance/scenarios.yml
@@ -315,8 +303,7 @@ jobs:
       container: ubuntu_x64_build_container
       projectFile: scenarios.proj
       channels:
-        #- master
-        - release/5.0.1xx
+        - master
 
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -495,7 +482,6 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - master
-        #- release/5.0.1xx
   
   # Windows x86 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -510,7 +496,6 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - master
-        #- release/5.0.1xx
 
   # Ubuntu 1804 x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -526,8 +511,6 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - master
-        #- release/5.0.1xx
-        # - release/3.1.2xx
 
   # Windows x64 Blazor 3.2 scenario benchmarks
   - template: /eng/performance/scenarios.yml
