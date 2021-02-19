@@ -16,11 +16,6 @@ namespace System.Threading.Tests
         [Benchmark]
         public void RegisterAndUnregister_Serial() => _token.Register(() => { }).Dispose();
 
-        [Benchmark(OperationsPerInvoke = 1_000_000)]
-        [BenchmarkCategory(Categories.NoWASM)]
-        public void RegisterAndUnregister_Parallel() =>
-            Parallel.For(0, 1_000_000, i => _token.Register(() => { }).Dispose());
-
         [Benchmark]
         public void Cancel()
         {
