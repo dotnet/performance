@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
@@ -13,6 +14,7 @@ namespace System.Collections.Tests
     [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int), typeof(int))]
     [GenericTypeArguments(typeof(string), typeof(string))]
+    [GenericTypeArguments(typeof(Guid), typeof(Guid))]
     public class Perf_PriorityQueue<TElement, TPriority>
     {
         [Params(10, 100, 1000)]
