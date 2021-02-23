@@ -112,6 +112,8 @@ namespace BenchmarkDotNet.Extensions
                 return (T)(object)(random.NextDouble() > 0.5);
             if (typeof(T) == typeof(string))
                 return (T)(object)GenerateRandomString(random, 1, 50);
+            if (typeof(T) == typeof(Guid))
+                return (T)(object)GenerateRandomGuid(random);
 
             throw new NotImplementedException($"{typeof(T).Name} is not implemented");
         }
@@ -134,6 +136,13 @@ namespace BenchmarkDotNet.Extensions
             }
 
             return builder.ToString();
+        }
+
+        private static Guid GenerateRandomGuid(Random random)
+        {
+            byte[] bytes = new byte[16];
+            random.NextBytes(bytes);
+            return new Guid(bytes);
         }
     }
 }
