@@ -77,8 +77,8 @@ namespace ScenarioMeasurement
 
             if (!GuiApp)
             {
-                psi.RedirectStandardOutput = true;
-                psi.RedirectStandardError = true;
+                //psi.RedirectStandardOutput = true;
+                //psi.RedirectStandardError = true;
             }
             else
             {
@@ -89,29 +89,29 @@ namespace ScenarioMeasurement
             using (var process = new Process())
             {
                 process.StartInfo = psi;
-                if (!GuiApp)
-                {
-                    process.OutputDataReceived += (s, e) =>
-                    {
-                        if (!String.IsNullOrEmpty(e.Data))
-                        {
-                            output.AppendLine(e.Data);
-                        }
-                    };
-                    process.ErrorDataReceived += (s, e) =>
-                    {
-                        if (!String.IsNullOrEmpty(e.Data))
-                        {
-                            error.AppendLine(e.Data);
-                        }
-                    };
-                }
+                // if (!GuiApp)
+                // {
+                //     process.OutputDataReceived += (s, e) =>
+                //     {
+                //         if (!String.IsNullOrEmpty(e.Data))
+                //         {
+                //             output.AppendLine(e.Data);
+                //         }
+                //     };
+                //     process.ErrorDataReceived += (s, e) =>
+                //     {
+                //         if (!String.IsNullOrEmpty(e.Data))
+                //         {
+                //             error.AppendLine(e.Data);
+                //         }
+                //     };
+                // }
                 process.Start();
                 int pid = process.Id;
                 if (!GuiApp)
                 {
-                    process.BeginOutputReadLine();
-                    process.BeginErrorReadLine();
+                    // process.BeginOutputReadLine();
+                    // process.BeginErrorReadLine();
                 }
 
                 if (ProcessWillExit)
@@ -126,7 +126,22 @@ namespace ScenarioMeasurement
                 else
                 {
                     Thread.Sleep(MeasurementDelay * 1000);
-                    if (!process.HasExited) { process.CloseMainWindow(); }
+                    if (!process.HasExited)
+                    {
+                        if(GuiApp)
+                        {
+                            process.CloseMainWindow();
+                        }
+                        else
+                        {
+                            Console.WriteLine(process.StartInfo.FileName);
+                            Console.WriteLine(process.StartInfo.Arguments);
+                            Console.WriteLine(process.Id);
+                            process.Kill();
+                            Thread.Sleep(5000);
+                            return (Result.Success, pid);
+                        }
+                    }
                     else
                     {
                         return (Result.ExitedEarly, pid);

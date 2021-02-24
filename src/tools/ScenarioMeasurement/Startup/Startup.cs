@@ -166,7 +166,7 @@ namespace ScenarioMeasurement
                     parser = new Crossgen2Parser();
                     break;
                 case MetricType.InnerLoop:
-                    parser = new InnerLoopParser();
+                    parser = new InnerLoopParser(processWillExit);
                     break;
                 case MetricType.InnerLoopMsBuild:
                     parser = new InnerLoopMsBuildParser();
