@@ -256,12 +256,46 @@ namespace ScenarioMeasurement
             {
                 logger.LogIterationHeader("Profile Iteration");
                 ProfileParser profiler = new ProfileParser(parser);
+                (bool Success, int Pid) iterationResult;
                 using (var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_"+traceName, traceDirectory, logger))
                 {
                     profileSession.EnableProviders(profiler);
-                    if (!RunIteration(setupProcHelper, TestProcess, cleanupProcHelper, logger).Success)
+                    if(metricType == MetricType.InnerLoop)
+                    {
+                        iterationResult = RunIteration(setupProcHelper, TestProcess, null, logger);
+                    }
+                    else
+                    {
+                        iterationResult = RunIteration(setupProcHelper, TestProcess, cleanupProcHelper, logger);
+                    }
+
+                     if (!iterationResult.Success)
                     {
                         failed = true;
+                    }
+
+                    if(metricType == MetricType.InnerLoop)
+                    {
+                        //Do some stuff to change the project
+                        logger.LogStepHeader("Inner Loop Setup");
+                        var innerLoopReturn = innerLoopProcHelper.Run();
+                        if(innerLoopReturn.Result != ProcessHelper.Result.Success)
+                        {
+                            failed = true;
+                        }
+                        else
+                        {
+                            var test = InnerLoopMarkerEventSource.GetSources();
+                            InnerLoopMarkerEventSource.Log.Split();
+
+                            logger.LogIterationHeader($"Iteration - Diff");
+                            iterationResult = RunIteration(null, TestProcess, cleanupProcHelper, logger);
+                            if (!iterationResult.Success)
+                            {
+                                failed = true;
+                            }
+                            InnerLoopMarkerEventSource.Log.EndIteration();
+                        }
                     }
                 }
             }
