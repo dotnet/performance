@@ -399,7 +399,12 @@ You can see all available metrics [here](docs/metrics.md).
 Most analysis commands require you to specify the metrics you want (although many provide defaults). The simplest example is `analyze-single` which can take a single trace and print out metrics.
 
 ```sh
-py . analyze-single bench/suite/low_memory_container.yaml.out/a__only_config__tlgb0.2__0.etl --run-metrics FirstToLastGCSeconds --single-gc-metrics DurationMSec --single-heap-metrics InMB OutMB
+py . analyze-single bench/suite/low_memory_container.yaml.out/defgcperfsim__a__only_config__tlgb0.2__0.yaml --run-metrics FirstToLastGCSeconds --single-gc-metrics DurationMSec --single-heap-metrics InMB OutMB
+```
+
+Alternatively, the can also be done by using the process and path arguments:
+```sh
+py . analyze-single --process name:corerun --path bench\suite\low_memory_container.etl.out\defgcperfsim__a__only_config__tlgb0.2__0.etl --run-metrics FirstToLastGCSeconds --single-gc-metrics DurationMSec --single-heap-metrics InMB OutMB
 ```
 
 The output will look like:
