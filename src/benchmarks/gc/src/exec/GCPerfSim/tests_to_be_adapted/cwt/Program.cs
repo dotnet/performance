@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-﻿using System;
+using System;
 using System.Runtime.CompilerServices; // ConditionalWeakTable
 
 namespace cwt
@@ -34,8 +34,8 @@ namespace cwt
 
     class SomeSet
     {
-        private byte[]  _data;
-        private string _id; 
+        private byte[] _data;
+        private string _id;
         private SomeClass1 _ref;
 
         public SomeSet(string id, int dataSize)
@@ -58,7 +58,7 @@ namespace cwt
                 Console.WriteLine("Usage: ./cwttest.exe [bytes to allocate] [number of iterations]");
             }
 
-            
+
             int bytesToAllocate = Int32.Parse(args[0]);
             int numberOfIterations = Int32.Parse(args[1]);
 
@@ -69,10 +69,10 @@ namespace cwt
 
             for (var i = 0; i < numberOfIterations; i++)
             {
-            
+
                 while (bytesAllocated < bytesToAllocate)
                 {
-                    
+
                     SomeKey sk = new SomeKey(i.ToString(), objSize);
                     SomeSet ss = new SomeSet(i.ToString(), objSize);
                     // s_cwt.AddOrUpdate(sk, ss); // Not available in .net 4.7.2

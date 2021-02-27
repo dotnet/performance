@@ -38,54 +38,54 @@ It allows you to specify the following commandline args. Notes on commandline ar
 configurations and it's easier to compare if you have all the configs specified), just specify something that can't be parsed
 as an integer. For example you could specify "defArgName". That way you could replace all defArgName with a value if you needed.
 
--testKind/-tk: g_testKind
+-testKind/-tk: testKind
     Either "time" (default) or "highsurvival"
     For "highsurvival", -totalMins should be set, -sohSurvInterval and -lohSurvInterval should not
 
--threadCount/-tc: g_threadCount
+-threadCount/-tc: threadCount
 allocating thread count (usually I use half of the # of CPUs on the machine, this is just to reduce the OS scheduler effect 
 so we can test the GC effect better)
 
--lohAllocRatio/-lohar: g_lohAllocRatio
+-lohAllocRatio/-lohar: lohAllocRatio
 LOH alloc ratio (this controls the bytes we allocate on LOH out of all allocations we do)
 It's in in per thousands (not percents! even though in the output it says %). So if it's 5, that means 
 5‰ of the allocations will be on LOH.
 
--pohAllocRatio/-pohar: g_pohAllocRatio
+-pohAllocRatio/-pohar: pohAllocRatio
 POH alloc ratio (this controls the bytes we allocate on POH out of all allocations we do)
 It's in in per thousands (not percents! even though in the output it says %). So if it's 5, that means 
 5‰ of the allocations will be on POH.
 
--totalLiveGB/-tlgb: g_totalLiveBytesGB
+-totalLiveGB/-tlgb: totalLiveBytesGB
 this is the total live data size in GB
 
--totalAllocGB/-tagb: g_totalAllocBytesGB
+-totalAllocGB/-tagb: totalAllocBytesGB
 this is the total allocated size in GB, instead of accepting an arg like # of iterations where you don't really know what 
 an iteration does, we use the allocated bytes to indicate how much work the threads do.
 
--totalMins/-tm: g_totalMinutesToRun
+-totalMins/-tm: totalMinutesToRun
 time to run in minutes (for things that need long term effects like scheduling you want to run for 
 a while, eg, a few hours to see how stable it is)
 
 Note that if neither -totalAllocMB nor -totalMins is specified, it will run for the default for -totalMins.
 If both are specified, we take whichever one that's met first. 
 
--sohSizeRange/-sohsr: g_sohAllocLow, g_sohAllocHigh
-eg: -sohSizeRange 100-4000 will set g_sohAllocLow and g_sohAllocHigh to 100 and 4000
+-sohSizeRange/-sohsr: sohAllocLow, sohAllocHigh
+eg: -sohSizeRange 100-4000 will set sohAllocLow and sohAllocHigh to 100 and 4000
 we allocate SOH that's randomly chosen between this range.
 
--lohSizeRange/-lohsr: g_lohAllocLow, g_lohAllocHigh
+-lohSizeRange/-lohsr: lohAllocLow, lohAllocHigh
 we allocate LOH that's randomly chosen between this range.
 
--pohSizeRange/-pohsr: g_pohAllocLow, g_pohAllocHigh
+-pohSizeRange/-pohsr: pohAllocLow, pohAllocHigh
 we allocate POH that's randomly chosen between this range.
 
--sohSurvInterval/-sohsi: g_sohSurvInterval
+-sohSurvInterval/-sohsi: sohSurvInterval
 meaning every Nth SOH object allocated will survive. This is something we will consider changing to survival rate
-later. When the allocated objects are of similar sizes the surv rate is 1/g_sohSurvInterval but we may not want them
+later. When the allocated objects are of similar sizes the surv rate is 1/sohSurvInterval but we may not want them
 to all be similar sizes.
 
--lohSurvInterval/-lohsi: g_lohSurvInterval
+-lohSurvInterval/-lohsi: lohSurvInterval
 meaning every Nth LOH object allocated will survive. 
 
 -pohSurvInterval/-pohsi:
@@ -94,24 +94,24 @@ meaning every Nth POH object allocated will survive.
 Note that -sohSurvInterval/-lohSurvInterval are only applicable for steady state.
 During initialization everything survives.
 
--sohPinningInterval/-sohpi: g_sohPinningInterval
+-sohPinningInterval/-sohpi: sohPinningInterval
 meaning every Nth SOH object survived will be pinned. 
 
--lohPinningInterval/-lohpi: g_lohPinningInterval
+-lohPinningInterval/-lohpi: lohPinningInterval
 meaning every Nth LOH object survived will be pinned. 
 
--allocType/-at: g_allocType
+-allocType/-at: allocType
 What kind of objects are we allocating? Current supported types: 
 0 means SimpleItem - a byte array (implemented by the Item class)
 1 means ReferenceItem - contains refs and can form linked list (implemented by the ReferenceItemWithSize class)
 
 -handleTest - NOT IMPLEMENTED other than pinned handles. Should write some interesting cases for weak handles.
 
--lohPauseMeasure/-lohpm: g_lohPauseMeasure
+-lohPauseMeasure/-lohpm: lohPauseMeasure
 measure the time it takes to do a LOH allocation. When turned on the top 10 longest pauses will be included in the log file.
 TODO: The longest pauses are interesting but we should also include all pauses by pause buckets.
 
--endException/-ee: g_endException
+-endException/-ee: endException
 induces an exception at the end so you can do some post mortem debugging.
 
 The default for these args are specified in "Default parameters".
@@ -185,13 +185,13 @@ static class Util
         ((double)bytes) / BYTES_IN_GB;
 
     public static ulong GBToBytes(double GB) =>
-        (ulong) Math.Round(GB * BYTES_IN_GB);
+        (ulong)Math.Round(GB * BYTES_IN_GB);
 
     public static double BytesToMB(ulong bytes) =>
-        ((double) bytes) / BYTES_IN_MB;
+        ((double)bytes) / BYTES_IN_MB;
 
     public static ulong MBToBytes(double MB) =>
-        (ulong) Math.Round(MB * BYTES_IN_MB);
+        (ulong)Math.Round(MB * BYTES_IN_MB);
 
     public static ulong Mean(ulong a, ulong b) =>
         (a + b) / 2;
@@ -223,7 +223,7 @@ static class Util
             return value;
         }
     }
-    
+
     public static T NonNull<T>(T? value) where T : struct
     {
         if (value == null)
@@ -236,7 +236,7 @@ static class Util
         }
     }
 
-    unsafe static uint GetPointerSize() => (uint) sizeof(IntPtr);
+    unsafe static uint GetPointerSize() => (uint)sizeof(IntPtr);
 
     public static readonly uint POINTER_SIZE = GetPointerSize();
     public static ulong ArraySize(ITypeWithPayload?[] a) =>
@@ -248,8 +248,6 @@ static class Util
 
 sealed class Rand
 {
-    /* Generate Random numbers
-     */
     private uint x = 0;
 
     private uint GetRand()
@@ -318,8 +316,8 @@ class Item : ITypeWithPayload
     // 3 for the byte[] overhead, 1 for state, 1 for handle
     static readonly uint Overhead = (3 + 2) * Util.POINTER_SIZE;
 
-    //TODO: isWeakLong never used
-    public static Item New(uint size, bool isPinned, bool isFinalizable, bool isWeakLong=false, bool isPoh = false)
+    // TODO: isWeakLong never used
+    public static Item New(uint size, bool isPinned, bool isFinalizable, bool isWeakLong = false, bool isPoh = false)
     {
         if (isFinalizable)
         {
@@ -396,7 +394,7 @@ class Item : ITypeWithPayload
         if (state != ItemState.NoHandle)
         {
             Debug.Assert(h.IsAllocated);
-            //Console.WriteLine("freeing handle to byte[{0}]", payload.Length);
+            // Console.WriteLine("freeing handle to byte[{0}]", payload.Length);
             h.Free();
         }
 
@@ -476,7 +474,7 @@ enum ReferenceItemOperation
 };
 
 // ReferenceItem is structured this way so we can point to other
-// ReferenceItemWithSize objets on decommand and record how much 
+// ReferenceItemWithSize objects on demand and record how much 
 // memory it's holding alive.
 abstract class ReferenceItemWithSize : ITypeWithPayload
 {
@@ -666,7 +664,7 @@ readonly struct Phase
     {
         Util.AlwaysAssert(totalAllocBytes != 0); // Must be set
 
-        this.testKind = testKind;;
+        this.testKind = testKind;
         this.totalLiveBytes = totalLiveBytes;
         this.totalAllocBytes = totalAllocBytes;
         this.totalMinutesToRun = totalMinutesToRun;
@@ -685,7 +683,7 @@ readonly struct Phase
     public void Describe()
     {
         Console.WriteLine($"{testKind}, {allocType}, tlgb {Util.BytesToGB(totalLiveBytes)}, tagb {Util.BytesToGB(totalAllocBytes)}, totalMins {totalMinutesToRun}, buckets:");
-        for (uint i = 0;  i < buckets.Length; i++)
+        for (uint i = 0; i < buckets.Length; i++)
         {
             Console.WriteLine("    {0}", buckets[i]);
         }
@@ -725,7 +723,7 @@ ref struct CharSpan
     }
 
     public static implicit operator CharSpan(string s) =>
-        new CharSpan(s, 0, (uint) s.Length);
+        new CharSpan(s, 0, (uint)s.Length);
 
     public static CharSpan OfString(string text) =>
         new CharSpan(text, 0, (uint)text.Length);
@@ -744,14 +742,14 @@ ref struct CharSpan
         get
         {
             Debug.Assert(index < Length);
-            return text[(int) (begin + index)];
+            return text[(int)(begin + index)];
         }
     }
 
-    public static bool operator==(CharSpan a, CharSpan b)
+    public static bool operator ==(CharSpan a, CharSpan b)
     {
         // The '==' operator seems to test whether the spans refer to the same range of memory.
-        // I can't find any builtin function for comparing actual equality, which seems wierd.
+        // I can't find any builtin function for comparing actual equality, which seems weird.
         if (a.Length != b.Length)
             return false;
         for (uint i = 0; i < a.Length; i++)
@@ -770,7 +768,7 @@ ref struct CharSpan
         throw new NotImplementedException();
 
     public override string ToString() =>
-        text.Substring((int) this.begin, (int) this.Length);
+        text.Substring((int)this.begin, (int)this.Length);
 }
 
 ref struct TextReader
@@ -887,7 +885,7 @@ ref struct TextReader
     {
         Assert(IsDigit(Peek), "Expected to parse a ulong");
         uint i = 1;
-        for (;  i < text.Length && IsDigit(text[i]); i++) {}
+        for (; i < text.Length && IsDigit(text[i]); i++) { }
         return ulong.Parse(TakeN(i).ToString());
     }
 
@@ -993,7 +991,7 @@ class ArgsParser
         return success ? v : throw new Exception($"Failed to parse {s}");
     }
 
-    private static double ParseDouble(string strDouble) => double.TryParse(strDouble, out double v) ? v : throw new Exception($"Failred to parse {strDouble}");
+    private static double ParseDouble(string strDouble) => double.TryParse(strDouble, out double v) ? v : throw new Exception($"Failed to parse {strDouble}");
 
     private enum State { ParsePhase, ParseBucket, Eof };
 
@@ -1048,7 +1046,7 @@ class ArgsParser
             text.SkipBlankLines();
         }
     }
-    
+
     // Called after we see the first [phase]; ends at EOF
     static (State, Phase[]) ParsePhases(ref TextReader text, uint threadCount)
     {
@@ -1258,7 +1256,7 @@ class ArgsParser
 
     private const uint DEFAULT_PINNING_INTERVAL = 100;
     private const uint DEFAULT_FINALIZABLE_INTERVAL = 0;
-    
+
     private static Args ParseFromCommandLine(string[] args)
     {
         TestKind testKind = TestKind.time;
@@ -1345,7 +1343,7 @@ class ArgsParser
                 case "-lohSizeRange":
                 case "-lohsr":
                     ParseRange(args[++i], out lohAllocLow, out lohAllocHigh);
-                    Util.AlwaysAssert(lohAllocLow >= 85000, "g_lohAllocLow is below the minimum large object size");
+                    Util.AlwaysAssert(lohAllocLow >= 85000, "lohAllocLow is below the minimum large object size");
                     break;
                 case "-pohSizeRange":
                 case "-pohsr":
@@ -1644,7 +1642,7 @@ struct BucketChooser
         Util.AlwaysAssert(bucketSpecs.Length != 0);
         this.buckets = new Bucket[bucketSpecs.Length];
         uint weightSum = 0;
-        for (uint i = 0;  i < bucketSpecs.Length; i++)
+        for (uint i = 0; i < bucketSpecs.Length; i++)
         {
             var bucket = new Bucket(bucketSpecs[i]);
             this.buckets[i] = bucket;
@@ -1772,7 +1770,7 @@ struct OldArr
         return item;
     }
 
-    public uint Length => (uint) items.Length;
+    public uint Length => (uint)items.Length;
 
     public void FreeAll()
     {
@@ -1801,7 +1799,7 @@ class MemoryAlloc
     private readonly uint threadIndex;
     private readonly PerThreadArgs args;
     private long totalAllocBytesLeft;
-    //private readonly bool printIterInfo = false;
+    // private readonly bool printIterInfo = false;
     private BucketChooser bucketChooser;
 
     // TODO: replace this with an array that records the 10 longest pauses 
@@ -1824,9 +1822,9 @@ class MemoryAlloc
     }
 
     // This really doesn't belong in this class - this should be a building blocking that takes
-    // a datastructure and modifies it based on configs, eg, it can modify arrays based on 
+    // a data structure and modifies it based on configs, eg, it can modify arrays based on 
     // its element type.
-    //
+    // 
     // Note that this implementation will involve almost only old generation objects so it
     // doesn't affect ephemeral collection time. 
     // 
@@ -1856,12 +1854,12 @@ class MemoryAlloc
         // till we get to the begin element.
         for (uint index = endIndex; index > beginIndex; index--)
         {
-            ReferenceItemWithSize refItem = (ReferenceItemWithSize) Util.NonNull(oldArr.TakeAndReduceTotalSizeButDoNotFree(index));
-            ReferenceItemWithSize refItemPrev = (ReferenceItemWithSize) Util.NonNull(oldArr.Peek(index - 1));
+            ReferenceItemWithSize refItem = (ReferenceItemWithSize)Util.NonNull(oldArr.TakeAndReduceTotalSizeButDoNotFree(index));
+            ReferenceItemWithSize refItemPrev = (ReferenceItemWithSize)Util.NonNull(oldArr.Peek(index - 1));
             refItemPrev.AddToEndOfList(refItem);
 
             // We are allocating some temp objects here just so that it will trigger GCs.
-            // It's unnecesssary if other threads are already allocating objects.
+            // It's unnecessary if other threads are already allocating objects.
             var objSpec = bucketChooser.GetNextObjectSpec(rand);
 
             byte[] bTemp;
@@ -1900,10 +1898,10 @@ class MemoryAlloc
         }
 
         // Trying to increase the amount of work we do to see if that affects ideal thread count
-        //for (uint i = 0; i < size; i++)
-        //{
+        // for (uint i = 0; i < size; i++)
+        // {
         //    b[i] = (byte)(i % 256);
-        //}
+        // }
     }
 
     void TouchPage(ITypeWithPayload item)
@@ -1993,11 +1991,11 @@ class MemoryAlloc
 
             Console.Write(" | {0,14:n0} | {1,14:n0} | {2,14:n0} | {3,5:n0} | {4,10:n0} | {5,10:f2}",
                 bucket.allocatedBytesTotalSum,
-                allocatedBytesSinceLast,                                         // 0
+                allocatedBytesSinceLast,                                                         // 0
                 bucket.survivedBytesSinceLastPrint,                                              // 1
                 GetPercent(bucket.survivedBytesSinceLastPrint, allocatedBytesSinceLast),         // 2
                 bucket.pinnedBytesSinceLastPrint,                                                // 3
-                // TODO: might be more pinned than survived ...
+                                                                                                 // TODO: might be more pinned than survived ...
                 GetPercent(bucket.pinnedBytesSinceLastPrint, bucket.survivedBytesSinceLastPrint) // 4
             );
 
@@ -2049,7 +2047,7 @@ class MemoryAlloc
 
             if (totalAllocBytesLeft <= 0)
             {
-                //if (args.print) Console.WriteLine("T{0}: SOH/LOH alocated {1:n0}/{2:n0} >= {3:n0}", threadIndex, sohAllocatedBytesTotalSum, lohAllocatedBytesTotalSum, totalAllocBytesLeft);
+                // if (args.print) Console.WriteLine("T{0}: SOH/LOH allocated {1:n0}/{2:n0} >= {3:n0}", threadIndex, sohAllocatedBytesTotalSum, lohAllocatedBytesTotalSum, totalAllocBytesLeft);
                 if (!GoToNextPhase()) break;
             }
 
@@ -2091,15 +2089,13 @@ class MemoryAlloc
             else
                 Util.AssertAboutEqual(oldArr.TotalLiveBytes, curPhase.totalLiveBytes);
 
-            /*
-            if (args.print)
-            {
-                Console.WriteLine("T{0}: allocated {1} ({2}MB) on SOH, {3} ({4}MB) on LOH",
-                    threadIndex,
-                    sohAllocatedElements, Util.BytesToMB(sohAllocatedBytes),
-                    lohAllocatedElements, Util.BytesToMB(lohAllocatedBytes));
-            }
-            */
+            // if (args.print)
+            // {
+            //     Console.WriteLine("T{0}: allocated {1} ({2}MB) on SOH, {3} ({4}MB) on LOH",
+            //         threadIndex,
+            //         sohAllocatedElements, Util.BytesToMB(sohAllocatedBytes),
+            //         lohAllocatedElements, Util.BytesToMB(lohAllocatedBytes));
+            // }
 
             if (args.verifyLiveSize)
             {
@@ -2111,9 +2107,9 @@ class MemoryAlloc
                 }
             }
 
-            //GC.Collect();
-            //Console.WriteLine("init done");
-            //Console.ReadLine();
+            // GC.Collect();
+            // Console.WriteLine("init done");
+            // Console.ReadLine();
 
             if (curPhase.totalAllocBytes != 0)
             {
@@ -2156,11 +2152,11 @@ class MemoryAlloc
     // Allocates object and survives it. Returns the object size.
     void MakeObjectAndMaybeSurvive()
     {
-        //if (isLarge && args.lohPauseMeasure)
-        //{
-        //    stopwatch.Reset();
-        //    stopwatch.Start();
-        //}
+        // if (isLarge && args.lohPauseMeasure)
+        // {
+        //     stopwatch.Reset();
+        //     stopwatch.Start();
+        // }
 
         // TODO: We should have a sequence number that just grows (since we only allocate sequentially on 
         // the same thread anyway). This way we can use this number to indicate the ages of items. 
@@ -2169,13 +2165,13 @@ class MemoryAlloc
         // like object locality, eg if demotion has demoted very old objects next to young objects.
         (ITypeWithPayload item, ObjectSpec spec) = MakeObjectAndTouchPage();
 
-        //if (isLarge && args.lohPauseMeasure)
-        //{
-        //    stopwatch.Stop();
-        //    lohAllocPauses.Add(stopwatch.Elapsed.TotalMilliseconds);
-        //}
+        // if (isLarge && args.lohPauseMeasure)
+        // {
+        //     stopwatch.Stop();
+        //     lohAllocPauses.Add(stopwatch.Elapsed.TotalMilliseconds);
+        // }
 
-        //Thread.Sleep(1);
+        // Thread.Sleep(1);
 
         if (spec.ShouldSurvive)
         {
@@ -2205,11 +2201,11 @@ class MemoryAlloc
                 // 
                 // 1) create a new item, take a few items off the array and link them onto 
                 // the new item.
-                //
+                // 
                 // 2) create a new item and a few extra ones and link them onto the new item.
                 // note this may not have much affect in ephemeral GCs 'cause it's very likely 
                 // they all get promoted to gen2.
-                //
+                // 
                 // 3) replace a bunch of entries with newly created items.
                 // 
                 // If the live data size is > what's set, we randomly choose a non null entry 
@@ -2244,55 +2240,55 @@ class MemoryAlloc
         // 5 is just a random number I picked that's big enough to exercise the mark stack reasonably.
         // MakeListFromContiguousItems is another way to make a list.
         uint numItemsToModify = rand.GetRand(5);
-        //Console.WriteLine("\nlive is supposed to be {0:n0}, current {1:n0}, new item s {2:n0} -> OP {3}",
-        //    totalLiveBytes, totalLiveBytesCurrent, refItem.sizeTotal,
-        //    ((totalLiveBytesCurrent < totalLiveBytes) ? "INC" : "DEC"));
-        
+        // Console.WriteLine("\nlive is supposed to be {0:n0}, current {1:n0}, new item s {2:n0} -> OP {3}",
+        //     totalLiveBytes, totalLiveBytesCurrent, refItem.sizeTotal,
+        //     ((totalLiveBytesCurrent < totalLiveBytes) ? "INC" : "DEC"));
+
         ReferenceItemOperation operation = (ReferenceItemOperation)rand.GetRand((uint)ReferenceItemOperation.MaxOperation);
         switch (operation)
         {
             case ReferenceItemOperation.NewWithExistingList:
-            {
-                ReferenceItemWithSize? listHead = null;
-                for (uint itemModifyIndex = 0; itemModifyIndex < numItemsToModify; itemModifyIndex++)
                 {
-                    uint randomIndex = rand.GetRand(oldArr.Length);
-                    ReferenceItemWithSize? randomItem = (ReferenceItemWithSize?)oldArr.TakeAndReduceTotalSizeButDoNotFree(randomIndex);
-                    if (randomItem != null)
+                    ReferenceItemWithSize? listHead = null;
+                    for (uint itemModifyIndex = 0; itemModifyIndex < numItemsToModify; itemModifyIndex++)
                     {
+                        uint randomIndex = rand.GetRand(oldArr.Length);
+                        ReferenceItemWithSize? randomItem = (ReferenceItemWithSize?)oldArr.TakeAndReduceTotalSizeButDoNotFree(randomIndex);
+                        if (randomItem != null)
+                        {
+                            if (listHead != null)
+                            {
+                                randomItem.AddToEndOfList(listHead);
+                            }
+                            listHead = randomItem;
+                        }
+                    }
+                    if (listHead != null)
+                    {
+                        refItem.AddToEndOfList(listHead);
+                    }
+                    break;
+                }
+
+            case ReferenceItemOperation.NewWithNewList:
+                {
+                    ReferenceItemWithSize? listHead = null;
+                    for (int itemModifyIndex = 0; itemModifyIndex < numItemsToModify; itemModifyIndex++)
+                    {
+                        // TODO: should this additional object be pinned too?
+                        ReferenceItemWithSize randomItem = ReferenceItemWithSize.New(spec.Size, isPinned: spec.ShouldBePinned, isFinalizable: spec.ShouldBeFinalizable, isPoh: spec.IsPoh);
                         if (listHead != null)
                         {
                             randomItem.AddToEndOfList(listHead);
                         }
                         listHead = randomItem;
                     }
-                }
-                if (listHead != null)
-                {
-                    refItem.AddToEndOfList(listHead);
-                }
-                break;
-            }
-
-            case ReferenceItemOperation.NewWithNewList:
-            {
-                ReferenceItemWithSize? listHead = null;
-                for (int itemModifyIndex = 0; itemModifyIndex < numItemsToModify; itemModifyIndex++)
-                {
-                    // TODO: should this additional object be pinned too?
-                    ReferenceItemWithSize randomItem = ReferenceItemWithSize.New(spec.Size, isPinned: spec.ShouldBePinned, isFinalizable: spec.ShouldBeFinalizable, isPoh: spec.IsPoh);
                     if (listHead != null)
                     {
-                        randomItem.AddToEndOfList(listHead);
+                        refItem.AddToEndOfList(listHead);
                     }
-                    listHead = randomItem;
+                    break;
                 }
-                if (listHead != null)
-                {
-                    refItem.AddToEndOfList(listHead);
-                }
-                break;
-            }
 
             case ReferenceItemOperation.MultipleNew:
                 for (int itemModifyIndex = 0; itemModifyIndex < numItemsToModify; itemModifyIndex++)
@@ -2312,14 +2308,14 @@ class MemoryAlloc
         // Now survive the item we allocated.
         oldArr.Replace(rand.GetRand(oldArr.Length), refItem);
 
-        //Console.WriteLine("final ELE#{0}, s - {1:n0} replaced by {2:n0}",
-        //    randomIndexToSurv, sizeToReplace, refItem.sizeTotal);
-        ////refItem.Print();
-        //Console.WriteLine("{0:n0} - {1} + {2} = {3:n0} op {4}, heap {5:n0}",
-        //    totalLiveBytesCurrentSaved,
-        //    sizeToReplace, refItem.sizeTotal, 
-        //    totalLiveBytesCurrent,
-        //    (ReferenceItemOperation)operationIndex, GC.GetTotalMemory(false));
+        // Console.WriteLine("final ELE#{0}, s - {1:n0} replaced by {2:n0}",
+        //     randomIndexToSurv, sizeToReplace, refItem.sizeTotal);
+        // refItem.Print();
+        // Console.WriteLine("{0:n0} - {1} + {2} = {3:n0} op {4}, heap {5:n0}",
+        //     totalLiveBytesCurrentSaved,
+        //     sizeToReplace, refItem.sizeTotal, 
+        //     totalLiveBytesCurrent,
+        //     (ReferenceItemOperation)operationIndex, GC.GetTotalMemory(false));
     }
 
     void PrintPauses(StreamWriter sw)
@@ -2333,7 +2329,7 @@ class MemoryAlloc
             if (numLOHAllocPauses >= 0)
             {
                 lohAllocPauses.Sort();
-                //lohAllocPauses.OrderByDescending(a => a);
+                // lohAllocPauses.OrderByDescending(a => a);
 
                 sw.WriteLine("===============STATS for thread {0}=================", threadIndex);
 
@@ -2355,7 +2351,7 @@ class MemoryAlloc
 
     static void DoTest(in Args args, int currentPid)
     {
-        // TODO: we probably need to synchronoze writes to this somehow
+        // TODO: we probably need to synchronize writes to this somehow
         string logFileName = currentPid + "-output.txt";
         StreamWriter sw = new StreamWriter(logFileName);
         sw.WriteLine("Started running");
@@ -2398,8 +2394,8 @@ class MemoryAlloc
         sw.WriteLine("Took {0}ms", tEnd - tStart);
         sw.Flush();
 
-        //sw.WriteLine("after init: heap size {0}, press any key to continue", GC.GetTotalMemory(false));
-        //Console.ReadLine();
+        // sw.WriteLine("after init: heap size {0}, press any key to continue", GC.GetTotalMemory(false));
+        // Console.ReadLine();
 
         sw.Flush();
         sw.Close();
@@ -2420,7 +2416,7 @@ class MemoryAlloc
 #if TODO
                 EmptyWorkingSet(Process.GetCurrentProcess().Handle);
 #endif
-                //Debugger.Break();
+                // Debugger.Break();
                 throw new System.ArgumentException("Just an opportunity for debugging", "test");
             }
 
@@ -2485,7 +2481,7 @@ class MemoryAlloc
         Console.WriteLine($"final_total_memory_bytes: {GC.GetTotalMemory(forceFullCollection: false)}");
 
         // Use reflection to detect GC.GetGCMemoryInfo because it doesn't exist in dotnet core 2.0 or in .NET framework.
-        var getGCMemoryInfo = typeof(GC).GetMethod("GetGCMemoryInfo", new Type[] {});
+        var getGCMemoryInfo = typeof(GC).GetMethod("GetGCMemoryInfo", new Type[] { });
         if (getGCMemoryInfo != null)
         {
             object info = Util.NonNull(getGCMemoryInfo.Invoke(null, parameters: null));
@@ -2499,6 +2495,6 @@ class MemoryAlloc
     private static T GetProperty<T>(object instance, string name)
     {
         PropertyInfo property = Util.NonNull(instance.GetType().GetProperty(name));
-        return (T) Util.NonNull(Util.NonNull(property.GetGetMethod()).Invoke(instance, parameters: null));
+        return (T)Util.NonNull(Util.NonNull(property.GetGetMethod()).Invoke(instance, parameters: null));
     }
 }
