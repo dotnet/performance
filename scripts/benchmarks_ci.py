@@ -31,7 +31,6 @@ from performance.common import validate_supported_runtime, get_artifacts_directo
 from performance.logger import setup_loggers
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from channel_map import ChannelMap
-from subprocess import CalledProcessError
 
 import dotnet
 import micro_benchmarks
@@ -222,19 +221,15 @@ def __main(args: list) -> int:
 
     # Run micro-benchmarks
     if not args.build_only:
-        upload_container = UPLOAD_CONTAINER
-        try:
-            for framework in args.frameworks:
-                micro_benchmarks.run(
-                    BENCHMARKS_CSPROJ,
-                    args.configuration,
-                    framework,
-                    verbose,
-                    args
-                )
-        except CalledProcessError:
-            upload_container = 'failed_results'
-        
+        for framework in args.frameworks:
+            micro_benchmarks.run(
+                BENCHMARKS_CSPROJ,
+                args.configuration,
+                framework,
+                verbose,
+                args
+            )
+            
         dotnet.shutdown_server(verbose)
 
         if args.upload_to_perflab_container:
@@ -244,7 +239,7 @@ def __main(args: list) -> int:
                 '**',
                 '*perf-lab-report.json')
 
-            upload.upload(globpath, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+            upload.upload(globpath, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
         # TODO: Archive artifacts.
 
 

@@ -27,7 +27,7 @@ function Setup-Env($directory){
 function Download-Dotnet($channel){
     Write-Host "Downloading dotnet from channel $channel"
     $dotnetScript= Join-Path "$scripts" 'dotnet.py' -Resolve
-    py -3 $dotnetScript install --channels $channel -v
+    python $dotnetScript install --channels $channel -v
     If (!$?){
         Write-Host "Dotnet installation failed."
         Exit 1
