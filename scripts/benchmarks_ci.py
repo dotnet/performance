@@ -221,6 +221,7 @@ def __main(args: list) -> int:
 
     # Run micro-benchmarks
     if not args.build_only:
+        upload_container = UPLOAD_CONTAINER # Unsure if correct approach
         for framework in args.frameworks:
             micro_benchmarks.run(
                 BENCHMARKS_CSPROJ,
