@@ -222,7 +222,7 @@ def __main(args: list) -> int:
 
     # Run micro-benchmarks
     if not args.build_only:
-        upload_container = UPLOAD_CONTAINER
+        upload_container = UPLOAD_CONTAINER # Unsure if correct approach
         try:
             for framework in args.frameworks:
                 micro_benchmarks.run(
