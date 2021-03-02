@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-﻿// This is a simple simulation of a cache to test ECO.
+// This is a simple simulation of a cache to test ECO.
 // We are trying to create the following situations:
 //
 // Uneven fragmentation in gen2 to verify that ECO picks the more fragmented regions to compact.
@@ -369,7 +369,7 @@ namespace CacheSim
         int AllocateTempHalf()
         {
             int iAllocate;
-            int iAllocateMin = 70*1024;
+            int iAllocateMin = 70 * 1024;
             if ((iTemporaryBytes / 2) < iAllocateMin)
             {
                 iAllocateMin = 0;
@@ -454,7 +454,7 @@ namespace CacheSim
 
                     if (ulRequests % 100 == 0)
                     {
-                        Console.WriteLine("{0} requests executed, took {1}ms", 
+                        Console.WriteLine("{0} requests executed, took {1}ms",
                             ulRequests,
                             stopwatch.ElapsedMilliseconds - lElapsedMS);
 

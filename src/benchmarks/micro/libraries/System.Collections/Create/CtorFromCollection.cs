@@ -22,13 +22,13 @@ namespace System.Collections
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
 
-        [GlobalSetup]
-        public void Setup()
-        {
-            _collection = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
-            _dictionary = ValuesGenerator.Dictionary<T, T>(Size);
-        }
-        
+        [GlobalSetup(Targets = new[] { nameof(List), nameof(LinkedList), nameof(HashSet), nameof(Queue), nameof(Stack), nameof(SortedSet), nameof(ConcurrentQueue), nameof(ConcurrentStack), 
+            nameof(ConcurrentBag), nameof(ImmutableArray), nameof(ImmutableHashSet), nameof(ImmutableList), nameof(ImmutableQueue), nameof(ImmutableStack), nameof(ImmutableSortedSet)})]
+        public void SetupCollection() => _collection = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+
+        [GlobalSetup(Targets = new[] { nameof(Dictionary), nameof(SortedList), nameof(SortedDictionary), nameof(ConcurrentDictionary), nameof(ImmutableDictionary), nameof(ImmutableSortedDictionary) })]
+        public void SetupDictionary() => _dictionary = ValuesGenerator.Dictionary<T, T>(Size);
+
         [Benchmark]
         public List<T> List() => new List<T>(_collection);
 

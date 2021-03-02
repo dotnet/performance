@@ -8,7 +8,6 @@ using System.Collections.Generic;
 
 namespace System.Diagnostics
 {
-    [MemoryDiagnoser]
     [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Activity
     {
@@ -181,6 +180,17 @@ namespace System.Diagnostics
             foreach (var _ in s_ActivityLinkLarge.Tags)
             {
             }
+        }
+
+        [Benchmark]
+        [Arguments(ActivityIdFormat.Hierarchical)]
+        [Arguments(ActivityIdFormat.W3C)]
+        public void ActivityAllocations(ActivityIdFormat idFormat)
+        {
+            Activity activity = new Activity("TestActivity");
+            activity.SetIdFormat(idFormat);
+            activity.Start();
+            activity.Stop();
         }
     }
 }

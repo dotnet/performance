@@ -9,11 +9,11 @@ from collections import namedtuple
 from glob import iglob
 from json import loads
 from logging import getLogger
-from os import chmod, environ, listdir, makedirs, path, pathsep
+from os import chmod, environ, listdir, makedirs, path, pathsep, system
 from re import search
 from shutil import rmtree
 from stat import S_IRWXU
-from subprocess import check_output
+from subprocess import CalledProcessError, check_output
 from sys import argv, platform
 from typing import Tuple
 from urllib.parse import urlparse
@@ -277,14 +277,19 @@ class CSharpProject:
         project.
 
         Keyword arguments:
-        packages_path -- The directory to restore packages to.
+            packages_path -- The directory to restore packages to.
+        MSBuild arguments used to avoid "process cannot access the file":
+            /p:UseSharedCompilation=false -- disable shared compilation
+            /p:BuildInParallel=false -- disable parallel builds
+            /m:1 -- don't spawn more than a single process
         '''
         if not packages_path:
             raise TypeError('Unspecified packages directory.')
         cmdline = [
             'dotnet', 'restore',
             self.csproj_file,
-            '--packages', packages_path
+            '--packages', packages_path,
+            '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1',
         ]
 
         if runtime_identifier:
@@ -309,6 +314,7 @@ class CSharpProject:
                 '--configuration', configuration,
                 '--no-restore',
                 "/p:NuGetPackageRoot={}".format(packages_path),
+                '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1',
             ]
 
             if output_to_bindir:
@@ -332,6 +338,7 @@ class CSharpProject:
                     '--framework', target_framework_moniker,
                     '--no-restore',
                     "/p:NuGetPackageRoot={}".format(packages_path),
+                    '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1',
                 ]
 
                 if output_to_bindir:
@@ -402,7 +409,8 @@ class CSharpProject:
             self.csproj_file,
             '--configuration', configuration,
             '--output', output_dir,
-            "/p:NuGetPackageRoot={}".format(packages_path)
+            "/p:NuGetPackageRoot={}".format(packages_path),
+            '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1'
         ]
         if runtime_identifier:
             cmdline += ['--runtime', runtime_identifier]
@@ -451,7 +459,7 @@ class CSharpProject:
 
 
 def get_framework_version(framework: str) -> str:
-    groups = search(r"^netcoreapp(\d)\.(\d)$", framework)
+    groups = search(r".*(\d)\.(\d)$", framework)
     if not groups:
         raise ValueError("Unknown target framework: {}".format(framework))
 
@@ -654,8 +662,16 @@ def shutdown_server(verbose:bool) -> None:
     cmdline = [
         'dotnet', 'build-server', 'shutdown'
     ]
-    RunCommand(cmdline, verbose=verbose).run(
-        get_repo_root_path())
+    try:
+        RunCommand(cmdline, verbose=verbose).run(
+            get_repo_root_path())
+    except CalledProcessError:
+        # Shutting down the build server can fail (see https://github.com/dotnet/sdk/issues/10573), so we'll do it by hand also
+        # using os.system dirctly here instead of RunCommand as we don't want logging, and don't care if these fail.
+        if platform == 'win32':
+            system('TASKKILL /F /T /IM dotnet.exe 2> nul || TASKKILL /F /T /IM VSTest.Console.exe 2> nul || TASKKILL /F /T /IM msbuild.exe 2> nul')
+        else:
+            system('killall -9 dotnet 2> /dev/null || killall -9 VSTest.Console 2> /dev/null || killall -9 msbuild 2> /dev/null')
 
 
 def install(
@@ -687,16 +703,21 @@ def install(
     getLogger().info('Downloading %s', dotnetInstallScriptUrl)
     count = 0
     while count < 3:
-        with urlopen(dotnetInstallScriptUrl) as response:
-            if "html" in response.info()['Content-Type']:
-                count = count + 1
-                sleep(1) # sleep one second
-                continue
-            with open(dotnetInstallScriptPath, 'wb') as outfile:
-                outfile.write(response.read())
-                break
+        try:
+            with urlopen(dotnetInstallScriptUrl) as response:
+                if "html" in response.info()['Content-Type']:
+                    count = count + 1
+                    sleep(1) # sleep one second
+                    continue
+                with open(dotnetInstallScriptPath, 'wb') as outfile:
+                    outfile.write(response.read())
+                    break
+        except Exception:
+            count = count + 1
+            sleep(1)
+            continue
 
-    if count is 3:
+    if count == 3:
         getLogger().error("Fatal error: could not download dotnet-install script")
         raise Exception("Fatal error: could not download dotnet-install script")
 

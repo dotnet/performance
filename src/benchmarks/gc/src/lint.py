@@ -65,6 +65,9 @@ def _lint(args: _LintArgs) -> None:
             str(SRC_PATH / ".mypy_cache"),
             "--strict",
             "--strict-equality",
+            # Configuration file where rules and exceptions are set.
+            "--config-file",
+            str(SRC_PATH / "mypy.ini"),
             *(str(f) for f in files),
         )
 

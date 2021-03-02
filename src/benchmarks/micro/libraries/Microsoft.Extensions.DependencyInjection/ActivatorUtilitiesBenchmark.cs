@@ -30,6 +30,9 @@ namespace Microsoft.Extensions.DependencyInjection
             _factoryArguments = new object[] { new DependencyB(), new DependencyC() };
         }
 
+        [GlobalCleanup]
+        public void Cleanup() => _serviceProvider.Dispose();
+
         [Benchmark]
         public TypeToBeActivated ServiceProvider() => _serviceProvider.GetService<TypeToBeActivated>();
 

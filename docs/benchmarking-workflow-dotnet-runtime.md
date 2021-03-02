@@ -92,11 +92,13 @@ PS C:\Projects\performance\src\benchmarks\micro> tree
 
 During the port from xunit-performance to BenchmarkDotNet, the namespaces, type and methods names were not changed. The exception to this rule are all `System.Collections` ([#92](https://github.com/dotnet/performance/pull/92)) and `Span<T>` ([#94](https://github.com/dotnet/performance/pull/94)) benchmarks which got rewritten to utilize the full capabilities of BenchmarkDotNet.
 
-Please remember that you can  filter the benchmarks using a glob pattern applied to namespace.typeName.methodName ([read more](./benchmarkdotnet.md#Filtering-the-Benchmarks)):
+Please remember that you can filter the benchmarks using a glob pattern applied to namespace.typeName.methodName ([read more](./benchmarkdotnet.md#Filtering-the-Benchmarks)):
 
 ```cmd
 dotnet run -c Release -f netcoreapp5.0 --filter System.Memory*
 ```
+
+(Run the above command on `src/benchmarks/micro/MicroBenchmarks.csproj`.)
 
 Moreover, every Libaries benchmark belongs to a [Libraries category](../src/benchmarks/micro/README.md#Categories). Same goes for Runtime.
 
@@ -124,6 +126,14 @@ Once you rebuild the part of [dotnet/runtime](https://github.com/dotnet/runtime)
 ```cmd
 C:\Projects\runtime\src\libraries\System.Text.RegularExpressions\src> dotnet msbuild /p:Configuration=Release
 ```
+
+**Note:** the exception to this rule are libraries that **are not part of the shared SDK**. The `build` script of the runtime repo does not copy them to the CoreRun folder so you need to do it on your own:
+
+```cmd
+cp artifacts\bin\runtime\net6.0-Windows_NT-Release-x64\Microsoft.Extensions.Caching.Memory.dll artifacts\bin\testhost\net6.0-Windows_NT-Release-x64\shared\Microsoft.NETCore.App\6.0.0\
+```
+
+Of course only if you want to benchmark these specific libraries. If you don't, the default versions defined in [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) project file are going to get used.
 
 ## Preventing Regressions
 

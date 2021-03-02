@@ -236,18 +236,15 @@ def _get_processed_gc(
 
 
 def _get_per_heap_histories(gc: AbstractTraceGC) -> Sequence[Result[str, AbstractGCPerHeapHistory]]:
-    if gc.HeapCount == 1:
-        return [Err("Workstation GC has no AbstractGCPerHeapHistories")]
+    n = len(gc.PerHeapHistories)
+    if n != gc.HeapCount:
+        print(
+            f"WARN: GC {gc.Number} has {gc.HeapCount} heaps, but {n} PerHeapHistories. It's a "
+            + f" It's a {get_gc_kind_for_abstract_trace_gc(gc).name}."
+        )
+        return repeat(Err("GC has wrong number of PerHeapHistories"), gc.HeapCount)
     else:
-        n = len(gc.PerHeapHistories)
-        if n != gc.HeapCount:
-            print(
-                f"WARN: GC {gc.Number} has {gc.HeapCount} heaps, but {n} PerHeapHistories. It's a "
-                + f" It's a {get_gc_kind_for_abstract_trace_gc(gc).name}."
-            )
-            return repeat(Err("GC has wrong number of PerHeapHistories"), gc.HeapCount)
-        else:
-            return [Ok(h) for h in gc.PerHeapHistories]
+        return [Ok(h) for h in gc.PerHeapHistories]
 
 
 def _get_server_gc_heap_histories(

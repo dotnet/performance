@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using BenchmarkDotNet.Attributes;
@@ -19,9 +18,6 @@ namespace HardwareIntrinsics.RayTracer
         private const int Height = 248;
 
         private int[] rgbBuffer = new int[Width * 3 * Height]; // Each pixel has 3 fields (RGB)
-
-        [GlobalSetup]
-        public unsafe void Setup() => Render(); // run it once during the Setup to avoid https://github.com/dotnet/BenchmarkDotNet/issues/837s
 
         [Benchmark]
         public unsafe void Render()

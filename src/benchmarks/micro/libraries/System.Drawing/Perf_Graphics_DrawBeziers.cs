@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 
 namespace System.Drawing.Tests
 {
-    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM, Categories.NoInterpreter)]
     public class Perf_Graphics_DrawBeziers
     {
         private Bitmap _image;

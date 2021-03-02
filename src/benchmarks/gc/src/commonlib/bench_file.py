@@ -24,7 +24,7 @@ from .collection_util import (
     optional_mapping,
 )
 from .option import map_option, non_null, optional_to_iter, option_or, option_or_3
-from .parse_and_serialize import HexInt, load_yaml, SerializeMappings, write_test_yaml_file
+from .parse_and_serialize import HexInt, load_yaml, SerializeMappings, write_yaml_file
 from .score_spec import ScoreSpec
 from .type_utils import (
     combine_dataclasses_with_optional_fields,
@@ -578,12 +578,15 @@ class TestKind(Enum):
 @doc_field("tlgb", None)
 @doc_field("totalMins", None)
 @doc_field("lohar", None)
+@doc_field("pohar", None)
+@doc_field("sohsr", None)
+@doc_field("lohsr", None)
+@doc_field("pohsr", None)
 @doc_field("sohsi", None)
 @doc_field("lohsi", None)
 @doc_field("pohsi", None)
 @doc_field("sohpi", None)
 @doc_field("lohpi", None)
-@doc_field("pohpi", None)
 @doc_field("sohfi", None)
 @doc_field("lohfi", None)
 @doc_field("pohfi", None)
@@ -602,12 +605,15 @@ class GCPerfSimArgs:
     tlgb: float
     totalMins: Optional[float] = None
     lohar: int = 0
+    pohar: int = 0
+    sohsr: str = "100-4000"
+    lohsr: str = "102400-204800"
+    pohsr: str = "100-204800"
     sohsi: int = 0
     lohsi: int = 0
     pohsi: int = 0
     sohpi: int = 0
     lohpi: int = 0
-    pohpi: int = 0
     sohfi: int = 0
     lohfi: int = 0
     pohfi: int = 0
@@ -621,12 +627,15 @@ class GCPerfSimArgs:
             "-tlgb": str(self.tlgb),
             **(empty_mapping() if self.totalMins is None else {"totalMins": str(self.totalMins)}),
             "-lohar": str(self.lohar),
+            "-pohar": str(self.pohar),
             "-sohsi": str(self.sohsi),
             "-lohsi": str(self.lohsi),
             "-pohsi": str(self.pohsi),
+            "-sohsr": str(self.sohsr),
+            "-lohsr": str(self.lohsr),
+            "-pohsr": str(self.pohsr),
             "-sohpi": str(self.sohpi),
             "-lohpi": str(self.lohpi),
-            "-pohpi": str(self.pohpi),
             "-sohfi": str(self.sohfi),
             "-lohfi": str(self.lohfi),
             "-pohfi": str(self.pohfi),
@@ -945,7 +954,11 @@ class SingleTestCombination:
     @property
     def name(self) -> str:
         return (
-            f"{self.machine_name}__{self.executable_name}__{self.coreclr_name}__{self.config_name}__{self.benchmark_name}"
+            f"{self.machine_name}"
+            f"__{self.executable_name}"
+            f"__{self.coreclr_name}"
+            f"__{self.config_name}"
+            f"__{self.benchmark_name}"
         )
 
 
@@ -1010,7 +1023,9 @@ class PartialTestCombination:
 
     @property
     def executable(self) -> Optional[Path]:
-        return None if self.executable_and_name is None else self.executable_and_name.executable_path
+        return (
+            None if self.executable_and_name is None else self.executable_and_name.executable_path
+        )
 
     @property
     def executable_name(self) -> Optional[str]:
@@ -1066,6 +1081,9 @@ Defaults to the bench file's specified 'vary'.
 
 @doc_field("comment", "(ignored)")
 @doc_field("vary", "Preferred property to vary when using `py . diff`")
+@doc_field(
+    "test_executables", "Mapping of dll's to run when issuing `py . run` or `py . suite-run`"
+)
 @doc_field(
     "configs_vary_by",
     """
@@ -1299,7 +1317,7 @@ class TestPaths:
         return map_option(test_status.trace_file_name, lambda n: self.out_path_base.parent / n)
 
     def write_test_status(self, test_status: TestRunStatus) -> None:
-        write_test_yaml_file(self.test_status_path, test_status)
+        write_yaml_file(self.test_status_path, test_status)
 
 
 @with_slots
@@ -1419,7 +1437,10 @@ def get_test_path(
     out_dir: Optional[Path] = None,
 ) -> TestPaths:
     out = out_dir_for_bench_yaml(bench.path, t.machine) if out_dir is None else out_dir
-    return TestPaths(out / f"{t.executable_name}__{t.coreclr.name}__{t.config.name}__{t.benchmark.name}__{iteration}")
+    return TestPaths(
+        out
+        / f"{t.executable_name}__{t.coreclr.name}__{t.config.name}__{t.benchmark.name}__{iteration}"
+    )
 
 
 def combine_test_configs(
@@ -1430,7 +1451,9 @@ def combine_test_configs(
     )
 
 
-def get_test_executable(bench_file: BenchFile, executable_name: Optional[str]) -> TestExecutableAndName:
+def get_test_executable(
+    bench_file: BenchFile, executable_name: Optional[str]
+) -> TestExecutableAndName:
     return find_only_or_only_matching(
         lambda exn: exn.name, "--executable", executable_name, bench_file.executables_and_names
     )

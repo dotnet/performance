@@ -598,7 +598,7 @@ PerfCollect is a simple, yet very powerful script that allows for profiling .NET
 
 In contrary to `dotnet trace` it gives you native call stacks which are very useful when you need to profile native parts of [dotnet/runtime](https://github.com/dotnet/runtime).
 
-It has it's own excellent [documentation](https://github.com/dotnet/coreclr/blob/master/Documentation/project-docs/linux-performance-tracing.md) (a **highly recommended read**), the goal of this doc is not to duplicate it, but rather show **how to profile local [dotnet/runtime](https://github.com/dotnet/runtime) build running on a Linux VM from a Windows developer machine**. We need two OSes because as of today only PerfView is capable of opening a `PerfCollect` trace file.
+It has it's own excellent [documentation](https://github.com/dotnet/runtime/blob/master/docs/project/linux-performance-tracing.md) (a **highly recommended read**), the goal of this doc is not to duplicate it, but rather show **how to profile local [dotnet/runtime](https://github.com/dotnet/runtime) build running on a Linux VM from a Windows developer machine**. We need two OSes because as of today only PerfView is capable of opening a `PerfCollect` trace file.
 
 ## Preparing Your Machine
 

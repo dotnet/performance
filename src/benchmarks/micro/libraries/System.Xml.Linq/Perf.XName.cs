@@ -22,15 +22,14 @@ namespace System.Xml.Linq
         [Benchmark]
         public XName CreateElementWithNamespaceImplicitOperator() => "{Namespace}Root";
 
-        [GlobalSetup]
-        public void Setup()
-        {
-            _noNamespace = XName.Get("Root");
-            _hasNamespace = XName.Get("{http://www.example.test}Root");
-        }
+        [GlobalSetup(Target = nameof(EmptyNameSpaceToString))]
+        public void SetupEmptyNameSpaceToString() => _noNamespace = XName.Get("Root");
 
         [Benchmark]
         public string EmptyNameSpaceToString() => _noNamespace.ToString();
+
+        [GlobalSetup(Target = nameof(NonEmptyNameSpaceToString))]
+        public void SetupNonEmptyNameSpaceToString() => _hasNamespace = XName.Get("{http://www.example.test}Root");
 
         [Benchmark]
         public string NonEmptyNameSpaceToString() => _hasNamespace.ToString();

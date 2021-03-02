@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Compilation;
 
 namespace CompilerBenchmarks
@@ -109,6 +108,11 @@ namespace CompilerBenchmarks
                 filterOpt: null,
                 cancellationToken: default);
 
+            if (!success)
+            {
+                throw new InvalidOperationException("Did not successfully compile methods");
+            }
+
             _comp.GenerateResourcesAndDocumentationComments(
                 _moduleBeingBuilt,
                 xmlDocStream: null,
@@ -136,10 +140,7 @@ namespace CompilerBenchmarks
                 pdbStreamProvider: null,
                 testSymWriterFactory: null,
                 diagnostics,
-                metadataOnly: _options.EmitMetadataOnly,
-                includePrivateMembers: _options.IncludePrivateMembers,
-                emitTestCoverageData: _options.EmitTestCoverageData,
-                pePdbFilePath: _options.PdbFilePath,
+                _options,
                 privateKeyOpt: null,
                 cancellationToken: default);
 

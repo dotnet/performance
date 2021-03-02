@@ -27,6 +27,12 @@ namespace BenchmarkDotNet.Extensions
         /// </summary>
         public static T[] ArrayOfUniqueValues<T>(int count)
         {
+            // allocate the array first to try to take advantage of memory randomization
+            // as it's usually the first thing called from GlobalSetup method
+            // which with MemoryRandomization enabled is the first method called right after allocation
+            // of random-sized memory by BDN engine
+            T[] result = new T[count];
+
             var random = new Random(Seed); 
 
             var uniqueValues = new HashSet<T>();
@@ -39,14 +45,16 @@ namespace BenchmarkDotNet.Extensions
                     uniqueValues.Add(value);
             }
 
-            return uniqueValues.ToArray();
+            uniqueValues.CopyTo(result);
+
+            return result;
         }
         
         public static T[] Array<T>(int count)
         {
-            var random = new Random(Seed); 
-
             var result = new T[count];
+
+            var random = new Random(Seed); 
 
             if (typeof(T) == typeof(byte) || typeof(T) == typeof(sbyte))
             {
@@ -65,9 +73,9 @@ namespace BenchmarkDotNet.Extensions
 
         public static Dictionary<TKey, TValue> Dictionary<TKey, TValue>(int count)
         {
-            var random = new Random(Seed);
-
             var dictionary = new Dictionary<TKey, TValue>();
+
+            var random = new Random(Seed);
 
             while (dictionary.Count != count)
             {
@@ -104,6 +112,8 @@ namespace BenchmarkDotNet.Extensions
                 return (T)(object)(random.NextDouble() > 0.5);
             if (typeof(T) == typeof(string))
                 return (T)(object)GenerateRandomString(random, 1, 50);
+            if (typeof(T) == typeof(Guid))
+                return (T)(object)GenerateRandomGuid(random);
 
             throw new NotImplementedException($"{typeof(T).Name} is not implemented");
         }
@@ -126,6 +136,13 @@ namespace BenchmarkDotNet.Extensions
             }
 
             return builder.ToString();
+        }
+
+        private static Guid GenerateRandomGuid(Random random)
+        {
+            byte[] bytes = new byte[16];
+            random.NextBytes(bytes);
+            return new Guid(bytes);
         }
     }
 }

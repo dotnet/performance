@@ -16,27 +16,18 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
     public class Json_FromStream<T>
     {
-        private readonly T value;
-
-        private readonly MemoryStream memoryStream;
-
+        private T value;
+        private MemoryStream memoryStream;
         private DataContractJsonSerializer dataContractJsonSerializer;
         private Newtonsoft.Json.JsonSerializer newtonSoftJsonSerializer;
 
-        public Json_FromStream()
+        [GlobalSetup(Target = nameof(Jil_))]
+        public void SetupJil_()
         {
             value = DataGenerator.Generate<T>();
 
             // the stream is pre-allocated, we don't want the benchmarks to include stream allocaton cost
             memoryStream = new MemoryStream(capacity: short.MaxValue);
-
-            dataContractJsonSerializer = new DataContractJsonSerializer(typeof(T));
-            newtonSoftJsonSerializer = new Newtonsoft.Json.JsonSerializer();
-        }
-
-        [GlobalSetup(Target = nameof(Jil_))]
-        public void SetupJil_()
-        {
             memoryStream.Position = 0;
 
             using (var writer = new StreamWriter(memoryStream, Encoding.UTF8, short.MaxValue, leaveOpen: true))
@@ -44,34 +35,6 @@ namespace MicroBenchmarks.Serializers
                 Jil.JSON.Serialize<T>(value, writer, Jil.Options.ISO8601);
                 writer.Flush();
             }
-
-            Jil_(); // workaround for https://github.com/dotnet/BenchmarkDotNet/issues/837
-        }
-
-        [GlobalSetup(Target = nameof(JsonNet_))]
-        public void SetupJsonNet_()
-        {
-            memoryStream.Position = 0;
-
-            using (var writer = new StreamWriter(memoryStream, Encoding.UTF8, short.MaxValue, leaveOpen: true))
-            {
-                newtonSoftJsonSerializer.Serialize(writer, value);
-                writer.Flush();
-            }
-        }
-
-        [GlobalSetup(Target = nameof(Utf8Json_))]
-        public void SetupUtf8Json_()
-        {
-            memoryStream.Position = 0;
-            Utf8Json.JsonSerializer.Serialize<T>(memoryStream, value);
-        }
-
-        [GlobalSetup(Target = nameof(DataContractJsonSerializer_))]
-        public void SetupDataContractJsonSerializer_()
-        {
-            memoryStream.Position = 0;
-            dataContractJsonSerializer.WriteObject(memoryStream, value);
         }
 
         [BenchmarkCategory(Categories.ThirdParty)]
@@ -84,6 +47,24 @@ namespace MicroBenchmarks.Serializers
                 return Jil.JSON.Deserialize<T>(reader, Jil.Options.ISO8601);
         }
 
+        [GlobalSetup(Target = nameof(JsonNet_))]
+        public void SetupJsonNet_()
+        {
+            value = DataGenerator.Generate<T>();
+
+            // the stream is pre-allocated, we don't want the benchmarks to include stream allocaton cost
+            memoryStream = new MemoryStream(capacity: short.MaxValue);
+            memoryStream.Position = 0;
+
+            newtonSoftJsonSerializer = new Newtonsoft.Json.JsonSerializer();
+
+            using (var writer = new StreamWriter(memoryStream, Encoding.UTF8, short.MaxValue, leaveOpen: true))
+            {
+                newtonSoftJsonSerializer.Serialize(writer, value);
+                writer.Flush();
+            }
+        }
+
         [BenchmarkCategory(Categories.Runtime, Categories.Libraries, Categories.ThirdParty)] // JSON.NET is so popular that despite being 3rd Party lib we run the benchmarks for CoreFX and CoreCLR CI
         [Benchmark(Description = "JSON.NET")]
         public T JsonNet_()
@@ -94,12 +75,35 @@ namespace MicroBenchmarks.Serializers
                 return (T)newtonSoftJsonSerializer.Deserialize(reader, typeof(T));
         }
 
+        [GlobalSetup(Target = nameof(Utf8Json_))]
+        public void SetupUtf8Json_()
+        {
+            value = DataGenerator.Generate<T>();
+
+            // the stream is pre-allocated, we don't want the benchmarks to include stream allocaton cost
+            memoryStream = new MemoryStream(capacity: short.MaxValue);
+            memoryStream.Position = 0;
+            Utf8Json.JsonSerializer.Serialize<T>(memoryStream, value);
+        }
+
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Utf8Json")]
         public T Utf8Json_()
         {
             memoryStream.Position = 0;
             return Utf8Json.JsonSerializer.Deserialize<T>(memoryStream);
+        }
+
+        [GlobalSetup(Target = nameof(DataContractJsonSerializer_))]
+        public void SetupDataContractJsonSerializer_()
+        {
+            value = DataGenerator.Generate<T>();
+
+            // the stream is pre-allocated, we don't want the benchmarks to include stream allocaton cost
+            memoryStream = new MemoryStream(capacity: short.MaxValue);
+            memoryStream.Position = 0;
+            dataContractJsonSerializer = new DataContractJsonSerializer(typeof(T));
+            dataContractJsonSerializer.WriteObject(memoryStream, value);
         }
 
         [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
@@ -110,6 +114,9 @@ namespace MicroBenchmarks.Serializers
             return (T)dataContractJsonSerializer.ReadObject(memoryStream);
         }
 
+        [GlobalCleanup]
+        public void Cleanup() => memoryStream.Dispose();
+
         private StreamReader CreateNonClosingReaderWithDefaultSizes()
             => new StreamReader(
                 memoryStream, 
@@ -117,8 +124,5 @@ namespace MicroBenchmarks.Serializers
                 true, // default is true https://github.com/dotnet/corefx/blob/708e4537d8944199af7d580def0d97a030be98c7/src/Common/src/CoreLib/System/IO/StreamReader.cs#L98
                 1024, // default buffer size from CoreFX https://github.com/dotnet/corefx/blob/708e4537d8944199af7d580def0d97a030be98c7/src/Common/src/CoreLib/System/IO/StreamReader.cs#L27 
                 leaveOpen: true); // we want to reuse the same string in the benchmarks to make sure that cost of allocating stream is not included in the benchmarks
-
-        [GlobalCleanup]
-        public void Cleanup() => memoryStream.Dispose();
     }
 }

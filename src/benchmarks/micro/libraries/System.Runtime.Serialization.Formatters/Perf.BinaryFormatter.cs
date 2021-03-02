@@ -26,10 +26,12 @@ namespace System.Runtime.Serialization.Formatters.Tests
                 return new Book { Name = id, Id = id };
             }).ToList();
 
-            var mem = new MemoryStream();
-            _formatter.Serialize(mem, list);
-            _largeListStream = mem;
+            _largeListStream = new MemoryStream();
+            _formatter.Serialize(_largeListStream, list);
         }
+
+        [GlobalCleanup]
+        public void Cleanup() => _largeListStream.Dispose();
 
         [Benchmark]
         public List<Book> DeserializeLargeList()

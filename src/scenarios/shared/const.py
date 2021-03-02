@@ -11,11 +11,13 @@ IL = 'il'
 R2R = 'r2r'
 CROSSGEN = 'crossgen'
 CROSSGEN2 = 'crossgen2'
+INNERLOOP = 'innerloop'
 
 SCENARIO_NAMES = {STARTUP: 'Startup',
                   SDK: 'SDK',
                   CROSSGEN: 'Crossgen',
-                  CROSSGEN2: 'Crossgen2'}
+                  CROSSGEN2: 'Crossgen2',
+                  INNERLOOP: 'Innerloop'}
 
 BINDIR = 'bin'
 PUBDIR = 'pub'
@@ -24,6 +26,7 @@ TRACEDIR = 'traces'
 SRCDIR = 'src' # used for checked in source.
 TMPDIR = 'tmp'
 ARTIFACTDIR = 'artifacts'
+CROSSGENDIR = 'crossgen.out'
 
 CLEAN_BUILD = 'clean_build'
 BUILD_NO_CHANGE = 'build_no_change'

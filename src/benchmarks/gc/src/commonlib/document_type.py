@@ -28,6 +28,11 @@ _BENCHFILE_MD_PATH: Path = DOCS_PATH / "bench_file.md"
 
 _EXAMPLE_BENCHFILE = BenchFile(
     options=BenchOptions(collect=CollectKind.gc, default_iteration_count=3),
+    test_executables={
+        "defgcperfsim": Path(
+            "/performance/artifacts/bin/GCPerfSim/release/netcoreapp5.0/GCPerfSim.dll"
+        )
+    },
     coreclrs={
         "clr_a": CoreclrSpecifier(
             core_root=Path("./coreclr"), commit_hash="930abba4060fb528db2bb9835a1bc5a6e684bfec"
@@ -42,7 +47,7 @@ _EXAMPLE_BENCHFILE = BenchFile(
         "bigger": Config(complus_gcgen0size=0x2000000),
     },
     benchmarks={
-        "nosurvive": Benchmark(
+        "surv_2percent": Benchmark(
             executable="GCPerfSim",
             arguments=GCPerfSimArgs(
                 tc=8,
