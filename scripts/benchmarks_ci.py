@@ -222,14 +222,17 @@ def __main(args: list) -> int:
     # Run micro-benchmarks
     if not args.build_only:
         upload_container = UPLOAD_CONTAINER # Unsure if correct approach
-        for framework in args.frameworks:
-            micro_benchmarks.run(
-                BENCHMARKS_CSPROJ,
-                args.configuration,
-                framework,
-                verbose,
-                args
-            )
+        try:
+            for framework in args.frameworks:
+                micro_benchmarks.run(
+                    BENCHMARKS_CSPROJ,
+                    args.configuration,
+                    framework,
+                    verbose,
+                    args
+                )
+        except CalledProcessError:
+            upload_container = 'failed_results'
             
         dotnet.shutdown_server(verbose)
 
@@ -240,7 +243,7 @@ def __main(args: list) -> int:
                 '**',
                 '*perf-lab-report.json')
 
-            upload.upload(globpath, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+            upload.upload(globpath, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
         # TODO: Archive artifacts.
 
 
