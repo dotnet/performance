@@ -29,7 +29,7 @@ type FSharpCompilerServiceBenchmarks () =
     let tempOutputFile = Path.Combine(sourceDir, "temp.dll")
 
     let defaultReferenceArgs =
-        Helpers.getNet31References ()
+        Helpers.getFrameworkReferences ()
         |> Array.map (fun r -> "-r:" + r)
 
     let compileArgs = 

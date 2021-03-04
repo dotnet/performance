@@ -6,7 +6,7 @@ open System.Diagnostics
 
 let testProjectEnvVarName = "FSHARP_TEST_PROJECT_DIR"
 
-let getNet31References () =
+let getFrameworkReferences () =
 
     let programFs = """
 open System
@@ -19,7 +19,7 @@ let main argv = 0"""
     
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <TargetFramework>net5</TargetFramework>
         <UseFSharpPreview>true</UseFSharpPreview>
     </PropertyGroup>
     
@@ -69,7 +69,7 @@ let main argv = 0"""
             printfn "Project directory: %s" projectDirectory
             printfn "STDOUT: %s" output
             printfn "STDERR: %s" errors
-            raise (new Exception (sprintf "An error occurred getting netcoreapp references: %A" e))
+            raise (new Exception (sprintf "An error occurred getting framework references: %A" e))
     finally
         if cleanUp then
             try Directory.Delete(projectDirectory) with | _ -> ()
