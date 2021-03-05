@@ -232,7 +232,7 @@ def __main(args: list) -> int:
                     args
                 )
         except CalledProcessError:
-            upload_container = 'failed_results'
+            upload_container = 'failedresults'
             
         dotnet.shutdown_server(verbose)
 
