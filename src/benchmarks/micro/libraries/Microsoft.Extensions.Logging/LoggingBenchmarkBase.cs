@@ -16,6 +16,8 @@ namespace Microsoft.Extensions.Logging
         protected static readonly Action<ILogger, int, string, Exception> TwoArgumentTraceMessage = LoggerMessage.Define<int, string>(LogLevel.Trace, 0, "Message {Argument1} {Argument2}");
         protected static readonly Action<ILogger, int, string, Exception> TwoArgumentErrorMessage = LoggerMessage.Define<int, string>(LogLevel.Error, 0, "Message {Argument1} {Argument2}");
 
+        protected static readonly Action<ILogger, int, string, int, string, Exception> FourArgumentErrorMessage = LoggerMessage.Define<int, string, int, string>(LogLevel.Error, 0, "Message {Argument1} {Argument2} {Argument3} {Argument4}");
+
         protected static Exception Exception = GetRealException();
         
         private static Exception GetRealException()
@@ -48,6 +50,24 @@ namespace Microsoft.Extensions.Logging
         {
             public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
             {
+            }
+
+            public bool IsEnabled(LogLevel logLevel)
+            {
+                return true;
+            }
+
+            public IDisposable BeginScope<TState>(TState state)
+            {
+                return null;
+            }
+        }
+
+        public class FormattingLogger : ILogger
+        {
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+            {
+                formatter(state, exception);
             }
 
             public bool IsEnabled(LogLevel logLevel)
