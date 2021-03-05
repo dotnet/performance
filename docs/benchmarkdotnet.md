@@ -70,8 +70,8 @@ dotnet build -c Release
 If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) file.
 
 ```diff
--<TargetFrameworks>netcoreapp2.1;netcoreapp3.1;netcoreapp5.0</TargetFrameworks>
-+<TargetFrameworks>netcoreapp5.0</TargetFrameworks>
+-<TargetFrameworks>netcoreapp2.1;netcoreapp3.1;net5.0</TargetFrameworks>
++<TargetFrameworks>net5.0</TargetFrameworks>
 ```
 
 The alternative is to set `PERFLAB_TARGET_FRAMEWORKS` environment variable to selected Target Framework Moniker.
@@ -285,12 +285,12 @@ M00_L00:
 
 The `--runtimes` or just `-r` allows you to run the benchmarks for **multiple Runtimes**.
 
-Available options are: Mono, CoreRT, net461, net462, net47, net471, net472, netcoreapp2.1, netcoreapp3.0, netcoreapp3.1 and netcoreapp5.0.
+Available options are: Mono, CoreRT, net461, net462, net47, net471, net472, netcoreapp2.1, netcoreapp3.0, netcoreapp3.1 and net5.0.
 
 Example: run the benchmarks for .NET Core 3.1 and 5.0:
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.1 --runtimes netcoreapp3.1 netcoreapp5.0
+dotnet run -c Release -f netcoreapp3.1 --runtimes netcoreapp3.1 net5.0
 ```
 
 **Important: The host process needs to be the lowest common API denominator of the runtimes you want to compare!** In this case, it was`netcoreapp3.1`.
@@ -302,13 +302,13 @@ To perform a Mann–Whitney U Test and display the results in a dedicated column
 Example: run Mann–Whitney U test with relative ratio of 5% for `BinaryTrees_2` for .NET Core 3.1 (base) vs .NET Core 5.0 (diff). .NET Core 3.1 will be baseline because it was first.
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.1 --filter *BinaryTrees_2* --runtimes netcoreapp3.1 netcoreapp5.0 --statisticalTest 5%
+dotnet run -c Release -f netcoreapp3.1 --filter *BinaryTrees_2* --runtimes netcoreapp3.1 net5.0 --statisticalTest 5%
 ```
 
 |        Method |     Toolchain |     Mean | MannWhitney(5%) |
 |-------------- |-------------- |---------:|---------------- |
 | BinaryTrees_2 | netcoreapp3.1 | 124.4 ms |            Base |
-| BinaryTrees_2 | netcoreapp5.0 | 153.7 ms |          Slower |
+| BinaryTrees_2 |        net5.0 | 153.7 ms |          Slower |
 
 **Note:** to compare the historical results you need to use [Results Comparer](../src/tools/ResultsComparer/README.md)
 

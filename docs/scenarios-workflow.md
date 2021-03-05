@@ -55,9 +55,9 @@ python3 pre.py <command> <options>  # run precommand
 In our **startup time of an empty console template** example, we can run
 ```
 cd emptyconsoletemplate
-python3 pre.py publish -f netcoreapp5.0 -c Release
+python3 pre.py publish -f net5.0 -c Release
 ```
-The above command creates a new dotnet console template in `emptyconsoletemplate\app\` folder, builds the project targeting netcoreapp5.0 in Release and publishs it to `emptyconsoletemplate\pub\` folder.
+The above command creates a new dotnet console template in `emptyconsoletemplate\app\` folder, builds the project targeting net5.0 in Release and publishs it to `emptyconsoletemplate\pub\` folder.
 
 Run `python3 pre.py --help` for more command options and their meanings.
 
