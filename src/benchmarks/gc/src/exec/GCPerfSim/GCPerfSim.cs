@@ -223,7 +223,6 @@ class Statistics
             sohAllocatedBytes = sohAllocatedBytes,
             lohAllocatedBytes = lohAllocatedBytes,
             pohAllocatedBytes = pohAllocatedBytes,
-
         };
     }
 }
@@ -732,10 +731,10 @@ readonly struct BucketSpec
     public readonly uint pinInterval;
     public readonly uint finalizableInterval;
     // If we have buckets with weights of 2 and 1, we'll allocate, on average, 2 objects from the first bucket per 1 from the next.
-    public readonly uint weight;
+    public readonly double weight;
 
     public readonly bool isPoh;
-    public BucketSpec(SizeRange sizeRange, uint survInterval, uint pinInterval, uint finalizableInterval, uint weight, bool isPoh = false)
+    public BucketSpec(SizeRange sizeRange, uint survInterval, uint pinInterval, uint finalizableInterval, double weight, bool isPoh = false)
     {
         Debug.Assert(weight != 0);
         this.sizeRange = sizeRange;
@@ -1382,7 +1381,7 @@ class ArgsParser
     {
         TestKind testKind = TestKind.time;
         uint threadCount = 4;
-        uint? lohAllocRatioArg = null;
+        uint lohAllocRatioArg = 0;
         ulong? totalLiveBytes = null;
         ulong? totalAllocBytes = null;
         double totalMinutesToRun = 0.0;
@@ -1404,9 +1403,8 @@ class ArgsParser
 #if NET5_0
         uint pohFinalizableInterval = DEFAULT_POH_FINALIZABLE_INTERVAL;
         uint pohSurvInterval = DEFAULT_POH_SURV_INTERVAL;
-
-        uint? pohAllocRatioArg = null;
 #endif
+        uint pohAllocRatioArg = 0;
 
         ItemType allocType = ItemType.ReferenceItem;
         bool verifyLiveSize = false;
@@ -1555,16 +1553,33 @@ class ArgsParser
         if (allocPerThread != 0) Console.WriteLine("allocating {0:n0} per thread", allocPerThread);
 
         List<BucketSpec> bucketList = new List<BucketSpec>();
-        uint sohWeight = 1000;
 
-        uint lohWeight = GetLohAllocWeight(
-            lohAllocRatio: lohAllocRatioArg,
-            sohAllocLow: sohAllocLow,
-            sohAllocHigh: sohAllocHigh,
-            lohAllocLow: lohAllocLow,
-            lohAllocHigh: lohAllocHigh,
-            pohAllocLow: pohAllocLow,
-            pohAllocHigh: pohAllocHigh);
+        ulong meanSohObjSize = Util.Mean(sohAllocLow, sohAllocHigh);
+        ulong meanLohObjSize = Util.Mean(lohAllocLow, lohAllocHigh);
+        ulong meanPohObjSize = Util.Mean(pohAllocLow, pohAllocHigh);
+        uint sohAllocRatioArg = 1000 - lohAllocRatioArg - pohAllocRatioArg;
+
+        /*
+         * Solving for the weights by 3 linear equations using the Cramer's rule.
+         * See http://cshung.github.io/posts/poh-tuning-2 for a full derivation of the coefficients.
+         */
+        double overhead = ReferenceItemWithSize.SohOverhead;
+        double a11 = -lohAllocRatioArg * (meanSohObjSize - overhead);
+        double a12 = sohAllocRatioArg * (meanLohObjSize - overhead);
+        double a13 = 0;
+        double a21 = -pohAllocRatioArg * (meanSohObjSize - overhead);
+        double a22 = 0;
+        double a23 = sohAllocRatioArg * (meanPohObjSize - overhead);
+        double a31 = 1;
+        double a32 = 1;
+        double a33 = 1;
+        double b1 = lohAllocRatioArg * overhead;
+        double b2 = pohAllocRatioArg * overhead;
+        double b3 = 1000;
+        double det = a11 * a22 * a33 + a12 * a23 * a31 + a13 * a21 * a32 - a13 * a22 * a31 - a12 * a21 * a33 - a11 * a23 * a32;
+        double sohWeight = ((b1 * a22 * a33 + a12 * a23 * b3 + a13 * b2 * a32 - a13 * a22 * b3 - a12 * b2 * a33 - b1 * a23 * a32) / det);
+        double lohWeight = ((a11 * b2 * a33 + b1 * a23 * a31 + a13 * a21 * b3 - a13 * b2 * a31 - b1 * a21 * a33 - a11 * a23 * b3) / det);
+        double pohWeight = ((a11 * a22 * b3 + a12 * b2 * a31 + b1 * a21 * a32 - b1 * a22 * a31 - a12 * a21 * b3 - a11 * b2 * a32) / det);
 
         if (lohWeight > 0)
         {
@@ -1576,19 +1591,9 @@ class ArgsParser
                 weight: lohWeight);
 
             bucketList.Add(lohBucket);
-            sohWeight -= lohWeight;
         }
 
 #if NET5_0
-        uint pohWeight = GetPohAllocWeight(
-            pohAllocRatio: pohAllocRatioArg,
-            sohAllocLow: sohAllocLow,
-            sohAllocHigh: sohAllocHigh,
-            lohAllocLow: lohAllocLow,
-            lohAllocHigh: lohAllocHigh,
-            pohAllocLow: pohAllocLow,
-            pohAllocHigh: pohAllocHigh);
-
         if (pohWeight > 0)
         {
             BucketSpec pohBucket = new BucketSpec(
@@ -1600,7 +1605,6 @@ class ArgsParser
                 isPoh: true);
 
             bucketList.Add(pohBucket);
-            sohWeight -= pohWeight;
         }
 #endif
 
@@ -1631,52 +1635,6 @@ class ArgsParser
             finishWithFullCollect: finishWithFullCollect,
             endException: endException);
     }
-
-    private static uint GetLohAllocWeight(uint? lohAllocRatio, uint sohAllocLow, uint sohAllocHigh, uint lohAllocLow, uint lohAllocHigh, uint pohAllocLow = 0, uint pohAllocHigh = 0)
-    {
-        ulong meanSohObjSize = Util.Mean(sohAllocLow, sohAllocHigh);
-        ulong meanLohObjSize = Util.Mean(lohAllocLow, lohAllocHigh);
-        ulong meanPohObjSize = Util.Mean(pohAllocLow, pohAllocHigh);
-
-        uint ratio = lohAllocRatio ?? 5;
-
-        return GetLohAllocWeight(ratio, sohObjSize: meanSohObjSize, lohObjSize: meanLohObjSize, pohObjSize: meanPohObjSize);
-    }
-
-    // converts ratio of allocation (in bytes) to wight of allocations (in times per 1000)
-    private static uint GetLohAllocWeight(uint lohAllocRatioOutOf1000, ulong sohObjSize, ulong lohObjSize, ulong pohObjSize)
-    {
-        if (lohAllocRatioOutOf1000 == 0 || lohObjSize == 0)
-        {
-            return 0;
-        }
-
-        return (uint)((ulong)lohAllocRatioOutOf1000 * (sohObjSize + lohObjSize + pohObjSize) / lohObjSize);
-    }
-
-#if NET5_0
-    private static uint GetPohAllocWeight(uint? pohAllocRatio, uint sohAllocLow, uint sohAllocHigh, uint lohAllocLow, uint lohAllocHigh, uint pohAllocLow = 0, uint pohAllocHigh = 0)
-    {
-        ulong meanSohObjSize = Util.Mean(sohAllocLow, sohAllocHigh);
-        ulong meanLohObjSize = Util.Mean(lohAllocLow, lohAllocHigh);
-        ulong meanPohObjSize = Util.Mean(pohAllocLow, pohAllocHigh);
-
-        uint ratio = pohAllocRatio ?? 0;
-
-        return GetPohAllocWeight(ratio, sohObjSize: meanSohObjSize, lohObjSize: meanLohObjSize, pohObjSize: meanPohObjSize);
-    }
-
-    private static uint GetPohAllocWeight(uint pohAllocRatioOutOf1000, ulong sohObjSize, ulong lohObjSize, ulong pohObjSize)
-    {
-        if (pohAllocRatioOutOf1000 == 0 || pohObjSize == 0)
-        {
-            return 0;
-        }
-
-        return (uint)((ulong)pohAllocRatioOutOf1000 * (sohObjSize + lohObjSize + pohObjSize) / pohObjSize);
-    }
-#endif
-
 }
 
 readonly struct ObjectSpec
@@ -1731,7 +1689,7 @@ class Bucket
     public uint pinInterval => spec.pinInterval;
     public uint finalizableInterval => spec.finalizableInterval;
     // If we have buckets with weights of 2 and 1, we'll allocate 2 objects from the first bucket, then 1 from the next.
-    public uint weight => spec.weight;
+    public double weight => spec.weight;
     public bool isPoh => spec.isPoh;
 
     public ObjectSpec GetObjectSpec(Rand rand, uint overhead)
@@ -1776,13 +1734,13 @@ class Bucket
 struct BucketChooser
 {
     public readonly Bucket[] buckets;
-    private readonly uint combinedWeight;
+    private readonly double combinedWeight;
 
     public BucketChooser(BucketSpec[] bucketSpecs)
     {
         Util.AlwaysAssert(bucketSpecs.Length != 0);
         this.buckets = new Bucket[bucketSpecs.Length];
-        uint weightSum = 0;
+        double weightSum = 0;
         for (uint i = 0; i < bucketSpecs.Length; i++)
         {
             var bucket = new Bucket(bucketSpecs[i]);
@@ -1794,7 +1752,7 @@ struct BucketChooser
 
     private Bucket GetNextBucket(Rand rand)
     {
-        var nextRand = rand.GetRand(combinedWeight);
+        var nextRand = rand.GetFloat() * combinedWeight;
 
         for (int i = 0; i < buckets.Length; i++)
         {
@@ -1816,8 +1774,8 @@ struct BucketChooser
     public ulong AverageObjectSize()
     {
         // Average object size in each bucket, weighed by the bucket
-        ulong totalAverage = 0;
-        ulong totalWeight = 0;
+        double totalAverage = 0;
+        double totalWeight = 0;
         // https://github.com/dotnet/csharplang/issues/461
         for (uint i = 0; i < buckets.Length; i++)
         {
@@ -1826,7 +1784,7 @@ struct BucketChooser
             totalWeight += bucket.weight;
         }
 
-        return totalAverage / totalWeight;
+        return (ulong)(totalAverage / totalWeight);
     }
 }
 
