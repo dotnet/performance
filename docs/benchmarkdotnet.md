@@ -59,7 +59,7 @@ In order to build or run the benchmarks you will need the **.NET Core command-li
 
 ### Using .NET Cli
 
-To build the benchmarks you need to have the right `dotnet cli`. This repository allows to benchmark .NET Core 2.1, 3.1 and 5.0 so you need to install all of them.
+To build the benchmarks you need to have the right `dotnet cli`. This repository allows to benchmark .NET Core 2.1, 3.1, 5.0 and 6.0 so you need to install all of them.
 
 All you need to do is run the following command:
 
@@ -70,8 +70,8 @@ dotnet build -c Release
 If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) file.
 
 ```diff
--<TargetFrameworks>netcoreapp2.1;netcoreapp3.1;net5.0</TargetFrameworks>
-+<TargetFrameworks>net5.0</TargetFrameworks>
+-<TargetFrameworks>netcoreapp2.1;netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
++<TargetFrameworks>net6.0</TargetFrameworks>
 ```
 
 The alternative is to set `PERFLAB_TARGET_FRAMEWORKS` environment variable to selected Target Framework Moniker.
@@ -81,7 +81,7 @@ The alternative is to set `PERFLAB_TARGET_FRAMEWORKS` environment variable to se
 If you don't want to install `dotnet cli` manually, we have a Python 3 script which can do that for you. All you need to do is to provide the frameworks:
 
 ```cmd
-py .\scripts\benchmarks_ci.py --frameworks netcoreapp3.1
+py .\scripts\benchmarks_ci.py --frameworks net6.0
 ```
 
 ## Running the Benchmarks
@@ -91,7 +91,7 @@ py .\scripts\benchmarks_ci.py --frameworks netcoreapp3.1
 To run the benchmarks in interactive mode you have to execute `dotnet run -c Release -f $targetFrameworkMoniker` in the folder with benchmarks project.
 
 ```cmd
-C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f netcoreapp3.1
+C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f net6.0
 Available Benchmarks:
   #0   Burgers
   #1   ByteMark
@@ -117,42 +117,42 @@ And select one of the benchmarks from the list by either entering its number or 
 
 You can filter the benchmarks using `--filter $globPattern` console line argument. The filter is **case insensitive**.
 
-The glob patterns are applied to full benchmark name: namespace.typeName.methodName. Examples:
+The glob patterns are applied to full benchmark name: namespace.typeName.methodName. Examples (all in the `src\benchmarks\micro` folder):
 
 - Run all the benchmarks from BenchmarksGame namespace:
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.1 --filter BenchmarksGame*
+dotnet run -c Release -f net6.0 --filter BenchmarksGame*
 ```
 
 - Run all the benchmarks with type name Richards:
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.1 --filter *.Richards.*
+dotnet run -c Release -f net6.0 --filter *.Richards.*
 ```
 
 - Run all the benchmarks with method name ToStream:
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.1 --filter *.ToStream
+dotnet run -c Release -f net6.0 --filter *.ToStream
 ```
 
 - Run ALL benchmarks:
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.1 --filter *
+dotnet run -c Release -f net6.0 --filter *
 ```
 
 - You can provide many filters (logical disjunction):
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.1 --filter System.Collections*.Dictionary* *.Perf_Dictionary.*
+dotnet run -c Release -f net6.0 --filter System.Collections*.Dictionary* *.Perf_Dictionary.*
 ```
 
 - To print a **joined summary** for all of the benchmarks (by default printed per type), use `--join`:
 
 ```cmd
-dotnet run -c Release -f netcoreapp2.1 --filter BenchmarksGame* --join
+dotnet run -c Release -f net6.0 --filter BenchmarksGame* --join
 ```
 
 Please remember that on **Unix** systems `*` is resolved to all files in current directory, so you need to escape it `'*'`.
@@ -161,10 +161,10 @@ Please remember that on **Unix** systems `*` is resolved to all files in current
 
 To print the list of all available benchmarks you need to pass `--list [tree/flat]` argument. It can also be combined with `--filter` option.
 
-Example: Show the tree of all the benchmarks from System.Threading namespace that can be run for .NET Core 2.0:
+Example: Show the tree of all the benchmarks from System.Threading namespace that can be run for .NET 6.0:
 
 ```cmd
-dotnet run -c Release -f netcoreapp2.1 --list tree --filter System.Threading*
+dotnet run -c Release -f net6.0 --list tree --filter System.Threading*
 ```
 
 ```log
@@ -259,7 +259,7 @@ If you want to disassemble the benchmarked code, you need to use the [Disassembl
 
 You can do that by passing `--disassm` to the app or by using `[DisassemblyDiagnoser(printAsm: true, printSource: true)]` attribute or by adding it to your config with `config.With(DisassemblyDiagnoser.Create(new DisassemblyDiagnoserConfig(printAsm: true, recursiveDepth: 1))`.
 
-Example: `dotnet run -c Release -f netcoreapp2.1 -- --filter System.Memory.Span<Int32>.Reverse -d`
+Example: `dotnet run -c Release -f net6.0 -- --filter System.Memory.Span<Int32>.Reverse -d`
 
 ```assembly
 ; System.Runtime.InteropServices.MemoryMarshal.GetReference[[System.Byte, System.Private.CoreLib]](System.Span`1<Byte>)
@@ -285,30 +285,30 @@ M00_L00:
 
 The `--runtimes` or just `-r` allows you to run the benchmarks for **multiple Runtimes**.
 
-Available options are: Mono, CoreRT, net461, net462, net47, net471, net472, netcoreapp2.1, netcoreapp3.0, netcoreapp3.1 and net5.0.
+Available options are: Mono, CoreRT, net461, net462, net47, net471, net472, netcoreapp2.1, netcoreapp3.1, net5.0 and net6.0.
 
-Example: run the benchmarks for .NET Core 3.1 and 5.0:
+Example: run the benchmarks for .NET 5.0 and 6.0:
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.1 --runtimes netcoreapp3.1 net5.0
+dotnet run -c Release -f net5.0 --runtimes net5.0 net6.0
 ```
 
-**Important: The host process needs to be the lowest common API denominator of the runtimes you want to compare!** In this case, it was`netcoreapp3.1`.
+**Important: The host process needs to be the lowest common API denominator of the runtimes you want to compare!** In this case, it was `net5.0`.
 
 ## Regressions
 
 To perform a Mann–Whitney U Test and display the results in a dedicated column you need to provide the Threshold for Statistical Test via `--statisticalTest` argument. The value can be relative (5%) or absolute (10ms, 100ns, 1s)
 
-Example: run Mann–Whitney U test with relative ratio of 5% for `BinaryTrees_2` for .NET Core 3.1 (base) vs .NET Core 5.0 (diff). .NET Core 3.1 will be baseline because it was first.
+Example: run Mann–Whitney U test with relative ratio of 5% for `BinaryTrees_2` for .NET 5.0 (base) vs .NET 6.0 (diff). .NET Core 5.0 will be baseline because it was first.
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.1 --filter *BinaryTrees_2* --runtimes netcoreapp3.1 net5.0 --statisticalTest 5%
+dotnet run -c Release -f net6.0 --filter *BinaryTrees_2* --runtimes net5.0 net6.0 --statisticalTest 5%
 ```
 
 |        Method |     Toolchain |     Mean | MannWhitney(5%) |
 |-------------- |-------------- |---------:|---------------- |
-| BinaryTrees_2 | netcoreapp3.1 | 124.4 ms |            Base |
-| BinaryTrees_2 |        net5.0 | 153.7 ms |          Slower |
+| BinaryTrees_2 |        net5.0 | 124.4 ms |            Base |
+| BinaryTrees_2 |        net6.0 | 153.7 ms |          Slower |
 
 **Note:** to compare the historical results you need to use [Results Comparer](../src/tools/ResultsComparer/README.md)
 
@@ -329,7 +329,7 @@ Please use this option only when you are sure that the benchmarks you want to ru
 It's possible to benchmark private builds of [dotnet/runtime](https://github.com/dotnet/runtime) using CoreRun.
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.1 --coreRun $thePath
+dotnet run -c Release -f net6.0 --coreRun $thePath
 ```
 
 **Note:** You can provide more than 1 path to CoreRun. In such case, the first path will be the baseline and all the benchmarks are going to be executed for all CoreRuns you have specified.
@@ -355,7 +355,7 @@ public void PrintInfo()
 You can also use any dotnet cli to build and run the benchmarks.
 
 ```cmd
-dotnet run -c Release -f netcoreapp3.1 --cli "C:\Projects\performance\.dotnet\dotnet.exe"
+dotnet run -c Release -f net6.0 --cli "C:\Projects\performance\.dotnet\dotnet.exe"
 ```
 
 This is very useful when you want to compare different builds of .NET Core SDK.
