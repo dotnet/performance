@@ -17,7 +17,7 @@ using MicroBenchmarks;
 namespace System.Net.Security.Tests
 {
     [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
-    public class SslStreamTests
+    public partial class SslStreamTests
     {
         private readonly Barrier _twoParticipantBarrier = new Barrier(2);
         private readonly X509Certificate2 _cert = Test.Common.Configuration.Certificates.GetServerCertificate();
