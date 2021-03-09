@@ -482,6 +482,7 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - master
+        - 5.0
   
   # Windows x86 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -511,6 +512,7 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - master
+        - 5.0
 
   # Windows x64 Blazor 3.2 scenario benchmarks
   - template: /eng/performance/scenarios.yml
