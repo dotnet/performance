@@ -66,6 +66,9 @@
     <None Update="libraries\Common\*.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="libraries\Microsoft.Extensions.Configuration.Xml\TestFiles\*.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework'">
@@ -118,25 +121,6 @@
   <ItemGroup>
     <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
     <None Include="**/*.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="libraries\Microsoft.Extensions.Configuration.Xml\XmlConfigurationProviderBenchmarks.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="libraries\Microsoft.Extensions.Configuration.Xml\TestFiles\deep.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="libraries\Microsoft.Extensions.Configuration.Xml\TestFiles\names.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="libraries\Microsoft.Extensions.Configuration.Xml\TestFiles\repeated.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="libraries\Microsoft.Extensions.Configuration.Xml\TestFiles\simple.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
