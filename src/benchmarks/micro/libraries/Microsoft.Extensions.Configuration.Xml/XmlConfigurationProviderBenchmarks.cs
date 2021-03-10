@@ -41,8 +41,8 @@ namespace MicroBenchmarks.libraries.Microsoft.Extensions.Configuration
             this.provider = new XmlConfigurationProvider(new XmlConfigurationSource());
         }
 
-        [SetUp]
-        public void Setup()
+        [IterationSetup]
+        public void IterationSetup()
         {
             this.simpleXml.Position = 0;
             this.deepXml.Position = 0;
