@@ -1,23 +1,17 @@
 ﻿using BenchmarkDotNet.Attributes;
-using MicroBenchmarks;
 using Microsoft.Extensions.Configuration.Xml;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MicroBenchmarks.libraries.Microsoft.Extensions.Configuration
 {
     [BenchmarkCategory(Categories.Libraries)]
     public class XmlConfigurationProviderBenchmarks
     {
-        private MemoryStream simpleXml;
-        private MemoryStream deepXml;
-        private MemoryStream namesXml;
-        private MemoryStream repeatedXml;
-        private XmlConfigurationProvider provider;
+        private MemoryStream _simpleXml;
+        private MemoryStream _deepXml;
+        private MemoryStream _namesXml;
+        private MemoryStream _repeatedXml;
+        private XmlConfigurationProvider _provider;
 
         private MemoryStream ReadTestFile(string fileName)
         {
@@ -33,54 +27,54 @@ namespace MicroBenchmarks.libraries.Microsoft.Extensions.Configuration
         [GlobalSetup]
         public void GlobalSetup()
         {
-            this.simpleXml = ReadTestFile("simple.xml");
-            this.deepXml = ReadTestFile("simple.xml");
-            this.namesXml = ReadTestFile("simple.xml");
-            this.repeatedXml = ReadTestFile("simple.xml");
+            _simpleXml = ReadTestFile("simple.xml");
+            _deepXml = ReadTestFile("simple.xml");
+            _namesXml = ReadTestFile("simple.xml");
+            _repeatedXml = ReadTestFile("simple.xml");
 
-            this.provider = new XmlConfigurationProvider(new XmlConfigurationSource());
+            _provider = new XmlConfigurationProvider(new XmlConfigurationSource());
         }
 
         [IterationSetup]
         public void IterationSetup()
         {
-            this.simpleXml.Position = 0;
-            this.deepXml.Position = 0;
-            this.namesXml.Position = 0;
-            this.repeatedXml.Position = 0;
+            _simpleXml.Position = 0;
+            _deepXml.Position = 0;
+            _namesXml.Position = 0;
+            _repeatedXml.Position = 0;
         }
 
         [GlobalCleanup]
         public void GlobalCleanup()
         {
-            this.simpleXml.Dispose();
-            this.deepXml.Dispose();
-            this.namesXml.Dispose();
-            this.repeatedXml.Dispose();
+            _simpleXml.Dispose();
+            _deepXml.Dispose();
+            _namesXml.Dispose();
+            _repeatedXml.Dispose();
         }
 
         [Benchmark]
         public void Simple()
         {
-            provider.Load(this.simpleXml);
+            _provider.Load(_simpleXml);
         }
 
         [Benchmark]
         public void Deep()
         {
-            provider.Load(this.deepXml);
+            _provider.Load(_deepXml);
         }
 
         [Benchmark]
         public void Names()
         {
-            provider.Load(this.namesXml);
+            _provider.Load(_namesXml);
         }
 
         [Benchmark]
         public void Repeated()
         {
-            provider.Load(this.repeatedXml);
+            _provider.Load(_repeatedXml);
         }
     }
 }
