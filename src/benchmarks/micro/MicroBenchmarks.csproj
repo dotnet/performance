@@ -23,6 +23,8 @@
     <PackageReference Include="Jil" Version="2.17.0" />
     <PackageReference Include="MessagePack" Version="1.9.11" />
     <PackageReference Include="MessagePackAnalyzer" Version="1.7.3.7" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0-rc.1.20417.14" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Xml" Version="5.0.0-rc.1.20417.14" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0-rc.1.20417.14" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.0-rc.1.20417.14" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0-rc.1.20417.14" />
@@ -116,6 +118,25 @@
   <ItemGroup>
     <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
     <None Include="**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="libraries\Microsoft.Extensions.Configuration.Xml\XmlConfigurationProviderBenchmarks.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="libraries\Microsoft.Extensions.Configuration.Xml\TestFiles\deep.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="libraries\Microsoft.Extensions.Configuration.Xml\TestFiles\names.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="libraries\Microsoft.Extensions.Configuration.Xml\TestFiles\repeated.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="libraries\Microsoft.Extensions.Configuration.Xml\TestFiles\simple.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
