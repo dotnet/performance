@@ -6,6 +6,11 @@ namespace FailureReporting
 {
     public class FailureReporter
     {
+        public static void Main(string[] args)
+        {
+            CreateFailureReport(args[0]);
+        }
+
         public static void CreateFailureReport(string reportJsonPath)
         {
             var reporter = Reporter.CreateReporter();
