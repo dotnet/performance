@@ -1,7 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+	<OutputType>Exe</OutputType>
+    <TargetFramework>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFramework> 
+    <!-- Supported target frameworks --> 
+    <TargetFramework Condition="'$(TargetFramework)' == ''">netcoreapp3.0</TargetFramework> 
   </PropertyGroup>
 
   <ItemGroup>
