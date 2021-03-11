@@ -93,6 +93,10 @@ jobs:
             displayName: Build SOD tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+          - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)FailureReporter -f $(_Framework) -r win-${{parameters.architecture}} $(Build.SourcesDirectory)\src\tools\Reporting\FailureReporting\FailureReporting.csproj
+            displayName: Build FailureReporter tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
         - ${{ if ne(parameters.osName, 'windows') }}:
           - script: cp ./NuGet.config $(CorrelationStaging);cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared;cp -r ./src/scenarios/staticdeps $(CorrelationStaging)staticdeps
             displayName: Copy python libraries and NuGet.config
