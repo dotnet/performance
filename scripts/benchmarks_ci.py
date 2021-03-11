@@ -31,6 +31,7 @@ from performance.common import validate_supported_runtime, get_artifacts_directo
 from performance.logger import setup_loggers
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from channel_map import ChannelMap
+from subprocess import Popen
 
 import dotnet
 import micro_benchmarks
@@ -222,6 +223,7 @@ def __main(args: list) -> int:
     # Run micro-benchmarks
     if not args.build_only:
         upload_container = UPLOAD_CONTAINER
+        globpath
         try:
             for framework in args.frameworks:
                 micro_benchmarks.run(
@@ -231,18 +233,19 @@ def __main(args: list) -> int:
                     verbose,
                     args
                 )
+            globpath = os.path.join(
+                get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
+                '**',
+                '*perf-lab-report.json')
         except CalledProcessError:
             upload_container = 'failedresults'
+            globpath = os.path.join(get_artifacts_directory(), "failure-report.json")
+            Popen(["/bin", "FailureReporter.exe",  globpath])
             
         dotnet.shutdown_server(verbose)
 
         if args.upload_to_perflab_container:
             import upload
-            globpath = os.path.join(
-                get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
-                '**',
-                '*perf-lab-report.json')
-
             upload.upload(globpath, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
         # TODO: Archive artifacts.
 
