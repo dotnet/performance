@@ -18,6 +18,7 @@ namespace System.IO.Tests
         private const int OneKibibyte  = 1 << 10; // 1024
         private const int HalfKibibyte = OneKibibyte >> 1;
         private const int FourKibibytes = OneKibibyte << 2; // default Stream buffer size
+        private const int SixteenKibibytes = FourKibibytes << 2; // default Stream buffer size * 4
         private const int OneMibibyte = OneKibibyte  << 10;
         private const int HundredMibibytes = OneMibibyte * 100;
 
@@ -30,7 +31,9 @@ namespace System.IO.Tests
             _userBuffers = new Dictionary<int, byte[]>()
             {
                 { HalfKibibyte, ValuesGenerator.Array<byte>(HalfKibibyte) },
+                { OneKibibyte, ValuesGenerator.Array<byte>(OneKibibyte) },
                 { FourKibibytes, ValuesGenerator.Array<byte>(FourKibibytes) },
+                { SixteenKibibytes, ValuesGenerator.Array<byte>(SixteenKibibytes) },
             };
             _sourceFilePaths = fileSizes.ToDictionary(size => size, size => CreateFileWithRandomContent(size));
             _destinationFilePaths = fileSizes.ToDictionary(size => size, size => CreateFileWithRandomContent(size));
@@ -147,21 +150,42 @@ namespace System.IO.Tests
             }
         }
 
-        [GlobalSetup(Targets = new[] { nameof(Read), "ReadAsync", nameof(Write), "WriteAsync", nameof(CopyToFile), nameof(CopyToFileAsync) })]
-        public void SetupBigFileBenchmarks() => Setup(OneKibibyte , OneMibibyte, HundredMibibytes);
+        [GlobalSetup(Targets = new[] { nameof(Read), nameof(Read_NoBuffering), "ReadAsync", "ReadAsync_NoBuffering", 
+            nameof(Write), nameof(Write_NoBuffering), "WriteAsync", "WriteAsync_NoBuffering", nameof(CopyToFile), nameof(CopyToFileAsync) })]
+        public void SetupBigFileBenchmarks() => Setup(OneKibibyte, OneMibibyte, HundredMibibytes);
+        
+        public IEnumerable<object[]> SyncArguments()
+        {
+            // long fileSize, int userBufferSize, FileOptions options
+            yield return new object[] { OneKibibyte, OneKibibyte, FileOptions.None }; // small file size, user buffer size == file size
+            yield return new object[] { OneMibibyte, HalfKibibyte, FileOptions.None }; // medium size file, user buffer size * 8 == default stream buffer size (buffering is beneficial)
+            yield return new object[] { OneMibibyte, FourKibibytes, FileOptions.None }; // medium size file, user buffer size == default stream buffer size (buffering is not beneficial)
+            yield return new object[] { HundredMibibytes, FourKibibytes, FileOptions.None }; // big file, user buffer size == default stream buffer size (buffering is not beneficial)
+        }
+        
+        public IEnumerable<object[]> SyncArguments_NoBuffering()
+        {
+            // long fileSize, int userBufferSize, FileOptions options
+            yield return new object[] { OneMibibyte, SixteenKibibytes, FileOptions.None }; // medium size file, user buffer size == 4 * default stream buffer size
+            yield return new object[] { HundredMibibytes, SixteenKibibytes, FileOptions.None }; // big file, user buffer size == 4 * default stream buffer size
+        }
+        
+        [Benchmark]
+        [ArgumentsSource(nameof(SyncArguments))]
+        public long Read(long fileSize, int userBufferSize, FileOptions options)
+            => Read(fileSize, userBufferSize, options, streamBufferSize: FourKibibytes);
 
         [Benchmark]
-        [Arguments(OneKibibyte , HalfKibibyte, FileOptions.None)] // userBufferSize is less than StreamBufferSize, buffering makes sense
-        [Arguments(OneKibibyte , FourKibibytes, FileOptions.None)] // the buffer provided by User and internal Stream buffer are of the same size, buffering makes NO sense
-        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.None)]
-        [Arguments(OneMibibyte, FourKibibytes, FileOptions.None)]
-        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.None)]
-        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.None)]
-        public long Read(long fileSize, int userBufferSize, FileOptions options)
+        [ArgumentsSource(nameof(SyncArguments_NoBuffering))]
+        public long Read_NoBuffering(long fileSize, int userBufferSize, FileOptions options)
+            => Read(fileSize, userBufferSize, options, streamBufferSize: 1);
+
+        private long Read(long fileSize, int userBufferSize, FileOptions options, int streamBufferSize)
         {
             byte[] userBuffer = _userBuffers[userBufferSize];
             long bytesRead = 0;
-            using (FileStream fileStream = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
+            using (FileStream fileStream = new FileStream(
+                _sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, streamBufferSize, options))
             {
                 while (bytesRead < fileSize)
                 {
@@ -173,16 +197,19 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [Arguments(OneKibibyte , HalfKibibyte, FileOptions.None)]
-        [Arguments(OneKibibyte , FourKibibytes, FileOptions.None)]
-        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.None)]
-        [Arguments(OneMibibyte, FourKibibytes, FileOptions.None)]
-        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.None)]
-        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.None)]
+        [ArgumentsSource(nameof(SyncArguments))]
         public void Write(long fileSize, int userBufferSize, FileOptions options)
+            => Write(fileSize, userBufferSize, options, streamBufferSize: FourKibibytes);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(SyncArguments_NoBuffering))]
+        public void Write_NoBuffering(long fileSize, int userBufferSize, FileOptions options)
+            => Write(fileSize, userBufferSize, options, streamBufferSize: 1);
+
+        private void Write(long fileSize, int userBufferSize, FileOptions options, int streamBufferSize)
         {
             byte[] userBuffer = _userBuffers[userBufferSize];
-            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
+            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, streamBufferSize, options))
             {
                 for (int i = 0; i < fileSize / userBufferSize; i++)
                 {
@@ -192,26 +219,51 @@ namespace System.IO.Tests
         }
 
 #if !NETFRAMEWORK // APIs added in .NET Core 2.0
+
+        public IEnumerable<object[]> AsyncArguments()
+        {
+            // long fileSize, int userBufferSize, FileOptions options
+            yield return new object[] { OneKibibyte, OneKibibyte, FileOptions.Asynchronous }; // small file size, user buffer size == file size
+            yield return new object[] { OneKibibyte, OneKibibyte, FileOptions.None }; // same as above, but sync open, later async usage (common use case)
+            
+            yield return new object[] { OneMibibyte, HalfKibibyte, FileOptions.Asynchronous }; // medium size file, user buffer size * 8 == default stream buffer size (buffering is beneficial)
+            yield return new object[] { OneMibibyte, HalfKibibyte, FileOptions.None }; // same as above, but sync open, later async usage (common use case)
+            
+            yield return new object[] { OneMibibyte, FourKibibytes, FileOptions.Asynchronous }; // medium size file, user buffer size == default stream buffer size (buffering is not beneficial)
+            yield return new object[] { OneMibibyte, FourKibibytes, FileOptions.None }; // same as above, but sync open, later async usage (common use case)
+            
+            yield return new object[] { HundredMibibytes, FourKibibytes, FileOptions.Asynchronous }; //  big file, user buffer size == default stream buffer size (buffering is not beneficial)
+            yield return new object[] { HundredMibibytes, FourKibibytes, FileOptions.None }; // same as above, but sync open, later async usage (common use case)
+        }
+        
+        public IEnumerable<object[]> AsyncArguments_NoBuffering()
+        {
+            // long fileSize, int userBufferSize, FileOptions options
+            yield return new object[] { OneMibibyte, SixteenKibibytes, FileOptions.Asynchronous }; // medium size file, user buffer size == 4 * default stream buffer size
+            yield return new object[] { OneMibibyte, SixteenKibibytes, FileOptions.None }; // same as above, but sync open, later async usage
+            
+            yield return new object[] { HundredMibibytes, SixteenKibibytes, FileOptions.Asynchronous }; // big file, user buffer size == 4 * default stream buffer size
+            yield return new object[] { HundredMibibytes, SixteenKibibytes, FileOptions.None }; // same as above, but sync open, later async usage
+        }
+
         [Benchmark]
-        [Arguments(OneKibibyte, HalfKibibyte, FileOptions.Asynchronous)]
-        [Arguments(OneKibibyte, HalfKibibyte, FileOptions.None)] // common use case (sync open, later async usage)
-        [Arguments(OneKibibyte, FourKibibytes, FileOptions.Asynchronous)]
-        [Arguments(OneKibibyte, FourKibibytes, FileOptions.None)]
-        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.Asynchronous)]
-        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.None)]
-        [Arguments(OneMibibyte, FourKibibytes, FileOptions.Asynchronous)]
-        [Arguments(OneMibibyte, FourKibibytes, FileOptions.None)]
-        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.Asynchronous)]
-        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.None)]
-        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.Asynchronous)]
-        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.None)]
+        [ArgumentsSource(nameof(AsyncArguments))]
         [BenchmarkCategory(Categories.NoWASM)]
-        public async Task<long> ReadAsync(long fileSize, int userBufferSize, FileOptions options)
+        public Task<long> ReadAsync(long fileSize, int userBufferSize, FileOptions options)
+            => ReadAsync(fileSize, userBufferSize, options, streamBufferSize: FourKibibytes);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(AsyncArguments_NoBuffering))]
+        [BenchmarkCategory(Categories.NoWASM)]
+        public Task<long> ReadAsync_NoBuffering(long fileSize, int userBufferSize, FileOptions options)
+            => ReadAsync(fileSize, userBufferSize, options, streamBufferSize: 1);
+
+        private async Task<long> ReadAsync(long fileSize, int userBufferSize, FileOptions options, int streamBufferSize)
         {
             CancellationToken cancellationToken = CancellationToken.None;
             Memory<byte> userBuffer = new Memory<byte>(_userBuffers[userBufferSize]);
             long bytesRead = 0;
-            using (FileStream fileStream = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
+            using (FileStream fileStream = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, streamBufferSize, options))
             {
                 while (bytesRead < fileSize)
                 {
@@ -223,24 +275,22 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [Arguments(OneKibibyte, HalfKibibyte, FileOptions.Asynchronous)]
-        [Arguments(OneKibibyte, HalfKibibyte, FileOptions.None)]
-        [Arguments(OneKibibyte, FourKibibytes, FileOptions.Asynchronous)]
-        [Arguments(OneKibibyte, FourKibibytes, FileOptions.None)]
-        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.Asynchronous)]
-        [Arguments(OneMibibyte, HalfKibibyte, FileOptions.None)]
-        [Arguments(OneMibibyte, FourKibibytes, FileOptions.Asynchronous)]
-        [Arguments(OneMibibyte, FourKibibytes, FileOptions.None)]
-        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.Asynchronous)]
-        [Arguments(HundredMibibytes, HalfKibibyte, FileOptions.None)]
-        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.Asynchronous)]
-        [Arguments(HundredMibibytes, FourKibibytes, FileOptions.None)]
+        [ArgumentsSource(nameof(AsyncArguments))]
         [BenchmarkCategory(Categories.NoWASM)]
-        public async Task WriteAsync(long fileSize, int userBufferSize, FileOptions options)
+        public Task WriteAsync(long fileSize, int userBufferSize, FileOptions options)
+            => WriteAsync(fileSize, userBufferSize, options, streamBufferSize: FourKibibytes);
+
+        [Benchmark]
+        [ArgumentsSource(nameof(AsyncArguments_NoBuffering))]
+        [BenchmarkCategory(Categories.NoWASM)]
+        public Task WriteAsync_NoBuffering(long fileSize, int userBufferSize, FileOptions options)
+            => WriteAsync(fileSize, userBufferSize, options, streamBufferSize: 1);
+
+        private async Task WriteAsync(long fileSize, int userBufferSize, FileOptions options, int streamBufferSize)
         {
             CancellationToken cancellationToken = CancellationToken.None;
             Memory<byte> userBuffer = new Memory<byte>(_userBuffers[userBufferSize]);
-            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
+            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, streamBufferSize, options))
             {
                 for (int i = 0; i < fileSize / userBufferSize; i++)
                 {
