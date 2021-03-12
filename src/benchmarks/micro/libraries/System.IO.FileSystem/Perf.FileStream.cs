@@ -60,8 +60,8 @@ namespace System.IO.Tests
         public void SetuOneKibibyteBenchmarks() => Setup(OneKibibyte );
 
         [Benchmark]
-        [Arguments(OneKibibyte , FileOptions.None)] // sync (default)
-        [Arguments(OneKibibyte , FileOptions.Asynchronous)] // async
+        [Arguments(OneKibibyte, FileOptions.None)] // sync (default)
+        [Arguments(OneKibibyte, FileOptions.Asynchronous)] // async
         public bool OpenClose(long fileSize, FileOptions options)
         {
             string filePath = _sourceFilePaths[fileSize];
@@ -72,8 +72,8 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [Arguments(OneKibibyte , FileOptions.None)]
-        [Arguments(OneKibibyte , FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte, FileOptions.None)]
+        [Arguments(OneKibibyte, FileOptions.Asynchronous)]
         [AllowedOperatingSystems("Lock and Unlock are supported only on Windows and Linux", OS.Linux, OS.Windows)]
 #if NET6_0_OR_GREATER // the method was marked as unsupported on macOS in .NET 6.0
         [System.Runtime.Versioning.UnsupportedOSPlatform("macos")]
@@ -90,8 +90,8 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [Arguments(OneKibibyte , FileOptions.None)]
-        [Arguments(OneKibibyte , FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte, FileOptions.None)]
+        [Arguments(OneKibibyte, FileOptions.Asynchronous)]
         public void SeekForward(long fileSize, FileOptions options)
         {
             string filePath = _sourceFilePaths[fileSize];
@@ -105,8 +105,8 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [Arguments(OneKibibyte , FileOptions.None)]
-        [Arguments(OneKibibyte , FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte, FileOptions.None)]
+        [Arguments(OneKibibyte, FileOptions.Asynchronous)]
         public void SeekBackward(long fileSize, FileOptions options)
         {
             string filePath = _sourceFilePaths[fileSize];
@@ -120,8 +120,8 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [Arguments(OneKibibyte , FileOptions.None)]
-        [Arguments(OneKibibyte , FileOptions.Asynchronous)] // calling ReadByte() on bigger files makes no sense, so we don't have more test cases
+        [Arguments(OneKibibyte, FileOptions.None)]
+        [Arguments(OneKibibyte, FileOptions.Asynchronous)] // calling ReadByte() on bigger files makes no sense, so we don't have more test cases
         public int ReadByte(long fileSize, FileOptions options)
         {
             int result = default;
@@ -137,8 +137,8 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
-        [Arguments(OneKibibyte , FileOptions.None)]
-        [Arguments(OneKibibyte , FileOptions.Asynchronous)]
+        [Arguments(OneKibibyte, FileOptions.None)]
+        [Arguments(OneKibibyte, FileOptions.Asynchronous)]
         public void WriteByte(long fileSize, FileOptions options)
         {
             using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
@@ -332,9 +332,8 @@ namespace System.IO.Tests
             }
         }
 
-
         [Benchmark]
-        [Arguments(OneKibibyte , FileOptions.None)]
+        [Arguments(OneKibibyte, FileOptions.None)]
         [Arguments(OneMibibyte, FileOptions.None)]
         [Arguments(HundredMibibytes, FileOptions.None)]
         public void CopyToFile(long fileSize, FileOptions options)
