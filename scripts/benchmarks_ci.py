@@ -223,7 +223,6 @@ def __main(args: list) -> int:
     # Run micro-benchmarks
     if not args.build_only:
         upload_container = UPLOAD_CONTAINER
-        globpath
         try:
             for framework in args.frameworks:
                 micro_benchmarks.run(
@@ -239,12 +238,15 @@ def __main(args: list) -> int:
                 '*perf-lab-report.json')
         except CalledProcessError:
             upload_container = 'failedresults'
-            globpath = os.path.join(get_artifacts_directory(), "failure-report.json")
+            globpath = os.path.join(
+                get_artifacts_directory(), 
+                'FailureReporter' , 
+                'failure-report.json')
             cmdline = [
                 'dotnet', 'run',
             ]
             RunCommand(cmdline, verbose=verbose).run(
-                os.path.join(get_artifacts_directory(), "FailureReporter.exe"))
+                os.path.join(get_artifacts_directory(), 'FailureReporter.exe'))
             
         dotnet.shutdown_server(verbose)
 
