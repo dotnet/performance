@@ -242,7 +242,6 @@ def __main(args: list) -> int:
             globpath = os.path.join(get_artifacts_directory(), "failure-report.json")
             cmdline = [
                 'dotnet', 'run',
-                '--reportJsonPath', globpath,
             ]
             RunCommand(cmdline, verbose=verbose).run(
                 os.path.join(get_artifacts_directory(), "FailureReporter.exe"))
