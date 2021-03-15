@@ -425,7 +425,7 @@ class Item : ITypeWithPayload
         else
         {
 #if STATISTICS
-            if (size >= 85000)
+            if (size >= MemoryAlloc.LohThreshold)
             {
                 statistics.lohAllocatedBytes += remainingSize;
             }
@@ -516,7 +516,7 @@ class SimpleRefPayLoad
         statistics.sohAllocatedBytes += ReferenceItemWithSize.SohOverhead;
 #endif
         uint sizePayload = size - ArrayOverhead;
-        uint remainingSize = size + ReferenceItemWithSize.SimpleOverhead - ReferenceItemWithSize.SohOverhead;
+        uint remainingSize = size - SohOverhead;
         if (isPoh)
         {
 #if NET5_0
@@ -531,7 +531,7 @@ class SimpleRefPayLoad
         else
         {
 #if STATISTICS
-            if (size >= 85000)
+            if (size >= MemoryAlloc.LohThreshold)
             {
                 statistics.lohAllocatedBytes += remainingSize;
             }
@@ -1461,7 +1461,7 @@ class ArgsParser
                 case "-lohSizeRange":
                 case "-lohsr":
                     ParseRange(args[++i], out lohAllocLow, out lohAllocHigh);
-                    Util.AlwaysAssert(lohAllocLow >= 85000, "lohAllocLow is below the minimum large object size");
+                    Util.AlwaysAssert(lohAllocLow >= MemoryAlloc.LohThreshold, "lohAllocLow is below the minimum large object size");
                     break;
                 case "-pohSizeRange":
                 case "-pohsr":
@@ -1931,6 +1931,8 @@ struct TestResult
 
 class MemoryAlloc
 {
+    public static int LohThreshold = 85000;
+
     private readonly Rand rand;
     OldArr oldArr;
     // TODO We should consider adding another array for medium lifetime.
