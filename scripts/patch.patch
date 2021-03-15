@@ -1,0 +1,55 @@
+diff --git a/scripts/performance/common.py b/scripts/performance/common.py
+index ec0837c5..3e5c953a 100644
+--- a/scripts/performance/common.py
++++ b/scripts/performance/common.py
+@@ -8,7 +8,7 @@ from shutil import rmtree
+ from stat import S_IWRITE
+ from subprocess import CalledProcessError
+ from subprocess import list2cmdline
+-from subprocess import PIPE
++from subprocess import PIPE, DEVNULL
+ from subprocess import Popen
+ from subprocess import STDOUT
+ 
+@@ -162,26 +162,24 @@ class RunCommand:
+         with push_dir(working_directory):
+             quoted_cmdline = '$ '
+             quoted_cmdline += list2cmdline(self.cmdline)
+-            quoted_cmdline += ' > {}'.format(
+-                os.devnull) if not should_pipe else ''
+ 
+             getLogger().info(quoted_cmdline)
+ 
+-            with open(os.devnull) as null_device:
+-                with Popen(
+-                        self.cmdline,
+-                        stdout=PIPE if should_pipe else null_device,
+-                        stderr=STDOUT,
+-                        universal_newlines=True,
+-                ) as proc:
+-                    if proc.stdout is not None:
+-                        with proc.stdout:
+-                            for line in iter(proc.stdout.readline, ''):
+-                                line = line.rstrip()
+-                                getLogger().info(line)
+-
+-                    proc.wait()
+-                    return (proc.returncode, quoted_cmdline)
++            
++            with Popen(
++                    self.cmdline,
++                    stdout=PIPE if should_pipe else DEVNULL,
++                    stderr=STDOUT,
++                    universal_newlines=True,
++            ) as proc:
++                if proc.stdout is not None:
++                    with proc.stdout:
++                        for line in iter(proc.stdout.readline, ''):
++                            line = line.rstrip()
++                            getLogger().info(line)
++
++                proc.wait()
++                return (proc.returncode, quoted_cmdline)
+ 
+ 
+     def run(self, working_directory: str = None) -> None:
