@@ -59,7 +59,6 @@ namespace System.Tests
         public void NextBytes_span_unseeded() => _randomUnseeded.NextBytes(_bytes.AsSpan());
 #endif
 
-#if false // https://github.com/dotnet/performance/issues/1642
 #if !NETFRAMEWORK && !NETCOREAPP2_1 && !NETCOREAPP3_1 && !NET5_0 // New API in .NET 6.0
         [Benchmark]
         public long Next_long() => _random.NextInt64(2^20);
@@ -78,7 +77,6 @@ namespace System.Tests
 
         [Benchmark]
         public float NextSingle_unseeded() => _randomUnseeded.NextSingle();
-#endif
 #endif
     }
 }
