@@ -16,10 +16,31 @@ namespace System.Tests
         private Version _vL = new Version(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
 
         [Benchmark]
+        public Version Ctor2() => new Version(1, 2);
+
+        [Benchmark]
+        public Version Ctor3() => new Version(1, 2, 3);
+
+        [Benchmark]
         public Version Ctor4() => new Version(1, 2, 3, 4);
 
         [Benchmark]
+        public Version Parse2() => Version.Parse("1.2");
+
+        [Benchmark]
+        public Version Parse3() => Version.Parse("1.2.3");
+
+        [Benchmark]
         public Version Parse4() => Version.Parse("1.2.3.4");
+
+        [Benchmark]
+        public bool TryParse2() => Version.TryParse("1.2", out _);
+
+        [Benchmark]
+        public bool TryParse3() => Version.TryParse("1.2.3", out _);
+
+        [Benchmark]
+        public bool TryParse4() => Version.TryParse("1.2.3.4", out _);
 
         [Benchmark]
         public string ToString2() => _v2.ToString();
