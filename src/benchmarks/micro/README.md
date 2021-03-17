@@ -48,7 +48,7 @@ dotnet run -c Release -f net5.0 --filter * --runtimes net5.0 net6.0
 
 ## Private Runtime Builds
 
-If you contribute to [dotnet/runtime](https://github.com/dotnet/runtime) and want to benchmark **local builds of .NET Core** you need to build [dotnet/runtime](https://github.com/dotnet/runtime) in Release (including tests - so a command similar to `build clr+lib+libs.tests -rc release -lc release`) and then provide the path(s) to CoreRun(s). Provided CoreRun(s) will be used to execute every benchmark in a dedicated process:
+If you contribute to [dotnet/runtime](https://github.com/dotnet/runtime) and want to benchmark **local builds of .NET Core** you need to build [dotnet/runtime](https://github.com/dotnet/runtime) in Release (including tests - so a command similar to `build clr+libs+libs.tests -rc release -lc release`) and then provide the path(s) to CoreRun(s). Provided CoreRun(s) will be used to execute every benchmark in a dedicated process:
 
 ```cmd
 dotnet run -c Release -f net6.0 --filter $YourFilter \
