@@ -45,6 +45,7 @@ namespace BenchmarkDotNet.Extensions
                 .AddValidator(DefaultConfig.Instance.GetValidators().ToArray()) // copy default validators
                 .AddAnalyser(DefaultConfig.Instance.GetAnalysers().ToArray()) // copy default analysers
                 .AddExporter(MarkdownExporter.GitHub) // export to GitHub markdown
+                .AddColumnProvider(DefaultColumnProviders.Instance) // display default columns (method name, args etc)
                 .AddJob(job.AsDefault()) // tell BDN that this are our default settings
                 .WithArtifactsPath(artifactsPath.FullName)
                 .AddDiagnoser(MemoryDiagnoser.Default) // MemoryDiagnoser is enabled by default
