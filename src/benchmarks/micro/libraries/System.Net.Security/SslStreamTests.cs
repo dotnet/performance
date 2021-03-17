@@ -98,6 +98,7 @@ namespace System.Net.Security.Tests
             _serverPipe.Dispose();
         }
 
+#if false // pending fix in https://github.com/dotnet/performance/issues/1732
         [Benchmark]
         public Task DefaultHandshakeIPv4Async() => DefaultHandshake(_clientIPv4, _serverIPv4);
 
@@ -124,6 +125,7 @@ namespace System.Net.Security.Tests
                 }
             }
         }
+#endif
 
         [Benchmark]
         public Task TLS12HandshakeECDSA256CertAsync() => HandshakeAsync(_ec256Cert, SslProtocols.Tls12);
