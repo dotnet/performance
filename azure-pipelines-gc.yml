@@ -8,6 +8,7 @@ pr:
   branches:
     include:
     - master
+    - main
   paths:
     include:
     - src/benchmarks/gc/__main__.py
