@@ -401,7 +401,7 @@ class Item : ITypeWithPayload
 #endif
 #if STATISTICS
         Statistics statistics = Statistics.GetStatistics();
-        statistics.sohAllocatedBytes += SohOverhead;
+        statistics.sohAllocatedBytes += ItemObjectSize;
 #endif
         if (size <= ArrayOverhead)
         {
@@ -409,7 +409,7 @@ class Item : ITypeWithPayload
             throw new InvalidOperationException("Item class does not support allocating an object of this size");
         }
         uint payloadSize = size - ArrayOverhead;
-        uint remainingSize = size - SohOverhead;
+        uint remainingSize = size - ItemObjectSize;
 
         if (isPoh)
         {
@@ -507,16 +507,15 @@ class SimpleRefPayLoad
     public static readonly uint SimpleRefPayLoadSize = Util.OBJECT_HEADER_SIZE + FieldSize;
 
     public static uint ArrayOverhead = SimpleRefPayLoadSize + Util.ARRAY_HEADER_SIZE;
-    public static uint SohOverhead = SimpleRefPayLoadSize;
 
     public SimpleRefPayLoad(uint size, bool isPinned, bool isPoh)
     {
 #if STATISTICS
         Statistics statistics = Statistics.GetStatistics();
-        statistics.sohAllocatedBytes += ReferenceItemWithSize.SohOverhead;
+        statistics.sohAllocatedBytes += SimpleRefPayLoadSize;
 #endif
         uint sizePayload = size - ArrayOverhead;
-        uint remainingSize = size - SohOverhead;
+        uint remainingSize = size - SimpleRefPayLoadSize;
         if (isPoh)
         {
 #if NET5_0
@@ -605,7 +604,7 @@ abstract class ReferenceItemWithSize : ITypeWithPayload
 
     public static readonly uint ArrayHeaderSize = 3 * Util.POINTER_SIZE;
 
-    public static uint SohOverhead = ReferenceItemWithSizeSize + SimpleRefPayLoad.SohOverhead;
+    public static uint SohOverhead = ReferenceItemWithSizeSize + SimpleRefPayLoad.SimpleRefPayLoadSize;
     public static uint SimpleOverhead = ReferenceItemWithSizeSize;
 
     public static ReferenceItemWithSize New(uint size, bool isPinned, bool isFinalizable, bool isPoh)
@@ -627,6 +626,10 @@ abstract class ReferenceItemWithSize : ITypeWithPayload
         Debug.Assert(size >= SimpleOverhead + SimpleRefPayLoad.ArrayOverhead);
 #if DEBUG
         Interlocked.Increment(ref NumConstructed);
+#endif
+#if STATISTICS
+        Statistics statistics = Statistics.GetStatistics();
+        statistics.sohAllocatedBytes += ReferenceItemWithSizeSize;
 #endif
         uint sizePayload = size - SimpleOverhead;
         payload = new SimpleRefPayLoad(sizePayload, isPinned: isPinned, isPoh: isPoh);
