@@ -1563,7 +1563,7 @@ class ArgsParser
          * Solving for the weights by 3 linear equations using the Cramer's rule.
          * See http://cshung.github.io/posts/poh-tuning-2 for a full derivation of the coefficients.
          */
-        double overhead = ReferenceItemWithSize.SohOverhead;
+        double overhead = allocType == ItemType.ReferenceItem ? ReferenceItemWithSize.SohOverhead : Item.SohOverhead;
         double a11 = -lohAllocRatioArg * (meanSohObjSize - overhead);
         double a12 = sohAllocRatioArg * (meanLohObjSize - overhead);
         double a13 = 0;
