@@ -243,7 +243,7 @@ def __main(args: list) -> int:
                 'FailureReporter', 
                 'failure-report.json')
             cmdline = [
-                'FailureReporter.exe'
+                'FailureReporting.exe', globpath
             ]
             RunCommand(cmdline, verbose=verbose).run(
                 os.path.join(get_artifacts_directory()))
