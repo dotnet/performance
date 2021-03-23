@@ -22,7 +22,6 @@ namespace ScenarioMeasurement
         {
             var results = new List<double>();
             var threadTimes = new List<double>();
-            var buildEvalTime = new List<double>();
             double threadTime = 0;
             var ins = new Dictionary<int, double>();
             double start = -1;
@@ -91,7 +90,6 @@ namespace ScenarioMeasurement
                     }
                     firstRun[0].AddRange(results);
                     firstRun[1].AddRange(threadTimes);
-
                     results = new List<double>(); 
                     threadTimes = new List<double>();
                 });
@@ -105,7 +103,6 @@ namespace ScenarioMeasurement
                     }
                     secondRun[0].AddRange(results);
                     secondRun[1].AddRange(threadTimes);
-
                     results = new List<double>(); 
                     threadTimes = new List<double>();
                 });
