@@ -27,11 +27,11 @@ from logging import getLogger
 import os
 import sys
 
-from performance.common import validate_supported_runtime, get_artifacts_directory
+from performance.common import validate_supported_runtime, get_artifacts_directory, RunCommand
 from performance.logger import setup_loggers
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from channel_map import ChannelMap
-from subprocess import Popen
+from subprocess import Popen, CalledProcessError
 
 import dotnet
 import micro_benchmarks
@@ -240,13 +240,13 @@ def __main(args: list) -> int:
             upload_container = 'failedresults'
             globpath = os.path.join(
                 get_artifacts_directory(), 
-                'FailureReporter' , 
+                'FailureReporter', 
                 'failure-report.json')
             cmdline = [
-                'dotnet', 'run',
+                'FailureReporter.exe'
             ]
             RunCommand(cmdline, verbose=verbose).run(
-                os.path.join(get_artifacts_directory(), 'FailureReporter.exe'))
+                os.path.join(get_artifacts_directory()))
             
         dotnet.shutdown_server(verbose)
 
