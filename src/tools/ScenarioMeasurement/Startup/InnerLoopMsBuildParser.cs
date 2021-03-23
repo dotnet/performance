@@ -76,11 +76,13 @@ namespace ScenarioMeasurement
                     {
                         if(!currentRun.ContainsKey(evt.EventName))
                         {
+                            Console.WriteLine("First Stop");
                             currentRun.Add(evt.EventName, new List<double>());
                             currentRun[evt.EventName].Add(evt.TimeStampRelativeMSec - start);
                         }
                         else
                         {
+                            Console.WriteLine("Other stops");
                             currentRun[evt.EventName].Add(evt.TimeStampRelativeMSec - start);
                         }
                         results.Add(evt.TimeStampRelativeMSec - start);
@@ -131,6 +133,9 @@ namespace ScenarioMeasurement
                 source.Source.Dynamic.AddCallbackForProviderEvent("InnerLoopMarkerEventSource", "Split", evt =>
                 {
                     currentRun = secondRun;
+                    Console.WriteLine(secondRun.Keys.Count);
+                    Console.WriteLine(firstRun.Keys.Count);
+                    Console.WriteLine(currentRun.Keys.Count);
                 });
 
                 source.Source.Dynamic.AddCallbackForProviderEvent("InnerLoopMarkerEventSource", "EndIteration", evt =>
@@ -145,6 +150,10 @@ namespace ScenarioMeasurement
             List<double> diffTOT = new List<double>();
             List<double> diffEBT = new List<double>();
             foreach(var key in firstRun.Keys)
+            {
+                Console.WriteLine(key);
+            }
+            foreach(var key in secondRun.Keys)
             {
                 Console.WriteLine(key);
             }
