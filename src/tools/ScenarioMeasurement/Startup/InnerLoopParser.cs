@@ -16,7 +16,6 @@ namespace ScenarioMeasurement
         public void EnableUserProviders(ITraceSession user)
         {
             user.EnableUserProvider("InnerLoopMarkerEventSource", TraceEventLevel.Verbose);
-            user.EnableUserProvider("Microsoft-Build", TraceEventLevel.Verbose);
         }
 
         public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
@@ -27,7 +26,6 @@ namespace ScenarioMeasurement
             double threadTime = 0;
             var ins = new Dictionary<int, double>();
             double start = -1;
-            double buildEvalStart = -1;
             int? pid = null;
             List<List<double>> firstRun = new List<List<double>>();
             List<List<double>> secondRun = new List<List<double>>();
@@ -84,37 +82,18 @@ namespace ScenarioMeasurement
                     }
                 };
 
-
-                source.Source.Dynamic.AddCallbackForProviderEvent("Microsoft-Build", "Evaluate/Start", evt =>
-                {
-                    if(pid.HasValue && evt.ProcessID == pid.Value)
-                    {
-                        buildEvalStart = evt.TimeStampRelativeMSec;
-                    }
-                });
-
-                source.Source.Dynamic.AddCallbackForProviderEvent("Microsoft-Build", "EvaluateStop/Stop", evt =>
-                {
-                    if(pid.HasValue && evt.ProcessID == pid.Value)
-                    {
-                        buildEvalTime.Add(evt.TimeStampRelativeMSec - buildEvalStart);
-                    }
-                });
-
                 source.Source.Dynamic.AddCallbackForProviderEvent("InnerLoopMarkerEventSource", "Split", evt =>
                 {
                     if(firstRun.Count == 0)
                     {
                         firstRun.Add(new List<double>());
                         firstRun.Add(new List<double>());
-                        firstRun.Add(new List<double>());
                     }
                     firstRun[0].AddRange(results);
                     firstRun[1].AddRange(threadTimes);
-                    firstRun[2].AddRange(buildEvalTime);
+
                     results = new List<double>(); 
                     threadTimes = new List<double>();
-                    buildEvalTime = new List<double>();
                 });
 
                 source.Source.Dynamic.AddCallbackForProviderEvent("InnerLoopMarkerEventSource", "EndIteration", evt =>
@@ -123,14 +102,12 @@ namespace ScenarioMeasurement
                     {
                         secondRun.Add(new List<double>());
                         secondRun.Add(new List<double>());
-                        secondRun.Add(new List<double>());
                     }
                     secondRun[0].AddRange(results);
                     secondRun[1].AddRange(threadTimes);
-                    secondRun[2].AddRange(buildEvalTime);
+
                     results = new List<double>(); 
                     threadTimes = new List<double>();
-                    buildEvalTime = new List<double>();
                 });
 
                 source.Process();
@@ -138,7 +115,6 @@ namespace ScenarioMeasurement
 
             List<double> diffGS = new List<double>();
             List<double> diffTOT = new List<double>();
-            List<double> diffEBT = new List<double>();
             for(int i = 0; i < firstRun[0].Count; i++)
             {
                 diffGS.Add(firstRun[0][i] - secondRun[0][i]);
@@ -147,19 +123,12 @@ namespace ScenarioMeasurement
             {
                 diffTOT.Add(firstRun[1][i] - secondRun[1][i]);
             }
-            for(int i = 0; i < firstRun[2].Count; i++)
-            {
-                diffEBT.Add(firstRun[2][i] - secondRun[2][i]);
-            }
 
             return new[] {
                 new Counter() { Name = "Generic Startup First Run", MetricName = "ms", TopCounter=true, Results = firstRun[0].ToArray() },
                 new Counter() { Name = "Generic Startup Second Run", MetricName = "ms", TopCounter=true, Results = secondRun[0].ToArray() },
                 new Counter() { Name = "Generic Startup Diff", MetricName = "ms", DefaultCounter=true, TopCounter=true, Results = diffGS.ToArray() },
-                new Counter() { Name = "Time on Thread Diff", MetricName = "ms", TopCounter=true, Results = diffTOT.ToArray() },
-                new Counter() { Name = "Build Evaluate Time First Run", MetricName = "ms", TopCounter=true, Results = firstRun[2].ToArray() },
-                new Counter() { Name = "Build Evaluate Time Second Run", MetricName = "ms", TopCounter=true, Results = secondRun[2].ToArray() },
-                new Counter() { Name = "Build Evaluate Time Diff", MetricName = "ms", TopCounter=true, Results = diffEBT.ToArray() }
+                new Counter() { Name = "Time on Thread Diff", MetricName = "ms", TopCounter=true, Results = diffTOT.ToArray() }
             };
         }
     }
