@@ -363,7 +363,7 @@ Dictionary<TKey, TValue> Dictionary<TKey, TValue>(int count)
 
 As of today, the `T` can be: `byte`, `char`, `int`, `double`, `bool` and `string`. Extending `T` to more types is very welcomed!
 
-**Note:** `ValuesGenerator` is simply always creating a new instance of `Random` with a constant seed. It's a crucial component and its correctness is verified using  [Unit Tests](https://github.com/dotnet/performance/blob/master/src/tests/harness/BenchmarkDotNet.Extensions.Tests/UniqueValuesGeneratorTests.cs).
+**Note:** `ValuesGenerator` is simply always creating a new instance of `Random` with a constant seed. It's a crucial component and its correctness is verified using  [Unit Tests](https://github.com/dotnet/performance/blob/main/src/tests/harness/BenchmarkDotNet.Extensions.Tests/UniqueValuesGeneratorTests.cs).
 
 **Note:** Please don't use `Random` directly in the benchmarks, do use `ValuesGenerator` and extend it with missing features when needed.
 

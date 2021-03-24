@@ -6,8 +6,8 @@ Command examples in this document use Bash/PowerShell syntax. If using Window's 
 
 The general workflow when using the GC infra is:
 
-* For testing your changes to coreclr, get a master branch build of coreclr, and also your own build.
-  (You can of course use any version of coreclr, not just master.
+* For testing your changes to coreclr, get a main branch build of coreclr, and also your own build.
+  (You can of course use any version of coreclr, not just main.
   You can also only test with a single coreclr.)
 * Write a benchfile. (Or generate default ones with `suite-create` as in the tutorial.) This will reference the coreclrs and list the tests to be run.
 * Run the benchfile and collect traces.
@@ -61,7 +61,7 @@ _ARM NOTE_: Skip this step. Visual Studio and its build tools are not supported 
 ### Other setup
 
 You should have `dotnet` installed.
-On non-Windows systems, you'll need [`dotnet-trace`](https://github.com/dotnet/diagnostics/blob/master/documentation/dotnet-trace-instructions.md) to generate trace files from tests.
+On non-Windows systems, you'll need [`dotnet-trace`](https://github.com/dotnet/diagnostics/blob/main/documentation/dotnet-trace-instructions.md) to generate trace files from tests.
 On non-Windows systems, to run container tests, you'll need `cgroup-tools` installed.
 You should have builds of coreclr available for use in the next step.
 

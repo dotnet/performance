@@ -3,7 +3,7 @@ resources:
     - container: ubuntu_x64_build_container
       image: microsoft/dotnet-buildtools-prereqs:ubuntu-16.04-c103199-20180628134544
 
-# Trigger builds for PR's targeting master
+# Trigger builds for PR's targeting main
 pr:
   branches:
     include:

@@ -8,7 +8,7 @@ parser.add_argument('--branch-name', type=str, dest='branch',
 
 args = parser.parse_args()
 
-if not args.branch == "master":
+if not args.branch == "main":
     print("##vso[task.setvariable variable=DotnetVersion;isSecret=false;isOutput=false]")
 else:
     if not os.path.exists('eng/Versions.props'):

@@ -65,6 +65,6 @@ On Windows, this process is almost the same as for any other architecture. Speci
 
 On Linux, there are additional steps to take. You need to have a `ROOTFS_DIR` and specify the `--cross` (`-cross` for `build-test.sh`) flag when calling the build scripts.
 
-Detailed instructions on how to generate the _ROOTFS_ on Linux and how to cross-build can be found [here](https://github.com/dotnet/runtime/blob/master/docs/workflow/building/coreclr/cross-building.md).
+Detailed instructions on how to generate the _ROOTFS_ on Linux and how to cross-build can be found [here](https://github.com/dotnet/runtime/blob/main/docs/workflow/building/coreclr/cross-building.md).
 
-Another alternative is to use Docker containers. They allow for a more straightforward and less complicated setup and you can find the instructions to use them [here](https://github.com/dotnet/runtime/blob/master/docs/workflow/building/coreclr/linux-instructions.md). They allow for both, normal and cross building.
+Another alternative is to use Docker containers. They allow for a more straightforward and less complicated setup and you can find the instructions to use them [here](https://github.com/dotnet/runtime/blob/main/docs/workflow/building/coreclr/linux-instructions.md). They allow for both, normal and cross building.

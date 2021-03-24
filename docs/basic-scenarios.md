@@ -3,12 +3,12 @@ An introduction of how to run scenario tests can be found in [Scenarios Tests Gu
   - [Basic Startup Scenarios](#basic-startup-scenarios)
   - [Basic Size On Disk Scenarios](#basic-size-on-disk-scenarios)
 ## Basic Startup Scenarios
-Startup is a performance metric that measures the time to main (from process start to Main method) of a running application. [Startup Tool](https://github.com/dotnet/performance/tree/master/src/tools/ScenarioMeasurement/Startup) is a test harness that meausres throughputs in general, and the "TimeToMain" parser of it supports this metric and it's used in all of the **Basic Startup Scenarios**.
+Startup is a performance metric that measures the time to main (from process start to Main method) of a running application. [Startup Tool](https://github.com/dotnet/performance/tree/main/src/tools/ScenarioMeasurement/Startup) is a test harness that meausres throughputs in general, and the "TimeToMain" parser of it supports this metric and it's used in all of the **Basic Startup Scenarios**.
 
 [Scenarios Tests Guide](./scenarios-workflow.md) already walks through **startup time of an empty console template** as an example. For other startup scenarios, refer to [Command Matrix](#command-matrix).
 
 ## Basic Size On Disk Scenarios
-Size On Disk, as the name suggests, is a metric that recursively measures the sizes of a directory and its children. [4Disk Tool](https://github.com/dotnet/performance/tree/master/src/tools/ScenarioMeasurement/4Disk) is the test harness that provides this functionality and it's used in all of the **Basic Size On Disk Scenarios**.
+Size On Disk, as the name suggests, is a metric that recursively measures the sizes of a directory and its children. [4Disk Tool](https://github.com/dotnet/performance/tree/main/src/tools/ScenarioMeasurement/4Disk) is the test harness that provides this functionality and it's used in all of the **Basic Size On Disk Scenarios**.
 
 We will walk through **Self-Contained Empty Console App Size On Disk** scenario as an example.
 ### Step 1 Initialize Environment
@@ -29,7 +29,7 @@ Now run the test:
 ```
 python3 test.py sod
 ```
-[Size On Disk Tool](https://github.com/dotnet/performance/tree/master/src/tools/ScenarioMeasurement/4Disk) checks the default `pub\` directory and shows the sizes of the directory and its children:
+[Size On Disk Tool](https://github.com/dotnet/performance/tree/main/src/tools/ScenarioMeasurement/4Disk) checks the default `pub\` directory and shows the sizes of the directory and its children:
 ```
 [2020/09/29 04:21:35][INFO] ----------------------------------------------
 [2020/09/29 04:21:35][INFO] Initializing logger 2020-09-29 04:21:35.865708

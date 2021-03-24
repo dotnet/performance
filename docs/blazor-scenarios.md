@@ -12,7 +12,7 @@ and then
 ```
 dotnet publish -c Release -o pub
 ```
-and measures the sizes of the `pub\` directory and its children with [SizeOnDisk Tool](https://github.com/dotnet/performance/tree/master/src/tools/ScenarioMeasurement/SizeOnDisk).
+and measures the sizes of the `pub\` directory and its children with [SizeOnDisk Tool](https://github.com/dotnet/performance/tree/main/src/tools/ScenarioMeasurement/SizeOnDisk).
 
 **For more information about scenario tests in general, an introduction of how to run scenario tests can be found in [Scenario Tests Guide](link).  The current document has specific instruction to run blazor scenario tests.**
 ### Prerequisites
@@ -27,14 +27,14 @@ Run precommand to create and publish a new blazorwasm template:
 cd blazor
 python3 pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true"
 ```
-Now there should be source code of the blazorwasm project under `app\` and published output under `pub\`. The `--msbuild "/p:_TrimmerDumpDependencies=true"` argument is optional and can be added to generate [linker dump](https://github.com/mono/linker/blob/master/src/analyzer/README.md) from the build, which will be saved to `blazor\app\obj\<Configuration>\<Runtime>\linked\linker-dependencies.xml.gz`. 
+Now there should be source code of the blazorwasm project under `app\` and published output under `pub\`. The `--msbuild "/p:_TrimmerDumpDependencies=true"` argument is optional and can be added to generate [linker dump](https://github.com/mono/linker/blob/main/src/analyzer/README.md) from the build, which will be saved to `blazor\app\obj\<Configuration>\<Runtime>\linked\linker-dependencies.xml.gz`. 
 
 ### Step 3 Run Test
 Run testcommand to measure the size on disk of the published output:
 ```
 py -3 test.py sod --scenario-name "SOD - New Blazor Template - Publish"
 ```
-In the command, `sod` refers to the "Size On Disk" metric and [SizeOnDisk Tool](https://github.com/dotnet/performance/tree/master/src/tools/ScenarioMeasurement/SizeOnDisk) will be used for this scenario. Note that `--scenario-name` is optional and the value can be changed for your own reference. 
+In the command, `sod` refers to the "Size On Disk" metric and [SizeOnDisk Tool](https://github.com/dotnet/performance/tree/main/src/tools/ScenarioMeasurement/SizeOnDisk) will be used for this scenario. Note that `--scenario-name` is optional and the value can be changed for your own reference. 
 
 The test output should look like the following:
 ```
@@ -54,7 +54,7 @@ The test output should look like the following:
                               |72.000 count       |72.000 count       |72.000 count
 [2020/09/25 11:24:46][INFO] Synthetic Wire Size - .br
 ```
-[SizeOnDisk Tool](https://github.com/dotnet/performance/tree/master/src/tools/ScenarioMeasurement/SizeOnDisk) recursively measures the size of each folder and its children under the specified directory. In addition to the folders and files (path-like counters such as `pub\wwwroot\_framework\blazor.webassembly.js.gz` ), it also generates aggregate counters for each file type (such as `Aggregate - .dll`). For this **New Blazorwasm Template Size On Disk** scenario, Counter names starting with ` Synthetic Wire Size` is a unique counter type for blazorwasm, which simulates the size of files actually transferred over the wire when the webpage loads.
+[SizeOnDisk Tool](https://github.com/dotnet/performance/tree/main/src/tools/ScenarioMeasurement/SizeOnDisk) recursively measures the size of each folder and its children under the specified directory. In addition to the folders and files (path-like counters such as `pub\wwwroot\_framework\blazor.webassembly.js.gz` ), it also generates aggregate counters for each file type (such as `Aggregate - .dll`). For this **New Blazorwasm Template Size On Disk** scenario, Counter names starting with ` Synthetic Wire Size` is a unique counter type for blazorwasm, which simulates the size of files actually transferred over the wire when the webpage loads.
 
 ### Step 4 Run Postcommand
 Same instruction of [Step 4 in Scenario Tests Guide](scenarios-workflow.md#step-4-run-postcommand).
@@ -67,5 +67,5 @@ For the purpose of quick reference, the commands can be summarized into the foll
 
 
 ## Relevant Links
-- [Blazorwasm](https://github.com/dotnet/aspnetcore/tree/master/src/Components)
+- [Blazorwasm](https://github.com/dotnet/aspnetcore/tree/main/src/Components)
 - [IL Linker](https://github.com/mono/linker)
