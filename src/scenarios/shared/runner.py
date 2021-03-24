@@ -50,7 +50,12 @@ class Runner:
 
         # inner loop command
         innerloopparser = subparsers.add_parser(const.INNERLOOP,
-                                              description='measure time to main of running the project')
+                                              description='measure time to main and difference between two runs in a row')
+        self.add_common_arguments(innerloopparser)
+
+        # inner loop msbuild command
+        innerloopparser = subparsers.add_parser(const.INNERLOOPMSBUILD,
+                                              description='measure time to main and difference between two runs in a row')
         self.add_common_arguments(innerloopparser)
 
         # sdk command
@@ -131,6 +136,18 @@ ex: C:\repos\performance;C:\repos\runtime
             startup = StartupWrapper()
             self.traits.add_traits(scenarioname=self.scenarioname,
             scenariotypename=const.SCENARIO_NAMES[const.INNERLOOP],
+            apptorun='dotnet', appargs='run -p %s' % appfolder(self.traits.exename, self.traits.projext),
+            innerloopcommand=pythoncommand(),
+            iterationsetup=pythoncommand(),
+            setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
+            iterationcleanup=pythoncommand(),
+            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE))
+            startup.runtests(self.traits)
+
+        if self.testtype == const.INNERLOOPMSBUILD:
+            startup = StartupWrapper()
+            self.traits.add_traits(scenarioname=self.scenarioname,
+            scenariotypename=const.SCENARIO_NAMES[const.INNERLOOPMSBUILD],
             apptorun='dotnet', appargs='run -p %s' % appfolder(self.traits.exename, self.traits.projext),
             innerloopcommand=pythoncommand(),
             iterationsetup=pythoncommand(),

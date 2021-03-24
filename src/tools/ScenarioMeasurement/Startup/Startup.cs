@@ -13,7 +13,8 @@ namespace ScenarioMeasurement
         ProcessTime,
         WPF,
         Crossgen2,
-        InnerLoop
+        InnerLoop,
+        InnerLoopMsBuild
     }
 
     public class InnerLoopMarkerEventSource : EventSource
@@ -167,6 +168,9 @@ namespace ScenarioMeasurement
                 case MetricType.InnerLoop:
                     parser = new InnerLoopParser();
                     break;
+                case MetricType.InnerLoopMsBuild:
+                    parser = new InnerLoopMsBuildParser();
+                    break;
                     //case MetricType.WPF:
                     //    parser = new WPFParser();
                     //    break;
@@ -184,7 +188,7 @@ namespace ScenarioMeasurement
                 {
                     logger.LogIterationHeader($"Iteration {i}");
                     (bool Success, int Pid) iterationResult;
-                    if(metricType == MetricType.InnerLoop)
+                    if(metricType == MetricType.InnerLoop || metricType == MetricType.InnerLoopMsBuild)
                     {
                         iterationResult = RunIteration(setupProcHelper, TestProcess, null, logger);
                     }
@@ -199,7 +203,7 @@ namespace ScenarioMeasurement
                     }
                     pids.Add(iterationResult.Pid);
 
-                    if(metricType == MetricType.InnerLoop)
+                    if(metricType == MetricType.InnerLoop || metricType == MetricType.InnerLoopMsBuild)
                     {
                         //Do some stuff to change the project
                         logger.LogStepHeader("Inner Loop Setup");
