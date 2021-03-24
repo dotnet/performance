@@ -17,7 +17,7 @@ For more information refer to: benchmarking-workflow.md
 
 ../docs/benchmarking-workflow.md
   - or -
-https://github.com/dotnet/performance/blob/master/docs/benchmarking-workflow.md
+https://github.com/dotnet/performance/blob/main/docs/benchmarking-workflow.md
 '''
 
 from argparse import ArgumentParser, ArgumentTypeError

@@ -10,7 +10,7 @@ function Print-Usage(){
     Write-Host "Choose ONE of the following commands:"
     Write-Host ".\init.ps1                                                                                     # sets up PYTHONPATH only; uses default dotnet in PATH" 
     Write-Host ".\init.ps1 -DotnetDirectory <custom dotnet root directory; ex: 'C:\Program Files\dotnet\'>     # sets up PYTHONPATH; uses the specified dotnet"
-    Write-Host ".\init.ps1 -Channel <channel to download new dotnet; ex: 'master'>                             # sets up PYTHONPATH; downloads dotnet from the specified channel or branch to <repo root>\tools\ and uses it\n For a list of channels, check <repo root>\scripts\channel_map.py"     
+    Write-Host ".\init.ps1 -Channel <channel to download new dotnet; ex: 'main'>                               # sets up PYTHONPATH; downloads dotnet from the specified channel or branch to <repo root>\tools\ and uses it\n For a list of channels, check <repo root>\scripts\channel_map.py"     
     Exit 1
 }
 
