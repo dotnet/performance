@@ -8,6 +8,17 @@ namespace FailureReporting
     {
         public static void Main(string[] args)
         {
+            if (args.Length == 0)
+            {
+                throw new ArgumentException("FailureReporting.exe was called without the required JSON path argument");
+            }
+            else if (args.Length > 1)
+            {
+                throw new ArgumentException("FailureReporting.exe was called with more than one argument");
+            }
+            else if (!Directory.Exists(Path.GetDirectoryName(args[0]))) {
+                throw new IOException("Provided directory for JSON output does not exist");
+            }
             CreateFailureReport(args[0]);
         }
 

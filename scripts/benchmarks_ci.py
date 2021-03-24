@@ -246,7 +246,7 @@ def __main(args: list) -> int:
                 'FailureReporting.exe', globpath
             ]
             RunCommand(cmdline, verbose=verbose).run(
-                os.path.join(get_artifacts_directory()))
+                os.path.join(get_artifacts_directory(), 'bin\\FailureReporting\\Debug\\netcoreapp3.1'))
             
         dotnet.shutdown_server(verbose)
 
