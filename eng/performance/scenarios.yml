@@ -108,6 +108,10 @@ jobs:
             displayName: Build SOD tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+          - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)FailureReporter -f $(_Framework) -r linux-${{parameters.architecture}} $(Build.SourcesDirectory)\src\tools\Reporting\FailureReporting\FailureReporting.csproj
+            displayName: Build FailureReporter tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
         - template: /eng/performance/send-to-helix.yml
           parameters:
             HelixSource: '$(HelixSourcePrefix)/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
