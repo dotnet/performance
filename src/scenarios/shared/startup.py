@@ -6,12 +6,13 @@ import os
 import platform
 from shutil import copytree
 from performance.logger import setup_loggers
-from performance.common import get_artifacts_directory, get_packages_directory, RunCommand
+from performance.common import helixpayload, get_artifacts_directory, get_packages_directory, RunCommand
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from dotnet import CSharpProject, CSharpProjFile
-from shared.util import extension, helixpayload, helixworkitempayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier, iswin
+from shared.util import extension, helixworkitempayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier, iswin
 from shared.const import *
 from shared.testtraits import TestTraits
+from subprocess import CalledProcessError
 class StartupWrapper(object):
     '''
     Wraps startup.exe, building it if necessary.
@@ -101,11 +102,24 @@ class StartupWrapper(object):
         if traits.innerloopcommandargs:
             startup_args.extend(['--inner-loop-command-args', traits.innerloopcommandargs])
             
-        RunCommand(startup_args, verbose=True).run()
+        upload_container = UPLOAD_CONTAINER
 
+        try:
+            RunCommand(startup_args, verbose=True).run()
+        except CalledProcessError:
+            upload_container = 'failedresults'
+            reportjson = os.path.join(
+                TRACEDIR,
+                'FailureReporter', 
+                'failure-report.json')
+            cmdline = [
+                'FailureReporting.exe', reportjson
+            ]
+            RunCommand(cmdline, verbose=True).run(
+                os.path.join(helixpayload(), 'FailureReporter'))
 
         if runninginlab():
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
             if uploadtokenpresent():
                 import upload
-                upload.upload(reportjson, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+                upload.upload(reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
