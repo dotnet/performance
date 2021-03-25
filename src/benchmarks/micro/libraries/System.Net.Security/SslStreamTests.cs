@@ -20,12 +20,12 @@ namespace System.Net.Security.Tests
     public partial class SslStreamTests
     {
         private readonly Barrier _twoParticipantBarrier = new Barrier(2);
-        private readonly X509Certificate2 _cert = Test.Common.Configuration.Certificates.GetServerCertificate();
-        private readonly X509Certificate2 _ec256Cert = Test.Common.Configuration.Certificates.GetEC256Certificate();
-        private readonly X509Certificate2 _ec512Cert = Test.Common.Configuration.Certificates.GetEC512Certificate();
-        private readonly X509Certificate2 _rsa1024Cert = Test.Common.Configuration.Certificates.GetRSA1024Certificate();
-        private readonly X509Certificate2 _rsa2048Cert = Test.Common.Configuration.Certificates.GetRSA2048Certificate();
-        private readonly X509Certificate2 _rsa4096Cert = Test.Common.Configuration.Certificates.GetRSA4096Certificate();
+        private static readonly X509Certificate2 _cert = Test.Common.Configuration.Certificates.GetServerCertificate();
+        private static readonly X509Certificate2 _ec256Cert = Test.Common.Configuration.Certificates.GetEC256Certificate();
+        private static readonly X509Certificate2 _ec512Cert = Test.Common.Configuration.Certificates.GetEC512Certificate();
+        private static readonly X509Certificate2 _rsa1024Cert = Test.Common.Configuration.Certificates.GetRSA1024Certificate();
+        private static readonly X509Certificate2 _rsa2048Cert = Test.Common.Configuration.Certificates.GetRSA2048Certificate();
+        private static readonly X509Certificate2 _rsa4096Cert = Test.Common.Configuration.Certificates.GetRSA4096Certificate();
 
         private readonly byte[] _clientBuffer = new byte[1], _serverBuffer = new byte[1];
         private readonly byte[] _largeClientBuffer = new byte[4096], _largeServerBuffer = new byte[4096];
@@ -115,33 +115,18 @@ namespace System.Net.Security.Tests
                 await Task.WhenAll(
                     sslClient.AuthenticateAsClientAsync("localhost", null, SslProtocols.None, checkCertificateRevocation: false),
                     sslServer.AuthenticateAsServerAsync(_cert, clientCertificateRequired: false, SslProtocols.None, checkCertificateRevocation: false));
-                // SslProtocols.Tls13 does not exist in netstandard2.0
                 if ((int)sslClient.SslProtocol > (int)SslProtocols.Tls12)
                 {
                     // In Tls1.3 part of handshake happens with data exchange.
+                    await sslClient.WriteAsync(_clientBuffer, default);
+                    await sslServer.ReadAsync(_serverBuffer, default);
                     await sslServer.WriteAsync(_serverBuffer, default);
                     await sslClient.ReadAsync(_clientBuffer, default);
                 }
             }
         }
 
-        [Benchmark]
-        public Task TLS12HandshakeECDSA256CertAsync() => HandshakeAsync(_ec256Cert, SslProtocols.Tls12);
-
-        [Benchmark]
-        [AllowedOperatingSystems("Not supported on Windows at the moment.", OS.Linux)]
-        public Task TLS12HandshakeECDSA512CertAsync() => HandshakeAsync(_ec512Cert, SslProtocols.Tls12);
-
-        [Benchmark]
-        public Task TLS12HandshakeRSA1024CertAsync() => HandshakeAsync(_rsa1024Cert, SslProtocols.Tls12);
-
-        [Benchmark]
-        public Task TLS12HandshakeRSA2048CertAsync() => HandshakeAsync(_rsa2048Cert, SslProtocols.Tls12);
-
-        [Benchmark]
-        public Task TLS12HandshakeRSA4096CertAsync() => HandshakeAsync(_rsa4096Cert, SslProtocols.Tls12);
-
-        private async Task HandshakeAsync(X509Certificate certificate, SslProtocols sslProtocol)
+        private static async Task HandshakeAsync(X509Certificate certificate, SslProtocols sslProtocol)
         {
             string pipeName = "TlsHandshakePipe";
             RemoteCertificateValidationCallback clientRemoteCallback = new RemoteCertificateValidationCallback(delegate { return true; });
