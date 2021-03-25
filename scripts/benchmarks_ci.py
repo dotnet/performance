@@ -239,14 +239,14 @@ def __main(args: list) -> int:
         except CalledProcessError:
             upload_container = 'failedresults'
             globpath = os.path.join(
-                get_artifacts_directory(), 
+                get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
                 'FailureReporter', 
                 'failure-report.json')
             cmdline = [
                 'FailureReporting.exe', globpath
             ]
             RunCommand(cmdline, verbose=verbose).run(
-                os.path.join(get_artifacts_directory(), 'bin\\FailureReporting\\Debug\\netcoreapp3.1'))
+                os.path.join(helixpayload(), 'FailureReporter'))
             
         dotnet.shutdown_server(verbose)
 

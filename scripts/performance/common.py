@@ -4,6 +4,7 @@ Common functionality used by the repository scripts.
 
 from contextlib import contextmanager
 from logging import getLogger
+from os import environ
 from shutil import rmtree
 from stat import S_IWRITE
 from subprocess import CalledProcessError
@@ -65,6 +66,12 @@ def remove_directory(path: str) -> None:
 
         rmtree(path, onerror=handle_rmtree_errors)
 
+
+def helixpayload():
+    '''
+    Returns the helix payload. Will be None outside of helix.
+    '''
+    return environ.get('HELIX_CORRELATION_PAYLOAD')
 
 def get_script_path() -> str:
     '''Gets this script directory.'''
