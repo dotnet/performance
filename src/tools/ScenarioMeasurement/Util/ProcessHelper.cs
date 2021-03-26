@@ -134,11 +134,7 @@ namespace ScenarioMeasurement
                         }
                         else
                         {
-                            Console.WriteLine(process.StartInfo.FileName);
-                            Console.WriteLine(process.StartInfo.Arguments);
-                            Console.WriteLine(process.Id);
                             process.Kill();
-                            Thread.Sleep(5000);
                             return (Result.Success, pid);
                         }
                     }
