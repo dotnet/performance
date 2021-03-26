@@ -85,16 +85,8 @@ namespace ScenarioMeasurement
                     {
                         if(evt.PayloadString(5).ToLower() == "hosting started")
                         {
-                            Console.WriteLine(pid.HasValue);
-                            Console.WriteLine(evt.ProcessID);
-                            Console.WriteLine("Pid list:");
-                            Console.WriteLine(pid);
-                            Console.WriteLine(ParserUtility.MatchSingleProcessID(evt, source, (int)pid));
-                            if (pid.HasValue)// && ParserUtility.MatchSingleProcessID(evt, source, (int)pid))
+                            if (pid.HasValue)
                             {
-                                Console.WriteLine(evt.PayloadString(5).ToLower());
-                                Console.WriteLine("Here");
-                                Console.WriteLine(evt.TimeStampRelativeMSec - start);
                                 results.Add(evt.TimeStampRelativeMSec - start);
                                 pid = null;
                                 start = 0;

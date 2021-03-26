@@ -77,8 +77,8 @@ namespace ScenarioMeasurement
 
             if (!GuiApp)
             {
-                //psi.RedirectStandardOutput = true;
-                //psi.RedirectStandardError = true;
+                psi.RedirectStandardOutput = true;
+                psi.RedirectStandardError = true;
             }
             else
             {
@@ -89,29 +89,29 @@ namespace ScenarioMeasurement
             using (var process = new Process())
             {
                 process.StartInfo = psi;
-                // if (!GuiApp)
-                // {
-                //     process.OutputDataReceived += (s, e) =>
-                //     {
-                //         if (!String.IsNullOrEmpty(e.Data))
-                //         {
-                //             output.AppendLine(e.Data);
-                //         }
-                //     };
-                //     process.ErrorDataReceived += (s, e) =>
-                //     {
-                //         if (!String.IsNullOrEmpty(e.Data))
-                //         {
-                //             error.AppendLine(e.Data);
-                //         }
-                //     };
-                // }
+                if (!GuiApp)
+                {
+                    process.OutputDataReceived += (s, e) =>
+                    {
+                        if (!String.IsNullOrEmpty(e.Data))
+                        {
+                            output.AppendLine(e.Data);
+                        }
+                    };
+                    process.ErrorDataReceived += (s, e) =>
+                    {
+                        if (!String.IsNullOrEmpty(e.Data))
+                        {
+                            error.AppendLine(e.Data);
+                        }
+                    };
+                }
                 process.Start();
                 int pid = process.Id;
                 if (!GuiApp)
                 {
-                    // process.BeginOutputReadLine();
-                    // process.BeginErrorReadLine();
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
                 }
 
                 if (ProcessWillExit)
