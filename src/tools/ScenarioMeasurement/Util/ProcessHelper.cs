@@ -126,7 +126,18 @@ namespace ScenarioMeasurement
                 else
                 {
                     Thread.Sleep(MeasurementDelay * 1000);
-                    if (!process.HasExited) { process.CloseMainWindow(); }
+                    if (!process.HasExited)
+                    {
+                        if(GuiApp)
+                        {
+                            process.CloseMainWindow();
+                        }
+                        else
+                        {
+                            process.Kill();
+                            return (Result.Success, pid);
+                        }
+                    }
                     else
                     {
                         return (Result.ExitedEarly, pid);
