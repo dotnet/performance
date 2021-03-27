@@ -26,6 +26,6 @@ namespace System.Security.Cryptography.X509Certificates.Tests
         public bool BuildX509ChainSelfSigned() => BuildChain(_rsa4096Cert);
 
         [Benchmark]
-        public bool BuildX509ChainContonso() => BuildChain(_cert);
+        public bool BuildX509ChainContoso() => BuildChain(_cert);
     }
 }
