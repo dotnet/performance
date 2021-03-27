@@ -105,61 +105,82 @@ namespace System.Net.Security.Tests
         public Task DefaultHandshakeIPv6Async() => DefaultHandshake(_clientIPv6, _serverIPv6);
 
         [Benchmark]
+        [AllowedOperatingSystems("Not supported on Windows at the moment.", OS.Linux)]
         public Task DefaultHandshakePipeAsync() => DefaultHandshake(_clientPipe, _serverPipe);
 
         private async Task DefaultHandshake(Stream client, Stream server)
         {
+            SslClientAuthenticationOptions clientOptions = new SslClientAuthenticationOptions
+            {
+                AllowRenegotiation = false,
+                EnabledSslProtocols = SslProtocols.None,
+                CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                TargetHost = "loopback",
+            };
+
+            SslServerAuthenticationOptions serverOptions = new SslServerAuthenticationOptions
+            {
+                AllowRenegotiation = false,
+                EnabledSslProtocols = SslProtocols.None,
+                CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                ServerCertificate = _cert
+            };
+
             using (var sslClient = new SslStream(client, leaveInnerStreamOpen: true, delegate { return true; }))
             using (var sslServer = new SslStream(server, leaveInnerStreamOpen: true, delegate { return true; }))
+            using (CancellationTokenSource cts = new CancellationTokenSource())
             {
+                cts.CancelAfter(TimeSpan.FromSeconds(10));
                 await Task.WhenAll(
-                    sslClient.AuthenticateAsClientAsync("localhost", null, SslProtocols.None, checkCertificateRevocation: false),
-                    sslServer.AuthenticateAsServerAsync(_cert, clientCertificateRequired: false, SslProtocols.None, checkCertificateRevocation: false));
+                    sslClient.AuthenticateAsClientAsync(clientOptions, cts.Token),
+                    sslServer.AuthenticateAsServerAsync(serverOptions, cts.Token));
                 if ((int)sslClient.SslProtocol > (int)SslProtocols.Tls12)
                 {
                     // In Tls1.3 part of handshake happens with data exchange.
-                    await sslClient.WriteAsync(_clientBuffer, default);
-                    await sslServer.ReadAsync(_serverBuffer, default);
-                    await sslServer.WriteAsync(_serverBuffer, default);
-                    await sslClient.ReadAsync(_clientBuffer, default);
+                    await sslClient.WriteAsync(_clientBuffer, cts.Token);
+                    await sslServer.ReadAsync(_serverBuffer, cts.Token);
+                    await sslServer.WriteAsync(_serverBuffer, cts.Token);
+                    await sslClient.ReadAsync(_clientBuffer, cts.Token);
                 }
             }
         }
 
         private static async Task HandshakeAsync(X509Certificate certificate, SslProtocols sslProtocol)
         {
-            string pipeName = "TlsHandshakePipe";
             RemoteCertificateValidationCallback clientRemoteCallback = new RemoteCertificateValidationCallback(delegate { return true; });
-
-            using (var serverPipe = new NamedPipeServerStream(pipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.WriteThrough))
-            using (var clientPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.WriteThrough))
+            (Stream clientStream, Stream serverStream) = ConnectedStreams.CreateBidirectional(initialBufferSize: 4096, maxBufferSize: int.MaxValue);
+            SslClientAuthenticationOptions clientOptions = new SslClientAuthenticationOptions
             {
-                await Task.WhenAll(serverPipe.WaitForConnectionAsync(), clientPipe.ConnectAsync());
+                AllowRenegotiation = false,
+                EnabledSslProtocols = sslProtocol,
+                CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                TargetHost = Guid.NewGuid().ToString(),
+                RemoteCertificateValidationCallback = clientRemoteCallback
+            };
 
-                SslClientAuthenticationOptions clientOptions = new SslClientAuthenticationOptions
-                {
-                        AllowRenegotiation = false,
-                        EnabledSslProtocols = sslProtocol,
-                        CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
-                        TargetHost = Guid.NewGuid().ToString(),
-                        RemoteCertificateValidationCallback = clientRemoteCallback
-                };
+            SslServerAuthenticationOptions serverOptions = new SslServerAuthenticationOptions
+            {
+                AllowRenegotiation = false,
+                EnabledSslProtocols = sslProtocol,
+                CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                ServerCertificate = certificate
+            };
 
-                SslServerAuthenticationOptions serverOptions = new SslServerAuthenticationOptions
-                {
-                    AllowRenegotiation = false,
-                    EnabledSslProtocols = sslProtocol,
-                    CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
-                    ServerCertificate = certificate
-                };
+            using (var sslClient = new SslStream(clientStream))
+            using (var sslServer = new SslStream(serverStream))
+            using (CancellationTokenSource cts = new CancellationTokenSource())
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(10));
+                await Task.WhenAll(
+                        sslClient.AuthenticateAsClientAsync(clientOptions, cts.Token),
+                        sslServer.AuthenticateAsServerAsync(serverOptions, cts.Token));
 
-                using (var sslClient = new SslStream(clientPipe))
-                using (var sslServer = new SslStream(serverPipe))
-                {
-                    await Task.WhenAll(
-                        sslClient.AuthenticateAsClientAsync(clientOptions, CancellationToken.None),
-                        sslServer.AuthenticateAsServerAsync(serverOptions, CancellationToken.None));
-                }
+                byte[] clientBuffer = new byte[1], serverBuffer = new byte[1];
+
+                await sslClient.WriteAsync(clientBuffer, cts.Token);
+                await sslServer.ReadAsync(serverBuffer, cts.Token);
+                await sslServer.WriteAsync(serverBuffer, cts.Token);
+                await sslClient.ReadAsync(clientBuffer, cts.Token);
             }
         }
 
