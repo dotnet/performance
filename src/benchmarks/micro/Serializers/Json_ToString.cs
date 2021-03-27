@@ -11,6 +11,7 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(IndexViewModel))]
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
+    [BenchmarkCategory(Categories.NoAOT)]
     public class Json_ToString<T>
     {
         private T value;

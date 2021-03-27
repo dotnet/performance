@@ -2,6 +2,10 @@ from argparse import ArgumentParser
 
 class ChannelMap():
     channel_map = {
+        'main': {
+            'tfm': 'net6.0',
+            'branch': 'master'
+        },
         'master': {
             'tfm': 'net6.0',
             'branch': 'master'

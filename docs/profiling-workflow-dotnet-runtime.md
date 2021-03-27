@@ -36,7 +36,7 @@
 
 **This doc explains how to profile local [dotnet/runtime](https://github.com/dotnet/runtime) builds and it's targetted at [dotnet/runtime](https://github.com/dotnet/runtime) repository contributors.**
 
-Before you start any performance investigation, you need to [build](#Build) [dotnet/runtime](https://github.com/dotnet/runtime) in **Release**, create a small [repro](#Repro) app and change the default [project settings](#Project-Settings). If you want to profile a BenchmarkDotNet test (like those in this repo), [BenchmarkDotNet has built-in profiling option](https://github.com/dotnet/performance/blob/master/docs/benchmarkdotnet.md#profiling) to collect trace.  
+Before you start any performance investigation, you need to [build](#Build) [dotnet/runtime](https://github.com/dotnet/runtime) in **Release**, create a small [repro](#Repro) app and change the default [project settings](#Project-Settings). If you want to profile a BenchmarkDotNet test (like those in this repo), [BenchmarkDotNet has built-in profiling option](https://github.com/dotnet/performance/blob/main/docs/benchmarkdotnet.md#profiling) to collect trace.  
 
 The next step is to choose the right profiler depending on the OS:
 
@@ -44,7 +44,7 @@ The next step is to choose the right profiler depending on the OS:
   * [Visual Studio Profiler](#Visual-Studio-Profiler) allows for [CPU](#CPU-Investigation) and [memory](#Allocation-Tracking) profiling. It's intuitive to use and you should **use it be default**.
   * [PerfView](#PerfView) is the ultimate .NET Profiler but it has a high entry cost. If Visual Studio Profiler is not enough, you should switch to [PerfView](#PerfView).
 * Linux
-  * [dotnet trace](https://github.com/dotnet/diagnostics/blob/master/documentation/dotnet-trace-instructions.md) works on every OS, it's easy to use and it should be your **default choice** on Unix systems.
+  * [dotnet trace](https://github.com/dotnet/diagnostics/blob/main/documentation/dotnet-trace-instructions.md) works on every OS, it's easy to use and it should be your **default choice** on Unix systems.
   * [PerfCollect](#PerfCollect) is a simple, yet very powerful script that allows for profiling native parts of .NET Core. You should use it if `dotnet trace` can not handle your case.
 
 If you clearly need information on CPU instruction level, then depending on the hardware you should use [Intel VTune](#VTune) or [AMD uProf](https://developer.amd.com/amd-uprof/).
@@ -72,6 +72,8 @@ C:\Projects\runtime\artifacts\bin\testhost\net6.0-windows-Release-x64\dotnet.exe
 ```log
 C:\Projects\runtime\artifacts\bin\testhost\net6.0-windows-Release-x64\shared\Microsoft.NETCore.App\6.0.0\CoreRun.exe
 ```
+
+* But the dotnet/runtime build only produces the artifacts necessary for a _runtime_, not for an _sdk_. Visual Studio will require a full SDK to be able to compile your console app from the next step. One way to convert your generated _runtime_ into a full _sdk_, is to navigate to the `runtime\.dotnet\` folder, copy the `packs` and `sdk` folders located inside, and then paste them inside `runtime\artifacts\bin\testhost\net6.0-windows-Release-x64\`.
 
 Once you rebuild the part of [dotnet/runtime](https://github.com/dotnet/runtime) you are working on, the appropriate `.dll` gets updated and the next time you run profiler, dotnet|CoreRun is going to use the updated library.
 
@@ -598,7 +600,7 @@ PerfCollect is a simple, yet very powerful script that allows for profiling .NET
 
 In contrary to `dotnet trace` it gives you native call stacks which are very useful when you need to profile native parts of [dotnet/runtime](https://github.com/dotnet/runtime).
 
-It has it's own excellent [documentation](https://github.com/dotnet/runtime/blob/master/docs/project/linux-performance-tracing.md) (a **highly recommended read**), the goal of this doc is not to duplicate it, but rather show **how to profile local [dotnet/runtime](https://github.com/dotnet/runtime) build running on a Linux VM from a Windows developer machine**. We need two OSes because as of today only PerfView is capable of opening a `PerfCollect` trace file.
+It has it's own excellent [documentation](https://github.com/dotnet/runtime/blob/main/docs/project/linux-performance-tracing.md) (a **highly recommended read**), the goal of this doc is not to duplicate it, but rather show **how to profile local [dotnet/runtime](https://github.com/dotnet/runtime) build running on a Linux VM from a Windows developer machine**. We need two OSes because as of today only PerfView is capable of opening a `PerfCollect` trace file.
 
 ## Preparing Your Machine
 

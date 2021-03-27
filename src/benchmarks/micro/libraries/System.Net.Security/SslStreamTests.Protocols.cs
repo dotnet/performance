@@ -31,7 +31,7 @@ namespace System.Net.Security.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(TlsProtocols))]
-        [AllowedOperatingSystems("Not supported on Windows at the moment.", OS.Linux)]
+        [AllowedOperatingSystems("Not supported on Windows at the moment.", BenchmarkDotNet.Extensions.OS.Linux)]
         public Task HandshakeECDSA512CertAsync(SslProtocols protocol) => SslStreamTests.HandshakeAsync(SslStreamTests._ec512Cert, protocol);
 
         [Benchmark]

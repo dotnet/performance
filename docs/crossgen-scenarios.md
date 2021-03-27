@@ -14,13 +14,13 @@ An introduction of how to run scenario tests can be found in [Scenarios Tests Gu
 - clean state of the test machine (anti-virus scan is off and no other user program's running -- to minimize the influence of environment on the test)
 
 ### 1. Generate Core_Root
-These performance tests use the built runtime test directory [Core_Root](https://github.com/dotnet/runtime/blob/master/docs/workflow/testing/using-corerun.md) for the crossgen tool itself and other runtime assmblies as compilation input. Core_Root is an intermediate output from the runtime build, which contains runtime assemblies and tools.
+These performance tests use the built runtime test directory [Core_Root](https://github.com/dotnet/runtime/blob/main/docs/workflow/testing/using-corerun.md) for the crossgen tool itself and other runtime assmblies as compilation input. Core_Root is an intermediate output from the runtime build, which contains runtime assemblies and tools.
 
 You can skip this step if you already have Core_Root. To generate Core_Root directory, first clone [dotnet/runtime repo](https://github.com/dotnet/runtime) and run:
 ```
 src\tests\build.cmd Release <arch> generatelayoutonly
 ```
-[the instruction of building coreclr tests](https://github.com/dotnet/runtime/blob/master/docs/workflow/testing/coreclr/windows-test-instructions.md), which creates Core_Root directory.
+[the instruction of building coreclr tests](https://github.com/dotnet/runtime/blob/main/docs/workflow/testing/coreclr/windows-test-instructions.md), which creates Core_Root directory.
 
 If the build's successful, you should have Core_Root with the path like:
 ```
@@ -30,7 +30,7 @@ If the build's successful, you should have Core_Root with the path like:
 Same instruction of [Scenario Tests Guide - Step 1](./scenarios-workflow.md#step-1-initialize-environment).
 
 ## Crossgen Throughput Scenario
-**Crossgen Throughput** is a scenario test that measures the throughput of [crossgen compilation](https://github.com/dotnet/runtime/blob/master/docs/workflow/building/coreclr/crossgen.md). To be more specific, our test *implicitly* calls
+**Crossgen Throughput** is a scenario test that measures the throughput of [crossgen compilation](https://github.com/dotnet/runtime/blob/main/docs/workflow/building/coreclr/crossgen.md). To be more specific, our test *implicitly* calls
 ```
 .\crossgen.exe <assembly to compile>
 ``` 
@@ -48,7 +48,7 @@ Now run the test, in our example we use `System.Private.Xml.dll` under Core_Root
 ```
 python3 test.py crossgen --core-root <path to core_root>\Core_Root --single System.Private.Xml.dll
 ```
-This will run the test harness [Startup Tool](https://github.com/dotnet/performance/tree/master/src/tools/ScenarioMeasurement/Startup), which runs crossgen compilation in several iterations and measures its throughput. The result will be something like this:
+This will run the test harness [Startup Tool](https://github.com/dotnet/performance/tree/main/src/tools/ScenarioMeasurement/Startup), which runs crossgen compilation in several iterations and measures its throughput. The result will be something like this:
 
 ```
 [2020/09/25 09:54:48][INFO] Parsing traces\Crossgen Throughput - System.Private.Xml.etl
@@ -85,13 +85,13 @@ For scenario which compiles a **single assembly**, we use `System.Private.Xml.dl
 python3 test.py crossgen2 --core-root <path to core_root>\Core_Root --single System.Private.Xml.dll
 ```
 
-For scenario which does **composite compilation**, we try to compile the majority of runtime assemblies represented by [framework-r2r.dll.rsp](https://github.com/dotnet/performance/blob/master/src/scenarios/crossgen2/framework-r2r.dll.rsp):
+For scenario which does **composite compilation**, we try to compile the majority of runtime assemblies represented by [framework-r2r.dll.rsp](https://github.com/dotnet/performance/blob/main/src/scenarios/crossgen2/framework-r2r.dll.rsp):
 ```
 python3 test.py crossgen2 --core-root <path to core_root>\Core_Root --composite <repo root>/src/scenarios/crossgen2/framework-r2r.dll.rsp
 ```
-Note that for the composite scenario, the command line can exceed the maximum length if it takes a list of paths to assemblies, so an `.rsp` file is used to avoid it.  `--composite <rsp file>` option refers to a rsp file that contains a list of assemblies to compile. A sample file [framework-r2r.dll.rsp](https://github.com/dotnet/performance/blob/master/src/scenarios/crossgen2/framework-r2r.dll.rsp) can be found under `crossgen2\` folder.
+Note that for the composite scenario, the command line can exceed the maximum length if it takes a list of paths to assemblies, so an `.rsp` file is used to avoid it.  `--composite <rsp file>` option refers to a rsp file that contains a list of assemblies to compile. A sample file [framework-r2r.dll.rsp](https://github.com/dotnet/performance/blob/main/src/scenarios/crossgen2/framework-r2r.dll.rsp) can be found under `crossgen2\` folder.
  
-The test command runs the test harness [Startup Tool](https://github.com/dotnet/performance/tree/master/src/tools/ScenarioMeasurement/Startup), which runs crossgen2 compilation in several iterations and measures its throughput. The result should partially look like:
+The test command runs the test harness [Startup Tool](https://github.com/dotnet/performance/tree/main/src/tools/ScenarioMeasurement/Startup), which runs crossgen2 compilation in several iterations and measures its throughput. The result should partially look like:
  ```
  [2020/09/25 10:25:09][INFO] Merging traces\Crossgen2 Throughput - Single - System.Private.perflabkernel.etl,traces\Crossgen2 Throughput - Single - System.Private.perflabuser.etl...
 [2020/09/25 10:25:11][INFO] Trace Saved to traces\Crossgen2 Throughput - Single - System.Private.etl
@@ -157,4 +157,4 @@ For the purpose of quick reference, the commands can be summarized into the foll
 | Crossgen2 Size on Disk                 | crossgen2       | pre.py crossgen2 --core-root \<path to Core_Root> --single \<assembly name>    | test.py sod --dirs crossgen.out                                                   | post.py     | N/A                 | Windows-x64;Linux       |
 
 ## Relevant Links
-[Crossgen2 Compilation Structure Enhancements](https://github.com/dotnet/runtime/blob/master/docs/design/features/crossgen2-compilation-structure-enhancements.md)
+[Crossgen2 Compilation Structure Enhancements](https://github.com/dotnet/runtime/blob/main/docs/design/features/crossgen2-compilation-structure-enhancements.md)
