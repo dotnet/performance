@@ -134,7 +134,7 @@ namespace System.IO
 
             public override int Read(byte[] buffer, int offset, int count)
             {
-                ValidateBufferArguments(buffer, offset, count);
+                ValidateReadArrayArguments(buffer, offset, count);
                 ThrowIfDisposed();
                 ThrowIfReadingNotSupported();
 
@@ -161,7 +161,7 @@ namespace System.IO
 
             public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
             {
-                ValidateBufferArguments(buffer, offset, count);
+                ValidateReadArrayArguments(buffer, offset, count);
                 ThrowIfDisposed();
                 ThrowIfReadingNotSupported();
 
@@ -178,7 +178,7 @@ namespace System.IO
 
             public override void Write(byte[] buffer, int offset, int count)
             {
-                ValidateBufferArguments(buffer, offset, count);
+                ValidateReadArrayArguments(buffer, offset, count);
                 ThrowIfDisposed();
                 ThrowIfWritingNotSupported();
 
@@ -203,7 +203,7 @@ namespace System.IO
 
             public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
             {
-                ValidateBufferArguments(buffer, offset, count);
+                ValidateReadArrayArguments(buffer, offset, count);
                 ThrowIfDisposed();
                 ThrowIfWritingNotSupported();
 
@@ -228,7 +228,6 @@ namespace System.IO
                 if (_disposed)
                     ThrowDisposedException();
 
-                [StackTraceHidden]
                 static void ThrowDisposedException() => throw new ObjectDisposedException(nameof(ConnectedStreams));
             }
 
@@ -305,7 +304,7 @@ namespace System.IO
 
             public override int Read(byte[] buffer, int offset, int count)
             {
-                ValidateBufferArguments(buffer, offset, count);
+                ValidateReadArrayArguments(buffer, offset, count);
                 ThrowIfDisposed();
 
                 return _readBuffer.Read(new Span<byte>(buffer, offset, count));
@@ -328,7 +327,7 @@ namespace System.IO
 
             public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
             {
-                ValidateBufferArguments(buffer, offset, count);
+                ValidateReadArrayArguments(buffer, offset, count);
                 ThrowIfDisposed();
                 return _readBuffer.ReadAsync(new Memory<byte>(buffer, offset, count), cancellationToken).AsTask();
             }
@@ -341,7 +340,7 @@ namespace System.IO
 
             public override void Write(byte[] buffer, int offset, int count)
             {
-                ValidateBufferArguments(buffer, offset, count);
+                ValidateReadArrayArguments(buffer, offset, count);
                 ThrowIfDisposed();
                 _writeBuffer.Write(new ReadOnlySpan<byte>(buffer, offset, count));
             }
@@ -360,7 +359,7 @@ namespace System.IO
 
             public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
             {
-                ValidateBufferArguments(buffer, offset, count);
+                ValidateReadArrayArguments(buffer, offset, count);
                 ThrowIfDisposed();
                 return _writeBuffer.WriteAsync(new ReadOnlyMemory<byte>(buffer, offset, count), cancellationToken).AsTask();
             }
@@ -381,8 +380,25 @@ namespace System.IO
                 if (_disposed)
                     ThrowDisposedException();
 
-                [StackTraceHidden]
                 static void ThrowDisposedException() => throw new ObjectDisposedException(nameof(ConnectedStreams));
+            }
+        }
+
+        private static void ValidateReadArrayArguments(byte[] buffer, int offset, int count)
+        {
+            if (buffer is null)
+            {
+                throw new ArgumentNullException(nameof(buffer));
+            }
+
+            if (offset < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(offset));
+            }
+
+            if ((uint)count > buffer.Length - offset)
+            {
+                throw new ArgumentOutOfRangeException(nameof(count));
             }
         }
     }

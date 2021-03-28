@@ -98,6 +98,8 @@
     <Compile Remove="libraries\System.Numerics.BitOperations\Perf_BitOperations.cs" />
     <Compile Remove="libraries\System.Text.Json\**\*.cs" />
     <Compile Remove="libraries\System.Net.Security\SslStreamTests.Protocols.cs" />
+    <Compile Remove="libraries\Common\ConnectedStreams.cs" />
+    <Compile Remove="libraries\Common\StreamBuffer.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.1') OR '$(IsARM)' == 'true'">

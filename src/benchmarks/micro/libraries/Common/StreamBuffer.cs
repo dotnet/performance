@@ -304,6 +304,7 @@ namespace System.IO
             // The rest of the logic is deferred to ManualResetValueTaskSourceCore.
 
             private ManualResetValueTaskSourceCore<bool> _waitSource; // mutable struct, do not make this readonly
+	    private CancellationToken _waitSourceCancellationToken;
             private CancellationTokenRegistration _waitSourceCancellation;
             private int _hasWaiter;
 
@@ -318,6 +319,7 @@ namespace System.IO
                 // Clean up the registration.  This will wait for any in-flight cancellation to complete.
                 _waitSourceCancellation.Dispose();
                 _waitSourceCancellation = default;
+		_waitSourceCancellationToken = default;
 
                 // Propagate any exceptions if there were any.
                 _waitSource.GetResult(token);
@@ -331,13 +333,12 @@ namespace System.IO
                 }
             }
 
-            private void CancelWaiter(CancellationToken cancellationToken)
+            private void CancelWaiter()
             {
-                Debug.Assert(cancellationToken.IsCancellationRequested);
-
                 if (Interlocked.Exchange(ref _hasWaiter, 0) == 1)
                 {
-                    _waitSource.SetException(ExceptionDispatchInfo.SetCurrentStackTrace(new OperationCanceledException(cancellationToken)));
+                    Debug.Assert(_waitSourceCancellationToken != default);
+		    _waitSource.SetException(ExceptionDispatchInfo.SetCurrentStackTrace(new OperationCanceledException(_waitSourceCancellationToken)));
                 }
             }
 
@@ -361,8 +362,8 @@ namespace System.IO
             public ValueTask WaitAsync(CancellationToken cancellationToken)
             {
                 _waitSource.RunContinuationsAsynchronously = true;
-
-                _waitSourceCancellation = cancellationToken.UnsafeRegister(static (s, token) => ((ResettableValueTaskSource)s!).CancelWaiter(token), this);
+		_waitSourceCancellationToken = cancellationToken;
+                _waitSourceCancellation = cancellationToken.UnsafeRegister(static s => ((ResettableValueTaskSource)s!).CancelWaiter(), this);
 
                 return new ValueTask(this, _waitSource.Version);
             }
