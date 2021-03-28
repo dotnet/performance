@@ -67,7 +67,7 @@ class FrameworkAction(Action):
         To run CoreRT benchmarks we need to run the host BDN process as latest
         .NET Core the host process will build and run CoreRT benchmarks
         '''
-        return ChannelMap.get_target_framework_moniker("master") if framework == 'corert' else framework
+        return ChannelMap.get_target_framework_moniker("main") if framework == 'corert' else framework
 
     @staticmethod
     def get_target_framework_monikers(frameworks: list) -> list:
@@ -854,7 +854,7 @@ def __process_arguments(args: list):
         dest='channels',
         required=False,
         nargs='+',
-        default=['master'],
+        default=['main'],
         choices= ChannelMap.get_supported_channels(),
         help='Download DotNet Cli from the Channel specified.'
     )

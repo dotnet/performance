@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 // Adapted from binary-trees C# .NET Core #6 program
-// https://salsa.debian.org/benchmarksgame-team/benchmarksgame/-/blob/master/public/download/benchmarksgame-sourcecode.zip
 // Best-scoring C# .NET Core version as of 2020-08-12
 
 // The Computer Language Benchmarks Game

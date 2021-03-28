@@ -9,6 +9,9 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Reports;
 using System.Collections.Generic;
 using Reporting;
+using BenchmarkDotNet.Loggers;
+using System.Linq;
+using BenchmarkDotNet.Exporters;
 
 namespace BenchmarkDotNet.Extensions
 {
@@ -37,7 +40,12 @@ namespace BenchmarkDotNet.Extensions
                 job = job.WithArguments(new Argument[] { new MsBuildArgument("/p:DebugType=portable") });
             }
 
-            var config = DefaultConfig.Instance
+            var config = ManualConfig.CreateEmpty()
+                .AddLogger(ConsoleLogger.Default) // log output to console
+                .AddValidator(DefaultConfig.Instance.GetValidators().ToArray()) // copy default validators
+                .AddAnalyser(DefaultConfig.Instance.GetAnalysers().ToArray()) // copy default analysers
+                .AddExporter(MarkdownExporter.GitHub) // export to GitHub markdown
+                .AddColumnProvider(DefaultColumnProviders.Instance) // display default columns (method name, args etc)
                 .AddJob(job.AsDefault()) // tell BDN that this are our default settings
                 .WithArtifactsPath(artifactsPath.FullName)
                 .AddDiagnoser(MemoryDiagnoser.Default) // MemoryDiagnoser is enabled by default
