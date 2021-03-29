@@ -115,8 +115,10 @@ class StartupWrapper(object):
             cmdline = [
                 'FailureReporting.exe', reportjson
             ]
-            RunCommand(cmdline, verbose=True).run(
-                os.path.join(helixpayload(), 'FailureReporter'))
+            reporterpath = os.path.join(helixpayload(), 'FailureReporter')
+            if not os.path.exists(reporterpath):
+                throw FileNotFoundError
+            RunCommand(cmdline, verbose=verbose).run(reporterpath)
 
         if runninginlab():
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))

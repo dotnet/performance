@@ -245,8 +245,10 @@ def __main(args: list) -> int:
             cmdline = [
                 'FailureReporting.exe', globpath
             ]
-            RunCommand(cmdline, verbose=verbose).run(
-                os.path.join(helixpayload(), 'FailureReporter'))
+            reporterpath = os.path.join(helixpayload(), 'FailureReporter')
+            if not os.path.exists(reporterpath):
+                throw FileNotFoundError
+            RunCommand(cmdline, verbose=verbose).run(reporterpath)
             
         dotnet.shutdown_server(verbose)
 
