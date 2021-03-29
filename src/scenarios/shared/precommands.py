@@ -10,9 +10,9 @@ from argparse import ArgumentParser
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
 from shared.crossgen import CrossgenArguments
-from shared.util import extension, helixpayload
+from shared.util import extension
 from shared.codefixes import replace_line, insert_after
-from performance.common import get_packages_directory, get_repo_root_path, RunCommand
+from performance.common import get_packages_directory, get_repo_root_path, RunCommand, helixpayload
 
 DEFAULT = 'default'
 BUILD = 'build'

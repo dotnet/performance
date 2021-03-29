@@ -8,12 +8,6 @@ from os import environ
 from shared import const
 from performance.constants import UPLOAD_TOKEN_VAR
 
-def helixpayload():
-    '''
-    Returns the helix payload. Will be None outside of helix.
-    '''
-    return environ.get('HELIX_CORRELATION_PAYLOAD')
-
 def helixworkitempayload():
     '''
     Returns the helix workitem payload. Will be None outside of helix.
