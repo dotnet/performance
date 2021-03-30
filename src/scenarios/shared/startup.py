@@ -117,7 +117,7 @@ class StartupWrapper(object):
             ]
             reporterpath = os.path.join(helixpayload(), 'FailureReporter')
             if not os.path.exists(reporterpath):
-                throw FileNotFoundError
+                raise FileNotFoundError
             RunCommand(cmdline, verbose=verbose).run(reporterpath)
 
         if runninginlab():
