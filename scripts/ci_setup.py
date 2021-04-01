@@ -163,7 +163,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
     def __get_env_arguments(user_input: str) -> list:
         file = StringIO(user_input)
-        reader = csv.reader(file, delimiter=' ')
+        reader = csv.reader(file, delimiter=',')
         for args in reader:
             return args
         return []
