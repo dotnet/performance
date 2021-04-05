@@ -245,7 +245,7 @@ namespace ScenarioMeasurement
                     parser = new Crossgen2Parser();
                     break;
                 case MetricType.InnerLoop:
-                    parser = new InnerLoopParser();
+                    parser = new InnerLoopParser(processWillExit);
                     break;
                 case MetricType.InnerLoopMsBuild:
                     parser = new InnerLoopMsBuildParser();
@@ -420,7 +420,7 @@ namespace ScenarioMeasurement
                 logger.LogStepHeader("Waiting for recompile");
                 failed = failed || !waitForRecompile(runResult.Proc, innerLoopProcHelper);
             }
-            logger.LogStepHeader("Recompile complete");
+            
             if (secondTestHelper != null  && !failed)
             {
                 var test = InnerLoopMarkerEventSource.GetSources();

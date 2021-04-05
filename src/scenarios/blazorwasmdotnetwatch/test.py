@@ -14,6 +14,6 @@ if __name__ == "__main__":
                         projext = '.csproj',
                         processwillexit='false',
                         measurementdelay='20',
-                        iterations='3'
+                        iterations='5'
                         )
     Runner(traits).run()
