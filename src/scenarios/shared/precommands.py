@@ -209,6 +209,8 @@ class PreCommands:
         self.project.restore(packages_path=get_packages_directory(), verbose=True)
 
     def _build(self, configuration: str, framework: str = None):
+        print("Hello")
+        print(get_packages_directory())
         self.project.build(configuration=configuration,
                                verbose=True,
                                packages_path=get_packages_directory(),

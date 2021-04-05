@@ -1,8 +1,11 @@
 ﻿using Reporting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.IO;
+using System.Text;
+using System.Threading;
 
 namespace ScenarioMeasurement
 {
@@ -14,7 +17,8 @@ namespace ScenarioMeasurement
         WPF,
         Crossgen2,
         InnerLoop,
-        InnerLoopMsBuild
+        InnerLoopMsBuild,
+        DotnetWatch
     }
 
     public class InnerLoopMarkerEventSource : EventSource
@@ -22,6 +26,7 @@ namespace ScenarioMeasurement
         public static InnerLoopMarkerEventSource Log = new InnerLoopMarkerEventSource();
         public void Split() => WriteEvent(1);
         public void EndIteration() => WriteEvent(2);
+        public void DroppedFile() => WriteEvent(3);
     }
 
     class Startup
@@ -95,7 +100,7 @@ namespace ScenarioMeasurement
             }
             else
             {
-                if(!Directory.Exists(traceDirectory))
+                if (!Directory.Exists(traceDirectory))
                 {
                     Directory.CreateDirectory(traceDirectory);
                 }
@@ -114,15 +119,89 @@ namespace ScenarioMeasurement
                 Arguments = appArgs,
                 WorkingDirectory = workingDir,
                 GuiApp = guiApp,
-                EnvironmentVariables = envVariables
+                EnvironmentVariables = envVariables,
+                IsRunWithExit = metricType == MetricType.DotnetWatch ? false : true
             };
-            
+
+            ProcessHelper secondTestProcess = metricType == MetricType.InnerLoop || metricType == MetricType.InnerLoopMsBuild ? TestProcess : null;
+
+            //Create wait funcs for steady state and post-compilation
+            Func<Process, bool> waitForSteadyState = metricType == MetricType.DotnetWatch ? (Proc) =>
+            {
+                StringBuilder output = new StringBuilder();
+                DataReceivedEventHandler stdOutProcessor = (s, e) =>
+                {
+                    if (!String.IsNullOrEmpty(e.Data))
+                    {
+                        output.AppendLine(e.Data);
+                        Console.WriteLine(e.Data);
+                    }
+                };
+                Proc.OutputDataReceived += stdOutProcessor;
+                Proc.BeginOutputReadLine();
+                bool isSteadyState = false;
+                int timeoutCount = 0;
+                while (!isSteadyState && timeoutCount < timeout)
+                {
+                    foreach (var line in output.ToString().Split(Environment.NewLine))
+                    {
+                        if (line.Contains("Application started."))
+                        {
+                            isSteadyState = true;
+                            break;
+                        }
+                    }
+                    timeoutCount++;
+                    Thread.Sleep(1000);
+                }
+                Proc.CancelOutputRead();
+                Proc.OutputDataReceived -= stdOutProcessor;
+                return true && timeoutCount < timeout;
+            }
+            : null;
+
+            Func<Process, ProcessHelper, bool> waitForRecompile = metricType == MetricType.DotnetWatch ? (Proc, innerLoopProcHelper) =>
+            {
+                StringBuilder output = new StringBuilder();
+                DataReceivedEventHandler stdOutProcessor = (s, e) =>
+                {
+                    if (!String.IsNullOrEmpty(e.Data))
+                    {
+                        output.AppendLine(e.Data);
+                        Console.WriteLine(e.Data);
+                    }
+                };
+                Proc.OutputDataReceived += stdOutProcessor;
+                Proc.BeginOutputReadLine();
+                bool isSteadyState = false;
+                int timeoutCount = 0;
+
+                while (!isSteadyState && timeoutCount < timeout)
+                {
+                    foreach (var line in output.ToString().Split(Environment.NewLine))
+                    {
+                        if (line.Contains("Hot reload of changes succeeded"))
+                        {
+                            isSteadyState = true;
+                            break;
+                        }
+                    }
+                    timeoutCount++;
+                    Thread.Sleep(1000);
+                }
+                Proc.CancelOutputRead();
+                Proc.OutputDataReceived -= stdOutProcessor;
+                return true && timeoutCount < timeout;
+            }
+            : null;
+
             // create iteration setup process helper
             logger.Log($"Iteration set up: {iterationSetup} (args: {setupArgs})");
             ProcessHelper setupProcHelper = null;
+
             if (!String.IsNullOrEmpty(iterationSetup))
             {
-                setupProcHelper = CreateProcHelper(iterationSetup, setupArgs, logger);
+                setupProcHelper = CreateProcHelper(iterationSetup, setupArgs, true, logger);
             }
 
             // create iteration cleanup process helper
@@ -130,12 +209,12 @@ namespace ScenarioMeasurement
             ProcessHelper cleanupProcHelper = null;
             if (!String.IsNullOrEmpty(iterationCleanup))
             {
-                cleanupProcHelper = CreateProcHelper(iterationCleanup, cleanupArgs, logger);
+                cleanupProcHelper = CreateProcHelper(iterationCleanup, cleanupArgs, true, logger);
             }
             ProcessHelper innerLoopProcHelper = null;
             if (!String.IsNullOrEmpty(innerLoopCommand))
             {
-                innerLoopProcHelper = CreateProcHelper(innerLoopCommand, innerLoopCommandArgs, logger);
+                innerLoopProcHelper = CreateProcHelper(innerLoopCommand, innerLoopCommandArgs, true, logger);
             }
 
             Util.Init();
@@ -144,9 +223,9 @@ namespace ScenarioMeasurement
             if (warmup)
             {
                 logger.LogIterationHeader("Warm up");
-                if (!RunIteration(setupProcHelper, TestProcess, cleanupProcHelper, logger).Success)
+                if (!RunIteration(setupProcHelper, TestProcess, waitForSteadyState, innerLoopProcHelper, waitForRecompile, secondTestProcess, cleanupProcHelper, logger).Success)
                 {
-                    return -1;  
+                    return -1;
                 }
             }
 
@@ -166,10 +245,13 @@ namespace ScenarioMeasurement
                     parser = new Crossgen2Parser();
                     break;
                 case MetricType.InnerLoop:
-                    parser = new InnerLoopParser(processWillExit);
+                    parser = new InnerLoopParser();
                     break;
                 case MetricType.InnerLoopMsBuild:
                     parser = new InnerLoopMsBuildParser();
+                    break;
+                case MetricType.DotnetWatch:
+                    parser = new DotnetWatchParser();
                     break;
                     //case MetricType.WPF:
                     //    parser = new WPFParser();
@@ -187,48 +269,16 @@ namespace ScenarioMeasurement
                 for (int i = 0; i < iterations; i++)
                 {
                     logger.LogIterationHeader($"Iteration {i}");
-                    (bool Success, int Pid) iterationResult;
-                    if(metricType == MetricType.InnerLoop || metricType == MetricType.InnerLoopMsBuild)
-                    {
-                        iterationResult = RunIteration(setupProcHelper, TestProcess, null, logger);
-                    }
-                    else
-                    {
-                        iterationResult = RunIteration(setupProcHelper, TestProcess, cleanupProcHelper, logger);
-                    }
+                    (bool Success, List<int> Pids) iterationResult;
+
+                    iterationResult = RunIteration(setupProcHelper, TestProcess, waitForSteadyState, innerLoopProcHelper, waitForRecompile, secondTestProcess, cleanupProcHelper, logger);
+                    
                     if (!iterationResult.Success)
                     {
                         failed = true;
                         break;
                     }
-                    pids.Add(iterationResult.Pid);
-
-                    if(metricType == MetricType.InnerLoop || metricType == MetricType.InnerLoopMsBuild)
-                    {
-                        //Do some stuff to change the project
-                        logger.LogStepHeader("Inner Loop Setup");
-                        var innerLoopReturn = innerLoopProcHelper.Run();
-                        if(innerLoopReturn.Result != ProcessHelper.Result.Success)
-                        {
-                            failed = true;
-                            break;
-                        }
-                        else
-                        {
-                            var test = InnerLoopMarkerEventSource.GetSources();
-                            InnerLoopMarkerEventSource.Log.Split();
-
-                            logger.LogIterationHeader($"Iteration {i} - Diff");
-                            iterationResult = RunIteration(null, TestProcess, cleanupProcHelper, logger);
-                            if (!iterationResult.Success)
-                            {
-                                failed = true;
-                                break;
-                            }
-                            pids.Add(iterationResult.Pid);
-                            InnerLoopMarkerEventSource.Log.EndIteration();
-                        }
-                    }
+                    pids.AddRange(iterationResult.Pids);
                 }
                 traceFilePath = traceSession.TraceFilePath;
             }
@@ -260,46 +310,22 @@ namespace ScenarioMeasurement
             {
                 logger.LogIterationHeader("Profile Iteration");
                 ProfileParser profiler = new ProfileParser(parser);
-                (bool Success, int Pid) iterationResult;
-                using (var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_"+traceName, traceDirectory, logger))
+                (bool Success, List<int> Pids) iterationResult;
+                using (var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_" + traceName, traceDirectory, logger))
                 {
                     profileSession.EnableProviders(profiler);
-                    if(metricType == MetricType.InnerLoop)
+                    if (metricType == MetricType.InnerLoop)
                     {
-                        iterationResult = RunIteration(setupProcHelper, TestProcess, null, logger);
+                        iterationResult = RunIteration(setupProcHelper, TestProcess, null, innerLoopProcHelper, null, TestProcess, cleanupProcHelper, logger);
                     }
                     else
                     {
-                        iterationResult = RunIteration(setupProcHelper, TestProcess, cleanupProcHelper, logger);
+                        iterationResult = RunIteration(setupProcHelper, TestProcess, null, null, null, null, cleanupProcHelper, logger);
                     }
 
-                     if (!iterationResult.Success)
+                    if (!iterationResult.Success)
                     {
                         failed = true;
-                    }
-
-                    if(metricType == MetricType.InnerLoop)
-                    {
-                        //Do some stuff to change the project
-                        logger.LogStepHeader("Inner Loop Setup");
-                        var innerLoopReturn = innerLoopProcHelper.Run();
-                        if(innerLoopReturn.Result != ProcessHelper.Result.Success)
-                        {
-                            failed = true;
-                        }
-                        else
-                        {
-                            var test = InnerLoopMarkerEventSource.GetSources();
-                            InnerLoopMarkerEventSource.Log.Split();
-
-                            logger.LogIterationHeader($"Iteration - Diff");
-                            iterationResult = RunIteration(null, TestProcess, cleanupProcHelper, logger);
-                            if (!iterationResult.Success)
-                            {
-                                failed = true;
-                            }
-                            InnerLoopMarkerEventSource.Log.EndIteration();
-                        }
                     }
                 }
             }
@@ -308,33 +334,49 @@ namespace ScenarioMeasurement
         }
 
 
-        private static ProcessHelper CreateProcHelper(string command, string args, Logger logger)
+        private static ProcessHelper CreateProcHelper(string command, string args, bool runWithExit, Logger logger)
         {
             var procHelper = new ProcessHelper(logger)
             {
                 ProcessWillExit = true,
                 Executable = command,
                 Arguments = args,
-                Timeout = 300
+                Timeout = 300,
+                IsRunWithExit = runWithExit
             };
             return procHelper;
         }
 
-        private static (bool Success, int Pid) RunIteration(ProcessHelper setupHelper, ProcessHelper testHelper, ProcessHelper cleanupHelper, Logger logger)
+        private static (bool Success, List<int> Pids) RunIteration(ProcessHelper setupHelper, ProcessHelper testHelper,
+        Func<Process, bool> waitForSteadyState, ProcessHelper innerLoopProcHelper, Func<Process, ProcessHelper, bool> waitForRecompile,
+        ProcessHelper secondTestHelper, ProcessHelper cleanupHelper, Logger logger)
         {
-            (bool Success, int Pid) RunProcess(ProcessHelper helper)
+            (Process Proc, bool Success, int Pid) RunProcess(ProcessHelper helper)
             {
                 var runResult = helper.Run();
-                if (runResult.Result != ProcessHelper.Result.Success)
+                if (runResult.Pid != -1)
                 {
-                    logger.Log($"Process {runResult.Pid} failed to run. Result: {runResult.Result}"); 
-                    return (false, runResult.Pid); 
+                    if (runResult.Result != ProcessHelper.Result.Success)
+                    {
+                        logger.Log($"Process {runResult.Pid} failed to run. Result: {runResult.Result}");
+                        return (null, false, runResult.Pid);
+                    }
+                    return (null, true, runResult.Pid);
                 }
-                return (true, runResult.Pid); 
+                else if (!runResult.Proc.HasExited)
+                {
+                    return (runResult.Proc, true, -1);
+                }
+                else
+                {
+                    return (runResult.Proc, false, -1);
+                }
             }
 
+            List<int> pids = new List<int>();
             bool failed = false;
-            int pid = 0;
+            (Process Proc, bool Success, int Pid) runResult = default((Process p, bool Success, int Pid));
+
             if (setupHelper != null)
             {
                 logger.LogStepHeader("Iteration Setup");
@@ -345,11 +387,66 @@ namespace ScenarioMeasurement
             if (!failed)
             {
                 logger.LogStepHeader("Test");
-                var testProcessResult = RunProcess(testHelper);
-                failed = !testProcessResult.Success;
-                pid = testProcessResult.Pid;
+                runResult = RunProcess(testHelper);
+                failed = !runResult.Success;
+                if(runResult.Pid == -1)
+                {
+                    pids.Add(runResult.Proc.Id);
+                }
+                else
+                {
+                    pids.Add(runResult.Pid);
+                }
             }
+            
+            if (waitForSteadyState != null && !failed)
+            {
+                logger.LogStepHeader("Waiting for steady state");
+                failed = failed || !waitForSteadyState(runResult.Proc);
+            }
+            if(innerLoopProcHelper != null  && !failed)
+            {
+                //Do some stuff to change the project
+                logger.LogStepHeader("Inner Loop Setup");
+                var innerLoopReturn = innerLoopProcHelper.Run();
+                InnerLoopMarkerEventSource.Log.DroppedFile();
+                if(innerLoopReturn.Result != ProcessHelper.Result.Success)
+                {
+                    failed = true;
+                }
+            }
+            if (waitForRecompile != null && !failed)
+            {
+                logger.LogStepHeader("Waiting for recompile");
+                failed = failed || !waitForRecompile(runResult.Proc, innerLoopProcHelper);
+            }
+            logger.LogStepHeader("Recompile complete");
+            if (secondTestHelper != null  && !failed)
+            {
+                var test = InnerLoopMarkerEventSource.GetSources();
+                InnerLoopMarkerEventSource.Log.Split();
 
+                logger.LogIterationHeader($"Iteration - Diff");
+                var iterationResult = RunProcess(TestProcess);
+                if (!iterationResult.Success)
+                {
+                    failed = true;
+                }
+                InnerLoopMarkerEventSource.Log.EndIteration();
+                if(iterationResult.Pid == -1)
+                {
+                    pids.Add(iterationResult.Proc.Id);
+                }
+                else
+                {
+                    pids.Add(iterationResult.Pid);
+                }
+            }
+            if (runResult.Proc != null)
+            {
+                runResult.Proc.Kill();
+                Thread.Sleep(1000);
+            }
             // need to clean up despite the result of setup and test
             if (cleanupHelper != null)
             {
@@ -357,11 +454,11 @@ namespace ScenarioMeasurement
                 failed = failed || !RunProcess(cleanupHelper).Success;
             }
 
-            return (!failed, pid);
+            return (!failed, pids);
         }
 
 
-       
+
 
         private static Dictionary<string, string> ParseStringToDictionary(string s)
         {
@@ -391,12 +488,12 @@ namespace ScenarioMeasurement
             }
             logger.Log(reporter.WriteResultTable());
         }
-    
+
         public static void AddTestProcessEnvironmentVariable(string name, string value)
         {
             TestProcess.EnvironmentVariables.Add(name, value);
         }
     }
 
- 
+
 }

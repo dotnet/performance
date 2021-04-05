@@ -36,9 +36,79 @@ namespace ScenarioMeasurement
 
         public bool RootAccess { get; set; } = false;
 
+        public bool IsRunWithExit {get;set;} = true;
+
         public ProcessHelper(Logger logger)
         {
             this.Logger = logger;
+        }
+
+
+        public (Process Proc, Result Result, int Pid) Run()
+        {
+            (Result Result, int Pid) exitResult = default((Result Result, int Pid));
+            exitResult.Pid = -1;
+            Process p = null;
+            if(IsRunWithExit)
+            {
+                exitResult = RunWithExit();
+            }
+            else
+            {
+                p = RunWithNoExit();
+            }
+            return (p, exitResult.Result, exitResult.Pid);
+        }
+
+        /// <summary>
+        /// Runs the specified process and does not wait for it to exit.
+        /// </summary>
+        /// <param name="appExe">Full path to executable</param>
+        /// <param name="appArgs">Optional arguments</param>
+        /// <param name="workingDirectory">Optional working directory (defaults to current directory)</param>
+        /// <returns></returns>
+        public Process RunWithNoExit()
+        {
+            var psi = new ProcessStartInfo();
+            if (!Util.IsWindows() && RootAccess)
+            {
+                psi.FileName = "sudo";
+                psi.Arguments = Executable + " " + Arguments;
+            }
+            else
+            {
+                psi.FileName = Executable;
+                psi.Arguments = Arguments;
+            }
+            psi.WorkingDirectory = WorkingDirectory;
+            // WindowStyles only get passed through if UseShellExecute=true
+            // As we only care about WindowStyles for GUI apps, we can use that value here.
+            psi.UseShellExecute = GuiApp;
+
+            if (EnvironmentVariables != null)
+            {
+                foreach (var pair in EnvironmentVariables)
+                {
+                    psi.EnvironmentVariables[pair.Key] = pair.Value;
+                    Logger.Log($"Added environment variable: {pair.Key}={pair.Value}");
+                }
+            }
+
+            if (!GuiApp)
+            {
+                psi.RedirectStandardOutput = true;
+                psi.RedirectStandardError = true;
+            }
+            else
+            {
+                psi.WindowStyle = ProcessWindowStyle.Maximized;
+            }
+
+            var process = new Process();
+            
+            process.StartInfo = psi;
+            process.Start();
+            return process;
         }
 
         /// <summary>
@@ -48,7 +118,7 @@ namespace ScenarioMeasurement
         /// <param name="appArgs">Optional arguments</param>
         /// <param name="workingDirectory">Optional working directory (defaults to current directory)</param>
         /// <returns></returns>
-        public (Result Result, int Pid) Run()
+        public (Result Result, int Pid) RunWithExit()
         {
             var psi = new ProcessStartInfo();
             if (!Util.IsWindows() && RootAccess)

@@ -349,7 +349,7 @@ class CSharpProject:
 
                 if args:
                     cmdline = cmdline + list(args)
-                
+                print(cmdline)
                 RunCommand(cmdline, verbose=verbose).run(
                     self.working_directory)
     @staticmethod
