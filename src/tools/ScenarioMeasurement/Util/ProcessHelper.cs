@@ -6,7 +6,27 @@ using System.Threading;
 
 namespace ScenarioMeasurement
 {
-    public class ProcessHelper
+    public enum Result
+        {
+            Success,
+            TimeoutExceeded,
+            ExitedEarly,
+            CloseFailed,
+            ExitedWithError
+        }
+    public class ProcessResult
+    {
+        public Process Proc {get;set;}
+        public Result Result {get;set;}
+        public int Pid {get;set;}
+    }
+
+    public interface IProcessHelper
+    {
+        public ProcessResult Run();
+        public void AddEnvironmentVariable(string name, string value);
+    }
+    public class RawProcessHelper : IProcessHelper
     {
         /// <summary>
         /// Specifies whether the app exits on its own
@@ -36,28 +56,9 @@ namespace ScenarioMeasurement
 
         public bool RootAccess { get; set; } = false;
 
-        public bool IsRunWithExit {get;set;} = true;
-
-        public ProcessHelper(Logger logger)
+        public RawProcessHelper(Logger logger)
         {
             this.Logger = logger;
-        }
-
-
-        public (Process Proc, Result Result, int Pid) Run()
-        {
-            (Result Result, int Pid) exitResult = default((Result Result, int Pid));
-            exitResult.Pid = -1;
-            Process p = null;
-            if(IsRunWithExit)
-            {
-                exitResult = RunWithExit();
-            }
-            else
-            {
-                p = RunWithNoExit();
-            }
-            return (p, exitResult.Result, exitResult.Pid);
         }
 
         /// <summary>
@@ -109,6 +110,70 @@ namespace ScenarioMeasurement
             process.StartInfo = psi;
             process.Start();
             return process;
+        }
+        public void AddEnvironmentVariable(string name, string value)
+        {
+            EnvironmentVariables.Add(name, value);
+        }
+        public ProcessResult Run()
+        {
+            (Result Result, int Pid) exitResult = default((Result Result, int Pid));
+            exitResult.Pid = -1;
+            Process p = null;
+
+            p = RunWithNoExit();
+
+            return new ProcessResult() {Proc = p, Result = exitResult.Result, Pid = exitResult.Pid};
+        }
+    }
+    public class ManagedProcessHelper : IProcessHelper
+    {
+        /// <summary>
+        /// Specifies whether the app exits on its own
+        /// true: App will exit, Timeout specifies how long to wait before terminating the process.
+        /// false: App will be closed after MeasurementDelay.
+        /// </summary>
+        public bool ProcessWillExit { get; set; } = false;
+        /// <summary>
+        /// Max time to wait for app to close (seconds)
+        /// </summary>
+        public int Timeout { get; set; } = 60;
+        /// <summary>
+        /// Time to wait before closing app (seconds)
+        /// </summary>
+        public int MeasurementDelay { get; set; } = 15;
+
+        public string Executable { get; set; }
+
+        public string Arguments { get; set; } = String.Empty;
+        public string WorkingDirectory { get; set; } = String.Empty;
+
+        public bool GuiApp { get; set; } = false;
+
+        public Logger Logger;
+
+        public Dictionary<string, string> EnvironmentVariables = null;
+
+        public bool RootAccess { get; set; } = false;
+
+        public ManagedProcessHelper(Logger logger)
+        {
+            this.Logger = logger;
+        }
+
+        public void AddEnvironmentVariable(string name, string value)
+        {
+            EnvironmentVariables.Add(name, value);
+        }
+        public ProcessResult Run()
+        {
+            (Result Result, int Pid) exitResult = default((Result Result, int Pid));
+            exitResult.Pid = -1;
+            Process p = null;
+
+            exitResult = RunWithExit();
+
+            return new ProcessResult() {Proc = p, Result = exitResult.Result, Pid = exitResult.Pid};
         }
 
         /// <summary>
@@ -232,14 +297,6 @@ namespace ScenarioMeasurement
                 }
                 return (Result.Success, pid);
             }
-        }
-        public enum Result
-        {
-            Success,
-            TimeoutExceeded,
-            ExitedEarly,
-            CloseFailed,
-            ExitedWithError
         }
     }
 }

@@ -17,4 +17,3 @@ precommands.new(template='blazorwasm',
                 exename=EXENAME,
                 working_directory=sys.path[0])
 precommands.execute()
-#shutil.copy(os.path.join('src', 'Program.cs'), os.path.join(const.APPDIR, 'Program.cs'))

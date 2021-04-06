@@ -101,6 +101,8 @@ class StartupWrapper(object):
             startup_args.extend(['--inner-loop-command', traits.innerloopcommand])
         if traits.innerloopcommandargs:
             startup_args.extend(['--inner-loop-command-args', traits.innerloopcommandargs])
+        if traits.runwithoutexit:
+            startup_args.extend(['--run-without-exit', traits.runwithoutexit])
             
         upload_container = UPLOAD_CONTAINER
 

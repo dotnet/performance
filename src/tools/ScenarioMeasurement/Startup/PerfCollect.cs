@@ -9,7 +9,7 @@ namespace ScenarioMeasurement
     public class PerfCollect : IDisposable
     {
         private readonly string startupDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        private ProcessHelper perfCollectProcess;
+        private ManagedProcessHelper perfCollectProcess;
         public string TraceName { get; private set; }
         public string TraceFileName { get; private set; }
         public string TraceDirectory { get; private set; }
@@ -43,7 +43,7 @@ namespace ScenarioMeasurement
             TraceFileName = $"{TraceName}.trace.zip";
             TraceFilePath = Path.Combine(traceDirectory, TraceFileName);
 
-            perfCollectProcess = new ProcessHelper(logger)
+            perfCollectProcess = new ManagedProcessHelper(logger)
             {
                 ProcessWillExit = true,
                 Executable = perfCollectScript,
@@ -51,13 +51,13 @@ namespace ScenarioMeasurement
                 RootAccess = true
             };
 
-            if (Install() != ProcessHelper.Result.Success)
+            if (Install() != Result.Success)
             {
                 throw new Exception("Lttng installation failed. Please try manual install.");
             }
         }
 
-        public ProcessHelper.Result Start()
+        public Result Start()
         {
             var arguments = new StringBuilder($"start {TraceName} -events ");
 
@@ -79,7 +79,7 @@ namespace ScenarioMeasurement
             return perfCollectProcess.Run().Result;
         }
 
-        public ProcessHelper.Result Stop()
+        public Result Stop()
         {
             string arguments = $"stop {TraceName} ";
             perfCollectProcess.Arguments = arguments;
@@ -104,12 +104,12 @@ namespace ScenarioMeasurement
             return result;
         }
 
-        public ProcessHelper.Result Install()
+        public Result Install()
         {
             if (LttngInstalled())
             {
                 Console.WriteLine("Lttng is already installed.");
-                return ProcessHelper.Result.Success;
+                return Result.Success;
             }
             perfCollectProcess.Arguments = "install -force";
             perfCollectProcess.Run();
@@ -124,10 +124,10 @@ namespace ScenarioMeasurement
                 }
                 else
                 {
-                    return ProcessHelper.Result.Success;
+                    return Result.Success;
                 }
             }
-            return ProcessHelper.Result.CloseFailed;
+            return Result.CloseFailed;
         }
 
         public void Dispose()
