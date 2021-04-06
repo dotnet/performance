@@ -248,7 +248,7 @@ def __main(args: list) -> int:
             reporterpath = os.path.join(helixpayload(), 'FailureReporter')
             if not os.path.exists(reporterpath):
                 raise FileNotFoundError
-            RunCommand(cmdline, verbose=verbose).run(reporterpath)
+            RunCommand(cmdline, verbose=True).run(reporterpath)
             
         dotnet.shutdown_server(verbose)
 
