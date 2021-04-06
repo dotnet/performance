@@ -4,7 +4,7 @@ class ChannelMap():
     channel_map = {
         'main': {
             'tfm': 'net6.0',
-            'branch': 'master'
+            'branch': 'main'
         },
         'master': {
             'tfm': 'net6.0',
