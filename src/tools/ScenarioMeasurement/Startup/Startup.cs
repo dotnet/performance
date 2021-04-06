@@ -155,8 +155,17 @@ namespace ScenarioMeasurement
                         Console.WriteLine(e.Data);
                     }
                 };
+                DataReceivedEventHandler stdErrProcessor = (s, e) =>
+                {
+                    if (!String.IsNullOrEmpty(e.Data))
+                    {
+                        Console.WriteLine(e.Data);
+                    }
+                };
                 Proc.OutputDataReceived += stdOutProcessor;
+                Proc.ErrorDataReceived += stdErrProcessor;
                 Proc.BeginOutputReadLine();
+                Proc.BeginErrorReadLine();
                 bool isSteadyState = false;
                 int timeoutCount = 0;
                 while (!isSteadyState && timeoutCount < timeout)
@@ -172,7 +181,9 @@ namespace ScenarioMeasurement
                     timeoutCount++;
                     Thread.Sleep(1000);
                 }
+                Proc.CancelErrorRead();
                 Proc.CancelOutputRead();
+                Proc.ErrorDataReceived -= stdErrProcessor;
                 Proc.OutputDataReceived -= stdOutProcessor;
                 return true && timeoutCount < timeout;
             }
