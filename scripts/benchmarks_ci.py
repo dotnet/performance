@@ -31,6 +31,7 @@ from performance.common import helixpayload, validate_supported_runtime, get_art
 from performance.logger import setup_loggers
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from channel_map import ChannelMap
+from shared.util import runninginlab
 from subprocess import Popen, CalledProcessError
 
 import dotnet
@@ -237,18 +238,20 @@ def __main(args: list) -> int:
                 '**',
                 '*perf-lab-report.json')
         except CalledProcessError:
-            upload_container = 'failedresults'
-            globpath = os.path.join(
-                get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
-                'FailureReporter', 
-                'failure-report.json')
-            cmdline = [
-                'FailureReporting.exe', globpath
-            ]
-            reporterpath = os.path.join(helixpayload(), 'FailureReporter')
-            if not os.path.exists(reporterpath):
-                raise FileNotFoundError
-            RunCommand(cmdline, verbose=True).run(reporterpath)
+            if runninginlab():
+                args.upload_to_perflab_container = False
+                upload_container = 'failedresults'
+                globpath = os.path.join(
+                    get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
+                    'FailureReporter', 
+                    'failure-report.json')
+                cmdline = [
+                    'FailureReporting.exe', globpath
+                ]
+                reporterpath = os.path.join(helixpayload(), 'FailureReporter')
+                if not os.path.exists(reporterpath):
+                    raise FileNotFoundError
+                RunCommand(cmdline, verbose=True).run(reporterpath)
             
         dotnet.shutdown_server(verbose)
 

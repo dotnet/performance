@@ -113,18 +113,19 @@ class StartupWrapper(object):
         try:
             RunCommand(startup_args, verbose=True).run()
         except CalledProcessError:
-            upload_container = 'failedresults'
-            reportjson = os.path.join(
-                TRACEDIR,
-                'FailureReporter', 
-                'failure-report.json')
-            cmdline = [
-                'FailureReporting.exe', reportjson
-            ]
-            reporterpath = os.path.join(helixpayload(), 'FailureReporter')
-            if not os.path.exists(reporterpath):
-                raise FileNotFoundError
-            RunCommand(cmdline, verbose=True).run(reporterpath)
+            if runninginlab():
+                upload_container = 'failedresults'
+                reportjson = os.path.join(
+                    TRACEDIR,
+                    'FailureReporter', 
+                    'failure-report.json')
+                cmdline = [
+                    'FailureReporting.exe', reportjson
+                ]
+                reporterpath = os.path.join(helixpayload(), 'FailureReporter')
+                if not os.path.exists(reporterpath):
+                    raise FileNotFoundError
+                RunCommand(cmdline, verbose=True).run(reporterpath)
 
         if runninginlab():
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
