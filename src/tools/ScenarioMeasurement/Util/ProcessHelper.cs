@@ -7,13 +7,13 @@ using System.Threading;
 namespace ScenarioMeasurement
 {
     public enum Result
-        {
-            Success,
-            TimeoutExceeded,
-            ExitedEarly,
-            CloseFailed,
-            ExitedWithError
-        }
+    {
+        Success,
+        TimeoutExceeded,
+        ExitedEarly,
+        CloseFailed,
+        ExitedWithError
+    }
     public class ProcessResult
     {
         public Process Proc {get;set;}
