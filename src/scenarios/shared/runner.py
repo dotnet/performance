@@ -58,6 +58,11 @@ class Runner:
                                               description='measure time to main and difference between two runs in a row')
         self.add_common_arguments(innerloopparser)
 
+        # dotnet watch command
+        dotnetwatchparser = subparsers.add_parser(const.DOTNETWATCH,
+                                              description='measure time to main and time for hot reload')
+        self.add_common_arguments(dotnetwatchparser)
+
         # sdk command
         sdkparser = subparsers.add_parser(const.SDK, 
                                           description='subcommands for sdk scenario',
@@ -156,6 +161,19 @@ ex: C:\repos\performance;C:\repos\runtime
             cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE))
             startup.runtests(self.traits)
             
+        if self.testtype == const.DOTNETWATCH:
+            startup = StartupWrapper()
+            self.traits.add_traits(scenarioname=self.scenarioname,
+            scenariotypename=const.SCENARIO_NAMES[const.DOTNETWATCH],
+            apptorun='dotnet', appargs='watch',
+            innerloopcommand=pythoncommand(),
+            iterationsetup=pythoncommand(),
+            setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
+            iterationcleanup=pythoncommand(),
+            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE))
+            self.traits.add_traits(workingdir = const.APPDIR)
+            startup.runtests(self.traits)
+
         if self.testtype == const.STARTUP:
             startup = StartupWrapper()
             self.traits.add_traits(overwrite=False,
