@@ -42,12 +42,26 @@
       <PreCommands>$(Python) pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
+
+    <HelixWorkItem Include="SOD - New Blazor Template - Publish - AOT">
+      <PayloadDirectory>$(ScenariosDir)blazoraot</PayloadDirectory>
+      <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
+      <PreCommands>$(Python) pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
     
     <HelixWorkItem Include="SOD - Pizza App - Publish">
       <PayloadDirectory>$(ScenariosDir)blazorpizza</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
       <PreCommands>$(Python) pre.py publish -f %PERFLAB_TARGET_FRAMEWORKS% --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs pub/wwwroot</Command>
+    </HelixWorkItem>
+
+    <HelixWorkItem Include="SOD - Pizza App - Publish">
+      <PayloadDirectory>$(ScenariosDir)blazorpizzaaot</PayloadDirectory>
+      <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
+      <PreCommands>$(Python) pre.py publish -f %PERFLAB_TARGET_FRAMEWORKS% --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs pub/wwwroot</Command>
     </HelixWorkItem>
   </ItemGroup>
 
