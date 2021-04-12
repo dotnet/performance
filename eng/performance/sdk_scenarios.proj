@@ -184,7 +184,7 @@
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
-    <HelixWorkItem Include="Hot Reload Blazor Client" Condition="'$(FrameworkVersion)' == '6.0'">
+    <HelixWorkItem Include="Hot Reload MVC" Condition="'$(FrameworkVersion)' == '6.0'">
       <PayloadDirectory>$(ScenariosDir)mvcdotnetwatch</PayloadDirectory>
       <PreCommands>$(Python) pre.py build -f net$(FrameworkVersion) -c Release</PreCommands>
       <Command>$(Python) test.py dotnetwatch --scenario-name &quot;%(Identity)&quot;</Command>
