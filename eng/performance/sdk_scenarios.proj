@@ -26,7 +26,7 @@
       <Framework Include="netcoreapp3.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '2.1'"/>
       <Framework Include="netcoreapp3.1" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '3.0'"/>
       <Framework Include="netcoreapp5.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '3.1'"/>
-      <!-- <Framework Include="net6.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '5.0'"/> -->
+      <Framework Include="net6.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '5.0'"/>
   </ItemGroup>
 
   <ItemDefinitionGroup>
@@ -174,6 +174,13 @@
       <PayloadDirectory>$(ScenariosDir)blazorwasminnerloop</PayloadDirectory>
       <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
+      <PostCommands>$(Python) post.py</PostCommands>
+      <Timeout>4:00</Timeout>
+    </HelixWorkItem>
+    <HelixWorkItem Include="Hot Reload Blazor Client" Condition="'$(FrameworkVersion)' == '6.0'">
+      <PayloadDirectory>$(ScenariosDir)blazorwasmdotnetwatch</PayloadDirectory>
+      <PreCommands>$(Python) pre.py build -f net$(FrameworkVersion) -c Release</PreCommands>
+      <Command>$(Python) test.py dotnetwatch --scenario-name &quot;%(Identity)&quot;</Command>
       <PostCommands>$(Python) post.py</PostCommands>
       <Timeout>4:00</Timeout>
     </HelixWorkItem>

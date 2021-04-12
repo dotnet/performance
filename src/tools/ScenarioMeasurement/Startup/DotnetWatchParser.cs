@@ -27,9 +27,11 @@ namespace ScenarioMeasurement
         {
             var results = new List<double>();
             var reloadResults = new List<double>();
+            var warmReloadResults = new List<double>();
             var ins = new Dictionary<int, double>();
             double start = -1;
             int? pid = null;
+            bool firstHotReload = true;
             using (var source = new TraceSourceManager(mergeTraceFile))
             {
 
@@ -45,25 +47,41 @@ namespace ScenarioMeasurement
 
                 source.Source.Dynamic.AddCallbackForProviderEvent("HotReload", "HotReload/Start", evt =>
                 {
-                    if(evt.PayloadStringByName("handlerType").ToLower() == "main")
+                    if (evt.PayloadStringByName("handlerType").ToLower() == "main")
                     {
                         if (pid.HasValue)
                         {
-                            results.Add(evt.TimeStampRelativeMSec - start);
-                            start = evt.TimeStampRelativeMSec;
+                            if (firstHotReload)
+                            {
+                                results.Add(evt.TimeStampRelativeMSec - start);
+                                start = evt.TimeStampRelativeMSec;
+                            }
+                            else
+                            {
+                                start = evt.TimeStampRelativeMSec;
+                            }
                         }
                     }
                 });
 
                 source.Source.Dynamic.AddCallbackForProviderEvent("HotReload", "HotReloadEnd", evt =>
                 {
-                    if(evt.PayloadStringByName("handlerType").ToLower() == "main")
+                    if (evt.PayloadStringByName("handlerType").ToLower() == "main")
                     {
                         if (pid.HasValue)
                         {
-                            reloadResults.Add(evt.TimeStampRelativeMSec - start);
-                            start = 0;
-                            pid = null;
+                            if (firstHotReload)
+                            {
+                                reloadResults.Add(evt.TimeStampRelativeMSec - start);
+                                firstHotReload = false;
+                            }
+                            else
+                            {
+                                firstHotReload = true;
+                                warmReloadResults.Add(evt.TimeStampRelativeMSec - start);
+                                start = 0;
+                                pid = null;
+                            }
                         }
                     }
                 });
@@ -73,7 +91,8 @@ namespace ScenarioMeasurement
 
             return new[] {
                 new Counter() { Name = "Time to Hot Reload Start", MetricName = "ms", TopCounter=true, Results = results.ToArray() },
-                new Counter() { Name = "Hot Reload Time", MetricName = "ms", TopCounter=true, DefaultCounter=true, Results = reloadResults.ToArray() },
+                new Counter() { Name = "First Hot Reload Time", MetricName = "ms", TopCounter=true, DefaultCounter=true, Results = reloadResults.ToArray() },
+                new Counter() { Name = "Second Hot Reload Time", MetricName = "ms", TopCounter=true, Results = warmReloadResults.ToArray() },
             };
         }
     }
