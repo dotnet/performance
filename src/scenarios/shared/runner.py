@@ -63,6 +63,11 @@ class Runner:
                                               description='measure time to main and time for hot reload')
         self.add_common_arguments(dotnetwatchparser)
 
+        # ci dotnet build command
+        cibuildparser = subparsers.add_parser(const.CIBUILD,
+                                              description='measure time for first build on CI machines')
+        self.add_common_arguments(cibuildparser)
+
         # sdk command
         sdkparser = subparsers.add_parser(const.SDK, 
                                           description='subcommands for sdk scenario',
@@ -149,7 +154,7 @@ ex: C:\repos\performance;C:\repos\runtime
             cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE))
             startup.runtests(self.traits)
 
-        if self.testtype == const.INNERLOOPMSBUILD:
+        elif self.testtype == const.INNERLOOPMSBUILD:
             startup = StartupWrapper()
             self.traits.add_traits(scenarioname=self.scenarioname,
             scenariotypename=const.SCENARIO_NAMES[const.INNERLOOPMSBUILD],
@@ -161,7 +166,7 @@ ex: C:\repos\performance;C:\repos\runtime
             cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE))
             startup.runtests(self.traits)
             
-        if self.testtype == const.DOTNETWATCH:
+        elif self.testtype == const.DOTNETWATCH:
             startup = StartupWrapper()
             self.traits.add_traits(scenarioname=self.scenarioname,
             scenariotypename=const.SCENARIO_NAMES[const.DOTNETWATCH],
@@ -174,7 +179,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.traits.add_traits(workingdir = const.APPDIR)
             startup.runtests(self.traits)
 
-        if self.testtype == const.STARTUP:
+        elif self.testtype == const.STARTUP:
             startup = StartupWrapper()
             self.traits.add_traits(overwrite=False,
                                    environmentvariables='COMPlus_EnableEventLog=1' if not iswin() else '',
@@ -182,6 +187,22 @@ ex: C:\repos\performance;C:\repos\runtime
                                    scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
                                    apptorun=publishedexe(self.traits.exename),
                                    )
+            startup.runtests(self.traits)
+
+        elif self.testtype == const.CIBUILD:
+            startup = StartupWrapper()
+            envlistbuild = 'DOTNET_MULTILEVEL_LOOKUP=0'
+            # clean build
+            self.traits.add_traits(
+                overwrite=False,
+                scenarioname=self.scenarioname,
+                scenariotypename='%s_%s' % (const.SCENARIO_NAMES[const.CIBUILD], const.CLEAN_BUILD),
+                apptorun=const.DOTNET,
+                appargs='build',
+                workingdir=const.APPDIR,
+                environmentvariables=envlistbuild,
+            )
+            self.traits.add_traits(overwrite=True, startupmetric=const.STARTUP_PROCESSTIME)
             startup.runtests(self.traits)
 
         elif self.testtype == const.SDK:

@@ -7,6 +7,8 @@ namespace ScenarioMeasurement
 {
     public class ProcessTimeParser : IParser
     {
+        private bool useLoggingExtension = false;
+        
         public void EnableKernelProvider(ITraceSession kernel)
         {
             kernel.EnableKernelProvider(TraceSessionManager.KernelKeyword.Process, TraceSessionManager.KernelKeyword.Thread, TraceSessionManager.KernelKeyword.ContextSwitch);
@@ -14,7 +16,22 @@ namespace ScenarioMeasurement
 
         public void EnableUserProviders(ITraceSession user)
         {
+            if(useLoggingExtension)
+            {
+                user.EnableUserProvider("Microsoft-Extensions-Logging", TraceEventLevel.Verbose);
+            }
         }
+
+        public ProcessTimeParser()
+        {
+
+        }
+        public ProcessTimeParser(bool _useLoggingExtension)
+        {
+            useLoggingExtension = !_useLoggingExtension;
+        }
+        
+
 
         public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
         {
@@ -61,21 +78,43 @@ namespace ScenarioMeasurement
                     };
                 }
 
-
-                source.Kernel.ProcessStop += evt =>
+                if(useLoggingExtension && source.IsWindows)
                 {
-                    if (pid.HasValue && ParserUtility.MatchSingleProcessID(evt, source, (int)pid))
+                    source.Source.Dynamic.AddCallbackForProviderEvent("Microsoft-Extensions-Logging", "FormattedMessage", evt =>
                     {
-                        results.Add(evt.TimeStampRelativeMSec - start);
-                        pid = null;
-                        start = 0;
-                        if (source.IsWindows)
+                        if(evt.PayloadString(5).ToLower() == "hosting started")
                         {
-                            threadTimes.Add(threadTime);
-                            threadTime = 0;
+                            if (pid.HasValue)
+                            {
+                                results.Add(evt.TimeStampRelativeMSec - start);
+                                pid = null;
+                                start = 0;
+                                if (source.IsWindows)
+                                {
+                                    threadTimes.Add(threadTime);
+                                    threadTime = 0;
+                                }
+                            }
                         }
-                    }
-                };
+                    });
+                }
+                else
+                {
+                    source.Kernel.ProcessStop += evt =>
+                    {
+                        if (pid.HasValue && ParserUtility.MatchSingleProcessID(evt, source, (int)pid))
+                        {
+                            results.Add(evt.TimeStampRelativeMSec - start);
+                            pid = null;
+                            start = 0;
+                            if (source.IsWindows)
+                            {
+                                threadTimes.Add(threadTime);
+                                threadTime = 0;
+                            }
+                        }
+                    };
+                }
 
                 source.Process();
             }

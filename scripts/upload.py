@@ -26,6 +26,7 @@ def upload(globpath, container, queue, sas_token_env, storage_account_uri):
         for infile in files:
             blob_name = get_unique_name(infile, os.getenv('HELIX_WORKITEM_ID'))
 
+            getLogger().info(sas_token)
             getLogger().info("uploading {}".format(infile))
 
             blob_client = BlobClient(account_url=storage_account_uri.format('blob'), container_name=container, blob_name=blob_name, credential=sas_token)

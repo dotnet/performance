@@ -14,6 +14,7 @@ CROSSGEN2 = 'crossgen2'
 INNERLOOP = 'innerloop'
 INNERLOOPMSBUILD = "innerloopmsbuild"
 DOTNETWATCH = "dotnetwatch"
+CIBUILD = "cibuild"
 
 SCENARIO_NAMES = {STARTUP: 'Startup',
                   SDK: 'SDK',
@@ -21,7 +22,8 @@ SCENARIO_NAMES = {STARTUP: 'Startup',
                   CROSSGEN2: 'Crossgen2',
                   INNERLOOP: 'Innerloop',
                   INNERLOOPMSBUILD: 'InnerLoopMsBuild',
-                  DOTNETWATCH: 'DotnetWatch'}
+                  DOTNETWATCH: 'DotnetWatch',
+                  CIBUILD: 'CiBuild'}
 
 BINDIR = 'bin'
 PUBDIR = 'pub'
