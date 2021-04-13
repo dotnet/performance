@@ -35,6 +35,9 @@ namespace ResultsComparer
         [Option('f', "filter", HelpText = "Filter the benchmarks by name using glob pattern(s). Optional.")]
         public IEnumerable<string> Filters { get; set; }
 
+        [Option("full-id", HelpText = "Display the full benchmark name id. Optional.")]
+        public bool FullId { get; set; }
+
         [Usage(ApplicationAlias = "")]
         public static IEnumerable<Example> Examples
         {
