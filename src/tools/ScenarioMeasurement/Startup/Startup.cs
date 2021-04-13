@@ -56,9 +56,11 @@ namespace ScenarioMeasurement
         /// <param name="cleanupArgs">arguments of iterationCleanup</param>
         /// <param name="traceDirectory">Directory to put files in (defaults to current directory)</param>
         /// <param name="environmentVariables">Environment variables set for test processes (example: var1=value1;var2=value2)</param>
-        /// <param name="innerLoopCommand">Environment variables set for test processes (example: var1=value1;var2=value2)</param>
-        /// <param name="innerLoopCommandArgs">Environment variables set for test processes (example: var1=value1;var2=value2)</param>
+        /// <param name="innerLoopCommand">Command to be run between invocation one and two per iteration one and two</param>
+        /// <param name="innerLoopCommandArgs">Args for command to be run between invocation one and two per iteration one and two</param>
         /// <param name="runWithoutExit">Run the main test process without handling shutdown</param>
+        /// <param name="hotReloadIters">Number of times to change files for hot reload</param>
+        /// <param name="skipMeasurementIteration">Don't run measurement collection</param>
         /// <returns></returns>
 
         static int Main(string appExe,
@@ -84,7 +86,9 @@ namespace ScenarioMeasurement
                         string environmentVariables = null,
                         string innerLoopCommand = "",
                         string innerLoopCommandArgs = "",
-                        bool runWithoutExit = false
+                        bool runWithoutExit = false,
+                        int hotReloadIters = 1,
+                        bool skipMeasurementIteration = false
                         )
         {
             Logger logger = new Logger(String.IsNullOrEmpty(logFileName) ? $"{appExe}.startup.log" : logFileName);
@@ -219,7 +223,7 @@ namespace ScenarioMeasurement
             if (warmup)
             {
                 logger.LogIterationHeader("Warm up");
-                if (!RunIteration(setupProcHelper, TestProcess, waitForSteadyState, innerLoopProcHelper, waitForRecompile, secondTestProcess, cleanupProcHelper, logger).Success)
+                if (!RunIteration(setupProcHelper, TestProcess, waitForSteadyState, innerLoopProcHelper, waitForRecompile, secondTestProcess, cleanupProcHelper, logger, hotReloadIters).Success)
                 {
                     return -1;
                 }
@@ -258,45 +262,48 @@ namespace ScenarioMeasurement
             bool failed = false;
             string traceFilePath = "";
 
-            // Run trace session
-            using (var traceSession = TraceSessionManager.CreateSession("StartupSession", traceName, traceDirectory, logger))
+            if(!skipMeasurementIteration)
             {
-                traceSession.EnableProviders(parser);
-                for (int i = 0; i < iterations; i++)
+                // Run trace session
+                using (var traceSession = TraceSessionManager.CreateSession("StartupSession", traceName, traceDirectory, logger))
                 {
-                    logger.LogIterationHeader($"Iteration {i}");
-                    (bool Success, List<int> Pids) iterationResult;
-
-                    iterationResult = RunIteration(setupProcHelper, TestProcess, waitForSteadyState, innerLoopProcHelper, waitForRecompile, secondTestProcess, cleanupProcHelper, logger);
-                    
-                    if (!iterationResult.Success)
+                    traceSession.EnableProviders(parser);
+                    for (int i = 0; i < iterations; i++)
                     {
-                        failed = true;
-                        break;
+                        logger.LogIterationHeader($"Iteration {i}");
+                        (bool Success, List<int> Pids) iterationResult;
+
+                        iterationResult = RunIteration(setupProcHelper, TestProcess, waitForSteadyState, innerLoopProcHelper, waitForRecompile, secondTestProcess, cleanupProcHelper, logger, hotReloadIters);
+                        
+                        if (!iterationResult.Success)
+                        {
+                            failed = true;
+                            break;
+                        }
+                        pids.AddRange(iterationResult.Pids);
                     }
-                    pids.AddRange(iterationResult.Pids);
+                    traceFilePath = traceSession.TraceFilePath;
                 }
-                traceFilePath = traceSession.TraceFilePath;
-            }
 
-            // Parse trace files
-            if (!failed)
-            {
-                logger.Log($"Parsing {traceFilePath}");
-
-                if (guiApp)
+                // Parse trace files
+                if (!failed)
                 {
-                    appExe = Path.Join(workingDir, appExe);
-                }
-                string commandLine = $"\"{appExe}\"";
-                if (!String.IsNullOrEmpty(appArgs))
-                {
-                    commandLine = commandLine + " " + appArgs;
-                }
-                var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
+                    logger.Log($"Parsing {traceFilePath}");
+
+                    if (guiApp)
+                    {
+                        appExe = Path.Join(workingDir, appExe);
+                    }
+                    string commandLine = $"\"{appExe}\"";
+                    if (!String.IsNullOrEmpty(appArgs))
+                    {
+                        commandLine = commandLine + " " + appArgs;
+                    }
+                    var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
 
 
-                CreateTestReport(scenarioName, counters, reportJsonPath, logger);
+                    CreateTestReport(scenarioName, counters, reportJsonPath, logger);
+                }
             }
 
             // Skip unimplemented Linux profiling
@@ -310,7 +317,7 @@ namespace ScenarioMeasurement
                 using (var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_" + traceName, traceDirectory, logger))
                 {
                     profileSession.EnableProviders(profiler);
-                    iterationResult = RunIteration(setupProcHelper, TestProcess, waitForSteadyState, innerLoopProcHelper, waitForRecompile, secondTestProcess, cleanupProcHelper, logger);
+                    iterationResult = RunIteration(setupProcHelper, TestProcess, waitForSteadyState, innerLoopProcHelper, waitForRecompile, secondTestProcess, cleanupProcHelper, logger, hotReloadIters);
 
                     if (!iterationResult.Success)
                     {
@@ -351,7 +358,7 @@ namespace ScenarioMeasurement
 
         private static (bool Success, List<int> Pids) RunIteration(IProcessHelper setupHelper, IProcessHelper testHelper,
         Func<Process, string, bool> waitForSteadyState, IProcessHelper innerLoopProcHelper, Func<Process, string, bool> waitForRecompile,
-        IProcessHelper secondTestHelper, IProcessHelper cleanupHelper, Logger logger)
+        IProcessHelper secondTestHelper, IProcessHelper cleanupHelper, Logger logger, int hotReloadIters = 1)
         {
             (Process Proc, bool Success, int Pid) RunProcess(IProcessHelper helper)
             {
@@ -406,21 +413,24 @@ namespace ScenarioMeasurement
                 logger.LogStepHeader("Waiting for steady state");
                 failed = failed || !waitForSteadyState(runResult.Proc, "Application started.");
             }
-            if(innerLoopProcHelper != null  && !failed)
+            for(int i = 0; i < hotReloadIters; i++)
             {
-                //Do some stuff to change the project
-                logger.LogStepHeader("Inner Loop Setup");
-                var innerLoopReturn = innerLoopProcHelper.Run();
-                InnerLoopMarkerEventSource.Log.DroppedFile();
-                if(innerLoopReturn.Result != Result.Success)
+                if(innerLoopProcHelper != null  && !failed)
                 {
-                    failed = true;
+                    //Do some stuff to change the project
+                    logger.LogStepHeader("Inner Loop Setup");
+                    var innerLoopReturn = innerLoopProcHelper.Run();
+                    InnerLoopMarkerEventSource.Log.DroppedFile();
+                    if(innerLoopReturn.Result != Result.Success)
+                    {
+                        failed = true;
+                    }
                 }
-            }
-            if (waitForRecompile != null && !failed)
-            {
-                logger.LogStepHeader("Waiting for recompile");
-                failed = failed || !waitForRecompile(runResult.Proc, "Hot reload of changes succeeded");
+                if (waitForRecompile != null && !failed)
+                {
+                    logger.LogStepHeader("Waiting for recompile");
+                    failed = failed || !waitForRecompile(runResult.Proc, "Hot reload of changes succeeded");
+                }
             }
             
             if (secondTestHelper != null  && !failed)
@@ -446,8 +456,9 @@ namespace ScenarioMeasurement
             }
             if (runResult.Proc != null)
             {
+                logger.LogStepHeader("Stopping process");
                 runResult.Proc.Kill();
-                Thread.Sleep(1000);
+                Thread.Sleep(2000);
             }
             // need to clean up despite the result of setup and test
             if (cleanupHelper != null)

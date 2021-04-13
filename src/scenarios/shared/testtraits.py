@@ -37,6 +37,8 @@ class TestTraits:
         self.innerloopcommandargs = ''
         self.projext = ''
         self.runwithoutexit = ''
+        self.hotreloaditers = ''
+        self.skipmeasurementiteration = ''
 
         # add test types to traits
         for testtype in testtypes:
