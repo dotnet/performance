@@ -1,7 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+        <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
+    <!-- Supported target frameworks -->
+    <TargetFrameworks Condition="'$(TargetFramework)' == ''">net5.0;net6.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
