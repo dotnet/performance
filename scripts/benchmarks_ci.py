@@ -27,11 +27,10 @@ from logging import getLogger
 import os
 import sys
 
-from performance.common import helixpayload, validate_supported_runtime, get_artifacts_directory, RunCommand
+from performance.common import helixpayload, runninginlab, validate_supported_runtime, get_artifacts_directory, RunCommand
 from performance.logger import setup_loggers
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from channel_map import ChannelMap
-from shared.util import runninginlab
 from subprocess import Popen, CalledProcessError
 
 import dotnet
