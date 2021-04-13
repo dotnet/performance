@@ -39,9 +39,6 @@ def publishedexe(exename: str):
 def uploadtokenpresent():
     return environ.get(UPLOAD_TOKEN_VAR) is not None
 
-def runninginlab():
-    return environ.get('PERFLAB_INLAB') is not None
-
 def getruntimeidentifier():
     rid = None
     if iswin():

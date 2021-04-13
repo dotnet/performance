@@ -6,10 +6,10 @@ import os
 import platform
 from shutil import copytree
 from performance.logger import setup_loggers
-from performance.common import helixpayload, get_artifacts_directory, get_packages_directory, RunCommand
+from performance.common import helixpayload, runninginlab, get_artifacts_directory, get_packages_directory, RunCommand
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from dotnet import CSharpProject, CSharpProjFile
-from shared.util import extension, helixworkitempayload, helixuploaddir, builtexe, publishedexe, runninginlab, uploadtokenpresent, getruntimeidentifier, iswin
+from shared.util import extension, helixworkitempayload, helixuploaddir, builtexe, publishedexe, uploadtokenpresent, getruntimeidentifier, iswin
 from shared.const import *
 from shared.testtraits import TestTraits
 from subprocess import CalledProcessError
@@ -113,18 +113,19 @@ class StartupWrapper(object):
         try:
             RunCommand(startup_args, verbose=True).run()
         except CalledProcessError:
-            upload_container = 'failedresults'
-            reportjson = os.path.join(
-                TRACEDIR,
-                'FailureReporter', 
-                'failure-report.json')
-            cmdline = [
-                'FailureReporting.exe', reportjson
-            ]
-            reporterpath = os.path.join(helixpayload(), 'FailureReporter')
-            if not os.path.exists(reporterpath):
-                raise FileNotFoundError
-            RunCommand(cmdline, verbose=True).run(reporterpath)
+            if runninginlab():
+                upload_container = 'failedresults'
+                reportjson = os.path.join(
+                    TRACEDIR,
+                    'FailureReporter', 
+                    'failure-report.json')
+                cmdline = [
+                    'FailureReporting.exe', reportjson
+                ]
+                reporterpath = os.path.join(helixpayload(), 'FailureReporter')
+                if not os.path.exists(reporterpath):
+                    raise FileNotFoundError
+                RunCommand(cmdline, verbose=True).run(reporterpath)
 
         if runninginlab():
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))

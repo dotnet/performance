@@ -73,6 +73,9 @@ def helixpayload():
     '''
     return environ.get('HELIX_CORRELATION_PAYLOAD')
 
+def runninginlab():
+    return environ.get('PERFLAB_INLAB') is not None
+
 def get_script_path() -> str:
     '''Gets this script directory.'''
     return os.path.dirname(os.path.realpath(__file__))
