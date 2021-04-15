@@ -78,7 +78,7 @@ namespace System.IO.Tests
         [Arguments(SixteenKibibytes)]
         [Arguments(OneMibibyte)]
         [Arguments(HundredMibibytes)]
-        public void WriteAllBytes(int userBuffer) => File.WriteAllBytes(_testFilePath, _userBuffers[userBuffer]);
+        public void WriteAllBytes(int size) => File.WriteAllBytes(_testFilePath, _userBuffers[size]);
 
 #if !NETFRAMEWORK
         [Benchmark]
@@ -87,7 +87,7 @@ namespace System.IO.Tests
         [Arguments(SixteenKibibytes)]
         [Arguments(OneMibibyte)]
         [Arguments(HundredMibibytes)]
-        public Task WriteAllBytesAsync(int userBuffer) => File.WriteAllBytesAsync(_testFilePath, _userBuffers[userBuffer]);
+        public Task WriteAllBytesAsync(int size) => File.WriteAllBytesAsync(_testFilePath, _userBuffers[size]);
 #endif
 
         [GlobalCleanup(Targets = new[] { nameof(WriteAllBytes), "WriteAllBytesAsync" })]
