@@ -131,7 +131,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         required=False,
         help="Causes results files to be uploaded to perf container",
         action='store_true'
-    )   
+    )
 
     # Generic arguments.
     parser.add_argument(
@@ -242,16 +242,19 @@ def __main(args: list) -> int:
                 upload_container = 'failedresults'
                 globpath = os.path.join(
                     get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
-                    'FailureReporter', 
+                    'FailureReporter',
                     'failure-report.json')
                 cmdline = [
                     'FailureReporting.exe', globpath
                 ]
-                reporterpath = os.path.join(helixpayload(), 'FailureReporter')
+                helixpayload_path = helixpayload()
+                if helixpayload_path is None:
+                    raise FileNotFoundError
+                reporterpath = os.path.join(helixpayload_path, 'FailureReporter')
                 if not os.path.exists(reporterpath):
                     raise FileNotFoundError
                 RunCommand(cmdline, verbose=True).run(reporterpath)
-            
+
         dotnet.shutdown_server(verbose)
 
         if args.upload_to_perflab_container:
