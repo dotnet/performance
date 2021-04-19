@@ -237,8 +237,8 @@ def __main(args: list) -> int:
                 '**',
                 '*perf-lab-report.json')
         except CalledProcessError:
+            getLogger().info("Run failure registered")
             if runninginlab():
-                args.upload_to_perflab_container = False
                 upload_container = 'failedresults'
                 globpath = os.path.join(
                     get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
@@ -250,8 +250,11 @@ def __main(args: list) -> int:
                 reporterpath = os.path.join(helixpayload(), 'FailureReporter')
                 if not os.path.exists(reporterpath):
                     raise FileNotFoundError
+                getLogger().info("Uploading failure results...")
                 RunCommand(cmdline, verbose=True).run(reporterpath)
-            
+            else:
+                args.upload_to_perflab_container = False
+
         dotnet.shutdown_server(verbose)
 
         if args.upload_to_perflab_container:

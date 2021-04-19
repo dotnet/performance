@@ -4,6 +4,7 @@ Wrapper around startup tool.
 import sys
 import os
 import platform
+from logging import getLogger
 from shutil import copytree
 from performance.logger import setup_loggers
 from performance.common import helixpayload, runninginlab, get_artifacts_directory, get_packages_directory, RunCommand
@@ -113,6 +114,7 @@ class StartupWrapper(object):
         try:
             RunCommand(startup_args, verbose=True).run()
         except CalledProcessError:
+            getLogger().info("Run failure registered")
             if runninginlab():
                 upload_container = 'failedresults'
                 reportjson = os.path.join(
@@ -125,6 +127,7 @@ class StartupWrapper(object):
                 reporterpath = os.path.join(helixpayload(), 'FailureReporter')
                 if not os.path.exists(reporterpath):
                     raise FileNotFoundError
+                getLogger().info("Generating failure results...")
                 RunCommand(cmdline, verbose=True).run(reporterpath)
 
         if runninginlab():
