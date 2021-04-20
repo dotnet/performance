@@ -76,8 +76,8 @@ namespace DataTransferContracts // generated with http://json2csharp.com/#
         public double StandardError { get; set; }
         public double Variance { get; set; }
         public double StandardDeviation { get; set; }
-        public double Skewness { get; set; }
-        public double Kurtosis { get; set; }
+        public double? Skewness { get; set; }
+        public double? Kurtosis { get; set; }
         public ConfidenceInterval ConfidenceInterval { get; set; }
         public Percentiles Percentiles { get; set; }
     }
