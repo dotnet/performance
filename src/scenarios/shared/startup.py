@@ -117,9 +117,12 @@ class StartupWrapper(object):
             getLogger().info("Run failure registered")
             if runninginlab():
                 upload_container = 'failedresults'
-                reportjson = os.path.join(
+                reportdir = os.path.join(
                     TRACEDIR,
-                    'FailureReporter', 
+                    'FailureReporter')
+                os.mkdir(reportdir)
+                reportjson = os.path.join(
+                    reportdir, 
                     'failure-report.json')
                 cmdline = [
                     "FailureReporting%s" % extension(), reportjson

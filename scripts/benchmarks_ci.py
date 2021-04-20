@@ -240,9 +240,12 @@ def __main(args: list) -> int:
             getLogger().info("Run failure registered")
             if runninginlab():
                 upload_container = 'failedresults'
-                globpath = os.path.join(
+                reportdir = os.path.join(
                     get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
-                    'FailureReporter', 
+                    'FailureReporter')
+                os.mkdir(reportdir)
+                globpath = os.path.join(
+                    reportdir, 
                     'failure-report.json')
                 
                 cmdline = [
@@ -251,7 +254,7 @@ def __main(args: list) -> int:
                 reporterpath = os.path.join(helixpayload(), 'FailureReporter')
                 if not os.path.exists(reporterpath):
                     raise FileNotFoundError
-                getLogger().info("Generating failure results at %s" globpath)
+                getLogger().info("Generating failure results at " + globpath)
                 RunCommand(cmdline, verbose=True).run(reporterpath)
             else:
                 args.upload_to_perflab_container = False
