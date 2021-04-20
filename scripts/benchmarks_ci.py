@@ -27,7 +27,7 @@ from logging import getLogger
 import os
 import sys
 
-from performance.common import helixpayload, runninginlab, validate_supported_runtime, get_artifacts_directory, RunCommand
+from performance.common import iswin, helixpayload, runninginlab, validate_supported_runtime, get_artifacts_directory, RunCommand
 from performance.logger import setup_loggers
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from channel_map import ChannelMap
@@ -244,13 +244,17 @@ def __main(args: list) -> int:
                     get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
                     'FailureReporter', 
                     'failure-report.json')
+                if iswin:
+                    executable = 'FailureReporting.exe'
+                else:
+                    executable = 'FailureReporting'
                 cmdline = [
-                    'FailureReporting.exe', globpath
+                    executable, reportjson
                 ]
                 reporterpath = os.path.join(helixpayload(), 'FailureReporter')
                 if not os.path.exists(reporterpath):
                     raise FileNotFoundError
-                getLogger().info("Uploading failure results...")
+                getLogger().info("Generating failure results...")
                 RunCommand(cmdline, verbose=True).run(reporterpath)
             else:
                 args.upload_to_perflab_container = False

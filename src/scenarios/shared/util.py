@@ -6,6 +6,7 @@ import os
 import platform
 from os import environ
 from shared import const
+from performance.common import iswin
 from performance.constants import UPLOAD_TOKEN_VAR
 
 def helixworkitempayload():
@@ -64,8 +65,3 @@ def pythoncommand():
         return 'py'
     else:
         return 'python3'
-
-def iswin():
-    return sys.platform == 'win32'
-
-

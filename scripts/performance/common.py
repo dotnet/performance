@@ -17,6 +17,9 @@ import os
 import sys
 
 
+def iswin():
+    return sys.platform == 'win32'
+
 def __is_supported_version() -> bool:
     '''Checks if the script is running on the supported version (>=3.5).'''
     return sys.version_info >= (3, 5)

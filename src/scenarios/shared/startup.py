@@ -7,7 +7,7 @@ import platform
 from logging import getLogger
 from shutil import copytree
 from performance.logger import setup_loggers
-from performance.common import helixpayload, runninginlab, get_artifacts_directory, get_packages_directory, RunCommand
+from performance.common import iswin, helixpayload, runninginlab, get_artifacts_directory, get_packages_directory, RunCommand
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from dotnet import CSharpProject, CSharpProjFile
 from shared.util import extension, helixworkitempayload, helixuploaddir, builtexe, publishedexe, uploadtokenpresent, getruntimeidentifier, iswin
@@ -121,8 +121,12 @@ class StartupWrapper(object):
                     TRACEDIR,
                     'FailureReporter', 
                     'failure-report.json')
+                if iswin:
+                    executable = 'FailureReporting.exe'
+                else:
+                    executable = 'FailureReporting'
                 cmdline = [
-                    'FailureReporting.exe', reportjson
+                    executable, reportjson
                 ]
                 reporterpath = os.path.join(helixpayload(), 'FailureReporter')
                 if not os.path.exists(reporterpath):
