@@ -41,9 +41,9 @@ namespace System.IO.Compression
 
         public IEnumerable<string> UncompressedTestFileNames()
         {
-            yield return "TestDocument.pdf"; // 199 KB small test document with repeated paragraph, PDF are common
-            yield return "alice29.txt"; // 145 KB, copy of "ALICE'S ADVENTURES IN WONDERLAND" book, an example of text file
-            yield return "sum"; // 37.3 KB, some binary content, an example of binary file
+            yield return "TestDocument/TestDocument.pdf"; // 199 KB small test document with repeated paragraph, PDF are common
+            yield return "alice29/alice29.txt"; // 145 KB, copy of "ALICE'S ADVENTURES IN WONDERLAND" book, an example of text file
+            yield return "sum/sum"; // 37.3 KB, some binary content, an example of binary file
         }
 
         [Benchmark]
