@@ -147,7 +147,8 @@ class PreCommands:
         if self.operation == PUBLISH:
             self._restore()
             self._publish(configuration=self.configuration,
-                          runtime_identifier=self.runtime_identifier)
+                          runtime_identifier=self.runtime_identifier,
+                          framework=self.framework)
         if self.operation == CROSSGEN:
             startup_args = [
                 os.path.join(self.crossgen_arguments.coreroot, 'crossgen%s' % extension()),

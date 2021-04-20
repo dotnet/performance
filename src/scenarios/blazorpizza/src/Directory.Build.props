@@ -1,0 +1,8 @@
+<Project>
+    <PropertyGroup>
+        <AspNetCoreVersion>5.0.0</AspNetCoreVersion>
+        <BlazorVersion>6.0.0-preview*</BlazorVersion>
+        <EntityFrameworkVersion>5.0.0</EntityFrameworkVersion>
+        <SystemNetHttpJsonVersion>5.0.0</SystemNetHttpJsonVersion>
+    </PropertyGroup>
+</Project>

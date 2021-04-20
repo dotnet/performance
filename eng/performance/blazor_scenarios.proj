@@ -18,6 +18,15 @@
     <RID>linux-$(Architecture)</RID>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <FrameworkVersion>$(_Framework.Substring($([MSBuild]::Subtract($(_Framework.Length), 3))))</FrameworkVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+      <Framework Include="net5.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '3.1'"/>
+      <Framework Include="net6.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '5.0'"/>
+  </ItemGroup>
+
   <ItemDefinitionGroup>
       <HelixWorkItem>
       <PostCommands>$(Python) post.py</PostCommands>
@@ -31,6 +40,13 @@
       <PayloadDirectory>$(ScenariosDir)blazor</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
       <PreCommands>$(Python) pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+    
+    <HelixWorkItem Include="SOD - Pizza App - Publish">
+      <PayloadDirectory>$(ScenariosDir)blazorpizza</PayloadDirectory>
+      <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
+      <PreCommands>$(Python) pre.py publish -f %PERFLAB_TARGET_FRAMEWORKS% --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
