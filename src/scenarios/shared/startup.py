@@ -7,10 +7,10 @@ import platform
 from logging import getLogger
 from shutil import copytree
 from performance.logger import setup_loggers
-from performance.common import iswin, helixpayload, runninginlab, get_artifacts_directory, get_packages_directory, RunCommand
+from performance.common import extension, iswin, helixpayload, runninginlab, get_artifacts_directory, get_packages_directory, RunCommand
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from dotnet import CSharpProject, CSharpProjFile
-from shared.util import extension, helixworkitempayload, helixuploaddir, builtexe, publishedexe, uploadtokenpresent, getruntimeidentifier, iswin
+from shared.util import helixworkitempayload, helixuploaddir, builtexe, publishedexe, uploadtokenpresent, getruntimeidentifier, iswin
 from shared.const import *
 from shared.testtraits import TestTraits
 from subprocess import CalledProcessError
@@ -121,17 +121,13 @@ class StartupWrapper(object):
                     TRACEDIR,
                     'FailureReporter', 
                     'failure-report.json')
-                if iswin:
-                    executable = 'FailureReporting.exe'
-                else:
-                    executable = 'FailureReporting'
                 cmdline = [
-                    executable, reportjson
+                    "FailureReporting%s" % extension(), reportjson
                 ]
                 reporterpath = os.path.join(helixpayload(), 'FailureReporter')
                 if not os.path.exists(reporterpath):
                     raise FileNotFoundError
-                getLogger().info("Generating failure results...")
+                getLogger().info("Generating failure results at " + reportjson)
                 RunCommand(cmdline, verbose=True).run(reporterpath)
 
         if runninginlab():

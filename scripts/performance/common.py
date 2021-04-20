@@ -20,6 +20,10 @@ import sys
 def iswin():
     return sys.platform == 'win32'
 
+def extension():
+    'gets platform specific extension'
+    return '.exe' if iswin() else ''
+
 def __is_supported_version() -> bool:
     '''Checks if the script is running on the supported version (>=3.5).'''
     return sys.version_info >= (3, 5)

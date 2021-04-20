@@ -11,10 +11,10 @@ from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
-from shared.util import publishedexe, extension, pythoncommand, appfolder
+from shared.util import publishedexe, pythoncommand, appfolder
 from shared.sod import SODWrapper
 from shared import const
-from performance.common import iswin
+from performance.common import iswin, extension
 from performance.logger import setup_loggers
 from shared.testtraits import TestTraits, testtypes
 
