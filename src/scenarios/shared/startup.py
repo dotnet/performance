@@ -4,12 +4,13 @@ Wrapper around startup tool.
 import sys
 import os
 import platform
+from logging import getLogger
 from shutil import copytree
 from performance.logger import setup_loggers
-from performance.common import helixpayload, runninginlab, get_artifacts_directory, get_packages_directory, RunCommand
+from performance.common import extension, iswin, helixpayload, runninginlab, get_artifacts_directory, get_packages_directory, RunCommand
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from dotnet import CSharpProject, CSharpProjFile
-from shared.util import extension, helixworkitempayload, helixuploaddir, builtexe, publishedexe, uploadtokenpresent, getruntimeidentifier, iswin
+from shared.util import helixworkitempayload, helixuploaddir, builtexe, publishedexe, uploadtokenpresent, getruntimeidentifier, iswin
 from shared.const import *
 from shared.testtraits import TestTraits
 from subprocess import CalledProcessError
@@ -113,18 +114,24 @@ class StartupWrapper(object):
         try:
             RunCommand(startup_args, verbose=True).run()
         except CalledProcessError:
+            getLogger().info("Run failure registered")
             if runninginlab():
                 upload_container = 'failedresults'
-                reportjson = os.path.join(
+                reportdir = os.path.join(
                     TRACEDIR,
-                    'FailureReporter', 
+                    'FailureReporter')
+                os.makedirs(reportdir)
+                reportjson = os.path.join(
+                    os.getcwd(),
+                    reportdir, 
                     'failure-report.json')
                 cmdline = [
-                    'FailureReporting.exe', reportjson
+                    "FailureReporting%s" % extension(), reportjson
                 ]
                 reporterpath = os.path.join(helixpayload(), 'FailureReporter')
                 if not os.path.exists(reporterpath):
                     raise FileNotFoundError
+                getLogger().info("Generating failure results at " + reportjson)
                 RunCommand(cmdline, verbose=True).run(reporterpath)
 
         if runninginlab():

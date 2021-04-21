@@ -6,6 +6,7 @@ import os
 import platform
 from os import environ
 from shared import const
+from performance.common import iswin, extension
 from performance.constants import UPLOAD_TOKEN_VAR
 
 def helixworkitempayload():
@@ -19,10 +20,6 @@ def helixuploaddir():
     Gets the directory to upload files
     '''
     return environ.get('HELIX_WORKITEM_UPLOAD_ROOT')
-
-def extension():
-    'gets platform specific extension'
-    return '.exe' if iswin() else ''
 
 def builtexe(exename: str):
     'gets binary path'
@@ -64,8 +61,3 @@ def pythoncommand():
         return 'py'
     else:
         return 'python3'
-
-def iswin():
-    return sys.platform == 'win32'
-
-

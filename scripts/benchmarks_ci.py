@@ -27,7 +27,7 @@ from logging import getLogger
 import os
 import sys
 
-from performance.common import helixpayload, runninginlab, validate_supported_runtime, get_artifacts_directory, RunCommand
+from performance.common import extension, helixpayload, runninginlab, validate_supported_runtime, get_artifacts_directory, RunCommand
 from performance.logger import setup_loggers
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from channel_map import ChannelMap
@@ -237,21 +237,28 @@ def __main(args: list) -> int:
                 '**',
                 '*perf-lab-report.json')
         except CalledProcessError:
+            getLogger().info("Run failure registered")
             if runninginlab():
-                args.upload_to_perflab_container = False
                 upload_container = 'failedresults'
-                globpath = os.path.join(
+                reportdir = os.path.join(
                     get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
-                    'FailureReporter', 
+                    'FailureReporter')
+                os.makedirs(reportdir)
+                globpath = os.path.join(
+                    reportdir, 
                     'failure-report.json')
+                
                 cmdline = [
-                    'FailureReporting.exe', globpath
+                    "FailureReporting%s" % extension(), globpath
                 ]
                 reporterpath = os.path.join(helixpayload(), 'FailureReporter')
                 if not os.path.exists(reporterpath):
                     raise FileNotFoundError
+                getLogger().info("Generating failure results at " + globpath)
                 RunCommand(cmdline, verbose=True).run(reporterpath)
-            
+            else:
+                args.upload_to_perflab_container = False
+
         dotnet.shutdown_server(verbose)
 
         if args.upload_to_perflab_container:
