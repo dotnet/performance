@@ -120,7 +120,7 @@ class StartupWrapper(object):
                 reportdir = os.path.join(
                     TRACEDIR,
                     'FailureReporter')
-                os.mkdir(reportdir)
+                os.makedirs(reportdir)
                 reportjson = os.path.join(
                     reportdir, 
                     'failure-report.json')

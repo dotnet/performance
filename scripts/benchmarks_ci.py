@@ -243,7 +243,7 @@ def __main(args: list) -> int:
                 reportdir = os.path.join(
                     get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
                     'FailureReporter')
-                os.mkdir(reportdir)
+                os.makedirs(reportdir)
                 globpath = os.path.join(
                     reportdir, 
                     'failure-report.json')
