@@ -121,6 +121,7 @@ class StartupWrapper(object):
                     TRACEDIR,
                     'FailureReporter')
                 os.makedirs(reportdir)
+                getLogger().info("Folders in traces: " + os.listdir(TRACEDIR))
                 reportjson = os.path.join(
                     reportdir, 
                     'failure-report.json')
