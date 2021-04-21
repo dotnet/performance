@@ -5,7 +5,7 @@ import os
 from shared.runner import TestTraits, Runner
 from shared.const import APPDIR
 
-EXENAME = 'emptyblazorwasmtemplate'
+EXENAME = 'blazorpizza'
 
 if __name__ == "__main__":
     net5_linker_dump = os.path.join(APPDIR, 'obj', 'Release', 'net5.0', 'browser-wasm', 'linked', 'linker-dependencies.xml.gz')
