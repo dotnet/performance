@@ -18,7 +18,7 @@ namespace FailureReporting
             }
             else if (!Directory.Exists(Path.GetDirectoryName(args[0])))
             {
-                throw new IOException("Provided directory for JSON output does not exist");
+                throw new IOException($"Provided directory {Path.GetDirectoryName(args[0])} for JSON output does not exist");
             }
             CreateFailureReport(args[0]);
         }
