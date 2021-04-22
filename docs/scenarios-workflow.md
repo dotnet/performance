@@ -50,6 +50,13 @@ For some scenarios (not all), `pre.py` runs a defined precommand before the test
 Format for running precommands:
 ```
 cd <asset directory> # switch to the specific asset directory
+```
+#### Windows
+```
+py pre.py <command> <options>  # run precommand
+```
+#### Linux
+```
 python3 pre.py <command> <options>  # run precommand
 ```
 In our **startup time of an empty console template** example, we can run
@@ -67,6 +74,11 @@ Upon this step, the project source code should exist under `app\` directory. The
 
 `test.py` runs the test with a set of defined attributes. 
 Format for running test commands:
+#### Windows
+```
+py test.py <command> <test-specific options>
+```
+#### Linux
 ```
 python3 test.py <command> <test-specific options>
 ```
