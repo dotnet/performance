@@ -74,7 +74,7 @@ namespace System.IO.Tests
         [Benchmark]
         [Arguments(OneKibibyte , FileOptions.None)]
         [Arguments(OneKibibyte , FileOptions.Asynchronous)]
-        [AllowedOperatingSystems("Lock and Unlock are supported only on Windows and Linux", BenchmarkDotNet.Extensions.OS.Linux, BenchmarkDotNet.Extensions.OS.Windows)]
+        [OperatingSystemsFilter(allowed: true, OS.Windows, OS.Linux)] // "Lock and Unlock are supported only on Windows and Linux"
 #if NET6_0_OR_GREATER // the method was marked as unsupported on macOS in .NET 6.0
         [System.Runtime.Versioning.UnsupportedOSPlatform("macos")]
 #endif

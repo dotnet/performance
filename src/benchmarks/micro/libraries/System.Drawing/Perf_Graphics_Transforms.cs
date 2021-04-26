@@ -4,7 +4,6 @@
 
 using System.Drawing.Drawing2D;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 
 namespace System.Drawing.Tests
@@ -30,7 +29,7 @@ namespace System.Drawing.Tests
         }
 
         [Benchmark]
-        [AllowedOperatingSystems("Graphics.TransformPoints is not implemented in libgdiplus yet. See dotnet/corefx 20884", BenchmarkDotNet.Extensions.OS.Windows)]
+        [OperatingSystemsFilter(allowed: true, platforms: OS.Windows)] // Graphics.TransformPoints is not implemented in libgdiplus yet. See dotnet/corefx 20884
         public void TransformPoints()
         {
             _graphics.TransformPoints(CoordinateSpace.World, CoordinateSpace.Page, _points);
