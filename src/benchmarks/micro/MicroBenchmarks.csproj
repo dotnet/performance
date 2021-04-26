@@ -94,13 +94,10 @@
     <Compile Remove="runtime\Math\Functions\Single\ILogB.cs" />
     <Compile Remove="runtime\Math\Functions\Single\Log2.cs" />
     <Compile Remove="runtime\Math\Functions\Single\ScaleB.cs" />
+    <Compile Remove="runtime\PacketTracer\**\*.cs" />
     <Compile Remove="libraries\System.Memory\SequenceReader.cs" />
     <Compile Remove="libraries\System.Numerics.BitOperations\Perf_BitOperations.cs" />
     <Compile Remove="libraries\System.Text.Json\**\*.cs" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.1') OR '$(IsARM)' == 'true'">
-    <Compile Remove="runtime\PacketTracer\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '5.0')">

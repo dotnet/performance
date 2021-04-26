@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 using BenchmarkDotNet.Attributes;
@@ -11,6 +12,7 @@ using MicroBenchmarks;
 namespace HardwareIntrinsics.RayTracer
 {
     [BenchmarkCategory(Categories.Runtime)]
+    [OperatingSystemsArchitectureFilter(allowed: true, Architecture.X64, Architecture.X86)]
     public class SoA
     {
         private const int RunningTime = 1000;
