@@ -105,7 +105,7 @@ namespace System.Net.Security.Tests
         public Task DefaultHandshakeIPv6Async() => DefaultHandshake(_clientIPv6, _serverIPv6);
 
         [Benchmark]
-        [AllowedOperatingSystems("Not supported on Windows at the moment.", BenchmarkDotNet.Extensions.OS.Linux)]
+        [OperatingSystemsFilter(allowed: true, platforms: OS.Linux)]    // Not supported on Windows at the moment.
         public Task DefaultHandshakePipeAsync() => DefaultHandshake(_clientPipe, _serverPipe);
 
         private async Task DefaultHandshake(Stream client, Stream server)

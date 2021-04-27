@@ -27,10 +27,11 @@ from logging import getLogger
 import os
 import sys
 
-from performance.common import validate_supported_runtime, get_artifacts_directory
+from performance.common import extension, helixpayload, runninginlab, validate_supported_runtime, get_artifacts_directory, RunCommand
 from performance.logger import setup_loggers
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from channel_map import ChannelMap
+from subprocess import Popen, CalledProcessError
 
 import dotnet
 import micro_benchmarks
@@ -221,25 +222,48 @@ def __main(args: list) -> int:
 
     # Run micro-benchmarks
     if not args.build_only:
-        for framework in args.frameworks:
-            micro_benchmarks.run(
-                BENCHMARKS_CSPROJ,
-                args.configuration,
-                framework,
-                verbose,
-                args
-            )
-            
-        dotnet.shutdown_server(verbose)
-
-        if args.upload_to_perflab_container:
-            import upload
+        upload_container = UPLOAD_CONTAINER
+        try:
+            for framework in args.frameworks:
+                micro_benchmarks.run(
+                    BENCHMARKS_CSPROJ,
+                    args.configuration,
+                    framework,
+                    verbose,
+                    args
+                )
             globpath = os.path.join(
                 get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
                 '**',
                 '*perf-lab-report.json')
+        except CalledProcessError:
+            getLogger().info("Run failure registered")
+            if runninginlab():
+                upload_container = 'failedresults'
+                reportdir = os.path.join(
+                    get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
+                    'FailureReporter')
+                os.makedirs(reportdir)
+                globpath = os.path.join(
+                    reportdir, 
+                    'failure-report.json')
+                
+                cmdline = [
+                    "FailureReporting%s" % extension(), globpath
+                ]
+                reporterpath = os.path.join(helixpayload(), 'FailureReporter')
+                if not os.path.exists(reporterpath):
+                    raise FileNotFoundError
+                getLogger().info("Generating failure results at " + globpath)
+                RunCommand(cmdline, verbose=True).run(reporterpath)
+            else:
+                args.upload_to_perflab_container = False
 
-            upload.upload(globpath, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+        dotnet.shutdown_server(verbose)
+
+        if args.upload_to_perflab_container:
+            import upload
+            upload.upload(globpath, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
         # TODO: Archive artifacts.
 
 

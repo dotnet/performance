@@ -10,9 +10,8 @@ from argparse import ArgumentParser
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
 from shared.crossgen import CrossgenArguments
-from shared.util import extension, helixpayload
 from shared.codefixes import replace_line, insert_after
-from performance.common import get_packages_directory, get_repo_root_path, RunCommand
+from performance.common import extension, get_packages_directory, get_repo_root_path, RunCommand, helixpayload
 
 DEFAULT = 'default'
 BUILD = 'build'
@@ -147,7 +146,8 @@ class PreCommands:
         if self.operation == PUBLISH:
             self._restore()
             self._publish(configuration=self.configuration,
-                          runtime_identifier=self.runtime_identifier)
+                          runtime_identifier=self.runtime_identifier,
+                          framework=self.framework)
         if self.operation == CROSSGEN:
             startup_args = [
                 os.path.join(self.crossgen_arguments.coreroot, 'crossgen%s' % extension()),

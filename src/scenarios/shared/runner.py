@@ -11,9 +11,10 @@ from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
-from shared.util import publishedexe, extension, pythoncommand, iswin, appfolder
+from shared.util import publishedexe, pythoncommand, appfolder
 from shared.sod import SODWrapper
 from shared import const
+from performance.common import iswin, extension
 from performance.logger import setup_loggers
 from shared.testtraits import TestTraits, testtypes
 
@@ -57,6 +58,11 @@ class Runner:
         innerloopparser = subparsers.add_parser(const.INNERLOOPMSBUILD,
                                               description='measure time to main and difference between two runs in a row')
         self.add_common_arguments(innerloopparser)
+
+        # dotnet watch command
+        dotnetwatchparser = subparsers.add_parser(const.DOTNETWATCH,
+                                              description='measure time to main and time for hot reload')
+        self.add_common_arguments(dotnetwatchparser)
 
         # sdk command
         sdkparser = subparsers.add_parser(const.SDK, 
@@ -156,6 +162,19 @@ ex: C:\repos\performance;C:\repos\runtime
             cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE))
             startup.runtests(self.traits)
             
+        if self.testtype == const.DOTNETWATCH:
+            startup = StartupWrapper()
+            self.traits.add_traits(scenarioname=self.scenarioname,
+            scenariotypename=const.SCENARIO_NAMES[const.DOTNETWATCH],
+            apptorun='dotnet', appargs='watch',
+            innerloopcommand=pythoncommand(),
+            iterationsetup=pythoncommand(),
+            setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
+            iterationcleanup=pythoncommand(),
+            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE))
+            self.traits.add_traits(workingdir = const.APPDIR)
+            startup.runtests(self.traits)
+
         if self.testtype == const.STARTUP:
             startup = StartupWrapper()
             self.traits.add_traits(overwrite=False,

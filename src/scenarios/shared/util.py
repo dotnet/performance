@@ -6,13 +6,8 @@ import os
 import platform
 from os import environ
 from shared import const
+from performance.common import iswin, extension
 from performance.constants import UPLOAD_TOKEN_VAR
-
-def helixpayload():
-    '''
-    Returns the helix payload. Will be None outside of helix.
-    '''
-    return environ.get('HELIX_CORRELATION_PAYLOAD')
 
 def helixworkitempayload():
     '''
@@ -25,10 +20,6 @@ def helixuploaddir():
     Gets the directory to upload files
     '''
     return environ.get('HELIX_WORKITEM_UPLOAD_ROOT')
-
-def extension():
-    'gets platform specific extension'
-    return '.exe' if iswin() else ''
 
 def builtexe(exename: str):
     'gets binary path'
@@ -44,9 +35,6 @@ def publishedexe(exename: str):
 
 def uploadtokenpresent():
     return environ.get(UPLOAD_TOKEN_VAR) is not None
-
-def runninginlab():
-    return environ.get('PERFLAB_INLAB') is not None
 
 def getruntimeidentifier():
     rid = None
@@ -73,8 +61,3 @@ def pythoncommand():
         return 'py'
     else:
         return 'python3'
-
-def iswin():
-    return sys.platform == 'win32'
-
-

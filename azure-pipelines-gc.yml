@@ -7,7 +7,6 @@ resources:
 pr:
   branches:
     include:
-    - master
     - main
   paths:
     include:

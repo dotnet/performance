@@ -14,7 +14,7 @@ namespace System.Text.RegularExpressions.Tests
     public class Perf_Regex_Common
     {
         private Regex _email, _date, _ip, _uri;
-        private Regex _searchWord, _searchWords, _searchSet, _searchBoundary;
+        private Regex _searchWord, _searchWords, _searchSet, _searchBoundary, _notOneLoopNodeBacktracking, _oneNodeBacktracking;
         private string _loremIpsum;
 
         [Params(RegexOptions.None, RegexOptions.Compiled, RegexOptions.Compiled | RegexOptions.IgnoreCase)]
@@ -32,9 +32,13 @@ namespace System.Text.RegularExpressions.Tests
             _searchWords = new Regex(@"tempus|magna|semper", Options);
             _searchSet = new Regex(@"\w{10,}", Options);
             _searchBoundary = new Regex(@"\b\w{10,}\b", Options);
+            _notOneLoopNodeBacktracking = new Regex(".*(ss)", Options);
+            _oneNodeBacktracking = new Regex(@"[^a]+\.[^z]+", Options);
             _loremIpsum = LoremIpsum.ToString();
         }
 
+        [Benchmark] public void Backtracking() => _notOneLoopNodeBacktracking.Match("Essential services are provided by regular exprs.");
+        [Benchmark] public void OneNodeBacktracking() => _oneNodeBacktracking.Match("This regex has the potential to be optimized further");
         [Benchmark] public void Email_IsMatch() => _email.IsMatch("yay.performance@dot.net");
         [Benchmark] public void Email_IsNotMatch() => _email.IsMatch("yay.performance@dot.net#");
 

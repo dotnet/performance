@@ -4,6 +4,7 @@ Common functionality used by the repository scripts.
 
 from contextlib import contextmanager
 from logging import getLogger
+from os import environ
 from shutil import rmtree
 from stat import S_IWRITE
 from subprocess import CalledProcessError
@@ -15,6 +16,13 @@ from subprocess import STDOUT
 import os
 import sys
 
+
+def iswin():
+    return sys.platform == 'win32'
+
+def extension():
+    'gets platform specific extension'
+    return '.exe' if iswin() else ''
 
 def __is_supported_version() -> bool:
     '''Checks if the script is running on the supported version (>=3.5).'''
@@ -65,6 +73,15 @@ def remove_directory(path: str) -> None:
 
         rmtree(path, onerror=handle_rmtree_errors)
 
+
+def helixpayload():
+    '''
+    Returns the helix payload. Will be None outside of helix.
+    '''
+    return environ.get('HELIX_CORRELATION_PAYLOAD')
+
+def runninginlab():
+    return environ.get('PERFLAB_INLAB') is not None
 
 def get_script_path() -> str:
     '''Gets this script directory.'''
@@ -185,7 +202,7 @@ class RunCommand:
 
         retrycount = 0
         (returncode, quoted_cmdline) = self.__runinternal(working_directory)
-        while returncode not in self.success_exit_codes and retrycount < self.__retry:
+        while returncode not in self.success_exit_codes and retrycount <= self.__retry:
             (returncode, _) = self.__runinternal(working_directory)
             retrycount += 1
 

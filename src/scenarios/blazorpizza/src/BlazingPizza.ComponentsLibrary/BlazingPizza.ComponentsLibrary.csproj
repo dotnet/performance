@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
+    <!-- Supported target frameworks -->
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net5.0;net6.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="$(AspNetCoreVersion)" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="$(AspNetCoreVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+</Project>

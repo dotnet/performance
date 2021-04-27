@@ -3,22 +3,20 @@ resources:
     - container: ubuntu_x64_build_container
       image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-20210311173856-047508b
 
-# CI Trigger on master branch
+# CI Trigger on main branch
 trigger:
   branches:
     include:
-    - master
     - main
     - release/3.1.4xx
   paths:
     include:
     - eng/Version.Details.xml
 
-# Trigger builds for PR's targeting master
+# Trigger builds for PR's targeting main
 pr:
   branches:
     include:
-    - master
     - main
   paths:
     exclude: # don't trigger the CI if only a doc file was changed
@@ -36,7 +34,6 @@ schedules:
   displayName: Every 12 hours build
   branches:
     include:
-    - master
     - main
     - release/3.1.4xx
   always: true
@@ -60,7 +57,7 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - master
+        - main
 
   # Ubuntu 1804 x64 scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -75,7 +72,7 @@ jobs:
       container: ubuntu_x64_build_container
       projectFile: scenarios.proj
       channels:
-        - master
+        - main
   
   # Windows x64 Blazor scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -89,7 +86,7 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       projectFile: blazor_scenarios.proj
       channels:
-        - master
+        - main
         - release/5.0.1xx
 
   # Windows x64 SDK scenario benchmarks
@@ -104,7 +101,7 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       projectFile: sdk_scenarios.proj
       channels:
-        - master
+        - main
   
   # Ubuntu 1804 x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -119,7 +116,7 @@ jobs:
       container: ubuntu_x64_build_container
       projectFile: sdk_scenarios.proj
       channels:
-        - master
+        - main
 
   # Windows x86 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -133,7 +130,7 @@ jobs:
       queue: Windows.10.Amd64.ClientRS5.Open
       projectFile: sdk_scenarios.proj
       channels:
-        - master
+        - main
   
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -148,7 +145,7 @@ jobs:
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries' 
       channels:
-        - master
+        - main
         - release/5.0.1xx
         #- release/3.1.3xx
         #- 2.1
@@ -181,7 +178,7 @@ jobs:
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
       channels: # for public jobs we want to make sure that the PRs don't break x86
-        - master
+        - main
         - release/5.0.1xx
 
   # Windows x64 ML.NET benchmarks
@@ -197,7 +194,7 @@ jobs:
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
       channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
-        - master
+        - main
         - release/5.0.1xx
         #- release/3.1.3xx
 
@@ -214,7 +211,7 @@ jobs:
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-        - master
+        - main
         - release/5.0.1xx
         #- release/3.1.3xx
         
@@ -232,7 +229,7 @@ jobs:
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - master
+        - main
         - release/5.0.1xx
         #- release/3.1.3xx
         #- 2.1
@@ -251,7 +248,7 @@ jobs:
       runCategories: 'mldotnet'
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
       channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
-        - master
+        - main
         - release/5.0.1xx
         #- release/3.1.3xx
 
@@ -269,7 +266,7 @@ jobs:
       runCategories: 'roslyn'
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-        - master
+        - main
         - release/5.0.1xx
         #- release/3.1.3xx
 
@@ -291,7 +288,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
-        - master
+        - main
 
   # Ubuntu 1804 x64 scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -306,7 +303,7 @@ jobs:
       container: ubuntu_x64_build_container
       projectFile: scenarios.proj
       channels:
-        - master
+        - main
 
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -321,7 +318,7 @@ jobs:
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
       channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        #- master
+        #- main
         - release/5.0.1xx
         #- release/3.1.2xx
 
@@ -338,7 +335,7 @@ jobs:
   #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
   #     runCategories: 'runtime libraries'
   #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- master
+  #       #- main
   #       - release/5.0.1xx
   #       #- release/3.1.2xx
       
@@ -355,7 +352,7 @@ jobs:
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
       channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        #- master
+        #- main
         - release/5.0.1xx
         #- release/3.1.2xx
 
@@ -372,7 +369,7 @@ jobs:
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
       channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        #- master
+        #- main
         - release/5.0.1xx
         #- release/3.1.2xx
 
@@ -389,7 +386,7 @@ jobs:
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
       channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        #- master
+        #- main
         - release/5.0.1xx
         #- release/3.1.2xx
 
@@ -407,7 +404,7 @@ jobs:
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
       channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        #- master
+        #- main
         - release/5.0.1xx
         #- release/3.1.2xx
 
@@ -425,7 +422,7 @@ jobs:
   #     csproj: src/benchmarks/micro/MicroBenchmarks.csproj
   #     runCategories: 'runtime libraries'
   #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- master
+  #       #- main
   #       - release/5.0.1xx
   #       #- release/3.1.2xx
 
@@ -443,7 +440,7 @@ jobs:
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
       channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        #- master
+        #- main
         - release/5.0.1xx
         #- release/3.1.2xx
   
@@ -461,7 +458,7 @@ jobs:
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       runCategories: 'roslyn'
       channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        #- master
+        #- main
         - release/5.0.1xx
         #- release/3.1.2xx
 
@@ -484,7 +481,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: sdk_scenarios.proj
       channels:
-        - master
+        - main
         - 5.0
   
   # Windows x86 SDK scenario benchmarks
@@ -499,7 +496,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: sdk_scenarios.proj
       channels:
-        - master
+        - main
 
   # Ubuntu 1804 x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -514,7 +511,7 @@ jobs:
       container: ubuntu_x64_build_container
       projectFile: sdk_scenarios.proj
       channels:
-        - master
+        - main
         - 5.0
 
   # Windows x64 Blazor 3.2 scenario benchmarks
@@ -529,7 +526,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: blazor_scenarios.proj
       channels:
-        - master
+        - main
         #- release/5.0.1xx
 
 ################################################

@@ -120,7 +120,7 @@ namespace ResultsComparer
                 .Take(args.TopCount ?? int.MaxValue)
                 .Select(result => new
                 {
-                    Id = result.id.Length > 80 ? result.id.Substring(0, 80) : result.id,
+                    Id = (result.id.Length <= 80 || args.FullId) ? result.id : result.id.Substring(0, 80),
                     DisplayValue = GetRatio(conclusion, result.baseResult, result.diffResult),
                     BaseMedian = result.baseResult.Statistics.Median,
                     DiffMedian = result.diffResult.Statistics.Median,
@@ -191,7 +191,7 @@ namespace ResultsComparer
         private static void ExportToXml((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame, FileInfo xmlPath)
         {
             if (xmlPath == null)
-            {  
+            {
                 Console.WriteLine("No file given");
                 return;
             }
