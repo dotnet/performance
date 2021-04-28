@@ -17,15 +17,15 @@ using MicroBenchmarks;
 namespace System.Net.Security.Tests
 {
     [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
-    public class SslStreamTests
+    public partial class SslStreamTests
     {
         private readonly Barrier _twoParticipantBarrier = new Barrier(2);
-        private readonly X509Certificate2 _cert = Test.Common.Configuration.Certificates.GetServerCertificate();
-        private readonly X509Certificate2 _ec256Cert = Test.Common.Configuration.Certificates.GetEC256Certificate();
-        private readonly X509Certificate2 _ec512Cert = Test.Common.Configuration.Certificates.GetEC512Certificate();
-        private readonly X509Certificate2 _rsa1024Cert = Test.Common.Configuration.Certificates.GetRSA1024Certificate();
-        private readonly X509Certificate2 _rsa2048Cert = Test.Common.Configuration.Certificates.GetRSA2048Certificate();
-        private readonly X509Certificate2 _rsa4096Cert = Test.Common.Configuration.Certificates.GetRSA4096Certificate();
+        private static readonly X509Certificate2 _cert = Test.Common.Configuration.Certificates.GetServerCertificate();
+        private static readonly X509Certificate2 _ec256Cert = Test.Common.Configuration.Certificates.GetEC256Certificate();
+        private static readonly X509Certificate2 _ec512Cert = Test.Common.Configuration.Certificates.GetEC512Certificate();
+        private static readonly X509Certificate2 _rsa1024Cert = Test.Common.Configuration.Certificates.GetRSA1024Certificate();
+        private static readonly X509Certificate2 _rsa2048Cert = Test.Common.Configuration.Certificates.GetRSA2048Certificate();
+        private static readonly X509Certificate2 _rsa4096Cert = Test.Common.Configuration.Certificates.GetRSA4096Certificate();
 
         private readonly byte[] _clientBuffer = new byte[1], _serverBuffer = new byte[1];
         private readonly byte[] _largeClientBuffer = new byte[4096], _largeServerBuffer = new byte[4096];
@@ -98,7 +98,6 @@ namespace System.Net.Security.Tests
             _serverPipe.Dispose();
         }
 
-#if false // pending fix in https://github.com/dotnet/performance/issues/1732
         [Benchmark]
         public Task DefaultHandshakeIPv4Async() => DefaultHandshake(_clientIPv4, _serverIPv4);
 
@@ -106,77 +105,82 @@ namespace System.Net.Security.Tests
         public Task DefaultHandshakeIPv6Async() => DefaultHandshake(_clientIPv6, _serverIPv6);
 
         [Benchmark]
+        [OperatingSystemsFilter(allowed: true, platforms: OS.Linux)]    // Not supported on Windows at the moment.
         public Task DefaultHandshakePipeAsync() => DefaultHandshake(_clientPipe, _serverPipe);
 
         private async Task DefaultHandshake(Stream client, Stream server)
         {
+            SslClientAuthenticationOptions clientOptions = new SslClientAuthenticationOptions
+            {
+                AllowRenegotiation = false,
+                EnabledSslProtocols = SslProtocols.None,
+                CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                TargetHost = "loopback",
+            };
+
+            SslServerAuthenticationOptions serverOptions = new SslServerAuthenticationOptions
+            {
+                AllowRenegotiation = false,
+                EnabledSslProtocols = SslProtocols.None,
+                CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                ServerCertificate = _cert
+            };
+
             using (var sslClient = new SslStream(client, leaveInnerStreamOpen: true, delegate { return true; }))
             using (var sslServer = new SslStream(server, leaveInnerStreamOpen: true, delegate { return true; }))
+            using (CancellationTokenSource cts = new CancellationTokenSource())
             {
+                cts.CancelAfter(TimeSpan.FromSeconds(10));
                 await Task.WhenAll(
-                    sslClient.AuthenticateAsClientAsync("localhost", null, SslProtocols.None, checkCertificateRevocation: false),
-                    sslServer.AuthenticateAsServerAsync(_cert, clientCertificateRequired: false, SslProtocols.None, checkCertificateRevocation: false));
-                // SslProtocols.Tls13 does not exist in netstandard2.0
+                    sslClient.AuthenticateAsClientAsync(clientOptions, cts.Token),
+                    sslServer.AuthenticateAsServerAsync(serverOptions, cts.Token));
                 if ((int)sslClient.SslProtocol > (int)SslProtocols.Tls12)
                 {
                     // In Tls1.3 part of handshake happens with data exchange.
-                    await sslServer.WriteAsync(_serverBuffer, default);
-                    await sslClient.ReadAsync(_clientBuffer, default);
+                    await sslClient.WriteAsync(_clientBuffer, cts.Token);
+                    await sslServer.ReadAsync(_serverBuffer, cts.Token);
+                    await sslServer.WriteAsync(_serverBuffer, cts.Token);
+                    await sslClient.ReadAsync(_clientBuffer, cts.Token);
                 }
             }
         }
-#endif
 
-        [Benchmark]
-        public Task TLS12HandshakeECDSA256CertAsync() => HandshakeAsync(_ec256Cert, SslProtocols.Tls12);
-
-        [Benchmark]
-        [OperatingSystemsFilter(allowed: true, platforms: OS.Linux)] // Not supported on Windows at the moment.
-        public Task TLS12HandshakeECDSA512CertAsync() => HandshakeAsync(_ec512Cert, SslProtocols.Tls12);
-
-        [Benchmark]
-        public Task TLS12HandshakeRSA1024CertAsync() => HandshakeAsync(_rsa1024Cert, SslProtocols.Tls12);
-
-        [Benchmark]
-        public Task TLS12HandshakeRSA2048CertAsync() => HandshakeAsync(_rsa2048Cert, SslProtocols.Tls12);
-
-        [Benchmark]
-        public Task TLS12HandshakeRSA4096CertAsync() => HandshakeAsync(_rsa4096Cert, SslProtocols.Tls12);
-
-        private async Task HandshakeAsync(X509Certificate certificate, SslProtocols sslProtocol)
+        private static async Task HandshakeAsync(X509Certificate certificate, SslProtocols sslProtocol)
         {
-            string pipeName = "TlsHandshakePipe";
             RemoteCertificateValidationCallback clientRemoteCallback = new RemoteCertificateValidationCallback(delegate { return true; });
-
-            using (var serverPipe = new NamedPipeServerStream(pipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.WriteThrough))
-            using (var clientPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.WriteThrough))
+            (Stream clientStream, Stream serverStream) = ConnectedStreams.CreateBidirectional(initialBufferSize: 4096, maxBufferSize: int.MaxValue);
+            SslClientAuthenticationOptions clientOptions = new SslClientAuthenticationOptions
             {
-                await Task.WhenAll(serverPipe.WaitForConnectionAsync(), clientPipe.ConnectAsync());
+                AllowRenegotiation = false,
+                EnabledSslProtocols = sslProtocol,
+                CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                TargetHost = Guid.NewGuid().ToString(),
+                RemoteCertificateValidationCallback = clientRemoteCallback
+            };
 
-                SslClientAuthenticationOptions clientOptions = new SslClientAuthenticationOptions
-                {
-                        AllowRenegotiation = false,
-                        EnabledSslProtocols = sslProtocol,
-                        CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
-                        TargetHost = Guid.NewGuid().ToString(),
-                        RemoteCertificateValidationCallback = clientRemoteCallback
-                };
+            SslServerAuthenticationOptions serverOptions = new SslServerAuthenticationOptions
+            {
+                AllowRenegotiation = false,
+                EnabledSslProtocols = sslProtocol,
+                CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
+                ServerCertificate = certificate
+            };
 
-                SslServerAuthenticationOptions serverOptions = new SslServerAuthenticationOptions
-                {
-                    AllowRenegotiation = false,
-                    EnabledSslProtocols = sslProtocol,
-                    CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
-                    ServerCertificate = certificate
-                };
+            using (var sslClient = new SslStream(clientStream))
+            using (var sslServer = new SslStream(serverStream))
+            using (CancellationTokenSource cts = new CancellationTokenSource())
+            {
+                cts.CancelAfter(TimeSpan.FromSeconds(10));
+                await Task.WhenAll(
+                        sslClient.AuthenticateAsClientAsync(clientOptions, cts.Token),
+                        sslServer.AuthenticateAsServerAsync(serverOptions, cts.Token));
 
-                using (var sslClient = new SslStream(clientPipe))
-                using (var sslServer = new SslStream(serverPipe))
-                {
-                    await Task.WhenAll(
-                        sslClient.AuthenticateAsClientAsync(clientOptions, CancellationToken.None),
-                        sslServer.AuthenticateAsServerAsync(serverOptions, CancellationToken.None));
-                }
+                byte[] clientBuffer = new byte[1], serverBuffer = new byte[1];
+
+                await sslClient.WriteAsync(clientBuffer, cts.Token);
+                await sslServer.ReadAsync(serverBuffer, cts.Token);
+                await sslServer.WriteAsync(serverBuffer, cts.Token);
+                await sslClient.ReadAsync(clientBuffer, cts.Token);
             }
         }
 
