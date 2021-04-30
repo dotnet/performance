@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
+    <!-- Supported target frameworks -->
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net5.0;net6.0</TargetFrameworks>
+    <RootNamespace>BlazingPizza</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BlazingPizza.ComponentsLibrary\BlazingPizza.ComponentsLibrary.csproj" />
+  </ItemGroup>
+
+</Project>
