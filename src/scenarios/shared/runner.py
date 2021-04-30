@@ -192,6 +192,7 @@ ex: C:\repos\performance;C:\repos\runtime
         elif self.testtype == const.CIBUILD:
             startup = StartupWrapper()
             envlistbuild = 'DOTNET_MULTILEVEL_LOOKUP=0'
+            envlistcleanbuild = ';'.join(['MSBUILDDISABLENODEREUSE=1', envlistbuild])
             # clean build
             self.traits.add_traits(
                 overwrite=False,
@@ -200,7 +201,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 apptorun=const.DOTNET,
                 appargs='build',
                 workingdir=const.APPDIR,
-                environmentvariables=envlistbuild,
+                environmentvariables=envlistcleanbuild,
             )
             self.traits.add_traits(overwrite=True, startupmetric=const.STARTUP_PROCESSTIME)
             startup.runtests(self.traits)
