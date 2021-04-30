@@ -27,6 +27,7 @@ for line in f.readlines():
         outFileText += "    <RunAOTCompilation>true</RunAOTCompilation>" + os.linesep
     else:
         outFileText += line
+f.close()
 os.remove(os.path.join(os.getcwd(), "app", "emptyblazorwasmtemplate.csproj"))
 f = open(os.path.join(os.getcwd(), "app", "emptyblazorwasmtemplate.csproj"), 'w')
 f.write(outFileText)
