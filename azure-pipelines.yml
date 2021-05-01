@@ -11,9 +11,9 @@ jobs:
     - pwsh: echo "##vso[task.setvariable variable=day]$(([datetime]'$(startTime)').DayOfWeek)"
     - bash: echo day is '${{ parameters.day }}'
     - bash: echo ${{ parameters.day }} is one of our days
-      condition: or(eq(parameters.day, 'Monday'), eq(parameters.day, 'Thursday'))
+      condition: or(eq($(day), 'Monday'), eq(parameters.day, 'Thursday'))
     - bash: echo nah it's saturday
-      condition: eq(parameters.day, 'Saturday') 
+      condition: eq($(day), 'Saturday') 
 
 
 ######################################################
