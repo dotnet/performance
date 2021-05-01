@@ -1,9 +1,9 @@
 pool:
   vmImage: ubuntu-latest
 
-  variables:
-  - name: startTime
-    value: $[format("{0}", pipeline.startTime)]
+variables:
+- name: startTime
+  value: $[format("{0}", pipeline.startTime)]
 
 jobs:
   - job: getday
