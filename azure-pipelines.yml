@@ -6,9 +6,9 @@ jobs:
       vmImage: ubuntu-latest
     variables:
       a: $[counter(format('{0:yyyyMMdd}', pipeline.startTime), 100)]
-      b: $[format('{0:d}', pipeline.startTime)]
+      b: $[format('{0}', pipeline.startTime)]
     steps:
-    - pwsh: echo "##vso[task.setvariable variable=day]([datetime]'$(b)').DayOfWeek"
+    - pwsh: echo "##vso[task.setvariable variable=day]$(([datetime]'$(b)').DayOfWeek)"
 
     - bash: echo $(b)
     - bash: echo $(day)
