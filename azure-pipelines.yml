@@ -9,9 +9,9 @@ jobs:
     steps:
     - pwsh: echo "##vso[task.setvariable variable=day]$(([datetime]'$(b)').DayOfWeek)"
     - bash: echo $(day)
-    - ${{ if eq(variables['day']), 'Saturday') }}:
+    - ${{ if eq(variables['day'], 'Saturday') }}:
       - bash: echo "it's saturday"
-    - ${{ if ne(variables['day']), 'Saturday') }}:
+    - ${{ if ne(variables['day'], 'Saturday') }}:
       - bash: echo "Not saturday"
 
 
