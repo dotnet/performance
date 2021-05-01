@@ -10,8 +10,9 @@ jobs:
     steps:
       - pwsh: echo "##vso[task.setvariable variable=day]$(([datetime]'$(startTime)').DayOfWeek)"
         name: getday
+        
   - job: dowork
-    dependsOn:: getday
+    dependsOn: getday
     steps:
     - bash: echo day is '$(day)'
     - bash: echo $(day) is one of our days
