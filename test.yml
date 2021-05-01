@@ -4,7 +4,7 @@ parameters:
   default: ''
 
 steps:
-- ${{ if or(eq(parameters.day, "Monday"), eq(parameters.day, "Thursday")) }}:
+- ${{ if or(eq(parameters.day, 'Monday'), eq(parameters.day, 'Thursday')) }}:
   - bash: echo ${{ parameters.day }} is one of our days
-- ${{ if eq(parameters.day, "Saturday") }}:
+- ${{ if eq(parameters.day, 'Saturday') }}:
   - bash: echo nah it's saturday
