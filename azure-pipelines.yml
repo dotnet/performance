@@ -4,8 +4,11 @@ jobs:
   - job:
     pool:
       vmImage: ubuntu-latest
+    variables:
+      - name: startTime
+        value: $[pipeline.startTime]
     steps:
-    - pwsh: echo "##vso[task.setvariable variable=day]$(([datetime]'$(pipeline.startTime)').DayOfWeek)"
+    - pwsh: echo "##vso[task.setvariable variable=day]$(([datetime]'$(startTime)').DayOfWeek)"
     - bash: echo $(day)
     - ${{ if eq(variables['day'], 'Saturday') }}:
       - bash: echo "it's saturday"
