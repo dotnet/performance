@@ -10,7 +10,7 @@ jobs:
     steps:
       - bash: echo $STARTTIME
       - pwsh: gci env:\ | % { echo $_.Name }
-      - pwsh: echo "##vso[task.setvariable variable=day]$(([datetime]$env:STARTTIME).DayOfWeek)"
+      - pwsh: echo "##vso[task.setvariable variable=day]$(([datetime]$(startTime)).DayOfWeek)"
         name: getday
         
   - job: dowork
