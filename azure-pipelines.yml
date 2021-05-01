@@ -10,10 +10,9 @@ jobs:
     steps:
     - pwsh: echo "##vso[task.setvariable variable=day]$(([datetime]'$(startTime)').DayOfWeek)"
     - bash: echo $(day)
-    - ${{ if eq(variables['day'], 'Saturday') }}:
-      - bash: echo "it's saturday"
-    - ${{ if eq(variables['day'], 'Monday') }}:
-      - bash: echo "it's monday"
+    - template: test.yml
+      parameters:
+        day: $(day)
 
 
 
