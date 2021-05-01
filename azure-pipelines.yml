@@ -8,7 +8,7 @@ pool:
 jobs:
   - job: getday
     steps:
-      - pwsh: echo "##vso[task.setvariable variable=day]$(([datetime]'$env:startTime').DayOfWeek)"
+      - pwsh: echo "##vso[task.setvariable variable=day]$(([datetime]$env:startTime).DayOfWeek)"
         name: getday
         
   - job: dowork
