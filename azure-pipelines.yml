@@ -9,8 +9,8 @@ jobs:
         value: $[pipeline.startTime]
     steps:
     - pwsh: echo "##vso[task.setvariable variable=day]$(([datetime]'$(startTime)').DayOfWeek)"
-    - bash: echo day is '${{ parameters.day }}'
-    - bash: echo ${{ parameters.day }} is one of our days
+    - bash: echo day is '$(day)'
+    - bash: echo $(day) is one of our days
       condition: or(eq($(day), 'Monday'), eq($(day), 'Thursday'))
     - bash: echo nah it's saturday
       condition: eq($(day), 'Saturday') 
