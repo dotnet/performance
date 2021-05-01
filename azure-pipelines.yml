@@ -1,19 +1,23 @@
+pool:
+  vmImage: ubuntu-latest
 
+  variables:
+  - name: startTime
+    value: $[pipeline.startTime]
 
 jobs:
-  - job:
-    pool:
-      vmImage: ubuntu-latest
-    variables:
-      - name: startTime
-        value: $[pipeline.startTime]
+  - job: getday
     steps:
-    - pwsh: echo "##vso[task.setvariable variable=day]$(([datetime]'$(startTime)').DayOfWeek)"
+      - pwsh: echo "##vso[task.setvariable variable=day]$(([datetime]'$(startTime)').DayOfWeek)"
+        name: getday
+  - job: dowork
+    dependsOn:: getday
+    steps:
     - bash: echo day is '$(day)'
     - bash: echo $(day) is one of our days
-      condition: or(eq($(day), 'Monday'), eq($(day), 'Thursday'))
+      condition: and(succeeded(), or(eq(dependencies.getday.outputs['getday.day'], 'Monday'), eq(dependencies.getday.outputs['getday.day'], 'Thursday')))
     - bash: echo nah it's saturday
-      condition: eq($(day), 'Saturday') 
+      condition: and(succeeded(), eq(dependencies.getday.outputs['getday.day'], 'Saturday'))
 
 
 ######################################################
