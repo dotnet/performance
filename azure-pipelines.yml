@@ -3,7 +3,7 @@ pool:
 
 variables:
 - name: startTime
-  value: $[format("{0}", pipeline.startTime)]
+  value: $[pipeline.startTime]
 
 jobs:
   - job: getday
