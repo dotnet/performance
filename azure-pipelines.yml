@@ -9,9 +9,7 @@ jobs:
   - job: getday
     steps:
       - bash: echo $STARTTIME
-      - bash: echo $[pipeline.startTime]
-      - pwsh: gci env:\ | % { echo $_.Name }
-      - pwsh: echo "##vso[task.setvariable variable=day]$(([datetime] $(startTime) ).DayOfWeek)"
+      - pwsh: echo "##vso[task.setvariable variable=day]$(([datetime]$env:startTime).DayOfWeek)"
         name: getday
         
   - job: dowork
@@ -19,9 +17,11 @@ jobs:
     steps:
     - bash: echo day is '$(day)'
     - bash: echo $(day) is one of our days
-      condition: and(succeeded(), or(eq(dependencies.getday.outputs['getday.day'], 'Monday'), eq(dependencies.getday.outputs['getday.day'], 'Thursday')))
+      # condition: and(succeeded(), or(eq(dependencies.getday.outputs['getday.day'], 'Monday'), eq(dependencies.getday.outputs['getday.day'], 'Thursday')))
+      condition: and(succeeded(), or(eq(variables.day, 'Monday'), eq(variables.day, 'Thursday')))
     - bash: echo nah it's saturday
-      condition: and(succeeded(), eq(dependencies.getday.outputs['getday.day'], 'Saturday'))
+      # condition: and(succeeded(), eq(dependencies.getday.outputs['getday.day'], 'Saturday'))
+      condition: and(succeeded(), eq(variables.day, 'Saturday'))
 
 
 ######################################################
