@@ -22,9 +22,10 @@ jobs:
     steps:
     - bash: echo $(thisday)
     - bash: echo it's one of our days!
-      condition: or(eq(dependencies.getday.outputs['getday.day'], 'Monday'), eq(dependencies.getday.outputs['getday.day'], 'Thursday'))
+      # condition: or(eq(dependencies.getday.outputs['getday.day'], 'Monday'), eq(dependencies.getday.outputs['getday.day'], 'Thursday'))
+      condition: or(eq($(thisday), 'Monday'), eq($(thisday), 'Thursday'))
     - bash: echo nah it's saturday
-      condition: eq(dependencies.getday.outputs['getday.day'], 'Saturday')
+      condition: eq($(thisday), 'Saturday')
 
 
 ######################################################
