@@ -24,7 +24,7 @@ jobs:
       # condition: or(eq(dependencies.getday.outputs['getday.day'], 'Monday'), eq(dependencies.getday.outputs['getday.day'], 'Thursday'))
       condition: or(eq(variables['thisday'], 'Monday'), eq(variables['thisday'], 'Thursday'))
     - bash: echo nah it's saturday
-      condition: eq(variables['thisday'], 'Saturday')
+      condition: eq(variables['thisday'], 'Sunday')
 
 
 ######################################################
