@@ -10,16 +10,16 @@ jobs:
     steps:
       - bash: echo $STARTTIME
       - pwsh: gci env:\ | % { echo $_.Name } 
-      - pwsh: echo "##vso[task.setvariable variable=day]$(([datetime]$env:STARTTIME).DayOfWeek)"
+      - pwsh: echo "##vso[task.setvariable variable=day;isOutput=true]$(([datetime]$env:STARTTIME).DayOfWeek)"
         name: getday
         
   - job: dowork
     dependsOn: getday
     steps:
     - bash: echo it's one of our days!
-      condition: and(succeeded(), or(eq(dependencies.getday.outputs['getday.day'], 'Monday'), eq(dependencies.getday.outputs['getday.day'], 'Thursday')))
+      condition: or(eq(dependencies.getday.outputs['getday.day'], 'Monday'), eq(dependencies.getday.outputs['getday.day'], 'Thursday'))
     - bash: echo nah it's saturday
-      condition: and(succeeded(), eq(dependencies.getday.outputs['getday.day'], 'Saturday'))
+      condition: eq(dependencies.getday.outputs['getday.day'], 'Saturday')
 
 
 ######################################################
