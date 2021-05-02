@@ -1,5 +1,4 @@
-pool:
-  vmImage: ubuntu-latest
+pool: ubuntu-latest
 
 variables:
 - name: startTime
@@ -18,13 +17,13 @@ jobs:
   - job: dowork
     dependsOn: getday
     variables:
-      thisday: $[ dependencies.getday.outputs['getday.day'] ]
+      dayOfWeek: $[ dependencies.getday.outputs['getday.day'] ]
     steps:
     - bash: echo it's one of our days!
       # condition: or(eq(dependencies.getday.outputs['getday.day'], 'Monday'), eq(dependencies.getday.outputs['getday.day'], 'Thursday'))
-      condition: or(eq(variables['thisday'], 'Monday'), eq(variables['thisday'], 'Thursday'))
+      condition: or(eq(variables['dayOfWeek'], 'Monday'), eq(variables['dayOfWeek'], 'Thursday'))
     - bash: echo "nah it's sunday"
-      condition: eq(variables['thisday'], 'Sunday')
+      condition: eq(variables['dayOfWeek'], 'Sunday')
 
 
 ######################################################
