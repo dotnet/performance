@@ -20,7 +20,7 @@ jobs:
     variables:
       dayOfWeek: $[ dependencies.getday.outputs['getday.day'] ]
     steps:
-    - bash: echo it's one of our days!
+    - bash: echo "it's one of our days!"
       # condition: or(eq(dependencies.getday.outputs['getday.day'], 'Monday'), eq(dependencies.getday.outputs['getday.day'], 'Thursday'))
       condition: in(variables['dayOfWeek'], 'Monday', 'Sunday')
     - bash: echo "nah it's sunday"
