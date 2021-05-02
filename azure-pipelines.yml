@@ -22,7 +22,7 @@ jobs:
     steps:
     - bash: echo it's one of our days!
       # condition: or(eq(dependencies.getday.outputs['getday.day'], 'Monday'), eq(dependencies.getday.outputs['getday.day'], 'Thursday'))
-      condition: or(eq(variables['dayOfWeek'], 'Monday'), eq(variables['dayOfWeek'], 'Thursday'))
+      condition: in(variables['dayOfWeek'], 'Monday', 'Thursday')
     - bash: echo "nah it's sunday"
       condition: eq(variables['dayOfWeek'], 'Sunday')
 
