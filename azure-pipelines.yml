@@ -1,4 +1,5 @@
-pool: ubuntu-latest
+pool:
+  vmImage: ubuntu-latest
 
 variables:
 - name: startTime
