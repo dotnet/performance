@@ -160,6 +160,10 @@ When working on this please KEEP THE FOLLOWING IN MIND:
 
 #define PRINT_ITER_INFO
 
+#if DEBUG
+#define STATISTICS
+#endif
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -168,6 +172,61 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Reflection;
+
+#if STATISTICS
+class Statistics
+{
+    public ulong sohAllocatedBytes;
+    public ulong lohAllocatedBytes;
+    public ulong pohAllocatedBytes;
+
+    private static List<Statistics> allStatistics = new List<Statistics>();
+    [ThreadStatic]
+    private static Statistics? threadLocalStatistics = null;
+
+    public static Statistics GetStatistics()
+    {
+        if (threadLocalStatistics == null)
+        {
+            lock (allStatistics)
+            {
+                if (threadLocalStatistics == null)
+                {
+                    threadLocalStatistics = new Statistics();
+                    allStatistics.Add(threadLocalStatistics);
+                }
+            }
+        }
+        return threadLocalStatistics;
+    }
+
+    public Statistics()
+    {
+        sohAllocatedBytes = 0;
+        lohAllocatedBytes = 0;
+        pohAllocatedBytes = 0;
+    }
+
+    public static TestResult Aggregate()
+    {
+        ulong sohAllocatedBytes = 0;
+        ulong lohAllocatedBytes = 0;
+        ulong pohAllocatedBytes = 0;
+        foreach (Statistics statistics in allStatistics)
+        {
+            sohAllocatedBytes += statistics.sohAllocatedBytes;
+            lohAllocatedBytes += statistics.lohAllocatedBytes;
+            pohAllocatedBytes += statistics.pohAllocatedBytes;
+        }
+        return new TestResult
+        {
+            sohAllocatedBytes = sohAllocatedBytes,
+            lohAllocatedBytes = lohAllocatedBytes,
+            pohAllocatedBytes = pohAllocatedBytes,
+        };
+    }
+}
+#endif
 
 static class Util
 {
@@ -239,6 +298,11 @@ static class Util
     unsafe static uint GetPointerSize() => (uint)sizeof(IntPtr);
 
     public static readonly uint POINTER_SIZE = GetPointerSize();
+
+    public static readonly uint OBJECT_HEADER_SIZE = 2 * Util.POINTER_SIZE;
+
+    public static readonly uint ARRAY_HEADER_SIZE = 3 * Util.POINTER_SIZE;
+
     public static ulong ArraySize(ITypeWithPayload?[] a) =>
         (((ulong)a.Length) + 3) * POINTER_SIZE;
 
@@ -313,8 +377,11 @@ class Item : ITypeWithPayload
     public ItemState state;
     public GCHandle h;
 
-    // 3 for the byte[] overhead, 1 for state, 1 for handle
-    static readonly uint Overhead = (3 + 2) * Util.POINTER_SIZE;
+    public static readonly uint FieldSize = 3 * Util.POINTER_SIZE;
+    public static readonly uint ItemObjectSize = Util.OBJECT_HEADER_SIZE + FieldSize;
+
+    public static uint ArrayOverhead = ItemObjectSize + Util.ARRAY_HEADER_SIZE;
+    public static uint SohOverhead = ItemObjectSize;
 
     // TODO: isWeakLong never used
     public static Item New(uint size, bool isPinned, bool isFinalizable, bool isWeakLong = false, bool isPoh = false)
@@ -331,18 +398,24 @@ class Item : ITypeWithPayload
 #if DEBUG
         Interlocked.Increment(ref NumConstructed);
 #endif
-
-        uint baseSize = Overhead;
-        if (size <= baseSize)
+#if STATISTICS
+        Statistics statistics = Statistics.GetStatistics();
+        statistics.sohAllocatedBytes += ItemObjectSize;
+#endif
+        if (size <= ArrayOverhead)
         {
             Console.WriteLine("allocating objects <= {0} is not supported for the Item class", size);
             throw new InvalidOperationException("Item class does not support allocating an object of this size");
         }
-        uint payloadSize = size - baseSize;
+        uint payloadSize = size - ArrayOverhead;
+        uint remainingSize = size - ItemObjectSize;
 
         if (isPoh)
         {
 #if NET5_0
+#if STATISTICS
+            statistics.pohAllocatedBytes += remainingSize;
+#endif
             payload = GC.AllocateArray<byte>((int)payloadSize, pinned: true);
 #else
             throw new Exception("UNREACHABLE: POH allocations require netcoreapp5.0 or higher");
@@ -350,6 +423,16 @@ class Item : ITypeWithPayload
         }
         else
         {
+#if STATISTICS
+            if (size >= MemoryAlloc.LohThreshold)
+            {
+                statistics.lohAllocatedBytes += remainingSize;
+            }
+            else
+            {
+                statistics.sohAllocatedBytes += remainingSize;
+            }
+#endif
             payload = new byte[payloadSize];
         }
 
@@ -366,7 +449,7 @@ class Item : ITypeWithPayload
         Debug.Assert(TotalSize == size);
     }
 
-    public ulong TotalSize => Overhead + (ulong)Util.NonNull(payload).Length;
+    public ulong TotalSize => ArrayOverhead + (ulong)Util.NonNull(payload).Length;
 
     public void Free()
     {
@@ -419,17 +502,25 @@ class SimpleRefPayLoad
     public byte[] payload;
     GCHandle handle;
 
-    // Object header is 2 words.
-    // pointer to 'payload' and handle are both 1 word.
-    // 'payload' itself will have an overhead of 3 words.
-    public static readonly uint Overhead = (2 + 1 + 1 + 3) * Util.POINTER_SIZE;
+    public static readonly uint FieldSize = 2 * Util.POINTER_SIZE;
+    public static readonly uint SimpleRefPayLoadSize = Util.OBJECT_HEADER_SIZE + FieldSize;
+
+    public static uint ArrayOverhead = SimpleRefPayLoadSize + Util.ARRAY_HEADER_SIZE;
 
     public SimpleRefPayLoad(uint size, bool isPinned, bool isPoh)
     {
-        uint sizePayload = size - Overhead;
+#if STATISTICS
+        Statistics statistics = Statistics.GetStatistics();
+        statistics.sohAllocatedBytes += SimpleRefPayLoadSize;
+#endif
+        uint sizePayload = size - ArrayOverhead;
+        uint remainingSize = size - SimpleRefPayLoadSize;
         if (isPoh)
         {
 #if NET5_0
+#if STATISTICS
+            statistics.pohAllocatedBytes += remainingSize;
+#endif
             payload = GC.AllocateArray<byte>((int)sizePayload, pinned: true);
 #else
             throw new Exception("UNREACHABLE: POH allocations require netcoreapp5.0 or higher");
@@ -437,6 +528,16 @@ class SimpleRefPayLoad
         }
         else
         {
+#if STATISTICS
+            if (size >= MemoryAlloc.LohThreshold)
+            {
+                statistics.lohAllocatedBytes += remainingSize;
+            }
+            else
+            {
+                statistics.sohAllocatedBytes += remainingSize;
+            }
+#endif
             payload = new byte[sizePayload];
         }
 
@@ -462,7 +563,7 @@ class SimpleRefPayLoad
         }
     }
 
-    public ulong OwnSize => ((ulong)payload.Length) + Overhead;
+    public ulong OwnSize => ((ulong)payload.Length) + ArrayOverhead;
 }
 
 enum ReferenceItemOperation
@@ -496,10 +597,14 @@ abstract class ReferenceItemWithSize : ITypeWithPayload
     private SimpleRefPayLoad? payload; // null only if this has been freed
     private ReferenceItemWithSize? next; // Note: ReferenceItemWithSize owns its 'next' -- should be the only reference to that
     public ulong TotalSize { get; private set; }
+    
+    public static readonly uint FieldSize = 2 * Util.POINTER_SIZE + sizeof(ulong);
+    public static readonly uint ReferenceItemWithSizeSize = Util.OBJECT_HEADER_SIZE + FieldSize;
 
-    // 2 words for object header, then fields in order. Assuming no padding as fields are all large.
-    // Node 'SimpleRefPayload' handles its own overhead internally.
-    static readonly uint Overhead = 2 * Util.POINTER_SIZE + 2 * Util.POINTER_SIZE + sizeof(ulong);
+    public static readonly uint ArrayHeaderSize = 3 * Util.POINTER_SIZE;
+
+    public static uint SohOverhead = ReferenceItemWithSizeSize + SimpleRefPayLoad.SimpleRefPayLoadSize;
+    public static uint SimpleOverhead = ReferenceItemWithSizeSize;
 
     public static ReferenceItemWithSize New(uint size, bool isPinned, bool isFinalizable, bool isPoh)
     {
@@ -517,14 +622,29 @@ abstract class ReferenceItemWithSize : ITypeWithPayload
 
     protected ReferenceItemWithSize(uint size, bool isPinned, bool isPoh)
     {
-        Debug.Assert(size >= Overhead + SimpleRefPayLoad.Overhead);
+        Debug.Assert(size >= SimpleOverhead + SimpleRefPayLoad.ArrayOverhead);
 #if DEBUG
         Interlocked.Increment(ref NumConstructed);
 #endif
-        uint sizePayload = size - Overhead;
+#if STATISTICS
+        Statistics statistics = Statistics.GetStatistics();
+        statistics.sohAllocatedBytes += ReferenceItemWithSizeSize;
+#endif
+        uint sizePayload = size - SimpleOverhead;
         payload = new SimpleRefPayLoad(sizePayload, isPinned: isPinned, isPoh: isPoh);
         Debug.Assert(OwnSize == size);
         TotalSize = size;
+    }
+
+    public ReferenceItemWithSize? FreeHead()
+    {
+#if DEBUG
+        Interlocked.Increment(ref NumFreed);
+#endif
+        ReferenceItemWithSize? tail = this.next;
+        Util.NonNull(payload).Free();
+        payload = null;
+        return tail;
     }
 
     public void Free()
@@ -541,7 +661,7 @@ abstract class ReferenceItemWithSize : ITypeWithPayload
 
     public byte[] GetPayload() => Util.NonNull(payload).payload;
 
-    private ulong OwnSize => Util.NonNull(payload).OwnSize + Overhead;
+    private ulong OwnSize => Util.NonNull(payload).OwnSize + SimpleOverhead;
 
     // NOTE: This adds the item on to the end of anything currently referenced.
     public void AddToEndOfList(ReferenceItemWithSize refItem)
@@ -611,10 +731,10 @@ readonly struct BucketSpec
     public readonly uint pinInterval;
     public readonly uint finalizableInterval;
     // If we have buckets with weights of 2 and 1, we'll allocate, on average, 2 objects from the first bucket per 1 from the next.
-    public readonly uint weight;
+    public readonly double weight;
 
     public readonly bool isPoh;
-    public BucketSpec(SizeRange sizeRange, uint survInterval, uint pinInterval, uint finalizableInterval, uint weight, bool isPoh = false)
+    public BucketSpec(SizeRange sizeRange, uint survInterval, uint pinInterval, uint finalizableInterval, double weight, bool isPoh = false)
     {
         Debug.Assert(weight != 0);
         this.sizeRange = sizeRange;
@@ -1261,7 +1381,7 @@ class ArgsParser
     {
         TestKind testKind = TestKind.time;
         uint threadCount = 4;
-        uint? lohAllocRatioArg = null;
+        uint lohAllocRatioArg = 0;
         ulong? totalLiveBytes = null;
         ulong? totalAllocBytes = null;
         double totalMinutesToRun = 0.0;
@@ -1283,9 +1403,8 @@ class ArgsParser
 #if NET5_0
         uint pohFinalizableInterval = DEFAULT_POH_FINALIZABLE_INTERVAL;
         uint pohSurvInterval = DEFAULT_POH_SURV_INTERVAL;
-
-        uint? pohAllocRatioArg = null;
 #endif
+        uint pohAllocRatioArg = 0;
 
         ItemType allocType = ItemType.ReferenceItem;
         bool verifyLiveSize = false;
@@ -1343,7 +1462,7 @@ class ArgsParser
                 case "-lohSizeRange":
                 case "-lohsr":
                     ParseRange(args[++i], out lohAllocLow, out lohAllocHigh);
-                    Util.AlwaysAssert(lohAllocLow >= 85000, "lohAllocLow is below the minimum large object size");
+                    Util.AlwaysAssert(lohAllocLow >= MemoryAlloc.LohThreshold, "lohAllocLow is below the minimum large object size");
                     break;
                 case "-pohSizeRange":
                 case "-pohsr":
@@ -1434,16 +1553,33 @@ class ArgsParser
         if (allocPerThread != 0) Console.WriteLine("allocating {0:n0} per thread", allocPerThread);
 
         List<BucketSpec> bucketList = new List<BucketSpec>();
-        uint sohWeight = 1000;
 
-        uint lohWeight = GetLohAllocWeight(
-            lohAllocRatio: lohAllocRatioArg,
-            sohAllocLow: sohAllocLow,
-            sohAllocHigh: sohAllocHigh,
-            lohAllocLow: lohAllocLow,
-            lohAllocHigh: lohAllocHigh,
-            pohAllocLow: pohAllocLow,
-            pohAllocHigh: pohAllocHigh);
+        ulong meanSohObjSize = Util.Mean(sohAllocLow, sohAllocHigh);
+        ulong meanLohObjSize = Util.Mean(lohAllocLow, lohAllocHigh);
+        ulong meanPohObjSize = Util.Mean(pohAllocLow, pohAllocHigh);
+        uint sohAllocRatioArg = 1000 - lohAllocRatioArg - pohAllocRatioArg;
+
+        /*
+         * Solving for the weights by 3 linear equations using the Cramer's rule.
+         * See http://cshung.github.io/posts/poh-tuning-2 for a full derivation of the coefficients.
+         */
+        double overhead = allocType == ItemType.ReferenceItem ? ReferenceItemWithSize.SohOverhead : Item.SohOverhead;
+        double a11 = -lohAllocRatioArg * (meanSohObjSize - overhead);
+        double a12 = sohAllocRatioArg * (meanLohObjSize - overhead);
+        double a13 = 0;
+        double a21 = -pohAllocRatioArg * (meanSohObjSize - overhead);
+        double a22 = 0;
+        double a23 = sohAllocRatioArg * (meanPohObjSize - overhead);
+        double a31 = 1;
+        double a32 = 1;
+        double a33 = 1;
+        double b1 = lohAllocRatioArg * overhead;
+        double b2 = pohAllocRatioArg * overhead;
+        double b3 = 1000;
+        double det = a11 * a22 * a33 + a12 * a23 * a31 + a13 * a21 * a32 - a13 * a22 * a31 - a12 * a21 * a33 - a11 * a23 * a32;
+        double sohWeight = ((b1 * a22 * a33 + a12 * a23 * b3 + a13 * b2 * a32 - a13 * a22 * b3 - a12 * b2 * a33 - b1 * a23 * a32) / det);
+        double lohWeight = ((a11 * b2 * a33 + b1 * a23 * a31 + a13 * a21 * b3 - a13 * b2 * a31 - b1 * a21 * a33 - a11 * a23 * b3) / det);
+        double pohWeight = ((a11 * a22 * b3 + a12 * b2 * a31 + b1 * a21 * a32 - b1 * a22 * a31 - a12 * a21 * b3 - a11 * b2 * a32) / det);
 
         if (lohWeight > 0)
         {
@@ -1455,19 +1591,9 @@ class ArgsParser
                 weight: lohWeight);
 
             bucketList.Add(lohBucket);
-            sohWeight -= lohWeight;
         }
 
 #if NET5_0
-        uint pohWeight = GetPohAllocWeight(
-            pohAllocRatio: pohAllocRatioArg,
-            sohAllocLow: sohAllocLow,
-            sohAllocHigh: sohAllocHigh,
-            lohAllocLow: lohAllocLow,
-            lohAllocHigh: lohAllocHigh,
-            pohAllocLow: pohAllocLow,
-            pohAllocHigh: pohAllocHigh);
-
         if (pohWeight > 0)
         {
             BucketSpec pohBucket = new BucketSpec(
@@ -1479,7 +1605,6 @@ class ArgsParser
                 isPoh: true);
 
             bucketList.Add(pohBucket);
-            sohWeight -= pohWeight;
         }
 #endif
 
@@ -1510,52 +1635,6 @@ class ArgsParser
             finishWithFullCollect: finishWithFullCollect,
             endException: endException);
     }
-
-    private static uint GetLohAllocWeight(uint? lohAllocRatio, uint sohAllocLow, uint sohAllocHigh, uint lohAllocLow, uint lohAllocHigh, uint pohAllocLow = 0, uint pohAllocHigh = 0)
-    {
-        ulong meanSohObjSize = Util.Mean(sohAllocLow, sohAllocHigh);
-        ulong meanLohObjSize = Util.Mean(lohAllocLow, lohAllocHigh);
-        ulong meanPohObjSize = Util.Mean(pohAllocLow, pohAllocHigh);
-
-        uint ratio = lohAllocRatio ?? 5;
-
-        return GetLohAllocWeight(ratio, sohObjSize: meanSohObjSize, lohObjSize: meanLohObjSize, pohObjSize: meanPohObjSize);
-    }
-
-    // converts ratio of allocation (in bytes) to wight of allocations (in times per 1000)
-    private static uint GetLohAllocWeight(uint lohAllocRatioOutOf1000, ulong sohObjSize, ulong lohObjSize, ulong pohObjSize)
-    {
-        if (lohAllocRatioOutOf1000 == 0 || lohObjSize == 0)
-        {
-            return 0;
-        }
-
-        return (uint)((ulong)lohAllocRatioOutOf1000 * (sohObjSize + lohObjSize + pohObjSize) / lohObjSize);
-    }
-
-#if NET5_0
-    private static uint GetPohAllocWeight(uint? pohAllocRatio, uint sohAllocLow, uint sohAllocHigh, uint lohAllocLow, uint lohAllocHigh, uint pohAllocLow = 0, uint pohAllocHigh = 0)
-    {
-        ulong meanSohObjSize = Util.Mean(sohAllocLow, sohAllocHigh);
-        ulong meanLohObjSize = Util.Mean(lohAllocLow, lohAllocHigh);
-        ulong meanPohObjSize = Util.Mean(pohAllocLow, pohAllocHigh);
-
-        uint ratio = pohAllocRatio ?? 0;
-
-        return GetPohAllocWeight(ratio, sohObjSize: meanSohObjSize, lohObjSize: meanLohObjSize, pohObjSize: meanPohObjSize);
-    }
-
-    private static uint GetPohAllocWeight(uint pohAllocRatioOutOf1000, ulong sohObjSize, ulong lohObjSize, ulong pohObjSize)
-    {
-        if (pohAllocRatioOutOf1000 == 0 || pohObjSize == 0)
-        {
-            return 0;
-        }
-
-        return (uint)((ulong)pohAllocRatioOutOf1000 * (sohObjSize + lohObjSize + pohObjSize) / pohObjSize);
-    }
-#endif
-
 }
 
 readonly struct ObjectSpec
@@ -1581,6 +1660,9 @@ class Bucket
     public readonly BucketSpec spec;
     public ulong count; // Used for pinInterval and survInterval
     public ulong allocatedBytesTotalSum;
+    public ulong sohAllocatedBytes;
+    public ulong lohAllocatedBytes;
+    public ulong pohAllocatedBytes;
     public ulong allocatedBytesAsOfLastPrint;
     public ulong survivedBytesSinceLastPrint;
     public ulong pinnedBytesSinceLastPrint;
@@ -1592,6 +1674,9 @@ class Bucket
         this.spec = spec;
         count = 0;
         allocatedBytesTotalSum = 0;
+        sohAllocatedBytes = 0;
+        lohAllocatedBytes = 0;
+        pohAllocatedBytes = 0;
         allocatedBytesAsOfLastPrint = 0;
         survivedBytesSinceLastPrint = 0;
         pinnedBytesSinceLastPrint = 0;
@@ -1604,10 +1689,10 @@ class Bucket
     public uint pinInterval => spec.pinInterval;
     public uint finalizableInterval => spec.finalizableInterval;
     // If we have buckets with weights of 2 and 1, we'll allocate 2 objects from the first bucket, then 1 from the next.
-    public uint weight => spec.weight;
+    public double weight => spec.weight;
     public bool isPoh => spec.isPoh;
 
-    public ObjectSpec GetObjectSpec(Rand rand)
+    public ObjectSpec GetObjectSpec(Rand rand, uint overhead)
     {
         count++;
 
@@ -1616,6 +1701,20 @@ class Bucket
         bool shouldBePinned = shouldSurvive && Util.isNth(pinInterval, count / survInterval);
         bool shouldBeFinalizable = shouldSurvive && Util.isNth(finalizableInterval, count / survInterval);
 
+        if (isPoh)
+        {
+            sohAllocatedBytes += overhead;
+            pohAllocatedBytes += (size - overhead);
+        }
+        else if (size >= 85000)
+        {
+            sohAllocatedBytes += overhead;
+            lohAllocatedBytes += (size - overhead);
+        }
+        else
+        {
+            sohAllocatedBytes += size;
+        }
         allocatedBytesTotalSum += size;
         allocatedCountSinceLastPrint++;
         if (shouldBePinned)
@@ -1635,13 +1734,13 @@ class Bucket
 struct BucketChooser
 {
     public readonly Bucket[] buckets;
-    private readonly uint combinedWeight;
+    private readonly double combinedWeight;
 
     public BucketChooser(BucketSpec[] bucketSpecs)
     {
         Util.AlwaysAssert(bucketSpecs.Length != 0);
         this.buckets = new Bucket[bucketSpecs.Length];
-        uint weightSum = 0;
+        double weightSum = 0;
         for (uint i = 0; i < bucketSpecs.Length; i++)
         {
             var bucket = new Bucket(bucketSpecs[i]);
@@ -1653,7 +1752,7 @@ struct BucketChooser
 
     private Bucket GetNextBucket(Rand rand)
     {
-        var nextRand = rand.GetRand(combinedWeight);
+        var nextRand = rand.GetFloat() * combinedWeight;
 
         for (int i = 0; i < buckets.Length; i++)
         {
@@ -1669,14 +1768,14 @@ struct BucketChooser
         throw new Exception("UNREACHABLE");
     }
 
-    public ObjectSpec GetNextObjectSpec(Rand rand) =>
-        GetNextBucket(rand).GetObjectSpec(rand);
+    public ObjectSpec GetNextObjectSpec(Rand rand, uint overhead) =>
+        GetNextBucket(rand).GetObjectSpec(rand, overhead);
 
     public ulong AverageObjectSize()
     {
         // Average object size in each bucket, weighed by the bucket
-        ulong totalAverage = 0;
-        ulong totalWeight = 0;
+        double totalAverage = 0;
+        double totalWeight = 0;
         // https://github.com/dotnet/csharplang/issues/461
         for (uint i = 0; i < buckets.Length; i++)
         {
@@ -1685,17 +1784,7 @@ struct BucketChooser
             totalWeight += bucket.weight;
         }
 
-        return totalAverage / totalWeight;
-    }
-
-    public ulong GetTotalAllocatedInAllBuckets()
-    {
-        ulong allocTotal = 0;
-        for (uint i = 0; i < buckets.Length; i++)
-        {
-            allocTotal += buckets[i].allocatedBytesTotalSum;
-        }
-        return allocTotal;
+        return (ulong)(totalAverage / totalWeight);
     }
 }
 
@@ -1725,11 +1814,13 @@ struct OldArr
 {
     public readonly ITypeWithPayload?[] items;
     public ulong TotalLiveBytes { get; private set; }
+    public uint NonEmptyLength;
 
     public OldArr(ulong numElements)
     {
         items = new ITypeWithPayload?[numElements];
         TotalLiveBytes = Util.ArraySize(items);
+        NonEmptyLength = (uint)numElements;
     }
 
     public ulong OwnSize => Util.ArraySize(items);
@@ -1791,8 +1882,18 @@ struct OldArr
     }
 }
 
+struct TestResult
+{
+    public double secondsTaken;
+    public ulong sohAllocatedBytes;
+    public ulong lohAllocatedBytes;
+    public ulong pohAllocatedBytes;
+}
+
 class MemoryAlloc
 {
+    public static int LohThreshold = 85000;
+
     private readonly Rand rand;
     OldArr oldArr;
     // TODO We should consider adding another array for medium lifetime.
@@ -1819,71 +1920,6 @@ class MemoryAlloc
         this.args = args;
         this.curPhaseIndex = -1;
         this.GoToNextPhase();
-    }
-
-    // This really doesn't belong in this class - this should be a building blocking that takes
-    // a data structure and modifies it based on configs, eg, it can modify arrays based on 
-    // its element type.
-    // 
-    // Note that this implementation will involve almost only old generation objects so it
-    // doesn't affect ephemeral collection time. 
-    // 
-    // One way to use this is -
-    // 
-    // we move the first half of the array elements off the array and link them together onto a list.
-    // then we discard the list and allocate the 1st half of the array again.
-    // we move the second half of the array elements off the array and link them together onto a list.
-    // then we discard the list and allocate the 2nd half of the array again.
-    // repeat.
-    // This means the live data size would be smaller when we remove the list completely and before we
-    // allocate enough to replace what we removed.
-    // 
-    // TODO: ways to configure -
-    // 
-    // How and how much to convert the array onto a list/lists can be specified a config, eg we could 
-    // pick every Nth to convert and make only short lists; or pick elements randomly, or
-    // on a distribution, eg, the middle of the array is the most empty.
-    // 
-    // When do to this, eg do this periodically, or interleaved with replacing elements in the array.
-    // 
-    // Whether replace the array element with a new one when taking the old one off the array - this 
-    // would be useful for temporarily increasing the live data size to see how the heap size changes.
-    void MakeListFromContiguousItems(uint beginIndex, uint endIndex)
-    {
-        // Take off the end element and link it onto the previous element. Do this
-        // till we get to the begin element.
-        for (uint index = endIndex; index > beginIndex; index--)
-        {
-            ReferenceItemWithSize refItem = (ReferenceItemWithSize)Util.NonNull(oldArr.TakeAndReduceTotalSizeButDoNotFree(index));
-            ReferenceItemWithSize refItemPrev = (ReferenceItemWithSize)Util.NonNull(oldArr.Peek(index - 1));
-            refItemPrev.AddToEndOfList(refItem);
-
-            // We are allocating some temp objects here just so that it will trigger GCs.
-            // It's unnecessary if other threads are already allocating objects.
-            var objSpec = bucketChooser.GetNextObjectSpec(rand);
-
-            byte[] bTemp;
-            if (objSpec.IsPoh)
-            {
-#if NET5_0
-                bTemp = GC.AllocateArray<byte>((int)objSpec.Size, pinned: true);
-#else
-                throw new Exception("POH allocations require netcoreapp5.0 build");
-#endif
-            }
-            else
-            {
-                bTemp = new byte[objSpec.Size];
-            }
-
-            TouchPage(bTemp);
-        }
-
-        // This GC will see the longest list.
-        // GC.Collect();
-
-        ReferenceItemWithSize? head = (ReferenceItemWithSize?)oldArr.Peek(beginIndex);
-        Debug.Assert(head != null);
     }
 
     void TouchPage(byte[] b)
@@ -2129,7 +2165,20 @@ class MemoryAlloc
 
     (ITypeWithPayload, ObjectSpec spec) JustMakeObject()
     {
-        ObjectSpec spec = bucketChooser.GetNextObjectSpec(rand);
+        uint SohOverhead;
+        switch (curPhase.allocType)
+        {
+            case ItemType.SimpleItem:
+                SohOverhead = Item.SohOverhead;
+                break;
+            case ItemType.ReferenceItem:
+                SohOverhead = ReferenceItemWithSize.SohOverhead;
+                break;
+            default:
+                throw new NotImplementedException();
+        }
+
+        ObjectSpec spec = bucketChooser.GetNextObjectSpec(rand, SohOverhead);
         totalAllocBytesLeft -= spec.Size;
         switch (curPhase.allocType)
         {
@@ -2193,36 +2242,44 @@ class MemoryAlloc
                 oldArr.Replace(rand.GetRand(oldArr.Length), item);
                 break;
             case ItemType.ReferenceItem:
-                // For ref items we want to create some variation, ie, we want
-                // to create different graphs. But we also want to keep our live 
-                // data size the same. So we do a few different operations -
-                // If the live data size is the same as what we set, we randomly
-                // choose an action which can be one of the following -
-                // 
-                // 1) create a new item, take a few items off the array and link them onto 
-                // the new item.
-                // 
-                // 2) create a new item and a few extra ones and link them onto the new item.
-                // note this may not have much affect in ephemeral GCs 'cause it's very likely 
-                // they all get promoted to gen2.
-                // 
-                // 3) replace a bunch of entries with newly created items.
-                // 
-                // If the live data size is > what's set, we randomly choose a non null entry 
-                // and set it to null.
-
-                if (oldArr.TotalLiveBytes < curPhase.totalLiveBytes)
+                // Step 1: Decide which list to pick a victim to free
+                uint victimIndex = rand.GetRand(oldArr.NonEmptyLength);
+                // Step 2: Free the head
+                ITypeWithPayload? victimList = oldArr.TakeAndReduceTotalSizeButDoNotFree(victimIndex);
+                // Within the NonEmpty range, the list cannot be null
+                ReferenceItemWithSize victimHead = (ReferenceItemWithSize)victimList!;
+                ReferenceItemWithSize? victimTail = victimHead.FreeHead();
+                if (victimTail == null)
                 {
-                    MixItUp((ReferenceItemWithSize)item, spec);
+                    // If the list had just one head, and we removed it
+                    if (victimIndex != oldArr.NonEmptyLength - 1)
+                    {
+                        // and when it is not the last one, move the last one to fill the hole
+                        ITypeWithPayload borrow = oldArr.TakeAndReduceTotalSizeButDoNotFree(oldArr.NonEmptyLength - 1)!;
+                        oldArr.Replace(victimIndex, borrow);
+                    }
+                    oldArr.NonEmptyLength = oldArr.NonEmptyLength - 1;
                 }
                 else
                 {
-                    // Choosing not to actually survive this item!
-                    item.Free();
-                    while (oldArr.TotalLiveBytes >= curPhase.totalLiveBytes)
-                    {
-                        oldArr.Free(rand.GetRand(oldArr.Length));
-                    }
+                    oldArr.Replace(victimIndex, victimTail);
+                }
+                // Step 3: Do we want to create a new list?
+                const uint createProbability = 50;
+                bool create = rand.GetRand(100) < createProbability;
+                if (create)
+                {
+                    // Create a new list
+                    oldArr.Replace(oldArr.NonEmptyLength, item);
+                    oldArr.NonEmptyLength = oldArr.NonEmptyLength + 1;
+                }
+                else
+                {
+                    // Or extend an existing one
+                    uint extendIndex = rand.GetRand(oldArr.NonEmptyLength);
+                    ReferenceItemWithSize extendList = (ReferenceItemWithSize)oldArr.TakeAndReduceTotalSizeButDoNotFree(extendIndex)!;
+                    extendList.AddToEndOfList((ReferenceItemWithSize)item);
+                    oldArr.Replace(extendIndex, extendList);
                 }
                 break;
             default:
@@ -2233,89 +2290,6 @@ class MemoryAlloc
         {
             oldArr.VerifyLiveSize();
         }
-    }
-
-    void MixItUp(ReferenceItemWithSize refItem, in ObjectSpec spec)
-    {
-        // 5 is just a random number I picked that's big enough to exercise the mark stack reasonably.
-        // MakeListFromContiguousItems is another way to make a list.
-        uint numItemsToModify = rand.GetRand(5);
-        // Console.WriteLine("\nlive is supposed to be {0:n0}, current {1:n0}, new item s {2:n0} -> OP {3}",
-        //     totalLiveBytes, totalLiveBytesCurrent, refItem.sizeTotal,
-        //     ((totalLiveBytesCurrent < totalLiveBytes) ? "INC" : "DEC"));
-
-        ReferenceItemOperation operation = (ReferenceItemOperation)rand.GetRand((uint)ReferenceItemOperation.MaxOperation);
-        switch (operation)
-        {
-            case ReferenceItemOperation.NewWithExistingList:
-                {
-                    ReferenceItemWithSize? listHead = null;
-                    for (uint itemModifyIndex = 0; itemModifyIndex < numItemsToModify; itemModifyIndex++)
-                    {
-                        uint randomIndex = rand.GetRand(oldArr.Length);
-                        ReferenceItemWithSize? randomItem = (ReferenceItemWithSize?)oldArr.TakeAndReduceTotalSizeButDoNotFree(randomIndex);
-                        if (randomItem != null)
-                        {
-                            if (listHead != null)
-                            {
-                                randomItem.AddToEndOfList(listHead);
-                            }
-                            listHead = randomItem;
-                        }
-                    }
-                    if (listHead != null)
-                    {
-                        refItem.AddToEndOfList(listHead);
-                    }
-                    break;
-                }
-
-            case ReferenceItemOperation.NewWithNewList:
-                {
-                    ReferenceItemWithSize? listHead = null;
-                    for (int itemModifyIndex = 0; itemModifyIndex < numItemsToModify; itemModifyIndex++)
-                    {
-                        // TODO: should this additional object be pinned too?
-                        ReferenceItemWithSize randomItem = ReferenceItemWithSize.New(spec.Size, isPinned: spec.ShouldBePinned, isFinalizable: spec.ShouldBeFinalizable, isPoh: spec.IsPoh);
-                        if (listHead != null)
-                        {
-                            randomItem.AddToEndOfList(listHead);
-                        }
-                        listHead = randomItem;
-                    }
-                    if (listHead != null)
-                    {
-                        refItem.AddToEndOfList(listHead);
-                    }
-                    break;
-                }
-
-            case ReferenceItemOperation.MultipleNew:
-                for (int itemModifyIndex = 0; itemModifyIndex < numItemsToModify; itemModifyIndex++)
-                {
-                    // This doesn't have to be allocBytes, could be randomly generated and based on
-                    // the LOH alloc interval.
-                    // For large objects creating a few new ones could be quite significant.
-                    ITypeWithPayload randomItemNew = ReferenceItemWithSize.New(spec.Size, isPinned: spec.ShouldBePinned, isFinalizable: spec.ShouldBeFinalizable, isPoh: spec.IsPoh);
-                    oldArr.Replace(rand.GetRand(oldArr.Length), randomItemNew);
-                }
-                break;
-
-            default:
-                throw new InvalidOperationException();
-        }
-
-        // Now survive the item we allocated.
-        oldArr.Replace(rand.GetRand(oldArr.Length), refItem);
-
-        // Console.WriteLine("final ELE#{0}, s - {1:n0} replaced by {2:n0}",
-        //     randomIndexToSurv, sizeToReplace, refItem.sizeTotal);
-        // refItem.Print();
-        // Console.WriteLine("{0:n0} - {1} + {2} = {3:n0} op {4}, heap {5:n0}",
-        //     totalLiveBytesCurrentSaved,
-        //     sizeToReplace, refItem.sizeTotal, 
-        //     totalLiveBytesCurrent,
-        //     (ReferenceItemOperation)operationIndex, GC.GetTotalMemory(false));
     }
 
     void PrintPauses(StreamWriter sw)
@@ -2349,8 +2323,9 @@ class MemoryAlloc
     public static extern bool EmptyWorkingSet(IntPtr hProcess);
 #endif
 
-    static void DoTest(in Args args, int currentPid)
+    static TestResult DoTest(in Args args, int currentPid)
     {
+        TestResult testResult = new TestResult();
         // TODO: we probably need to synchronize writes to this somehow
         string logFileName = currentPid + "-output.txt";
         StreamWriter sw = new StreamWriter(logFileName);
@@ -2375,6 +2350,16 @@ class MemoryAlloc
                 threads[i].Join();
             for (uint i = 0; i < threadLaunchers.Length; i++)
                 threadLaunchers[i].Alloc.PrintPauses(sw);
+            for (int i = 0; i < threadLaunchers.Length; i++)
+            {
+                Bucket[] buckets = threadLaunchers[i].Alloc.bucketChooser.buckets;
+                for (int j = 0; j < buckets.Length; j++)
+                {
+                    testResult.sohAllocatedBytes += buckets[j].sohAllocatedBytes;
+                    testResult.lohAllocatedBytes += buckets[j].lohAllocatedBytes;
+                    testResult.pohAllocatedBytes += buckets[j].pohAllocatedBytes;
+                }
+            }
         }
         else
         {
@@ -2382,6 +2367,13 @@ class MemoryAlloc
             ThreadLauncher t = new ThreadLauncher(0, args.perThreadArgs);
             t.Run();
             t.Alloc.PrintPauses(sw);
+            Bucket[] buckets = t.Alloc.bucketChooser.buckets;
+            for (int j = 0; j < buckets.Length; j++)
+            {
+                testResult.sohAllocatedBytes += buckets[j].sohAllocatedBytes;
+                testResult.lohAllocatedBytes += buckets[j].lohAllocatedBytes;
+                testResult.pohAllocatedBytes += buckets[j].pohAllocatedBytes;
+            }
         }
         long tEnd = Environment.TickCount;
 
@@ -2399,6 +2391,7 @@ class MemoryAlloc
 
         sw.Flush();
         sw.Close();
+        return testResult;
     }
 
     public static int Main(string[] argsStrs)
@@ -2408,7 +2401,7 @@ class MemoryAlloc
             Args args;
             args = ArgsParser.Parse(argsStrs);
 
-            double secondsTaken = MainInner(args);
+            TestResult testResult = MainInner(args);
 
             if (args.endException)
             {
@@ -2431,7 +2424,7 @@ class MemoryAlloc
                 Util.AlwaysAssert(ReferenceItemWithSize.NumFinalized == ReferenceItemWithSize.NumCreatedWithFinalizers);
             }
 
-            PrintResult(secondsTaken: secondsTaken);
+            PrintResult(testResult);
 
             return 0;
         }
@@ -2443,7 +2436,7 @@ class MemoryAlloc
         }
     }
 
-    public static double MainInner(Args args)
+    public static TestResult MainInner(Args args)
     {
         Console.WriteLine($"Running 64-bit? {Environment.Is64BitProcess}");
 
@@ -2454,19 +2447,31 @@ class MemoryAlloc
         stopwatch.Start();
 
         args.Describe();
-        DoTest(args, currentPid);
+        TestResult result = DoTest(args, currentPid);
 
         stopwatch.Stop();
-        return stopwatch.Elapsed.TotalSeconds;
+
+        result.secondsTaken = stopwatch.Elapsed.TotalSeconds;
+        return result;
     }
 
-    private static void PrintResult(double secondsTaken)
+    private static void PrintResult(TestResult testResult)
     {
         // GCPerfSim may print additional info before this.
         // dotnet-gc-infra will slice the stdout to after "=== STATS ===" and parse as yaml.
         // See `class GCPerfSimResult` in `bench_file.py`, and `_parse_gcperfsim_result` in `run_single_test.py`.
+
         Console.WriteLine("=== STATS ===");
-        Console.WriteLine($"seconds_taken: {secondsTaken}");
+        Console.WriteLine($"sohAllocatedBytes: {testResult.sohAllocatedBytes}");
+        Console.WriteLine($"lohAllocatedBytes: {testResult.lohAllocatedBytes}");
+        Console.WriteLine($"pohAllocatedBytes: {testResult.pohAllocatedBytes}");
+#if STATISTICS
+        TestResult statistics = Statistics.Aggregate();
+        Debug.Assert(testResult.sohAllocatedBytes == statistics.sohAllocatedBytes);
+        Debug.Assert(testResult.lohAllocatedBytes == statistics.lohAllocatedBytes);
+        Debug.Assert(testResult.pohAllocatedBytes == statistics.pohAllocatedBytes);
+#endif
+        Console.WriteLine($"seconds_taken: {testResult.secondsTaken}");
 
         Console.Write($"collection_counts: [");
         for (int gen = 0; gen <= 2; gen++)

@@ -36,7 +36,7 @@ benchmarks:
       tlgb: 1
       lohar: 0
       pohar: 0
-      sohsr: 10-4000
+      sohsr: 100-4000
       lohsr: 102400-204800
       pohsr: 100-204800
       sohsi: 50
