@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -147,7 +148,11 @@ namespace ScenarioMeasurement
 
         private bool LttngInstalled()
         {
-            return File.Exists("//usr/bin/lttng");
+            ProcessStartInfo procStartInfo = new ProcessStartInfo("", "lsmod | more ");
+            Process proc = new Process() { StartInfo = procStartInfo, };
+            proc.Start();
+            string result = proc.StandardOutput.ReadToEnd();
+            return File.Exists("//usr/bin/lttng") && result.Contains("lttng_");
         }
 
         public enum KernelKeyword
