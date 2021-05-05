@@ -5,6 +5,7 @@ from logging import getLogger
 
 import os
 import sys
+import csv
 
 from subprocess import check_output
 
@@ -14,6 +15,7 @@ from performance.common import push_dir
 from performance.common import validate_supported_runtime
 from performance.logger import setup_loggers
 from channel_map import ChannelMap
+from io import StringIO
 
 import dotnet
 import micro_benchmarks
@@ -159,6 +161,21 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Configurations used in the build in key=value format'
     )
 
+    def __get_env_arguments(user_input: str) -> list:
+        file = StringIO(user_input)
+        reader = csv.reader(file, delimiter=',')
+        for args in reader:
+            return args
+        return []
+
+    parser.add_argument(
+        '--env-vars',
+        dest='env_vars',
+        required=False,
+        type=__get_env_arguments,
+        help='''Environment variables to be set on the machine''',
+    )
+
     return parser
 
 def __process_arguments(args: list):
@@ -258,6 +275,9 @@ def __main(args: list) -> int:
             out_file.write(variable_format % ('UseSharedCompilation', 'false'))
             out_file.write(variable_format % ('DOTNET_ROOT', dotnet_path))
             out_file.write(path_variable % dotnet_path)
+            for env_var in args.env_vars:
+                env_var_list = env_var.split("=", maxsplit=1)
+                out_file.write(variable_format % (env_var_list[0], env_var_list[1]))
 
     else:
         with open(args.output_file, 'w') as out_file:
