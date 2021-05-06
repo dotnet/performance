@@ -149,6 +149,8 @@ namespace ScenarioMeasurement
         private bool LttngInstalled()
         {
             ProcessStartInfo procStartInfo = new ProcessStartInfo("bash", "lsmod | more ");
+            Console.WriteLine("FileName: " + procStartInfo.FileName);
+            Console.WriteLine("Args: " + procStartInfo.Arguments);
             Process proc = new Process() { StartInfo = procStartInfo, };
             proc.Start();
             string result = proc.StandardOutput.ReadToEnd();
