@@ -52,7 +52,7 @@ namespace ScenarioMeasurement
                 RootAccess = true
             };
 
-            if (Install() != Result.Success)
+            if (Install(logger) != Result.Success)
             {
                 throw new Exception("Lttng installation failed. Please try manual install.");
             }
@@ -105,9 +105,9 @@ namespace ScenarioMeasurement
             return result;
         }
 
-        public Result Install()
+        public Result Install(Logger logger)
         {
-            if (LttngInstalled())
+            if (LttngInstalled(logger))
             {
                 Console.WriteLine("Lttng is already installed.");
                 return Result.Success;
@@ -118,7 +118,7 @@ namespace ScenarioMeasurement
             int retry = 10;
             for(int i=0; i<retry; i++)
             {
-                if (!LttngInstalled())
+                if (!LttngInstalled(logger))
                 {
                     Console.WriteLine($"Lttng not installed. Retry {i}...");
                     perfCollectProcess.Run();
@@ -146,11 +146,11 @@ namespace ScenarioMeasurement
             KernelEvents.Add(keyword);
         }
 
-        private bool LttngInstalled()
+        private bool LttngInstalled(Logger logger)
         {
             ProcessStartInfo procStartInfo = new ProcessStartInfo("bash", "lsmod | more ");
-            Console.WriteLine("FileName: " + procStartInfo.FileName);
-            Console.WriteLine("Args: " + procStartInfo.Arguments);
+            logger.Log("FileName: " + procStartInfo.FileName);
+            logger.Log("Args: " + procStartInfo.Arguments);
             Process proc = new Process() { StartInfo = procStartInfo, };
             proc.Start();
             string result = proc.StandardOutput.ReadToEnd();
