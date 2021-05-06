@@ -36,6 +36,20 @@
    
   <!-- New Blazor 3.2 Template SOD -->
   <ItemGroup>
+    <HelixWorkItem Include="SOD - Minimum Blazor Template - Publish">
+      <PayloadDirectory>$(ScenariosDir)blazorminapp</PayloadDirectory>
+      <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
+      <PreCommands>$(Python) pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+
+    <HelixWorkItem Include="SOD - Minimum Blazor Template - Publish - AOT">
+      <PayloadDirectory>$(ScenariosDir)blazorminappaot</PayloadDirectory>
+      <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
+      <PreCommands>$(Python) pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+
     <HelixWorkItem Include="SOD - New Blazor Template - Publish">
       <PayloadDirectory>$(ScenariosDir)blazor</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
@@ -54,14 +68,14 @@
       <PayloadDirectory>$(ScenariosDir)blazorpizza</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
       <PreCommands>$(Python) pre.py publish -f %PERFLAB_TARGET_FRAMEWORKS% --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs pub/wwwroot</Command>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs pub\wwwroot</Command>
     </HelixWorkItem>
 
     <HelixWorkItem Include="SOD - Pizza App - Publish - AOT">
       <PayloadDirectory>$(ScenariosDir)blazorpizzaaot</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
       <PreCommands>$(Python) pre.py publish -f %PERFLAB_TARGET_FRAMEWORKS% --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs pub/wwwroot</Command>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs pub\wwwroot</Command>
     </HelixWorkItem>
   </ItemGroup>
 
