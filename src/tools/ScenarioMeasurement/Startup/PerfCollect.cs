@@ -148,11 +148,13 @@ namespace ScenarioMeasurement
 
         private bool LttngInstalled(Logger logger)
         {
-            ProcessStartInfo procStartInfo = new ProcessStartInfo("bash", "lsmod | more ");
+            ProcessStartInfo procStartInfo = new ProcessStartInfo("bash", "-c lsmod | more ");
             logger.Log("FileName: " + procStartInfo.FileName);
             logger.Log("Args: " + procStartInfo.Arguments);
             Process proc = new Process() { StartInfo = procStartInfo, };
+            proc.StartInfo.RedirectStandardOutput = true;
             proc.Start();
+            proc.WaitForExit();
             string result = proc.StandardOutput.ReadToEnd();
             return File.Exists("//usr/bin/lttng") && result.Contains("lttng_");
         }
