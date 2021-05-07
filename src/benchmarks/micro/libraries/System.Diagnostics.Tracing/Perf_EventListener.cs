@@ -76,8 +76,8 @@ namespace System.Diagnostics.Tracing
             protected override void OnEventWritten(EventWrittenEventArgs eventData) { }
         }
 
-        private static readonly BenchmarkEventSource _eventSource = new();
-        private static readonly BenchmarkEventListener _eventListener = new();
+        private static readonly BenchmarkEventSource _eventSource = new BenchmarkEventSource();
+        private static readonly BenchmarkEventListener _eventListener = new BenchmarkEventListener();
 
         [Benchmark]
         public void WriteEvent_NoParams() => _eventSource.EventNoParams();
