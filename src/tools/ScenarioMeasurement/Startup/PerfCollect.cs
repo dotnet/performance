@@ -156,6 +156,7 @@ namespace ScenarioMeasurement
             proc.Start();
             proc.WaitForExit();
             string result = proc.StandardOutput.ReadToEnd();
+            logger.Log("Result: (" + result + ")");
             return File.Exists("//usr/bin/lttng") && result != null && result.Length > 0;
         }
 
