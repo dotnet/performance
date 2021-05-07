@@ -25,7 +25,7 @@ namespace ScenarioMeasurement
         {
             other.EnableUserProviders(user);
             TraceEventSession userSession = ((WindowsTraceSession)user).UserSession;
-            ((WindowsTraceSession)user).EnableUserProvider("Microsoft-Extensions-Logging", Microsoft.Diagnostics.Tracing.TraceEventLevel.Verbose);
+            ((WindowsTraceSession)user).EnableUserProvider("Microsoft-Dotnet-CLI-Performance", Microsoft.Diagnostics.Tracing.TraceEventLevel.Verbose);
             // make sure we turn on whatever the user wanted so the start/stops are findable.
             userSession.EnableProvider(ClrTraceEventParser.ProviderGuid, Microsoft.Diagnostics.Tracing.TraceEventLevel.Verbose, (ulong)ClrTraceEventParser.Keywords.Default);
             userSession.EnableProvider(ClrPrivateTraceEventParser.ProviderGuid, Microsoft.Diagnostics.Tracing.TraceEventLevel.Verbose, (ulong)(ClrPrivateTraceEventParser.Keywords.GC
