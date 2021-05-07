@@ -115,7 +115,7 @@ namespace ScenarioMeasurement
             perfCollectProcess.Arguments = "install -force";
             perfCollectProcess.Run();
 
-            int retry = 10;
+            int retry = 1;
             for(int i=0; i<retry; i++)
             {
                 if (!LttngInstalled(logger))
