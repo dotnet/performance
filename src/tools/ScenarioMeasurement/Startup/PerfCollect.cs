@@ -157,7 +157,7 @@ namespace ScenarioMeasurement
             proc.WaitForExit();
             string result = proc.StandardOutput.ReadToEnd();
             logger.Log("Result: (" + result + ")");
-            return File.Exists("//usr/bin/lttng") && result != null && result.Contains("lttng");
+            return File.Exists("//usr/bin/lttng") && result != null;
         }
 
         public enum KernelKeyword
