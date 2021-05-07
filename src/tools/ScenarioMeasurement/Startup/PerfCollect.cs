@@ -148,7 +148,7 @@ namespace ScenarioMeasurement
 
         private bool LttngInstalled(Logger logger)
         {
-            ProcessStartInfo procStartInfo = new ProcessStartInfo("bash", "-c lsmod | grep lttng");
+            ProcessStartInfo procStartInfo = new ProcessStartInfo("bash", "-c lsmod");
             logger.Log("FileName: " + procStartInfo.FileName);
             logger.Log("Args: " + procStartInfo.Arguments);
             Process proc = new Process() { StartInfo = procStartInfo, };
@@ -157,7 +157,7 @@ namespace ScenarioMeasurement
             proc.WaitForExit();
             string result = proc.StandardOutput.ReadToEnd();
             logger.Log("Result: (" + result + ")");
-            return File.Exists("//usr/bin/lttng") && result != null && result.Length > 0;
+            return File.Exists("//usr/bin/lttng") && result != null && result.Contains("lttng");
         }
 
         public enum KernelKeyword
