@@ -148,7 +148,7 @@ namespace ScenarioMeasurement
 
         private bool LttngInstalled(Logger logger)
         {
-            ProcessStartInfo procStartInfo = new ProcessStartInfo("bash", "-c modinfo lttng_probe_writeback");
+            ProcessStartInfo procStartInfo = new ProcessStartInfo("modinfo", "lttng_probe_writeback");
             logger.Log("FileName: " + procStartInfo.FileName);
             logger.Log("Args: " + procStartInfo.Arguments);
             Process proc = new Process() { StartInfo = procStartInfo, };
