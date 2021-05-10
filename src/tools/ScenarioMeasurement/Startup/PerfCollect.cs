@@ -154,6 +154,7 @@ namespace ScenarioMeasurement
             proc.Start();
             proc.WaitForExit();
             string result = proc.StandardOutput.ReadToEnd();
+            // If the lttng_probe_writeback module is installed, the modinfo output will include the filename field
             return File.Exists("//usr/bin/lttng") && result != null && result.Contains("filename:");
         }
 
