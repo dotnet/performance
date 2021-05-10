@@ -52,7 +52,7 @@ namespace ScenarioMeasurement
                 RootAccess = true
             };
 
-            if (Install(logger) != Result.Success)
+            if (Install() != Result.Success)
             {
                 throw new Exception("Lttng installation failed. Please try manual install.");
             }
@@ -105,9 +105,9 @@ namespace ScenarioMeasurement
             return result;
         }
 
-        public Result Install(Logger logger)
+        public Result Install()
         {
-            if (LttngInstalled(logger))
+            if (LttngInstalled())
             {
                 Console.WriteLine("Lttng is already installed.");
                 return Result.Success;
@@ -115,10 +115,10 @@ namespace ScenarioMeasurement
             perfCollectProcess.Arguments = "install -force";
             perfCollectProcess.Run();
 
-            int retry = 1;
+            int retry = 10;
             for(int i=0; i<retry; i++)
             {
-                if (!LttngInstalled(logger))
+                if (!LttngInstalled())
                 {
                     Console.WriteLine($"Lttng not installed. Retry {i}...");
                     perfCollectProcess.Run();
@@ -146,17 +146,14 @@ namespace ScenarioMeasurement
             KernelEvents.Add(keyword);
         }
 
-        private bool LttngInstalled(Logger logger)
+        private bool LttngInstalled()
         {
             ProcessStartInfo procStartInfo = new ProcessStartInfo("modinfo", "lttng_probe_writeback");
-            logger.Log("FileName: " + procStartInfo.FileName);
-            logger.Log("Args: " + procStartInfo.Arguments);
             Process proc = new Process() { StartInfo = procStartInfo, };
             proc.StartInfo.RedirectStandardOutput = true;
             proc.Start();
             proc.WaitForExit();
             string result = proc.StandardOutput.ReadToEnd();
-            logger.Log("Result: (" + result + ")");
             return File.Exists("//usr/bin/lttng") && result != null && result.Contains("filename:");
         }
 
