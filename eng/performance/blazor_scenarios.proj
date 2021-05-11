@@ -76,6 +76,7 @@
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
       <PreCommands>$(Python) pre.py publish -f %PERFLAB_TARGET_FRAMEWORKS% --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs pub\wwwroot</Command>
+      <Timeout>1:00</Timeout>
     </HelixWorkItem>
   </ItemGroup>
 
