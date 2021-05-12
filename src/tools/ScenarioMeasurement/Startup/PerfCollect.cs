@@ -152,10 +152,10 @@ namespace ScenarioMeasurement
             Process proc = new Process() { StartInfo = procStartInfo, };
             proc.StartInfo.RedirectStandardOutput = true;
             proc.Start();
-            proc.WaitForExit();
             string result = proc.StandardOutput.ReadToEnd();
+            proc.WaitForExit();
             // If the lttng_probe_writeback module is installed, the modinfo output will include the filename field
-            return File.Exists("//usr/bin/lttng") && result != null && result.Contains("filename:");
+            return result.Contains("filename:");
         }
 
         public enum KernelKeyword
