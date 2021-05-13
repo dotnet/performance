@@ -209,7 +209,8 @@ def __main(args: list) -> int:
     repo_url = None if args.repository is None else args.repository.replace('-','/')
 
     variable_format = 'set %s=%s\n' if sys.platform == 'win32' else 'export %s=%s\n'
-    path_variable = 'set PATH=%%PATH%%;%s\n' if sys.platform == 'win32' else 'export PATH=$PATH:%s\n'
+    path_variable = 'set PATH=%s;%%PATH%%\n' if sys.platform == 'win32' else 'export PATH=%s:$PATH\n'
+    which = 'where dotnet\n' if sys.platform == 'win32' else 'which dotnet\n'
     dotnet_path = '%HELIX_CORRELATION_PAYLOAD%\dotnet' if sys.platform == 'win32' else '$HELIX_CORRELATION_PAYLOAD/dotnet'
     owner, repo = ('dotnet', 'core-sdk') if args.repository is None else (dotnet.get_repository(repo_url))
     config_string = ';'.join(args.build_configs) if sys.platform == 'win32' else '"%s"' % ';'.join(args.build_configs)
@@ -240,6 +241,7 @@ def __main(args: list) -> int:
         getLogger().info("Writing script to %s" % args.output_file)
 
         with open(args.output_file, 'w') as out_file:
+            out_file.write(which)
             out_file.write(variable_format % ('PERFLAB_INLAB', '1'))
             out_file.write(variable_format % ('PERFLAB_REPO', '/'.join([owner, repo])))
             out_file.write(variable_format % ('PERFLAB_BRANCH', branch))
