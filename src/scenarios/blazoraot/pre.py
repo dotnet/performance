@@ -16,9 +16,8 @@ precommands.new(template='blazorwasm',
                 bin_dir=const.BINDIR,
                 exename=EXENAME,
                 working_directory=sys.path[0])
-subprocess.run(["dotnet", "new", "tool-manifest", "--force"])
-subprocess.run(["dotnet", "tool", "install", "dotnet-install-blazoraot", "--version", "6.0.0-preview*"])
-subprocess.run(["dotnet", "install-blazoraot"])
+subprocess.run(["dotnet", "workload", "install", "microsoft-net-sdk-blazorwebassembly-aot", "--skip-manifest-update"])
+#subprocess.run(["dotnet", "install-blazoraot"])
 f = open(os.path.join(os.getcwd(), "app", "emptyblazorwasmtemplate.csproj"), 'r')
 outFileText = ""
 for line in f.readlines():
