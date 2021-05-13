@@ -116,6 +116,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     )
 
     parser.add_argument(
+        '--ci',
+        dest="is_ci",
+        required=False,
+        action='store_true',
+        default=False,
+        help='Create output for CI Runs'
+    )
+
+    parser.add_argument(
         '--get-perf-hash',
         dest="get_perf_hash",
         required=False,
@@ -208,7 +217,11 @@ def __main(args: list) -> int:
     # (ie https://github.com/dotnet-coreclr). Replace dashes with slashes in that case.
     repo_url = None if args.repository is None else args.repository.replace('-','/')
 
-    variable_format = 'set %s=%s\n' if sys.platform == 'win32' else 'export %s=%s\n'
+    variable_format = ''
+    if(args.is_ci):
+        variable_format = "echo ##vso[task.setvariable variable=%s;]%s\n"
+    else:
+        variable_format = 'set %s=%s\n' if sys.platform == 'win32' else 'export %s=%s\n'
     path_variable = 'set PATH=%%PATH%%;%s\n' if sys.platform == 'win32' else 'export PATH=$PATH:%s\n'
     dotnet_path = '%HELIX_CORRELATION_PAYLOAD%\dotnet' if sys.platform == 'win32' else '$HELIX_CORRELATION_PAYLOAD/dotnet'
     owner, repo = ('dotnet', 'core-sdk') if args.repository is None else (dotnet.get_repository(repo_url))
@@ -255,7 +268,8 @@ def __main(args: list) -> int:
             out_file.write(variable_format % ('PERFLAB_TARGET_FRAMEWORKS', framework))
             out_file.write(variable_format % ('DOTNET_CLI_TELEMETRY_OPTOUT', '1'))
             out_file.write(variable_format % ('DOTNET_MULTILEVEL_LOOKUP', '0'))
-            out_file.write(variable_format % ('UseSharedCompilation', 'false'))
+            if not args.is_ci:
+                out_file.write(variable_format % ('UseSharedCompilation', 'false'))
             out_file.write(variable_format % ('DOTNET_ROOT', dotnet_path))
             out_file.write(path_variable % dotnet_path)
 

@@ -138,4 +138,6 @@ class StartupWrapper(object):
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
             if uploadtokenpresent():
                 import upload
+                sas_token = os.getenv(UPLOAD_TOKEN_VAR)
+                print(sas_token)
                 upload.upload(reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)

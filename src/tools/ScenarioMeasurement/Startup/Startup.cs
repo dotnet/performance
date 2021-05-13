@@ -239,7 +239,7 @@ namespace ScenarioMeasurement
                     parser = new GenericStartupParser();
                     break;
                 case MetricType.ProcessTime:
-                    parser = new ProcessTimeParser();
+                    parser = new ProcessTimeParser(processWillExit);
                     break;
                 case MetricType.Crossgen2:
                     parser = new Crossgen2Parser();

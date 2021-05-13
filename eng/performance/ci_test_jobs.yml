@@ -1,0 +1,92 @@
+parameters:
+  osName: ''            # required -- windows | linux | macos
+  osVersion: ''         # required -- OS version
+  kind: ''              # required -- benchmark kind
+  architecture: ''      # required -- Architecture. Allowed values: x64, x86, arm, arm64
+  pool: ''              # required -- name of the Helix pool
+  queue: ''             # required -- name of the Helix queue
+  container: ''         # optional -- id of the container
+  channels: []          # required -- list of channels to download .NET from
+  projectFile: ''       # required -- project file to build (current choices: scenarios.proj/sdk_scenarios.proj )
+  workingDirectory: ''  # required -- Working directory of test
+  scenarioName: ''      # required -- Name of the scenario
+  scenarioType: ''      # required -- Type of dotnet new used
+  
+
+jobs:
+- template: ../common/templates/jobs/jobs.yml
+  parameters:
+    enableTelemetry: false
+    enablePublishBuildArtifacts: true
+    helixRepo: dotnet/performance
+    jobs:
+      - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}_${{ parameters.scenarioType }}_build'
+        displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.machinePool }} ${{ parameters.scenarioType }}'
+        dependsOn: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}_setup'
+        timeoutInMinutes: 320
+        variables:
+        - ${{ if eq(parameters.osName, 'windows') }}:
+          - name: ScriptExtension
+            value: .cmd
+          - name: CorrelationStaging
+            value: $(Build.SourcesDirectory)\CorrelationStaging\
+          - name: AdditionalHelixPreCommands
+            value: 'call $(Build.SourcesDirectory)\CIRun\CorrelationStaging\machine-setup$(ScriptExtension)'
+          - name: Python
+            value: 'py -3'
+          - name: ArtifactsDirectory
+            value: '%HELIX_WORKITEM_UPLOAD_ROOT%\Scenarios'
+          - name: PYTHONPATH
+            value: '$(Build.SourcesDirectory)\scripts;$(Build.SourcesDirectory)\src\scenarios'
+          - name: OLDPATH
+            value: '%PATH%'
+        - ${{ if ne(parameters.osName, 'windows') }}:
+          - name: ScriptExtension
+            value: .sh
+          - name: CorrelationStaging
+            value: $(Build.SourcesDirectory)/CorrelationStaging/
+          - name: AdditionalHelixPreCommands
+            value: 'chmod +x $HELIX_CORRELATION_PAYLOAD/machine-setup.sh;. $HELIX_CORRELATION_PAYLOAD/machine-setup$(ScriptExtension);cp $HELIX_CORRELATION_PAYLOAD/NuGet.config $HELIX_WORKITEM_ROOT'
+          - name: Python
+            value: python3
+          - name: ArtifactsDirectory
+            value: '$HELIX_WORKITEM_UPLOAD_ROOT/Scenarios'
+        workspace:
+          clean: all
+        pool:
+          name: ${{ parameters.pool }}
+        container: ${{ parameters.container }}
+        strategy:
+          matrix:
+            ${{ each channel in parameters.channels }}:
+              ${{ channel }}:
+                _Channel: ${{ channel }}
+                _Configs: CompilationMode=Tiered RunKind="${{ parameters.kind }}"
+                _BuildConfig: ${{ parameters.architecture }}_$(_Channel)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
+        steps:
+        - template: /eng/performance/download-artifact-step.yml
+          parameters:
+            unpackFolder: $(Build.SourcesDirectory)\CIRun
+            artifactFileName: 'CorrelationStaging.zip'
+            artifactName: 'CorrelationStaging'
+            displayName: 'Download CI PreBuild'
+        - script: py -3 -m venv $(Build.SourcesDirectory)\.venv
+          displayName: Create venv
+        - script: call .venv\Scripts\activate.bat
+          displayName: Setup venv
+        - script: py -3 -m pip install azure.storage.blob==12.0.0
+          displayName: Install Azure Storage python package
+        - script: py -3 -m pip install azure.storage.queue==12.0.0
+          displayName: Install Azure Queue python package
+        - script: $(AdditionalHelixPreCommands)
+          displayName: Additional Precommands
+        - script: echo D | xcopy $(Build.SourcesDirectory)\CIRun\CorrelationStaging\app${{ parameters.scenarioType }}ci\* $(Build.SourcesDirectory)\${{ parameters.workingDirectory }}\src /y /e
+        - script: py -3 pre.py default -f net6.0 && py -3 test.py cibuild --scenario-name "${{ parameters.scenarioName }}"
+          displayName: Run
+          workingDirectory: $(Build.SourcesDirectory)\${{ parameters.workingDirectory }}
+          env: {
+            PATH: $(Build.SourcesDirectory)\CIRun\CorrelationStaging\dotnet;$(PATH),
+            PERFLAB_UPLOAD_TOKEN: "$(PerfCommandUploadTokenNonEscaped)",
+            HELIX_CORRELATION_PAYLOAD: $(Build.SourcesDirectory)\CIRun\CorrelationStaging,
+            HELIX_WORKITEM_UPLOAD_ROOT: $(Build.SourcesDirectory)\artifacts\log\$(_BuildConfig)
+          }
