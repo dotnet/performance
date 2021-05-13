@@ -51,7 +51,7 @@ namespace ResultsComparer
             if (!notSame.Any())
             {
                 if (notSameResults.hasFailure)
-                    Console.WriteLine($"Found at least 1 failure between the benchmarks results.");
+                    Console.WriteLine($"Found at least 1 failure between the benchmark results.");
                 else
                     Console.WriteLine($"No differences found between the benchmark results with threshold {testThreshold}.");
 
