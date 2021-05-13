@@ -12,9 +12,7 @@ from test import EXENAME
 setup_loggers(True)
 precommands = PreCommands()
 precommands.existing("src", "BlazingPizza.sln")
-subprocess.run(["dotnet", "new", "tool-manifest", "--force"])
-subprocess.run(["dotnet", "tool", "install", "dotnet-install-blazoraot", "--version", "6.0.0-preview*"])
-subprocess.run(["dotnet", "install-blazoraot"])
+subprocess.run(["dotnet", "workload", "install", "microsoft-net-sdk-blazorwebassembly-aot", "--skip-manifest-update"])
 f = open(os.path.join(os.getcwd(), "app", "BlazingPizza.Client", "BlazingPizza.Client.csproj"), 'r')
 outFileText = ""
 for line in f.readlines():
