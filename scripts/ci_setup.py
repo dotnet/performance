@@ -237,13 +237,13 @@ def __main(args: list) -> int:
     pgo_config = ''
 
     if args.pgo_status == 'nopgo':
-        pgo_config = 'COMPlus_JitDisablePgo=1\n'
+        pgo_config = variable_format % ('COMPlus_JitDisablePgo', '1')
     elif args.pgo_status == 'dynamicpgo':
-        pgo_config = 'COMPlus_TieredPGO=1\n'
+        pgo_config = variable_format % ('COMPlus_TieredPGO', '1')
     elif args.pgo_status == 'fullpgo':
-        pgo_config = 'COMPlus_TieredPGO=1\n'
-        pgo_config += 'COMPlus_ReadyToRun=0\n'
-        pgo_config += 'COMPlus_TC_QuickJitForLoops=1\n'
+        pgo_config = variable_format % ('COMPlus_TieredPGO', '1')
+        pgo_config += variable_format % ('COMPlus_ReadyToRun','0')
+        pgo_config += variable_format % ('COMPlus_TC_QuickJitForLoops','1')
 
     output = ''
 
