@@ -59,7 +59,27 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         type=str,
         help='Channel to download product from'
     )
-
+    parser.add_argument(
+        '--no-pgo',
+        dest='pgo_status',
+        required=False,
+        action='store_const',
+        const='nopgo'
+    )
+    parser.add_argument(
+        '--dynamic-pgo',
+        dest='pgo_status',
+        required=False,
+        action='store_const',
+        const='dynamicpgo'
+    )
+    parser.add_argument(
+        '--full-pgo',
+        dest='pgo_status',
+        required=False,
+        action='store_const',
+        const='fullpgo'
+    )
     parser.add_argument(
         '--branch',
         dest='branch',
@@ -214,6 +234,16 @@ def __main(args: list) -> int:
     dotnet_path = '%HELIX_CORRELATION_PAYLOAD%\dotnet' if sys.platform == 'win32' else '$HELIX_CORRELATION_PAYLOAD/dotnet'
     owner, repo = ('dotnet', 'core-sdk') if args.repository is None else (dotnet.get_repository(repo_url))
     config_string = ';'.join(args.build_configs) if sys.platform == 'win32' else '"%s"' % ';'.join(args.build_configs)
+    pgo_config = ''
+
+    if args.pgo_status == 'nopgo':
+        pgo_config = variable_format % ('COMPlus_JitDisablePgo', '1')
+    elif args.pgo_status == 'dynamicpgo':
+        pgo_config = variable_format % ('COMPlus_TieredPGO', '1')
+    elif args.pgo_status == 'fullpgo':
+        pgo_config = variable_format % ('COMPlus_TieredPGO', '1')
+        pgo_config += variable_format % ('COMPlus_ReadyToRun','0')
+        pgo_config += variable_format % ('COMPlus_TC_QuickJitForLoops','1')
 
     output = ''
 
@@ -242,6 +272,7 @@ def __main(args: list) -> int:
 
         with open(args.output_file, 'w') as out_file:
             out_file.write(which)
+            out_file.write(pgo_config)
             out_file.write(variable_format % ('PERFLAB_INLAB', '1'))
             out_file.write(variable_format % ('PERFLAB_REPO', '/'.join([owner, repo])))
             out_file.write(variable_format % ('PERFLAB_BRANCH', branch))
