@@ -235,6 +235,7 @@ def __main(args: list) -> int:
     owner, repo = ('dotnet', 'core-sdk') if args.repository is None else (dotnet.get_repository(repo_url))
     config_string = ';'.join(args.build_configs) if sys.platform == 'win32' else '"%s"' % ';'.join(args.build_configs)
     pgo_config = ''
+    showenv = 'set' if sys.platform == 'win32' else 'printenv'
 
     if args.pgo_status == 'nopgo':
         pgo_config = variable_format % ('COMPlus_JitDisablePgo', '1')
@@ -291,6 +292,8 @@ def __main(args: list) -> int:
             out_file.write(variable_format % ('UseSharedCompilation', 'false'))
             out_file.write(variable_format % ('DOTNET_ROOT', dotnet_path))
             out_file.write(path_variable % dotnet_path)
+            out_file.write(showenv)
+            
 
     else:
         with open(args.output_file, 'w') as out_file:
