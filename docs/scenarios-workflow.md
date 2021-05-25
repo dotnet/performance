@@ -3,16 +3,16 @@
 # Scenario Tests Guide
 ## Overview
 
-Our existing scenario tests are under `src\scenarios` in this repo, where each subdirectory contains a test asset that can be combined with a specific set of commands to do measurements. Currently we have scenario tests for [SDK](link), [Crossgen](link), [Blazor](./blazor-scenarios.md) and [other scenarios]().
+Our existing scenario tests are under `src\scenarios` in this repo, where each subdirectory contains a test asset that can be combined with a specific set of commands to do measurements. Currently we have scenario tests for [SDK](./sdk-scenarios.md), [Crossgen](./crossgen-scenarios.md), [Blazor](./blazor-scenarios.md) and [other scenarios](./basic-scenarios.md).
 
 ## Running scenario tests
 
 This is a general guideline on how the scenario tests are arranged in this repo. We will walk through it by measuring the **startup time of an empty console template** as a sample scenario. For other scenarios, refer to the following links:
 
--  [How to run SDK scenario tests](link)
+-  [How to run SDK scenario tests](./sdk-scenarios.md)
 -  [How to run Crossgen scenario tests](./crossgen-scenarios.md)
 -  [How to run Blazor tests](./blazor-scenarios.md)
--  [How to run other Scenario tests](link)
+-  [How to run other Scenario tests](./basic-scenarios.md)
 
 ### Prerequisites:
 - python3 or newer
@@ -103,7 +103,7 @@ The above command removes `app`, `bin`, `traces`, `pub`, `tmp` directories if ge
 
 ### Command Matrix
 Some command options are only applicable for certain test assets. Refer to the command matrix for each scenario category for a list of available command combinations:
-- [SDK Command Matrix](.\sdk-scenarios.md#command-matrix)
-- [Crossgen Command Matrix](.\crossgen-scenarios.md#command-matrix)
-- [Blazor Command Matrix](.\blazor-scenarios.md#command-matrix)
-- [Other Scenarios Command Matrix](.\other-scenarios.md#command-matrix)
+- [SDK Command Matrix](./sdk-scenarios.md#command-matrix)
+- [Crossgen Command Matrix](./crossgen-scenarios.md#command-matrix)
+- [Blazor Command Matrix](./blazor-scenarios.md#command-matrix)
+- [Other Scenarios Command Matrix](./basic-scenarios.md#command-matrix)
