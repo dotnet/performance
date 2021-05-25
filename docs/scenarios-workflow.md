@@ -3,7 +3,7 @@
 # Scenario Tests Guide
 ## Overview
 
-Our existing scenario tests are under `src\scenarios` in this repo, where each subdirectory contains a test asset that can be combined with a specific set of commands to do measurements. Currently we have scenario tests for [SDK](./sdk-scenarios.md), [Crossgen](./crossgen-scenarios.md), [Blazor](./blazor-scenarios.md) and [other scenarios](link).
+Our existing scenario tests are under `src\scenarios` in this repo, where each subdirectory contains a test asset that can be combined with a specific set of commands to do measurements. Currently we have scenario tests for [SDK](./sdk-scenarios.md), [Crossgen](./crossgen-scenarios.md), [Blazor](./blazor-scenarios.md) and [other scenarios](./basic-scenarios.md).
 
 ## Running scenario tests
 
