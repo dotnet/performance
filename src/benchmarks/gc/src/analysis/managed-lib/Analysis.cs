@@ -1432,7 +1432,9 @@ namespace GCPerf
         /// </returns>
         public static EtlxNS.TraceLog GetOpenedTraceLog(string tracePath)
         {
-            return EtlxNS.TraceLog.OpenOrConvert(tracePath);
+            return new EtlxNS.TraceLog(
+                EtlxNS.TraceLog.CreateFromEventTraceLogFile(tracePath)
+            );
         }
 
         /// <summary>
