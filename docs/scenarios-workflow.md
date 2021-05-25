@@ -12,7 +12,7 @@ This is a general guideline on how the scenario tests are arranged in this repo.
 -  [How to run SDK scenario tests](./sdk-scenarios.md)
 -  [How to run Crossgen scenario tests](./crossgen-scenarios.md)
 -  [How to run Blazor tests](./blazor-scenarios.md)
--  [How to run other Scenario tests](link)
+-  [How to run other Scenario tests](./basic-scenarios.md)
 
 ### Prerequisites:
 - python3 or newer
