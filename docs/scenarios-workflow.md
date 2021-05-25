@@ -106,4 +106,4 @@ Some command options are only applicable for certain test assets. Refer to the c
 - [SDK Command Matrix](./sdk-scenarios.md#command-matrix)
 - [Crossgen Command Matrix](./crossgen-scenarios.md#command-matrix)
 - [Blazor Command Matrix](./blazor-scenarios.md#command-matrix)
-- [Other Scenarios Command Matrix](./other-scenarios.md#command-matrix)
+- [Other Scenarios Command Matrix](./basic-scenarios.md#command-matrix)
