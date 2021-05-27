@@ -16,6 +16,7 @@ from stat import S_IRWXU
 from subprocess import CalledProcessError, check_output
 from sys import argv, platform
 from typing import Tuple
+from urllib.error import URLError
 from urllib.parse import urlparse
 from urllib.request import urlopen
 from time import sleep
@@ -599,7 +600,7 @@ def get_commit_date(
                 item = loads(response.read().decode('utf-8'))
                 build_timestamp = item['commit']['committer']['date']
                 success = 1
-        except urllib.error.URLError:
+        except URLError:
             retrycount += 1
 
     if not build_timestamp:
