@@ -590,10 +590,17 @@ def get_commit_date(
         url = urlformat % (owner, repo, commit_sha)
 
     build_timestamp = None
-    with urlopen(url) as response:
-        getLogger().info("Commit: %s", url)
-        item = loads(response.read().decode('utf-8'))
-        build_timestamp = item['commit']['committer']['date']
+    retrycount = 0
+    success = 0
+    while success == 0 and retrycount <= 3:
+        try:
+            with urlopen(url) as response:
+                getLogger().info("Commit: %s", url)
+                item = loads(response.read().decode('utf-8'))
+                build_timestamp = item['commit']['committer']['date']
+                success = 1
+        except urllib.error.URLError:
+            retrycount += 1
 
     if not build_timestamp:
         raise RuntimeError(
