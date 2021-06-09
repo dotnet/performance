@@ -16,6 +16,7 @@ from stat import S_IRWXU
 from subprocess import CalledProcessError, check_output
 from sys import argv, platform
 from typing import Tuple
+from urllib.error import URLError
 from urllib.parse import urlparse
 from urllib.request import urlopen
 from time import sleep
@@ -590,10 +591,17 @@ def get_commit_date(
         url = urlformat % (owner, repo, commit_sha)
 
     build_timestamp = None
-    with urlopen(url) as response:
-        getLogger().info("Commit: %s", url)
-        item = loads(response.read().decode('utf-8'))
-        build_timestamp = item['commit']['committer']['date']
+    retrycount = 0
+    success = 0
+    while success == 0 and retrycount <= 3:
+        try:
+            with urlopen(url) as response:
+                getLogger().info("Commit: %s", url)
+                item = loads(response.read().decode('utf-8'))
+                build_timestamp = item['commit']['committer']['date']
+                success = 1
+        except URLError:
+            retrycount += 1
 
     if not build_timestamp:
         raise RuntimeError(
