@@ -56,6 +56,7 @@ namespace Reporting
                 PerfRepoHash = environment.GetEnvironmentVariable("PERFLAB_PERFHASH"),
                 Name = environment.GetEnvironmentVariable("PERFLAB_RUNNAME"),
                 Queue = environment.GetEnvironmentVariable("PERFLAB_QUEUE"),
+                WorkItemName = environment.GetEnvironmentVariable("HELIX_WORKITEM_FRIENDLYNAME"),
             };
             Boolean.TryParse(environment.GetEnvironmentVariable("PERFLAB_HIDDEN"), out bool hidden);
             run.Hidden = hidden;
@@ -72,6 +73,7 @@ namespace Reporting
             os = new Os()
             {
                 Name = $"{RuntimeEnvironment.OperatingSystem} {RuntimeEnvironment.OperatingSystemVersion}",
+                MachineName = environment.GetEnvironmentVariable("COMPUTERNAME"),
                 Architecture = RuntimeInformation.OSArchitecture.ToString(),
                 Locale = CultureInfo.CurrentUICulture.ToString()
             };
