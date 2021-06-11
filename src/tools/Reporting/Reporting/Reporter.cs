@@ -73,7 +73,7 @@ namespace Reporting
             os = new Os()
             {
                 Name = $"{RuntimeEnvironment.OperatingSystem} {RuntimeEnvironment.OperatingSystemVersion}",
-                MachineName = environment.GetEnvironmentVariable("COMPUTERNAME"),
+                MachineName = Environment.MachineName,
                 Architecture = RuntimeInformation.OSArchitecture.ToString(),
                 Locale = CultureInfo.CurrentUICulture.ToString()
             };
