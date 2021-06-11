@@ -11,5 +11,7 @@ namespace Reporting
         public string Architecture { get; set; }
 
         public string Name { get; set; }
+
+        public string MachineName { get; set; }
     }
 }

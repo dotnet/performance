@@ -19,6 +19,8 @@ namespace Reporting
         public string Name { get; set; }
 
         public string Queue { get; set; }
+
+        public string WorkItemName { get; set; }
         public IDictionary<string, string> Configurations { get; set; } = new Dictionary<string, string>();
     }
 }
