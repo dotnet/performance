@@ -27,10 +27,12 @@ from .util import (
     ensure_dir,
     ExecArgs,
     exec_and_get_output,
+    gb_to_kb,
     get_hostname,
     get_os,
     kb_to_bytes,
     kb_to_mb,
+    mb_to_kb,
     mhz_to_ghz,
     OS,
     remove_str_end,
@@ -136,7 +138,31 @@ def _get_host_info_posix() -> HostInfo:
         opt = get_opt(name)
         if opt is not None and _UNKNOWN_MSG in opt.lower():
             return None
-        return map_option(opt, lambda s: int(remove_str_end(s, "K")))
+
+        # Retrieve the size of the given memory option string, and return it
+        # in KB. Nowadays, it is not uncommon for machines to have MB, or in
+        # more powerful cases, GB of cache, so we need to do the conversion
+        # as necessary since the infra expects to receive KB.
+        #
+        # First we extract the size units name to determine how to convert them
+        # if necessary. Since we don't know about every single machine's rules
+        # for capitalization, we'll convert to lowercase just to be safe.
+
+        assert opt is not None
+        size_units = opt.rsplit(" ", 1)[-1].lower()
+        converted_kb = 0.0
+
+        if size_units in ["k", "kib"]:
+            converted_kb = int(remove_str_end(opt.lower(), size_units))
+            return map_option(converted_kb, lambda n: n)
+        elif size_units in ["m", "mib"]:
+            converted_kb = mb_to_kb(float(remove_str_end(opt.lower(), size_units)))
+            return map_option(converted_kb, lambda n: int(n))  # pylint: disable=W0108
+        elif size_units in ["g", "gib"]:
+            converted_kb = gb_to_kb(float(remove_str_end(opt.lower(), size_units)))
+            return map_option(converted_kb, lambda n: int(n))  # pylint: disable=W0108
+        else:
+            raise Exception(f"Unrecognized size units '{size_units}'")
 
     # Note: "CPU MHz" is the *current* cpu rate which varies. Going with max here.
     # TODO: Max is probably wrong, we want a typical value.
