@@ -100,7 +100,8 @@ class ChannelMap():
         '''Translate Target Framework Moniker (TFM) to channel name'''
         if 'quality' in ChannelMap.channel_map[channel]:
             return ChannelMap.channel_map[channel]['quality']
-        raise Exception('Channel object %s does not support quality.')
+        else:
+            return None
 
     @staticmethod
     def get_channel_from_target_framework_moniker(target_framework_moniker: str) -> str:
