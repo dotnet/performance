@@ -7,6 +7,11 @@ class ChannelMap():
             'branch': 'main',
             'quality': 'daily'
         },
+        'main': {
+            'tfm': 'net6.0',
+            'branch': 'main',
+            'quality': 'daily'
+        },
         'master': {
             'tfm': 'net6.0',
             'branch': 'master'
