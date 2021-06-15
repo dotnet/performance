@@ -608,8 +608,16 @@ def kb_to_mb(kb: float) -> float:
     return bytes_to_mb(kb_to_bytes(kb))
 
 
+def mb_to_kb(mb: float) -> float:
+    return bytes_to_kb(mb_to_bytes(mb))
+
+
 def mb_to_gb(mb: float) -> float:
     return bytes_to_gb(mb_to_bytes(mb))
+
+
+def gb_to_kb(gb: float) -> float:
+    return bytes_to_kb(gb_to_bytes(gb))
 
 
 def gb_to_mb(gb: float) -> float:
