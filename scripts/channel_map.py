@@ -2,9 +2,10 @@ from argparse import ArgumentParser
 
 class ChannelMap():
     channel_map = {
-        'main': {
+        '6.0': {
             'tfm': 'net6.0',
-            'branch': 'main'
+            'branch': 'main',
+            'quality': 'daily'
         },
         'master': {
             'tfm': 'net6.0',
@@ -93,6 +94,13 @@ class ChannelMap():
             return ChannelMap.channel_map[channel]['tfm']
         else:
             raise Exception('Channel %s is not supported. Supported channels %s' % (channel, ChannelMap.get_supported_channels()))
+
+    @staticmethod
+    def get_quality_from_channel(channel: str) -> str:
+        '''Translate Target Framework Moniker (TFM) to channel name'''
+        if 'quality' in ChannelMap.channel_map[channel]:
+            return ChannelMap.channel_map[channel]['quality']
+        raise Exception('Channel object %s does not support quality.')
 
     @staticmethod
     def get_channel_from_target_framework_moniker(target_framework_moniker: str) -> str:
