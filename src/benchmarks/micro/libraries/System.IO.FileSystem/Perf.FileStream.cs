@@ -67,7 +67,7 @@ namespace System.IO.Tests
             string filePath = _sourceFilePaths[fileSize];
             using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
             {
-                return fileStream.IsAsync; // return something just to consume the reader
+                return fileStream.IsAsync; // return something just to consume the stream
             }
         }
 
@@ -157,17 +157,23 @@ namespace System.IO.Tests
         public IEnumerable<object[]> SyncArguments()
         {
             // long fileSize, int userBufferSize, FileOptions options
-            yield return new object[] { OneKibibyte, OneKibibyte, FileOptions.None }; // small file size, user buffer size == file size
-            yield return new object[] { OneMibibyte, HalfKibibyte, FileOptions.None }; // medium size file, user buffer size * 8 == default stream buffer size (buffering is beneficial)
-            yield return new object[] { OneMibibyte, FourKibibytes, FileOptions.None }; // medium size file, user buffer size == default stream buffer size (buffering is not beneficial)
-            yield return new object[] { HundredMibibytes, FourKibibytes, FileOptions.None }; // big file, user buffer size == default stream buffer size (buffering is not beneficial)
+            foreach (FileOptions options in new FileOptions[] { FileOptions.None, FileOptions.Asynchronous })
+            {
+                yield return new object[] { OneKibibyte, OneKibibyte, options }; // small file size, user buffer size == file size
+                yield return new object[] { OneMibibyte, HalfKibibyte, options }; // medium size file, user buffer size * 8 == default stream buffer size (buffering is beneficial)
+                yield return new object[] { OneMibibyte, FourKibibytes, options }; // medium size file, user buffer size == default stream buffer size (buffering is not beneficial)
+                yield return new object[] { HundredMibibytes, FourKibibytes, options }; // big file, user buffer size == default stream buffer size (buffering is not beneficial)
+            }
         }
         
         public IEnumerable<object[]> SyncArguments_NoBuffering()
         {
             // long fileSize, int userBufferSize, FileOptions options
-            yield return new object[] { OneMibibyte, SixteenKibibytes, FileOptions.None }; // medium size file, user buffer size == 4 * default stream buffer size
-            yield return new object[] { HundredMibibytes, SixteenKibibytes, FileOptions.None }; // big file, user buffer size == 4 * default stream buffer size
+            foreach (FileOptions options in new FileOptions[] { FileOptions.None, FileOptions.Asynchronous })
+            {
+                yield return new object[] { OneMibibyte, SixteenKibibytes, options }; // medium size file, user buffer size == 4 * default stream buffer size
+                yield return new object[] { HundredMibibytes, SixteenKibibytes, options }; // big file, user buffer size == 4 * default stream buffer size
+            }
         }
         
         [Benchmark]
