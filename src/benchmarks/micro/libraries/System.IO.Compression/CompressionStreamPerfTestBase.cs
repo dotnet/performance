@@ -61,7 +61,18 @@ namespace System.IO.Compression
             CompressedFile.CompressedDataStream.Position = 0;
 
             var compressor = CreateStream(CompressedFile.CompressedDataStream, CompressionMode.Decompress);
-            return compressor.Read(CompressedFile.UncompressedData, 0, CompressedFile.UncompressedData.Length);
+
+            byte[] buffer = CompressedFile.UncompressedData;
+
+            int totalRead = 0;
+            while (totalRead < buffer.Length)
+            {
+                int bytesRead = compressor.Read(buffer, totalRead, buffer.Length - totalRead);
+                if (bytesRead == 0) break;
+                totalRead += bytesRead;
+            }
+
+            return totalRead;
         }
     }
 }
