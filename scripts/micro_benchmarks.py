@@ -252,7 +252,8 @@ def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
         run_args += ['--runtimes', 'wasm']
 
     # Increase default 2 min build timeout to accommodate slow (or even very slow) hardware
-    run_args += ['--buildTimeout', '600']
+    if '--buildTimeout' not in args.bdn_arguments:
+    	run_args += ['--buildTimeout', '600']
 
     return run_args
 
