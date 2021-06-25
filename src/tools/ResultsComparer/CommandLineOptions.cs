@@ -38,6 +38,9 @@ namespace ResultsComparer
         [Option("full-id", HelpText = "Display the full benchmark name id. Optional.")]
         public bool FullId { get; set; }
 
+        [Option("failure-summary", HelpText = "Display the aggregate counts and benchmark id(s) for base or diff results that are null. Optional.")]
+        public bool FailureSummary { get; set; }
+
         [Usage(ApplicationAlias = "")]
         public static IEnumerable<Example> Examples
         {
