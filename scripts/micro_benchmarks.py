@@ -14,6 +14,11 @@ from subprocess import CalledProcessError
 from traceback import format_exc
 from typing import Tuple
 
+# for temporary diagnostic, should br removed before PR.
+import shutil
+import platform
+
+
 import csv
 import sys
 
@@ -313,8 +318,14 @@ def run(
         verbose,
         *run_args
     )
-
-
+# diagnostic function, remove before PR. 
+def copytree(src, dst, symlinks=False, ignore=None):
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s) and "test1" in s:
+            shutil.copytree(s, d, symlinks, ignore)
+            
 def __log_script_header(message: str):
     getLogger().info('-' * len(message))
     getLogger().info(message)
@@ -361,6 +372,10 @@ def __main(args: list) -> int:
                 verbose,
                 args
             )
+
+        # diagnostic function, remove before PR. 
+        if platform.system() == "Linux":
+        copyjob(\$HELIX_CORRELATION_PAYLOAD\performance\artifacts\bin\MicroBenchmarks\Release\net6.0, \$HELIX_WORKITEM_UPLOAD_ROOT\BDNBackUp)
 
         return 0
     except CalledProcessError as ex:
