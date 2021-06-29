@@ -375,7 +375,7 @@ def __main(args: list) -> int:
 
         # diagnostic function, remove before PR. 
         if platform.system() == "Linux":
-            copyjob(\$HELIX_CORRELATION_PAYLOAD\performance\artifacts\bin\MicroBenchmarks\Release\net6.0, \$HELIX_WORKITEM_UPLOAD_ROOT\BDNBackUp)
+            copyjob('%HELIX_CORRELATION_PAYLOAD\performance\artifacts\bin\MicroBenchmarks\Release\net6.0', '%HELIX_WORKITEM_UPLOAD_ROOT\BDNBackUp')
 
         return 0
     except CalledProcessError as ex:
