@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.0.1559" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.0.1559" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.0.1561" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.0.1561" />
   </ItemGroup>
 
   <ItemGroup>
