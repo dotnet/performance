@@ -181,6 +181,7 @@ def copyjob(src, dst, symlinks=False, ignore=None):
         s = os.path.join(src, item)
         d = os.path.join(dst, item)
         if os.path.isdir(s) and "Job-" in s:
+            print ("copy folder " + s + "to " + d)
             shutil.copytree(s, d, symlinks, ignore)
 
 def __main(args: list) -> int:
