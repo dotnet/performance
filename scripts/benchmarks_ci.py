@@ -265,9 +265,10 @@ def __main(args: list) -> int:
                 ]
                 reporterpath = os.path.join(helixpayload(), 'FailureReporter')
                 if not os.path.exists(reporterpath):
-                    raise FileNotFoundError
-                getLogger().info("Generating failure results at " + globpath)
-                RunCommand(cmdline, verbose=True).run(reporterpath)
+                    getLogger().error("Can't find FailureReporter path: " + reporterpath )
+                else:
+                    getLogger().info("Generating failure results at " + globpath)
+                    RunCommand(cmdline, verbose=True).run(reporterpath)
             else:
                 args.upload_to_perflab_container = False
 
@@ -279,6 +280,7 @@ def __main(args: list) -> int:
         # TODO: Archive artifacts.
 
     # diagnostic function, remove before PR. 
+    print ("Print out platform_system: " + platform.system())
     if platform.system() == "Linux":
         copyjob('%HELIX_CORRELATION_PAYLOAD\performance\artifacts\bin\MicroBenchmarks\Release\net6.0', '%HELIX_WORKITEM_UPLOAD_ROOT\BDNBackUp')
 
