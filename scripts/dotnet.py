@@ -4,6 +4,7 @@
 Contains the functionality around DotNet Cli.
 """
 
+import ssl
 from argparse import Action, ArgumentParser, ArgumentTypeError, ArgumentError
 from collections import namedtuple
 from glob import iglob
@@ -712,7 +713,7 @@ def install(
     count = 0
     while count < 3:
         try:
-            with urlopen(dotnetInstallScriptUrl) as response:
+            with urlopen(dotnetInstallScriptUrl, context=ssl._create_unverified_context()) as response:
                 if "html" in response.info()['Content-Type']:
                     count = count + 1
                     sleep(1) # sleep one second
