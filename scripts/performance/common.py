@@ -80,6 +80,12 @@ def helixpayload():
     '''
     return environ.get('HELIX_CORRELATION_PAYLOAD')
 
+def helixuploadroot():
+    '''
+    Returns the helix upload root. Will be None outside of helix.
+    '''
+    return environ.get('HELIX_WORKITEM_UPLOAD_ROOT')
+
 def runninginlab():
     return environ.get('PERFLAB_INLAB') is not None
 
