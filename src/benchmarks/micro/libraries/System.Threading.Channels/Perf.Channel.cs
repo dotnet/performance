@@ -26,9 +26,12 @@ namespace System.Threading.Channels.Tests
     [BenchmarkCategory(Categories.Libraries)]
     public abstract class PerfTests
     {
+        private const int PingPongCount = 10_000;
+
         private Channel<int> _channel, _channel1, _channel2;
         private ChannelReader<int> _reader;
         private ChannelWriter<int> _writer;
+        private AsyncLocal<int> _asyncLocal;
 
         public abstract Channel<int> CreateChannel();
 
@@ -75,8 +78,6 @@ namespace System.Threading.Channels.Tests
         [BenchmarkCategory(Categories.NoWASM)]
         public async Task PingPong()
         {
-            const int PingPongCount = 10_000;
-            
             Channel<int> channel1 = _channel1;
             Channel<int> channel2 = _channel2;
 
@@ -93,6 +94,48 @@ namespace System.Threading.Channels.Tests
                 }),
                 Task.Run(async () =>
                 {
+                    ChannelWriter<int> writer = channel1.Writer;
+                    ChannelReader<int> reader = channel2.Reader;
+                    for (int i = 0; i < PingPongCount; i++)
+                    {
+                        await reader.ReadAsync();
+                        await writer.WriteAsync(i);
+                    }
+                }));
+        }
+
+        [GlobalSetup(Target = nameof(PingPongWithExecutionContexts))]
+        public void SetupTwoChannelsAndAsyncLocal()
+        {
+            _channel1 = CreateChannel();
+            _channel2 = CreateChannel();
+            _asyncLocal = new AsyncLocal<int>();
+        }
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
+        public async Task PingPongWithExecutionContexts()
+        {
+            Channel<int> channel1 = _channel1;
+            Channel<int> channel2 = _channel2;
+
+            await Task.WhenAll(
+                Task.Run(async () =>
+                {
+                    _asyncLocal.Value = 1;
+
+                    ChannelReader<int> reader = channel1.Reader;
+                    ChannelWriter<int> writer = channel2.Writer;
+                    for (int i = 0; i < PingPongCount; i++)
+                    {
+                        await writer.WriteAsync(i);
+                        await reader.ReadAsync();
+                    }
+                }),
+                Task.Run(async () =>
+                {
+                    _asyncLocal.Value = 2;
+
                     ChannelWriter<int> writer = channel1.Writer;
                     ChannelReader<int> reader = channel2.Reader;
                     for (int i = 0; i < PingPongCount; i++)
