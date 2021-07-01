@@ -282,7 +282,7 @@ def __main(args: list) -> int:
     # diagnostic function, remove before PR. 
     print ("Print out platform_system: " + platform.system())
     if platform.system() == "Linux":
-        copyjob('%HELIX_CORRELATION_PAYLOAD\performance\artifacts\bin\MicroBenchmarks\Release\net6.0', '%HELIX_WORKITEM_UPLOAD_ROOT\BDNBackUp')
+        copyjob('{0}/performance/artifacts/bin/MicroBenchmarks/Release/net6.0'.format(HELIX_CORRELATION_PAYLOAD), '{0}\BDNBackUp'.format(HELIX_WORKITEM_UPLOAD_ROOT))
 
 
 if __name__ == "__main__":
