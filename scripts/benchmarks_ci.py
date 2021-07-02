@@ -284,7 +284,7 @@ def __main(args: list) -> int:
     print ("Print out platform_system: " + platform.system())
     if platform.system() == "Linux":
         jobpathsrc = os.path.join(helixpayload(), 'performance/artifacts/bin/MicroBenchmarks/Release/net6.0')
-        jobpathdes = os.path.join(helixpayload(), 'BDNJobBackUp')
+        jobpathdes = os.path.join(helixuploadroot(), 'BDNJobBackUp')
         copyjob(jobpathsrc, jobpathdes)
 
 
