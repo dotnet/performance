@@ -260,7 +260,7 @@ def __main(args: list) -> int:
                     RunCommand(cmdline, verbose=True).run(reporterpath)
             else:
                 args.upload_to_perflab_container = False
-            # rethrow the caught CalledProcessError exception so that the exception being bobbled up correctly.
+            # rethrow the caught CalledProcessError exception so that the exception being bubbled up correctly.
             raise
 
         dotnet.shutdown_server(verbose)
