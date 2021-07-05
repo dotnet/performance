@@ -26,6 +26,7 @@ namespace System.IO.Tests
         private string _testFilePath;
         private string[] _filesToRemove;
         private Dictionary<int, byte[]> _userBuffers;
+        private Dictionary<int, string> _userStrings;
 
         [GlobalSetup(Target = nameof(Exists))]
         public void SetupExists()
@@ -92,5 +93,58 @@ namespace System.IO.Tests
 
         [GlobalCleanup(Targets = new[] { nameof(WriteAllBytes), "WriteAllBytesAsync" })]
         public void CleanupWriteAllBytes() => File.Delete(_testFilePath);
+
+        [GlobalSetup(Targets = new[] { nameof(WriteAllText), nameof(StreamWriterWrite), nameof(StreamWriterWriteAsync), "WriteAllTextAsync" })]
+        public void SetupWriteAllText()
+        {
+            _testFilePath = FileUtils.GetTestFilePath();
+            _userStrings = new Dictionary<int, string>()
+            {
+                { 100, new string('a', 1) },
+                { 1_000, new string('a', 1_000) },
+                { 100_000, new string('a', 100_000) },
+            };
+        }
+
+        [Benchmark]
+        [Arguments(100)]
+        [Arguments(1_000)]
+        [Arguments(100_000)]
+        public void WriteAllText(int size) => File.WriteAllText(_testFilePath, _userStrings[size]);
+
+        [Benchmark]
+        [Arguments(100)]
+        [Arguments(1_000)]
+        [Arguments(100_000)]
+        public void StreamWriterWrite(int size)
+        {
+            using (var streamWriter = new StreamWriter(_testFilePath))
+            {
+                streamWriter.Write(_userStrings[size]);
+            }
+        }
+
+        [Benchmark]
+        [Arguments(100)]
+        [Arguments(1_000)]
+        [Arguments(100_000)]
+        public async Task StreamWriterWriteAsync(int size)
+        {
+            using (var streamWriter = new StreamWriter(_testFilePath))
+            {
+                await streamWriter.WriteAsync(_userStrings[size]);
+            }
+        }
+
+#if !NETFRAMEWORK
+        [Benchmark]
+        [Arguments(100)]
+        [Arguments(1_000)]
+        [Arguments(100_000)]
+        public Task WriteAllTextAsync(int size) => File.WriteAllTextAsync(_testFilePath, _userStrings[size]);
+#endif
+
+        [GlobalCleanup(Targets = new[] { nameof(WriteAllText), nameof(StreamWriterWrite), nameof(StreamWriterWriteAsync), "WriteAllTextAsync" })]
+        public void CleanupWriteAllText() => File.Delete(_testFilePath);
     }
 }
