@@ -56,7 +56,8 @@ from src.analysis.parse_metrics import (
 from src.analysis.process_trace import ProcessedTraces, test_result_from_path
 from src.analysis.report import (
     diff_for_jupyter,
-    get_gc_metrics_numbers_for_jupyter,
+    get_test_metrics_numbers_for_jupyter,
+    get_pergc_metrics_numbers_for_jupyter,
     report_reasons_for_jupyter,
 )
 from src.analysis.single_gc_metrics import get_bytes_allocated_since_last_gc
@@ -681,30 +682,125 @@ _more_custom(_TRACE)
 # %% Read the bench file and get all the GC stat numbers from all the iterations
 # said test was run.
 
+# This cell assumes the normal_server test was run a few times, and have the
+# data available in the default location where GC Infra stores the traces.
+#
+# The data is read and structured into two tables. A suite contains multiple
+# iterations, which is a single execution of the process.
+# 
+# The run_metrics data frame describes the data at the iteration level, that is,
+# a collection of measurements that yields one value per iteration. For example,
+# PercentTimeinGC is a run metric.
+#
+# The gc_metrics data frame describes the data at the GC level, that is, a
+# collection of measurements that yields one value per GC, and of course,
+# multiple values per iteration.
+#
+# Generally you do not want to run this cell more than once to avoid repeated
+# parsing of the traces.
+#
+# Any cells beyond this block are independent, so you can run and modify them
+# any times you need.
+
 _BENCH = Path("bench")
 _SUITE = Path("bench") / "suite"
 _TRACE_PATH = _SUITE / "normal_server.yaml"
 
-metrics_data = get_gc_metrics_numbers_for_jupyter(
+run_metrics, gc_metrics = get_test_metrics_numbers_for_jupyter(
     traces=ALL_TRACES,
     bench_file_path=_TRACE_PATH,
     run_metrics=parse_run_metrics_arg(("important",)),
     machines=None,
 )
 
-data_frame = pandas.DataFrame.from_dict(metrics_data)
+run_data_frame = pandas.DataFrame.from_dict(run_metrics).set_index("iteration_number")
+gc_data_frame = pandas.DataFrame.from_dict(gc_metrics).set_index("iteration_number")
 
-# %% Do pandas numbers analysis here.
+# %% A nice method to describe a lot of statistics at the same time.
 
-data_frame.describe()
+run_data_frame.describe()
 
-# %% Graph and compare the Heap Sizes throughout all the test runs.
+# %% Get a general description of the run metrics.
 
-heap_sizes = data_frame[["HeapSizeBeforeMB_Mean", "HeapSizeAfterMB_Mean"]]
-heap_sizes.plot()
+# The head function can give us some idea about how the table look like.
+run_data_frame.head()
 
-# %% Obtain the statistics grouped by config and benchmark
+# %% Get a full list of the table's columns.
 
-data_frame.groupby(["config_name", "benchmark_name"]).mean()
+run_data_frame.columns.tolist()
+
+# %% Groupby example for more specific analysis.
+
+# Suppose the run involve multiple different benchmarks that we would like to
+# compare against. Having an average across all iterations is wrong, you wanted
+# an average only for the same benchmark. In this case we can use groupby.
+
+run_data_frame.groupby("benchmark_name").agg(average_heap_size_before=('HeapSizeBeforeMB_Mean','mean'),num_gcs=('TotalNumberGCs','sum'))
+
+# %% Make projections from the table.
+
+# Suppose we are particularly interested in heap sizes.
+run_data_frame[["HeapSizeBeforeMB_Mean", "HeapSizeAfterMB_Mean"]]
+
+# %% Obtain the run statistics grouped by config, benchmark, and
+# iteration number.
+
+run_data_frame.groupby(["config_name", "benchmark_name", "iteration_number"]).mean()
+
+# %% View the individual GC's metrics grouped by GC number and iteration number.
+
+gc_data_frame.groupby(["Number", "iteration_number"]).mean()
+
+# %% Join run and gc metrics tables for a wider analysis. View individual
+# Gen1 GC's only, from all the iterations, grouped by benchmark name.
+
+joined_data_frame = run_data_frame.join(gc_data_frame, rsuffix="_gc")
+gen1_only = joined_data_frame[joined_data_frame["IsGen1"] == True]
+gen1_only.groupby("benchmark_name").mean()
+
+# %% Perform other calculations with run metrics.
+
+# Get the heap size differences by subtracting the before and after sizes.
+# The axis = 1 option is kind of unfortunate, that's how Pandas works.
+run_data_frame.apply(lambda row: pandas.Series(row["HeapSizeBeforeMB_Mean"] - row["HeapSizeAfterMB_Mean"], index=['saving']), axis=1)
+
+# %% Merge tables and perform operations on subsets of data.
+
+# Analyze heap sizes differences for only the Gen2 GC's by merging both tables.
+joined = run_data_frame.join(gc_data_frame, rsuffix="_gc")
+gen2_only = joined[joined["IsGen2"] == True]
+saving = joined.apply(lambda row: pandas.Series(row["HeapSizeBeforeMB"] - row["HeapSizeAfterMB"], index=['saving']), axis=1)
+
+# %% Get individual GC metrics numbers from a given trace.
+
+# The cells from here on are completely unrelated to the previous ones. While
+# the functionality of getting the GC metrics is very similar, this one is for
+# use with one trace only, and it can come from wherever, it doesn't have to
+# be from GCPerfSim. This is the main difference.
+
+_BENCH = Path("bench")
+_SUITE = Path("bench") / "suite"
+_TRACE_PATH = _SUITE / "normal_server.yaml.out"
+_TRACE_DATA = get_trace_with_everything(_TRACE_PATH / "defgcperfsim__a__noconc__2gb__1.yaml")
+
+# Here, we are only fetching the first 10 GC's to make our example simpler.
+# You can omit the indices to analyze all the GC's in the trace, or you can give
+# any custom range you might be interested in looking at.
+
+gc_metrics_values = get_pergc_metrics_numbers_for_jupyter(_TRACE_DATA.gcs[0:10])
+
+dframe = pandas.DataFrame.from_dict(gc_metrics_values)
+
+# %% Pandas main 'Describe()' method.
+
+dframe.describe()
+
+# %% Show GC statistics by GC number.
+
+dframe.groupby(["Number"]).mean()
+
+# %% See only a subset of statistics from individual GC's by number as well.
+
+dframe[["Number", "AllocRateMBSec", "LOHSizeAfterMB", "LOHSizeBeforeMB"]].groupby("Number").mean()
 
 # %%

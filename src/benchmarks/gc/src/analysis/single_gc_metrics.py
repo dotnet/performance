@@ -275,7 +275,7 @@ SINGLE_GC_METRIC_GETTERS_SIMPLE: Mapping[
         SingleGCMetric("ProcessCpuMSec"): ok_of_property(ProcessedGC.ProcessCpuMSec),
         SingleGCMetric("PromotedMB"): ok_of_property(ProcessedGC.PromotedMB),
         SingleGCMetric("RatioPeakAfter"): ok_of_property(ProcessedGC.RatioPeakAfter),
-        SingleGCMetric("SuspendDurationMSec"): ok_of_property(ProcessedGC.suspend_duration_msec),
+        SingleGCMetric("SuspendDurationMSec"): ok_of_property(ProcessedGC.SuspendDurationMSec),
         SingleGCMetric("MemoryPressure"): fn_of_property(ProcessedGC.MemoryPressure),
     },
     {

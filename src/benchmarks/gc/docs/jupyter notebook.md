@@ -158,23 +158,32 @@ Running this yields the following output:
 ## Numeric Analysis
 
 Numeric Analysis is a feature that allows you to use the `pandas` library to
-analyze GC metrics from various runs of a *GCPerfSim* test. It reads all these
-metrics numbers from all the iterations for the test run, and builds a list
-with them, ready for `pandas` to consume and interpret it. Some of the main
-tasks you can do with your data are, but not limited to:
+analyze overall GC metrics from various runs of a *GCPerfSim* test, or individual
+GC's metrics from a given trace.
+
+Some of the main tasks you can do with your data are, but not limited to:
 
 * See summary statistical values (e.g. mean, min, max)
 * Filter subsets of data
 * Create various types of plots to graphically visualize data (scatter, histogram, line)
 * Add new calculated columns for ease of access and more complicated calculations.
 
-This feature is currently only available by means of the Jupyter Notebook.
-Following are the steps to set this up, as well as a simple example showing
-this feature in action.
+This feature is currently only available by means of the Jupyter Notebook and
+has two subfeatures supported:
+
+* Given a set of iterations of the same *GCPerfSim* test, read all overall
+run metrics (e.g. PctTimeInGC) and build a list with them, ready for `pandas`.
+* Given a single trace (this one doesn't have to be from *GCPerfSim*), read all
+metrics from individual GC's, and build the list for `pandas`.
+
+Following are the steps to set this up, as well as simple examples showing each
+of the subfeatures in action.
 
 For the full pandas documentation, you can check their [website](https://pandas.pydata.org/docs/).
 
-### Requirements
+### Test Run Metrics Analysis
+
+#### Requirements
 
 First, run any *GCPerfSim* test you want to analyze multiple times. It all depends
 on your goal for how many, but when working with statistics, the more the merrier.
@@ -183,52 +192,61 @@ Once your tests are done running, open up `jupyter_notebook.py` in *VSCode* and
 run the first cell for general setup. Once that is done, there is a basic
 working template at the end of the notebook.
 
-### Setting up in Jupyter Notebook
+#### Setting Up Traces
 
 ```python
 _BENCH = Path("bench")
 _SUITE = Path("bench") / "suite"
 _TRACE_PATH = _SUITE / "normal_server.yaml"
 
-metrics_data = get_gc_metrics_numbers_for_jupyter(
+run_metrics, gc_metrics = get_test_metrics_numbers_for_jupyter(
     traces=ALL_TRACES,
     bench_file_path=_TRACE_PATH,
     run_metrics=parse_run_metrics_arg(("important",)),
     machines=None,
 )
 
-data_frame = pandas.DataFrame.from_dict(metrics_data)
+run_data_frame = pandas.DataFrame.from_dict(run_metrics).set_index("iteration_number")
+gc_data_frame = pandas.DataFrame.from_dict(gc_metrics).set_index("iteration_number")
 ```
 
 In this example, we ran multiple times the `normal_server` test with the `2gb` benchmark.
-As shown above, the `get_gc_metrics_numbers_for_jupyter()` function is in charge
+As shown above, the `get_test_metrics_numbers_for_jupyter()` function is in charge
 of reading the traces of each time the test was run, fetching the numbers data,
-processing it, and returning the dictionary with the lists of values of each metric.
+processing it, and returning the dictionaries with the lists of values of each metric.
 
 We have all the data now, but it's not ready to be consumed by `pandas`. `Pandas`
 expects a dictionary which symbolizes the table you would usually build in statistics,
-and transforms it into a `DataFrame` of its own. The last line in the previous
-code snippet does this. To summarize, the dictionary is composed as follows:
+and transforms it into a `DataFrame` of its own. The last lines in the previous
+code snippet do this. To summarize, the dictionaries are composed as follows:
+
+**Run Metrics Dictionary**
 
 * **Keys**: Metric Name
 * **Values**: List with said metric's numbers from each iteration of the test run.
 
-NOTE: Aside from the metric's names, this dictionary also holds two additional keys:
+**GC Metrics Dictionary**
+
+* **Keys**: GC Metric Name
+* **Values**: List with said metric's numbers from each processed GC.
+
+NOTE: Aside from the metric's names, the dictionaries also hold three additional keys:
 
 * **Config_Name**: Name of the configuration run (e.g. _only\_config_).
 * **Benchmark_Name**: Name of the benchmark run (e.g. _2gb_)
+* **Iteration_Number**: Number of test iteration (e.g. 1)
 
-These are used to group values by configuration and/or benchmark for more
+These are used to group values by iteration, configuration and/or benchmark for more
 specific analysis. There is an example at the end of the next section.
 
-### Perform Data Analysis
+#### Perform Run Data Analysis
 
 Now you're ready to do any statistical analysis, chart plotting, and more using
 the capabilities `pandas` has to offer. The most basic example is asking for
 the `describe()` method:
 
 ```python
-data_frame.describe()
+run_data_frame.describe()
 ```
 
 This shows a table with the main statistics values using the numbers you provided.
@@ -240,7 +258,7 @@ data and analyze them separately. For example, here we want to visualize the
 heap sizes before and after garbage collection throughout the tests we ran.
 
 ```python
-heap_sizes = data_frame[["HeapSizeBeforeMB_Mean", "HeapSizeAfterMB_Mean"]]
+heap_sizes = run_data_frame[["HeapSizeBeforeMB_Mean", "HeapSizeAfterMB_Mean"]]
 heap_sizes.plot()
 ```
 
@@ -254,7 +272,7 @@ If you ran more than one configuration and/or more than one benchmark, you can
 also get statistics from each one.
 
 ```python
-data_frame.groupby(["config_name", "benchmark_name"]).mean()
+run_data_frame.groupby(["config_name", "benchmark_name", "iteration_number"]).mean()
 ```
 
 ![Mean By Grouping Parameter](images/PandasMeanGroupBy.PNG)
@@ -269,6 +287,81 @@ We want to see the mean value for each metric from each flavor's iterations.
 The `groupby()` code snippet separates the values as we require them, and then
 `pandas' mean()` method calculates for each flavor, resulting in the table
 shown in the picture above.
+
+#### More Examples
+
+The Jupyter Notebook at the root of the GC Benchmarking Infrastructure codebase
+has a number of more detailed and complex examples you can follow and use for
+your analysis.
+
+### Individual GC's Metrics Analysis
+
+#### Setting Up GC's
+
+```python
+_BENCH = Path("bench")
+_SUITE = Path("bench") / "suite"
+_TRACE_PATH = _SUITE / "normal_server.yaml"
+
+_TRACE_DATA = get_trace_with_everything(_TRACE_PATH / "defgcperfsim__a__only_config__2gb__0.yaml")
+
+gc_metrics_values = get_pergc_metrics_numbers_for_jupyter(_TRACE_DATA.gcs[0:10])
+
+dframe = pandas.DataFrame.from_dict(gc_metrics_values)
+```
+
+In this example, we ran *GCPerfSim's* `normal_server` test with the `2gb` benchmark.
+For this subfeature, you can use any trace (not necessarily from *GCPerfSim*),
+but you have to write its corresponding test status `yaml` file in this case.
+
+As shown in the code snippet above, first we read the trace by using the
+function `get_trace_with_everything()`, and then the main function for getting
+the data for pandas is `get_pergc_metrics_numbers_for_jupyter()`. It receives
+as argument the list of GC's from the trace. To make this example simple, we
+are only looking at the first 10 GC's. You can omit the subscript to analyze
+all, or give the range you wish to look at.
+
+We have all the data now, but it's not ready to be consumed by `pandas`. `Pandas`
+expects a dictionary which symbolizes the table you would usually build in statistics,
+and transforms it into a `DataFrame` of its own. The last line in the previous
+code snippet does this. To summarize, the dictionary is composed as follows:
+
+* **Keys**: GC Metric Name
+* **Values**: List with said metric's numbers from each processed GC.
+
+#### Perform GC Data Analysis
+
+Once the setup in the previous section has been completed, you're ready to
+do statistical analysis on GC numbers from your trace. Starting at the basic
+`describe()` example, you can see overall statistics from the GC's:
+
+```python
+dframe.describe()
+```
+
+![Describe Overall GC Stats](images/PandasGCDescribe.PNG)
+
+You will most likely want to see each GC's metrics printed nicely on a table.
+This is easily done by asking `pandas` to group the data by GC Number. It needs
+a statistical method to display however. Since each GC only has one value per
+metric, there is no harm in calling the `mean()` method.
+
+```python
+dframe.groupby(["Number"]).mean()
+```
+
+![Show Individual GC Metrics](images/PandasGCByNumber.PNG)
+
+Another common use case is to look only at certain metrics from the GC's as
+having all of them sometimes makes it hard to find the ones you are most
+interested in, at any certain point of your investigation. In this example,
+we want to check the allocation rate, as well as Large Object Heap sizes.
+
+```python
+dframe[["Number", "AllocRateMBSec", "LOHSizeAfterMB", "LOHSizeBeforeMB"]].groupby("Number").mean()
+```
+
+![Show Filtered GC Metrics](images/PandasGCGroupBy.PNG)
 
 ## Programming Notes
 
@@ -292,4 +385,4 @@ functions:
 
 * To validate: Use `.is_ok()` or `.is_err()`.
 * To extract the value: Use `.value`.
-    * If you know what behavior happened, you can also use `.ok()` and `.err()` respectively.
+* If you know what behavior happened, you can also use `.ok()` and `.err()` respectively.

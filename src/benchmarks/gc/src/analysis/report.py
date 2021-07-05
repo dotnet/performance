@@ -4,7 +4,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterable, Mapping, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 
 from result import Err, Ok, Result
 
@@ -29,6 +29,7 @@ from ..commonlib.collection_util import (
     is_empty,
     items_sorted_by_key,
     make_multi_mapping,
+    map_to_mapping,
     repeat_list,
     sort_high_to_low,
     unique_preserve_order,
@@ -82,7 +83,7 @@ from .types import (
     invert_mechanisms,
     MechanismsAndReasons,
     MetricValue,
-    MetricValuesForSingleIteration,
+    ProcessedGC,
     RegressionKind,
     RunMetric,
     RunMetrics,
@@ -828,6 +829,33 @@ def print_all_runs_for_jupyter(
     return Document(sections=(Section(tables=tables),))
 
 
+MetricNamesSet = Dict[str, bool]
+
+
+def _make_metrics_names_set_from_data(metrics_by_row: List[Dict[str, Any]]) -> MetricNamesSet:
+    metrics_names: MetricNamesSet = {}
+
+    for row in metrics_by_row:
+        for metric_name in row.keys():
+            metrics_names[metric_name] = True
+    return metrics_names
+
+
+def _fill_metrics_cols_dict_for_pandas(
+    metrics_by_row: List[Dict[str, Any]], metrics_names: List[str]
+) -> Dict[str, Any]:
+    metrics_by_column: Dict[str, Any] = {}
+
+    for m_name in metrics_names:
+        metrics_values = []
+        for m_row in metrics_by_row:
+            value = m_row[m_name]
+            metrics_values.append(value)
+        metrics_by_column[m_name] = metrics_values
+
+    return metrics_by_column
+
+
 # Summary: Iterates through a set of test runs (currently only available for
 #          GCPerfSim tests due to how the infra is consolidated), and fetches
 #          all the GC metrics from their respective traces (e.g. PctinGC).
@@ -837,7 +865,7 @@ def print_all_runs_for_jupyter(
 #
 # Parameters:
 #   traces:
-#       ProcessedTraces object which stores tarce file information. This
+#       ProcessedTraces object which stores trace file information. This
 #       is commonly initialized by calling ProcessedTraces() in Jupyter Notebook.
 #   bench_file_path:
 #       Path to the test's spec yaml bench file.
@@ -862,17 +890,19 @@ def print_all_runs_for_jupyter(
 #   tests for grouping in Jupyter Notebook.
 
 
-def get_gc_metrics_numbers_for_jupyter(
+def get_test_metrics_numbers_for_jupyter(
     traces: ProcessedTraces,
     bench_file_path: Path,
     run_metrics: RunMetrics,
     machines: Optional[Sequence[str]],
-) -> Dict[str, Any]:
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     initial_run_metrics = get_run_metrics_for_diff(
         include_summary=True, sort_by_metric=None, run_metrics=run_metrics
     )
 
-    raw_numbers_data = []
+    run_metrics_by_row = []
+    pergc_metrics_by_row = []
+
     bench_and_path = parse_bench_file(bench_file_path)
     bench = bench_and_path.content
 
@@ -880,23 +910,25 @@ def get_gc_metrics_numbers_for_jupyter(
     all_run_metrics = cat_unique(initial_run_metrics, get_score_metrics(bench))
 
     for t in all_combinations:
-        iterations = [
-            traces.get_run_metrics(iteration.to_test_result(), all_run_metrics)
-            for iteration in get_test_paths_for_each_iteration(
-                bench=bench_and_path, t=t, max_iterations=None
-            )
-        ]
+        iterations = get_test_paths_for_each_iteration(
+            bench=bench_and_path, t=t, max_iterations=None
+        )
 
+        iter_num = 0
         for iteration in iterations:
-            # MetricValuesForSingleIteration - Mapping[RunMetric, FailableValue]
-            # RunMetric can either be a NamedRunMetric or a ScoreRunMetric. In this case,
-            # it is the former.
-            # However, it originally comes from a MaybeMetricValuesForSingleIteration,
-            # which has to be unwrapped.
-            iter_ok_result: MetricValuesForSingleIteration = unwrap(iteration)
-            data_map = {}
-            data_map["config_name"] = t.config_name
-            data_map["benchmark_name"] = t.benchmark_name
+            trace = unwrap(
+                traces.get(
+                    test_result=iteration.to_test_result(),
+                    need_mechanisms_and_reasons=False,
+                    need_join_info=False,
+                )
+            )
+            iter_ok_result = map_to_mapping(all_run_metrics, trace.metric)
+
+            run_metric_row: Dict[str, Any] = {}
+            run_metric_row["config_name"] = t.config_name
+            run_metric_row["benchmark_name"] = t.benchmark_name
+            run_metric_row["iteration_number"] = iter_num
 
             for iter_key, iter_value in iter_ok_result.items():
                 # iter_key = RunMetric, iter_value = FailableValue(Union(bool, int, float))
@@ -904,17 +936,24 @@ def get_gc_metrics_numbers_for_jupyter(
                 # No matter what, it will always complain and make the code unusable.
                 # This was the closest way to have functioning code while silencing the
                 # least amount of complaints from mypy.
-                add(data_map, iter_key.name, iter_value.ok())  # type: ignore
-            raw_numbers_data.append(data_map)
+                add(run_metric_row, iter_key.name, iter_value.ok())
+            # print(data_map)
+            run_metrics_by_row.append(run_metric_row)
+
+            for gc in trace.gcs:
+                gc_metric_row = gc.get_gc_metrics_values()
+                gc_metric_row["config_name"] = t.config_name
+                gc_metric_row["benchmark_name"] = t.benchmark_name
+                gc_metric_row["iteration_number"] = iter_num
+                pergc_metrics_by_row.append(gc_metric_row)
+            iter_num += 1
 
     # This loop only searches for the metrics currently found in the data set and
     # stores them for lookup later. The reason we use a dictionary is because we
     # require to preserve order and Python does not natively have Ordered Sets.
 
-    metric_names_found = {}
-    for test_iteration in raw_numbers_data:
-        for metric_key in test_iteration:
-            metric_names_found[metric_key] = True
+    run_metrics_names = _make_metrics_names_set_from_data(run_metrics_by_row)
+    pergc_metrics_names = _make_metrics_names_set_from_data(pergc_metrics_by_row)
 
     # This is the main loop. It creates the dictionary with the information
     # that pandas is expecting. It iterates the set of metrics retrieved in the
@@ -923,16 +962,63 @@ def get_gc_metrics_numbers_for_jupyter(
     # Keys: Metric Names
     # Values: List with said metric's values from each run
 
-    data_dict = {}
-    for metric_name in metric_names_found:
-        metric_values = []
+    run_metrics_by_column = _fill_metrics_cols_dict_for_pandas(
+        metrics_by_row=run_metrics_by_row, metrics_names=list(run_metrics_names.keys())
+    )
+    pergc_metrics_by_column = _fill_metrics_cols_dict_for_pandas(
+        metrics_by_row=pergc_metrics_by_row, metrics_names=list(pergc_metrics_names.keys())
+    )
 
-        for test_iteration in raw_numbers_data:
-            value = test_iteration[metric_name]
-            metric_values.append(value)
-        data_dict[metric_name] = metric_values
+    return (run_metrics_by_column, pergc_metrics_by_column)
 
-    return data_dict
+
+# Summary: Given a trace, this function extracts each individual GC's metrics
+#          values (e.g. AllocRateMBSec) and constructs a dictionary with all
+#          this data for pandas to consume in Jupyter Notebook. The keys are
+#          the metric names, and they are mapped to lists with each GC's values
+#          corresponding to said metric.
+#
+# Parameters:
+#   trace_gcs:
+#       List with the trace's gcs. These objects' class is ProcessedGC.
+#
+# Returns:
+#   Dictionary with values sorted by metrics.
+
+
+def get_pergc_metrics_numbers_for_jupyter(trace_gcs: Sequence[ProcessedGC]) -> Dict[str, Any]:
+    # Ensure there are GC's to analyze. Otherwise, the function will fail later.
+    assert len(trace_gcs) > 0, "There are no GC's to analyze in the given list."
+    pergc_metrics: Dict[str, Any] = {}
+
+    # Initialize the dictionary with all the metrics' names. We added the
+    # method `get_gc_metrics_values()` to the ProcessedGC class, which searches
+    # through all the object's properties, and returns a dictionary with those
+    # that actually provide measurements, as well as their actual values.
+    #
+    # We are asking this from the first GC because at this point, we have
+    # ensured there is at least 1 to analyze. It is guaranteed that no matter
+    # which GC we pick, we will get the same metrics, regardless of whether
+    # any given GC lacks values for any metrics. In such case, we set that
+    # metric value to None in the main loop after this one. This is of utmost
+    # importance, as pandas requires the lists to be consistent with one another.
+
+    metric_names = trace_gcs[0].get_gc_metrics_values().keys()
+    for metric in metric_names:
+        add(pergc_metrics, metric, [])
+
+    # Iterate through each GC in the given list, fetch its metrics, and add
+    # them to the corresponding list in the resulting dictionary for pandas.
+
+    for gc in trace_gcs:
+        gc_metrics = gc.get_gc_metrics_values()
+        # print(gc_metrics)
+
+        for metric, value in gc_metrics.items():
+            values_list = pergc_metrics[metric]
+            values_list.append(value)
+
+    return pergc_metrics
 
 
 REPORT_COMMANDS: CommandsMapping = {
