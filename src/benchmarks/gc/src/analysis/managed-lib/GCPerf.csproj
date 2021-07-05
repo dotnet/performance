@@ -4,12 +4,12 @@
     <LangVersion>8.0</LangVersion>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <NullableReferenceTypes>true</NullableReferenceTypes>
-    <NoWarn>8600;8603;8618;8625</NoWarn>
+    <NoWarn>8600;8602;8603;8618;8625</NoWarn>
   </PropertyGroup>
 
   <!-- NUGET -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="2.0.*" />
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="2.0.61" />
   </ItemGroup>
 
   <!-- LOCAL -->

@@ -749,13 +749,12 @@ class AbstractAnalysis(ABC):
 
     @staticmethod
     @abstractmethod
-    def GetFunctionMetricsWithinTimeRange(
+    def GetSamplesDataWithinTimeRange(
         traceLog: AbstractTraceLog,
         symReader: AbstractSymbolReader,
         fullStackSource: AbstractStackSource,
         timeRange: AbstractTimeSpan,
-        functionToAnalyze: str,
-    ) -> AbstractCallTreeNodeBase:
+    ) -> AbstractStackView:
         raise NotImplementedError()
 
 

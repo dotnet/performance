@@ -24,6 +24,8 @@ using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
 using System.Diagnostics;
 using Microsoft.Diagnostics.Tracing.Parsers;
 using Microsoft.Diagnostics.Tracing.Utilities;
+using Microsoft.Diagnostics.Tracing.AutomatedAnalysis;
+using System.Runtime.InteropServices;
 
 namespace GCPerf
 {
@@ -31,207 +33,207 @@ namespace GCPerf
     using ThreadID = Int32;
     using EtlxNS = Microsoft.Diagnostics.Tracing.Etlx;
 
-    public class StackView
-    {
-        private static readonly char[] SymbolSeparator = new char[] { '!' };
+    // public class StackView
+    // {
+    //     private static readonly char[] SymbolSeparator = new char[] { '!' };
 
-        private EtlxNS.TraceLog _traceLog;
-        private StackSource _rawStackSource;
-        private SymbolReader _symbolReader;
-        private CallTree _callTree;
-        private List<CallTreeNodeBase> _byName;
-        private HashSet<string> _resolvedSymbolModules = new HashSet<string>();
+    //     private EtlxNS.TraceLog _traceLog;
+    //     private StackSource _rawStackSource;
+    //     private SymbolReader _symbolReader;
+    //     private CallTree _callTree;
+    //     private List<CallTreeNodeBase> _byName;
+    //     private HashSet<string> _resolvedSymbolModules = new HashSet<string>();
 
-        public StackView(EtlxNS.TraceLog traceLog, StackSource stackSource, SymbolReader symbolReader)
-        {
-            _traceLog = traceLog;
-            _rawStackSource = stackSource;
-            _symbolReader = symbolReader;
-            LookupWarmNGENSymbols();
-        }
+    //     public StackView(EtlxNS.TraceLog traceLog, StackSource stackSource, SymbolReader symbolReader)
+    //     {
+    //         _traceLog = traceLog;
+    //         _rawStackSource = stackSource;
+    //         _symbolReader = symbolReader;
+    //         LookupWarmNGENSymbols();
+    //     }
 
-        public CallTree CallTree
-        {
-            get
-            {
-                if (_callTree == null)
-                {
-                    FilterStackSource filterStackSource = new FilterStackSource(new FilterParams(), _rawStackSource, ScalingPolicyKind.ScaleToData);
-                    _callTree = new CallTree(ScalingPolicyKind.ScaleToData)
-                    {
-                        StackSource = filterStackSource
-                    };
-                }
-                return _callTree;
-            }
-        }
+    //     public CallTree CallTree
+    //     {
+    //         get
+    //         {
+    //             if (_callTree == null)
+    //             {
+    //                 FilterStackSource filterStackSource = new FilterStackSource(new FilterParams(), _rawStackSource, ScalingPolicyKind.ScaleToData);
+    //                 _callTree = new CallTree(ScalingPolicyKind.ScaleToData)
+    //                 {
+    //                     StackSource = filterStackSource
+    //                 };
+    //             }
+    //             return _callTree;
+    //         }
+    //     }
 
-        private IEnumerable<CallTreeNodeBase> ByName
-        {
-            get
-            {
-                if (_byName == null)
-                {
-                    _byName = CallTree.ByIDSortedExclusiveMetric();
-                }
+    //     private IEnumerable<CallTreeNodeBase> ByName
+    //     {
+    //         get
+    //         {
+    //             if (_byName == null)
+    //             {
+    //                 _byName = CallTree.ByIDSortedExclusiveMetric();
+    //             }
 
-                return _byName;
-            }
-        }
+    //             return _byName;
+    //         }
+    //     }
 
-        public CallTreeNodeBase FindNodeByName(string nodeNamePat)
-        {
-            var regEx = new Regex(nodeNamePat, RegexOptions.IgnoreCase);
-            foreach (var node in ByName)
-            {
-                if (regEx.IsMatch(node.Name))
-                {
-                    return node;
-                }
-            }
-            return CallTree.Root;
-        }
-        public CallTreeNode GetCallers(string focusNodeName)
-        {
-            var focusNode = FindNodeByName(focusNodeName);
-            return AggregateCallTreeNode.CallerTree(focusNode);
-        }
-        public CallTreeNode GetCallees(string focusNodeName)
-        {
-            var focusNode = FindNodeByName(focusNodeName);
-            return AggregateCallTreeNode.CalleeTree(focusNode);
-        }
+    //     public CallTreeNodeBase FindNodeByName(string nodeNamePat)
+    //     {
+    //         var regEx = new Regex(nodeNamePat, RegexOptions.IgnoreCase);
+    //         foreach (var node in ByName)
+    //         {
+    //             if (regEx.IsMatch(node.Name))
+    //             {
+    //                 return node;
+    //             }
+    //         }
+    //         return CallTree.Root;
+    //     }
+    //     public CallTreeNode GetCallers(string focusNodeName)
+    //     {
+    //         var focusNode = FindNodeByName(focusNodeName);
+    //         return AggregateCallTreeNode.CallerTree(focusNode);
+    //     }
+    //     public CallTreeNode GetCallees(string focusNodeName)
+    //     {
+    //         var focusNode = FindNodeByName(focusNodeName);
+    //         return AggregateCallTreeNode.CalleeTree(focusNode);
+    //     }
 
-        public CallTreeNodeBase GetCallTreeNode(string symbolName)
-        {
-            string[] symbolParts = symbolName.Split(SymbolSeparator);
-            if (symbolParts.Length != 2)
-            {
-                return null;
-            }
+    //     public CallTreeNodeBase GetCallTreeNode(string symbolName)
+    //     {
+    //         string[] symbolParts = symbolName.Split(SymbolSeparator);
+    //         if (symbolParts.Length != 2)
+    //         {
+    //             return null;
+    //         }
 
-            // Try to get the call tree node.
-            CallTreeNodeBase node = FindNodeByName(Regex.Escape(symbolName));
+    //         // Try to get the call tree node.
+    //         CallTreeNodeBase node = FindNodeByName(Regex.Escape(symbolName));
 
-            // Check to see if the node matches.
-            if (node.Name.StartsWith(symbolName, StringComparison.OrdinalIgnoreCase))
-            {
-                return node;
-            }
+    //         // Check to see if the node matches.
+    //         if (node.Name.StartsWith(symbolName, StringComparison.OrdinalIgnoreCase))
+    //         {
+    //             return node;
+    //         }
 
-            // Check to see if we should attempt to load symbols.
-            if (!_resolvedSymbolModules.Contains(symbolParts[0]))
-            {
-                // Look for an unresolved symbols node for the module.
-                string unresolvedSymbolsNodeName = symbolParts[0] + "!?";
-                node = FindNodeByName(unresolvedSymbolsNodeName);
-                if (node.Name.Equals(unresolvedSymbolsNodeName, StringComparison.OrdinalIgnoreCase))
-                {
-                    // Symbols haven't been resolved yet.  Try to resolve them now.
-                    EtlxNS.TraceModuleFile moduleFile = _traceLog.ModuleFiles.Where(m => m.Name.Equals(symbolParts[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-                    if (moduleFile != null)
-                    {
-                        // Special handling for NGEN images.
-                        if(symbolParts[0].EndsWith(".ni", StringComparison.OrdinalIgnoreCase))
-                        {
-                            SymbolReaderOptions options = _symbolReader.Options;
-                            try
-                            {
-                                _symbolReader.Options = SymbolReaderOptions.CacheOnly;
-                                _traceLog.CallStacks.CodeAddresses.LookupSymbolsForModule(_symbolReader, moduleFile);
-                            }
-                            finally
-                            {
-                                _symbolReader.Options = options;
-                            }
-                        }
-                        else
-                        {
-                            _traceLog.CallStacks.CodeAddresses.LookupSymbolsForModule(_symbolReader, moduleFile);
-                        }
-                        InvalidateCachedStructures();
-                    }
-                }
+    //         // Check to see if we should attempt to load symbols.
+    //         if (!_resolvedSymbolModules.Contains(symbolParts[0]))
+    //         {
+    //             // Look for an unresolved symbols node for the module.
+    //             string unresolvedSymbolsNodeName = symbolParts[0] + "!?";
+    //             node = FindNodeByName(unresolvedSymbolsNodeName);
+    //             if (node.Name.Equals(unresolvedSymbolsNodeName, StringComparison.OrdinalIgnoreCase))
+    //             {
+    //                 // Symbols haven't been resolved yet.  Try to resolve them now.
+    //                 EtlxNS.TraceModuleFile moduleFile = _traceLog.ModuleFiles.Where(m => m.Name.Equals(symbolParts[0], StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+    //                 if (moduleFile != null)
+    //                 {
+    //                     // Special handling for NGEN images.
+    //                     if(symbolParts[0].EndsWith(".ni", StringComparison.OrdinalIgnoreCase))
+    //                     {
+    //                         SymbolReaderOptions options = _symbolReader.Options;
+    //                         try
+    //                         {
+    //                             _symbolReader.Options = SymbolReaderOptions.CacheOnly;
+    //                             _traceLog.CallStacks.CodeAddresses.LookupSymbolsForModule(_symbolReader, moduleFile);
+    //                         }
+    //                         finally
+    //                         {
+    //                             _symbolReader.Options = options;
+    //                         }
+    //                     }
+    //                     else
+    //                     {
+    //                         _traceLog.CallStacks.CodeAddresses.LookupSymbolsForModule(_symbolReader, moduleFile);
+    //                     }
+    //                     InvalidateCachedStructures();
+    //                 }
+    //             }
 
-                // Mark the module as resolved so that we don't try again.
-                _resolvedSymbolModules.Add(symbolParts[0]);
+    //             // Mark the module as resolved so that we don't try again.
+    //             _resolvedSymbolModules.Add(symbolParts[0]);
 
-                // Try to get the call tree node one more time.
-                node = FindNodeByName(Regex.Escape(symbolName));
+    //             // Try to get the call tree node one more time.
+    //             node = FindNodeByName(Regex.Escape(symbolName));
 
-                // Check to see if the node matches.
-                if (node.Name.StartsWith(symbolName, StringComparison.OrdinalIgnoreCase))
-                {
-                    return node;
-                }
-            }
+    //             // Check to see if the node matches.
+    //             if (node.Name.StartsWith(symbolName, StringComparison.OrdinalIgnoreCase))
+    //             {
+    //                 return node;
+    //             }
+    //         }
 
-            return null;
-        }
+    //         return null;
+    //     }
 
-        private void LookupWarmNGENSymbols()
-        {
-            TraceEventStackSource asTraceEventStackSource = GetTraceEventStackSource(_rawStackSource);
-            if (asTraceEventStackSource == null)
-            {
-                return;
-            }
+    //     private void LookupWarmNGENSymbols()
+    //     {
+    //         TraceEventStackSource asTraceEventStackSource = GetTraceEventStackSource(_rawStackSource);
+    //         if (asTraceEventStackSource == null)
+    //         {
+    //             return;
+    //         }
 
-            SymbolReaderOptions savedOptions = _symbolReader.Options;
-            try
-            {
-                // NGEN PDBs (even those not yet produced) are considered to be in the cache.
-                _symbolReader.Options = SymbolReaderOptions.CacheOnly;
+    //         SymbolReaderOptions savedOptions = _symbolReader.Options;
+    //         try
+    //         {
+    //             // NGEN PDBs (even those not yet produced) are considered to be in the cache.
+    //             _symbolReader.Options = SymbolReaderOptions.CacheOnly;
 
-                // Resolve all NGEN images.
-                asTraceEventStackSource.LookupWarmSymbols(1, _symbolReader, _rawStackSource, s => s.Name.EndsWith(".ni", StringComparison.OrdinalIgnoreCase));
+    //             // Resolve all NGEN images.
+    //             asTraceEventStackSource.LookupWarmSymbols(1, _symbolReader, _rawStackSource, s => s.Name.EndsWith(".ni", StringComparison.OrdinalIgnoreCase));
 
-                // Invalidate cached data structures to finish resolving symbols.
-                InvalidateCachedStructures();
-            }
-            finally
-            {
-                _symbolReader.Options = savedOptions;
-            }
-        }
+    //             // Invalidate cached data structures to finish resolving symbols.
+    //             InvalidateCachedStructures();
+    //         }
+    //         finally
+    //         {
+    //             _symbolReader.Options = savedOptions;
+    //         }
+    //     }
 
-        /// <summary>
-        /// Unwind the wrapped sources to get to a TraceEventStackSource if possible. 
-        /// </summary>
-        private static TraceEventStackSource GetTraceEventStackSource(StackSource source)
-        {
-            StackSourceStacks rawSource = source;
-            TraceEventStackSource asTraceEventStackSource = null;
-            for (; ; )
-            {
-                asTraceEventStackSource = rawSource as TraceEventStackSource;
-                if (asTraceEventStackSource != null)
-                {
-                    return asTraceEventStackSource;
-                }
+    //     /// <summary>
+    //     /// Unwind the wrapped sources to get to a TraceEventStackSource if possible. 
+    //     /// </summary>
+    //     private static TraceEventStackSource GetTraceEventStackSource(StackSource source)
+    //     {
+    //         StackSourceStacks rawSource = source;
+    //         TraceEventStackSource asTraceEventStackSource = null;
+    //         for (; ; )
+    //         {
+    //             asTraceEventStackSource = rawSource as TraceEventStackSource;
+    //             if (asTraceEventStackSource != null)
+    //             {
+    //                 return asTraceEventStackSource;
+    //             }
 
-                var asCopyStackSource = rawSource as CopyStackSource;
-                if (asCopyStackSource != null)
-                {
-                    rawSource = asCopyStackSource.SourceStacks;
-                    continue;
-                }
-                var asStackSource = rawSource as StackSource;
-                if (asStackSource != null && asStackSource != asStackSource.BaseStackSource)
-                {
-                    rawSource = asStackSource.BaseStackSource;
-                    continue;
-                }
-                return null;
-            }
-        }
+    //             var asCopyStackSource = rawSource as CopyStackSource;
+    //             if (asCopyStackSource != null)
+    //             {
+    //                 rawSource = asCopyStackSource.SourceStacks;
+    //                 continue;
+    //             }
+    //             var asStackSource = rawSource as StackSource;
+    //             if (asStackSource != null && asStackSource != asStackSource.BaseStackSource)
+    //             {
+    //                 rawSource = asStackSource.BaseStackSource;
+    //                 continue;
+    //             }
+    //             return null;
+    //         }
+    //     }
 
-        private void InvalidateCachedStructures()
-        {
-            _byName = null;
-            _callTree = null;
-        }
-    }
+    //     private void InvalidateCachedStructures()
+    //     {
+    //         _byName = null;
+    //         _callTree = null;
+    //     }
+    // }
 
 #if !NEW_JOIN_ANALYSIS
     // With new join analysis, this will come from PerfView 
@@ -1420,6 +1422,7 @@ namespace GCPerf
         /*               CPU Samples Analysis Functions               */
         /* ********************************************************** */
 
+
         /// <summary>
         /// Creates a new TraceLog object and associates it to the trace in
         /// the given path.
@@ -1436,6 +1439,7 @@ namespace GCPerf
                 EtlxNS.TraceLog.CreateFromEventTraceLogFile(tracePath)
             );
         }
+
 
         /// <summary>
         /// Creates a new SymbolReader object, which will be in charge of
@@ -1458,6 +1462,7 @@ namespace GCPerf
             TextWriter symlogWriter = File.CreateText(logFile);
             return new SymbolReader(symlogWriter, symPath);
         }
+
 
         /// <summary>
         /// Gets all the CPU Stacks of the given process from the trace specified
@@ -1501,13 +1506,14 @@ namespace GCPerf
             return traceLog.CPUStacks(processToAnalyze);
         }
 
+
         /// <summary>
-        /// Gets and returns the given function's CPU Samples metrics within the
-        /// specified time range. To achieve this, first it filters the given
-        /// StackSource to the desired time range, and then creates a new
-        /// StackView object, which is internally a tree data structure, which
-        /// allows to find all the sample information easily by finding functions'
-        /// corresponding nodes.
+        /// Gets and returns the CPU Samples metrics within the specified time
+        /// range. To achieve this, first it filters the given StackSource to
+        /// the desired time range, and then creates a new StackView object,
+        /// which is internally a tree data structure, and returns it. This
+        /// object can be later used to easily get all the metrics data for
+        /// any given function, which is a node of the StackView.
         /// </summary>
         /// <param name="traceLog">
         /// TraceLog object associated to the analyzed trace.
@@ -1523,20 +1529,15 @@ namespace GCPerf
         /// TimeSpan object containing the start and end times of the desired
         /// lapse to analyze.
         /// </param>
-        /// <param name="functionToAnalyze">
-        /// Name of the function to fetch the samples of. This can be a regular
-        /// expression and StackView will resolve it accordingly.
-        /// </param>
         /// <returns>
-        /// A CallTreeNodeBase object containing all the samples information of
-        /// the given function in the specified time lapse.
+        /// A StackView object containing all the samples information in the
+        /// specified time lapse.
         /// </returns>
-        public static CallTreeNodeBase GetFunctionMetricsWithinTimeRange(
+        public static StackView GetSamplesDataWithinTimeRange(
             EtlxNS.TraceLog traceLog,
             SymbolReader symReader,
             StackSource fullStackSource,
-            TimeSpan timeRange,
-            string functionToAnalyze
+            TimeSpan timeRange
         )
         {
             /* A FilteredStackSource constructor requires the filtering criteria
@@ -1556,10 +1557,12 @@ namespace GCPerf
                 new FilterStackSource(filterParams, fullStackSource, ScalingPolicyKind.ScaleToData);
 
             /* Create the StackView object from our new FilterStackSource, and
-             * and return the node corresponding to our function of interest. */
+             * and return it. */
 
-            StackView stackView = new StackView(traceLog, timeFilteredStackSource, symReader);
-            return stackView.FindNodeByName(functionToAnalyze);
+            // long prevMemory = GC.GetTotalMemory(false);
+            // long currMemory = prevMemory;
+            StackView sv = new StackView(traceLog, timeFilteredStackSource, symReader);
+            // currMemory = GC.GetTotalMemory(false);
+            return sv;
+            // return new StackView(traceLog, timeFilteredStackSource, symReader);
         }
-    }
-}

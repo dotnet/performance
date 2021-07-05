@@ -148,7 +148,10 @@ _BENCH = Path("bench")
 _SUITE = Path("bench") / "suite"
 
 _NORMAL_SERVER_WSAMPLES = add_extension(_SUITE / "normal_server", "yaml.out")
-_SAMPLES_TRACE = get_trace_with_everything(_NORMAL_SERVER_WSAMPLES / "a__only_config__2gb__0.yaml")
+_SAMPLES_TRACE = get_trace_with_everything(
+    _NORMAL_SERVER_WSAMPLES / "defgcperfsim__a__only_config__2gb__0.yaml"
+)
+
 
 #%% Set up the trace, symbols, etc and get it ready for CPU Samples Analysis.
 
@@ -156,18 +159,32 @@ _SAMPLES_TRACE = get_trace_with_everything(_NORMAL_SERVER_WSAMPLES / "a__only_co
 # where you have your PDB's stored.
 
 _SAMPLES_TRACE_ALL_DATA = TraceReadAndParseUtils(
-    ptrace=_SAMPLES_TRACE,
-    symbol_path=Path("C:/runtime/artifacts/bin/coreclr/Windows_NT.x64.Release/PDB"),
+    ptrace=_SAMPLES_TRACE, symbol_path=Path("/Path/To/PDB/Directory")
 )
+
+# Sample list of functions we might be interested in analyzing.
+
+functions_list = [
+    "gc_heap::plan_phase",
+    "gc_heap::mark_phase",
+    "gc_heap::relocate_phase",
+    "gc_heap::compact_phase",
+    "gc_heap::make_free_lists",
+]
+
+# Initialize the CPU Samples data for all GC's, concerning the functions
+# in the given list.
+
+_SAMPLES_TRACE_ALL_DATA.init_cpu_samples_from_trace(functions_list)
 
 #%% Example: Chart the number of samples per individual GC's, for all Gen1 GC's,
 # for the functions "gc_heap::plan_phase" and "gc_heap::mark_phase", and their callees.
 
 chart_cpu_samples_per_gcs(
     ptraces_utils=(_SAMPLES_TRACE_ALL_DATA,),
-    functions_to_chart=("gc_heap::plan_phase", "gc_heap::mark_phase"),
+    functions_to_chart=functions_list[0:2],
     x_property_name="gc_index",
-    y_property_names=("inclusive_count",),
+    y_property_names=("exclusive_count",),
     gc_filter=lambda gc: gc.Generation == Gens.Gen1,
 )
 
@@ -177,8 +194,8 @@ chart_cpu_samples_per_gcs(
 show_cpu_samples_metrics(
     ptrace_utils=_SAMPLES_TRACE_ALL_DATA,
     function="gc_heap::plan_phase",
-    start_time_msec=1000.00,
-    end_time_msec=5000.00,
+    start_time_msec=1000.0,
+    end_time_msec=5000.0,
 )
 
 #%% show summary

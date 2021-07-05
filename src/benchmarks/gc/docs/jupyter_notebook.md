@@ -1,18 +1,20 @@
 # Using with Jupyter Notebook
 
-A jupyter notebook has already been set up in `jupyter_notebook.py`. So far,
+A Jupyter Notebook has already been set up in `jupyter_notebook.py`. So far,
 it's only been tested with VSCode.
 
 ## Using with VSCode
 
-* Run `code .` in the `/performance/src/benchmarks/gc` directory.
+* Run `code .` in the `/performance/src/benchmarks/gc` directory or use VS Code's
+`Open Folder` option from the `File` menu.
 * Open `jupyter_notebook.py`.
 * Open your settings and enable `"editor.codeLens": true,`.
 * Wait a minute for CodeLens to show up in the notebook.
 
 ## Overview
 
-* Click on `Run cell` in the top cell. This is the only cell that is not optional to run.
+* Click on `Run cell` in the top cell. This is the only cell that is not optional
+to run.
 * Each of the other cells corresponds to some command. Instead of providing command
   line arguments, edit the code to provide different arguments to the function.
   You can then re-run that cell without needing to reload traces.
@@ -60,22 +62,29 @@ _MY_TRACE = get_trace_with_everything("Path/To/Test/Status/File.yaml")
 
 Next, you need to create an _"utilities"_ object associated with your trace.
 This object will create and store for you the necessary components used by
-GCPerf and TraceEvent to read and analyze the trace as you require. Build it
-with the following code:
+GCPerf and TraceEvent to read and analyze the trace as you require. Then, you'll
+need to give it a list with the functions you wish to retrieve samples of.
+Build and set it up with the following code:
 
 ```python
 _MY_TRACE_ALL_DATA = TraceReadAndParseUtils(
     ptrace=_MY_TRACE,
     symbol_path=Path("Path/To/PDB/Directory"),
 )
+
+functions_list = [
+    "gc_heap::plan_phase",
+    "gc_heap::mark_phase",
+    "gc_heap::relocate_phase",
+    "gc_heap::compact_phase",
+    "gc_heap::make_free_lists",
+]
+
+_SAMPLES_TRACE_ALL_DATA.init_cpu_samples_from_trace(functions_list)
 ```
 
-Now you can choose between the two functionalities mentioned above. But before
-that, don't forget to import their respective functions:
-
-```python
-from src.analysis.analyze_cpu_samples import chart_cpu_samples_per_gcs, show_cpu_samples_metrics
-```
+Once that's finished, now you can choose between the two functionalities
+mentioned above.
 
 ### Charting CPU Samples per GC's
 
@@ -272,7 +281,8 @@ shown in the picture above.
 
 ## Programming Notes
 
-Here are some internal implementation notes to be aware of when doing simple tests using the Jupyter Notebook.
+Here are some internal implementation notes to be aware of when doing simple
+tests using the Jupyter Notebook.
 
 ### Individual GC Information
 
@@ -292,4 +302,4 @@ functions:
 
 * To validate: Use `.is_ok()` or `.is_err()`.
 * To extract the value: Use `.value`.
-    * If you know what behavior happened, you can also use `.ok()` and `.err()` respectively.
+  * If you know what behavior happened, you can also use `.ok()` and `.err()` respectively.

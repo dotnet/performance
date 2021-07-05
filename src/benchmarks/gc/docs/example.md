@@ -2,7 +2,7 @@
 
 Compared to the README tutorial, this is more detailed and uses more commands.
 
-This document uses command line syntax for simplicity, but the same things can be done using the Jupyter notebook.
+This document uses command line syntax for simplicity, but the same things can be done using the Jupyter Notebook.
 
 We're going to see how changing gen0size affects performance. We'll start by creating a benchfile `bench/compare_gen0size.yaml`.
 
