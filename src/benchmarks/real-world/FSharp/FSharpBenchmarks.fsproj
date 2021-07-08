@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp3.1;netcoreapp5.0</TargetFrameworks>
+    <IsShipping>false</IsShipping>
+    <!-- this app is using internal Roslyn API and needs to be signed -->
+    <SignAssembly>true</SignAssembly>
+    <StrongNameKeyId>MicrosoftShared</StrongNameKeyId>
+    <!-- ignore warning about BenchmarkDotNet.Extensions being not signed -->
+    <NoWarn>$(NoWarn);8002</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<Compile Include="Helpers.fs" />
+	<Compile Include="FSharpCompilerServiceBenchmarks.fs" />
+	<Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FSharp.Compiler.Service" Version="37.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj" />
+  </ItemGroup>
+
+</Project>

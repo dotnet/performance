@@ -214,6 +214,23 @@ jobs:
         - main
         - release/5.0.1xx
         #- release/3.1.3xx
+
+  # Windows x64 FSharp benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      kind: fsharp
+      architecture: x64
+      pool: Hosted VS2017
+      machinePool: Open
+      queue: Windows.10.Amd64.ClientRS5.Open
+      csproj: src\benchmarks\real-world\FSharp\FSharpBenchmarks.fsproj
+      runCategories: 'fsharp'
+      channels: # for FSharp jobs we want to check .NET Core 3.1 and 5.0 only
+        - master
+        - release/5.0.1xx
+        #- release/3.1.3xx
         
   # Ubuntu 1804 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -267,6 +284,24 @@ jobs:
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
         - main
+        - release/5.0.1xx
+        #- release/3.1.3xx
+
+  # Ubuntu 1804 x64 FSharp benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: fsharp
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      machinePool: Open
+      queue: Ubuntu.1804.Amd64.Open
+      container: ubuntu_x64_build_container
+      runCategories: 'fsharp'
+      csproj: src/benchmarks/real-world/FSharp/FSharpBenchmarks.fsproj
+      channels: # for FSharp jobs we want to check .NET Core 3.1 and 5.0 only
+        - master
         - release/5.0.1xx
         #- release/3.1.3xx
 
@@ -390,6 +425,23 @@ jobs:
         - release/5.0.1xx
         #- release/3.1.2xx
 
+    # Windows x64 FSharp benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 19H1
+      kind: fsharp
+      architecture: x64
+      pool: Hosted VS2017
+      machinePool: Tiger
+      queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
+      csproj: src\benchmarks\real-world\FSharp\FSharpBenchmarks.fsproj
+      runCategories: 'fsharp'
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+        - master
+        - release/5.0.1xx
+        #- release/3.1.2xx
+
   # Ubuntu 1804 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
@@ -459,6 +511,24 @@ jobs:
       runCategories: 'roslyn'
       channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
         #- main
+        - release/5.0.1xx
+        #- release/3.1.2xx
+
+  # Ubuntu 1804 x64 FSharp benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: fsharp
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      machinePool: Tiger
+      queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/real-world/FSharp/FSharpBenchmarks.fsproj
+      runCategories: 'fsharp'
+      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+        - master
         - release/5.0.1xx
         #- release/3.1.2xx
 
