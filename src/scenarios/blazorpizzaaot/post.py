@@ -9,7 +9,7 @@ from shared.postcommands import clean_directories
 from shared import const
 from performance.common import runninginlab
 from test import EXENAME
-
+import subprocess
 
 if runninginlab():   
     with zipfile.ZipFile(join(environ["HELIX_WORKITEM_UPLOAD_ROOT"], "Publish-{}.zip".format(EXENAME)), 'x') as publish:
@@ -20,4 +20,5 @@ if runninginlab():
         for files in f:
             publish.write(files)
         
+subprocess.run(["dotnet", "workload", "uninstall", "microsoft-net-sdk-blazorwebassembly-aot"])
 clean_directories()
