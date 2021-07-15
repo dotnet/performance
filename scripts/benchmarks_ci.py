@@ -216,6 +216,12 @@ def __main(args: list) -> int:
     # dotnet --info
     dotnet.info(verbose=verbose)
 
+    # To work around the missing wasm-tool workload error. Should be removed before PR.
+    cmdline_args = ["dotnet", "workload", "install", "wasm-tools"]
+    RunCommand(cmdline_args, verbose=verbose, retry=1).run(
+                helixpayload()
+            )
+
     BENCHMARKS_CSPROJ = dotnet.CSharpProject(
         project=args.csprojfile,
         bin_directory=args.bin_directory
