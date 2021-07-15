@@ -1,0 +1,66 @@
+# CI Trigger on main branch
+trigger:
+  branches:
+    include:
+    - main
+    - release/3.1.4xx
+  paths:
+    include:
+    - eng/Version.Details.xml
+
+# Trigger builds for PR's targeting main
+pr:
+  branches:
+    include:
+    - main
+  paths:
+    exclude: # don't trigger the CI if only a doc file was changed
+    - docs/*
+    - eng/common/README.md
+    - src/benchmarks/micro/Serializers/README.md
+    - src/benchmarks/micro/README.md
+    - src/benchmarks/real-world/JitBench/README.md
+    - src/benchmarks/real-world/Microsoft.ML.Benchmarks/Input/README.md
+    - src/tools/ResultsComparer/README.md
+    - README.md
+
+schedules:
+- cron: "0 */12 * * *"
+  displayName: Every 12 hours build
+  branches:
+    include:
+    - main
+    - release/3.1.4xx
+  always: true
+
+  # -- x64 micro benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      kind: micro
+      architecture: x64
+      pool: Hosted VS2017
+      machinePool: Open
+      queue: ubuntu.1804.arm64.perf
+      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+      runCategories: 'runtime libraries' 
+      channels:
+        - main
+        - release/3.1.3xx
+
+  # -- x64 micro benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      kind: micro
+      architecture: x64
+      pool: Hosted VS2017
+      machinePool: Open
+      queue: windows.10.arm64.perf.surf
+      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+      runCategories: 'runtime libraries' 
+      channels:
+        - main
+        - release/3.1.3xx
