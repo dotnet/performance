@@ -220,7 +220,7 @@ def __main(args: list) -> int:
     # run "dotnet workload install wasm-tools" from dotnet-wasm directory to use the same nuget.config
     dotnetwasmpath = os.path.join(
                     helixpayload(), 
-                    'dotnet-wasm\Payload\performance')
+                    'dotnet-wasm\Payload\performance\src\benchmarks\micro\wasmaot')
     cmdline_args = ["dotnet", "workload", "install", "wasm-tools"]
     RunCommand(cmdline_args, verbose=verbose, retry=1).run(
                 dotnetwasmpath
