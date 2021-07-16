@@ -36,13 +36,13 @@ schedules:
   # -- x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
-      osName: windows
-      osVersion: RS5
+      osName: ubuntu
+      osVersion: 1804
       kind: micro
       architecture: x64
-      pool: Hosted VS2017
+      pool: Hosted Ubuntu 1604
       machinePool: Open
-      queue: ubuntu.1804.arm64.perf
+      queue: Ubuntu.1804.Arm64.perf
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries' 
       channels:
@@ -53,14 +53,31 @@ schedules:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
-      osVersion: RS5
+      osVersion: #--------------????
       kind: micro
       architecture: x64
       pool: Hosted VS2017
       machinePool: Open
-      queue: windows.10.arm64.perf.surf
+      queue: Windows.10.Arm64.perf.surf
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries' 
       channels:
+        - main
+        - release/3.1.3xx
+
+  # -- x64 micro benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: micro
+      architecture: x64
+      pool: Hosted Ubuntu 1604
+      machinePool: Open
+      queue: Ubuntu.1804.Arm64.perf
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
+      runCategories: 'runtime libraries'
+      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - main
         - release/3.1.3xx
