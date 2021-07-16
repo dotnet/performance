@@ -33,13 +33,13 @@ schedules:
     - release/3.1.4xx
   always: true
 
-  # Ubuntu 1804 Arm x64 micro benchmarks
+  # Ubuntu 1804 Arm64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: ubuntu
       osVersion: 1804
       kind: micro
-      architecture: x64
+      architecture: arm64
       pool: Hosted Ubuntu 1604
       machinePool: Open
       queue: Ubuntu.1804.Arm64.perf
@@ -49,13 +49,13 @@ schedules:
         - main
         - release/3.1.3xx
 
-  # Windows Arm x64 micro benchmarks
+  # Windows Arm64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
       osVersion: 10.19041
       kind: micro
-      architecture: x64
+      architecture: arm64
       pool: Hosted VS2017
       machinePool: Open
       queue: Windows.10.Arm64.perf.surf
