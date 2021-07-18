@@ -49,7 +49,7 @@ namespace System.Globalization.Tests
         public void Setup()
         {
             // we are using part of Alice's Adventures in Wonderland text as test data
-            char[] characters = File.ReadAllText(CompressedFile.GetFilePath("alice29.txt")).Take(Count).ToArray();
+            char[] characters = File.ReadAllText(CompressedFile.GetFilePath("alice29/alice29.txt")).Take(Count).ToArray();
             _value = new string(characters);
             _same = new string(characters);
             _sameUpper = _same.ToUpper();

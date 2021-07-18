@@ -38,7 +38,7 @@ namespace System.Globalization.Tests
         private string _value;
 
         [GlobalSetup] // we are using part of Alice's Adventures in Wonderland text as test data
-        public void Setup() => _value = new string(File.ReadAllText(CompressedFile.GetFilePath("alice29.txt")).Take(Count).ToArray());
+        public void Setup() => _value = new string(File.ReadAllText(CompressedFile.GetFilePath("alice29/alice29.txt")).Take(Count).ToArray());
 
         [Benchmark]
         public new void GetHashCode() => Options.CultureInfo.CompareInfo.GetHashCode(_value, Options.CompareOptions);
