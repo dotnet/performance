@@ -20,5 +20,5 @@ if runninginlab():
         for files in f:
             publish.write(files)
         
-subprocess.run(["dotnet", "workload", "uninstall", "microsoft-net-sdk-blazorwebassembly-aot"])
+subprocess.run(["dotnet", "workload", "uninstall", "wasm-tools"])
 clean_directories()
