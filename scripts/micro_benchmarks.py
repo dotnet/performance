@@ -263,7 +263,8 @@ def build(
         configuration: str,
         target_framework_monikers: list,
         incremental: str,
-        verbose: bool) -> None:
+        verbose: bool,
+        additionalArgs: str) -> None:
     '''Restores and builds the benchmarks'''
 
     packages = get_packages_directory()
@@ -285,11 +286,14 @@ def build(
     build_title = "Building .NET micro benchmarks for '{}'".format(
         ' '.join(target_framework_monikers))
     __log_script_header(build_title)
-    BENCHMARKS_CSPROJ.build(
-        configuration=configuration,
-        target_framework_monikers=target_framework_monikers,
-        verbose=verbose,
-        packages_path=packages)
+    BENCHMARKS_CSPROJ.build(\
+        configuration,
+        verbose,
+        packages,
+        target_framework_monikers,
+        False, None,
+        additionalArgs
+        )
 
 
 def run(

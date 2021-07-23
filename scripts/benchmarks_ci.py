@@ -209,6 +209,8 @@ def __main(args: list) -> int:
         bin_directory=args.bin_directory
     )
 
+    BenchmarkDotNetPathProp = "-p:BenchmarkDotNetSources=" + os.path.join(helixpayload(), 'BenchmarkDotNet')
+
     if not args.run_only:
         # .NET micro-benchmarks
         # Restore and build micro-benchmarks
@@ -217,7 +219,8 @@ def __main(args: list) -> int:
             args.configuration,
             target_framework_monikers,
             args.incremental,
-            verbose
+            verbose,
+            BenchmarkDotNetPathProp
         )
 
     # Run micro-benchmarks
