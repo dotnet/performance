@@ -5,9 +5,13 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(BenchmarkDotNetSources)' == ''">
     <PackageReference Include="BenchmarkDotNet" Version="0.13.0.1565" />
     <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.0.1565" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(BenchmarkDotNetSources)' != ''">
+    <ProjectReference Include="$(BenchmarkDotNetSources)src\BenchmarkDotNet\BenchmarkDotNet.csproj" SetTargetFramework="TargetFramework=netstandard2.0" />
+    <ProjectReference Include="$(BenchmarkDotNetSources)src\BenchmarkDotNet.Diagnostics.Windows\BenchmarkDotNet.Diagnostics.Windows.csproj" SetTargetFramework="TargetFramework=netstandard2.0" />
   </ItemGroup>
 
   <ItemGroup>
