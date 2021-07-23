@@ -4,10 +4,17 @@
     <OutputType>Library</OutputType>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(BenchmarkDotNetSources)' != ''">
+    <_BenchmarkDotNetSourcesN>$([MSBuild]::NormalizeDirectory('$(BenchmarkDotNetSources)'))</_BenchmarkDotNetSourcesN>
+  </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(BenchmarkDotNetSources)' == ''">
     <PackageReference Include="BenchmarkDotNet" Version="0.13.0.1559" />
     <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.0.1559" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(BenchmarkDotNetSources)' != ''">
+    <ProjectReference Include="$(_BenchmarkDotNetSourcesN)src\BenchmarkDotNet\BenchmarkDotNet.csproj" SetTargetFramework="TargetFramework=netstandard2.0" />
+    <ProjectReference Include="$(_BenchmarkDotNetSourcesN)src\BenchmarkDotNet.Diagnostics.Windows\BenchmarkDotNet.Diagnostics.Windows.csproj" SetTargetFramework="TargetFramework=netstandard2.0" />
   </ItemGroup>
 
   <ItemGroup>
