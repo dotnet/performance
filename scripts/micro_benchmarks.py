@@ -280,7 +280,7 @@ def build(
 
     # dotnet restore
     __log_script_header("Restoring .NET micro benchmarks")
-    BENCHMARKS_CSPROJ.restore(packages_path=packages, verbose=verbose)
+    BENCHMARKS_CSPROJ.restore(packages, verbose, None, additionalArgs)
 
     # dotnet build
     build_title = "Building .NET micro benchmarks for '{}'".format(
