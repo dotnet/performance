@@ -231,7 +231,10 @@ def __main(args: list) -> int:
         bin_directory=args.bin_directory
     )
 
-    BenchmarkDotNetPathProp = "-p:BenchmarkDotNetSources=" + os.path.join(helixpayload(), 'BenchmarkDotNet')
+    BenchmarkDotNetPathProp = None
+    BenchmarkDotNetPath = os.path.join(helixpayload(), 'BenchmarkDotNet')
+    if os.path.exists(BenchmarkDotNetPath):
+        BenchmarkDotNetPathProp = "-p:BenchmarkDotNetSources=" + BenchmarkDotNetPath
 
     if not args.run_only:
         # .NET micro-benchmarks
