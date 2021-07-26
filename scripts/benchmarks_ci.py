@@ -231,7 +231,7 @@ def __main(args: list) -> int:
         bin_directory=args.bin_directory
     )
 
-    BenchmarkDotNetPathProp = None
+    BenchmarkDotNetPathProp = ""
     BenchmarkDotNetPath = os.path.join(helixpayload(), 'BenchmarkDotNet')
     if os.path.exists(BenchmarkDotNetPath):
         BenchmarkDotNetPathProp = "-p:BenchmarkDotNetSources=" + BenchmarkDotNetPath
