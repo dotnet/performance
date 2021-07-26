@@ -1,8 +1,8 @@
 # .NET Performance
 
-| Public Build Status                         | Internal Build Status                           |
-| :------------------------------------------ | :---------------------------------------------: |
-| [![public_build_icon]][public_build_status] | [![internal_build_icon]][internal_build_status] |
+| Public Build Status                         | Internal Build Status                            |
+| :------------------------------------------ | :---------------------------------------------:  |
+| [![public_build_icon]][public_build_status] | [![internal_build_icon]][internal_build_status]  |
 
 This repo contains benchmarks used for testing the performance of all .NET Runtimes: .NET Core, Full .NET Framework, Mono and CoreRT.
 
