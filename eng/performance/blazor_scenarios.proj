@@ -10,12 +10,14 @@
     <ScenariosDir>$(WorkItemDirectory)\src\scenarios\</ScenariosDir>
     <HelixPreCommands>$(HelixPreCommands);set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\scripts%3B%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
     <RID>win-$(Architecture)</RID>
+    <WASMRuntimeConfigPath>%HELIX_CORRELATION_PAYLOAD%\dotnet-wasm\runtimes\browser-wasm\build\RuntimeComponentManifest.json</WASMRuntimeConfigPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
     <ScenariosDir>$(WorkItemDirectory)/src/scenarios/</ScenariosDir>
     <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
     <RID>linux-$(Architecture)</RID>
+    <WASMRuntimeConfigPath>$HELIX_CORRELATION_PAYLOAD/dotnet-wasm/runtimes/browser-wasm/build/RuntimeComponentManifest.json</WASMRuntimeConfigPath>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -39,14 +41,14 @@
     <HelixWorkItem Include="SOD - Minimum Blazor Template - Publish">
       <PayloadDirectory>$(ScenariosDir)blazorminapp</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <PreCommands>$(Python) pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
+      <PreCommands>$(Python) pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true /p:_MonoRuntimeComponentManifestJsonFilePath=$(WASMRuntimeConfigPath)" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
 
     <HelixWorkItem Include="SOD - Minimum Blazor Template - Publish - AOT">
       <PayloadDirectory>$(ScenariosDir)blazorminappaot</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <PreCommands>$(Python) pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
+      <PreCommands>$(Python) pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true /p:_MonoRuntimeComponentManifestJsonFilePath=$(WASMRuntimeConfigPath)" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
 
@@ -60,7 +62,7 @@
     <HelixWorkItem Include="SOD - New Blazor Template - Publish - AOT">
       <PayloadDirectory>$(ScenariosDir)blazoraot</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <PreCommands>$(Python) pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
+      <PreCommands>$(Python) pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true /p:_MonoRuntimeComponentManifestJsonFilePath=$(WASMRuntimeConfigPath)" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
     
@@ -74,7 +76,7 @@
     <HelixWorkItem Include="SOD - Pizza App - Publish - AOT">
       <PayloadDirectory>$(ScenariosDir)blazorpizzaaot</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <PreCommands>$(Python) pre.py publish -f %PERFLAB_TARGET_FRAMEWORKS% --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
+      <PreCommands>$(Python) pre.py publish -f %PERFLAB_TARGET_FRAMEWORKS% --msbuild "/p:_TrimmerDumpDependencies=true /p:_MonoRuntimeComponentManifestJsonFilePath=$(WASMRuntimeConfigPath)" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs pub\wwwroot</Command>
     </HelixWorkItem>
   </ItemGroup>
