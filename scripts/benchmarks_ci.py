@@ -27,7 +27,7 @@ from logging import getLogger
 import os
 import sys
 
-from performance.common import extension, helixpayload, runninginlab, validate_supported_runtime, get_artifacts_directory, RunCommand, helixuploadroot
+from performance.common import extension, helixpayload, runninginlab, validate_supported_runtime, get_artifacts_directory, RunCommand
 from performance.logger import setup_loggers
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from channel_map import ChannelMap
@@ -35,10 +35,6 @@ from subprocess import Popen, CalledProcessError
 
 import dotnet
 import micro_benchmarks
-
-# for temporary diagnostic, should br removed before PR.
-import shutil
-import platform
 
 def init_tools(
         architecture: str,
@@ -175,15 +171,6 @@ def __process_arguments(args: list):
     add_arguments(parser)
     return parser.parse_args(args)
 
-# diagnostic function, remove before PR. 
-def copyjob(src, dst, symlinks=False, ignore=None):
-    for item in os.listdir(src):
-        s = os.path.join(src, item)
-        d = os.path.join(dst, item)
-        if os.path.isdir(s) and "Job-" in s:
-            print ("copy folder " + s + "to " + d)
-            shutil.copytree(s, d, symlinks, ignore)
-
 def __main(args: list) -> int:
     validate_supported_runtime()
     args = __process_arguments(args)
@@ -216,22 +203,21 @@ def __main(args: list) -> int:
     # dotnet --info
     dotnet.info(verbose=verbose)
 
-    # To work around issue https://github.com/dotnet/performance/issues/1888
-    # run "dotnet workload install wasm-tools" from dotnet-wasm directory to use the same nuget.config
-    dotnetwasmpath = os.path.join(
-                    helixpayload(), 
-                    'performance/src/benchmarks/micro/wasmaot')
-    cmdline_args = ["dotnet", "-d", "workload", "install", "wasm-tools"]
-    RunCommand(cmdline_args, verbose=verbose, retry=1).run(
-                dotnetwasmpath
-            )
+    if 'CompilationMode:wasm' in args.configuration:
+        # To work around issue https://github.com/dotnet/performance/issues/1888
+        # run "dotnet workload install wasm-tools" from dotnet-wasm directory to use the same nuget.config
+        dotnetwasmpath = os.path.join(
+                        helixpayload(), 
+                        'performance/src/benchmarks/micro/wasm')
+        cmdline_args = ["dotnet", "-d", "workload", "install", "wasm-tools", "--skip-manifest-update"]
+        RunCommand(cmdline_args, verbose=verbose, retry=1).run(
+                    dotnetwasmpath
+                )
 
     BENCHMARKS_CSPROJ = dotnet.CSharpProject(
         project=args.csprojfile,
         bin_directory=args.bin_directory
     )
-
-    BenchmarkDotNetPathProp = "-p:BenchmarkDotNetSources=" + os.path.join(helixpayload(), 'BenchmarkDotNet')
 
     if not args.run_only:
         # .NET micro-benchmarks
@@ -241,8 +227,7 @@ def __main(args: list) -> int:
             args.configuration,
             target_framework_monikers,
             args.incremental,
-            verbose,
-            BenchmarkDotNetPathProp
+            verbose
         )
 
     # Run micro-benchmarks
@@ -295,14 +280,6 @@ def __main(args: list) -> int:
             import upload
             upload.upload(globpath, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
         # TODO: Archive artifacts.
-
-    # diagnostic function, remove before PR. 
-    print ("Print out platform_system: " + platform.system())
-    if platform.system() == "Linux":
-        jobpathsrc = os.path.join(helixpayload(), 'performance/artifacts/bin/MicroBenchmarks/Release/net6.0')
-        jobpathdes = os.path.join(helixuploadroot(), 'BDNJobBackUp')
-        copyjob(jobpathsrc, jobpathdes)
-
 
 if __name__ == "__main__":
     __main(sys.argv[1:])
