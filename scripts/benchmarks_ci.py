@@ -264,15 +264,14 @@ def __main(args: list) -> int:
                 ]
                 reporterpath = os.path.join(helixpayload(), 'FailureReporter')
                 if not os.path.exists(reporterpath):
-                    getLogger().error("Can't find FailureReporter path: " + reporterpath )
+                    getLogger().error("can't find file {0}.format(reporterpath)")
                 else:
                     getLogger().info("Generating failure results at " + globpath)
                     RunCommand(cmdline, verbose=True).run(reporterpath)
             else:
                 args.upload_to_perflab_container = False
             # rethrow the caught CalledProcessError exception so that the exception being bubbled up correctly.
-            # temporarily comment out raise so that the copyjob function can be called for testing purpose.
-            # raise 
+            raise
 
         dotnet.shutdown_server(verbose)
 

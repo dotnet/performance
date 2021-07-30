@@ -16,6 +16,10 @@
     <ProjectReference Include="$(_BenchmarkDotNetSourcesN)src\BenchmarkDotNet\BenchmarkDotNet.csproj" SetTargetFramework="TargetFramework=netstandard2.0" />
     <ProjectReference Include="$(_BenchmarkDotNetSourcesN)src\BenchmarkDotNet.Diagnostics.Windows\BenchmarkDotNet.Diagnostics.Windows.csproj" SetTargetFramework="TargetFramework=netstandard2.0" />
   </ItemGroup>
+  <ItemGroup Condition="'$(BenchmarkDotNetSources)' != ''">
+    <ProjectReference Include="$(_BenchmarkDotNetSourcesN)src\BenchmarkDotNet\BenchmarkDotNet.csproj" SetTargetFramework="TargetFramework=netstandard2.0" />
+    <ProjectReference Include="$(_BenchmarkDotNetSourcesN)src\BenchmarkDotNet.Diagnostics.Windows\BenchmarkDotNet.Diagnostics.Windows.csproj" SetTargetFramework="TargetFramework=netstandard2.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\tools\Reporting\Reporting\Reporting.csproj" />
