@@ -154,11 +154,13 @@ namespace ScenarioMeasurement
 
         public static bool IsAdministrator()
         {
+#pragma warning disable CA1416 // WindowsTraceSession only called from TraceSessionManager if platform is windows
             using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
             {
                 WindowsPrincipal principal = new WindowsPrincipal(identity);
                 return principal.IsInRole(WindowsBuiltInRole.Administrator);
             }
+#pragma warning restore CA1416
         }
     }
 }
