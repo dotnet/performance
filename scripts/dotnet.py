@@ -401,6 +401,7 @@ class CSharpProject:
                 packages_path,
                 target_framework_moniker: str = None,
                 runtime_identifier: str = None,
+                msbuildprops: list = None,
                 *args
                 ) -> None:
         '''
@@ -419,6 +420,9 @@ class CSharpProject:
 
         if target_framework_moniker:
             cmdline += ['--framework', target_framework_moniker]
+
+        if msbuildprops:
+            cmdline = cmdline + msbuildprops
 
         if args:
             cmdline = cmdline + list(args)

@@ -71,6 +71,7 @@ class PreCommands:
         self.framework = args.framework
         self.runtime_identifier = args.runtime
         self.msbuild = args.msbuild
+        print(self.msbuild)
         self.msbuildstatic = args.msbuildstatic
         self.binlog = args.binlog
 
@@ -189,6 +190,14 @@ class PreCommands:
             propertystring = f'\n  <PropertyGroup>\n    <{propertyname}>{propertyvalue}</{propertyname}>\n  </PropertyGroup>'
             insert_after(projectfile, r'</PropertyGroup>', propertystring )
 
+    def _parsemsbuildproperties(self) -> list:
+        if self.msbuild:
+            proplist = list()
+            for propertyarg in self.msbuild.split(';'):
+                proplist.append(propertyarg)
+            return proplist
+        return None
+
     def _updateframework(self, projectfile: str):
         'Update the <TargetFramework> property so we can re-use the template'
         if self.framework:
@@ -201,7 +210,7 @@ class PreCommands:
                              os.path.join(get_packages_directory(), ''), # blazor publish targets require the trailing slash for joining the paths
                              framework,
                              runtime_identifier,
-                             self.msbuild or "",
+                             self._parsemsbuildproperties(),
                              '-bl:%s' % self.binlog if self.binlog else ""
                              )
 
