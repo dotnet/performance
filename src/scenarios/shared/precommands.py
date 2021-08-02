@@ -195,7 +195,6 @@ class PreCommands:
             proplist = list()
             for propertyarg in self.msbuild.split(';'):
                 proplist.append(propertyarg)
-            print(proplist)
             return proplist
         return None
 
