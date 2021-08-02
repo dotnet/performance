@@ -202,7 +202,9 @@ def __main(args: list) -> int:
 
     # dotnet --info
     dotnet.info(verbose=verbose)
-    print(args)
+    print("****Print args****")
+    for item in args:
+        print item
     if 'CompilationMode:wasm' in args.configuration:
         # To work around issue https://github.com/dotnet/performance/issues/1888
         # run "dotnet workload install wasm-tools" from dotnet-wasm directory to use the same nuget.config
