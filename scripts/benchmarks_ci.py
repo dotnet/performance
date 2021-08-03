@@ -209,8 +209,8 @@ def __main(args: list) -> int:
 
     # dotnet --info
     dotnet.info(verbose=verbose)
-    print('Print wasmEngine:{}'.format(wasmEngine))
-    if wasmEngine:
+    print('Print args.wasmEngine:{}'.format(args.wasmEngine))
+    if args.wasmEngine:
         # To work around issue https://github.com/dotnet/performance/issues/1888
         # run "dotnet workload install wasm-tools" from dotnet-wasm directory to use the same nuget.config
         dotnetwasmpath = os.path.join(
