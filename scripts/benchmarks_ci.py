@@ -157,14 +157,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         action='store_true',
         help='Attempts to run the benchmarks without building.',
     )
-    parser.add_argument(
-        '--wasmEngine',
-        dest='wasmEngine',
-        required=False,
-        default=False,
-        type=str,
-        help='Attempts to run the benchmarks in WASM.',
-    )
     return parser
 
 
@@ -209,18 +201,6 @@ def __main(args: list) -> int:
 
     # dotnet --info
     dotnet.info(verbose=verbose)
-    # diagnostic message, should be removed before PR
-    print('Print args.wasmEngine:{}'.format(args.wasmEngine))
-    if args.wasmEngine:
-        # To work around issue https://github.com/dotnet/performance/issues/1888
-        # run "dotnet workload install wasm-tools" from dotnet-wasm directory to use the same nuget.config
-        dotnetwasmpath = os.path.join(
-                        helixpayload(), 
-                        'performance/src/benchmarks/micro/wasm')
-        cmdline_args = ["dotnet", "-d", "workload", "install", "wasm-tools", "--skip-manifest-update"]
-        RunCommand(cmdline_args, verbose=verbose, retry=1).run(
-                    dotnetwasmpath
-                )
 
     BENCHMARKS_CSPROJ = dotnet.CSharpProject(
         project=args.csprojfile,
