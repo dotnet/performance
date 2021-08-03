@@ -158,12 +158,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Attempts to run the benchmarks without building.',
     )
     parser.add_argument(
-    '--wasmEngine',
-    dest='wasmEngine',
-    required=False,
-    default=False,
-    type=str,
-    help='Attempts to run the benchmarks in WASM.',
+        '--wasmEngine',
+        dest='wasmEngine',
+        required=False,
+        default=False,
+        type=str,
+        help='Attempts to run the benchmarks in WASM.',
     )
     return parser
 
@@ -209,6 +209,7 @@ def __main(args: list) -> int:
 
     # dotnet --info
     dotnet.info(verbose=verbose)
+    # diagnostic message, should be removed before PR
     print('Print args.wasmEngine:{}'.format(args.wasmEngine))
     if args.wasmEngine:
         # To work around issue https://github.com/dotnet/performance/issues/1888
