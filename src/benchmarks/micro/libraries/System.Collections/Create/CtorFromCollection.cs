@@ -18,6 +18,7 @@ namespace System.Collections
     {
         private ICollection<T> _collection;
         private IDictionary<T, T> _dictionary;
+        private SortedDictionary<T, T> _sortedDictionary;
         
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
@@ -28,6 +29,9 @@ namespace System.Collections
 
         [GlobalSetup(Targets = new[] { nameof(Dictionary), nameof(SortedList), nameof(SortedDictionary), nameof(ConcurrentDictionary), nameof(ImmutableDictionary), nameof(ImmutableSortedDictionary) })]
         public void SetupDictionary() => _dictionary = ValuesGenerator.Dictionary<T, T>(Size);
+
+        [GlobalSetup(Targets = new[] { nameof(SortedDictionaryDeepCopy) })]
+        public void SetupSortedDictionary() => _sortedDictionary = new SortedDictionary<T, T>(ValuesGenerator.Dictionary<T, T>(Size));
 
         [Benchmark]
         public List<T> List() => new List<T>(_collection);
@@ -55,6 +59,9 @@ namespace System.Collections
 
         [Benchmark]
         public SortedDictionary<T, T> SortedDictionary() => new SortedDictionary<T, T>(_dictionary);
+
+        [Benchmark]
+        public SortedDictionary<T, T> SortedDictionaryDeepCopy() => new SortedDictionary<T, T>(_sortedDictionary);
 
         [Benchmark]
         public ConcurrentDictionary<T, T> ConcurrentDictionary() => new ConcurrentDictionary<T, T>(_dictionary);
