@@ -64,17 +64,18 @@ namespace ScenarioMeasurement
                 }
 
                 logger.Log("Reached Result Adding");
+                System.Console.WriteLine("Reached Result Adding");
                 ClrPrivateTraceEventParser clrpriv = new ClrPrivateTraceEventParser(source.Source);
                 clrpriv.StartupMainStart += evt =>
                 {
-                    logger.Log("Result Adding Event Triggered");
+                    System.Console.WriteLine("Result Adding Event Triggered");
                     if (pid.HasValue && ParserUtility.MatchSingleProcessID(evt, source, (int)pid))
                     {
-                        logger.Log($"Adding Result {pid}...");
+                        System.Console.WriteLine($"Adding Result {pid}...");
                         results.Add(evt.TimeStampRelativeMSec - start);
                         pid = null;
                         start = 0;
-                        logger.Log("Result Added");
+                        System.Console.WriteLine("Result Added");
                         if (source.IsWindows)
                         {
                             threadTimes.Add(threadTime);
