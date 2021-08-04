@@ -18,7 +18,7 @@ namespace ScenarioMeasurement
             user.EnableUserProvider(TraceSessionManager.ClrKeyword.Startup);
         }
 
-        public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
+        public IEnumerable<Counter> Parse(Logger logger, string mergeTraceFile, string processName, IList<int> pids, string commandLine)
         {
             var results = new List<double>();
             double threadTime = 0;
@@ -63,14 +63,18 @@ namespace ScenarioMeasurement
                     };
                 }
 
+                logger.Log("Reached Result Adding");
                 ClrPrivateTraceEventParser clrpriv = new ClrPrivateTraceEventParser(source.Source);
                 clrpriv.StartupMainStart += evt =>
                 {
-                    if(pid.HasValue && ParserUtility.MatchSingleProcessID(evt, source, (int)pid))
+                    logger.Log("Result Adding Event Triggered");
+                    if (pid.HasValue && ParserUtility.MatchSingleProcessID(evt, source, (int)pid))
                     {
+                        logger.Log($"Adding Result {pid}...");
                         results.Add(evt.TimeStampRelativeMSec - start);
                         pid = null;
                         start = 0;
+                        logger.Log("Result Added");
                         if (source.IsWindows)
                         {
                             threadTimes.Add(threadTime);

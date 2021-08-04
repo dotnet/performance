@@ -7,6 +7,6 @@ namespace ScenarioMeasurement
     {
         void EnableUserProviders(ITraceSession user);
         void EnableKernelProvider(ITraceSession kernel);
-        IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine);
+        IEnumerable<Counter> Parse(Logger logger, string mergeTraceFile, string processName, IList<int> pids, string commandLine);
     }
 }

@@ -186,7 +186,7 @@ namespace ScenarioMeasurement
                 {
                     commandLine = commandLine + " " + appArgs;
                 }
-                var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
+                var counters = parser.Parse(logger, traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
 
 
                 CreateTestReport(scenarioName, counters, reportJsonPath, logger);

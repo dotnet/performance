@@ -19,7 +19,7 @@ namespace ScenarioMeasurement
             user.EnableUserProvider(ProviderName, TraceEventLevel.Verbose);
         }
 
-        public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
+        public IEnumerable<Counter> Parse(Logger logger, string mergeTraceFile, string processName, IList<int> pids, string commandLine)
         {
             var loadingParser = new EventParser("Loading", (1, 2));
             var emittingParser = new EventParser("Emitting", (3, 4));
@@ -47,7 +47,7 @@ namespace ScenarioMeasurement
             {
                 processName = "corerun"; 
             }
-            foreach (var counter in processTimeParser.Parse(mergeTraceFile, processName, pids, commandLine))
+            foreach (var counter in processTimeParser.Parse(null, mergeTraceFile, processName, pids, commandLine))
             {
                 if (counter.Name == "Process Time")
                 {
