@@ -313,8 +313,7 @@ def run(
         verbose,
         *run_args
     )
-
-
+            
 def __log_script_header(message: str):
     getLogger().info('-' * len(message))
     getLogger().info(message)
@@ -361,7 +360,6 @@ def __main(args: list) -> int:
                 verbose,
                 args
             )
-
         return 0
     except CalledProcessError as ex:
         getLogger().error(

@@ -81,6 +81,7 @@ namespace System.IO.Tests
         public void WriteAllBytes(int size) => File.WriteAllBytes(_testFilePath, _userBuffers[size]);
 
 #if !NETFRAMEWORK
+        [BenchmarkCategory(Categories.NoWASM)]
         [Benchmark]
         [Arguments(HalfKibibyte)]
         [Arguments(FourKibibytes)]

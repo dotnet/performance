@@ -322,6 +322,7 @@ namespace System.IO.Tests
             }
         }
 
+        [BenchmarkCategory(Categories.NoWASM)]
         [Benchmark]
         [Arguments(OneKibibyte, FileOptions.None)]
         [Arguments(OneKibibyte, FileOptions.Asynchronous)]

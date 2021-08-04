@@ -157,7 +157,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         action='store_true',
         help='Attempts to run the benchmarks without building.',
     )
-
     return parser
 
 
@@ -170,7 +169,6 @@ def __process_arguments(args: list):
     )
     add_arguments(parser)
     return parser.parse_args(args)
-
 
 def __main(args: list) -> int:
     validate_supported_runtime()
@@ -269,7 +267,6 @@ def __main(args: list) -> int:
             import upload
             upload.upload(globpath, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
         # TODO: Archive artifacts.
-
 
 if __name__ == "__main__":
     __main(sys.argv[1:])
