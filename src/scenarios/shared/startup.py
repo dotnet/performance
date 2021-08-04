@@ -46,6 +46,7 @@ class StartupWrapper(object):
                                 get_packages_directory(),
                                 None,
                                 getruntimeidentifier(),
+                                None,
                                 '--no-restore'
                                 )
             self._setstartuppath(startup.bin_path)
@@ -133,6 +134,8 @@ class StartupWrapper(object):
                     raise FileNotFoundError
                 getLogger().info("Generating failure results at " + reportjson)
                 RunCommand(cmdline, verbose=True).run(reporterpath)
+            # rethrow the original exception 
+            raise
 
         if runninginlab():
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
