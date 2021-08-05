@@ -37,7 +37,7 @@ namespace BenchmarkDotNet.Extensions
                     .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
 
                 // See https://github.com/dotnet/roslyn/issues/42393
-                job = job.WithArguments(new Argument[] { new MsBuildArgument("/p:DebugType=portable") });
+                job = job.WithArguments(new Argument[] { new MsBuildArgument("/p:DebugType=portable"), new MsBuildArgument("-bl:benchmarkdotnet.binlog") });
             }
 
             var config = ManualConfig.CreateEmpty()
