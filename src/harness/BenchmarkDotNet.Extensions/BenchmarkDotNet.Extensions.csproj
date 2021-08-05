@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(BenchmarkDotNetSources)' == ''">
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.0.1559" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.0.1559" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.0.1596" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.0.1596" />
   </ItemGroup>
   <ItemGroup Condition="'$(BenchmarkDotNetSources)' != ''">
     <ProjectReference Include="$(_BenchmarkDotNetSourcesN)src\BenchmarkDotNet\BenchmarkDotNet.csproj" SetTargetFramework="TargetFramework=netstandard2.0" />
