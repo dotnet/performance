@@ -31,6 +31,7 @@ namespace ScenarioMeasurement
 
                 source.Kernel.ProcessStart += evt =>
                 {
+                    System.Console.WriteLine("Console: Process Start");
                     if (!pid.HasValue && ParserUtility.MatchProcessStart(evt, source, processName, pids, commandLine))
                     {
                         pid = evt.ProcessID;
