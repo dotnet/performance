@@ -12,7 +12,7 @@ pur==5.2.2
 pylint==2.4.4
 # NOTE: This package provides the import `from win32com.shell.shell import IsUserAnAdmin`,
 # which we import lazily and only if the OS is Windows
-pywin32==227; sys_platform == "win32"
+pywin32==301; sys_platform == "win32"
 result==0.4.0
 ruamel.yaml==0.16.5
 termcolor==1.1.0
