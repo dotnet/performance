@@ -166,7 +166,7 @@ ex: C:\repos\performance;C:\repos\runtime
             startup = StartupWrapper()
             self.traits.add_traits(scenarioname=self.scenarioname,
             scenariotypename=const.SCENARIO_NAMES[const.DOTNETWATCH],
-            apptorun='dotnet', appargs='watch -v',
+            apptorun='dotnet', appargs='watch',
             innerloopcommand=pythoncommand(),
             iterationsetup=pythoncommand(),
             setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),

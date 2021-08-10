@@ -411,7 +411,8 @@ namespace ScenarioMeasurement
             if (waitForSteadyState != null && !failed)
             {
                 logger.LogStepHeader("Waiting for steady state");
-                failed = failed || !waitForSteadyState(runResult.Proc, "Hot reload capabilities: Baseline");
+                failed = failed || !waitForSteadyState(runResult.Proc, "Application started");
+                Thread.Sleep(1000); // Sleep for a second to ensure hot reload is fully ready
             }
             for(int i = 0; i < hotReloadIters; i++)
             {
