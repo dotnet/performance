@@ -64,7 +64,7 @@ namespace Microsoft.Extensions.DependencyInjection
             temp.Foo();
         }
 
-        [GlobalCleanup(Targets = new[] { nameof(BuildProvider), nameof(Transient)})]
+        [IterationCleanup(Targets = new[] { nameof(BuildProvider), nameof(Transient)})]
         public void ClenaupTransient() => ((IDisposable)_transientSp).Dispose();
 
         [GlobalSetup(Target = nameof(Scoped))]
@@ -89,7 +89,7 @@ namespace Microsoft.Extensions.DependencyInjection
             temp.Foo();
         }
 
-        [GlobalCleanup(Target = nameof(Scoped))]
+        [IterationCleanup(Target = nameof(Scoped))]
         public void ScopedCleanup() => _scopedSp.Dispose();
 
         [GlobalSetup(Target = nameof(Singleton))]
@@ -114,7 +114,7 @@ namespace Microsoft.Extensions.DependencyInjection
             temp.Foo();
         }
 
-        [GlobalCleanup(Target = nameof(Singleton))]
+        [IterationCleanup(Target = nameof(Singleton))]
         public void SingletonCleanup() => ((IDisposable)_singletonSp).Dispose();
 
         private class A
