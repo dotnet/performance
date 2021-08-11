@@ -67,7 +67,7 @@ namespace ScenarioMeasurement
                 logger.Log("Reached Result Adding");
                 System.Console.WriteLine("Console: Reached Result Adding");
                 ClrPrivateTraceEventParser clrpriv = new ClrPrivateTraceEventParser(source.Source);
-                clrpriv.StartupMainStart += evt =>
+                clrpriv.StartupSecurityCatchCallStart += evt =>
                 {
                     System.Console.WriteLine("Console: Result Adding Event Triggered");
                     if (pid.HasValue && ParserUtility.MatchSingleProcessID(evt, source, (int)pid))
