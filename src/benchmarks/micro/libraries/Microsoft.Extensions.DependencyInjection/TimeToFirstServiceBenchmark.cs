@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
@@ -12,9 +11,6 @@ namespace Microsoft.Extensions.DependencyInjection
     [BenchmarkCategory(Categories.Libraries)]
     public class TimeToFirstService
     {
-        private IServiceProvider _transientSp;
-        private IServiceScope _scopedSp;
-        private IServiceProvider _singletonSp;
         private ServiceCollection _transientServices;
         private ServiceCollection _scopedServices;
         private ServiceCollection _singletonServices;
@@ -43,7 +39,7 @@ namespace Microsoft.Extensions.DependencyInjection
         [Benchmark]
         public void BuildProvider()
         {
-            _transientSp = _transientServices.BuildServiceProvider(new ServiceProviderOptions()
+            using ServiceProvider transientSp = _transientServices.BuildServiceProvider(new ServiceProviderOptions()
             {
 #if INTERNAL_DI
                 Mode = _mode
@@ -54,18 +50,15 @@ namespace Microsoft.Extensions.DependencyInjection
         [Benchmark]
         public void Transient()
         {
-            _transientSp = _transientServices.BuildServiceProvider(new ServiceProviderOptions()
+            using ServiceProvider transientSp = _transientServices.BuildServiceProvider(new ServiceProviderOptions()
             {
 #if INTERNAL_DI
                 Mode = _mode
 #endif
             });
-            var temp = _transientSp.GetService<A>();
+            var temp = transientSp.GetService<A>();
             temp.Foo();
         }
-
-        [GlobalCleanup(Targets = new[] { nameof(BuildProvider), nameof(Transient)})]
-        public void ClenaupTransient() => ((IDisposable)_transientSp).Dispose();
 
         [GlobalSetup(Target = nameof(Scoped))]
         public void SetupScoped()
@@ -79,18 +72,16 @@ namespace Microsoft.Extensions.DependencyInjection
         [Benchmark]
         public void Scoped()
         {
-            _scopedSp = _scopedServices.BuildServiceProvider(new ServiceProviderOptions()
+            using ServiceProvider provider = _scopedServices.BuildServiceProvider(new ServiceProviderOptions()
             {
 #if INTERNAL_DI
                 Mode = _mode
 #endif
-            }).CreateScope();
-            var temp = _scopedSp.ServiceProvider.GetService<A>();
+            });
+            IServiceScope scopedSp = provider.CreateScope();
+            var temp = scopedSp.ServiceProvider.GetService<A>();
             temp.Foo();
         }
-
-        [GlobalCleanup(Target = nameof(Scoped))]
-        public void ScopedCleanup() => _scopedSp.Dispose();
 
         [GlobalSetup(Target = nameof(Singleton))]
         public void SetupSingleton()
@@ -104,18 +95,15 @@ namespace Microsoft.Extensions.DependencyInjection
         [Benchmark]
         public void Singleton()
         {
-            _singletonSp = _singletonServices.BuildServiceProvider(new ServiceProviderOptions()
+            using ServiceProvider singletonSp = _singletonServices.BuildServiceProvider(new ServiceProviderOptions()
             {
 #if INTERNAL_DI
                 Mode = _mode
 #endif
             });
-            var temp = _singletonSp.GetService<A>();
+            var temp = singletonSp.GetService<A>();
             temp.Foo();
         }
-
-        [GlobalCleanup(Target = nameof(Singleton))]
-        public void SingletonCleanup() => ((IDisposable)_singletonSp).Dispose();
 
         private class A
         {
