@@ -17,5 +17,6 @@ if __name__ == "__main__":
                         iterations='5',
                         runwithoutexit='true',
                         hotreloaditers = '2',
+                        timeout = '500'
                         )
     Runner(traits).run()
