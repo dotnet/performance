@@ -21,7 +21,6 @@ namespace ScenarioMeasurement
         public void EnableUserProviders(ITraceSession user)
         {
             user.EnableUserProvider("HotReload", TraceEventLevel.Verbose);
-            user.EnableUserProvider("Microsoft-Extensions-Logging", TraceEventLevel.Verbose);
         }
 
         public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
@@ -46,24 +45,21 @@ namespace ScenarioMeasurement
                     }
                 };
 
-                source.Source.Dynamic.AddCallbackForProviderEvent("Microsoft-Extensions-Logging", "FormattedMessage", evt =>
-                {
-                    if (evt.PayloadStringByName("FormattedMessage").ToLower() == "application started. press ctrl+c to shut down.")
-                    {
-                        if (pid.HasValue)
-                        {
-                            results.Add(evt.TimeStampRelativeMSec - start);
-                        }
-                    }
-                });
-
                 source.Source.Dynamic.AddCallbackForProviderEvent("HotReload", "HotReload/Start", evt =>
                 {
                     if (evt.PayloadStringByName("handlerType").ToLower() == "main")
                     {
                         if (pid.HasValue)
                         {
-                            start = evt.TimeStampRelativeMSec;
+                            if (firstHotReload)
+                            {
+                                results.Add(evt.TimeStampRelativeMSec - start);
+                                start = evt.TimeStampRelativeMSec;
+                            }
+                            else
+                            {
+                                start = evt.TimeStampRelativeMSec;
+                            }
                         }
                     }
                 });
@@ -94,7 +90,7 @@ namespace ScenarioMeasurement
             }
 
             return new[] {
-                new Counter() { Name = "Time to Application Start", MetricName = "ms", TopCounter=true, Results = results.ToArray() },
+                new Counter() { Name = "Time to Hot Reload Start", MetricName = "ms", TopCounter=true, Results = results.ToArray() },
                 new Counter() { Name = "First Hot Reload Time", MetricName = "ms", TopCounter=true, DefaultCounter=true, Results = reloadResults.ToArray() },
                 new Counter() { Name = "Second Hot Reload Time", MetricName = "ms", TopCounter=true, Results = warmReloadResults.ToArray() },
             };

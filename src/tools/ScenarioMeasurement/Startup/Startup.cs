@@ -412,7 +412,6 @@ namespace ScenarioMeasurement
             {
                 logger.LogStepHeader("Waiting for steady state");
                 failed = failed || !waitForSteadyState(runResult.Proc, "Hot reload capabilities");
-                //Thread.Sleep(1000); // Sleep for a second to ensure hot reload is fully ready
             }
             for(int i = 0; i < hotReloadIters; i++)
             {
