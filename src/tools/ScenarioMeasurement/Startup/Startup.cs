@@ -150,45 +150,46 @@ namespace ScenarioMeasurement
             //Create wait funcs for steady state and post-compilation
             Func<Process, string, bool> waitForSteadyState = metricType == MetricType.DotnetWatch ? (Proc, searchString) =>
             {
-                StringBuilder output = new StringBuilder();
-                DataReceivedEventHandler stdOutProcessor = (s, e) =>
-                {
-                    if (!String.IsNullOrEmpty(e.Data))
-                    {
-                        output.AppendLine(e.Data);
-                        Console.WriteLine(e.Data);
-                    }
-                };
-                DataReceivedEventHandler stdErrProcessor = (s, e) =>
-                {
-                    if (!String.IsNullOrEmpty(e.Data))
-                    {
-                        Console.WriteLine(e.Data);
-                    }
-                };
-                Proc.OutputDataReceived += stdOutProcessor;
-                Proc.ErrorDataReceived += stdErrProcessor;
-                Proc.BeginOutputReadLine();
-                Proc.BeginErrorReadLine();
+                // StringBuilder output = new StringBuilder();
+                // DataReceivedEventHandler stdOutProcessor = (s, e) =>
+                // {
+                //     if (!String.IsNullOrEmpty(e.Data))
+                //     {
+                //         output.AppendLine(e.Data);
+                //         Console.WriteLine(e.Data);
+                //     }
+                // };
+                // DataReceivedEventHandler stdErrProcessor = (s, e) =>
+                // {
+                //     if (!String.IsNullOrEmpty(e.Data))
+                //     {
+                //         Console.WriteLine(e.Data);
+                //     }
+                // };
+                // Proc.OutputDataReceived += stdOutProcessor;
+                // Proc.ErrorDataReceived += stdErrProcessor;
+                // Proc.BeginOutputReadLine();
+                // Proc.BeginErrorReadLine();
                 bool isSteadyState = false;
                 int timeoutCount = 0;
                 while (!isSteadyState && timeoutCount < timeout)
                 {
-                    foreach (var line in output.ToString().Split(Environment.NewLine))
-                    {
-                        if (line.Contains(searchString))
-                        {
-                            isSteadyState = true;
-                            break;
-                        }
-                    }
+                    // foreach (var line in output.ToString().Split(Environment.NewLine))
+                    // {
+                    //     if (line.Contains(searchString))
+                    //     {
+                    //         isSteadyState = true;
+                    //         break;
+                    //     }
+                    // }
                     timeoutCount++;
                     Thread.Sleep(1000);
                 }
-                Proc.CancelErrorRead();
-                Proc.CancelOutputRead();
-                Proc.ErrorDataReceived -= stdErrProcessor;
-                Proc.OutputDataReceived -= stdOutProcessor;
+                // Proc.CancelErrorRead();
+                // Proc.CancelOutputRead();
+                // Proc.ErrorDataReceived -= stdErrProcessor;
+                // Proc.OutputDataReceived -= stdOutProcessor;
+
                 return true && timeoutCount < timeout;
             }
             : null;
