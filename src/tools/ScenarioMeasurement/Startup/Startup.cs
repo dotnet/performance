@@ -415,7 +415,6 @@ namespace ScenarioMeasurement
             }
             for(int i = 0; i < hotReloadIters; i++)
             {
-                //Thread.Sleep(1000);
                 if(innerLoopProcHelper != null  && !failed)
                 {
                     //Do some stuff to change the project
