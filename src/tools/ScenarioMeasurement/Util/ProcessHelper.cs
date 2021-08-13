@@ -97,8 +97,8 @@ namespace ScenarioMeasurement
 
             if (!GuiApp)
             {
-                psi.RedirectStandardOutput = false;
-                psi.RedirectStandardError = false;
+                psi.RedirectStandardOutput = true;
+                psi.RedirectStandardError = true;
             }
             else
             {
