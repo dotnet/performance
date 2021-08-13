@@ -27,6 +27,7 @@ namespace System.Text.Json.Serialization.Tests
     [GenericTypeArguments(typeof(Hashtable))]
     [GenericTypeArguments(typeof(SimpleStructWithProperties))]
     [GenericTypeArguments(typeof(LargeStructWithProperties))]
+    [GenericTypeArguments(typeof(DateTimeOffset?))]
     [GenericTypeArguments(typeof(int))]
     public class WriteJson<T>
     {
