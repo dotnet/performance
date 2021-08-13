@@ -112,7 +112,7 @@ namespace ScenarioMeasurement
                     }
                 });
 
-                source.Source.Dynamic.AddCallbackForProviderEvent("Microsoft-Build", "EvaluateStop/Stop", evt =>
+                source.Source.Dynamic.AddCallbackForProviderEvent("Microsoft-Build", "Evaluate/Stop", evt =>
                 {
                     if(pid.HasValue && evt.ProcessID == pid.Value)
                     {
@@ -153,9 +153,9 @@ namespace ScenarioMeasurement
             {
                 diffTOT.Add(firstRun["ThreadCSwitch"][i] - secondRun["ThreadCSwitch"][i]);
             }
-            for(int i = 0; i < firstRun["EvaluateStop/Stop"].Count; i++)
+            for(int i = 0; i < firstRun["Evaluate/Stop"].Count; i++)
             {
-                diffEBT.Add(firstRun["EvaluateStop/Stop"][i] - secondRun["EvaluateStop/Stop"][i]);
+                diffEBT.Add(firstRun["Evaluate/Stop"][i] - secondRun["Evaluate/Stop"][i]);
             }
 
             return new[] {
@@ -163,8 +163,8 @@ namespace ScenarioMeasurement
                 new Counter() { Name = "Generic Startup Second Run", MetricName = "ms", TopCounter=true, Results = secondRun["Process/Stop"].ToArray() },
                 new Counter() { Name = "Generic Startup Diff", MetricName = "ms", DefaultCounter=true, TopCounter=true, Results = diffGS.ToArray() },
                 new Counter() { Name = "Time on Thread Diff", MetricName = "ms", TopCounter=true, Results = diffTOT.ToArray() },
-                new Counter() { Name = "Build Evaluate Time First Run", MetricName = "ms", TopCounter=true, Results = firstRun["EvaluateStop/Stop"].ToArray() },
-                new Counter() { Name = "Build Evaluate Time Second Run", MetricName = "ms", TopCounter=true, Results = secondRun["EvaluateStop/Stop"].ToArray() },
+                new Counter() { Name = "Build Evaluate Time First Run", MetricName = "ms", TopCounter=true, Results = firstRun["Evaluate/Stop"].ToArray() },
+                new Counter() { Name = "Build Evaluate Time Second Run", MetricName = "ms", TopCounter=true, Results = secondRun["Evaluate/Stop"].ToArray() },
                 new Counter() { Name = "Build Evaluate Time Diff", MetricName = "ms", TopCounter=true, Results = diffEBT.ToArray() }
             };
         }
