@@ -113,24 +113,36 @@ namespace Reporting
             StringBuilder ret = new StringBuilder();
             foreach (var test in tests)
             {
-                var defaultCounter = test.Counters.Single(c => c.DefaultCounter);
-                var topCounters = test.Counters.Where(c => c.TopCounter && !c.DefaultCounter);
-                var restCounters = test.Counters.Where(c => !(c.TopCounter || c.DefaultCounter));
-                var counterWidth = Math.Max(test.Counters.Max(c => c.Name.Length) + 1, 15);
-                var resultWidth = Math.Max(test.Counters.Max(c => c.Results.Max().ToString("F3").Length + c.MetricName.Length) + 2, 15);
-                ret.AppendLine(test.Name);
-                ret.AppendLine($"{LeftJustify("Metric", counterWidth)}|{LeftJustify("Average",resultWidth)}|{LeftJustify("Min", resultWidth)}|{LeftJustify("Max",resultWidth)}");
-                ret.AppendLine($"{new String('-', counterWidth)}|{new String('-', resultWidth)}|{new String('-', resultWidth)}|{new String('-', resultWidth)}");
-
-           
-                ret.AppendLine(Print(defaultCounter, counterWidth, resultWidth));
-                foreach(var counter in topCounters)
+                bool resultsValid = true;
+                foreach (Counter c in test.Counters)
                 {
-                    ret.AppendLine(Print(counter, counterWidth, resultWidth));
+                    if (c.Results.Count == 0)
+                    {
+                        resultsValid = false;
+                        break;
+                    }
                 }
-                foreach (var counter in restCounters)
+                if (resultsValid)
                 {
-                    ret.AppendLine(Print(counter, counterWidth, resultWidth));
+                    var defaultCounter = test.Counters.Single(c => c.DefaultCounter);
+                    var topCounters = test.Counters.Where(c => c.TopCounter && !c.DefaultCounter);
+                    var restCounters = test.Counters.Where(c => !(c.TopCounter || c.DefaultCounter));
+                    var counterWidth = Math.Max(test.Counters.Max(c => c.Name.Length) + 1, 15);
+                    var resultWidth = Math.Max(test.Counters.Max(c => c.Results.Max().ToString("F3").Length + c.MetricName.Length) + 2, 15);
+                    ret.AppendLine(test.Name);
+                    ret.AppendLine($"{LeftJustify("Metric", counterWidth)}|{LeftJustify("Average", resultWidth)}|{LeftJustify("Min", resultWidth)}|{LeftJustify("Max", resultWidth)}");
+                    ret.AppendLine($"{new String('-', counterWidth)}|{new String('-', resultWidth)}|{new String('-', resultWidth)}|{new String('-', resultWidth)}");
+
+
+                    ret.AppendLine(Print(defaultCounter, counterWidth, resultWidth));
+                    foreach (var counter in topCounters)
+                    {
+                        ret.AppendLine(Print(counter, counterWidth, resultWidth));
+                    }
+                    foreach (var counter in restCounters)
+                    {
+                        ret.AppendLine(Print(counter, counterWidth, resultWidth));
+                    }
                 }
             }
             return ret.ToString();
