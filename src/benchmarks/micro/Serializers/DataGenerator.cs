@@ -53,6 +53,8 @@ namespace MicroBenchmarks.Serializers
                 return (T)(object)new Hashtable(ValuesGenerator.ArrayOfUniqueValues<string>(100).ToDictionary(value => value));
             if (typeof(T) == typeof(LargeStructWithProperties))
                 return (T)(object)CreateLargeStructWithProperties();
+            if (typeof(T) == typeof(DateTimeOffset?))
+                return (T)(object)new DateTimeOffset(2021, 08, 13, 11, 11, 05, TimeSpan.Zero);
             if (typeof(T) == typeof(int))
                 return (T)(object)42;
 
