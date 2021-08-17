@@ -119,12 +119,12 @@ namespace Reporting
                 var counterWidth = Math.Max(test.Counters.Max(c => c.Name.Length) + 1, 15);
                 var resultWidth = Math.Max(test.Counters.Max(c => c.Results.Max().ToString("F3").Length + c.MetricName.Length) + 2, 15);
                 ret.AppendLine(test.Name);
-                ret.AppendLine($"{LeftJustify("Metric", counterWidth)}|{LeftJustify("Average", resultWidth)}|{LeftJustify("Min", resultWidth)}|{LeftJustify("Max", resultWidth)}");
+                ret.AppendLine($"{LeftJustify("Metric", counterWidth)}|{LeftJustify("Average", resultWidth)}|{LeftJustify("Min",resultWidth)}|{LeftJustify("Max", resultWidth)}");
                 ret.AppendLine($"{new String('-', counterWidth)}|{new String('-', resultWidth)}|{new String('-', resultWidth)}|{new String('-', resultWidth)}");
 
 
                 ret.AppendLine(Print(defaultCounter, counterWidth, resultWidth));
-                foreach (var counter in topCounters)
+                foreach(var counter in topCounters)
                 {
                     ret.AppendLine(Print(counter, counterWidth, resultWidth));
                 }
