@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -145,9 +146,17 @@ namespace ScenarioMeasurement
             KernelEvents.Add(keyword);
         }
 
+        // The release/3.1.4 pipeline may be using the code in the main branch for this check
         private bool LttngInstalled()
         {
-            return File.Exists("//usr/bin/lttng");
+            ProcessStartInfo procStartInfo = new ProcessStartInfo("modinfo", "lttng_probe_writeback");
+            Process proc = new Process() { StartInfo = procStartInfo, };
+            proc.StartInfo.RedirectStandardOutput = true;
+            proc.Start();
+            string result = proc.StandardOutput.ReadToEnd();
+            proc.WaitForExit();
+            // If the lttng_probe_writeback module is installed, the modinfo output will include the filename field
+            return result.Contains("filename:");
         }
 
         public enum KernelKeyword
