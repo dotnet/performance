@@ -146,6 +146,7 @@ namespace ScenarioMeasurement
             KernelEvents.Add(keyword);
         }
 
+        // The release/3.1.4 pipeline may be using the code in the main branch for this check
         private bool LttngInstalled()
         {
             ProcessStartInfo procStartInfo = new ProcessStartInfo("modinfo", "lttng_probe_writeback");
