@@ -9,6 +9,7 @@ using MicroBenchmarks;
 namespace System.Drawing.Tests
 {
     [BenchmarkCategory(Categories.Libraries)]
+    [OperatingSystemsFilter(allowed: true, platforms: OS.Windows)] 
     public class Perf_Graphics_Transforms
     {
         private Bitmap _image;
