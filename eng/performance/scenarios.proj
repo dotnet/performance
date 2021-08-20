@@ -18,7 +18,9 @@
     <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
     <RID>linux-$(Architecture)</RID>
   </PropertyGroup>
-
+  <PropertyGroup>
+    <EnableAzurePipelinesReporter>false</EnableAzurePipelinesReporter>
+  </PropertyGroup>
   <ItemDefinitionGroup>
       <HelixWorkItem>
       <Timeout>4:00</Timeout>
