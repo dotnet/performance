@@ -208,7 +208,7 @@ class RunCommand:
 
         retrycount = 0
         (returncode, quoted_cmdline) = self.__runinternal(working_directory)
-        while returncode not in self.success_exit_codes and retrycount < self.__retry:
+        while returncode not in self.success_exit_codes and retrycount != 0 and retrycount <= self.__retry:
             (returncode, _) = self.__runinternal(working_directory)
             retrycount += 1
 
