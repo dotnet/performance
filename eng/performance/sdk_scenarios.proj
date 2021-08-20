@@ -16,9 +16,7 @@
     <HelixPreCommands>$(HelixPreCommands);sudo apt-get update;chmod +x $HELIX_CORRELATION_PAYLOAD/startup/perfcollect</HelixPreCommands>
     <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
   </PropertyGroup>  
-  <PropertyGroup>
-    <EnableAzurePipelinesReporter>false</EnableAzurePipelinesReporter>
-  </PropertyGroup>
+
   <PropertyGroup>
     <FrameworkVersion>$(_Framework.Substring($([MSBuild]::Subtract($(_Framework.Length), 3))))</FrameworkVersion>
   </PropertyGroup>
