@@ -27,6 +27,10 @@ jobs:
             value: '--dotnet-versions %DOTNET_VERSION% --cli-source-info args --cli-branch %PERFLAB_BRANCH% --cli-commit-sha %PERFLAB_HASH% --cli-repository https://github.com/%PERFLAB_REPO% --cli-source-timestamp %PERFLAB_BUILDTIMESTAMP%'
           - name: AdditionalHelixPreCommands
             value: 'call %HELIX_CORRELATION_PAYLOAD%\tools\machine-setup.cmd'
+          - name: PreservePythonPath
+            value: 'set BACKUPPYPATH=%PYTHONPATH%'
+          - name: HelixPostCommand
+            value: 'set PYTHONPATH=%BACKUPPYPATH%'
           - name: Python
             value: 'py -3'
           - ${{ if ne(parameters.osVersion, 'RS1')}}:
@@ -40,6 +44,10 @@ jobs:
             value: '--dotnet-versions $DOTNET_VERSION --cli-source-info args --cli-branch $PERFLAB_BRANCH --cli-commit-sha $PERFLAB_HASH --cli-repository https://github.com/$PERFLAB_REPO --cli-source-timestamp $PERFLAB_BUILDTIMESTAMP'
           - name: AdditionalHelixPreCommands
             value: 'chmod +x ./tools/machine-setup.sh;. ./tools/machine-setup.sh'
+          - name: PreservePythonPath
+            value: 'export BACKUPPYPATH=$PYTHONPATH'
+          - name: HelixPostCommand
+            value: 'export PYTHONPATH=$BACKUPPYPATH'
           - name: Python
             value: python3
           - ${{ if eq(parameters.osVersion, '1804')}}:
@@ -60,7 +68,7 @@ jobs:
           - name: HelixApiAccessToken
             value: ''
           - name: HelixPreCommand
-            value: '$(AdditionalHelixPreCommands)'
+            value: '$(PreservePythonPath);$(AdditionalHelixPreCommands)'
           - name: HelixSourcePrefix
             value: "pr"
         - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
@@ -76,15 +84,10 @@ jobs:
             value: 'official'
           - ${{ if eq(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'set BACKUPPYPATH=%PYTHONPATH%;py -3 -m venv %HELIX_WORKITEM_PAYLOAD%\.venv;call %HELIX_WORKITEM_PAYLOAD%\.venv\Scripts\activate.bat;set PYTHONPATH=;py -3 -m pip install azure.storage.blob==12.0.0 --force-reinstall;py -3 -m pip install azure.storage.queue==12.0.0 --force-reinstall;set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
-            - name: HelixPostCommand
-              value: 'set PYTHONPATH=%BACKUPPYPATH%'
+              value: '$(PreservePythonPath);py -3 -m venv %HELIX_WORKITEM_PAYLOAD%\.venv;call %HELIX_WORKITEM_PAYLOAD%\.venv\Scripts\activate.bat;set PYTHONPATH=;py -3 -m pip install azure.storage.blob==12.0.0 --force-reinstall;py -3 -m pip install azure.storage.queue==12.0.0 --force-reinstall;set "PERFLAB_UPLOAD_TOKEN=$(PerfCommandUploadToken)";$(AdditionalHelixPreCommands)'
           - ${{ if ne(parameters.osName, 'windows') }}:
             - name: HelixPreCommand
-              value: 'export BACKUPPYPATH=$PYTHONPATH;sudo apt-get -y install python3-venv;python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv;. $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate;export PYTHONPATH=;python3 -m pip install -U pip;pip3 install azure.storage.blob==12.0.0 --force-reinstall;pip3 install azure.storage.queue==12.0.0 --force-reinstall;export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
-            - name: HelixPostCommand
-              value: 'export PYTHONPATH=$BACKUPPYPATH'
-
+              value: '$(PreservePythonPath);sudo apt-get -y install python3-venv;python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv;. $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate;export PYTHONPATH=;python3 -m pip install -U pip;pip3 install azure.storage.blob==12.0.0 --force-reinstall;pip3 install azure.storage.queue==12.0.0 --force-reinstall;export PERFLAB_UPLOAD_TOKEN="$(PerfCommandUploadTokenLinux)";$(AdditionalHelixPreCommands)'
           - group: DotNet-HelixApi-Access
           # perflab upload tokens still exist in this variable group
           - group: dotnet-benchview
