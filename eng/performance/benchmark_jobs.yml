@@ -28,9 +28,9 @@ jobs:
           - name: AdditionalHelixPreCommands
             value: 'call %HELIX_CORRELATION_PAYLOAD%\tools\machine-setup.cmd'
           - name: PreservePythonPath
-            value: 'set BACKUPPYPATH=%PYTHONPATH%'
+            value: 'set ORIGPYPATH=%PYTHONPATH%'
           - name: HelixPostCommand
-            value: 'set PYTHONPATH=%BACKUPPYPATH%'
+            value: 'set PYTHONPATH=%ORIGPYPATH%'
           - name: Python
             value: 'py -3'
           - ${{ if ne(parameters.osVersion, 'RS1')}}:
@@ -45,9 +45,9 @@ jobs:
           - name: AdditionalHelixPreCommands
             value: 'chmod +x ./tools/machine-setup.sh;. ./tools/machine-setup.sh'
           - name: PreservePythonPath
-            value: 'export BACKUPPYPATH=$PYTHONPATH'
+            value: 'export ORIGPYPATH=$PYTHONPATH'
           - name: HelixPostCommand
-            value: 'export PYTHONPATH=$BACKUPPYPATH'
+            value: 'export PYTHONPATH=$ORIGPYPATH'
           - name: Python
             value: python3
           - ${{ if eq(parameters.osVersion, '1804')}}:

@@ -29,9 +29,9 @@ jobs:
           - name: AdditionalHelixPreCommands
             value: 'call %HELIX_CORRELATION_PAYLOAD%\machine-setup$(ScriptExtension);xcopy %HELIX_CORRELATION_PAYLOAD%\NuGet.config %HELIX_WORKITEM_ROOT%'
           - name: PreservePythonPath
-            value: 'set BACKUPPYPATH=%PYTHONPATH%'
+            value: 'set ORIGPYPATH=%PYTHONPATH%'
           - name: HelixPostCommand
-            value: 'set PYTHONPATH=%BACKUPPYPATH%'
+            value: 'set PYTHONPATH=%ORIGPYPATH%'
           - name: Python
             value: 'py -3'
           - name: ArtifactsDirectory
@@ -44,9 +44,9 @@ jobs:
           - name: AdditionalHelixPreCommands
             value: 'chmod +x $HELIX_CORRELATION_PAYLOAD/machine-setup.sh;. $HELIX_CORRELATION_PAYLOAD/machine-setup$(ScriptExtension);cp $HELIX_CORRELATION_PAYLOAD/NuGet.config $HELIX_WORKITEM_ROOT'
           - name: PreservePythonPath
-            value: 'export BACKUPPYPATH=$PYTHONPATH'
+            value: 'export ORIGPYPATH=$PYTHONPATH'
           - name: HelixPostCommand
-            value: 'export PYTHONPATH=$BACKUPPYPATH'
+            value: 'export PYTHONPATH=$ORIGPYPATH'
           - name: Python
             value: python3
           - name: ArtifactsDirectory
