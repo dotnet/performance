@@ -56,7 +56,7 @@ namespace System.IO.Tests
         }
 
         [GlobalSetup(Targets = new[] { nameof(OpenClose), nameof(LockUnlock), nameof(SeekForward), nameof(SeekBackward), 
-            nameof(ReadByte), nameof(WriteByte), nameof(Flush), nameof(FlushAsync) })]
+            nameof(GetLength), nameof(ReadByte), nameof(WriteByte), nameof(Flush), nameof(FlushAsync) })]
         public void SetuOneKibibyteBenchmarks() => Setup(OneKibibyte );
 
         [Benchmark]
@@ -116,6 +116,23 @@ namespace System.IO.Tests
                 {
                     fileStream.Seek(offset, SeekOrigin.End);
                 }
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = OneKibibyte)]
+        [Arguments(FileShare.Read)]
+        [Arguments(FileShare.Write)]
+        public long GetLength(FileShare options) // since other benchmarks use "options" name, we use it as well to avoid introducing new column in the results
+        {
+            string filePath = _sourceFilePaths[OneKibibyte];
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, options, FourKibibytes, FileOptions.None))
+            {
+                long length = 0;
+                for (long i = 0; i < OneKibibyte; i++)
+                {
+                    length = fileStream.Length;
+                }
+                return length;
             }
         }
 
