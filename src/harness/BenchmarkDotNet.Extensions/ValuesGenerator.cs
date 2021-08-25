@@ -88,6 +88,18 @@ namespace BenchmarkDotNet.Extensions
             return dictionary;
         }
 
+        public static string[] ArrayOfStrings(int count, int minLength, int maxLength)
+        {
+            var random = new Random(Seed);
+
+            string[] strings = new string[count];
+            for (int i = 0; i < strings.Length; i++)
+            {
+                strings[i] = GenerateRandomString(random, minLength, maxLength);
+            }
+            return strings;
+        }
+
         private static T GenerateValue<T>(Random random)
         {
             if (typeof(T) == typeof(char))
