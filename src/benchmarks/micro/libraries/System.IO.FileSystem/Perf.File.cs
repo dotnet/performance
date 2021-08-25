@@ -26,6 +26,8 @@ namespace System.IO.Tests
         private string _testFilePath;
         private string[] _filesToRemove;
         private Dictionary<int, byte[]> _userBuffers;
+        private string[] _linesToAppend;
+        private Dictionary<int, string> _textToAppend;
 
         [GlobalSetup(Target = nameof(Exists))]
         public void SetupExists()
@@ -37,8 +39,8 @@ namespace System.IO.Tests
         [Benchmark]
         public void Exists() => File.Exists(_testFilePath); 
         
-        [GlobalCleanup(Target = nameof(Exists))]
-        public void CleanupExists() => File.Delete(_testFilePath);
+        [GlobalCleanup]
+        public void Cleanup() => File.Delete(_testFilePath);
 
         [IterationSetup(Target = nameof(Delete))]
         public void SetupDeleteIteration()
@@ -91,7 +93,81 @@ namespace System.IO.Tests
         public Task WriteAllBytesAsync(int size) => File.WriteAllBytesAsync(_testFilePath, _userBuffers[size]);
 #endif
 
-        [GlobalCleanup(Targets = new[] { nameof(WriteAllBytes), "WriteAllBytesAsync" })]
-        public void CleanupWriteAllBytes() => File.Delete(_testFilePath);
+        [GlobalSetup(Targets = new[] { nameof(AppendAllLines), "AppendAllLinesAsync" })]
+        public void SetupAppendAllLines()
+        {
+            _testFilePath = FileUtils.GetTestFilePath();
+            _linesToAppend = ValuesGenerator.ArrayOfStrings(count: 20, minLength: 20, maxLength: 80);
+        }
+
+        [Benchmark(OperationsPerInvoke = 1000)]
+        public void AppendAllLines()
+        {
+            for (int i = 0; i < 1000; i++)
+            {
+                File.AppendAllLines(_testFilePath, _linesToAppend);
+            }
+
+            // We can't use:
+            // - [GlobalCleanup] because it could be invoked after millions of invocations of this benchmark, which could consume entire disk space
+            // - [IterationSetup] because it would invoke the benchmark once per iteration: https://github.com/dotnet/performance/blob/main/docs/microbenchmark-design-guidelines.md#IterationSetup
+            // This is why we Delete the file from the benchmark itself, but add plenty of OperationsPerInvoke so it's amortized
+            File.Delete(_testFilePath);
+        }
+
+        [GlobalSetup(Targets = new[] { nameof(AppendAllText), "AppendAllTextAsync" })]
+        public void SetupAppendAllText()
+        {
+            _testFilePath = FileUtils.GetTestFilePath();
+            _textToAppend = new Dictionary<int, string>()
+            {
+                { 10, new string('a', 10) },
+                { 100, new string('a', 100) },
+                { 10_000, new string('a', 10_000) },
+            };
+        }
+
+        [Benchmark(OperationsPerInvoke = 1000)]
+        [Arguments(10)]
+        [Arguments(100)]
+        [Arguments(10_000)]
+        public void AppendAllText(int size)
+        {
+            string content = _textToAppend[size];
+            for (int i = 0; i < 1000; i++)
+            {
+                File.AppendAllText(_testFilePath, content);
+            }
+
+            File.Delete(_testFilePath); // see the comment in AppendAllLines
+        }
+
+#if !NETFRAMEWORK
+        [Benchmark(OperationsPerInvoke = 1000)]
+        public async Task AppendAllLinesAsync()
+        {
+            for (int i = 0; i < 1000; i++)
+            {
+                await File.AppendAllLinesAsync(_testFilePath, _linesToAppend);
+            }
+
+            File.Delete(_testFilePath); // see the comment in AppendAllLines
+        }
+
+        [Benchmark(OperationsPerInvoke = 1000)]
+        [Arguments(10)]
+        [Arguments(100)]
+        [Arguments(10_000)]
+        public async Task AppendAllTextAsync(int size)
+        {
+            string content = _textToAppend[size];
+            for (int i = 0; i < 1000; i++)
+            {
+                await File.AppendAllTextAsync(_testFilePath, content);
+            }
+
+            File.Delete(_testFilePath); // see the comment in AppendAllLines
+        }
+#endif
     }
 }

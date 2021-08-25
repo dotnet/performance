@@ -168,7 +168,7 @@ namespace System.IO.Tests
         }
 
         [GlobalSetup(Targets = new[] { nameof(Read), nameof(Read_NoBuffering), "ReadAsync", "ReadAsync_NoBuffering", 
-            nameof(Write), nameof(Write_NoBuffering), "WriteAsync", "WriteAsync_NoBuffering", nameof(CopyToFile), nameof(CopyToFileAsync) })]
+            nameof(Write), nameof(Write_NoBuffering), "WriteAsync", "WriteAsync_NoBuffering", nameof(CopyToFile), nameof(CopyToFileAsync), nameof(Append), "AppendAsync" })]
         public void SetupBigFileBenchmarks() => Setup(OneKibibyte, OneMibibyte, HundredMibibytes);
         
         public IEnumerable<object[]> SyncArguments()
@@ -222,17 +222,22 @@ namespace System.IO.Tests
         [Benchmark]
         [ArgumentsSource(nameof(SyncArguments))]
         public void Write(long fileSize, int userBufferSize, FileOptions options)
-            => Write(fileSize, userBufferSize, options, streamBufferSize: FourKibibytes);
+            => Write(FileMode.Create, fileSize, userBufferSize, options, streamBufferSize: FourKibibytes);
 
         [Benchmark]
         [ArgumentsSource(nameof(SyncArguments_NoBuffering))]
         public void Write_NoBuffering(long fileSize, int userBufferSize, FileOptions options)
-            => Write(fileSize, userBufferSize, options, streamBufferSize: 1);
+            => Write(FileMode.Create, fileSize, userBufferSize, options, streamBufferSize: 1);
 
-        private void Write(long fileSize, int userBufferSize, FileOptions options, int streamBufferSize)
+        [Benchmark]
+        [Arguments(OneMibibyte, FourKibibytes, FileOptions.DeleteOnClose)]
+        public void Append(long fileSize, int userBufferSize, FileOptions options)
+            => Write(FileMode.Append, fileSize, userBufferSize, options, streamBufferSize: FourKibibytes);
+
+        private void Write(FileMode mode, long fileSize, int userBufferSize, FileOptions options, int streamBufferSize)
         {
             byte[] userBuffer = _userBuffers[userBufferSize];
-            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, streamBufferSize, options))
+            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], mode, FileAccess.Write, FileShare.Read, streamBufferSize, options))
             {
                 for (int i = 0; i < fileSize / userBufferSize; i++)
                 {
@@ -301,19 +306,25 @@ namespace System.IO.Tests
         [ArgumentsSource(nameof(AsyncArguments))]
         [BenchmarkCategory(Categories.NoWASM)]
         public Task WriteAsync(long fileSize, int userBufferSize, FileOptions options)
-            => WriteAsync(fileSize, userBufferSize, options, streamBufferSize: FourKibibytes);
+            => WriteAsync(FileMode.Create, fileSize, userBufferSize, options, streamBufferSize: FourKibibytes);
 
         [Benchmark]
         [ArgumentsSource(nameof(AsyncArguments_NoBuffering))]
         [BenchmarkCategory(Categories.NoWASM)]
         public Task WriteAsync_NoBuffering(long fileSize, int userBufferSize, FileOptions options)
-            => WriteAsync(fileSize, userBufferSize, options, streamBufferSize: 1);
+            => WriteAsync(FileMode.Create, fileSize, userBufferSize, options, streamBufferSize: 1);
 
-        private async Task WriteAsync(long fileSize, int userBufferSize, FileOptions options, int streamBufferSize)
+        [Benchmark]
+        [Arguments(OneMibibyte, FourKibibytes, FileOptions.DeleteOnClose | FileOptions.Asynchronous)]
+        [BenchmarkCategory(Categories.NoWASM)]
+        public Task AppendAsync(long fileSize, int userBufferSize, FileOptions options)
+            => WriteAsync(FileMode.Append, fileSize, userBufferSize, options, streamBufferSize: FourKibibytes);
+
+        private async Task WriteAsync(FileMode mode, long fileSize, int userBufferSize, FileOptions options, int streamBufferSize)
         {
             CancellationToken cancellationToken = CancellationToken.None;
             Memory<byte> userBuffer = new Memory<byte>(_userBuffers[userBufferSize]);
-            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, streamBufferSize, options))
+            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], mode, FileAccess.Write, FileShare.Read, streamBufferSize, options))
             {
                 for (int i = 0; i < fileSize / userBufferSize; i++)
                 {
