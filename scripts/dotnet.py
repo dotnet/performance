@@ -362,7 +362,8 @@ class CSharpProject:
             working_directory: str,
             force: bool = False,
             exename: str = None,
-            language: str = None
+            language: str = None,
+            no_https: bool = False
             ):
         '''
         Creates a new project with the specified template
@@ -381,6 +382,9 @@ class CSharpProject:
 
         if language:
             cmdline += ['--language', language]
+
+        if no_https:
+            cmdline += ['--no-https']
 
         RunCommand(cmdline, verbose=verbose).run(
             working_directory
