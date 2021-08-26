@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using BenchmarkDotNet.Running;
 using System.IO;
 using BenchmarkDotNet.Extensions;
+using BenchmarkDotNet.Configs;
 
 namespace MicroBenchmarks
 {
@@ -40,14 +41,16 @@ namespace MicroBenchmarks
 
             return BenchmarkSwitcher
                 .FromAssembly(typeof(Program).Assembly)
-                .Run(argsList.ToArray(), RecommendedConfig.Create(
-                    artifactsPath: new DirectoryInfo(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "BenchmarkDotNet.Artifacts")), 
-                    mandatoryCategories: ImmutableHashSet.Create(Categories.Libraries, Categories.Runtime, Categories.ThirdParty),
-                    partitionCount: partitionCount,
-                    partitionIndex: partitionIndex,
-                    exclusionFilterValue: exclusionFilterValue,
-                    categoryExclusionFilterValue: categoryExclusionFilterValue,
-                    getDiffableDisasm: getDiffableDisasm))
+                .Run(argsList.ToArray(), 
+                    RecommendedConfig.Create(
+                        artifactsPath: new DirectoryInfo(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "BenchmarkDotNet.Artifacts")), 
+                        mandatoryCategories: ImmutableHashSet.Create(Categories.Libraries, Categories.Runtime, Categories.ThirdParty),
+                        partitionCount: partitionCount,
+                        partitionIndex: partitionIndex,
+                        exclusionFilterValue: exclusionFilterValue,
+                        categoryExclusionFilterValue: categoryExclusionFilterValue,
+                        getDiffableDisasm: getDiffableDisasm)
+                    .AddValidator(new NoWasmValidator(Categories.NoWASM)))
                 .ToExitCode();
         }
     }
