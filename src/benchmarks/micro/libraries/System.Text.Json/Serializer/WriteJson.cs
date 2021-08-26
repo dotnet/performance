@@ -56,6 +56,7 @@ namespace System.Text.Json.Serialization.Tests
         public byte[] SerializeToUtf8Bytes() => JsonSerializer.SerializeToUtf8Bytes(_value);
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
         public async Task SerializeToStream()
         {
             _memoryStream.Position = 0;

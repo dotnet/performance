@@ -9,7 +9,7 @@ using MicroBenchmarks;
 
 namespace System.IO.Pipelines.Tests
 {
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class Perf_Pipe
     {
         private const int InnerIterationCount = 10_000;

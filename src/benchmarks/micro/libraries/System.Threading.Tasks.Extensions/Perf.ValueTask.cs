@@ -10,7 +10,7 @@ using MicroBenchmarks;
 
 namespace System.Threading.Tasks
 {
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     [MinWarmupCount(2, forceAutoWarmup: true)] // these benchmarks require more warmups than in our default config
     [MaxWarmupCount(10, forceAutoWarmup: true)]
     public class ValueTaskPerfTest
@@ -80,7 +80,6 @@ namespace System.Threading.Tasks
         }
 
         [Benchmark]
-        [BenchmarkCategory(Categories.NoWASM)]
         public async Task CreateAndAwait_FromYieldingAsyncMethod()
         {
             await new ValueTask<int>(YieldOnce());

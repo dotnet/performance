@@ -55,7 +55,7 @@ namespace System.Text.Json.Serialization.Tests
         [Benchmark]
         public T DeserializeFromUtf8Bytes() => JsonSerializer.Deserialize<T>(_utf8Serialized);
 
-        [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
+        [BenchmarkCategory(Categories.Libraries, Categories.JSON, Categories.NoWASM)]
         [Benchmark]
         public async Task<T> DeserializeFromStream()
         {
