@@ -115,7 +115,7 @@ namespace System.IO.Tests
             File.Delete(_testFilePath);
         }
 
-        [GlobalSetup(Targets = new[] { nameof(AppendAllText), "AppendAllTextAsync" })]
+        [GlobalSetup(Targets = new[] { nameof(AppendAllText), "AppendAllTextAsync", nameof(WriteAllText), "WriteAllTextAsync" })]
         public void SetupAppendAllText()
         {
             _testFilePath = FileUtils.GetTestFilePath();
@@ -124,11 +124,11 @@ namespace System.IO.Tests
                 { 10, new string('a', 10) },
                 { 100, new string('a', 100) },
                 { 10_000, new string('a', 10_000) },
+                { 100_000, new string('a', 100_000) },
             };
         }
 
         [Benchmark(OperationsPerInvoke = 1000)]
-        [Arguments(10)]
         [Arguments(100)]
         [Arguments(10_000)]
         public void AppendAllText(int size)
@@ -141,6 +141,12 @@ namespace System.IO.Tests
 
             File.Delete(_testFilePath); // see the comment in AppendAllLines
         }
+
+        [Benchmark]
+        [Arguments(100)]
+        [Arguments(10_000)]
+        [Arguments(100_000)]
+        public void WriteAllText(int size) => File.WriteAllText(_testFilePath, _textToAppend[size]);
 
 #if !NETFRAMEWORK
         [BenchmarkCategory(Categories.NoWASM)]
@@ -157,7 +163,6 @@ namespace System.IO.Tests
 
         [BenchmarkCategory(Categories.NoWASM)]
         [Benchmark(OperationsPerInvoke = 1000)]
-        [Arguments(10)]
         [Arguments(100)]
         [Arguments(10_000)]
         public async Task AppendAllTextAsync(int size)
@@ -170,6 +175,13 @@ namespace System.IO.Tests
 
             File.Delete(_testFilePath); // see the comment in AppendAllLines
         }
+
+        [BenchmarkCategory(Categories.NoWASM)]
+        [Benchmark]
+        [Arguments(100)]
+        [Arguments(10_000)]
+        [Arguments(100_000)]
+        public Task WriteAllTextAsync(int size) => File.WriteAllTextAsync(_testFilePath, _textToAppend[size]);
 #endif
     }
 }
