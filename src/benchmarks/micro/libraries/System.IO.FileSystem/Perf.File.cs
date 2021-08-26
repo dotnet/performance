@@ -143,6 +143,7 @@ namespace System.IO.Tests
         }
 
 #if !NETFRAMEWORK
+        [BenchmarkCategory(Categories.NoWASM)]
         [Benchmark(OperationsPerInvoke = 1000)]
         public async Task AppendAllLinesAsync()
         {
@@ -154,6 +155,7 @@ namespace System.IO.Tests
             File.Delete(_testFilePath); // see the comment in AppendAllLines
         }
 
+        [BenchmarkCategory(Categories.NoWASM)]
         [Benchmark(OperationsPerInvoke = 1000)]
         [Arguments(10)]
         [Arguments(100)]
