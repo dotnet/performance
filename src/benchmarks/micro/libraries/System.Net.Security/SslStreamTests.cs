@@ -129,7 +129,7 @@ namespace System.Net.Security.Tests
         public Task TLS12HandshakeECDSA256CertAsync() => HandshakeAsync(_ec256Cert, SslProtocols.Tls12);
 
         [Benchmark]
-        [AllowedOperatingSystems("Not supported on Windows at the moment.", OS.Linux)]
+        [AllowedOperatingSystems("Not supported on Windows at the moment.", BenchmarkDotNet.Extensions.OS.Linux)]
         public Task TLS12HandshakeECDSA512CertAsync() => HandshakeAsync(_ec512Cert, SslProtocols.Tls12);
 
         [Benchmark]
