@@ -35,7 +35,6 @@ schedules:
   branches:
     include:
     - main
-    - release/3.1.4xx
   always: true
 
 jobs:
@@ -87,7 +86,6 @@ jobs:
       projectFile: blazor_scenarios.proj
       channels:
         - main
-        - release/5.0.1xx
 
   # Windows x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -146,9 +144,6 @@ jobs:
       runCategories: 'runtime libraries' 
       channels:
         - main
-        - release/5.0.1xx
-        #- release/3.1.3xx
-        #- 2.1
 
   # Windows x64 net461 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -179,7 +174,6 @@ jobs:
       runCategories: 'runtime libraries'
       channels: # for public jobs we want to make sure that the PRs don't break x86
         - main
-        - release/5.0.1xx
 
   # Windows x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -195,8 +189,6 @@ jobs:
       runCategories: 'mldotnet'
       channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
         - main
-        - release/5.0.1xx
-        #- release/3.1.3xx
 
   # Windows x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -212,8 +204,6 @@ jobs:
       runCategories: 'roslyn'
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
         - main
-        - release/5.0.1xx
-        #- release/3.1.3xx
         
   # Ubuntu 1804 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -230,9 +220,6 @@ jobs:
       runCategories: 'runtime libraries'
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - main
-        - release/5.0.1xx
-        #- release/3.1.3xx
-        #- 2.1
 
   # Ubuntu 1804 x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -249,8 +236,6 @@ jobs:
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
       channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
         - main
-        - release/5.0.1xx
-        #- release/3.1.3xx
 
   # Ubuntu 1804 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -267,8 +252,6 @@ jobs:
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
         - main
-        - release/5.0.1xx
-        #- release/3.1.3xx
 
 ###########################################
 # Private Jobs
@@ -305,22 +288,22 @@ jobs:
       channels:
         - main
 
-  # Windows x64 micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: windows
-      osVersion: 19H1
-      kind: micro
-      architecture: x64
-      pool: Hosted VS2017
-      machinePool: Tiger
-      queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'runtime libraries'
-      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        #- main
-        - release/5.0.1xx
-        #- release/3.1.2xx
+  # # Windows x64 micro benchmarks
+  # - template: /eng/performance/benchmark_jobs.yml
+  #   parameters:
+  #     osName: windows
+  #     osVersion: 19H1
+  #     kind: micro
+  #     architecture: x64
+  #     pool: Hosted VS2017
+  #     machinePool: Tiger
+  #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+  #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+  #     runCategories: 'runtime libraries'
+  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+  #       #- main
+  #       - release/5.0.1xx
+  #       #- release/3.1.2xx
 
   # # Windows AMD64 specific micro benchmarks
   # - template: /eng/performance/benchmark_jobs.yml
@@ -339,74 +322,74 @@ jobs:
   #       - release/5.0.1xx
   #       #- release/3.1.2xx
       
-  # Windows x86 micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: windows
-      osVersion: 19H1
-      kind: micro
-      architecture: x86
-      pool: Hosted VS2017
-      machinePool: Tiger
-      queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'runtime libraries'
-      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        #- main
-        - release/5.0.1xx
-        #- release/3.1.2xx
+  # # Windows x86 micro benchmarks
+  # - template: /eng/performance/benchmark_jobs.yml
+  #   parameters:
+  #     osName: windows
+  #     osVersion: 19H1
+  #     kind: micro
+  #     architecture: x86
+  #     pool: Hosted VS2017
+  #     machinePool: Tiger
+  #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+  #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+  #     runCategories: 'runtime libraries'
+  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+  #       #- main
+  #       - release/5.0.1xx
+  #       #- release/3.1.2xx
 
-  # Windows x64 ML.NET benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: windows
-      osVersion: 19H1
-      kind: mlnet
-      architecture: x64
-      pool: Hosted VS2017
-      machinePool: Tiger
-      queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-      csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-      runCategories: 'mldotnet'
-      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        #- main
-        - release/5.0.1xx
-        #- release/3.1.2xx
+  # # Windows x64 ML.NET benchmarks
+  # - template: /eng/performance/benchmark_jobs.yml
+  #   parameters:
+  #     osName: windows
+  #     osVersion: 19H1
+  #     kind: mlnet
+  #     architecture: x64
+  #     pool: Hosted VS2017
+  #     machinePool: Tiger
+  #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+  #     csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
+  #     runCategories: 'mldotnet'
+  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+  #       #- main
+  #       - release/5.0.1xx
+  #       #- release/3.1.2xx
 
-  # Windows x64 Roslyn benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: windows
-      osVersion: 19H1
-      kind: roslyn
-      architecture: x64
-      pool: Hosted VS2017
-      machinePool: Tiger
-      queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
-      csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
-      runCategories: 'roslyn'
-      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        #- main
-        - release/5.0.1xx
-        #- release/3.1.2xx
+  # # Windows x64 Roslyn benchmarks
+  # - template: /eng/performance/benchmark_jobs.yml
+  #   parameters:
+  #     osName: windows
+  #     osVersion: 19H1
+  #     kind: roslyn
+  #     architecture: x64
+  #     pool: Hosted VS2017
+  #     machinePool: Tiger
+  #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
+  #     csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
+  #     runCategories: 'roslyn'
+  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+  #       #- main
+  #       - release/5.0.1xx
+  #       #- release/3.1.2xx
 
-  # Ubuntu 1804 x64 micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: ubuntu
-      osVersion: 1804
-      kind: micro
-      architecture: x64
-      pool: Hosted Ubuntu 1604
-      machinePool: Tiger
-      queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-      container: ubuntu_x64_build_container
-      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'runtime libraries'
-      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        #- main
-        - release/5.0.1xx
-        #- release/3.1.2xx
+  # # Ubuntu 1804 x64 micro benchmarks
+  # - template: /eng/performance/benchmark_jobs.yml
+  #   parameters:
+  #     osName: ubuntu
+  #     osVersion: 1804
+  #     kind: micro
+  #     architecture: x64
+  #     pool: Hosted Ubuntu 1604
+  #     machinePool: Tiger
+  #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+  #     container: ubuntu_x64_build_container
+  #     csproj: src/benchmarks/micro/MicroBenchmarks.csproj
+  #     runCategories: 'runtime libraries'
+  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+  #       #- main
+  #       - release/5.0.1xx
+  #       #- release/3.1.2xx
 
   # # Ubuntu 1804 AMD64 specific micro benchmarks
   # - template: /eng/performance/benchmark_jobs.yml
@@ -426,41 +409,41 @@ jobs:
   #       - release/5.0.1xx
   #       #- release/3.1.2xx
 
-  # Ubuntu 1804 x64 ML.NET benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: ubuntu
-      osVersion: 1804
-      kind: mlnet
-      architecture: x64
-      pool: Hosted Ubuntu 1604
-      machinePool: Tiger
-      queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-      container: ubuntu_x64_build_container
-      csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
-      runCategories: 'mldotnet'
-      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        #- main
-        - release/5.0.1xx
-        #- release/3.1.2xx
+  # # Ubuntu 1804 x64 ML.NET benchmarks
+  # - template: /eng/performance/benchmark_jobs.yml
+  #   parameters:
+  #     osName: ubuntu
+  #     osVersion: 1804
+  #     kind: mlnet
+  #     architecture: x64
+  #     pool: Hosted Ubuntu 1604
+  #     machinePool: Tiger
+  #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+  #     container: ubuntu_x64_build_container
+  #     csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
+  #     runCategories: 'mldotnet'
+  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+  #       #- main
+  #       - release/5.0.1xx
+  #       #- release/3.1.2xx
   
-  # Ubuntu 1804 x64 Roslyn benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: ubuntu
-      osVersion: 1804
-      kind: roslyn
-      architecture: x64
-      pool: Hosted Ubuntu 1604
-      machinePool: Tiger
-      queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-      container: ubuntu_x64_build_container
-      csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
-      runCategories: 'roslyn'
-      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-        #- main
-        - release/5.0.1xx
-        #- release/3.1.2xx
+  # # Ubuntu 1804 x64 Roslyn benchmarks
+  # - template: /eng/performance/benchmark_jobs.yml
+  #   parameters:
+  #     osName: ubuntu
+  #     osVersion: 1804
+  #     kind: roslyn
+  #     architecture: x64
+  #     pool: Hosted Ubuntu 1604
+  #     machinePool: Tiger
+  #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+  #     container: ubuntu_x64_build_container
+  #     csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
+  #     runCategories: 'roslyn'
+  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+  #       #- main
+  #       - release/5.0.1xx
+  #       #- release/3.1.2xx
 
 ################################################
 # Scheduled Private jobs
@@ -527,7 +510,6 @@ jobs:
       projectFile: blazor_scenarios.proj
       channels:
         - main
-        #- release/5.0.1xx
 
 ################################################
 # Manually Triggered Job
