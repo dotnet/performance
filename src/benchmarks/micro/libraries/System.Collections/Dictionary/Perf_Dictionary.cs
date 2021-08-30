@@ -17,11 +17,14 @@ namespace System.Collections.Tests
 
         private Dictionary<int, int> _dict;
 
-        [GlobalSetup(Target = nameof(ContainsValue))]
+        [GlobalSetup]
         public void InitializeContainsValue()
         {
             _dict = Enumerable.Range(0, 3_000).ToDictionary(i => i);
         }
+
+        [Benchmark]
+        public object Clone() => new Dictionary<int, int>(_dict);
 
         [Benchmark]
         public int ContainsValue()
