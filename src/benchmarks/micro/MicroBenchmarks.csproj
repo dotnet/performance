@@ -111,7 +111,7 @@
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '6.0')">
     <Compile Remove="libraries\System.Collections\PriorityQueue\Perf_PriorityQueue.cs" />
-    <Compile Remove="Common\AlignedMemory.cs" />
+    <Compile Remove="libraries\Common\AlignedMemory.cs" />
     <Compile Remove="libraries\System.IO.FileSystem\Perf.RandomAccess.cs" />
     <Compile Remove="libraries\System.IO.FileSystem\Perf.RandomAccess.NoBuffering.cs" />
   </ItemGroup>
