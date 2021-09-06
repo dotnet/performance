@@ -23,8 +23,8 @@ namespace System.IO.Tests
         private const int HundredMibibytes = OneMibibyte * 100;
 
         private Dictionary<long, string> _sourceFilePaths, _destinationFilePaths;
-
         private Dictionary<int, byte[]> _userBuffers;
+        private string _nonExistingFile;
 
         private void Setup(params long[] fileSizes)
         {
@@ -168,8 +168,7 @@ namespace System.IO.Tests
         }
 
         [GlobalSetup(Targets = new[] { nameof(Read), nameof(Read_NoBuffering), "ReadAsync", "ReadAsync_NoBuffering", 
-            nameof(Write), nameof(Write_NoBuffering), "WriteAsync", "WriteAsync_NoBuffering", nameof(CopyToFile), nameof(CopyToFileAsync), 
-            nameof(Append), "AppendAsync", "Write_NoBuffering_PreallocationSize", "WriteAsync_NoBuffering_PreallocationSize" })]
+            nameof(Write), nameof(Write_NoBuffering), "WriteAsync", "WriteAsync_NoBuffering", nameof(CopyToFile), nameof(CopyToFileAsync), nameof(Append), "AppendAsync" })]
         public void SetupBigFileBenchmarks() => Setup(OneKibibyte, OneMibibyte, HundredMibibytes);
         
         public IEnumerable<object[]> SyncArguments()
@@ -336,15 +335,31 @@ namespace System.IO.Tests
 #endif
 
 #if NET6_0_OR_GREATER // APIs added in .NET 6
+        [GlobalSetup(Targets = new[] { nameof(Write_NoBuffering_PreallocationSize), nameof(WriteAsync_NoBuffering_PreallocationSize) })]
+        public void SetupNonExistingFile()
+        {
+            _userBuffers = new Dictionary<int, byte[]>()
+            {
+                { SixteenKibibytes, ValuesGenerator.Array<byte>(SixteenKibibytes) },
+            };
+
+            string filePath = FileUtils.GetTestFilePath();
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+            _nonExistingFile = filePath;
+        }
+
         [Benchmark]
-        [Arguments(OneMibibyte, SixteenKibibytes, FileOptions.DeleteOnClose)]
-        [Arguments(HundredMibibytes, SixteenKibibytes, FileOptions.DeleteOnClose)]
+        [Arguments(OneMibibyte, SixteenKibibytes, FileOptions.None)]
+        [Arguments(HundredMibibytes, SixteenKibibytes, FileOptions.None)]
         public void Write_NoBuffering_PreallocationSize(long fileSize, int userBufferSize, FileOptions options)
         {
             byte[] userBuffer = _userBuffers[userBufferSize];
-            FileStreamOptions fsOptions = new () { Mode = FileMode.OpenOrCreate, Access = FileAccess.Write, Share = FileShare.Read, 
-                BufferSize = 0, Options = options, PreallocationSize = fileSize };
-            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], fsOptions))
+            FileStreamOptions fsOptions = new () { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None,
+                BufferSize = 0, Options = options | FileOptions.DeleteOnClose, PreallocationSize = fileSize };
+            using (FileStream fileStream = new FileStream(_nonExistingFile, fsOptions))
             {
                 for (int i = 0; i < fileSize / userBufferSize; i++)
                 {
@@ -355,15 +370,15 @@ namespace System.IO.Tests
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoWASM)]
-        [Arguments(OneMibibyte, SixteenKibibytes, FileOptions.DeleteOnClose | FileOptions.Asynchronous)]
-        [Arguments(HundredMibibytes, SixteenKibibytes, FileOptions.DeleteOnClose | FileOptions.Asynchronous)]
+        [Arguments(OneMibibyte, SixteenKibibytes, FileOptions.Asynchronous)]
+        [Arguments(HundredMibibytes, SixteenKibibytes, FileOptions.Asynchronous)]
         public async Task WriteAsync_NoBuffering_PreallocationSize(long fileSize, int userBufferSize, FileOptions options)
         {
             CancellationToken cancellationToken = CancellationToken.None;
             Memory<byte> userBuffer = new Memory<byte>(_userBuffers[userBufferSize]);
-            FileStreamOptions fsOptions = new () { Mode = FileMode.OpenOrCreate, Access = FileAccess.Write, Share = FileShare.Read, 
-                BufferSize = 0, Options = options, PreallocationSize = fileSize };
-            using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], fsOptions))
+            FileStreamOptions fsOptions = new () { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None,
+                BufferSize = 0, Options = options | FileOptions.DeleteOnClose, PreallocationSize = fileSize };
+            using (FileStream fileStream = new FileStream(_nonExistingFile, fsOptions))
             {
                 for (int i = 0; i < fileSize / userBufferSize; i++)
                 {
