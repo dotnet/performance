@@ -24,7 +24,6 @@ namespace System.IO.Tests
 
         private Dictionary<long, string> _sourceFilePaths, _destinationFilePaths;
         private Dictionary<int, byte[]> _userBuffers;
-        private string _nonExistingFile;
 
         private void Setup(params long[] fileSizes)
         {
@@ -335,6 +334,8 @@ namespace System.IO.Tests
 #endif
 
 #if NET6_0_OR_GREATER // APIs added in .NET 6
+        private string _nonExistingFile;
+
         [GlobalSetup(Targets = new[] { nameof(Write_NoBuffering_PreallocationSize), nameof(WriteAsync_NoBuffering_PreallocationSize) })]
         public void SetupNonExistingFile()
         {
