@@ -52,7 +52,7 @@ namespace System.Buffers.Tests
         [Benchmark(OperationsPerInvoke = 16)]
         public int FirstArray() => First(new ReadOnlySequence<T>(_array));
 
-#if !NETFRAMEWORK && !NETCOREAPP2_1
+#if !NETFRAMEWORK
         [Benchmark(OperationsPerInvoke = 16)]
         public int FirstSpanArray() => FirstSpan(new ReadOnlySequence<T>(_array));
 
