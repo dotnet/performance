@@ -338,7 +338,9 @@ namespace System.IO
                 if (Interlocked.Exchange(ref _hasWaiter, 0) == 1)
                 {
                     Debug.Assert(_waitSourceCancellationToken != default);
-		    _waitSource.SetException(ExceptionDispatchInfo.SetCurrentStackTrace(new OperationCanceledException(_waitSourceCancellationToken)));
+#if NET5_0_OR_GREATER // API introduced in .NET 5
+                    _waitSource.SetException(ExceptionDispatchInfo.SetCurrentStackTrace(new OperationCanceledException(_waitSourceCancellationToken)));
+#endif
                 }
             }
 
