@@ -38,7 +38,7 @@ namespace System.IO.Tests
 
         public override void WriteByte(byte value) { }
 
-#if NETCOREAPP2_1_OR_GREATER // these virtual methods only exist in .NET Core 2.1+
+#if !NETFRAMEWORK // these virtual methods only exist in .NET Core 2.1+
         public override void Write(ReadOnlySpan<byte> buffer) { }
 
         public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default) => new ValueTask(Task.CompletedTask);

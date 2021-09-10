@@ -21,10 +21,8 @@ namespace System.Reflection
         [Benchmark]
         public object CreateInstanceType() => System.Activator.CreateInstance(typeof(T));
 
-#if !NETCOREAPP2_1 // API available in Full .NET Framework and .NET Core 3.0+
         [Benchmark]
         public object CreateInstanceNames() => System.Activator.CreateInstance(_assemblyName, _typeName);
-#endif
     }
 
     public class EmptyClass { }

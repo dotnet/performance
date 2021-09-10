@@ -70,7 +70,7 @@ dotnet build -c Release
 If you don't want to install all of them and just run the benchmarks for selected runtime(s), you need to manually edit the [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) file.
 
 ```diff
--<TargetFrameworks>netcoreapp2.1;netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+-<TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
 +<TargetFrameworks>net6.0</TargetFrameworks>
 ```
 
@@ -285,7 +285,7 @@ M00_L00:
 
 The `--runtimes` or just `-r` allows you to run the benchmarks for **multiple Runtimes**.
 
-Available options are: Mono, CoreRT, net461, net462, net47, net471, net472, netcoreapp2.1, netcoreapp3.1, net5.0 and net6.0.
+Available options are: Mono, CoreRT, net461, net462, net47, net471, net472, netcoreapp3.1, net5.0 and net6.0.
 
 Example: run the benchmarks for .NET 5.0 and 6.0:
 
@@ -377,5 +377,5 @@ More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/7
 To run benchmarks with private CoreRT build you need to provide the `IlcPath`. Example:
 
 ```cmd
-dotnet run -c Release -f netcoreapp2.1 -- --ilcPath C:\Projects\corert\bin\Windows_NT.x64.Release
+dotnet run -c Release -f net6.0 -- --ilcPath C:\Projects\corert\bin\Windows_NT.x64.Release
 ```
