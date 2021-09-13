@@ -178,6 +178,26 @@ namespace System.Text.Tests
             return builder;
         }
 
+        // on .NET 6+, interpolated string handlers make appending more efficient by avoiding boxing and using ISpanFormattable.
+        [Benchmark]
+        public StringBuilder Append_ValueTypes_Interpolated()
+        {
+            var builder = new StringBuilder();
+
+            var dateTime = new DateTime(2018, 12, 14);
+            var timeSpan = new TimeSpan(1, 2, 0);
+            var dateTimeOffset = new DateTimeOffset(dateTime, timeSpan);
+            var guid = new Guid(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+
+            // to amortize the cost of creating the value types we add them few times
+            for (int i = 1; i <= 4; i++)
+            {
+                builder.Append($"{guid} {dateTime} {timeSpan} {dateTimeOffset}");
+            }
+
+            return builder;
+        }
+
         [Benchmark]
         public StringBuilder Append_Memory()
         {
@@ -188,6 +208,46 @@ namespace System.Text.Tests
             builder.Append(memory); builder.Append(memory); builder.Append(memory); builder.Append(memory);
             builder.Append(memory); builder.Append(memory); builder.Append(memory); builder.Append(memory);
             builder.Append(memory); builder.Append(memory); builder.Append(memory); builder.Append(memory);
+
+            return builder;
+        }
+
+#if !NETFRAMEWORK
+        [Benchmark]
+        public StringBuilder Append_Span()
+        {
+            ReadOnlySpan<char> span = _string100.AsSpan();
+            StringBuilder builder = new StringBuilder();
+
+            builder.Append(span); builder.Append(span); builder.Append(span); builder.Append(span);
+            builder.Append(span); builder.Append(span); builder.Append(span); builder.Append(span);
+            builder.Append(span); builder.Append(span); builder.Append(span); builder.Append(span);
+            builder.Append(span); builder.Append(span); builder.Append(span); builder.Append(span);
+
+            return builder;
+        }
+#endif
+
+        [Benchmark]
+        public StringBuilder Insert_Primitives()
+        {
+            StringBuilder builder = new StringBuilder();
+
+            for (int i = 1; i <= 10; i++)
+            {
+                builder.Insert(builder.Length / i, true);
+                builder.Insert(builder.Length / i, sbyte.MaxValue);
+                builder.Insert(builder.Length / i, byte.MaxValue);
+                builder.Insert(builder.Length / i, short.MaxValue);
+                builder.Insert(builder.Length / i, ushort.MaxValue);
+                builder.Insert(builder.Length / i, int.MaxValue);
+                builder.Insert(builder.Length / i, uint.MaxValue);
+                builder.Insert(builder.Length / i, long.MaxValue);
+                builder.Insert(builder.Length / i, ulong.MaxValue);
+                builder.Insert(builder.Length / i, double.MaxValue);
+                builder.Insert(builder.Length / i, float.MaxValue);
+                builder.Insert(builder.Length / i, decimal.MaxValue);
+            }
 
             return builder;
         }
