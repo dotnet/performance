@@ -116,24 +116,6 @@ class StartupWrapper(object):
             RunCommand(startup_args, verbose=True).run()
         except CalledProcessError:
             getLogger().info("Run failure registered")
-            if runninginlab():
-                upload_container = 'failedresults'
-                reportdir = os.path.join(
-                    TRACEDIR,
-                    'FailureReporter')
-                os.makedirs(reportdir)
-                reportjson = os.path.join(
-                    os.getcwd(),
-                    reportdir, 
-                    'failure-report.json')
-                cmdline = [
-                    "FailureReporting%s" % extension(), reportjson
-                ]
-                reporterpath = os.path.join(helixpayload(), 'FailureReporter')
-                if not os.path.exists(reporterpath):
-                    raise FileNotFoundError
-                getLogger().info("Generating failure results at " + reportjson)
-                RunCommand(cmdline, verbose=True).run(reporterpath)
             # rethrow the original exception 
             raise
 

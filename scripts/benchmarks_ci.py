@@ -236,28 +236,6 @@ def __main(args: list) -> int:
                 '*perf-lab-report.json')
         except CalledProcessError:
             getLogger().info("Run failure registered")
-            if runninginlab():
-                upload_container = 'failedresults'
-                reportdir = os.path.join(
-                    get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
-                    'FailureReporter')
-                if not os.path.exists(reportdir):
-                    os.makedirs(reportdir)
-                globpath = os.path.join(
-                    reportdir, 
-                    'failure-report.json')
-                
-                cmdline = [
-                    "FailureReporting%s" % extension(), globpath
-                ]
-                reporterpath = os.path.join(helixpayload(), 'FailureReporter')
-                if not os.path.exists(reporterpath):
-                    getLogger().error("can't find file {0}.format(reporterpath)")
-                else:
-                    getLogger().info("Generating failure results at " + globpath)
-                    RunCommand(cmdline, verbose=True).run(reporterpath)
-            else:
-                args.upload_to_perflab_container = False
             # rethrow the caught CalledProcessError exception so that the exception being bubbled up correctly.
             raise
 
