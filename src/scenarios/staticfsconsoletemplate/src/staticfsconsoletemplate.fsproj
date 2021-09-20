@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <RootNamespace>staticvbconsoletemplate</RootNamespace>
+    <RootNamespace>staticfsconsoletemplate</RootNamespace>
     <TargetFramework>$FRAMEWORK</TargetFramework>
   </PropertyGroup>
 
