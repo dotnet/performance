@@ -6,4 +6,8 @@
     <TargetFramework>$FRAMEWORK</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
 </Project>
