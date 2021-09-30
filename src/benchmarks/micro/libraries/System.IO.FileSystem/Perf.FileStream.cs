@@ -24,6 +24,7 @@ namespace System.IO.Tests
 
         private Dictionary<long, string> _sourceFilePaths, _destinationFilePaths;
         private Dictionary<int, byte[]> _userBuffers;
+        private FileStream fileStreamHolder;
 
         private void Setup(params long[] fileSizes)
         {
@@ -141,14 +142,14 @@ namespace System.IO.Tests
         public int ReadByte(long fileSize, FileOptions options)
         {
             int result = default;
-            using (FileStream fileStream = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
-            {
-                for (long i = 0; i < fileSize; i++)
-                {
-                    result += fileStream.ReadByte();
-                }
+            if(fileStreamHolder == default(FileStream)){
+                fileStreamHolder = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options);
             }
-
+            fileStreamHolder.Position = 0;
+            for (long i = 0; i < fileSize; i++)
+            {
+                result += fileStreamHolder.ReadByte();
+            }
             return result;
         }
 
