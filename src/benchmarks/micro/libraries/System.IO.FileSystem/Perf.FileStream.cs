@@ -46,6 +46,12 @@ namespace System.IO.Tests
             }
         }
 
+        [GlobalCleanup(Targets = new[] {nameof(ReadByte)})]
+        public void FileStreamCleanup() {
+            fileStreamHolder.Dispose();
+        }
+
+
         [GlobalCleanup]
         public void Cleanup()
         {
