@@ -16,6 +16,10 @@ class ChannelMap():
             'tfm': 'net6.0',
             'branch': 'master'
         },
+        'release/6.0':{
+            'tfm': 'net6.0',
+            'branch': 'release/6.0'
+        },
         '5.0':{
             'tfm': 'net5.0',
             'branch': 'release/5.0'
