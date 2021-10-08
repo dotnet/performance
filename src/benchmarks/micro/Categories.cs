@@ -25,6 +25,8 @@ namespace MicroBenchmarks
         public const string Benchstones = "Benchstones";
         public const string BenchF = "BenchF";
         public const string BenchI = "BenchI";
+        public const string MDBenchF = "MDBenchF";
+        public const string MDBenchI = "MDBenchI";
         public const string Inlining = "Inlining";
         public const string V8 = "V8";
         public const string Perflab = "Perflab";
