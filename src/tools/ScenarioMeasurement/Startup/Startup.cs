@@ -233,7 +233,7 @@ namespace ScenarioMeasurement
             Util.Init();
 
             // Warm up iteration
-            if (warmup)
+            if (warmup && !skipMeasurementIteration)
             {
                 logger.LogIterationHeader("Warm up");
                 if (!RunIteration(setupProcHelper, TestProcess, waitForSteadyState, innerLoopProcHelper, waitForRecompile, secondTestProcess, cleanupProcHelper, logger, hotReloadIters).Success)
