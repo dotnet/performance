@@ -10,7 +10,7 @@ from stat import S_IWRITE
 from subprocess import CalledProcessError
 from subprocess import list2cmdline
 from subprocess import PIPE, DEVNULL
-from subprocess import Popen
+from subprocess import Popen, run
 from subprocess import STDOUT
 
 import os
@@ -179,6 +179,10 @@ class RunCommand:
     def verbose(self) -> bool:
         '''Enables/Disables verbosity.'''
         return self.__verbose
+    
+    @property
+    def stdout(self) -> str:
+        return self.__stdout
 
     def __runinternal(self, working_directory: str = None) -> tuple:
         should_pipe = self.verbose
@@ -187,21 +191,10 @@ class RunCommand:
             quoted_cmdline += list2cmdline(self.cmdline)
 
             getLogger().info(quoted_cmdline)
-
-            with Popen(
-                    self.cmdline,
-                    stdout=PIPE if should_pipe else DEVNULL,
-                    stderr=STDOUT,
-                    universal_newlines=True,
-                    encoding="utf-8",
-            ) as proc:
-                if proc.stdout is not None:
-                    with proc.stdout:
-                        for line in iter(proc.stdout.readline, ''):
-                            line = line.rstrip()
-                            getLogger().info(line)
-                proc.wait()
-                return (proc.returncode, quoted_cmdline)
+            r = run(self.cmdline, capture_output=should_pipe, text=True)
+            getLogger().info(r.stdout)
+            self.__stdout = r.stdout
+            return (r.returncode, quoted_cmdline)
 
 
     def run(self, working_directory: str = None) -> None:
