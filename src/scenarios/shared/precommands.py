@@ -194,12 +194,9 @@ class PreCommands:
 
     def _parsemsbuildproperties(self) -> list:
         if self.msbuild:
-            print(f"MSBuild Properties String: {self.msbuild}")
             proplist = list()
             for propertyarg in self.msbuild.split('\n'):
                 proplist.append(propertyarg)
-                print(f"MSBuild Property Added: {propertyarg}")
-            print(f"MSBuild Properties List: {proplist}")
             return proplist
         return None
 
