@@ -2,19 +2,24 @@
 Module for running scenario tasks
 '''
 
+from genericpath import exists
 import sys
 import os
+import glob
+import re
 
 from logging import getLogger
 from collections import namedtuple
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
+from io import StringIO
+from shutil import move
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
 from shared.util import publishedexe, pythoncommand, appfolder
 from shared.sod import SODWrapper
 from shared import const
-from performance.common import iswin, extension
+from performance.common import RunCommand, iswin, extension
 from performance.logger import setup_loggers
 from shared.testtraits import TestTraits, testtypes
 
@@ -48,6 +53,14 @@ class Runner:
         startupparser = subparsers.add_parser(const.STARTUP,
                                               description='measure time to main of running the project')
         self.add_common_arguments(startupparser)
+
+        # parse only command
+        parseonlyparser = subparsers.add_parser(const.DEVICESTARTUP,
+                                              description='measure time to main for Android apps')
+        parseonlyparser.add_argument('--device-type', choices=['android','ios'],type=str.lower,help='Device type for testing', dest='devicetype')
+        parseonlyparser.add_argument('--package-path', help='Location of test application', dest='packagepath')
+        parseonlyparser.add_argument('--package-name', help='Classname of application', dest='packagename')
+        self.add_common_arguments(parseonlyparser)
 
         # inner loop command
         innerloopparser = subparsers.add_parser(const.INNERLOOP,
@@ -123,6 +136,11 @@ ex: C:\repos\performance;C:\repos\runtime
 
         if self.testtype == const.SOD:
             self.dirs = args.dirs
+        
+        if self.testtype == const.DEVICESTARTUP:
+            self.packagepath = args.packagepath
+            self.packagename = args.packagename
+            self.devicetype = args.devicetype
 
         if args.scenarioname:
             self.scenarioname = args.scenarioname
@@ -281,6 +299,76 @@ ex: C:\repos\performance;C:\repos\runtime
                                    environmentvariables='COMPlus_EnableEventLog=1' if not iswin() else '' # turn on clr user events
                                   ) 
             startup.runtests(self.traits)
+
+
+        elif self.testtype == const.DEVICESTARTUP:
+
+            cmdline = [
+                'xharness',
+                self.devicetype,
+                'install',
+                '--app', self.packagepath,
+                '--package-name',
+                self.packagename,
+                '-o',
+                const.TRACEDIR
+            ]
+
+            RunCommand(cmdline, verbose=True).run()
+
+
+            for i in range(5):
+                cmdline = [
+                    'xharness',
+                    'android',
+                    'run',
+                    '-o',
+                    const.TRACEDIR,
+                    '--package-name',
+                    self.packagename,
+                    '-v',
+                    '--arg=env:COMPlus_EnableEventPipe=1',
+                    '--arg=env:COMPlus_EventPipeOutputStreaming=1',
+                    '--arg=env:COMPlus_EventPipeOutputPath=/sdcard/trace%s.nettrace' % (i+1),
+                    '--arg=env:COMPlus_EventPipeCircularMB=10',
+                    '--arg=env:COMPlus_EventPipeConfig=Microsoft-Windows-DotNETRuntime:10:5',
+                    '--expected-exit-code',
+                    '42',
+                    '--dev-out',
+                    '/sdcard'
+                ]
+            
+                RunCommand(cmdline, verbose=True).run()
+
+            cmdline = [
+                'xharness',
+                'android',
+                'uninstall',
+                '--package-name',
+                self.packagename
+            ]
+
+            RunCommand(cmdline, verbose=True).run()
+
+            for file in glob.glob(os.path.join(const.TRACEDIR, 'sdcard', 'trace*.nettrace')):
+                if exists(os.path.join(const.TRACEDIR, file)):                    
+                    os.remove(os.path.join(const.TRACEDIR, file))
+                move(file, const.TRACEDIR)
+
+
+            cmdline = ['xharness', self.devicetype, 'state', '--adb']
+            adb = RunCommand(cmdline, verbose=True)
+            adb.run()
+            cmdline = [adb.stdout.strip(), 'shell', 'rm', '/sdcard/trace*.nettrace']
+            RunCommand(cmdline, verbose=True).run()
+            
+
+
+            startup = StartupWrapper()
+            # simply passing trace1.nettrace as the first trace name will cause the parser to find the rest.
+            # apptorun isn't used in this case but must exist.
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracename='trace1.nettrace')
+            startup.parsetrace(self.traits)
 
         elif self.testtype == const.SOD:
             sod = SODWrapper()
