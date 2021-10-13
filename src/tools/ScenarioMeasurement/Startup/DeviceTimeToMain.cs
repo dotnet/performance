@@ -40,6 +40,7 @@ namespace ScenarioMeasurement
                 var dirName = Path.GetDirectoryName(mergeTraceFile);
                 foreach (var file in Directory.GetFiles(dirName, $"{traceName}?.nettrace"))
                 {
+                    Console.WriteLine($"Found {file}");
                     files.Add(file);
                 }
             }
