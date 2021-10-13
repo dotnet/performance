@@ -7,7 +7,8 @@ testtypes = [const.STARTUP,
              const.CROSSGEN,
              const.CROSSGEN2,
              const.SOD,
-             const.INNERLOOP]
+             const.INNERLOOP,
+             const.DEVICESTARTUP]
 
 class TestTraits:
 
@@ -39,6 +40,8 @@ class TestTraits:
         self.runwithoutexit = ''
         self.hotreloaditers = ''
         self.skipmeasurementiteration = ''
+        self.parseonly = ''
+        self.tracename = ''
 
         # add test types to traits
         for testtype in testtypes:
