@@ -199,7 +199,7 @@ The next step is to send a PR to this repository with the aforementioned benchma
 
 ### Profiling
 
-The real performance investigation starts with profiling. We have a comprehensive guide about profiling [dotnet/runtime](https://github.com/dotnet/runtime), we really encourage you to read it: [Profiling [dotnet/runtime](https://github.com/dotnet/runtime) workflow](./profiling-workflow-dotnet-runtime.md).
+The real performance investigation starts with profiling. We have a comprehensive guide about profiling [dotnet/runtime](https://github.com/dotnet/runtime), we really encourage you to read it: [Profiling dotnet/runtime workflow](./profiling-workflow-dotnet-runtime.md).
 
 
 To profile the benchmarked code and produce an ETW Trace file ([read more](./benchmarkdotnet.md#Profiling)):
