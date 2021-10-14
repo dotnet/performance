@@ -4,7 +4,7 @@ pre-command
 import sys
 import os
 from zipfile import ZipFile
-from performance.logger import setup_loggers
+from performance.logger import setup_loggers, getLogger
 from shutil import copyfile
 from shared.precommands import PreCommands
 from shared.const import PUBDIR
@@ -19,7 +19,7 @@ args = parser.parse_args()
 apkname = 'HelloAndroid.apk'
 apknamezip = '%s.zip' % (apkname)
 if not os.path.exists(apkname):
-    print('Cannot find %s' % (apkname))
+    getLogger().log('Cannot find %s' % (apkname))
     exit(-1)
 if args.unzip:
     if not os.path.exists(apknamezip):
