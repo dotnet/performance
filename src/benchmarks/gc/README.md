@@ -15,7 +15,7 @@ The general workflow when using the GC infra is:
 
 NOTE: If running under ARM/ARM64, the program's functionalities are limited to running certain benchmarks only and the setup process is slightly different. This is pointed out as necessary throughout this document. Look out for the _ARM NOTE_ labels. As for the other necessary tools without official ARM/ARM64 downloads (e.g. python, cmake), you can install and run the x86 versions.
 
-# Setup
+## Setup
 
 ### Install python 3.7+
 
@@ -23,7 +23,7 @@ You will need at least version 3.7 of Python.
 WARN: Python 3.8.0 is [not compatible](https://github.com/jupyter/notebook/issues/4613) with Jupyter Notebook on Windows.
 This should be fixed in 3.8.1.
 
-On Windows, just go to https://www.python.org/downloads/ and run the installer.
+On Windows, just go to <https://www.python.org/downloads/> and run the installer.
 It's recommended to install a 64-bit version if possible, but not required.
 
 On other systems, it’s better to use your system’s package manager.
@@ -97,7 +97,7 @@ total_physical_memory_mb:
 
 Most (if not all) of these fields can be retrieved from your machine's _Task Manager_ and under _System_ within _Control Panel_.
 
-# Tutorial
+## Tutorial
 
 ## Specifying tests/builds
 
@@ -212,13 +212,13 @@ On Linux, only tests with containers require super user privileges.
 
 You might get errors due to `dotnet` or `dotnet-trace` not being found. Or you might see an error:
 
-```
+```text
 A fatal error occurred. The required library libhostfxr.so could not be found.
 ```
 
 Or:
 
-```
+```text
 A fatal error occurred, the default install location cannot be obtained.
 ```
 
@@ -382,7 +382,7 @@ Now you know how to create, run, and analyze a test.
 
 In many cases, all you need to use the infra is to manually modify a benchfile, then `run` and `diff` it.
 
-# Metrics
+## Metrics
 
 Analysis commands are based on metrics.
 
@@ -403,6 +403,7 @@ py . analyze-single bench/suite/low_memory_container.yaml.out/defgcperfsim__a__o
 ```
 
 Alternatively, the can also be done by using the process and path arguments:
+
 ```sh
 py . analyze-single --process name:corerun --path bench\suite\low_memory_container.etl.out\defgcperfsim__a__only_config__tlgb0.2__0.etl --run-metrics FirstToLastGCSeconds --single-gc-metrics DurationMSec --single-heap-metrics InMB OutMB
 ```
@@ -487,11 +488,11 @@ The output will look like:
 
 As you can see, the run-metrics appear only once for the whole trace, the single-gc-metrics have different values for each GC, and the single-heap-metrics have a different value for each different heap in each GC.
 
-# GCPerfSim
+## GCPerfSim
 
 Although benchmarks can run any executable, they will usually run GCPerfSim. You can read its documentation in the [source](src/exec/GCPerfSim/GCPerfSim.cs).
 
-# Running Without Traces
+## Running Without Traces
 
 Normally tests are run while collecting events for advanced analysis.
 
@@ -499,12 +500,12 @@ If you set `collect: none` in the `options` section of your [benchfile](docs/ben
 
 If you don't have a trace, you are limited in the metrics you can use. No single-heap or single-gc-metrics are available since individual GCs aren't collected. However, GCPerfSim outputs information at the end which is stored in the test status file (a `.yaml` file with the same name as the trace file would have). You can view those metrics in the section "float metrics that only require test status" [here](docs/metrics.md).
 
-# Limitations
+## Limitations
 
 * ARM/ARM64 are only supported to run basic tests (See above for further details).
 * The `affinitize` and `memory_load_percent` properties of a benchfile's config are not yet implemented outside of Windows.
 
-# Further Reading
+## Further Reading
 
 See [example](docs/example.md) for a more detailed example involving more commands.
 
@@ -515,7 +516,7 @@ Before modifying benchfiles, you should read [bench_file](docs/bench_file.md) wh
 
 Commands can be run in a Jupyter notebook instead of on the command line. See [jupyter notebook](docs/jupyter%20notebook.md).
 
-# Terms
+## Terms
 
 ### Metric
 
@@ -548,6 +549,6 @@ May be an ETL or netperf file.
 ETL files come from using PerfView to collect ETW events, which is the default on Windows.
 Netperf files come from using dotnet-trace, which uses EventPipe. This is the only option on non-Windows systems.
 
-# Contributing
+## Contributing
 
 See [contributing](docs/contributing.md).

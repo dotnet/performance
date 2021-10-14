@@ -1,6 +1,6 @@
 # Building Core_Root from the Runtime Repo
 
-First, you need a clone of https://github.com/dotnet/runtime.
+First, you need a clone of [dotnet/runtime](https://github.com/dotnet/runtime).
 Note that it may be on an arbitrary commit (including one you might be currently working on).
 
 Once you are ready to build the `Core_Root`, follow these steps.
@@ -17,11 +17,13 @@ If you want to build for another OS/Architecture, use the `-os/--os` and `-arch/
 From the root of the `runtime` repo, issue the following command:
 
 On Windows
+
 ```powershell
 .\build.cmd -s clr+libs -lc Release -rc Release
 ```
 
 On Linux
+
 ```sh
 ./build.sh -s clr+libs -lc Release -rc Release
 ```
@@ -45,11 +47,13 @@ At this point, the stage has been set to generate the `Core_Root`.
 This time, move to the tests directory: `/runtime/src/tests/`. There, issue the following command:
 
 On Windows
+
 ```powershell
 .\build.cmd Release generatelayoutonly
 ```
 
 On Linux
+
 ```sh
 ./build.sh -release -generatelayoutonly
 ```

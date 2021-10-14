@@ -1,4 +1,6 @@
-# Adding commands
+# Contribution guide
+
+## Adding commands
 
 To add a new command, you need to add it to the `ALL_COMMANDS` mapping in `all_commands.py`.
 
@@ -6,7 +8,7 @@ That file contains a sample "greet" command which shows how to create a command.
 
 If the command outputs to the console, it's recommended to create a `Document` (from `document.py`) and then call `print_document`, instead of calling `print` directly and formatting text yourself. This makes it easier to construct tables and will format your text to the terminal's width.
 
-# Adding a New Metric
+## Adding a New Metric
 
 You'll need to modify `run_metrics.md`, `single_gc_metrics.md` or `single_heap_metrics.md`.
 
@@ -16,7 +18,7 @@ The value is some function type. Preferably, make this function an instance prop
 
 Metrics always return a `Result` -- this allows the metric to fail without causing an entire command to exit with an exception. `FloatValue` is a result of a `float`. If the metric can't fail, return e.g. `float` instead of `FloatValue`, and convert the function to a `Result`-returning function with `ok_of_property`.
 
-# Code Quality
+## Code Quality
 
 We should make sure the code is clean with respect to the linter. Run `py . lint` to make sure it is clean. For now, do not worry about upgrading the dependencies as suggested by the linter, it won't work.
 
@@ -24,18 +26,18 @@ When GCPerfSim is modified, it is important to run the full default suite with b
 
 A full example on how to do this is [found here](modifying_and_testing_gcperfsim.md).
 
-# C# and C dependencies
+## C# and C dependencies
 
 Non-Python code is handled by `build.py` which builds C# and C dependencies.
 When you modify C# or C code (or dlls they depend on), they should automatically be rebuilt.
 The code for building C dependencies is Windows-specific as currently only Windows needs these dependencies.
 
-# Using a Custom TraceEvent
+## Using a Custom TraceEvent
 
 You may need to modify TraceEvent (which is part of PerfView) when working `managed-lib`, which uses it heavily. To do this:
 
 * Check out the PerfView repository, make your changes, and build.
-* In `src/analysis/managed-lib/GCPerf.csproj`, you can see there are two dependencies lists, one tagged `<!-- NUGET -->` and one tagged `<!-- LOCAL -->`. You can comment out the `NUGET` one and use `LOCAL` instead. 
+* In `src/analysis/managed-lib/GCPerf.csproj`, you can see there are two dependencies lists, one tagged `<!-- NUGET -->` and one tagged `<!-- LOCAL -->`. You can comment out the `NUGET` one and use `LOCAL` instead.
 * Run `py . update-perfview-dlls path/to/perfview`, where `path/to/perfview` is the path to your PerfView checkout.
   This does not have any effect immediately, you'll still need to do a rebuild in a later step.
 * Uncomment `#define NEW_JOIN_ANALYSIS` in `Analysis.cs` and `MoreAnalysis.cs` in `src/analysis/managed-lib`.
