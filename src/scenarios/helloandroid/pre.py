@@ -16,27 +16,28 @@ parser = ArgumentParser()
 parser.add_argument('--unzip', help='Unzip APK and report extracted tree', action='store_true', default=False)
 args = parser.parse_args()
 
-apkname = 'HelloAndroid.apk'
-apknamezip = '%s.zip' % (apkname)
-if not os.path.exists(apkname):
-    getLogger().log('Cannot find %s' % (apkname))
-    exit(-1)
-if args.unzip:
-    if not os.path.exists(apknamezip):
-        copyfile(apkname, apknamezip)
+os.mkdir(PUBDIR)
+apknames = ['HelloAndroid.apk', 'HelloAndroidWithDiag.apk']
+for apkname in apknames:
+    apknamezip = '%s.zip' % (apkname)
+    if not os.path.exists(apkname):
+        getLogger().error('Cannot find %s' % (apkname))
+        exit(-1)
+    if args.unzip:
+        if not os.path.exists(apknamezip):
+            copyfile(apkname, apknamezip)
 
-    with ZipFile(apknamezip) as zip:
-        zip.extractall(os.path.join('.', PUBDIR))
+        with ZipFile(apknamezip) as zip:
+            zip.extractall(os.path.join('.', PUBDIR))
 
-    assets_dir = os.path.join(PUBDIR, 'assets')
-    assets_zip = os.path.join(assets_dir, 'assets.zip')
-    with ZipFile(assets_zip) as zip:
-        zip.extractall(assets_dir)
+        assets_dir = os.path.join(PUBDIR, 'assets')
+        assets_zip = os.path.join(assets_dir, 'assets.zip')
+        with ZipFile(assets_zip) as zip:
+            zip.extractall(assets_dir)
 
-    os.remove(assets_zip)
-else:
-    os.mkdir(PUBDIR)
-    copyfile(apkname, os.path.join(PUBDIR, apkname))
+        os.remove(assets_zip)
+    else:
+        copyfile(apkname, os.path.join(PUBDIR, apkname))
 
 
 
