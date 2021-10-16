@@ -11,11 +11,10 @@ using System.Text;
 namespace System.IO.Tests
 {
     [BenchmarkCategory(Categories.Libraries)]
-    [InvocationCount(InvocationCount)]
     public class StringReaderReadLineTests
     {
         public const int LineCount = 100_000;
-        public const int ReaderCount = 100;
+        public const int ReaderCount = 10000;
         public const int InvocationCount = LineCount * ReaderCount;
 
         private string _text;
@@ -25,22 +24,35 @@ namespace System.IO.Tests
 
         public StringReaderReadLineTests()
         {
-            LineConfigs = new[]
+            LineConfigs = new Config[]
             {
-                (LineLengthMin: 0, LineLengthMax: 64, LineCount),
-                (LineLengthMin: 256, LineLengthMax: 512, LineCount),
+                new Config(){LineLengthMin = 0, LineLengthMax = 0 },
+                new Config(){LineLengthMin = 0, LineLengthMax = 64 },
+                new Config(){LineLengthMin = 128, LineLengthMax = 512 },
             };
         }
 
         [ParamsSource(nameof(LineConfigs))]
-        public (int LineLengthMin, int LineLengthMax, int LineCount) LineConfig { get; set; }
+        public Config LineConfig { get; set; }
 
-        public IEnumerable<(int LineLengthMin, int LineLengthMax, int LineCount)> LineConfigs { get; }
+        public IEnumerable<Config> LineConfigs { get; }
+
+        public class Config
+        {
+            public int LineLengthMin { get; set; }
+            public int LineLengthMax { get; set; }
+
+            public override string ToString() =>
+                $"{nameof(LineLengthMin)}={LineLengthMin} " +
+                $"{nameof(LineLengthMax)}={LineLengthMin}";
+        }
 
         [GlobalSetup]
         public void GlobalSetup()
         {
-            var (min, max, count) = LineConfig;
+            var min = LineConfig.LineLengthMin;
+            var max = LineConfig.LineLengthMax;
+            var count = LineCount;
             var capacity = (2 + max / 2 + min / 2) * count;
             var newLines = new[] { "\n", "\r", "\r\n" };
             var sb = new StringBuilder(capacity);
@@ -57,12 +69,8 @@ namespace System.IO.Tests
                 sb.Append(newLine);
             }
             _text = sb.ToString();
-        }
-
-        [IterationSetup]
-        public void IterationSetup()
-        {
-            _readers = Enumerable.Range(0, ReaderCount + 1).Select(i =>new StringReader(_text)).ToArray();
+            //File.WriteAllText(@"D:\StringReaderReadLine.txt", _text);
+            _readers = Enumerable.Range(0, ReaderCount + 1).Select(i => new StringReader(_text)).ToArray();
             _readerIndex = 0;
             _reader = _readers[_readerIndex];
         }
