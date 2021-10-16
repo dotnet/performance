@@ -48,10 +48,8 @@ namespace System.IO.Tests
         [GlobalSetup]
         public void GlobalSetup()
         {
-            string text = GenerateLinesText(LineConfig);
-            _text = text;
-            File.WriteAllText(@$"D:\StringReaderReadLine-{LineConfig.LineLengthMin}-{LineConfig.LineLengthMax}.txt", _text);
-            _readers = Enumerable.Range(0, ReaderCount + 1)
+            _text = GenerateLinesText(LineConfig);
+            _readers = Enumerable.Range(0, ReaderCount)
                 .Select(i => new StringReader(_text)).ToArray();
             _readerIndex = 0;
             _reader = _readers[_readerIndex];
