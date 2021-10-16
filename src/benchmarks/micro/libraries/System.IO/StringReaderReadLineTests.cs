@@ -13,9 +13,8 @@ namespace System.IO.Tests
     [BenchmarkCategory(Categories.Libraries)]
     public class StringReaderReadLineTests
     {
-        public const int LineCount = 100_000;
+        public const int LineCount = 256_000;
         public const int ReaderCount = 10000;
-        public const int InvocationCount = LineCount * ReaderCount;
 
         private string _text;
         private StringReader[] _readers;
@@ -26,9 +25,9 @@ namespace System.IO.Tests
         {
             LineConfigs = new Config[]
             {
-                new Config(){LineLengthMin = 0, LineLengthMax = 0 },
-                new Config(){LineLengthMin = 0, LineLengthMax = 64 },
-                new Config(){LineLengthMin = 128, LineLengthMax = 512 },
+                new (){ LineLengthMin = 0, LineLengthMax = 0 },
+                new (){ LineLengthMin = 0, LineLengthMax = 64 },
+                new (){ LineLengthMin = 128, LineLengthMax = 512 },
             };
         }
 
@@ -43,19 +42,43 @@ namespace System.IO.Tests
             public int LineLengthMax { get; set; }
 
             public override string ToString() =>
-                $"{nameof(LineLengthMin)}={LineLengthMin} " +
-                $"{nameof(LineLengthMax)}={LineLengthMin}";
+                $"LineLength [{LineLengthMin,4},{LineLengthMax,4}]";
         }
 
         [GlobalSetup]
         public void GlobalSetup()
         {
-            var min = LineConfig.LineLengthMin;
-            var max = LineConfig.LineLengthMax;
+            string text = GenerateLinesText(LineConfig);
+            _text = text;
+            File.WriteAllText(@$"D:\StringReaderReadLine-{LineConfig.LineLengthMin}-{LineConfig.LineLengthMax}.txt", _text);
+            _readers = Enumerable.Range(0, ReaderCount + 1)
+                .Select(i => new StringReader(_text)).ToArray();
+            _readerIndex = 0;
+            _reader = _readers[_readerIndex];
+        }        
+
+        [Benchmark]
+        public string ReadLine()
+        {
+            var line = _reader.ReadLine();
+            if (line == null)
+                _reader = _readers[++_readerIndex];
+            return line;
+        }
+
+        private static string GenerateLinesText(Config config)
+        {
+            var min = config.LineLengthMin;
+            var max = config.LineLengthMax;
             var count = LineCount;
+
+            var newLines = Math.Min(min, max) > 0 
+                ? new[] { "\n", "\r", "\r\n" } 
+                : new[] { "\r\n" };
+
             var capacity = (2 + max / 2 + min / 2) * count;
-            var newLines = new[] { "\n", "\r", "\r\n" };
             var sb = new StringBuilder(capacity);
+
             var random = new Random(42);
             for (int l = 0; l < count; l++)
             {
@@ -68,20 +91,8 @@ namespace System.IO.Tests
                 var newLine = newLines[random.Next(newLines.Length)];
                 sb.Append(newLine);
             }
-            _text = sb.ToString();
-            //File.WriteAllText(@"D:\StringReaderReadLine.txt", _text);
-            _readers = Enumerable.Range(0, ReaderCount + 1).Select(i => new StringReader(_text)).ToArray();
-            _readerIndex = 0;
-            _reader = _readers[_readerIndex];
-        }
-
-        [Benchmark]
-        public string ReadLine()
-        {
-            var line = _reader.ReadLine();
-            if (line == null)
-                _reader = _readers[++_readerIndex];
-            return line;
+            var text = sb.ToString();
+            return text;
         }
     }
 }
