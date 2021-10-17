@@ -26,7 +26,9 @@ namespace System.IO.Tests
         // call when current reader ends, which adds a bit of overhead. 
         // This is deemed negligible and amortized constant.
         private const int StringReaderTargetLength = 16 * 1024 * 1024;
-        private const int ReaderCount = 1000;
+        // Reader count must be high enough to ensure we never run out
+        // of new readers during benchmarking. Otherwise, it will throw.
+        private const int ReaderCount = 10000;
 
         private string _text;
         private StringReader[] _readers;
