@@ -86,10 +86,6 @@ namespace System.IO.Tests
             var min = lineLengthRange.Min;
             var max = lineLengthRange.Max;
 
-            // Just to make things interesting 
-            // new line characters are randomized.
-            // Note if lines are empty not \r and \n
-            // might be "combined".
             var newLine = Environment.NewLine;
 
             var capacity = textTargetLength + max + 2;
