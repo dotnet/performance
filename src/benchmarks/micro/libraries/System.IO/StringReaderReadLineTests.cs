@@ -40,10 +40,12 @@ namespace System.IO.Tests
             LineLengthRanges = new Range[]
             {
                 new (){ Min =   0, Max =    0 },
+                new (){ Min =   1, Max =    1 },
                 new (){ Min =   1, Max =    8 },
                 new (){ Min =   9, Max =   32 },
                 new (){ Min =  33, Max =  128 },
                 new (){ Min = 129, Max = 1024 },
+                new (){ Min =   0, Max = 1024 },
             };
         }
 
@@ -88,7 +90,7 @@ namespace System.IO.Tests
             // new line characters are randomized.
             // Note if lines are empty not \r and \n
             // might be "combined".
-            var newLines = new[] { "\n", "\r", "\r\n" };
+            var newLine = Environment.NewLine;
 
             var capacity = textTargetLength + max + 2;
             var sb = new StringBuilder(capacity);
@@ -103,7 +105,6 @@ namespace System.IO.Tests
                     var ch = (char)random.Next('0', 'z');
                     sb.Append(ch);
                 }
-                var newLine = newLines[random.Next(newLines.Length)];
                 sb.Append(newLine);
                 ++lineCount;
             }
