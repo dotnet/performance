@@ -88,7 +88,7 @@ namespace System.IO.Tests
 
             var newLine = Environment.NewLine;
 
-            var capacity = textTargetLength + max + 2;
+            var capacity = textTargetLength + max + newLine.Length;
             var sb = new StringBuilder(capacity);
 
             var random = new Random(42);
