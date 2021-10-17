@@ -57,7 +57,7 @@ namespace System.IO.Tests
             public int Min { get; set; }
             public int Max { get; set; }
 
-            public override string ToString() => $"[{Min,4},{Max,4}]";
+            public override string ToString() => $"[{Min,4}, {Max,4}]";
         }
 
         [GlobalSetup]
