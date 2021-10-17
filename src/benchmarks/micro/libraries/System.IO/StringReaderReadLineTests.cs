@@ -19,7 +19,7 @@ namespace System.IO.Tests
         // To fulfill BDNs requirement for an iteration time of 250ms,
         // this means a lot of invocations, more than a single string in
         // a `StringReader` can accommodate.
-        // Therefore, the benchmark generates of string with a certain
+        // Therefore, the benchmark generates a string with a certain
         // target length and then a number of readers for the same
         // string, since `StringReader` does not support being "reset".
         // The trade off is we need to switch reader during the `ReadLine`
@@ -30,7 +30,6 @@ namespace System.IO.Tests
         // of new readers during benchmarking. Otherwise, it will throw.
         private const int ReaderCount = 10000;
 
-        private string _text;
         private StringReader[] _readers;
         private int _readerIndex;
         private StringReader _reader;
@@ -65,9 +64,9 @@ namespace System.IO.Tests
         [GlobalSetup]
         public void GlobalSetup()
         {
-            _text = GenerateLinesText(LineLengthRange, StringReaderTargetLength);
+            var text = GenerateLinesText(LineLengthRange, StringReaderTargetLength);
             _readers = Enumerable.Range(0, ReaderCount)
-                .Select(i => new StringReader(_text)).ToArray();
+                .Select(i => new StringReader(text)).ToArray();
             _readerIndex = 0;
             _reader = _readers[_readerIndex];
         }        
