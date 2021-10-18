@@ -4,7 +4,7 @@ MICROSOFT PROVIDES THE DATASETS ON AN "AS IS" BASIS. MICROSOFT MAKES NO WARRANTI
 
 The datasets are provided under the original terms that Microsoft received such datasets. See below for more information about each dataset.
 
-### Wikipedia Detox
+## Wikipedia Detox
 
 >This dataset is provided under [CC0](https://creativecommons.org/share-your-work/public-domain/cc0/). Redistributing the dataset "wikipedia-detox-250-line-data.tsv" with attribution:
 >
@@ -16,7 +16,7 @@ The datasets are provided under the original terms that Microsoft received such 
 >
 >Original readme: https://meta.wikimedia.org/wiki/Research:Detox
 
-### UCI Iris Flower Dataset
+## UCI Iris Flower Dataset
 
 >Redistributing the dataset "iris.txt" with attribution:
 >
@@ -26,17 +26,17 @@ The datasets are provided under the original terms that Microsoft received such 
 >
 >https://archive.ics.uci.edu/ml/datasets/iris
 
-### Breast Cancer Wisconsin
+## Breast Cancer Wisconsin
 
 Redistributing the dataset "breast-cancer.txt" with attribution:
 
 > O. L. Mangasarian and W. H. Wolberg: "Cancer diagnosis via linear programming", SIAM News, Volume 23, Number 5, September 1990, pp 1 & 18.
 >
->  Original source: http://ftp.cs.wisc.edu:80/math-prog/cpo-dataset/machine-learn/cancer/cancer1/datacum
+> Original source: http://ftp.cs.wisc.edu:80/math-prog/cpo-dataset/machine-learn/cancer/cancer1/datacum
 >
->  Original readme: http://ftp.cs.wisc.edu/math-prog/cpo-dataset/machine-learn/cancer/cancer1/data.doc
+> Original readme: http://ftp.cs.wisc.edu/math-prog/cpo-dataset/machine-learn/cancer/cancer1/data.doc
 
-### UCI Adult Dataset 
+## UCI Adult Dataset
 
 > Redictributing the dataset "adult.tiny.with-schema.txt" with attribution:
 >

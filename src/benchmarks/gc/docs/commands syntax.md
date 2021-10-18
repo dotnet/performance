@@ -9,14 +9,11 @@ Each command can have up to one “name optional” argument, which should come 
 
 If an argument is a list (or tuple), the values should be separated by spaces. E.g., `py . diff a.etl b.etl --run-metrics HeapSizeBeforeMB_Mean HeapSizeAfterMB_Mean` . Here `a.etl` and `b.etl` are the values for the name-optional argument (`paths`), and  `HeapSizeBeforeMB_Mean` and `HeapSizeAfterMB_Mean` are the values for the argument run-metrics .
 
-
-
 ## Boolean arguments
 
 A boolean argument can be specified like `--arg true` or `--arg false`.
 
 For convenience, `--arg` is shorthand for `--arg true` and all boolean arguments are optional and default to false. So if the argument exists it is true, else it is false.
-
 
 ## Argsfiles
 
@@ -43,12 +40,13 @@ And then run:
 py . diff --argsfile bench/diff_low_memory_container.yaml
 ```
 
-
 ## gc-where arguments
 
 Many commands have arguments ending in `gc-where` which take the following syntax:
 
-    py . analyze-single foo.etl --gc-where "Generation=2" "PauseDurationMSec>100"
+```py
+py . analyze-single foo.etl --gc-where "Generation=2" "PauseDurationMSec>100"
+```
 
 In this case the argument filters it so we only print GCs that are gen 2 and took over 100ms.
 The value of `gc-where` consists of a number of space-separated filters.
@@ -60,7 +58,9 @@ The value may be a number or (unquoted) string.
 
 You can also put any number of `or` in between the clauses, as in:
 
-    py . analyze-single foo.etl --gc-where "Generation=2" "PauseDurationMSec>100" or "Generation=0" "PauseDurationMSec<10"
+```py
+py . analyze-single foo.etl --gc-where "Generation=2" "PauseDurationMSec>100" or "Generation=0" "PauseDurationMSec<10"
+```
 
 Which would print GCs that are either long gen2 or short gen0.
 Any more complicated filters should be written manually in the code.

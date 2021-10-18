@@ -2,41 +2,42 @@
 
 ## Table of Contents
 
-- [Introduction](#Introduction)
-- [Prerequisites](#Prerequisites)
-  - [Build](#Build)
-  - [Repro](#Repro)
-  - [Project Settings](#Project-Settings)
-- [Visual Studio Profiler](#Visual-Studio-Profiler)
-  - [dotnet](#dotnet)
-  - [CPU Usage](#CPU-Usage)
-  - [CoreRun](#CoreRun)
-  - [Allocation Tracking](#Allocation-Tracking)
-- [PerfView](#PerfView)
-  - [CPU Investigation](#CPU-Investigation)
-  - [Filtering](#Filtering)
-  - [Analyzing the Results](#Analyzing-the-Results)
-  - [Viewing Source Code](#Viewing-Source-Code)
-  - [Identifying Regressions](#Identifying-Regressions)
-- [VTune](#VTune)
-  - [When to use](#When-to-use)
-  - [Identifying Hotspots](#Identifying-Hotspots)
-  - [Troubleshooting](#Troubleshooting)
-  - [Code](#Code)
-  - [Skids](#Skids)
-  - [Linux](#Linux)
-- [PerfCollect](#PerfCollect)
-  - [Preparing Your Machine](#Preparing-Your-Machine)
-  - [Preparing Repro](#Preparing-Repro)
-  - [Collecting a Trace](#Collecting-a-Trace)
-  - [Analyzing the Trace](#Analyzing-the-Trace)
+- [Profiling workflow for dotnet/runtime repository](#profiling-workflow-for-dotnetruntime-repository)
+  - [Table of Contents](#table-of-contents)
+  - [Introduction](#introduction)
+  - [Prerequisites](#prerequisites)
+    - [Build](#build)
+    - [Repro](#repro)
+    - [Project Settings](#project-settings)
+  - [Visual Studio Profiler](#visual-studio-profiler)
+    - [dotnet](#dotnet)
+    - [CPU Usage](#cpu-usage)
+    - [CoreRun](#corerun)
+    - [Allocation Tracking](#allocation-tracking)
+  - [PerfView](#perfview)
+    - [CPU Investigation](#cpu-investigation)
+    - [Filtering](#filtering)
+    - [Analyzing the Results](#analyzing-the-results)
+    - [Viewing Source Code](#viewing-source-code)
+    - [Identifying Regressions](#identifying-regressions)
+  - [VTune](#vtune)
+    - [When to use](#when-to-use)
+    - [Identifying Hotspots](#identifying-hotspots)
+    - [Troubleshooting](#troubleshooting)
+    - [Code](#code)
+    - [Skids](#skids)
+    - [Linux](#linux)
+  - [PerfCollect](#perfcollect)
+    - [Preparing Your Machine](#preparing-your-machine)
+    - [Preparing Repro](#preparing-repro)
+    - [Collecting a Trace](#collecting-a-trace)
+    - [Analyzing the Trace](#analyzing-the-trace)
 
-
-# Introduction
+## Introduction
 
 **This doc explains how to profile local [dotnet/runtime](https://github.com/dotnet/runtime) builds and it's targetted at [dotnet/runtime](https://github.com/dotnet/runtime) repository contributors.**
 
-Before you start any performance investigation, you need to [build](#Build) [dotnet/runtime](https://github.com/dotnet/runtime) in **Release**, create a small [repro](#Repro) app and change the default [project settings](#Project-Settings). If you want to profile a BenchmarkDotNet test (like those in this repo), [BenchmarkDotNet has built-in profiling option](https://github.com/dotnet/performance/blob/main/docs/benchmarkdotnet.md#profiling) to collect trace.  
+Before you start any performance investigation, you need to [build](#Build) [dotnet/runtime](https://github.com/dotnet/runtime) in **Release**, create a small [repro](#Repro) app and change the default [project settings](#Project-Settings). If you want to profile a BenchmarkDotNet test (like those in this repo), [BenchmarkDotNet has built-in profiling option](https://github.com/dotnet/performance/blob/main/docs/benchmarkdotnet.md#profiling) to collect trace.
 
 The next step is to choose the right profiler depending on the OS:
 
@@ -49,9 +50,9 @@ The next step is to choose the right profiler depending on the OS:
 
 If you clearly need information on CPU instruction level, then depending on the hardware you should use [Intel VTune](#VTune) or [AMD uProf](https://developer.amd.com/amd-uprof/).
 
-# Prerequisites
+## Prerequisites
 
-## Build
+### Build
 
 You need to build [dotnet/runtime](https://github.com/dotnet/runtime) in Release first:
 
@@ -81,7 +82,7 @@ Once you rebuild the part of [dotnet/runtime](https://github.com/dotnet/runtime)
 C:\Projects\runtime\src\libraries\System.Text.RegularExpressions\src> dotnet msbuild /p:Configuration=Release
 ```
 
-## Repro
+### Repro
 
 The next step is to prepare a small console app that executes the code that you want to profile. The app **should run for at least a few seconds** and **keep the overhead as small as possible to make sure it does not dominate the profile**.
 
@@ -124,7 +125,7 @@ class Program
 }
 ```
 
-## Project Settings
+### Project Settings
 
 It's recommended to disable Tiered JIT (to avoid the need of warmup) and emit full symbols (not enabled by default for Release builds):
 
@@ -145,13 +146,13 @@ It's recommended to disable Tiered JIT (to avoid the need of warmup) and emit fu
 
 ```
 
-# Visual Studio Profiler
+## Visual Studio Profiler
 
 Visual Studio Profiler is not as powerful as PerfView, but it's definitely more intuitive to use. If you don't know which profiler to use, you should use it by default.
 
 To profile a local build of [dotnet/runtime](https://github.com/dotnet/runtime) and get symbol solving working in Visual Studio Profiler you can use the produced `dotnet` or `CoreRun`.
 
-## dotnet
+### dotnet
 
 Following script launches a Visual Studio solution with environment variables required to use a local version of the .NET Core SDK:
 
@@ -180,7 +181,7 @@ You can just save it as `startvs.cmd` file and run providing path to the `testho
 startvs.cmd "C:\Projects\runtime\artifacts\bin\testhost\net6.0-windows-Release-x64\" "C:\Projects\repro\ProfilingDocs.sln"
 ```
 
-## CPU Usage
+### CPU Usage
 
 Once you started the VS with the right environment variables you need to click on the `Debug` menu item and then choose `Performance Profiler` or just press `Alt+F2`:
 
@@ -226,7 +227,7 @@ If you have configured everything properly you are able to see the CPU time spen
 
 ![External code](img/vs_profiler_7_source_code.png)
 
-## CoreRun
+### CoreRun
 
 If you prefer to use CoreRun instead of dotnet you need to select `Launch an executable`
 
@@ -242,8 +243,7 @@ The alternative is to run the repro app using CoreRun yourself and use VS Profil
 
 ![Choose CoreRun process](img/vs_profiler_11_corerun_attach.png)
 
-
-## Allocation Tracking
+### Allocation Tracking
 
 Since `DateTime.UtcNow` does not allocate managed memory, we are going to profile a different app:
 
@@ -283,13 +283,13 @@ Again, if you have configured everything properly you are able to right click on
 
 ![Actual Source File](img/vs_profiler_15_memory_source_file.png)
 
-# PerfView
+## PerfView
 
 PerfView is the ultimate .NET Profiler and if you are new to PerfView **it's recommended to read it's tutorial or watch the tutorial [videos](https://channel9.msdn.com/Series/PerfView-Tutorial)**.
 
 ![Welcome Screen](img/perfview_0_welcome.png)
 
-## CPU Investigation
+### CPU Investigation
 
 We can **Collect** profile data by either **Run**ning a standalone executable (or command) or **Collect**ing the data machine wide with explicit start and stop.
 
@@ -321,7 +321,7 @@ The `Metric/Interval` is a quick measurement of how CPU bound the trace is as a 
 
 ![CPU Metric](img/perfview_7_cpu_metric.png)
 
-## Filtering
+### Filtering
 
 Fundamentally, what is collected by the PerfView profiler is a sequence of stacks. A stack is collected every millisecond for each hardware processor on the machine. This is very detailed information and hence by default PerfView groups the stacks. This is very useful when you are profiling a real-world application in a production environment, but when you work on the .NET Team and you profile some simple repro app you care about all details and you don't want the results to be grouped by modules.
 
@@ -357,7 +357,7 @@ As you can see, all the methods that were executed before the first and after la
 
 This simple text representation of histogram can be very useful when profiling more complex scenarios, but in this case it just shows us that `DateTime.UtcNow` was executed all the time. But this is exactly what we wanted!
 
-## Analyzing the Results
+### Analyzing the Results
 
 Once we get the data filtered we can start the analysis.
 
@@ -379,7 +379,7 @@ If you wish you can  see the entire `Call Tree` by clicking on the `Call Tree` t
 
 ![Flame Graph](img/perfview_19_flame_graph.png)
 
-The graph starts at the bottom. Each box represents a method in the stack (inclusive CPU time). Every parent is the caller, children are the callees. The wider the box, the more time it was on-CPU. 
+The graph starts at the bottom. Each box represents a method in the stack (inclusive CPU time). Every parent is the caller, children are the callees. The wider the box, the more time it was on-CPU.
 
 For the leaf nodes the inclusive time == exclusive time. The difference between the parent and children box width (marked with red on the image below) is the exclusive parent (caller) time.
 
@@ -389,7 +389,7 @@ parent.InclusiveTime - children.InclusiveTime = parent.ExclusiveTime
 
 ![Flame Graph Exclusive time](img/perfview_20_flame_graph_exclusive_time.png)
 
-## Viewing Source Code
+### Viewing Source Code
 
 If you want to view the Source Code of the given method you need to right-click on it and select `Goto Source (Def)` menu item. Or just press `Alt+D`.
 
@@ -401,7 +401,7 @@ If PerfView fails to show you the source code you should read the `Log` output. 
 
 **Note:** As of today, PerfView keeps the `.pdb` files [opened](https://github.com/microsoft/perfview/pull/979) after showing the source code. It means that if you keep the trace file opened in PerfView and try to rebuild [dotnet/runtime](https://github.com/dotnet/runtime) the build is going to fail. You might need to close PerfView to rebuild [dotnet/runtime](https://github.com/dotnet/runtime).
 
-## Identifying Regressions
+### Identifying Regressions
 
 PerfView has a built-in support for identifying regressions. To use it you need to:
 
@@ -415,7 +415,7 @@ PerfView has a built-in support for identifying regressions. To use it you need 
 
 It's recommended to use it instead of trying to eyeball complex Flame Graphs.
 
-# VTune
+## VTune
 
 Intel VTune is a very powerful profiler that allows for low-level profiling:
 
@@ -425,9 +425,9 @@ Intel VTune is a very powerful profiler that allows for low-level profiling:
 
 VTune **supports Windows, Linux and macOS!**
 
-## When to use
+### When to use
 
-Let's use PerfView to profile the following app that tries to reproduce [Potential regression: Dictionary of Value Types #25842 ](https://github.com/dotnet/coreclr/issues/25842):
+Let's use PerfView to profile the following app that tries to reproduce [Potential regression: Dictionary of Value Types #25842](https://github.com/dotnet/coreclr/issues/25842):
 
 ```cs
 using System.Collections.Generic;
@@ -482,7 +482,7 @@ When we open the Flame Graph we can see that the Call Stack ends at `FindEntry` 
 
 **You should start every investigation with VS Profiler or PerfView. When you get to a point where you clearly need information on CPU instruction level and you are using Intel hardware, use VTune.**
 
-## Identifying Hotspots
+### Identifying Hotspots
 
 Run VTune **as Administrator|sudo** and click `New Project`:
 
@@ -538,7 +538,7 @@ To go to the next hotsopot you can to click the `Go to Smaller Function Hotspot`
 
 ![Go to hotspot](img/vtune_goto_hotspot.png)
 
-## Troubleshooting
+### Troubleshooting
 
 If you ever run into any problem with VTune, you should check the `Collection Log`:
 
@@ -546,7 +546,7 @@ If you ever run into any problem with VTune, you should check the `Collection Lo
 
 If the error message does not tell you anything and you can't find any similar reports on the internet, you can ask for help on the [Intel VTune Amplifier forum](https://software.intel.com/en-us/forums/intel-vtune-amplifier).
 
-## Code
+### Code
 
 VTune is capable of showing not only the output assembly code but also native and managed source code.
 
@@ -558,7 +558,7 @@ If it ever fails to show the source code (the `Source` button is then greyed out
 
 ![Specify Sources](img/vtune_folders.png)
 
-## Skids
+### Skids
 
 Hardware Event-Based Sampling is vulnerable to [skids](https://github.com/brendangregg/skid-testing). When the event occurs, the counter increments and when it reaches the max interval value the event is fired with **current** Instruction Pointer. As an example we can use following source code:
 
@@ -570,9 +570,9 @@ The profiler shows that a lot of inclusive CPU time was spent on the `xor` opera
 
 ![Skids](img/vtune_skids.png)
 
-## Linux
+### Linux
 
-VTune works great on Linux and as of today it's the only fully featured profiler that works with .NET Core on Linux. 
+VTune works great on Linux and as of today it's the only fully featured profiler that works with .NET Core on Linux.
 
 It works best when installed and run as `sudo`:
 
@@ -594,7 +594,7 @@ It can show the disassembly of profiled methods:
 
 ![VTune Linux ASM](img/vtune_linux_asm.png)
 
-# PerfCollect
+## PerfCollect
 
 PerfCollect is a simple, yet very powerful script that allows for profiling .NET Core apps on Linux. It is internally leveraging LTTng and using perf.
 
@@ -602,7 +602,7 @@ In contrary to `dotnet trace` it gives you native call stacks which are very use
 
 It has it's own excellent [documentation](https://github.com/dotnet/runtime/blob/main/docs/project/linux-performance-tracing.md) (a **highly recommended read**), the goal of this doc is not to duplicate it, but rather show **how to profile local [dotnet/runtime](https://github.com/dotnet/runtime) build running on a Linux VM from a Windows developer machine**. We need two OSes because as of today only PerfView is capable of opening a `PerfCollect` trace file.
 
-## Preparing Your Machine
+### Preparing Your Machine
 
 You need to install the script, make it an executable and run as sudo with `install` parameter to install all the dependencies.
 
@@ -612,7 +612,7 @@ chmod +x perfcollect
 sudo ./perfcollect install
 ```
 
-## Preparing Repro
+### Preparing Repro
 
 Before you collect a trace, you need to prepare a [Repro](#Repro). As of today, `PerfCollect` does not give you the possibility to run a standalone executable. It collects the data machine wide with explicit start and stop. The simplest way to create a repo app is to simply put the code that you want to profile inside a `while(true)` loop.
 
@@ -648,7 +648,7 @@ namespace ProfilingDocs
 scp -r "C:\Users\adsitnik\source\repos\ProfilingDocs\ProfilingDocs\bin\Release\netcoreapp3.1\ProfilingDocs.dll" adsitnik@11.222.33.444:/home/adsitnik/Projects/coreclr/bin/tests/Linux.x64.Release/Tests/Core_Root/ProfilingDocs.dll
 ```
 
-## Collecting a Trace
+### Collecting a Trace
 
 To collect a trace, you need to open two terminals:
 
@@ -689,7 +689,7 @@ Trace saved to slowStartsWith.trace.zip
 
 ![PerfCollect Demo](img/perfcollect_demo.gif)
 
-## Analyzing the Trace
+### Analyzing the Trace
 
 As mentioned previously, currently only PerfView is capable of opening a `PerfCollect` trace file. So to analyze the trace file you need to copy it to a Windows machine. You can do that by using `scp`.
 

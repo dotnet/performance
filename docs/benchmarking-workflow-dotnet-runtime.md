@@ -2,17 +2,21 @@
 
 ## Table of Contents
 
-- [Introduction](#Introduction)
-  - [Code Organization](#Code-Organization)
-  - [dotnet/runtime Prerequisites](#dotnet-runtime-Prerequisites)
-- [Preventing Regressions](#Preventing-Regressions)
-- [Solving Regressions](#Solving-Regressions)
-  - [Repro Case](#Repro-Case)
-  - [Profiling](#Profiling)
-  - [Running against Older Versions](#Running-against-Older-Versions)
-- [Benchmarking new API](#Benchmarking-new-API)
-  - [Reference](#Reference)
-  - [PR](#PR)
+- [Benchmarking workflow for dotnet/runtime repository](#benchmarking-workflow-for-dotnetruntime-repository)
+  - [Table of Contents](#table-of-contents)
+  - [Introduction](#introduction)
+    - [Code Organization](#code-organization)
+    - [dotnet runtime Prerequisites](#dotnet-runtime-prerequisites)
+  - [Preventing Regressions](#preventing-regressions)
+    - [Running against the latest .NET Core SDK](#running-against-the-latest-net-core-sdk)
+  - [Solving Regressions](#solving-regressions)
+    - [Repro Case](#repro-case)
+    - [Profiling](#profiling)
+    - [Running against Older Versions](#running-against-older-versions)
+    - [Confirmation](#confirmation)
+  - [Benchmarking new API](#benchmarking-new-api)
+    - [Reference](#reference)
+    - [PR](#pr)
 
 ## Introduction
 
@@ -201,7 +205,6 @@ The next step is to send a PR to this repository with the aforementioned benchma
 
 The real performance investigation starts with profiling. We have a comprehensive guide about profiling [dotnet/runtime](https://github.com/dotnet/runtime), we really encourage you to read it: [Profiling dotnet/runtime workflow](./profiling-workflow-dotnet-runtime.md).
 
-
 To profile the benchmarked code and produce an ETW Trace file ([read more](./benchmarkdotnet.md#Profiling)):
 
 ```cmd
@@ -231,7 +234,6 @@ BenchmarkDotNet has some extra features that might be useful when doing performa
 When you identify and fix the regression, you should use [ResultsComparer](../src/tools/ResultsComparer/README.md) to confirm that you have solved the problem. Please remember that if the regression was found in a very common type like `Span<T>` and you are not sure which benchmarks to run, you can run all of them using `--filter *`.
 
 Please take a moment to consider how the regression managed to enter the product. Are we now properly protected?
-
 
 ## Benchmarking new API
 
@@ -275,7 +277,7 @@ The first thing you need to do is send a PR with the new API to the [dotnet/runt
 
 ```cmd
 /home/adsitnik/projects/performance>python3 ./scripts/benchmarks_ci.py --filter $YourFilter -f net6.0
-```
-This script will try to pull the latest .NET Core SDK from [dotnet/runtime](https://github.com/dotnet/runtime) nightly build, which should contain the new API that you just merged in your first PR, and use that to build MicroBenchmarks project and then run the benchmarks that satisfy the filter you provided. 
+```cmd
+This script will try to pull the latest .NET Core SDK from [dotnet/runtime](https://github.com/dotnet/runtime) nightly build, which should contain the new API that you just merged in your first PR, and use that to build MicroBenchmarks project and then run the benchmarks that satisfy the filter you provided.
 
 After you have confirmed your benchmarks successfully run locally, then your PR should be ready for performance repo.

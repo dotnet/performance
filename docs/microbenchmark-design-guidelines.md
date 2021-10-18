@@ -13,31 +13,34 @@
 
 ## Table of Contents
 
-- [Mindset](#Mindset)
-  - [Benchmarks are not Unit Tests](#Benchmarks-are-not-Unit-Tests)
-  - [Benchmarks are Immutable](#Benchmarks-are-Immutable)
-- [BenchmarkDotNet](#BenchmarkDotNet)
-- [Setup](#Setup)
-  - [GlobalSetup](#GlobalSetup)
-  - [IterationSetup](#IterationSetup)
-  - [OperationsPerInvoke](#OperationsPerInvoke)
-- [Test Cases](#Test-Cases)
-  - [Code Paths](#Code-Paths)
-    - [Array.Reverse](#Array.Reverse)
-    - [Buffer.CopyMemory](#Buffer.CopyMemory)
-  - [Always the same input data](#Always-the-same-input-data)
-  - [BenchmarkDotNet](#BenchmarkDotNet)
-    - [Arguments](#Arguments)
-    - [Params](#Params)
-    - [ArgumentsSource](#ArgumentsSource)
-    - [Generic benchmarks](#Generic-benchmarks)
-- [Best Practices](#Best-Practices)
-  - [Single Responsibility Principle](#Single-Responsibility-Principle)
-  - [No Side-Effects](#No-Side-Effects)
-  - [Dead Code Elimination](#Dead-Code-Elimination)
-  - [Loops](#Loops)
-  - [Method inlining](#Method-Inlining)
-  - [Be explicit](#Be-explicit)
+- [Microbenchmark Design Guidelines](#microbenchmark-design-guidelines)
+  - [General Overview](#general-overview)
+  - [Table of Contents](#table-of-contents)
+  - [Mindset](#mindset)
+    - [Benchmarks are not Unit Tests](#benchmarks-are-not-unit-tests)
+    - [Benchmarks are Immutable](#benchmarks-are-immutable)
+  - [BenchmarkDotNet](#benchmarkdotnet)
+  - [Setup](#setup)
+    - [GlobalSetup](#globalsetup)
+    - [IterationSetup](#iterationsetup)
+    - [OperationsPerInvoke](#operationsperinvoke)
+  - [Test Cases](#test-cases)
+    - [Code Paths](#code-paths)
+      - [Array.Reverse](#arrayreverse)
+      - [Buffer.CopyMemory](#buffercopymemory)
+    - [Always the same input data](#always-the-same-input-data)
+    - [BenchmarkDotNet](#benchmarkdotnet-1)
+      - [Arguments](#arguments)
+      - [Params](#params)
+      - [ArgumentsSource](#argumentssource)
+      - [Generic benchmarks](#generic-benchmarks)
+  - [Best Practices](#best-practices)
+    - [Single Responsibility Principle](#single-responsibility-principle)
+    - [No Side-Effects](#no-side-effects)
+    - [Dead Code Elimination](#dead-code-elimination)
+    - [Loops](#loops)
+    - [Method Inlining](#method-inlining)
+    - [Be explicit](#be-explicit)
 
 ## Mindset
 
@@ -47,7 +50,7 @@ Writing Benchmarks is much different than writing Unit Tests. So before you star
 
 When writing Unit Tests, we ideally want to test all methods and properties of the given type. We also test both the happy and unhappy paths. The result of every Unit Test run is a single value: passed or failed.
 
-Benchmarks are different. First of all, the result of a benchmark run is never a single value. It's a whole distribution, described with values like mean, standard deviation, min, max and so on. To get a meaningful distribution, the benchmark has to be executed many, many times. **This takes a lot of time**. With the current [recommended settings](https://github.com/dotnet/performance/blob/51d8f8483b139bb1edde97f917fa436671693f6f/src/harness/BenchmarkDotNet.Extensions/RecommendedConfig.cs#L17-L20) used in this repository, it takes on average six seconds to run a single benchmark. 
+Benchmarks are different. First of all, the result of a benchmark run is never a single value. It's a whole distribution, described with values like mean, standard deviation, min, max and so on. To get a meaningful distribution, the benchmark has to be executed many, many times. **This takes a lot of time**. With the current [recommended settings](https://github.com/dotnet/performance/blob/51d8f8483b139bb1edde97f917fa436671693f6f/src/harness/BenchmarkDotNet.Extensions/RecommendedConfig.cs#L17-L20) used in this repository, it takes on average six seconds to run a single benchmark.
 The public surface of .NET Standard 2.0 API has tens of thousands of methods. If we had 1 benchmark for every public method, it would take two and a half days to run the benchmarks. Not to speak about the time it would take to analyze the results, filter the false positives, etc..
 
 This is only one of the reasons why writing Benchmarks is different than writing Unit Tests.
@@ -58,7 +61,7 @@ The goal of benchmarking is to test the performance of all the methods that are 
 
 The results of benchmark runs are exported to an internal Reporting System. Every benchmark is identified using the following `xUnit` ID pattern:
 
-```
+```cmd
 namespace.typeName.methodName(paramName: paramValue)
 ```
 
@@ -76,7 +79,7 @@ If you have some good reasons for changing the implementation of the benchmark y
 
 BenchmarkDotNet is the benchmarking harness used in this repository. If you are new to BenchmarkDotNet, you should read [this introduction to BenchmarkDotNet](./benchmarkdotnet.md).
 
-Key things that you need to remember: 
+Key things that you need to remember:
 
 * BenchmarkDotNet **does not require the user to provide the number of iterations and invocations per iteration**, it implements a smart heuristic based on standard error and runs the benchmark until the results are stable.
 * BenchmarkDotNet runs every benchmark in a separate process, process isolation allows avoiding side-effects. The more memory allocated by given benchmark, the bigger the difference for in-proc vs out-proc execution.
@@ -172,7 +175,7 @@ public OperationStatus Base64EncodeInPlace() => Base64.EncodeToUtf8InPlace(_dest
 
 If you want to get a better understanding of it, you should read [this blog post](https://aakinshin.net/posts/stopwatch/#pitfalls) about stopwatch and follow the GitHub discussions in this [issue](https://github.com/dotnet/BenchmarkDotNet/issues/730) and [PR](https://github.com/dotnet/BenchmarkDotNet/pull/760).
 
-<ins>**If using `[GlobalSetup]` is enough, you should NOT be using `[IterationSetup]`**</ins>
+**If using `[GlobalSetup]` is enough, you should NOT be using `[IterationSetup]`**
 
 ### OperationsPerInvoke
 
@@ -231,7 +234,7 @@ public Span<byte> Slice()
 
 BenchmarkDotNet is going to scale the result by the number provided in `OperationsPerInvoke` so the cost of creating the `Span` is going to be amortized:
 
-```
+```cmd
 reportedResult = 1/16*SpanCtor + 1*Slice
 ```
 
@@ -277,10 +280,10 @@ public static void Reverse<T>(T[] array, int index, int length)
 
 Does it make sense to test the code paths that throw?
 
- * No, because we would be measuring the performance of throwing and catching the exceptions. That was not the goal of this benchmark.
- * No, because throwing exceptions should be exceptional and [exceptions should not be used to control flow](https://docs.microsoft.com/en-US/visualstudio/profiling/da0007-avoid-using-exceptions-for-control-flow?view=vs-2019). It's an edge case, we should focus on [common use cases, not edge cases](#Benchmarks-are-not-Unit-Tests).
+* No, because we would be measuring the performance of throwing and catching the exceptions. That was not the goal of this benchmark.
+* No, because throwing exceptions should be exceptional and [exceptions should not be used to control flow](https://docs.microsoft.com/en-US/visualstudio/profiling/da0007-avoid-using-exceptions-for-control-flow?view=vs-2019). It's an edge case, we should focus on [common use cases, not edge cases](#Benchmarks-are-not-Unit-Tests).
 
-Should we test the code path for an array with one or zero elements? 
+Should we test the code path for an array with one or zero elements?
 
 * No, because it does not perform any actual work. We would be benchmarking a branch and return from the method. If `Reverse` is inlinable, such a benchmark would be measuring the performance of `if (length <= 1)` and the throw checks.
 * No, because it's not a common case. Moreover, it's very unlikely that removing this check from the code would pass the [dotnet/runtime](https://github.com/dotnet/runtime) repository code review and regress the performance in the future.
@@ -524,7 +527,7 @@ public void Add() => _numbers.Add(12345);
 
 In this particular benchmark, the list is growing with every benchmark invocation. `List<T>` is internally using an `Array` to store all the elements. When the array is not big enough to store one more element, a two times bigger array is allocated and all elements are copied from the old array to the new one. It means that every next `Add` operation takes more time. We might also get `OutOfMemoryException` at some point in time.
 
-**Benchmarks should not have any side effects**. 
+**Benchmarks should not have any side effects**.
 
 ### Dead Code Elimination
 

@@ -36,7 +36,7 @@ The following functionalities are supported:
   for a function within a given time range.
 
 ### Requirements and Setup
- 
+
 To begin with, capture a trace with CPU Samples enabled. If you use GC Infra, then
 you're good to go. If you capture it elsewhere, make sure to include the `process_name`
 and the `seconds_taken` fields in the [test status yaml file](test_status_files.md).
@@ -292,4 +292,4 @@ functions:
 
 * To validate: Use `.is_ok()` or `.is_err()`.
 * To extract the value: Use `.value`.
-    * If you know what behavior happened, you can also use `.ok()` and `.err()` respectively.
+  * If you know what behavior happened, you can also use `.ok()` and `.err()` respectively.
