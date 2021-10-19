@@ -65,7 +65,7 @@ jobs:
       osVersion: 1804
       kind: scenarios
       architecture: x64
-      pool: ubuntu-latest
+      pool: Azure Pipelines
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
@@ -108,7 +108,7 @@ jobs:
       osVersion: 1804
       kind: sdk_scenarios
       architecture: x64
-      pool: ubuntu-latest
+      pool: Azure Pipelines
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
@@ -212,7 +212,7 @@ jobs:
       osVersion: 1804
       kind: micro
       architecture: x64
-      pool: ubuntu-latest
+      pool: Azure Pipelines
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
@@ -228,7 +228,7 @@ jobs:
       osVersion: 1804
       kind: mlnet
       architecture: x64
-      pool: ubuntu-latest
+      pool: Azure Pipelines
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
@@ -244,7 +244,7 @@ jobs:
       osVersion: 1804
       kind: roslyn
       architecture: x64
-      pool: ubuntu-latest
+      pool: Azure Pipelines
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
@@ -280,7 +280,7 @@ jobs:
       osVersion: 1804
       kind: scenarios
       architecture: x64
-      pool: ubuntu-latest
+      pool: Azure Pipelines
       machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       container: ubuntu_x64_build_container
@@ -380,7 +380,7 @@ jobs:
   #     osVersion: 1804
   #     kind: micro
   #     architecture: x64
-  #     pool: ubuntu-latest
+  #     pool: Azure Pipelines
   #     machinePool: Tiger
   #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     container: ubuntu_x64_build_container
@@ -398,7 +398,7 @@ jobs:
   #     osVersion: 1804
   #     kind: micro
   #     architecture: x64
-  #     pool: ubuntu-latest
+  #     pool: Azure Pipelines
   #     machinePool: Owl
   #     queue: Ubuntu.1804.Amd64.Owl.Perf # using a dedicated private Helix queue (perfowls)
   #     container: ubuntu_x64_build_container
@@ -416,7 +416,7 @@ jobs:
   #     osVersion: 1804
   #     kind: mlnet
   #     architecture: x64
-  #     pool: ubuntu-latest
+  #     pool: Azure Pipelines
   #     machinePool: Tiger
   #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     container: ubuntu_x64_build_container
@@ -434,7 +434,7 @@ jobs:
   #     osVersion: 1804
   #     kind: roslyn
   #     architecture: x64
-  #     pool: ubuntu-latest
+  #     pool: Azure Pipelines
   #     machinePool: Tiger
   #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     container: ubuntu_x64_build_container
@@ -486,7 +486,7 @@ jobs:
       osName: ubuntu
       osVersion: 1804
       architecture: x64
-      pool: ubuntu-latest
+      pool: Azure Pipelines
       kind: sdk_scenarios
       machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf
@@ -550,7 +550,7 @@ jobs:
       osName: ubuntu
       osVersion: 1804
       architecture: x64
-      pool: ubuntu-latest
+      pool: Azure Pipelines
       kind: sdk_scenarios
       machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf
