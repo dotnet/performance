@@ -45,6 +45,8 @@ jobs:
             value: 'chmod +x $HELIX_CORRELATION_PAYLOAD/machine-setup.sh;. $HELIX_CORRELATION_PAYLOAD/machine-setup$(ScriptExtension);cp $HELIX_CORRELATION_PAYLOAD/NuGet.config $HELIX_WORKITEM_ROOT'
           - name: PreservePythonPath
             value: 'export ORIGPYPATH=$PYTHONPATH'
+          - name: SetAllowOpenSsl102
+            value: 'export CRYPTOGRAPHY_ALLOW_OPENSSL_102 =true'
           - name: HelixPostCommand
             value: 'export PYTHONPATH=$ORIGPYPATH'
           - name: Python
