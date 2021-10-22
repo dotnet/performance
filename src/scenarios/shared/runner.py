@@ -16,7 +16,7 @@ from io import StringIO
 from shutil import move
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
-from shared.util import publishedexe, pythoncommand, appfolder
+from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand
 from shared.sod import SODWrapper
 from shared import const
 from performance.common import RunCommand, iswin, extension
@@ -303,8 +303,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
         elif self.testtype == const.DEVICESTARTUP:
 
-            cmdline = [
-                'xharness',
+            cmdline = xharnesscommand() + [
                 self.devicetype,
                 'install',
                 '--app', self.packagepath,
@@ -318,8 +317,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
 
             for i in range(5):
-                cmdline = [
-                    'xharness',
+                cmdline = xharnesscommand() + [
                     'android',
                     'run',
                     '-o',
@@ -340,8 +338,7 @@ ex: C:\repos\performance;C:\repos\runtime
             
                 RunCommand(cmdline, verbose=True).run()
 
-            cmdline = [
-                'xharness',
+            cmdline = xharnesscommand() + [
                 'android',
                 'uninstall',
                 '--package-name',
@@ -356,7 +353,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 move(file, const.TRACEDIR)
 
 
-            cmdline = ['xharness', self.devicetype, 'state', '--adb']
+            cmdline = xharnesscommand() + [self.devicetype, 'state', '--adb']
             adb = RunCommand(cmdline, verbose=True)
             adb.run()
             cmdline = [adb.stdout.strip(), 'shell', 'rm', '/sdcard/trace*.nettrace']

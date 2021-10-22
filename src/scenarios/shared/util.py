@@ -61,3 +61,9 @@ def pythoncommand():
         return 'py'
     else:
         return 'python3'
+
+def xharnesscommand():
+    xharnesspath = os.environ.get('XHARNESSPATH')
+    if xharnesspath is None:
+        return ['xharness']
+    return ['dotnet','exec',xharnesspath]
