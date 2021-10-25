@@ -71,13 +71,13 @@
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs pub\wwwroot</Command>
     </HelixWorkItem>
 
-    <!-- Take out the condition once this test successfully runs on net7.0 -->
-    <HelixWorkItem Include="SOD - Pizza App - Publish - AOT" Condition="'$(FrameworkVersion)' &lt; '7.0'"> 
+    <!-- Take out the condition once this test successfully runs on net7.0 --><!--
+    <HelixWorkItem Include="SOD - Pizza App - Publish - AOT"> 
       <PayloadDirectory>$(ScenariosDir)blazorpizzaaot</PayloadDirectory>
-      <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <PreCommands>$(Python) pre.py publish -f %PERFLAB_TARGET_FRAMEWORKS% --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs pub\wwwroot</Command>
-    </HelixWorkItem>
+      --><!-- Specifying both linker dump msbuild properties in case linker version is not updated --><!--
+      <PreCommands>$(Python) pre.py publish -f %PERFLAB_TARGET_FRAMEWORKS% -,-msbuild "/p:_TrimmerDumpDependencies=true" -,-msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) -,-dump-dependencies&quot;</PreCommands>
+      <Command>$(Python) test.py sod -,-scenario-name &quot;%(Identity)&quot; -,-dirs pub\wwwroot</Command>
+    </HelixWorkItem> Replace -,- with two dashes when uncommenting-->
   </ItemGroup>
 
 </Project>
