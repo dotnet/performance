@@ -22,10 +22,12 @@ namespace System.Tests
                     yield return new object[] { length, pinned };
         }
 
+        [BenchmarkCategory(Categories.NoWASM)]
         [Benchmark]
         [ArgumentsSource(nameof(GetArguments))]
         public T[] AllocateArray(int length, bool pinned) => GC.AllocateArray<T>(length, pinned);
 
+        [BenchmarkCategory(Categories.NoWASM)]
         [Benchmark]
         [ArgumentsSource(nameof(GetArguments))]
         public T[] AllocateUninitializedArray(int length, bool pinned) => GC.AllocateUninitializedArray<T>(length, pinned);
