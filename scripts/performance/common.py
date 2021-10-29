@@ -193,6 +193,7 @@ class RunCommand:
                     stdout=PIPE if should_pipe else DEVNULL,
                     stderr=STDOUT,
                     universal_newlines=True,
+                    encoding="utf-8",
             ) as proc:
                 if proc.stdout is not None:
                     with proc.stdout:
