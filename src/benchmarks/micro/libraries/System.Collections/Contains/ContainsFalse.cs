@@ -37,6 +37,9 @@ namespace System.Collections
         [GlobalSetup(Targets = new[] { nameof(Array), "Span" })]
         public void SetupArray() => _array = Setup();
 
+        [MemoryRandomization(true)]
+        [IterationCount(50)]
+        [Outliers(Perfolizer.Mathematics.OutlierDetection.OutlierMode.DontRemove)]
         [Benchmark]
         public bool Array()
         {
@@ -49,6 +52,9 @@ namespace System.Collections
         }
 
 #if !NETFRAMEWORK
+        [MemoryRandomization(true)]
+        [IterationCount(50)]
+        [Outliers(Perfolizer.Mathematics.OutlierDetection.OutlierMode.DontRemove)]
         [BenchmarkCategory(Categories.Span)]
         [Benchmark]
         public bool Span()
@@ -64,6 +70,9 @@ namespace System.Collections
         [GlobalSetup(Targets = new[] { nameof(List), nameof(ICollection) })]
         public void SetupList() => _list = new List<T>(Setup());
 
+        [MemoryRandomization(true)]
+        [IterationCount(50)]
+        [Outliers(Perfolizer.Mathematics.OutlierDetection.OutlierMode.DontRemove)]
         [Benchmark]
         public bool List()
         {

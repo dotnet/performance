@@ -30,10 +30,16 @@ namespace System.Collections
             _destination = new T[Size];
         }
 
+        [MemoryRandomization(true)]
+        [IterationCount(50)]
+        [Outliers(Perfolizer.Mathematics.OutlierDetection.OutlierMode.DontRemove)]
         [Benchmark]
         public void Array() => System.Array.Copy(_array, _destination, Size);
 
         [BenchmarkCategory(Categories.Span)]
+        [MemoryRandomization(true)]
+        [IterationCount(50)]
+        [Outliers(Perfolizer.Mathematics.OutlierDetection.OutlierMode.DontRemove)]
         [Benchmark]
         public void Span() => new Span<T>(_array).CopyTo(new Span<T>(_destination));
 
@@ -56,6 +62,9 @@ namespace System.Collections
             _destination = new T[Size];
         }
 
+        [MemoryRandomization(true)]
+        [IterationCount(50)]
+        [Outliers(Perfolizer.Mathematics.OutlierDetection.OutlierMode.DontRemove)]
         [Benchmark]
         public void List() => _list.CopyTo(_destination);
 

@@ -42,6 +42,9 @@ namespace System.Collections
             _array = _found.ToArray();
         }
 
+        [MemoryRandomization(true)]
+        [IterationCount(50)]
+        [Outliers(Perfolizer.Mathematics.OutlierDetection.OutlierMode.DontRemove)]
         [Benchmark]
         public bool Array()
         {
@@ -54,6 +57,9 @@ namespace System.Collections
         }
 
 #if !NETFRAMEWORK
+        [MemoryRandomization(true)]
+        [IterationCount(50)]
+        [Outliers(Perfolizer.Mathematics.OutlierDetection.OutlierMode.DontRemove)]
         [BenchmarkCategory(Categories.Span)]
         [Benchmark]
         public bool Span()
@@ -73,6 +79,9 @@ namespace System.Collections
             _list = new List<T>(_found);
         }
 
+        [MemoryRandomization(true)]
+        [IterationCount(50)]
+        [Outliers(Perfolizer.Mathematics.OutlierDetection.OutlierMode.DontRemove)]
         [Benchmark]
         public bool List()
         {

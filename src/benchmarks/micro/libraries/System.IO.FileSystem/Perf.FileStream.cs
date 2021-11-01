@@ -135,6 +135,9 @@ namespace System.IO.Tests
             }
         }
 
+        [MemoryRandomization(true)]
+        [IterationCount(50)]
+        [Outliers(Perfolizer.Mathematics.OutlierDetection.OutlierMode.DontRemove)]
         [Benchmark]
         [Arguments(OneKibibyte, FileOptions.None)]
         [Arguments(OneKibibyte, FileOptions.Asynchronous)] // calling ReadByte() on bigger files makes no sense, so we don't have more test cases

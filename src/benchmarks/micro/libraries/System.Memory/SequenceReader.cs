@@ -23,6 +23,9 @@ namespace System.Memory
             _multiSegmentSequence = new ReadOnlySequence<int>(firstSegment, 0, secondSegment, firstSegment.Memory.Length);
         }
 
+        [MemoryRandomization(true)]
+        [IterationCount(50)]
+        [Outliers(Perfolizer.Mathematics.OutlierDetection.OutlierMode.DontRemove)]
         [Benchmark(OperationsPerInvoke = 16)]
         public ReadOnlySequence<int> TryReadTo()
         {
