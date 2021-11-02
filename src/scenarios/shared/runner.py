@@ -310,7 +310,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 '--package-name',
                 self.packagename,
                 '-o',
-                const.TRACEDIR
+                environ.get('HELIX_WORKITEM_UPLOAD_ROOT')
             ]
 
             RunCommand(cmdline, verbose=True).run()
@@ -321,7 +321,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     'android',
                     'run',
                     '-o',
-                    const.TRACEDIR,
+                    environ.get('HELIX_WORKITEM_UPLOAD_ROOT'),
                     '--package-name',
                     self.packagename,
                     '-v',
