@@ -302,7 +302,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
 
         elif self.testtype == const.DEVICESTARTUP:
-            RunCommand("echo testStr one", verbose=True).run()
+            getLogger().info("TestStr one")
 
             cmdline = xharnesscommand() + [
                 self.devicetype,
