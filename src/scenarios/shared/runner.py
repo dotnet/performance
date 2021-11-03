@@ -302,6 +302,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
 
         elif self.testtype == const.DEVICESTARTUP:
+            RunCommand("echo testStr one", verbose=True).run()
 
             cmdline = xharnesscommand() + [
                 self.devicetype,
@@ -310,7 +311,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 '--package-name',
                 self.packagename,
                 '-o',
-                environ.get('HELIX_WORKITEM_UPLOAD_ROOT')
+                os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT')
             ]
 
             RunCommand(cmdline, verbose=True).run()
@@ -321,7 +322,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     'android',
                     'run',
                     '-o',
-                    environ.get('HELIX_WORKITEM_UPLOAD_ROOT'),
+                    os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'),
                     '--package-name',
                     self.packagename,
                     '-v',
