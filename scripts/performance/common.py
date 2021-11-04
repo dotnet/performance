@@ -191,7 +191,7 @@ class RunCommand:
             quoted_cmdline += list2cmdline(self.cmdline)
 
             getLogger().info(quoted_cmdline)
-            r = run(self.cmdline, capture_output=should_pipe, text=True, timeout=180)
+            r = run(self.cmdline, capture_output=should_pipe, text=True)
             getLogger().info(r.stdout)
             self.__stdout = r.stdout
             return (r.returncode, quoted_cmdline)

@@ -303,6 +303,12 @@ ex: C:\repos\performance;C:\repos\runtime
 
         elif self.testtype == const.DEVICESTARTUP:
             cmdline = xharnesscommand() + [
+                'help'
+            ]
+
+            RunCommand(cmdline, success_exit_codes=[2], verbose=True).run()
+            
+            cmdline = xharnesscommand() + [
                 self.devicetype,
                 'state',
                 '-v'
