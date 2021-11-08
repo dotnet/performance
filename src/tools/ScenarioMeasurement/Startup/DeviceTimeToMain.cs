@@ -47,7 +47,8 @@ namespace ScenarioMeasurement
 
             foreach (var trace in files)
             {
-                using (var source = new EventPipeEventSource(mergeTraceFile))
+                Console.WriteLine($"Parsing {trace}");
+                using (var source = new EventPipeEventSource(trace))
                 {
                     source.Clr.MethodLoadVerbose += evt =>
                     {

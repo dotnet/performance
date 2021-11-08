@@ -16,7 +16,8 @@ parser = ArgumentParser()
 parser.add_argument('--unzip', help='Unzip APK and report extracted tree', action='store_true', default=False)
 args = parser.parse_args()
 
-os.mkdir(PUBDIR)
+if not os.path.exists(PUBDIR):
+    os.mkdir(PUBDIR)
 apknames = ['HelloAndroid.apk', 'HelloAndroidWithDiag.apk']
 for apkname in apknames:
     apknamezip = '%s.zip' % (apkname)

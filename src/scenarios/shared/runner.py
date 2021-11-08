@@ -301,12 +301,12 @@ ex: C:\repos\performance;C:\repos\runtime
             startup.runtests(self.traits)
 
 
-        elif self.testtype == const.DEVICESTARTUP:
-            cmdline = xharnesscommand() + [
-                'help'
-            ]
-
-            RunCommand(cmdline, success_exit_codes=[2], verbose=True).run()
+        elif self.testtype == const.DEVICESTARTUP:  
+            getLogger().info("Clearing potential previous run nettraces")
+            for file in glob.glob(os.path.join(const.TRACEDIR, 'PerfTest', 'trace*.nettrace')):
+                if exists(file):   
+                    getLogger().info("Removed: " + os.path.join(const.TRACEDIR, file))
+                    os.remove(file)
             
             cmdline = xharnesscommand() + [
                 self.devicetype,
@@ -316,6 +316,12 @@ ex: C:\repos\performance;C:\repos\runtime
 
             RunCommand(cmdline, verbose=True).run()
 
+            cmdline = xharnesscommand() + [self.devicetype, 'state', '--adb']
+            adb = RunCommand(cmdline, verbose=True)
+            adb.run()
+            cmdline = [adb.stdout.strip(), 'shell', 'mkdir', '-p', '/sdcard/PerfTest']
+            RunCommand(cmdline, verbose=True).run()
+
             cmdline = xharnesscommand() + [
                 self.devicetype,
                 'install',
@@ -323,7 +329,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 '--package-name',
                 self.packagename,
                 '-o',
-                os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'),
+                const.TRACEDIR,
                 '-v'
             ]
 
@@ -335,19 +341,19 @@ ex: C:\repos\performance;C:\repos\runtime
                     'android',
                     'run',
                     '-o',
-                    os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'),
+                    const.TRACEDIR,
                     '--package-name',
                     self.packagename,
                     '-v',
                     '--arg=env:COMPlus_EnableEventPipe=1',
                     '--arg=env:COMPlus_EventPipeOutputStreaming=1',
-                    '--arg=env:COMPlus_EventPipeOutputPath=/sdcard/trace%s.nettrace' % (i+1),
+                    '--arg=env:COMPlus_EventPipeOutputPath=/sdcard/PerfTest/trace%s.nettrace' % (i+1),
                     '--arg=env:COMPlus_EventPipeCircularMB=10',
                     '--arg=env:COMPlus_EventPipeConfig=Microsoft-Windows-DotNETRuntime:10:5',
                     '--expected-exit-code',
                     '42',
                     '--dev-out',
-                    '/sdcard'
+                    '/sdcard/PerfTest/'
                 ]
             
                 RunCommand(cmdline, verbose=True).run()
@@ -361,16 +367,17 @@ ex: C:\repos\performance;C:\repos\runtime
 
             RunCommand(cmdline, verbose=True).run()
 
-            for file in glob.glob(os.path.join(const.TRACEDIR, 'sdcard', 'trace*.nettrace')):
-                if exists(os.path.join(const.TRACEDIR, file)):                    
-                    os.remove(os.path.join(const.TRACEDIR, file))
-                move(file, const.TRACEDIR)
-
+            #for file in glob.glob(os.path.join(const.TRACEDIR, 'PerfTest', 'trace*.nettrace')):
+            #    getLogger().info("File: " + file + " checking " + os.path.join(const.TRACEDIR, file))
+            #    if exists(os.path.join(const.TRACEDIR, file)):   
+            #        getLogger().info("Removed: " + os.path.join(const.TRACEDIR, file))
+            #        os.remove(os.path.join(const.TRACEDIR, file))
+            #    move(file, const.TRACEDIR)
 
             cmdline = xharnesscommand() + [self.devicetype, 'state', '--adb']
             adb = RunCommand(cmdline, verbose=True)
             adb.run()
-            cmdline = [adb.stdout.strip(), 'shell', 'rm', '/sdcard/trace*.nettrace']
+            cmdline = [adb.stdout.strip(), 'shell', 'rm', '/sdcard/PerfTest/trace*.nettrace']
             RunCommand(cmdline, verbose=True).run()
             
 
@@ -378,7 +385,7 @@ ex: C:\repos\performance;C:\repos\runtime
             startup = StartupWrapper()
             # simply passing trace1.nettrace as the first trace name will cause the parser to find the rest.
             # apptorun isn't used in this case but must exist.
-            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracename='trace1.nettrace')
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracename='PerfTest/trace1.nettrace')
             startup.parsetrace(self.traits)
 
         elif self.testtype == const.SOD:
