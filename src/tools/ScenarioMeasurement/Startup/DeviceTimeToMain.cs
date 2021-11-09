@@ -32,13 +32,12 @@ namespace ScenarioMeasurement
         {
             var times = new List<double>();
             var files = new HashSet<string>();
-            files.Add(mergeTraceFile);
             var traceName = Path.GetFileNameWithoutExtension(mergeTraceFile);
             if (traceName.EndsWith("1"))
             {
                 traceName = traceName.TrimEnd('1');
                 var dirName = Path.GetDirectoryName(mergeTraceFile);
-                foreach (var file in Directory.GetFiles(dirName, $"{traceName}?.nettrace"))
+                foreach (var file in Directory.GetFiles(dirName, $"{traceName}*.nettrace"))
                 {
                     Console.WriteLine($"Found {file}");
                     files.Add(file);

@@ -60,6 +60,8 @@ class Runner:
         parseonlyparser.add_argument('--device-type', choices=['android','ios'],type=str.lower,help='Device type for testing', dest='devicetype')
         parseonlyparser.add_argument('--package-path', help='Location of test application', dest='packagepath')
         parseonlyparser.add_argument('--package-name', help='Classname of application', dest='packagename')
+        parseonlyparser.add_argument('--exit-code', help='Success exit code', dest='expectedexitcode')
+        parseonlyparser.add_argument('--startup-trials', help='Startups to run (1+)', type=int, default=5, dest='startuptrials')
         self.add_common_arguments(parseonlyparser)
 
         # inner loop command
@@ -141,6 +143,8 @@ ex: C:\repos\performance;C:\repos\runtime
             self.packagepath = args.packagepath
             self.packagename = args.packagename
             self.devicetype = args.devicetype
+            self.expectedexitcode = args.expectedexitcode
+            self.startuptrials = args.startuptrials
 
         if args.scenarioname:
             self.scenarioname = args.scenarioname
@@ -336,7 +340,7 @@ ex: C:\repos\performance;C:\repos\runtime
             RunCommand(cmdline, verbose=True).run()
 
 
-            for i in range(5):
+            for i in range(self.startuptrials):
                 cmdline = xharnesscommand() + [
                     'android',
                     'run',
@@ -351,7 +355,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     '--arg=env:COMPlus_EventPipeCircularMB=10',
                     '--arg=env:COMPlus_EventPipeConfig=Microsoft-Windows-DotNETRuntime:10:5',
                     '--expected-exit-code',
-                    '42',
+                    self.expectedexitcode,
                     '--dev-out',
                     '/sdcard/PerfTest/'
                 ]
