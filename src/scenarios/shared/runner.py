@@ -367,17 +367,10 @@ ex: C:\repos\performance;C:\repos\runtime
 
             RunCommand(cmdline, verbose=True).run()
 
-            #for file in glob.glob(os.path.join(const.TRACEDIR, 'PerfTest', 'trace*.nettrace')):
-            #    getLogger().info("File: " + file + " checking " + os.path.join(const.TRACEDIR, file))
-            #    if exists(os.path.join(const.TRACEDIR, file)):   
-            #        getLogger().info("Removed: " + os.path.join(const.TRACEDIR, file))
-            #        os.remove(os.path.join(const.TRACEDIR, file))
-            #    move(file, const.TRACEDIR)
-
             cmdline = xharnesscommand() + [self.devicetype, 'state', '--adb']
             adb = RunCommand(cmdline, verbose=True)
             adb.run()
-            cmdline = [adb.stdout.strip(), 'shell', 'rm', '/sdcard/PerfTest/trace*.nettrace']
+            cmdline = [adb.stdout.strip(), 'shell', 'rm', '-r', '/sdcard/PerfTest']
             RunCommand(cmdline, verbose=True).run()
             
 
