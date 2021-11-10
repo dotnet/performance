@@ -23,6 +23,20 @@ namespace System.Text.RegularExpressions.Tests
                 return reader.ReadToEnd();
             }
         }
+
+        public static int Count(Regex r, string input)
+        {
+            int count = 0;
+            
+            Match m = r.Match(input);
+            while (m.Success)
+            {
+                count++;
+                m = m.NextMatch();
+            }
+
+            return count;
+        }
     }
 
     /// <summary>Performance tests adapted from https://github.com/mariomka/regex-benchmark</summary>
@@ -36,28 +50,30 @@ namespace System.Text.RegularExpressions.Tests
         )]
         public string Pattern { get; set; }
 
-        [Params(RegexOptions.None, RegexOptions.Compiled
+        [Params(
+            RegexOptions.None,
+            RegexOptions.Compiled
 #if NET7_0_OR_GREATER
             , RegexOptions.NonBacktracking
 #endif
             )]
         public RegexOptions Options { get; set; }
 
-        private string _input_text;
         private Regex _regex;
+        private string _input;
 
         [Benchmark]
         public Regex Ctor() => new Regex(Pattern, Options);
 
-        [GlobalSetup(Target = nameof(CountMatches))]
+        [GlobalSetup(Target = nameof(Count))]
         public void Setup()
         {
             _regex = new Regex(Pattern, Options);
-            _input_text = Perf_Regex_Industry.ReadInputFile("mariomka.txt.gz");
+            _input = Perf_Regex_Industry.ReadInputFile("mariomka.txt.gz");
         }
 
         [Benchmark]
-        public int CountMatches() => _regex.Matches(_input_text).Count;
+        public int Count() => Perf_Regex_Industry.Count(_regex, _input);
     }
 
     /// <summary>Performance tests adapted from https://github.com/cloudflare/sliceslice-rs/tree/a27b76c8527d44d5b3534c84b878d8289eacb7ff/data</summary>
@@ -65,36 +81,37 @@ namespace System.Text.RegularExpressions.Tests
     [SkipTooManyTestCasesValidator]
     public class Perf_Regex_Industry_SliceSlice
     {
-        [Params(RegexOptions.None, RegexOptions.Compiled
+        [Params(
+            RegexOptions.None,
+            RegexOptions.IgnoreCase,
+            RegexOptions.Compiled,
+            RegexOptions.Compiled | RegexOptions.IgnoreCase
 #if NET7_0_OR_GREATER
             , RegexOptions.NonBacktracking
+            , RegexOptions.NonBacktracking | RegexOptions.IgnoreCase
 #endif
             )]
         public RegexOptions Options { get; set; }
 
-        private string _i386;
+        private static readonly Regex s_extractWords = new Regex(@"\b(\w+)\b", RegexOptions.Compiled);
         private Regex[] _regexes;
+        private string _input;
 
-        [GlobalSetup(Target = nameof(CountMatches))]
+        [GlobalSetup(Target = nameof(Count))]
         public void Setup()
         {
-            _i386 = Perf_Regex_Industry.ReadInputFile("i386.txt.gz");
-            string words = Perf_Regex_Industry.ReadInputFile("words.txt.gz");
-            _regexes = words.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).Select(word => new Regex(word, Options)).ToArray();
+            _input = Perf_Regex_Industry.ReadInputFile("sherlock.txt.gz");
+            _regexes = s_extractWords.Matches(_input).Cast<Match>().Select(m => m.Captures[0].Value).Distinct().Select(w => new Regex(w, Options)).ToArray();
         }
 
         [Benchmark]
-        public int CountMatches()
+        [MinIterationCount(3)] // each iteration takes several seconds
+        public int Count()
         {
             int found = 0;
             foreach (Regex r in _regexes)
             {
-                Match m = r.Match(_i386);
-                while (m.Success)
-                {
-                    found++;
-                    m = m.NextMatch();
-                }
+                found += Perf_Regex_Industry.Count(r, _input);
             }
             return found;
         }
@@ -148,18 +165,19 @@ namespace System.Text.RegularExpressions.Tests
         )]
         public string Pattern { get; set; }
 
-        [Params(RegexOptions.None, RegexOptions.Compiled
+        [Params(
+            RegexOptions.None,
+            RegexOptions.Compiled
 #if NET7_0_OR_GREATER
             , RegexOptions.NonBacktracking
 #endif
             )]
         public RegexOptions Options { get; set; }
 
-
         private string _sherlock;
         private Regex _regex;
 
-        [GlobalSetup(Target = nameof(CountMatches))]
+        [GlobalSetup(Target = nameof(Count))]
         public void Setup()
         {
             _regex = new Regex(Pattern, Options);
@@ -167,17 +185,7 @@ namespace System.Text.RegularExpressions.Tests
         }
 
         [Benchmark]
-        public int CountMatches()
-        {
-            int found = 0;
-            Match m = _regex.Match(_sherlock);
-            while (m.Success)
-            {
-                found++;
-                m = m.NextMatch();
-            }
-            return found;
-        }
+        public int Count() => Perf_Regex_Industry.Count(_regex, _sherlock);
     }
 
     /// <summary>Performance tests adapted from https://rust-leipzig.github.io/regex/2017/03/28/comparison-of-regex-engines/</summary>
@@ -200,12 +208,14 @@ namespace System.Text.RegularExpressions.Tests
             //"[a-zA-Z]+ing", // duplicates Perf_Regex_Industry_RustLang_Sherlock test
             "\\s[a-zA-Z]{0,12}ing\\s",
             "([A-Za-z]awyer|[A-Za-z]inn)\\s",
-            "[\"'][^\"']{0,30}[?!\\.][\"']",
+            //"[\"'][^\"']{0,30}[?!\\.][\"']", // Breaks benchmarkdotnet 13.1
             "\u221E|\u2713",
             "\\p{Sm}")]
         public string Pattern { get; set; }
 
-        [Params(RegexOptions.None, RegexOptions.Compiled
+        [Params(
+            RegexOptions.None,
+            RegexOptions.Compiled
 #if NET7_0_OR_GREATER
             , RegexOptions.NonBacktracking
 #endif
@@ -215,7 +225,7 @@ namespace System.Text.RegularExpressions.Tests
         private string _3200;
         private Regex _regex;
 
-        [GlobalSetup(Target = nameof(CountMatches))]
+        [GlobalSetup(Target = nameof(Count))]
         public void Setup()
         {
             _regex = new Regex(Pattern, Options);
@@ -223,17 +233,7 @@ namespace System.Text.RegularExpressions.Tests
         }
 
         [Benchmark]
-        public int CountMatches()
-        {
-            int found = 0;
-            Match m = _regex.Match(_3200);
-            while (m.Success)
-            {
-                found++;
-                m = m.NextMatch();
-            }
-            return found;
-        }
+        public int Count() => Perf_Regex_Industry.Count(_regex, _3200);
     }
 
     /// <summary>Performance tests adapted from https://www.boost.org/doc/libs/1_41_0/libs/regex/doc/gcc-performance.html</summary>
@@ -244,7 +244,9 @@ namespace System.Text.RegularExpressions.Tests
         [Params(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)]
         public int Id { get; set; }
 
-        [Params(RegexOptions.None, RegexOptions.Compiled
+        [Params(
+            RegexOptions.None,
+            RegexOptions.Compiled
 #if NET7_0_OR_GREATER
             , RegexOptions.NonBacktracking
 #endif
