@@ -26,6 +26,7 @@ namespace System.IO.Tests
         private string _testFilePath;
         private string[] _filesToRemove;
         private Dictionary<int, byte[]> _userBuffers;
+        private Dictionary<int, string> _filesToRead;
         private string[] _linesToAppend;
         private Dictionary<int, string> _textToAppend;
 
@@ -82,6 +83,41 @@ namespace System.IO.Tests
         [Arguments(HundredMibibytes)]
         public void WriteAllBytes(int size) => File.WriteAllBytes(_testFilePath, _userBuffers[size]);
 
+        [GlobalSetup(Targets = new[] { nameof(ReadAllBytes), "ReadAllBytesAsync" })]
+        public void SetupReadAllBytes()
+        {
+            _filesToRead = new Dictionary<int, string>()
+            {
+                { HalfKibibyte, WriteBytes(HalfKibibyte) },
+                { FourKibibytes, WriteBytes(FourKibibytes) },
+                { SixteenKibibytes, WriteBytes(SixteenKibibytes) },
+                { OneMibibyte, WriteBytes(OneMibibyte) },
+                { HundredMibibytes, WriteBytes(HundredMibibytes) },
+            };
+
+            static string WriteBytes(int fileSize)
+            {
+                string filePath = FileUtils.GetTestFilePath();
+                File.WriteAllBytes(filePath, ValuesGenerator.Array<byte>(fileSize));
+                return filePath;
+            }
+        }
+
+        [GlobalCleanup(Targets = new[] { nameof(ReadAllBytes), "ReadAllBytesAsync" })]
+        public void CleanupReadAllBytes()
+        {
+            foreach (string filePath in _filesToRead.Values)
+                File.Delete(filePath);
+        }
+
+        [Benchmark]
+        [Arguments(HalfKibibyte)]
+        [Arguments(FourKibibytes)]
+        [Arguments(SixteenKibibytes)]
+        [Arguments(OneMibibyte)]
+        [Arguments(HundredMibibytes)]
+        public byte[] ReadAllBytes(int size) => File.ReadAllBytes(_filesToRead[size]);
+
 #if !NETFRAMEWORK
         [BenchmarkCategory(Categories.NoWASM)]
         [Benchmark]
@@ -91,6 +127,15 @@ namespace System.IO.Tests
         [Arguments(OneMibibyte)]
         [Arguments(HundredMibibytes)]
         public Task WriteAllBytesAsync(int size) => File.WriteAllBytesAsync(_testFilePath, _userBuffers[size]);
+
+        [BenchmarkCategory(Categories.NoWASM)]
+        [Benchmark]
+        [Arguments(HalfKibibyte)]
+        [Arguments(FourKibibytes)]
+        [Arguments(SixteenKibibytes)]
+        [Arguments(OneMibibyte)]
+        [Arguments(HundredMibibytes)]
+        public Task<byte[]> ReadAllBytesAsync(int size) => File.ReadAllBytesAsync(_filesToRead[size]);
 #endif
 
         [GlobalSetup(Targets = new[] { nameof(AppendAllLines), "AppendAllLinesAsync" })]
