@@ -198,7 +198,7 @@ namespace System.Text.RegularExpressions.Tests
             "(?i)Twain",
             "[a-z]shing",
             "Huck[a-zA-Z]+|Saw[a-zA-Z]+",
-            "\\b\\w+nn\\b",
+            //"\\b\\w+nn\\b", // duplicates (almost) Perf_Regex_Industry_RustLang_Sherlock test
             //"[a-q][^u-z]{13}x", // duplicates Perf_Regex_Industry_RustLang_Sherlock test
             "Tom|Sawyer|Huckleberry|Finn",
             "(?i)Tom|Sawyer|Huckleberry|Finn",
@@ -206,7 +206,7 @@ namespace System.Text.RegularExpressions.Tests
             ".{2,4}(Tom|Sawyer|Huckleberry|Finn)",
             "Tom.{10,25}river|river.{10,25}Tom",
             //"[a-zA-Z]+ing", // duplicates Perf_Regex_Industry_RustLang_Sherlock test
-            "\\s[a-zA-Z]{0,12}ing\\s",
+            //"\\s[a-zA-Z]{0,12}ing\\s", // duplicates Perf_Regex_Industry_RustLang_Sherlock test
             "([A-Za-z]awyer|[A-Za-z]inn)\\s",
             //"[\"'][^\"']{0,30}[?!\\.][\"']", // Breaks benchmarkdotnet 13.1
             "\u221E|\u2713",
