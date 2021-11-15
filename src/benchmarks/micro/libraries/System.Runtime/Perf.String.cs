@@ -21,6 +21,12 @@ namespace System.Tests
         }
 
         [Benchmark]
+        [Arguments(1)]
+        [Arguments(10)]
+        [Arguments(100)]
+        public string CtorCharCount(int size) => new string('a', size);
+
+        [Benchmark]
         [ArgumentsSource(nameof(TestStringSizes))]
         public char[] GetChars(StringArguments size) // the argument is called "size" to keep the old benchmark ID, do NOT rename it
             => size.TestString1.ToCharArray();
