@@ -311,14 +311,6 @@ ex: C:\repos\performance;C:\repos\runtime
                 if exists(file):   
                     getLogger().info("Removed: " + os.path.join(const.TRACEDIR, file))
                     os.remove(file)
-            
-            cmdline = xharnesscommand() + [
-                self.devicetype,
-                'state',
-                '-v'
-            ]
-
-            RunCommand(cmdline, verbose=True).run()
 
             cmdline = xharnesscommand() + [self.devicetype, 'state', '--adb']
             adb = RunCommand(cmdline, verbose=True)
