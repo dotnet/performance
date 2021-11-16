@@ -20,6 +20,7 @@ class StartupWrapper(object):
     '''
     def __init__(self):
         startupdir = 'startup'
+        self.reportjson = os.path.join(TRACEDIR, 'perf-lab-report.json')
         if helixpayload() and os.path.exists(os.path.join(helixpayload(), startupdir)):
             self._setstartuppath(os.path.join(helixpayload(), startupdir))
         elif helixworkitempayload() and os.path.exists(os.path.join(helixworkitempayload(), startupdir)):
@@ -50,7 +51,6 @@ class StartupWrapper(object):
                                 '--no-restore'
                                 )
             self._setstartuppath(startup.bin_path)
-            self.reportjson = os.path.join(TRACEDIR, 'perf-lab-report.json')
 
     
     def _setstartuppath(self, path: str):
