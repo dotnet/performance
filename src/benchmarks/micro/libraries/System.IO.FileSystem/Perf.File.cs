@@ -83,9 +83,12 @@ namespace System.IO.Tests
         [Arguments(HundredMibibytes)]
         public void WriteAllBytes(int size) => File.WriteAllBytes(_testFilePath, _userBuffers[size]);
 
-        [GlobalSetup(Targets = new[] { nameof(ReadAllBytes), "ReadAllBytesAsync" })]
+        [GlobalSetup(Targets = new[] { nameof(ReadAllBytes), "ReadAllBytesAsync", nameof(CopyTo), nameof(CopyToOverwrite) })]
         public void SetupReadAllBytes()
         {
+            // use non-temp file path to ensure that we don't test some unusal File System on Unix
+            string baseDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            File.WriteAllBytes(_testFilePath = Path.Combine(baseDir, Path.GetTempFileName()), Array.Empty<byte>());
             _filesToRead = new Dictionary<int, string>()
             {
                 { HalfKibibyte, WriteBytes(HalfKibibyte) },
@@ -95,19 +98,21 @@ namespace System.IO.Tests
                 { HundredMibibytes, WriteBytes(HundredMibibytes) },
             };
 
-            static string WriteBytes(int fileSize)
+            string WriteBytes(int fileSize)
             {
-                string filePath = FileUtils.GetTestFilePath();
+                string filePath = Path.Combine(baseDir, Path.GetTempFileName());
                 File.WriteAllBytes(filePath, ValuesGenerator.Array<byte>(fileSize));
                 return filePath;
             }
         }
 
-        [GlobalCleanup(Targets = new[] { nameof(ReadAllBytes), "ReadAllBytesAsync" })]
+        [GlobalCleanup(Targets = new[] { nameof(ReadAllBytes), "ReadAllBytesAsync", nameof(CopyTo), nameof(CopyToOverwrite) })]
         public void CleanupReadAllBytes()
         {
             foreach (string filePath in _filesToRead.Values)
                 File.Delete(filePath);
+
+            File.Delete(_testFilePath);
         }
 
         [Benchmark]
@@ -228,5 +233,23 @@ namespace System.IO.Tests
         [Arguments(100_000)]
         public Task WriteAllTextAsync(int size) => File.WriteAllTextAsync(_testFilePath, _textToAppend[size]);
 #endif
+
+        [Benchmark]
+        [Arguments(HalfKibibyte)]
+        [Arguments(FourKibibytes)]
+        [Arguments(OneMibibyte)]
+        [Arguments(HundredMibibytes)]
+        public void CopyTo(int size)
+        {
+            File.Delete(_testFilePath);
+            File.Copy(_filesToRead[size], _testFilePath); // overwrite defaults to false
+        }
+
+        [Benchmark]
+        [Arguments(HalfKibibyte)]
+        [Arguments(FourKibibytes)]
+        [Arguments(OneMibibyte)]
+        [Arguments(HundredMibibytes)]
+        public void CopyToOverwrite(int size) => File.Copy(_filesToRead[size], _testFilePath, overwrite: true);
     }
 }
