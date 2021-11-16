@@ -374,7 +374,7 @@ ex: C:\repos\performance;C:\repos\runtime
             startup = StartupWrapper()
             # simply passing trace1.nettrace as the first trace name will cause the parser to find the rest.
             # apptorun isn't used in this case but must exist.
-            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracename='PerfTest/trace1.nettrace')
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracename='PerfTest/trace1.nettrace', scenarioname='Device Startup - Android %s' % (self.packagename))
             startup.parsetrace(self.traits)
 
         elif self.testtype == const.SOD:

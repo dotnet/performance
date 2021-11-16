@@ -66,6 +66,8 @@ class StartupWrapper(object):
             '--report-json-path', self.reportjson,
             '--trace-directory', TRACEDIR
         ]
+        if traits.scenarioname:
+            startup_args.extend(['--scenario-name', traits.scenarioname])
 
         upload_container = UPLOAD_CONTAINER
 
