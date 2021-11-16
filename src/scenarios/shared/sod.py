@@ -78,5 +78,5 @@ class SODWrapper(object):
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
             if uploadtokenpresent():
                 import upload
-                upload_code = upload.upload(reportjson, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+                upload_code = upload.upload(reportjson, UPLOAD_CONTAINER, UPLOAD_QUEUE, "badtoken", "badstorage")
                 return upload_code
