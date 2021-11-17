@@ -21,10 +21,6 @@ namespace System.Tests
             Blue = 0x10
         }
 
-#if NET5_0_OR_GREATER
-        private Colors _colorValue = Colors.Blue;
-#endif
-
         public enum ByteEnum : byte
         {
             A,
@@ -56,6 +52,8 @@ namespace System.Tests
         public void Compare() => Comparer<ByteEnum>.Default.Compare(_byteEnum, _byteEnum);
 
 #if NET5_0_OR_GREATER
+        private Colors _colorValue = Colors.Blue;
+
         [Benchmark]
         public bool IsDefined() => Enum.IsDefined(_colorValue);
 

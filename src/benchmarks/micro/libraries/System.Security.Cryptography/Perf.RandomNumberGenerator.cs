@@ -10,13 +10,16 @@ namespace System.Security.Cryptography.Tests
     [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class Perf_RandomNumberGenerator
     {
+        private RandomNumberGenerator _rng;
+        private byte[] _bytes = new byte[8];
+
+        [GlobalSetup]
+        public void Setup() => _rng = RandomNumberGenerator.Create();
+
+        [GlobalCleanup]
+        public void Cleanup() => _rng.Dispose();
+
         [Benchmark]
-        public byte[] GetBytes()
-        {
-            using RandomNumberGenerator rng = RandomNumberGenerator.Create();
-            byte[] buffer = new byte[8];
-            rng.GetBytes(buffer);
-            return buffer;
-        }
+        public void GetBytes() => _rng.GetBytes(_bytes);
     }
 }
