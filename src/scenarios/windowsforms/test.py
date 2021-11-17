@@ -10,6 +10,7 @@ def main():
                         )
     runner = Runner(traits)
     runner.run()
+    return 1
 
 
 if __name__ == "__main__":
