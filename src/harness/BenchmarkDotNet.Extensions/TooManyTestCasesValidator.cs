@@ -34,12 +34,13 @@ namespace BenchmarkDotNet.Extensions
 
         private static bool SkipValidation(MemberInfo member)
         {
-            for (; member is not null; member = member.DeclaringType)
+            while (member is not null)
             {
                 if (member.IsDefined(typeof(SkipTooManyTestCasesValidatorAttribute), inherit: true))
                 {
                     return true;
                 }
+                member = member.DeclaringType;
             }
 
             return false;
