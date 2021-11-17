@@ -244,6 +244,7 @@ def __main(args: list) -> int:
         if args.upload_to_perflab_container:
             import upload
             upload_code = upload.upload(globpath, upload_container, UPLOAD_QUEUE, "badtoken", "badstorage")
+            getLogger().info("Upload Code: " + upload_code)
             return upload_code
         # TODO: Archive artifacts.
 

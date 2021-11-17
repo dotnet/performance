@@ -124,4 +124,5 @@ class StartupWrapper(object):
             if uploadtokenpresent():
                 import upload
                 upload_code = upload.upload(reportjson, upload_container, UPLOAD_QUEUE, "badtoken", "badstorage")
+                getLogger().info("Upload Code: " + upload_code)
                 return upload_code

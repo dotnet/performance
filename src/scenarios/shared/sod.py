@@ -1,6 +1,7 @@
 '''
 Wrapper around startup tool.
 '''
+from logging import getLogger
 import sys
 import os
 import platform
@@ -79,4 +80,5 @@ class SODWrapper(object):
             if uploadtokenpresent():
                 import upload
                 upload_code = upload.upload(reportjson, UPLOAD_CONTAINER, UPLOAD_QUEUE, "badtoken", "badstorage")
+                getLogger().info("Upload Code: " + upload_code)
                 return upload_code
