@@ -314,8 +314,8 @@ ex: C:\repos\performance;C:\repos\runtime
 
             cmdline = xharnesscommand() + [self.devicetype, 'state', '--adb']
             adb = RunCommand(cmdline, verbose=True)
-            print(adb)
             adb.run()
+            print("ADB Location: " + adb.stdout.strip())
             cmdline = [adb.stdout.strip(), 'shell', 'mkdir', '-p', '/sdcard/PerfTest']
             RunCommand(cmdline, verbose=True).run()
 
