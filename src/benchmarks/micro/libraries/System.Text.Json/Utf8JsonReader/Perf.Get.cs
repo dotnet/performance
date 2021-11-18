@@ -4,13 +4,15 @@
 
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
-using System.Linq;
 
 namespace System.Text.Json.Tests
 {
     [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     public class Perf_Get
     {
+        private const int OperationsPerBenchmark = 100;
+
+        private static readonly byte[] _jsonFalseBytes = GetJsonBytes("false");
         private static readonly byte[] _jsonIntegerNumberBytes = GetJsonBytes(123);
         private static readonly byte[] _jsonDecimalNumberBytes = GetJsonBytes(123.456f);
         private static readonly byte[] _jsonStringBytes = GetJsonBytes("\"The quick brown fox jumps over the lazy dog.\"");
@@ -23,214 +25,189 @@ namespace System.Text.Json.Tests
             return Encoding.UTF8.GetBytes(elem.ToString());
         }
 
-        [Benchmark]
-        public byte GetByte()
+        [Benchmark(OperationsPerInvoke = OperationsPerBenchmark)]
+        public void GetBoolean()
         {
-            byte result = 0;
+            var reader = new Utf8JsonReader(_jsonFalseBytes);
+            reader.Read();
+
+            for (int i = 0; i < OperationsPerBenchmark; i++)
+            {
+                reader.GetBoolean();
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = OperationsPerBenchmark)]
+        public void GetByte()
+        {
             var reader = new Utf8JsonReader(_jsonIntegerNumberBytes);
             reader.Read();
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < OperationsPerBenchmark; i++)
             {
-                result += reader.GetByte();
+                reader.GetByte();
             }
-            return result;
         }
 
-        [Benchmark]
-        public sbyte GetSByte()
+        [Benchmark(OperationsPerInvoke = OperationsPerBenchmark)]
+        public void GetSByte()
         {
-            sbyte result = 0;
             var reader = new Utf8JsonReader(_jsonIntegerNumberBytes);
             reader.Read();
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < OperationsPerBenchmark; i++)
             {
-                result += reader.GetSByte();
+                reader.GetSByte();
             }
-            return result;
         }
 
-        [Benchmark]
-        public short GetInt16()
+        [Benchmark(OperationsPerInvoke = OperationsPerBenchmark)]
+        public void GetInt16()
         {
-            short result = 0;
             var reader = new Utf8JsonReader(_jsonIntegerNumberBytes);
             reader.Read();
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < OperationsPerBenchmark; i++)
             {
-                result += reader.GetInt16();
+                reader.GetInt16();
             }
-            return result;
         }
 
-        [Benchmark]
-        public int GetInt32()
+        [Benchmark(OperationsPerInvoke = OperationsPerBenchmark)]
+        public void GetInt32()
         {
-            int result = 0;
             var reader = new Utf8JsonReader(_jsonIntegerNumberBytes);
             reader.Read();
-
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < OperationsPerBenchmark; i++)
             {
-                result += reader.GetInt32();
+                reader.GetInt32();
             }
-            return result;
         }
 
-        [Benchmark]
-        public long GetInt64()
+        [Benchmark(OperationsPerInvoke = OperationsPerBenchmark)]
+        public void GetInt64()
         {
-            long result = 0;
             var reader = new Utf8JsonReader(_jsonIntegerNumberBytes);
             reader.Read();
-
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < OperationsPerBenchmark; i++)
             {
-                result += reader.GetInt64();
+                reader.GetInt64();
             }
-            return result;
         }
 
-        [Benchmark]
-        public ushort GetUInt16()
+        [Benchmark(OperationsPerInvoke = OperationsPerBenchmark)]
+        public void GetUInt16()
         {
-            ushort result = 0;
             var reader = new Utf8JsonReader(_jsonIntegerNumberBytes);
             reader.Read();
-
             for (int i = 0; i < 100; i++)
             {
-                result += reader.GetUInt16();
+                reader.GetUInt16();
             }
-            return result;
         }
 
-        [Benchmark]
-        public uint GetUInt32()
+        [Benchmark(OperationsPerInvoke = OperationsPerBenchmark)]
+        public void GetUInt32()
         {
-            uint result = 0;
             var reader = new Utf8JsonReader(_jsonIntegerNumberBytes);
             reader.Read();
-
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < OperationsPerBenchmark; i++)
             {
-                result += reader.GetUInt32();
+                reader.GetUInt32();
             }
-            return result;
         }
 
-        [Benchmark]
-        public ulong GetUInt64()
+        [Benchmark(OperationsPerInvoke = OperationsPerBenchmark)]
+        public void GetUInt64()
         {
-            ulong result = 0;
             var reader = new Utf8JsonReader(_jsonIntegerNumberBytes);
             reader.Read();
-
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < OperationsPerBenchmark; i++)
             {
-                result += reader.GetUInt64();
+                reader.GetUInt64();
             }
-            return result;
         }
 
-        [Benchmark]
-        public float GetSingle()
+        [Benchmark(OperationsPerInvoke = OperationsPerBenchmark)]
+        public void GetSingle()
         {
-            float result = 0;
             var reader = new Utf8JsonReader(_jsonDecimalNumberBytes);
             reader.Read();
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < OperationsPerBenchmark; i++)
             {
-                result += reader.GetSingle();
+                reader.GetSingle();
             }
-            return result;
         }
 
-        [Benchmark]
-        public double GetDouble()
+        [Benchmark(OperationsPerInvoke = OperationsPerBenchmark)]
+        public void GetDouble()
         {
-            double result = 0;
             var reader = new Utf8JsonReader(_jsonDecimalNumberBytes);
             reader.Read();
-
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < OperationsPerBenchmark; i++)
             {
-                result += reader.GetDouble();
+                reader.GetDouble();
             }
-            return result;
         }
 
-        [Benchmark]
-        public decimal GetDecimal()
+        [Benchmark(OperationsPerInvoke = OperationsPerBenchmark)]
+        public void GetDecimal()
         {
-            decimal result = 0;
             var reader = new Utf8JsonReader(_jsonDecimalNumberBytes);
             reader.Read();
-
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < OperationsPerBenchmark; i++)
             {
-                result += reader.GetDecimal();
+                reader.GetDecimal();
             }
-            return result;
         }
 
-        [Benchmark]
-        public DateTime GetDateTime()
+        [Benchmark(OperationsPerInvoke = OperationsPerBenchmark)]
+        public void GetDateTime()
         {
-            DateTime result = default;
             var reader = new Utf8JsonReader(_jsonDateTimeBytes);
             reader.Read();
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < OperationsPerBenchmark; i++)
             {
-                result = reader.GetDateTime();
+                reader.GetDateTime();
             }
-            return result;
         }
 
-        [Benchmark]
-        public DateTimeOffset GetDateTimeOffset()
+        [Benchmark(OperationsPerInvoke = OperationsPerBenchmark)]
+        public void GetDateTimeOffset()
         {
-            DateTimeOffset result = default;
             var reader = new Utf8JsonReader(_jsonDateTimeOffsetBytes);
             reader.Read();
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < OperationsPerBenchmark; i++)
             {
-                result = reader.GetDateTimeOffset();
+                reader.GetDateTimeOffset();
             }
-            return result;
         }
 
-        [Benchmark]
-        public Guid GetGuid()
+        [Benchmark(OperationsPerInvoke = OperationsPerBenchmark)]
+        public void GetGuid()
         {
-            Guid result = default;
             var reader = new Utf8JsonReader(_jsonGuidBytes);
             reader.Read();
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < OperationsPerBenchmark; i++)
             {
-                result = reader.GetGuid();
+                reader.GetGuid();
             }
-            return result;
         }
 
-        [Benchmark]
-        public string GetString()
+        [Benchmark(OperationsPerInvoke = OperationsPerBenchmark)]
+        public void GetString()
         {
-            string result = default;
             var reader = new Utf8JsonReader(_jsonStringBytes);
             reader.Read();
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < OperationsPerBenchmark; i++)
             {
-                result = reader.GetString();
+                reader.GetString();
             }
-            return result;
         }
     }
 }
