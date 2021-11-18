@@ -52,6 +52,19 @@ namespace System.Tests
         public string Concat_CharEnumerable() =>
             string.Concat(s_longCharEnumerable);
 
+        private static string[] s_stringArray = new[] { "hello", "world", "how", "are", "you", "today" };
+        private static List<string> s_stringList = new List<string>(s_stringArray);
+        private static IEnumerable<string> s_stringEnumerable = s_stringArray.Select(s => s.ToUpperInvariant());
+
+        [Benchmark]
+        public string Join_Array() => string.Join(", ", s_stringArray);
+
+        [Benchmark]
+        public string Join_List() => string.Join(", ", s_stringList);
+
+        [Benchmark]
+        public string Join_Enumerable() => string.Join(", ", s_stringEnumerable);
+
         [Benchmark]
         [Arguments("Test", 2, " Test")]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 7, "Test")]
@@ -151,6 +164,8 @@ namespace System.Tests
         [Benchmark]
         [Arguments("This is a very nice sentence", "bad", "nice")] // there are no "bad" words in the string
         [Arguments("This is a very nice sentence", "nice", "bad")] // there are is one "nice" word in the string
+        [Arguments("This is a very nice sentence. This is another very nice sentence.", "a", "b")] // both strings are single characters
+        [Arguments("This is a very nice sentence. This is another very nice sentence.", "a", "")] // old string is a single character
         public string Replace_String(string text, string oldValue, string newValue)
             => text.Replace(oldValue, newValue);
 

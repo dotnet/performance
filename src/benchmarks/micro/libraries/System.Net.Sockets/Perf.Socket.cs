@@ -18,7 +18,22 @@ namespace System.Net.Sockets.Tests
         private const int InnerIterationCount = 10_000;
 
         private Socket _listener, _client, _server;
-        
+
+        [Benchmark(OperationsPerInvoke = 1000)]
+        public async Task ConnectAcceptAsync()
+        {
+            using var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+            listener.Listen(1);
+
+            for (int i = 0; i < 1000; i++)
+            {
+                using var client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                await client.ConnectAsync(listener.LocalEndPoint);
+                using var server = await listener.AcceptAsync();
+            }
+        }
+
         [Benchmark]
         public async Task SendAsyncThenReceiveAsync_Task()
         {

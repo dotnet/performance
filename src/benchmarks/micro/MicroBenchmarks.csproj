@@ -71,7 +71,8 @@
     <Compile Remove="libraries\System.IO.Compression\Brotli.cs" />
     <Compile Remove="libraries\System.Net.Http\Perf.SocketsHttpHandler.cs" />
     <Compile Remove="libraries\System.Net.Security\SslStreamTests.cs" />
-    <Compile Remove="libraries\System.Net.Sockets\Perf.Socket.SendReceive.cs" />
+    <Compile Remove="libraries\System.Net.Sockets\Perf.Socket.cs" />
+    <Compile Remove="libraries\System.Net.WebSockets\Perf.WebSocket.cs" />
     <Compile Remove="libraries\System.Numerics.Vectors\GenericVectorFromSpanConstructorTests.cs" />
     <Compile Remove="libraries\System.Runtime\Perf.HashCode.cs" />
     <Compile Remove="libraries\System.Security.Cryptography.Primitives\**" />

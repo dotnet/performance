@@ -4,6 +4,7 @@
 
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
+using System.Threading.Tasks;
 
 namespace System.Net.Tests
 {
@@ -15,5 +16,10 @@ namespace System.Net.Tests
 
         [Benchmark]
         public string GetHostName() => Dns.GetHostName();
+
+        private string _hostname = Dns.GetHostName();
+
+        [Benchmark(OperationsPerInvoke = 1000)]
+        public Task GetHostAddressesAsync() => Dns.GetHostAddressesAsync(_hostname);
     }
 }
