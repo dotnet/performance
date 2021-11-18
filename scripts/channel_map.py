@@ -64,6 +64,10 @@ class ChannelMap():
         'LTS': {
             'tfm': 'net461', # For Full Framework download the LTS for dotnet cli.
             'branch': 'LTS'
+        },
+        'net48': {
+            'tfm': 'net48', # For Full Framework download the LTS for dotnet cli.
+            'branch': 'LTS'
         }
     }
     @staticmethod
