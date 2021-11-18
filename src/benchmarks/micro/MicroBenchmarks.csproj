@@ -121,8 +121,8 @@
   </ItemGroup>
 
   <ItemGroup>
-	<!-- Temporarily disable tests here -->
-	<Compile Remove="libraries\System.Text.RegularExpressions\Perf.Regex.Industry.cs" />
+    <!-- Temporarily disable tests here -->
+    <Compile Remove="libraries\System.Text.RegularExpressions\Perf.Regex.Industry.cs" />
 	  
     <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
     <None Include="**/*.cs" />
