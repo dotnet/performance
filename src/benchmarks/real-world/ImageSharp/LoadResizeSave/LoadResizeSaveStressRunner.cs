@@ -157,14 +157,5 @@ namespace SixLabors.ImageSharp.Benchmarks.LoadResizeSave
             // Save the results
             image.Save(output, this.imageSharpJpegEncoder);
         }
-
-        public void NetVipsResize(string input)
-        {
-            // Thumbnail to fit a 150x150 square
-            using var thumb = NetVipsImage.Thumbnail(input, this.ThumbnailSize, this.ThumbnailSize);
-
-            // Save the results
-            thumb.Jpegsave(this.OutputPath(input), q: Quality, strip: true);
-        }
     }
 }
