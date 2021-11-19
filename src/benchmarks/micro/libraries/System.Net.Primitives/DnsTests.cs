@@ -11,15 +11,18 @@ namespace System.Net.Tests
     [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     public class DnsTests
     {
+        private string _hostname;
+
         [Benchmark]
         public IPHostEntry GetHostEntry() => Dns.GetHostEntry("34.206.253.53");
 
         [Benchmark]
         public string GetHostName() => Dns.GetHostName();
 
-        private string _hostname = Dns.GetHostName();
+        [GlobalSetup(Target = nameof(GetHostAddressesAsync))]
+        public void SetupGetHostAddressesAsync() => _hostname = Dns.GetHostName();
 
-        [Benchmark(OperationsPerInvoke = 1000)]
+        [Benchmark]
         public Task GetHostAddressesAsync() => Dns.GetHostAddressesAsync(_hostname);
     }
 }
