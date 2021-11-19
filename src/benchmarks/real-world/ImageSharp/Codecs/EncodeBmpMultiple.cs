@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System.Collections.Generic;
-using System.Drawing.Imaging;
 using BenchmarkDotNet.Attributes;
 using SixLabors.ImageSharp.Formats.Bmp;
 
@@ -18,14 +17,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
             => this.ForEachImageSharpImage((img, ms) =>
             {
                 img.Save(ms, new BmpEncoder());
-                return null;
-            });
-
-        [Benchmark(Baseline = true, Description = "EncodeBmpMultiple - System.Drawing")]
-        public void EncodeBmpSystemDrawing()
-            => this.ForEachSystemDrawingImage((img, ms) =>
-            {
-                img.Save(ms, ImageFormat.Bmp);
                 return null;
             });
     }

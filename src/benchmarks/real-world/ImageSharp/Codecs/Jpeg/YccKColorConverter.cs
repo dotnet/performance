@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0.
 
 using BenchmarkDotNet.Attributes;
-using SixLabors.ImageSharp.Formats.Jpeg.Components.Decoder.ColorConverters;
 
 namespace SixLabors.ImageSharp.Benchmarks.Codecs.Jpeg
 {

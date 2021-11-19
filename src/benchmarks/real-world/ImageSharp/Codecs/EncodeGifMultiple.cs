@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System.Collections.Generic;
-using System.Drawing.Imaging;
 using BenchmarkDotNet.Attributes;
 using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.Processing;
@@ -29,14 +28,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
                 };
 
                 img.Save(ms, options);
-                return null;
-            });
-
-        [Benchmark(Baseline = true, Description = "EncodeGifMultiple - System.Drawing")]
-        public void EncodeGifSystemDrawing()
-            => this.ForEachSystemDrawingImage((img, ms) =>
-            {
-                img.Save(ms, ImageFormat.Gif);
                 return null;
             });
     }

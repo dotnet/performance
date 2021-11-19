@@ -2,9 +2,6 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using SixLabors.ImageSharp.Formats.Jpeg;
@@ -43,29 +40,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs.Jpeg
             const int MaxOutputSizeInBytes = 2 * 1024 * 1024; // ~2 MB
             this.destBytes = new byte[MaxOutputSizeInBytes];
         }
-
-        [Benchmark(Baseline = true)]
-        public void SystemDrawing()
-            => this.ForEachStream(
-                sourceStream =>
-                {
-                    using (var destStream = new MemoryStream(this.destBytes))
-                    using (var source = System.Drawing.Image.FromStream(sourceStream))
-                    using (var destination = new Bitmap(source.Width / 4, source.Height / 4))
-                    {
-                        using (var g = Graphics.FromImage(destination))
-                        {
-                            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                            g.CompositingQuality = CompositingQuality.HighQuality;
-                            g.DrawImage(source, 0, 0, 400, 400);
-                        }
-
-                        destination.Save(destStream, ImageFormat.Jpeg);
-                    }
-
-                    return null;
-                });
 
         [Benchmark]
         public void ImageSharp()

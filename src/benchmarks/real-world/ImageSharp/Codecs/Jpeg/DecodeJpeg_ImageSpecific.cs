@@ -4,7 +4,6 @@
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Tests;
 
 // ReSharper disable InconsistentNaming
