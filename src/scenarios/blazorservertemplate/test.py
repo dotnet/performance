@@ -1,4 +1,5 @@
 import os
+import sys
 from shared.runner import TestTraits, Runner
 from shared import const
 
@@ -12,7 +13,7 @@ def main():
                         )
     runner = Runner(traits)
     runner.run()
-    return 1
+    sys.exit(1)
 
 
 if __name__ == "__main__":
