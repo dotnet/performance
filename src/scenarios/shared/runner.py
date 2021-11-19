@@ -290,5 +290,3 @@ ex: C:\repos\performance;C:\repos\runtime
             if not (self.dirs or builtdir):
                 raise Exception("Dirs was not passed in and neither %s nor %s exist" % (const.PUBDIR, const.BINDIR))
             sod.runtests(scenarioname=self.scenarioname, dirs=self.dirs or builtdir, artifact=self.traits.artifact)
-
-        return 1
