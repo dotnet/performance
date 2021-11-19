@@ -3,7 +3,6 @@
 
 using System.IO;
 using BenchmarkDotNet.Attributes;
-using ImageMagick;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Tests;
 
@@ -12,7 +11,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
     [Config(typeof(Config.ShortMultiFramework))]
     public class EncodeTga
     {
-        private MagickImage tgaMagick;
         private Image<Rgba32> tga;
 
         private string TestImageFullPath
@@ -27,7 +25,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
             if (this.tga == null)
             {
                 this.tga = Image.Load<Rgba32>(this.TestImageFullPath);
-                this.tgaMagick = new MagickImage(this.TestImageFullPath);
             }
         }
 
@@ -36,14 +33,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
         {
             this.tga.Dispose();
             this.tga = null;
-            this.tgaMagick.Dispose();
-        }
-
-        [Benchmark(Baseline = true, Description = "Magick Tga")]
-        public void MagickTga()
-        {
-            using var memoryStream = new MemoryStream();
-            this.tgaMagick.Write(memoryStream, MagickFormat.Tga);
         }
 
         [Benchmark(Description = "ImageSharp Tga")]
