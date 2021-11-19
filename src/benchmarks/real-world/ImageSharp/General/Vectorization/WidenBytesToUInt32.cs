@@ -25,20 +25,6 @@ namespace SixLabors.ImageSharp.Benchmarks.General.Vectorization
             this.dest = new uint[Count];
         }
 
-        [Benchmark(Baseline = true)]
-        public void Standard()
-        {
-            const int N = Count / 8;
-
-            ref Octet<byte> sBase = ref Unsafe.As<byte, Octet<byte>>(ref this.source[0]);
-            ref Octet<uint> dBase = ref Unsafe.As<uint, Octet<uint>>(ref this.dest[0]);
-
-            for (int i = 0; i < N; i++)
-            {
-                Unsafe.Add(ref dBase, i).LoadFrom(ref Unsafe.Add(ref sBase, i));
-            }
-        }
-
         [Benchmark]
         public void Simd()
         {

@@ -139,7 +139,7 @@ namespace SixLabors.ImageSharp.Benchmarks.General.PixelConversion
             /// Converts a packed <see cref="Rgba32"/> to <see cref="Argb32"/>.
             /// </summary>
             /// <returns>The argb value.</returns>
-            [MethodImpl(InliningOptions.ShortMethod)]
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static uint ToArgb32(uint packedRgba)
             {
                 // packedRgba          = [aa bb gg rr]
@@ -151,7 +151,7 @@ namespace SixLabors.ImageSharp.Benchmarks.General.PixelConversion
             /// Converts a packed <see cref="Rgba32"/> to <see cref="Bgra32"/>.
             /// </summary>
             /// <returns>The bgra value.</returns>
-            [MethodImpl(InliningOptions.ShortMethod)]
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static uint ToBgra32(uint packedRgba)
             {
                 // packedRgba          = [aa bb gg rr]

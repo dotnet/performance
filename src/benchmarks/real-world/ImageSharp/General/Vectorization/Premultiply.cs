@@ -35,7 +35,7 @@ namespace SixLabors.ImageSharp.Benchmarks.General.Vectorization
 
     internal static class Vector4Utils
     {
-        [MethodImpl(InliningOptions.ShortMethod)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector4 Premultiply(Vector4 source)
         {
             float w = source.W;
@@ -44,7 +44,7 @@ namespace SixLabors.ImageSharp.Benchmarks.General.Vectorization
             return premultiplied;
         }
 
-        [MethodImpl(InliningOptions.ShortMethod)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void PremultiplyRef(ref Vector4 source)
         {
             float w = source.W;
@@ -52,7 +52,7 @@ namespace SixLabors.ImageSharp.Benchmarks.General.Vectorization
             source.W = w;
         }
 
-        [MethodImpl(InliningOptions.ShortMethod)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void PremultiplyRefWithPropertyAssign(ref Vector4 source)
         {
             float w = source.W;

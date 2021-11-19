@@ -229,18 +229,6 @@ namespace SixLabors.ImageSharp.Benchmarks.General.PixelConversion
             }
         }
 
-        // [Benchmark]
-        public void Bitops_Simd()
-        {
-            ref Octet<uint> sBase = ref Unsafe.As<Rgba32, Octet<uint>>(ref this.source[0]);
-            ref Octet<uint> dBase = ref Unsafe.As<Bgra32, Octet<uint>>(ref this.dest[0]);
-
-            for (int i = 0; i < this.Count / 8; i++)
-            {
-                BitopsSimdImpl(ref Unsafe.Add(ref sBase, i), ref Unsafe.Add(ref dBase, i));
-            }
-        }
-
 #pragma warning disable SA1132 // Do not combine fields
         [StructLayout(LayoutKind.Sequential)]
         private struct B
@@ -254,35 +242,6 @@ namespace SixLabors.ImageSharp.Benchmarks.General.PixelConversion
             public uint Tmp3, Tmp6, Tmp9, Tmp12, Tmp15, Tmp18, Tmp21, Tmp24;
         }
 #pragma warning restore SA1132 // Do not combine fields
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void BitopsSimdImpl(ref Octet<uint> s, ref Octet<uint> d)
-        {
-            Vector<uint> sVec = Unsafe.As<Octet<uint>, Vector<uint>>(ref s);
-            var aMask = new Vector<uint>(0xFF00FF00);
-            var bMask = new Vector<uint>(0x00FF00FF);
-
-            Vector<uint> aa = sVec & aMask;
-            Vector<uint> bb = sVec & bMask;
-
-            B b = Unsafe.As<Vector<uint>, B>(ref bb);
-
-            C c = default;
-
-            c.Tmp3 = (b.Tmp2 << 16) | (b.Tmp2 >> 16);
-            c.Tmp6 = (b.Tmp5 << 16) | (b.Tmp5 >> 16);
-            c.Tmp9 = (b.Tmp8 << 16) | (b.Tmp8 >> 16);
-            c.Tmp12 = (b.Tmp11 << 16) | (b.Tmp11 >> 16);
-            c.Tmp15 = (b.Tmp14 << 16) | (b.Tmp14 >> 16);
-            c.Tmp18 = (b.Tmp17 << 16) | (b.Tmp17 >> 16);
-            c.Tmp21 = (b.Tmp20 << 16) | (b.Tmp20 >> 16);
-            c.Tmp24 = (b.Tmp23 << 16) | (b.Tmp23 >> 16);
-
-            Vector<uint> cc = Unsafe.As<C, Vector<uint>>(ref c);
-            Vector<uint> dd = aa + cc;
-
-            d = Unsafe.As<Vector<uint>, Octet<uint>>(ref dd);
-        }
 
         // [Benchmark]
         public void BitOps_Group2()
@@ -357,7 +316,7 @@ namespace SixLabors.ImageSharp.Benchmarks.General.PixelConversion
             /// Converts a packed <see cref="Rgba32"/> to <see cref="Argb32"/>.
             /// </summary>
             /// <returns>The argb value.</returns>
-            [MethodImpl(InliningOptions.ShortMethod)]
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static uint ToArgb32(uint packedRgba)
             {
                 // packedRgba          = [aa bb gg rr]
@@ -369,7 +328,7 @@ namespace SixLabors.ImageSharp.Benchmarks.General.PixelConversion
             /// Converts a packed <see cref="Rgba32"/> to <see cref="Bgra32"/>.
             /// </summary>
             /// <returns>The bgra value.</returns>
-            [MethodImpl(InliningOptions.ShortMethod)]
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static uint ToBgra32(uint packedRgba)
             {
                 // packedRgba          = [aa bb gg rr]

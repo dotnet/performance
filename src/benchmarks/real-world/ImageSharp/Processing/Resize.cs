@@ -10,7 +10,6 @@ using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Tests;
-using SDImage = System.Drawing.Image;
 
 namespace SixLabors.ImageSharp.Benchmarks
 {
@@ -21,8 +20,6 @@ namespace SixLabors.ImageSharp.Benchmarks
         private byte[] bytes = null;
 
         private Image<TPixel> sourceImage;
-
-        private SDImage sourceBitmap;
 
         protected Configuration Configuration { get; } = new Configuration(new JpegConfigurationModule());
 
@@ -38,8 +35,6 @@ namespace SixLabors.ImageSharp.Benchmarks
                 this.sourceImage = Image.Load<TPixel>(this.bytes);
 
                 var ms1 = new MemoryStream(this.bytes);
-                this.sourceBitmap = SDImage.FromStream(ms1);
-                this.DestSize = this.sourceBitmap.Width / 2;
             }
         }
 
@@ -48,27 +43,6 @@ namespace SixLabors.ImageSharp.Benchmarks
         {
             this.bytes = null;
             this.sourceImage.Dispose();
-            this.sourceBitmap.Dispose();
-        }
-
-        [Benchmark(Baseline = true)]
-        public int SystemDrawing()
-        {
-            using (var destination = new Bitmap(this.DestSize, this.DestSize))
-            {
-                using (var g = Graphics.FromImage(destination))
-                {
-                    g.CompositingMode = CompositingMode.SourceCopy;
-                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                    g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                    g.CompositingQuality = CompositingQuality.HighQuality;
-                    g.SmoothingMode = SmoothingMode.HighQuality;
-
-                    g.DrawImage(this.sourceBitmap, 0, 0, this.DestSize, this.DestSize);
-                }
-
-                return destination.Width;
-            }
         }
 
         [Benchmark(Description = "ImageSharp, MaxDegreeOfParallelism = 1")]
@@ -135,7 +109,6 @@ namespace SixLabors.ImageSharp.Benchmarks
 
         public override void Setup()
         {
-            this.Configuration.WorkingBufferSizeHintInBytes = this.WorkingBufferSizeHintInKilobytes * 1024;
             base.Setup();
         }
     }
@@ -236,9 +209,6 @@ namespace SixLabors.ImageSharp.Benchmarks
             this.rgb24.Cleanup();
             this.rgba32.Cleanup();
         }
-
-        [Benchmark]
-        public void SystemDrawing() => this.rgba32.SystemDrawing();
 
         [Benchmark(Baseline = true)]
         public void Rgba32() => this.rgba32.ImageSharp_P1();
