@@ -2,15 +2,11 @@
 // Licensed under the Apache License, Version 2.0.
 
 using System;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.IO;
 using BenchmarkDotNet.Attributes;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Tests;
-using SDImage = System.Drawing.Image;
 
 // ReSharper disable InconsistentNaming
 namespace SixLabors.ImageSharp.Benchmarks.Codecs.Jpeg
@@ -45,24 +41,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs.Jpeg
             this.sourceBytes = File.ReadAllBytes(this.TestImageFullPath);
 
             this.destBytes = new byte[this.sourceBytes.Length * 2];
-        }
-
-        [Benchmark(Baseline = true)]
-        public void SystemDrawing()
-        {
-            using var sourceStream = new MemoryStream(this.sourceBytes);
-            using var destStream = new MemoryStream(this.destBytes);
-            using var source = SDImage.FromStream(sourceStream);
-            using var destination = new Bitmap(source.Width / 4, source.Height / 4);
-            using (var g = Graphics.FromImage(destination))
-            {
-                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                g.CompositingQuality = CompositingQuality.HighQuality;
-                g.DrawImage(source, 0, 0, 400, 400);
-            }
-
-            destination.Save(destStream, ImageFormat.Jpeg);
         }
 
         [Benchmark]

@@ -5,8 +5,6 @@ using System.IO;
 using BenchmarkDotNet.Attributes;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Tests;
-using SDImage = System.Drawing.Image;
-using SDSize = System.Drawing.Size;
 
 namespace SixLabors.ImageSharp.Benchmarks.Codecs
 {
@@ -29,14 +27,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
 
         [Params(TestImages.Gif.Rings)]
         public string TestImage { get; set; }
-
-        [Benchmark(Baseline = true, Description = "System.Drawing Gif")]
-        public SDSize GifSystemDrawing()
-        {
-            using var memoryStream = new MemoryStream(this.gifBytes);
-            using var image = SDImage.FromStream(memoryStream);
-            return image.Size;
-        }
 
         [Benchmark(Description = "ImageSharp Gif")]
         public Size GifImageSharp()

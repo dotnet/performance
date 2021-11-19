@@ -7,7 +7,6 @@ using BenchmarkDotNet.Attributes;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Tests;
-using SDImage = System.Drawing.Image;
 
 namespace SixLabors.ImageSharp.Benchmarks.Codecs.Jpeg
 {
@@ -19,10 +18,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs.Jpeg
         private const string TestImage = TestImages.Jpeg.BenchmarkSuite.Jpeg420Exif_MidSizeYCbCr;
 
         // System.Drawing
-        private SDImage bmpDrawing;
         private Stream bmpStream;
-        private ImageCodecInfo jpegCodec;
-        private EncoderParameters encoderParameters;
 
         // ImageSharp
         private Image<Rgba32> bmpCore;
@@ -40,18 +36,8 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs.Jpeg
 
                 this.bmpCore = Image.Load<Rgba32>(this.bmpStream);
                 this.bmpCore.Metadata.ExifProfile = null;
-                this.encoder420 = new JpegEncoder { Quality = this.Quality, ColorType = JpegColorType.YCbCrRatio420 };
-                this.encoder444 = new JpegEncoder { Quality = this.Quality, ColorType = JpegColorType.YCbCrRatio444 };
 
                 this.bmpStream.Position = 0;
-                this.bmpDrawing = SDImage.FromStream(this.bmpStream);
-                this.jpegCodec = GetEncoder(ImageFormat.Jpeg);
-                this.encoderParameters = new EncoderParameters(1);
-
-                // Quality cast to long is necessary
-#pragma warning disable IDE0004 // Remove Unnecessary Cast
-                this.encoderParameters.Param[0] = new EncoderParameter(Encoder.Quality, (long)this.Quality);
-#pragma warning restore IDE0004 // Remove Unnecessary Cast
 
                 this.destinationStream = new MemoryStream();
             }
@@ -67,16 +53,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs.Jpeg
             this.destinationStream = null;
 
             this.bmpCore.Dispose();
-            this.bmpDrawing.Dispose();
-
-            this.encoderParameters.Dispose();
-        }
-
-        [Benchmark(Baseline = true, Description = "System.Drawing Jpeg 4:2:0")]
-        public void JpegSystemDrawing()
-        {
-            this.bmpDrawing.Save(this.destinationStream, this.jpegCodec, this.encoderParameters);
-            this.destinationStream.Seek(0, SeekOrigin.Begin);
         }
 
         [Benchmark(Description = "ImageSharp Jpeg 4:2:0")]
@@ -91,21 +67,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs.Jpeg
         {
             this.bmpCore.SaveAsJpeg(this.destinationStream, this.encoder444);
             this.destinationStream.Seek(0, SeekOrigin.Begin);
-        }
-
-        // https://docs.microsoft.com/en-us/dotnet/api/system.drawing.imaging.encoderparameter?redirectedfrom=MSDN&view=net-5.0
-        private static ImageCodecInfo GetEncoder(ImageFormat format)
-        {
-            ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();
-            foreach (ImageCodecInfo codec in codecs)
-            {
-                if (codec.FormatID == format.Guid)
-                {
-                    return codec;
-                }
-            }
-
-            return null;
         }
     }
 }

@@ -9,8 +9,6 @@ using System.IO;
 using BenchmarkDotNet.Attributes;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Tests;
-using SDImage = System.Drawing.Image;
-using SDSize = System.Drawing.Size;
 
 namespace SixLabors.ImageSharp.Benchmarks.Codecs
 {
@@ -63,16 +61,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
             {
                 this.data = File.ReadAllBytes(this.TestImageFullPath);
                 this.prevImage = this.TestImage;
-            }
-        }
-
-        [Benchmark(Baseline = true, Description = "System.Drawing Tiff")]
-        public SDSize TiffSystemDrawing()
-        {
-            using (var memoryStream = new MemoryStream(this.data))
-            using (var image = SDImage.FromStream(memoryStream))
-            {
-                return image.Size;
             }
         }
 

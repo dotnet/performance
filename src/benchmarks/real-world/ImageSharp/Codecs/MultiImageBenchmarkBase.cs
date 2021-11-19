@@ -19,8 +19,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
 
         protected Dictionary<string, Image<Rgba32>> FileNamesToImageSharpImages { get; set; } = new Dictionary<string, Image<Rgba32>>();
 
-        protected Dictionary<string, Bitmap> FileNamesToSystemDrawingImages { get; set; } = new Dictionary<string, Bitmap>();
-
         /// <summary>
         /// The values of this enum separate input files into categories.
         /// </summary>
@@ -158,8 +156,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
                     {
                         this.FileNamesToImageSharpImages[fn] = Image.Load<Rgba32>(ms1);
                     }
-
-                    this.FileNamesToSystemDrawingImages[fn] = new Bitmap(new MemoryStream(bytes));
                 }
             }
 
@@ -167,12 +163,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
                 =>
                 this.EnumeratePairsByBenchmarkSettings(
                     this.FileNamesToImageSharpImages,
-                    img => img.Width * img.Height < this.LargeImageThresholdInPixels);
-
-            protected IEnumerable<KeyValuePair<string, Bitmap>> FileNames2SystemDrawingImages
-                =>
-                this.EnumeratePairsByBenchmarkSettings(
-                    this.FileNamesToSystemDrawingImages,
                     img => img.Width * img.Height < this.LargeImageThresholdInPixels);
 
             protected virtual int LargeImageThresholdInPixels => 700000;
@@ -197,37 +187,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
             {
                 using var workStream = new MemoryStream();
                 this.ForEachImageSharpImage(
-                    img =>
-                    {
-                        // ReSharper disable AccessToDisposedClosure
-                        object result = operation(img, workStream);
-                        workStream.Seek(0, SeekOrigin.Begin);
-
-                        // ReSharper restore AccessToDisposedClosure
-                        return result;
-                    });
-            }
-
-            protected void ForEachSystemDrawingImage(Func<Bitmap, object> operation)
-            {
-                foreach (KeyValuePair<string, Bitmap> kv in this.FileNames2SystemDrawingImages)
-                {
-                    try
-                    {
-                        object obj = operation(kv.Value);
-                        (obj as IDisposable)?.Dispose();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Operation on {kv.Key} failed with {ex.Message}");
-                    }
-                }
-            }
-
-            protected void ForEachSystemDrawingImage(Func<Bitmap, MemoryStream, object> operation)
-            {
-                using var workStream = new MemoryStream();
-                this.ForEachSystemDrawingImage(
                     img =>
                     {
                         // ReSharper disable AccessToDisposedClosure

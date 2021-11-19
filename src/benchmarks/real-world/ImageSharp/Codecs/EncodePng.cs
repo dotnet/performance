@@ -7,7 +7,6 @@ using BenchmarkDotNet.Attributes;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Tests;
-using SDImage = System.Drawing.Image;
 
 namespace SixLabors.ImageSharp.Benchmarks.Codecs
 {
@@ -16,7 +15,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
     {
         // System.Drawing needs this.
         private Stream bmpStream;
-        private SDImage bmpDrawing;
         private Image<Rgba32> bmpCore;
 
         [Params(false)]
@@ -31,7 +29,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
                 this.bmpStream = File.OpenRead(path);
                 this.bmpCore = Image.Load<Rgba32>(this.bmpStream);
                 this.bmpStream.Position = 0;
-                this.bmpDrawing = SDImage.FromStream(this.bmpStream);
             }
         }
 
@@ -41,14 +38,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
             this.bmpStream.Dispose();
             this.bmpStream = null;
             this.bmpCore.Dispose();
-            this.bmpDrawing.Dispose();
-        }
-
-        [Benchmark(Baseline = true, Description = "System.Drawing Png")]
-        public void PngSystemDrawing()
-        {
-            using var memoryStream = new MemoryStream();
-            this.bmpDrawing.Save(memoryStream, ImageFormat.Png);
         }
 
         [Benchmark(Description = "ImageSharp Png")]

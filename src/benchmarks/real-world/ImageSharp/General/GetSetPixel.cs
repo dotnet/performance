@@ -9,14 +9,6 @@ namespace SixLabors.ImageSharp.Benchmarks
 {
     public class GetSetPixel
     {
-        [Benchmark(Baseline = true, Description = "System.Drawing GetSet pixel")]
-        public System.Drawing.Color GetSetSystemDrawing()
-        {
-            using var source = new Bitmap(400, 400);
-            source.SetPixel(200, 200, System.Drawing.Color.White);
-            return source.GetPixel(200, 200);
-        }
-
         [Benchmark(Description = "ImageSharp GetSet pixel")]
         public Rgba32 GetSetImageSharp()
         {

@@ -6,8 +6,6 @@ using BenchmarkDotNet.Attributes;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Tests;
-using SDImage = System.Drawing.Image;
-using SDSize = System.Drawing.Size;
 
 // ReSharper disable InconsistentNaming
 namespace SixLabors.ImageSharp.Benchmarks.Codecs.Jpeg
@@ -41,18 +39,6 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs.Jpeg
             if (this.jpegBytes == null)
             {
                 this.jpegBytes = File.ReadAllBytes(this.TestImageFullPath);
-            }
-        }
-
-        [Benchmark(Baseline = true)]
-        public SDSize SystemDrawing()
-        {
-            using (var memoryStream = new MemoryStream(this.jpegBytes))
-            {
-                using (var image = SDImage.FromStream(memoryStream))
-                {
-                    return image.Size;
-                }
             }
         }
 
