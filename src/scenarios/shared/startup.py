@@ -125,6 +125,6 @@ class StartupWrapper(object):
                 import upload
                 upload_code = upload.upload(reportjson, upload_container, UPLOAD_QUEUE, "badtoken", "badstorage")
                 getLogger().info("SUUpload Code: " + str(upload_code))
-                if upload_code != 0:
-                    raise CalledProcessError(upload_code, "Upload Run Info")
+                #if upload_code != 0:
+                #    raise CalledProcessError(upload_code, "Upload Run Info")
                 return upload_code
