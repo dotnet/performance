@@ -19,7 +19,7 @@ namespace System.Net.Tests
 
         private string _hostname = Dns.GetHostName();
 
-        [Benchmark(OperationsPerInvoke = 1000)]
+        [Benchmark]
         public Task GetHostAddressesAsync() => Dns.GetHostAddressesAsync(_hostname);
     }
 }
