@@ -8,7 +8,6 @@ using SixLabors.ImageSharp.Tests;
 
 namespace SixLabors.ImageSharp.Benchmarks.Codecs
 {
-    [Config(typeof(Config.ShortMultiFramework))]
     public class EncodeBmp
     {
         private Stream bmpStream;

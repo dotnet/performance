@@ -7,7 +7,7 @@ using BenchmarkDotNet.Attributes;
 
 namespace SixLabors.ImageSharp.Benchmarks.General.Vectorization
 {
-    [Config(typeof(Config.ShortMultiFramework))]
+    
     public class UInt32ToSingle
     {
         private float[] data;

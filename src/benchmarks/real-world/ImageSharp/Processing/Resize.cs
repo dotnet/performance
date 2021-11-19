@@ -13,7 +13,6 @@ using SixLabors.ImageSharp.Tests;
 
 namespace SixLabors.ImageSharp.Benchmarks
 {
-    [Config(typeof(Config.MultiFramework))]
     public abstract class Resize<TPixel>
         where TPixel : unmanaged, IPixel<TPixel>
     {

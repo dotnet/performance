@@ -12,7 +12,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs.Jpeg
     /// <summary>
     /// Image-specific Jpeg benchmarks
     /// </summary>
-    [Config(typeof(Config.ShortMultiFramework))]
+    
     public class DecodeJpeg_ImageSpecific
     {
         private byte[] jpegBytes;

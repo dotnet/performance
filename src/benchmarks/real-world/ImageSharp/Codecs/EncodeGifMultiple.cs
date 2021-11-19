@@ -9,7 +9,6 @@ using SixLabors.ImageSharp.Processing.Processors.Quantization;
 
 namespace SixLabors.ImageSharp.Benchmarks.Codecs
 {
-    [Config(typeof(Config.ShortMultiFramework))]
     public class EncodeGifMultiple : MultiImageBenchmarkBase.WithImagesPreloaded
     {
         [Params(InputImageCategory.AllImages)]

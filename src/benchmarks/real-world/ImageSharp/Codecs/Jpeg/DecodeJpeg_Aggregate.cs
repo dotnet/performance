@@ -14,7 +14,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs.Jpeg
     /// An expensive Jpeg benchmark, running on a wide range of input images,
     /// showing aggregate results.
     /// </summary>
-    [Config(typeof(Config.ShortMultiFramework))]
+    
     public class DecodeJpeg_Aggregate : MultiImageBenchmarkBase
     {
         protected override IEnumerable<string> InputImageSubfoldersOrFiles =>

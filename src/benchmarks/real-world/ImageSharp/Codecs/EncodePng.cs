@@ -9,7 +9,7 @@ using SixLabors.ImageSharp.Tests;
 
 namespace SixLabors.ImageSharp.Benchmarks.Codecs
 {
-    [Config(typeof(Config.ShortMultiFramework))]
+    
     public class EncodePng
     {
         // System.Drawing needs this.

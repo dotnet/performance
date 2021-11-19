@@ -12,7 +12,7 @@ using SixLabors.ImageSharp.Tests;
 // ReSharper disable InconsistentNaming
 namespace SixLabors.ImageSharp.Benchmarks.Codecs.Jpeg
 {
-    [Config(typeof(Config.ShortMultiFramework))]
+    
     public class LoadResizeSave_Aggregate : MultiImageBenchmarkBase
     {
         protected override IEnumerable<string> InputImageSubfoldersOrFiles =>

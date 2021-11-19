@@ -11,7 +11,7 @@ using SixLabors.ImageSharp.Tests;
 // ReSharper disable InconsistentNaming
 namespace SixLabors.ImageSharp.Benchmarks.Codecs.Jpeg
 {
-    [Config(typeof(Config.ShortMultiFramework))]
+    
     public class LoadResizeSave_ImageSpecific
     {
         private readonly Configuration configuration = new Configuration(new JpegConfigurationModule());

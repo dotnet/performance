@@ -7,7 +7,6 @@ using SixLabors.ImageSharp.Formats.Bmp;
 
 namespace SixLabors.ImageSharp.Benchmarks.Codecs
 {
-    [Config(typeof(Config.ShortMultiFramework))]
     public class EncodeBmpMultiple : MultiImageBenchmarkBase.WithImagesPreloaded
     {
         protected override IEnumerable<string> InputImageSubfoldersOrFiles => new[] { "Bmp/", "Jpg/baseline" };

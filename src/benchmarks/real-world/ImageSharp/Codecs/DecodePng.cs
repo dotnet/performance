@@ -8,7 +8,7 @@ using SixLabors.ImageSharp.Tests;
 
 namespace SixLabors.ImageSharp.Benchmarks.Codecs
 {
-    [Config(typeof(Config.ShortMultiFramework))]
+    
     public class DecodePng
     {
         private byte[] pngBytes;

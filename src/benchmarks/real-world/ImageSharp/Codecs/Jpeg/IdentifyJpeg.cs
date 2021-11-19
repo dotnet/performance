@@ -8,7 +8,7 @@ using SixLabors.ImageSharp.Tests;
 
 namespace SixLabors.ImageSharp.Benchmarks.Codecs.Jpeg
 {
-    [Config(typeof(Config.ShortMultiFramework))]
+    
     public class IdentifyJpeg
     {
         private byte[] jpegBytes;

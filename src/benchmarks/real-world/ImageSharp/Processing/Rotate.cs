@@ -7,7 +7,6 @@ using SixLabors.ImageSharp.Processing;
 
 namespace SixLabors.ImageSharp.Benchmarks.Processing
 {
-    [Config(typeof(Config.MultiFramework))]
     public class Rotate
     {
         [Benchmark]
