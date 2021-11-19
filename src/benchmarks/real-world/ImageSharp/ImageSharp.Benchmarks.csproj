@@ -28,4 +28,10 @@
     <ProjectReference Include="..\..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Images\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

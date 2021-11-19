@@ -12,9 +12,9 @@ namespace SixLabors.ImageSharp.Tests
 {
     public static partial class TestEnvironment
     {
-        private const string ImageSharpSolutionFileName = "ImageSharp.sln";
+        private const string ImageSharpSolutionFileName = "ImageSharp.Benchmarks.sln";
 
-        private const string InputImagesRelativePath = @"tests\Images\Input";
+        private const string InputImagesRelativePath = @"Images\Input";
 
         private const string ActualOutputDirectoryRelativePath = @"tests\Images\ActualOutput";
 
@@ -58,6 +58,8 @@ namespace SixLabors.ImageSharp.Tests
         private static readonly FileInfo TestAssemblyFile =
             new FileInfo(typeof(TestEnvironment).GetTypeInfo().Assembly.Location);
 
+        private static readonly string TestAssemblyDirectory = Path.GetDirectoryName(TestAssemblyFile.FullName);
+
         private static string GetSolutionDirectoryFullPathImpl()
         {
             DirectoryInfo directory = TestAssemblyFile.Directory;
@@ -85,7 +87,9 @@ namespace SixLabors.ImageSharp.Tests
         }
 
         private static string GetFullPath(string relativePath) =>
-            Path.Combine(SolutionDirectoryFullPath, relativePath)
+            Path.Combine(TestAssemblyDirectory, relativePath)
+            //Assembly.GetExecutingAssembly().Location + relativePath;
+            //Path.Combine(SolutionDirectoryFullPath, relativePath)
             .Replace('\\', Path.DirectorySeparatorChar);
 
         /// <summary>
