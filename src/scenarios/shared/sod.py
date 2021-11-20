@@ -80,5 +80,6 @@ class SODWrapper(object):
             if uploadtokenpresent():
                 import upload
                 upload_code = upload.upload(reportjson, UPLOAD_CONTAINER, UPLOAD_QUEUE, "badtoken", "badstorage")
-                getLogger().info("SoDUpload Code: " + str(upload_code))
-                return upload_code
+                getLogger().info("SoD Upload Code: " + str(upload_code))
+                if upload_code != 0:
+                    sys.exit(upload_code)
