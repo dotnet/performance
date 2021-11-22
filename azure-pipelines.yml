@@ -50,7 +50,8 @@ jobs:
       osName: windows
       osVersion: 21H1
       architecture: x64
-      pool: windows-latest
+      pool: 
+        vmImage: 'windows-latest'
       kind: scenarios
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
@@ -79,7 +80,8 @@ jobs:
       osName: windows
       osVersion: 21H1
       architecture: x64
-      pool: windows-latest
+      pool: 
+        vmImage: 'windows-latest'
       kind: blazor_scenarios
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
@@ -93,7 +95,8 @@ jobs:
       osName: windows
       osVersion: 21H1
       architecture: x64
-      pool: windows-latest
+      pool: 
+        vmImage: 'windows-latest'
       kind: sdk_scenarios
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
@@ -122,7 +125,8 @@ jobs:
       osName: windows
       osVersion: 21H1
       architecture: x86
-      pool: windows-latest
+      pool: 
+        vmImage: 'windows-latest'
       kind: sdk_scenarios
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
@@ -137,7 +141,8 @@ jobs:
       osVersion: 21H1
       kind: micro
       architecture: x64
-      pool: windows-latest
+      pool: 
+        vmImage: 'windows-latest'
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
@@ -152,7 +157,8 @@ jobs:
       osVersion: RS4
       kind: micro_net461
       architecture: x64
-      pool: windows-latest
+      pool: 
+        vmImage: 'windows-latest'
       machinePool: Open
       queue: Windows.10.Amd64.ClientRS4.DevEx.15.8.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
@@ -167,7 +173,8 @@ jobs:
       osVersion: 21H1
       kind: micro
       architecture: x86
-      pool: windows-latest
+      pool: 
+        vmImage: 'windows-latest'
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
@@ -182,7 +189,8 @@ jobs:
       osVersion: 21H1
       kind: mlnet
       architecture: x64
-      pool: windows-latest
+      pool: 
+        vmImage: 'windows-latest'
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
@@ -197,7 +205,8 @@ jobs:
       osVersion: 21H1
       kind: roslyn
       architecture: x64
-      pool: windows-latest
+      pool: 
+        vmImage: 'windows-latest'
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
@@ -265,7 +274,8 @@ jobs:
       osName: windows
       osVersion: 19H1
       architecture: x64
-      pool: windows-latest
+      pool: 
+        vmImage: 'windows-latest'
       kind: scenarios
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
@@ -295,7 +305,8 @@ jobs:
   #     osVersion: 19H1
   #     kind: micro
   #     architecture: x64
-  #     pool: windows-latest
+  #     pool: 
+  #       vmImage: 'windows-latest'
   #     machinePool: Tiger
   #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
@@ -312,7 +323,8 @@ jobs:
   #     osVersion: 20H2
   #     kind: micro
   #     architecture: x64
-  #     pool: windows-latest
+  #     pool: 
+  #       vmImage: 'windows-latest'
   #     machinePool: Owl
   #     queue: Windows.10.Amd64.20H2.Owl.Perf # using a dedicated private Helix queue (perfowls)
   #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
@@ -329,7 +341,8 @@ jobs:
   #     osVersion: 19H1
   #     kind: micro
   #     architecture: x86
-  #     pool: windows-latest
+  #     pool: 
+  #       vmImage: 'windows-latest'
   #     machinePool: Tiger
   #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
@@ -346,7 +359,8 @@ jobs:
   #     osVersion: 19H1
   #     kind: mlnet
   #     architecture: x64
-  #     pool: windows-latest
+  #     pool: 
+  #       vmImage: 'windows-latest'
   #     machinePool: Tiger
   #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
@@ -363,7 +377,8 @@ jobs:
   #     osVersion: 19H1
   #     kind: roslyn
   #     architecture: x64
-  #     pool: windows-latest
+  #     pool: 
+  #       vmImage: 'windows-latest'
   #     machinePool: Tiger
   #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
   #     csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
@@ -458,7 +473,8 @@ jobs:
       osName: windows
       osVersion: RS5
       architecture: x64
-      pool: windows-latest
+      pool: 
+        vmImage: 'windows-latest'
       kind: sdk_scenarios
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
@@ -472,7 +488,8 @@ jobs:
       osName: windows
       osVersion: RS5
       architecture: x86
-      pool: windows-latest
+      pool: 
+        vmImage: 'windows-latest'
       kind: sdk_scenarios
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
@@ -501,7 +518,8 @@ jobs:
       osName: windows
       osVersion: RS5
       architecture: x64
-      pool: windows-latest
+      pool: 
+        vmImage: 'windows-latest'
       kind: blazor_scenarios
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
@@ -522,7 +540,8 @@ jobs:
       osName: windows
       osVersion: RS5
       architecture: x64
-      pool: windows-latest
+      pool: 
+        vmImage: 'windows-latest'
       kind: sdk_scenarios
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
@@ -536,7 +555,8 @@ jobs:
       osName: windows
       osVersion: RS5
       architecture: x86
-      pool: windows-latest
+      pool: 
+        vmImage: 'windows-latest'
       kind: sdk_scenarios
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
