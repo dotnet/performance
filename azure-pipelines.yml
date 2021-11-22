@@ -51,7 +51,7 @@ jobs:
       osVersion: 21H1
       architecture: x64
       pool: 
-        vmImage: 'windows-latest'
+        vmImage: windows-2019
       kind: scenarios
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
@@ -81,7 +81,7 @@ jobs:
       osVersion: 21H1
       architecture: x64
       pool: 
-        vmImage: 'windows-latest'
+        vmImage: windows-2019
       kind: blazor_scenarios
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
@@ -96,7 +96,7 @@ jobs:
       osVersion: 21H1
       architecture: x64
       pool: 
-        vmImage: 'windows-latest'
+        vmImage: windows-2019
       kind: sdk_scenarios
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
@@ -126,7 +126,7 @@ jobs:
       osVersion: 21H1
       architecture: x86
       pool: 
-        vmImage: 'windows-latest'
+        vmImage: windows-2019
       kind: sdk_scenarios
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
@@ -142,7 +142,7 @@ jobs:
       kind: micro
       architecture: x64
       pool: 
-        vmImage: 'windows-latest'
+        vmImage: windows-2019
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
@@ -158,7 +158,7 @@ jobs:
       kind: micro_net461
       architecture: x64
       pool: 
-        vmImage: 'windows-latest'
+        vmImage: windows-2019
       machinePool: Open
       queue: Windows.10.Amd64.ClientRS4.DevEx.15.8.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
@@ -174,7 +174,7 @@ jobs:
       kind: micro
       architecture: x86
       pool: 
-        vmImage: 'windows-latest'
+        vmImage: windows-2019
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
@@ -190,7 +190,7 @@ jobs:
       kind: mlnet
       architecture: x64
       pool: 
-        vmImage: 'windows-latest'
+        vmImage: windows-2019
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
@@ -206,7 +206,7 @@ jobs:
       kind: roslyn
       architecture: x64
       pool: 
-        vmImage: 'windows-latest'
+        vmImage: windows-2019
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
@@ -275,7 +275,7 @@ jobs:
       osVersion: 19H1
       architecture: x64
       pool: 
-        vmImage: 'windows-latest'
+        vmImage: windows-2019
       kind: scenarios
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
@@ -306,7 +306,7 @@ jobs:
   #     kind: micro
   #     architecture: x64
   #     pool: 
-  #       vmImage: 'windows-latest'
+  #       vmImage: windows-2019
   #     machinePool: Tiger
   #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
@@ -324,7 +324,7 @@ jobs:
   #     kind: micro
   #     architecture: x64
   #     pool: 
-  #       vmImage: 'windows-latest'
+  #       vmImage: windows-2019
   #     machinePool: Owl
   #     queue: Windows.10.Amd64.20H2.Owl.Perf # using a dedicated private Helix queue (perfowls)
   #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
@@ -342,7 +342,7 @@ jobs:
   #     kind: micro
   #     architecture: x86
   #     pool: 
-  #       vmImage: 'windows-latest'
+  #       vmImage: windows-2019
   #     machinePool: Tiger
   #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
@@ -360,7 +360,7 @@ jobs:
   #     kind: mlnet
   #     architecture: x64
   #     pool: 
-  #       vmImage: 'windows-latest'
+  #       vmImage: windows-2019
   #     machinePool: Tiger
   #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
@@ -378,7 +378,7 @@ jobs:
   #     kind: roslyn
   #     architecture: x64
   #     pool: 
-  #       vmImage: 'windows-latest'
+  #       vmImage: windows-2019
   #     machinePool: Tiger
   #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
   #     csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
@@ -474,7 +474,7 @@ jobs:
       osVersion: RS5
       architecture: x64
       pool: 
-        vmImage: 'windows-latest'
+        vmImage: windows-2019
       kind: sdk_scenarios
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
@@ -489,7 +489,7 @@ jobs:
       osVersion: RS5
       architecture: x86
       pool: 
-        vmImage: 'windows-latest'
+        vmImage: windows-2019
       kind: sdk_scenarios
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
@@ -519,7 +519,7 @@ jobs:
       osVersion: RS5
       architecture: x64
       pool: 
-        vmImage: 'windows-latest'
+        vmImage: windows-2019
       kind: blazor_scenarios
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
@@ -541,7 +541,7 @@ jobs:
       osVersion: RS5
       architecture: x64
       pool: 
-        vmImage: 'windows-latest'
+        vmImage: windows-2019
       kind: sdk_scenarios
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
@@ -556,7 +556,7 @@ jobs:
       osVersion: RS5
       architecture: x86
       pool: 
-        vmImage: 'windows-latest'
+        vmImage: windows-2019
       kind: sdk_scenarios
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
