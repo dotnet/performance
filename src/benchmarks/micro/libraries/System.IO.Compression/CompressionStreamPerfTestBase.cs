@@ -20,11 +20,13 @@ namespace System.IO.Compression
         public override Stream CreateStream(Stream stream, CompressionLevel level) => new DeflateStream(stream, level);
     }
 
+#if NET6_0_OR_GREATER // API introduced in .NET 6
     public class ZLib : CompressionStreamPerfTestBase
     {
         public override Stream CreateStream(Stream stream, CompressionMode mode) => new ZLibStream(stream, mode);
         public override Stream CreateStream(Stream stream, CompressionLevel level) => new ZLibStream(stream, level);
     }
+#endif
 
     // Brotli has a dedicated file with more benchmarks
 
