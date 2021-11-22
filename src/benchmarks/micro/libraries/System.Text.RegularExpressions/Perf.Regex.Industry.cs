@@ -209,7 +209,7 @@ namespace System.Text.RegularExpressions.Tests
             //"\\s[a-zA-Z]{0,12}ing\\s", // duplicates Perf_Regex_Industry_RustLang_Sherlock test
             "([A-Za-z]awyer|[A-Za-z]inn)\\s",
             //"[\"'][^\"']{0,30}[?!\\.][\"']", // Breaks benchmarkdotnet 13.1
-            //"\u221E|\u2713",
+            //"\u221E|\u2713", //Breaks encoding reader in helix
             "\\p{Sm}")]
         public string Pattern { get; set; }
 
