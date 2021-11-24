@@ -1,0 +1,114 @@
+﻿<#@ template debug="false" hostspecific="true" language="C#" #>
+<#@ output extension=".cs" #>
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using BenchmarkDotNet.Attributes;
+using MicroBenchmarks;
+
+[BenchmarkCategory(Categories.Runtime, Categories.JIT)]
+public class StoreBlock
+{
+    const int OperationsPerInvoke = 1000;
+
+    byte[] _srcData = new byte[1024];
+    byte[] _dstData = new byte[1024];
+
+    [GlobalSetup]
+    public void Setup()
+    {
+        for (int i = 0; i < _srcData.Length; i++)
+            _srcData[i] = (byte)(i % 256);
+
+        for (int i = 0; i < _dstData.Length; i++)
+            _dstData[i] = (byte)(i % 256);
+    }
+<#
+    for (int byteCount = 8; byteCount <= 128; byteCount += 8)
+    {
+#>
+
+    [StructLayout(LayoutKind.Explicit, Size=<#= byteCount #>)]
+    struct Struct<#= byteCount #>
+    {
+    }
+
+    Struct<#= byteCount #> fld<#= byteCount #>;
+
+    [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+    public void InitBlockAllZerosHeap<#= byteCount #>()
+    {
+        for (int i = 0; i < OperationsPerInvoke; i++)
+        {
+            Unsafe.InitBlock(ref _dstData[0], 0, <#= byteCount #>);
+        }
+    }
+
+    [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+    public unsafe void InitBlockAllZerosLocalAddr<#= byteCount #>()
+    {
+        Struct<#= byteCount #> dstLcl;
+
+        for (int i = 0; i < OperationsPerInvoke; i++)
+        {
+            Unsafe.InitBlock(&dstLcl, 0, <#= byteCount #>);
+        }
+
+        fld<#= byteCount #> = dstLcl;
+    }
+
+    [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+    public void InitBlockAllOnesHeap<#= byteCount #>()
+    {
+        for (int i = 0; i < OperationsPerInvoke; i++)
+        {
+            Unsafe.InitBlock(ref _dstData[0], 255, <#= byteCount #>);
+        }
+    }
+
+    [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+    public unsafe void InitBlockAllOnesLocalAddr<#= byteCount #>()
+    {
+        Struct<#= byteCount #> dstLcl;
+
+        for (int i = 0; i < OperationsPerInvoke; i++)
+        {
+            Unsafe.InitBlock(&dstLcl, 1, <#= byteCount #>);
+        }
+
+        fld<#= byteCount #> = dstLcl;
+    }
+
+    [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+    public void CopyBlockHeap<#= byteCount #>()
+    {
+        for (int i = 0; i < OperationsPerInvoke; i++)
+        {
+            Unsafe.CopyBlock(ref _dstData[0], ref _srcData[0], <#= byteCount #>);
+        }
+    }
+
+    [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+    public unsafe void CopyBlockLocalAddr<#= byteCount #>()
+    {
+        Struct<#= byteCount #> srcLcl;
+        Struct<#= byteCount #> dstLcl;
+
+        srcLcl = fld<#= byteCount #>;
+
+        for (int i = 0; i < OperationsPerInvoke; i++)
+        {
+            Unsafe.CopyBlock(&dstLcl, &srcLcl, <#= byteCount #>);
+        }
+
+        fld<#= byteCount #> = dstLcl;
+    }
+<#
+    }
+#>
+}
+<#+ int[] byteCounts = new int[] { 7, 8, 15, 16, 31, 32, 48, 64, 96, 128 }; #>
