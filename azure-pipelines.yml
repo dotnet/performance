@@ -553,7 +553,7 @@ jobs:
       architecture: x64
       pool:
         name: Microsoft-hosted
-        vmImage: Windows-2019
+        vmImage: windows-latest
       kind: sdk_scenarios
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
@@ -569,7 +569,7 @@ jobs:
       architecture: x86
       pool:
         name: Microsoft-hosted
-        vmImage: Windows-2019
+        vmImage: windows-latest
       kind: sdk_scenarios
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
