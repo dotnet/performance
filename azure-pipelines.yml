@@ -552,7 +552,7 @@ jobs:
       osVersion: RS5
       architecture: x64
       pool:
-        name: Azure Pipelines
+        name: Microsoft-hosted
         vmImage: Windows-2019
       kind: sdk_scenarios
       machinePool: Tiger
@@ -568,7 +568,7 @@ jobs:
       osVersion: RS5
       architecture: x86
       pool:
-        name: Azure Pipelines
+        name: Microsoft-hosted
         vmImage: Windows-2019
       kind: sdk_scenarios
       machinePool: Tiger
