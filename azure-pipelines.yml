@@ -581,8 +581,7 @@ jobs:
       osName: ubuntu
       osVersion: 1804
       architecture: x64
-      pool: 
-        vmImage: 'Azure Pipelines'
+      pool: Azure Pipelines
       kind: sdk_scenarios
       machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf
