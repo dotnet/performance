@@ -95,7 +95,8 @@ jobs:
           - group: dotnet-benchview
         workspace:
           clean: all
-        pool: ${{ parameters.pool }}
+        pool:
+          name: ${{ parameters.pool }}
         container: ${{ parameters.container }}
         strategy:
           matrix:
