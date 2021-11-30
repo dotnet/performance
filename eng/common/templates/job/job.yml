@@ -54,7 +54,7 @@ jobs:
     displayName: ${{ parameters.displayName }}
 
   ${{ if ne(parameters.pool.vmImage, '') }}:
-    pool: ${{ parameters.pool.vmImage }}
+    pool.vmImage: ${{ parameters.pool.vmImage }}
 
   ${{ if ne(parameters.strategy, '') }}:
     strategy: ${{ parameters.strategy }}
