@@ -95,8 +95,8 @@ namespace System.Net.Http.Tests
         [Benchmark]
         public async Task Get()
         {
-            var invoker = _invoker;
-            var req = _request;
+            HttpMessageInvoker invoker = _invoker;
+            HttpRequestMessage req = _request;
 
             using (HttpResponseMessage resp = await invoker.SendAsync(req, CancellationToken.None))
             using (Stream respStream = await resp.Content.ReadAsStreamAsync())
@@ -104,6 +104,44 @@ namespace System.Net.Http.Tests
                 await respStream.CopyToAsync(Stream.Null);
             }
         }
+
+        [Benchmark]
+        public async Task Get_EnumerateHeaders_Validated()
+        {
+            HttpMessageInvoker invoker = _invoker;
+            HttpRequestMessage req = _request;
+
+            using (HttpResponseMessage resp = await invoker.SendAsync(req, CancellationToken.None))
+            {
+                foreach (var header in resp.Headers) { }
+                foreach (var header in resp.Content.Headers) { }
+
+                using (Stream respStream = await resp.Content.ReadAsStreamAsync())
+                {
+                    await respStream.CopyToAsync(Stream.Null);
+                }
+            }
+        }
+
+#if NET6_0_OR_GREATER
+        [Benchmark]
+        public async Task Get_EnumerateHeaders_Unvalidated()
+        {
+            HttpMessageInvoker invoker = _invoker;
+            HttpRequestMessage req = _request;
+
+            using (HttpResponseMessage resp = await invoker.SendAsync(req, CancellationToken.None))
+            {
+                foreach (var header in resp.Headers.NonValidated) { }
+                foreach (var header in resp.Content.Headers.NonValidated) { }
+
+                using (Stream respStream = await resp.Content.ReadAsStreamAsync())
+                {
+                    await respStream.CopyToAsync(Stream.Null);
+                }
+            }
+        }
+#endif
 
         [GlobalCleanup]
         public void Cleanup()

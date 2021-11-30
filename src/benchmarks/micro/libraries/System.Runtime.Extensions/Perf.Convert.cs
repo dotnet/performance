@@ -77,6 +77,18 @@ namespace System
         [Benchmark]
         public byte[] FromBase64Chars() => Convert.FromBase64CharArray(_base64Chars, 0, _base64Chars.Length);
 
+#if NET5_0_OR_GREATER
+        [GlobalSetup(Target = nameof(ToHexString))]
+        public void SetupToHexString()
+        {
+            _binaryData = new byte[64];
+            new Random(42).NextBytes(_binaryData);
+        }
+
+        [Benchmark]
+        public string ToHexString() => Convert.ToHexString(_binaryData);
+#endif
+
         private static byte[] InitializeBinaryDataCollection(int size)
         {
             var random = new Random(30000);

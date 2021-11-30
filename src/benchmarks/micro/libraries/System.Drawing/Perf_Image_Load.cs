@@ -59,20 +59,22 @@ namespace System.Drawing.Tests
                     new ImageTestData(ImageFormat.Gif)
                 };
             }
-            catch (Exception) when (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            catch (Exception) when (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("libgdiplus is missing, you can install it by running 'apt-get install libgdiplus'");
                 Console.ResetColor();
 
-                throw;
-            }
-            catch (Exception) when (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                // skip tests on macOS instead of failing
-                return new ImageTestData[0];
+                if (IsInLab)
+                {
+                    throw; // for Lab it's mandatory to run these benchmarks
+                }
+
+                return new ImageTestData[0]; // skip tests instead of failing
             }
         }
+
+        private static bool IsInLab => Environment.GetEnvironmentVariable("PERFLAB_INLAB")?.Equals("1") ?? false;
 
         public class ImageTestData
         {
