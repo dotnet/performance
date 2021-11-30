@@ -53,8 +53,7 @@ jobs:
   ${{ if ne(parameters.displayName, '') }}:
     displayName: ${{ parameters.displayName }}
 
-  ${{ if ne(parameters.pool.vmImage, '') }}:
-    pool.name: 'Azure Pipelines'
+  ${{ if ne(parameters.pool.name, '') }}:
     pool.vmImage: ${{ parameters.pool.vmImage }}
   ${{ else }}:
     pool: Azure Pipelines
