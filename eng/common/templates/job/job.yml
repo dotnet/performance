@@ -55,8 +55,6 @@ jobs:
 
   ${{ if ne(parameters.pool.name, '') }}:
     pool: ${{ parameters.pool.name }}
-  ${{ else }}:
-    pool: Azure Pipelines
 
   ${{ if ne(parameters.strategy, '') }}:
     strategy: ${{ parameters.strategy }}
