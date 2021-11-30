@@ -552,7 +552,7 @@ jobs:
       osVersion: RS5
       architecture: x64
       pool:
-        vmImage: Windows
+        vmImage: 'windows-2019'
       kind: sdk_scenarios
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
@@ -567,7 +567,7 @@ jobs:
       osVersion: RS5
       architecture: x86
       pool:
-        vmImage: Windows
+        vmImage: 'windows-2019'
       kind: sdk_scenarios
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
