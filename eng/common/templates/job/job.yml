@@ -54,7 +54,7 @@ jobs:
     displayName: ${{ parameters.displayName }}
 
   ${{ if ne(parameters.pool.name, '') }}:
-    pool.vmImage: ${{ parameters.pool.vmImage }}
+    pool.vmImage: ${{ parameters.pool.name }}
   ${{ else }}:
     pool: Azure Pipelines
 
