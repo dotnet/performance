@@ -61,7 +61,7 @@ class Runner:
         parseonlyparser.add_argument('--package-path', help='Location of test application', dest='packagepath')
         parseonlyparser.add_argument('--package-name', help='Classname of application', dest='packagename')
         parseonlyparser.add_argument('--exit-code', help='Success exit code', dest='expectedexitcode')
-        parseonlyparser.add_argument('--startup-trials', help='Startups to run (1+)', type=int, default=5, dest='startuptrials')
+        parseonlyparser.add_argument('--startup-iterations', help='Startups to run (1+)', type=int, default=5, dest='startupiterations')
         self.add_common_arguments(parseonlyparser)
 
         # inner loop command
@@ -144,7 +144,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.packagename = args.packagename
             self.devicetype = args.devicetype
             self.expectedexitcode = args.expectedexitcode
-            self.startuptrials = args.startuptrials
+            self.startupiterations = args.startupiterations
 
         if args.scenarioname:
             self.scenarioname = args.scenarioname
@@ -332,7 +332,7 @@ ex: C:\repos\performance;C:\repos\runtime
             RunCommand(cmdline, verbose=True).run()
 
 
-            for i in range(self.startuptrials):
+            for i in range(self.startupiterations):
                 cmdline = xharnesscommand() + [
                     'android',
                     'run',
@@ -372,10 +372,8 @@ ex: C:\repos\performance;C:\repos\runtime
 
 
             startup = StartupWrapper()
-            # simply passing trace1.nettrace as the first trace name will cause the parser to find the rest.
-            # apptorun isn't used in this case but must exist.
-            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracename='PerfTest/trace1.nettrace', scenarioname='Device Startup - Android %s' % (self.packagename))
-            startup.parsetrace(self.traits)
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracefolder='PerfTest/', tracename='trace*.nettrace', scenarioname='Device Startup - Android %s' % (self.packagename))
+            startup.parsetraces(self.traits)
 
         elif self.testtype == const.SOD:
             sod = SODWrapper()

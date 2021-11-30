@@ -56,7 +56,12 @@ class StartupWrapper(object):
     def _setstartuppath(self, path: str):
         self.startuppath = os.path.join(path, "Startup%s" % extension()) 
 
-    def parsetrace(self, traits: TestTraits):
+    def parsetraces(self, traits: TestTraits):
+        directory = TRACEDIR
+        if traits.tracefolder:
+            directory = TRACEDIR + '/' + traits.tracefolder
+            getLogger().info("Parse Directory: " + directory)
+
         startup_args = [
             self.startuppath,
             '--app-exe', traits.apptorun,
@@ -64,7 +69,7 @@ class StartupWrapper(object):
             '--metric-type', traits.startupmetric, 
             '--trace-name', traits.tracename,
             '--report-json-path', self.reportjson,
-            '--trace-directory', TRACEDIR
+            '--trace-directory', directory
         ]
         if traits.scenarioname:
             startup_args.extend(['--scenario-name', traits.scenarioname])
@@ -83,8 +88,6 @@ class StartupWrapper(object):
             if uploadtokenpresent():
                 import upload
                 upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
-
-
 
     def runtests(self, traits: TestTraits):
         '''

@@ -12,9 +12,6 @@ namespace ScenarioMeasurement
     /// <summary>
     /// This is a custom parser that does not enable any profiling. Instead, it relies on being passed nettrace files collected
     /// off the test machine (usually on a device.) 
-    /// 
-    /// Convention: If a trace is named with a 1, such as trace1.nettrace, if exist trace2.nettrace..traceN.nettrace, 
-    /// those will be parsed as well and added to the resultant collection.
     /// </summary>
     class DeviceTimeToMain : IParser
     {
@@ -30,18 +27,18 @@ namespace ScenarioMeasurement
 
         public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
         {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<Counter> Parse(string mergeTraceDirectory, string mergeTraceFilter, string processName, IList<int> pids, string commandLine)
+        {
             var times = new List<double>();
             var files = new HashSet<string>();
-            var traceName = Path.GetFileNameWithoutExtension(mergeTraceFile);
-            if (traceName.EndsWith("1"))
+            Console.WriteLine($"Finding files from {mergeTraceDirectory} with filter: {mergeTraceFilter}");
+            foreach (var file in Directory.GetFiles(mergeTraceDirectory, mergeTraceFilter))
             {
-                traceName = traceName.TrimEnd('1');
-                var dirName = Path.GetDirectoryName(mergeTraceFile);
-                foreach (var file in Directory.GetFiles(dirName, $"{traceName}*.nettrace"))
-                {
-                    Console.WriteLine($"Found {file}");
-                    files.Add(file);
-                }
+                Console.WriteLine($"Found {file}");
+                files.Add(file);
             }
 
             foreach (var trace in files)

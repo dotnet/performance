@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 
@@ -62,7 +63,7 @@ namespace ScenarioMeasurement
         /// <param name="runWithoutExit">Run the main test process without handling shutdown</param>
         /// <param name="hotReloadIters">Number of times to change files for hot reload</param>
         /// <param name="skipMeasurementIteration">Don't run measurement collection</param>
-        /// <param name="parseOnly">Parse trace without running app</param>
+        /// <param name="parseOnly">Parse trace(s) without running app</param>
         /// <returns></returns>
 
         static int Main(string appExe,
@@ -304,20 +305,38 @@ namespace ScenarioMeasurement
             // Parse trace files
             if (!failed && !string.IsNullOrEmpty(traceFilePath))
             {
-                logger.Log($"Parsing {traceFilePath}");
-
-                if (guiApp)
+                if (parseOnly)
                 {
-                    appExe = Path.Join(workingDir, appExe);
-                }
-                string commandLine = $"\"{appExe}\"";
-                if (!String.IsNullOrEmpty(appArgs))
-                {
-                    commandLine = commandLine + " " + appArgs;
-                }
-                var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
+                    logger.Log($"Parsing glob: {traceName}");
 
-                CreateTestReport(scenarioName, counters, reportJsonPath, logger);
+                    if (guiApp)
+                    {
+                        appExe = Path.Join(workingDir, appExe);
+                    }
+                    string commandLine = $"\"{appExe}\"";
+                    if (!String.IsNullOrEmpty(appArgs))
+                    {
+                        commandLine = commandLine + " " + appArgs;
+                    }
+                    var counters = parser.Parse(traceDirectory, traceName, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
+
+                    CreateTestReport(scenarioName, counters, reportJsonPath, logger);
+                } else {
+                    logger.Log($"Parsing {traceFilePath}");
+
+                    if (guiApp)
+                    {
+                        appExe = Path.Join(workingDir, appExe);
+                    }
+                    string commandLine = $"\"{appExe}\"";
+                    if (!String.IsNullOrEmpty(appArgs))
+                    {
+                        commandLine = commandLine + " " + appArgs;
+                    }
+                    var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
+
+                    CreateTestReport(scenarioName, counters, reportJsonPath, logger);
+                }
             }
 
             // Skip unimplemented Linux profiling
