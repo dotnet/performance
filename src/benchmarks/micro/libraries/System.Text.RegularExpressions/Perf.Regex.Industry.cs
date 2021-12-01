@@ -40,8 +40,8 @@ namespace System.Text.RegularExpressions.Tests
     }
 
     /// <summary>Performance tests adapted from https://github.com/mariomka/regex-benchmark</summary>
-    [BenchmarkCategory(Categories.Libraries)]
-    public class Perf_Regex_Industry_Mariomka
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
+    public class Perf_Regex_Industry_Mariomkas
     {
         [Params(
             @"[\w\.+-]+@[\w\.-]+\.[\w\.-]+",
@@ -77,7 +77,7 @@ namespace System.Text.RegularExpressions.Tests
     }
 
     /// <summary>Performance tests adapted from https://github.com/cloudflare/sliceslice-rs/tree/a27b76c8527d44d5b3534c84b878d8289eacb7ff/data</summary>
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     [SkipTooManyTestCasesValidator]
     public class Perf_Regex_Industry_SliceSlice
     {
@@ -118,7 +118,7 @@ namespace System.Text.RegularExpressions.Tests
     }
 
     /// <summary>Performance tests adapted from https://github.com/rust-lang/regex</summary>
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     [SkipTooManyTestCasesValidator]
     public class Perf_Regex_Industry_RustLang_Sherlock
     {
@@ -189,7 +189,7 @@ namespace System.Text.RegularExpressions.Tests
     }
 
     /// <summary>Performance tests adapted from https://rust-leipzig.github.io/regex/2017/03/28/comparison-of-regex-engines/</summary>
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     [SkipTooManyTestCasesValidator]
     public class Perf_Regex_Industry_Leipzig
     {
@@ -237,7 +237,7 @@ namespace System.Text.RegularExpressions.Tests
     }
 
     /// <summary>Performance tests adapted from https://www.boost.org/doc/libs/1_41_0/libs/regex/doc/gcc-performance.html</summary>
-    [BenchmarkCategory(Categories.Libraries)]
+    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
     [SkipTooManyTestCasesValidator]
     public class Perf_Regex_Industry_BoostDocs_Simple
     {
