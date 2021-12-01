@@ -9,8 +9,7 @@ parameters:
   continueOnError: false
   dependsOn: ''
   displayName: ''
-  pool:
-    vmImage: ''
+  pool: ''
   steps: []
   strategy: ''
   timeoutInMinutes: ''
