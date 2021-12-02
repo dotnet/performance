@@ -4,6 +4,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Extensions;
@@ -119,6 +120,17 @@ namespace System.Collections
             var uniqueValues = _uniqueValues;
             for (int i = 0; i < uniqueValues.Length; i++)
                 collection.TryAdd(uniqueValues[i], uniqueValues[i]);
+            return collection;
+        }
+
+        [Benchmark]
+        public ObservableCollection<T> ObservableCollection()
+        {
+            var collection = new ObservableCollection<T>();
+            foreach (T value in _uniqueValues)
+            {
+                collection.Add(value);
+            }
             return collection;
         }
     }

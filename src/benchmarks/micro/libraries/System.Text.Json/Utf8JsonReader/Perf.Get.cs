@@ -11,6 +11,7 @@ namespace System.Text.Json.Tests
     [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     public class Perf_Get
     {
+        private static readonly byte[] _jsonFalseBytes = GetJsonBytes("false");
         private static readonly byte[] _jsonIntegerNumberBytes = GetJsonBytes(123);
         private static readonly byte[] _jsonDecimalNumberBytes = GetJsonBytes(123.456f);
         private static readonly byte[] _jsonStringBytes = GetJsonBytes("\"The quick brown fox jumps over the lazy dog.\"");
@@ -21,6 +22,21 @@ namespace System.Text.Json.Tests
         private static byte[] GetJsonBytes<T>(T elem)
         {
             return Encoding.UTF8.GetBytes(elem.ToString());
+        }
+
+        [Benchmark]
+        public bool GetBoolean()
+        {
+            bool result = false;
+            var reader = new Utf8JsonReader(_jsonFalseBytes);
+            reader.Read();
+
+            for (int i = 0; i < 100; i++)
+            {
+                result ^= reader.GetBoolean();
+            }
+
+            return result;
         }
 
         [Benchmark]

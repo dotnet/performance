@@ -403,6 +403,16 @@ namespace System.Linq.Tests
         public void EmptyTakeSelectToArray() => Enumerable.Empty<int>().Take(10).Select(i => i).ToArray();
 
 #if !NETFRAMEWORK // API Available in .NET Core 3.0+
+        public IEnumerable<object[]> SequenceEqualArguments()
+        {
+            yield return new object[] { LinqTestData.Array, LinqTestData.Array };
+            yield return new object[] { LinqTestData.IEnumerable, LinqTestData.IEnumerable };
+        }
+
+        [Benchmark]
+        [ArgumentsSource(nameof(SequenceEqualArguments))]
+        public bool SequenceEqual(LinqTestData input1, LinqTestData input2) => input1.Collection.SequenceEqual(input2.Collection);
+
         // Append() has two execution paths: AppendPrependIterator (a result of another Append or Prepend) and IEnumerable, this benchmark tests both
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/AppendPrepend.cs
         [Benchmark]
