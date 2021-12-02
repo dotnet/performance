@@ -40,7 +40,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
             this.bmpCore.Dispose();
         }
 
-        [Benchmark(Baseline = true, Description = "ImageSharp Octree Png")]
+        [Benchmark(Description = "ImageSharp Octree Png")]
         public void PngCoreOctree()
         {
             using var memoryStream = new MemoryStream();
