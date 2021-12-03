@@ -8,107 +8,127 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 
-[BenchmarkCategory(Categories.Runtime, Categories.JIT)]
-public class StoreBlock
+namespace StoreBlock
 {
-    const int OperationsPerInvoke = 1000;
-
-    byte[] _srcData = new byte[1024];
-    byte[] _dstData = new byte[1024];
-
-    [GlobalSetup]
-    public void Setup()
+    [BenchmarkCategory(Categories.Runtime, Categories.JIT)]
+    public class AnyLocation
     {
-        for (int i = 0; i < _srcData.Length; i++)
-            _srcData[i] = (byte)(i % 256);
+        const int Size = 4096;
 
-        for (int i = 0; i < _dstData.Length; i++)
-            _dstData[i] = (byte)(i % 256);
-    }
+        byte[] _srcData;
+        byte[] _dstData;
+
+        [GlobalSetup]
+        public void Setup()
+        {
+            _srcData = ValuesGenerator.Array<byte>(Size);
+            _dstData = ValuesGenerator.Array<byte>(Size);
+        }
 <#
-    for (int byteCount = 8; byteCount <= 128; byteCount += 8)
+    foreach (int byteCount in byteCounts)
     {
 #>
 
-    [StructLayout(LayoutKind.Explicit, Size=<#= byteCount #>)]
-    struct Struct<#= byteCount #>
-    {
-    }
-
-    Struct<#= byteCount #> fld<#= byteCount #>;
-
-    [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
-    public void InitBlockAllZerosHeap<#= byteCount #>()
-    {
-        for (int i = 0; i < OperationsPerInvoke; i++)
+        [Benchmark(OperationsPerInvoke = Size / <#= byteCount #>)]
+        public void InitBlockAllZeros<#= byteCount #>()
         {
-            Unsafe.InitBlock(ref _dstData[0], 0, <#= byteCount #>);
-        }
-    }
-
-    [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
-    public unsafe void InitBlockAllZerosLocalAddr<#= byteCount #>()
-    {
-        Struct<#= byteCount #> dstLcl;
-
-        for (int i = 0; i < OperationsPerInvoke; i++)
-        {
-            Unsafe.InitBlock(&dstLcl, 0, <#= byteCount #>);
+            for (int startOffset = 0; startOffset < Size; startOffset += <#= byteCount #>)
+            {
+                Unsafe.InitBlock(ref _dstData[startOffset], 0, <#= byteCount #>);
+            }
         }
 
-        fld<#= byteCount #> = dstLcl;
-    }
-
-    [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
-    public void InitBlockAllOnesHeap<#= byteCount #>()
-    {
-        for (int i = 0; i < OperationsPerInvoke; i++)
+        [Benchmark(OperationsPerInvoke = Size / <#= byteCount #>)]
+        public void InitBlockAllOnes<#= byteCount #>()
         {
-            Unsafe.InitBlock(ref _dstData[0], 255, <#= byteCount #>);
-        }
-    }
-
-    [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
-    public unsafe void InitBlockAllOnesLocalAddr<#= byteCount #>()
-    {
-        Struct<#= byteCount #> dstLcl;
-
-        for (int i = 0; i < OperationsPerInvoke; i++)
-        {
-            Unsafe.InitBlock(&dstLcl, 1, <#= byteCount #>);
+            for (int startOffset = 0; startOffset < Size; startOffset += <#= byteCount #>)
+            {
+                Unsafe.InitBlock(ref _dstData[startOffset], 255, <#= byteCount #>);
+            }
         }
 
-        fld<#= byteCount #> = dstLcl;
-    }
-
-    [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
-    public void CopyBlockHeap<#= byteCount #>()
-    {
-        for (int i = 0; i < OperationsPerInvoke; i++)
+        [Benchmark(OperationsPerInvoke = Size / <#= byteCount #>)]
+        public void CopyBlock<#= byteCount #>()
         {
-            Unsafe.CopyBlock(ref _dstData[0], ref _srcData[0], <#= byteCount #>);
+            for (int startOffset = 0; startOffset < Size; startOffset += <#= byteCount #>)
+            {
+                Unsafe.CopyBlock(ref _dstData[startOffset], ref _srcData[startOffset], <#= byteCount #>);
+            }
         }
-    }
-
-    [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
-    public unsafe void CopyBlockLocalAddr<#= byteCount #>()
-    {
-        Struct<#= byteCount #> srcLcl;
-        Struct<#= byteCount #> dstLcl;
-
-        srcLcl = fld<#= byteCount #>;
-
-        for (int i = 0; i < OperationsPerInvoke; i++)
-        {
-            Unsafe.CopyBlock(&dstLcl, &srcLcl, <#= byteCount #>);
-        }
-
-        fld<#= byteCount #> = dstLcl;
-    }
 <#
     }
 #>
+    }
+
+    [BenchmarkCategory(Categories.Runtime, Categories.JIT)]
+    public class LocalAddress
+    {
+        const int OperationsPerInvoke = 100;
+<#
+    foreach (int byteCount in byteCounts)
+    {
+#>
+
+        [StructLayout(LayoutKind.Explicit, Size=<#= byteCount #>)]
+        struct Struct<#= byteCount #>
+        {
+        }
+
+        Struct<#= byteCount #> fld<#= byteCount #>;
+<#
+    }
+
+    foreach (int byteCount in byteCounts)
+    {
+#>
+
+        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+        public unsafe void InitBlockAllZeros<#= byteCount #>()
+        {
+            Struct<#= byteCount #> dstLcl;
+
+            for (int i = 0; i < OperationsPerInvoke; i++)
+            {
+                Unsafe.InitBlock(&dstLcl, 0, <#= byteCount #>);
+            }
+
+            fld<#= byteCount #> = dstLcl;
+        }
+
+        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+        public unsafe void InitBlockAllOnes<#= byteCount #>()
+        {
+            Struct<#= byteCount #> dstLcl;
+
+            for (int i = 0; i < OperationsPerInvoke; i++)
+            {
+                Unsafe.InitBlock(&dstLcl, 255, <#= byteCount #>);
+            }
+
+            fld<#= byteCount #> = dstLcl;
+        }
+
+        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+        public unsafe void CopyBlock<#= byteCount #>()
+        {
+            Struct<#= byteCount #> srcLcl;
+            Struct<#= byteCount #> dstLcl;
+
+            srcLcl = fld<#= byteCount #>;
+
+            for (int i = 0; i < OperationsPerInvoke; i++)
+            {
+                Unsafe.CopyBlock(&dstLcl, &srcLcl, <#= byteCount #>);
+            }
+
+            fld<#= byteCount #> = dstLcl;
+        }
+<#
+    }
+#>
+    }
 }
-<#+ int[] byteCounts = new int[] { 7, 8, 15, 16, 31, 32, 48, 64, 96, 128 }; #>
+<#+ int[] byteCounts = new int[] { 8, 16, 32, 64 }; #>
