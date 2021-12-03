@@ -316,7 +316,7 @@ ex: C:\repos\performance;C:\repos\runtime
             #adb = RunCommand(cmdline, verbose=True)
             #adb.run()
             adb = ['xharness', 'android', 'adb', '--']
-            cmdline = [adb, 'shell', 'mkdir', '-p', '/sdcard/PerfTest']
+            cmdline = adb + ['shell', 'mkdir', '-p', '/sdcard/PerfTest']
             RunCommand(cmdline, verbose=True).run()
 
             cmdline = xharnesscommand() + [
@@ -364,10 +364,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
             RunCommand(cmdline, verbose=True).run()
 
-            cmdline = xharnesscommand() + [self.devicetype, 'state', '--adb']
-            adb = RunCommand(cmdline, verbose=True)
-            adb.run()
-            cmdline = [adb.stdout.strip(), 'shell', 'rm', '-r', '/sdcard/PerfTest']
+            cmdline = adb + ['shell', 'rm', '-r', '/sdcard/PerfTest']
             RunCommand(cmdline, verbose=True).run()
             
 
