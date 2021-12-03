@@ -133,6 +133,33 @@ namespace StoreBlock
                 Unsafe.CopyBlock(ref _dstData[startOffset], ref _srcData[startOffset], 64);
             }
         }
+
+        [Benchmark(OperationsPerInvoke = Size / 128)]
+        public void InitBlockAllZeros128()
+        {
+            for (int startOffset = 0; startOffset < Size; startOffset += 128)
+            {
+                Unsafe.InitBlock(ref _dstData[startOffset], 0, 128);
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = Size / 128)]
+        public void InitBlockAllOnes128()
+        {
+            for (int startOffset = 0; startOffset < Size; startOffset += 128)
+            {
+                Unsafe.InitBlock(ref _dstData[startOffset], 255, 128);
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = Size / 128)]
+        public void CopyBlock128()
+        {
+            for (int startOffset = 0; startOffset < Size; startOffset += 128)
+            {
+                Unsafe.CopyBlock(ref _dstData[startOffset], ref _srcData[startOffset], 128);
+            }
+        }
     }
 
     [BenchmarkCategory(Categories.Runtime, Categories.JIT)]
@@ -167,6 +194,13 @@ namespace StoreBlock
         }
 
         Struct64 fld64;
+
+        [StructLayout(LayoutKind.Explicit, Size=128)]
+        struct Struct128
+        {
+        }
+
+        Struct128 fld128;
 
         [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
         public unsafe void InitBlockAllZeros8()
@@ -334,6 +368,48 @@ namespace StoreBlock
             }
 
             fld64 = dstLcl;
+        }
+
+        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+        public unsafe void InitBlockAllZeros128()
+        {
+            Struct128 dstLcl;
+
+            for (int i = 0; i < OperationsPerInvoke; i++)
+            {
+                Unsafe.InitBlock(&dstLcl, 0, 128);
+            }
+
+            fld128 = dstLcl;
+        }
+
+        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+        public unsafe void InitBlockAllOnes128()
+        {
+            Struct128 dstLcl;
+
+            for (int i = 0; i < OperationsPerInvoke; i++)
+            {
+                Unsafe.InitBlock(&dstLcl, 255, 128);
+            }
+
+            fld128 = dstLcl;
+        }
+
+        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+        public unsafe void CopyBlock128()
+        {
+            Struct128 srcLcl;
+            Struct128 dstLcl;
+
+            srcLcl = fld128;
+
+            for (int i = 0; i < OperationsPerInvoke; i++)
+            {
+                Unsafe.CopyBlock(&dstLcl, &srcLcl, 128);
+            }
+
+            fld128 = dstLcl;
         }
     }
 }
