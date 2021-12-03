@@ -1,0 +1,134 @@
+﻿<#@ template debug="false" hostspecific="true" language="C#" #>
+<#@ output extension=".cs" #>
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Extensions;
+using MicroBenchmarks;
+
+namespace StoreBlock
+{
+    [BenchmarkCategory(Categories.Runtime, Categories.JIT)]
+    public class AnyLocation
+    {
+        const int Size = 4096;
+
+        byte[] _srcData;
+        byte[] _dstData;
+
+        [GlobalSetup]
+        public void Setup()
+        {
+            _srcData = ValuesGenerator.Array<byte>(Size);
+            _dstData = ValuesGenerator.Array<byte>(Size);
+        }
+<#
+    foreach (int byteCount in byteCounts)
+    {
+#>
+
+        [Benchmark(OperationsPerInvoke = Size / <#= byteCount #>)]
+        public void InitBlockAllZeros<#= byteCount #>()
+        {
+            for (int startOffset = 0; startOffset < Size; startOffset += <#= byteCount #>)
+            {
+                Unsafe.InitBlock(ref _dstData[startOffset], 0, <#= byteCount #>);
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = Size / <#= byteCount #>)]
+        public void InitBlockAllOnes<#= byteCount #>()
+        {
+            for (int startOffset = 0; startOffset < Size; startOffset += <#= byteCount #>)
+            {
+                Unsafe.InitBlock(ref _dstData[startOffset], 255, <#= byteCount #>);
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = Size / <#= byteCount #>)]
+        public void CopyBlock<#= byteCount #>()
+        {
+            for (int startOffset = 0; startOffset < Size; startOffset += <#= byteCount #>)
+            {
+                Unsafe.CopyBlock(ref _dstData[startOffset], ref _srcData[startOffset], <#= byteCount #>);
+            }
+        }
+<#
+    }
+#>
+    }
+
+    [BenchmarkCategory(Categories.Runtime, Categories.JIT)]
+    public class LocalAddress
+    {
+        const int OperationsPerInvoke = 100;
+<#
+    foreach (int byteCount in byteCounts)
+    {
+#>
+
+        [StructLayout(LayoutKind.Explicit, Size=<#= byteCount #>)]
+        struct Struct<#= byteCount #>
+        {
+        }
+
+        Struct<#= byteCount #> fld<#= byteCount #>;
+<#
+    }
+
+    foreach (int byteCount in byteCounts)
+    {
+#>
+
+        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+        public unsafe void InitBlockAllZeros<#= byteCount #>()
+        {
+            Struct<#= byteCount #> dstLcl;
+
+            for (int i = 0; i < OperationsPerInvoke; i++)
+            {
+                Unsafe.InitBlock(&dstLcl, 0, <#= byteCount #>);
+            }
+
+            fld<#= byteCount #> = dstLcl;
+        }
+
+        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+        public unsafe void InitBlockAllOnes<#= byteCount #>()
+        {
+            Struct<#= byteCount #> dstLcl;
+
+            for (int i = 0; i < OperationsPerInvoke; i++)
+            {
+                Unsafe.InitBlock(&dstLcl, 255, <#= byteCount #>);
+            }
+
+            fld<#= byteCount #> = dstLcl;
+        }
+
+        [Benchmark(OperationsPerInvoke = OperationsPerInvoke)]
+        public unsafe void CopyBlock<#= byteCount #>()
+        {
+            Struct<#= byteCount #> srcLcl;
+            Struct<#= byteCount #> dstLcl;
+
+            srcLcl = fld<#= byteCount #>;
+
+            for (int i = 0; i < OperationsPerInvoke; i++)
+            {
+                Unsafe.CopyBlock(&dstLcl, &srcLcl, <#= byteCount #>);
+            }
+
+            fld<#= byteCount #> = dstLcl;
+        }
+<#
+    }
+#>
+    }
+}
+<#+ int[] byteCounts = new int[] { 8, 16, 32, 64, 128 }; #>
