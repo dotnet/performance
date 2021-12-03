@@ -316,6 +316,8 @@ ex: C:\repos\performance;C:\repos\runtime
             #RunCommand(cmdline, verbose=True).run()
         
             adb = ['xharness', 'android', 'adb', '--']
+            cmdline = adb + ['shell', 'ls', '/sdcard']
+            RunCommand(cmdline, verbose=True).run()
             cmdline = adb + ['shell', 'mkdir', '-p', '/sdcard/PerfTest']
             RunCommand(cmdline, verbose=True).run()
 
