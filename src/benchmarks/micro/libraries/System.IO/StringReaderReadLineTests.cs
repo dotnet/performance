@@ -13,45 +13,21 @@ namespace System.IO.Tests
     [BenchmarkCategory(Categories.Libraries)]
     public class StringReaderReadLineTests
     {
-        // Benchmark is based on measuring individual `ReadLine` calls
-        // of lines of different lengths within a range defined as
-        // benchmark parameters.
-        // To fulfill BDNs requirement for an iteration time of 250ms,
-        // this means a lot of invocations, more than a single string in
-        // a `StringReader` can accommodate.
-        // Therefore, the benchmark generates a string with a certain
-        // target length and then a number of readers for the same
-        // string, since `StringReader` does not support being "reset".
-        // The trade off is we need to switch reader during the `ReadLine`
-        // call when current reader ends, which adds a bit of overhead. 
-        // This is deemed negligible and amortized constant.
-        private const int StringReaderTargetLength = 16 * 1024 * 1024;
-        // Reader count must be high enough to ensure we never run out
-        // of new readers during benchmarking. Otherwise, it will throw.
-        private const int ReaderCount = 10000;
+        private string _text;
 
-        private StringReader[] _readers;
-        private int _readerIndex;
-        private StringReader _reader;
-
-        public StringReaderReadLineTests()
-        {
-            LineLengthRanges = new Range[]
-            {
-                new (){ Min =   0, Max =    0 },
-                new (){ Min =   1, Max =    1 },
-                new (){ Min =   1, Max =    8 },
-                new (){ Min =   9, Max =   32 },
-                new (){ Min =  33, Max =  128 },
-                new (){ Min = 129, Max = 1024 },
-                new (){ Min =   0, Max = 1024 },
-            };
-        }
-
-        [ParamsSource(nameof(LineLengthRanges))]
+        [ParamsSource(nameof(GetLineLengthRanges))]
         public Range LineLengthRange { get; set; }
 
-        public IEnumerable<Range> LineLengthRanges { get; }
+        public static IEnumerable<Range> GetLineLengthRanges()
+        {
+            yield return new() { Min = 0, Max = 0 };
+            yield return new() { Min = 1, Max = 1 };
+            yield return new() { Min = 1, Max = 8 };
+            yield return new() { Min = 9, Max = 32 };
+            yield return new() { Min = 33, Max = 128 };
+            yield return new() { Min = 129, Max = 1024 };
+            yield return new() { Min = 0, Max = 1024 };
+        }
 
         public class Range
         {
@@ -62,22 +38,13 @@ namespace System.IO.Tests
         }
 
         [GlobalSetup]
-        public void GlobalSetup()
-        {
-            var text = GenerateLinesText(LineLengthRange, StringReaderTargetLength);
-            _readers = Enumerable.Range(0, ReaderCount)
-                .Select(i => new StringReader(text)).ToArray();
-            _readerIndex = 0;
-            _reader = _readers[_readerIndex];
-        }        
+        public void GlobalSetup() => _text = GenerateLinesText(LineLengthRange, 16 * 1024);
 
         [Benchmark]
-        public string ReadLine()
+        public void ReadLine()
         {
-            var line = _reader.ReadLine();
-            if (line == null)
-                _reader = _readers[++_readerIndex];
-            return line;
+            using StringReader reader = new (_text);
+            while (reader.ReadLine() != null) ;
         }
 
         private static string GenerateLinesText(Range lineLengthRange, int textTargetLength)
