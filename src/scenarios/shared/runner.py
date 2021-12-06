@@ -311,11 +311,8 @@ ex: C:\repos\performance;C:\repos\runtime
                 if exists(file):   
                     getLogger().info("Removed: " + os.path.join(const.TRACEDIR, file))
                     os.remove(file)
-
-            #cmdline = xharnesscommand() + [self.devicetype, 'state']
-            #RunCommand(cmdline, verbose=True).run()
         
-            adb = ['xharness', 'android', 'adb', '--']
+            adb = xharnesscommand() + ['android', 'adb', '--']
             cmdline = adb + ['shell', 'ls', '/sdcard']
             RunCommand(cmdline, verbose=True).run()
             cmdline = adb + ['shell', 'mkdir', '-p', '/sdcard/PerfTest']
