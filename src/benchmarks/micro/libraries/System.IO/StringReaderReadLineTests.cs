@@ -7,6 +7,7 @@ using MicroBenchmarks;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace System.IO.Tests
 {
@@ -45,6 +46,14 @@ namespace System.IO.Tests
         {
             using StringReader reader = new (_text);
             while (reader.ReadLine() != null) ;
+        }
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
+        public async Task ReadLineAsync()
+        {
+            using StringReader reader = new(_text);
+            while (await reader.ReadLineAsync() != null) ;
         }
 
         private static string GenerateLinesText(Range lineLengthRange, int textTargetLength)
