@@ -312,10 +312,10 @@ ex: C:\repos\performance;C:\repos\runtime
                     getLogger().info("Removed: " + os.path.join(const.TRACEDIR, file))
                     os.remove(file)
         
-            adb = xharnesscommand() + ['android', 'adb', '--']
-            cmdline = adb + ['shell', 'ls', '/sdcard']
-            RunCommand(cmdline, verbose=True).run()
-            cmdline = adb + ['shell', 'mkdir', '-p', '/sdcard/PerfTest']
+            cmdline = xharnesscommand() + [self.devicetype, 'state', '--adb']
+            adb = RunCommand(cmdline, verbose=True)
+            adb.run()
+            cmdline = [adb.stdout.strip(), 'shell', 'mkdir', '-p', '/sdcard/PerfTest']
             RunCommand(cmdline, verbose=True).run()
 
             cmdline = xharnesscommand() + [
@@ -363,7 +363,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
             RunCommand(cmdline, verbose=True).run()
 
-            cmdline = adb + ['shell', 'rm', '-r', '/sdcard/PerfTest']
+            cmdline = [adb.stdout.strip(), 'shell', 'rm', '-r', '/sdcard/PerfTest']
             RunCommand(cmdline, verbose=True).run()
             
 
