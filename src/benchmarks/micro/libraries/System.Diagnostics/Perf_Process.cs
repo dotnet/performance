@@ -15,7 +15,14 @@ namespace System.Diagnostics
         
         [Benchmark]
         public void GetCurrentProcess() => Process.GetCurrentProcess().Dispose();
-        
+
+        [Benchmark]
+        public string GetCurrentProcessName()
+        {
+            using var process = Process.GetCurrentProcess();
+            return process.ProcessName;
+        }
+
         [GlobalSetup(Target = nameof(GetProcessById))]
         public void SetupGetProcessById() => _currentProcessId = Process.GetCurrentProcess().Id;
         
