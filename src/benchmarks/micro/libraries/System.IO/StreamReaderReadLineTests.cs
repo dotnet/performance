@@ -12,20 +12,19 @@ namespace System.IO.Tests
     [BenchmarkCategory(Categories.Libraries)]
     public class StreamReaderReadLineTests : TextReaderReadLineTests
     {
-        private MemoryStream _stream;
+        private byte[] _bytes;
 
         [GlobalSetup]
         public void GlobalSetup()
         {
             _text = GenerateLinesText(LineLengthRange, 16 * 1024);
-            _stream = new(Encoding.UTF8.GetBytes(_text));
+            _bytes = Encoding.UTF8.GetBytes(_text);
         }
 
         [Benchmark]
         public void ReadLine()
         {
-            _stream.Seek(0, SeekOrigin.Begin);
-            using StreamReader reader = new (_stream, null, true, 1024, leaveOpen: true);
+            using StreamReader reader = new (new MemoryStream(_bytes));
             while (reader.ReadLine() != null) ;
         }
 
@@ -33,8 +32,7 @@ namespace System.IO.Tests
         [BenchmarkCategory(Categories.NoWASM)]
         public async Task ReadLineAsync()
         {
-            _stream.Seek(0, SeekOrigin.Begin);
-            using StreamReader reader = new(_stream, null, true, 1024, leaveOpen: true);
+            using StreamReader reader = new(new MemoryStream(_bytes));
             while (await reader.ReadLineAsync() != null) ;
         }
     }
