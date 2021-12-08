@@ -4,7 +4,7 @@ Utility routines
 import sys
 import os
 import platform
-from os import environ
+from os import environ, path
 from shared import const
 from performance.common import iswin, extension
 from performance.constants import UPLOAD_TOKEN_VAR
@@ -61,3 +61,9 @@ def pythoncommand():
         return 'py'
     else:
         return 'python3'
+
+def xharnesscommand():
+    xharnesspath = os.environ.get('XHARNESSPATH')
+    if xharnesspath is None or not os.path.exists(xharnesspath):
+        return ['xharness']
+    return ['dotnet','exec',xharnesspath]

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 
@@ -18,7 +19,8 @@ namespace ScenarioMeasurement
         Crossgen2,
         InnerLoop,
         InnerLoopMsBuild,
-        DotnetWatch
+        DotnetWatch,
+        DeviceTimeToMain
     }
 
     public class InnerLoopMarkerEventSource : EventSource
@@ -61,6 +63,7 @@ namespace ScenarioMeasurement
         /// <param name="runWithoutExit">Run the main test process without handling shutdown</param>
         /// <param name="hotReloadIters">Number of times to change files for hot reload</param>
         /// <param name="skipMeasurementIteration">Don't run measurement collection</param>
+        /// <param name="parseOnly">Parse trace(s) without running app</param>
         /// <returns></returns>
 
         static int Main(string appExe,
@@ -88,7 +91,8 @@ namespace ScenarioMeasurement
                         string innerLoopCommandArgs = "",
                         bool runWithoutExit = false,
                         int hotReloadIters = 1,
-                        bool skipMeasurementIteration = false
+                        bool skipMeasurementIteration = false,
+                        bool parseOnly = false
                         )
         {
             Logger logger = new Logger(String.IsNullOrEmpty(logFileName) ? $"{appExe}.startup.log" : logFileName);
@@ -99,6 +103,16 @@ namespace ScenarioMeasurement
             };
             checkArg(appExe, nameof(appExe));
             checkArg(traceName, nameof(traceName));
+
+            string traceFilePath = "";
+
+
+            if (parseOnly == true)
+            {
+                skipMeasurementIteration = true;
+                skipProfileIteration = true;
+                traceFilePath = Path.Join(traceDirectory, traceName);
+            }
 
             if (String.IsNullOrEmpty(traceDirectory))
             {
@@ -220,7 +234,7 @@ namespace ScenarioMeasurement
             Util.Init();
 
             // Warm up iteration
-            if (warmup)
+            if (warmup && !skipMeasurementIteration)
             {
                 logger.LogIterationHeader("Warm up");
                 if (!RunIteration(setupProcHelper, TestProcess, waitForSteadyState, innerLoopProcHelper, waitForRecompile, secondTestProcess, cleanupProcHelper, logger, hotReloadIters).Success)
@@ -253,6 +267,9 @@ namespace ScenarioMeasurement
                 case MetricType.DotnetWatch:
                     parser = new DotnetWatchParser();
                     break;
+                case MetricType.DeviceTimeToMain:
+                    parser = new DeviceTimeToMain();
+                    break;
                     //case MetricType.WPF:
                     //    parser = new WPFParser();
                     //    break;
@@ -260,9 +277,8 @@ namespace ScenarioMeasurement
 
             var pids = new List<int>();
             bool failed = false;
-            string traceFilePath = "";
 
-            if(!skipMeasurementIteration)
+            if(!skipMeasurementIteration) 
             {
                 // Run trace session
                 using (var traceSession = TraceSessionManager.CreateSession("StartupSession", traceName, traceDirectory, logger))
@@ -285,9 +301,27 @@ namespace ScenarioMeasurement
                     traceFilePath = traceSession.TraceFilePath;
                 }
 
-                // Parse trace files
-                if (!failed)
+            }
+            // Parse trace files
+            if (!failed && !string.IsNullOrEmpty(traceFilePath))
+            {
+                if (parseOnly)
                 {
+                    logger.Log($"Parsing glob: {traceName}");
+
+                    if (guiApp)
+                    {
+                        appExe = Path.Join(workingDir, appExe);
+                    }
+                    string commandLine = $"\"{appExe}\"";
+                    if (!String.IsNullOrEmpty(appArgs))
+                    {
+                        commandLine = commandLine + " " + appArgs;
+                    }
+                    var counters = parser.Parse(traceDirectory, traceName, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
+
+                    CreateTestReport(scenarioName, counters, reportJsonPath, logger);
+                } else {
                     logger.Log($"Parsing {traceFilePath}");
 
                     if (guiApp)
@@ -300,7 +334,6 @@ namespace ScenarioMeasurement
                         commandLine = commandLine + " " + appArgs;
                     }
                     var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
-
 
                     CreateTestReport(scenarioName, counters, reportJsonPath, logger);
                 }

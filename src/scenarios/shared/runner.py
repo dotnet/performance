@@ -2,19 +2,24 @@
 Module for running scenario tasks
 '''
 
+from genericpath import exists
 import sys
 import os
+import glob
+import re
 
 from logging import getLogger
 from collections import namedtuple
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
+from io import StringIO
+from shutil import move
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
-from shared.util import publishedexe, pythoncommand, appfolder
+from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand
 from shared.sod import SODWrapper
 from shared import const
-from performance.common import iswin, extension
+from performance.common import RunCommand, iswin, extension
 from performance.logger import setup_loggers
 from shared.testtraits import TestTraits, testtypes
 
@@ -48,6 +53,16 @@ class Runner:
         startupparser = subparsers.add_parser(const.STARTUP,
                                               description='measure time to main of running the project')
         self.add_common_arguments(startupparser)
+
+        # parse only command
+        parseonlyparser = subparsers.add_parser(const.DEVICESTARTUP,
+                                              description='measure time to main for Android apps')
+        parseonlyparser.add_argument('--device-type', choices=['android','ios'],type=str.lower,help='Device type for testing', dest='devicetype')
+        parseonlyparser.add_argument('--package-path', help='Location of test application', dest='packagepath')
+        parseonlyparser.add_argument('--package-name', help='Classname of application', dest='packagename')
+        parseonlyparser.add_argument('--exit-code', help='Success exit code', dest='expectedexitcode')
+        parseonlyparser.add_argument('--startup-iterations', help='Startups to run (1+)', type=int, default=5, dest='startupiterations')
+        self.add_common_arguments(parseonlyparser)
 
         # inner loop command
         innerloopparser = subparsers.add_parser(const.INNERLOOP,
@@ -123,6 +138,13 @@ ex: C:\repos\performance;C:\repos\runtime
 
         if self.testtype == const.SOD:
             self.dirs = args.dirs
+        
+        if self.testtype == const.DEVICESTARTUP:
+            self.packagepath = args.packagepath
+            self.packagename = args.packagename
+            self.devicetype = args.devicetype
+            self.expectedexitcode = args.expectedexitcode
+            self.startupiterations = args.startupiterations
 
         if args.scenarioname:
             self.scenarioname = args.scenarioname
@@ -281,6 +303,74 @@ ex: C:\repos\performance;C:\repos\runtime
                                    environmentvariables='COMPlus_EnableEventLog=1' if not iswin() else '' # turn on clr user events
                                   ) 
             startup.runtests(self.traits)
+
+
+        elif self.testtype == const.DEVICESTARTUP:  
+            getLogger().info("Clearing potential previous run nettraces")
+            for file in glob.glob(os.path.join(const.TRACEDIR, 'PerfTest', 'trace*.nettrace')):
+                if exists(file):   
+                    getLogger().info("Removed: " + os.path.join(const.TRACEDIR, file))
+                    os.remove(file)
+        
+            cmdline = xharnesscommand() + [self.devicetype, 'state', '--adb']
+            adb = RunCommand(cmdline, verbose=True)
+            adb.run()
+            cmdline = [adb.stdout.strip(), 'shell', 'mkdir', '-p', '/sdcard/PerfTest']
+            RunCommand(cmdline, verbose=True).run()
+
+            cmdline = xharnesscommand() + [
+                self.devicetype,
+                'install',
+                '--app', self.packagepath,
+                '--package-name',
+                self.packagename,
+                '-o',
+                const.TRACEDIR,
+                '-v'
+            ]
+
+            RunCommand(cmdline, verbose=True).run()
+
+
+            for i in range(self.startupiterations):
+                cmdline = xharnesscommand() + [
+                    'android',
+                    'run',
+                    '-o',
+                    const.TRACEDIR,
+                    '--package-name',
+                    self.packagename,
+                    '-v',
+                    '--arg=env:COMPlus_EnableEventPipe=1',
+                    '--arg=env:COMPlus_EventPipeOutputStreaming=1',
+                    '--arg=env:COMPlus_EventPipeOutputPath=/sdcard/PerfTest/trace%s.nettrace' % (i+1),
+                    '--arg=env:COMPlus_EventPipeCircularMB=10',
+                    '--arg=env:COMPlus_EventPipeConfig=Microsoft-Windows-DotNETRuntime:10:5',
+                    '--expected-exit-code',
+                    self.expectedexitcode,
+                    '--dev-out',
+                    '/sdcard/PerfTest/'
+                ]
+            
+                RunCommand(cmdline, verbose=True).run()
+
+            cmdline = xharnesscommand() + [
+                'android',
+                'uninstall',
+                '--package-name',
+                self.packagename
+            ]
+
+            RunCommand(cmdline, verbose=True).run()
+
+            cmdline = [adb.stdout.strip(), 'shell', 'rm', '-r', '/sdcard/PerfTest']
+            RunCommand(cmdline, verbose=True).run()
+            
+
+
+            startup = StartupWrapper()
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracefolder='PerfTest/', tracename='trace*.nettrace', scenarioname='Device Startup - Android %s' % (self.packagename))
+            startup.parsetraces(self.traits)
 
         elif self.testtype == const.SOD:
             sod = SODWrapper()
