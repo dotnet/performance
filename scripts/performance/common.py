@@ -12,6 +12,7 @@ from subprocess import list2cmdline
 from subprocess import PIPE, DEVNULL
 from subprocess import Popen
 from subprocess import STDOUT
+from io import StringIO
 
 import os
 import sys
@@ -180,6 +181,10 @@ class RunCommand:
         '''Enables/Disables verbosity.'''
         return self.__verbose
 
+    @property
+    def stdout(self) -> str:
+        return self.__stdout.getvalue()
+
     def __runinternal(self, working_directory: str = None) -> tuple:
         should_pipe = self.verbose
         with push_dir(working_directory):
@@ -197,7 +202,9 @@ class RunCommand:
             ) as proc:
                 if proc.stdout is not None:
                     with proc.stdout:
+                        self.__stdout = StringIO()
                         for line in iter(proc.stdout.readline, ''):
+                            self.__stdout.write(line)
                             line = line.rstrip()
                             getLogger().info(line)
                 proc.wait()
