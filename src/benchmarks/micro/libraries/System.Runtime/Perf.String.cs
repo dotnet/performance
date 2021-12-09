@@ -88,8 +88,8 @@ namespace System.Tests
         [Arguments("dzsdzsDDZSDZSDZSddsz", 0, 8)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 7, 4)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 10, 1)]
-        public string Remove_IntInt(string s, int i1, int i2)
-            => s.Remove(i1, i2);
+        public string Remove_IntInt(string s, int i, int c)
+            => s.Remove(i, c);
 
         [Benchmark]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 0)]
@@ -102,8 +102,8 @@ namespace System.Tests
         [Arguments("dzsdzsDDZSDZSDZSddsz", 0, 8)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 7, 4)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 10, 1)]
-        public string Substring_IntInt(string s, int i1, int i2)
-            => s.Substring(i1, i2);
+        public string Substring_IntInt(string s, int i, int l)
+            => s.Substring(i, l);
         
         [Benchmark]
         [Arguments("A B C D E F G H I J K L M N O P Q R S T U V W X Y Z", new char[] { ' ' }, StringSplitOptions.None)]
