@@ -18,7 +18,7 @@ public class StreamReaderReadToEndTests : TextReaderReadLineTests
     }
 
     [Benchmark]
-    public void ReadLine()
+    public void ReadToEnd()
     {
         using StreamReader reader = new (new MemoryStream(_bytes));
         reader.ReadToEnd();
@@ -26,7 +26,7 @@ public class StreamReaderReadToEndTests : TextReaderReadLineTests
 
     [Benchmark]
     [BenchmarkCategory(Categories.NoWASM)]
-    public async Task ReadLineAsync()
+    public async Task ReadToEndAsync()
     {
         using StreamReader reader = new(new MemoryStream(_bytes));
         await reader.ReadToEndAsync();
