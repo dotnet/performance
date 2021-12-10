@@ -95,6 +95,7 @@ namespace System.Tests
         [Arguments("dzsdzsDDZSDZSDZSddsz", 0)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 7)]
         [Arguments("dzsdzsDDZSDZSDZSddsz", 10)]
+        [Arguments("dzsdzsDDZSDZSDZSddsz", 19)]
         public string Substring_Int(string s, int i)
             => s.Substring(i);
 
@@ -276,7 +277,70 @@ namespace System.Tests
             return str[index];
         }
     }
-    
+
+    [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
+    public class Perf_String_Substring_Int
+    {
+        const int _length = 16;
+        static readonly string _s = new string('a', _length);
+
+        [ParamsSource(nameof(GetStarts))]
+        public int Start { get; set; }
+
+        public static IEnumerable<int> GetStarts()
+        {
+            for (int i = 0; i <= _length / 2; i++)
+            {
+                yield return i;
+            }
+            yield return _length;
+        }
+
+        [Benchmark]
+        public void Substring() => _s.Substring(Start);
+    }
+
+    [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
+    public class Perf_String_Substring_IntInt
+    {
+        const int _length = 16;
+        static readonly string _s = new string('a', _length);
+
+        [ParamsSource(nameof(GetSlices))]
+        public Sub Slice { get; set; }
+
+        public static IEnumerable<Sub> GetSlices()
+        {
+            for (int i = 0; i <= _length / 2; i++)
+            {
+                yield return new() { StartIndex = i, Length = i };
+            }
+            yield return new() { StartIndex = 0, Length = _length };
+        }
+
+        public class Sub
+        {
+            public int StartIndex { get; set; }
+            public int Length { get; set; }
+
+            public override string ToString() => $"I:{StartIndex,2} L:{Length,2}";
+        }
+
+        [Benchmark]
+        public void Substring() => _s.Substring(Slice.StartIndex, Slice.Length);
+    }
+
+
+    //[BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
+    //public class Perf_String_Substring_IntInt
+    //{
+    //    [Benchmark]
+    //    public void Substring_Full() => "abc".Substring(0, 3);
+
+    //    [Benchmark]
+    //    public void Substring_Empty() => "abc".Substring(0, 0);
+    //}
+
     public class StringArguments
     {
         public int Size { get; }
