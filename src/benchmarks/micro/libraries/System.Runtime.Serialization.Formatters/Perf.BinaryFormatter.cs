@@ -11,7 +11,7 @@ using MicroBenchmarks;
 
 namespace System.Runtime.Serialization.Formatters.Tests
 {
-#pragma warning disable SYSLIB0011
+#pragma warning disable SYSLIB0011 // BinaryFormatter serialization is obsolete and should not be used.
     [BenchmarkCategory(Categories.Libraries)]
     public class Perf_BinaryFormatter
     {

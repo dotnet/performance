@@ -10,7 +10,7 @@ using MicroBenchmarks.Serializers.Helpers;
 
 namespace MicroBenchmarks.Serializers
 {
-#pragma warning disable SYSLIB0011
+#pragma warning disable SYSLIB0011 // BinaryFormatter serialization is obsolete and should not be used.
     [GenericTypeArguments(typeof(LoginViewModel))]
     [GenericTypeArguments(typeof(Location))]
     [GenericTypeArguments(typeof(IndexViewModel))]
