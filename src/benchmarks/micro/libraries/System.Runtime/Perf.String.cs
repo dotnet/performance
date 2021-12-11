@@ -279,6 +279,7 @@ namespace System.Tests
     }
 
     [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
+    [DisassemblyDiagnoser(maxDepth: 2, printSource: true, exportHtml: true, exportDiff: true)]
     public class Perf_String_Substring_Int
     {
         const int _length = 16;
@@ -301,6 +302,7 @@ namespace System.Tests
     }
 
     [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
+    [DisassemblyDiagnoser(maxDepth: 2, printSource: true, exportHtml: true, exportDiff: true)]
     public class Perf_String_Substring_IntInt
     {
         const int _length = 16;
