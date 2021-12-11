@@ -290,10 +290,10 @@ namespace System.Tests
 
         public static IEnumerable<int> GetStarts()
         {
-            for (int i = 0; i <= _length / 2; i++)
-            {
-                yield return i;
-            }
+            //for (int i = 0; i <= _length / 2; i++)
+            //{
+            //    yield return i;
+            //}
             yield return _length;
         }
 
@@ -302,10 +302,10 @@ namespace System.Tests
     }
 
     [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
-    [DisassemblyDiagnoser(maxDepth: 2, printSource: true, exportHtml: true, exportDiff: true)]
+    //[DisassemblyDiagnoser(maxDepth: 2, printSource: true, exportHtml: true, exportDiff: true)]
     public class Perf_String_Substring_IntInt
     {
-        const int _length = 16;
+        const int _length = 30;
         static readonly string _s = new string('a', _length);
 
         [ParamsSource(nameof(GetSlices))]
@@ -313,7 +313,7 @@ namespace System.Tests
 
         public static IEnumerable<Sub> GetSlices()
         {
-            for (int i = 0; i <= _length / 2; i++)
+            for (int i = 0; i < _length / 2; i++)
             {
                 yield return new() { StartIndex = i, Length = i };
             }
@@ -329,7 +329,14 @@ namespace System.Tests
         }
 
         [Benchmark]
-        public void Substring() => _s.Substring(Slice.StartIndex, Slice.Length);
+        public void Substring()
+        {
+            var slice = Slice;
+            _s.Substring(slice.StartIndex, slice.Length);
+        }
+
+        [Benchmark]
+        public void AllocateString() => new string('\0', Slice.Length);
     }
 
 
