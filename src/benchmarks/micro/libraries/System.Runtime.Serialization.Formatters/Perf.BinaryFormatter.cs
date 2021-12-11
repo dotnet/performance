@@ -11,7 +11,8 @@ using MicroBenchmarks;
 
 namespace System.Runtime.Serialization.Formatters.Tests
 {
-    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
+#pragma warning disable SYSLIB0011
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_BinaryFormatter
     {
         private readonly BinaryFormatter _formatter = new BinaryFormatter();
@@ -47,4 +48,5 @@ namespace System.Runtime.Serialization.Formatters.Tests
             public string Id;
         }
     }
+#pragma warning restore SYSLIB0011
 }

@@ -10,6 +10,7 @@ using MicroBenchmarks.Serializers.Helpers;
 
 namespace MicroBenchmarks.Serializers
 {
+#pragma warning disable SYSLIB0011
     [GenericTypeArguments(typeof(LoginViewModel))]
     [GenericTypeArguments(typeof(Location))]
     [GenericTypeArguments(typeof(IndexViewModel))]
@@ -57,4 +58,5 @@ namespace MicroBenchmarks.Serializers
             MessagePack.MessagePackSerializer.Serialize<T>(memoryStream, value);
         }
     }
+#pragma warning restore SYSLIB0011
 }
