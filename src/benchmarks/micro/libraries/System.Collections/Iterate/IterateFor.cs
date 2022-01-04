@@ -77,7 +77,7 @@ namespace System.Collections
             var collection = _list;
             for(int i = 0; i < collection.Count; i++)
                 result = collection[i];
-            return result;;
+            return result;
         }
 
         [GlobalSetup(Target = nameof(IList))]

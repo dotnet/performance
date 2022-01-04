@@ -8,27 +8,35 @@ namespace System.IO.Tests;
 [BenchmarkCategory(Categories.Libraries)]
 public class StreamReaderReadToEndTests : TextReaderReadLineTests
 {
-    private byte[] _bytes;
+    private StreamReader _reader;
 
     [GlobalSetup]
     public void GlobalSetup()
     {
         _text = GenerateLinesText(LineLengthRange, 16 * 1024);
-        _bytes = Encoding.UTF8.GetBytes(_text);
+        _reader = new (new MemoryStream(Encoding.UTF8.GetBytes(_text)));
+    }
+
+    [GlobalCleanup]
+    public void GlobalCleanup()
+    {
+        _reader?.Dispose();
     }
 
     [Benchmark]
     public void ReadToEnd()
     {
-        using StreamReader reader = new (new MemoryStream(_bytes));
-        reader.ReadToEnd();
+        _reader.BaseStream.Position = 0;
+        _reader.DiscardBufferedData();
+        _reader.ReadToEnd();
     }
 
     [Benchmark]
     [BenchmarkCategory(Categories.NoWASM)]
     public async Task ReadToEndAsync()
     {
-        using StreamReader reader = new(new MemoryStream(_bytes));
-        await reader.ReadToEndAsync();
+        _reader.BaseStream.Position = 0;
+        _reader.DiscardBufferedData();
+        await _reader.ReadToEndAsync();
     }
 }
