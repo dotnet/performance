@@ -13,7 +13,7 @@ namespace System.IO.Tests
         [Benchmark]
         public void ReadLine()
         {
-            using StringReader reader = new (_text);
+            using StringReader reader = new StringReader(_text);
             reader.ReadToEnd();
         }
 
@@ -21,7 +21,7 @@ namespace System.IO.Tests
         [BenchmarkCategory(Categories.NoWASM)]
         public async Task ReadLineAsync()
         {
-            using StringReader reader = new(_text);
+            using StringReader reader = new StringReader(_text);
             await reader.ReadToEndAsync();
         }
     }

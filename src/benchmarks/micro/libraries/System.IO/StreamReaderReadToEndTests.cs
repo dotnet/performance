@@ -14,7 +14,7 @@ public class StreamReaderReadToEndTests : TextReaderReadLineTests
     public void GlobalSetup()
     {
         _text = GenerateLinesText(LineLengthRange, 16 * 1024);
-        _reader = new (new MemoryStream(Encoding.UTF8.GetBytes(_text)));
+        _reader = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(_text)));
     }
 
     [GlobalCleanup]
