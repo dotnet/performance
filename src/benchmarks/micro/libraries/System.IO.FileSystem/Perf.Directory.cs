@@ -22,7 +22,8 @@ namespace System.IO.Tests
             { 100, GetTestDeepFilePath(100) },
             { 1000, GetTestDeepFilePath(1000) }
         };
-        private string[] _directoriesToCreate;
+        private string[] _filePaths;
+        private bool _flag;
 
         [Benchmark]
         public string GetCurrentDirectory() => Directory.GetCurrentDirectory();
@@ -31,13 +32,13 @@ namespace System.IO.Tests
         public void SetupCreateDirectory()
         {
             var testFile = FileUtils.GetTestFilePath();
-            _directoriesToCreate = Enumerable.Range(1, CreateInnerIterations).Select(index => testFile + index).ToArray();
+            _filePaths = Enumerable.Range(1, CreateInnerIterations).Select(index => testFile + index).ToArray();
         }
 
         [Benchmark(OperationsPerInvoke = CreateInnerIterations)]
         public void CreateDirectory()
         {
-            var directoriesToCreate = _directoriesToCreate;
+            var directoriesToCreate = _filePaths;
             foreach (var directory in directoriesToCreate)
                 Directory.CreateDirectory(directory);
         }
@@ -45,7 +46,7 @@ namespace System.IO.Tests
         [IterationCleanup(Target = nameof(CreateDirectory))]
         public void CleanupDirectoryIteration()
         {
-            foreach (var directory in _directoriesToCreate)
+            foreach (var directory in _filePaths)
                 Directory.Delete(directory, recursive: true);
         }
 
@@ -118,5 +119,65 @@ namespace System.IO.Tests
 
         [GlobalCleanup(Target = nameof(EnumerateFiles))]
         public void CleanupEnumerateFiles() => Directory.Delete(_testFile, recursive: true);
+
+        [GlobalSetup(Target = nameof(MoveFolders))]
+        public void SetupMoveFolders() => SetupMove(true);
+
+        [GlobalSetup(Target = nameof(MoveFiles))]
+        public void SetupMoveFiles() => SetupMove(false);
+
+        private void SetupMove(bool folders)
+        {
+            _filePaths = new[]
+            {
+                Path.Combine(Path.GetTempPath(), "foo_but_more_unique"),
+                Path.Combine(Path.GetTempPath(), "bar_but_more_unique")
+            };
+
+            if (folders)
+                Directory.CreateDirectory(_filePaths[0]);
+            else
+                File.Create(_filePaths[0]).Dispose();
+        }
+
+        [GlobalCleanup(Target = nameof(MoveFolders))]
+        public void CleanupMoveFolders() => CleanupMove(true);
+
+        [GlobalCleanup(Target = nameof(MoveFiles))]
+        public void CleanupMoveFiles() => CleanupMove(false);
+
+        private void CleanupMove(bool folders)
+        {
+            if (folders)
+            {
+                if (Directory.Exists(_filePaths[0])) Directory.Delete(_filePaths[0]);
+                if (Directory.Exists(_filePaths[1])) Directory.Delete(_filePaths[1]);
+            }
+            else
+            {
+                if (File.Exists(_filePaths[0])) File.Delete(_filePaths[0]);
+                if (File.Exists(_filePaths[1])) File.Delete(_filePaths[1]);
+            }
+        }
+
+        [Benchmark]
+        public void MoveFolders() => Move();
+
+        [Benchmark]
+        public void MoveFiles() => Move();
+
+        private void Move()
+        {
+            _flag = !_flag;
+
+            if (_flag)
+            {
+                Directory.Move(_filePaths[0], _filePaths[1]);
+            }
+            else
+            {
+                Directory.Move(_filePaths[1], _filePaths[0]);
+            }
+        }
     }
 }
