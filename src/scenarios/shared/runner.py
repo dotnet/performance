@@ -7,6 +7,7 @@ import sys
 import os
 import glob
 import re
+import time
 
 from logging import getLogger
 from collections import namedtuple
@@ -305,7 +306,8 @@ ex: C:\repos\performance;C:\repos\runtime
             startup.runtests(self.traits)
 
 
-        elif self.testtype == const.DEVICESTARTUP:  
+        elif self.testtype == const.DEVICESTARTUP:
+            runRegex = ":\s(.+)"
             getLogger().info("Clearing potential previous run nettraces")
             for file in glob.glob(os.path.join(const.TRACEDIR, 'PerfTest', 'trace*.nettrace')):
                 if exists(file):   
@@ -331,29 +333,82 @@ ex: C:\repos\performance;C:\repos\runtime
 
             RunCommand(cmdline, verbose=True).run()
 
+            getLogger().info("Completed install, running shell.")
+            cmdline = [ 
+                adb.stdout.strip(),
+                'shell',
+                f'cmd package resolve-activity --brief {self.packagename} | tail -n 1'
+            ]
+            getActivity = RunCommand(cmdline, verbose=True)
+            getActivity.run()
+            getLogger().info(getActivity.stdout)
+
+            getLogger().info("Test run")
+            activityname = getActivity.stdout
+            cmdline = [ 
+                adb.stdout.strip(),
+                'shell',
+                'am',
+                'start-activity',
+                '-W',
+                '-n',
+                activityname
+            ]
+            testRun = RunCommand(cmdline, verbose=True)
+            testRun.run()
+            testRunStats = re.findall(runRegex, testRun.stdout)
+            getLogger().info(testRunStats[3])
+
+            stopApp = [ 
+                adb.stdout.strip(),
+                'shell',
+                'am',
+                'force-stop',
+                self.packagename
+            ]
+            RunCommand(stopApp, verbose=True).run()
+
+            totalTimes = []
 
             for i in range(self.startupiterations):
-                cmdline = xharnesscommand() + [
-                    'android',
-                    'run',
-                    '-o',
-                    const.TRACEDIR,
-                    '--package-name',
-                    self.packagename,
-                    '-v',
-                    '--arg=env:COMPlus_EnableEventPipe=1',
-                    '--arg=env:COMPlus_EventPipeOutputStreaming=1',
-                    '--arg=env:COMPlus_EventPipeOutputPath=/sdcard/PerfTest/trace%s.nettrace' % (i+1),
-                    '--arg=env:COMPlus_EventPipeCircularMB=10',
-                    '--arg=env:COMPlus_EventPipeConfig=Microsoft-Windows-DotNETRuntime:10:5',
-                    '--expected-exit-code',
-                    self.expectedexitcode,
-                    '--dev-out',
-                    '/sdcard/PerfTest/'
+                cmdline = [ 
+                    adb.stdout.strip(),
+                    'shell',
+                    'am',
+                    'start-activity',
+                    '-W',
+                    '-n',
+                    activityname
                 ]
-            
-                RunCommand(cmdline, verbose=True).run()
+                startStats = RunCommand(cmdline, verbose=True)
+                startStats.run()
 
+                # Parse and save results (List is Intent, Status, LaunchState Activity, TotalTime, WaitTime)
+                cleanedRunStats = re.findall(runRegex, startStats.stdout)
+                getLogger().info("Cleaned Stats")
+                getLogger().info(cleanedRunStats)
+                
+                RunCommand(stopApp, verbose=True).run()
+
+                # Add new total time to total time array
+                totalTimes.append(cleanedRunStats[4])
+
+                time.sleep(3) # Delay in seconds for ensuring a cold start
+
+            getLogger().info("Total Times List")
+            getLogger().info(totalTimes)
+
+            getLogger().info("Force Stopping")
+            cmdline = [ 
+                adb.stdout.strip(),
+                'shell',
+                'am',
+                'force-stop',
+                self.packagename
+            ]
+            RunCommand(cmdline, verbose=True).run()
+                    
+            getLogger().info("Uninstalling app")
             cmdline = xharnesscommand() + [
                 'android',
                 'uninstall',
@@ -368,9 +423,9 @@ ex: C:\repos\performance;C:\repos\runtime
             
 
 
-            startup = StartupWrapper()
-            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracefolder='PerfTest/', tracename='trace*.nettrace', scenarioname='Device Startup - Android %s' % (self.packagename))
-            startup.parsetraces(self.traits)
+            #startup = StartupWrapper()
+            #self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracefolder='PerfTest/', tracename='trace*.nettrace', scenarioname='Device Startup - Android %s' % (self.packagename))
+            #startup.parsetraces(self.traits)
 
         elif self.testtype == const.SOD:
             sod = SODWrapper()
