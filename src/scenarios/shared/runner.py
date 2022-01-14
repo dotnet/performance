@@ -363,6 +363,15 @@ ex: C:\repos\performance;C:\repos\runtime
                     '26'
                     ]
                 RunCommand(cmdline, verbose=True).run()
+                
+                cmdline = [
+                    adb.stdout.strip(),
+                    'shell',
+                    'input',
+                    'keyevent',
+                    '82'
+                    ]
+                RunCommand(cmdline, verbose=True).run() # Unlock the screen
 
                 cmdline = [ 
                     adb.stdout.strip(),
