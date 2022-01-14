@@ -343,6 +343,38 @@ ex: C:\repos\performance;C:\repos\runtime
             getActivity.run()
             getLogger().info(getActivity.stdout)
 
+            # More setup stuff
+            cmdline = [ 
+                adb.stdout.strip(),
+                'shell',
+                f'dumpsys input_method | grep mInteractive'
+            ]
+            checkScreen = RunCommand(cmdline, verbose=True)
+            checkScreen.run()
+
+            if("mInteractive=false" in checkScreen.stdout):
+                # Turn on the screen to make interactive and see if it worked
+                getLogger().warning("Screen was off, turning on.")
+                cmdline = [
+                    adb.stdout.strip(),
+                    'shell',
+                    'input',
+                    'keyevent',
+                    '26'
+                    ]
+                RunCommand(cmdline, verbose=True).run()
+
+                cmdline = [ 
+                    adb.stdout.strip(),
+                    'shell',
+                    f'dumpsys input_method | grep mInteractive'
+                ]
+                checkScreen = RunCommand(cmdline, verbose=True)
+                checkScreen.run()
+                if("mInteractive=false" in checkScreen.stdout):
+                    getLogger().exception("Failed to make interactive.")
+
+            # Actual testing some run stuff
             getLogger().info("Test run")
             activityname = getActivity.stdout
             cmdline = [ 
