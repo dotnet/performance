@@ -24,7 +24,7 @@ namespace System.IO.MemoryMappedFiles.Tests
         [Benchmark]
         public void CreateNew() => MemoryMappedFile.CreateNew(null, capacity).Dispose();
 
-        [GlobalSetup(Target = nameof(CreateFromFile))]
+        [GlobalSetup(Targets = new[] { nameof(CreateFromFile), nameof(CreateFromFile_Read) })]
         public void SetupCreateFromFile() => _file = new TempFile(GetTestFilePath(), capacity);
         
         [Benchmark]
@@ -34,10 +34,20 @@ namespace System.IO.MemoryMappedFiles.Tests
             // as well as the Accessor for it
             using (MemoryMappedFile mmfile = MemoryMappedFile.CreateFromFile(_file.Path))
             using (mmfile.CreateViewAccessor(capacity / 4, capacity / 2))
-            { }
+            {
+            }
         }
-        
-        [GlobalCleanup(Target = nameof(CreateFromFile))]
+
+        [Benchmark]
+        public void CreateFromFile_Read()
+        {
+            using (MemoryMappedFile mmfile = MemoryMappedFile.CreateFromFile(_file.Path, FileMode.Open, null, 0, MemoryMappedFileAccess.Read))
+            using (mmfile.CreateViewAccessor(capacity / 4, capacity / 2, MemoryMappedFileAccess.Read))
+            {
+            }
+        }
+
+        [GlobalCleanup(Targets = new[] { nameof(CreateFromFile), nameof(CreateFromFile_Read) })]
         public void CleanupCreateFromFile() => _file.Dispose();
         
         private string GetTestFilePath() => Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
