@@ -400,6 +400,25 @@ ex: C:\repos\performance;C:\repos\runtime
             testRunStats = re.findall(runRegex, testRun.stdout)
             getLogger().info(testRunStats[3])
 
+            if "com.google.android.permissioncontroller" in testRunStats[3]:
+                # On perm screen, use the buttons to close it. it will stay away until the app is reinstalled
+                keycommand = [
+                    adb.stdout.strip(),
+                    'shell',
+                    'input',
+                    'keyevent'
+                    ]
+                RunCommand(keycommand + ['22'], verbose=True).run() # Select next button
+                time.sleep(1)
+                RunCommand(keycommand + ['22'], verbose=True).run() # Select next button
+                time.sleep(1)
+                RunCommand(keycommand + ['66'], verbose=True).run() # Press enter to close main perm screen
+                time.sleep(1)
+                RunCommand(keycommand + ['22'], verbose=True).run() # Select next button
+                time.sleep(1)
+                RunCommand(keycommand + ['66'], verbose=True).run() # Press enter to close out of second screen
+                time.sleep(1)
+
             stopApp = [ 
                 adb.stdout.strip(),
                 'shell',
@@ -465,8 +484,8 @@ ex: C:\repos\performance;C:\repos\runtime
 
 
             #startup = StartupWrapper()
-            #self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracefolder='PerfTest/', tracename='trace*.nettrace', scenarioname='Device Startup - Android %s' % (self.packagename))
-            #startup.parsetraces(self.traits)
+            #self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, scenarioname='Device Startup - Android %s' % (self.packagename), dataarray=totalTimes)
+            #startup.parsearray(self.traits)
 
         elif self.testtype == const.SOD:
             sod = SODWrapper()
