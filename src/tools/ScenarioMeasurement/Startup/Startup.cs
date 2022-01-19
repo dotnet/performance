@@ -305,38 +305,20 @@ namespace ScenarioMeasurement
             // Parse trace files
             if (!failed && !string.IsNullOrEmpty(traceFilePath))
             {
-                if (parseOnly)
+                logger.Log($"Parsing {traceFilePath}");
+
+                if (guiApp)
                 {
-                    logger.Log($"Parsing glob: {traceName}");
-
-                    if (guiApp)
-                    {
-                        appExe = Path.Join(workingDir, appExe);
-                    }
-                    string commandLine = $"\"{appExe}\"";
-                    if (!String.IsNullOrEmpty(appArgs))
-                    {
-                        commandLine = commandLine + " " + appArgs;
-                    }
-                    var counters = parser.Parse(traceDirectory, traceName, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
-
-                    CreateTestReport(scenarioName, counters, reportJsonPath, logger);
-                } else {
-                    logger.Log($"Parsing {traceFilePath}");
-
-                    if (guiApp)
-                    {
-                        appExe = Path.Join(workingDir, appExe);
-                    }
-                    string commandLine = $"\"{appExe}\"";
-                    if (!String.IsNullOrEmpty(appArgs))
-                    {
-                        commandLine = commandLine + " " + appArgs;
-                    }
-                    var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
-
-                    CreateTestReport(scenarioName, counters, reportJsonPath, logger);
+                    appExe = Path.Join(workingDir, appExe);
                 }
+                string commandLine = $"\"{appExe}\"";
+                if (!String.IsNullOrEmpty(appArgs))
+                {
+                    commandLine = commandLine + " " + appArgs;
+                }
+                var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
+
+                CreateTestReport(scenarioName, counters, reportJsonPath, logger);
             }
 
             // Skip unimplemented Linux profiling

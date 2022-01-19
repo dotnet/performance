@@ -309,16 +309,14 @@ ex: C:\repos\performance;C:\repos\runtime
         elif self.testtype == const.DEVICESTARTUP:
             runRegex = ":\s(.+)"
             getLogger().info("Clearing potential previous run nettraces")
-            for file in glob.glob(os.path.join(const.TRACEDIR, 'PerfTest', 'trace*.nettrace')):
+            for file in glob.glob(os.path.join(const.TRACEDIR, 'PerfTest', 'runoutput.trace')):
                 if exists(file):   
                     getLogger().info("Removed: " + os.path.join(const.TRACEDIR, file))
                     os.remove(file)
-        
+
             cmdline = xharnesscommand() + [self.devicetype, 'state', '--adb']
             adb = RunCommand(cmdline, verbose=True)
             adb.run()
-            cmdline = [adb.stdout.strip(), 'shell', 'mkdir', '-p', '/sdcard/PerfTest']
-            RunCommand(cmdline, verbose=True).run()
 
             cmdline = xharnesscommand() + [
                 self.devicetype,
@@ -429,6 +427,7 @@ ex: C:\repos\performance;C:\repos\runtime
             RunCommand(stopApp, verbose=True).run()
 
             totalTimes = []
+            allResults = []
 
             for i in range(self.startupiterations):
                 cmdline = [ 
@@ -452,6 +451,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
                 # Add new total time to total time array
                 totalTimes.append(cleanedRunStats[4])
+                allResults.append(startStats.stdout)
 
                 time.sleep(3) # Delay in seconds for ensuring a cold start
 
@@ -475,17 +475,19 @@ ex: C:\repos\performance;C:\repos\runtime
                 '--package-name',
                 self.packagename
             ]
-
             RunCommand(cmdline, verbose=True).run()
 
-            cmdline = [adb.stdout.strip(), 'shell', 'rm', '-r', '/sdcard/PerfTest']
-            RunCommand(cmdline, verbose=True).run()
-            
+            # Create traces to store the data
+            getLogger().info(f"Logs: \n{allResults}")
+            os.makedirs(f"{const.TRACEDIR}/PerfTest", exist_ok=True)
+            traceFile = open(f"{const.TRACEDIR}/PerfTest/runoutput.trace", "w")
+            for result in allResults:
+                traceFile.write(result)
+            traceFile.close()
 
-
-            #startup = StartupWrapper()
-            #self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, scenarioname='Device Startup - Android %s' % (self.packagename), dataarray=totalTimes)
-            #startup.parsearray(self.traits)
+            startup = StartupWrapper()
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname='Device Startup - Android %s' % (self.packagename))
+            startup.parsetraces(self.traits)
 
         elif self.testtype == const.SOD:
             sod = SODWrapper()

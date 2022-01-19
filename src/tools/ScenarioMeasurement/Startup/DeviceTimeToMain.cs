@@ -27,33 +27,23 @@ namespace ScenarioMeasurement
 
         public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
         {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<Counter> Parse(string mergeTraceDirectory, string mergeTraceFilter, string processName, IList<int> pids, string commandLine)
-        {
             var times = new List<double>();
-            var files = new HashSet<string>();
-            Console.WriteLine($"Finding files from {mergeTraceDirectory} with filter: {mergeTraceFilter}");
-            foreach (var file in Directory.GetFiles(mergeTraceDirectory, mergeTraceFilter))
-            {
-                Console.WriteLine($"Found {file}");
-                files.Add(file);
-            }
+            Console.WriteLine($"In the parser!!! File: {mergeTraceFile}");
+            Regex totalTimePattern = new Regex(@"TotalTime:\s(?<totalTime>.+)");
 
-            foreach (var trace in files)
+            if (File.Exists(mergeTraceFile))
             {
-                Console.WriteLine($"Parsing {trace}");
-                using (var source = new EventPipeEventSource(trace))
+                using(StreamReader sr = new StreamReader(mergeTraceFile))
                 {
-                    source.Clr.MethodLoadVerbose += evt =>
+                    string line = sr.ReadToEnd();
+                    MatchCollection finds = totalTimePattern.Matches(line);
+                    Console.WriteLine($"Finds: {finds.Count}");
+                    foreach (Match match in finds)
                     {
-                        if (evt.MethodName == "Main")
-                        {
-                            times.Add(evt.TimeStampRelativeMSec);
-                        }
-                    };
-                    source.Process();
+                        GroupCollection groups = match.Groups;
+                        Console.WriteLine(groups["totalTime"].Value);
+                        times.Add(Double.Parse(groups["totalTime"].Value));
+                    }
                 }
             }
 
