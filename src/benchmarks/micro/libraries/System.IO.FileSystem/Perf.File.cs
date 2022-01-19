@@ -143,6 +143,19 @@ namespace System.IO.Tests
         public Task<byte[]> ReadAllBytesAsync(int size) => File.ReadAllBytesAsync(_filesToRead[size]);
 #endif
 
+        [GlobalSetup(Targets = new[] { nameof(ReadAllLines), "ReadAllLinesAsync" })]
+        public void SetupReadAllLines()
+            => File.WriteAllLines(_testFilePath = FileUtils.GetTestFilePath(), ValuesGenerator.ArrayOfStrings(count: 100, minLength: 20, maxLength: 80));
+
+        [Benchmark]
+        public string[] ReadAllLines() => File.ReadAllLines(_testFilePath);
+
+#if !NETFRAMEWORK
+        [BenchmarkCategory(Categories.NoWASM)]
+        [Benchmark]
+        public Task<string[]> ReadAllLinesAsync() => File.ReadAllLinesAsync(_testFilePath);
+#endif
+
         [GlobalSetup(Targets = new[] { nameof(AppendAllLines), "AppendAllLinesAsync" })]
         public void SetupAppendAllLines()
         {
