@@ -318,15 +318,21 @@ ex: C:\repos\performance;C:\repos\runtime
             adb = RunCommand(cmdline, verbose=True)
             adb.run()
 
-            cmdline = xharnesscommand() + [
-                self.devicetype,
+            #cmdline = xharnesscommand() + [
+            #    self.devicetype,
+            #    'install',
+            #    '--app', self.packagepath,
+            #    '--package-name',
+            #    self.packagename,
+            #    '-o',
+            #    const.TRACEDIR,
+            #    '-v'
+            #]
+            cmdline = [
+                adb.stdout.strip(),
                 'install',
-                '--app', self.packagepath,
-                '--package-name',
-                self.packagename,
-                '-o',
-                const.TRACEDIR,
-                '-v'
+                '-r',
+                self.packagepath
             ]
 
             RunCommand(cmdline, verbose=True).run()
