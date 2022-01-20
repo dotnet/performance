@@ -40,7 +40,7 @@ namespace System.Text.RegularExpressions.Tests
     }
 
     /// <summary>Performance tests adapted from https://github.com/mariomka/regex-benchmark</summary>
-    [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Regex, Categories.NoWASM)]
     public class Perf_Regex_Industry_Mariomkas
     {
         [Params(

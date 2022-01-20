@@ -49,5 +49,6 @@ namespace MicroBenchmarks
         public const string NoInterpreter = "NoInterpreter";
         public const string NoMono = "NoMono";
         public const string NoAOT = "NoAOT";
+        public const string Regex = "Regex";
     }
 }
