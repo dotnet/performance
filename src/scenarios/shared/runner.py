@@ -319,10 +319,8 @@ ex: C:\repos\performance;C:\repos\runtime
             adb.run()
 
             getLogger().info("Trying ADB workaround")
-            cmdline = xharnesscommand() + [
-                'android',
-                'adb',
-                '--',
+            cmdline = [
+                adb.stdout.strip(),
                 'shell',
                 'wm',
                 'size'
