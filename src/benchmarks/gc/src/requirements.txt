@@ -14,7 +14,7 @@ pylint==2.4.4
 # which we import lazily and only if the OS is Windows
 pywin32==301; sys_platform == "win32"
 result==0.4.0
-ruamel.yaml==0.16.5
+ruamel.yaml==0.16.10
 termcolor==1.1.0
 vulture==1.2
 xlsxwriter==1.2.6
