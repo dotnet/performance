@@ -318,6 +318,17 @@ ex: C:\repos\performance;C:\repos\runtime
             adb = RunCommand(cmdline, verbose=True)
             adb.run()
 
+            getLogger().info("Trying ADB workaround")
+            cmdline = xharnesscommand() + [
+                'android',
+                'adb',
+                '--',
+                'shell',
+                'wm',
+                'size'
+            ]
+            RunCommand(cmdline, verbose=True).run()
+
             cmdline = xharnesscommand() + [
                 self.devicetype,
                 'install',
