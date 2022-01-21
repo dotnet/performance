@@ -28,7 +28,6 @@ namespace ScenarioMeasurement
         public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
         {
             var times = new List<double>();
-            Console.WriteLine($"In the parser!!! File: {mergeTraceFile}");
             Regex totalTimePattern = new Regex(@"TotalTime:\s(?<totalTime>.+)");
 
             if (File.Exists(mergeTraceFile))
@@ -37,11 +36,11 @@ namespace ScenarioMeasurement
                 {
                     string line = sr.ReadToEnd();
                     MatchCollection finds = totalTimePattern.Matches(line);
-                    Console.WriteLine($"Finds: {finds.Count}");
+                    Console.WriteLine($"Found Startup Times: {finds.Count}");
                     foreach (Match match in finds)
                     {
                         GroupCollection groups = match.Groups;
-                        Console.WriteLine(groups["totalTime"].Value);
+                        Console.WriteLine($"Found Value (ms): {groups["totalTime"].Value}");
                         times.Add(Double.Parse(groups["totalTime"].Value));
                     }
                 }

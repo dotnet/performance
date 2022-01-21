@@ -307,7 +307,9 @@ ex: C:\repos\performance;C:\repos\runtime
 
 
         elif self.testtype == const.DEVICESTARTUP:
-            runRegex = ":\s(.+)"
+            # ADB Key Event corresponding numbers: https://gist.github.com/arjunv/2bbcca9a1a1c127749f8dcb6d36fb0bc
+            runSplitRegex = ":\s(.+)"
+            screenWasOff = False
             getLogger().info("Clearing potential previous run nettraces")
             for file in glob.glob(os.path.join(const.TRACEDIR, 'PerfTest', 'runoutput.trace')):
                 if exists(file):   
@@ -318,7 +320,8 @@ ex: C:\repos\performance;C:\repos\runtime
             adb = RunCommand(cmdline, verbose=True)
             adb.run()
 
-            getLogger().info("Trying ADB workaround")
+            # Do not remove, XHarness install seems to fail without an adb command called before the xharness command
+            getLogger().info("Preparing ADB")
             cmdline = [
                 adb.stdout.strip(),
                 'shell',
@@ -327,7 +330,7 @@ ex: C:\repos\performance;C:\repos\runtime
             ]
             RunCommand(cmdline, verbose=True).run()
 
-            cmdline = xharnesscommand() + [
+            installCmd = xharnesscommand() + [
                 self.devicetype,
                 'install',
                 '--app', self.packagepath,
@@ -337,14 +340,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 const.TRACEDIR,
                 '-v'
             ]
-            #cmdline = [
-            #    adb.stdout.strip(),
-            #    'install',
-            #    '-r',
-            #    self.packagepath
-            #]
-
-            RunCommand(cmdline, verbose=True).run()
+            RunCommand(installCmd, verbose=True).run()
 
             getLogger().info("Completed install, running shell.")
             cmdline = [ 
@@ -354,52 +350,41 @@ ex: C:\repos\performance;C:\repos\runtime
             ]
             getActivity = RunCommand(cmdline, verbose=True)
             getActivity.run()
-            getLogger().info(getActivity.stdout)
+            getLogger().info(f"Target Activity {getActivity.stdout}")
 
             # More setup stuff
-            cmdline = [ 
+            checkScreenOnCmd = [ 
                 adb.stdout.strip(),
                 'shell',
                 f'dumpsys input_method | grep mInteractive'
             ]
-            checkScreen = RunCommand(cmdline, verbose=True)
-            checkScreen.run()
+            checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
+            checkScreenOn.run()
 
-            if("mInteractive=false" in checkScreen.stdout):
+            keyInputCmd = [
+                adb.stdout.strip(),
+                'shell',
+                'input',
+                'keyevent'
+            ]
+
+            if("mInteractive=false" in checkScreenOn.stdout): 
                 # Turn on the screen to make interactive and see if it worked
-                getLogger().warning("Screen was off, turning on.")
-                cmdline = [
-                    adb.stdout.strip(),
-                    'shell',
-                    'input',
-                    'keyevent',
-                    '26'
-                    ]
-                RunCommand(cmdline, verbose=True).run()
-                
-                cmdline = [
-                    adb.stdout.strip(),
-                    'shell',
-                    'input',
-                    'keyevent',
-                    '82'
-                    ]
-                RunCommand(cmdline, verbose=True).run() # Unlock the screen
+                getLogger().info("Screen was off, turning on.")
+                screenWasOff = True
+                RunCommand(keyInputCmd + ['26'], verbose=True).run() # Press the power key
+                RunCommand(keyInputCmd + ['82'], verbose=True).run() # Unlock the screen with menu key (only works if it is not a password lock)
 
-                cmdline = [ 
-                    adb.stdout.strip(),
-                    'shell',
-                    f'dumpsys input_method | grep mInteractive'
-                ]
-                checkScreen = RunCommand(cmdline, verbose=True)
-                checkScreen.run()
-                if("mInteractive=false" in checkScreen.stdout):
-                    getLogger().exception("Failed to make interactive.")
+                checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
+                checkScreenOn.run()
+                if("mInteractive=false" in checkScreenOn.stdout):
+                    getLogger().exception("Failed to make screen interactive.")
 
             # Actual testing some run stuff
-            getLogger().info("Test run")
+            getLogger().info("Test run to check if permissions are needed")
             activityname = getActivity.stdout
-            cmdline = [ 
+
+            startAppCmd = [ 
                 adb.stdout.strip(),
                 'shell',
                 'am',
@@ -408,91 +393,67 @@ ex: C:\repos\performance;C:\repos\runtime
                 '-n',
                 activityname
             ]
-            testRun = RunCommand(cmdline, verbose=True)
+            testRun = RunCommand(startAppCmd, verbose=True)
             testRun.run()
-            testRunStats = re.findall(runRegex, testRun.stdout)
-            getLogger().info(testRunStats[3])
+            testRunStats = re.findall(runSplitRegex, testRun.stdout) 
+            getLogger().info(f"Test run activity: {testRunStats[3]}")
+
+            stopAppCmd = [ 
+                adb.stdout.strip(),
+                'shell',
+                'am',
+                'force-stop',
+                self.packagename
+            ]
+            RunCommand(stopAppCmd, verbose=True).run()
 
             if "com.google.android.permissioncontroller" in testRunStats[3]:
                 # On perm screen, use the buttons to close it. it will stay away until the app is reinstalled
-                keycommand = [
-                    adb.stdout.strip(),
-                    'shell',
-                    'input',
-                    'keyevent'
-                    ]
-                RunCommand(keycommand + ['22'], verbose=True).run() # Select next button
+                RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
                 time.sleep(1)
-                RunCommand(keycommand + ['22'], verbose=True).run() # Select next button
+                RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
                 time.sleep(1)
-                RunCommand(keycommand + ['66'], verbose=True).run() # Press enter to close main perm screen
+                RunCommand(keyInputCmd + ['66'], verbose=True).run() # Press enter to close main perm screen
                 time.sleep(1)
-                RunCommand(keycommand + ['22'], verbose=True).run() # Select next button
+                RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
                 time.sleep(1)
-                RunCommand(keycommand + ['66'], verbose=True).run() # Press enter to close out of second screen
+                RunCommand(keyInputCmd + ['66'], verbose=True).run() # Press enter to close out of second screen
                 time.sleep(1)
 
-            stopApp = [ 
-                adb.stdout.strip(),
-                'shell',
-                'am',
-                'force-stop',
-                self.packagename
-            ]
-            RunCommand(stopApp, verbose=True).run()
-
-            totalTimes = []
-            allResults = []
-
-            for i in range(self.startupiterations):
-                cmdline = [ 
-                    adb.stdout.strip(),
-                    'shell',
-                    'am',
-                    'start-activity',
-                    '-W',
-                    '-n',
-                    activityname
-                ]
-                startStats = RunCommand(cmdline, verbose=True)
-                startStats.run()
-
-                # Parse and save results (List is Intent, Status, LaunchState Activity, TotalTime, WaitTime)
-                cleanedRunStats = re.findall(runRegex, startStats.stdout)
-                getLogger().info("Cleaned Stats")
-                getLogger().info(cleanedRunStats)
+                # Check to make sure it worked
+                testRun = RunCommand(startAppCmd, verbose=True)
+                testRun.run()
+                testRunStats = re.findall(runSplitRegex, testRun.stdout) 
+                getLogger().info(f"Test run activity: {testRunStats[3]}")
+                RunCommand(stopAppCmd, verbose=True).run() 
                 
-                RunCommand(stopApp, verbose=True).run()
+                if "com.google.android.permissioncontroller" in testRunStats[3]:
+                    getLogger().exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
 
-                # Add new total time to total time array
-                totalTimes.append(cleanedRunStats[4])
-                allResults.append(startStats.stdout)
-
+            allResults = []
+            for i in range(self.startupiterations):
+                startStats = RunCommand(startAppCmd, verbose=True)
+                startStats.run()
+                RunCommand(stopAppCmd, verbose=True).run()
+                allResults.append(startStats.stdout) # Save results (List is Intent, Status, LaunchState Activity, TotalTime, WaitTime)
                 time.sleep(3) # Delay in seconds for ensuring a cold start
 
-            getLogger().info("Total Times List")
-            getLogger().info(totalTimes)
-
-            getLogger().info("Force Stopping")
-            cmdline = [ 
-                adb.stdout.strip(),
-                'shell',
-                'am',
-                'force-stop',
-                self.packagename
-            ]
-            RunCommand(cmdline, verbose=True).run()
+            getLogger().info("Stopping App for uninstall")
+            RunCommand(stopAppCmd, verbose=True).run()
                     
             getLogger().info("Uninstalling app")
-            cmdline = xharnesscommand() + [
+            uninstallAppCmd = xharnesscommand() + [
                 'android',
                 'uninstall',
                 '--package-name',
                 self.packagename
             ]
-            RunCommand(cmdline, verbose=True).run()
+            RunCommand(uninstallAppCmd, verbose=True).run()
 
-            # Create traces to store the data
+            if screenWasOff:
+                RunCommand(keyInputCmd + ['26'], verbose=True).run() # Turn the screen back off
+
+            # Create traces to store the data so we can keep the current general parse trace flow
             getLogger().info(f"Logs: \n{allResults}")
             os.makedirs(f"{const.TRACEDIR}/PerfTest", exist_ok=True)
             traceFile = open(f"{const.TRACEDIR}/PerfTest/runoutput.trace", "w")
