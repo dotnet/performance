@@ -1,7 +1,0 @@
-namespace ClassLib046
-{
-    public class Class065
-    {
-        public static string Property => "ClassLib046";
-    }
-}
