@@ -150,6 +150,13 @@ class StartupWrapper(object):
             RunCommand(startup_args, verbose=True).run()
         except CalledProcessError:
             getLogger().info("Run failure registered")
+            # Copy and upload should be done regardless of failure
+            if runninginlab():
+            copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
+            if uploadtokenpresent():
+                import upload
+                upload_code = upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+                getLogger().info("Startup Upload Code: " + str(upload_code))
             # rethrow the original exception 
             raise
 
