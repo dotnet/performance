@@ -306,7 +306,18 @@ ex: C:\repos\performance;C:\repos\runtime
 
         elif self.testtype == const.DEVICESTARTUP:
             # ADB Key Event corresponding numbers: https://gist.github.com/arjunv/2bbcca9a1a1c127749f8dcb6d36fb0bc
-            runSplitRegex = ":\s(.+)"
+            # Regex used to split the response from starting the activity and saving each value
+            #Example:
+            #    Starting: Intent { cmp=net.dot.HelloAndroid/net.dot.MainActivity }
+            #    Status: ok
+            #    LaunchState: COLD
+            #    Activity: net.dot.HelloAndroid/net.dot.MainActivity
+            #    TotalTime: 241
+            #    WaitTime: 242
+            #    Complete
+            # Saves: [Intent { cmp=net.dot.HelloAndroid/net.dot.MainActivity }, ok, COLD, net.dot.HelloAndroid/net.dot.MainActivity, 241, 242]
+            # Split results (start at 0) (List is Starting (Intent activity), Status (ok...), LaunchState ([HOT, COLD, WARM]), Activity (started activity name), TotalTime(toFrameOne), WaitTime(toFullLoad)) 
+            runSplitRegex = ":\s(.+)" 
             screenWasOff = False
             getLogger().info("Clearing potential previous run nettraces")
             for file in glob.glob(os.path.join(const.TRACEDIR, 'PerfTest', 'runoutput.trace')):
@@ -393,7 +404,7 @@ ex: C:\repos\performance;C:\repos\runtime
             ]
             testRun = RunCommand(startAppCmd, verbose=True)
             testRun.run()
-            testRunStats = re.findall(runSplitRegex, testRun.stdout) 
+            testRunStats = re.findall(runSplitRegex, testRun.stdout) # Split results saving value (List: Starting, Status, LaunchState, Activity, TotalTime, WaitTime) 
             getLogger().info(f"Test run activity: {testRunStats[3]}")
 
             stopAppCmd = [ 
