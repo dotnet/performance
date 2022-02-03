@@ -438,10 +438,11 @@ class CSharpProject:
     @staticmethod
     def __print_complus_environment() -> None:
         getLogger().info('-' * 50)
-        getLogger().info('Dumping COMPlus environment:')
+        getLogger().info('Dumping COMPlus/DOTNET environment:')
         COMPLUS_PREFIX = 'COMPlus'
+        DOTNET_PREFIX = 'DOTNET'
         for env in environ:
-            if env[:len(COMPLUS_PREFIX)].lower() == COMPLUS_PREFIX.lower():
+            if env[:len(COMPLUS_PREFIX)].lower() == COMPLUS_PREFIX.lower() or env[:len(DOTNET_PREFIX)].lower() == DOTNET_PREFIX.lower():
                 getLogger().info('  "%s=%s"', env, environ[env])
         getLogger().info('-' * 50)
 
