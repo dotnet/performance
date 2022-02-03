@@ -17,7 +17,7 @@ namespace BenchmarkDotNet.Extensions.Tests
 {
     public class PartitionFilterTests
     {
-        private const int PartitionCount = 5; // same as in eng/performance/helix.proj
+        private const int PartitionCount = 30; // same as used by the runtime repo
 
         [Fact]
         public void NoBenchmarksAreOmitted_MockData()
@@ -76,7 +76,7 @@ namespace BenchmarkDotNet.Extensions.Tests
             BenchmarkRunInfo[] allBenchmarks = GetAllBenchmarks(parsedConfig, runnable);
             Dictionary<string, int> idToPartitionIndex = new ();
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 10; i++)
             {
                 Dictionary<string, int> hits = allBenchmarks
                     .SelectMany(benchmark => benchmark.BenchmarksCases)
