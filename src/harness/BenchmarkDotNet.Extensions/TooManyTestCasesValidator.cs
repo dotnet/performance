@@ -34,7 +34,7 @@ namespace BenchmarkDotNet.Extensions
 
         private static bool SkipValidation(MemberInfo member)
         {
-            while (member is not null)
+            while (member != null)
             {
                 if (member.IsDefined(typeof(SkipTooManyTestCasesValidatorAttribute), inherit: true))
                 {

@@ -24,16 +24,21 @@ namespace System.IO.Tests
         [Benchmark]
         public void ReadLine()
         {
-            using StreamReader reader = new (new MemoryStream(_bytes));
-            while (reader.ReadLine() != null) ;
+            using (StreamReader reader = new StreamReader(new MemoryStream(_bytes)))
+            {
+                while (reader.ReadLine() != null) ;
+            }
+            
         }
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoWASM)]
         public async Task ReadLineAsync()
         {
-            using StreamReader reader = new(new MemoryStream(_bytes));
-            while (await reader.ReadLineAsync() != null) ;
+            using (StreamReader reader = new StreamReader(new MemoryStream(_bytes)))
+            {
+                while (await reader.ReadLineAsync() != null) ;
+            }
         }
     }
 }

@@ -28,7 +28,8 @@ class ChannelMap():
         },
         '5.0':{
             'tfm': 'net5.0',
-            'branch': 'release/5.0'
+            'branch': '5.0.4xx',
+            'quality': 'daily'
         },
         'release/5.0.1xx-rc2':{
             'tfm': 'net5.0',
@@ -52,7 +53,8 @@ class ChannelMap():
         },
         '3.1': {
             'tfm': 'netcoreapp3.1',
-            'branch': 'release/3.1'
+            'branch': '3.1.4xx',
+            'quality': 'daily'
         },
         '3.0': {
             'tfm': 'netcoreapp3.0',
