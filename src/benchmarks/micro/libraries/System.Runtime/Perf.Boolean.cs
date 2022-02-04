@@ -12,8 +12,18 @@ namespace System.Tests
     [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Boolean
     {
-        public static IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
-
+        public static IEnumerable<object> StringValues => new string[]{
+            "true", // strings, not bools, as otherwise strings in the logs have casing "True"
+            "false"
+        };
+        public static IEnumerable<object> AllStringValues => StringValues.Concat(new string[]
+        {
+            "TrUe",
+            "fAlSe",
+            "falss",
+            " tRuu ",
+            "tru"
+        });
         public static IEnumerable<object> Values => new object[]
         {
             true,
@@ -25,7 +35,7 @@ namespace System.Tests
         public bool Parse(string value) => bool.Parse(value);
 
         [Benchmark]
-        [ArgumentsSource(nameof(StringValues))]
+        [ArgumentsSource(nameof(AllStringValues))]
         public bool TryParse(string value) => bool.TryParse(value, out _);
 
         [Benchmark]
