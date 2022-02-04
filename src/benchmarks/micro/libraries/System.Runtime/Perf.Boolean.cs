@@ -22,7 +22,8 @@ namespace System.Tests
             "fAlSe",
             "falss",
             " tRuu ",
-            "tru"
+            "tru",
+            "bogus" // presumably common case of something random that's not a boolean
         });
         public static IEnumerable<object> Values => new object[]
         {
