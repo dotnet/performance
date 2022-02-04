@@ -19,14 +19,14 @@ namespace System.IO.Tests
 
         public static IEnumerable<Range> GetLineLengthRanges()
         {
-            yield return new() { Min = 0, Max = 0 };
-            yield return new() { Min = 1, Max = 1 };
-            yield return new() { Min = 1, Max = 8 };
-            yield return new() { Min = 9, Max = 32 };
-            yield return new() { Min = 33, Max = 128 };
-            yield return new() { Min = 129, Max = 1024 };
-            yield return new() { Min = 1025, Max = 2048 };
-            yield return new() { Min = 0, Max = 1024 };
+            yield return new Range() { Min = 0, Max = 0 };
+            yield return new Range() { Min = 1, Max = 1 };
+            yield return new Range() { Min = 1, Max = 8 };
+            yield return new Range() { Min = 9, Max = 32 };
+            yield return new Range() { Min = 33, Max = 128 };
+            yield return new Range() { Min = 129, Max = 1024 };
+            yield return new Range() { Min = 1025, Max = 2048 };
+            yield return new Range() { Min = 0, Max = 1024 };
         }
 
         public class Range

@@ -20,16 +20,20 @@ namespace System.IO.Tests
         [Benchmark]
         public void ReadLine()
         {
-            using StringReader reader = new (_text);
-            while (reader.ReadLine() != null) ;
+            using (StringReader reader = new StringReader(_text))
+            {
+                while (reader.ReadLine() != null) ;
+            }
         }
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoWASM)]
         public async Task ReadLineAsync()
         {
-            using StringReader reader = new(_text);
-            while (await reader.ReadLineAsync() != null) ;
+            using (StringReader reader = new StringReader(_text))
+            {
+                while (await reader.ReadLineAsync() != null) ;
+            }
         }
     }
 }

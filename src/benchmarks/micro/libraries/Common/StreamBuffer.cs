@@ -365,7 +365,7 @@ namespace System.IO
             {
                 _waitSource.RunContinuationsAsynchronously = true;
 		_waitSourceCancellationToken = cancellationToken;
-                _waitSourceCancellation = cancellationToken.UnsafeRegister(static s => ((ResettableValueTaskSource)s!).CancelWaiter(), this);
+                _waitSourceCancellation = cancellationToken.UnsafeRegister(s => ((ResettableValueTaskSource)s!).CancelWaiter(), this);
 
                 return new ValueTask(this, _waitSource.Version);
             }
