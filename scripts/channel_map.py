@@ -53,7 +53,8 @@ class ChannelMap():
         },
         '3.1': {
             'tfm': 'netcoreapp3.1',
-            'branch': 'release/3.1'
+            'branch': '3.1.4xx',
+            'quality': 'daily'
         },
         '3.0': {
             'tfm': 'netcoreapp3.0',
