@@ -304,7 +304,7 @@ namespace System.IO
             // The rest of the logic is deferred to ManualResetValueTaskSourceCore.
 
             private ManualResetValueTaskSourceCore<bool> _waitSource; // mutable struct, do not make this readonly
-	    private CancellationToken _waitSourceCancellationToken;
+            private CancellationToken _waitSourceCancellationToken;
             private CancellationTokenRegistration _waitSourceCancellation;
             private int _hasWaiter;
 
@@ -319,7 +319,7 @@ namespace System.IO
                 // Clean up the registration.  This will wait for any in-flight cancellation to complete.
                 _waitSourceCancellation.Dispose();
                 _waitSourceCancellation = default;
-		_waitSourceCancellationToken = default;
+                _waitSourceCancellationToken = default;
 
                 // Propagate any exceptions if there were any.
                 _waitSource.GetResult(token);
@@ -364,7 +364,7 @@ namespace System.IO
             public ValueTask WaitAsync(CancellationToken cancellationToken)
             {
                 _waitSource.RunContinuationsAsynchronously = true;
-		_waitSourceCancellationToken = cancellationToken;
+                _waitSourceCancellationToken = cancellationToken;
                 _waitSourceCancellation = cancellationToken.UnsafeRegister(s => ((ResettableValueTaskSource)s!).CancelWaiter(), this);
 
                 return new ValueTask(this, _waitSource.Version);
