@@ -441,9 +441,11 @@ class CSharpProject:
         getLogger().info('Dumping COMPlus/DOTNET environment:')
         COMPLUS_PREFIX = 'COMPlus'
         DOTNET_PREFIX = 'DOTNET'
+        implementationDetails = [ 'DOTNET_CLI_TELEMETRY_OPTOUT', 'DOTNET_MULTILEVEL_LOOKUP', 'DOTNET_ROOT' ]
         for env in environ:
             if env[:len(COMPLUS_PREFIX)].lower() == COMPLUS_PREFIX.lower() or env[:len(DOTNET_PREFIX)].lower() == DOTNET_PREFIX.lower():
-                getLogger().info('  "%s=%s"', env, environ[env])
+                if not (env.upper() in implementationDetails):
+                    getLogger().info('  "%s=%s"', env, environ[env])
         getLogger().info('-' * 50)
 
     def run(self,
