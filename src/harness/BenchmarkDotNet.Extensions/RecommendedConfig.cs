@@ -12,6 +12,7 @@ using Reporting;
 using BenchmarkDotNet.Loggers;
 using System.Linq;
 using BenchmarkDotNet.Exporters;
+using System;
 
 namespace BenchmarkDotNet.Extensions
 {
@@ -41,6 +42,7 @@ namespace BenchmarkDotNet.Extensions
             }
 
             var config = ManualConfig.CreateEmpty()
+                .WithBuildTimeout(TimeSpan.FromMinutes(10)) // for slow machines
                 .AddLogger(ConsoleLogger.Default) // log output to console
                 .AddValidator(DefaultConfig.Instance.GetValidators().ToArray()) // copy default validators
                 .AddAnalyser(DefaultConfig.Instance.GetAnalysers().ToArray()) // copy default analysers
