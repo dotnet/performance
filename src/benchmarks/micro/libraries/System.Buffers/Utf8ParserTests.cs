@@ -85,7 +85,7 @@ namespace System.Buffers.Text.Tests
         public bool TryParseSByte(Utf8TestCase value) => Utf8Parser.TryParse(value.Utf8Bytes, out sbyte _, out int _);
 
         public IEnumerable<object> BooleanValues
-            => Perf_Boolean.StringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
+            => Perf_Boolean.ValidStringValues.OfType<string>().Select(formatted => new Utf8TestCase(formatted));
 
         [Benchmark]
         [ArgumentsSource(nameof(BooleanValues))]
