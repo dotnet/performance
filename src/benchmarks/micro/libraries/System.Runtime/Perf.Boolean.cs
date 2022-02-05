@@ -13,17 +13,15 @@ namespace System.Tests
     public class Perf_Boolean
     {
         public static IEnumerable<object> StringValues => new string[]{
-            "true", // strings, not bools, as otherwise strings in the logs have casing "True"
-            "false"
+            "true",
+            "false",
+            "TRUE",
+            "False"
         };
         public static IEnumerable<object> AllStringValues => StringValues.Concat(new string[]
         {
-            "TrUe",
-            "fAlSe",
-            "falss",
-            " tRuu ",
-            "tru",
-            "bogus" // presumably common case of something random that's not a boolean
+            "0",
+            "Bogus"
         });
         public static IEnumerable<object> Values => new object[]
         {
