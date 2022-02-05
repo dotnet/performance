@@ -48,9 +48,12 @@ namespace System.IO.Tests
         [GlobalCleanup]
         public void Cleanup()
         {
-            foreach (string filePath in _sourceFilePaths.Values.Concat(_destinationFilePaths.Values))
+            if (_sourceFilePaths != null)
             {
-                File.Delete(filePath);
+                foreach (string filePath in _sourceFilePaths.Values.Concat(_destinationFilePaths.Values))
+                {
+                    File.Delete(filePath);
+                }
             }
         }
 
@@ -166,8 +169,8 @@ namespace System.IO.Tests
             }
         }
 
-        [GlobalSetup(Targets = new[] { nameof(Read), nameof(Read_NoBuffering), "ReadAsync", "ReadAsync_NoBuffering", 
-            nameof(Write), nameof(Write_NoBuffering), "WriteAsync", "WriteAsync_NoBuffering", nameof(CopyToFile), nameof(CopyToFileAsync), nameof(Append), "AppendAsync" })]
+        [GlobalSetup(Targets = new[] { nameof(Read), nameof(Read_NoBuffering), nameof(ReadAsync), nameof(ReadAsync_NoBuffering),
+            nameof(Write), nameof(Write_NoBuffering), nameof(WriteAsync), nameof(WriteAsync_NoBuffering), nameof(CopyToFile), nameof(CopyToFileAsync), nameof(Append), nameof(AppendAsync) })]
         public void SetupBigFileBenchmarks() => Setup(OneKibibyte, OneMibibyte, HundredMibibytes);
         
         public IEnumerable<object[]> SyncArguments()
