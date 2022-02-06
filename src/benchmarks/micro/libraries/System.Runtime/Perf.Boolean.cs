@@ -12,8 +12,18 @@ namespace System.Tests
     [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Boolean
     {
-        public static IEnumerable<object> StringValues => Values.Select(value => value.ToString()).ToArray();
-
+        public static IEnumerable<object> ValidStringValues => new string[]{
+            "true",
+            "false",
+            "TRUE",
+            "False",
+            " True "
+        };
+        public static IEnumerable<object> ValidAndInvalidStringValues => ValidStringValues.Concat(new string[]
+        {
+            "0",
+            "Bogus"
+        });
         public static IEnumerable<object> Values => new object[]
         {
             true,
@@ -21,11 +31,11 @@ namespace System.Tests
         };
 
         [Benchmark]
-        [ArgumentsSource(nameof(StringValues))]
+        [ArgumentsSource(nameof(ValidStringValues))]
         public bool Parse(string value) => bool.Parse(value);
 
         [Benchmark]
-        [ArgumentsSource(nameof(StringValues))]
+        [ArgumentsSource(nameof(ValidAndInvalidStringValues))]
         public bool TryParse(string value) => bool.TryParse(value, out _);
 
         [Benchmark]
