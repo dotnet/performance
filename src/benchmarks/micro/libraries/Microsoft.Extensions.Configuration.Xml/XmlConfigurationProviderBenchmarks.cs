@@ -10,7 +10,7 @@ namespace Microsoft.Extensions.Configuration.Xml
         private MemoryStream _memoryStream;
         private XmlConfigurationProvider _provider;
 
-        [Params("simple.xml", "deep.xml", "names.xml", "repeated.xml")]
+        [Params("simple.xml", "deep.xml", "names.xml")]
         public string FileName { get; set; }
 
         [GlobalSetup]
