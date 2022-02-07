@@ -26,6 +26,9 @@ namespace Microsoft.Extensions.Configuration.Xml
             }
         }
 
+        [GlobalCleanup]
+        public void Cleanup() => _memoryStream.Dispose();
+
         [Benchmark]
         public void Load()
         {
