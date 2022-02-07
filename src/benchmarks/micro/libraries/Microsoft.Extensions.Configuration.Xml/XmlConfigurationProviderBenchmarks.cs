@@ -1,8 +1,8 @@
 ﻿using BenchmarkDotNet.Attributes;
-using Microsoft.Extensions.Configuration.Xml;
+using MicroBenchmarks;
 using System.IO;
 
-namespace MicroBenchmarks.libraries.Microsoft.Extensions.Configuration
+namespace Microsoft.Extensions.Configuration.Xml
 {
     [BenchmarkCategory(Categories.Libraries)]
     public class XmlConfigurationProviderBenchmarks
