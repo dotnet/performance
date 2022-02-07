@@ -28,9 +28,9 @@ namespace MicroBenchmarks.libraries.Microsoft.Extensions.Configuration
         public void GlobalSetup()
         {
             _simpleXml = ReadTestFile("simple.xml");
-            _deepXml = ReadTestFile("simple.xml");
-            _namesXml = ReadTestFile("simple.xml");
-            _repeatedXml = ReadTestFile("simple.xml");
+            _deepXml = ReadTestFile("deep.xml");
+            _namesXml = ReadTestFile("names.xml");
+            _repeatedXml = ReadTestFile("repeated.xml");
 
             _provider = new XmlConfigurationProvider(new XmlConfigurationSource());
         }
