@@ -21,6 +21,8 @@
     <PackageReference Include="Jil" Version="3.0.0-alpha2" />
     <PackageReference Include="MessagePack" Version="1.9.11" />
     <PackageReference Include="MessagePackAnalyzer" Version="1.7.3.7" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0-rc.1.20417.14" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Xml" Version="5.0.0-rc.1.20417.14" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0-rc.1.20417.14" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.0-rc.1.20417.14" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0-rc.1.20417.14" />
@@ -63,6 +65,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="libraries\Common\*.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="libraries\Microsoft.Extensions.Configuration.Xml\TestFiles\*.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
