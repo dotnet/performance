@@ -15,13 +15,14 @@ namespace MicroBenchmarks.libraries.Microsoft.Extensions.Configuration
 
         private MemoryStream ReadTestFile(string fileName)
         {
-            using var fileStream = File.OpenRead(Path.Combine("./libraries/Microsoft.Extensions.Configuration.Xml/TestFiles", fileName));
+            using (FileStream fileStream = File.OpenRead(Path.Combine("./libraries/Microsoft.Extensions.Configuration.Xml/TestFiles", fileName)))
+            {
+                var memoryStream = new MemoryStream();
 
-            var memoryStream = new MemoryStream();
+                fileStream.CopyTo(memoryStream);
 
-            fileStream.CopyTo(memoryStream);
-
-            return memoryStream;
+                return memoryStream;
+            }
         }
 
         [GlobalSetup]
