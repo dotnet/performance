@@ -4,7 +4,6 @@
 
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
-using System.Runtime.CompilerServices;
 
 namespace System.Diagnostics.Tracing
 {
@@ -30,9 +29,6 @@ namespace System.Diagnostics.Tracing
             public void EventStringParams(string arg1, string arg2, string arg3) => WriteEvent(3, arg1, arg2, arg3);
 
             [Event(4)]
-#if NET
-            [SkipLocalsInit]
-#endif
             public unsafe void EventMixedParams(int arg1, string arg2, TestEnum arg3)
             {
                 arg2 ??= "";
