@@ -213,8 +213,11 @@ namespace System.Text.Tests
         }
 
 #if !NETFRAMEWORK
+        [GlobalSetup(Target = nameof(Append_NonEmptySpan))]
+        public void Setup_Append_NonEmptySpan() => _string100 = new string('a', 100);
+
         [Benchmark]
-        public StringBuilder Append_Span()
+        public StringBuilder Append_NonEmptySpan()
         {
             ReadOnlySpan<char> span = _string100.AsSpan();
             StringBuilder builder = new StringBuilder();
