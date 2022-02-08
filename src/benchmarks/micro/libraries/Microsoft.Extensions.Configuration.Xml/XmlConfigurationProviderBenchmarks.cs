@@ -1,5 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Microsoft.Extensions.Configuration.Xml
@@ -10,7 +11,17 @@ namespace Microsoft.Extensions.Configuration.Xml
         private MemoryStream _memoryStream;
         private XmlConfigurationProvider _provider;
 
-        [Params("simple.xml", "deep.xml", "names.xml")]
+        public IEnumerable<string> GetFileNames()
+        {
+            yield return "simple.xml";
+            yield return "deep.xml";
+            yield return "names.xml";
+#if NET6_0_OR_GREATER // support added in .NET 6 (it throws on older TFMs)
+            yield return "repeated.xml";
+#endif
+        }
+
+        [ParamsSource(nameof(GetFileNames))]
         public string FileName { get; set; }
 
         [GlobalSetup]
