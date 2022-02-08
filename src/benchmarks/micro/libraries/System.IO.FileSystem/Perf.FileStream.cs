@@ -48,9 +48,12 @@ namespace System.IO.Tests
         [GlobalCleanup]
         public void Cleanup()
         {
-            foreach (string filePath in _sourceFilePaths.Values.Concat(_destinationFilePaths.Values))
+            if (_sourceFilePaths != null)
             {
-                File.Delete(filePath);
+                foreach (string filePath in _sourceFilePaths.Values.Concat(_destinationFilePaths.Values))
+                {
+                    File.Delete(filePath);
+                }
             }
         }
 
@@ -166,10 +169,11 @@ namespace System.IO.Tests
             }
         }
 
+        // Can't use nameof for those that are conditionally compiled
         [GlobalSetup(Targets = new[] { nameof(Read), nameof(Read_NoBuffering), "ReadAsync", "ReadAsync_NoBuffering", 
             nameof(Write), nameof(Write_NoBuffering), "WriteAsync", "WriteAsync_NoBuffering", nameof(CopyToFile), nameof(CopyToFileAsync), nameof(Append), "AppendAsync" })]
         public void SetupBigFileBenchmarks() => Setup(OneKibibyte, OneMibibyte, HundredMibibytes);
-        
+
         public IEnumerable<object[]> SyncArguments()
         {
             // long fileSize, int userBufferSize, FileOptions options
@@ -181,7 +185,7 @@ namespace System.IO.Tests
                 yield return new object[] { HundredMibibytes, FourKibibytes, options }; // big file, user buffer size == default stream buffer size (buffering is not beneficial)
             }
         }
-        
+
         public IEnumerable<object[]> SyncArguments_NoBuffering()
         {
             // long fileSize, int userBufferSize, FileOptions options

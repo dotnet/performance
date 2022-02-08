@@ -22,7 +22,7 @@ namespace System.IO.Tests
         private const int HundredMibibytes = OneMibibyte * 100;
 
         private const int DeleteteInnerIterations = 10;
-        
+
         private string _testFilePath;
         private string[] _filesToRemove;
         private Dictionary<int, byte[]> _userBuffers;
@@ -36,12 +36,18 @@ namespace System.IO.Tests
             _testFilePath = FileUtils.GetTestFilePath();
             File.Create(_testFilePath).Dispose();
         }
-        
+
         [Benchmark]
-        public void Exists() => File.Exists(_testFilePath); 
-        
+        public void Exists() => File.Exists(_testFilePath);
+
         [GlobalCleanup]
-        public void Cleanup() => File.Delete(_testFilePath);
+        public void Cleanup()
+        {
+            if (File.Exists(_testFilePath))
+            {
+                File.Delete(_testFilePath);
+            }
+        }
 
         [IterationSetup(Target = nameof(Delete))]
         public void SetupDeleteIteration()
@@ -51,7 +57,7 @@ namespace System.IO.Tests
             foreach (var file in _filesToRemove)
                 File.Create(file).Dispose();
         }
-        
+
         [Benchmark(OperationsPerInvoke = DeleteteInnerIterations)]
         public void Delete()
         {
