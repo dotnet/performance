@@ -147,6 +147,11 @@
     <Compile Remove="libraries\System.IO.FileSystem\Perf.RandomAccess.NoBuffering.cs" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+    <!-- System.Drawing.Common only supported on Windows -->
+    <Compile Remove="libraries\System.Drawing\*.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- Temporarily disable tests here -->
 	<!--Like <Compile Remove="libraries\System.Text.RegularExpressions\Perf.Regex.Industry.cs" /> -->
