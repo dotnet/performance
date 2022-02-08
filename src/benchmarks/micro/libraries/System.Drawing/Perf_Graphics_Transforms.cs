@@ -9,7 +9,10 @@ using MicroBenchmarks;
 namespace System.Drawing.Tests
 {
     [BenchmarkCategory(Categories.Libraries)]
-    [OperatingSystemsFilter(allowed: true, platforms: OS.Windows)] 
+#if NET5_0_OR_GREATER // the APIs have been marked as Windows-specific library
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    [OperatingSystemsFilter(allowed: true, platforms: OS.Windows)]
+#endif
     public class Perf_Graphics_Transforms
     {
         private Bitmap _image;
