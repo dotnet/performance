@@ -297,10 +297,6 @@ namespace System.Tests
 
         [Benchmark]
         public void Substring() => _s.Substring(Start);
-
-        // TEMP: For comparison
-        [Benchmark]
-        public void NewString() => new string('\0', _s.Length - Start);
     }
 
     [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
@@ -336,10 +332,6 @@ namespace System.Tests
             var slice = Slice;
             _s.Substring(slice.StartIndex, slice.Length);
         }
-
-        // TEMP: For comparison
-        [Benchmark]
-        public void NewString() => new string('\0', Slice.Length);
     }
 
     public class StringArguments
