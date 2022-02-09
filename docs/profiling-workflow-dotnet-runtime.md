@@ -71,7 +71,7 @@ C:\Projects\runtime\artifacts\bin\testhost\net6.0-windows-Release-x64\dotnet.exe
 * `CoreRun` and all `System.XYZ.dlls` that can be used to run the code that you want to profile. Example:
 
 ```log
-C:\Projects\runtime\artifacts\bin\testhost\net6.0-windows-Release-x64\shared\Microsoft.NETCore.App\6.0.0\CoreRun.exe
+C:\Projects\runtime\artifacts\bin\testhost\net7.0-windows-Release-x64\shared\Microsoft.NETCore.App\7.0.0\CoreRun.exe
 ```
 
 * But the dotnet/runtime build only produces the artifacts necessary for a _runtime_, not for an _sdk_. Visual Studio will require a full SDK to be able to compile your console app from the next step. One way to convert your generated _runtime_ into a full _sdk_, is to navigate to the `runtime\.dotnet\` folder, copy the `packs` and `sdk` folders located inside, and then paste them inside `runtime\artifacts\bin\testhost\net6.0-windows-Release-x64\`.

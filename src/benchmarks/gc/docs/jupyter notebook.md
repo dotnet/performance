@@ -158,7 +158,7 @@ Running this yields the following output:
 ## Numeric Analysis
 
 Numeric Analysis is a feature that allows you to use the `pandas` library to
-analyze GC metrics from various runs of a *GCPerfSim* test. It reads all these
+analyze GC metrics from various runs of a _GCPerfSim_ test. It reads all these
 metrics numbers from all the iterations for the test run, and builds a list
 with them, ready for `pandas` to consume and interpret it. Some of the main
 tasks you can do with your data are, but not limited to:
@@ -176,10 +176,10 @@ For the full pandas documentation, you can check their [website](https://pandas.
 
 ### Requirements
 
-First, run any *GCPerfSim* test you want to analyze multiple times. It all depends
+First, run any _GCPerfSim_ test you want to analyze multiple times. It all depends
 on your goal for how many, but when working with statistics, the more the merrier.
 
-Once your tests are done running, open up `jupyter_notebook.py` in *VSCode* and
+Once your tests are done running, open up `jupyter_notebook.py` in VS Code and
 run the first cell for general setup. Once that is done, there is a basic
 working template at the end of the notebook.
 
