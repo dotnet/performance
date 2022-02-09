@@ -103,7 +103,7 @@ Most (if not all) of these fields can be retrieved from your machine's _Task Man
 
 You should have run `py . setup` already.
 
-You can write a *benchfile* to specify tests to be run. You then run these to create *tracefiles*.
+You can write a _benchfile_ to specify tests to be run. You then run these to create _tracefiles_.
 You then analyze the trace files to produce a result.
 
 The benchfiles can exist anywhere. This example will use the local directory `bench` which is in `.gitignore` so you can use it for scratch.
@@ -158,7 +158,7 @@ This is explained in the following sections.
 
 ### Running the Entire Suite
 
-To run all the tests at once, you ask the infra to perform a *suite-run*. This
+To run all the tests at once, you ask the infra to perform a _suite-run_. This
 functionality also allows you to run as many scenarios/tests as you'd like in a
 bundle, which you specify in the suite yaml file (more information on this later).
 
@@ -180,16 +180,16 @@ bench_files:
 command_groups: {}
 ```
 
-GC Benchmarking Infra will read one by one each of the specified files under *bench_files*,
+GC Benchmarking Infra will read one by one each of the specified files under _bench_files_,
 and run their specified executables accordingly. If any test fails, Infra will
 proceed to run the next one and will display a summary of the encountered problems
 at the end of the run.
 
-The *command_groups* tag is used to store sets of other commands you might want to run in bulk,
+The _command_groups_ tag is used to store sets of other commands you might want to run in bulk,
 rather than individually. For simplicity, it is left empty in this example.
 
-When *GCPerfSim* is modified, it is important to run the full suite of default
-scenarios with both, the original and the modified versions of *GCPerfSim*. You
+When _GCPerfSim_ is modified, it is important to run the full suite of default
+scenarios with both, the original and the modified versions of _GCPerfSim_. You
 only need to make sure to keep a copy before rebuilding it, and then specify
 both dll's under the `test_executables` group in the `yaml` file. This is to
 ensure no regressions have occurred and the tool continues to work properly.
@@ -198,7 +198,7 @@ For full information regarding suites, check the full documentation [here](docs/
 
 ### Running a Single Scenario
 
-Let's run *low_memory_container* for this example.
+Let's run _low_memory_container_ for this example.
 
 ```sh
 py . run bench/suite/low_memory_container.yaml
@@ -227,7 +227,7 @@ To fix either of these, specify `dotnet_path` and `dotnet_trace_path` in `option
 Note that if you recently built coreclr, that probably left a `dotnet` process open that `run` will ask you to kill. Just do so and run again with `--overwrite`.
 
 This simple scenario should take under 2 minutes. Other ones require more time.
-We aim for an individual test to take about 20 seconds and this does 2 iterations for each of the 2 *coreclrs*.
+We aim for an individual test to take about 20 seconds and this does 2 iterations for each of the 2 _coreclrs_.
 
 Running this produced a directory called `bench/suite/low_memory_container.yaml.out`.
 This contains a trace file (and some other small files) for each of the tests. (If you had specified `collect: none` in `options:` in the benchfile, there would be no trace file and the other files would contain all information.)
@@ -386,7 +386,7 @@ In many cases, all you need to use the infra is to manually modify a benchfile, 
 
 Analysis commands are based on metrics.
 
-A metric is the name of a measurement we might take. The 'metric' is the *name* of the measurement, not the metric itself. Length is a metric, 3 meters is a 'metric value'.
+A metric is the name of a measurement we might take. The 'metric' is the _name_ of the measurement, not the metric itself. Length is a metric, 3 meters is a 'metric value'.
 
 A run-metric is the name a measurement of some property of an entire run of a test. For example, `FirstToLastGCSeconds` is the metric that measures the time a test took. Another example is `PauseDurationMSec_Mean` which is the mean pause duration of a GC. Since getting the average requires looking at every GC, it is considered a metric of the whole run, not a single-gc-metric.
 
