@@ -367,7 +367,7 @@ It's possible to benchmark a private build of .NET Runtime. You just need to pas
 So if you made a change in CLR and want to measure the difference, you can run the benchmarks with:
 
 ```cmd
-dotnet run -c Release -f net7.0 -- --clrVersion $theVersion
+dotnet run -c Release -f net48 -- --clrVersion $theVersion
 ```
 
 More info can be found [here](https://github.com/dotnet/BenchmarkDotNet/issues/706).
