@@ -342,11 +342,8 @@ If you are not sure which assemblies are loaded and used you can use the followi
 [GlobalSetup]
 public void PrintInfo()
 {
-    var librariesVersionInfo = FileVersionInfo.GetVersionInfo(typeof(Regex).GetTypeInfo().Assembly.Location);
-    var coreClrAssemblyInfo = FileVersionInfo.GetVersionInfo(typeof(object).GetTypeInfo().Assembly.Location);
-
-    Console.WriteLine($"// Libraries version: {librariesVersionInfo.FileVersion}, location {typeof(Regex).GetTypeInfo().Assembly.Location}, product version {librariesVersionInfo.ProductVersion}");
-    Console.WriteLine($"// CoreClr version {coreClrAssemblyInfo.FileVersion}, location {typeof(object).GetTypeInfo().Assembly.Location}, product version {coreClrAssemblyInfo.ProductVersion}");
+    var systemPrivateCoreLib = FileVersionInfo.GetVersionInfo(typeof(object).Assembly.Location);
+    Console.WriteLine($"// System.Private.CoreLib version {systemPrivateCoreLib.FileVersion}, location {typeof(object).Assembly.Location}, product version {systemPrivateCoreLib.ProductVersion}");
 }
 ```
 
