@@ -26,7 +26,7 @@ and measures the sizes of the `pub\` directory and its children with [SizeOnDisk
 ### Prerequisites
 
 - python3 or newer
-- dotnet runtime 5.0 or newer
+- dotnet runtime 6.0 or newer
 
 ### Step 1 Initialize Environment
 
@@ -84,7 +84,7 @@ Same instruction of [Step 4 in Scenario Tests Guide](scenarios-workflow.md#step-
 For the purpose of quick reference, the commands can be summarized into the following matrix:
 | Scenario                            | Asset Directory | Precommand                                                  | Testcommand                                                       | Postcommand | Supported Framework | Supported Platform |
 |-------------------------------------|-----------------|-------------------------------------------------------------|-------------------------------------------------------------------|-------------|---------------------|--------------------|
-| SOD - New Blazor Template - Publish | blazor          | pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" | test.py sod --scenario-name "SOD - New Blazor Template - Publish" | post.py     | net6.0              | Windows;Linux      |
+| SOD - New Blazor Template - Publish | blazor          | pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" | test.py sod --scenario-name "SOD - New Blazor Template - Publish" | post.py     | net7.0              | Windows;Linux      |
 
 ## Relevant Links
 
