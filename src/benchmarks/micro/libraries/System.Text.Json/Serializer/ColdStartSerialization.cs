@@ -17,7 +17,7 @@ namespace System.Text.Json.Serialization.Tests
 
         private T _value;
         private readonly JsonSerializerOptions _defaultOptions = new JsonSerializerOptions();
-        private readonly JsonStringEnumConverter _converter = new();
+        private readonly JsonStringEnumConverter _converter = new JsonStringEnumConverter();
 
         [GlobalSetup]
         public void Setup()
@@ -26,20 +26,20 @@ namespace System.Text.Json.Serialization.Tests
             RoundtripSerialization(_defaultOptions);
         }
 
-        private void RoundtripSerialization(JsonSerializerOptions options)
+        private T RoundtripSerialization(JsonSerializerOptions options)
         {
             string json = JsonSerializer.Serialize(_value, options);
-            JsonSerializer.Deserialize<T>(json, options);
+            return JsonSerializer.Deserialize<T>(json, options);
         }
 
         [Benchmark]
-        public void CachedDefaultOptions() => RoundtripSerialization(_defaultOptions);
+        public T CachedDefaultOptions() => RoundtripSerialization(_defaultOptions);
 
         [Benchmark]
-        public void NewDefaultOptions() => RoundtripSerialization(new());
+        public T NewDefaultOptions() => RoundtripSerialization(new JsonSerializerOptions());
 
         [Benchmark]
-        public void NewCustomizedOptions() => 
+        public T NewCustomizedOptions() => 
             RoundtripSerialization(
                 new JsonSerializerOptions {
                     AllowTrailingCommas = true,
@@ -49,7 +49,7 @@ namespace System.Text.Json.Serialization.Tests
                 });
 
         [Benchmark]
-        public void NewCustomConverter() =>
+        public T NewCustomConverter() =>
             RoundtripSerialization(
                 new JsonSerializerOptions
                 {
@@ -58,7 +58,7 @@ namespace System.Text.Json.Serialization.Tests
                 });
 
         [Benchmark]
-        public void NewCachedCustomConverter() =>
+        public T NewCachedCustomConverter() =>
             RoundtripSerialization(
                 new JsonSerializerOptions
                 {
