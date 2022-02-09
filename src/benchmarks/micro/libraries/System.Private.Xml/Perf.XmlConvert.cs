@@ -10,15 +10,8 @@ namespace System.Xml.Tests
     [BenchmarkCategory(Categories.Libraries)]
     public class Perf_XmlConvert
     {
-	    private DateTime _testDateTime;
-	    private TimeSpan _testTimeSpan;
-
-        [GlobalSetup]
-        public void Setup()
-        {
-	        _testDateTime = DateTime.UtcNow;
-	        _testTimeSpan = new TimeSpan(1, 2, 3, 4, 56);
-        }
+        private DateTime _testDateTime = new DateTime(1996, 6, 3, 22, 15, 0);
+        private TimeSpan _testTimeSpan = new TimeSpan(1, 2, 3, 4, 56);
 
         [Benchmark]
         public string DateTime_ToString() => XmlConvert.ToString(_testDateTime, XmlDateTimeSerializationMode.Utc);
