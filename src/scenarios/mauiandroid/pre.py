@@ -19,7 +19,7 @@ parser.add_argument(
         dest='apk',
         required=True,
         type=str,
-        help='Name of the APK to setup (with .apk)')
+        help='Name of the APK to setup')
 args = parser.parse_args()
 
 if not os.path.exists(PUBDIR):

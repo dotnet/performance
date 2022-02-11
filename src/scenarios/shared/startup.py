@@ -20,6 +20,7 @@ class StartupWrapper(object):
     '''
     def __init__(self):
         startupdir = 'startup'
+        self.reportjson = os.path.join(TRACEDIR, 'perf-lab-report.json')
         if helixpayload() and os.path.exists(os.path.join(helixpayload(), startupdir)):
             self._setstartuppath(os.path.join(helixpayload(), startupdir))
         elif helixworkitempayload() and os.path.exists(os.path.join(helixworkitempayload(), startupdir)):
@@ -55,6 +56,39 @@ class StartupWrapper(object):
     def _setstartuppath(self, path: str):
         self.startuppath = os.path.join(path, "Startup%s" % extension()) 
 
+    def parsetraces(self, traits: TestTraits):
+        directory = TRACEDIR
+        if traits.tracefolder:
+            directory = TRACEDIR + '/' + traits.tracefolder
+            getLogger().info("Parse Directory: " + directory)
+
+        startup_args = [
+            self.startuppath,
+            '--app-exe', traits.apptorun,
+            '--parse-only',
+            '--metric-type', traits.startupmetric, 
+            '--trace-name', traits.tracename,
+            '--report-json-path', self.reportjson,
+            '--trace-directory', directory
+        ]
+        if traits.scenarioname:
+            startup_args.extend(['--scenario-name', traits.scenarioname])
+
+        upload_container = UPLOAD_CONTAINER
+
+        try:
+            RunCommand(startup_args, verbose=True).run()
+        except CalledProcessError:
+            getLogger().info("Run failure registered")
+            # rethrow the original exception 
+            raise
+
+        if runninginlab():
+            copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
+            if uploadtokenpresent():
+                import upload
+                upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+
     def runtests(self, traits: TestTraits):
         '''
         Runs tests through startup
@@ -63,7 +97,7 @@ class StartupWrapper(object):
         for key in ['apptorun', 'startupmetric', 'guiapp']:
             if not getattr(traits, key):
                 raise Exception('startup tests require %s' % key)
-        reportjson = os.path.join(TRACEDIR, 'perf-lab-report.json')
+        
         defaultiterations = '1' if runninginlab() and not uploadtokenpresent() else '5' # only run 1 iteration for PR-triggered build
         # required arguments & optional arguments with default values
         startup_args = [
@@ -77,7 +111,7 @@ class StartupWrapper(object):
             '--timeout', '%s' % (traits.timeout or '50'),
             '--warmup', '%s' % (traits.warmup or 'true'),
             '--working-dir', '%s' % (traits.workingdir or sys.path[0]),
-            '--report-json-path', reportjson,
+            '--report-json-path', self.reportjson,
             '--trace-directory', TRACEDIR
         ]
         # optional arguments without default values
@@ -141,4 +175,7 @@ class StartupWrapper(object):
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
             if uploadtokenpresent():
                 import upload
-                upload.upload(reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+                upload_code = upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+                getLogger().info("Startup Upload Code: " + str(upload_code))
+                if upload_code != 0:
+                    sys.exit(upload_code)
