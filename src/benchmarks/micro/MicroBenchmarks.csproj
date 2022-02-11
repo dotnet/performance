@@ -16,29 +16,50 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableXlfLocalization>false</EnableXlfLocalization>
   </PropertyGroup>
-
+  <!-- out-of-band packages that are not included in NetCoreApp have TFM-specific versions -->
+  <Choose>
+    <When Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+        <PropertyGroup>
+            <ExtensionsVersion>3.1.22</ExtensionsVersion>
+            <SystemVersion>4.7.1</SystemVersion>
+        </PropertyGroup>
+    </When>
+    <When Condition="'$(TargetFramework)' == 'net5.0'">
+        <PropertyGroup>
+            <ExtensionsVersion>5.0.0</ExtensionsVersion>
+            <SystemVersion>5.0.0</SystemVersion>
+        </PropertyGroup>
+    </When>
+    <Otherwise>
+        <!-- when comparing against Full .NET Framework we are usually interested in CLR differences, so net461 belongs to this block -->
+        <PropertyGroup>
+            <ExtensionsVersion>6.0.0</ExtensionsVersion>
+            <SystemVersion>6.0.0</SystemVersion>
+        </PropertyGroup>
+    </Otherwise>
+  </Choose>
   <ItemGroup>
     <PackageReference Include="Jil" Version="3.0.0-alpha2" />
     <PackageReference Include="MessagePack" Version="1.9.11" />
     <PackageReference Include="MessagePackAnalyzer" Version="1.7.3.7" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0-rc.1.20417.14" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Xml" Version="5.0.0-rc.1.20417.14" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0-rc.1.20417.14" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.0-rc.1.20417.14" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0-rc.1.20417.14" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0-rc.1.20417.14" />
-    <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="5.0.0-rc.1.20417.14" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="5.0.0-rc.1.20417.14" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="$(ExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Xml" Version="$(ExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="$(ExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(ExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="$(ExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="$(ExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="$(ExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(ExtensionsVersion)" />
     <PackageReference Include="protobuf-net" Version="3.0.73" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="5.0.0-rc.1.20417.14" />
-    <PackageReference Include="System.Drawing.Common" Version="5.0.0-rc.1.20417.14" />
-    <PackageReference Include="System.Formats.Cbor" Version="5.0.0-rc.1.20417.14" Condition="'$(TargetFramework)' == 'net5.0' or '$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net7.0'" />
-    <PackageReference Include="System.IO.Pipelines" Version="5.0.0-rc.1.20417.14" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="$(SystemVersion)" />
+    <PackageReference Include="System.Drawing.Common" Version="$(SystemVersion)" />
+    <PackageReference Include="System.Formats.Cbor" Version="$(SystemVersion)" Condition="'$(TargetFramework)' == 'net5.0' or '$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net7.0'" />
+    <PackageReference Include="System.IO.Pipelines" Version="$(SystemVersion)" />
     <PackageReference Include="System.Memory" Version="4.5.4" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
     <PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Serialization.Json" Version="4.3.0" />
-    <PackageReference Include="System.Threading.Channels" Version="5.0.0-rc.1.20417.14" />
+    <PackageReference Include="System.Threading.Channels" Version="$(SystemVersion)" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
     <PackageReference Include="Utf8Json" Version="1.3.7" />
@@ -112,6 +133,7 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '5.0')">
+    <Compile Remove="libraries\System.Diagnostics\Perf_Activity.cs" />
     <Compile Remove="libraries\System.Text.Json\Serializer\ReadPreservedReferences.cs" />
     <Compile Remove="libraries\System.Text.Json\Serializer\WritePreservedReferences.cs" />
     <Compile Remove="libraries\System.Net.Security\SslStreamTests.Context.cs" />
@@ -123,6 +145,11 @@
     <Compile Remove="libraries\Common\AlignedMemory.cs" />
     <Compile Remove="libraries\System.IO.FileSystem\Perf.RandomAccess.cs" />
     <Compile Remove="libraries\System.IO.FileSystem\Perf.RandomAccess.NoBuffering.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+    <!-- System.Drawing.Common only supported on Windows -->
+    <Compile Remove="libraries\System.Drawing\*.cs" />
   </ItemGroup>
 
   <ItemGroup>
