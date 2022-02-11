@@ -8,7 +8,7 @@ To run the benchmarks, you need to download dotnet cli or use the python script,
 
 We use BenchmarkDotNet as the benchmarking tool, you can read more about it in [our short summary](../../../docs/benchmarkdotnet.md) (it's recommended). The key thing that you need to remember is that **BenchmarkDotNet runs every benchmark in a dedicated process and stops the benchmarking when a specified level of precision is met**.
 
-To learn more about designing benchmarks, please read [Microbenchmark Design Guidelines](../../../docs/microbenchmark-design-guidelines.md).
+To learn more about designing benchmarks, please read [Microbenchmark Design Guidelines](../../../docs/microbenchmark-design-guidelines.md). It's essential to be familar with these guidelines before modifying or adding any micro benchmarks.
 
 ## Quick Start
 
@@ -71,25 +71,3 @@ If you **prefer to use dotnet cli** instead of CoreRun, you need to pass the pat
 BenchmarkDotNet allows you to run the benchmarks for private builds of [Full .NET Framework](../../../docs/benchmarkdotnet.md#Private-CLR-Build) and [CoreRT](../../../docs/benchmarkdotnet.md#Private-CoreRT-Build)
 
 We once again encourage you to read the [full docs about BenchmarkDotNet](../../../docs/benchmarkdotnet.md#table-of-contents).
-
----
-
-### Categories
-
-Every micro benchmark should belong to either Runtime, Libraries or ThirdParty category. It allows for filtering by category.
-
-Adding given type/method to particular category requires using a `[BenchmarkCategory]` attribute:
-
-```cs
-[BenchmarkCategory(Categories.Libraries)]
-public class SomeType
-```
-
-### Enabling given benchmark(s) for selected Operating System(s)
-
-This is possible with the `AllowedOperatingSystemsAttribute`. You need to provide a mandatory comment and OS(es) that benchmark(s) can run on.
-
-```cs
-[AllowedOperatingSystems("Hangs on non-Windows, dotnet/corefx#18290", OS.Windows)]
-public class Perf_PipeTest
-```
