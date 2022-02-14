@@ -34,6 +34,7 @@
       - [Params](#params)
       - [ArgumentsSource](#argumentssource)
       - [Generic benchmarks](#generic-benchmarks)
+      - [Allowed operating systems](#allowed-operating-systems)
   - [Best Practices](#best-practices)
     - [Single Responsibility Principle](#single-responsibility-principle)
     - [No Side-Effects](#no-side-effects)
@@ -41,6 +42,7 @@
     - [Loops](#loops)
     - [Method Inlining](#method-inlining)
     - [Be explicit](#be-explicit)
+    - [Add Categories](#add-categories)
 
 ## Mindset
 
@@ -489,6 +491,15 @@ public class EmptyClass { }
 public struct EmptyStruct { }
 ```
 
+#### Allowed operating systems
+
+This is possible with the `AllowedOperatingSystemsAttribute`. You need to provide a mandatory comment and OS(es) that benchmark(s) can run on.
+
+```cs
+[AllowedOperatingSystems("Hangs on non-Windows, dotnet/runtime#18290", OS.Windows)]
+public class Perf_PipeTest
+```
+
 ## Best Practices
 
 ### Single Responsibility Principle
@@ -592,3 +603,21 @@ var result = Math.Max(x, y); // we use double overload because float has implici
 ```
 
 It's our responsibility to ensure that the benchmarks do exactly what we want. This is why using explicit types over `var` is preferred.
+
+### Add categories
+
+Every micro benchmark should belong to at least either Runtime, Libraries or ThirdParty category. It allows for filtering by category.
+
+Adding given type/method to particular category requires using a `[BenchmarkCategory]` attribute:
+
+```cs
+[BenchmarkCategory(Categories.Libraries)]
+public class SomeType
+```
+
+Optionally, you can add multiple categories - see the [list here](../src/benchmarks/micro/Categories.cs):
+
+```c#
+[BenchmarkCategory(Categories.Libraries, Categories.Regex)]
+public class Perf_Regex_Common
+```
