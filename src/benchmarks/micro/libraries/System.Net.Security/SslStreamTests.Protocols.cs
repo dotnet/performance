@@ -40,10 +40,6 @@ namespace System.Net.Security.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(TlsProtocols))]
-        public Task HandshakeRSA1024CertAsync(SslProtocols protocol) => SslStreamTests.HandshakeAsync(SslStreamTests._rsa1024Cert, protocol);
-
-        [Benchmark]
-        [ArgumentsSource(nameof(TlsProtocols))]
         public Task HandshakeRSA2048CertAsync(SslProtocols protocol) => SslStreamTests.HandshakeAsync(SslStreamTests._rsa2048Cert, protocol);
 
         [Benchmark]
@@ -54,7 +50,7 @@ namespace System.Net.Security.Tests
         {
             try
             {
-                SslStreamTests.HandshakeAsync(SslStreamTests._rsa1024Cert, SslProtocols.Tls13).GetAwaiter().GetResult();
+                SslStreamTests.HandshakeAsync(SslStreamTests._rsa2048Cert, SslProtocols.Tls13).GetAwaiter().GetResult();
                 return true;
             }
             catch
