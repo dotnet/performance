@@ -23,7 +23,6 @@ namespace System.Net.Security.Tests
         private static readonly X509Certificate2 _cert = Test.Common.Configuration.Certificates.GetServerCertificate();
         private static readonly X509Certificate2 _ec256Cert = Test.Common.Configuration.Certificates.GetEC256Certificate();
         private static readonly X509Certificate2 _ec512Cert = Test.Common.Configuration.Certificates.GetEC512Certificate();
-        private static readonly X509Certificate2 _rsa1024Cert = Test.Common.Configuration.Certificates.GetRSA1024Certificate();
         private static readonly X509Certificate2 _rsa2048Cert = Test.Common.Configuration.Certificates.GetRSA2048Certificate();
         private static readonly X509Certificate2 _rsa4096Cert = Test.Common.Configuration.Certificates.GetRSA4096Certificate();
 
