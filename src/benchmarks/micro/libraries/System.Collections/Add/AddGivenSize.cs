@@ -4,6 +4,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
@@ -130,6 +131,72 @@ namespace System.Collections
             foreach (T value in _uniqueValues)
             {
                 collection.Add(value);
+            }
+            return collection;
+        }
+
+        [Benchmark]
+        public ImmutableArray<T> ImmutableArray()
+        {
+            var collection = ImmutableArray<T>.Empty;
+            foreach (T value in _uniqueValues)
+            {
+                collection = collection.Add(value);
+            }
+            return collection;
+        }
+
+        [Benchmark]
+        public ImmutableDictionary<T, T> ImmutableDictionary()
+        {
+            var collection = ImmutableDictionary<T, T>.Empty;
+            foreach (T value in _uniqueValues)
+            {
+                collection = collection.Add(value, value);
+            }
+            return collection;
+        }
+
+        [Benchmark]
+        public ImmutableHashSet<T> ImmutableHashSet()
+        {
+            var collection = ImmutableHashSet<T>.Empty;
+            foreach (T value in _uniqueValues)
+            {
+                collection = collection.Add(value);
+            }
+            return collection;
+        }
+
+        [Benchmark]
+        public ImmutableList<T> ImmutableList()
+        {
+            var collection = ImmutableList<T>.Empty;
+            foreach (T value in _uniqueValues)
+            {
+                collection = collection.Add(value);
+            }
+            return collection;
+        }
+
+        [Benchmark]
+        public ImmutableSortedDictionary<T, T> ImmutableSortedDictionary()
+        {
+            var collection = ImmutableSortedDictionary<T, T>.Empty;
+            foreach (T value in _uniqueValues)
+            {
+                collection = collection.Add(value, value);
+            }
+            return collection;
+        }
+
+        [Benchmark]
+        public ImmutableSortedSet<T> ImmutableSortedSet()
+        {
+            var collection = ImmutableSortedSet<T>.Empty;
+            foreach (T value in _uniqueValues)
+            {
+                collection = collection.Add(value);
             }
             return collection;
         }
