@@ -179,6 +179,14 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Configurations used in the build in key=value format'
     )
 
+    parser.add_argument(
+        '--maui-version',
+        dest='maui_version',
+        default='',
+        required=False,
+        type=str,
+        help='Version of Maui to pass'
+    )
     return parser
 
 def __process_arguments(args: list):
@@ -291,6 +299,7 @@ def __main(args: list) -> int:
             out_file.write(variable_format % ('DOTNET_MULTILEVEL_LOOKUP', '0'))
             out_file.write(variable_format % ('UseSharedCompilation', 'false'))
             out_file.write(variable_format % ('DOTNET_ROOT', dotnet_path))
+            out_file.write(variable_format % ('MAUI_VERSION', args.maui_version))
             out_file.write(path_variable % dotnet_path)
             out_file.write(showenv)
             
