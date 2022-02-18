@@ -62,6 +62,7 @@ class Runner:
         parseonlyparser.add_argument('--package-path', help='Location of test application', dest='packagepath')
         parseonlyparser.add_argument('--package-name', help='Classname of application', dest='packagename')
         parseonlyparser.add_argument('--startup-iterations', help='Startups to run (1+)', type=int, default=5, dest='startupiterations')
+        parseonlyparser.add_argument('--disable-animations', help='Disable Android device animations', action='store_true', dest='animationsdisabled')
         self.add_common_arguments(parseonlyparser)
 
         # inner loop command
@@ -144,6 +145,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.packagename = args.packagename
             self.devicetype = args.devicetype
             self.startupiterations = args.startupiterations
+            self.animationsdisabled = args.animationsdisabled
 
         if args.scenarioname:
             self.scenarioname = args.scenarioname
@@ -339,6 +341,69 @@ ex: C:\repos\performance;C:\repos\runtime
             ]
             RunCommand(cmdline, verbose=True).run()
 
+            # Get animation values
+            getLogger().info("Getting animation values")
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'get', 'global', 'window_animation_scale'
+            ]
+            window_animation_scale_cmd = RunCommand(cmdline, verbose=True)
+            window_animation_scale_cmd.run()
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'get', 'global', 'transition_animation_scale'
+            ]
+            transition_animation_scale_cmd = RunCommand(cmdline, verbose=True)
+            transition_animation_scale_cmd.run()
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'get', 'global', 'animator_duration_scale'
+            ]
+            animator_duration_scale_cmd = RunCommand(cmdline, verbose=True)
+            animator_duration_scale_cmd.run()
+            getLogger().info(f"Retrieved values window {window_animation_scale_cmd.stdout.strip()}, transition {transition_animation_scale_cmd.stdout.strip()}, animator {animator_duration_scale_cmd.stdout.strip()}")
+
+            # Make sure animations are set to 1 or disabled
+            getLogger().info("Setting animation values")
+            if(self.animationsdisabled):
+                animationValue = 0
+            else:
+                animationValue = 1
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'put', 'global', 'window_animation_scale', str(animationValue)
+            ]
+            RunCommand(cmdline, verbose=True).run()
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'put', 'global', 'transition_animation_scale', str(animationValue)
+            ]
+            RunCommand(cmdline, verbose=True).run()
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'put', 'global', 'animator_duration_scale', str(animationValue)
+            ]
+            RunCommand(cmdline, verbose=True).run()
+
+            # Check for success
+            getLogger().info("Getting animation values to verify it worked")
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'get', 'global', 'window_animation_scale'
+            ]
+            RunCommand(cmdline, verbose=True).run()
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'get', 'global', 'transition_animation_scale'
+            ]
+            RunCommand(cmdline, verbose=True).run()
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'get', 'global', 'animator_duration_scale'
+            ]
+            RunCommand(cmdline, verbose=True).run()
+ 
+
             installCmd = xharnesscommand() + [
                 self.devicetype,
                 'install',
@@ -458,6 +523,24 @@ ex: C:\repos\performance;C:\repos\runtime
                 self.packagename
             ]
             RunCommand(uninstallAppCmd, verbose=True).run()
+
+            # Reset animation values 
+            getLogger().info("Resetting animation values to pretest values")
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'put', 'global', 'window_animation_scale', window_animation_scale_cmd.stdout.strip()
+            ]
+            RunCommand(cmdline, verbose=True).run()
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'put', 'global', 'transition_animation_scale', transition_animation_scale_cmd.stdout.strip()
+            ]
+            RunCommand(cmdline, verbose=True).run()
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'put', 'global', 'animator_duration_scale', animator_duration_scale_cmd.stdout.strip()
+            ]
+            RunCommand(cmdline, verbose=True).run()
 
             if screenWasOff:
                 RunCommand(keyInputCmd + ['26'], verbose=True).run() # Turn the screen back off
