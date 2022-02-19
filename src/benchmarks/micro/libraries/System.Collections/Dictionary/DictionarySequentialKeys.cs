@@ -87,26 +87,143 @@ namespace System.Collections.Tests
             => ContainsKey_Int_Int(_dict_17, Seventeen);
 
         [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int ContainsValue_17_Int_Int_Sorted()
+            => ContainsKey_Int_Int(_sortedDict_17, Seventeen);
+
+        [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int ContainsValue_17_Int_Int_Immutable()
+            => ContainsKey_Int_Int(_immutableDict_17, Seventeen);
+
+        [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int ContainsValue_17_Int_Int_ImmutableSorted()
+            => ContainsKey_Int_Int(_immutableSortedDict_17, Seventeen);
+
+        [Benchmark(OperationsPerInvoke = Seventeen)]
         public int ContainsKey_17_Int_32ByteValue()
             => ContainsKey_Int_LargeStruct(_dict32ByteValue_17, Seventeen);
 
         [Benchmark(OperationsPerInvoke = Seventeen)]
-        public int ContainsKey_17_Int_32ByteRefsValue() 
+        public int ContainsKey_17_Int_32ByteValue_Sorted()
+            => ContainsKey_Int_LargeStruct(_sortedDict32ByteValue_17, Seventeen);
+
+        [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int ContainsKey_17_Int_32ByteValue_Immutable()
+            => ContainsKey_Int_LargeStruct(_immutableDict32ByteValue_17, Seventeen);
+
+        [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int ContainsKey_17_Int_32ByteValue_ImmutableSorted()
+            => ContainsKey_Int_LargeStruct(_immutableSortedDict32ByteValue_17, Seventeen);
+
+        [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int ContainsKey_17_Int_32ByteRefsValue()
             => ContainsKey_Int_LargeRefStruct(_dict32ByteRefsValue_17, Seventeen);
 
+        [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int ContainsKey_17_Int_32ByteRefsValue_Sorted()
+            => ContainsKey_Int_LargeRefStruct(_sortedDict32ByteRefsValue_17, Seventeen);
+
+        [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int ContainsKey_17_Int_32ByteRefsValue_Immutable()
+            => ContainsKey_Int_LargeRefStruct(_immutableDict32ByteRefsValue_17, Seventeen);
+
+        [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int ContainsKey_17_Int_32ByteRefsValue_ImmutableSorted()
+            => ContainsKey_Int_LargeRefStruct(_immutableSortedDict32ByteRefsValue_17, Seventeen);
+
         [Benchmark(OperationsPerInvoke = ThreeThousand)]
-        public int ContainsValue_3k_Int_Int() 
+        public int ContainsValue_3k_Int_Int()
             => ContainsKey_Int_Int(_dict_3k, ThreeThousand);
+
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int ContainsValue_3k_Int_Int_Sorted()
+            => ContainsKey_Int_Int(_sortedDict_3k, ThreeThousand);
+
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int ContainsValue_3k_Int_Int_Immutable()
+            => ContainsKey_Int_Int(_immutableDict_3k, ThreeThousand);
+
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int ContainsValue_3k_Int_Int_ImmutableSorted()
+            => ContainsKey_Int_Int(_immutableSortedDict_3k, ThreeThousand);
 
         [Benchmark(OperationsPerInvoke = ThreeThousand)]
         public int ContainsKey_3k_Int_32ByteValue()
             => ContainsKey_Int_LargeStruct(_dict32ByteValue_3k, ThreeThousand);
 
         [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int ContainsKey_3k_Int_32ByteValue_Sorted()
+            => ContainsKey_Int_LargeStruct(_sortedDict32ByteValue_3k, ThreeThousand);
+
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int ContainsKey_3k_Int_32ByteValue_Immutable()
+            => ContainsKey_Int_LargeStruct(_immutableDict32ByteValue_3k, ThreeThousand);
+
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int ContainsKey_3k_Int_32ByteValue_ImmutableSorted()
+            => ContainsKey_Int_LargeStruct(_immutableSortedDict32ByteValue_3k, ThreeThousand);
+
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
         public int ContainsKey_3k_Int_32ByteRefsValue()
             => ContainsKey_Int_LargeRefStruct(_dict32ByteRefsValue_3k, ThreeThousand);
 
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int ContainsKey_3k_Int_32ByteRefsValue_Sorted()
+            => ContainsKey_Int_LargeRefStruct(_sortedDict32ByteRefsValue_3k, ThreeThousand);
+
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int ContainsKey_3k_Int_32ByteRefsValue_Immutable()
+            => ContainsKey_Int_LargeRefStruct(_immutableDict32ByteRefsValue_3k, ThreeThousand);
+
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int ContainsKey_3k_Int_32ByteRefsValue_ImmutableSorted()
+            => ContainsKey_Int_LargeRefStruct(_immutableSortedDict32ByteRefsValue_3k, ThreeThousand);
+
         private static int ContainsKey_Int_Int(Dictionary<int, int> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.ContainsKey(i))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
+        private static int ContainsKey_Int_Int(SortedDictionary<int, int> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.ContainsKey(i))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
+        private static int ContainsKey_Int_Int(ImmutableDictionary<int, int> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.ContainsKey(i))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
+        private static int ContainsKey_Int_Int(ImmutableSortedDictionary<int, int> d, int count)
         {
             int total = 0;
 
@@ -136,7 +253,97 @@ namespace System.Collections.Tests
             return total;
         }
 
+        private static int ContainsKey_Int_LargeStruct(SortedDictionary<int, (long, long, long, long)> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.ContainsKey(i))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
+        private static int ContainsKey_Int_LargeStruct(ImmutableDictionary<int, (long, long, long, long)> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.ContainsKey(i))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
+        private static int ContainsKey_Int_LargeStruct(ImmutableSortedDictionary<int, (long, long, long, long)> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.ContainsKey(i))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
         private static int ContainsKey_Int_LargeRefStruct(Dictionary<int, (object, object, object, object)> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.ContainsKey(i))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
+        private static int ContainsKey_Int_LargeRefStruct(SortedDictionary<int, (object, object, object, object)> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.ContainsKey(i))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
+        private static int ContainsKey_Int_LargeRefStruct(ImmutableDictionary<int, (object, object, object, object)> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.ContainsKey(i))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
+        private static int ContainsKey_Int_LargeRefStruct(ImmutableSortedDictionary<int, (object, object, object, object)> d, int count)
         {
             int total = 0;
 
@@ -156,26 +363,143 @@ namespace System.Collections.Tests
             => TryGetValue_Int_Int(_dict_17, Seventeen);
 
         [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int TryGetValue_17_Int_Int_Sorted()
+            => TryGetValue_Int_Int(_sortedDict_17, Seventeen);
+
+        [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int TryGetValue_17_Int_Int_Immutable()
+            => TryGetValue_Int_Int(_immutableDict_17, Seventeen);
+
+        [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int TryGetValue_17_Int_Int_ImmutableSorted()
+            => TryGetValue_Int_Int(_immutableSortedDict_17, Seventeen);
+
+        [Benchmark(OperationsPerInvoke = Seventeen)]
         public int TryGetValue_17_Int_32ByteValue()
             => TryGetValue_Int_LargeStruct(_dict32ByteValue_17, Seventeen);
 
         [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int TryGetValue_17_Int_32ByteValue_Sorted()
+            => TryGetValue_Int_LargeStruct(_sortedDict32ByteValue_17, Seventeen);
+
+        [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int TryGetValue_17_Int_32ByteValue_Immutable()
+            => TryGetValue_Int_LargeStruct(_immutableDict32ByteValue_17, Seventeen);
+
+        [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int TryGetValue_17_Int_32ByteValue_ImmutableSorted()
+            => TryGetValue_Int_LargeStruct(_immutableSortedDict32ByteValue_17, Seventeen);
+
+        [Benchmark(OperationsPerInvoke = Seventeen)]
         public int TryGetValue_17_Int_32ByteRefsValue()
             => TryGetValue_Int_LargeRefStruct(_dict32ByteRefsValue_17, Seventeen);
+
+        [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int TryGetValue_17_Int_32ByteRefsValue_Sorted()
+            => TryGetValue_Int_LargeRefStruct(_sortedDict32ByteRefsValue_17, Seventeen);
+
+        [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int TryGetValue_17_Int_32ByteRefsValue_Immutable()
+            => TryGetValue_Int_LargeRefStruct(_immutableDict32ByteRefsValue_17, Seventeen);
+
+        [Benchmark(OperationsPerInvoke = Seventeen)]
+        public int TryGetValue_17_Int_32ByteRefsValue_ImmutableSorted()
+            => TryGetValue_Int_LargeRefStruct(_immutableSortedDict32ByteRefsValue_17, Seventeen);
 
         [Benchmark(OperationsPerInvoke = ThreeThousand)]
         public int TryGetValue_3k_Int_Int()
             => TryGetValue_Int_Int(_dict_3k, ThreeThousand);
 
         [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int TryGetValue_3k_Int_Int_Sorted()
+            => TryGetValue_Int_Int(_sortedDict_3k, ThreeThousand);
+
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int TryGetValue_3k_Int_Int_Immutable()
+            => TryGetValue_Int_Int(_immutableDict_3k, ThreeThousand);
+
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int TryGetValue_3k_Int_Int_ImmutableSorted()
+            => TryGetValue_Int_Int(_immutableSortedDict_3k, ThreeThousand);
+
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
         public int TryGetValue_3k_Int_32ByteValue()
             => TryGetValue_Int_LargeStruct(_dict32ByteValue_3k, ThreeThousand);
+
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int TryGetValue_3k_Int_32ByteValue_Sorted()
+            => TryGetValue_Int_LargeStruct(_sortedDict32ByteValue_3k, ThreeThousand);
+
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int TryGetValue_3k_Int_32ByteValue_Immutable()
+            => TryGetValue_Int_LargeStruct(_immutableDict32ByteValue_3k, ThreeThousand);
+
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int TryGetValue_3k_Int_32ByteValue_ImmutableSorted()
+            => TryGetValue_Int_LargeStruct(_immutableSortedDict32ByteValue_3k, ThreeThousand);
 
         [Benchmark(OperationsPerInvoke = ThreeThousand)]
         public int TryGetValue_3k_Int_32ByteRefsValue()
             => TryGetValue_Int_LargeRefStruct(_dict32ByteRefsValue_3k, ThreeThousand);
 
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int TryGetValue_3k_Int_32ByteRefsValue_Sorted()
+            => TryGetValue_Int_LargeRefStruct(_sortedDict32ByteRefsValue_3k, ThreeThousand);
+
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int TryGetValue_3k_Int_32ByteRefsValue_Immutable()
+            => TryGetValue_Int_LargeRefStruct(_immutableDict32ByteRefsValue_3k, ThreeThousand);
+
+        [Benchmark(OperationsPerInvoke = ThreeThousand)]
+        public int TryGetValue_3k_Int_32ByteRefsValue_ImmutableSorted()
+            => TryGetValue_Int_LargeRefStruct(_immutableSortedDict32ByteRefsValue_3k, ThreeThousand);
+
         private static int TryGetValue_Int_Int(Dictionary<int, int> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.TryGetValue(i, out _))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
+        private static int TryGetValue_Int_Int(SortedDictionary<int, int> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.TryGetValue(i, out _))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
+        private static int TryGetValue_Int_Int(ImmutableDictionary<int, int> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.TryGetValue(i, out _))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
+        private static int TryGetValue_Int_Int(ImmutableSortedDictionary<int, int> d, int count)
         {
             int total = 0;
 
@@ -205,7 +529,97 @@ namespace System.Collections.Tests
             return total;
         }
 
+        private static int TryGetValue_Int_LargeStruct(SortedDictionary<int, (long, long, long, long)> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.TryGetValue(i, out _))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
+        private static int TryGetValue_Int_LargeStruct(ImmutableDictionary<int, (long, long, long, long)> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.TryGetValue(i, out _))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
+        private static int TryGetValue_Int_LargeStruct(ImmutableSortedDictionary<int, (long, long, long, long)> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.TryGetValue(i, out _))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
         private static int TryGetValue_Int_LargeRefStruct(Dictionary<int, (object, object, object, object)> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.TryGetValue(i, out _))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
+        private static int TryGetValue_Int_LargeRefStruct(SortedDictionary<int, (object, object, object, object)> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.TryGetValue(i, out _))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
+        private static int TryGetValue_Int_LargeRefStruct(ImmutableDictionary<int, (object, object, object, object)> d, int count)
+        {
+            int total = 0;
+
+            for (int i = 0; i < count; i++)
+            {
+                if (d.TryGetValue(i, out _))
+                {
+                    total++;
+                }
+            }
+
+            return total;
+        }
+
+        private static int TryGetValue_Int_LargeRefStruct(ImmutableSortedDictionary<int, (object, object, object, object)> d, int count)
         {
             int total = 0;
 
