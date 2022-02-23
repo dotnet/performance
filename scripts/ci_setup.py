@@ -185,7 +185,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default='',
         required=False,
         type=str,
-        help='Version of Maui to pass'
+        help='Version of Maui used to build app packages'
     )
     return parser
 
