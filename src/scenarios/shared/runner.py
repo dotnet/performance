@@ -9,7 +9,7 @@ import glob
 import re
 import time
 
-from logging import getLogger
+from logging import exception, getLogger
 from collections import namedtuple
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
@@ -391,18 +391,26 @@ ex: C:\repos\performance;C:\repos\runtime
                 adb.stdout.strip(),
                 'shell', 'settings', 'get', 'global', 'window_animation_scale'
             ]
-            RunCommand(cmdline, verbose=True).run()
+            windowSetValue = RunCommand(cmdline, verbose=True)
+            windowSetValue.run()
             cmdline = [
                 adb.stdout.strip(),
                 'shell', 'settings', 'get', 'global', 'transition_animation_scale'
             ]
-            RunCommand(cmdline, verbose=True).run()
+            transitionSetValue = RunCommand(cmdline, verbose=True)
+            transitionSetValue.run()
             cmdline = [
                 adb.stdout.strip(),
                 'shell', 'settings', 'get', 'global', 'animator_duration_scale'
             ]
-            RunCommand(cmdline, verbose=True).run()
- 
+            animatorSetValue = RunCommand(cmdline, verbose=True)
+            animatorSetValue.run()
+            if(int(windowSetValue.stdout.strip()) != animationValue or int(transitionSetValue.stdout.strip()) != animationValue or int(animatorSetValue.stdout.strip()) != animationValue):
+                # Setting the values didn't work, error out
+                getLogger().exception(f"Failed to set animation values to {animationValue}.")
+                exit(-1)
+            else:
+                getLogger().info(f"Animation values successfully set to {animationValue}.")
 
             installCmd = xharnesscommand() + [
                 self.devicetype,
@@ -453,6 +461,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 checkScreenOn.run()
                 if("mInteractive=false" in checkScreenOn.stdout):
                     getLogger().exception("Failed to make screen interactive.")
+                    exit(-1)
 
             # Actual testing some run stuff
             getLogger().info("Test run to check if permissions are needed")
@@ -503,6 +512,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 
                 if "com.google.android.permissioncontroller" in testRunStats[3]:
                     getLogger().exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
+                    exit(-1)
 
             allResults = []
             for i in range(self.startupiterations):
