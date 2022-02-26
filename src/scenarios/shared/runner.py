@@ -564,7 +564,7 @@ ex: C:\repos\performance;C:\repos\runtime
             traceFile.close()
 
             startup = StartupWrapper()
-            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname='Device Startup - Android %s' % (self.packagename))
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname=self.scenarioname)
             startup.parsetraces(self.traits)
 
         elif self.testtype == const.SOD:
