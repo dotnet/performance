@@ -45,6 +45,21 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default='*',
         help='Specifies the benchmark filter to pass to BenchmarkDotNet')
 
+    parser.add_argument(
+        '--architecture',
+        dest='architecture',
+        required=False,
+        choices=['x64', 'x86', 'arm64', 'arm'],
+        default='x64',
+        help='Specifies the processor architecture to pass to BenchmarkDotNet')
+
+    parser.add_argument(
+        '--bdn-arguments',
+        dest='bdn_arguments',
+        required=False,
+        help='Command line arguments to be passed to BenchmarkDotNet, wrapped in quotes',
+    )
+
     return parser
 
 def __process_arguments(args: list):
@@ -67,6 +82,12 @@ def __main(args: list) -> int:
 
     if 'build' in version:
         benchmarkArgs += ['--dotnet-versions', version['build']]
+
+    if args.architecture:
+        benchmarkArgs += ['--architecture', args.architecture]
+
+    if args.bdn_arguments:
+        benchmarkArgs += ['--bdn-arguments', args.bdn_arguments]
 
     getLogger().log(getLogger().getEffectiveLevel(), '\nExecuting: benchmarks_ci.py ' + str.join(' ', benchmarkArgs) + '\n')
     benchmarks_ci.__main(benchmarkArgs)
