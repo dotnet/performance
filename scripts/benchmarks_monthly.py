@@ -94,7 +94,7 @@ def __main(args: list) -> int:
 
     args = __process_arguments(args)
     rootPath = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
-    sdkPath = os.path.join(rootPath, 'tools', 'dotnet', args.architecture, 'sdk')
+    sdkPath = os.path.join(rootPath, 'tools', 'dotnet', args.architecture)
 
     logPrefix = ''
 
