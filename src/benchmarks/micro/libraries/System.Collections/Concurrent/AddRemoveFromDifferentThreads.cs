@@ -104,6 +104,9 @@ namespace System.Collections.Concurrent
         }
 
         [Benchmark]
+#if NET7_0 // https://github.com/dotnet/runtime/issues/64980
+        [OperatingSystemsArchitectureFilter(false, Architecture.Arm64)]
+#endif
         public void ConcurrentStack() => SignalAndWaitForAllTasks();
 
         [IterationSetup(Target = nameof(ConcurrentQueue))]
