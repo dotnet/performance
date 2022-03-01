@@ -15,6 +15,7 @@
     <DebugSymbols>true</DebugSymbols>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableXlfLocalization>false</EnableXlfLocalization>
+    <DefineConstants Condition=" '$(MSBuildFileVersion)' > '17.2.0.10401' AND $(NETCoreSdkVersion.StartsWith(7.0.100-preview))">$(DefineConstants);NET7_0_PREVIEW2_OR_GREATER</DefineConstants>
   </PropertyGroup>
   <!-- out-of-band packages that are not included in NetCoreApp have TFM-specific versions -->
   <Choose>
