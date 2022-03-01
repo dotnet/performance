@@ -7,10 +7,10 @@ monthly manual performance runs.
 '''
 
 from argparse import ArgumentParser, ArgumentTypeError
+from datetime import datetime
 from logging import getLogger
 
 import benchmarks_ci
-import datetime
 import tarfile
 import sys
 import os
@@ -98,8 +98,8 @@ def __main(args: list) -> int:
     getLogger().log(getLogger().getEffectiveLevel(), 'Results were created in the following folder:')
     getLogger().log(getLogger().getEffectiveLevel(), '  ' + resultsPath)
 
-    today = str(datetime.date.today())
-    resultsName = today + '-' + args.version
+    timestamp = datetime.now().strftime('%Y-%m-%d-%H-%M')
+    resultsName = timestamp + '-' + args.version
     resultsTarPath = os.path.join(rootPath, 'artifacts', resultsName + '.tar.gz')
     resultsTar = tarfile.open(resultsTarPath, 'w:gz')
     resultsTar.add(resultsPath, arcname=resultsName)
