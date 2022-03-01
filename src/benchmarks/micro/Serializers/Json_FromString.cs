@@ -22,7 +22,7 @@ namespace MicroBenchmarks.Serializers
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]
 #if NET7_0 // https://github.com/dotnet/runtime/issues/64657
-        [OperatingSystemsArchitectureFilter(false, Architecture.Arm64)]
+        [OperatingSystemsArchitectureFilter(false, System.Runtime.InteropServices.Architecture.Arm64)]
 #endif
         public T Jil_() => Jil.JSON.Deserialize<T>(serialized, Jil.Options.ISO8601);
 
