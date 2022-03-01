@@ -157,6 +157,14 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         action='store_true',
         help='Attempts to run the benchmarks without building.',
     )
+    parser.add_argument(
+        '--skip-logger-setup',
+        dest='skip_logger_setup',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Skips the logger setup, for cases when invoked by another script that already sets logging up')
+
     return parser
 
 
@@ -174,7 +182,9 @@ def __main(args: list) -> int:
     validate_supported_runtime()
     args = __process_arguments(args)
     verbose = not args.quiet
-    setup_loggers(verbose=verbose)
+
+    if not args.skip_logger_setup:
+        setup_loggers(verbose=verbose)
 
     if not args.frameworks:
         raise Exception("Framework version (-f) must be specified.")
