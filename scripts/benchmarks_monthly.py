@@ -12,6 +12,7 @@ from logging import getLogger
 
 import benchmarks_ci
 import tarfile
+import shutil
 import sys
 import os
 
@@ -29,15 +30,16 @@ def get_version_from_name(name: str) -> str:
     raise Exception('The version specified is not supported', name)
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
-    '''Adds new arguments to the specified ArgumentParser object.'''
+    # Adds new arguments to the specified ArgumentParser object.
 
     if not isinstance(parser, ArgumentParser):
         raise TypeError('Invalid parser.')
 
     parser.add_argument(
-        'version',
+        'versions',
+        nargs='+',
         choices=VERSIONS,
-        help='Specifies the .NET release for the benchmarks run')
+        help='Specifies the .NET version(s) for the benchmarks run')
 
     parser.add_argument(
         '--filter',
@@ -51,7 +53,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         required=False,
         choices=['x64', 'x86', 'arm64', 'arm'],
         default='x64',
-        help='Specifies the processor architecture to pass to BenchmarkDotNet')
+        help='Specifies the SDK processor architecture')
 
     parser.add_argument(
         '--bdn-arguments',
@@ -73,40 +75,48 @@ def __process_arguments(args: list):
 
 def __main(args: list) -> int:
     args = __process_arguments(args)
-
-    if not args.version:
-        raise Exception('Version must be specified.')
-
-    version = get_version_from_name(args.version)
-    benchmarkArgs = ['--filter', args.filter, '-f', version['tfm']]
-
-    if 'build' in version:
-        benchmarkArgs += ['--dotnet-versions', version['build']]
-
-    if args.architecture:
-        benchmarkArgs += ['--architecture', args.architecture]
-
-    if args.bdn_arguments:
-        benchmarkArgs += ['--bdn-arguments', args.bdn_arguments]
-
-    getLogger().log(getLogger().getEffectiveLevel(), '\nExecuting: benchmarks_ci.py ' + str.join(' ', benchmarkArgs) + '\n')
-    benchmarks_ci.__main(benchmarkArgs)
+    versions = args.versions
+    versions.sort()
 
     rootPath = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
-    resultsPath = os.path.join(rootPath, 'artifacts', 'bin', 'MicroBenchmarks', 'Release', version['tfm'], 'BenchmarkDotNet.Artifacts', 'results')
+    sdkPath = os.path.join(rootPath, 'tools', 'dotnet', args.architecture, 'sdk')
 
-    getLogger().log(getLogger().getEffectiveLevel(), 'Results were created in the following folder:')
-    getLogger().log(getLogger().getEffectiveLevel(), '  ' + resultsPath)
+    for versionName in versions:
+        version = get_version_from_name(versionName)
+        resultsPath = os.path.join(rootPath, 'artifacts', 'bin', 'MicroBenchmarks', 'Release', version['tfm'], 'BenchmarkDotNet.Artifacts', 'results')
 
-    timestamp = datetime.now().strftime('%Y-%m-%d-%H-%M')
-    resultsName = timestamp + '-' + args.version
-    resultsTarPath = os.path.join(rootPath, 'artifacts', resultsName + '.tar.gz')
-    resultsTar = tarfile.open(resultsTarPath, 'w:gz')
-    resultsTar.add(resultsPath, arcname=resultsName)
-    resultsTar.close()
+        # Delete any preexisting SDK and results, which allows
+        # multiple versions to be run from a single command
+        if os.path.isdir(sdkPath):
+            shutil.rmtree(sdkPath)
 
-    getLogger().log(getLogger().getEffectiveLevel(), 'Results were collected into the following tar archive:')
-    getLogger().log(getLogger().getEffectiveLevel(), '  ' + resultsTarPath)
+        if os.path.isdir(resultsPath):
+            shutil.rmtree(resultsPath)
+
+        benchmarkArgs = ['--filter', args.filter, '--architecture', args.architecture, '-f', version['tfm']]
+
+        if 'build' in version:
+            benchmarkArgs += ['--dotnet-versions', version['build']]
+
+        if args.bdn_arguments:
+            benchmarkArgs += ['--bdn-arguments', args.bdn_arguments]
+
+        getLogger().log(getLogger().getEffectiveLevel(), '\nExecuting: benchmarks_ci.py ' + str.join(' ', benchmarkArgs) + '\n')
+        benchmarks_ci.__main(benchmarkArgs)
+
+        getLogger().log(getLogger().getEffectiveLevel(), 'Results were created in the following folder:')
+        getLogger().log(getLogger().getEffectiveLevel(), '  ' + resultsPath)
+
+        timestamp = datetime.now().strftime('%Y-%m-%d-%H-%M')
+        resultsName = timestamp + '-' + versionName
+        resultsTarPath = os.path.join(rootPath, 'artifacts', resultsName + '.tar.gz')
+
+        resultsTar = tarfile.open(resultsTarPath, 'w:gz')
+        resultsTar.add(resultsPath, arcname=resultsName)
+        resultsTar.close()
+
+        getLogger().log(getLogger().getEffectiveLevel(), 'Results were collected into the following tar archive:')
+        getLogger().log(getLogger().getEffectiveLevel(), '  ' + resultsTarPath)
 
 if __name__ == '__main__':
     __main(sys.argv[1:])
