@@ -65,6 +65,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Command line arguments to be passed to BenchmarkDotNet, wrapped in quotes',
     )
 
+    parser.add_argument(
+        '--dry-run',
+        dest='dry_run',
+        action='store_true',
+        help='Perform a dry run, showing what would be executed')
+
     return parser
 
 def __process_arguments(args: list):
@@ -78,23 +84,32 @@ def __process_arguments(args: list):
 
 def __main(args: list) -> int:
     args = __process_arguments(args)
-    versions = args.versions
-    versions.sort()
 
     rootPath = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
     sdkPath = os.path.join(rootPath, 'tools', 'dotnet', args.architecture, 'sdk')
 
-    for versionName in versions:
+    logPrefix = ''
+
+    if args.dry_run:
+        logPrefix = '[DRY RUN] '
+
+    for versionName in args.versions:
         version = get_version_from_name(versionName)
         resultsPath = os.path.join(rootPath, 'artifacts', 'bin', 'MicroBenchmarks', 'Release', version['tfm'], 'BenchmarkDotNet.Artifacts', 'results')
 
         # Delete any preexisting SDK and results, which allows
         # multiple versions to be run from a single command
         if os.path.isdir(sdkPath):
-            shutil.rmtree(sdkPath)
+            getLogger().log(getLogger().getEffectiveLevel(), logPrefix + 'rmdir -r ' + sdkPath)
+
+            if not args.dry_run:
+                shutil.rmtree(sdkPath)
 
         if os.path.isdir(resultsPath):
-            shutil.rmtree(resultsPath)
+            getLogger().log(getLogger().getEffectiveLevel(), logPrefix + 'rmdir -r ' + resultsPath)
+
+            if not args.dry_run:
+                shutil.rmtree(resultsPath)
 
         benchmarkArgs = ['--filter', args.filter, '--architecture', args.architecture, '-f', version['tfm']]
 
@@ -104,11 +119,13 @@ def __main(args: list) -> int:
         if args.bdn_arguments:
             benchmarkArgs += ['--bdn-arguments', args.bdn_arguments]
 
-        getLogger().log(getLogger().getEffectiveLevel(), '\nExecuting: benchmarks_ci.py ' + str.join(' ', benchmarkArgs) + '\n')
-        benchmarks_ci.__main(benchmarkArgs)
+        getLogger().log(getLogger().getEffectiveLevel(), logPrefix + 'Executing: benchmarks_ci.py ' + str.join(' ', benchmarkArgs))
 
-        getLogger().log(getLogger().getEffectiveLevel(), 'Results were created in the following folder:')
-        getLogger().log(getLogger().getEffectiveLevel(), '  ' + resultsPath)
+        if not args.dry_run:
+            benchmarks_ci.__main(benchmarkArgs)
+
+        getLogger().log(getLogger().getEffectiveLevel(), logPrefix + 'Results were created in the following folder:')
+        getLogger().log(getLogger().getEffectiveLevel(), logPrefix + '  ' + resultsPath)
 
         timestamp = datetime.now().strftime('%Y-%m-%d-%H-%M')
 
@@ -119,12 +136,13 @@ def __main(args: list) -> int:
 
         resultsTarPath = os.path.join(rootPath, 'artifacts', resultsName + '.tar.gz')
 
-        resultsTar = tarfile.open(resultsTarPath, 'w:gz')
-        resultsTar.add(resultsPath, arcname=resultsName)
-        resultsTar.close()
+        if not args.dry_run:
+            resultsTar = tarfile.open(resultsTarPath, 'w:gz')
+            resultsTar.add(resultsPath, arcname=resultsName)
+            resultsTar.close()
 
-        getLogger().log(getLogger().getEffectiveLevel(), 'Results were collected into the following tar archive:')
-        getLogger().log(getLogger().getEffectiveLevel(), '  ' + resultsTarPath)
+        getLogger().log(getLogger().getEffectiveLevel(), logPrefix + 'Results were collected into the following tar archive:')
+        getLogger().log(getLogger().getEffectiveLevel(), logPrefix + '  ' + resultsTarPath)
 
 if __name__ == '__main__':
     __main(sys.argv[1:])
