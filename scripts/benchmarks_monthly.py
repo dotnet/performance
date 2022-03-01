@@ -42,6 +42,11 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Specifies the .NET version(s) for the benchmarks run')
 
     parser.add_argument(
+        '--device-name',
+        dest='device_name',
+        help='The name of this device, to be included in the .tar.gz file name')
+
+    parser.add_argument(
         '--filter',
         dest='filter',
         default='*',
@@ -50,7 +55,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument(
         '--architecture',
         dest='architecture',
-        required=False,
         choices=['x64', 'x86', 'arm64', 'arm'],
         default='x64',
         help='Specifies the SDK processor architecture')
@@ -58,7 +62,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument(
         '--bdn-arguments',
         dest='bdn_arguments',
-        required=False,
         help='Command line arguments to be passed to BenchmarkDotNet, wrapped in quotes',
     )
 
@@ -108,7 +111,12 @@ def __main(args: list) -> int:
         getLogger().log(getLogger().getEffectiveLevel(), '  ' + resultsPath)
 
         timestamp = datetime.now().strftime('%Y-%m-%d-%H-%M')
-        resultsName = timestamp + '-' + versionName
+
+        if args.device_name:
+            resultsName = timestamp + '-' + args.device_name + '-' + versionName
+        else:
+            resultsName = timestamp + '-' + versionName
+
         resultsTarPath = os.path.join(rootPath, 'artifacts', resultsName + '.tar.gz')
 
         resultsTar = tarfile.open(resultsTarPath, 'w:gz')
