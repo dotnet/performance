@@ -40,7 +40,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         'versions',
         nargs='+',
         choices=VERSIONS,
-        help='Specifies the .NET version for the benchmarks run')
+        help='Specifies the .NET version(s) for the benchmarks run')
 
     parser.add_argument(
         '--device-name',
