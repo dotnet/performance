@@ -67,10 +67,10 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     )
 
     parser.add_argument(
-        '--clean',
-        dest='clean',
+        '--no-clean',
+        dest='no_clean',
         action='store_true',
-        help='Clean the SDK and results directories before execution')
+        help='Do not clean the SDK and results directories before execution')
 
     parser.add_argument(
         '--dry-run',
@@ -105,7 +105,7 @@ def __main(args: list) -> int:
         version = get_version_from_name(versionName)
         resultsPath = os.path.join(rootPath, 'artifacts', 'bin', 'MicroBenchmarks', 'Release', version['tfm'], 'BenchmarkDotNet.Artifacts', 'results')
 
-        if args.clean:
+        if not args.no_clean:
             # Delete any preexisting SDK and results, which allows
             # multiple versions to be run from a single command
             if os.path.isdir(sdkPath):
