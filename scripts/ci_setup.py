@@ -246,7 +246,8 @@ def __main(args: list) -> int:
     showenv = 'set' if sys.platform == 'win32' else 'printenv'
 
     if args.pgo_status == 'nopgo':
-        pgo_config = variable_format % ('COMPlus_JitDisablePgo', '1')
+        pgo_config = variable_format % ('COMPlus_TC_QuickJitForLoops', '1')
+        pgo_config += variable_format % ('COMPlus_TC_OnStackReplacement','1')
     elif args.pgo_status == 'dynamicpgo':
         pgo_config = variable_format % ('COMPlus_TieredPGO', '1')
     elif args.pgo_status == 'fullpgo':
