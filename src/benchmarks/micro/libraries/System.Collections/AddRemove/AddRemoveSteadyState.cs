@@ -78,7 +78,7 @@ namespace System.Collections.Tests
             _stack.Push(item);
         }
 
-        [GlobalSetup(Target = nameof(Queue))]
+        [GlobalSetup(Target = nameof(ImmutableQueue))]
         public void SetupImmutableQueue() => _immutableQueue = ValuesGenerator.ArrayOfUniqueValues<T>(Count).Aggregate(ImmutableQueue<T>.Empty, (q, v) => q.Enqueue(v));
 
         [Benchmark]
@@ -87,7 +87,7 @@ namespace System.Collections.Tests
             _immutableQueue = _immutableQueue.Dequeue(out T item).Enqueue(item);
         }
 
-        [GlobalSetup(Target = nameof(Stack))]
+        [GlobalSetup(Target = nameof(ImmutableStack))]
         public void SetupImmutableStack() => _immutableStack = ValuesGenerator.ArrayOfUniqueValues<T>(Count).Aggregate(ImmutableStack<T>.Empty, (q, v) => q.Push(v));
 
         [Benchmark]
