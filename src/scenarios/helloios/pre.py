@@ -23,6 +23,8 @@ args = parser.parse_args()
 
 name = args.name
 namezip = '%s.zip' % (name)
+if not os.path.exists(PUBDIR):
+    os.mkdir(PUBDIR)
 if not os.path.exists(name):
     getLogger().error('Cannot find %s' % (name))
     exit(-1)
@@ -46,6 +48,6 @@ if args.unzip:
     
 else:
     if(os.path.isdir(name)):
-        copytree(name, PUBDIR)
+        copytree(name, os.path.join(PUBDIR, name))
     else:
-        copyfile(name, PUBDIR)
+        copyfile(name, os.path.join(PUBDIR, name))
