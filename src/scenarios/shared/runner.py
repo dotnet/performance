@@ -17,10 +17,10 @@ from io import StringIO
 from shutil import move
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
-from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand
+from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand, helixuploaddir
 from shared.sod import SODWrapper
 from shared import const
-from performance.common import RunCommand, iswin, extension
+from performance.common import RunCommand, iswin, extension, runninginlab
 from performance.logger import setup_loggers
 from shared.testtraits import TestTraits, testtypes
 
@@ -341,6 +341,14 @@ ex: C:\repos\performance;C:\repos\runtime
             ]
             RunCommand(cmdline, verbose=True).run()
 
+            # Clear ADB log
+            getLogger().info("Clearing ADB Log")
+            cmdline = [
+                adb.stdout.strip(),
+                'logcat', '-c'
+            ]
+            RunCommand(cmdline, verbose=True).run()
+
             # Get animation values
             getLogger().info("Getting animation values")
             cmdline = [
@@ -554,6 +562,21 @@ ex: C:\repos\performance;C:\repos\runtime
 
             if screenWasOff:
                 RunCommand(keyInputCmd + ['26'], verbose=True).run() # Turn the screen back off
+
+             # Save ADB log
+            getLogger().info("Saving ADB Log")
+            cmdline = [
+                adb.stdout.strip(),
+                'logcat', '-d'
+            ]
+            getADB = RunCommand(cmdline, verbose=True)
+            getADB.run()
+            outfile = open("MauiAndroidADB.txt", "w")
+            outfile.write(getADB.stdout.strip())
+            outfile.close()
+
+            if runninginlab():
+                copyfile('MauiAndroidADB.txt', os.path.join(helixuploaddir(), 'MauiAndroidADB.txt'))
 
             # Create traces to store the data so we can keep the current general parse trace flow
             getLogger().info(f"Logs: \n{allResults}")
