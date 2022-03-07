@@ -5,7 +5,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
@@ -79,7 +78,7 @@ namespace System.Collections.Tests
         }
 
         [GlobalSetup(Target = nameof(ImmutableQueue))]
-        public void SetupImmutableQueue() => _immutableQueue = ValuesGenerator.ArrayOfUniqueValues<T>(Count).Aggregate(ImmutableQueue<T>.Empty, (q, v) => q.Enqueue(v));
+        public void SetupImmutableQueue() => _immutableQueue = Immutable.ImmutableQueue.CreateRange<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Count));
 
         [Benchmark]
         public void ImmutableQueue()
@@ -88,7 +87,7 @@ namespace System.Collections.Tests
         }
 
         [GlobalSetup(Target = nameof(ImmutableStack))]
-        public void SetupImmutableStack() => _immutableStack = ValuesGenerator.ArrayOfUniqueValues<T>(Count).Aggregate(ImmutableStack<T>.Empty, (q, v) => q.Push(v));
+        public void SetupImmutableStack() => _immutableStack = Immutable.ImmutableStack.CreateRange<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Count));
 
         [Benchmark]
         public void ImmutableStack()
