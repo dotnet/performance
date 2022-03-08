@@ -14,7 +14,7 @@ from collections import namedtuple
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 from io import StringIO
-from shutil import move
+from shutil import move, copyfile
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
 from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand, helixuploaddir
