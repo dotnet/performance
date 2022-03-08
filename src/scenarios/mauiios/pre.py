@@ -48,6 +48,6 @@ if args.unzip:
     
 else:
     if(os.path.isdir(name)):
-        copytree(name, os.path.join(PUBDIR, name))
+        copytree(name, PUBDIR)
     else:
         copyfile(name, os.path.join(PUBDIR, name))
