@@ -570,9 +570,12 @@ ex: C:\repos\performance;C:\repos\runtime
                 'logcat', '-d'
             ]
             getADB = RunCommand(cmdline, verbose=True)
-            getADB.run()
+            try:
+                getADB.run()
+            except UnicodeEncodeError as e:
+                getLogger().warning(e)
             outfile = open("MauiAndroidADB.txt", "w")
-            outfile.write(getADB.stdout.strip())
+            outfile.write(getADB.stdout)
             outfile.close()
 
             if runninginlab():
