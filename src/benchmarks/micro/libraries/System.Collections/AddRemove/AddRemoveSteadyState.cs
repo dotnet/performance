@@ -4,6 +4,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
@@ -20,6 +21,8 @@ namespace System.Collections.Tests
         private ConcurrentStack<T> _concurrentStack;
         private Queue<T> _queue;
         private Stack<T> _stack;
+        private ImmutableQueue<T> _immutableQueue;
+        private ImmutableStack<T> _immutableStack;
 
         [Params(Utils.DefaultCollectionSize)]
         public int Count;
@@ -72,6 +75,24 @@ namespace System.Collections.Tests
         {
             T item = _stack.Pop();
             _stack.Push(item);
+        }
+
+        [GlobalSetup(Target = nameof(ImmutableQueue))]
+        public void SetupImmutableQueue() => _immutableQueue = Immutable.ImmutableQueue.CreateRange<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Count));
+
+        [Benchmark]
+        public void ImmutableQueue()
+        {
+            _immutableQueue = _immutableQueue.Dequeue(out T item).Enqueue(item);
+        }
+
+        [GlobalSetup(Target = nameof(ImmutableStack))]
+        public void SetupImmutableStack() => _immutableStack = Immutable.ImmutableStack.CreateRange<T>(ValuesGenerator.ArrayOfUniqueValues<T>(Count));
+
+        [Benchmark]
+        public void ImmutableStack()
+        {
+            _immutableStack = _immutableStack.Pop(out T item).Push(item);
         }
     }
 }

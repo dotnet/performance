@@ -7,6 +7,7 @@ using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 
 namespace System.Collections
@@ -237,5 +238,93 @@ namespace System.Collections
             return concurrentBag;
         }
 #endif
+
+        [Benchmark]
+        public ImmutableArray<T> ImmutableArray()
+        {
+            ImmutableArray<T> immutableArray = ImmutableArray<T>.Empty;
+            foreach (T value in _uniqueValues)
+            {
+                immutableArray = immutableArray.Add(value);
+            }
+            return immutableArray.Clear();
+        }
+
+        [Benchmark]
+        public ImmutableList<T> ImmutableList()
+        {
+            ImmutableList<T> immutableList = ImmutableList<T>.Empty;
+            foreach (T value in _uniqueValues)
+            {
+                immutableList = immutableList.Add(value);
+            }
+            return immutableList.Clear();
+        }
+
+        [Benchmark]
+        public ImmutableDictionary<T, T> ImmutableDictionary()
+        {
+            ImmutableDictionary<T, T> immutableDictionary = ImmutableDictionary<T, T>.Empty;
+            foreach (T value in _uniqueValues)
+            {
+                immutableDictionary = immutableDictionary.Add(value, value);
+            }
+            return immutableDictionary.Clear();
+        }
+
+        [Benchmark]
+        public ImmutableHashSet<T> ImmutableHashSet()
+        {
+            ImmutableHashSet<T> immutableHashSet = ImmutableHashSet<T>.Empty;
+            foreach (T value in _uniqueValues)
+            {
+                immutableHashSet = immutableHashSet.Add(value);
+            }
+            return immutableHashSet.Clear();
+        }
+
+        [Benchmark]
+        public ImmutableSortedDictionary<T, T> ImmutableSortedDictionary()
+        {
+            ImmutableSortedDictionary<T, T> immutableSortedDictionary = ImmutableSortedDictionary<T, T>.Empty;
+            foreach (T value in _uniqueValues)
+            {
+                immutableSortedDictionary = immutableSortedDictionary.Add(value, value);
+            }
+            return immutableSortedDictionary.Clear();
+        }
+
+        [Benchmark]
+        public ImmutableSortedSet<T> ImmutableSortedSet()
+        {
+            ImmutableSortedSet<T> immutableSortedSet = ImmutableSortedSet<T>.Empty;
+            foreach (T value in _uniqueValues)
+            {
+                immutableSortedSet = immutableSortedSet.Add(value);
+            }
+            return immutableSortedSet.Clear();
+        }
+
+        [Benchmark]
+        public ImmutableStack<T> ImmutableStack()
+        {
+            ImmutableStack<T> immutableStack = ImmutableStack<T>.Empty;
+            foreach (T value in _uniqueValues)
+            {
+                immutableStack = immutableStack.Push(value);
+            }
+            return immutableStack.Clear();
+        }
+
+        [Benchmark]
+        public ImmutableQueue<T> ImmutableQueue()
+        {
+            ImmutableQueue<T> immutableQueue = ImmutableQueue<T>.Empty;
+            foreach (T value in _uniqueValues)
+            {
+                immutableQueue = immutableQueue.Enqueue(value);
+            }
+            return immutableQueue.Clear();
+        }
     }
 }
