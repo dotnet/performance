@@ -25,22 +25,5 @@ namespace System.Collections.Tests
 
         [Benchmark]
         public object Clone() => new Dictionary<int, int>(_dict);
-
-        [Benchmark]
-        public int ContainsValue()
-        {
-            Dictionary<int, int> d = _dict;
-            int count = 0;
-
-            for (int i = 0; i < Items; i++)
-            {
-                if (d.ContainsValue(i))
-                {
-                    count++;
-                }
-            }
-
-            return count;
-        }
     }
 }
