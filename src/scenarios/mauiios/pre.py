@@ -34,17 +34,6 @@ if args.unzip:
 
     with ZipFile(namezip) as zip:
         zip.extractall(os.path.join('.', PUBDIR))
-
-    baseDir = os.path.join(PUBDIR, 'Payload')
-    appFolder = os.listdir(baseDir) # Should only be one
-    if len(appFolder) > 1:
-        getLogger.error("More than one app folder found in payload! Should only be one.")
-        exit(-1)
-
-    appFolderPath = os.path.join(baseDir, appFolder[0])
-    for subfile in os.listdir(appFolderPath):
-        move(os.path.join(appFolderPath, subfile), PUBDIR)
-    os.removedirs(appFolderPath)
     
 else:
     if(os.path.isdir(name)):
