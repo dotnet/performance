@@ -41,7 +41,8 @@ jobs:
       osName: windows
       osVersion: 21H1
       architecture: x64
-      pool: Hosted VS2017
+      pool:
+        vmImage: windows-2019
       kind: scenarios
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
@@ -56,7 +57,8 @@ jobs:
       osVersion: 1804
       kind: scenarios
       architecture: x64
-      pool: Azure Pipelines
+      pool: 
+        vmImage: ubuntu-latest
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
@@ -70,7 +72,8 @@ jobs:
       osName: windows
       osVersion: 21H1
       architecture: x64
-      pool: Hosted VS2017
+      pool:
+        vmImage: windows-2019
       kind: blazor_scenarios
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
@@ -84,7 +87,8 @@ jobs:
       osName: windows
       osVersion: 21H1
       architecture: x64
-      pool: Hosted VS2017
+      pool:
+         vmImage: windows-2019
       kind: sdk_scenarios
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
@@ -99,7 +103,8 @@ jobs:
       osVersion: 1804
       kind: sdk_scenarios
       architecture: x64
-      pool: Azure Pipelines
+      pool: 
+        vmImage: ubuntu-latest
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
@@ -113,7 +118,8 @@ jobs:
       osName: windows
       osVersion: 21H1
       architecture: x86
-      pool: Hosted VS2017
+      pool:
+        vmImage: windows-2019
       kind: sdk_scenarios
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
@@ -128,7 +134,8 @@ jobs:
       osVersion: 21H1
       kind: micro
       architecture: x64
-      pool: Hosted VS2017
+      pool:
+        vmImage: windows-2019
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
@@ -143,7 +150,8 @@ jobs:
   #     osVersion: RS4
   #     kind: micro_net461
   #     architecture: x64
-  #     pool: Hosted VS2017
+  #     pool:
+  #         vmImage: windows-2019
   #     queue: Windows.10.Amd64.ClientRS4.DevEx.15.8.Open
   #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
   #     runCategories: 'runtime libraries'
@@ -157,7 +165,8 @@ jobs:
       osVersion: 21H1
       kind: micro
       architecture: x86
-      pool: Hosted VS2017
+      pool:
+        vmImage: windows-2019
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
@@ -172,7 +181,8 @@ jobs:
       osVersion: 21H1
       kind: mlnet
       architecture: x64
-      pool: Hosted VS2017
+      pool:
+        vmImage: windows-2019
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
@@ -187,7 +197,8 @@ jobs:
       osVersion: 21H1
       kind: roslyn
       architecture: x64
-      pool: Hosted VS2017
+      pool:
+        vmImage: windows-2019
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
@@ -202,7 +213,8 @@ jobs:
       osVersion: 1804
       kind: micro
       architecture: x64
-      pool: Azure Pipelines
+      pool: 
+        vmImage: ubuntu-latest
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
@@ -218,7 +230,8 @@ jobs:
       osVersion: 1804
       kind: mlnet
       architecture: x64
-      pool: Azure Pipelines
+      pool: 
+        vmImage: ubuntu-latest
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
@@ -234,7 +247,8 @@ jobs:
       osVersion: 1804
       kind: roslyn
       architecture: x64
-      pool: Azure Pipelines
+      pool: 
+        vmImage: ubuntu-latest
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
@@ -255,7 +269,8 @@ jobs:
       osName: windows
       osVersion: 19H1
       architecture: x64
-      pool: Hosted VS2017
+      pool:
+        vmImage: windows-2019
       kind: scenarios
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
@@ -270,7 +285,8 @@ jobs:
       osVersion: 1804
       kind: scenarios
       architecture: x64
-      pool: Azure Pipelines
+      pool: 
+        vmImage: ubuntu-latest
       machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       container: ubuntu_x64_build_container
@@ -285,7 +301,8 @@ jobs:
       osVersion: 19H1
       kind: micro
       architecture: x64
-      pool: Hosted VS2017
+      pool:
+        vmImage: windows-2019
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
@@ -299,7 +316,8 @@ jobs:
       osName: windows
       osVersion: 19H1
       architecture: x64
-      pool: Hosted VS2017
+      pool:
+        vmImage: windows-2019
       kind: sdk_scenarios
       machinePool: Open
       queue: Windows.10.Amd64.19H1.Tiger.Perf
@@ -314,7 +332,8 @@ jobs:
       osVersion: 1804
       kind: sdk_scenarios
       architecture: x64
-      pool: Azure Pipelines
+      pool: 
+        vmImage: ubuntu-latest
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Tiger.Perf
       container: ubuntu_x64_build_container
@@ -328,7 +347,8 @@ jobs:
       osName: windows
       osVersion: 19H1
       architecture: x86
-      pool: Hosted VS2017
+      pool:
+        vmImage: windows-2019
       kind: sdk_scenarios
       machinePool: Open
       queue: Windows.10.Amd64.19H1.Tiger.Perf
@@ -343,7 +363,8 @@ jobs:
   #     osVersion: 20H2
   #     kind: micro
   #     architecture: x64
-  #     pool: Hosted VS2017
+  #     pool:
+  #         vmImage: windows-2019
   #     machinePool: Owl
   #     queue: Windows.10.Amd64.20H2.Owl.Perf # using a dedicated private Helix queue (perfowls)
   #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
@@ -360,7 +381,8 @@ jobs:
       osVersion: 19H1
       kind: micro
       architecture: x86
-      pool: Hosted VS2017
+      pool:
+        vmImage: windows-2019
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
@@ -375,7 +397,8 @@ jobs:
       osVersion: 19H1
       kind: mlnet
       architecture: x64
-      pool: Hosted VS2017
+      pool:
+        vmImage: windows-2019
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
@@ -390,7 +413,8 @@ jobs:
       osVersion: 19H1
       kind: roslyn
       architecture: x64
-      pool: Hosted VS2017
+      pool:
+        vmImage: windows-2019
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
@@ -405,7 +429,8 @@ jobs:
       osVersion: 1804
       kind: micro
       architecture: x64
-      pool: Azure Pipelines
+      pool: 
+        vmImage: ubuntu-latest
       machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       container: ubuntu_x64_build_container
@@ -421,7 +446,8 @@ jobs:
   #     osVersion: 1804
   #     kind: micro
   #     architecture: x64
-  #     pool: Azure Pipelines
+  #     pool: 
+  #         vmImage: ubuntu-latest
   #     machinePool: Owl
   #     queue: Ubuntu.1804.Amd64.Owl.Perf # using a dedicated private Helix queue (perfowls)
   #     container: ubuntu_x64_build_container
@@ -439,7 +465,8 @@ jobs:
       osVersion: 1804
       kind: mlnet
       architecture: x64
-      pool: Azure Pipelines
+      pool: 
+        vmImage: ubuntu-latest
       machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       container: ubuntu_x64_build_container
@@ -455,7 +482,8 @@ jobs:
       osVersion: 1804
       kind: roslyn
       architecture: x64
-      pool: Azure Pipelines
+      pool: 
+        vmImage: ubuntu-latest
       machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       container: ubuntu_x64_build_container
