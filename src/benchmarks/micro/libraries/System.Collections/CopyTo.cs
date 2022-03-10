@@ -21,6 +21,7 @@ namespace System.Collections
         private T[] _array;
         private List<T> _list;
         private ImmutableArray<T> _immutablearray;
+        private ImmutableList<T> _immutableList;
         private T[] _destination;
 
         [GlobalSetup(Targets = new[] { nameof(Array), nameof(Span), nameof(ReadOnlySpan), nameof(Memory), nameof(ReadOnlyMemory) })]
@@ -68,5 +69,15 @@ namespace System.Collections
 
         [Benchmark]
         public void ImmutableArray() => _immutablearray.CopyTo(_destination);
+
+        [GlobalSetup(Target = nameof(ImmutableList))]
+        public void SetupImmutableList()
+        {
+            _immutableList = Immutable.ImmutableList.CreateRange(ValuesGenerator.ArrayOfUniqueValues<T>(Size));
+            _destination = new T[Size];
+        }
+
+        [Benchmark]
+        public void ImmutableList() => _immutableList.CopyTo(_destination);
     }
 }
