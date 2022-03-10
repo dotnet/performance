@@ -1,3 +1,9 @@
+<!-- 
+
+    Blazorwasm has been removed from the available dotnet new scenarios for 3.1.4 https://github.com/dotnet/installer/pull/13120. 
+    Leaving this project here incase it is added back in the future, but removing it from any potential yml uses.
+	
+-->
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
 
   <ItemGroup>
