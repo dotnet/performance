@@ -85,7 +85,7 @@ namespace BenchmarkDotNet.Extensions.Tests
                 for (int partitionIndex = 0; partitionIndex < PartitionCount; partitionIndex++)
                 {
                     PartitionFilter filter = new(PartitionCount, partitionIndex);
-
+                    IEnumerable<BenchmarkCase> tmp = GetAllBenchmarks(parsedConfig, runnable).SelectMany(benchmark => benchmark.BenchmarksCases);
                     foreach (BenchmarkCase benchmark in GetAllBenchmarks(parsedConfig, runnable).SelectMany(benchmark => benchmark.BenchmarksCases))
                     {
                         if (filter.Predicate(benchmark))
