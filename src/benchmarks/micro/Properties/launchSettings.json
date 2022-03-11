@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MicroBenchmarks": {
+      "commandName": "Project",
+      "commandLineArgs": "--filter *Perf_Basic* --parameter-filter SkipValidation:True"
+    }
+  }
+}

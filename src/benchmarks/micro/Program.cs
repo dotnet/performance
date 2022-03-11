@@ -24,6 +24,8 @@ namespace MicroBenchmarks
             Dictionary<string, object> parameterFilterValue;
             bool getDiffableDisasm;
 
+            Console.ReadLine();
+
             // Parse and remove any additional parameters that we need that aren't part of BDN
             try {
                 argsList = CommandLineOptions.ParseAndRemoveIntParameter(argsList, "--partition-count", out partitionCount);
