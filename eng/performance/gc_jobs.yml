@@ -23,8 +23,7 @@ jobs:
           - group: DotNet-HelixApi-Access
         workspace:
           clean: all
-        pool:
-          name: ${{ parameters.pool }}
+        pool: ${{ parameters.pool }}
         container: ${{ parameters.container }}
 
         steps:
