@@ -101,6 +101,9 @@ def __main(args: list) -> int:
     logger = getLogger()
     logLevel = getLogger().getEffectiveLevel()
 
+    def log(text: str):
+        logger.log(logLevel, logPrefix + text)
+
     if args.dry_run:
         logPrefix = '[DRY RUN] '
 
@@ -112,13 +115,13 @@ def __main(args: list) -> int:
             # Delete any preexisting SDK and results, which allows
             # multiple versions to be run from a single command
             if os.path.isdir(sdkPath):
-                logger.log(logLevel, logPrefix + 'rmdir -r ' + sdkPath)
+                log('rmdir -r ' + sdkPath)
 
                 if not args.dry_run:
                     shutil.rmtree(sdkPath)
 
             if os.path.isdir(resultsPath):
-                logger.log(logLevel, logPrefix + 'rmdir -r ' + resultsPath)
+                log('rmdir -r ' + resultsPath)
 
                 if not args.dry_run:
                     shutil.rmtree(resultsPath)
@@ -131,7 +134,7 @@ def __main(args: list) -> int:
         if args.bdn_arguments:
             benchmarkArgs += ['--bdn-arguments', args.bdn_arguments]
 
-        logger.log(logLevel, logPrefix + 'Executing: benchmarks_ci.py ' + str.join(' ', benchmarkArgs))
+        log('Executing: benchmarks_ci.py ' + str.join(' ', benchmarkArgs))
 
         if not args.dry_run:
             try:
@@ -142,8 +145,8 @@ def __main(args: list) -> int:
                 if not os.path.isdir(resultsPath):
                     raise
 
-        logger.log(logLevel, logPrefix + 'Results were created in the following folder:')
-        logger.log(logLevel, logPrefix + '  ' + resultsPath)
+        log('Results were created in the following folder:')
+        log('  ' + resultsPath)
 
         timestamp = datetime.now().strftime('%Y-%m-%d-%H-%M')
 
@@ -159,8 +162,8 @@ def __main(args: list) -> int:
             resultsTar.add(resultsPath, arcname=resultsName)
             resultsTar.close()
 
-        logger.log(logLevel, logPrefix + 'Results were collected into the following tar archive:')
-        logger.log(logLevel, logPrefix + '  ' + resultsTarPath)
+        log('Results were collected into the following tar archive:')
+        log('  ' + resultsTarPath)
 
 if __name__ == '__main__':
     __main(sys.argv[1:])
