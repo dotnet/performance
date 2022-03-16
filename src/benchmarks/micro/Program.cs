@@ -24,7 +24,7 @@ namespace MicroBenchmarks
             Dictionary<string, object> parameterFilterValue;
             bool getDiffableDisasm;
 
-            Console.ReadLine();
+            //Console.ReadLine();
 
             // Parse and remove any additional parameters that we need that aren't part of BDN
             try {
@@ -55,7 +55,8 @@ namespace MicroBenchmarks
                         categoryExclusionFilterValue: categoryExclusionFilterValue,
                         parameterFilterValue: parameterFilterValue,
                         getDiffableDisasm: getDiffableDisasm)
-                    .AddValidator(new NoWasmValidator(Categories.NoWASM)))
+                    .AddValidator(new NoWasmValidator(Categories.NoWASM))
+                    .WithOptions(ConfigOptions.DisableOptimizationsValidator))
                 .ToExitCode();
         }
     }

@@ -2,7 +2,9 @@
   "profiles": {
     "MicroBenchmarks": {
       "commandName": "Project",
-      "commandLineArgs": "--filter *Perf_Basic* --parameter-filter SkipValidation:True"
+      "environmentVariables": {
+        "PERFLAB_TARGET_FRAMEWORKS": "net7.0"
+      }
     }
   }
 }
