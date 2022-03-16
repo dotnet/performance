@@ -3,6 +3,7 @@
   <PropertyGroup>
     <!-- Used by Python script to narrow down the specified target frameworks to test, and avoid downloading all supported SDKs -->
     <!-- Supported target frameworks -->
+    <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
     <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net461;netcoreapp3.1;net5.0;net6.0;net7.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp3.1;net5.0;net6.0;net7.0</TargetFrameworks>
     <NoWarn>$(NoWarn);CS8002</NoWarn>

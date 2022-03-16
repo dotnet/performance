@@ -16,10 +16,7 @@ public class ParameterFilter : IFilter
     public bool Predicate(BenchmarkCase benchmarkCase)
     {
         Dictionary<string, object> items = benchmarkCase.Parameters.Items.ToDictionary<ParameterInstance, string, object>(instance => instance.Name, instance => instance.Value);
-        bool check = benchmarkCase.DisplayInfo.Contains("Perf");
-        bool check2 = benchmarkCase.DisplayInfo.Contains("Basic"); // Nothing contains "Basic"
-        bool check3 = benchmarkCase.DisplayInfo.Contains("Utf"); // Only covers Utf Encoding benchmarks
-        //*
+        
         foreach (string key in _parameterValues.Keys)
         {
             if (!items.Keys.Contains(key))
@@ -27,7 +24,7 @@ public class ParameterFilter : IFilter
             if (!items[key].Equals(_parameterValues[key]))
                 return false;
         }
-        //*/
+        
         return true;
     }
 }

@@ -24,8 +24,6 @@ namespace MicroBenchmarks
             Dictionary<string, object> parameterFilterValue;
             bool getDiffableDisasm;
 
-            //Console.ReadLine();
-
             // Parse and remove any additional parameters that we need that aren't part of BDN
             try {
                 argsList = CommandLineOptions.ParseAndRemoveIntParameter(argsList, "--partition-count", out partitionCount);
@@ -55,8 +53,7 @@ namespace MicroBenchmarks
                         categoryExclusionFilterValue: categoryExclusionFilterValue,
                         parameterFilterValue: parameterFilterValue,
                         getDiffableDisasm: getDiffableDisasm)
-                    .AddValidator(new NoWasmValidator(Categories.NoWASM))
-                    .WithOptions(ConfigOptions.DisableOptimizationsValidator))
+                    .AddValidator(new NoWasmValidator(Categories.NoWASM)))
                 .ToExitCode();
         }
     }
