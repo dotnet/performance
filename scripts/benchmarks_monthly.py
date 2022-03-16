@@ -10,6 +10,7 @@ from performance.logger import setup_loggers
 from argparse import ArgumentParser, ArgumentTypeError
 from datetime import datetime
 from logging import getLogger
+from subprocess import CalledProcessError
 
 import benchmarks_ci
 import tarfile
@@ -131,7 +132,13 @@ def __main(args: list) -> int:
         getLogger().log(getLogger().getEffectiveLevel(), logPrefix + 'Executing: benchmarks_ci.py ' + str.join(' ', benchmarkArgs))
 
         if not args.dry_run:
-            benchmarks_ci.__main(benchmarkArgs)
+            try:
+                benchmarks_ci.__main(benchmarkArgs)
+            except CalledProcessError:
+                getLogger().log(getLogger().getEffectiveLevel(), logPrefix + 'benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
+                # don't rethrow if some results were produced, as we want to create the tar file with results anyway
+                if not os.path.isdir(resultsPath):
+                    raise
 
         getLogger().log(getLogger().getEffectiveLevel(), logPrefix + 'Results were created in the following folder:')
         getLogger().log(getLogger().getEffectiveLevel(), logPrefix + '  ' + resultsPath)
