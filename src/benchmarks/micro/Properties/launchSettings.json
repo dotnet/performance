@@ -1,10 +1,7 @@
 {
   "profiles": {
     "MicroBenchmarks": {
-      "commandName": "Project",
-      "environmentVariables": {
-        "PERFLAB_TARGET_FRAMEWORKS": "net7.0"
-      }
+      "commandName": "Project"
     }
   }
 }
