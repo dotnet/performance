@@ -98,6 +98,8 @@ def __main(args: list) -> int:
     sdkPath = os.path.join(rootPath, 'tools', 'dotnet', args.architecture)
 
     logPrefix = ''
+    logger = getLogger()
+    logLevel = getLogger().getEffectiveLevel()
 
     if args.dry_run:
         logPrefix = '[DRY RUN] '
@@ -110,13 +112,13 @@ def __main(args: list) -> int:
             # Delete any preexisting SDK and results, which allows
             # multiple versions to be run from a single command
             if os.path.isdir(sdkPath):
-                getLogger().log(getLogger().getEffectiveLevel(), logPrefix + 'rmdir -r ' + sdkPath)
+                logger.log(logLevel, logPrefix + 'rmdir -r ' + sdkPath)
 
                 if not args.dry_run:
                     shutil.rmtree(sdkPath)
 
             if os.path.isdir(resultsPath):
-                getLogger().log(getLogger().getEffectiveLevel(), logPrefix + 'rmdir -r ' + resultsPath)
+                logger.log(logLevel, logPrefix + 'rmdir -r ' + resultsPath)
 
                 if not args.dry_run:
                     shutil.rmtree(resultsPath)
@@ -129,19 +131,19 @@ def __main(args: list) -> int:
         if args.bdn_arguments:
             benchmarkArgs += ['--bdn-arguments', args.bdn_arguments]
 
-        getLogger().log(getLogger().getEffectiveLevel(), logPrefix + 'Executing: benchmarks_ci.py ' + str.join(' ', benchmarkArgs))
+        logger.log(logLevel, logPrefix + 'Executing: benchmarks_ci.py ' + str.join(' ', benchmarkArgs))
 
         if not args.dry_run:
             try:
                 benchmarks_ci.__main(benchmarkArgs)
             except CalledProcessError:
-                getLogger().log(getLogger().getEffectiveLevel(), logPrefix + 'benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
+                logger.log(logLevel, logPrefix + 'benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
                 # don't rethrow if some results were produced, as we want to create the tar file with results anyway
                 if not os.path.isdir(resultsPath):
                     raise
 
-        getLogger().log(getLogger().getEffectiveLevel(), logPrefix + 'Results were created in the following folder:')
-        getLogger().log(getLogger().getEffectiveLevel(), logPrefix + '  ' + resultsPath)
+        logger.log(logLevel, logPrefix + 'Results were created in the following folder:')
+        logger.log(logLevel, logPrefix + '  ' + resultsPath)
 
         timestamp = datetime.now().strftime('%Y-%m-%d-%H-%M')
 
@@ -157,8 +159,8 @@ def __main(args: list) -> int:
             resultsTar.add(resultsPath, arcname=resultsName)
             resultsTar.close()
 
-        getLogger().log(getLogger().getEffectiveLevel(), logPrefix + 'Results were collected into the following tar archive:')
-        getLogger().log(getLogger().getEffectiveLevel(), logPrefix + '  ' + resultsTarPath)
+        logger.log(logLevel, logPrefix + 'Results were collected into the following tar archive:')
+        logger.log(logLevel, logPrefix + '  ' + resultsTarPath)
 
 if __name__ == '__main__':
     __main(sys.argv[1:])
