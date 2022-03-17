@@ -63,7 +63,7 @@ namespace BenchmarkDotNet.Extensions
             {
                 while (parameterIndex + 1 < argsList.Count && !argsList[parameterIndex + 1].StartsWith("-"))
                 {
-                    string[] pair = argsList[parameterIndex + 1].Split(':');
+                    string[] pair = argsList[parameterIndex + 1].Split(":".ToCharArray(), 2);
                     object value;
                     int i_result;
                     bool b_result;
