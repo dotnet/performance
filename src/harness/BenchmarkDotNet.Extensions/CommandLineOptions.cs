@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace BenchmarkDotNet.Extensions
 {
@@ -41,6 +42,29 @@ namespace BenchmarkDotNet.Extensions
                 {
                     // remove each filter string and stop when we get to the next argument flag
                     parameterValue.Add(argsList[parameterIndex + 1]);
+                    argsList.RemoveAt(parameterIndex + 1);
+                }
+            }
+            //We only want to remove the --exclusion-filter if it exists
+            if (parameterIndex != -1)
+            {
+                argsList.RemoveAt(parameterIndex);
+            }
+
+            return argsList;
+        }
+
+        public static List<string> ParseAndRemovePairsParameter(List<string> argsList, string parameter, out Dictionary<string, string> pairValues)
+        {
+            int parameterIndex = argsList.IndexOf(parameter);
+            pairValues = new Dictionary<string, string>();
+
+            if (parameterIndex + 1 < argsList.Count)
+            {
+                while (parameterIndex + 1 < argsList.Count && !argsList[parameterIndex + 1].StartsWith("-"))
+                {
+                    string[] pair = argsList[parameterIndex + 1].Split(":".ToCharArray(), 2);
+                    pairValues.Add(pair[0], pair[1]);
                     argsList.RemoveAt(parameterIndex + 1);
                 }
             }
