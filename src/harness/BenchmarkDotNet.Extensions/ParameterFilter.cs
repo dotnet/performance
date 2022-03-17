@@ -16,7 +16,10 @@ public class ParameterFilter : IFilter
     public bool Predicate(BenchmarkCase benchmarkCase)
     {
         Dictionary<string, object> items = benchmarkCase.Parameters.Items.ToDictionary<ParameterInstance, string, object>(instance => instance.Name, instance => instance.Value);
-        
+
+        if (_parameterValues == null)
+            return true;
+
         foreach (string key in _parameterValues.Keys)
         {
             if (!items.Keys.Contains(key))
