@@ -21,7 +21,7 @@ namespace MicroBenchmarks
             int? partitionIndex;
             List<string> exclusionFilterValue;
             List<string> categoryExclusionFilterValue;
-            Dictionary<string, object> parameterFilterValue;
+            Dictionary<string, string> parameterFilterValue;
             bool getDiffableDisasm;
 
             // Parse and remove any additional parameters that we need that aren't part of BDN

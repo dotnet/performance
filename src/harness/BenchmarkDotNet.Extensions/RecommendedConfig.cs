@@ -25,7 +25,7 @@ namespace BenchmarkDotNet.Extensions
             int? partitionIndex = null,
             List<string> exclusionFilterValue = null,
             List<string> categoryExclusionFilterValue = null,
-            Dictionary<string, object> parameterFilterValue = null,
+            Dictionary<string, string> parameterFilterValue = null,
             Job job = null,
             bool getDiffableDisasm = false)
         {

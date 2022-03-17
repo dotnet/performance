@@ -6,9 +6,9 @@ using System.Linq;
 
 public class ParameterFilter : IFilter
 {
-    private readonly Dictionary<string, object> _parameterValues;
+    private readonly Dictionary<string, string> _parameterValues;
 
-    public ParameterFilter(Dictionary<string, object> parameterValues)
+    public ParameterFilter(Dictionary<string, string> parameterValues)
     {
         _parameterValues = parameterValues;
     }
@@ -24,7 +24,7 @@ public class ParameterFilter : IFilter
         {
             if (!items.Keys.Contains(key))
                 return false;
-            if (!items[key].Equals(_parameterValues[key]))
+            if (!items[key].ToString().Equals(_parameterValues[key]))
                 return false;
         }
         

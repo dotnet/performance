@@ -54,32 +54,17 @@ namespace BenchmarkDotNet.Extensions
             return argsList;
         }
 
-        public static List<string> ParseAndRemovePairsParameter(List<string> argsList, string parameter, out Dictionary<string, object> pairValues)
+        public static List<string> ParseAndRemovePairsParameter(List<string> argsList, string parameter, out Dictionary<string, string> pairValues)
         {
             int parameterIndex = argsList.IndexOf(parameter);
-            pairValues = new Dictionary<string, object>();
+            pairValues = new Dictionary<string, string>();
 
             if (parameterIndex + 1 < argsList.Count)
             {
                 while (parameterIndex + 1 < argsList.Count && !argsList[parameterIndex + 1].StartsWith("-"))
                 {
                     string[] pair = argsList[parameterIndex + 1].Split(":".ToCharArray(), 2);
-                    object value;
-                    int i_result;
-                    bool b_result;
-                    if (Int32.TryParse(pair[1], out i_result))
-                    {
-                        value = i_result;
-                    }
-                    else if (Boolean.TryParse(pair[1], out b_result))
-                    {
-                        value = b_result;
-                    }
-                    else
-                    {
-                        value = pair[1];
-                    }
-                    pairValues.Add(pair[0], value);
+                    pairValues.Add(pair[0], pair[1]);
                     argsList.RemoveAt(parameterIndex + 1);
                 }
             }
