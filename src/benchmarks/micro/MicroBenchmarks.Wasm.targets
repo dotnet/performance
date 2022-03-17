@@ -1,6 +1,11 @@
 <Project>
   <PropertyGroup>
-    <WasmBuildOnlyAfterPublish Condition="'$(RunAOTCompilation)' == 'true'">false</WasmBuildOnlyAfterPublish>
+    <!-- Skip the first build -->
+    <WasmBuildOnlyAfterPublish>true</WasmBuildOnlyAfterPublish>
+
+    <!-- this will fail the build if the emcc versions don't match -->
+    <_WasmStrictVersionMatch>true</_WasmStrictVersionMatch>
+    <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
   <Target Name="ExtraPrepareForWasmBuild" AfterTargets="PrepareForWasmBuild">
