@@ -375,7 +375,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 animationValue = 0
             else:
                 animationValue = 1
-            minimumTimeoutValue = 120000 # Set the timeout minimum to 2 minutes
+            minimumTimeoutValue = 2 * 60 * 1000 # milliseconds
             cmdline = [
                 adb.stdout.strip(),
                 'shell', 'settings', 'put', 'global', 'window_animation_scale', str(animationValue)
