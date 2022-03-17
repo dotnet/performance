@@ -9,4 +9,8 @@
       <WasmFilesToIncludeInFileSystem Include="@(_LibrariesFile)" TargetPath="libraries\%(RecursiveDir)%(FileName)%(Extension)" />
     </ItemGroup>
   </Target>
+
+  <Target Name="Validate" BeforeTargets="Build">
+    <Error Text="Cannot find WasmMainJSPath: $(WasmMainJSPath)" Condition="'$(WasmMainJSPath)' == '' or !Exists('$(WasmMainJSPath)')" />
+  </Target>
 </Project>
