@@ -6,6 +6,7 @@
 using System;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 // HW Intrinsic APIs are available only in .NET Core 3.0+
 #if !NETFRAMEWORK
@@ -312,6 +313,7 @@ public class BilinearTest
 #if !NETFRAMEWORK
     [BenchmarkCategory(Categories.Runtime)]
     [Benchmark]
+    [OperatingSystemsArchitectureFilter(allowed: true, Architecture.X64, Architecture.X86)]
     public double[] Interpol_AVX()
     {
         if (Avx2.IsSupported)
