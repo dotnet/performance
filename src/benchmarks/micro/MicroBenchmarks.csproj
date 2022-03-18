@@ -31,11 +31,16 @@
             <SystemVersion>5.0.0</SystemVersion>
         </PropertyGroup>
     </When>
-    <Otherwise>
-        <!-- when comparing against Full .NET Framework we are usually interested in CLR differences, so net461 belongs to this block -->
+    <When Condition="'$(TargetFramework)' == 'net461'">
         <PropertyGroup>
             <ExtensionsVersion>6.0.0</ExtensionsVersion>
             <SystemVersion>6.0.0</SystemVersion>
+        </PropertyGroup>
+    </When>
+    <Otherwise>
+        <PropertyGroup>
+            <ExtensionsVersion>7.0.0-preview.2.22152.2</ExtensionsVersion>
+            <SystemVersion>7.0.0-preview.2.22152.2</SystemVersion>
         </PropertyGroup>
     </Otherwise>
   </Choose>
