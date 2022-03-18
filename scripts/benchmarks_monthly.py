@@ -140,7 +140,7 @@ def __main(args: list) -> int:
             try:
                 benchmarks_ci.__main(benchmarkArgs)
             except CalledProcessError:
-                logger.log(logLevel, logPrefix + 'benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
+                log('benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
                 # don't rethrow if some results were produced, as we want to create the tar file with results anyway
                 if not os.path.isdir(resultsPath):
                     raise
