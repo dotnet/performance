@@ -10,7 +10,7 @@ namespace System.Tests
     [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Guid
     {
-        const string guid1Str = "a8a110d5-fc49-43c5-bf46-802db8f843ff";
+        const string guidStr = "a8a110d5-fc49-43c5-bf46-802db8f843ff";
         const string guid2Str = "86A96B5D-F9B2-4CB5-B531-FC7021FA99D7";
         
         private readonly Guid _guid;
