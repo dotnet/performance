@@ -15,6 +15,7 @@ namespace System.Tests
         
         private readonly Guid _guid;
         private readonly Guid _same;
+        private readonly Guid _guid2;
         private readonly byte[] _buffer;
 
         public Perf_Guid()
