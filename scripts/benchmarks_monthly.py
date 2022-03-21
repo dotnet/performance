@@ -99,7 +99,7 @@ def __main(args: list) -> int:
 
     logPrefix = ''
     logger = getLogger()
-    logLevel = getLogger().getEffectiveLevel()
+    logLevel = logger.getEffectiveLevel()
 
     def log(text: str):
         logger.log(logLevel, logPrefix + text)
