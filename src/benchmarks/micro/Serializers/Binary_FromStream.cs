@@ -17,6 +17,7 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
     [BenchmarkCategory(Categories.NoWASM)]
+    [AotFilter("Dynamic code generation is not supported.")]
     public class Binary_FromStream<T>
     {
         private T value;
@@ -36,7 +37,6 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.Libraries)]
         [Benchmark(Description = nameof(BinaryFormatter))]
-        [AotFilter("BinaryFormatter serialization and deserialization are disabled within this application.")]
         public T BinaryFormatter_()
         {
             memoryStream.Position = 0;
@@ -77,7 +77,6 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "MessagePack")]
-        [AotFilter("Dynamic code generation is not supported on this platform.")]
         public T MessagePack_()
         {
             memoryStream.Position = 0;

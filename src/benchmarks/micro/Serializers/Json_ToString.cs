@@ -13,6 +13,7 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
     [BenchmarkCategory(Categories.NoAOT)]
+    [AotFilter("Dynamic code generation is not supported.")]
     public class Json_ToString<T>
     {
         private T value;
@@ -22,7 +23,6 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]
-        [AotFilter("Dynamic code generation is not supported on this platform.")]
         public string Jil_() => Jil.JSON.Serialize<T>(value, Jil.Options.ISO8601);
 
         [BenchmarkCategory(Categories.Runtime, Categories.Libraries, Categories.ThirdParty)]
@@ -31,7 +31,6 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Utf8Json")]
-        [AotFilter("Dynamic code generation is not supported on this platform.")]
         public string Utf8Json_() => Utf8Json.JsonSerializer.ToJsonString(value);
 
         // DataContractJsonSerializer does not provide an API to serialize to string

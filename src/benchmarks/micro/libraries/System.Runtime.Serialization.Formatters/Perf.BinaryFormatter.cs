@@ -7,11 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes.Filters;
 using MicroBenchmarks;
 
 namespace System.Runtime.Serialization.Formatters.Tests
 {
     [BenchmarkCategory(Categories.Libraries, Categories.NoWASM)]
+    [AotFilter("Disabled by default.")]
     public class Perf_BinaryFormatter
     {
         private readonly BinaryFormatter _formatter = new BinaryFormatter();

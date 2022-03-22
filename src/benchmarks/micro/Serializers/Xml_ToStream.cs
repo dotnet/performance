@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Xml;
 using System.Xml.Serialization;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes.Filters;
 
 namespace MicroBenchmarks.Serializers
 {
@@ -18,6 +19,7 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(XmlElement))]
     [GenericTypeArguments(typeof(SimpleStructWithProperties))]
     [GenericTypeArguments(typeof(ClassImplementingIXmlSerialiable))]
+    [AotFilter("Currently not supported due to missing metadata.")]
     public class Xml_ToStream<T>
     {
         private T value;

@@ -16,6 +16,7 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
     [BenchmarkCategory(Categories.NoAOT)]
+    [AotFilter("Dynamic code generation is not supported.")]
     public class Json_ToStream<T>
     {
         private T value;
@@ -41,7 +42,6 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]
-        [AotFilter("Dynamic code generation is not supported on this platform.")]
         public void Jil_()
         {
             memoryStream.Position = 0;
@@ -58,7 +58,6 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Utf8Json")]
-        [AotFilter("Dynamic code generation is not supported on this platform.")]
         public void Utf8Json_()
         {
             memoryStream.Position = 0;

@@ -13,6 +13,7 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
     [BenchmarkCategory(Categories.NoAOT)]
+    [AotFilter("Dynamic code generation is not supported.")]
     public class Json_FromString<T>
     {
         private string serialized;
@@ -22,7 +23,6 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]
-        [AotFilter("Dynamic code generation is not supported on this platform.")]
 #if NET7_0 // https://github.com/dotnet/runtime/issues/64657
         [OperatingSystemsArchitectureFilter(false, System.Runtime.InteropServices.Architecture.Arm64)]
 #endif
@@ -40,7 +40,6 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Utf8Json")]
-        [AotFilter("Dynamic code generation is not supported on this platform.")]
         public T Utf8Json_() => Utf8Json.JsonSerializer.Deserialize<T>(serialized);
     }
 }
