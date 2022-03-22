@@ -13,8 +13,10 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
+using BenchmarkDotNet.Attributes.Filters;
 
 [BenchmarkCategory(Categories.Runtime, Categories.JIT, Categories.CscBench, Categories.NoWASM)]
+[AotFilter("GetReferencedAssemblies() is not supported")]
 public class CscBench
 {
     public const int CompileIterations = 1500;
