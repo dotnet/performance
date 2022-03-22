@@ -6,6 +6,7 @@ using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes.Filters;
 
 namespace MicroBenchmarks.Serializers
 {
@@ -40,6 +41,7 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]
+        [AotFilter("Dynamic code generation is not supported on this platform.")]
         public T Jil_()
         {
             memoryStream.Position = 0;
@@ -89,6 +91,7 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Utf8Json")]
+        [AotFilter("Dynamic code generation is not supported on this platform.")]
         public T Utf8Json_()
         {
             memoryStream.Position = 0;

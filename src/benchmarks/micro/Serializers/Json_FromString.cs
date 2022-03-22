@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes.Filters;
 
 namespace MicroBenchmarks.Serializers
 {
@@ -21,6 +22,7 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]
+        [AotFilter("Dynamic code generation is not supported on this platform.")]
 #if NET7_0 // https://github.com/dotnet/runtime/issues/64657
         [OperatingSystemsArchitectureFilter(false, System.Runtime.InteropServices.Architecture.Arm64)]
 #endif
@@ -38,6 +40,7 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Utf8Json")]
+        [AotFilter("Dynamic code generation is not supported on this platform.")]
         public T Utf8Json_() => Utf8Json.JsonSerializer.Deserialize<T>(serialized);
     }
 }

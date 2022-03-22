@@ -53,6 +53,7 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "MessagePack")]
+        [AotFilter("Dynamic code generation is not supported on this platform.")]
         public void MessagePack_()
         {
             memoryStream.Position = 0;
