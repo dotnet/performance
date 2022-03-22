@@ -246,8 +246,10 @@ def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
     # if we don't it's gonna restore to default global folder
     run_args += ['--packages', get_packages_directory()]
 
-    # Required for CoreRT where:
+    # Required for CoreRT, WASM and NativeAOT where:
     #   host process framework != benchmark process framework
+    if framework.startswith("corert") or framework.startswith("nativeaot"):
+        run_args += ['--runtimes', framework]
     if args.wasm:
         if framework == "net5.0" or framework == "net6.0":
             run_args += ['--runtimes', 'wasm']
