@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes.Filters;
 using MicroBenchmarks.Serializers.Helpers;
 
 namespace MicroBenchmarks.Serializers
@@ -35,6 +36,7 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.Libraries)]
         [Benchmark(Description = nameof(BinaryFormatter))]
+        [AotFilter("BinaryFormatter serialization and deserialization are disabled within this application.")]
         public T BinaryFormatter_()
         {
             memoryStream.Position = 0;
