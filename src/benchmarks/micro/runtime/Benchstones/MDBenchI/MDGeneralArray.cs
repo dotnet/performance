@@ -5,6 +5,7 @@
 
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes.Filters;
 using MicroBenchmarks;
 
 namespace Benchstone.MDBenchI
@@ -66,6 +67,7 @@ public class MDGeneralArray
     }
 
     [Benchmark(Description = "MDGeneralArray2")]
+    [AotFilter("Arrays with non-zero lower bounds are not supported.")]
     public bool Test2() {
         int[] lengths = new int[3] { 10, 10, 10 };
         int[] lowerBounds = new int[3] { -5, 0, 5 };
