@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes.Filters;
 using MicroBenchmarks;
 
 namespace System.Reflection
@@ -22,6 +23,7 @@ namespace System.Reflection
         public object CreateInstanceType() => System.Activator.CreateInstance(typeof(T));
 
         [Benchmark]
+        [AotFilter("Not supported.")]
         public object CreateInstanceNames() => System.Activator.CreateInstance(_assemblyName, _typeName);
     }
 
