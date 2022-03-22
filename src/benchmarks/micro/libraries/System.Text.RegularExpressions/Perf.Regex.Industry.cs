@@ -15,7 +15,7 @@ namespace System.Text.RegularExpressions.Tests
     {
         public static string ReadInputFile(string name)
         {
-            string path = Path.Combine(Path.GetDirectoryName(typeof(Perf_Regex_Industry).Assembly.Location), "libraries", "System.Text.RegularExpressions", "TestData", name);
+            string path = Path.Combine(AppContext.BaseDirectory, "libraries", "System.Text.RegularExpressions", "TestData", name);
             using (FileStream fs = File.OpenRead(path))
             using (var gz = new GZipStream(fs, CompressionMode.Decompress))
             using (var reader = new StreamReader(gz))

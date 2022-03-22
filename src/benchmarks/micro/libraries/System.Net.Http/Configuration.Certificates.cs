@@ -27,7 +27,7 @@ namespace System.Net.Test.Common
                 => new X509Certificate2(
                     File.ReadAllBytes(
                         Path.Combine(
-                            Path.GetDirectoryName(typeof(Certificates).Assembly.Location), 
+                            AppContext.BaseDirectory, 
                             "libraries", 
                             "System.Net.Http", 
                             certificateFileName)),
