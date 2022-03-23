@@ -163,7 +163,7 @@ namespace System.Tests
             yield return new object[] { "Hello", 'l', '!' };    // Contains two 'l'
             yield return new object[] { "Hello", 'a', 'b' };    // Contains one 'a'
             yield return new object[] { "This is a very nice sentence", 'z', 'y' }; // 'z' does not exist in the string
-            yield return new object[] { "This is a very nice sentence", 'i', 'I' }; // 'i' occuress 3 times in the string
+            yield return new object[] { "This is a very nice sentence", 'i', 'I' }; // 'i' occurs 3 times in the string
             yield return new object[] { new string('-', 100), '-', '+' };
             yield return new object[] { new string('-', 1000), '-', '+' };
         }
