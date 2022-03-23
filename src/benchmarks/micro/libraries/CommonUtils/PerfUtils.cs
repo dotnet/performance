@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using System.Linq;
 
 namespace System
 {
@@ -30,6 +31,16 @@ namespace System
             }
 
             return new string(str);
+        }
+
+        /// <summary>
+        /// Helper method to create a string containing random alphanumeric
+        /// characters equal to the specified length
+        /// </summary>
+        public static string CreateRandomString(int length, string alphabet = "abcdefghijklmnopqrstuvwxyz0123456789", int seed = 42)
+        {
+            Random random = new(seed);  // use the given seed, to make the benchmarks repeatable
+            return new string(Enumerable.Repeat(alphabet, length).Select(s => s[random.Next(s.Length)]).ToArray());
         }
     }
 }

@@ -164,8 +164,8 @@ namespace System.Tests
             yield return new object[] { "Hello", 'a', 'b' };    // Contains one 'a'
             yield return new object[] { "This is a very nice sentence", 'z', 'y' }; // 'z' does not exist in the string
             yield return new object[] { "This is a very nice sentence", 'i', 'I' }; // 'i' occurs 3 times in the string
-            yield return new object[] { new string('-', 100), '-', '+' };
-            yield return new object[] { new string('-', 1000), '-', '+' };
+            yield return new object[] { PerfUtils.CreateRandomString(100, seed: 42), 'b', '+' };    // b occurs 8 times in the string
+            yield return new object[] { PerfUtils.CreateRandomString(1000, seed: 42), 'b', '+' };   // b occurs 42 times in the string
         }
 
         [Benchmark]
