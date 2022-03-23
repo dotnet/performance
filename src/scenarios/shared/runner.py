@@ -8,13 +8,15 @@ import os
 import glob
 import re
 import time
+from datetime import datetime
+import json
 
 from logging import exception, getLogger
 from collections import namedtuple
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 from io import StringIO
-from shutil import move
+from shutil import move, rmtree
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
 from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand
@@ -57,12 +59,12 @@ class Runner:
 
         # parse only command
         parseonlyparser = subparsers.add_parser(const.DEVICESTARTUP,
-                                              description='measure time to main for Android apps')
+                                              description='measure time to startup for Android/iOS apps')
         parseonlyparser.add_argument('--device-type', choices=['android','ios'],type=str.lower,help='Device type for testing', dest='devicetype')
         parseonlyparser.add_argument('--package-path', help='Location of test application', dest='packagepath')
-        parseonlyparser.add_argument('--package-name', help='Classname of application', dest='packagename')
+        parseonlyparser.add_argument('--package-name', help='Classname (Android) or Bundle ID (iOS) of application', dest='packagename')
         parseonlyparser.add_argument('--startup-iterations', help='Startups to run (1+)', type=int, default=10, dest='startupiterations')
-        parseonlyparser.add_argument('--disable-animations', help='Disable Android device animations', action='store_true', dest='animationsdisabled')
+        parseonlyparser.add_argument('--disable-animations', help='Disable Android device animations, does nothing on iOS.', action='store_true', dest='animationsdisabled')
         self.add_common_arguments(parseonlyparser)
 
         # inner loop command
@@ -306,7 +308,7 @@ ex: C:\repos\performance;C:\repos\runtime
             startup.runtests(self.traits)
 
 
-        elif self.testtype == const.DEVICESTARTUP:
+        elif self.testtype == const.DEVICESTARTUP and self.devicetype == 'android':
             # ADB Key Event corresponding numbers: https://gist.github.com/arjunv/2bbcca9a1a1c127749f8dcb6d36fb0bc
             # Regex used to split the response from starting the activity and saving each value
             #Example:
@@ -327,7 +329,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     getLogger().info("Removed: " + os.path.join(const.TRACEDIR, file))
                     os.remove(file)
 
-            cmdline = xharnesscommand() + [self.devicetype, 'state', '--adb']
+            cmdline = xharnesscommand() + ['android', 'state', '--adb']
             adb = RunCommand(cmdline, verbose=True)
             adb.run()
 
@@ -427,7 +429,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 getLogger().info(f"Animation values successfully set to {animationValue}.")
 
             installCmd = xharnesscommand() + [
-                self.devicetype,
+                'android',
                 'install',
                 '--app', self.packagepath,
                 '--package-name',
@@ -575,6 +577,159 @@ ex: C:\repos\performance;C:\repos\runtime
 
             if screenWasOff:
                 RunCommand(keyInputCmd + ['26'], verbose=True).run() # Turn the screen back off
+
+            # Create traces to store the data so we can keep the current general parse trace flow
+            getLogger().info(f"Logs: \n{allResults}")
+            os.makedirs(f"{const.TRACEDIR}/PerfTest", exist_ok=True)
+            traceFile = open(f"{const.TRACEDIR}/PerfTest/runoutput.trace", "w")
+            for result in allResults:
+                traceFile.write(result)
+            traceFile.close()
+
+            startup = StartupWrapper()
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname=self.scenarioname)
+            startup.parsetraces(self.traits)
+
+        elif self.testtype == const.DEVICESTARTUP and self.devicetype == 'ios':
+
+            getLogger().info("Clearing potential previous run nettraces")
+            for file in glob.glob(os.path.join(const.TRACEDIR, 'PerfTest', 'runoutput.trace')):
+                if exists(file):   
+                    getLogger().info("Removed: " + os.path.join(const.TRACEDIR, file))
+                    os.remove(file)
+
+            getLogger().info("Clearing potential previous run *.logarchive")
+            for logarchive in glob.glob(os.path.join(const.TRACEDIR, '*.logarchive')):
+                if exists(logarchive):
+                    getLogger().info("Removed: " + os.path.join(const.TRACEDIR, logarchive))
+                    rmtree(logarchive)
+
+            getLogger().info("Checking device state.")
+            cmdline = xharnesscommand() + ['apple', 'state']
+            adb = RunCommand(cmdline, verbose=True)
+            adb.run()
+
+            getLogger().info("Installing app on device.")
+            installCmd = xharnesscommand() + [
+                'apple',
+                'install',
+                '--app', self.packagepath,
+                '--target', 'ios-device',
+                '-o',
+                const.TRACEDIR,
+                '-v'
+            ]
+            RunCommand(installCmd, verbose=True).run()
+            getLogger().info("Completed install.")
+
+            allResults = []
+            for i in range(self.startupiterations):
+                getLogger().info("Waiting 10 secs to ensure we're not getting confused with previous app run.")
+                time.sleep(10)
+
+                getLogger().info(f"Collect startup data for iteration {i}.")
+                runCmdTimestamp = datetime.now()
+                runCmd = xharnesscommand() + [
+                    'apple',
+                    'mlaunch',
+                    '--',
+                    f'--launchdevbundleid={self.packagename}',
+                ]
+                runCmdCommand = RunCommand(runCmd, verbose=True)
+                runCmdCommand.run()
+                app_pid_search = re.search("Launched application.*with pid (?P<app_pid>\d+)", runCmdCommand.stdout)
+                app_pid = int(app_pid_search.group('app_pid'))
+
+                getLogger().info(f"Waiting 5 secs to ensure app with PID {app_pid} is fully started.")
+                time.sleep(5)
+                collectCmd = [
+                    'sudo',
+                    'log',
+                    'collect',
+                    '--device',
+                    '--start', runCmdTimestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                    '--output', os.path.join(const.TRACEDIR, f'iteration{i}.logarchive'),
+                ]
+                RunCommand(collectCmd, verbose=True).run()
+
+                # There are four watchdog events from SpringBoard during an application startup:
+                #
+                # [application<net.dot.maui>:770] [realTime] Now monitoring resource allowance of 20.00s (at refreshInterval -1.00s)
+                # [application<net.dot.maui>:770] [realTime] Stopped monitoring.
+                # [application<net.dot.maui>:770] [realTime] Now monitoring resource allowance of 19.28s (at refreshInterval -1.00s)
+                # [application<net.dot.maui>:770] [realTime] Stopped monitoring.
+                #
+                # The first two are monitoring the time it takes the OS to create the process, load .dylibs and call into the app's main()
+                # The second two are monitoring the time it takes the app to draw the first frame of UI from main()
+                #
+                # An app has 20 seconds to complete this sequence or the OS will kill the app.
+                # We collect these log events to do our measurements.
+
+                logShowCmd = [
+                    'log',
+                    'show',
+                    '--predicate', '(process == "SpringBoard") && (category == "Watchdog")',
+                    '--info',
+                    '--style', 'ndjson',
+                    os.path.join(const.TRACEDIR, f'iteration{i}.logarchive'),
+                ]
+                logShowCmdCommand = RunCommand(logShowCmd, verbose=True)
+                logShowCmdCommand.run()
+
+                events = []
+                for line in logShowCmdCommand.stdout.splitlines():
+                    try:
+                        lineData = json.loads(line)
+                        if 'Now monitoring resource allowance' in lineData['eventMessage'] or 'Stopped monitoring' in lineData['eventMessage']:
+                            events.append (lineData)
+                    except:
+                        break
+
+                if len(events) != 4:
+                    raise Exception("Didn't get the right amount of watchdog events")
+
+                timeToMainEventStart = events[0]
+                timeToMainEventStop = events[1]
+                timeToFirstDrawEventStart = events[2]
+                timeToFirstDrawEventStop = events[3]
+
+                # validate log messages
+                if f'application<{self.packagename}>:{app_pid}' not in timeToMainEventStart['eventMessage'] or 'Now monitoring resource allowance of 20.00s' not in timeToMainEventStart['eventMessage']:
+                    raise Exception(f"Invalid timeToMainEventStart: {timeToMainEventStart['eventMessage']}")
+
+                if f'application<{self.packagename}>:{app_pid}' not in timeToMainEventStop['eventMessage'] or 'Stopped monitoring' not in timeToMainEventStop['eventMessage']:
+                    raise Exception(f"Invalid timeToMainEventStop: {timeToMainEventStop['eventMessage']}")
+
+                if f'application<{self.packagename}>:{app_pid}' not in timeToFirstDrawEventStart['eventMessage'] or 'Now monitoring resource allowance of' not in timeToFirstDrawEventStart['eventMessage']:
+                    raise Exception(f"Invalid timeToFirstDrawEventStart: {timeToFirstDrawEventStart['eventMessage']}")
+
+                if f'application<{self.packagename}>:{app_pid}' not in timeToFirstDrawEventStop['eventMessage'] or 'Stopped monitoring' not in timeToFirstDrawEventStop['eventMessage']:
+                    raise Exception(f"Invalid timeToFirstDrawEventStop: {timeToFirstDrawEventStop['eventMessage']}")
+
+                timeToMainEventStartDateTime = datetime.strptime(timeToMainEventStart['timestamp'], '%Y-%m-%d %H:%M:%S.%f%z')
+                timeToMainEventEndDateTime = datetime.strptime(timeToMainEventStop['timestamp'], '%Y-%m-%d %H:%M:%S.%f%z')
+                timeToMainMilliseconds = (timeToMainEventEndDateTime - timeToMainEventStartDateTime).total_seconds() * 1000
+
+                timeToFirstDrawEventStartDateTime = datetime.strptime(timeToFirstDrawEventStart['timestamp'], '%Y-%m-%d %H:%M:%S.%f%z')
+                timeToFirstDrawEventEndDateTime = datetime.strptime(timeToFirstDrawEventStop['timestamp'], '%Y-%m-%d %H:%M:%S.%f%z')
+                timeToFirstDrawMilliseconds = (timeToFirstDrawEventEndDateTime - timeToFirstDrawEventStartDateTime).total_seconds() * 1000
+
+                totalTimeMilliseconds = timeToMainMilliseconds + timeToFirstDrawMilliseconds
+                launchState = 'COLD' if i == 0 else 'WARM'
+                allResults.append(f'LaunchState: {launchState}\nTotalTime: {int(totalTimeMilliseconds)}\nTimeToMain: {int(timeToMainMilliseconds)}\n\n')
+
+            # Done with testing, uninstall the app
+            getLogger().info("Uninstalling app")
+            uninstallAppCmd = xharnesscommand() + [
+                'apple',
+                'uninstall',
+                '--app', self.packagename,
+                '--target', 'ios-device',
+                '-o',
+                const.TRACEDIR,
+                '-v'
+            ]
+            RunCommand(uninstallAppCmd, verbose=True).run()
 
             # Create traces to store the data so we can keep the current general parse trace flow
             getLogger().info(f"Logs: \n{allResults}")
