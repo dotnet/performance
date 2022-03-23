@@ -154,12 +154,19 @@ namespace System.Tests
             => s.TrimEnd(c);
 
         [Benchmark]
-        [Arguments("Hello", 'l', '!')] // Contains two 'l'
-        [Arguments("Hello", 'a', 'b')] // Contains one 'a'
-        [Arguments("This is a very nice sentence", 'z', 'y')] // 'z' does not exist in the string
-        [Arguments("This is a very nice sentence", 'i', 'I')] // 'i' occuress 3 times in the string
+        [ArgumentsSource(nameof(ReplaceArguments))]
         public string Replace_Char(string text, char oldChar, char newChar)
             => text.Replace(oldChar, newChar);
+
+        public static IEnumerable<object[]> ReplaceArguments()
+        {
+            yield return new object[] { "Hello", 'l', '!' };    // Contains two 'l'
+            yield return new object[] { "Hello", 'a', 'b' };    // Contains one 'a'
+            yield return new object[] { "This is a very nice sentence", 'z', 'y' }; // 'z' does not exist in the string
+            yield return new object[] { "This is a very nice sentence", 'i', 'I' }; // 'i' occuress 3 times in the string
+            yield return new object[] { new string('-', 100), '-', '+' };
+            yield return new object[] { new string('-', 1000), '-', '+' };
+        }
 
         [Benchmark]
         [Arguments("This is a very nice sentence", "bad", "nice")] // there are no "bad" words in the string
