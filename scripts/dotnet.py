@@ -243,7 +243,6 @@ class CSharpProject:
         self.__csproj_file = path.abspath(project.file_name)
         self.__working_directory = path.abspath(project.working_directory)
         self.__bin_directory = bin_directory
-        self.__asm_name = self.project_name + '.dll'
 
         if not path.isdir(self.__working_directory):
             raise ValueError(
@@ -277,11 +276,6 @@ class CSharpProject:
     def bin_path(self) -> str:
         '''Gets the directory in which the built binaries will be placed.'''
         return self.__bin_directory
-
-    @property
-    def asm_name(self) -> str:
-        '''Gets the name of the assembly'''
-        return self.__asm_name
 
     def restore(self, 
                 packages_path: str, 
@@ -638,6 +632,23 @@ def get_project_name(csproj_file: str) -> str:
     Gets the project name from the csproj file path
     '''
     return path.splitext(path.basename(path.abspath(csproj_file)))[0]
+
+def get_main_assembly_name(
+        bin_directory: str,
+        project_name: str) -> str:
+    '''
+    Gets the main assembly path, as {project_name}.dll, or .exe
+    '''
+    exe=project_name + '.exe'
+    if path.exists(path.join(bin_directory, exe)):
+        return exe
+
+    dll=project_name + '.dll'
+    if path.exists(path.join(bin_directory, dll)):
+        return dll
+
+    raise ValueError(
+        'Unable to find main assembly - {} or {} in {}'.format(exe, dll, bin_directory))
 
 def get_build_directory(
         bin_directory: str,

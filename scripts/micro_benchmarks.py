@@ -351,7 +351,8 @@ def run(
         framework
     )
 
-    run_args = [BENCHMARKS_CSPROJ.asm_name] + run_args
+    asm_name=dotnet.get_main_assembly_name(runDir, BENCHMARKS_CSPROJ.project_name)
+    run_args = [asm_name] + run_args
     dotnet.exec(runDir, verbose, *run_args)
 
 def __log_script_header(message: str):
