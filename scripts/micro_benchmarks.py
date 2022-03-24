@@ -13,6 +13,7 @@ from os import path
 from subprocess import CalledProcessError
 from traceback import format_exc
 from typing import Tuple
+from shutil import move
 
 import csv
 import sys
@@ -222,7 +223,7 @@ def __process_arguments(args: list) -> Tuple[list, bool]:
 
 
 def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
-    run_args = ['--']
+    run_args = []
     if args.corerun:
         run_args += ['--coreRun'] + args.corerun
     if args.cli:
@@ -260,6 +261,8 @@ def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
 
     return run_args
 
+def __get_run_dir():
+    return path.join(get_artifacts_directory(), 'bin', 'MicroBenchmarks-for-running')
 
 def build(
         BENCHMARKS_CSPROJ: dotnet.CSharpProject,
@@ -294,6 +297,19 @@ def build(
         verbose=verbose,
         packages_path=packages)
 
+    runDir = __get_run_dir()
+    binDir = path.join(get_artifacts_directory(), 'bin', 'MicroBenchmarks')
+    objDir = path.join(get_artifacts_directory(), 'obj', 'MicroBenchmarks')
+
+    # After the build, move the bin/MicroBenchmarks to @runDir
+    # so, it can be run from there with `dotnet exec`
+    remove_directory(runDir)
+    move(binDir, runDir)
+
+    # And remove the original bin/obj dirs, so the subsequent
+    # will be fresh
+    remove_directory(path.join(objDir, 'MicroBenchmarks'))
+    remove_directory(path.join(binDir, 'MicroBenchmarks'))
 
 def run(
         BENCHMARKS_CSPROJ: dotnet.CSharpProject,
@@ -305,18 +321,20 @@ def run(
     __log_script_header("Running .NET micro benchmarks for '{}'".format(
         framework
     ))
-    # dotnet run
+
+    runDir = __get_run_dir()
+    if not path.isdir(runDir):
+        raise RuntimeError("Cannot find {} needed to run the project".format(runDir))
+
+    # dotnet exec
     run_args = __get_benchmarkdotnet_arguments(framework, *args)
     target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(
         framework
     )
-    BENCHMARKS_CSPROJ.run(
-        configuration,
-        target_framework_moniker,
-        verbose,
-        *run_args
-    )
-            
+
+    run_args = ['MicroBenchmarks.dll'] + run_args
+    dotnet.exec(path.join(__get_run_dir(), configuration, framework), verbose, *run_args)
+
 def __log_script_header(message: str):
     getLogger().info('-' * len(message))
     getLogger().info(message)

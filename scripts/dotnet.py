@@ -39,6 +39,13 @@ def info(verbose: bool) -> None:
     cmdline = ['dotnet', '--info']
     RunCommand(cmdline, verbose=verbose).run()
 
+def exec(working_dir: str, verbose: bool, *args) -> None:
+    """
+    Executes `dotnet exec` which can be used to execute assemblies
+    """
+    cmdline = ['dotnet', 'exec']
+    cmdline += list(args)
+    RunCommand(cmdline, verbose=verbose).run(working_dir)
 
 def __log_script_header(message: str):
     message_length = len(message)
