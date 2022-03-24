@@ -230,9 +230,10 @@ def __main(args: list) -> int:
     # dotnet --info
     dotnet.info(verbose=verbose)
 
+    bin_dir_to_use=micro_benchmarks.get_bin_dir_to_use(args.csprojfile, args.bin_directory, args.run_isolated)
     BENCHMARKS_CSPROJ = dotnet.CSharpProject(
         project=args.csprojfile,
-        bin_directory=args.bin_directory
+        bin_directory=bin_dir_to_use
     )
 
     if not args.run_only:
@@ -243,6 +244,7 @@ def __main(args: list) -> int:
             args.configuration,
             target_framework_monikers,
             args.incremental,
+            args.run_isolated,
             verbose
         )
 
@@ -255,6 +257,7 @@ def __main(args: list) -> int:
                     BENCHMARKS_CSPROJ,
                     args.configuration,
                     framework,
+                    args.run_isolated,
                     verbose,
                     args
                 )
