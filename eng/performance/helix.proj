@@ -24,7 +24,6 @@
 
   <PropertyGroup>
     <PartitionCount>5</PartitionCount>
-    <PartitionCount Condition="$(HelixType.Contains('microNativeAOT'))">10</PartitionCount>
   </PropertyGroup>
   <ItemGroup>
     <Partition Include="Partition0" Index="0" />
@@ -33,13 +32,7 @@
     <Partition Include="Partition3" Index="3" />
     <Partition Include="Partition4" Index="4" />
   </ItemGroup>
-  <ItemGroup Condition="$(HelixType.Contains('microNativeAOT'))">
-    <Partition Include="Partition5" Index="5" />
-    <Partition Include="Partition6" Index="6" />
-    <Partition Include="Partition7" Index="7" />
-    <Partition Include="Partition8" Index="8" />
-    <Partition Include="Partition9" Index="9" />
-  </ItemGroup>
+
   <!-- 
     Partition the Microbenchamrks project, but nothing else
   -->
