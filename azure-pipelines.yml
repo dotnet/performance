@@ -246,7 +246,7 @@ jobs:
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'runtime libraries'
+      runCategories: 'runtime'
       channels:
         - nativeaot7.0
 
