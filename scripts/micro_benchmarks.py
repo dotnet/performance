@@ -333,27 +333,24 @@ def run(
         framework
     ))
 
-    if run_isolated:
-        runDir = BENCHMARKS_CSPROJ.bin_path
-    else:
-        runDir = dotnet.get_build_directory(
-                    BENCHMARKS_CSPROJ.bin_path,
-                    BENCHMARKS_CSPROJ.project_name,
-                    configuration,
-                    framework)
-
-    if not path.isdir(runDir):
-        raise RuntimeError("Cannot find {} needed to run the project".format(runDir))
-
     # dotnet exec
     run_args = __get_benchmarkdotnet_arguments(framework, *args)
     target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(
         framework
     )
 
-    asm_name=dotnet.get_main_assembly_name(runDir, BENCHMARKS_CSPROJ.project_name)
-    run_args = [asm_name] + run_args
-    dotnet.exec(runDir, verbose, *run_args)
+    if run_isolated:
+        runDir = BENCHMARKS_CSPROJ.bin_path
+        asm_name=dotnet.get_main_assembly_name(runDir, BENCHMARKS_CSPROJ.project_name)
+        run_args = [asm_name] + run_args
+        dotnet.exec(runDir, verbose, *run_args)
+    else:
+        BENCHMARKS_CSPROJ.run(
+            configuration,
+            target_framework_moniker,
+            verbose,
+            *run_args
+        )
 
 def __log_script_header(message: str):
     getLogger().info('-' * len(message))
