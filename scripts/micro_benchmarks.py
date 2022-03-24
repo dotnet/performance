@@ -13,7 +13,6 @@ from os import path
 from subprocess import CalledProcessError
 from traceback import format_exc
 from typing import Tuple
-from shutil import move
 
 import csv
 import sys
@@ -341,9 +340,8 @@ def run(
 
     if run_isolated:
         runDir = BENCHMARKS_CSPROJ.bin_path
-        asm_name=dotnet.get_main_assembly_name(runDir, BENCHMARKS_CSPROJ.project_name)
-        run_args = [asm_name] + run_args
-        dotnet.exec(runDir, verbose, *run_args)
+        asm_path=dotnet.get_main_assembly_path(runDir, BENCHMARKS_CSPROJ.project_name)
+        dotnet.exec(asm_path, verbose, *run_args)
     else:
         BENCHMARKS_CSPROJ.run(
             configuration,
