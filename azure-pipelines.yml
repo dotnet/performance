@@ -215,7 +215,23 @@ jobs:
       runCategories: 'roslyn'
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
         - main
-        
+
+  # Windows x64 NativeAOT micro benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 21H1
+      kind: microNativeAOT
+      architecture: x64
+      pool:
+        vmImage: windows-2019
+      machinePool: Open
+      queue: Windows.10.Amd64.Client21H1.Open
+      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+      runCategories: 'runtime libraries' 
+      channels:
+        - nativeaot7.0
+
   # Ubuntu 1804 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
@@ -232,23 +248,6 @@ jobs:
       runCategories: 'runtime libraries'
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - main
-
-  # Ubuntu 1804 x64 NativeAOT micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: ubuntu
-      osVersion: 1804
-      kind: microNativeAOT
-      architecture: x64
-      pool: 
-        vmImage: ubuntu-latest
-      machinePool: Open
-      queue: Ubuntu.1804.Amd64.Open
-      container: ubuntu_x64_build_container
-      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'runtime'
-      channels:
-        - nativeaot7.0
 
   # Ubuntu 1804 x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
