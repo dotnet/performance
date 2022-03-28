@@ -1,6 +1,11 @@
 <Project>
   <PropertyGroup>
-    <WasmBuildOnlyAfterPublish Condition="'$(RunAOTCompilation)' == 'true'">false</WasmBuildOnlyAfterPublish>
+    <!-- Skip the first build -->
+    <WasmBuildOnlyAfterPublish>true</WasmBuildOnlyAfterPublish>
+
+    <!-- this will fail the build if the emcc versions don't match -->
+    <_WasmStrictVersionMatch>true</_WasmStrictVersionMatch>
+    <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
   <Target Name="ExtraPrepareForWasmBuild" AfterTargets="PrepareForWasmBuild">
@@ -8,5 +13,9 @@
       <_LibrariesFile Include="$(TargetDir)publish\libraries\**\*" />
       <WasmFilesToIncludeInFileSystem Include="@(_LibrariesFile)" TargetPath="libraries\%(RecursiveDir)%(FileName)%(Extension)" />
     </ItemGroup>
+  </Target>
+
+  <Target Name="Validate" BeforeTargets="Build">
+    <Error Text="Cannot find WasmMainJSPath: $(WasmMainJSPath)" Condition="'$(WasmMainJSPath)' == '' or !Exists('$(WasmMainJSPath)')" />
   </Target>
 </Project>

@@ -61,7 +61,7 @@ class Runner:
         parseonlyparser.add_argument('--device-type', choices=['android','ios'],type=str.lower,help='Device type for testing', dest='devicetype')
         parseonlyparser.add_argument('--package-path', help='Location of test application', dest='packagepath')
         parseonlyparser.add_argument('--package-name', help='Classname of application', dest='packagename')
-        parseonlyparser.add_argument('--startup-iterations', help='Startups to run (1+)', type=int, default=5, dest='startupiterations')
+        parseonlyparser.add_argument('--startup-iterations', help='Startups to run (1+)', type=int, default=10, dest='startupiterations')
         parseonlyparser.add_argument('--disable-animations', help='Disable Android device animations', action='store_true', dest='animationsdisabled')
         self.add_common_arguments(parseonlyparser)
 
@@ -342,7 +342,7 @@ ex: C:\repos\performance;C:\repos\runtime
             RunCommand(cmdline, verbose=True).run()
 
             # Get animation values
-            getLogger().info("Getting animation values")
+            getLogger().info("Getting Values we will need set specifically")
             cmdline = [
                 adb.stdout.strip(),
                 'shell', 'settings', 'get', 'global', 'window_animation_scale'
@@ -361,14 +361,21 @@ ex: C:\repos\performance;C:\repos\runtime
             ]
             animator_duration_scale_cmd = RunCommand(cmdline, verbose=True)
             animator_duration_scale_cmd.run()
-            getLogger().info(f"Retrieved values window {window_animation_scale_cmd.stdout.strip()}, transition {transition_animation_scale_cmd.stdout.strip()}, animator {animator_duration_scale_cmd.stdout.strip()}")
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'get', 'system', 'screen_off_timeout'
+            ]
+            screen_off_timeout_cmd = RunCommand(cmdline, verbose=True)
+            screen_off_timeout_cmd.run()
+            getLogger().info(f"Retrieved values window {window_animation_scale_cmd.stdout.strip()}, transition {transition_animation_scale_cmd.stdout.strip()}, animator {animator_duration_scale_cmd.stdout.strip()}, screen timeout {screen_off_timeout_cmd.stdout.strip()}")
 
             # Make sure animations are set to 1 or disabled
-            getLogger().info("Setting animation values")
+            getLogger().info("Setting needed values")
             if(self.animationsdisabled):
                 animationValue = 0
             else:
                 animationValue = 1
+            minimumTimeoutValue = 2 * 60 * 1000 # milliseconds
             cmdline = [
                 adb.stdout.strip(),
                 'shell', 'settings', 'put', 'global', 'window_animation_scale', str(animationValue)
@@ -384,6 +391,13 @@ ex: C:\repos\performance;C:\repos\runtime
                 'shell', 'settings', 'put', 'global', 'animator_duration_scale', str(animationValue)
             ]
             RunCommand(cmdline, verbose=True).run()
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'put', 'system', 'screen_off_timeout', str(minimumTimeoutValue)
+            ]
+            if(minimumTimeoutValue > int(screen_off_timeout_cmd.stdout.strip())):
+                getLogger().info("Screen off value is lower than minimum time, setting to higher time")
+                RunCommand(cmdline, verbose=True).run()
 
             # Check for success
             getLogger().info("Getting animation values to verify it worked")
@@ -514,6 +528,8 @@ ex: C:\repos\performance;C:\repos\runtime
                     getLogger().exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
                     exit(-1)
 
+            time.sleep(10) # Add delay to ensure app is fully installed and give it some time to settle
+
             allResults = []
             for i in range(self.startupiterations):
                 startStats = RunCommand(startAppCmd, verbose=True)
@@ -549,6 +565,11 @@ ex: C:\repos\performance;C:\repos\runtime
             cmdline = [
                 adb.stdout.strip(),
                 'shell', 'settings', 'put', 'global', 'animator_duration_scale', animator_duration_scale_cmd.stdout.strip()
+            ]
+            RunCommand(cmdline, verbose=True).run()
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'put', 'system', 'screen_off_timeout', screen_off_timeout_cmd.stdout.strip()
             ]
             RunCommand(cmdline, verbose=True).run()
 

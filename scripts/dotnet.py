@@ -780,20 +780,22 @@ def install(
                 get_repo_root_path()
             )
 
+    setup_dotnet(install_dir)
+
+def setup_dotnet(dotnet_path: str):
     # Set DotNet Cli environment variables.
     environ['DOTNET_CLI_TELEMETRY_OPTOUT'] = '1'
     environ['DOTNET_MULTILEVEL_LOOKUP'] = '0'
     environ['UseSharedCompilation'] = 'false'
-    environ['DOTNET_ROOT'] = install_dir
+    environ['DOTNET_ROOT'] = dotnet_path
 
     # Add installed dotnet cli to PATH
-    environ["PATH"] = install_dir + pathsep + environ["PATH"]
+    environ["PATH"] = dotnet_path + pathsep + environ["PATH"]
 
     # If we have copied dotnet from a different machine, then it may not be
     # marked as executable. Fix this.
     if platform != 'win32':
-        chmod(path.join(install_dir, 'dotnet'), S_IRWXU)
-
+        chmod(path.join(dotnet_path, 'dotnet'), S_IRWXU)
 
 def __add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''

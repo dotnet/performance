@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, ArgumentTypeError
 from logging import getLogger
 
 import os
@@ -161,6 +161,21 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Directory to install dotnet to'
     )
 
+    def __is_valid_dotnet_path(dp: str) -> str:
+        if not os.path.isdir(dp):
+            raise ArgumentTypeError('Path {} does not exist'.format(dp))
+        if not os.path.isfile(os.path.join(dp, 'dotnet')):
+            raise ArgumentTypeError('Could not find dotnet in {}'.format(dp))
+        return dp
+
+    parser.add_argument(
+        '--dotnet-path',
+        dest='dotnet_path',
+        required=False,
+        type=__is_valid_dotnet_path,
+        help='Path to a custom dotnet'
+    )
+
     # Generic arguments.
     parser.add_argument(
         '-q', '--quiet',
@@ -221,13 +236,16 @@ def __main(args: list) -> int:
     # in the cross containers, so we are running the ci setup script in a normal ubuntu container
     architecture = 'x64' if args.architecture == 'arm64' else args.architecture
 
-    init_tools(
-        architecture=architecture,
-        dotnet_versions=args.dotnet_versions,
-        channel=args.channel,
-        verbose=verbose,
-        install_dir=args.install_dir
-    )
+    if not args.dotnet_path:
+        init_tools(
+            architecture=architecture,
+            dotnet_versions=args.dotnet_versions,
+            channel=args.channel,
+            verbose=verbose,
+            install_dir=args.install_dir
+        )
+    else:
+        dotnet.setup_dotnet(args.dotnet_path)
 
     # dotnet --info
     dotnet.info(verbose=verbose)
