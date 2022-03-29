@@ -39,6 +39,18 @@ def info(verbose: bool) -> None:
     cmdline = ['dotnet', '--info']
     RunCommand(cmdline, verbose=verbose).run()
 
+def exec(asm_path: str, verbose: bool, *args) -> None:
+    """
+    Executes `dotnet exec` which can be used to execute assemblies
+    """
+    asm_path=path.abspath(asm_path)
+    working_dir=path.dirname(asm_path)
+    if not path.exists(asm_path):
+        raise ArgumentError('Cannot find assembly {} to exec'.format(asm_path))
+
+    cmdline = ['dotnet', 'exec', path.basename(asm_path)]
+    cmdline += list(args)
+    RunCommand(cmdline, verbose=verbose).run(working_dir)
 
 def __log_script_header(message: str):
     message_length = len(message)
@@ -620,6 +632,28 @@ def get_commit_date(
             'Could not get timestamp for commit %s' % commit_sha)
     return build_timestamp
 
+def get_project_name(csproj_file: str) -> str:
+    '''
+    Gets the project name from the csproj file path
+    '''
+    return path.splitext(path.basename(path.abspath(csproj_file)))[0]
+
+def get_main_assembly_path(
+        bin_directory: str,
+        project_name: str) -> str:
+    '''
+    Gets the main assembly path, as {project_name}.dll, or .exe
+    '''
+    exe=path.join(bin_directory, project_name + '.exe')
+    if path.exists(exe):
+        return exe
+
+    dll=path.join(bin_directory, project_name + '.dll')
+    if path.exists(dll):
+        return dll
+
+    raise ValueError(
+        'Unable to find main assembly - {} or {} in {}'.format(exe, dll, bin_directory))
 
 def get_build_directory(
         bin_directory: str,

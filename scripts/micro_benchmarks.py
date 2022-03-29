@@ -154,6 +154,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
              '''harness.''',
     )
 
+    parser.add_argument(
+        '--run-isolated',
+        dest='run_isolated',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Move the binaries to a different directory for running',
+    )
+
     def __valid_dir_path(file_path: str) -> str:
         '''Verifies that specified file path exists.'''
         file_path = path.abspath(file_path)
@@ -222,7 +231,7 @@ def __process_arguments(args: list) -> Tuple[list, bool]:
 
 
 def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
-    run_args = ['--']
+    run_args = []
     if args.corerun:
         run_args += ['--coreRun'] + args.corerun
     if args.cli:
@@ -260,12 +269,21 @@ def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
 
     return run_args
 
+def get_bin_dir_to_use(csprojfile: dotnet.CSharpProjFile, bin_directory: str, run_isolated: bool) -> str:
+    '''
+    Gets the bin_directory, which might be different if run_isolate=True
+    '''
+    if run_isolated:
+        return path.join(bin_directory, 'for-running', dotnet.get_project_name(csprojfile.file_name))
+    else:
+        return bin_directory
 
 def build(
         BENCHMARKS_CSPROJ: dotnet.CSharpProject,
         configuration: str,
         target_framework_monikers: list,
         incremental: str,
+        run_isolated: bool,
         verbose: bool) -> None:
     '''Restores and builds the benchmarks'''
 
@@ -291,32 +309,49 @@ def build(
     BENCHMARKS_CSPROJ.build(
         configuration=configuration,
         target_framework_monikers=target_framework_monikers,
+        output_to_bindir=run_isolated,
         verbose=verbose,
         packages_path=packages)
 
+    # When running isolated, artifacts/obj/{project_name} will still be
+    # there, and would interfere with any subsequent builds. So, remove
+    # that
+    if run_isolated:
+        objDir = path.join(get_artifacts_directory(), 'obj', BENCHMARKS_CSPROJ.project_name)
+        remove_directory(objDir)
 
 def run(
         BENCHMARKS_CSPROJ: dotnet.CSharpProject,
         configuration: str,
         framework: str,
+        run_isolated: bool,
         verbose: bool,
         *args) -> None:
     '''Runs the benchmarks'''
     __log_script_header("Running .NET micro benchmarks for '{}'".format(
         framework
     ))
-    # dotnet run
+
+    # dotnet exec
     run_args = __get_benchmarkdotnet_arguments(framework, *args)
     target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(
         framework
     )
-    BENCHMARKS_CSPROJ.run(
-        configuration,
-        target_framework_moniker,
-        verbose,
-        *run_args
-    )
-            
+
+    if run_isolated:
+        runDir = BENCHMARKS_CSPROJ.bin_path
+        asm_path=dotnet.get_main_assembly_path(runDir, BENCHMARKS_CSPROJ.project_name)
+        dotnet.exec(asm_path, verbose, *run_args)
+    else:
+        # This is needed for `dotnet run`, but not for `dotnet exec`
+        run_args = ['--'] + run_args
+        BENCHMARKS_CSPROJ.run(
+            configuration,
+            target_framework_moniker,
+            verbose,
+            *run_args
+        )
+
 def __log_script_header(message: str):
     getLogger().info('-' * len(message))
     getLogger().info(message)
@@ -340,9 +375,10 @@ def __main(args: list) -> int:
         # dotnet --info
         dotnet.info(verbose)
 
+        bin_dir_to_use=micro_benchmarks.get_bin_dir_to_use(args.csprojfile, args.bin_directory, args.run_isolated)
         BENCHMARKS_CSPROJ = dotnet.CSharpProject(
             project=args.csprojfile,
-            bin_directory=args.bin_directory
+            bin_directory=bin_dir_to_use
         )
 
         # dotnet build
@@ -351,6 +387,7 @@ def __main(args: list) -> int:
             configuration,
             target_framework_monikers,
             incremental,
+            args.run_isolated,
             verbose
         )
 
@@ -360,6 +397,7 @@ def __main(args: list) -> int:
                 BENCHMARKS_CSPROJ,
                 configuration,
                 framework,
+                args.run_isolated,
                 verbose,
                 args
             )
