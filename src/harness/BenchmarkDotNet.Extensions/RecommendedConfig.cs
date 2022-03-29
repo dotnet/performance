@@ -38,8 +38,12 @@ namespace BenchmarkDotNet.Extensions
                     .WithMaxIterationCount(20) // we don't want to run more that 20 iterations
                     .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
 
-                // See https://github.com/dotnet/roslyn/issues/42393
-                job = job.WithArguments(new Argument[] { new MsBuildArgument("/p:DebugType=portable"), new MsBuildArgument("-bl:benchmarkdotnet.binlog") });
+                job = job.WithArguments(new Argument[]
+                {
+                    new MsBuildArgument("/p:DebugType=portable"), // See https://github.com/dotnet/roslyn/issues/42393
+                    new MsBuildArgument("-bl:benchmarkdotnet.binlog"), // for diagnosing CI failures
+                    new MsBuildArgument("/p:TrimmerDefaultAction=link"), // to ensure that trimmer only analyzes the parts of the dependencies that are used
+                });
             }
 
             var config = ManualConfig.CreateEmpty()
