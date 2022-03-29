@@ -2,6 +2,8 @@ resources:
   containers:
     - container: ubuntu_x64_build_container
       image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-20210311173856-047508b
+    - container: centos_x64_build_container
+      image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-20220107135107-9b5bbc2
 
 # CI Trigger on main branch
 trigger:
@@ -236,15 +238,15 @@ jobs:
   # Ubuntu 1804 x64 NativeAOT micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
-      osName: ubuntu
-      osVersion: 1804
-      kind: microNativeAOT
+      osName: centos
+      osVersion: 7
+      kind: micro
       architecture: x64
       pool: 
         vmImage: ubuntu-latest
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
-      container: ubuntu_x64_build_container
+      container: centos_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
       channels:
