@@ -343,6 +343,8 @@ def run(
         asm_path=dotnet.get_main_assembly_path(runDir, BENCHMARKS_CSPROJ.project_name)
         dotnet.exec(asm_path, verbose, *run_args)
     else:
+        # This is needed for `dotnet run`, but not for `dotnet exec`
+        run_args = ['--'] + run_args
         BENCHMARKS_CSPROJ.run(
             configuration,
             target_framework_moniker,
