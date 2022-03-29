@@ -245,7 +245,7 @@ jobs:
       pool: 
         vmImage: ubuntu-latest
       machinePool: Open
-      queue: Ubuntu.1804.Amd64.Open
+      queue: centos.7.amd64.open.rt
       container: centos_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
