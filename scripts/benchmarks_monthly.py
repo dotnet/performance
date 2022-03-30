@@ -19,6 +19,7 @@ import sys
 import os
 
 VERSIONS = {
+    'net7.0-preview3': { 'tfm': 'net7.0', 'build': '7.0.100-preview.3.22179.4' },
     'net7.0-preview2': { 'tfm': 'net7.0', 'build': '7.0.100-preview.2.22124.4' },
     'net7.0-preview1': { 'tfm': 'net7.0', 'build': '7.0.100-preview.1.22077.12' },
     'net6.0': { 'tfm': 'net6.0' }
