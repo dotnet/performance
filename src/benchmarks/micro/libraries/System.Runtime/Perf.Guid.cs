@@ -11,15 +11,18 @@ namespace System.Tests
     public class Perf_Guid
     {
         const string guidStr = "a8a110d5-fc49-43c5-bf46-802db8f843ff";
+        const string guid2Str = "86A96B5D-F9B2-4CB5-B531-FC7021FA99D7";
         
         private readonly Guid _guid;
         private readonly Guid _same;
+        private readonly Guid _guid2;
         private readonly byte[] _buffer;
 
         public Perf_Guid()
         {
             _guid = new Guid(guidStr);
             _same = new Guid(guidStr);
+            _guid2 = new Guid(guid2Str);
             _buffer = _guid.ToByteArray();
         }
 
@@ -34,6 +37,9 @@ namespace System.Tests
 
         [Benchmark]
         public bool EqualsSame() => _guid.Equals(_same);
+
+        [Benchmark]
+        public bool EqualsNotSame() => _guid.Equals(_guid2);
 
         [Benchmark]
         public bool EqualsOperator() => _guid == _same;
