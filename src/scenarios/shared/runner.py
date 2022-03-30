@@ -495,6 +495,8 @@ ex: C:\repos\performance;C:\repos\runtime
             testRunStats = re.findall(runSplitRegex, testRun.stdout) # Split results saving value (List: Starting, Status, LaunchState, Activity, TotalTime, WaitTime) 
             getLogger().info(f"Test run activity: {testRunStats[3]}")
 
+            time.sleep(10) # Add delay to ensure app is fully installed and give it some time to settle
+
             stopAppCmd = [ 
                 adb.stdout.strip(),
                 'shell',
@@ -527,8 +529,6 @@ ex: C:\repos\performance;C:\repos\runtime
                 if "com.google.android.permissioncontroller" in testRunStats[3]:
                     getLogger().exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
                     exit(-1)
-
-            time.sleep(10) # Add delay to ensure app is fully installed and give it some time to settle
 
             allResults = []
             for i in range(self.startupiterations):
