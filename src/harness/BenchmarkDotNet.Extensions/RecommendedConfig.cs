@@ -42,7 +42,6 @@ namespace BenchmarkDotNet.Extensions
                 {
                     new MsBuildArgument("/p:DebugType=portable"), // See https://github.com/dotnet/roslyn/issues/42393
                     new MsBuildArgument("-bl:benchmarkdotnet.binlog"), // for diagnosing CI failures
-                    new MsBuildArgument("/p:TrimmerDefaultAction=link"), // to ensure that trimmer only analyzes the parts of the dependencies that are used
                 });
             }
 
