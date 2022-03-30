@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Memory;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
+using System;
 
 namespace Benchmark
 {
@@ -17,6 +18,7 @@ namespace Benchmark
         private ChainedConfigurationProvider _chainedConfigEmpty; 
         private ChainedConfigurationProvider _chainedConfigWithSplitting;
         private ChainedConfigurationProvider _chainedConfigWithCommonPaths;
+        private readonly string[] _emptyArray = Array.Empty<string>();
 
         [GlobalSetup]
         public void SetupBasic()
@@ -93,15 +95,15 @@ namespace Benchmark
         }
 
         [Benchmark]
-        public void AddChainedConfigurationNoDelimiter() => _chainedConfig.GetChildKeys(Array.Empty<string>(), null);
+        public void AddChainedConfigurationNoDelimiter() => _chainedConfig.GetChildKeys(_emptyArray, null);
 
         [Benchmark]
-        public void AddChainedConfigurationEmpty() => _chainedConfigEmpty.GetChildKeys(Array.Empty<string>(), null);
+        public void AddChainedConfigurationEmpty() => _chainedConfigEmpty.GetChildKeys(_emptyArray, null);
 
         [Benchmark]
-        public void AddChainedConfigurationWithSplitting() => _chainedConfigWithSplitting.GetChildKeys(Array.Empty<string>(), null);
+        public void AddChainedConfigurationWithSplitting() => _chainedConfigWithSplitting.GetChildKeys(_emptyArray, null);
 
         [Benchmark]
-        public void AddChainedConfigurationWithCommonPaths() => _chainedConfigWithCommonPaths.GetChildKeys(Array.Empty<string>(), null);
+        public void AddChainedConfigurationWithCommonPaths() => _chainedConfigWithCommonPaths.GetChildKeys(_emptyArray, null);
     }
 }
