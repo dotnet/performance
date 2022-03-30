@@ -34,7 +34,7 @@ namespace System.IO.Compression
 
         internal static string GetFilePath(string fileName) 
             => Path.Combine(
-                Path.GetDirectoryName(typeof(CompressedFile).Assembly.Location), 
+                AppContext.BaseDirectory,
                 "libraries", "System.IO.Compression", "TestData",
                 fileName);
     }

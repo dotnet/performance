@@ -78,24 +78,29 @@ class FrameworkAction(Action):
     def get_target_framework_moniker(framework: str) -> str:
         '''
         Translates framework name to target framework moniker (TFM)
-        To run CoreRT benchmarks we need to run the host BDN process as latest
-        .NET Core the host process will build and run CoreRT benchmarks
+        To run NativeAOT benchmarks we need to run the host BDN process as latest
+        .NET the host process will build and run AOT benchmarks
         '''
-        return ChannelMap.get_target_framework_moniker("main") if framework == 'corert' else framework
+        if framework == 'nativeaot6.0':
+            return 'net6.0'
+        if framework == 'nativeaot7.0':
+            return 'net7.0'
+        else:
+            return framework
 
     @staticmethod
     def get_target_framework_monikers(frameworks: list) -> list:
         '''
         Translates framework names to target framework monikers (TFM)
-        Required to run CoreRT benchmarks where the host process must be .NET
-        Core, not CoreRT.
+        Required to run AOT benchmarks where the host process must be .NET
+        , not NativeAOT.
         '''
         monikers = [
             FrameworkAction.get_target_framework_moniker(framework)
             for framework in frameworks
         ]
 
-        # ['net5.0', 'corert'] should become ['net5.0']
+        # ['net6.0', 'nativeaot6.0'] should become ['net6.0']
         return list(set(monikers))
 
 class VersionsAction(Action):
@@ -136,7 +141,7 @@ class CompilationAction(Action):
     For PRs it is recommended to kick off a Tiered run, and being able to
     manually kick-off NoTiering and FullyJittedNoTiering modes when needed.
     '''
-    # TODO: Would 'Default' make sense for .NET Framework / CoreRT / Mono?
+    # TODO: Would 'Default' make sense for .NET Framework / NativeAOT / Mono?
     # TODO: Should only be required for benchmark execution under certain tools
 
     TIERED = 'Tiered'

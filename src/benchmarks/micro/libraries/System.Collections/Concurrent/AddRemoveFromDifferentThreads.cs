@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes.Filters;
 using MicroBenchmarks;
 
 namespace System.Collections.Concurrent
@@ -15,6 +16,7 @@ namespace System.Collections.Concurrent
     [GenericTypeArguments(typeof(string))] // reference type
     [MinWarmupCount(6, forceAutoWarmup: true)]
     [MaxWarmupCount(10, forceAutoWarmup: true)]
+    [AotFilter("It hangs. https://github.com/dotnet/runtime/issues/66987")]
     public class AddRemoveFromDifferentThreads<T>
     {
         const int NumThreads = 2;

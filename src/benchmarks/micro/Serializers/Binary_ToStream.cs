@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes.Filters;
 using MicroBenchmarks.Serializers.Helpers;
 
 namespace MicroBenchmarks.Serializers
@@ -16,6 +17,7 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
     [BenchmarkCategory(Categories.NoWASM)]
+    [AotFilter("Dynamic code generation is not supported.")]
     public class Binary_ToStream<T>
     {
         private readonly T value;

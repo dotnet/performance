@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes.Filters;
 using MicroBenchmarks;
 using MicroBenchmarks.Serializers;
 using System.Collections;
@@ -28,6 +29,7 @@ namespace System.Text.Json.Serialization.Tests
     [GenericTypeArguments(typeof(LargeStructWithProperties))]
     [GenericTypeArguments(typeof(DateTimeOffset?))]
     [GenericTypeArguments(typeof(int))]
+    [AotFilter("Currently not supported due to missing metadata.")]
     public class ReadJson<T>
     {
         private string _serialized;

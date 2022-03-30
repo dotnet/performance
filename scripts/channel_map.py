@@ -37,9 +37,19 @@ class ChannelMap():
             'branch': '7.0.1xx',
             'quality': 'daily'
         },
+        'nativeaot7.0': {
+            'tfm': 'nativeaot7.0',
+            'branch': '7.0.1xx',
+            'quality': 'daily'
+        },
         'master': {
             'tfm': 'net6.0',
             'branch': 'master'
+        },
+        'nativeaot6.0': {
+            'tfm': 'nativeaot6.0',
+            'branch': '6.0.1xx',
+            'quality': 'daily'
         },
         '5.0':{
             'tfm': 'net5.0',

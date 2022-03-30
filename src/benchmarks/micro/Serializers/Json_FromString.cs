@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes.Filters;
 
 namespace MicroBenchmarks.Serializers
 {
@@ -12,6 +13,7 @@ namespace MicroBenchmarks.Serializers
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     [GenericTypeArguments(typeof(CollectionsOfPrimitives))]
     [BenchmarkCategory(Categories.NoAOT)]
+    [AotFilter("Dynamic code generation is not supported.")]
     public class Json_FromString<T>
     {
         private string serialized;

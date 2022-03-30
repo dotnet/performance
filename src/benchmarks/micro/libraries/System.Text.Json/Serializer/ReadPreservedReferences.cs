@@ -15,6 +15,7 @@ namespace System.Text.Json.Serialization.Tests
     [GenericTypeArguments(typeof(MyEventsListerViewModel))]
     [GenericTypeArguments(typeof(SimpleListOfInt))]
     [GenericTypeArguments(typeof(SimpleStructWithProperties))]
+    [AotFilter("Currently not supported due to missing metadata.")]
     public class ReadPreservedReferences<T>
     {
         [Params(false, true)]

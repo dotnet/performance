@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes.Filters;
 using MicroBenchmarks;
 using MicroBenchmarks.Serializers;
 
@@ -10,6 +11,7 @@ namespace System.Text.Json.Serialization.Tests
 {
     [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
     [GenericTypeArguments(typeof(SimpleStructWithProperties))]
+    [AotFilter("Currently not supported due to missing metadata.")]
     public class ColdStartSerialization<T>
     {
         // Measures cold start performance for the serializer
