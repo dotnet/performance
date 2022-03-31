@@ -19,9 +19,11 @@ import sys
 import os
 
 VERSIONS = {
+    'nativeaot7.0-preview3': { 'tfm': 'nativeaot7.0', 'build': '7.0.100-preview.3.22179.4', 'ilc': '7.0.0-preview.3.22175.4' },
     'net7.0-preview3': { 'tfm': 'net7.0', 'build': '7.0.100-preview.3.22179.4' },
     'net7.0-preview2': { 'tfm': 'net7.0', 'build': '7.0.100-preview.2.22124.4' },
     'net7.0-preview1': { 'tfm': 'net7.0', 'build': '7.0.100-preview.1.22077.12' },
+    'nativeaot6.0': { 'tfm': 'nativeaot6.0', 'ilc': '6.0.0-rc.1.21420.1' },
     'net6.0': { 'tfm': 'net6.0' }
 }
 
@@ -80,6 +82,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         action='store_true',
         help='Perform a dry run, showing what would be executed')
 
+    parser.add_argument(
+        '--run-once',
+        dest='run_once',
+        action='store_true',
+        help='Runs each benchmark only once, useful for testing')
+
     return parser
 
 def __process_arguments(args: list):
@@ -108,9 +116,16 @@ def __main(args: list) -> int:
     if args.dry_run:
         logPrefix = '[DRY RUN] '
 
+    if args.run_once:
+        if args.bdn_arguments:
+            args.bdn_arguments += '--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart'
+        else:
+            args.bdn_arguments = '--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart'
+
     for versionName in args.versions:
         version = get_version_from_name(versionName)
-        resultsPath = os.path.join(rootPath, 'artifacts', 'bin', 'MicroBenchmarks', 'Release', version['tfm'], 'BenchmarkDotNet.Artifacts', 'results')
+        moniker = version['tfm'].replace('nativeaot', 'net') # results of nativeaotX.0 are stored in netX.0 folder
+        resultsPath = os.path.join(rootPath, 'artifacts', 'bin', 'MicroBenchmarks', 'Release', moniker, 'BenchmarkDotNet.Artifacts', 'results')
 
         if not args.no_clean:
             # Delete any preexisting SDK and results, which allows
@@ -133,7 +148,12 @@ def __main(args: list) -> int:
             benchmarkArgs += ['--dotnet-versions', version['build']]
 
         if args.bdn_arguments:
-            benchmarkArgs += ['--bdn-arguments', args.bdn_arguments]
+            if version['tfm'].startswith('nativeaot'):
+                benchmarkArgs += ['--bdn-arguments', args.bdn_arguments + ' --ilCompilerVersion ' + version['ilc']]
+            else:
+                benchmarkArgs += ['--bdn-arguments', args.bdn_arguments]
+        elif version['tfm'].startswith('nativeaot'):
+            benchmarkArgs += ['--bdn-arguments', '--ilCompilerVersion ' + version['ilc']]
 
         log('Executing: benchmarks_ci.py ' + str.join(' ', benchmarkArgs))
 
