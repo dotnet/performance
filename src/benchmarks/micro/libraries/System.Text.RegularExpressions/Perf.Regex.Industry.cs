@@ -193,7 +193,7 @@ namespace System.Text.RegularExpressions.Tests
     }
 
     /// <summary>Performance tests adapted from https://rust-leipzig.github.io/regex/2017/03/28/comparison-of-regex-engines/</summary>
-    [BenchmarkCategory(Categories.Libraries, Categories.Regex, Categories.NoWASM)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Regex, Categories.NoWASM, Categories.NoInterpreter)]
     [SkipTooManyTestCasesValidator]
     public class Perf_Regex_Industry_Leipzig
     {

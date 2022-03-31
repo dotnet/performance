@@ -29,7 +29,7 @@ using MicroBenchmarks;
 
 namespace BenchmarksGame
 {
-    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame, Categories.JIT)]
+    [BenchmarkCategory(Categories.Runtime, Categories.BenchmarksGame, Categories.JIT, Categories.NoAOT)]
     public class MandelBrot_7
     {
         // Vector<double>.Count is treated as a constant by the JIT, don't bother
