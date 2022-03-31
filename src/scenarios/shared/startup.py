@@ -4,6 +4,7 @@ Wrapper around startup tool.
 import sys
 import os
 import platform
+from stat import S_IRWXU
 from logging import getLogger
 from shutil import copytree
 from performance.logger import setup_loggers
@@ -51,6 +52,9 @@ class StartupWrapper(object):
                                 '--no-restore'
                                 )
             self._setstartuppath(startup.bin_path)
+
+            if platform.platform != 'win32':
+                os.chmod(self.startuppath, S_IRWXU)
 
     
     def _setstartuppath(self, path: str):
