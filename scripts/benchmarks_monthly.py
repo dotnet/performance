@@ -82,6 +82,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         action='store_true',
         help='Perform a dry run, showing what would be executed')
 
+    parser.add_argument(
+        '--run-once',
+        dest='run_once',
+        action='store_true',
+        help='Runs each benchmark only once, useful for testing')
+
     return parser
 
 def __process_arguments(args: list):
@@ -109,6 +115,12 @@ def __main(args: list) -> int:
 
     if args.dry_run:
         logPrefix = '[DRY RUN] '
+
+    if args.run_once:
+        if args.bdn_arguments:
+            args.bdn_arguments += '--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart'
+        else:
+            args.bdn_arguments = '--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart'
 
     for versionName in args.versions:
         version = get_version_from_name(versionName)
