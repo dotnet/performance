@@ -598,10 +598,13 @@ ex: C:\repos\performance;C:\repos\runtime
                     getLogger().info("Removed: " + os.path.join(const.TRACEDIR, file))
                     os.remove(file)
 
+            if not exists(const.TMPDIR):
+                os.mkdir(const.TMPDIR)
+
             getLogger().info("Clearing potential previous run *.logarchive")
-            for logarchive in glob.glob(os.path.join(const.TRACEDIR, '*.logarchive')):
+            for logarchive in glob.glob(os.path.join(const.TMPDIR, '*.logarchive')):
                 if exists(logarchive):
-                    getLogger().info("Removed: " + os.path.join(const.TRACEDIR, logarchive))
+                    getLogger().info("Removed: " + os.path.join(const.TMPDIR, logarchive))
                     rmtree(logarchive)
 
             getLogger().info("Checking device state.")
@@ -640,6 +643,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 app_pid_search = re.search("Launched application.*with pid (?P<app_pid>\d+)", runCmdCommand.stdout)
                 app_pid = int(app_pid_search.group('app_pid'))
 
+                logarchive_filename = os.path.join(const.TMPDIR, f'iteration{i}.logarchive')
                 getLogger().info(f"Waiting 5 secs to ensure app with PID {app_pid} is fully started.")
                 time.sleep(5)
                 collectCmd = [
@@ -648,7 +652,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     'collect',
                     '--device',
                     '--start', runCmdTimestamp.strftime("%Y-%m-%d %H:%M:%S"),
-                    '--output', os.path.join(const.TRACEDIR, f'iteration{i}.logarchive'),
+                    '--output', logarchive_filename,
                 ]
                 RunCommand(collectCmd, verbose=True).run()
 
@@ -671,7 +675,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     '--predicate', '(process == "SpringBoard") && (category == "Watchdog")',
                     '--info',
                     '--style', 'ndjson',
-                    os.path.join(const.TRACEDIR, f'iteration{i}.logarchive'),
+                    logarchive_filename,
                 ]
                 logShowCmdCommand = RunCommand(logShowCmd, verbose=True)
                 logShowCmdCommand.run()
