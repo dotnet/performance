@@ -63,6 +63,7 @@ class Runner:
         parseonlyparser.add_argument('--package-name', help='Classname of application', dest='packagename')
         parseonlyparser.add_argument('--startup-iterations', help='Startups to run (1+)', type=int, default=10, dest='startupiterations')
         parseonlyparser.add_argument('--disable-animations', help='Disable Android device animations', action='store_true', dest='animationsdisabled')
+        parseonlyparser.add_argument('--use-fully-drawn-time', help='Use the startup time from reportFullyDrawn for android, and the equivalent for iOS', action='store_true', dest='usefullydrawntime')
         self.add_common_arguments(parseonlyparser)
 
         # inner loop command
@@ -146,6 +147,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.devicetype = args.devicetype
             self.startupiterations = args.startupiterations
             self.animationsdisabled = args.animationsdisabled
+            self.usefullydrawntime = args.usefullydrawntime
 
         if args.scenarioname:
             self.scenarioname = args.scenarioname
@@ -530,12 +532,41 @@ ex: C:\repos\performance;C:\repos\runtime
                     getLogger().exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
                     exit(-1)
 
+            # Create the fullydrawn command
+            fullyDrawnRetrieveCmd = [ 
+                adb.stdout.strip(),
+                'shell',
+                f"logcat -d | grep 'ActivityTaskManager: Fully drawn {self.packagename}'"
+            ]
+
+            clearLogsCmd = [
+                adb.stdout.strip(),
+                'logcat',
+                '-c'
+            ]
+
             allResults = []
             for i in range(self.startupiterations):
+                # Clear logs
+                RunCommand(clearLogsCmd, verbose=True).run()
                 startStats = RunCommand(startAppCmd, verbose=True)
                 startStats.run()
-                RunCommand(stopAppCmd, verbose=True).run()
-                allResults.append(startStats.stdout) # Save results (List is Intent, Status, LaunchState Activity, TotalTime, WaitTime)
+                    
+                # Save the results
+                if self.usefullydrawntime:
+                    time.sleep(2)
+                    RunCommand(stopAppCmd, verbose=True).run()
+                    fullyDrawnRetrieve = RunCommand(fullyDrawnRetrieveCmd, verbose=True)
+                    fullyDrawnRetrieve.run()
+                    dirtyCapture = re.search("\+(\d*s?\d+)ms", fullyDrawnRetrieve.stdout)
+                    if not dirtyCapture:
+                        getLogger().error("Failed to capture Fully drawn report time! Exitting")
+                        exit(-1)
+                    formattedTime = f"TotalTime: {dirtyCapture.group(1).replace('s', '')}\n"
+                    allResults.append(formattedTime) # append TotalTime: (TIME)
+                else:
+                    RunCommand(stopAppCmd, verbose=True).run()
+                    allResults.append(startStats.stdout) # Save results (List is Intent, Status, LaunchState Activity, TotalTime, WaitTime)
                 time.sleep(3) # Delay in seconds for ensuring a cold start
 
             getLogger().info("Stopping App for uninstall")
