@@ -297,6 +297,9 @@ def __main(args: list) -> int:
         branch = ChannelMap.get_branch(args.channel) if not args.branch else args.branch
 
         getLogger().info("Writing script to %s" % args.output_file)
+        dir_path = os.path.dirname(args.output_file)
+        if not os.path.isdir(dir_path):
+            os.mkdir(dir_path)
 
         with open(args.output_file, 'w') as out_file:
             out_file.write(which)
