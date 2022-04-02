@@ -12,7 +12,8 @@ from test import EXENAME
 setup_loggers(True)
 precommands = PreCommands()
 precommands.existing("src", "BlazingPizza.sln")
-subprocess.run(["dotnet", "workload", "install", "wasm-tools", "--skip-manifest-update"])
+if not precommands.has_workload:
+    subprocess.run(["dotnet", "workload", "install", "wasm-tools", "--skip-manifest-update"])
 f = open(os.path.join(os.getcwd(), "app", "BlazingPizza.Client", "BlazingPizza.Client.csproj"), 'r')
 outFileText = ""
 for line in f.readlines():

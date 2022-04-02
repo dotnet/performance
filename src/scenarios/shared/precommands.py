@@ -74,6 +74,7 @@ class PreCommands:
         print(self.msbuild)
         self.msbuildstatic = args.msbuildstatic
         self.binlog = args.binlog
+        self.has_workload = args.has_workload
 
         if self.operation == CROSSGEN:
             self.crossgen_arguments.parse_crossgen_args(args)
@@ -130,6 +131,11 @@ class PreCommands:
                             dest='binlog',
                             metavar='<file-name>.binlog',
                             help='flag to turn on binlog for build or publish; ex: <file-name>.binlog')
+        parser.add_argument('--has-workload',
+                            dest='has_workload',
+                            default=False,
+                            action='store_true',
+                            help='Indicates that the dotnet being used has workload already installed')
         parser.set_defaults(configuration=RELEASE)
 
     def existing(self, projectdir: str, projectfile: str):
