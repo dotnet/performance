@@ -18,6 +18,7 @@ pr:
     - src/tools/Reporting/*
     - scripts/*
     - eng/*
+    - azure-pipelines-micro.yml
     exclude:
     - scripts/benchmarks_monthly.py
 

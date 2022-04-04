@@ -23,6 +23,7 @@ pr:
     - src/scenarios/*
     - scripts/ci_setup.py
     - eng/*
+    - azure-pipelines-scenarios.yml
 
 schedules:
 - cron: "0 */12 * * *"
