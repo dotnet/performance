@@ -19,15 +19,10 @@ pr:
     include:
     - main
   paths:
-    exclude: # don't trigger the CI if only a doc file was changed
-    - docs/*
-    - eng/common/README.md
-    - src/benchmarks/micro/Serializers/README.md
-    - src/benchmarks/micro/README.md
-    - src/benchmarks/real-world/JitBench/README.md
-    - src/benchmarks/real-world/Microsoft.ML.Benchmarks/Input/README.md
-    - src/tools/ResultsComparer/README.md
-    - README.md
+    include:
+    - src/scenarios/*
+    - scripts/ci_setup.py
+    - eng/*
 
 schedules:
 - cron: "0 */12 * * *"
