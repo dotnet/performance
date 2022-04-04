@@ -250,7 +250,6 @@ namespace System.IO.Tests
         }
 
 #if !NETFRAMEWORK // APIs added in .NET Core 2.0
-
         public IEnumerable<object[]> AsyncArguments()
         {
             // long fileSize, int userBufferSize, FileOptions options
