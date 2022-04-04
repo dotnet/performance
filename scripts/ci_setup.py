@@ -163,10 +163,10 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
     parser.add_argument(
         '--not-in-lab',
-        dest='in_lab',
+        dest='not_in_lab',
         required=False,
-        action='store_false',
-        default=True,
+        action='store_true',
+        default=False,
         help='Indicates that this is not running in perflab'
     )
 
@@ -313,7 +313,7 @@ def __main(args: list) -> int:
         with open(args.output_file, 'w') as out_file:
             out_file.write(which)
             out_file.write(pgo_config)
-            out_file.write(variable_format % ('PERFLAB_INLAB', '1' if args.in_lab else '0'))
+            out_file.write(variable_format % ('PERFLAB_INLAB', '0' if args.not_in_lab else '1'))
             out_file.write(variable_format % ('PERFLAB_REPO', '/'.join([owner, repo])))
             out_file.write(variable_format % ('PERFLAB_BRANCH', branch))
             out_file.write(variable_format % ('PERFLAB_PERFHASH', perfHash))
