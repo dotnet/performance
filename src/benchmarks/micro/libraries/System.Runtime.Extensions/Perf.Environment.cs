@@ -35,6 +35,7 @@ namespace System.Tests
             => Environment.GetFolderPath(folder, option);
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
         public string[] GetLogicalDrives() => Environment.GetLogicalDrives();
 
         [Benchmark(OperationsPerInvoke = 2)]

@@ -98,13 +98,16 @@ namespace System.Net.Security.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
         public Task DefaultHandshakeIPv4Async() => DefaultHandshake(_clientIPv4, _serverIPv4);
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
         public Task DefaultHandshakeIPv6Async() => DefaultHandshake(_clientIPv6, _serverIPv6);
 
         [Benchmark]
         [OperatingSystemsFilter(allowed: true, platforms: OS.Linux)]    // Not supported on Windows at the moment.
+        [BenchmarkCategory(Categories.NoAOT)]
         public Task DefaultHandshakePipeAsync() => DefaultHandshake(_clientPipe, _serverPipe);
 
         private async Task DefaultHandshake(Stream client, Stream server)
@@ -186,6 +189,7 @@ namespace System.Net.Security.Tests
         private const int ReadWriteIterations = 50_000;
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
+        [BenchmarkCategory(Categories.NoAOT)]
         public async Task WriteReadAsync()
         {
             Memory<byte> clientBuffer = _clientBuffer;
@@ -198,6 +202,7 @@ namespace System.Net.Security.Tests
         }
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
+        [BenchmarkCategory(Categories.NoAOT)]
         public async Task ReadWriteAsync()
         {
             Memory<byte> clientBuffer = _clientBuffer;
@@ -213,6 +218,7 @@ namespace System.Net.Security.Tests
         private const int ConcurrentReadWriteIterations = 50_000;
 
         [Benchmark(OperationsPerInvoke = ConcurrentReadWriteIterations)]
+        [BenchmarkCategory(Categories.NoAOT)]
         public async Task ConcurrentReadWrite()
         {
             Memory<byte> buffer1 = _clientBuffer;
@@ -241,6 +247,7 @@ namespace System.Net.Security.Tests
         private const int ConcurrentReadWriteLargeBufferIterations = 10_000;
 
         [Benchmark(OperationsPerInvoke = ConcurrentReadWriteLargeBufferIterations)]
+        [BenchmarkCategory(Categories.NoAOT)]
         public async Task ConcurrentReadWriteLargeBuffer()
         {
             Memory<byte> buffer1 = _largeClientBuffer;
