@@ -34,12 +34,15 @@ namespace Microsoft.Extensions.DependencyInjection
         public void Cleanup() => _serviceProvider.Dispose();
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
         public TypeToBeActivated ServiceProvider() => _serviceProvider.GetService<TypeToBeActivated>();
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
         public TypeToBeActivated Factory() => (TypeToBeActivated)_factory(_serviceProvider, _factoryArguments);
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
         public TypeToBeActivated CreateInstance() => ActivatorUtilities.CreateInstance<TypeToBeActivated>(_serviceProvider, _factoryArguments);
 
         public class TypeToBeActivated
