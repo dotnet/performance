@@ -16,7 +16,9 @@ precommands.new(template='blazorwasm',
                 bin_dir=const.BINDIR,
                 exename=EXENAME,
                 working_directory=sys.path[0])
-subprocess.run(["dotnet", "workload", "install", "wasm-tools", "--skip-manifest-update"])
+
+if not precommands.has_workload:
+    subprocess.run(["dotnet", "workload", "install", "wasm-tools", "--skip-manifest-update"])
 f = open(os.path.join(os.getcwd(), "app", "emptyblazorwasmtemplate.csproj"), 'r')
 outFileText = ""
 for line in f.readlines():

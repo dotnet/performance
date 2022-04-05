@@ -40,8 +40,7 @@ namespace BenchmarkDotNet.Extensions
 
                 job = job.WithArguments(new Argument[]
                 {
-                    new MsBuildArgument("/p:DebugType=portable"), // See https://github.com/dotnet/roslyn/issues/42393
-                    new MsBuildArgument("-bl:benchmarkdotnet.binlog"), // for diagnosing CI failures
+                    new MsBuildArgument("/p:DebugType=portable") // See https://github.com/dotnet/roslyn/issues/42393
                 });
             }
 

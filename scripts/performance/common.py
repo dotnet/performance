@@ -88,7 +88,7 @@ def helixuploadroot():
     return environ.get('HELIX_WORKITEM_UPLOAD_ROOT')
 
 def runninginlab():
-    return environ.get('PERFLAB_INLAB') is not None
+    return environ.get('PERFLAB_INLAB') == '1'
 
 def get_script_path() -> str:
     '''Gets this script directory.'''
