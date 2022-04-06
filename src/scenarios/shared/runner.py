@@ -626,7 +626,7 @@ ex: C:\repos\performance;C:\repos\runtime
             getLogger().info("Completed install.")
 
             allResults = []
-            for i in range(self.startupiterations):
+            for i in range(self.startupiterations + 1): # adding one iteration to account for the warmup iteration
                 getLogger().info("Waiting 10 secs to ensure we're not getting confused with previous app run.")
                 time.sleep(10)
 
@@ -655,6 +655,16 @@ ex: C:\repos\performance;C:\repos\runtime
                     '--output', logarchive_filename,
                 ]
                 RunCommand(collectCmd, verbose=True).run()
+
+                getLogger().info(f"Kill app with PID {app_pid}.")
+                killCmd = xharnesscommand() + [
+                    'apple',
+                    'mlaunch',
+                    '--',
+                    f'--killdev={app_pid}',
+                ]
+                killCmdCommand = RunCommand(killCmd, verbose=True)
+                killCmdCommand.run()
 
                 # Process Data
 
@@ -724,8 +734,14 @@ ex: C:\repos\performance;C:\repos\runtime
                 timeToFirstDrawMilliseconds = (timeToFirstDrawEventEndDateTime - timeToFirstDrawEventStartDateTime).total_seconds() * 1000
 
                 totalTimeMilliseconds = timeToMainMilliseconds + timeToFirstDrawMilliseconds
-                launchState = 'COLD' if i == 0 else 'WARM'
-                allResults.append(f'LaunchState: {launchState}\nTotalTime: {int(totalTimeMilliseconds)}\nTimeToMain: {int(timeToMainMilliseconds)}\n\n')
+
+                if i == 0:
+                    # ignore the warmup iteration
+                    getLogger().info(f'Warmup iteration took {totalTimeMilliseconds}')
+                else:
+                    # TODO: this isn't really a COLD run, we should have separate measurements for starting the app right after install
+                    launchState = 'COLD'
+                    allResults.append(f'LaunchState: {launchState}\nTotalTime: {int(totalTimeMilliseconds)}\nTimeToMain: {int(timeToMainMilliseconds)}\n\n')
 
             # Done with testing, uninstall the app
             getLogger().info("Uninstalling app")
