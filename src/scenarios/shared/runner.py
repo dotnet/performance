@@ -656,6 +656,8 @@ ex: C:\repos\performance;C:\repos\runtime
                 ]
                 RunCommand(collectCmd, verbose=True).run()
 
+                # Process Data
+
                 # There are four watchdog events from SpringBoard during an application startup:
                 #
                 # [application<net.dot.maui>:770] [realTime] Now monitoring resource allowance of 20.00s (at refreshInterval -1.00s)
@@ -689,8 +691,11 @@ ex: C:\repos\performance;C:\repos\runtime
                     except:
                         break
 
+                # the startup measurement relies on the date/time of the device to be pretty much in sync with the host
+                # since we use the timestamps from the host to decide which parts of the device log to get and
+                # we then use that to calculate the time delta from watchdog events
                 if len(events) != 4:
-                    raise Exception("Didn't get the right amount of watchdog events")
+                    raise Exception("Didn't get the right amount of watchdog events, this could mean the app crashed or the device clock is not in sync with the host.")
 
                 timeToMainEventStart = events[0]
                 timeToMainEventStop = events[1]
