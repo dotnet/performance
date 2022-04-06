@@ -8,6 +8,11 @@
     <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
+  <ItemGroup>
+    <_AOT_InternalForceInterpretAssemblies Include="Microsoft.CodeAnalysis.CSharp.dll" />
+    <_AOT_InternalForceInterpretAssemblies Include="Microsoft.CodeAnalysis.dll" />
+  </ItemGroup>
+
   <Target Name="ExtraPrepareForWasmBuild" AfterTargets="PrepareForWasmBuild">
     <ItemGroup>
       <_LibrariesFile Include="$(TargetDir)publish\libraries\**\*" />

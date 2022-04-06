@@ -93,6 +93,7 @@ namespace System.Net.Http.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
         public async Task Get()
         {
             HttpMessageInvoker invoker = _invoker;
@@ -106,6 +107,7 @@ namespace System.Net.Http.Tests
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
         public async Task Get_EnumerateHeaders_Validated()
         {
             HttpMessageInvoker invoker = _invoker;
@@ -125,6 +127,7 @@ namespace System.Net.Http.Tests
 
 #if NET6_0_OR_GREATER
         [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
         public async Task Get_EnumerateHeaders_Unvalidated()
         {
             HttpMessageInvoker invoker = _invoker;
