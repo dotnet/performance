@@ -46,7 +46,7 @@
       <PayloadDirectory>$(ScenariosDir)emptyvbconsoletemplate</PayloadDirectory>
     </Scenario>
     <Scenario Include="WinForms Large">
-      <PayloadDirectory>$(ScenariosDir)winformslarge</PayloadDirectory>
+      <PayloadDirectory>$(ScenariosDir)windowsformslarge</PayloadDirectory>
     </Scenario>
   </ItemGroup>
 
