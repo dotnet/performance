@@ -151,7 +151,7 @@ public void SetupArray()
 
 ### IterationSetup
 
-If your benchmark requires a clean state for every invocation, you need to use the `[IterationSetup]` attribute. Unfortunately, just using the `[IterationSetup]` attribute is not enough to get stable results. You also need to make sure that the benchmark itself performs enough of computations for a single invocation to run longer than 100ms. **If you don't, your benchmark will be entirely invalid.**
+If your benchmark requires a clean state for every invocation, you need to use the `[IterationSetup]` attribute:
 
 ```cs
 [Params(1000 * 1000 * 200)] // allows for stable iteration around 200ms
@@ -181,7 +181,7 @@ If you want to get a better understanding of it, you should read [this blog post
 
 ### OperationsPerInvoke
 
-`[GlobalSetup]` and `[IterationSetup]` might not be enough if you want to setup some nano-benchmarks.
+You also need to make sure that the benchmark itself performs enough of computations for a single invocation to run longer than 100ms. **If you don't, your benchmark will be entirely invalid.**
 
 A good example is `Slicing` a `Span`. `Span` is a stack-only type, so we can not have a `[GlobalSetup]` method which writes it to a field of a `class`.
 
@@ -241,6 +241,8 @@ reportedResult = 1/16*SpanCtor + 1*Slice
 ```
 
 **Note:** `OperationsPerInvoke` should be big enough to amortize the "setup" cost.
+
+**Tip:** To quickly run your new benchmark just enough to see how long the iterations are, you can add `--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart` to the end of your command line. It won't give accurate results, but can help you determine whether you need to add more operations to bring the iteration time up to the  100ms goal.
 
 ## Test Cases
 
