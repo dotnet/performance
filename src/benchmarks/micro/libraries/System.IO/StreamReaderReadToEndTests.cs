@@ -1,3 +1,7 @@
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System.Text;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
@@ -13,7 +17,7 @@ public class StreamReaderReadToEndTests : TextReaderReadLineTests
     [GlobalSetup]
     public void GlobalSetup()
     {
-        _text = GenerateLinesText(LineLengthRange, 16 * 1024);
+        _text = GenerateLinesText(LineLengthRange, 48 * 1024 * 1024);
         _reader = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(_text)));
     }
 
