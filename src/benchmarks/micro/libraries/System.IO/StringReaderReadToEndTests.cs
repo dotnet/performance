@@ -11,7 +11,7 @@ namespace System.IO.Tests;
 [BenchmarkCategory(Categories.Libraries)]
 public class StringReaderReadToEndTests : TextReaderReadLineTests
 {
-    private const int InvocationsPerIteration = 40_000;
+    private const int InvocationsPerIteration = 400_000;
 
     [GlobalSetup]
     public void GlobalSetup() => _text = GenerateLinesText(LineLengthRange, 48 * 1024 * 1024);
