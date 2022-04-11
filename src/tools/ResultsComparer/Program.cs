@@ -13,10 +13,11 @@ using System.Xml;
 using Perfolizer.Mathematics.Multimodality;
 using Perfolizer.Mathematics.SignificanceTesting;
 using Perfolizer.Mathematics.Thresholds;
-using CommandLine;
 using DataTransferContracts;
 using MarkdownLog;
 using Newtonsoft.Json;
+using System.CommandLine;
+using System.CommandLine.Parsing;
 
 namespace ResultsComparer
 {
@@ -24,12 +25,54 @@ namespace ResultsComparer
     {
         private const string FullBdnJsonFileExtension = "full.json";
 
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             // we print a lot of numbers here and we want to make it always in invariant way
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
-            Parser.Default.ParseArguments<CommandLineOptions>(args).WithParsed(Compare);
+            Option<string> basePath = new Option<string>(
+                new[] { "--base", "-b" }, "Path to the folder/file with base results.");
+            Option<string> diffPath = new Option<string>(
+                new[] { "--diff", "-d" }, "Path to the folder/file with diff results.");
+            Option<string> threshold = new Option<string>(
+                new[] { "--threshold", "-t" }, "Threshold for Statistical Test. Examples: 5%, 10ms, 100ns, 1s.");
+            Option<string> noise = new Option<string>(
+                new[] { "--noise", "-n" }, () => "0.3ns", "Noise threshold for Statistical Test. The difference for 1.0ns and 1.1ns is 10%, but it's just a noise. Examples: 0.5ns 1ns.");
+            Option<int?> top = new Option<int?>(
+                new[] { "--top" }, "Filter the diff to top/bottom N results. Optional.");
+            Option<string[]> filters = new Option<string[]>(
+                new[] { "--filter", "-f" }, "Filter the benchmarks by name using glob pattern(s).");
+            Option<bool> fullId = new Option<bool>(
+                new[] { "--full-id" }, "Display the full benchmark name id.");
+
+            // required arguments:
+            threshold.IsRequired = true;
+
+            RootCommand command = new RootCommand
+            {
+                basePath,
+                diffPath,
+                threshold,
+                noise,
+                top,
+                filters,
+                fullId
+            };
+
+            command.SetHandler<string, string, string, string, int?, string[], bool>(
+                static (basePath, diffPath, threshold, noise, top, filters, fullId) => Compare(new CommandLineOptions()
+                {
+                    BasePath = basePath,
+                    DiffPath = diffPath,
+                    StatisticalTestThreshold = threshold,
+                    NoiseThreshold = noise,
+                    TopCount = top,
+                    Filters = filters,
+                    FullId = fullId
+                }),
+                basePath, diffPath, threshold, noise, top, filters, fullId);
+
+            return command.Invoke(args);
         }
 
         private static void Compare(CommandLineOptions args)
