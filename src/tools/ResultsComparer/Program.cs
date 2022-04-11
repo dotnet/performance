@@ -45,11 +45,19 @@ namespace ResultsComparer
                 return;
             }
 
-            var notSame = GetNotSameResults(args, testThreshold, noiseThreshold).ToArray();
+            var notSameResults = GetNotSameResults(args, testThreshold, noiseThreshold);
+            var notSame = notSameResults.notSameList.ToArray();
 
             if (!notSame.Any())
             {
-                Console.WriteLine($"No differences found between the benchmark results with threshold {testThreshold}.");
+                if (notSameResults.hasFailure)
+                    Console.WriteLine($"Found at least 1 failure between the benchmark results.");
+                else
+                    Console.WriteLine($"No differences found between the benchmark results with threshold {testThreshold}.");
+
+                if (args.FailureSummary)
+                    PrintFailureSummary(notSameResults.failuresBaseValidDiffNull, notSameResults.failuresBaseNullDiffValid, notSameResults.failuresBaseNullDiffNull);
+
                 return;
             }
 
@@ -58,15 +66,42 @@ namespace ResultsComparer
             PrintTable(notSame, EquivalenceTestConclusion.Slower, args);
             PrintTable(notSame, EquivalenceTestConclusion.Faster, args);
 
+            if (args.FailureSummary)
+                PrintFailureSummary(notSameResults.failuresBaseValidDiffNull, notSameResults.failuresBaseNullDiffValid, notSameResults.failuresBaseNullDiffNull);
+
             ExportToCsv(notSame, args.CsvPath);
             ExportToXml(notSame, args.XmlPath);
         }
 
-        private static IEnumerable<(string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)> GetNotSameResults(CommandLineOptions args, Threshold testThreshold, Threshold noiseThreshold)
+        private static
+        (List<(string, Benchmark, Benchmark, EquivalenceTestConclusion)> notSameList,
+        bool hasFailure, List<string> failuresBaseValidDiffNull, List<string> failuresBaseNullDiffValid, List<string> failuresBaseNullDiffNull)
+        GetNotSameResults(CommandLineOptions args, Threshold testThreshold, Threshold noiseThreshold)
         {
-            foreach ((string id, Benchmark baseResult, Benchmark diffResult) in ReadResults(args)
-                .Where(result => result.baseResult.Statistics != null && result.diffResult.Statistics != null)) // failures
+            bool hasFailure = false;
+            List<string> failuresBaseValidDiffNull = new List<string>();
+            List<string> failuresBaseNullDiffValid = new List<string>();
+            List<string> failuresBaseNullDiffNull = new List<string>();
+            List<(string, Benchmark, Benchmark, EquivalenceTestConclusion)> notSameList = new List<(string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)>();
+
+            foreach ((string id, Benchmark baseResult, Benchmark diffResult) in ReadResults(args))
             {
+                var isBaseNull = baseResult.Statistics == null;
+                var isDiffNull = diffResult.Statistics == null;
+
+                // failures
+                if (isBaseNull || isDiffNull)
+                {
+                    hasFailure = true;
+                    if (isBaseNull && isDiffNull)
+                        failuresBaseNullDiffNull.Add(id);
+                    else if (isDiffNull)
+                        failuresBaseValidDiffNull.Add(id);
+                    else
+                        failuresBaseNullDiffValid.Add(id);
+                    continue;
+                }
+
                 var baseValues = baseResult.GetOriginalValues();
                 var diffValues = diffResult.GetOriginalValues();
 
@@ -78,8 +113,10 @@ namespace ResultsComparer
                 if (noiseResult.Conclusion == EquivalenceTestConclusion.Same)
                     continue;
 
-                yield return (id, baseResult, diffResult, userTresholdResult.Conclusion);
+                notSameList.Add((id, baseResult, diffResult, userTresholdResult.Conclusion));
             }
+
+            return (notSameList, hasFailure, failuresBaseValidDiffNull, failuresBaseNullDiffValid, failuresBaseNullDiffNull);
         }
 
         private static void PrintSummary((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame)
@@ -141,6 +178,36 @@ namespace ResultsComparer
                 Console.WriteLine($"| {line.TrimStart()}|"); // the table starts with \t and does not end with '|' and it looks bad so we fix it
 
             Console.WriteLine();
+        }
+
+        private static void PrintFailureSummary(List<string> failuresBaseValidDiffNull, List<string> failuresBaseNullDiffValid, List<string> failuresBaseNullDiffNull)
+        {
+            Console.WriteLine($"Failure Summary:");
+            Console.WriteLine($"{failuresBaseValidDiffNull.Count}x Base Valid, Diff Null Failure(s).");
+            Console.WriteLine($"{failuresBaseNullDiffValid.Count}x Base Null, Diff Valid Failure(s).");
+            Console.WriteLine($"{failuresBaseNullDiffNull.Count}x Base Null, Diff Null Failure(s).");
+
+            if (failuresBaseValidDiffNull.Count > 0)
+            {
+                Console.WriteLine($"Benchmark ID(s) for: Base Valid, Diff Null Failure(s)");
+                Console.WriteLine($"-------");
+                foreach (var failureID in failuresBaseValidDiffNull)
+                    Console.WriteLine($"{failureID}");
+            }
+            if (failuresBaseNullDiffValid.Count > 0)
+            {
+                Console.WriteLine($"Benchmark ID(s) for: Base Null, Diff Valid Failure(s)");
+                Console.WriteLine($"-------");
+                foreach (var failureID in failuresBaseNullDiffValid)
+                    Console.WriteLine($"{failureID}");
+            }
+            if (failuresBaseNullDiffNull.Count > 0)
+            {
+                Console.WriteLine($"Benchmark ID(s) for: Base Null, Diff Null Failure(s)");
+                Console.WriteLine($"-------");
+                foreach (var failureID in failuresBaseNullDiffNull)
+                    Console.WriteLine($"{failureID}");
+            }
         }
 
         private static IEnumerable<(string id, Benchmark baseResult, Benchmark diffResult)> ReadResults(CommandLineOptions args)
