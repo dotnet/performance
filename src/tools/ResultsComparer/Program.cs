@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Xml;
 using Perfolizer.Mathematics.Multimodality;
 using Perfolizer.Mathematics.SignificanceTesting;
 using Perfolizer.Mathematics.Thresholds;
@@ -100,9 +99,6 @@ namespace ResultsComparer
 
             PrintTable(notSame, EquivalenceTestConclusion.Slower, args);
             PrintTable(notSame, EquivalenceTestConclusion.Faster, args);
-
-            ExportToCsv(notSame, args.CsvPath);
-            ExportToXml(notSame, args.XmlPath);
         }
 
         private static IEnumerable<(string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)> GetNotSameResults(CommandLineOptions args, Threshold testThreshold, Threshold noiseThreshold)
@@ -209,73 +205,6 @@ namespace ResultsComparer
                 .ToDictionary(benchmarkResult => benchmarkResult.FullName, benchmarkResult => benchmarkResult) // we use ToDictionary to make sure the results have unique IDs
                 .Where(baseResult => benchmarkIdToDiffResults.ContainsKey(baseResult.Key))
                 .Select(baseResult => (baseResult.Key, baseResult.Value, benchmarkIdToDiffResults[baseResult.Key]));
-        }
-
-        private static void ExportToCsv((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame, FileInfo csvPath)
-        {
-            if (csvPath == null)
-                return;
-
-            if (csvPath.Exists)
-                csvPath.Delete();
-
-            using (var textWriter = csvPath.CreateText())
-            {
-                foreach (var (id, baseResult, diffResult, conclusion) in notSame)
-                {
-                    textWriter.WriteLine($"\"{id.Replace("\"", "\"\"")}\";base;{conclusion};{string.Join(';', baseResult.Statistics.OriginalValues)}");
-                    textWriter.WriteLine($"\"{id.Replace("\"", "\"\"")}\";diff;{conclusion};{string.Join(';', diffResult.Statistics.OriginalValues)}");
-                }
-            }
-
-            Console.WriteLine($"CSV results exported to {csvPath.FullName}");
-        }
-
-        private static void ExportToXml((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame, FileInfo xmlPath)
-        {
-            if (xmlPath == null)
-            {
-                Console.WriteLine("No file given");
-                return;
-            }
-
-             if (xmlPath.Exists)
-                xmlPath.Delete();
-
-            using (XmlWriter writer = XmlWriter.Create(xmlPath.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write)))
-            {
-                writer.WriteStartElement("performance-tests");
-                foreach (var (id, baseResult, diffResult, conclusion) in notSame.Where(x => x.conclusion == EquivalenceTestConclusion.Slower))
-                {
-                    writer.WriteStartElement("test");
-                    writer.WriteAttributeString("name", id);
-                    writer.WriteAttributeString("type", baseResult.Type);
-                    writer.WriteAttributeString("method", baseResult.Method);
-                    writer.WriteAttributeString("time", "0");
-                    writer.WriteAttributeString("result", "Fail");
-                    writer.WriteStartElement("failure");
-                    writer.WriteAttributeString("exception-type", "Regression");
-                    writer.WriteElementString("message", $"{id} has regressed, was {baseResult.Statistics.Median} is {diffResult.Statistics.Median}.");
-                    writer.WriteEndElement();
-                }
-
-                foreach (var (id, baseResult, diffResult, conclusion) in notSame.Where(x => x.conclusion == EquivalenceTestConclusion.Faster))
-                {
-                    writer.WriteStartElement("test");
-                    writer.WriteAttributeString("name", id);
-                    writer.WriteAttributeString("type", baseResult.Type);
-                    writer.WriteAttributeString("method", baseResult.Method);
-                    writer.WriteAttributeString("time", "0");
-                    writer.WriteAttributeString("result", "Skip");
-                    writer.WriteElementString("reason", $"{id} has improved, was {baseResult.Statistics.Median} is {diffResult.Statistics.Median}.");
-                    writer.WriteEndElement();
-                }
-
-                writer.WriteEndElement();
-                writer.Flush();
-            }
-
-            Console.WriteLine($"XML results exported to {xmlPath.FullName}");
         }
 
         private static string[] GetFilesToParse(string path)
