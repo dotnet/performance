@@ -176,6 +176,8 @@ def __main(args: list) -> int:
         else:
             resultsName = timestamp + '-' + versionName
 
+        resultsName = args.architecture + '-' + resultsName
+
         resultsTarPath = os.path.join(rootPath, 'artifacts', resultsName + '.tar.gz')
 
         if not args.dry_run:
