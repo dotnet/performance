@@ -12,11 +12,10 @@ from test import EXENAME
 
 precommands = PreCommands()
 
-if precommands.has_workload:
-    if precommands.framework == 'net6.0' or precommands.framework == 'net7.0':
-        subprocess.run(["dotnet", "workload", "uninstall", "wasm-tools"])
-    else:
-        subprocess.run(["dotnet", "workload", "uninstall", "microsoft-net-sdk-blazorwebassembly-aot"])
+if precommands.framework == 'net6.0' or precommands.framework == 'net7.0':
+    precommands.uninstall_workload("wasm-tools")
+else:
+    precommands.uninstall_workload("microsoft-net-sdk-blazorwebassembly-aot")
 
 setup_loggers(True)
 precommands.new(template='blazorwasm',

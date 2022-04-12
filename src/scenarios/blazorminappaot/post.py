@@ -2,8 +2,9 @@
 post cleanup script
 '''
 
-from shared.postcommands import clean_directories
+from shared.postcommands import PostCommands
 import subprocess
 
-clean_directories()
-subprocess.run(["dotnet", "workload", "uninstall", "wasm-tools"])
+postcommands = PostCommands()
+postcommands.clean_directories()
+postcommands.uninstall_workload('wasm-tools')

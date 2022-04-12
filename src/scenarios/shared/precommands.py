@@ -5,6 +5,7 @@ Commands and utilities for pre.py scripts
 import sys
 import os
 import shutil
+import subprocess
 from logging import getLogger
 from argparse import ArgumentParser
 from dotnet import CSharpProject, CSharpProjFile
@@ -75,6 +76,7 @@ class PreCommands:
         self.msbuildstatic = args.msbuildstatic
         self.binlog = args.binlog
         self.has_workload = args.has_workload
+        self.readonly_dotnet = args.readonly_dotnet
 
         if self.operation == CROSSGEN:
             self.crossgen_arguments.parse_crossgen_args(args)
@@ -136,6 +138,11 @@ class PreCommands:
                             default=False,
                             action='store_true',
                             help='Indicates that the dotnet being used has workload already installed')
+        parser.add_argument('--readonly-dotnet',
+                            dest='readonly_dotnet',
+                            default=False,
+                            action='store_true',
+                            help='Indicates that the dotnet being used should not be modified (for example, when it is ahared with other builds)')
         parser.set_defaults(configuration=RELEASE)
 
     def existing(self, projectdir: str, projectfile: str):
@@ -189,6 +196,16 @@ class PreCommands:
         shutil.copyfile(os.path.join(staticpath, "PerfLab.cs"), os.path.join(projpath, "PerfLab.cs"))
         filepath = os.path.join(projpath, file)
         insert_after(filepath, line, trace_statement)
+
+    def install_workload(self, workloadid: str):
+        if not self.has_workload:
+            if self.readonly_dotnet:
+                raise Exception('workload needed to build, but has_workload=false, and readonly_dotnet=true')
+            subprocess.run(["dotnet", "workload", "install", workloadid, "--skip-manifest-update"])
+
+    def uninstall_workload(self, workloadid: str):
+        if not self.readonly_dotnet:
+            subprocess.run(["dotnet", "workload", "uninstall", workloadid])
 
     def _addstaticmsbuildproperty(self, projectfile: str):
         'Insert static msbuild property in the specified project file'
