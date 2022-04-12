@@ -37,12 +37,6 @@ namespace BenchmarkDotNet.Extensions
                     .WithMinIterationCount(15)
                     .WithMaxIterationCount(20) // we don't want to run more that 20 iterations
                     .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
-
-                job = job.WithArguments(new Argument[]
-                {
-                    new MsBuildArgument("/p:DebugType=portable"), // See https://github.com/dotnet/roslyn/issues/42393
-                    new MsBuildArgument("-bl:benchmarkdotnet.binlog"), // for diagnosing CI failures
-                });
             }
 
             var config = ManualConfig.CreateEmpty()

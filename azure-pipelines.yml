@@ -29,6 +29,7 @@ pr:
     - src/benchmarks/real-world/JitBench/README.md
     - src/benchmarks/real-world/Microsoft.ML.Benchmarks/Input/README.md
     - src/tools/ResultsComparer/README.md
+    - scripts/benchmarks_monthly.py
     - README.md
 
 schedules:

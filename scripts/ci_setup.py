@@ -161,6 +161,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Directory to install dotnet to'
     )
 
+    parser.add_argument(
+        '--not-in-lab',
+        dest='not_in_lab',
+        required=False,
+        action='store_true',
+        default=False,
+        help='Indicates that this is not running in perflab'
+    )
+
     def __is_valid_dotnet_path(dp: str) -> str:
         if not os.path.isdir(dp):
             raise ArgumentTypeError('Path {} does not exist'.format(dp))
@@ -297,11 +306,14 @@ def __main(args: list) -> int:
         branch = ChannelMap.get_branch(args.channel) if not args.branch else args.branch
 
         getLogger().info("Writing script to %s" % args.output_file)
+        dir_path = os.path.dirname(args.output_file)
+        if not os.path.isdir(dir_path):
+            os.mkdir(dir_path)
 
         with open(args.output_file, 'w') as out_file:
             out_file.write(which)
             out_file.write(pgo_config)
-            out_file.write(variable_format % ('PERFLAB_INLAB', '1'))
+            out_file.write(variable_format % ('PERFLAB_INLAB', '0' if args.not_in_lab else '1'))
             out_file.write(variable_format % ('PERFLAB_REPO', '/'.join([owner, repo])))
             out_file.write(variable_format % ('PERFLAB_BRANCH', branch))
             out_file.write(variable_format % ('PERFLAB_PERFHASH', perfHash))
@@ -321,8 +333,6 @@ def __main(args: list) -> int:
             out_file.write(variable_format % ('MAUI_VERSION', args.maui_version))
             out_file.write(path_variable % dotnet_path)
             out_file.write(showenv)
-            
-
     else:
         with open(args.output_file, 'w') as out_file:
             out_file.write(variable_format % ('PERFLAB_INLAB', '0'))

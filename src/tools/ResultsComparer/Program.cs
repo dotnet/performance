@@ -67,8 +67,8 @@ namespace ResultsComparer
             foreach ((string id, Benchmark baseResult, Benchmark diffResult) in ReadResults(args)
                 .Where(result => result.baseResult.Statistics != null && result.diffResult.Statistics != null)) // failures
             {
-                var baseValues = baseResult.GetOriginalValues();
-                var diffValues = diffResult.GetOriginalValues();
+                var baseValues = baseResult.Statistics.OriginalValues.ToArray();
+                var diffValues = diffResult.Statistics.OriginalValues.ToArray();
 
                 var userTresholdResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, testThreshold);
                 if (userTresholdResult.Conclusion == EquivalenceTestConclusion.Same)
@@ -180,8 +180,8 @@ namespace ResultsComparer
             {
                 foreach (var (id, baseResult, diffResult, conclusion) in notSame)
                 {
-                    textWriter.WriteLine($"\"{id.Replace("\"", "\"\"")}\";base;{conclusion};{string.Join(';', baseResult.GetOriginalValues())}");
-                    textWriter.WriteLine($"\"{id.Replace("\"", "\"\"")}\";diff;{conclusion};{string.Join(';', diffResult.GetOriginalValues())}");
+                    textWriter.WriteLine($"\"{id.Replace("\"", "\"\"")}\";base;{conclusion};{string.Join(';', baseResult.Statistics.OriginalValues)}");
+                    textWriter.WriteLine($"\"{id.Replace("\"", "\"\"")}\";diff;{conclusion};{string.Join(';', diffResult.Statistics.OriginalValues)}");
                 }
             }
 
@@ -252,7 +252,7 @@ namespace ResultsComparer
             if (benchmark.Statistics.N < 12) // not enough data to tell
                 return null;
 
-            double mValue = MValueCalculator.Calculate(benchmark.GetOriginalValues());
+            double mValue = MValueCalculator.Calculate(benchmark.Statistics.OriginalValues);
             if (mValue > 4.2)
                 return "multimodal";
             else if (mValue > 3.2)
