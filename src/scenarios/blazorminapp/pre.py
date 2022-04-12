@@ -17,6 +17,9 @@ precommands.new(template='blazorwasm',
                 exename=EXENAME,
                 working_directory=sys.path[0])
 
+# This project uses native relinking
+
+# We want to use native relinking which requires the workload
 precommands.install_workload('wasm-tools')
 f = open(os.path.join(os.getcwd(), "app", "emptyblazorwasmtemplate.csproj"), 'r')
 outFileText = ""
@@ -25,6 +28,10 @@ for line in f.readlines():
         outFileText += line
         outFileText += "    <BlazorEnableTimeZoneSupport>false</BlazorEnableTimeZoneSupport>" + os.linesep
         outFileText += "    <InvariantGlobalization>true</InvariantGlobalization>" + os.linesep
+        # this will trigger native relinking, and fail the build if the workload is not available
+        outFileText += "    <WasmBuildNative>true</WasmBuildNative>" + os.linesep
+        # skip unncessary relinking done after build
+        outFileText += "    <WasmBuildOnlyAfterPublish>true</WasmBuildOnlyAfterPublish>" + os.linesep
     else:
         outFileText += line
 f.close()

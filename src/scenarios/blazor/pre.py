@@ -23,4 +23,6 @@ precommands.new(template='blazorwasm',
                 bin_dir=const.BINDIR,
                 exename=EXENAME,
                 working_directory=sys.path[0])
-precommands.execute()
+# ensure that we don't use the workload, which would trigger native
+# relinking
+precommands.execute(['-p:WasmNativeWorkload=false'])

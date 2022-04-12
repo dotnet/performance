@@ -152,18 +152,18 @@ class PreCommands:
         self.project = CSharpProject(csproj, const.BINDIR)
         self._updateframework(csproj.file_name)
 
-    def execute(self):
+    def execute(self, build_args: list = []):
         'Parses args and runs precommands'
         if self.operation == DEFAULT:
             pass
         if self.operation == BUILD:
             self._restore()
-            self._build(configuration=self.configuration, framework=self.framework)
+            self._build(configuration=self.configuration, framework=self.framework, args=build_args)
         if self.operation == PUBLISH:
             self._restore()
             self._publish(configuration=self.configuration,
                           runtime_identifier=self.runtime_identifier,
-                          framework=self.framework)
+                          framework=self.framework, build_args=build_args)
         if self.operation == CROSSGEN:
             startup_args = [
                 os.path.join(self.crossgen_arguments.coreroot, 'crossgen%s' % extension()),
@@ -198,13 +198,15 @@ class PreCommands:
         insert_after(filepath, line, trace_statement)
 
     def install_workload(self, workloadid: str):
+        'Installs the workload, if needed'
         if not self.has_workload:
             if self.readonly_dotnet:
                 raise Exception('workload needed to build, but has_workload=false, and readonly_dotnet=true')
             subprocess.run(["dotnet", "workload", "install", workloadid, "--skip-manifest-update"])
 
     def uninstall_workload(self, workloadid: str):
-        if not self.readonly_dotnet:
+        'Uninstalls the workload, if possible'
+        if self.has_workload and not self.readonly_dotnet:
             subprocess.run(["dotnet", "workload", "uninstall", workloadid])
 
     def _addstaticmsbuildproperty(self, projectfile: str):
@@ -228,7 +230,7 @@ class PreCommands:
         if self.framework:
             replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
 
-    def _publish(self, configuration: str, framework: str = None, runtime_identifier: str = None):
+    def _publish(self, configuration: str, framework: str = None, runtime_identifier: str = None, build_args: list = []):
         self.project.publish(configuration,
                              const.PUBDIR, 
                              True,
@@ -236,18 +238,20 @@ class PreCommands:
                              framework,
                              runtime_identifier,
                              self._parsemsbuildproperties(),
-                             '-bl:%s' % self.binlog if self.binlog else ""
+                             '-bl:%s' % self.binlog if self.binlog else "",
+                             *build_args
                              )
 
     def _restore(self):
         self.project.restore(packages_path=get_packages_directory(), verbose=True)
 
-    def _build(self, configuration: str, framework: str = None):
+    def _build(self, configuration: str, framework: str = None, build_args: list = []):
         self.project.build(configuration=configuration,
                                verbose=True,
                                packages_path=get_packages_directory(),
                                target_framework_monikers=[framework],
-                               output_to_bindir=True)
+                               output_to_bindir=True,
+                               *build_args)
 
     def _backup(self, projectdir:str):
         'Copy from projectdir to appdir so we do not modify the source code'

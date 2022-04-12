@@ -16,4 +16,5 @@ if precommands.framework == 'net6.0' or precommands.framework == 'net7.0':
 else:
     precommands.uninstall_workload("microsoft-net-sdk-blazorwebassembly-aot")
 precommands.existing("src", "BlazingPizza.sln")
-precommands.execute()
+# ensure that we don't use relinking
+precommands.execute(['-p:WasmNativeWorkload=false'])
