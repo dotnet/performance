@@ -5,7 +5,7 @@ post cleanup script
 import zipfile
 from os import walk, environ
 from os.path import isfile, join
-from shared.postcommands import clean_directories
+import shared.postcommands
 from shared import const
 from performance.common import runninginlab
 from test import EXENAME
@@ -19,5 +19,6 @@ if runninginlab():
                 f.append(join(dirpath, name))
         for files in f:
             publish.write(files)
-        
-clean_directories()
+
+postcommands = PostCommands()
+postcommands.clean_directories()
