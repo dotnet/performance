@@ -45,11 +45,19 @@
     <Scenario Include="New VB Console Template">
       <PayloadDirectory>$(ScenariosDir)emptyvbconsoletemplate</PayloadDirectory>
     </Scenario>
-    <Scenario Include="WinForms Large">
+    <UIScenario Include="WinForms Large">
       <PayloadDirectory>$(ScenariosDir)windowsformslarge</PayloadDirectory>
-    </Scenario>
+    </UIScenario>
   </ItemGroup>
 
+
+  <!-- UI Startup FDD publish -->
+  <ItemGroup>
+    <HelixWorkItem Include="@(UIScenario -> 'Startup - %(Identity) - FDD Publish')">
+      <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release --windowsui</PreCommands>
+      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+  </ItemGroup>
 
   <!-- Startup FDD publish -->
   <ItemGroup>
