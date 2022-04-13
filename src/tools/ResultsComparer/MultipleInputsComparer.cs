@@ -17,10 +17,10 @@ namespace ResultsComparer
             Console.WriteLine("# Legend");
             Console.WriteLine();
             Console.WriteLine($"* Statistical Test threshold: {args.StatisticalTestThreshold}, the noise filter: {args.NoiseThreshold}");
-            Console.WriteLine("* Result is conslusion: Slower|Faster|Same");
+            Console.WriteLine($"* Result is conclusion: Slower|Faster|Same|Noise|Unknown. Noise means that the difference was larger than {args.StatisticalTestThreshold} but not {args.NoiseThreshold}.");
             Console.WriteLine($"* Base is median base execution time in nanoseconds for {args.BasePattern}");
             Console.WriteLine($"* Diff is median diff execution time in nanoseconds for {args.DiffPattern}");
-            Console.WriteLine("* Ratio = Base/Diff (the higher the better)");
+            Console.WriteLine("* Ratio = Base/Diff (the higher the better).");
             Console.WriteLine("* Alloc Delta = Allocated bytes diff - Allocated bytes base (the lower the better)");
             Console.WriteLine();
 
@@ -67,13 +67,14 @@ namespace ResultsComparer
 
         private static string GetRatio((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion, HostEnvironmentInfo baseEnv, HostEnvironmentInfo diffEnv) result)
         {
-            if (result.conclusion == Stats.Noise)
+            double ratio = result.baseResult.Statistics.Median / result.diffResult.Statistics.Median;
+
+            if (double.IsNaN(ratio) || result.conclusion == Stats.Noise)
             {
                 return "-";
             }
 
-            double ratio = result.baseResult.Statistics.Median / result.diffResult.Statistics.Median;
-            return double.IsNaN(ratio) ? "-" : ratio.ToString("0.00");
+            return ratio.ToString("0.00");
         }
 
         private static string GetAllocatedDiff(Benchmark diffResult, Benchmark baseResult)
@@ -119,9 +120,10 @@ namespace ResultsComparer
                 var userTresholdResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, args.StatisticalTestThreshold);
                 var noiseResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, args.NoiseThreshold);
 
-                var conclusion = userTresholdResult.Conclusion != EquivalenceTestConclusion.Same && noiseResult.Conclusion == EquivalenceTestConclusion.Same // filter noise (0.20 ns vs 0.25ns etc)
+                // filter noise (0.20 ns vs 0.25ns is 25% difference)
+                var conclusion = userTresholdResult.Conclusion != EquivalenceTestConclusion.Same && noiseResult.Conclusion == EquivalenceTestConclusion.Same
                     ? Stats.Noise
-                    : userTresholdResult.Conclusion;
+                    : userTresholdResult.Conclusion == EquivalenceTestConclusion.Base ? EquivalenceTestConclusion.Same : userTresholdResult.Conclusion;
 
                 stats.Record(conclusion, info.baseEnv, info.baseResult);
 
