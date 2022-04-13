@@ -9,6 +9,8 @@ namespace ResultsComparer
 {
     public class MultipleInputsOptions
     {
+        public string BasePattern { get; init; }
+        public string DiffPattern { get; init; }
         public string[] BasePaths { get; init; }
         public string[] DiffPaths { get; init; }
         public Threshold StatisticalTestThreshold { get; init; }

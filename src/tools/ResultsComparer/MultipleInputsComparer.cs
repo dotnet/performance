@@ -16,12 +16,10 @@ namespace ResultsComparer
             Console.WriteLine();
             Console.WriteLine($"* Statistical Test threshold: {args.StatisticalTestThreshold}, the noise filter: {args.NoiseThreshold}");
             Console.WriteLine("* Result is conslusion: Slower|Faster|Same");
-            Console.WriteLine("* Base is median base execution time in nanoseconds");
-            Console.WriteLine("* Diff is median diff execution time in nanoseconds");
+            Console.WriteLine($"* Base is median base execution time in nanoseconds for {args.BasePattern}");
+            Console.WriteLine($"* Diff is median diff execution time in nanoseconds {args.DiffPattern}");
             Console.WriteLine("* Ratio = Base/Diff (the higher the better)");
             Console.WriteLine("* Alloc Delta = Allocated bytes diff - Allocated bytes base (the lower the better)");
-            Console.WriteLine("* Base V = Base Runtime Version");
-            Console.WriteLine("* Diff V = Diff Runtime Version");
             Console.WriteLine();
 
             Stats stats = new Stats();
@@ -55,12 +53,10 @@ namespace ResultsComparer
                         OperatingSystem = Stats.GetSimplifiedOSName(result.baseEnv.OsVersion),
                         Architecture = result.baseEnv.Architecture,
                         ProcessorName = result.baseEnv.ProcessorName,
-                        BaseRuntimeVersion = GetSimplifiedRuntimeVersion(result.baseEnv.RuntimeVersion),
-                        DiffRuntimeVersion = GetSimplifiedRuntimeVersion(result.diffEnv.RuntimeVersion),
                     })
                     .ToArray();
 
-                var table = data.ToMarkdownTable().WithHeaders("Result", "Base", "Diff", "Ratio", "Alloc Delta", "Modality", "Operating System", "Bit", "Processor Name", "Base V", "Diff V");
+                var table = data.ToMarkdownTable().WithHeaders("Result", "Base", "Diff", "Ratio", "Alloc Delta", "Modality", "Operating System", "Bit", "Processor Name");
 
                 foreach (var line in table.ToMarkdown().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries))
                     Console.WriteLine($"| {line.TrimStart()}|"); // the table starts with \t and does not end with '|' and it looks bad so we fix it
@@ -196,23 +192,6 @@ namespace ResultsComparer
             else if (env.Architecture == "X86" && os == windows) return 8;
             else if (env.Architecture == "X64" && os == macos) return 9;
             else throw new NotSupportedException($"Config {env.Architecture} {env.OsVersion} was not recognized");
-        }
-
-        private static string GetSimplifiedRuntimeVersion(string text)
-        {
-            if (text.StartsWith(".NET Core 3", StringComparison.OrdinalIgnoreCase))
-            {
-                // it's something like ".NET Core 3.1.6 (CoreCLR 4.700.20.26901, CoreFX 4.700.20.31603)"
-                // and what we care about is "3.1.6"
-                return text.Substring(".NET Core ".Length, "3.1.X".Length);
-            }
-            else
-            {
-                // it's something like ".NET 6.0.0 (6.0.21.35216)"
-                // and what we care about is "6.0.21.35216"
-                int index = text.IndexOf('(');
-                return text.Substring(index + 1, text.Length - index - 2);
-            }
         }
     }
 }
