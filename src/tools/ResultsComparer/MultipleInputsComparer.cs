@@ -43,7 +43,7 @@ namespace ResultsComparer
                 Console.WriteLine();
 
                 var data = benchmarkResults
-                    .OrderBy(result => Importance(result.baseEnv))
+                    .OrderBy(result => Order(result.baseEnv))
                     .Select(result => new
                     {
                         Conclusion = result.conclusion,
@@ -166,57 +166,36 @@ namespace ResultsComparer
                 case EquivalenceTestConclusion.Faster:
                     double improvementXtimes = baseResult.Statistics.Median / diffResult.Statistics.Median;
                     return (double.IsNaN(improvementXtimes) || double.IsInfinity(improvementXtimes))
-                        ? Importance(env) * 10.0
-                        : Importance(env) * Math.Min(improvementXtimes, 10.0);
+                        ? Order(env) * 10.0
+                        : Order(env) * Math.Min(improvementXtimes, 10.0);
                 case EquivalenceTestConclusion.Slower:
                     double regressionXtimes = diffResult.Statistics.Median / baseResult.Statistics.Median;
                     return (double.IsNaN(regressionXtimes) || double.IsInfinity(regressionXtimes))
-                        ? Importance(env) * -10.0
-                        : Importance(env) * Math.Min(regressionXtimes, 10.0) * -1.0;
+                        ? Order(env) * -10.0
+                        : Order(env) * Math.Min(regressionXtimes, 10.0) * -1.0;
                 default:
                     throw new NotSupportedException($"{conclusion} is not supported");
             }
         }
 
-        private static int Importance(HostEnvironmentInfo env)
+        private static int Order(HostEnvironmentInfo env)
         {
-            // it's not any kind of official Microsoft priority, just the way I see them:
-            // 1. x64 Windows
-            // 2. x64 Linux
-            // 3. arm64 Linux
-            // 4. arm64 Windows
-            // 5. x86 Windows
-            // 6. arm Windows
-            // 7. x64 macOS
+            const string windows = "windows", macos = "macos", linux = "linux";
 
-            if (env.Architecture == "X64" && env.OsVersion.StartsWith("Windows", StringComparison.OrdinalIgnoreCase))
-            {
-                return 1;
-            }
-            else if (env.Architecture == "X64" && !env.OsVersion.StartsWith("macOS", StringComparison.OrdinalIgnoreCase))
-            {
-                return 2;
-            }
-            else if (env.Architecture == "Arm64" && !env.OsVersion.StartsWith("Windows", StringComparison.OrdinalIgnoreCase))
-            {
-                return 3;
-            }
-            else if (env.Architecture == "Arm64")
-            {
-                return 4;
-            }
-            else if (env.Architecture == "X86")
-            {
-                return 5;
-            }
-            else if (env.Architecture == "Arm")
-            {
-                return 6;
-            }
-            else
-            {
-                return 7;
-            }
+            string os = env.OsVersion.StartsWith(windows, StringComparison.OrdinalIgnoreCase)
+                ? windows
+                : env.OsVersion.StartsWith(macos, StringComparison.OrdinalIgnoreCase) ? macos : linux;
+
+            if (env.Architecture == "Arm64" && os == linux) return 1;
+            else if (env.Architecture == "Arm64" && os == windows) return 2;
+            else if (env.Architecture == "Arm64" && os == macos) return 3;
+            else if (env.Architecture == "X64" && os == windows) return 4;
+            else if (env.Architecture == "X64" && os == linux) return 5;
+            else if (env.Architecture == "Arm" && os == windows) return 6;
+            else if (env.Architecture == "Arm" && os == linux) return 7;
+            else if (env.Architecture == "X86" && os == windows) return 8;
+            else if (env.Architecture == "X64" && os == macos) return 9;
+            else throw new NotSupportedException($"Config {env.Architecture} {env.OsVersion} was not recognized");
         }
 
         private static string GetSimplifiedRuntimeVersion(string text)
