@@ -65,6 +65,8 @@ class Runner:
         parseonlyparser.add_argument('--package-name', help='Classname (Android) or Bundle ID (iOS) of application', dest='packagename')
         parseonlyparser.add_argument('--startup-iterations', help='Startups to run (1+)', type=int, default=10, dest='startupiterations')
         parseonlyparser.add_argument('--disable-animations', help='Disable Android device animations, does nothing on iOS.', action='store_true', dest='animationsdisabled')
+        parseonlyparser.add_argument('--use-fully-drawn-time', help='Use the startup time from reportFullyDrawn for android, and the equivalent for iOS', action='store_true', dest='usefullydrawntime')
+        parseonlyparser.add_argument('--fully-drawn-extra-delay', help='Set an additional delay time for an Android app to reportFullyDrawn (seconds), not on iOS. This should be greater than the greatest amount of extra time expected between first frame draw and reportFullyDrawn being called. Default = 3 seconds', type=int, default=3, dest='fullyDrawnDelaySecMax')
         self.add_common_arguments(parseonlyparser)
 
         # inner loop command
@@ -148,6 +150,8 @@ ex: C:\repos\performance;C:\repos\runtime
             self.devicetype = args.devicetype
             self.startupiterations = args.startupiterations
             self.animationsdisabled = args.animationsdisabled
+            self.usefullydrawntime = args.usefullydrawntime
+            self.fullyDrawnDelaySecMax = args.fullyDrawnDelaySecMax
 
         if args.scenarioname:
             self.scenarioname = args.scenarioname
@@ -424,7 +428,7 @@ ex: C:\repos\performance;C:\repos\runtime
             if(int(windowSetValue.stdout.strip()) != animationValue or int(transitionSetValue.stdout.strip()) != animationValue or int(animatorSetValue.stdout.strip()) != animationValue):
                 # Setting the values didn't work, error out
                 getLogger().exception(f"Failed to set animation values to {animationValue}.")
-                exit(-1)
+                sys.exit(-1)
             else:
                 getLogger().info(f"Animation values successfully set to {animationValue}.")
 
@@ -477,12 +481,13 @@ ex: C:\repos\performance;C:\repos\runtime
                 checkScreenOn.run()
                 if("mInteractive=false" in checkScreenOn.stdout):
                     getLogger().exception("Failed to make screen interactive.")
-                    exit(-1)
+                    sys.exit(-1)
 
             # Actual testing some run stuff
             getLogger().info("Test run to check if permissions are needed")
             activityname = getActivity.stdout
 
+            # -W in the start command waits for the app to finish initial draw.
             startAppCmd = [ 
                 adb.stdout.strip(),
                 'shell',
@@ -530,14 +535,51 @@ ex: C:\repos\performance;C:\repos\runtime
                 
                 if "com.google.android.permissioncontroller" in testRunStats[3]:
                     getLogger().exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
-                    exit(-1)
+                    sys.exit(-1)
+
+            # Create the fullydrawn command
+            fullyDrawnRetrieveCmd = [ 
+                adb.stdout.strip(),
+                'shell',
+                f"logcat -d | grep 'ActivityTaskManager: Fully drawn {self.packagename}'"
+            ]
+
+            basicStartupRetrieveCmd = [ 
+                adb.stdout.strip(),
+                'shell',
+                f"logcat -d | grep 'ActivityTaskManager: Displayed {activityname}'"
+            ]
+
+            clearLogsCmd = [
+                adb.stdout.strip(),
+                'logcat',
+                '-c'
+            ]
 
             allResults = []
             for i in range(self.startupiterations):
+                # Clear logs
+                RunCommand(clearLogsCmd, verbose=True).run()
                 startStats = RunCommand(startAppCmd, verbose=True)
                 startStats.run()
+                # Make sure we cold started (TODO Add other starts)
+                if("LaunchState: COLD" not in startStats.stdout):
+                    getLogger().error("App Start not COLD!")
+                    
+                # Save the results and get them from the log
+                if self.usefullydrawntime: time.sleep(self.fullyDrawnDelaySecMax) # Start command doesn't wait for fully drawn report, force a wait for it. -W in the start command waits for the app to finish initial draw.
                 RunCommand(stopAppCmd, verbose=True).run()
-                allResults.append(startStats.stdout) # Save results (List is Intent, Status, LaunchState Activity, TotalTime, WaitTime)
+                if self.usefullydrawntime:
+                    retrieveTimeCmd = RunCommand(fullyDrawnRetrieveCmd, verbose=True)
+                else:
+                    retrieveTimeCmd = RunCommand(basicStartupRetrieveCmd, verbose=True)
+                retrieveTimeCmd.run()
+                dirtyCapture = re.search("\+(\d*s?\d+)ms", retrieveTimeCmd.stdout)
+                if not dirtyCapture:
+                    getLogger().error("Failed to capture the reported start time! Exitting...")
+                    sys.exit(-1)
+                formattedTime = f"TotalTime: {dirtyCapture.group(1).replace('s', '')}\n"
+                allResults.append(formattedTime) # append TotalTime: (TIME)
                 time.sleep(3) # Delay in seconds for ensuring a cold start
 
             getLogger().info("Stopping App for uninstall")
