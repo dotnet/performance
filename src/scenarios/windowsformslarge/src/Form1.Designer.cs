@@ -129,7 +129,6 @@
             this.Column5 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column6 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.tabPage4 = new System.Windows.Forms.TabPage();
-            this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
             this.tabPage6 = new System.Windows.Forms.TabPage();
@@ -981,7 +980,6 @@
             // 
             // tabPage4
             // 
-            this.tabPage4.Controls.Add(this.webBrowser1);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
@@ -989,16 +987,6 @@
             this.tabPage4.TabIndex = 1;
             this.tabPage4.Text = "WebBrowser";
             this.tabPage4.UseVisualStyleBackColor = true;
-            // 
-            // webBrowser1
-            // 
-            this.webBrowser1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.webBrowser1.Location = new System.Drawing.Point(3, 3);
-            this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
-            this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(496, 210);
-            this.webBrowser1.TabIndex = 0;
-            this.webBrowser1.Url = new System.Uri("https://msdn.microsoft.com/en-us/", System.UriKind.Absolute);
             // 
             // tabPage5
             // 
@@ -1736,7 +1724,6 @@
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.DataGridView dataGridView2;
         private System.Windows.Forms.TabPage tabPage4;
-        private System.Windows.Forms.WebBrowser webBrowser1;
         private System.Windows.Forms.TabPage tabPage5;
         private System.Windows.Forms.PropertyGrid propertyGrid1;
         private System.Windows.Forms.TabPage tabPage6;
