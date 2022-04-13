@@ -45,7 +45,7 @@
     <Scenario Include="New VB Console Template">
       <PayloadDirectory>$(ScenariosDir)emptyvbconsoletemplate</PayloadDirectory>
     </Scenario>
-    <UIScenario Include="WinForms Large">
+    <UIScenario Include="WinForms Large" Condition="'$(TargetsWindows)' == 'true'">
       <PayloadDirectory>$(ScenariosDir)windowsformslarge</PayloadDirectory>
     </UIScenario>
   </ItemGroup>
