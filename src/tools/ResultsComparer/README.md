@@ -45,12 +45,13 @@ If there is no difference or if there is no match (we use full benchmark names t
 
 ## Matrix
 
-The tools supports also comparing multiple result sets. For up-to-date help please run `dotnet run -- matrix --help`
+The tools supports also comparing multiple result sets. For up-to-date help please run `dotnet run -- matrix --help`.
 
 Sample usage:
 
 ```cmd
-dotnet run -c Release matrix --input D:\results\p3_all\ --base net7.0-preview2 --diff net7.0-preview3 --threshold 10% --noise 2ns --filter System.IO*
+dotnet run -c Release matrix decompress --input D:\results\Performance-Runs.zip --output D:\results\net7.0-preview3
+dotnet run -c Release matrix --input D:\results\net7.0-preview3 --base net7.0-preview2 --diff net7.0-preview3 --threshold 10% --noise 2ns --filter System.IO*
 ```
 
 Sample results:
