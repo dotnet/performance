@@ -158,7 +158,7 @@ class PreCommands:
             pass
         if self.operation == BUILD:
             self._restore()
-            self._build(configuration=self.configuration, framework=self.framework, args=build_args)
+            self._build(configuration=self.configuration, framework=self.framework, build_args=build_args)
         if self.operation == PUBLISH:
             self._restore()
             self._publish(configuration=self.configuration,
