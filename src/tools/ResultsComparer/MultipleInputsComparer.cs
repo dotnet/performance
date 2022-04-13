@@ -47,10 +47,10 @@ namespace ResultsComparer
                     .OrderBy(result => Order(result.baseEnv))
                     .Select(result => new
                     {
-                        Conclusion = result.conclusion,
+                        Conclusion = result.conclusion == Stats.Noise ? "Noise" : result.conclusion.ToString(),
                         BaseMedian = result.baseResult.Statistics.Median,
                         DiffMedian = result.diffResult.Statistics.Median,
-                        Ratio = result.baseResult.Statistics.Median / result.diffResult.Statistics.Median,
+                        Ratio = GetRatio(result),
                         AllocatedDiff = GetAllocatedDiff(result.diffResult, result.baseResult),
                         Modality = Helper.GetModalInfo(result.baseResult) ?? Helper.GetModalInfo(result.diffResult),
                         OperatingSystem = Stats.GetSimplifiedOSName(result.baseEnv.OsVersion),
@@ -71,6 +71,17 @@ namespace ResultsComparer
 
                 Console.WriteLine();
             }
+        }
+
+        private static string GetRatio((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion, HostEnvironmentInfo baseEnv, HostEnvironmentInfo diffEnv) result)
+        {
+            if (result.conclusion == Stats.Noise)
+            {
+                return "-";
+            }
+
+            double ratio = result.baseResult.Statistics.Median / result.diffResult.Statistics.Median;
+            return double.IsNaN(ratio) ? "-" : ratio.ToString("0.00");
         }
 
         private static string GetAllocatedDiff(Benchmark diffResult, Benchmark baseResult)
@@ -116,8 +127,8 @@ namespace ResultsComparer
                 var userTresholdResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, args.StatisticalTestThreshold);
                 var noiseResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, args.NoiseThreshold);
 
-                var conclusion = noiseResult.Conclusion == EquivalenceTestConclusion.Same // filter noise (0.20 ns vs 0.25ns etc)
-                    ? noiseResult.Conclusion
+                var conclusion = userTresholdResult.Conclusion != EquivalenceTestConclusion.Same && noiseResult.Conclusion == EquivalenceTestConclusion.Same // filter noise (0.20 ns vs 0.25ns etc)
+                    ? Stats.Noise
                     : userTresholdResult.Conclusion;
 
                 stats.Record(conclusion, info.baseEnv, info.baseResult);
@@ -166,6 +177,7 @@ namespace ResultsComparer
                 case EquivalenceTestConclusion.Base:
                 case EquivalenceTestConclusion.Same:
                 case EquivalenceTestConclusion.Unknown:
+                case Stats.Noise:
                     return 0;
                 case EquivalenceTestConclusion.Faster:
                     double improvementXtimes = baseResult.Statistics.Median / diffResult.Statistics.Median;
