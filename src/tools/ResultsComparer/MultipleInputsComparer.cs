@@ -10,6 +10,9 @@ namespace ResultsComparer
 {
     internal static class MultipleInputsComparer
     {
+        private static readonly string[] Headers = new[] { "Result", "Base", "Diff", "Ratio", "Alloc Delta", "Modality", "Operating System", "Bit", "Processor Name" };
+        private static readonly string[] HeadersNoModality = new[] { "Result", "Base", "Diff", "Ratio", "Alloc Delta", "Operating System", "Bit", "Processor Name" };
+
         internal static void Compare(MultipleInputsOptions args)
         {
             Console.WriteLine("# Legend");
@@ -17,7 +20,7 @@ namespace ResultsComparer
             Console.WriteLine($"* Statistical Test threshold: {args.StatisticalTestThreshold}, the noise filter: {args.NoiseThreshold}");
             Console.WriteLine("* Result is conslusion: Slower|Faster|Same");
             Console.WriteLine($"* Base is median base execution time in nanoseconds for {args.BasePattern}");
-            Console.WriteLine($"* Diff is median diff execution time in nanoseconds {args.DiffPattern}");
+            Console.WriteLine($"* Diff is median diff execution time in nanoseconds for {args.DiffPattern}");
             Console.WriteLine("* Ratio = Base/Diff (the higher the better)");
             Console.WriteLine("* Alloc Delta = Allocated bytes diff - Allocated bytes base (the lower the better)");
             Console.WriteLine();
@@ -56,7 +59,12 @@ namespace ResultsComparer
                     })
                     .ToArray();
 
-                var table = data.ToMarkdownTable().WithHeaders("Result", "Base", "Diff", "Ratio", "Alloc Delta", "Modality", "Operating System", "Bit", "Processor Name");
+                bool displayModality = data.Any(row => row.Modality is not null);
+
+                Table table = displayModality 
+                    ? data.ToMarkdownTable()
+                    : data.ToMarkdownTable(i => i.Conclusion, i => i.BaseMedian.ToString("0.##"), i => i.DiffMedian.ToString("0.##"), i => i.Ratio.ToString("0.##"), i => i.AllocatedDiff, i => i.OperatingSystem, i => i.Architecture, i => i.ProcessorName);
+                table = table.WithHeaders(displayModality ? Headers : HeadersNoModality);
 
                 foreach (var line in table.ToMarkdown().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries))
                     Console.WriteLine($"| {line.TrimStart()}|"); // the table starts with \t and does not end with '|' and it looks bad so we fix it
