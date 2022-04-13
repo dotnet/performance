@@ -5,7 +5,7 @@ post cleanup script
 import zipfile
 from os import walk, environ
 from os.path import isfile, join
-from shared.postcommands import PostCommands
+from shared.postcommands import PostCommands, clean_directories
 from shared import const
 from performance.common import runninginlab
 from test import EXENAME
@@ -21,5 +21,5 @@ if runninginlab():
             publish.write(files)
 
 postcommands = PostCommands()
-postcommands.clean_directories()
+clean_directories()
 postcommands.uninstall_workload('wasm-tools')

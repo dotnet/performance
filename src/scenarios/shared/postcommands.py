@@ -24,8 +24,8 @@ class PostCommands:
         if not self.readonly_dotnet:
             subprocess.run(["dotnet", "workload", "uninstall", workloadid])
 
-    def clean_directories(self):
-        to_remove = (APPDIR, TMPDIR, TRACEDIR, PUBDIR, BINDIR, CROSSGENDIR, "emsdk")
-        print(f"Removing {','.join(to_remove)} if exist ...")
-        for dir in to_remove:
-            remove_directory(dir)
+def clean_directories():
+    to_remove = (APPDIR, TMPDIR, TRACEDIR, PUBDIR, BINDIR, CROSSGENDIR, "emsdk")
+    print(f"Removing {','.join(to_remove)} if exist ...")
+    for dir in to_remove:
+        remove_directory(dir)

@@ -2,9 +2,9 @@
 post cleanup script
 '''
 
-from shared.postcommands import PostCommands
+from shared.postcommands import PostCommands, clean_directories
 import subprocess
 
 postcommands = PostCommands()
-postcommands.clean_directories()
+clean_directories()
 postcommands.uninstall_workload('wasm-tools')
