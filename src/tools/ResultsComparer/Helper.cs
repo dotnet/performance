@@ -51,5 +51,19 @@ namespace ResultsComparer
                 throw;
             }
         }
+
+        internal static BdnResult ReadFromStream(Stream stream)
+        {
+            try
+            {
+                return (BdnResult)new JsonSerializer().Deserialize(new StreamReader(stream), typeof(BdnResult));
+            }
+            catch (JsonSerializationException)
+            {
+                Console.WriteLine($"Exception while reading the JSON file.");
+
+                throw;
+            }
+        }
     }
 }

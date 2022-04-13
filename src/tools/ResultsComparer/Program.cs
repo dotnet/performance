@@ -96,6 +96,20 @@ namespace ResultsComparer
                     }
                 }, input, basePattern, diffPattern, threshold, noise, top, filters, printStats);
 
+            Option<FileInfo> zip = new Option<FileInfo>(
+                new[] { "--input", "-i" }, "Path to the compressed .zip file that contains results downloaded from SharePoint.");
+            Option<DirectoryInfo> output = new Option<DirectoryInfo>(
+                new[] { "--output" }, "Pattern to the output folder where decompressed results should be stored");
+
+            Command decompressCommand = new Command("decompress", "Decompresses results from provided .zip file. Pre-configuration step for the matrix command.")
+            {
+                zip.AsRequired(), output.AsRequired()
+            };
+
+            decompressCommand.SetHandler<FileInfo, DirectoryInfo>(static (zip, output) => Data.Decompress(zip, output), zip, output);
+
+            matrixCommand.AddCommand(decompressCommand);
+
             return rootCommand.Invoke(args);
         }
 
