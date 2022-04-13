@@ -13,7 +13,6 @@ class PostCommands:
 
         parser.add_argument('--readonly-dotnet',
                             dest='readonly_dotnet',
-                            default=False,
                             action='store_true',
                             help='Indicates that the dotnet being used should not be modified (for example, when it is ahared with other builds)')
 
