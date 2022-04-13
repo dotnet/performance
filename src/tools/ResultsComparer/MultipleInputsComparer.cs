@@ -10,8 +10,7 @@ namespace ResultsComparer
 {
     internal static class MultipleInputsComparer
     {
-        private static readonly string[] Headers = new[] { "Result", "Base", "Diff", "Ratio", "Alloc Delta", "Modality", "Operating System", "Bit", "Processor Name" };
-        private static readonly string[] HeadersNoModality = new[] { "Result", "Base", "Diff", "Ratio", "Alloc Delta", "Operating System", "Bit", "Processor Name" };
+        private static readonly string[] Headers = new[] { "Result", "Base", "Diff", "Ratio", "Alloc Delta", "Operating System", "Bit", "Processor Name", "Modality" };
 
         internal static void Compare(MultipleInputsOptions args)
         {
@@ -30,8 +29,6 @@ namespace ResultsComparer
             foreach (var benchmarkResults in args.BasePaths
                 .SelectMany((basePath, index) => GetResults(basePath, args.DiffPaths.ElementAt(index), args, stats))
                 .GroupBy(result => result.id, StringComparer.InvariantCulture)
-                //.Where(group => group.Any(result => result.conclusion == EquivalenceTestConclusion.Slower))
-                //.Where(group => !group.All(result => result.conclusion == EquivalenceTestConclusion.Same || result.conclusion == EquivalenceTestConclusion.Base)) // we are not interested in things that did not change
                 .Take(args.TopCount ?? int.MaxValue)
                 .OrderBy(group => group.Sum(result => Score(result.conclusion, result.baseEnv, result.baseResult, result.diffResult))))
             {
@@ -52,19 +49,14 @@ namespace ResultsComparer
                         DiffMedian = result.diffResult.Statistics.Median,
                         Ratio = GetRatio(result),
                         AllocatedDiff = GetAllocatedDiff(result.diffResult, result.baseResult),
-                        Modality = Helper.GetModalInfo(result.baseResult) ?? Helper.GetModalInfo(result.diffResult),
                         OperatingSystem = Stats.GetSimplifiedOSName(result.baseEnv.OsVersion),
                         Architecture = result.baseEnv.Architecture,
                         ProcessorName = result.baseEnv.ProcessorName,
+                        Modality = Helper.GetModalInfo(result.baseResult) ?? Helper.GetModalInfo(result.diffResult),
                     })
                     .ToArray();
 
-                bool displayModality = data.Any(row => row.Modality is not null);
-
-                Table table = displayModality 
-                    ? data.ToMarkdownTable()
-                    : data.ToMarkdownTable(i => i.Conclusion, i => i.BaseMedian.ToString("0.##"), i => i.DiffMedian.ToString("0.##"), i => i.Ratio.ToString("0.##"), i => i.AllocatedDiff, i => i.OperatingSystem, i => i.Architecture, i => i.ProcessorName);
-                table = table.WithHeaders(displayModality ? Headers : HeadersNoModality);
+                var table = data.ToMarkdownTable().WithHeaders(Headers);
 
                 foreach (var line in table.ToMarkdown().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries))
                     Console.WriteLine($"| {line.TrimStart()}|"); // the table starts with \t and does not end with '|' and it looks bad so we fix it
