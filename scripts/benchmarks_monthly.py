@@ -6,6 +6,7 @@ for a .NET preview release, making it easier to contribute to our
 monthly manual performance runs.
 '''
 
+from performance.common import get_machine_architecture
 from performance.logger import setup_loggers
 from argparse import ArgumentParser, ArgumentTypeError
 from datetime import datetime
@@ -61,7 +62,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         '--architecture',
         dest='architecture',
         choices=['x64', 'x86', 'arm64', 'arm'],
-        default='x64',
+        default=get_machine_architecture(),
         help='Specifies the SDK processor architecture')
 
     parser.add_argument(

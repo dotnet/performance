@@ -13,10 +13,25 @@ from subprocess import PIPE, DEVNULL
 from subprocess import Popen
 from subprocess import STDOUT
 from io import StringIO
+from platform import machine
 
 import os
 import sys
 
+
+def get_machine_architecture():
+    machineArch = machine().lower()
+    # values taken from https://stackoverflow.com/a/45125525/5852046
+    if machineArch == 'amd64' or machineArch == 'x86_64' or machineArch == 'x64':
+        return 'x64'
+    elif machineArch == 'arm64' or machineArch == 'aarch64' or machineArch == 'aarch64_be' or machineArch == 'armv8b' or machineArch == 'armv8l':
+        return 'arm64'
+    elif machineArch == 'arm32' or machineArch == 'aarch32' or machineArch == 'arm':
+        return 'arm'
+    elif machineArch == 'i386' or machineArch == 'i486' or machineArch == 'i686':
+        return 'x86'
+    else:
+        return 'x64' # Default architecture
 
 def iswin():
     return sys.platform == 'win32'
