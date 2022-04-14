@@ -578,7 +578,14 @@ ex: C:\repos\performance;C:\repos\runtime
                 if not dirtyCapture:
                     getLogger().error("Failed to capture the reported start time! Exitting...")
                     sys.exit(-1)
-                formattedTime = f"TotalTime: {dirtyCapture.group(1).replace('s', '')}\n"
+                captureList = dirtyCapture.group(1).split('s')
+                if(len(captureList) == 1): # Only have the ms, everything should be good
+                    formattedTime = f"TotalTime: {captureList[0]}\n"
+                elif(len(captureList) == 2): # Have s and ms, but maybe not padded ms, pad and combine (zfill left pads with 0)
+                    formattedTime = f"TotalTime: {captureList[0]}{captureList[1].zfill(3)}\n"
+                else:
+                    getLogger().error("Time capture failed, found {len(captureList)}")
+                    sys.exit(-2)
                 allResults.append(formattedTime) # append TotalTime: (TIME)
                 time.sleep(3) # Delay in seconds for ensuring a cold start
 
