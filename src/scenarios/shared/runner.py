@@ -428,204 +428,198 @@ ex: C:\repos\performance;C:\repos\runtime
             if(int(windowSetValue.stdout.strip()) != animationValue or int(transitionSetValue.stdout.strip()) != animationValue or int(animatorSetValue.stdout.strip()) != animationValue):
                 # Setting the values didn't work, error out
                 getLogger().exception(f"Failed to set animation values to {animationValue}.")
-                sys.exit(-1)
+                raise Exception(f"Failed to set animation values to {animationValue}.")
             else:
                 getLogger().info(f"Animation values successfully set to {animationValue}.")
 
-            installCmd = xharnesscommand() + [
-                'android',
-                'install',
-                '--app', self.packagepath,
-                '--package-name',
-                self.packagename,
-                '-o',
-                const.TRACEDIR,
-                '-v'
-            ]
-            RunCommand(installCmd, verbose=True).run()
+            try:
+                installCmd = xharnesscommand() + [
+                    'android',
+                    'install',
+                    '--app', self.packagepath,
+                    '--package-name',
+                    self.packagename,
+                    '-o',
+                    const.TRACEDIR,
+                    '-v'
+                ]
+                RunCommand(installCmd, verbose=True).run()
 
-            getLogger().info("Completed install, running shell.")
-            cmdline = [ 
-                adb.stdout.strip(),
-                'shell',
-                f'cmd package resolve-activity --brief {self.packagename} | tail -n 1'
-            ]
-            getActivity = RunCommand(cmdline, verbose=True)
-            getActivity.run()
-            getLogger().info(f"Target Activity {getActivity.stdout}")
+                getLogger().info("Completed install, running shell.")
+                cmdline = [ 
+                    adb.stdout.strip(),
+                    'shell',
+                    f'cmd package resolve-activity --brief {self.packagename} | tail -n 1'
+                ]
+                getActivity = RunCommand(cmdline, verbose=True)
+                getActivity.run()
+                getLogger().info(f"Target Activity {getActivity.stdout}")
 
-            # More setup stuff
-            checkScreenOnCmd = [ 
-                adb.stdout.strip(),
-                'shell',
-                f'dumpsys input_method | grep mInteractive'
-            ]
-            checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
-            checkScreenOn.run()
-
-            keyInputCmd = [
-                adb.stdout.strip(),
-                'shell',
-                'input',
-                'keyevent'
-            ]
-
-            if("mInteractive=false" in checkScreenOn.stdout): 
-                # Turn on the screen to make interactive and see if it worked
-                getLogger().info("Screen was off, turning on.")
-                screenWasOff = True
-                RunCommand(keyInputCmd + ['26'], verbose=True).run() # Press the power key
-                RunCommand(keyInputCmd + ['82'], verbose=True).run() # Unlock the screen with menu key (only works if it is not a password lock)
-
+                # More setup stuff
+                checkScreenOnCmd = [ 
+                    adb.stdout.strip(),
+                    'shell',
+                    f'dumpsys input_method | grep mInteractive'
+                ]
                 checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
                 checkScreenOn.run()
-                if("mInteractive=false" in checkScreenOn.stdout):
-                    getLogger().exception("Failed to make screen interactive.")
-                    sys.exit(-1)
 
-            # Actual testing some run stuff
-            getLogger().info("Test run to check if permissions are needed")
-            activityname = getActivity.stdout
+                keyInputCmd = [
+                    adb.stdout.strip(),
+                    'shell',
+                    'input',
+                    'keyevent'
+                ]
 
-            # -W in the start command waits for the app to finish initial draw.
-            startAppCmd = [ 
-                adb.stdout.strip(),
-                'shell',
-                'am',
-                'start-activity',
-                '-W',
-                '-n',
-                activityname
-            ]
-            testRun = RunCommand(startAppCmd, verbose=True)
-            testRun.run()
-            testRunStats = re.findall(runSplitRegex, testRun.stdout) # Split results saving value (List: Starting, Status, LaunchState, Activity, TotalTime, WaitTime) 
-            getLogger().info(f"Test run activity: {testRunStats[3]}")
+                if("mInteractive=false" in checkScreenOn.stdout): 
+                    # Turn on the screen to make interactive and see if it worked
+                    getLogger().info("Screen was off, turning on.")
+                    screenWasOff = True
+                    RunCommand(keyInputCmd + ['26'], verbose=True).run() # Press the power key
+                    RunCommand(keyInputCmd + ['82'], verbose=True).run() # Unlock the screen with menu key (only works if it is not a password lock)
 
-            time.sleep(10) # Add delay to ensure app is fully installed and give it some time to settle
+                    checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
+                    checkScreenOn.run()
+                    if("mInteractive=false" in checkScreenOn.stdout):
+                        getLogger().exception("Failed to make screen interactive.")
+                        raise Exception("Failed to make screen interactive.")
 
-            stopAppCmd = [ 
-                adb.stdout.strip(),
-                'shell',
-                'am',
-                'force-stop',
-                self.packagename
-            ]
-            RunCommand(stopAppCmd, verbose=True).run()
+                # Actual testing some run stuff
+                getLogger().info("Test run to check if permissions are needed")
+                activityname = getActivity.stdout
 
-            if "com.google.android.permissioncontroller" in testRunStats[3]:
-                # On perm screen, use the buttons to close it. it will stay away until the app is reinstalled
-                RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
-                time.sleep(1)
-                RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
-                time.sleep(1)
-                RunCommand(keyInputCmd + ['66'], verbose=True).run() # Press enter to close main perm screen
-                time.sleep(1)
-                RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
-                time.sleep(1)
-                RunCommand(keyInputCmd + ['66'], verbose=True).run() # Press enter to close out of second screen
-                time.sleep(1)
-
-                # Check to make sure it worked
+                # -W in the start command waits for the app to finish initial draw.
+                startAppCmd = [ 
+                    adb.stdout.strip(),
+                    'shell',
+                    'am',
+                    'start-activity',
+                    '-W',
+                    '-n',
+                    activityname
+                ]
                 testRun = RunCommand(startAppCmd, verbose=True)
                 testRun.run()
-                testRunStats = re.findall(runSplitRegex, testRun.stdout) 
+                testRunStats = re.findall(runSplitRegex, testRun.stdout) # Split results saving value (List: Starting, Status, LaunchState, Activity, TotalTime, WaitTime) 
                 getLogger().info(f"Test run activity: {testRunStats[3]}")
-                RunCommand(stopAppCmd, verbose=True).run() 
-                
-                if "com.google.android.permissioncontroller" in testRunStats[3]:
-                    getLogger().exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
-                    sys.exit(-1)
 
-            # Create the fullydrawn command
-            fullyDrawnRetrieveCmd = [ 
-                adb.stdout.strip(),
-                'shell',
-                f"logcat -d | grep 'ActivityTaskManager: Fully drawn {self.packagename}'"
-            ]
+                time.sleep(10) # Add delay to ensure app is fully installed and give it some time to settle
 
-            basicStartupRetrieveCmd = [ 
-                adb.stdout.strip(),
-                'shell',
-                f"logcat -d | grep 'ActivityTaskManager: Displayed {activityname}'"
-            ]
-
-            clearLogsCmd = [
-                adb.stdout.strip(),
-                'logcat',
-                '-c'
-            ]
-
-            allResults = []
-            for i in range(self.startupiterations):
-                # Clear logs
-                RunCommand(clearLogsCmd, verbose=True).run()
-                startStats = RunCommand(startAppCmd, verbose=True)
-                startStats.run()
-                # Make sure we cold started (TODO Add other starts)
-                if("LaunchState: COLD" not in startStats.stdout):
-                    getLogger().error("App Start not COLD!")
-                    
-                # Save the results and get them from the log
-                if self.usefullydrawntime: time.sleep(self.fullyDrawnDelaySecMax) # Start command doesn't wait for fully drawn report, force a wait for it. -W in the start command waits for the app to finish initial draw.
+                stopAppCmd = [ 
+                    adb.stdout.strip(),
+                    'shell',
+                    'am',
+                    'force-stop',
+                    self.packagename
+                ]
                 RunCommand(stopAppCmd, verbose=True).run()
-                if self.usefullydrawntime:
-                    retrieveTimeCmd = RunCommand(fullyDrawnRetrieveCmd, verbose=True)
-                else:
-                    retrieveTimeCmd = RunCommand(basicStartupRetrieveCmd, verbose=True)
-                retrieveTimeCmd.run()
-                dirtyCapture = re.search("\+(\d*s?\d+)ms", retrieveTimeCmd.stdout)
-                if not dirtyCapture:
-                    getLogger().error("Failed to capture the reported start time! Exitting...")
-                    sys.exit(-1)
-                captureList = dirtyCapture.group(1).split('s')
-                if(len(captureList) == 1): # Only have the ms, everything should be good
-                    formattedTime = f"TotalTime: {captureList[0]}\n"
-                elif(len(captureList) == 2): # Have s and ms, but maybe not padded ms, pad and combine (zfill left pads with 0)
-                    formattedTime = f"TotalTime: {captureList[0]}{captureList[1].zfill(3)}\n"
-                else:
-                    getLogger().error("Time capture failed, found {len(captureList)}")
-                    sys.exit(-2)
-                allResults.append(formattedTime) # append TotalTime: (TIME)
-                time.sleep(3) # Delay in seconds for ensuring a cold start
 
-            getLogger().info("Stopping App for uninstall")
-            RunCommand(stopAppCmd, verbose=True).run()
+                if "com.google.android.permissioncontroller" in testRunStats[3]:
+                    # On perm screen, use the buttons to close it. it will stay away until the app is reinstalled
+                    RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
+                    time.sleep(1)
+                    RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
+                    time.sleep(1)
+                    RunCommand(keyInputCmd + ['66'], verbose=True).run() # Press enter to close main perm screen
+                    time.sleep(1)
+                    RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
+                    time.sleep(1)
+                    RunCommand(keyInputCmd + ['66'], verbose=True).run() # Press enter to close out of second screen
+                    time.sleep(1)
+
+                    # Check to make sure it worked
+                    testRun = RunCommand(startAppCmd, verbose=True)
+                    testRun.run()
+                    testRunStats = re.findall(runSplitRegex, testRun.stdout) 
+                    getLogger().info(f"Test run activity: {testRunStats[3]}")
+                    RunCommand(stopAppCmd, verbose=True).run() 
                     
-            getLogger().info("Uninstalling app")
-            uninstallAppCmd = xharnesscommand() + [
-                'android',
-                'uninstall',
-                '--package-name',
-                self.packagename
-            ]
-            RunCommand(uninstallAppCmd, verbose=True).run()
+                    if "com.google.android.permissioncontroller" in testRunStats[3]:
+                        getLogger().exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
+                        raise Exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
 
-            # Reset animation values 
-            getLogger().info("Resetting animation values to pretest values")
-            cmdline = [
-                adb.stdout.strip(),
-                'shell', 'settings', 'put', 'global', 'window_animation_scale', window_animation_scale_cmd.stdout.strip()
-            ]
-            RunCommand(cmdline, verbose=True).run()
-            cmdline = [
-                adb.stdout.strip(),
-                'shell', 'settings', 'put', 'global', 'transition_animation_scale', transition_animation_scale_cmd.stdout.strip()
-            ]
-            RunCommand(cmdline, verbose=True).run()
-            cmdline = [
-                adb.stdout.strip(),
-                'shell', 'settings', 'put', 'global', 'animator_duration_scale', animator_duration_scale_cmd.stdout.strip()
-            ]
-            RunCommand(cmdline, verbose=True).run()
-            cmdline = [
-                adb.stdout.strip(),
-                'shell', 'settings', 'put', 'system', 'screen_off_timeout', screen_off_timeout_cmd.stdout.strip()
-            ]
-            RunCommand(cmdline, verbose=True).run()
+                # Create the fullydrawn command
+                fullyDrawnRetrieveCmd = [ 
+                    adb.stdout.strip(),
+                    'shell',
+                    f"logcat -d | grep 'ActivityTaskManager: Fully drawn {self.packagename}'"
+                ]
 
-            if screenWasOff:
-                RunCommand(keyInputCmd + ['26'], verbose=True).run() # Turn the screen back off
+                basicStartupRetrieveCmd = [ 
+                    adb.stdout.strip(),
+                    'shell',
+                    f"logcat -d | grep 'ActivityTaskManager: Displayed {activityname}'"
+                ]
+
+                clearLogsCmd = [
+                    adb.stdout.strip(),
+                    'logcat',
+                    '-c'
+                ]
+
+                allResults = []
+                for i in range(self.startupiterations):
+                    # Clear logs
+                    RunCommand(clearLogsCmd, verbose=True).run()
+                    startStats = RunCommand(startAppCmd, verbose=True)
+                    startStats.run()
+                    # Make sure we cold started (TODO Add other starts)
+                    if("LaunchState: COLD" not in startStats.stdout):
+                        getLogger().error("App Start not COLD!")
+                        
+                    # Save the results and get them from the log
+                    if self.usefullydrawntime: time.sleep(self.fullyDrawnDelaySecMax) # Start command doesn't wait for fully drawn report, force a wait for it. -W in the start command waits for the app to finish initial draw.
+                    RunCommand(stopAppCmd, verbose=True).run()
+                    if self.usefullydrawntime:
+                        retrieveTimeCmd = RunCommand(fullyDrawnRetrieveCmd, verbose=True)
+                    else:
+                        retrieveTimeCmd = RunCommand(basicStartupRetrieveCmd, verbose=True)
+                    retrieveTimeCmd.run()
+                    dirtyCapture = re.search("\+(\d*s?\d+)ms", retrieveTimeCmd.stdout)
+                    if not dirtyCapture:
+                        raise Exception("Failed to capture the reported start time!")
+                    formattedTime = f"TotalTime: {dirtyCapture.group(1).replace('s', '')}\n"
+                    allResults.append(formattedTime) # append TotalTime: (TIME)
+                    time.sleep(3) # Delay in seconds for ensuring a cold start
+                
+            finally:
+                getLogger().info("Stopping App for uninstall")
+                RunCommand(stopAppCmd, verbose=True).run()
+                        
+                getLogger().info("Uninstalling app")
+                uninstallAppCmd = xharnesscommand() + [
+                    'android',
+                    'uninstall',
+                    '--package-name',
+                    self.packagename
+                ]
+                RunCommand(uninstallAppCmd, verbose=True).run()
+
+                # Reset animation values 
+                getLogger().info("Resetting animation values to pretest values")
+                cmdline = [
+                    adb.stdout.strip(),
+                    'shell', 'settings', 'put', 'global', 'window_animation_scale', window_animation_scale_cmd.stdout.strip()
+                ]
+                RunCommand(cmdline, verbose=True).run()
+                cmdline = [
+                    adb.stdout.strip(),
+                    'shell', 'settings', 'put', 'global', 'transition_animation_scale', transition_animation_scale_cmd.stdout.strip()
+                ]
+                RunCommand(cmdline, verbose=True).run()
+                cmdline = [
+                    adb.stdout.strip(),
+                    'shell', 'settings', 'put', 'global', 'animator_duration_scale', animator_duration_scale_cmd.stdout.strip()
+                ]
+                RunCommand(cmdline, verbose=True).run()
+                cmdline = [
+                    adb.stdout.strip(),
+                    'shell', 'settings', 'put', 'system', 'screen_off_timeout', screen_off_timeout_cmd.stdout.strip()
+                ]
+                RunCommand(cmdline, verbose=True).run()
+
+                if screenWasOff:
+                    RunCommand(keyInputCmd + ['26'], verbose=True).run() # Turn the screen back off
 
             # Create traces to store the data so we can keep the current general parse trace flow
             getLogger().info(f"Logs: \n{allResults}")
