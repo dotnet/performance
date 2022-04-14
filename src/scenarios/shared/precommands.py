@@ -77,6 +77,7 @@ class PreCommands:
         self.binlog = args.binlog
         self.has_workload = args.has_workload
         self.readonly_dotnet = args.readonly_dotnet
+        self.windows = args.windows
 
         if self.operation == CROSSGEN:
             self.crossgen_arguments.parse_crossgen_args(args)
@@ -143,6 +144,10 @@ class PreCommands:
                             default=False,
                             action='store_true',
                             help='Indicates that the dotnet being used should not be modified (for example, when it is ahared with other builds)')
+        parser.add_argument('--windowsui',
+                            dest='windows',
+                            action='store_true',
+                            help='must be set for UI tests so the proper rid is used')
         parser.set_defaults(configuration=RELEASE)
 
     def existing(self, projectdir: str, projectfile: str):
@@ -228,14 +233,17 @@ class PreCommands:
     def _updateframework(self, projectfile: str):
         'Update the <TargetFramework> property so we can re-use the template'
         if self.framework:
-            replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
+            if self.windows:
+                replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}-windows</TargetFramework>')
+            else:
+                replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
 
     def _publish(self, configuration: str, framework: str = None, runtime_identifier: str = None, build_args: list = []):
         self.project.publish(configuration,
                              const.PUBDIR, 
                              True,
                              os.path.join(get_packages_directory(), ''), # blazor publish targets require the trailing slash for joining the paths
-                             framework,
+                             framework if not self.windows else f'{framework}-windows',
                              runtime_identifier,
                              self._parsemsbuildproperties(),
                              '-bl:%s' % self.binlog if self.binlog else "",
