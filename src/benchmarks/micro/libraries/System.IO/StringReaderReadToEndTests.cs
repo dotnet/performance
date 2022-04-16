@@ -17,25 +17,19 @@ namespace System.IO.Tests
         public void GlobalSetup() => _text = GenerateLinesText(LineLengthRange, 48 * 1024 * 1024);
 
         [Benchmark(OperationsPerInvoke = InvocationsPerIteration)]
-        public void ReadLine()
+        public string ReadLine()
         {
-            for (int i = 0; i < InvocationsPerIteration; i++)
-            {
-                // StringReaders cannot be reset, so we are forced to include the constructor in the benchmark
-                using StringReader reader = new StringReader(_text);
-                reader.ReadToEnd();
-            }
+            // StringReaders cannot be reset, so we are forced to include the constructor in the benchmark
+            using StringReader reader = new StringReader(_text);
+            return reader.ReadToEnd();
         }
 
         [BenchmarkCategory(Categories.NoWASM)]
         [Benchmark(OperationsPerInvoke = InvocationsPerIteration)]
-        public async Task ReadLineAsync()
+        public Task<string> ReadLineAsync()
         {
-            for (int i = 0; i < InvocationsPerIteration; i++)
-            {
-                using StringReader reader = new StringReader(_text);
-                await reader.ReadToEndAsync();
-            }
+            using StringReader reader = new StringReader(_text);
+            return reader.ReadToEndAsync();
         }
     }
 }
