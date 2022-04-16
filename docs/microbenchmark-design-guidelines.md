@@ -151,7 +151,7 @@ public void SetupArray()
 
 ### IterationSetup
 
-If your benchmark requires a clean state for every invocation, you need to use the `[IterationSetup]` attribute:
+If your benchmark requires a clean state for every invocation, you need to use the `[IterationSetup]` attribute. Unfortunately, just using the `[IterationSetup]` attribute is not enough to get stable results. You also need to make sure that the benchmark itself performs enough of computations for a single invocation to run longer than 100ms. **If you don't, your benchmark will be entirely invalid.**
 
 ```cs
 [Params(1000 * 1000 * 200)] // allows for stable iteration around 200ms
