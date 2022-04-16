@@ -42,6 +42,8 @@ def getruntimeidentifier():
         rid = 'win-'
     elif sys.platform == 'linux' or sys.platform == 'linux2':
         rid = 'linux-'
+    elif sys.platform == 'darwin':
+        rid = 'osx-'
     else:
         raise Exception('Platform %s not supported.' % sys.platform)
 

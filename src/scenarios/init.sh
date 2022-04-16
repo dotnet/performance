@@ -1,3 +1,5 @@
+#!/bin/sh
+
 print_usage() {
     echo "***Please run this script as SOURCE. ex: . ./init.sh***"
     echo "This script sets up PYTHONPATH and determines which dotnet to use."
@@ -32,17 +34,17 @@ export PYTHONPATH=$PYTHONPATH:$scriptPath:$absolutePath
 echo "PYTHONPATH=$PYTHONPATH"
 
 # Parse arguments
-if [ "$1" == "-help" ] || [ "$1" == "-h" ]
+if [ "$1" = "-help" ] || [ "$1" = "-h" ]
 then
     print_usage
 elif [ "$#" -gt 2 ]
 then 
     print_usage
-elif [ "$1" == "-dotnetdir" ] && [ "$2" != "" ]
+elif [ "$1" = "-dotnetdir" ] && [ "$2" != "" ]
 then
     dotnetDirectory="$2"
     setup_env $dotnetDirectory
-elif [ "$1" == "-channel" ] && [ "$2" != "" ]
+elif [ "$1" = "-channel" ] && [ "$2" != "" ]
 then
     channel="$2"
     download_dotnet $channel

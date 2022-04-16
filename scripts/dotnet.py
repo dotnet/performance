@@ -22,6 +22,7 @@ from urllib.parse import urlparse
 from urllib.request import urlopen
 from time import sleep
 
+from performance.common import get_machine_architecture
 from performance.common import get_repo_root_path
 from performance.common import get_tools_directory
 from performance.common import push_dir
@@ -845,7 +846,7 @@ def __add_arguments(parser: ArgumentParser) -> ArgumentParser:
         raise TypeError('Invalid parser.')
 
     SUPPORTED_ARCHITECTURES = [
-        'x64',  # Default architecture
+        'x64',
         'x86',
         'arm',
         'arm64',
@@ -854,7 +855,7 @@ def __add_arguments(parser: ArgumentParser) -> ArgumentParser:
         '--architecture',
         dest='architecture',
         required=False,
-        default=SUPPORTED_ARCHITECTURES[0],
+        default=get_machine_architecture(),
         choices=SUPPORTED_ARCHITECTURES,
         help='Architecture of DotNet Cli binaries to be installed.'
     )

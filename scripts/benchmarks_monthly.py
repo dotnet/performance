@@ -6,6 +6,7 @@ for a .NET preview release, making it easier to contribute to our
 monthly manual performance runs.
 '''
 
+from performance.common import get_machine_architecture
 from performance.logger import setup_loggers
 from argparse import ArgumentParser, ArgumentTypeError
 from datetime import datetime
@@ -61,7 +62,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         '--architecture',
         dest='architecture',
         choices=['x64', 'x86', 'arm64', 'arm'],
-        default='x64',
+        default=get_machine_architecture(),
         help='Specifies the SDK processor architecture')
 
     parser.add_argument(
@@ -104,7 +105,7 @@ def __main(args: list) -> int:
 
     args = __process_arguments(args)
     rootPath = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
-    sdkPath = os.path.join(rootPath, 'tools', 'dotnet', args.architecture)
+    sdkPath = os.path.join(rootPath, 'tools', 'dotnet')
 
     logPrefix = ''
     logger = getLogger()
@@ -175,6 +176,8 @@ def __main(args: list) -> int:
             resultsName = timestamp + '-' + args.device_name + '-' + versionName
         else:
             resultsName = timestamp + '-' + versionName
+
+        resultsName = args.architecture + '-' + resultsName
 
         resultsTarPath = os.path.join(rootPath, 'artifacts', resultsName + '.tar.gz')
 

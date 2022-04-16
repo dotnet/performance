@@ -2,287 +2,164 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Threading;
+using System.CommandLine;
+using System.CommandLine.Parsing;
+using Perfolizer.Mathematics.Thresholds;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Xml;
-using Perfolizer.Mathematics.Multimodality;
-using Perfolizer.Mathematics.SignificanceTesting;
-using Perfolizer.Mathematics.Thresholds;
-using CommandLine;
-using DataTransferContracts;
-using MarkdownLog;
-using Newtonsoft.Json;
 
 namespace ResultsComparer
 {
     public class Program
     {
-        private const string FullBdnJsonFileExtension = "full.json";
-
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             // we print a lot of numbers here and we want to make it always in invariant way
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
-            Parser.Default.ParseArguments<CommandLineOptions>(args).WithParsed(Compare);
-        }
+            Option<string> basePath = new Option<string>(
+                new[] { "--base", "-b" }, "Path to the folder/file with base results.");
+            Option<string> diffPath = new Option<string>(
+                new[] { "--diff", "-d" }, "Path to the folder/file with diff results.");
+            Option<string> threshold = new Option<string>(
+                new[] { "--threshold", "-t" }, "Threshold for Statistical Test. Examples: 5%, 10ms, 100ns, 1s.");
+            Option<string> noise = new Option<string>(
+                new[] { "--noise", "-n" }, () => "0.3ns", "Noise threshold for Statistical Test. The difference for 1.0ns and 1.1ns is 10%, but it's just a noise. Examples: 0.5ns 1ns.");
+            Option<int?> top = new Option<int?>(
+                new[] { "--top" }, "Filter the diff to top/bottom N results. Optional.");
+            Option<string[]> filters = new Option<string[]>(
+                new[] { "--filter", "-f" }, "Filter the benchmarks by name using glob pattern(s).");
+            Option<bool> fullId = new Option<bool>(
+                new[] { "--full-id" }, "Display the full benchmark name id.");
 
-        private static void Compare(CommandLineOptions args)
-        {
-            if (!Threshold.TryParse(args.StatisticalTestThreshold, out var testThreshold))
+            threshold.IsRequired = true;
+
+            RootCommand rootCommand = new RootCommand
             {
-                Console.WriteLine($"Invalid Threshold {args.StatisticalTestThreshold}. Examples: 5%, 10ms, 100ns, 1s.");
-                return;
-            }
-            if (!Threshold.TryParse(args.NoiseThreshold, out var noiseThreshold))
-            {
-                Console.WriteLine($"Invalid Noise Threshold {args.NoiseThreshold}. Examples: 0.3ns 1ns.");
-                return;
-            }
+                basePath, diffPath, threshold, noise, top, filters, fullId
+            };
 
-            var notSame = GetNotSameResults(args, testThreshold, noiseThreshold).ToArray();
-
-            if (!notSame.Any())
-            {
-                Console.WriteLine($"No differences found between the benchmark results with threshold {testThreshold}.");
-                return;
-            }
-
-            PrintSummary(notSame);
-
-            PrintTable(notSame, EquivalenceTestConclusion.Slower, args);
-            PrintTable(notSame, EquivalenceTestConclusion.Faster, args);
-
-            ExportToCsv(notSame, args.CsvPath);
-            ExportToXml(notSame, args.XmlPath);
-        }
-
-        private static IEnumerable<(string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)> GetNotSameResults(CommandLineOptions args, Threshold testThreshold, Threshold noiseThreshold)
-        {
-            foreach ((string id, Benchmark baseResult, Benchmark diffResult) in ReadResults(args)
-                .Where(result => result.baseResult.Statistics != null && result.diffResult.Statistics != null)) // failures
-            {
-                var baseValues = baseResult.GetOriginalValues();
-                var diffValues = diffResult.GetOriginalValues();
-
-                var userTresholdResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, testThreshold);
-                if (userTresholdResult.Conclusion == EquivalenceTestConclusion.Same)
-                    continue;
-
-                var noiseResult = StatisticalTestHelper.CalculateTost(MannWhitneyTest.Instance, baseValues, diffValues, noiseThreshold);
-                if (noiseResult.Conclusion == EquivalenceTestConclusion.Same)
-                    continue;
-
-                yield return (id, baseResult, diffResult, userTresholdResult.Conclusion);
-            }
-        }
-
-        private static void PrintSummary((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame)
-        {
-            var better = notSame.Where(result => result.conclusion == EquivalenceTestConclusion.Faster);
-            var worse = notSame.Where(result => result.conclusion == EquivalenceTestConclusion.Slower);
-            var betterCount = better.Count();
-            var worseCount = worse.Count();
-
-            // If the baseline doesn't have the same set of tests, you wind up with Infinity in the list of diffs.
-            // Exclude them for purposes of geomean.
-            worse = worse.Where(x => GetRatio(x) != double.PositiveInfinity);
-            better = better.Where(x => GetRatio(x) != double.PositiveInfinity);
-
-            Console.WriteLine("summary:");
-
-            if (betterCount > 0)
-            {
-                var betterGeoMean = Math.Pow(10, better.Skip(1).Aggregate(Math.Log10(GetRatio(better.First())), (x, y) => x + Math.Log10(GetRatio(y))) / better.Count());
-                Console.WriteLine($"better: {betterCount}, geomean: {betterGeoMean:F3}");
-            }
-
-            if (worseCount > 0)
-            {
-                var worseGeoMean = Math.Pow(10, worse.Skip(1).Aggregate(Math.Log10(GetRatio(worse.First())), (x, y) => x + Math.Log10(GetRatio(y))) / worse.Count());
-                Console.WriteLine($"worse: {worseCount}, geomean: {worseGeoMean:F3}");
-            }
-
-            Console.WriteLine($"total diff: {notSame.Count()}");
-            Console.WriteLine();
-        }
-
-        private static void PrintTable((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame, EquivalenceTestConclusion conclusion, CommandLineOptions args)
-        {
-            var data = notSame
-                .Where(result => result.conclusion == conclusion)
-                .OrderByDescending(result => GetRatio(conclusion, result.baseResult, result.diffResult))
-                .Take(args.TopCount ?? int.MaxValue)
-                .Select(result => new
+            rootCommand.SetHandler<string, string, string, string, int?, string[], bool>(
+                static (basePath, diffPath, threshold, noise, top, filters, fullId) =>
                 {
-                    Id = (result.id.Length <= 80 || args.FullId) ? result.id : result.id.Substring(0, 80),
-                    DisplayValue = GetRatio(conclusion, result.baseResult, result.diffResult),
-                    BaseMedian = result.baseResult.Statistics.Median,
-                    DiffMedian = result.diffResult.Statistics.Median,
-                    Modality = GetModalInfo(result.baseResult) ?? GetModalInfo(result.diffResult)
-                })
-                .ToArray();
+                    if (TryParseThresholds(threshold, noise, out var testThreshold, out var noiseThreshold))
+                    {
+                        TwoInputsComparer.Compare(new TwoInputsOptions
+                        {
+                            BasePath = basePath,
+                            DiffPath = diffPath,
+                            StatisticalTestThreshold = testThreshold,
+                            NoiseThreshold = noiseThreshold,
+                            TopCount = top,
+                            Filters = GetFilters(filters),
+                            FullId = fullId
+                        });
+                    }
+                },
+                basePath, diffPath, threshold, noise, top, filters, fullId);
 
-            if (!data.Any())
+            Option<DirectoryInfo> input = new Option<DirectoryInfo>(
+                new[] { "--input", "-i" }, "Path to the Input folder with BenchmarkDotNet .json files.");
+            Option<string> basePattern = new Option<string>(
+                new[] { "--base" }, "Pattern used to search for base results in Input folder. Example: net7.0-preview2");
+            Option<string> diffPattern = new Option<string>(
+                new[] { "--diff" }, "Pattern used to search for diff results in Input folder. Example: net7.0-preview3");
+            Option<bool> printStats = new Option<bool>(
+                new[] { "--stats" }, () => true, "Prints summary per Architecture, Namespace and Operating System.");
+
+            input.IsRequired = true;
+            basePattern.IsRequired = true;
+            diffPattern.IsRequired = true;
+
+            Command matrixCommand = new Command("matrix", "Produces a matrix for all configurations found in given folder.")
             {
-                Console.WriteLine($"No {conclusion} results for the provided threshold = {args.StatisticalTestThreshold} and noise filter = {args.NoiseThreshold}.");
-                Console.WriteLine();
-                return;
+                input, basePattern, diffPattern, threshold, noise, top, filters, printStats
+            };
+
+            rootCommand.AddCommand(matrixCommand);
+
+            matrixCommand.SetHandler<DirectoryInfo, string, string, string, string, int?, string[], bool>(
+                static (input, basePattern, diffPattern, threshold, noise, top, filters, printStats) =>
+                {
+                    if (TryParseThresholds(threshold, noise, out var testThreshold, out var noiseThreshold)
+                        && TryGetPaths(input, basePattern, diffPattern, out var basePaths, out var diffPaths))
+                    {
+                        MultipleInputsComparer.Compare(new MultipleInputsOptions
+                        {
+                            BasePaths = basePaths.ToArray(),
+                            DiffPaths = diffPaths.ToArray(),
+                            StatisticalTestThreshold = testThreshold,
+                            NoiseThreshold = noiseThreshold,
+                            TopCount = top,
+                            Filters = GetFilters(filters),
+                            PrintStats = printStats
+                        });
+                    }
+                }, input, basePattern, diffPattern, threshold, noise, top, filters, printStats);
+
+            return rootCommand.Invoke(args);
+        }
+
+        private static bool TryParseThresholds(string test, string noise, out Threshold testThreshold, out Threshold noiseThreshold)
+        {
+            if (!Threshold.TryParse(test, out testThreshold))
+            {
+                Console.WriteLine($"Invalid Threshold '{test}'. Examples: 5%, 10ms, 100ns, 1s.");
+                noiseThreshold = null;
+                return false;
+            }
+            if (!Threshold.TryParse(noise, out noiseThreshold))
+            {
+                Console.WriteLine($"Invalid Noise Threshold '{noise}'. Examples: 0.3ns 1ns.");
+                return false;
             }
 
-            var table = data.ToMarkdownTable().WithHeaders(conclusion.ToString(), conclusion == EquivalenceTestConclusion.Faster ? "base/diff" : "diff/base", "Base Median (ns)", "Diff Median (ns)", "Modality");
-
-            foreach (var line in table.ToMarkdown().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries))
-                Console.WriteLine($"| {line.TrimStart()}|"); // the table starts with \t and does not end with '|' and it looks bad so we fix it
-
-            Console.WriteLine();
+            return true;
         }
 
-        private static IEnumerable<(string id, Benchmark baseResult, Benchmark diffResult)> ReadResults(CommandLineOptions args)
+        private static bool TryGetPaths(DirectoryInfo input, string basePattern, string diffPattern, out List<string> basePaths, out List<string> diffPaths)
         {
-            var baseFiles = GetFilesToParse(args.BasePath);
-            var diffFiles = GetFilesToParse(args.DiffPath);
+            basePaths = diffPaths = null;
 
-            if (!baseFiles.Any() || !diffFiles.Any())
-                throw new ArgumentException($"Provided paths contained no {FullBdnJsonFileExtension} files.");
-
-            var baseResults = baseFiles.Select(ReadFromFile);
-            var diffResults = diffFiles.Select(ReadFromFile);
-
-            var filters = args.Filters.Select(pattern => new Regex(WildcardToRegex(pattern), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).ToArray();
-
-            var benchmarkIdToDiffResults = diffResults
-                .SelectMany(result => result.Benchmarks)
-                .Where(benchmarkResult => !filters.Any() || filters.Any(filter => filter.IsMatch(benchmarkResult.FullName)))
-                .ToDictionary(benchmarkResult => benchmarkResult.FullName, benchmarkResult => benchmarkResult);
-
-            return baseResults
-                .SelectMany(result => result.Benchmarks)
-                .ToDictionary(benchmarkResult => benchmarkResult.FullName, benchmarkResult => benchmarkResult) // we use ToDictionary to make sure the results have unique IDs
-                .Where(baseResult => benchmarkIdToDiffResults.ContainsKey(baseResult.Key))
-                .Select(baseResult => (baseResult.Key, baseResult.Value, benchmarkIdToDiffResults[baseResult.Key]));
-        }
-
-        private static void ExportToCsv((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame, FileInfo csvPath)
-        {
-            if (csvPath == null)
-                return;
-
-            if (csvPath.Exists)
-                csvPath.Delete();
-
-            using (var textWriter = csvPath.CreateText())
+            if (!input.Exists)
             {
-                foreach (var (id, baseResult, diffResult, conclusion) in notSame)
+                Console.WriteLine($"Provided Input folder '{input.FullName}' does NOT exist.");
+                return false;
+            }
+
+            basePaths = new List<string>();
+            diffPaths = new List<string>();
+
+            foreach (var baseline in input.GetDirectories($"*{basePattern}*"))
+            {
+                var current = baseline.FullName.Replace(basePattern, diffPattern);
+                if (Directory.Exists(current))
                 {
-                    textWriter.WriteLine($"\"{id.Replace("\"", "\"\"")}\";base;{conclusion};{string.Join(';', baseResult.GetOriginalValues())}");
-                    textWriter.WriteLine($"\"{id.Replace("\"", "\"\"")}\";diff;{conclusion};{string.Join(';', diffResult.GetOriginalValues())}");
+                    basePaths.Add(baseline.FullName);
+                    diffPaths.Add(current);
+                }
+                else
+                {
+                    Console.WriteLine($"Base results folder '{baseline.FullName}' has no corresponding diff results folder ('{current}').");
                 }
             }
 
-            Console.WriteLine($"CSV results exported to {csvPath.FullName}");
-        }
-
-        private static void ExportToXml((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion)[] notSame, FileInfo xmlPath)
-        {
-            if (xmlPath == null)
+            if (!basePaths.Any())
             {
-                Console.WriteLine("No file given");
-                return;
+                Console.WriteLine($"Provided Input folder '{input.FullName}' does contain any subfolders that match the base pattern ('{basePattern}').");
+                return false;
             }
 
-             if (xmlPath.Exists)
-                xmlPath.Delete();
-
-            using (XmlWriter writer = XmlWriter.Create(xmlPath.Open(FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write)))
-            {
-                writer.WriteStartElement("performance-tests");
-                foreach (var (id, baseResult, diffResult, conclusion) in notSame.Where(x => x.conclusion == EquivalenceTestConclusion.Slower))
-                {
-                    writer.WriteStartElement("test");
-                    writer.WriteAttributeString("name", id);
-                    writer.WriteAttributeString("type", baseResult.Type);
-                    writer.WriteAttributeString("method", baseResult.Method);
-                    writer.WriteAttributeString("time", "0");
-                    writer.WriteAttributeString("result", "Fail");
-                    writer.WriteStartElement("failure");
-                    writer.WriteAttributeString("exception-type", "Regression");
-                    writer.WriteElementString("message", $"{id} has regressed, was {baseResult.Statistics.Median} is {diffResult.Statistics.Median}.");
-                    writer.WriteEndElement();
-                }
-
-                foreach (var (id, baseResult, diffResult, conclusion) in notSame.Where(x => x.conclusion == EquivalenceTestConclusion.Faster))
-                {
-                    writer.WriteStartElement("test");
-                    writer.WriteAttributeString("name", id);
-                    writer.WriteAttributeString("type", baseResult.Type);
-                    writer.WriteAttributeString("method", baseResult.Method);
-                    writer.WriteAttributeString("time", "0");
-                    writer.WriteAttributeString("result", "Skip");
-                    writer.WriteElementString("reason", $"{id} has improved, was {baseResult.Statistics.Median} is {diffResult.Statistics.Median}.");
-                    writer.WriteEndElement();
-                }
-
-                writer.WriteEndElement();
-                writer.Flush();
-            }
-
-            Console.WriteLine($"XML results exported to {xmlPath.FullName}");
+            return true;
         }
 
-        private static string[] GetFilesToParse(string path)
-        {
-            if (Directory.Exists(path))
-                return Directory.GetFiles(path, $"*{FullBdnJsonFileExtension}", SearchOption.AllDirectories);
-            else if (File.Exists(path) || !path.EndsWith(FullBdnJsonFileExtension))
-                return new[] { path };
-            else
-                throw new FileNotFoundException($"Provided path does NOT exist or is not a {path} file", path);
-        }
-
-        // code and magic values taken from BenchmarkDotNet.Analysers.MultimodalDistributionAnalyzer
-        // See http://www.brendangregg.com/FrequencyTrails/modes.html
-        private static string GetModalInfo(Benchmark benchmark)
-        {
-            if (benchmark.Statistics.N < 12) // not enough data to tell
-                return null;
-
-            double mValue = MValueCalculator.Calculate(benchmark.GetOriginalValues());
-            if (mValue > 4.2)
-                return "multimodal";
-            else if (mValue > 3.2)
-                return "bimodal";
-            else if (mValue > 2.8)
-                return "several?";
-
-            return null;
-        }
-
-        private static double GetRatio((string id, Benchmark baseResult, Benchmark diffResult, EquivalenceTestConclusion conclusion) item) => GetRatio(item.conclusion, item.baseResult, item.diffResult);
-
-        private static double GetRatio(EquivalenceTestConclusion conclusion, Benchmark baseResult, Benchmark diffResult)
-            => conclusion == EquivalenceTestConclusion.Faster
-                ? baseResult.Statistics.Median / diffResult.Statistics.Median
-                : diffResult.Statistics.Median / baseResult.Statistics.Median;
-
-        private static BdnResult ReadFromFile(string resultFilePath)
-        {
-            try
-            {
-                return JsonConvert.DeserializeObject<BdnResult>(File.ReadAllText(resultFilePath));
-            }
-            catch (JsonSerializationException)
-            {
-                Console.WriteLine($"Exception while reading the {resultFilePath} file.");
-
-                throw;
-            }
-        }
+        private static Regex[] GetFilters(string[] filters)
+            =>  filters.Select(pattern => new Regex(WildcardToRegex(pattern), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)).ToArray();
 
         // https://stackoverflow.com/a/6907849/5852046 not perfect but should work for all we need
         private static string WildcardToRegex(string pattern) => $"^{Regex.Escape(pattern).Replace(@"\*", ".*").Replace(@"\?", ".")}$";

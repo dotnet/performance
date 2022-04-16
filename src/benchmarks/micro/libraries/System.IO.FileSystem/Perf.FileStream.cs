@@ -13,6 +13,7 @@ using MicroBenchmarks;
 namespace System.IO.Tests
 {
     [BenchmarkCategory(Categories.Libraries)]
+    [OperatingSystemsFilter(allowed: true, OS.Windows)]
     public class Perf_FileStream
     {
         private const int OneKibibyte  = 1 << 10; // 1024
