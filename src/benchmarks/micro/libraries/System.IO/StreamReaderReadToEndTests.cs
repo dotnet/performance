@@ -7,40 +7,41 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-namespace System.IO.Tests;
-
-[BenchmarkCategory(Categories.Libraries)]
-public class StreamReaderReadToEndTests : TextReaderReadLineTests
+namespace System.IO.Tests
 {
-    private StreamReader _reader;
-
-    [GlobalSetup]
-    public void GlobalSetup()
+    [BenchmarkCategory(Categories.Libraries)]
+    public class StreamReaderReadToEndTests : TextReaderReadLineTests
     {
-        _text = GenerateLinesText(LineLengthRange, 48 * 1024 * 1024);
-        _reader = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(_text)));
-    }
+        private StreamReader _reader;
 
-    [GlobalCleanup]
-    public void GlobalCleanup()
-    {
-        _reader?.Dispose();
-    }
+        [GlobalSetup]
+        public void GlobalSetup()
+        {
+            _text = GenerateLinesText(LineLengthRange, 48 * 1024 * 1024);
+            _reader = new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(_text)));
+        }
 
-    [Benchmark]
-    public void ReadToEnd()
-    {
-        _reader.BaseStream.Position = 0;
-        _reader.DiscardBufferedData();
-        _reader.ReadToEnd();
-    }
+        [GlobalCleanup]
+        public void GlobalCleanup()
+        {
+            _reader?.Dispose();
+        }
 
-    [Benchmark]
-    [BenchmarkCategory(Categories.NoWASM)]
-    public async Task ReadToEndAsync()
-    {
-        _reader.BaseStream.Position = 0;
-        _reader.DiscardBufferedData();
-        await _reader.ReadToEndAsync();
+        [Benchmark]
+        public string ReadToEnd()
+        {
+            _reader.BaseStream.Position = 0;
+            _reader.DiscardBufferedData();
+            return _reader.ReadToEnd();
+        }
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
+        public Task<string> ReadToEndAsync()
+        {
+            _reader.BaseStream.Position = 0;
+            _reader.DiscardBufferedData();
+            return _reader.ReadToEndAsync();
+        }
     }
 }

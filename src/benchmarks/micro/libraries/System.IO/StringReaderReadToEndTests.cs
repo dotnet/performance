@@ -6,35 +6,36 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
-namespace System.IO.Tests;
-
-[BenchmarkCategory(Categories.Libraries)]
-public class StringReaderReadToEndTests : TextReaderReadLineTests
+namespace System.IO.Tests
 {
-    private const int InvocationsPerIteration = 400_000;
-
-    [GlobalSetup]
-    public void GlobalSetup() => _text = GenerateLinesText(LineLengthRange, 48 * 1024 * 1024);
-
-    [Benchmark(OperationsPerInvoke = InvocationsPerIteration)]
-    public void ReadLine()
+    [BenchmarkCategory(Categories.Libraries)]
+    public class StringReaderReadToEndTests : TextReaderReadLineTests
     {
-        for (int i = 0; i < InvocationsPerIteration; i++)
+        private const int InvocationsPerIteration = 400_000;
+
+        [GlobalSetup]
+        public void GlobalSetup() => _text = GenerateLinesText(LineLengthRange, 48 * 1024 * 1024);
+
+        [Benchmark(OperationsPerInvoke = InvocationsPerIteration)]
+        public void ReadLine()
         {
-            // StringReaders cannot be reset, so we are forced to include the constructor in the benchmark
-            using StringReader reader = new StringReader(_text);
-            reader.ReadToEnd();
+            for (int i = 0; i < InvocationsPerIteration; i++)
+            {
+                // StringReaders cannot be reset, so we are forced to include the constructor in the benchmark
+                using StringReader reader = new StringReader(_text);
+                reader.ReadToEnd();
+            }
         }
-    }
 
-    [BenchmarkCategory(Categories.NoWASM)]
-    [Benchmark(OperationsPerInvoke = InvocationsPerIteration)]
-    public async Task ReadLineAsync()
-    {
-        for (int i = 0; i < InvocationsPerIteration; i++)
+        [BenchmarkCategory(Categories.NoWASM)]
+        [Benchmark(OperationsPerInvoke = InvocationsPerIteration)]
+        public async Task ReadLineAsync()
         {
-            using StringReader reader = new StringReader(_text);
-            await reader.ReadToEndAsync();
+            for (int i = 0; i < InvocationsPerIteration; i++)
+            {
+                using StringReader reader = new StringReader(_text);
+                await reader.ReadToEndAsync();
+            }
         }
     }
 }
