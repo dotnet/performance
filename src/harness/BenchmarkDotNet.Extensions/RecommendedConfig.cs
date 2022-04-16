@@ -99,7 +99,7 @@ namespace BenchmarkDotNet.Extensions
                 return new string[0];
 
             // Get all existing report files, of any export type; order by descending filename length to avoid rename collisions
-            return artifacts.GetFiles($"*-report-*", SearchOption.AllDirectories)
+            var existingBenchmarks = artifacts.GetFiles($"*-report-*", SearchOption.AllDirectories)
                 .OrderByDescending(resultFile => resultFile.FullName.Length)
                 .SelectMany(resultFile =>
                 {
@@ -137,6 +137,18 @@ namespace BenchmarkDotNet.Extensions
 
                     return new string[0];
                 });
+
+                if (existingBenchmarks.Any())
+                {
+                    Console.WriteLine($"// Found {existingBenchmarks.Count()} existing result(s) to be skipped:");
+
+                    foreach (var benchmark in existingBenchmarks.OrderBy(b => b))
+                    {
+                        Console.WriteLine($"// ***** {benchmark}");
+                    }
+                }
+
+                return existingBenchmarks;
         }
 
         private class Benchmark
