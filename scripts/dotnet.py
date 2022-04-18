@@ -363,7 +363,8 @@ class CSharpProject:
             force: bool = False,
             exename: str = None,
             language: str = None,
-            no_https: bool = False
+            no_https: bool = False,
+            no_restore: bool = True
             ):
         '''
         Creates a new project with the specified template
@@ -371,9 +372,11 @@ class CSharpProject:
         cmdline = [
             'dotnet', 'new',
             template,
-            '--output', output_dir,
-            '--no-restore'
+            '--output', output_dir
         ]
+        if no_restore:
+            cmdline += ['--no-restore']
+
         if force:
             cmdline += ['--force']
         
