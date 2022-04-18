@@ -7,8 +7,8 @@
     <_BenchmarkDotNetSourcesN>$([MSBuild]::NormalizeDirectory('$(BenchmarkDotNetSources)'))</_BenchmarkDotNetSourcesN>
   </PropertyGroup>
   <ItemGroup Condition="'$(BenchmarkDotNetSources)' == ''">
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.1.1779" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.1.1779" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.1.1780" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.13.1.1780" />
   </ItemGroup>
   <ItemGroup Condition="'$(BenchmarkDotNetSources)' != ''">
     <ProjectReference Include="$(_BenchmarkDotNetSourcesN)src\BenchmarkDotNet\BenchmarkDotNet.csproj" SetTargetFramework="TargetFramework=netstandard2.0" />
