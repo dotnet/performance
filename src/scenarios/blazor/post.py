@@ -19,5 +19,5 @@ if runninginlab():
                 f.append(join(dirpath, name))
         for files in f:
             publish.write(files)
-        
+
 clean_directories()
