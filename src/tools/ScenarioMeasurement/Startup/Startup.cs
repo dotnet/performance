@@ -21,7 +21,8 @@ namespace ScenarioMeasurement
         InnerLoopMsBuild,
         DotnetWatch,
         DeviceTimeToMain,
-        PDN
+        PDN,
+        WinUI
     }
 
     public class InnerLoopMarkerEventSource : EventSource
@@ -279,6 +280,9 @@ namespace ScenarioMeasurement
                     break;
                 case MetricType.PDN:
                     parser = new PDNStartupParser();
+                    break;
+                case MetricType.WinUI:
+                    parser = new WinUIParser();
                     break;
             }
 

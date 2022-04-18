@@ -100,6 +100,19 @@
     </HelixWorkItem>
   </ItemGroup>
 
+  <ItemGroup>
+    <HelixWorkItem Include="SOD - Desktop Maui Unpackaged" Condition="'$(TargetsWindows)' == 'true'">
+      <PayloadDirectory>$(ScenariosDir)mauidesktop</PayloadDirectory>
+      <PreCommands>$(Python) pre.py publish -c Release -f $(PERFLAB_Framework)-windows10.0.19041.0</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+    <HelixWorkItem Include="Device Startup - Desktop Maui Default" Condition="'$(TargetsWindows)' == 'true'">
+      <PayloadDirectory>$(ScenariosDir)mauidesktop</PayloadDirectory>
+      <PreCommands>$(Python) pre.py publish -c Release -f $(PERFLAB_Framework)-windows10.0.19041.0</PreCommands>
+      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+  </ItemGroup>
+
   <!--
     This is useful for local testing to print the produced helix items
     To use this when you are changing how items are produced, uncomment the target

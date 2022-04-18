@@ -104,7 +104,8 @@ class PreCommands:
             exename: str,
             working_directory: str,
             language: str = None,
-            no_https: bool = False):
+            no_https: bool = False,
+            no_restore: bool = True):
         'makes a new app with the given template'
         self.project = CSharpProject.new(template=template,
                                  output_dir=output_dir,
@@ -114,7 +115,8 @@ class PreCommands:
                                  force=True,
                                  verbose=True,
                                  language=language,
-                                 no_https=no_https)
+                                 no_https=no_https,
+                                 no_restore=no_restore)
         self._updateframework(self.project.csproj_file)
         self._addstaticmsbuildproperty(self.project.csproj_file)
 
@@ -214,12 +216,12 @@ class PreCommands:
         filepath = os.path.join(projpath, file)
         insert_after(filepath, line, trace_statement)
 
-    def install_workload(self, workloadid: str):
+    def install_workload(self, workloadid: str, install_args: list = ["--skip-manifest-update"]):
         'Installs the workload, if needed'
         if not self.has_workload:
             if self.readonly_dotnet:
                 raise Exception('workload needed to build, but has_workload=false, and readonly_dotnet=true')
-            subprocess.run(["dotnet", "workload", "install", workloadid, "--skip-manifest-update"])
+            subprocess.run(["dotnet", "workload", "install", workloadid] + install_args)
 
     def uninstall_workload(self, workloadid: str):
         'Uninstalls the workload, if possible'
