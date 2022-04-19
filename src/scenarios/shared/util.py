@@ -47,6 +47,8 @@ def getruntimeidentifier():
 
     if 'aarch64' in platform.machine() or os.environ.get('PERFLAB_BUILDARCH') == 'arm64':
         rid += 'arm64'
+    elif platform.machine() == 's390x':
+        rid += 's390x'
     elif platform.machine().endswith('64'):
         rid += 'x64'
     elif platform.machine().endswith('86'):
