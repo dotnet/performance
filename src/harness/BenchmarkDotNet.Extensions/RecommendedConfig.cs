@@ -37,6 +37,9 @@ namespace BenchmarkDotNet.Extensions
                     .WithMinIterationCount(15)
                     .WithMaxIterationCount(20) // we don't want to run more that 20 iterations
                     .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
+
+                if (System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture == System.Runtime.InteropServices.Architecture.S390x)
+                    job = job.WithPlatform(Environments.Platform.AnyCpu);
             }
 
             var config = ManualConfig.CreateEmpty()
