@@ -9,6 +9,7 @@ namespace ResultsComparer
 {
     internal class Stats
     {
+        internal const EquivalenceTestConclusion Noise = (EquivalenceTestConclusion)123;
         private readonly Dictionary<string, PerConclusion> perArchitecture = new();
         private readonly Dictionary<string, PerConclusion> perNamespace = new();
         private readonly Dictionary<string, PerConclusion> perOS = new();
@@ -62,11 +63,12 @@ namespace ResultsComparer
                     Same = ((double)pair.Value.Same / pair.Value.Total).ToString("P2"),
                     Slower = ((double)pair.Value.Slower / pair.Value.Total).ToString("P2"),
                     Faster = ((double)pair.Value.Faster / pair.Value.Total).ToString("P2"),
+                    Noise = ((double)pair.Value.Noise / pair.Value.Total).ToString("P2"),
                     Unknown = ((double)pair.Value.Unknown / pair.Value.Total).ToString("P2"),
                 })
                 .ToArray();
 
-                var table = data.ToMarkdownTable().WithHeaders(name, "Same", "Slower", "Faster", "Unknown");
+                var table = data.ToMarkdownTable().WithHeaders(name, "Same", "Slower", "Faster", "Noise", "Unknown");
 
                 foreach (var line in table.ToMarkdown().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries))
                     Console.WriteLine($"| {line.TrimStart()}|"); // the table starts with \t and does not end with '|' and it looks bad so we fix it
@@ -79,7 +81,7 @@ namespace ResultsComparer
 
         private class PerConclusion
         {
-            internal long Total, Faster, Slower, Same, Unknown;
+            internal long Total, Faster, Slower, Same, Unknown, Noise;
 
             internal void Update(EquivalenceTestConclusion conclusion)
             {
@@ -100,6 +102,9 @@ namespace ResultsComparer
                     case EquivalenceTestConclusion.Unknown:
                         Unknown++;
                         break;
+                    case Stats.Noise:
+                        Noise++;
+                        break;
                     default:
                         throw new NotSupportedException($"Invalid conclusion! {conclusion}");
                 }
@@ -113,6 +118,7 @@ namespace ResultsComparer
                 Console.WriteLine($"Same:    {(double)Same / Total:P2}");
                 Console.WriteLine($"Slower:  {(double)Slower / Total:P2}");
                 Console.WriteLine($"Faster:  {(double)Faster / Total:P2}");
+                Console.WriteLine($"Noise:   {(double)Noise / Total:P2}");
                 Console.WriteLine($"Unknown: {(double)Unknown / Total:P2}");
                 Console.WriteLine();
             }

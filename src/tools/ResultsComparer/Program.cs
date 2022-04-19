@@ -85,6 +85,8 @@ namespace ResultsComparer
                     {
                         MultipleInputsComparer.Compare(new MultipleInputsOptions
                         {
+                            BasePattern = basePattern,
+                            DiffPattern = diffPattern,
                             BasePaths = basePaths.ToArray(),
                             DiffPaths = diffPaths.ToArray(),
                             StatisticalTestThreshold = testThreshold,
