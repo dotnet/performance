@@ -15,7 +15,7 @@ using System.Text.RegularExpressions;
 
 namespace ResultsComparer
 {
-    public class Program
+    public static class Program
     {
         public static int Main(string[] args)
         {
@@ -37,11 +37,9 @@ namespace ResultsComparer
             Option<bool> fullId = new Option<bool>(
                 new[] { "--full-id" }, "Display the full benchmark name id.");
 
-            threshold.IsRequired = true;
-
             RootCommand rootCommand = new RootCommand
             {
-                basePath, diffPath, threshold, noise, top, filters, fullId
+                basePath, diffPath, threshold.AsRequired(), noise, top, filters, fullId
             };
 
             rootCommand.SetHandler<string, string, string, string, int?, string[], bool>(
@@ -72,13 +70,9 @@ namespace ResultsComparer
             Option<bool> printStats = new Option<bool>(
                 new[] { "--stats" }, () => true, "Prints summary per Architecture, Namespace and Operating System.");
 
-            input.IsRequired = true;
-            basePattern.IsRequired = true;
-            diffPattern.IsRequired = true;
-
             Command matrixCommand = new Command("matrix", "Produces a matrix for all configurations found in given folder.")
             {
-                input, basePattern, diffPattern, threshold, noise, top, filters, printStats
+                input.AsRequired(), basePattern.AsRequired(), diffPattern.AsRequired(), threshold, noise, top, filters, printStats
             };
 
             rootCommand.AddCommand(matrixCommand);
@@ -101,6 +95,20 @@ namespace ResultsComparer
                         });
                     }
                 }, input, basePattern, diffPattern, threshold, noise, top, filters, printStats);
+
+            Option<FileInfo> zip = new Option<FileInfo>(
+                new[] { "--input", "-i" }, "Path to the compressed .zip file that contains results downloaded from SharePoint.");
+            Option<DirectoryInfo> output = new Option<DirectoryInfo>(
+                new[] { "--output" }, "Pattern to the output folder where decompressed results should be stored");
+
+            Command decompressCommand = new Command("decompress", "Decompresses results from provided .zip file. Pre-configuration step for the matrix command.")
+            {
+                zip.AsRequired(), output.AsRequired()
+            };
+
+            decompressCommand.SetHandler<FileInfo, DirectoryInfo>(static (zip, output) => Data.Decompress(zip, output), zip, output);
+
+            matrixCommand.AddCommand(decompressCommand);
 
             return rootCommand.Invoke(args);
         }
@@ -163,5 +171,11 @@ namespace ResultsComparer
 
         // https://stackoverflow.com/a/6907849/5852046 not perfect but should work for all we need
         private static string WildcardToRegex(string pattern) => $"^{Regex.Escape(pattern).Replace(@"\*", ".*").Replace(@"\?", ".")}$";
+
+        private static Option AsRequired(this Option option)
+        {
+            option.IsRequired = true;
+            return option;
+        }
     }
 }
