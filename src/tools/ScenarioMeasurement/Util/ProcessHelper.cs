@@ -102,7 +102,7 @@ namespace ScenarioMeasurement
             }
             else
             {
-                psi.WindowStyle = ProcessWindowStyle.Maximized;
+                //psi.WindowStyle = ProcessWindowStyle.Maximized;
             }
 
             var process = new Process();
@@ -217,7 +217,7 @@ namespace ScenarioMeasurement
             }
             else
             {
-                psi.WindowStyle = ProcessWindowStyle.Maximized;
+                //psi.WindowStyle = ProcessWindowStyle.Maximized;
             }
             StringBuilder output = new StringBuilder();
             StringBuilder error = new StringBuilder();

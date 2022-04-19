@@ -6,8 +6,12 @@ EXENAME = 'wpflarge'
 
 def main():
     traits = TestTraits(exename=EXENAME,
-                        guiapp='false', 
+                        guiapp='true',
+                        startupmetric='WPF', 
                         timeout= f'{const.MINUTE*15}',
+                        measurementdelay='6',
+                        runwithoutexit='false',
+                        processwillexit="false", 
                         )
     runner = Runner(traits)
     runner.run()
