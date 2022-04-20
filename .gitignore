@@ -335,6 +335,7 @@ __pycache__/
 
 # Python .env file for VS Code
 .env
+.venv
 
 # Cake - Uncomment if you are using it
 # tools/**
