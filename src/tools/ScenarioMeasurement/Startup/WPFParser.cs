@@ -24,7 +24,6 @@ namespace ScenarioMeasurement
             double threadTime = 0;
             var ins = new Dictionary<int, double>();
             double start = -1;
-            double stopTracker = 0;
             int? pid = null;
             bool doneParsingXaml = false;
             double lastKnownTime = 0.0;
