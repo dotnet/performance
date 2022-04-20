@@ -412,7 +412,7 @@ class Item : ITypeWithPayload
 
         if (isPoh)
         {
-#if NET5_0
+#if NET5_0_OR_GREATER
 #if STATISTICS
             statistics.pohAllocatedBytes += remainingSize;
 #endif
@@ -517,7 +517,7 @@ class SimpleRefPayLoad
         uint remainingSize = size - SimpleRefPayLoadSize;
         if (isPoh)
         {
-#if NET5_0
+#if NET5_0_OR_GREATER
 #if STATISTICS
             statistics.pohAllocatedBytes += remainingSize;
 #endif
@@ -759,7 +759,7 @@ readonly struct BucketSpec
     {
         string result = $"{sizeRange}; surv every {survInterval}; pin every {pinInterval}; weight {weight}";
 
-#if NET5_0
+#if NET5_0_OR_GREATER
         result += $"; isPoh {isPoh}";
 #endif
 
@@ -1368,7 +1368,7 @@ class ArgsParser
     private const uint DEFAULT_POH_ALLOC_LOW = 100;
     private const uint DEFAULT_POH_ALLOC_HIGH = 200 * 1024;
 
-#if NET5_0
+#if NET5_0_OR_GREATER
     private const uint DEFAULT_POH_PINNING_INTERVAL = 0;
     private const uint DEFAULT_POH_FINALIZABLE_INTERVAL = 0;
     private const uint DEFAULT_POH_SURV_INTERVAL = 0;
@@ -1400,7 +1400,7 @@ class ArgsParser
         uint pohAllocLow = DEFAULT_POH_ALLOC_LOW;
         uint pohAllocHigh = DEFAULT_POH_ALLOC_HIGH;
 
-#if NET5_0
+#if NET5_0_OR_GREATER
         uint pohFinalizableInterval = DEFAULT_POH_FINALIZABLE_INTERVAL;
         uint pohSurvInterval = DEFAULT_POH_SURV_INTERVAL;
 #endif
@@ -1420,6 +1420,7 @@ class ArgsParser
                     finishWithFullCollect = true;
                     break;
                 case "-endException":
+                case "-ee":
                     endException = true;
                     break;
                 case "-testKind":
@@ -1436,7 +1437,7 @@ class ArgsParser
                     break;
                 case "-pohAllocRatio":
                 case "-pohar":
-#if NET5_0
+#if NET5_0_OR_GREATER
                     pohAllocRatioArg = ParseUInt32(args[++i]);
 #else
                     Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
@@ -1466,7 +1467,7 @@ class ArgsParser
                     break;
                 case "-pohSizeRange":
                 case "-pohsr":
-#if NET5_0
+#if NET5_0_OR_GREATER
                     ParseRange(args[++i], out pohAllocLow, out pohAllocHigh);
 #else
                     Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
@@ -1483,7 +1484,7 @@ class ArgsParser
                     break;
                 case "-pohSurvInterval":
                 case "-pohsi":
-#if NET5_0
+#if NET5_0_OR_GREATER
                     pohSurvInterval = ParseUInt32(args[++i]);
 #else
                     Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
@@ -1509,7 +1510,7 @@ class ArgsParser
 
                 case "-pohFinalizableInterval":
                 case "-pohfi":
-#if NET5_0
+#if NET5_0_OR_GREATER
                     pohFinalizableInterval = ParseUInt32(args[++i]);
 #else
                     Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
@@ -1533,7 +1534,7 @@ class ArgsParser
         }
 
         if (totalLiveBytes == 0 && (sohSurvInterval != 0 || lohSurvInterval != 0
-#if NET5_0
+#if NET5_0_OR_GREATER
             || pohSurvInterval != 0
 #endif
             ))
@@ -1593,7 +1594,7 @@ class ArgsParser
             bucketList.Add(lohBucket);
         }
 
-#if NET5_0
+#if NET5_0_OR_GREATER
         if (pohWeight > 0)
         {
             BucketSpec pohBucket = new BucketSpec(
