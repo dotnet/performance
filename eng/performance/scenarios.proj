@@ -48,6 +48,12 @@
     <UIScenario Include="WinForms Large" Condition="'$(TargetsWindows)' == 'true'">
       <PayloadDirectory>$(ScenariosDir)windowsformslarge</PayloadDirectory>
     </UIScenario>
+    <UIScenario Include="WPF Template" Condition="'$(TargetsWindows)' == 'true'">
+      <PayloadDirectory>$(ScenariosDir)wpf</PayloadDirectory>
+    </UIScenario>
+    <UIScenario Include="WPF SFC" Condition="'$(TargetsWindows)' == 'true'">
+      <PayloadDirectory>$(ScenariosDir)wpfsfc</PayloadDirectory>
+    </UIScenario>
   </ItemGroup>
 
 
