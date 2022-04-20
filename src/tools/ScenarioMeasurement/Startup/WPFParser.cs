@@ -26,6 +26,7 @@ namespace ScenarioMeasurement
             double start = -1;
             int? pid = null;
             bool doneParsingXaml = false;
+            double lastKnownTime = 0.0;
             using (var source = new ETWTraceEventSource(mergeTraceFile))
             {
 
@@ -65,31 +66,42 @@ namespace ScenarioMeasurement
                     }
                 };
 
-                source.Dynamic.AddCallbackForProviderEvent("Microsoft-Windows-WPF", "WClientParseBaml/Stop", evt =>
+                //We want to find the first Present/Stop after the last XamlParse event
+                source.Dynamic.AddCallbackForProviderEvent("Microsoft-Windows-WPF", "WClientParseXamlBamlInfo", evt =>
                 {
                     if (pid.HasValue && evt.ProcessID == pid && evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
                     {
-                        doneParsingXaml = true;
+                        doneParsingXaml = true; //So when we find a Xaml parse event set the flag
                     }
                 });
 
                 source.Dynamic.AddCallbackForProviderEvent("Microsoft-Windows-WPF", "WClientUcePresent/Stop", evt =>
                 {
+                    //Then when we see a Present/Stop after the flag has been set
                     if (doneParsingXaml && pid.HasValue && evt.ProcessID == pid && evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
                     {
-                        results.Add(evt.TimeStampRelativeMSec - start);
+                        lastKnownTime = evt.TimeStampRelativeMSec; //Grab the current time
+                        doneParsingXaml = false; //And reset the flag
+                    }
+                });
+
+                //Once the process ends take the last time we set as that will be the corret one
+                source.Kernel.ProcessStop += evt =>
+                {
+                    if (pid.HasValue && evt.ProcessID == pid)
+                    {
+                        results.Add(lastKnownTime - start);
                         threadTimes.Add(threadTime);
                         pid = null;
                         threadTime = 0;
                         start = 0;
-                        doneParsingXaml = false;
                     }
-                });
+                };
 
                 source.Process();
             }
             return new[] {
-                new Counter() { Name = "Generic Startup", MetricName = "ms", DefaultCounter=true, TopCounter=true, Results = results.ToArray() },
+                new Counter() { Name = "WPF Startup", MetricName = "ms", DefaultCounter=true, TopCounter=true, Results = results.ToArray() },
                 new Counter() { Name = "Time on Thread", MetricName = "ms", TopCounter=true, Results = threadTimes.ToArray() }
             };
         }
