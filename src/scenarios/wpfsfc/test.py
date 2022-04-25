@@ -2,13 +2,13 @@ import os
 from shared.runner import TestTraits, Runner
 from shared import const
 
-EXENAME = 'wpf'
+EXENAME = 'wpfsfc'
 
 def main():
     traits = TestTraits(exename=EXENAME,
                         guiapp='true',
-                        startupmetric='WPF',
-                        timeout=30,
+                        startupmetric='WPF', 
+                        timeout= f'{const.MINUTE*15}',
                         measurementdelay='6',
                         runwithoutexit='false',
                         processwillexit="false", 

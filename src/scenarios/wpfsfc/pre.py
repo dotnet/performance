@@ -1,11 +1,11 @@
 '''
 pre-command
 '''
-import sys, subprocess
+import sys
+import os, subprocess
 from performance.logger import setup_loggers
 from shared.precommands import PreCommands
 from shared import const
-from test import EXENAME
 from logging import getLogger
 
 setup_loggers(True)
@@ -18,9 +18,5 @@ if(exitcode != 0):
 getLogger().info("Microsoft-Windows-WPF installed, continuing")
 
 precommands = PreCommands()
-precommands.new(template='wpf',
-                output_dir=const.APPDIR,
-                bin_dir=const.BINDIR,
-                exename=EXENAME,
-                working_directory=sys.path[0])
+precommands.existing(os.path.join(sys.path[0], const.SRCDIR), 'wpfsfc.csproj')
 precommands.execute()

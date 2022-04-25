@@ -1,0 +1,112 @@
+﻿<Window x:Class="ShowFormComplex2_2008.Window1"
+xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+Title="ShowFormComplex_2008" Height="659" Width="455">
+<Grid>
+  <Menu Name="menu1" SnapsToDevicePixels="True" Height="30" VerticalAlignment="Top">
+    <MenuItem Header="Menu 1">
+      <MenuItem Header="Menu Item 1"/>
+      <MenuItem Header="Menu Item 2"/>
+      <MenuItem Header="Menu Item 3"/>
+    </MenuItem>
+    <MenuItem Header="Menu 2">
+      <MenuItem Header="Menu Item 1"/>
+      <MenuItem Header="Menu Item 2"/>
+      <MenuItem Header="Menu Item 3"/>
+    </MenuItem>
+  </Menu>
+  <ToolBar Height="37" Margin="0,30,0,0" Name="toolBar1" VerticalAlignment="Top" SnapsToDevicePixels="True" >
+    <Button>
+      <Image Name="toolBarImgButton" />
+    </Button>
+    <Button ClickMode="Release">toolBarButton1</Button>
+    <TextBox Width="100" Height="25" />
+    <Button ClickMode="Release">
+      <StackPanel Orientation="Horizontal">
+        <Image Name="toolBarImgButton2"/>
+        <TextBlock VerticalAlignment="Center">toolBarButton3</TextBlock>
+      </StackPanel>
+      </Button>
+
+  </ToolBar>
+  <StatusBar Height="21" Name="statusBar1" VerticalAlignment="Bottom">
+    <StatusBarItem>Status...</StatusBarItem>
+  </StatusBar>
+  <RichTextBox Height="91" Margin="13,0,10,28.56" VerticalAlignment="Bottom" ForceCursor="False" >
+    <FlowDocument>
+      <Paragraph>
+        <Run>RichTextBox1</Run>
+      </Paragraph>
+    </FlowDocument>
+  </RichTextBox>
+  <Button Height="23" HorizontalAlignment="Left" Margin="13,82,0,0" Name="button1" VerticalAlignment="Top" Width="75">Button</Button>
+  <Button Height="23" HorizontalAlignment="Left" Margin="13,138,0,0" Name="button2" VerticalAlignment="Top" Width="75">Button</Button>
+  <Button Height="23" HorizontalAlignment="Left" Margin="13,110,0,0" Name="button3" VerticalAlignment="Top" Width="75">Button</Button>
+  <Button Height="23" HorizontalAlignment="Left" Margin="13,166,0,0" Name="button4" VerticalAlignment="Top" Width="75">Button</Button>
+  <TextBox Height="20" Margin="95,82.52,0,0" Name="textBox1" VerticalAlignment="Top" Width="100" HorizontalAlignment="Left" />
+  <TextBox Height="20" HorizontalAlignment="Left" Margin="95,110.52,0,0" Name="textBox2" VerticalAlignment="Top" Width="100" />
+  <TextBox Height="20" HorizontalAlignment="Left" Margin="95,138.52,0,0" Name="textBox3" VerticalAlignment="Top" Width="100" />
+  <TextBox Height="20" HorizontalAlignment="Left" Margin="95,166.52,0,0" Name="textBox4" VerticalAlignment="Top" Width="100" />
+  <Label FontSize="8" Height="19.948" Margin="210.63,110,187.108,0" Name="label2" VerticalAlignment="Top">Label</Label>
+  <Label FontSize="8" Height="19.948" Margin="210.63,82,187.108,0" Name="label1" VerticalAlignment="Top">Label</Label>
+  <Label FontSize="8" Height="19.948" Margin="210.63,138,187.108,0" Name="label3" VerticalAlignment="Top">Label</Label>
+  <Label FontSize="8" Height="19.948" Margin="210.63,166.052,187.108,0" Name="label4" VerticalAlignment="Top">Label</Label>
+  <ComboBox Height="21" HorizontalAlignment="Right" Margin="0,82,19,0" Name="comboBox1" VerticalAlignment="Top" Width="120" />
+  <ComboBox Height="21" HorizontalAlignment="Right" Margin="0,112,19,0" Name="comboBox2" VerticalAlignment="Top" Width="120" />
+  <ComboBox Height="21" HorizontalAlignment="Right" Margin="0,140,19,0" Name="comboBox3" VerticalAlignment="Top" Width="120" />
+  <ComboBox Height="21" HorizontalAlignment="Right" Margin="0,168,19,0" Name="comboBox4" VerticalAlignment="Top" Width="120" />
+  <TreeView HorizontalAlignment="Left" Margin="13,200.634,0,231.336" Name="treeView1" Width="182" Height="189">
+    <TreeViewItem Header="Node0">
+      <TreeViewItem Header="Node1">
+        <TreeViewItem Header="Node5"/>
+        <TreeViewItem Header="Node6"/>
+      </TreeViewItem>
+      <TreeViewItem Header="Node2"/>
+      <TreeViewItem Header="Node3">
+        <TreeViewItem Header="Node11"/>
+      </TreeViewItem>
+      <TreeViewItem Header="Node4">
+        <TreeViewItem Header="Node7"/>
+        <TreeViewItem Header="Node8"/>
+        <TreeViewItem Header="Node9"/>
+        <TreeViewItem Header="Node10"/>
+      </TreeViewItem>
+    </TreeViewItem>
+
+
+
+  </TreeView>
+  <Frame Content="Frame" Margin="214,200.634,19,231.336" Name="frame1" NavigationUIVisibility="Visible" />
+  <Grid Height="100" Margin="214.250758984157,0,19,125.664" Name="grid1" VerticalAlignment="Bottom" HorizontalAlignment="Stretch">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="99.246*" />
+      <ColumnDefinition Width="100.503*" />
+    </Grid.ColumnDefinitions>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="49.98*" />
+      <RowDefinition Height="50.02*" />
+    </Grid.RowDefinitions>
+    <TextBox HorizontalAlignment="Stretch" Margin="0,0,1.4210854715202E-14,-2.1316282072803E-14" Name="textBox5" ClipToBounds="False" SnapsToDevicePixels="False" HorizontalScrollBarVisibility="Hidden" />
+    <RichTextBox Grid.Column="1" HorizontalAlignment="Stretch" Margin="1.4210854715202E-14,0,-2.8421709430404E-14,-2.1316282072803E-14" Name="richTextBox1" />
+    <Button Grid.Row="1" HorizontalAlignment="Stretch" Margin="0,2.1316282072803E-14,2.00000000000001,4.2632564145606E-14" Name="button5">Button</Button>
+    <Label Grid.Column="1" Grid.Row="1" Height="23" HorizontalAlignment="Stretch" Margin="37.774,0,17,1.111" Name="label5" VerticalAlignment="Bottom">Label</Label>
+  </Grid>
+  <Grid Height="99.9999999999999" Margin="13,0,0,125.664" Name="grid2" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="182" ShowGridLines="False">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="79.373*" />
+      <ColumnDefinition Width="Auto" MinWidth="4.669" />
+      <ColumnDefinition Width="90.898*" />
+    </Grid.ColumnDefinitions>
+    <RichTextBox Margin="0,0,1.4210854715202E-14,7.105427357601E-14" Name="richTextBox2" HorizontalAlignment="Stretch">
+      <FlowDocument>
+        <Paragraph>
+          <Run>Rich Text Box in grid with splitter</Run>
+        </Paragraph>
+      </FlowDocument>
+    </RichTextBox>
+
+    <Frame Content="Frame" Grid.Column="2" Margin="1.4210854715202E-14,0,1,2.00000000000007" Name="frame2" NavigationUIVisibility="Visible" />
+    <GridSplitter Margin="0,0,-1.4210854715202E-14,1.11100000000006" Name="gridSplitter1" Grid.Column="1" Width="5" HorizontalAlignment="Center" />
+  </Grid>
+</Grid>
+</Window>
