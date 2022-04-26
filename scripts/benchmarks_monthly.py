@@ -123,6 +123,8 @@ def __main(args: list) -> int:
         else:
             args.bdn_arguments = '--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart'
 
+    versionTarFiles = []
+
     for versionName in args.versions:
         version = get_version_from_name(versionName)
         moniker = version['tfm'].replace('nativeaot', 'net') # results of nativeaotX.0 are stored in netX.0 folder
@@ -178,16 +180,18 @@ def __main(args: list) -> int:
             resultsName = timestamp + '-' + versionName
 
         resultsName = args.architecture + '-' + resultsName
-
         resultsTarPath = os.path.join(rootPath, 'artifacts', resultsName + '.tar.gz')
+        versionTarFiles += [resultsTarPath]
 
         if not args.dry_run:
             resultsTar = tarfile.open(resultsTarPath, 'w:gz')
             resultsTar.add(resultsPath, arcname=resultsName)
             resultsTar.close()
 
-        log('Results were collected into the following tar archive:')
-        log('  ' + resultsTarPath)
+    log('Results were collected into the following tar archive(s):')
+
+    for versionTarFile in versionTarFiles:
+        log('  ' + versionTarFile)
 
 if __name__ == '__main__':
     __main(sys.argv[1:])
