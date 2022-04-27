@@ -38,6 +38,7 @@ def upload(globpath, container, queue, sas_token_env, storage_account_uri):
                 queue_client.send_message(blob_client.url)
 
             getLogger().info("upload complete")
+            return 0
 
     except Exception as ex:
         getLogger().error('{0}: {1}'.format(type(ex), str(ex)))
