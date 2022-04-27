@@ -243,6 +243,8 @@ def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
         ]
     if args.filter:
         run_args += ['--filter'] + args.filter
+    if args.resume:
+        run_args += ['--resume']
 
     # Extra BenchmarkDotNet cli arguments.
     if args.bdn_arguments:

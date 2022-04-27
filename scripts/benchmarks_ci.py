@@ -173,12 +173,21 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Attempts to run the benchmarks without building.',
     )
     parser.add_argument(
+        '--resume',
+        dest='resume',
+        required=False,
+        default=False,
+        action='store_true',
+        help='Resume a previous run from existing benchmark results',
+    )
+    parser.add_argument(
         '--skip-logger-setup',
         dest='skip_logger_setup',
         required=False,
         default=False,
         action='store_true',
-        help='Skips the logger setup, for cases when invoked by another script that already sets logging up')
+        help='Skips the logger setup, for cases when invoked by another script that already sets logging up',
+    )
 
     return parser
 

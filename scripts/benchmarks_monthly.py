@@ -75,7 +75,13 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         '--no-clean',
         dest='no_clean',
         action='store_true',
-        help='Do not clean the SDK and results directories before execution')
+        help='Do not clean the SDK installations before execution')
+
+    parser.add_argument(
+        '--resume',
+        dest='resume',
+        action='store_true',
+        help='Resume a previous run from existing benchmark results')
 
     parser.add_argument(
         '--dry-run',
@@ -131,7 +137,7 @@ def __main(args: list) -> int:
         resultsPath = os.path.join(rootPath, 'artifacts', 'bin', 'MicroBenchmarks', 'Release', moniker, 'BenchmarkDotNet.Artifacts', 'results')
 
         if not args.no_clean:
-            # Delete any preexisting SDK and results, which allows
+            # Delete any preexisting SDK installations, which allows
             # multiple versions to be run from a single command
             if os.path.isdir(sdkPath):
                 log('rmdir -r ' + sdkPath)
@@ -139,16 +145,19 @@ def __main(args: list) -> int:
                 if not args.dry_run:
                     shutil.rmtree(sdkPath)
 
+        benchmarkArgs = ['--skip-logger-setup', '--filter', args.filter, '--architecture', args.architecture, '-f', version['tfm']]
+
+        if 'build' in version:
+            benchmarkArgs += ['--dotnet-versions', version['build']]
+
+        if args.resume:
+            benchmarkArgs += ['--resume']
+        else:
             if os.path.isdir(resultsPath):
                 log('rmdir -r ' + resultsPath)
 
                 if not args.dry_run:
                     shutil.rmtree(resultsPath)
-
-        benchmarkArgs = ['--skip-logger-setup', '--filter', args.filter, '--architecture', args.architecture, '-f', version['tfm']]
-
-        if 'build' in version:
-            benchmarkArgs += ['--dotnet-versions', version['build']]
 
         if args.bdn_arguments:
             if version['tfm'].startswith('nativeaot'):

@@ -1,18 +1,20 @@
-﻿using System.Collections.Immutable;
-using System.IO;
-using BenchmarkDotNet.Columns;
+﻿using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
-using BenchmarkDotNet.Exporters.Json;
-using Perfolizer.Horology;
-using BenchmarkDotNet.Jobs;
-using BenchmarkDotNet.Reports;
-using System.Collections.Generic;
-using Reporting;
-using BenchmarkDotNet.Loggers;
-using System.Linq;
 using BenchmarkDotNet.Exporters;
+using BenchmarkDotNet.Exporters.Json;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Loggers;
+using BenchmarkDotNet.Reports;
+using Newtonsoft.Json;
+using Perfolizer.Horology;
+using Reporting;
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace BenchmarkDotNet.Extensions
 {
@@ -27,7 +29,8 @@ namespace BenchmarkDotNet.Extensions
             List<string> categoryExclusionFilterValue = null,
             Dictionary<string, string> parameterFilterValue = null,
             Job job = null,
-            bool getDiffableDisasm = false)
+            bool getDiffableDisasm = false,
+            bool resumeRun = false)
         {
             if (job is null)
             {
@@ -37,6 +40,12 @@ namespace BenchmarkDotNet.Extensions
                     .WithMinIterationCount(15)
                     .WithMaxIterationCount(20) // we don't want to run more that 20 iterations
                     .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
+            }
+
+            if (resumeRun)
+            {
+                exclusionFilterValue ??= new List<string>();
+                exclusionFilterValue.AddRange(GetBenchmarksToResume(artifactsPath));
             }
 
             var config = ManualConfig.CreateEmpty()
@@ -83,5 +92,75 @@ namespace BenchmarkDotNet.Extensions
                 exportHtml: false,
                 exportCombinedDisassemblyReport: false,
                 exportDiff: false));
+
+        private static IEnumerable<string> GetBenchmarksToResume(DirectoryInfo artifacts)
+        {
+            if (!artifacts.Exists)
+                return new string[0];
+
+            // Get all existing report files, of any export type; order by descending filename length to avoid rename collisions
+            var existingBenchmarks = artifacts.GetFiles($"*-report-*", SearchOption.AllDirectories)
+                .OrderByDescending(resultFile => resultFile.FullName.Length)
+                .SelectMany(resultFile =>
+                {
+                    var reportFileName = resultFile.FullName;
+
+                    // Prepend the report name with -resume, potentially multiple times if multiple reports for the same
+                    // benchmarks exist, so that they don't collide with one another. But don't unnecessarily prepend
+                    // -resume multiple times.
+                    if (!reportFileName.Contains("-resume-report-") || File.Exists(reportFileName.Replace("-resume-report-", "-report-")))
+                    {
+                        var resumeFileName = reportFileName.Replace("-report-", "-resume-report-");
+                        File.Move(reportFileName, resumeFileName);
+
+                        reportFileName = resumeFileName;
+                    }
+
+                    // For JSON reports, load the data to get the benchmarks that have already been reported
+                    if (reportFileName.EndsWith(".json"))
+                    {
+                        try
+                        {
+                            var result = JsonConvert.DeserializeObject<BdnResult>(File.ReadAllText(reportFileName));
+                            var benchmarks = result.Benchmarks.Select(benchmark =>
+                            {
+                                var nameParts = new[] { benchmark.Namespace, benchmark.Type, benchmark.Method };
+                                return string.Join(".", nameParts.Where(part => !string.IsNullOrEmpty(part)));
+                            }).Distinct();
+
+                            return benchmarks;
+                        }
+                        catch (JsonSerializationException)
+                        {
+                        }
+                    }
+
+                    return new string[0];
+                });
+
+                if (existingBenchmarks.Any())
+                {
+                    Console.WriteLine($"// Found {existingBenchmarks.Count()} existing result(s) to be skipped:");
+
+                    foreach (var benchmark in existingBenchmarks.OrderBy(b => b))
+                    {
+                        Console.WriteLine($"// ***** {benchmark}");
+                    }
+                }
+
+                return existingBenchmarks;
+        }
+
+        private class Benchmark
+        {
+            public string Namespace { get; set; }
+            public string Type { get; set; }
+            public string Method { get; set; }
+        }
+
+        private class BdnResult
+        {
+            public List<Benchmark> Benchmarks { get; set; }
+        }
     }
 }
