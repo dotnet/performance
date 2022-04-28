@@ -340,7 +340,7 @@ def __main(args: list) -> int:
             out_file.write(path_variable % dotnet_path)
     
     # The '_Framework' is needed for specifying frameworks in proj files and for building tools later in the pipeline
-    __write_pipeline_variable('_Framework', framework)
+    __write_pipeline_variable('PERFLAB_Framework', framework)
 
 
 
