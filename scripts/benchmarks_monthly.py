@@ -20,6 +20,8 @@ import sys
 import os
 
 VERSIONS = {
+    'nativeaot7.0-preview4': { 'tfm': 'nativeaot7.0', 'build': '7.0.100-preview.4.22227.3', 'ilc': '7.0.0-preview.4.22222.4' },
+    'net7.0-preview4': { 'tfm': 'net7.0', 'build': '7.0.100-preview.4.22227.3' },
     'nativeaot7.0-preview3': { 'tfm': 'nativeaot7.0', 'build': '7.0.100-preview.3.22179.4', 'ilc': '7.0.0-preview.3.22175.4' },
     'net7.0-preview3': { 'tfm': 'net7.0', 'build': '7.0.100-preview.3.22179.4' },
     'net7.0-preview2': { 'tfm': 'net7.0', 'build': '7.0.100-preview.2.22124.4' },
