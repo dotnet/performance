@@ -54,6 +54,9 @@
     <UIScenario Include="WPF SFC" Condition="'$(TargetsWindows)' == 'true'">
       <PayloadDirectory>$(ScenariosDir)wpfsfc</PayloadDirectory>
     </UIScenario>
+    <UIScenario Include="PaintDotNet" Condition="'$(TargetsWindows)' == 'true'">
+      <PayloadDirectory>$(ScenariosDir)paintdotnet</PayloadDirectory>
+    </UIScenario>
   </ItemGroup>
 
 

@@ -102,6 +102,17 @@ jobs:
             displayName: Build SOD tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
+          - powershell: |
+              mkdir $(CorrelationStaging)PDN
+              curl "https://pvscmdupload.blob.core.windows.net/assets/PDN3.zip$(PerfCommandUploadTokenNonEscaped)" -OutFile $(CorrelationStaging)PDN\PDN3.zip
+            displayName: Download PDN
+          - ${{ if eq(parameters.architecture, 'arm64') }}:
+            - script: taskkill /im dotnet.exe /f
+              displayName: Stop dotnet.exe
+            - script: del $(CorrelationStaging)dotnet\* /F /S /Q
+              displayName: Delete old dotnet
+            - script: xcopy tools\dotnet\arm64\* $(CorrelationStaging)dotnet\/E /I /Y
+              displayName: Copy Arm64 Dotnet to Correlation Payload
         - ${{ if ne(parameters.osName, 'windows') }}:
           - script: cp ./NuGet.config $(CorrelationStaging);cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared;cp -r ./src/scenarios/staticdeps $(CorrelationStaging)staticdeps
             displayName: Copy python libraries and NuGet.config

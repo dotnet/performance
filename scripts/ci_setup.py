@@ -246,6 +246,14 @@ def __main(args: list) -> int:
     architecture = 'x64' if args.architecture == 'arm64' else args.architecture
 
     if not args.dotnet_path:
+        if args.architecture == 'arm64':
+            init_tools(
+                architecture='arm64',
+                dotnet_versions=args.dotnet_versions,
+                channel=args.channel,
+                verbose=verbose
+            )
+            
         init_tools(
             architecture=architecture,
             dotnet_versions=args.dotnet_versions,

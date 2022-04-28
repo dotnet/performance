@@ -143,6 +143,8 @@ class StartupWrapper(object):
             startup_args.extend(['--hot-reload-iters', traits.hotreloaditers])
         if traits.skipmeasurementiteration:
             startup_args.extend(['--skip-measurement-iteration', traits.skipmeasurementiteration])
+        if traits.runwithdotnet:
+            startup_args.extend(['--run-with-dotnet'])
             
         upload_container = UPLOAD_CONTAINER
 
