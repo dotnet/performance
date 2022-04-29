@@ -67,7 +67,7 @@ class Runner:
         parseonlyparser.add_argument('--disable-animations', help='Disable Android device animations, does nothing on iOS.', action='store_true', dest='animationsdisabled')
         parseonlyparser.add_argument('--use-fully-drawn-time', help='Use the startup time from reportFullyDrawn for android, the equivalent for iOS is handled via logging a magic string and passing it to --fully-drawn-magic-string', action='store_true', dest='usefullydrawntime')
         parseonlyparser.add_argument('--fully-drawn-extra-delay', help='Set an additional delay time for an Android app to reportFullyDrawn (seconds), not on iOS. This should be greater than the greatest amount of extra time expected between first frame draw and reportFullyDrawn being called. Default = 3 seconds', type=int, default=3, dest='fullyDrawnDelaySecMax')
-        parseonlyparser.add_argument('--fully-drawn-magic-string', help='Set an additional delay time for an Android app to reportFullyDrawn (seconds), not on iOS. This should be greater than the greatest amount of extra time expected between first frame draw and reportFullyDrawn being called. Default = 3 seconds', type=str, dest='fullyDrawnMagicString')
+        parseonlyparser.add_argument('--fully-drawn-magic-string', help='Set the magic string that is logged by the app to indicate when the app is fully drawn. Required when using --use-fully-drawn-time on iOS.', type=str, dest='fullyDrawnMagicString')
         self.add_common_arguments(parseonlyparser)
 
         # inner loop command
