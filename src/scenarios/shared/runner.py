@@ -65,8 +65,9 @@ class Runner:
         parseonlyparser.add_argument('--package-name', help='Classname (Android) or Bundle ID (iOS) of application', dest='packagename')
         parseonlyparser.add_argument('--startup-iterations', help='Startups to run (1+)', type=int, default=10, dest='startupiterations')
         parseonlyparser.add_argument('--disable-animations', help='Disable Android device animations, does nothing on iOS.', action='store_true', dest='animationsdisabled')
-        parseonlyparser.add_argument('--use-fully-drawn-time', help='Use the startup time from reportFullyDrawn for android, and the equivalent for iOS', action='store_true', dest='usefullydrawntime')
+        parseonlyparser.add_argument('--use-fully-drawn-time', help='Use the startup time from reportFullyDrawn for android, the equivalent for iOS is handled via logging a magic string and passing it to --fully-drawn-magic-string', action='store_true', dest='usefullydrawntime')
         parseonlyparser.add_argument('--fully-drawn-extra-delay', help='Set an additional delay time for an Android app to reportFullyDrawn (seconds), not on iOS. This should be greater than the greatest amount of extra time expected between first frame draw and reportFullyDrawn being called. Default = 3 seconds', type=int, default=3, dest='fullyDrawnDelaySecMax')
+        parseonlyparser.add_argument('--fully-drawn-magic-string', help='Set an additional delay time for an Android app to reportFullyDrawn (seconds), not on iOS. This should be greater than the greatest amount of extra time expected between first frame draw and reportFullyDrawn being called. Default = 3 seconds', type=str, dest='fullyDrawnMagicString')
         self.add_common_arguments(parseonlyparser)
 
         # inner loop command
@@ -152,6 +153,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.animationsdisabled = args.animationsdisabled
             self.usefullydrawntime = args.usefullydrawntime
             self.fullyDrawnDelaySecMax = args.fullyDrawnDelaySecMax
+            self.fullyDrawnMagicString = args.fullyDrawnMagicString
 
         if args.scenarioname:
             self.scenarioname = args.scenarioname
@@ -776,7 +778,38 @@ ex: C:\repos\performance;C:\repos\runtime
                 timeToFirstDrawEventEndDateTime = datetime.strptime(timeToFirstDrawEventStop['timestamp'], '%Y-%m-%d %H:%M:%S.%f%z')
                 timeToFirstDrawMilliseconds = (timeToFirstDrawEventEndDateTime - timeToFirstDrawEventStartDateTime).total_seconds() * 1000
 
-                totalTimeMilliseconds = timeToMainMilliseconds + timeToFirstDrawMilliseconds
+                if self.usefullydrawntime:
+                    # grab log event with the magic string in it
+                    logShowMagicStringCmd = [
+                        'log',
+                        'show',
+                        '--predicate', f'(processIdentifier == {app_pid}) && (composedMessage contains "{self.fullyDrawnMagicString}")',
+                        '--info',
+                        '--style', 'ndjson',
+                        logarchive_filename,
+                    ]
+                    logShowMagicStringCmd = RunCommand(logShowMagicStringCmd, verbose=True)
+                    logShowMagicStringCmd.run()
+
+                    magicStringEvent = ''
+                    for line in logShowMagicStringCmd.stdout.splitlines():
+                        try:
+                            lineData = json.loads(line)
+                            if self.fullyDrawnMagicString in lineData['eventMessage']:
+                                magicStringEvent = lineData
+                        except:
+                            break
+
+                    if magicStringEvent == '':
+                        raise Exception("Didn't get the fully-drawn magic string event.")
+
+                    timeToMagicStringEventDateTime = datetime.strptime(magicStringEvent['timestamp'], '%Y-%m-%d %H:%M:%S.%f%z')
+
+                    # startup time is time to the magic string event
+                    totalTimeMilliseconds = timeToMagicStringEventDateTime - timeToMainEventStartDateTime
+                else:
+                    # startup time is time to first draw
+                    totalTimeMilliseconds = timeToMainMilliseconds + timeToFirstDrawMilliseconds
 
                 if i == 0:
                     # ignore the warmup iteration
