@@ -806,7 +806,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     timeToMagicStringEventDateTime = datetime.strptime(magicStringEvent['timestamp'], '%Y-%m-%d %H:%M:%S.%f%z')
 
                     # startup time is time to the magic string event
-                    totalTimeMilliseconds = timeToMagicStringEventDateTime - timeToMainEventStartDateTime
+                    totalTimeMilliseconds = (timeToMagicStringEventDateTime - timeToMainEventStartDateTime).total_seconds() * 1000
                 else:
                     # startup time is time to first draw
                     totalTimeMilliseconds = timeToMainMilliseconds + timeToFirstDrawMilliseconds
