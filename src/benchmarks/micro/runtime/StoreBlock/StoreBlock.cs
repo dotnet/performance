@@ -11,7 +11,7 @@ using MicroBenchmarks;
 
 namespace StoreBlock
 {
-    [BenchmarkCategory(Categories.Runtime, Categories.JIT, Categories.NoAOT)]
+    [BenchmarkCategory(Categories.Runtime, Categories.JIT)]
     public class AnyLocation
     {
         const int Size = 4096;
@@ -162,7 +162,7 @@ namespace StoreBlock
         }
     }
 
-    [BenchmarkCategory(Categories.Runtime, Categories.JIT, Categories.NoAOT)]
+    [BenchmarkCategory(Categories.Runtime, Categories.JIT)]
     public class LocalAddress
     {
         const int OperationsPerInvoke = 100;

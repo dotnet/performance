@@ -77,7 +77,6 @@ namespace System.Text.RegularExpressions.Tests
         }
 
         [Benchmark]
-        [BenchmarkCategory(Categories.NoAOT)]
         public int Count() => Perf_Regex_Industry.Count(_regex, _input);
     }
 
@@ -111,7 +110,6 @@ namespace System.Text.RegularExpressions.Tests
 
         [Benchmark]
         [MinIterationCount(3)] // each iteration takes several seconds
-        [BenchmarkCategory(Categories.NoAOT)]
         public int Count()
         {
             int found = 0;
@@ -191,7 +189,6 @@ namespace System.Text.RegularExpressions.Tests
         }
 
         [Benchmark]
-        [BenchmarkCategory(Categories.NoAOT)]
         public int Count() => Perf_Regex_Industry.Count(_regex, _sherlock);
     }
 
@@ -240,7 +237,6 @@ namespace System.Text.RegularExpressions.Tests
         }
 
         [Benchmark]
-        [BenchmarkCategory(Categories.NoAOT)]
         public int Count() => Perf_Regex_Industry.Count(_regex, _3200);
     }
 

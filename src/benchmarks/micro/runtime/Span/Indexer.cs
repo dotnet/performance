@@ -33,7 +33,7 @@ namespace Span
         public void Setup() => a = GetData(length);
 
         [Benchmark]
-        [BenchmarkCategory("Indexer in-loop bounds check elimination", Categories.NoAOT)]
+        [BenchmarkCategory("Indexer in-loop bounds check elimination")]
         public byte Ref() => TestRef(a);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
