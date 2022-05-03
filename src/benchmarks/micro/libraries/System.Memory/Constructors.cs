@@ -99,7 +99,7 @@ namespace System.Memory
 
     [GenericTypeArguments(typeof(byte))]
     [GenericTypeArguments(typeof(int))]
-    [BenchmarkCategory(Categories.Runtime, Categories.Libraries, Categories.Span)]
+    [BenchmarkCategory(Categories.Runtime, Categories.Libraries, Categories.Span, Categories.NoAOT)]
     public class Constructors_ValueTypesOnly<T>
     {
         private const int Size = 10;
