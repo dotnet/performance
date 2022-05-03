@@ -15,6 +15,12 @@ namespace System.Net.NetworkInformation.Tests
         public NetworkInterface[] GetAllNetworkInterfaces() => NetworkInterface.GetAllNetworkInterfaces();
 
         [Benchmark]
+    #if NET5_0_OR_GREATER
+        [System.Runtime.Versioning.UnsupportedOSPlatform("osx")]
+        [System.Runtime.Versioning.UnsupportedOSPlatform("ios")]
+        [System.Runtime.Versioning.UnsupportedOSPlatform("tvos")]
+        [System.Runtime.Versioning.UnsupportedOSPlatform("freebsd")]
+    #endif
         public void GetAllNetworkInterfacesProperties()
         {
             foreach (NetworkInterface ni in NetworkInterface.GetAllNetworkInterfaces())
