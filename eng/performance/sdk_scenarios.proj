@@ -18,7 +18,7 @@
   </PropertyGroup>  
 
   <PropertyGroup>
-    <FrameworkVersion>$(_Framework.Substring($([MSBuild]::Subtract($(_Framework.Length), 3))))</FrameworkVersion>
+    <FrameworkVersion>$(PERFLAB_Framework.Substring($([MSBuild]::Subtract($(PERFLAB_Framework.Length), 3))))</FrameworkVersion>
   </PropertyGroup>
 
   <ItemGroup>
