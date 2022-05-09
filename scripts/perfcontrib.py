@@ -1,21 +1,50 @@
 from json import loads, dumps
 from urllib.request import urlopen, Request
 from urllib.parse import urlencode
+from urllib.error import HTTPError
 import time
+import sys
+import os
 
-def main() -> None:
-    tenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47"
-    appId = "c2fe4cd0-be4a-468b-aa4f-078c67dcab6e"
-    uploadService = "https://perfcontrib.azurewebsites.net/"
+tenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47"
+appId = "c2fe4cd0-be4a-468b-aa4f-078c67dcab6e"
+
+uploadService = "https://perfcontrib.azurewebsites.net"
+uploadEndpoint = f"{uploadService}/api/UploadPerfData"
+authEndpoint = f"{uploadService}/.auth/login/aad"
+authDetailsEndpoint = f"{uploadService}/.auth/me"
+
+aadUrl = f"https://login.microsoftonline.com/{tenantId}"
+
+def get_token() -> str:
+    path = os.path.expanduser("~/.perfcontrib")
+
+    try:
+        if not os.path.exists(path):
+            os.makedirs(path)
+        with open(os.path.expanduser("~/.perfcontrib/token")) as tokenfile:
+            token = tokenfile.readline()
+    except FileNotFoundError:
+        pass
+
+    if token:
+        try:
+            with urlopen(Request(authDetailsEndpoint,
+                    headers = { "X-ZUMO-AUTH": token })) as response:
+                print("Using cached credentials.")
+        except HTTPError as error:
+            token = None
+
+    if not token:
+        token = authenticate()
     
-    authUrl = f"https://login.microsoftonline.com/{tenantId}"
+    if token:
+        with open(os.path.expanduser("~/.perfcontrib/token"), "w") as tokenfile:
+            tokenfile.write(token)
     
-    # The Url to my Function. This is the Url I am trying to access. It includes the base name above and the actual Function.
-    uploadEndpoint = f"{uploadService}/api/UploadMonthlyReport"
-    
-    # Details of Url from https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-device-code
-    # I need 'profile' scope for oid
-    # I need 'openid' scope to get the id_token else that is not returned
+    return token
+
+def authenticate() -> str:
     authBody = {
         "tenant": tenantId,
         "client_id": appId,
@@ -24,55 +53,62 @@ def main() -> None:
     
     authBodyEncoded = urlencode(authBody).encode()
 
-    with urlopen(Request(f"{authUrl}/oauth2/v2.0/devicecode", data = authBodyEncoded)) as response:
-        item = loads(response.read().decode('utf-8'))
+    with urlopen(Request(f"{aadUrl}/oauth2/v2.0/devicecode", data = authBodyEncoded)) as response:
+        devicecodeResponse = loads(response.read().decode('utf-8'))
 
-    print(item["message"])
+    print(devicecodeResponse["message"])
     
     authBody2 = {
         "tenant": tenantId, 
         "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
         "client_id": appId,
-        "device_code": item["device_code"]
+        "device_code": devicecodeResponse["device_code"]
     }
     
     authBody2Encoded = urlencode(authBody2).encode()
     
     authStatus = "waiting"
-    response2 = None
     while (authStatus == "waiting"):
         # Try to get the access token. if we encounter an error check the reason. 
         # If the reason is we are waiting then sleep for some time. 
         # If the reason is the user has declined or we timed out then quit.  
         try:
-            with urlopen(Request(f"{authUrl}/oauth2/v2.0/token", data = authBody2Encoded)) as response:
-                item = loads(response.read().decode('utf-8'))
+            with urlopen(Request(f"{aadUrl}/oauth2/v2.0/token", data = authBody2Encoded)) as response:
+                tokenResponse = loads(response.read().decode('utf-8'))
             authStatus = "done"
-        except:
+        except Exception as ex:
+            print(ex)
+            print("waiting")
             time.sleep(10)
+
+    idToken = tokenResponse["id_token"]
 
     # Based on https://docs.microsoft.com/en-us/azure/app-service/configure-authentication-customize-sign-in-out#client-directed-sign-in
     print("Thanks.")
     authBody3 = {
-        "access_token": item["id_token"]
+        "access_token": idToken
     }
 
     authBody3Json = dumps(authBody3).encode()
 
-    with urlopen(Request(f"{uploadService}/.auth/login/aad",
+    with urlopen(Request(authEndpoint,
                 data = authBody3Json,
                 headers = {"Content-Type": "application/json"})) as response:
-        item = loads(response.read().decode('utf-8'))
+        aadLoginResponse = loads(response.read().decode('utf-8'))
+
+    token = aadLoginResponse["authenticationToken"]
+
+    return token
+
+def upload(filename: str) -> None:
+    token = get_token()
 
     print("Uploading.")
    
-    $response3.authenticationToken
-    
-    
-    $header = @{
-        "X-ZUMO-AUTH" = $response3.authenticationToken
-    }
-    Invoke-RestMethod -Method GET -Uri $apiUrl -Headers $header
+    with urlopen(Request(uploadEndpoint,
+                headers = { "X-ZUMO-AUTH": token, "Content-Type": "application/octet-stream", "X-Filename": filename },
+                data = open(filename,"rb"))) as response:
+        print(response.read().decode('utf-8'))
 
 if __name__ == "__main__":
-    my_function()
+    upload(sys.argv[1])
