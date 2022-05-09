@@ -19,6 +19,8 @@ aadUrl = f"https://login.microsoftonline.com/{tenantId}"
 def get_token() -> str:
     path = os.path.expanduser("~/.perfcontrib")
 
+    token: str | None
+
     try:
         if not os.path.exists(path):
             os.makedirs(path)
