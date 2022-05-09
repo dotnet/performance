@@ -19,7 +19,7 @@ aadUrl = f"https://login.microsoftonline.com/{tenantId}"
 def get_token() -> str:
     path = os.path.expanduser("~/.perfcontrib")
 
-    token: str | None
+    token: str | None = None
 
     try:
         if not os.path.exists(path):
@@ -79,7 +79,6 @@ def authenticate() -> str:
                 tokenResponse = loads(response.read().decode('utf-8'))
             authStatus = "done"
         except Exception as ex:
-            print(ex)
             print("waiting")
             time.sleep(10)
 
