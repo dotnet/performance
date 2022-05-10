@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace System.Numerics.Tests
 {
-    [BenchmarkCategory(Categories.Libraries, Categories.SIMD, Categories.JIT, Categories.NoAOT)]
+    [BenchmarkCategory(Categories.Libraries, Categories.SIMD, Categories.JIT)]
     public partial class Constructor
     {
         Byte[] _arrValues_Byte = GenerateRandomValuesForVector<Byte>(Byte.MinValue, Byte.MaxValue);

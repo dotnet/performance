@@ -12,7 +12,7 @@ using static System.Buffers.Binary.BinaryPrimitives;
 
 namespace System.Buffers.Binary.Tests
 {
-    [BenchmarkCategory(Categories.Libraries, Categories.Runtime, Categories.NoAOT)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
     public class BinaryReadAndWriteTests
     {
         private readonly static byte[] _arrayLE = GetSpanLE().ToArray();

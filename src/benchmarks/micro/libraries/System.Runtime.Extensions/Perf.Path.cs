@@ -8,7 +8,7 @@ using MicroBenchmarks;
 
 namespace System.IO.Tests
 {
-    [BenchmarkCategory(Categories.Libraries, Categories.NoAOT)]
+    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_Path
     {
         private readonly string _testPath = FileUtils.GetTestFilePath();
