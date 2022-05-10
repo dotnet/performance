@@ -181,7 +181,7 @@ If you want to get a better understanding of it, you should read [this blog post
 
 ### OperationsPerInvoke
 
-You also need to make sure that the benchmark itself performs enough of computations for a single invocation to run longer than 100ms. **If you don't, your benchmark will be entirely invalid.**
+`[GlobalSetup]` and `[IterationSetup]` might not be enough if you want to setup some nano-benchmarks.
 
 A good example is `Slicing` a `Span`. `Span` is a stack-only type, so we can not have a `[GlobalSetup]` method which writes it to a field of a `class`.
 

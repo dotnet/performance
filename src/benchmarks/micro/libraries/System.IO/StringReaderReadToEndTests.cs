@@ -11,13 +11,11 @@ namespace System.IO.Tests
     [BenchmarkCategory(Categories.Libraries)]
     public class StringReaderReadToEndTests : TextReaderReadLineTests
     {
-        private const int InvocationsPerIteration = 400_000;
-
         [GlobalSetup]
         public void GlobalSetup() => _text = GenerateLinesText(LineLengthRange, 48 * 1024 * 1024);
 
-        [Benchmark(OperationsPerInvoke = InvocationsPerIteration)]
-        public string ReadLine()
+        [Benchmark]
+        public string ReadToEnd()
         {
             // StringReaders cannot be reset, so we are forced to include the constructor in the benchmark
             using StringReader reader = new StringReader(_text);
@@ -25,8 +23,8 @@ namespace System.IO.Tests
         }
 
         [BenchmarkCategory(Categories.NoWASM)]
-        [Benchmark(OperationsPerInvoke = InvocationsPerIteration)]
-        public Task<string> ReadLineAsync()
+        [Benchmark]
+        public Task<string> ReadToEndAsync()
         {
             using StringReader reader = new StringReader(_text);
             return reader.ReadToEndAsync();
