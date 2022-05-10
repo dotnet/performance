@@ -28,7 +28,6 @@ namespace System.IO.Tests
             {
                 while (reader.ReadLine() != null) ;
             }
-            
         }
 
         [Benchmark]

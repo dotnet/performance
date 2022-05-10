@@ -242,6 +242,8 @@ reportedResult = 1/16*SpanCtor + 1*Slice
 
 **Note:** `OperationsPerInvoke` should be big enough to amortize the "setup" cost.
 
+**Tip:** To quickly run your new benchmark just enough to see how long the iterations are, you can add `--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart` to the end of your command line. It won't give accurate results, but can help you determine whether you need to add more operations to bring the iteration time up to the  100ms goal.
+
 ## Test Cases
 
 ### Code Paths

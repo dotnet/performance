@@ -90,7 +90,7 @@ namespace System.Buffers.Text.Tests
     [WarmupCount(30)] // make sure it's promoted to Tier 1
     public class Base64EncodeDecodeInPlaceTests
     {
-        [Params(1000 * 1000 * 200)] // allows for stable iteraiton around 200ms
+        [Params(1000 * 1000 * 200)] // allows for stable iteration around 200ms
         public int NumberOfBytes { get; set; }
 
         private byte[] _source;
