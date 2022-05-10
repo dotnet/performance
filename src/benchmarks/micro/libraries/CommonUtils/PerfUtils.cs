@@ -39,7 +39,7 @@ namespace System
         /// </summary>
         public static string CreateRandomString(int length, string alphabet = "abcdefghijklmnopqrstuvwxyz0123456789", int seed = 42)
         {
-            Random random = new(seed);  // use the given seed, to make the benchmarks repeatable
+            Random random = new Random(seed);  // use the given seed, to make the benchmarks repeatable
             return new string(Enumerable.Repeat(alphabet, length).Select(s => s[random.Next(s.Length)]).ToArray());
         }
     }

@@ -23,7 +23,7 @@ namespace System
             _length = length;
         }
 
-        public static unsafe AlignedMemory Allocate(nuint length, nuint alignment)
+        public static unsafe AlignedMemory Allocate(uint length, uint alignment)
             => new AlignedMemory(NativeMemory.AlignedAlloc(length, alignment), (int)length);
 
         public bool IsDisposed => _disposed;
