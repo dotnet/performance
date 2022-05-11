@@ -9,6 +9,7 @@ using SharpCompress.Archives.Tar;
 using SharpCompress.Archives.Zip;
 using SharpCompress.Readers;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -22,6 +23,7 @@ namespace ResultsComparer
             using Stream mainZipStream = zip.OpenRead();
             using ZipArchive mainArchive = ZipArchive.Open(mainZipStream);
             string folderPath;
+            HashSet<string> savedFiles = new();
 
             foreach (ZipArchiveEntry mainArchiveEntry in mainArchive.Entries.Where(e => !e.IsDirectory))
             {
@@ -33,7 +35,10 @@ namespace ResultsComparer
                     using ZipArchive zipArchive = ZipArchive.Open(zipArchiveEntryCopy);
                     foreach (var zipEntry in zipArchive.Entries.Where(e => e.Key.EndsWith(".json")))
                     {
-                        zipEntry.WriteToDirectory(folderPath ??= GetFolderPath(output, mainArchiveEntry.Key, zipEntry.Key, zipEntry));
+                        if (IsNotDuplicate(zipEntry.Key, folderPath ??= GetFolderPath(output, mainArchiveEntry.Key, zipEntry.Key, zipEntry), savedFiles))
+                        {
+                            zipEntry.WriteToDirectory(folderPath);
+                        }
                     }
                 }
                 else if (mainArchiveEntry.Key.EndsWith(".tar.gz") // produced by benchmarks_monthly.py
@@ -49,7 +54,10 @@ namespace ResultsComparer
                             using TarArchive tarArchive = TarArchive.Open(tarCopy);
                             foreach (var tarEntry in tarArchive.Entries.Where(e => e.Key.EndsWith(".json")))
                             {
-                                tarEntry.WriteToDirectory(folderPath ??= GetFolderPath(output, mainArchiveEntry.Key, extractedGzip.Entry.Key, tarEntry));
+                                if (IsNotDuplicate(tarEntry.Key, folderPath ??= GetFolderPath(output, mainArchiveEntry.Key, extractedGzip.Entry.Key, tarEntry), savedFiles))
+                                {
+                                    tarEntry.WriteToDirectory(folderPath);
+                                }
                             }
                         }
                     }
@@ -130,6 +138,22 @@ namespace ResultsComparer
             }
 
             return processorName.Replace(" ", "");
+        }
+
+        private static bool IsNotDuplicate(string key, string folderPath, HashSet<string> storedFiles)
+        {
+            string filePath = key.Split('/')[^1]; // sth like Performance-Runs/nativeaot6.0/adsitnik/arm64_win10-nativeaot6.0.tar.gz
+            // some of the results contain duplicated data, example:
+            // FractalPerf.Launch-report-full.json
+            // FractalPerf.Launch-resume-report-full.json
+            filePath = filePath.Replace("resume-report", "report");
+            // but they might also be stored in different .tar.gz files like:
+            // arm64-2022-05-04-23-17-Debian_Bullseye-net7.0-preview3.tar
+            // arm64-2022-05-05-12-40-Debian_Bullseye-net7.0-preview3.tar
+            // so we need to check if the file has been already stored:
+            filePath = Path.Combine(folderPath, filePath);
+            // and we perform an in-memory check (orders of magnitude faster than Path.Exists)
+            return storedFiles.Add(filePath);
         }
     }
 }
