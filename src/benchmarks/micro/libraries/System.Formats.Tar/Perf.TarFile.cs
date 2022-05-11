@@ -10,7 +10,7 @@ using MicroBenchmarks;
 namespace System.Formats.Tar.Tests
 {
     [BenchmarkCategory(Categories.Libraries)]
-    public class Perf_Tar
+    public class Perf_TarFile
     {
         /*
         Always exist:
