@@ -22,22 +22,20 @@ namespace ResultsComparer
         {
             using Stream mainZipStream = zip.OpenRead();
             using ZipArchive mainArchive = ZipArchive.Open(mainZipStream);
-            string folderPath;
-            HashSet<string> savedFiles = new();
+            Dictionary<string, BdnResult> savedFiles = new();
 
             foreach (ZipArchiveEntry mainArchiveEntry in mainArchive.Entries.Where(e => !e.IsDirectory))
             {
-                folderPath = null;
                 using Stream zipArchiveEntryCopy = CreateCopy(mainArchiveEntry.OpenEntryStream());
 
                 if (mainArchiveEntry.Key.EndsWith(".zip")) // .zip files from interrupted runs, compressed manually by the contributors
                 {
                     using ZipArchive zipArchive = ZipArchive.Open(zipArchiveEntryCopy);
-                    foreach (var zipEntry in zipArchive.Entries.Where(e => e.Key.EndsWith(".json")))
+                    foreach (var zipEntry in zipArchive.Entries.Where(e => !e.IsDirectory && !e.Key.EndsWith(".md")))
                     {
-                        if (IsNotDuplicate(zipEntry.Key, folderPath ??= GetFolderPath(output, mainArchiveEntry.Key, zipEntry.Key, zipEntry), savedFiles))
+                        if (TryGetJsonFileName(output, mainArchiveEntry.Key, zipEntry.Key, zipEntry, savedFiles, out string filePath))
                         {
-                            zipEntry.WriteToDirectory(folderPath);
+                            zipEntry.WriteToFile(filePath);
                         }
                     }
                 }
@@ -52,11 +50,11 @@ namespace ResultsComparer
                         {
                             using Stream tarCopy = CreateCopy(extractedGzip.OpenEntryStream());
                             using TarArchive tarArchive = TarArchive.Open(tarCopy);
-                            foreach (var tarEntry in tarArchive.Entries.Where(e => e.Key.EndsWith(".json")))
+                            foreach (var tarEntry in tarArchive.Entries.Where(e => !e.IsDirectory && !e.Key.EndsWith(".md") && !e.Key.EndsWith("PaxHeader")))
                             {
-                                if (IsNotDuplicate(tarEntry.Key, folderPath ??= GetFolderPath(output, mainArchiveEntry.Key, extractedGzip.Entry.Key, tarEntry), savedFiles))
+                                if (TryGetJsonFileName(output, mainArchiveEntry.Key, extractedGzip.Entry.Key, tarEntry, savedFiles, out string filePath))
                                 {
-                                    tarEntry.WriteToDirectory(folderPath);
+                                    tarEntry.WriteToFile(filePath);
                                 }
                             }
                         }
@@ -81,24 +79,53 @@ namespace ResultsComparer
             }
         }
 
-        private static string GetFolderPath(DirectoryInfo output, string mainEntryKey, string currentEntryKey, IArchiveEntry archiveEntry)
+        private static bool TryGetJsonFileName(DirectoryInfo output, string mainEntryKey, string currentEntryKey, IArchiveEntry archiveEntry,
+            Dictionary<string, BdnResult> savedFiles, out string filePath)
         {
+            BdnResult deserialized;
             using Stream jsonFileCopy = CreateCopy(archiveEntry.OpenEntryStream());
-            BdnResult bdnResult = Helper.ReadFromStream(jsonFileCopy);
+            try
+            {
+                deserialized = Helper.ReadFromStream(jsonFileCopy);
+            }
+            catch (Newtonsoft.Json.JsonReaderException)
+            {
+                filePath = null; // it was not a JSON file (example: markdown file without .md file extension)
+                return false;
+            }
 
             string userName = mainEntryKey.Split('/')[2]; // sth like Performance-Runs/nativeaot6.0/adsitnik/arm64_win10-nativeaot6.0.tar.gz
             string moniker = GetMoniker(currentEntryKey) ?? GetMoniker(mainEntryKey);
 
             StringBuilder sb = new StringBuilder();
-            sb.Append(bdnResult.HostEnvironmentInfo.Architecture).Append('_');
-            sb.Append(Stats.GetSimplifiedOSName(bdnResult.HostEnvironmentInfo.OsVersion).Replace(" ", "")).Append('_');
-            sb.Append(GetSimplifiedProcessorName(bdnResult.HostEnvironmentInfo.ProcessorName).Replace(" ", "")).Append('_');
+            sb.Append(deserialized.HostEnvironmentInfo.Architecture).Append('_');
+            sb.Append(Stats.GetSimplifiedOSName(deserialized.HostEnvironmentInfo.OsVersion).Replace(" ", "")).Append('_');
+            sb.Append(GetSimplifiedProcessorName(deserialized.HostEnvironmentInfo.ProcessorName).Replace(" ", "")).Append('_');
             sb.Append(userName).Append('_');
             sb.Append(moniker); // netX-previewY
 
             string outputPath = Path.Combine(output.FullName, sb.ToString().ToLower());
             Directory.CreateDirectory(outputPath);
-            return outputPath;
+
+            // bdnResult.Title exaple: System.Text.RegularExpressions.Tests.Perf_Regex_Industry_Mariomkas-20220504-182513
+            string jsonFileName = $"{deserialized.Title.Split('-')[0]}.full.json";
+            filePath = Path.Combine(outputPath, jsonFileName);
+
+            if (!savedFiles.TryAdd(filePath, deserialized))
+            {
+                // we already have such a file, let's check if it's using newer BenchmarkDotNet version
+                if (GetVersion(deserialized) < GetVersion(savedFiles[filePath]))
+                {
+                    return false;
+                }
+
+                savedFiles[filePath] = deserialized; // use more recent results
+            }
+
+            return true;
+
+            static Version GetVersion(BdnResult bdnResult)
+                => Version.Parse(bdnResult.HostEnvironmentInfo.BenchmarkDotNetVersion.Split('-')[0]); // sth like 0.13.1.1786-nightly
         }
 
         private static string GetMoniker(string key)
@@ -138,22 +165,6 @@ namespace ResultsComparer
             }
 
             return processorName.Replace(" ", "");
-        }
-
-        private static bool IsNotDuplicate(string key, string folderPath, HashSet<string> storedFiles)
-        {
-            string filePath = key.Split('/')[^1]; // sth like Performance-Runs/nativeaot6.0/adsitnik/arm64_win10-nativeaot6.0.tar.gz
-            // some of the results contain duplicated data, example:
-            // FractalPerf.Launch-report-full.json
-            // FractalPerf.Launch-resume-report-full.json
-            filePath = filePath.Replace("resume-report", "report");
-            // but they might also be stored in different .tar.gz files like:
-            // arm64-2022-05-04-23-17-Debian_Bullseye-net7.0-preview3.tar
-            // arm64-2022-05-05-12-40-Debian_Bullseye-net7.0-preview3.tar
-            // so we need to check if the file has been already stored:
-            filePath = Path.Combine(folderPath, filePath);
-            // and we perform an in-memory check (orders of magnitude faster than Path.Exists)
-            return storedFiles.Add(filePath);
         }
     }
 }
