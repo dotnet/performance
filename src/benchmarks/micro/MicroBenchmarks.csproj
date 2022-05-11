@@ -56,6 +56,7 @@
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="$(SystemVersion)" />
     <PackageReference Include="System.Drawing.Common" Version="$(SystemVersion)" />
     <PackageReference Include="System.Formats.Cbor" Version="$(SystemVersion)" Condition="'$(TargetFramework)' == 'net5.0' or '$(TargetFramework)' == 'net6.0' or '$(TargetFramework)' == 'net7.0'" />
+    <PackageReference Include="System.Formats.Tar" Version="$(SystemVersion)" Condition="'$(TargetFramework)' == 'net7.0'" />
     <PackageReference Include="System.IO.Pipelines" Version="$(SystemVersion)" />
     <PackageReference Include="System.Memory" Version="4.5.4" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
@@ -111,6 +112,7 @@
     <Compile Remove="runtime\Math\Functions\Double\Atanh.cs" />
     <Compile Remove="runtime\Math\Functions\Double\Cbrt.cs" />
     <Compile Remove="runtime\Math\Functions\Single\**\*.cs" />
+    <Compile Remove="libraries\System.Formats.Tar\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.1')">
@@ -132,6 +134,7 @@
     <Compile Remove="libraries\Common\ConnectedStreams.cs" />
     <Compile Remove="libraries\Common\StreamBuffer.cs" />
     <Compile Remove="libraries\Common\MultiArrayBuffer.cs" />
+    <Compile Remove="libraries\System.Formats.Tar\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '5.0')">
@@ -140,6 +143,7 @@
     <Compile Remove="libraries\System.Text.Json\Serializer\WritePreservedReferences.cs" />
     <Compile Remove="libraries\System.Net.Security\SslStreamTests.Context.cs" />
     <Compile Remove="libraries\System.Formats.Cbor\*.cs" />
+    <Compile Remove="libraries\System.Formats.Tar\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '6.0')">
@@ -147,6 +151,7 @@
     <Compile Remove="libraries\Common\AlignedMemory.cs" />
     <Compile Remove="libraries\System.IO.FileSystem\Perf.RandomAccess.cs" />
     <Compile Remove="libraries\System.IO.FileSystem\Perf.RandomAccess.NoBuffering.cs" />
+    <Compile Remove="libraries\System.Formats.Tar\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
