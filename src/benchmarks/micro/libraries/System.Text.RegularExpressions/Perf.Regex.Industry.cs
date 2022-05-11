@@ -26,7 +26,7 @@ namespace System.Text.RegularExpressions.Tests
 
         public static int Count(Regex r, string input)
         {
-#if NET7_0_PREVIEW2_OR_GREATER
+#if NET7_0_OR_GREATER
             return r.Count(input);
 #else
             int count = 0;

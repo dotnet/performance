@@ -362,7 +362,7 @@ namespace System.IO.Tests
         public void Write_NoBuffering_PreallocationSize(long fileSize, int userBufferSize, FileOptions options)
         {
             byte[] userBuffer = _userBuffers[userBufferSize];
-            FileStreamOptions fsOptions = new () { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None,
+            FileStreamOptions fsOptions = new FileStreamOptions() { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None,
                 BufferSize = 0, Options = options | FileOptions.DeleteOnClose, PreallocationSize = fileSize };
             using (FileStream fileStream = new FileStream(_nonExistingFile, fsOptions))
             {
@@ -381,7 +381,7 @@ namespace System.IO.Tests
         {
             CancellationToken cancellationToken = CancellationToken.None;
             Memory<byte> userBuffer = new Memory<byte>(_userBuffers[userBufferSize]);
-            FileStreamOptions fsOptions = new () { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None,
+            FileStreamOptions fsOptions = new FileStreamOptions() { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None,
                 BufferSize = 0, Options = options | FileOptions.DeleteOnClose, PreallocationSize = fileSize };
             using (FileStream fileStream = new FileStream(_nonExistingFile, fsOptions))
             {
