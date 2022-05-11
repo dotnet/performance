@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
-using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -23,100 +22,62 @@ namespace System.Formats.Tar.Tests
                 outputdir/
                 output.tar
         */
-        private readonly string _rootDirPath = FileUtils.GetTestFilePath();
-        private readonly string _tarOutputPath = Path.Combine(_rootDirPath, "output.tar");
-        private readonly string _inputDirPath = Path.Combine(_rootDirPath, "inputdir");
-        private readonly string _testFilePath = Path.Combine(_inputDirPath, "file.txt");
-        private readonly string _testDirPath = Path.Combine(_inputDirPath, "testdir");
-        private readonly string _outputDirPath = Path.Combine(_rootDirPath, "outputdir");
-        private MemoryStream _memoryStream;
+        private static readonly string _rootDirPath = FileUtils.GetTestFilePath();
+        private static readonly string _inputDirPath = Path.Combine(_rootDirPath, "inputdir");
+        private static readonly string _outputDirPath = Path.Combine(_rootDirPath, "outputdir");
+        private static readonly string _testDirPath = Path.Combine(_inputDirPath, "testdir");
+        private static readonly string _testFilePath = Path.Combine(_inputDirPath, "file.txt");
+        private static readonly string _inputTarFilePath = Path.Combine(_rootDirPath, "input.tar");
+        private static readonly string _outputTarFilePath = Path.Combine(_rootDirPath, "output.tar");
+        private MemoryStream _memoryStream = null;
 
 
-        // Global setup and cleanup
+        // Setup and Cleanup
 
         [GlobalSetup]
-        public void SetupPaths()
+        public void Setup()
         {
-            _memoryStream = null;
-            Directory.CreateDirectory(_rootTestPath);
+            Directory.CreateDirectory(_rootDirPath);
             Directory.CreateDirectory(_inputDirPath);
             Directory.CreateDirectory(_testDirPath);
             File.Create(_testFilePath).Dispose();
+            TarFile.CreateFromDirectory(sourceDirectoryName: _inputDirPath, destinationFileName: _inputTarFilePath, includeBaseDirectory: false);
         }
 
         [GlobalCleanup]
         public void Cleanup()
         {
-            Directory.Delete(_rootTestPath, recursive: true);
+            Directory.Delete(_rootDirPath, recursive: true);
             CleanupMemoryStream();
         }
-
-
-        // TarFile.CreateFromDirectory(string sourceDirectoryName, string destinationFileName, bool includeBaseDirectory)
-
-        [GlobalSetup(Target = nameof(TarFile_CreateFromDirectory_Path))]
-        public void Setup_TarFile_CreateFromDirectory_Path() => File.Delete(_tarOutputPath);
-
-        [GlobalCleanup(Target = nameof(TarFile_CreateFromDirectory_Path))]
-        public void Cleanup_TarFile_CreateFromDirectory_Path() => File.Delete(_tarOutputPath);
-
-        [Benchmark]
-        public void TarFile_CreateFromDirectory_Path() => TarFile.CreateFromDirectory(sourceDirectoryName: _inputDirPath, destinationFileName: _tarOutputPath, includeBaseDirectory: false);
-
-
-        // TarFile.CreateFromDirectory(string sourceDirectoryName, Stream destination, bool includeBaseDirectory)
-
-        [GlobalSetup(Target = nameof(TarFile_CreateFromDirectory_Stream))]
-        public void Setup_TarFile_CreateFromDirectory_Stream()
+        
+        [IterationSetup]
+        public void SetupIteration()
         {
+            if (File.Exists(_outputTarFilePath))
+            {
+                File.Delete(_outputTarFilePath);
+            }
+            if (Directory.Exists(_outputDirPath))
+            {
+                Directory.Delete(_outputDirPath, recursive: true);
+            }
+            Directory.CreateDirectory(_outputDirPath);
             CleanupMemoryStream();
             _memoryStream = new MemoryStream();
         }
 
-        [GlobalCleanup(Target = nameof(TarFile_CreateFromDirectory_Stream))]
-        public void Cleanup_TarFile_CreateFromDirectory_Stream() => CleanupMemoryStream();
+        [Benchmark]
+        public void TarFile_CreateFromDirectory_Path() => TarFile.CreateFromDirectory(sourceDirectoryName: _inputDirPath, destinationFileName: _outputTarFilePath, includeBaseDirectory: false);
 
         [Benchmark]
         public void TarFile_CreateFromDirectory_Stream() => TarFile.CreateFromDirectory(sourceDirectoryName: _inputDirPath, destination: _memoryStream, includeBaseDirectory: false);
 
-
-        // TarFile.ExtractToDirectory(string sourceFileName, string destinationDirectoryName, bool overwrite)
-
-        [GlobalSetup(Target = nameof(TarFile_ExtractToDirectory_Path))]
-        public void Setup_TarFile_ExtractToDirectory_Path()
-        {
-            File.Delete(_tarOutputPath);
-            Directory.Delete(_outputDirPath);
-            Directory.CreateDirectory(_outputDirPath);
-            TarFile.CreateFromDirectory(sourceDirectoryName: _inputDirPath, destinationFileName: _tarOutputPath, includeBaseDirectory: false);
-        }
-        
-        [GlobalCleanup(Target = nameof(TarFile_ExtractToDirectory_Path))]
-        public void Cleanup_TarFile_ExtractToDirectory_Path()
-        {
-            File.Delete(_tarOutputPath);
-            Directory.Delete(_outputDirPath);
-        }
+        [Benchmark]
+        public void TarFile_ExtractToDirectory_Path() => TarFile.ExtractToDirectory(sourceFileName: _inputTarFilePath, destinationDirectoryName: _outputDirPath, overwriteFiles: false);
 
         [Benchmark]
-        public void TarFile_ExtractToDirectory_Path() => TarFile.ExtractToDirectory(sourceFileName: _tarOutputPath, destinationDirectoryName: _outputDirPath, overwrite: false);
-
-
-        // TarFile.ExtractToDirectory(Stream source, string destinationDirectoryName, bool overwrite)
-
-        [GlobalSetup(Target = nameof(TarFile_ExtractToDirectory_Stream))]
-        public void Setup_TarFile_ExtractToDirectory_Stream()
-        {
-            CleanupMemoryStream();
-            TarFile.CreateFromDirectory(sourceDirectoryName: _inputDirPath, destination: _memoryStream, includeBaseDirectory: false);
-        }
-
-        [GlobalCleanup(Target = nameof(TarFile_ExtractToDirectory_Stream))]
-        public void Cleanup_TarFile_ExtractToDirectory_Stream() => CleanupMemoryStream();
-
-        [Benchmark]
-        public void TarFile_ExtractToDirectory_Stream() => TarFile.ExtractToDirectory(source: _memoryStream, destinationDirectoryName: _outputDirPath, overwrite: false);
-
+        public void TarFile_ExtractToDirectory_Stream() => TarFile.ExtractToDirectory(source: _memoryStream, destinationDirectoryName: _outputDirPath, overwriteFiles: false);
 
         // Helpers
 
