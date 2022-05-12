@@ -43,24 +43,24 @@ namespace System.Formats.Tar.Tests
         public void Cleanup() => Directory.Delete(_rootDirPath, recursive: true);
 
         [Benchmark]
-        public void TarFile_CreateFromDirectory_Path()
+        public void CreateFromDirectory_Path()
         {
             File.Delete(_outputTarFilePath);
             TarFile.CreateFromDirectory(sourceDirectoryName: _inputDirPath, destinationFileName: _outputTarFilePath, includeBaseDirectory: false);
         }
 
         [Benchmark]
-        public void TarFile_ExtractToDirectory_Path() => TarFile.ExtractToDirectory(sourceFileName: _inputTarFilePath, destinationDirectoryName: _outputDirPath, overwriteFiles: true);
+        public void ExtractToDirectory_Path() => TarFile.ExtractToDirectory(sourceFileName: _inputTarFilePath, destinationDirectoryName: _outputDirPath, overwriteFiles: true);
 
         [Benchmark]
-        public void TarFile_CreateFromDirectory_Stream()
+        public void CreateFromDirectory_Stream()
         {
             using MemoryStream ms = new MemoryStream();
             TarFile.CreateFromDirectory(sourceDirectoryName: _inputDirPath, destination: ms, includeBaseDirectory: false);
         }
 
         [Benchmark]
-        public void TarFile_ExtractToDirectory_Stream()
+        public void ExtractToDirectory_Stream()
         {
             using FileStream fs = File.OpenRead(_inputTarFilePath);
             TarFile.ExtractToDirectory(source: fs, destinationDirectoryName: _outputDirPath, overwriteFiles: true);
