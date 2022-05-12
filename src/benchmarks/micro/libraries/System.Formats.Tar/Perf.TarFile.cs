@@ -29,65 +29,41 @@ namespace System.Formats.Tar.Tests
         private static readonly string _testFilePath = Path.Combine(_inputDirPath, "file.txt");
         private static readonly string _inputTarFilePath = Path.Combine(_rootDirPath, "input.tar");
         private static readonly string _outputTarFilePath = Path.Combine(_rootDirPath, "output.tar");
-        private MemoryStream _memoryStream = null;
-
-
-        // Setup and Cleanup
 
         [GlobalSetup]
         public void Setup()
         {
-            Directory.CreateDirectory(_rootDirPath);
-            Directory.CreateDirectory(_inputDirPath);
-            Directory.CreateDirectory(_testDirPath);
+            Directory.CreateDirectory(_testDirPath); // Creates all segments: root/inputdir/testdir
+            Directory.CreateDirectory(_outputDirPath);
             File.Create(_testFilePath).Dispose();
             TarFile.CreateFromDirectory(sourceDirectoryName: _inputDirPath, destinationFileName: _inputTarFilePath, includeBaseDirectory: false);
         }
 
         [GlobalCleanup]
-        public void Cleanup()
+        public void Cleanup() => Directory.Delete(_rootDirPath, recursive: true);
+
+        [Benchmark]
+        public void TarFile_CreateFromDirectory_Path()
         {
-            Directory.Delete(_rootDirPath, recursive: true);
-            CleanupMemoryStream();
-        }
-        
-        [IterationSetup]
-        public void SetupIteration()
-        {
-            if (File.Exists(_outputTarFilePath))
-            {
-                File.Delete(_outputTarFilePath);
-            }
-            if (Directory.Exists(_outputDirPath))
-            {
-                Directory.Delete(_outputDirPath, recursive: true);
-            }
-            Directory.CreateDirectory(_outputDirPath);
-            CleanupMemoryStream();
-            _memoryStream = new MemoryStream();
+            File.Delete(_outputTarFilePath);
+            TarFile.CreateFromDirectory(sourceDirectoryName: _inputDirPath, destinationFileName: _outputTarFilePath, includeBaseDirectory: false);
         }
 
         [Benchmark]
-        public void TarFile_CreateFromDirectory_Path() => TarFile.CreateFromDirectory(sourceDirectoryName: _inputDirPath, destinationFileName: _outputTarFilePath, includeBaseDirectory: false);
+        public void TarFile_ExtractToDirectory_Path() => TarFile.ExtractToDirectory(sourceFileName: _inputTarFilePath, destinationDirectoryName: _outputDirPath, overwriteFiles: true);
 
         [Benchmark]
-        public void TarFile_CreateFromDirectory_Stream() => TarFile.CreateFromDirectory(sourceDirectoryName: _inputDirPath, destination: _memoryStream, includeBaseDirectory: false);
-
-        [Benchmark]
-        public void TarFile_ExtractToDirectory_Path() => TarFile.ExtractToDirectory(sourceFileName: _inputTarFilePath, destinationDirectoryName: _outputDirPath, overwriteFiles: false);
-
-        [Benchmark]
-        public void TarFile_ExtractToDirectory_Stream() => TarFile.ExtractToDirectory(source: _memoryStream, destinationDirectoryName: _outputDirPath, overwriteFiles: false);
-
-        // Helpers
-
-        private void CleanupMemoryStream()
+        public void TarFile_CreateFromDirectory_Stream()
         {
-            if (_memoryStream != null)
-            {
-                _memoryStream.Dispose();
-                _memoryStream = null;
-            }
+            using MemoryStream ms = new MemoryStream();
+            TarFile.CreateFromDirectory(sourceDirectoryName: _inputDirPath, destination: ms, includeBaseDirectory: false);
+        }
+
+        [Benchmark]
+        public void TarFile_ExtractToDirectory_Stream()
+        {
+            using FileStream fs = File.OpenRead(_inputTarFilePath);
+            TarFile.ExtractToDirectory(source: fs, destinationDirectoryName: _outputDirPath, overwriteFiles: true);
         }
     }
 }
