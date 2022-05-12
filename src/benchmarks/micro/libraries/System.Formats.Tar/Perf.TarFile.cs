@@ -45,8 +45,8 @@ namespace System.Formats.Tar.Tests
         [Benchmark]
         public void CreateFromDirectory_Path()
         {
-            File.Delete(_outputTarFilePath);
             TarFile.CreateFromDirectory(sourceDirectoryName: _inputDirPath, destinationFileName: _outputTarFilePath, includeBaseDirectory: false);
+            File.Delete(_outputTarFilePath);
         }
 
         [Benchmark]
