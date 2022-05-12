@@ -111,7 +111,6 @@
     <Compile Remove="runtime\Math\Functions\Double\Atanh.cs" />
     <Compile Remove="runtime\Math\Functions\Double\Cbrt.cs" />
     <Compile Remove="runtime\Math\Functions\Single\**\*.cs" />
-    <Compile Remove="libraries\System.Formats.Tar\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.1')">
@@ -133,7 +132,6 @@
     <Compile Remove="libraries\Common\ConnectedStreams.cs" />
     <Compile Remove="libraries\Common\StreamBuffer.cs" />
     <Compile Remove="libraries\Common\MultiArrayBuffer.cs" />
-    <Compile Remove="libraries\System.Formats.Tar\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '5.0')">
@@ -142,7 +140,6 @@
     <Compile Remove="libraries\System.Text.Json\Serializer\WritePreservedReferences.cs" />
     <Compile Remove="libraries\System.Net.Security\SslStreamTests.Context.cs" />
     <Compile Remove="libraries\System.Formats.Cbor\*.cs" />
-    <Compile Remove="libraries\System.Formats.Tar\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '6.0')">
@@ -150,6 +147,9 @@
     <Compile Remove="libraries\Common\AlignedMemory.cs" />
     <Compile Remove="libraries\System.IO.FileSystem\Perf.RandomAccess.cs" />
     <Compile Remove="libraries\System.IO.FileSystem\Perf.RandomAccess.NoBuffering.cs" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '7.0')">
     <Compile Remove="libraries\System.Formats.Tar\*.cs" />
   </ItemGroup>
 
