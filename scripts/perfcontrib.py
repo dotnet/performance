@@ -70,21 +70,31 @@ def authenticate() -> str:
     authBody2Encoded = urlencode(authBody2).encode()
     
     authStatus = "waiting"
+    print("waiting", end="", flush=True)
     while (authStatus == "waiting"):
-        # Try to get the access token. if we encounter an error check the reason. 
-        # If the reason is we are waiting then sleep for some time. 
-        # If the reason is the user has declined or we timed out then quit.  
+        # Try to get the access token. if we encounter an error check the reason.
+        # If the reason is we are waiting then sleep for some time.
+        # If the reason is the user has declined or we timed out then quit.
         try:
             with urlopen(Request(f"{aadUrl}/oauth2/v2.0/token", data = authBody2Encoded)) as response:
                 tokenResponse = loads(response.read().decode('utf-8'))
             authStatus = "done"
         except Exception as ex:
-            print("waiting")
-            time.sleep(10)
+            reason = loads(ex.read().decode('utf-8'))["error"]
+            if reason == "authorization_pending":
+                print(".", end="", flush=True)
+                time.sleep(5)
+            elif reason == "authorization_declined":
+                authStatus = "failed"
+            elif reason == "expired_token":
+                authStatus = "failed"
+
+    print()
+
+    if authStatus == "failed": raise "Authentication failed"
 
     idToken = tokenResponse["id_token"]
 
-    # Based on https://docs.microsoft.com/en-us/azure/app-service/configure-authentication-customize-sign-in-out#client-directed-sign-in
     print("Thanks.")
     authBody3 = {
         "access_token": idToken
