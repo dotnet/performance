@@ -17,6 +17,7 @@ namespace System.Formats.Tar.Tests
                 inputdir/
                         testdir/
                         file.txt
+                input.tar
 
         Created on demand:
                 outputdir/
