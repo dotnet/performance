@@ -580,7 +580,14 @@ ex: C:\repos\performance;C:\repos\runtime
                     dirtyCapture = re.search("\+(\d*s?\d+)ms", retrieveTimeCmd.stdout)
                     if not dirtyCapture:
                         raise Exception("Failed to capture the reported start time!")
-                    formattedTime = f"TotalTime: {dirtyCapture.group(1).replace('s', '')}\n"
+                    captureList = dirtyCapture.group(1).split('s')
+                    if(len(captureList) == 1): # Only have the ms, everything should be good
+                        formattedTime = f"TotalTime: {captureList[0]}\n"
+                    elif(len(captureList) == 2): # Have s and ms, but maybe not padded ms, pad and combine (zfill left pads with 0)
+                        formattedTime = f"TotalTime: {captureList[0]}{captureList[1].zfill(3)}\n"
+                    else:
+                        getLogger().error("Time capture failed, found {len(captureList)}")
+                        raise Exception("Android Time Capture Failed! Incorrect number of captures found.")
                     allResults.append(formattedTime) # append TotalTime: (TIME)
                     time.sleep(3) # Delay in seconds for ensuring a cold start
                 
