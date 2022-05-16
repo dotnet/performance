@@ -149,6 +149,10 @@
     <Compile Remove="libraries\System.IO.FileSystem\Perf.RandomAccess.NoBuffering.cs" />
   </ItemGroup>
 
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '7.0')">
+    <Compile Remove="libraries\System.Formats.Tar\*.cs" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
     <!-- System.Drawing.Common only supported on Windows -->
     <Compile Remove="libraries\System.Drawing\*.cs" />
