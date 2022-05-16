@@ -379,7 +379,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
             # Make sure animations are set to 1 or disabled
             getLogger().info("Setting needed values")
-            if(self.animationsdisabled):
+            if self.animationsdisabled:
                 animationValue = 0
             else:
                 animationValue = 1
@@ -403,7 +403,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 adb.stdout.strip(),
                 'shell', 'settings', 'put', 'system', 'screen_off_timeout', str(minimumTimeoutValue)
             ]
-            if(minimumTimeoutValue > int(screen_off_timeout_cmd.stdout.strip())):
+            if minimumTimeoutValue > int(screen_off_timeout_cmd.stdout.strip()):
                 getLogger().info("Screen off value is lower than minimum time, setting to higher time")
                 RunCommand(cmdline, verbose=True).run()
 
@@ -427,7 +427,7 @@ ex: C:\repos\performance;C:\repos\runtime
             ]
             animatorSetValue = RunCommand(cmdline, verbose=True)
             animatorSetValue.run()
-            if(int(windowSetValue.stdout.strip()) != animationValue or int(transitionSetValue.stdout.strip()) != animationValue or int(animatorSetValue.stdout.strip()) != animationValue):
+            if int(windowSetValue.stdout.strip()) != animationValue or int(transitionSetValue.stdout.strip()) != animationValue or int(animatorSetValue.stdout.strip()) != animationValue:
                 # Setting the values didn't work, error out
                 getLogger().exception(f"Failed to set animation values to {animationValue}.")
                 raise Exception(f"Failed to set animation values to {animationValue}.")
@@ -473,7 +473,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     'keyevent'
                 ]
 
-                if("mInteractive=false" in checkScreenOn.stdout): 
+                if "mInteractive=false" in checkScreenOn.stdout: 
                     # Turn on the screen to make interactive and see if it worked
                     getLogger().info("Screen was off, turning on.")
                     screenWasOff = True
@@ -482,7 +482,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
                     checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
                     checkScreenOn.run()
-                    if("mInteractive=false" in checkScreenOn.stdout):
+                    if "mInteractive=false" in checkScreenOn.stdout:
                         getLogger().exception("Failed to make screen interactive.")
                         raise Exception("Failed to make screen interactive.")
 
@@ -566,7 +566,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     startStats = RunCommand(startAppCmd, verbose=True)
                     startStats.run()
                     # Make sure we cold started (TODO Add other starts)
-                    if("LaunchState: COLD" not in startStats.stdout):
+                    if "LaunchState: COLD" not in startStats.stdout:
                         getLogger().error("App Start not COLD!")
                         
                     # Save the results and get them from the log
@@ -580,7 +580,14 @@ ex: C:\repos\performance;C:\repos\runtime
                     dirtyCapture = re.search("\+(\d*s?\d+)ms", retrieveTimeCmd.stdout)
                     if not dirtyCapture:
                         raise Exception("Failed to capture the reported start time!")
-                    formattedTime = f"TotalTime: {dirtyCapture.group(1).replace('s', '')}\n"
+                    captureList = dirtyCapture.group(1).split('s')
+                    if len(captureList) == 1: # Only have the ms, everything should be good
+                        formattedTime = f"TotalTime: {captureList[0]}\n"
+                    elif len(captureList) == 2: # Have s and ms, but maybe not padded ms, pad and combine (zfill left pads with 0)
+                        formattedTime = f"TotalTime: {captureList[0]}{captureList[1].zfill(3)}\n"
+                    else:
+                        getLogger().error("Time capture failed, found {len(captureList)}")
+                        raise Exception("Android Time Capture Failed! Incorrect number of captures found.")
                     allResults.append(formattedTime) # append TotalTime: (TIME)
                     time.sleep(3) # Delay in seconds for ensuring a cold start
                 
