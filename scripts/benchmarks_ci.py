@@ -259,10 +259,11 @@ def __main(args: list) -> int:
 
     # Run micro-benchmarks
     if not args.build_only:
+        run_contains_errors = False
         upload_container = UPLOAD_CONTAINER
         try:
             for framework in args.frameworks:
-                micro_benchmarks.run(
+                is_success = micro_benchmarks.run(
                     BENCHMARKS_CSPROJ,
                     args.configuration,
                     framework,
@@ -270,6 +271,11 @@ def __main(args: list) -> int:
                     verbose,
                     args
                 )
+
+                if not is_success:
+                    getLogger().warn(f"Benchmark run for framework '{framework}' contains errors")
+                    run_contains_errors = True
+
             globpath = os.path.join(
                 get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
                 '**',
@@ -288,6 +294,10 @@ def __main(args: list) -> int:
             if upload_code != 0:
                 sys.exit(upload_code)
         # TODO: Archive artifacts.
+
+        # Still return 1 so that the build pipeline shows failures even though there were some successful results
+        if run_contains_errors:
+            sys.exit(1)
 
 if __name__ == "__main__":
     __main(sys.argv[1:])
