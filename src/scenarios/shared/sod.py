@@ -2,6 +2,7 @@
 Wrapper around startup tool.
 '''
 from logging import getLogger
+import re
 import sys
 import os
 import platform
@@ -67,7 +68,11 @@ class SODWrapper(object):
         ]
         sod_args += dirs.split(';')
 
-        RunCommand(sod_args, verbose=True).run()
+        sod_command = RunCommand(sod_args, verbose=True)
+        sod_command.run()
+        zero_size_regex = f"{scenarioname} - Count\s*\|\s*0.000 count" # Checks if the overall count is zero
+        if re.match(zero_size_regex, sod_command.stdout) == None:
+            raise ValueError(f'No files found for sizing in scenario {scenarioname}')
  
         if artifact:
           if not os.path.exists(artifact):
