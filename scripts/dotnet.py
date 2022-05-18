@@ -40,7 +40,7 @@ def info(verbose: bool) -> None:
     cmdline = ['dotnet', '--info']
     RunCommand(cmdline, verbose=verbose).run()
 
-def exec(asm_path: str, success_exit_codes: list = None, verbose: bool, *args) -> int:
+def exec(asm_path: str, success_exit_codes: list, verbose: bool, *args) -> int:
     """
     Executes `dotnet exec` which can be used to execute assemblies
     """
@@ -48,9 +48,6 @@ def exec(asm_path: str, success_exit_codes: list = None, verbose: bool, *args) -
     working_dir=path.dirname(asm_path)
     if not path.exists(asm_path):
         raise ArgumentError('Cannot find assembly {} to exec'.format(asm_path))
-
-    if success_exit_codes is None:
-        success_exit_codes = [0]
 
     cmdline = ['dotnet', 'exec', path.basename(asm_path)]
     cmdline += list(args)
@@ -472,7 +469,7 @@ class CSharpProject:
     def run(self,
             configuration: str,
             target_framework_moniker: str,
-            success_exit_codes: list = None,
+            success_exit_codes: list,
             verbose: bool,
             *args) -> int:
         '''
@@ -486,9 +483,6 @@ class CSharpProject:
             '--framework', target_framework_moniker,
             '--no-restore', '--no-build',
         ]
-
-        if success_exit_codes is None:
-            success_exit_codes = [0]
 
         if args:
             cmdline = cmdline + list(args)
