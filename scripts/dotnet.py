@@ -621,7 +621,6 @@ def get_commit_date(
         url = urlformat % (owner, repo, commit_sha)
 
     build_timestamp = None
-    item = None
     retrycount = 0
     success = 0
     while success == 0 and retrycount <= 3:
@@ -633,16 +632,10 @@ def get_commit_date(
                 success = 1
         except URLError:
             retrycount += 1
-            getLogger().warning(f"URL Error trying to get commit date from {url}, Attempt {retrycount}")
-            sleep(2)
 
     if not build_timestamp:
-        if not item:
-            raise RuntimeError(
-                'Could not get timestamp for commit %s' % commit_sha)
-        else:
-            raise RuntimeError(
-                'Could not get timestamp for commit %s, data retrieved:\n %s' % (commit_sha, item))
+        raise RuntimeError(
+            'Could not get timestamp for commit %s' % commit_sha)
     return build_timestamp
 
 def get_project_name(csproj_file: str) -> str:
