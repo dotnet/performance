@@ -70,8 +70,9 @@ class SODWrapper(object):
 
         sod_command = RunCommand(sod_args, verbose=True)
         sod_command.run()
-        zero_size_regex = f"{scenarioname} - Count\s*\|\s*0.000 count" # Checks if the overall count is zero
-        if re.match(zero_size_regex, sod_command.stdout) != None:
+        
+        zero_size_regex = rf"({(scenarioname or 'Empty Scenario Name')}\s*-\s*Count\s*\|\s*0\.000\s*count)" # Checks if the overall count is zero    
+        if re.search(zero_size_regex, sod_command.stdout) != None:
             raise ValueError(f'No files found for sizing in scenario {scenarioname}')
  
         if artifact:
