@@ -623,26 +623,22 @@ def get_commit_date(
     build_timestamp = None
     item = None
     retrycount = 0
-    success = 0
-    while success == 0 and retrycount <= 5:
+    sleep_time = 10 # Start with 10 second sleep timer
+    for retrycount in range(5):
         try:
             with urlopen(url) as response:
                 getLogger().info("Commit: %s", url)
                 item = loads(response.read().decode('utf-8'))
                 build_timestamp = item['commit']['committer']['date']
-                success = 1
-        except URLError:
-            retrycount += 1
-            getLogger().warning(f"URL Error trying to get commit date from {url}, Attempt {retrycount}")
-            sleep(60)
+                break
+        except URLError as error:
+            getLogger().warning(f"URL Error trying to get commit date from {url}; Reason: {error.reason}; Attempt {retrycount}")
+            sleep(sleep_time)
+            sleep_time = sleep_time * 2
 
     if not build_timestamp:
-        if not item:
-            raise RuntimeError(
-                'Could not get timestamp for commit %s' % commit_sha)
-        else:
-            raise RuntimeError(
-                'Could not get timestamp for commit %s, data retrieved:\n %s' % (commit_sha, item))
+        raise RuntimeError(
+            'Could not get timestamp for commit %s' % commit_sha)
     return build_timestamp
 
 def get_project_name(csproj_file: str) -> str:
