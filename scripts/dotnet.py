@@ -622,9 +622,9 @@ def get_commit_date(
 
     build_timestamp = None
     item = None
-    retrycount = -1
+    retrycount = 0
     success = 0
-    while success == 0 and retrycount <= 4:
+    while success == 0 and retrycount <= 5:
         try:
             with urlopen(url) as response:
                 getLogger().info("Commit: %s", url)
@@ -634,7 +634,7 @@ def get_commit_date(
         except URLError:
             retrycount += 1
             getLogger().warning(f"URL Error trying to get commit date from {url}, Attempt {retrycount}")
-            sleep(30)
+            sleep(60)
 
     if not build_timestamp:
         if not item:
