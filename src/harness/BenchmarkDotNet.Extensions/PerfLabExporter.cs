@@ -24,7 +24,7 @@ namespace BenchmarkDotNet.Extensions
         {
             var reporter = Reporter.CreateReporter();
 
-            reporter.HasCriticalValidationErrors = summary.HasCriticalValidationErrors;
+            var hasCriticalErrors = summary.HasCriticalValidationErrors;
 
             DisassemblyDiagnoser disassemblyDiagnoser = summary.Reports
                 .FirstOrDefault()? // dissasembler was either enabled for all or none of them (so we use the first one)
@@ -41,6 +41,11 @@ namespace BenchmarkDotNet.Extensions
                 var test = new Test();
                 test.Name = FullNameProvider.GetBenchmarkName(report.BenchmarkCase);
                 test.Categories = report.BenchmarkCase.Descriptor.Categories;
+                
+                if (hasCriticalErrors)
+                {
+                    test.AdditionalData["criticalErrors"] = "true";
+                }
 
                 var results = from result in report.AllMeasurements
                               where result.IterationMode == Engines.IterationMode.Workload && result.IterationStage == Engines.IterationStage.Result

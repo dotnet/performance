@@ -24,8 +24,6 @@ namespace Reporting
 
         private Reporter() { }
 
-        public bool HasCriticalValidationErrors { get; set; } = false;
-
         public void AddTest(Test test)
         {
             if (tests.Any(t => t.Name.Equals(test.Name)))
@@ -111,7 +109,6 @@ namespace Reporting
                 os,
                 run,
                 tests,
-                criticalErrors = HasCriticalValidationErrors
             };
             var settings = new JsonSerializerSettings();
             var resolver = new DefaultContractResolver();
