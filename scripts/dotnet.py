@@ -622,7 +622,7 @@ def get_commit_date(
 
     build_timestamp = None
     item = None
-    retrycount = 0
+    retrycount = -1
     success = 0
     while success == 0 and retrycount <= 4:
         try:
