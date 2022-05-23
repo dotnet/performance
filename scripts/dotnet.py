@@ -621,17 +621,18 @@ def get_commit_date(
         url = urlformat % (owner, repo, commit_sha)
 
     build_timestamp = None
-    retrycount = 0
-    success = 0
-    while success == 0 and retrycount <= 3:
+    sleep_time = 10 # Start with 10 second sleep timer
+    for retrycount in range(5):
         try:
             with urlopen(url) as response:
                 getLogger().info("Commit: %s", url)
                 item = loads(response.read().decode('utf-8'))
                 build_timestamp = item['commit']['committer']['date']
-                success = 1
-        except URLError:
-            retrycount += 1
+                break
+        except URLError as error:
+            getLogger().warning(f"URL Error trying to get commit date from {url}; Reason: {error.reason}; Attempt {retrycount}")
+            sleep(sleep_time)
+            sleep_time = sleep_time * 2
 
     if not build_timestamp:
         raise RuntimeError(
