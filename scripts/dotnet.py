@@ -621,8 +621,6 @@ def get_commit_date(
         url = urlformat % (owner, repo, commit_sha)
 
     build_timestamp = None
-    item = None
-    retrycount = 0
     sleep_time = 10 # Start with 10 second sleep timer
     for retrycount in range(5):
         try:
