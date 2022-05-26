@@ -122,4 +122,7 @@ def upload(filename: str) -> None:
         print(response.read().decode('utf-8'))
 
 if __name__ == "__main__":
+    if (len(sys.argv) <= 1):
+        print("Usage: benchmark_monthly_upload.py filename_to_upload.tar.gz")
+        exit(0)
     upload(sys.argv[1])
