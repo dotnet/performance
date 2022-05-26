@@ -330,8 +330,8 @@ def run(
         framework: str,
         run_isolated: bool,
         verbose: bool,
-        *args) -> None:
-    '''Runs the benchmarks'''
+        *args) -> bool:
+    '''Runs the benchmarks, returns True for a zero status code and False otherwise.'''
     __log_script_header("Running .NET micro benchmarks for '{}'".format(
         framework
     ))
@@ -342,19 +342,25 @@ def run(
         framework
     )
 
+    # 1 is treated as successful in that there were still some benchmarks that ran
+    # but some of the runs may have failed.
+    success_exit_codes=[0, 1]
     if run_isolated:
         runDir = BENCHMARKS_CSPROJ.bin_path
         asm_path=dotnet.get_main_assembly_path(runDir, BENCHMARKS_CSPROJ.project_name)
-        dotnet.exec(asm_path, verbose, *run_args)
+        status = dotnet.exec(asm_path, success_exit_codes, verbose, *run_args)
     else:
         # This is needed for `dotnet run`, but not for `dotnet exec`
         run_args = ['--'] + run_args
-        BENCHMARKS_CSPROJ.run(
+        status = BENCHMARKS_CSPROJ.run(
             configuration,
             target_framework_moniker,
+            success_exit_codes,
             verbose,
             *run_args
         )
+    
+    return status == 0
 
 def __log_script_header(message: str):
     getLogger().info('-' * len(message))

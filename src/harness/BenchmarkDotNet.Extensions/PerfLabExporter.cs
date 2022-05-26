@@ -24,15 +24,28 @@ namespace BenchmarkDotNet.Extensions
         {
             var reporter = Reporter.CreateReporter();
 
+            var hasCriticalErrors = summary.HasCriticalValidationErrors;
+
             DisassemblyDiagnoser disassemblyDiagnoser = summary.Reports
                 .FirstOrDefault()? // dissasembler was either enabled for all or none of them (so we use the first one)
                 .BenchmarkCase.Config.GetDiagnosers().OfType<DisassemblyDiagnoser>().FirstOrDefault();
 
             foreach (var report in summary.Reports)
             {
+                // Skip individual reports with errors
+                if (report.HasAnyErrors())
+                {
+                    continue;
+                }
+
                 var test = new Test();
                 test.Name = FullNameProvider.GetBenchmarkName(report.BenchmarkCase);
                 test.Categories = report.BenchmarkCase.Descriptor.Categories;
+                
+                if (hasCriticalErrors)
+                {
+                    test.AdditionalData["criticalErrors"] = "true";
+                }
 
                 var results = from result in report.AllMeasurements
                               where result.IterationMode == Engines.IterationMode.Workload && result.IterationStage == Engines.IterationStage.Result

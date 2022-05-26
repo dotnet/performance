@@ -108,7 +108,7 @@ namespace Reporting
                 build,
                 os,
                 run,
-                tests
+                tests,
             };
             var settings = new JsonSerializerSettings();
             var resolver = new DefaultContractResolver();

@@ -226,7 +226,7 @@ class RunCommand:
                 return (proc.returncode, quoted_cmdline)
 
 
-    def run(self, working_directory: str = None) -> None:
+    def run(self, working_directory: str = None) -> int:
         '''Executes specified shell command.'''
 
         retrycount = 0
@@ -240,3 +240,5 @@ class RunCommand:
                 "Process exited with status %s", returncode)
             raise CalledProcessError(
                 returncode, quoted_cmdline)
+        
+        return returncode
