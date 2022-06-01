@@ -114,6 +114,8 @@ TODO: The longest pauses are interesting but we should also include all pauses b
 -endException/-ee: endException
 induces an exception at the end so you can do some post mortem debugging.
 
+-compute/-c: Do some extra computation between allocations
+
 The default for these args are specified in "Default parameters".
 
 ---
@@ -815,11 +817,13 @@ readonly struct PerThreadArgs
     public readonly bool verifyLiveSize;
     public readonly uint printEveryNthIter;
     public readonly Phase[] phases;
-    public PerThreadArgs(bool verifyLiveSize, uint printEveryNthIter, Phase[] phases)
+    public readonly bool compute;
+    public PerThreadArgs(bool verifyLiveSize, uint printEveryNthIter, Phase[] phases, bool compute)
     {
         this.verifyLiveSize = verifyLiveSize;
         this.printEveryNthIter = printEveryNthIter;
         this.phases = phases;
+        this.compute = compute;
         for (uint i = 0; i < phases.Length; i++)
         {
             phases[i].Validate();
@@ -1141,7 +1145,8 @@ class ArgsParser
                     perThreadArgs: new PerThreadArgs(
                         verifyLiveSize: verifyLiveSize,
                         printEveryNthIter: printEveryNthIter,
-                        phases: phases),
+                        phases: phases,
+                        compute: false),
                     finishWithFullCollect: false,
                     endException: false);
             }
@@ -1410,12 +1415,17 @@ class ArgsParser
         bool verifyLiveSize = false;
         uint printEveryNthIter = 0;
         bool finishWithFullCollect = false;
+        bool compute = false;
         bool endException = false;
 
         for (uint i = 0; i < args.Length; ++i)
         {
             switch (args[i])
             {
+                case "-compute":
+                case "-c":
+                    compute = true;
+                    break;
                 case "-finishWithFullCollect":
                     finishWithFullCollect = true;
                     break;
@@ -1632,7 +1642,7 @@ class ArgsParser
             allocType: allocType);
         return new Args(
             threadCount: threadCount,
-            perThreadArgs: new PerThreadArgs(verifyLiveSize: verifyLiveSize, printEveryNthIter: printEveryNthIter, phases: new Phase[] { onlyPhase }),
+            perThreadArgs: new PerThreadArgs(verifyLiveSize: verifyLiveSize, printEveryNthIter: printEveryNthIter, phases: new Phase[] { onlyPhase }, compute: compute),
             finishWithFullCollect: finishWithFullCollect,
             endException: endException);
     }
@@ -2090,6 +2100,15 @@ class MemoryAlloc
 
             MakeObjectAndMaybeSurvive(); // modifies totalAllocBytesLeft
 
+            if (args.compute)
+            {
+                // Generating some random numbers
+                uint count = rand.GetRand(1000);
+                for (uint i = 0; i < count; i++)
+                {
+                    rand.GetRand(1000000);
+                }
+            }
             n++;
         }
 
