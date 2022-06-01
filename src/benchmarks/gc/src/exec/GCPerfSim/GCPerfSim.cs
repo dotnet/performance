@@ -1816,7 +1816,7 @@ class ThreadLauncher
     public void Run()
     {
         alloc = new MemoryAlloc(threadIndex, perThreadArgs);
-        alloc.RunTest(perThreadArgs.compute);
+        alloc.RunTest();
     }
 }
 
@@ -1957,12 +1957,12 @@ class MemoryAlloc
         TouchPage(b);
     }
 
-    public void RunTest(bool compute)
+    public void RunTest()
     {
         switch (curPhase.testKind)
         {
             case TestKind.time:
-                TimeTest(compute);
+                TimeTest();
                 break;
             case TestKind.highsurvival:
                 HighSurvivalTest();
@@ -2058,7 +2058,7 @@ class MemoryAlloc
 
     private static int GetPercent(ulong a, ulong b) => b == 0 ? 0 : (int)(a * 100.0 / b);
 
-    public void TimeTest(bool compute)
+    public void TimeTest()
     {
         ulong n = 0;
 
@@ -2100,7 +2100,7 @@ class MemoryAlloc
 
             MakeObjectAndMaybeSurvive(); // modifies totalAllocBytesLeft
 
-            if (compute)
+            if (args.compute)
             {
                 // Generating some random numbers
                 uint count = rand.GetRand(1000);
