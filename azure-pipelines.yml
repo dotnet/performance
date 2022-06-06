@@ -65,12 +65,8 @@ jobs:
       osVersion: 1804
       kind: scenarios
       architecture: x64
-<<<<<<< HEAD
-      pool: Hosted Ubuntu 1604
-=======
       pool: 
         vmImage: ubuntu-latest
->>>>>>> 1d541b2a (Update Windows RS4 x64 micro_net461 Open LTS to windows-latest (#2148))
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
@@ -115,12 +111,8 @@ jobs:
       osVersion: 1804
       kind: sdk_scenarios
       architecture: x64
-<<<<<<< HEAD
-      pool: Hosted Ubuntu 1604
-=======
       pool: 
         vmImage: ubuntu-latest
->>>>>>> 1d541b2a (Update Windows RS4 x64 micro_net461 Open LTS to windows-latest (#2148))
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
@@ -230,12 +222,8 @@ jobs:
       osVersion: 1804
       kind: micro
       architecture: x64
-<<<<<<< HEAD
-      pool: Hosted Ubuntu 1604
-=======
       pool: 
         vmImage: ubuntu-latest
->>>>>>> 1d541b2a (Update Windows RS4 x64 micro_net461 Open LTS to windows-latest (#2148))
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
@@ -251,12 +239,8 @@ jobs:
       osVersion: 1804
       kind: mlnet
       architecture: x64
-<<<<<<< HEAD
-      pool: Hosted Ubuntu 1604
-=======
       pool: 
         vmImage: ubuntu-latest
->>>>>>> 1d541b2a (Update Windows RS4 x64 micro_net461 Open LTS to windows-latest (#2148))
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
@@ -272,12 +256,8 @@ jobs:
       osVersion: 1804
       kind: roslyn
       architecture: x64
-<<<<<<< HEAD
-      pool: Hosted Ubuntu 1604
-=======
       pool: 
         vmImage: ubuntu-latest
->>>>>>> 1d541b2a (Update Windows RS4 x64 micro_net461 Open LTS to windows-latest (#2148))
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
@@ -314,12 +294,8 @@ jobs:
       osVersion: 1804
       kind: scenarios
       architecture: x64
-<<<<<<< HEAD
-      pool: Hosted Ubuntu 1604
-=======
       pool: 
         vmImage: ubuntu-latest
->>>>>>> 1d541b2a (Update Windows RS4 x64 micro_net461 Open LTS to windows-latest (#2148))
       machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       container: ubuntu_x64_build_container
@@ -424,12 +400,8 @@ jobs:
   #     osVersion: 1804
   #     kind: micro
   #     architecture: x64
-<<<<<<< HEAD
-  #     pool: Hosted Ubuntu 1604
-=======
   #     pool: 
   #       vmImage: ubuntu-latest
->>>>>>> 1d541b2a (Update Windows RS4 x64 micro_net461 Open LTS to windows-latest (#2148))
   #     machinePool: Tiger
   #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     container: ubuntu_x64_build_container
@@ -447,12 +419,8 @@ jobs:
   #     osVersion: 1804
   #     kind: micro
   #     architecture: x64
-<<<<<<< HEAD
-  #     pool: Hosted Ubuntu 1604
-=======
   #     pool: 
   #       vmImage: ubuntu-latest
->>>>>>> 1d541b2a (Update Windows RS4 x64 micro_net461 Open LTS to windows-latest (#2148))
   #     machinePool: Owl
   #     queue: Ubuntu.1804.Amd64.Owl.Perf # using a dedicated private Helix queue (perfowls)
   #     container: ubuntu_x64_build_container
@@ -470,12 +438,8 @@ jobs:
   #     osVersion: 1804
   #     kind: mlnet
   #     architecture: x64
-<<<<<<< HEAD
-  #     pool: Hosted Ubuntu 1604
-=======
   #     pool: 
   #       vmImage: ubuntu-latest
->>>>>>> 1d541b2a (Update Windows RS4 x64 micro_net461 Open LTS to windows-latest (#2148))
   #     machinePool: Tiger
   #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     container: ubuntu_x64_build_container
@@ -493,12 +457,8 @@ jobs:
   #     osVersion: 1804
   #     kind: roslyn
   #     architecture: x64
-<<<<<<< HEAD
-  #     pool: Hosted Ubuntu 1604
-=======
   #     pool: 
   #       vmImage: ubuntu-latest
->>>>>>> 1d541b2a (Update Windows RS4 x64 micro_net461 Open LTS to windows-latest (#2148))
   #     machinePool: Tiger
   #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
   #     container: ubuntu_x64_build_container
@@ -552,12 +512,8 @@ jobs:
       osName: ubuntu
       osVersion: 1804
       architecture: x64
-<<<<<<< HEAD
-      pool: Hosted Ubuntu 1604
-=======
       pool: 
         vmImage: ubuntu-latest
->>>>>>> 1d541b2a (Update Windows RS4 x64 micro_net461 Open LTS to windows-latest (#2148))
       kind: sdk_scenarios
       machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf
@@ -624,12 +580,8 @@ jobs:
       osName: ubuntu
       osVersion: 1804
       architecture: x64
-<<<<<<< HEAD
-      pool: Hosted Ubuntu 1604
-=======
       pool:
         vmImage: ubuntu-latest
->>>>>>> 1d541b2a (Update Windows RS4 x64 micro_net461 Open LTS to windows-latest (#2148))
       kind: sdk_scenarios
       machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf
