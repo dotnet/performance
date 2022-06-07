@@ -24,15 +24,24 @@ namespace System.Net.Test.Common
             public static X509Certificate2 GetRSA4096Certificate() => GetCertificate("rsa4096.pfx");
 
             private static X509Certificate2 GetCertificate(string certificateFileName)
-                => new X509Certificate2(
-                    File.ReadAllBytes(
-                        Path.Combine(
-                            AppContext.BaseDirectory, 
-                            "libraries", 
-                            "System.Net.Http", 
-                            certificateFileName)),
-                    CertificatePassword,
-                    X509KeyStorageFlags.DefaultKeySet);
+            {
+                try
+                {
+                    return new X509Certificate2(
+                         File.ReadAllBytes(
+                             Path.Combine(
+                                 AppContext.BaseDirectory,
+                                 "libraries",
+                                 "System.Net.Http",
+                                 certificateFileName)),
+                         CertificatePassword,
+                         X509KeyStorageFlags.DefaultKeySet);
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
         }
     }
 }
