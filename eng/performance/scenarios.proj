@@ -76,6 +76,19 @@
     </HelixWorkItem>
   </ItemGroup>
 
+  <ItemGroup>
+    <HelixWorkItem Include="SOD - Maui Desktop Default - Publish" Condition="'$(TargetsWindows)' == 'true'">
+      <PayloadDirectory>$(ScenariosDir)mauidesktop</PayloadDirectory>
+      <PreCommands>$(Python) pre.py default</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+    <HelixWorkItem Include="Startup - Maui Desktop Default - Publish" Condition="'$(TargetsWindows)' == 'true'">
+      <PayloadDirectory>$(ScenariosDir)mauidesktop</PayloadDirectory>
+      <PreCommands>$(Python) pre.py default</PreCommands>
+      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+  </ItemGroup>
+
   <!--
     This is useful for local testing to print the produced helix items
     To use this when you are changing how items are produced, uncomment the target
