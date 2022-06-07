@@ -271,9 +271,9 @@ namespace ScenarioMeasurement
                 case MetricType.DeviceTimeToMain:
                     parser = new DeviceTimeToMain();
                     break;
-                case MetricType.WPF:
-                    parser = new WPFParser();
-                    break;
+                // case MetricType.WPF:
+                //     parser = new WPFParser();
+                //     break;
                 case MetricType.WinUI:
                     parser = new WinUIParser();
                     break;
