@@ -36,7 +36,8 @@ namespace System.Net.Test.Common
                                  certificateFileName)),
                          CertificatePassword,
                          X509KeyStorageFlags.DefaultKeySet);
-                } catch (Exception)
+                }
+                catch (Exception)
                 {
                     return null;
                 }
