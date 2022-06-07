@@ -99,56 +99,52 @@ namespace BenchmarkDotNet.Extensions
                 return new string[0];
 
             // Get all existing report files, of any export type; order by descending filename length to avoid rename collisions
-            var existingBenchmarks = artifacts.GetFiles($"*-report-*", SearchOption.AllDirectories)
-                .OrderByDescending(resultFile => resultFile.FullName.Length)
+	    var toRename = artifacts.GetFiles("*-report-*", SearchOption.AllDirectories)
+		    .Where(resultFile => !resultFile.FullName.Contains("-resume-report-") || File.Exists(resultFile.FullName.Replace("-resume-report-", "-report-")))
+		    .OrderByDescending(resultFile => resultFile.FullName.Length);
+
+	    foreach (var resultFile in toRename)
+            {
+		// Prepend the report name with -resume, potentially multiple times if multiple reports for the same
+		// benchmarks exist, so that they don't collide with one another. But don't unnecessarily prepend
+		// -resume multiple times.
+                File.Move(resultFile.FullName, resultFile.FullName.Replace("-report-", "-resume-report-"));
+	    }
+
+            // From the JSON reports involved in the resume, get the list of benchmarks that were already run in each report	    
+            var existingBenchmarks = artifacts.GetFiles("*-resume-report-*.json", SearchOption.AllDirectories)
                 .SelectMany(resultFile =>
                 {
-                    var reportFileName = resultFile.FullName;
-
-                    // Prepend the report name with -resume, potentially multiple times if multiple reports for the same
-                    // benchmarks exist, so that they don't collide with one another. But don't unnecessarily prepend
-                    // -resume multiple times.
-                    if (!reportFileName.Contains("-resume-report-") || File.Exists(reportFileName.Replace("-resume-report-", "-report-")))
+                    try
                     {
-                        var resumeFileName = reportFileName.Replace("-report-", "-resume-report-");
-                        File.Move(reportFileName, resumeFileName);
+                        var result = JsonConvert.DeserializeObject<BdnResult>(File.ReadAllText(resultFile.FullName));
+                        var benchmarks = result.Benchmarks.Select(benchmark =>
+                        {
+                            var nameParts = new[] { benchmark.Namespace, benchmark.Type, benchmark.Method };
+                            return string.Join(".", nameParts.Where(part => !string.IsNullOrEmpty(part)));
+                        }).Distinct();
 
-                        reportFileName = resumeFileName;
+                        return benchmarks;
+                    }
+                    catch (JsonSerializationException)
+                    {
                     }
 
-                    // For JSON reports, load the data to get the benchmarks that have already been reported
-                    if (reportFileName.EndsWith(".json"))
-                    {
-                        try
-                        {
-                            var result = JsonConvert.DeserializeObject<BdnResult>(File.ReadAllText(reportFileName));
-                            var benchmarks = result.Benchmarks.Select(benchmark =>
-                            {
-                                var nameParts = new[] { benchmark.Namespace, benchmark.Type, benchmark.Method };
-                                return string.Join(".", nameParts.Where(part => !string.IsNullOrEmpty(part)));
-                            }).Distinct();
-
-                            return benchmarks;
-                        }
-                        catch (JsonSerializationException)
-                        {
-                        }
-                    }
-
+		    // If we could not parse the JSON report data, then we will not try to skip any benchmarks from that report
                     return new string[0];
                 });
 
-                if (existingBenchmarks.Any())
+            if (existingBenchmarks.Any())
+            {
+                Console.WriteLine($"// Found {existingBenchmarks.Count()} existing result(s) to be skipped:");
+
+                foreach (var benchmark in existingBenchmarks.OrderBy(b => b))
                 {
-                    Console.WriteLine($"// Found {existingBenchmarks.Count()} existing result(s) to be skipped:");
-
-                    foreach (var benchmark in existingBenchmarks.OrderBy(b => b))
-                    {
-                        Console.WriteLine($"// ***** {benchmark}");
-                    }
+                    Console.WriteLine($"// ***** {benchmark}");
                 }
+            }
 
-                return existingBenchmarks;
+            return existingBenchmarks;
         }
 
         private class Benchmark
