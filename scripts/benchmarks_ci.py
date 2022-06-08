@@ -273,7 +273,7 @@ def __main(args: list) -> int:
                 )
 
                 if not is_success:
-                    getLogger().warn(f"Benchmark run for framework '{framework}' contains errors")
+                    getLogger().warning(f"Benchmark run for framework '{framework}' contains errors")
                     run_contains_errors = True
 
             globpath = os.path.join(
