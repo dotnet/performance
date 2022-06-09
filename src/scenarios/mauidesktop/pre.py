@@ -1,0 +1,30 @@
+'''
+pre-command: Example call 'python .\pre.py publish -f net6.0-windows10.0.19041.0 -c Release'
+'''
+import shutil
+import subprocess
+import sys
+import os
+from performance.logger import setup_loggers
+from shared.precommands import PreCommands
+from shared import const
+from test import EXENAME
+import requests
+
+setup_loggers(True)
+NugetURL = 'https://raw.githubusercontent.com/dotnet/maui/main/NuGet.config'
+NugetFile = requests.get(NugetURL)
+open('./Nuget.config', 'wb').write(NugetFile.content)
+
+precommands = PreCommands()
+precommands.install_workload('maui', ['--from-rollback-file', 'https://aka.ms/dotnet/maui/main.json', '--configfile', './Nuget.config'])
+precommands.new(template='maui',
+                output_dir=const.APPDIR,
+                bin_dir=const.BINDIR,
+                exename=EXENAME,
+                working_directory=sys.path[0],
+                no_restore=False)
+
+subprocess.run(["dotnet", "add", "./app", "package", "Microsoft.WindowsAppSDK"]) # Add the package reference for the Microsoft.WindowsAppSDK for self-contained running
+precommands.execute(['/p:Platform=x64','/p:WindowsAppSDKSelfContained=True','/p:WindowsPackageType=None','/p:WinUISDKReferences=False'])
+#subprocess.run(['dotnet', 'msbuild','app/MauiDesktopTesting.csproj','/restore','/t:Publish','/p:TargetFramework=net6.0-windows10.0.19041.0','/p:configuration=Release','/p:Platform=x64','/p:WindowsAppSDKSelfContained=True','/p:WindowsPackageType=None','/p:WinUISDKReferences=False',f'/p:PublishDir=../{const.PUBDIR}'])
