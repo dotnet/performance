@@ -102,6 +102,12 @@ def helixuploadroot():
     '''
     return environ.get('HELIX_WORKITEM_UPLOAD_ROOT')
 
+def helixworkitemroot():
+    '''
+    Returns the helix workitem root. Will be None outside of helix.
+    '''
+    return environ.get('HELIX_WORKITEM_ROOT')
+
 def runninginlab():
     return environ.get('PERFLAB_INLAB') == '1'
 

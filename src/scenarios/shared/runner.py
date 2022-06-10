@@ -22,9 +22,10 @@ from shared.startup import StartupWrapper
 from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand
 from shared.sod import SODWrapper
 from shared import const
-from performance.common import RunCommand, iswin, extension
+from performance.common import RunCommand, iswin, extension, helixworkitemroot
 from performance.logger import setup_loggers
 from shared.testtraits import TestTraits, testtypes
+from subprocess import CalledProcessError
 
 
 class Runner:
@@ -691,7 +692,37 @@ ex: C:\repos\performance;C:\repos\runtime
                     f'--launchdevbundleid={self.packagename}',
                 ]
                 runCmdCommand = RunCommand(runCmd, verbose=True)
-                runCmdCommand.run()
+
+                try:
+                    runCmdCommand.run()
+                except CalledProcessError as ex:
+                    if ex.returncode == 70:
+                        # Exit code 70 from xharness means time out, this can happen sometimes when the device is in a screwed state
+                        # and doesn't correctly launch apps anymore. In that case we reboot the device
+                        getLogger().error("Device is in a broken state, rebooting.")
+                        rebootCmd = xharnesscommand() + [
+                            'apple',
+                            'mlaunch',
+                            '--',
+                            '--rebootdev',
+                        ]
+                        rebootCmdCommand = RunCommand(rebootCmd, verbose=True)
+                        rebootCmdCommand.run()
+
+                        getLogger().info("Waiting 30 secs for the device to boot.")
+                        time.sleep(30)
+
+                        # if we're in Helix, schedule the work item for retry by writing a special file to the workitem root
+                        if helixworkitemroot():
+                            getLogger().info("Requesting retry from Helix.")
+                            retryFile = open(f"{helixworkitemroot()}/.retry", "w")
+                            retryFile.write("Device was in a broken state, rebooted the device and retrying work item.")
+                            retryFile.close()
+
+                    # rethrow exception so we end the process
+                    getLogger().error("App launch failed, please rerun the script to start a new measurement.")
+                    raise
+
                 app_pid_search = re.search("Launched application.*with pid (?P<app_pid>\d+)", runCmdCommand.stdout)
                 app_pid = int(app_pid_search.group('app_pid'))
 
