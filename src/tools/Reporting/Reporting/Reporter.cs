@@ -99,10 +99,6 @@ namespace Reporting
         }
         public string GetJson()
         {
-            if (!InLab)
-            { 
-                return null;
-            }
             var jsonobj = new
             {
                 build,
