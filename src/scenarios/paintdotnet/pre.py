@@ -15,9 +15,11 @@ from shutil import copytree
 
 setup_loggers(True)
 
+precommands = PreCommands()
+
 if runninginlab():   
-    with zipfile.ZipFile(join(helixcorrelationpayload(), "PDN\PDN3.zip"), 'r') as publish:
+    with zipfile.ZipFile(join(helixcorrelationpayload(), "PDN\PDN.zip"), 'r') as publish:
         publish.extractall(const.PUBDIR)
-else:
-    with zipfile.ZipFile("D:\work\PDN3\PDN4\Release\PDN3.zip", 'r') as publish:
+elif precommands.pathtozip:
+    with zipfile.ZipFile(precommands.pathtozip, 'r') as publish:
         publish.extractall(const.PUBDIR)
