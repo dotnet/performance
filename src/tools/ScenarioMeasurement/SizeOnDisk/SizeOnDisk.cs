@@ -83,7 +83,7 @@ namespace ScenarioMeasurement
                 test.Name = scenarioName;
                 test.AddCounter(counters);
                 reporter.AddTest(test);
-                if (!String.IsNullOrEmpty(reportJsonPath))
+                if (reporter.InLab && !String.IsNullOrEmpty(reportJsonPath))
                 {
                     File.WriteAllText(reportJsonPath, reporter.GetJson());
                 }
