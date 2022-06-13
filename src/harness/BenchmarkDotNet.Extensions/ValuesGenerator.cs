@@ -71,6 +71,32 @@ namespace BenchmarkDotNet.Extensions
             return result;
         }
 
+        public static readonly byte[] s_encodingMap = {
+            65, 66, 67, 68, 69, 70, 71, 72,         //A..H
+            73, 74, 75, 76, 77, 78, 79, 80,         //I..P
+            81, 82, 83, 84, 85, 86, 87, 88,         //Q..X
+            89, 90, 97, 98, 99, 100, 101, 102,      //Y..Z, a..f
+            103, 104, 105, 106, 107, 108, 109, 110, //g..n
+            111, 112, 113, 114, 115, 116, 117, 118, //o..v
+            119, 120, 121, 122, 48, 49, 50, 51,     //w..z, 0..3
+            52, 53, 54, 55, 56, 57, 43, 47          //4..9, +, /
+        };
+
+        public static byte[] ArrayBase64EncodingBytes(int count)
+        {
+            var result = new byte[count];
+
+            var random = new Random(Seed);
+
+            for (int i = 0; i < result.Length; i++)
+            {
+                int index = (byte)random.Next(0, s_encodingMap.Length - 1);    // Do not pick '='
+                result[i] = s_encodingMap[index];
+            }
+
+            return result;
+        }
+
         public static Dictionary<TKey, TValue> Dictionary<TKey, TValue>(int count)
         {
             var dictionary = new Dictionary<TKey, TValue>();
