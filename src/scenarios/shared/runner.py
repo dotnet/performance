@@ -19,7 +19,7 @@ from io import StringIO
 from shutil import move, rmtree
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
-from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand
+from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand, publisheddll
 from shared.sod import SODWrapper
 from shared import const
 from performance.common import RunCommand, iswin, extension
@@ -212,8 +212,12 @@ ex: C:\repos\performance;C:\repos\runtime
                                    environmentvariables='COMPlus_EnableEventLog=1' if not iswin() else '',
                                    scenarioname=self.scenarioname,
                                    scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
-                                   apptorun=publishedexe(self.traits.exename),
+                                   apptorun=publishedexe(self.traits.exename)
                                    )
+            if self.traits.runwithdotnet:
+                self.traits.add_traits(overwrite=True,
+                                        apptorun=const.DOTNET,
+                                        appargs=publisheddll(self.traits.exename))
             startup.runtests(self.traits)
 
         elif self.testtype == const.SDK:

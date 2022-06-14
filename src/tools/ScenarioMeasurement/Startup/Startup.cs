@@ -20,7 +20,8 @@ namespace ScenarioMeasurement
         InnerLoop,
         InnerLoopMsBuild,
         DotnetWatch,
-        DeviceTimeToMain
+        DeviceTimeToMain,
+        PDN
     }
 
     public class InnerLoopMarkerEventSource : EventSource
@@ -64,6 +65,7 @@ namespace ScenarioMeasurement
         /// <param name="hotReloadIters">Number of times to change files for hot reload</param>
         /// <param name="skipMeasurementIteration">Don't run measurement collection</param>
         /// <param name="parseOnly">Parse trace(s) without running app</param>
+        /// <param name="runWithDotnet">Run the app with dotnet, but don't include dotnet startup time</param>
         /// <returns></returns>
 
         static int Main(string appExe,
@@ -92,7 +94,8 @@ namespace ScenarioMeasurement
                         bool runWithoutExit = false,
                         int hotReloadIters = 1,
                         bool skipMeasurementIteration = false,
-                        bool parseOnly = false
+                        bool parseOnly = false,
+                        bool runWithDotnet = false
                         )
         {
             Logger logger = new Logger(String.IsNullOrEmpty(logFileName) ? $"{appExe}.startup.log" : logFileName);
@@ -155,7 +158,8 @@ namespace ScenarioMeasurement
                     Arguments = appArgs,
                     WorkingDirectory = workingDir,
                     GuiApp = guiApp,
-                    EnvironmentVariables = envVariables
+                    EnvironmentVariables = envVariables,
+                    RunWithDotnet = runWithDotnet
                 };
             }
 
@@ -273,6 +277,9 @@ namespace ScenarioMeasurement
                 case MetricType.WPF:
                     parser = new WPFParser();
                     break;
+                case MetricType.PDN:
+                    parser = new PDNStartupParser();
+                    break;
             }
 
             var pids = new List<int>();
@@ -316,6 +323,7 @@ namespace ScenarioMeasurement
                 {
                     commandLine = commandLine + " " + appArgs;
                 }
+
                 var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
 
                 CreateTestReport(scenarioName, counters, reportJsonPath, logger);

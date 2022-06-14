@@ -102,6 +102,19 @@ jobs:
             displayName: Build SOD tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
+          # Current version of PaintDotNet zip file is PDN7 built on 5/18/2022
+          - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+            - powershell: |
+                mkdir $(CorrelationStaging)PDN
+                curl "https://pvscmdupload.blob.core.windows.net/assets/PDN.zip$(PerfCommandUploadTokenNonEscaped)" -OutFile $(CorrelationStaging)PDN\PDN.zip
+              displayName: Download PDN
+          - ${{ if eq(parameters.architecture, 'arm64') }}:
+            - script: taskkill /im dotnet.exe /f
+              displayName: Stop dotnet.exe
+            - script: del $(CorrelationStaging)dotnet\* /F /S /Q
+              displayName: Delete old dotnet
+            - script: xcopy tools\dotnet\arm64\* $(CorrelationStaging)dotnet\/E /I /Y
+              displayName: Copy Arm64 Dotnet to Correlation Payload
         - ${{ if ne(parameters.osName, 'windows') }}:
           - script: cp ./NuGet.config $(CorrelationStaging);cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared;cp -r ./src/scenarios/staticdeps $(CorrelationStaging)staticdeps
             displayName: Copy python libraries and NuGet.config

@@ -155,6 +155,7 @@ namespace ScenarioMeasurement
         public Dictionary<string, string> EnvironmentVariables = null;
 
         public bool RootAccess { get; set; } = false;
+        public bool RunWithDotnet { get; set; } = false;
 
         public ManagedProcessHelper(Logger logger)
         {
@@ -186,6 +187,7 @@ namespace ScenarioMeasurement
         public (Result Result, int Pid) RunWithExit()
         {
             var psi = new ProcessStartInfo();
+
             if (!Util.IsWindows() && RootAccess)
             {
                 psi.FileName = "sudo";

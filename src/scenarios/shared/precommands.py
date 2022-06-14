@@ -19,6 +19,7 @@ BUILD = 'build'
 PUBLISH = 'publish'
 CROSSGEN = 'crossgen'
 CROSSGEN2 = 'crossgen2'
+EXTRACT = 'extract'
 DEBUG = 'Debug'
 RELEASE = 'Release'
 
@@ -26,7 +27,8 @@ OPERATIONS = (DEFAULT,
               BUILD,
               PUBLISH,
               CROSSGEN,
-              CROSSGEN2
+              CROSSGEN2,
+              EXTRACT
              )
 
 class PreCommands:
@@ -46,6 +48,14 @@ class PreCommands:
 
         default_parser = subparsers.add_parser(DEFAULT, help='Default operation (placeholder command and no specific operation will be executed)' )
         self.add_common_arguments(default_parser)
+        
+        extract_parser = subparsers.add_parser(EXTRACT, help='Used for local runs that extract the binaries to be run from a zip file. Requires a path to the zip' )
+        self.add_common_arguments(extract_parser)
+        extract_parser.add_argument('-p', '--pathtozip',
+                    dest='pathtozip',
+                    metavar='pathtozip',
+                    help='Path to the zip file to extract',
+                    required=True)
 
         build_parser = subparsers.add_parser(BUILD, help='Builds the project')
         self.add_common_arguments(build_parser)
@@ -78,11 +88,13 @@ class PreCommands:
         self.has_workload = args.has_workload
         self.readonly_dotnet = args.readonly_dotnet
         self.windows = args.windows
-
+        
         if self.operation == CROSSGEN:
             self.crossgen_arguments.parse_crossgen_args(args)
         if self.operation == CROSSGEN2:
             self.crossgen_arguments.parse_crossgen2_args(args)
+        if self.operation == EXTRACT:
+            self.pathtozip = args.pathtozip
 
 
     def new(self,

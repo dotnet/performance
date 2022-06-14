@@ -42,7 +42,8 @@ class TestTraits:
         self.skipmeasurementiteration = ''
         self.parseonly = ''
         self.tracename = ''
-        self.tracefolder=''
+        self.tracefolder = ''
+        self.runwithdotnet = ''
 
         # add test types to traits
         for testtype in testtypes:

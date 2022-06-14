@@ -15,6 +15,12 @@ def helixworkitempayload():
     '''
     return environ.get('HELIX_WORKITEM_PAYLOAD')
 
+def helixcorrelationpayload():
+    '''
+    Returns the helix correlation payload. Will be None outside of helix.
+    '''
+    return environ.get('HELIX_CORRELATION_PAYLOAD')
+
 def helixuploaddir():
     '''
     Gets the directory to upload files
@@ -32,6 +38,10 @@ def appfolder(projname: str, projext: str):
 def publishedexe(exename: str):
     'gets binary path for published exe'
     return os.path.join(const.PUBDIR, '%s%s' % (exename, extension()))
+
+def publisheddll(exename: str):
+    'gets binary path for published dll'
+    return os.path.join(const.PUBDIR, '%s%s' % (exename, ".dll"))
 
 def uploadtokenpresent():
     return environ.get(UPLOAD_TOKEN_VAR) is not None
