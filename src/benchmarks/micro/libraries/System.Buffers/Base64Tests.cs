@@ -69,6 +69,16 @@ namespace System.Buffers.Text.Tests
         [Benchmark]
         public OperationStatus Base64DecodeDestinationTooSmall() => Base64.DecodeFromUtf8(_encodedBytes, _decodedBytes, out _, out _);
 
+        [GlobalSetup(Target = nameof(Base64DecodeInvalidData))]
+        public void SetupBase64DecodeInvalidData()
+        {
+            _encodedBytes = ValuesGenerator.Array<byte>(NumberOfBytes);
+            _decodedBytes = new byte[Base64.GetMaxEncodedToUtf8Length(NumberOfBytes)];
+        }
+
+        [Benchmark]
+        public OperationStatus Base64DecodeInvalidData() => Base64.DecodeFromUtf8(_encodedBytes, _decodedBytes, out _, out _);
+
 #if !NETFRAMEWORK // API added in .NET Core 2.1
         [GlobalSetup(Target = nameof(ConvertTryFromBase64Chars))]
         public void SetupConvertTryFromBase64Chars()
