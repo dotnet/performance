@@ -90,7 +90,7 @@ namespace BenchmarkDotNet.Extensions
 
             for (int i = 0; i < result.Length; i++)
             {
-                int index = (byte)random.Next(0, s_encodingMap.Length - 1);    // Do not pick '='
+                int index = (byte)random.Next(0, s_encodingMap.Length);
                 result[i] = s_encodingMap[index];
             }
 
