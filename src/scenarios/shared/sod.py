@@ -4,6 +4,7 @@ Wrapper around startup tool.
 from logging import getLogger
 import sys
 import os
+import json
 import platform
 from shutil import copytree, copy
 from performance.logger import setup_loggers
@@ -77,6 +78,20 @@ class SODWrapper(object):
 
         if runninginlab():
             copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
+            with open(reportjson, 'r') as json_file:
+                json_result = json.load(json_file)
+                # Check all SOD tests for files being found
+                for test in json_result['tests']:
+                    results_found = False
+                    if 'SizeOnDisk' in test['categories']:
+                        for counter in test['counters']:
+                            # Check for any files being counted
+                            if counter['metricName'] == 'count' and 0 not in counter['results']:
+                                results_found = True
+                                break
+                        if not results_found:
+                            raise ValueError(f'No files found for sizing in scenario {test["name"]}')
+                
             if uploadtokenpresent():
                 import upload
                 upload_code = upload.upload(reportjson, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
