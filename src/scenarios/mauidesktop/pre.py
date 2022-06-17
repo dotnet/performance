@@ -27,4 +27,3 @@ precommands.new(template='maui',
 
 subprocess.run(["dotnet", "add", "./app", "package", "Microsoft.WindowsAppSDK"]) # Add the package reference for the Microsoft.WindowsAppSDK for self-contained running
 precommands.execute(['/p:Platform=x64','/p:WindowsAppSDKSelfContained=True','/p:WindowsPackageType=None','/p:WinUISDKReferences=False'])
-#subprocess.run(['dotnet', 'msbuild','app/MauiDesktopTesting.csproj','/restore','/t:Publish','/p:TargetFramework=net6.0-windows10.0.19041.0','/p:configuration=Release','/p:Platform=x64','/p:WindowsAppSDKSelfContained=True','/p:WindowsPackageType=None','/p:WinUISDKReferences=False',f'/p:PublishDir=../{const.PUBDIR}'])
