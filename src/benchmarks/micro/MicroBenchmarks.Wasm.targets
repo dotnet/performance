@@ -4,7 +4,10 @@
     <WasmBuildOnlyAfterPublish>true</WasmBuildOnlyAfterPublish>
 
     <!-- this will fail the build if the emcc versions don't match -->
-    <_WasmStrictVersionMatch>true</_WasmStrictVersionMatch>
+    <!-- disabling this because of the way runtime consumes emsdk updates,
+         it can get into a situation where the emsdk version doesn't match
+         between runtime, and the workload pack. -->
+    <_WasmStrictVersionMatch>false</_WasmStrictVersionMatch>
     <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
