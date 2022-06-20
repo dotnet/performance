@@ -52,22 +52,22 @@ namespace System.Buffers.Text.Tests
         [GlobalSetup(Target = nameof(Base64Decode))]
         public void SetupBase64Decode()
         {
-            _encodedBytes = ValuesGenerator.Array<byte>(NumberOfBytes);
+            _encodedBytes = ValuesGenerator.ArrayBase64EncodingBytes(NumberOfBytes);
             _decodedBytes = new byte[Base64.GetMaxEncodedToUtf8Length(NumberOfBytes)];
         }
 
         [Benchmark]
         public OperationStatus Base64Decode() => Base64.DecodeFromUtf8(_encodedBytes, _decodedBytes, out _, out _);
 
-        [GlobalSetup(Target = nameof(Base64DecodeDetinationTooSmall))]
-        public void SetupBase64DecodeDetinationTooSmall()
+        [GlobalSetup(Target = nameof(Base64DecodeDestinationTooSmall))]
+        public void SetupBase64DecodeDestinationTooSmall()
         {
-            _encodedBytes = ValuesGenerator.Array<byte>(NumberOfBytes);
+            _encodedBytes = ValuesGenerator.ArrayBase64EncodingBytes(NumberOfBytes);
             _decodedBytes = new byte[Base64.GetMaxEncodedToUtf8Length(NumberOfBytes) - 1];
         }
 
         [Benchmark]
-        public OperationStatus Base64DecodeDetinationTooSmall() => Base64.DecodeFromUtf8(_encodedBytes, _decodedBytes, out _, out _);
+        public OperationStatus Base64DecodeDestinationTooSmall() => Base64.DecodeFromUtf8(_encodedBytes, _decodedBytes, out _, out _);
 
 #if !NETFRAMEWORK // API added in .NET Core 2.1
         [GlobalSetup(Target = nameof(ConvertTryFromBase64Chars))]
