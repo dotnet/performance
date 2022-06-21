@@ -54,7 +54,7 @@
     <UIScenario Include="WPF SFC" Condition="'$(TargetsWindows)' == 'true'">
       <PayloadDirectory>$(ScenariosDir)wpfsfc</PayloadDirectory>
     </UIScenario>
-    <UIScenario Include="PaintDotNet" Condition="'$(TargetsWindows)' == 'true' And $(PerfCommandUploadTokenNonEscaped) != ''">
+    <UIScenario Include="PaintDotNet" Condition="'$(TargetsWindows)' == 'true' And $(BUILD_REPOSITORY_PROVIDER) == 'TfsGit'">
       <PayloadDirectory>$(ScenariosDir)paintdotnet</PayloadDirectory>
     </UIScenario>
   </ItemGroup>
