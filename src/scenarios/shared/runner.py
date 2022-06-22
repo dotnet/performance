@@ -715,9 +715,8 @@ ex: C:\repos\performance;C:\repos\runtime
                         # if we're in Helix, schedule the work item for retry by writing a special file to the workitem root
                         if helixworkitemroot():
                             getLogger().info("Requesting retry from Helix.")
-                            retryFile = open(f"{helixworkitemroot()}/.retry", "w")
-                            retryFile.write("Device was in a broken state, rebooted the device and retrying work item.")
-                            retryFile.close()
+                            with open(f"{helixworkitemroot()}/.retry", "w") as retryFile:
+                                retryFile.write("Device was in a broken state, rebooted the device and retrying work item.")
 
                     # rethrow exception so we end the process
                     getLogger().error("App launch failed, please rerun the script to start a new measurement.")
