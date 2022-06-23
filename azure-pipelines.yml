@@ -489,7 +489,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: sdk_scenarios.proj
       channels:
-        - main
+        - release/6.0
   
   # Windows x86 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -504,7 +504,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: sdk_scenarios.proj
       channels:
-        - main
+        - release/6.0
 
   # Ubuntu 1804 x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -520,7 +520,7 @@ jobs:
       container: ubuntu_x64_build_container
       projectFile: sdk_scenarios.proj
       channels:
-        - main
+        - release/6.0
 
   # Windows x64 Blazor 3.2 scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -535,7 +535,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: blazor_scenarios.proj
       channels:
-        - main
+        - release/6.0
 
 ################################################
 # Manually Triggered Job
