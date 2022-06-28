@@ -18,7 +18,7 @@ open('./Nuget.config', 'wb').write(NugetFile.content)
 
 precommands = PreCommands()
 precommands.install_workload('maui', ['--from-rollback-file', 'https://aka.ms/dotnet/maui/net6.0.json', '--configfile', './Nuget.config'])
-precommands.new(template='maui',
+precommands.new(template='maui-blazor',
                 output_dir=const.APPDIR,
                 bin_dir=const.BINDIR,
                 exename=EXENAME,
