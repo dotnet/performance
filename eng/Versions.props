@@ -7,12 +7,12 @@
   </PropertyGroup>
   <!--Package versions-->
   <PropertyGroup>
-    <MicrosoftDotnetSdkInternalPackageVersion>1.0.0-servicing.22314.29</MicrosoftDotnetSdkInternalPackageVersion>
-    <MicrosoftNETCoreAppRuntimewinx64PackageVersion>3.1.25</MicrosoftNETCoreAppRuntimewinx64PackageVersion>
+    <MicrosoftDotnetSdkInternalPackageVersion>1.0.0-servicing.22355.6</MicrosoftDotnetSdkInternalPackageVersion>
+    <MicrosoftNETCoreAppRuntimewinx64PackageVersion>3.1.26</MicrosoftNETCoreAppRuntimewinx64PackageVersion>
     <MicrosoftNETSdkInternalPackageVersion>
     </MicrosoftNETSdkInternalPackageVersion>
-    <MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>3.1.25</MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>
-    <MicrosoftAspNetCoreAppRuntimewinx64PackageVersion>3.1.25</MicrosoftAspNetCoreAppRuntimewinx64PackageVersion>
+    <MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>3.1.26</MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>
+    <MicrosoftAspNetCoreAppRuntimewinx64PackageVersion>3.1.26</MicrosoftAspNetCoreAppRuntimewinx64PackageVersion>
   </PropertyGroup>
   <!--Package names-->
   <PropertyGroup>
