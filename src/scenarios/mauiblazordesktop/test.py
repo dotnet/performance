@@ -7,7 +7,7 @@ EXENAME = 'MauiBlazorDesktopTesting'
 def main():
     traits = TestTraits(exename=EXENAME,
                         guiapp='true',
-                        startupmetric='WinUI',
+                        startupmetric='WinUICustom',
                         timeout=30,
                         measurementdelay='6',
                         runwithoutexit='false',
