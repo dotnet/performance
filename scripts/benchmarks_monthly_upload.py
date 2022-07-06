@@ -11,6 +11,7 @@ appId = "c2fe4cd0-be4a-468b-aa4f-078c67dcab6e"
 
 uploadService = "https://perfcontrib.azurewebsites.net"
 uploadEndpoint = f"{uploadService}/api/UploadPerfData"
+listEndpoint = f"{uploadService}/api/ListUploads"
 authEndpoint = f"{uploadService}/.auth/login/aad"
 authDetailsEndpoint = f"{uploadService}/.auth/me"
 
@@ -119,10 +120,32 @@ def upload(filename: str) -> None:
     with urlopen(Request(uploadEndpoint,
                 headers = { "X-ZUMO-AUTH": token, "Content-Type": "application/octet-stream", "X-Filename": filename },
                 data = open(filename,"rb"))) as response:
-        print(response.read().decode('utf-8'))
+        print(loads(response.read().decode('utf-8'))["message"])
+
+def list_uploads() -> None:
+    token = get_token()
+
+    with urlopen(Request(listEndpoint,
+                headers = { "X-ZUMO-AUTH": token })) as response:
+        uploads = loads(response.read().decode('utf-8'))
+        for filename in uploads["filenames"]:
+            print(filename)
+    
+    print()
 
 if __name__ == "__main__":
     if (len(sys.argv) <= 1):
-        print("Usage: benchmark_monthly_upload.py filename_to_upload.tar.gz")
+        print("""Usage:
+
+    Upload a file:
+        benchmark_monthly_upload.py filename_to_upload.tar.gz
+
+    List your uploads:
+        benchmark_monthly_upload.py --list
+""")
         exit(0)
-    upload(sys.argv[1])
+
+    if (sys.argv[1] == "--list"):
+        list_uploads()
+    else:
+        upload(sys.argv[1])
