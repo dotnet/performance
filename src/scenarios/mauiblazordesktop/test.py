@@ -1,5 +1,8 @@
 import os
+from shutil import copytree
 import subprocess
+from scenarios.shared.const import TRACEDIR
+from scenarios.shared.util import helixuploaddir
 from shared.runner import TestTraits, Runner
 
 EXENAME = 'MauiBlazorDesktopTesting'
@@ -23,4 +26,7 @@ if __name__ == "__main__":
     print(f'Env: MAUI_VERSION: {os.environ["MAUI_VERSION"]}')
     if("sha" not in os.environ["MAUI_VERSION"] and "azdo" not in os.environ["MAUI_VERSION"]):
         raise ValueError(f"MAUI_VERSION does not contain sha and azdo indicating failure to retrieve or set the value. MAUI_VERSION: {os.environ['MAUI_VERSION']}")
-    main()
+    try:
+        main()
+    finally:
+        copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
