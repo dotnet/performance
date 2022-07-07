@@ -30,6 +30,7 @@ namespace ScenarioMeasurement
             var ins = new Dictionary<int, double>();
             double start = -1;
             int? pid = null;
+            bool frameStopCaught = false;
             using (var source = new ETWTraceEventSource(mergeTraceFile))
             {
                 source.Kernel.ProcessStart += evt =>
@@ -70,9 +71,10 @@ namespace ScenarioMeasurement
 
                 source.Dynamic.AddCallbackForProviderEvent(WinUIProvider, "Frame/Stop", evt =>
                 {
-                    if (pid.HasValue && evt.ProcessID == pid && evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
+                    if (!frameStopCaught && pid.HasValue && evt.ProcessID == pid && evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
                     {
                         baseStartup.Add(evt.TimeStampRelativeMSec - start);
+                        frameStopCaught = true;
                     }
                 });
 
@@ -85,6 +87,7 @@ namespace ScenarioMeasurement
                         pid = null;
                         threadTime = 0;
                         start = 0;
+                        frameStopCaught = false;
                     }
                 });
 
