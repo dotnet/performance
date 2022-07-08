@@ -1,8 +1,6 @@
 import os
 from shutil import copytree
 import subprocess
-from scenarios.shared.const import TRACEDIR
-from scenarios.shared.util import helixuploaddir
 from shared.runner import TestTraits, Runner
 
 EXENAME = 'MauiBlazorDesktopTesting'
@@ -29,4 +27,4 @@ if __name__ == "__main__":
     try:
         main()
     finally:
-        copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
+        copytree('traces', os.path.join(os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'), 'traces'))
