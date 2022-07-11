@@ -1,5 +1,5 @@
 import os
-from shutil import copytree
+from shutil import copyfile, copytree, make_archive
 import subprocess
 from shared.runner import TestTraits, Runner
 
@@ -28,4 +28,5 @@ if __name__ == "__main__":
         main()
     finally:
         copytree('traces', os.path.join(os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'), 'traces'))
-        copytree('pub', os.path.join(os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'), 'pub'))
+        make_archive('appZip', 'zip')
+        copyfile('appZip.zip', os.path.join(os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'), 'appZip'))
