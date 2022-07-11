@@ -11,7 +11,7 @@ namespace MauiBlazorDesktopTesting.Pages
         {
             if (firstRender)
             {
-                log.Write("FirstRender", new EventSourceOptions {Level=EventLevel.Verbose, Opcode=EventOpcode.Info });
+                log.Write("FirstRender", new EventSourceOptions {Level=EventLevel.LogAlways, Opcode=EventOpcode.Info });
             }
         }
     }
