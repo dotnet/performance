@@ -8,7 +8,7 @@ namespace ScenarioMeasurement
     public class WinUICustomParser : IParser
     {
         const String WinUIProvider = "Microsoft-Windows-XAML";
-        const String PerfProvider = "Perf-Custom-Event";
+        const String PerfProvider = "PerfLabGenericEventSource";
 
         public void EnableKernelProvider(ITraceSession kernel)
         {
@@ -78,7 +78,7 @@ namespace ScenarioMeasurement
                     }
                 });
 
-                source.Dynamic.AddCallbackForProviderEvent(PerfProvider, "FirstRender", evt =>
+                source.Dynamic.AddCallbackForProviderEvent(PerfProvider, "Startup", evt =>
                 {
                     if (pid.HasValue && evt.ProcessID == pid && evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
                     {

@@ -9,8 +9,7 @@ namespace MauiBlazorDesktopTesting.Pages
             EventSourceSettings.EtwSelfDescribingEventFormat);
         protected override void OnAfterRender(bool firstRender)
         {
-            if (firstRender)
-            {
+            if (firstRender) {
                 log.Write("FirstRender", new EventSourceOptions {Level=EventLevel.LogAlways, Opcode=EventOpcode.Info });
             }
         }
