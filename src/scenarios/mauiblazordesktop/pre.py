@@ -27,7 +27,7 @@ precommands.new(template='maui-blazor',
 
 subprocess.run(["dotnet", "add", "./app", "package", "Microsoft.WindowsAppSDK"]) # Add the package reference for the Microsoft.WindowsAppSDK for self-contained running
 shutil.copy2(os.path.join('src', 'Replacement.Index.razor.cs'), os.path.join(const.APPDIR, 'Pages', 'Index.razor.cs'))
-precommands.add_startup_logging(os.path.join('Pages', 'Replacement.Index.razor.cs'), "if (firstRender) {")
+precommands.add_startup_logging(os.path.join('Pages', 'Index.razor.cs'), "if (firstRender) {")
 
 print("File: ")
 with open(os.path.join(const.APPDIR, 'Pages', 'Index.razor.cs'), 'r') as f:
