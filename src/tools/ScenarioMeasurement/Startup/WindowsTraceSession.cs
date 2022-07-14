@@ -149,9 +149,12 @@ namespace ScenarioMeasurement
 
         public void EnableUserProvider(string provider, TraceEventLevel verboseLevel = TraceEventLevel.Verbose)
         {
-            logger.Log($"Enabling User Provider: {provider}");
+            Guid guid = TraceEventProviders.GetEventSourceGuidFromName(provider);
+            logger.Log($"Enabling User Provider: {provider} with guid: {guid}");
             UserSession.EnableProvider(provider, verboseLevel);
             logger.Log($"User Provider Enabled: {provider}");
+            List<Guid> guids = TraceEventProviders.GetRegisteredOrEnabledProviders();
+            logger.Log($"Provider registered or enabled: {guids.Contains(guid)}");
         }
 
         public static bool IsAdministrator()
