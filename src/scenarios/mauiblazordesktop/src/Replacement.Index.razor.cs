@@ -14,7 +14,10 @@ namespace MauiBlazorDesktopTesting.Pages
                 {
                     sw.WriteLine("This is the new text");
                 }
+                System.Console.WriteLine("First Render!!!!");
                 log.Write("FirstRender", new EventSourceOptions {Level=EventLevel.LogAlways, Opcode=EventOpcode.Info });
+                Environment.Exit(97);
+                throw new Exception("Inside First Render After the log!!");
             }
         }
     }
