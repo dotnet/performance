@@ -7,18 +7,16 @@ namespace MauiBlazorDesktopTesting.Pages
         private static EventSource log = new EventSource(
             "Perf-Custom-Event",
             EventSourceSettings.EtwSelfDescribingEventFormat);
+
         protected override void OnAfterRender(bool firstRender)
         {
-            if (firstRender) {
-                using (StreamWriter sw = File.AppendText(@".\traces\testblazorhybridfile.txt"))
-                {
-                    sw.WriteLine("This is the new text");
-                }
-                System.Console.WriteLine("First Render!!!!");
-                log.Write("FirstRender", new EventSourceOptions {Level=EventLevel.LogAlways, Opcode=EventOpcode.Info });
-                Environment.Exit(97);
-                throw new Exception("Inside First Render After the log!!");
+            using (StreamWriter sw = File.AppendText(@".\traces\testblazorhybridfile.txt"))
+            {
+                sw.WriteLine("This is the new text");
             }
+            System.Console.WriteLine("First Render!!!!");
+            log.Write("FirstRender", new EventSourceOptions {Level=EventLevel.LogAlways, Opcode=EventOpcode.Info });
+            Environment.Exit(97);
         }
     }
 }
