@@ -1,7 +1,6 @@
 import os
 from shutil import copyfile, copytree, make_archive
 import subprocess
-from scenarios.shared import const
 from shared.runner import TestTraits, Runner
 
 EXENAME = 'MauiBlazorDesktopTesting'
@@ -28,6 +27,6 @@ if __name__ == "__main__":
     try:
         main()
     finally:
-        copytree(const.TRACEDIR, os.path.join(os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'), 'traces'))
+        copytree('traces', os.path.join(os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'), 'traces'))
         make_archive('appZip', 'zip')
         copyfile('appZip.zip', os.path.join(os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'), 'appZip'))
