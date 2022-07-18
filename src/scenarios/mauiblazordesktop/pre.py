@@ -34,3 +34,4 @@ with open(os.path.join(const.APPDIR, 'Pages', 'Index.razor.cs'), 'r') as f:
     print(f.read())
 
 precommands.execute(['/p:Platform=x64','/p:WindowsAppSDKSelfContained=True','/p:WindowsPackageType=None','/p:WinUISDKReferences=False','/p:PublishReadyToRun=true'])
+shutil.copyfile('DesktopTestBinlog.binlog', os.path.join(os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'), 'Binlog.binlog'))
