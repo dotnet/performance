@@ -6,6 +6,7 @@ import subprocess
 import sys
 import os
 from performance.logger import setup_loggers
+from shared.codefixes import insert_after
 from shared.precommands import PreCommands
 from shared import const
 from test import EXENAME
@@ -28,6 +29,7 @@ precommands.new(template='maui-blazor',
 subprocess.run(["dotnet", "add", "./app", "package", "Microsoft.WindowsAppSDK"]) # Add the package reference for the Microsoft.WindowsAppSDK for self-contained running
 shutil.copy2(os.path.join(const.SRCDIR, 'Replacement.Index.razor.cs'), os.path.join(const.APPDIR, 'Pages', 'Index.razor.cs'))
 precommands.add_startup_logging(os.path.join('Pages', 'Index.razor.cs'), "if (firstRender) {")
+insert_after(os.path.join(const.APPDIR, 'MauiBlazorDesktopTesting.csproj'), "<TargetFrameworks>net6.0-android;net6.0-ios;net6.0-maccatalyst</TargetFrameworks>", "        <TargetFrameworks>$(TargetFrameworks);net6.0-windows10.0.19041.0</TargetFrameworks>")
 
 print("File: ")
 with open(os.path.join(const.APPDIR, 'Pages', 'Index.razor.cs'), 'r') as f:
