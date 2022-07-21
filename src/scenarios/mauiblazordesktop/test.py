@@ -28,5 +28,6 @@ if __name__ == "__main__":
         main()
     finally:
         copytree('traces', os.path.join(os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'), 'traces'))
-        make_archive('appZip', 'zip')
-        copyfile('appZip.zip', os.path.join(os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'), 'appZip'))
+        #make_archive('appZip', 'zip')
+        #copyfile('appZip.zip', os.path.join(os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'), 'appZip'))
+        print("Finally statement complete")

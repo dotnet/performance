@@ -14,8 +14,14 @@ import requests
 
 setup_loggers(True)
 NugetURL = 'https://raw.githubusercontent.com/dotnet/maui/main/NuGet.config'
+WebViewURL = 'https://go.microsoft.com/fwlink/p/?LinkId=2124703'
 NugetFile = requests.get(NugetURL)
 open('./Nuget.config', 'wb').write(NugetFile.content)
+# TODO Check if we already have Webview installed, otherwise, install it
+WebViewInstallFile = requests.get(WebViewURL)
+open('./MicrosoftEdgeWebview2Setup.exe', 'wb').write(WebViewInstallFile.content)
+subprocess.run(['powershell', '-Command', r'Start-Process "./MicrosoftEdgeWebview2Setup.exe" -Wait'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+print("Installed WebView2")
 
 precommands = PreCommands()
 precommands.install_workload('maui', ['--from-rollback-file', 'https://aka.ms/dotnet/maui/net6.0.json', '--configfile', './Nuget.config'])
@@ -28,12 +34,12 @@ precommands.new(template='maui-blazor',
 
 subprocess.run(["dotnet", "add", "./app", "package", "Microsoft.WindowsAppSDK"]) # Add the package reference for the Microsoft.WindowsAppSDK for self-contained running
 shutil.copy2(os.path.join(const.SRCDIR, 'Replacement.Index.razor.cs'), os.path.join(const.APPDIR, 'Pages', 'Index.razor.cs'))
-precommands.add_startup_logging(os.path.join('Pages', 'Index.razor.cs'), "if (firstRender) {")
-insert_after(os.path.join(const.APPDIR, 'MauiBlazorDesktopTesting.csproj'), "<TargetFrameworks>net6.0-android;net6.0-ios;net6.0-maccatalyst</TargetFrameworks>", "        <TargetFrameworks>$(TargetFrameworks);net6.0-windows10.0.19041.0</TargetFrameworks>")
+#precommands.add_startup_logging(os.path.join('Pages', 'Index.razor.cs'), "if (firstRender) {")
+#insert_after(os.path.join(const.APPDIR, 'MauiBlazorDesktopTesting.csproj'), "<TargetFrameworks>net6.0-android;net6.0-ios;net6.0-maccatalyst</TargetFrameworks>", "        <TargetFrameworks>$(TargetFrameworks);net6.0-windows10.0.19041.0</TargetFrameworks>")
 
-print("File: ")
-with open(os.path.join(const.APPDIR, 'Pages', 'Index.razor.cs'), 'r') as f:
-    print(f.read())
+# print("File: ")
+# with open(os.path.join(const.APPDIR, 'Pages', 'Index.razor.cs'), 'r') as f:
+#     print(f.read())
 
 precommands.execute(['/p:Platform=x64','/p:WindowsAppSDKSelfContained=True','/p:WindowsPackageType=None','/p:WinUISDKReferences=False','/p:PublishReadyToRun=true'])
-shutil.copyfile('DesktopTestBinlog.binlog', os.path.join(os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'), 'Binlog.binlog'))
+#shutil.copyfile('DesktopTestBinlog.binlog', os.path.join(os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'), 'Binlog.binlog'))

@@ -10,13 +10,13 @@ namespace MauiBlazorDesktopTesting.Pages
 
         protected override void OnAfterRender(bool firstRender)
         {
-            using (StreamWriter sw = File.AppendText(@".\traces\testblazorhybridfile.txt"))
-            {
-                sw.WriteLine("This is the new text");
-            }
-            System.Console.WriteLine("First Render!!!!");
+            //using (StreamWriter sw = File.AppendText(@".\traces\testblazorhybridfile.txt"))
+            //{
+            //    sw.WriteLine("This is the new text");
+            //}
+            //System.Console.WriteLine("First Render!!!!");
             log.Write("FirstRender", new EventSourceOptions {Level=EventLevel.LogAlways, Opcode=EventOpcode.Info });
-            Environment.Exit(97);
+            //Environment.Exit(97);
         }
     }
 }
