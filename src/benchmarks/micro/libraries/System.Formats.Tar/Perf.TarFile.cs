@@ -74,10 +74,8 @@ namespace System.Formats.Tar.Tests
         [Benchmark]
         public async Task CreateFromDirectory_Stream_Async()
         {
-            await using (MemoryStream ms = new MemoryStream())
-            {
-                await TarFile.CreateFromDirectoryAsync(sourceDirectoryName: _inputDirPath, destination: ms, includeBaseDirectory: false);
-            }
+            await using MemoryStream ms = new MemoryStream();
+            await TarFile.CreateFromDirectoryAsync(sourceDirectoryName: _inputDirPath, destination: ms, includeBaseDirectory: false);
         }
 
         [Benchmark]
@@ -90,10 +88,8 @@ namespace System.Formats.Tar.Tests
         [Benchmark]
         public async Task ExtractToDirectory_Stream_Async()
         {
-            await using (FileStream fs = File.OpenRead(_inputTarFilePath))
-            {
-                await TarFile.ExtractToDirectoryAsync(source: fs, destinationDirectoryName: _outputDirPath, overwriteFiles: true);
-            }
+            await using FileStream fs = File.OpenRead(_inputTarFilePath);
+            await TarFile.ExtractToDirectoryAsync(source: fs, destinationDirectoryName: _outputDirPath, overwriteFiles: true);
         }
     }
 }
