@@ -250,7 +250,6 @@ jobs:
       container: centos_x64_build_container
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
-      excludedCategories: 'NoAOT'
       channels:
         - nativeaot7.0
 
