@@ -1,5 +1,4 @@
 import os
-from shutil import copyfile, copytree, make_archive
 import subprocess
 from shared.runner import TestTraits, Runner
 
@@ -24,10 +23,4 @@ if __name__ == "__main__":
     print(f'Env: MAUI_VERSION: {os.environ["MAUI_VERSION"]}')
     if("sha" not in os.environ["MAUI_VERSION"] and "azdo" not in os.environ["MAUI_VERSION"]):
         raise ValueError(f"MAUI_VERSION does not contain sha and azdo indicating failure to retrieve or set the value. MAUI_VERSION: {os.environ['MAUI_VERSION']}")
-    try:
-        main()
-    finally:
-        #copytree('traces', os.path.join(os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'), 'traces'))
-        #make_archive('appZip', 'zip')
-        #copyfile('appZip.zip', os.path.join(os.environ.get('HELIX_WORKITEM_UPLOAD_ROOT'), 'appZip'))
-        print("Finally statement complete")
+    main()
