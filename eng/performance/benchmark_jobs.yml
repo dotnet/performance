@@ -10,6 +10,7 @@ parameters:
   channels: []          # required -- list of channels to download .NET from
   runCategories: ''     # required -- string of space separated categories supplied to benchmark dotnet
   machinePool: ''       # required -- Name of perf machine pool (Tiger, Owl, etc)
+  variables: []         # optional -- List of variables that make it all the way through jobs.yml
 
 jobs:
 - template: ../common/templates/jobs/jobs.yml
@@ -22,6 +23,7 @@ jobs:
         displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.machinePool }}'
         timeoutInMinutes: 320
         variables:
+        - ${{ parameters.variables }}
         - ${{ if eq(parameters.osName, 'windows') }}:
           - name: CliArguments
             value: '--dotnet-versions %DOTNET_VERSION% --cli-source-info args --cli-branch %PERFLAB_BRANCH% --cli-commit-sha %PERFLAB_HASH% --cli-repository https://github.com/%PERFLAB_REPO% --cli-source-timestamp %PERFLAB_BUILDTIMESTAMP%'
