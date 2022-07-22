@@ -773,7 +773,7 @@ def install(
     # run, we will be testing the "wrong" version, ie, not the version we specified.
     if (not versions) and channels:
         for channel in channels:
-            cmdline_args = common_cmdline_args + ['-Channel', channel if channel != "release/6.0" else "6.0"]
+            cmdline_args = common_cmdline_args + ['-Channel', channel if channel != "release/6.0" else "6.0.4xx"]
             if ChannelMap.get_quality_from_channel(channel) is not None:
                 cmdline_args += ['-Quality', ChannelMap.get_quality_from_channel(channel)]
             RunCommand(cmdline_args, verbose=verbose, retry=1).run(
