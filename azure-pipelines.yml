@@ -252,9 +252,6 @@ jobs:
       runCategories: 'runtime libraries'
       channels:
         - nativeaot7.0
-      variables:
-        - name: CustomBenchmarkArgs
-          value: '--category-exclusion-filter NoAOT'
 
   # Ubuntu 1804 x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml

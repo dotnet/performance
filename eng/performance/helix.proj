@@ -39,14 +39,14 @@
   <ItemGroup Condition="$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
     <HelixWorkItem Include="@(Partition)">
       <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
-      <Command>$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments) $(CustomBenchmarkArgs) --partition-count $(PartitionCount) --partition-index %(HelixWorkItem.Index)"</Command>
+      <Command>$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments) --partition-count $(PartitionCount) --partition-index %(HelixWorkItem.Index)"</Command>
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemGroup>
   <ItemGroup Condition="!$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
     <HelixWorkItem Include="WorkItem">
       <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
-      <Command>$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments) $(CustomBenchmarkArgs)"</Command>
+      <Command>$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments)"</Command>
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemGroup>
