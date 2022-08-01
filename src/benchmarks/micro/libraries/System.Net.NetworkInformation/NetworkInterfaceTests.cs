@@ -42,7 +42,9 @@ namespace System.Net.NetworkInformation.Tests
                 try { _ = ips.BytesSent; } catch { }
                 try { _ = ips.IncomingPacketsDiscarded;} catch { }
                 try { _ = ips.IncomingPacketsWithErrors;} catch { }
+#if NET5_0_OR_GREATER
                 if (!OperatingSystem.IsLinux())
+#endif
                 {
                     try { _ = ips.IncomingUnknownProtocolPackets;} catch { }
                     try { _ = ips.NonUnicastPacketsSent; } catch { }
@@ -59,7 +61,9 @@ namespace System.Net.NetworkInformation.Tests
                 try { _ = ipp.DnsSuffix; } catch { };
                 try { _ = ipp.UnicastAddresses; } catch { };
                 try { _ = ipp.MulticastAddresses; } catch { };
+#if NET5_0_OR_GREATER
                 if (OperatingSystem.IsWindows())
+#endif
                 {
                     try { _ = ipp.IsDynamicDnsEnabled; } catch { };
                     try { _ = ipp.AnycastAddresses; } catch { };
