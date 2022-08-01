@@ -42,9 +42,14 @@ namespace System.Net.NetworkInformation.Tests
                 try { _ = ips.BytesSent; } catch { }
                 try { _ = ips.IncomingPacketsDiscarded;} catch { }
                 try { _ = ips.IncomingPacketsWithErrors;} catch { }
-                try { _ = ips.IncomingUnknownProtocolPackets;} catch { }
+#if NET5_0_OR_GREATER
+                if (!OperatingSystem.IsLinux())
+#endif
+                {
+                    try { _ = ips.IncomingUnknownProtocolPackets;} catch { }
+                    try { _ = ips.NonUnicastPacketsSent; } catch { }
+                }
                 try { _ = ips.NonUnicastPacketsReceived; } catch { }
-                try { _ = ips.NonUnicastPacketsSent; } catch { }
                 try { _ = ips.OutgoingPacketsDiscarded; } catch { }
                 try { _ = ips.OutgoingPacketsWithErrors; } catch { }
                 try { _ = ips.OutputQueueLength; } catch { }
@@ -54,10 +59,15 @@ namespace System.Net.NetworkInformation.Tests
                 // IP Properties
                 try { _ = ipp.IsDnsEnabled; } catch { };
                 try { _ = ipp.DnsSuffix; } catch { };
-                try { _ = ipp.IsDynamicDnsEnabled; } catch { };
                 try { _ = ipp.UnicastAddresses; } catch { };
                 try { _ = ipp.MulticastAddresses; } catch { };
-                try { _ = ipp.AnycastAddresses; } catch { };
+#if NET5_0_OR_GREATER
+                if (OperatingSystem.IsWindows())
+#endif
+                {
+                    try { _ = ipp.IsDynamicDnsEnabled; } catch { };
+                    try { _ = ipp.AnycastAddresses; } catch { };
+                }
                 try { _ = ipp.DnsAddresses; } catch { };
                 try { _ = ipp.GatewayAddresses; } catch { };
                 try { _ = ipp.DhcpServerAddresses; } catch { };
