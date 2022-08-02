@@ -22,7 +22,7 @@ namespace ScenarioMeasurement
         DotnetWatch,
         DeviceTimeToMain,
         WinUI,
-        WinUICustom
+        WinUIBlazor
     }
 
     public class InnerLoopMarkerEventSource : EventSource
@@ -278,8 +278,8 @@ namespace ScenarioMeasurement
                 case MetricType.WinUI:
                     parser = new WinUIParser();
                     break;
-                case MetricType.WinUICustom:    
-                    parser = new WinUICustomParser();
+                case MetricType.WinUIBlazor:    
+                    parser = new WinUIBlazorParser();
                     break;
             }
 

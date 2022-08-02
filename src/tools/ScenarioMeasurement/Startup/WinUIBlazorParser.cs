@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace ScenarioMeasurement
 {
-    public class WinUICustomParser : IParser
+    public class WinUIBlazorParser : IParser
     {
         const String WinUIProvider = "Microsoft-Windows-XAML";
         const String PerfProvider = "PerfLabGenericEventSource";
