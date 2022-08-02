@@ -88,7 +88,7 @@ namespace System.Formats.Tar.Tests
         [Benchmark]
         public async Task ExtractToDirectory_Stream_Async()
         {
-            await using FileStream fs = File.OpenRead(_inputTarFilePath);
+            await using FileStream fs = new FileStream(_inputTarFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
             await TarFile.ExtractToDirectoryAsync(source: fs, destinationDirectoryName: _outputDirPath, overwriteFiles: true);
         }
     }
