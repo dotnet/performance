@@ -9,32 +9,32 @@ namespace System.MathBenchmarks
 {
     public partial class Single
     {
-        // Tests MathF.Log10(float) over 5000 iterations for the domain -1, +1
+        // Tests float.Log10P1(float) over 5000 iterations for the domain 0, +2
 
-        private const float log10Delta = 0.0004f;
-        private const float log10ExpectedResult = -664.094971f;
+        private const float log10P1Delta = 0.0004f;
+        private const float log10P1ExpectedResult = 1407.15637f;
 
         /// <summary>
         /// this benchmark is dependent on loop alignment
         /// </summary>
         [Benchmark]
-        public void Log10() => Log10Test();
+        public void Log10P1() => Log10P1Test();
 
-        public static void Log10Test()
+        public static void Log10P1Test()
         {
             float result = 0.0f, value = 0.0f;
 
             for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += log10Delta;
-                result += MathF.Log10(value);
+                value += log10P1Delta;
+                result += float.Log10P1(value);
             }
 
-            float diff = MathF.Abs(log10ExpectedResult - result);
+            float diff = MathF.Abs(log10P1ExpectedResult - result);
 
             if (diff > MathTests.SingleEpsilon)
             {
-                throw new Exception($"Expected Result {log10ExpectedResult,10:g9}; Actual Result {result,10:g9}");
+                throw new Exception($"Expected Result {log10P1ExpectedResult,10:g9}; Actual Result {result,10:g9}");
             }
         }
     }

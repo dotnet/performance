@@ -4,35 +4,34 @@
 
 using System;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Running;
 
 namespace System.MathBenchmarks
 {
     public partial class Double
     {
-        // Tests Math.Sin(double) over 5000 iterations for the domain -PI/2, +PI/2
+        // Tests double.SinPi(double) over 5000 iterations for the domain -PI/2, +PI/2
 
-        private const double sinDelta = 0.0006283185307180;
-        private const double sinExpectedResult = 1.0000000005445053;
+        private const double sinPiDelta = 0.0006283185307180;
+        private const double sinPiExpectedResult = -0.97536797261875063;
 
         [Benchmark]
-        public void Sin() => SinTest();
+        public void SinPi() => SinPiTest();
 
-        public static void SinTest()
+        public static void SinPiTest()
         {
             double result = 0.0, value = -1.5707963267948966;
 
             for (int iteration = 0; iteration < MathTests.Iterations; iteration++)
             {
-                value += sinDelta;
-                result += Math.Sin(value);
+                value += sinPiDelta;
+                result += double.SinPi(value);
             }
 
-            double diff = Math.Abs(sinExpectedResult - result);
+            double diff = Math.Abs(sinPiExpectedResult - result);
 
             if (diff > MathTests.DoubleEpsilon)
             {
-                throw new Exception($"Expected Result {sinExpectedResult,20:g17}; Actual Result {result,20:g17}");
+                throw new Exception($"Expected Result {sinPiExpectedResult,20:g17}; Actual Result {result,20:g17}");
             }
         }
     }

@@ -114,12 +114,12 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '3.1')">
-    <Compile Remove="runtime\Math\Functions\Double\CopySignDouble.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\CopySign.cs" />
     <Compile Remove="runtime\Math\Functions\Double\FusedMultiplyAdd.cs" />
     <Compile Remove="runtime\Math\Functions\Double\ILogB.cs" />
     <Compile Remove="runtime\Math\Functions\Double\Log2.cs" />
     <Compile Remove="runtime\Math\Functions\Double\ScaleB.cs" />
-    <Compile Remove="runtime\Math\Functions\Single\CopySignSingle.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\CopySign.cs" />
     <Compile Remove="runtime\Math\Functions\Single\FusedMultiplyAdd.cs" />
     <Compile Remove="runtime\Math\Functions\Single\ILogB.cs" />
     <Compile Remove="runtime\Math\Functions\Single\Log2.cs" />
@@ -143,6 +143,8 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '6.0')">
+    <Compile Remove="runtime\Math\Functions\Double\SinCos.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\SinCos.cs" />
     <Compile Remove="libraries\System.Collections\PriorityQueue\Perf_PriorityQueue.cs" />
     <Compile Remove="libraries\Common\AlignedMemory.cs" />
     <Compile Remove="libraries\System.IO.FileSystem\Perf.RandomAccess.cs" />
@@ -150,6 +152,38 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '7.0')">
+    <Compile Remove="runtime\Math\Functions\Double\AcosPi.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\AsinPi.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\AtanPi.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\CosPi.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\Exp10.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\Exp10M1.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\Exp2.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\Exp2M1.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\ExpM1.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\Hypot.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\Log10P1.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\Log2P1.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\LogP1.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\SinPi.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\SinCosPi.cs" />
+    <Compile Remove="runtime\Math\Functions\Double\TanPi.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\AcosPi.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\AsinPi.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\AtanPi.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\CosPi.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\Exp10.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\Exp10M1.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\Exp2.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\Exp2M1.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\ExpM1.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\Hypot.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\Log10P1.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\Log2P1.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\LogP1.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\SinPi.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\SinCosPi.cs" />
+    <Compile Remove="runtime\Math\Functions\Single\TanPi.cs" />
     <Compile Remove="libraries\System.Formats.Tar\*.cs" />
   </ItemGroup>
 
@@ -160,8 +194,8 @@
 
   <ItemGroup>
     <!-- Temporarily disable tests here -->
-	<!--Like <Compile Remove="libraries\System.Text.RegularExpressions\Perf.Regex.Industry.cs" /> -->
-	  
+    <!--Like <Compile Remove="libraries\System.Text.RegularExpressions\Perf.Regex.Industry.cs" /> -->
+
     <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
     <None Include="**/*.cs" />
   </ItemGroup>

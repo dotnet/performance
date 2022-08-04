@@ -9,7 +9,7 @@ namespace System.MathBenchmarks
 {
     public partial class Double
     {
-        // Tests Math.Log(double) over 5000 iterations for the domain -1, +1
+        // Tests Math.Log(double) over 5000 iterations for the domain 0, +2
 
         private const double logDelta = 0.0004;
         private const double logExpectedResult = -1529.0865454048721;
