@@ -33,7 +33,7 @@ namespace BenchmarkDotNet.Extensions
             // of random-sized memory by BDN engine
             T[] result = new T[count];
 
-            var random = new Random(Seed); 
+            var random = new Random(Seed);
 
             var uniqueValues = new HashSet<T>();
 
@@ -49,12 +49,12 @@ namespace BenchmarkDotNet.Extensions
 
             return result;
         }
-        
+
         public static T[] Array<T>(int count)
         {
             var result = new T[count];
 
-            var random = new Random(Seed); 
+            var random = new Random(Seed);
 
             if (typeof(T) == typeof(byte) || typeof(T) == typeof(sbyte))
             {
@@ -148,6 +148,8 @@ namespace BenchmarkDotNet.Extensions
                 return (T)(object)random.NextDouble();
             if (typeof(T) == typeof(bool))
                 return (T)(object)(random.NextDouble() > 0.5);
+            if (typeof(T) == typeof(decimal))
+                return (T)(object)GenerateRandomDecimal(random);
             if (typeof(T) == typeof(string))
                 return (T)(object)GenerateRandomString(random, 1, 50);
             if (typeof(T) == typeof(Guid))
@@ -166,11 +168,11 @@ namespace BenchmarkDotNet.Extensions
                 var rangeSelector = random.Next(0, 3);
 
                 if (rangeSelector == 0)
-                    builder.Append((char) random.Next('a', 'z'));
+                    builder.Append((char)random.Next('a', 'z'));
                 else if (rangeSelector == 1)
-                    builder.Append((char) random.Next('A', 'Z'));
+                    builder.Append((char)random.Next('A', 'Z'));
                 else
-                    builder.Append((char) random.Next('0', '9'));
+                    builder.Append((char)random.Next('0', '9'));
             }
 
             return builder.ToString();
@@ -181,6 +183,24 @@ namespace BenchmarkDotNet.Extensions
             byte[] bytes = new byte[16];
             random.NextBytes(bytes);
             return new Guid(bytes);
+        }
+
+        private static decimal GenerateRandomDecimal(Random random)
+        {
+            byte scale = (byte)random.Next(29);
+            bool sign = random.Next(2) == 0;
+            return new decimal(random.NextInt32(),
+                               random.NextInt32(),
+                               random.NextInt32(),
+                               sign,
+                               scale);
+        }
+
+        private static int NextInt32(this Random random)
+        {
+            int firstBits = random.Next(0, 1 << 4) << 28;
+            int lastBits = random.Next(0, 1 << 28);
+            return firstBits | lastBits;
         }
     }
 }
