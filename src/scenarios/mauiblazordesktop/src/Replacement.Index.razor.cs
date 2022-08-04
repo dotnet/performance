@@ -7,7 +7,7 @@ namespace MauiBlazorDesktopTesting.Pages
         protected override void OnAfterRender(bool firstRender)
         {
             if (firstRender) {
-
+                 // Startup logging is added here via the setup script.
             }
         }
     }
