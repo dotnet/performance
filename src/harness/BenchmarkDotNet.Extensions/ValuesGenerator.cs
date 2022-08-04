@@ -128,6 +128,8 @@ namespace BenchmarkDotNet.Extensions
 
         private static T GenerateValue<T>(Random random)
         {
+            if (typeof(T) == typeof(byte))
+                return (T)(object)(byte)random.Next(byte.MinValue, byte.MaxValue);
             if (typeof(T) == typeof(char))
                 return (T)(object)(char)random.Next(char.MinValue, char.MaxValue);
             if (typeof(T) == typeof(short))

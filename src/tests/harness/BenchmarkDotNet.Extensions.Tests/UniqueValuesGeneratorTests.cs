@@ -72,5 +72,115 @@ namespace Tests
             Assert.NotEqual(default(int), ValuesGenerator.GetNonDefaultValue<int>());
             Assert.NotEqual(default(string), ValuesGenerator.GetNonDefaultValue<string>());
         }
+
+        [Fact]
+        public void SupportsByte()
+        {
+            Supports<byte>();
+        }
+
+        [Fact]
+        public void SupportsChar()
+        {
+            Supports<char>();
+        }
+
+        [Fact]
+        public void SupportsShort()
+        {
+            Supports<short>();
+        }
+
+        [Fact]
+        public void SupportsUnsignedShort()
+        {
+            Supports<ushort>();
+        }
+
+        [Fact]
+        public void SupportsInteger()
+        {
+            Supports<int>();
+        }
+
+        [Fact]
+        public void SupportsUnsignedInteger()
+        {
+            Supports<uint>();
+        }
+
+        [Fact]
+        public void SupportsLong()
+        {
+            Supports<long>();
+        }
+ 
+        [Fact]
+        public void SupportsUnsignedLong()
+        {
+            Supports<ulong>();
+        }
+
+        [Fact]
+        public void SupportsFloat()
+        {
+            Supports<float>();
+        }
+
+        [Fact]
+        public void SupportsDouble()
+        {
+            Supports<double>();
+        }
+
+        [Fact]
+        public void SupportsBool()
+        {
+            SupportsArray<bool>();
+        }
+
+        [Fact]
+        public void SupportsDecimal()
+        {
+            Supports<decimal>();
+        }
+
+        [Fact]
+        public void SupportsString()
+        {
+            Supports<string>();
+        }
+
+        [Fact]
+        public void SupportsGuid()
+        {
+            Supports<Guid>();
+        }
+
+        private static void SupportsArray<T>()
+        {
+            var array = ValuesGenerator.Array<T>(10);
+            Assert.NotNull(array);
+            Assert.Equal(10, array.Length);
+        }
+        private static void SupportsArrayOfUniques<T>()
+        {
+            var array = ValuesGenerator.ArrayOfUniqueValues<T>(5);
+            Assert.NotNull(array);
+            Assert.Equal(5, array.Length);
+        }
+
+        private static void SupportsNonDefaultValue<T>()
+        {
+            var value = ValuesGenerator.GetNonDefaultValue<T>();
+            Assert.NotEqual(default(T), value);
+        }
+
+        private static void Supports<T>()
+        {
+            SupportsArray<T>();
+            SupportsNonDefaultValue<T>();
+            SupportsArrayOfUniques<T>();
+        }
     }
 }
