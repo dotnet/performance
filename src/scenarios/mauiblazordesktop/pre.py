@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import sys
 import os
-from performance.logger import setup_loggers
+from performance.logger import setup_loggers, getLogger
 from shared.codefixes import insert_after
 from shared.precommands import PreCommands
 from shared import const
@@ -28,9 +28,9 @@ with winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE) as hklm_hive:
             pvvalue = winreg.QueryValueEx(openkey, 'pv')[0]
             if pvvalue and pvvalue != '' and pvvalue != '0.0.0.0':
                 WebViewInstalled = True
-                print(f"WebView Found; pvvalue(version) {pvvalue}")
+                getLogger().info(f"WebView Found; pvvalue(version) {pvvalue}")
     except:
-        print("WebView not verified in Local_Machine Registry")
+        getLogger().warning("WebView not verified in Local_Machine Registry")
 if not WebViewInstalled:
     try:
         with winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER) as hkcu_hive:
@@ -38,11 +38,11 @@ if not WebViewInstalled:
                 pvvalue = winreg.QueryValueEx(openkey, 'pv')[0]
                 if pvvalue and pvvalue != '' and pvvalue != '0.0.0.0':
                     WebViewInstalled = True
-                    print(f"WebView Found; pvvalue(version) {pvvalue}")
+                    getLogger().info(f"WebView Found; pvvalue(version) {pvvalue}")
     except:
-        print("WebView not verified in Current_Machine Registry")
+        getLogger().warning("WebView not verified in Current_Machine Registry")
 if not WebViewInstalled:
-    print("Installing WebView2")
+    getLogger().info("Installing WebView2")
     WebViewInstallFile = requests.get(WebViewURL)
     open('./MicrosoftEdgeWebview2Setup.exe', 'wb').write(WebViewInstallFile.content)
     subprocess.run(['powershell', '-Command', r'Start-Process "./MicrosoftEdgeWebview2Setup.exe" -Wait'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
@@ -52,9 +52,9 @@ if not WebViewInstalled:
                 pvvalue = winreg.QueryValueEx(openkey, 'pv')[0]
                 if pvvalue and pvvalue != '' and pvvalue != '0.0.0.0':
                     WebViewInstalled = True
-                    print(f"WebView Found; pvvalue(version) {pvvalue}")
+                    getLogger().info(f"WebView Found; pvvalue(version) {pvvalue}")
         except:
-            print("WebView not verified in Local_Machine Registry")
+            getLogger().warning("WebView not verified in Local_Machine Registry")
     if not WebViewInstalled:
         try:
             with winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER) as hkcu_hive:
@@ -62,13 +62,13 @@ if not WebViewInstalled:
                     pvvalue = winreg.QueryValueEx(openkey, 'pv')[0]
                     if pvvalue and pvvalue != '' and pvvalue != '0.0.0.0':
                         WebViewInstalled = True
-                        print(f"WebView Found; pvvalue(version) {pvvalue}")
+                        getLogger().info(f"WebView Found; pvvalue(version) {pvvalue}")
         except:
-            print("WebView not verified in Current_Machine Registry.")
-            print("Blazor cannot run without WebView installed, exiting execution.")
+            getLogger().warning("WebView not verified in Current_Machine Registry.")
+            getLogger().error("Blazor cannot run without WebView installed, exiting execution.")
             sys.exit(-1)
 else:
-    print("WebViewAlreadyInstalled")
+    getLogger().info("WebViewAlreadyInstalled")
     
 
 precommands = PreCommands()
