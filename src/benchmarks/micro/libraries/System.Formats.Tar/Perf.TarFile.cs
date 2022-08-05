@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.IO;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 
@@ -51,7 +52,17 @@ namespace System.Formats.Tar.Tests
         }
 
         [Benchmark]
+        public async Task CreateFromDirectory_Path_Async()
+        {
+            await TarFile.CreateFromDirectoryAsync(sourceDirectoryName: _inputDirPath, destinationFileName: _outputTarFilePath, includeBaseDirectory: false);
+            File.Delete(_outputTarFilePath);
+        }
+
+        [Benchmark]
         public void ExtractToDirectory_Path() => TarFile.ExtractToDirectory(sourceFileName: _inputTarFilePath, destinationDirectoryName: _outputDirPath, overwriteFiles: true);
+
+        [Benchmark]
+        public Task ExtractToDirectory_Path_Async() => TarFile.ExtractToDirectoryAsync(sourceFileName: _inputTarFilePath, destinationDirectoryName: _outputDirPath, overwriteFiles: true);
 
         [Benchmark]
         public void CreateFromDirectory_Stream()
@@ -61,10 +72,24 @@ namespace System.Formats.Tar.Tests
         }
 
         [Benchmark]
+        public async Task CreateFromDirectory_Stream_Async()
+        {
+            await using MemoryStream ms = new MemoryStream();
+            await TarFile.CreateFromDirectoryAsync(sourceDirectoryName: _inputDirPath, destination: ms, includeBaseDirectory: false);
+        }
+
+        [Benchmark]
         public void ExtractToDirectory_Stream()
         {
             using FileStream fs = File.OpenRead(_inputTarFilePath);
             TarFile.ExtractToDirectory(source: fs, destinationDirectoryName: _outputDirPath, overwriteFiles: true);
+        }
+
+        [Benchmark]
+        public async Task ExtractToDirectory_Stream_Async()
+        {
+            await using FileStream fs = new FileStream(_inputTarFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);
+            await TarFile.ExtractToDirectoryAsync(source: fs, destinationDirectoryName: _outputDirPath, overwriteFiles: true);
         }
     }
 }
