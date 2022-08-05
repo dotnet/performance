@@ -13,7 +13,7 @@ namespace System.Tests
     {
         DateTime date1 = new DateTime(1996, 6, 3, 22, 15, 0);
         DateTime date2 = new DateTime(1996, 12, 6, 13, 2, 0);
-        
+
         [Benchmark]
         public DateTime GetNow() => DateTime.Now;
 
@@ -41,5 +41,8 @@ namespace System.Tests
 
         [Benchmark]
         public DateTime ParseO() => DateTime.ParseExact("1996-06-03T22:15:00.0000000", "o", null);
+
+        [Benchmark]
+        public int DayOfYear() => date1.DayOfYear;
     }
 }
