@@ -21,15 +21,17 @@ namespace System.Memory
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
 
-        private T[] _array, _same, _emptyWithSingleValue;
+        private T[] _array, _same, _different, _emptyWithSingleValue;
         private T[] _fourValues, _fiveValues;
         private T _notDefaultValue;
 
         [GlobalSetup]
         public void Setup()
         {
-            _array = ValuesGenerator.Array<T>(Size);
+            T[] array = ValuesGenerator.Array<T>(Size * 2);
+            _array = array.Take(Size).ToArray();
             _same = _array.ToArray();
+            _different = array.Skip(Size).ToArray();
         }
 
         [Benchmark]
@@ -49,6 +51,9 @@ namespace System.Memory
 
         [Benchmark]
         public int SequenceCompareTo() => new System.Span<T>(_array).SequenceCompareTo(new System.ReadOnlySpan<T>(_same));
+
+        [Benchmark]
+        public int SequenceCompareToDifferent() => new System.Span<T>(_array).SequenceCompareTo(new System.ReadOnlySpan<T>(_different));
 
         [Benchmark]
         public bool StartsWith() => new System.Span<T>(_array).StartsWith(new System.ReadOnlySpan<T>(_same).Slice(start: 0, length: Size / 2));
