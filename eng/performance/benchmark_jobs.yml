@@ -61,9 +61,6 @@ jobs:
           - ${{ if eq(parameters.osName, 'ubuntu')}}:
             - name: InstallPrerequisites
               value: 'sudo apt-get -y install python3-venv'
-          - ${{ if eq(parameters.osName, 'centos')}}:
-            - name: InstallPrerequisites
-              value: 'sudo yum -y install clang zlib-devel krb5-libs krb5-devel'
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           # for public runs, we do not want to upload perflab data
           - name: PerfLabArguments
