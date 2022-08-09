@@ -17,7 +17,7 @@ NugetFile = requests.get(NugetURL)
 open('./Nuget.config', 'wb').write(NugetFile.content)
 
 precommands = PreCommands()
-precommands.install_workload('maui', ['--from-rollback-file', 'https://aka.ms/dotnet/maui/net7.0.json', '--configfile', './Nuget.config']) # TODO figure out better way to do get the version for the .json
+precommands.install_workload('maui', ['--from-rollback-file', 'https://aka.ms/dotnet/maui/net7.0.json', '--configfile', './Nuget.config'])
 precommands.new(template='maui',
                 output_dir=const.APPDIR,
                 bin_dir=const.BINDIR,
