@@ -1,5 +1,5 @@
 '''
-pre-command: Example call 'python .\pre.py publish -f net6.0-windows10.0.19041.0 -c Release'
+pre-command: Example call 'python .\pre.py publish -f net7.0-windows10.0.19041.0 -c Release'
 '''
 import shutil
 import subprocess
@@ -72,7 +72,7 @@ else:
     
 
 precommands = PreCommands()
-precommands.install_workload('maui', ['--from-rollback-file', 'https://aka.ms/dotnet/maui/net6.0.json', '--configfile', './Nuget.config'])
+precommands.install_workload('maui', ['--from-rollback-file', 'https://aka.ms/dotnet/maui/net7.0.json', '--configfile', './Nuget.config'])
 precommands.new(template='maui-blazor',
                 output_dir=const.APPDIR,
                 bin_dir=const.BINDIR,
