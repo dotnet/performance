@@ -368,7 +368,7 @@ T[] Array<T>(int count);
 Dictionary<TKey, TValue> Dictionary<TKey, TValue>(int count)
 ```
 
-As of today, the `T` can be: `byte`, `char`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `float`, `double`, `bool`, `decimal`, `string`, and `Guid`. Extending `T` to more types is very welcomed!
+As of today, the `T` can be: `byte`, `sbyte`, `char`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `float`, `double`, `bool`, `decimal`, `string`, and `Guid`. Extending `T` to more types is very welcomed!
 
 **Note:** `ValuesGenerator` is simply always creating a new instance of `Random` with a constant seed. It's a crucial component and its correctness is verified using  [Unit Tests](https://github.com/dotnet/performance/blob/main/src/tests/harness/BenchmarkDotNet.Extensions.Tests/UniqueValuesGeneratorTests.cs).
 
