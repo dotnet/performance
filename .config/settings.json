@@ -1,0 +1,6 @@
+{
+    
+    "Storage": {
+        "test-key": "[vault(testk-key)]"
+    }
+}
