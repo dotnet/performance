@@ -18,6 +18,8 @@ namespace Tests
         [Fact]
         public void GeneratedArraysContainOnlyUniqueValues()
         {
+            AssertGeneratedArraysContainOnlyUniqueValues<bool>(2);
+            AssertGeneratedArraysContainOnlyUniqueValues<byte>(255);
             AssertGeneratedArraysContainOnlyUniqueValues<int>(1024);
             AssertGeneratedArraysContainOnlyUniqueValues<string>(1024);
         }
@@ -34,6 +36,7 @@ namespace Tests
         [Fact]
         public void GeneratedArraysContainAlwaysSameValues()
         {
+            AssertGeneratedArraysContainAlwaysSameValues<byte>(255);
             AssertGeneratedArraysContainAlwaysSameValues<int>(1024);
             AssertGeneratedArraysContainAlwaysSameValues<string>(1024);
         }
@@ -68,9 +71,100 @@ namespace Tests
         [Fact]
         public void GetNonDefaultValueReturnsNonDefaultValue()
         {
+            Assert.True(ValuesGenerator.GetNonDefaultValue<bool>());
             Assert.NotEqual(default(byte), ValuesGenerator.GetNonDefaultValue<byte>());
             Assert.NotEqual(default(int), ValuesGenerator.GetNonDefaultValue<int>());
             Assert.NotEqual(default(string), ValuesGenerator.GetNonDefaultValue<string>());
+        }
+
+        [Fact]
+        public void SupportsByte() => Supports<byte>(255);  // note: testing to a maximum of 255 because byte.MaxValue is never generated
+
+        [Fact]
+        public void ThrowsOnTooManyBytes() => Assert.Throws<ArgumentOutOfRangeException>(() => Supports<byte>(256));
+
+        [Fact]
+        public void SupportsSignedByte() => Supports<sbyte>(127);  // note: testing to a maximum of 127 because sbyte.MaxValue is never generated
+
+        [Fact]
+        public void ThrowsOnTooManySignedBytes() => Assert.Throws<ArgumentOutOfRangeException>(() => Supports<sbyte>(256));
+
+        [Fact]
+        public void SupportsChar() => Supports<char>();
+
+        [Fact]
+        public void SupportsShort() => Supports<short>();
+
+        [Fact]
+        public void SupportsUnsignedShort() => Supports<ushort>();
+
+        [Fact]
+        public void SupportsInteger() => Supports<int>();
+
+        [Fact]
+        public void SupportsUnsignedInteger() => Supports<uint>();
+
+        [Fact]
+        public void SupportsLong() => Supports<long>();
+
+        [Fact]
+        public void SupportsUnsignedLong() => Supports<ulong>();
+
+        [Fact]
+        public void SupportsFloat() => Supports<float>();
+
+        [Fact]
+        public void SupportsDouble() => Supports<double>();
+
+        [Fact]
+        public void SupportsBool() => Supports<bool>(2);
+
+        [Fact]
+        public void ThrowsOnTooManyBools() => Assert.Throws<ArgumentOutOfRangeException>(() => Supports<bool>(3));
+
+        [Fact]
+        public void SupportsDecimal() => Supports<decimal>();
+
+        [Fact]
+        public void SupportsString() => Supports<string>();
+
+        [Fact]
+        public void SupportsGuid() => Supports<Guid>();
+
+        private static void SupportsArray<T>(int count)
+        {
+            var array = ValuesGenerator.Array<T>(count);
+            Assert.NotNull(array);
+            Assert.Equal(count, array.Length);
+        }
+
+        private static void SupportsArrayOfUniques<T>(int count)
+        {
+            var array = ValuesGenerator.ArrayOfUniqueValues<T>(count);
+            Assert.NotNull(array);
+            Assert.Equal(count, array.Length);
+        }
+
+        private static void SupportsNonDefaultValue<T>()
+        {
+            var value = ValuesGenerator.GetNonDefaultValue<T>();
+            Assert.NotEqual(default, value);
+        }
+
+        private static void SupportsDictionary<TKey, TValue>(int count)
+        {
+            var dictionary = ValuesGenerator.Dictionary<TKey, TValue>(count);
+            Assert.NotNull(dictionary);
+            Assert.Equal(count, dictionary.Count);
+        }
+
+        private static void Supports<T>(int count = 10)
+        {
+            SupportsArray<T>(count);
+            SupportsNonDefaultValue<T>();
+            SupportsArrayOfUniques<T>(count);
+            SupportsDictionary<T, T>(count);
+            SupportsDictionary<T, string>(count);
         }
     }
 }
