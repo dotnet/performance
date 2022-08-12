@@ -79,7 +79,7 @@ namespace ResultsComparer
 
             rootCommand.AddCommand(matrixCommand);
 
-            matrixCommand.SetHandler<DirectoryInfo, string, string, string, string, int?, string[], bool>(
+            matrixCommand.SetHandler<DirectoryInfo, string, string, string, string, int?, string[], bool, bool>(
                 static (input, basePattern, diffPattern, threshold, noise, top, filters, printStats, ratioOnly) =>
                 {
                     if (TryParseThresholds(threshold, noise, out var testThreshold, out var noiseThreshold)

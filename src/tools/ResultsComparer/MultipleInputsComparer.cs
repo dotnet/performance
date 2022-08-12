@@ -44,7 +44,7 @@ namespace ResultsComparer
                 Console.WriteLine($"## {benchmarkResults.Key}");
                 Console.WriteLine();
 
-                var table; 
+                var table = null;
                 if (args.RatioOnly) 
                 {
                     var data = benchmarkResults
