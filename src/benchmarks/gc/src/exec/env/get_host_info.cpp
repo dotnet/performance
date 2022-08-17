@@ -191,6 +191,7 @@ static CacheStats getCacheStats()
             }
             case RelationProcessorPackage:
             case RelationGroup:
+            case RelationProcessorModule:
                 break;
 
             default:
