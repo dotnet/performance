@@ -92,8 +92,8 @@ namespace MicroBenchmarks.Serializers
         [GlobalCleanup]
         public void Cleanup()
         {
-            xmlDictionaryReader.Dispose();
-            memoryStream.Dispose();
+            xmlDictionaryReader?.Dispose();
+            memoryStream?.Dispose();
         }
     }
 }

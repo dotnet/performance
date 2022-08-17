@@ -69,8 +69,8 @@ namespace MicroBenchmarks.Serializers
         [GlobalCleanup]
         public void Dispose()
         {
-            xmlDictionaryWriter.Dispose();
-            memoryStream.Dispose();
+            xmlDictionaryWriter?.Dispose();
+            memoryStream?.Dispose();
         }
     }
 }
