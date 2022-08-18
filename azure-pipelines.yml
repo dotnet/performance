@@ -39,6 +39,12 @@ schedules:
     include:
     - main
   always: true
+- cron: "0 7 * * THU"
+  displayName: Weekly Build
+  branches:
+    include:
+    - main
+  always: true
 
 jobs:
 
@@ -510,7 +516,7 @@ jobs:
 ################################################
 
 # Scheduled runs will run all of the jobs on the PerfTigers, as well as the Arm64 job
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule')) }}:
+- ${{ if and(and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule')), not(contains(variables['Build.QueuedBy'], 'Weekly'))) }}:
 
   # Windows x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -579,18 +585,48 @@ jobs:
 
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Manual')) }}:
-  
-  # Windows Arm64 scenario benchmarks
-  - template: /eng/performance/scenarios.yml
-    parameters:
-      osName: windows
-      osVersion: 20H1
-      architecture: arm64
-      pool:
-        vmImage: windows-2019
-      kind: scenarios
-      machinePool: Tiger
-      queue: Windows.10.Arm64.Perf.Surf
-      projectFile: scenarios.proj
-      channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
-        - main
+  - job: Synchronize
+    pool:
+      name: NetCore1ESPool-Internal-NoMSI
+      demands: ImageOverride -equals 1es-windows-2019
+    steps:
+    - task: UseDotNet@2
+      displayName: Install .NET 6.0 runtime
+      inputs:
+        version: 6.x
+
+    - script: dotnet tool restore
+
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: .NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)
+        scriptType: ps
+        scriptLocation: inlineScript
+        inlineScript: |
+          Get-ChildItem .vault-config/*.yaml |% { dotnet secret-manager synchronize $_}
+
+################################################
+# Scheduled Private jobs (Weekly)
+################################################
+
+# Scheduled runs will run all of the jobs on the PerfTigers, as well as the Arm64 job
+- ${{ if and(and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule')), contains(variables['Build.QueuedBy'], 'Weekly')) }}:
+  - job: Synchronize
+  pool:
+    name: NetCore1ESPool-Internal-NoMSI
+    demands: ImageOverride -equals 1es-windows-2019
+  steps:
+  - task: UseDotNet@2
+    displayName: Install .NET 6.0 runtime
+    inputs:
+      version: 6.x
+
+  - script: dotnet tool restore
+
+  - task: AzureCLI@2
+    inputs:
+      azureSubscription: .NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)
+      scriptType: ps
+      scriptLocation: inlineScript
+      inlineScript: |
+        Get-ChildItem .vault-config/*.yaml |% { dotnet secret-manager synchronize $_}
