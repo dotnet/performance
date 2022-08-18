@@ -1,6 +1,6 @@
 {
-    
+    "KeyVaultUri": "https://dotnetperfkeyvault.vault.azure.net/",
     "Storage": {
-        "test-key": "[vault(testk-key)]"
+        "test-key": "[vault(test-key)]"
     }
 }
