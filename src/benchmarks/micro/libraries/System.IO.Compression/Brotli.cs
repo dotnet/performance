@@ -13,7 +13,7 @@ namespace System.IO.Compression
         private const int Window = 22;
 
         public override Stream CreateStream(Stream stream, CompressionMode mode) => new BrotliStream(stream, mode);
-        public override Stream CreateStream(Stream stream, CompressionLevel level) => new BrotliStream(stream, level);
+        public override Stream CreateStream(Stream stream, CompressionLevel level) => new BrotliStream(stream, level, leaveOpen: true);
 
         [Benchmark]
         public Span<byte> Compress_WithState()
