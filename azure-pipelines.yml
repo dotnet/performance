@@ -39,7 +39,7 @@ schedules:
     include:
     - main
   always: true
-- cron: "0 7 * * THU"
+- cron: "0 20 * * THU"
   displayName: Weekly Build
   branches:
     include:
