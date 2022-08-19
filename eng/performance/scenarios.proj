@@ -100,6 +100,32 @@
     </HelixWorkItem>
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
+    <!-- SOD & Device Startup for Windows Desktop MAUI -->
+    <HelixWorkItem Include="SOD - Desktop Maui Unpackaged">
+      <PayloadDirectory>$(ScenariosDir)mauidesktop</PayloadDirectory>
+      <PreCommands>$(Python) pre.py publish -c Release -f $(PERFLAB_Framework)-windows10.0.19041.0</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+    <HelixWorkItem Include="Device Startup - Desktop Maui Default">
+      <PayloadDirectory>$(ScenariosDir)mauidesktop</PayloadDirectory>
+      <PreCommands>$(Python) pre.py publish -c Release -f $(PERFLAB_Framework)-windows10.0.19041.0</PreCommands>
+      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+
+    <!-- SOD & Device Startup for Windows Desktop MAUI Blazor -->
+    <HelixWorkItem Include="SOD - Desktop Maui Blazor Unpackaged">
+      <PayloadDirectory>$(ScenariosDir)mauiblazordesktop</PayloadDirectory>
+      <PreCommands>$(Python) pre.py publish -c Release -f $(PERFLAB_Framework)-windows10.0.19041.0</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+    <HelixWorkItem Include="Device Startup - Desktop Maui Blazor Default">
+      <PayloadDirectory>$(ScenariosDir)mauiblazordesktop</PayloadDirectory>
+      <PreCommands>$(Python) pre.py publish -c Release -f $(PERFLAB_Framework)-windows10.0.19041.0</PreCommands>
+      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+  </ItemGroup>
+
   <!--
     This is useful for local testing to print the produced helix items
     To use this when you are changing how items are produced, uncomment the target
