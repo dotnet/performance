@@ -27,7 +27,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
             this.filter4 = File.ReadAllBytes(TestImageFullPath(TestImages.Png.Filter4));
         }
 
-        [Benchmark(Baseline = true, Description = "None-filtered PNG file")]
+        [Benchmark(Description = "None-filtered PNG file")]
         public Size PngFilter0()
             => LoadPng(this.filter0);
 

@@ -11,6 +11,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
     public class EncodeBmp
     {
         private Stream bmpStream;
+        private MemoryStream memoryStream = new MemoryStream();
         private Image<Rgba32> bmpCore;
 
         [GlobalSetup]
@@ -21,6 +22,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
                 this.bmpStream = File.OpenRead(Path.Combine(TestEnvironment.InputImagesDirectoryFullPath, TestImages.Bmp.Car));
                 this.bmpCore = Image.Load<Rgba32>(this.bmpStream);
                 this.bmpStream.Position = 0;
+                this.memoryStream = new MemoryStream();
             }
         }
 
@@ -35,7 +37,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
         [Benchmark(Description = "ImageSharp Bmp")]
         public void BmpImageSharp()
         {
-            using var memoryStream = new MemoryStream();
+            this.memoryStream.Seek(0, SeekOrigin.Begin);
             this.bmpCore.SaveAsBmp(memoryStream);
         }
     }

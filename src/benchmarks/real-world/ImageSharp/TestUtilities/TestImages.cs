@@ -33,11 +33,19 @@ namespace SixLabors.ImageSharp.Tests
                 public const string Lake = "Jpg/baseline/Lake.jpg";
                 public const string Jpeg420Exif = "Jpg/baseline/jpeg420exif.jpg";
                 public const string HistogramEqImage = "Jpg/baseline/640px-Unequalized_Hawkes_Bay_NZ.jpg";
+                public const string Winter444_Interleaved = "Jpg/baseline/winter444_interleaved.jpg";
+                public const string Hiyamugi = "Jpg/baseline/Hiyamugi.jpg";
+                public const string Jpeg400 = "Jpg/baseline/jpeg400jfif.jpg";
             }
 
             public static class Issues
             {
                 public const string BadRstProgressive518 = "Jpg/issues/Issue518-Bad-RST-Progressive.jpg";
+            }
+
+            public static class Progressive
+            {
+                public const string Winter420_NonInterleaved = "Jpg/progressive/winter420_noninterleaved.jpg";
             }
 
             public static class BenchmarkSuite

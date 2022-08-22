@@ -10,6 +10,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
 {
     public class EncodeTga
     {
+        private MemoryStream memoryStream;
         private Image<Rgba32> tga;
 
         private string TestImageFullPath
@@ -24,6 +25,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
             if (this.tga == null)
             {
                 this.tga = Image.Load<Rgba32>(this.TestImageFullPath);
+                this.memoryStream = new MemoryStream();
             }
         }
 
@@ -37,7 +39,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
         [Benchmark(Description = "ImageSharp Tga")]
         public void ImageSharpTga()
         {
-            using var memoryStream = new MemoryStream();
+            this.memoryStream.Seek(0, SeekOrigin.Begin);
             this.tga.SaveAsTga(memoryStream);
         }
     }

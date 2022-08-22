@@ -16,6 +16,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
     {
         // System.Drawing needs this.
         private Stream bmpStream;
+        private MemoryStream memoryStream = new MemoryStream();
         private Image<Rgba32> bmpCore;
 
         // Try to get as close to System.Drawing's output as possible
@@ -35,6 +36,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
                 this.bmpStream = File.OpenRead(Path.Combine(TestEnvironment.InputImagesDirectoryFullPath, this.TestImage));
                 this.bmpCore = Image.Load<Rgba32>(this.bmpStream);
                 this.bmpStream.Position = 0;
+                this.memoryStream = new MemoryStream();
             }
         }
 
@@ -46,16 +48,10 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
             this.bmpCore.Dispose();
         }
 
-        [Benchmark(Baseline = true, Description = "System.Drawing Gif")]
-        public void GifSystemDrawing()
-        {
-            using var memoryStream = new MemoryStream();
-        }
-
         [Benchmark(Description = "ImageSharp Gif")]
         public void GifImageSharp()
         {
-            using var memoryStream = new MemoryStream();
+            this.memoryStream.Seek(0, SeekOrigin.Begin);
             this.bmpCore.SaveAsGif(memoryStream, this.encoder);
         }
     }

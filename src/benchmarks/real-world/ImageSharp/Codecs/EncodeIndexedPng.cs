@@ -19,6 +19,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
     {
         // System.Drawing needs this.
         private Stream bmpStream;
+        private MemoryStream memoryStream;
         private Image<Rgba32> bmpCore;
 
         [GlobalSetup]
@@ -29,6 +30,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
                 this.bmpStream = File.OpenRead(Path.Combine(TestEnvironment.InputImagesDirectoryFullPath, TestImages.Bmp.Car));
                 this.bmpCore = Image.Load<Rgba32>(this.bmpStream);
                 this.bmpStream.Position = 0;
+                this.memoryStream = new MemoryStream();
             }
         }
 
@@ -43,7 +45,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
         [Benchmark(Description = "ImageSharp Octree Png")]
         public void PngCoreOctree()
         {
-            using var memoryStream = new MemoryStream();
+            this.memoryStream.Seek(0, SeekOrigin.Begin);
             var options = new PngEncoder { Quantizer = KnownQuantizers.Octree };
             this.bmpCore.SaveAsPng(memoryStream, options);
         }
@@ -51,7 +53,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
         [Benchmark(Description = "ImageSharp Octree NoDither Png")]
         public void PngCoreOctreeNoDither()
         {
-            using var memoryStream = new MemoryStream();
+            this.memoryStream.Seek(0, SeekOrigin.Begin);
             var options = new PngEncoder { Quantizer = new OctreeQuantizer(new QuantizerOptions { Dither = null }) };
             this.bmpCore.SaveAsPng(memoryStream, options);
         }
@@ -59,7 +61,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
         [Benchmark(Description = "ImageSharp Palette Png")]
         public void PngCorePalette()
         {
-            using var memoryStream = new MemoryStream();
+            this.memoryStream.Seek(0, SeekOrigin.Begin);
             var options = new PngEncoder { Quantizer = KnownQuantizers.WebSafe };
             this.bmpCore.SaveAsPng(memoryStream, options);
         }
@@ -67,7 +69,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
         [Benchmark(Description = "ImageSharp Palette NoDither Png")]
         public void PngCorePaletteNoDither()
         {
-            using var memoryStream = new MemoryStream();
+            this.memoryStream.Seek(0, SeekOrigin.Begin);
             var options = new PngEncoder { Quantizer = new WebSafePaletteQuantizer(new QuantizerOptions { Dither = null }) };
             this.bmpCore.SaveAsPng(memoryStream, options);
         }
@@ -75,7 +77,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
         [Benchmark(Description = "ImageSharp Wu Png")]
         public void PngCoreWu()
         {
-            using var memoryStream = new MemoryStream();
+            this.memoryStream.Seek(0, SeekOrigin.Begin);
             var options = new PngEncoder { Quantizer = KnownQuantizers.Wu };
             this.bmpCore.SaveAsPng(memoryStream, options);
         }
@@ -83,7 +85,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
         [Benchmark(Description = "ImageSharp Wu NoDither Png")]
         public void PngCoreWuNoDither()
         {
-            using var memoryStream = new MemoryStream();
+            this.memoryStream.Seek(0, SeekOrigin.Begin);
             var options = new PngEncoder { Quantizer = new WuQuantizer(new QuantizerOptions { Dither = null }), ColorType = PngColorType.Palette };
             this.bmpCore.SaveAsPng(memoryStream, options);
         }

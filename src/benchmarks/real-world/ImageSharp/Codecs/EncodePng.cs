@@ -14,6 +14,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
     {
         // System.Drawing needs this.
         private Stream bmpStream;
+        private MemoryStream memoryStream;
         private Image<Rgba32> bmpCore;
 
         [Params(false)]
@@ -28,6 +29,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
                 this.bmpStream = File.OpenRead(path);
                 this.bmpCore = Image.Load<Rgba32>(this.bmpStream);
                 this.bmpStream.Position = 0;
+                this.memoryStream = new MemoryStream();
             }
         }
 
@@ -42,7 +44,7 @@ namespace SixLabors.ImageSharp.Benchmarks.Codecs
         [Benchmark(Description = "ImageSharp Png")]
         public void PngCore()
         {
-            using var memoryStream = new MemoryStream();
+            this.memoryStream.Seek(0, SeekOrigin.Begin);
             var encoder = new PngEncoder { FilterMethod = PngFilterMethod.None };
             this.bmpCore.SaveAsPng(memoryStream, encoder);
         }
