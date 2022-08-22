@@ -36,6 +36,7 @@ namespace SixLabors.ImageSharp.Tests
                 public const string Winter444_Interleaved = "Jpg/baseline/winter444_interleaved.jpg";
                 public const string Hiyamugi = "Jpg/baseline/Hiyamugi.jpg";
                 public const string Jpeg400 = "Jpg/baseline/jpeg400jfif.jpg";
+                public const string Snake = "Jpg/baseline/snake.jpg";
             }
 
             public static class Issues
