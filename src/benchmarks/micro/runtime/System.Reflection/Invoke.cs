@@ -80,14 +80,15 @@ namespace System.Reflection
         }
 
         [Benchmark]
-        public void StaticMethod4_int_string_struct_class()
+        // Include the array allocation and population for a typical scenario.
+        public void StaticMethod4_arrayNotCached_int_string_struct_class()
         {
             object[] args = new object[] { 42, "Hello", default(MyBlittableStruct), s_MyClass };
             s_method_int_string_struct_class.Invoke(null, args);
         }
 
         [Benchmark]
-        public void StaticMethod4_PreInstantiatedObjectArray_int_string_struct_class()
+        public void StaticMethod4_int_string_struct_class()
         {
             s_method_int_string_struct_class.Invoke(null, s_args);
         }
@@ -95,21 +96,7 @@ namespace System.Reflection
         [Benchmark]
         public void StaticMethod4_ByRefParams_int_string_struct_class()
         {
-            object[] args = new object[] { 42, "Hello", default(MyBlittableStruct), s_MyClass };
-            s_method_byref_int_string_struct_class.Invoke(null, args);
-        }
-
-        [Benchmark]
-        public void StaticMethod4_ByRefParams_PreInstantiatedObjectArray_int_string_struct_class()
-        {
             s_method_byref_int_string_struct_class.Invoke(null, s_args);
-        }
-
-        [Benchmark]
-        public void StaticMethod1_NullableInt()
-        {
-            object[] args = new object[] { 42 };
-            s_method_nullableInt.Invoke(null, args);
         }
 
         [Benchmark]
@@ -127,15 +114,13 @@ namespace System.Reflection
         [Benchmark]
         public void Ctor4_int_string_struct_class()
         {
-            object[] args = new object[] { 42, "Hello", default(MyBlittableStruct), s_MyClass };
-            s_ctor_int_string_struct_class.Invoke(args);
+            s_ctor_int_string_struct_class.Invoke(s_args);
         }
 
         [Benchmark]
         public void Ctor4_ActivatorCreateInstance()
         {
-            object[] args = new object[] { 42, "Hello", default(MyBlittableStruct), s_MyClass };
-            Activator.CreateInstance(typeof(MyClass), args);
+            Activator.CreateInstance(typeof(MyClass), s_args);
         }
 
         [Benchmark]
