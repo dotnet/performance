@@ -36,6 +36,9 @@
     <Scenario Include="Static F# Console Template">
       <PayloadDirectory>$(ScenariosDir)staticfsconsoletemplate</PayloadDirectory>
     </Scenario>
+    <Scenario Include="F# Compiler Service">
+      <PayloadDirectory>$(ScenariosDir)fsharpcompilerservice</PayloadDirectory>
+    </Scenario>
     <!-- <Scenario Include="Static Winforms Template" Condition="'$(PERFLAB_Framework)' != 'netcoreapp5.0'">
       <PayloadDirectory>$(ScenariosDir)staticwinformstemplate</PayloadDirectory>
     </Scenario> -->
