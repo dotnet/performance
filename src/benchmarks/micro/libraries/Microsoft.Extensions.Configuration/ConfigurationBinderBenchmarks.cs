@@ -11,11 +11,9 @@ namespace Microsoft.Extensions.Configuration
     [BenchmarkCategory(Categories.Libraries)]
     public class ConfigurationBinderBenchmarks
     {
-        public static IEnumerable<int> GetDuplicateCount()
-            => Enumerable.Range(1, 3).Select(i => 2 * i);
+        public static IEnumerable<int> GetDuplicateCount() => new int[] { 2, 4, 6};
 
-        public static IEnumerable<int> GetMyObjectCount()
-            => Enumerable.Range(1, 3).Select(i => 3 * i);
+        public static IEnumerable<int> GetMyObjectCount() => new int[] { 3, 6, 9};
 
         [ParamsSource(nameof(GetMyObjectCount))]
         public int MyObjectCount { get; set; }
