@@ -2,7 +2,6 @@
 using MicroBenchmarks;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 
@@ -22,8 +21,6 @@ namespace Microsoft.Extensions.Configuration
         public int DuplicateCount { get; set; }
 
         private IConfiguration _configuration;
-
-        private readonly List<MemoryStream> _streams = new List<MemoryStream>();
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -55,22 +52,11 @@ namespace Microsoft.Extensions.Configuration
                 var jsonString = JsonConvert.SerializeObject(s);
                 for (var j = 0; j < DuplicateCount; j++)
                 {
-                    var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonString));
-                    this._streams.Add(stream);
-                    builder.AddJsonStream(stream);
+                    builder.AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes(jsonString)));
                 }
             }
 
             _configuration = builder.Build();            
-        }
-
-        [GlobalCleanup]
-        public void Cleanup()
-        {
-            foreach (var s in this._streams)
-            {
-                s.Dispose();
-            }
         }
 
         [Benchmark]
