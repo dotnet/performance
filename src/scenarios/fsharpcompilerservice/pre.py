@@ -10,5 +10,5 @@ from test import EXENAME
 
 setup_loggers(True)
 precommands = PreCommands()
-precommands.existing(os.path.join(sys.path[0], const.SRCDIR), 'FSharp.Compiler.Service.fsproj')
+precommands.existing(os.path.join(sys.path[0], const.SRCDIR), f'{EXENAME}.fsproj')
 precommands.execute()
