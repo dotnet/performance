@@ -9,6 +9,6 @@ EXENAME = 'FSharp.Compiler.Service'
 if __name__ == "__main__":
     traits = TestTraits(exename=EXENAME,
                         guiapp='false',
-                        startupmetric='sdk',
+                        startupmetric='GenericStartup',
                         timeout= f'{const.MINUTE*10}')
     Runner(traits).run()
