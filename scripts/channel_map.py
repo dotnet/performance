@@ -2,6 +2,11 @@ from argparse import ArgumentParser
 
 class ChannelMap():
     channel_map = {
+        'release/7.0-rc1': {
+            'tfm': 'net7.0',
+            'branch': '7.0.1xx',
+            'quality': 'daily'
+        },
         'release/7.0-preview8': {
             'tfm': 'net7.0',
             'branch': '7.0.1xx',
