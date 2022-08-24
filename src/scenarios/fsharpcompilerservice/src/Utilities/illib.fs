@@ -720,7 +720,7 @@ module String =
         elif value.StartsWithOrdinal pattern then Some()
         else None
 
-    let (|Contains|_|) pattern value =
+    let (|Contains|_|) (pattern: string) value =
         if String.IsNullOrWhiteSpace value then None
         elif value.Contains pattern then Some()
         else None

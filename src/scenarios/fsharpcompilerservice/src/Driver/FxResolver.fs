@@ -51,7 +51,7 @@ type internal FxResolver
 
     // Execute the process pathToExe passing the arguments: arguments with the working directory: workingDir timeout after timeout milliseconds -1 = wait forever
     // returns exit code, stdio and stderr as string arrays
-    let executeProcess pathToExe arguments (workingDir: string option) timeout =
+    let executeProcess pathToExe arguments (workingDir: string option) (timeout: int) =
         if not (String.IsNullOrEmpty pathToExe) then
             let errorsList = ResizeArray()
             let outputList = ResizeArray()
@@ -791,7 +791,7 @@ type internal FxResolver
 
     member _.GetSystemAssemblies() = systemAssemblies
 
-    member _.IsInReferenceAssemblyPackDirectory fileName =
+    member _.IsInReferenceAssemblyPackDirectory (fileName: string) =
         fxlock.AcquireLock(fun fxtok ->
             RequireFxResolverLock(fxtok, "assuming all member require lock")
 

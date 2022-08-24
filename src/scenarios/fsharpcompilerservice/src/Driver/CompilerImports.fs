@@ -357,15 +357,15 @@ let isHashRReference (r: range) =
     && not (equals r rangeCmdArgs)
     && FileSystem.IsPathRootedShim r.FileName
 
-let IsNetModule fileName =
+let IsNetModule (fileName: string) =
     let ext = Path.GetExtension fileName
     String.Compare(ext, ".netmodule", StringComparison.OrdinalIgnoreCase) = 0
 
-let IsDLL fileName =
+let IsDLL (fileName: string) =
     let ext = Path.GetExtension fileName
     String.Compare(ext, ".dll", StringComparison.OrdinalIgnoreCase) = 0
 
-let IsExe fileName =
+let IsExe (fileName: string) =
     let ext = Path.GetExtension fileName
     String.Compare(ext, ".exe", StringComparison.OrdinalIgnoreCase) = 0
 

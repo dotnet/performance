@@ -747,7 +747,7 @@ let main1OfAst
         // It's an ugly compromise used to avoid exposing primaryAssembly in the public api for this function.
         let includesSystem_Runtime =
             dllReferences
-            |> Seq.exists (fun f ->
+            |> Seq.exists (fun (f: string) ->
                 Path
                     .GetFileName(f)
                     .Equals("system.runtime.dll", StringComparison.InvariantCultureIgnoreCase))

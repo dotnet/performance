@@ -880,7 +880,7 @@ let getInfoForEmbeddedPortablePdb
     (uncompressedLength: int64)
     (contentId: BlobContentId)
     (compressedStream: MemoryStream)
-    pdbfile
+    (pdbfile: string)
     cvChunk
     pdbChunk
     deterministicPdbChunk

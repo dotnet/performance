@@ -2387,7 +2387,7 @@ module internal ParseAndCheckFile =
         (
             tcConfig,
             parsedMainInput,
-            mainInputFileName,
+            mainInputFileName: string,
             loadClosure: LoadClosure option,
             tcImports: TcImports,
             backgroundDiagnostics

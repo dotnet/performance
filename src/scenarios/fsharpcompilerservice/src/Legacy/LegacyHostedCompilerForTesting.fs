@@ -165,19 +165,19 @@ type internal FscCompiler(legacyReferenceResolver) =
             }
 
     /// test if --test:ErrorRanges flag is set
-    let errorRangesArg =
+    let errorRangesArg: string -> bool =
         let regex = Regex(@"^(/|--)test:ErrorRanges$", RegexOptions.Compiled ||| RegexOptions.IgnoreCase)
-        fun arg -> regex.IsMatch(arg)
+        regex.IsMatch
 
     /// test if --vserrors flag is set
-    let vsErrorsArg =
+    let vsErrorsArg: string -> bool =
         let regex = Regex(@"^(/|--)vserrors$", RegexOptions.Compiled ||| RegexOptions.IgnoreCase)
-        fun arg -> regex.IsMatch(arg)
+        regex.IsMatch
 
     /// test if an arg is a path to fsc.exe
-    let fscExeArg = 
+    let fscExeArg: string -> bool = 
         let regex = Regex(@"fsc(\.exe)?$", RegexOptions.Compiled ||| RegexOptions.IgnoreCase)
-        fun arg -> regex.IsMatch(arg)
+        regex.IsMatch
 
     /// do compilation as if args was argv to fsc.exe
     member _.Compile(args: string[]) =
@@ -259,5 +259,3 @@ module internal CompilerHelpers =
         finally
             Console.SetOut(origOut)
             Console.SetError(origError)
-    
-
