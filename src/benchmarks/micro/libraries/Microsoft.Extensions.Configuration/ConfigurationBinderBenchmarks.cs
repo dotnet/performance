@@ -60,10 +60,7 @@ namespace Microsoft.Extensions.Configuration
         }
 
         [Benchmark]
-        public void Get()
-        {
-            _configuration.Get<MySettings>();
-        }
+        public MySettings Get() =>_configuration.Get<MySettings>();
 
         public class MySettings
         {
