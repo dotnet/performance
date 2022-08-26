@@ -69,16 +69,18 @@ namespace ResultsComparer
                 new[] { "--diff" }, "Pattern used to search for diff results in Input folder. Example: net7.0-preview3");
             Option<bool> printStats = new Option<bool>(
                 new[] { "--stats" }, () => true, "Prints summary per Architecture, Namespace and Operating System.");
+            Option<bool> ratioOnly = new Option<bool>(
+                new[] { "--ratio-only" }, "Do not display the base and diff columns in the results.");
 
             Command matrixCommand = new Command("matrix", "Produces a matrix for all configurations found in given folder.")
             {
-                input.AsRequired(), basePattern.AsRequired(), diffPattern.AsRequired(), threshold, noise, top, filters, printStats
+                input.AsRequired(), basePattern.AsRequired(), diffPattern.AsRequired(), threshold, noise, top, filters, printStats, ratioOnly
             };
 
             rootCommand.AddCommand(matrixCommand);
 
-            matrixCommand.SetHandler<DirectoryInfo, string, string, string, string, int?, string[], bool>(
-                static (input, basePattern, diffPattern, threshold, noise, top, filters, printStats) =>
+            matrixCommand.SetHandler<DirectoryInfo, string, string, string, string, int?, string[], bool, bool>(
+                static (input, basePattern, diffPattern, threshold, noise, top, filters, printStats, ratioOnly) =>
                 {
                     if (TryParseThresholds(threshold, noise, out var testThreshold, out var noiseThreshold)
                         && TryGetPaths(input, basePattern, diffPattern, out var basePaths, out var diffPaths))
@@ -93,10 +95,11 @@ namespace ResultsComparer
                             NoiseThreshold = noiseThreshold,
                             TopCount = top,
                             Filters = GetFilters(filters),
-                            PrintStats = printStats
+                            PrintStats = printStats,
+                            RatioOnly = ratioOnly
                         });
                     }
-                }, input, basePattern, diffPattern, threshold, noise, top, filters, printStats);
+                }, input, basePattern, diffPattern, threshold, noise, top, filters, printStats, ratioOnly);
 
             Option<FileInfo> zip = new Option<FileInfo>(
                 new[] { "--input", "-i" }, "Path to the compressed .zip file that contains results downloaded from SharePoint.");
