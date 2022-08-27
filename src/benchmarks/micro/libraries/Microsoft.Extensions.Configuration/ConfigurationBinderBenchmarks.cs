@@ -4,6 +4,7 @@
 
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -14,11 +15,8 @@ namespace Microsoft.Extensions.Configuration
     [BenchmarkCategory(Categories.Libraries)]
     public class ConfigurationBinderBenchmarks
     {
-        [Params(3, 6, 9)]
-        public int MyObjectCount { get; set; }
-
-        [Params(2, 4, 6)]
-        public int DuplicateCount { get; set; }
+        [Params(32, 64, 128)]
+        public int MySettingsCount { get; set; }
 
         private IConfiguration _configuration;
 
@@ -26,47 +24,24 @@ namespace Microsoft.Extensions.Configuration
         public void GlobalSetup()
         {
             var builder = new ConfigurationBuilder();
-            for (int i = 0; i < this.MyObjectCount; i++)
+            for (int i = 0; i < this.MySettingsCount; i++)
             {
                 var s = new MySettings
                 {
-                    Foo = "root",
-                    Bar = int.MaxValue,
-                    SubSettings = new Dictionary<string, MySettings>
-                    {
-                        ["level 1 key " + i] = new MySettings
-                        {
-                            Foo = "foo" + i,
-                            Bar = i,
-                            SubSettings = new Dictionary<string, MySettings>
-                            {
-                                ["level 2 key " + i] = new MySettings
-                                {
-                                    Foo = "just a simple 2 level tree settings " + i,
-                                    Bar = 2 * i,
-                                }
-                            }
-                        }
-                    }
+                    IdMapping = new Dictionary<string, string> { [i.ToString()] = i.ToString() }
                 };
-                var jsonString = JsonSerializer.Serialize(s);
-                for (var j = 0; j < DuplicateCount; j++)
-                {
-                    builder.AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes(jsonString)));
-                }
+                builder.AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(s))));
             }
 
             _configuration = builder.Build();            
         }
 
         [Benchmark]
-        public MySettings Get() =>_configuration.Get<MySettings>();
+        public MySettings Get() => _configuration.Get<MySettings>();
 
         public class MySettings
         {
-            public string Foo { get; set; }
-            public int Bar { get; set; }
-            public IDictionary<string, MySettings> SubSettings { get; set; }
+            public Dictionary<string, string> IdMapping { get; set; }
         }
     }
 }
