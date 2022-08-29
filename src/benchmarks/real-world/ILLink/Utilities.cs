@@ -8,7 +8,6 @@ namespace ILLinkBenchmarks
 {
     static class Utilities
     {
-
         public static readonly string CurrentRID = RidString(
             GetCurrentOSPlatform(),
             RuntimeInformation.ProcessArchitecture,
