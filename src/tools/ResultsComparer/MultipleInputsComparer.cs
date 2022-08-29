@@ -11,6 +11,7 @@ namespace ResultsComparer
     internal static class MultipleInputsComparer
     {
         private static readonly string[] Headers = new[] { "Result", "Base", "Diff", "Ratio", "Alloc Delta", "Operating System", "Bit", "Processor Name", "Modality" };
+        private static readonly string[] HeadersRatioOnly = new[] { "Result", "Ratio", "Alloc Delta", "Operating System", "Bit", "Processor Name", "Modality" };
 
         internal static void Compare(MultipleInputsOptions args)
         {
@@ -18,8 +19,11 @@ namespace ResultsComparer
             Console.WriteLine();
             Console.WriteLine($"* Statistical Test threshold: {args.StatisticalTestThreshold}, the noise filter: {args.NoiseThreshold}");
             Console.WriteLine($"* Result is conclusion: Slower|Faster|Same|Noise|Unknown. Noise means that the difference was larger than {args.StatisticalTestThreshold} but not {args.NoiseThreshold}.");
-            Console.WriteLine($"* Base is median base execution time in nanoseconds for {args.BasePattern}");
-            Console.WriteLine($"* Diff is median diff execution time in nanoseconds for {args.DiffPattern}");
+            if (!args.RatioOnly) 
+            {
+                Console.WriteLine($"* Base is median base execution time in nanoseconds for {args.BasePattern}");
+                Console.WriteLine($"* Diff is median diff execution time in nanoseconds for {args.DiffPattern}");
+            }
             Console.WriteLine("* Ratio = Base/Diff (the higher the better).");
             Console.WriteLine("* Alloc Delta = Allocated bytes diff - Allocated bytes base (the lower the better)");
             Console.WriteLine();
@@ -40,23 +44,43 @@ namespace ResultsComparer
                 Console.WriteLine($"## {benchmarkResults.Key}");
                 Console.WriteLine();
 
-                var data = benchmarkResults
-                    .OrderBy(result => Order(result.baseEnv))
-                    .Select(result => new
-                    {
-                        Conclusion = result.conclusion == Stats.Noise ? "Noise" : result.conclusion.ToString(),
-                        BaseMedian = result.baseResult.Statistics.Median,
-                        DiffMedian = result.diffResult.Statistics.Median,
-                        Ratio = GetRatio(result),
-                        AllocatedDiff = GetAllocatedDiff(result.diffResult, result.baseResult),
-                        OperatingSystem = Stats.GetSimplifiedOSName(result.baseEnv.OsVersion),
-                        Architecture = result.baseEnv.Architecture,
-                        ProcessorName = result.baseEnv.ProcessorName,
-                        Modality = Helper.GetModalInfo(result.baseResult) ?? Helper.GetModalInfo(result.diffResult),
-                    })
-                    .ToArray();
-
-                var table = data.ToMarkdownTable().WithHeaders(Headers);
+                Table table = null;
+                if (args.RatioOnly) 
+                {
+                    var data = benchmarkResults
+                        .OrderBy(result => Order(result.baseEnv))
+                        .Select(result => new
+                        {
+                            Conclusion = result.conclusion == Stats.Noise ? "Noise" : result.conclusion.ToString(),
+                            Ratio = GetRatio(result),
+                            AllocatedDiff = GetAllocatedDiff(result.diffResult, result.baseResult),
+                            OperatingSystem = Stats.GetSimplifiedOSName(result.baseEnv.OsVersion),
+                            Architecture = result.baseEnv.Architecture,
+                            ProcessorName = result.baseEnv.ProcessorName,
+                            Modality = Helper.GetModalInfo(result.baseResult) ?? Helper.GetModalInfo(result.diffResult),
+                        })
+                        .ToArray();
+                    table = data.ToMarkdownTable().WithHeaders(HeadersRatioOnly);
+                } 
+                else 
+                {
+                    var data = benchmarkResults
+                        .OrderBy(result => Order(result.baseEnv))
+                        .Select(result => new
+                        {
+                            Conclusion = result.conclusion == Stats.Noise ? "Noise" : result.conclusion.ToString(),
+                            BaseMedian = result.baseResult.Statistics.Median,
+                            DiffMedian = result.diffResult.Statistics.Median,
+                            Ratio = GetRatio(result),
+                            AllocatedDiff = GetAllocatedDiff(result.diffResult, result.baseResult),
+                            OperatingSystem = Stats.GetSimplifiedOSName(result.baseEnv.OsVersion),
+                            Architecture = result.baseEnv.Architecture,
+                            ProcessorName = result.baseEnv.ProcessorName,
+                            Modality = Helper.GetModalInfo(result.baseResult) ?? Helper.GetModalInfo(result.diffResult),
+                        })
+                        .ToArray();
+                    table = data.ToMarkdownTable().WithHeaders(Headers);
+                }
 
                 foreach (var line in table.ToMarkdown().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries))
                     Console.WriteLine($"| {line.TrimStart()}|"); // the table starts with \t and does not end with '|' and it looks bad so we fix it
