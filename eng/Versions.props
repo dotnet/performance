@@ -13,6 +13,8 @@
     </MicrosoftNETSdkInternalPackageVersion>
     <MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>5.0.4</MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>
     <MicrosoftAspNetCoreAppRuntimewinx64PackageVersion>5.0.4</MicrosoftAspNetCoreAppRuntimewinx64PackageVersion>
+    <MicrosoftNetILLinkVersion>7.0.100-dev</MicrosoftNetILLinkVersion>
+    <MicrosoftNetILLinkTasksVersion>7.0.100-1.22057.1</MicrosoftNetILLinkTasksVersion>
   </PropertyGroup>
   <!--Package names-->
   <PropertyGroup>
