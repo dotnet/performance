@@ -9,16 +9,17 @@ using BenchmarkDotNet.Engines;
 namespace ILLinkBenchmarks;
 
 [BenchmarkCategory("ILLink")]
-[SimpleJob(RunStrategy.Monitoring, launchCount: 1, warmupCount: 2, targetCount: 10)]
-public partial class BasicBenchark
+[SimpleJob(RunStrategy.Monitoring, launchCount: 1, warmupCount: 3, targetCount: 20)]
+public partial class BasicBenchmark
 {
     string[] _args;
-    readonly string[] _extraArgs = new string[] {
+    string _publishOutputFolder;
+    string[] _linkerOutArgs => new string[] { "-out", Path.Combine(_publishOutputFolder, "linked") };
+    string[] _extraArgs = new string[] {
         "--singlewarn",
         "--trim-mode", "copy",
         "--action", "copy",
         "--singlewarn-", "link6",
-        "-out", @"obj\Debug\net6.0\win-x64\linked",
         "--nowarn", "1701;1702;IL2121;1701;1702",
         "--warn", "5",
         "--warnaserror-", "--warnaserror", ";NU1605",
@@ -33,49 +34,39 @@ public partial class BasicBenchark
         "--feature", "System.Threading.Thread.EnableAutoreleasePool", "false",
         "--feature", "System.Text.Encoding.EnableUnsafeUTF7Encoding", "false",
         "-b",
-        "--enable-serialization-discovery", "--skip-unresolved", "true" };
+        "--skip-unresolved", "true" };
 
-    // static string dotnet6RuntimePackageUrl = $"https://www.nuget.org/api/v2/package/Microsoft.NETCore.App.Runtime.{Utilities.CurrentRID}/6.0.8";
-
-    [GlobalSetup(Targets = new[] {
-         nameof(LinkHelloWorld) })]
-    public async Task DownloadBinaries()
+    [GlobalSetup(Targets = new[] { nameof(LinkHelloWorld) })]
+    public void LinkHelloWorldGlobalSetup()
     {
         string projectFilePath = Environment.GetEnvironmentVariable("ILLINK_SAMPLE_PROJECT");
-        string sampleOutputFolder = await Utilities.PublishSampleProject(projectFilePath);
-        string rootAssembly = Path.Combine(sampleOutputFolder, "HelloWorld.dll");
-        // _assemblyPath = @"C:\Users\jschuster\source\repro\link6\obj\Debug\net6.0\win-x64\link6.dll";
-        // string corlibPath = typeof(object).Assembly.Location;
-        // int corlibFolderDelimiterIndex = corlibPath.LastIndexOf(Path.DirectorySeparatorChar);
-        // _frameworkFolder = corlibPath[..corlibFolderDelimiterIndex];
-        // sampleOutputFolder = @"C:\Users\jschuster\.nuget\packages\microsoft.netcore.app.runtime.win-x64\6.0.8\runtimes\win-x64\lib\net6.0\";
+        _publishOutputFolder = Utilities.PublishSampleProject(projectFilePath);
+        string rootAssembly = Path.Combine(_publishOutputFolder, "HelloWorld.dll");
 
-        string sourceDownloadDir = Path.Combine(AppContext.BaseDirectory, "roslynSource");
-        var sourceDir = Path.Combine(sourceDownloadDir, "CodeAnalysisReproWithAnalyzers");
-        // if (!Directory.Exists(sourceDir))
-        // {
-        //     await FileTasks.DownloadAndUnzip(dotnet6RuntimePackageUrl, sourceDownloadDir);
-        // }
-        // _frameworkFolder = Path.Combine(sourceDir, "runtimes", Utilities.CurrentRID, "lib", "net6.0");
-
-        var frameworkFiles = Directory.EnumerateFiles(sampleOutputFolder, "*.dll").Where(a =>
+        var frameworkFiles = Directory.EnumerateFiles(_publishOutputFolder, "*.dll").Where(a =>
             FrameworkAssemblies.Contains(Path.GetFileName(a))
         );
         var frameworkArgs = frameworkFiles.SelectMany(fileName => new string[] { "-reference", fileName });
         var assemblyArgs = new string[] { "-a", rootAssembly };
-        _args = assemblyArgs.Concat(frameworkArgs).Concat(_extraArgs).ToArray();
+        _args = assemblyArgs.Concat(frameworkArgs).Concat(_extraArgs).Concat(_linkerOutArgs).ToArray();
 
         return;
     }
 
+    [GlobalCleanup(Targets = new[] { nameof(LinkHelloWorld) })]
+    public void LinkHelloWorldGlobalCleanup()
+    {
+        Directory.Delete(_publishOutputFolder, recursive: true);
+    }
+
     [Benchmark]
     [BenchmarkCategory("ILLink")]
-    public void LinkHelloWorld()
+    public object LinkHelloWorld()
     {
         Mono.Linker.WarnVersion x = Mono.Linker.WarnVersion.Latest;
         Type driver = x.GetType().Assembly.GetType("Mono.Linker.Driver", true, false);
         MethodInfo linkerMain = driver.GetMethod("Main", BindingFlags.Static | BindingFlags.Public);
-        linkerMain.Invoke(null, new object[] { _args });
+        return linkerMain.Invoke(null, new object[] { _args });
     }
 
     private static readonly string[] FrameworkAssemblies = new string[]
@@ -244,4 +235,4 @@ public partial class BasicBenchark
         "System.Xml.XPath.dll",
         "System.Xml.XPath.XDocument.dll",
         "WindowsBase.dll"};
-            }
+}

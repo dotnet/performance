@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace ILLinkBenchmarks
 {
@@ -43,12 +44,15 @@ namespace ILLinkBenchmarks
                 throw new NotSupportedException("Current OS is not supported: " + RuntimeInformation.OSDescription);
         }
 
-        public static async Task<string> PublishSampleProject(string projectFilePath)
+        /// <summary>
+        /// Shells out to run `dotnet publish --self-contained` on the project file passed in, and outputs to a random temp folder. Returns path to the output folder.
+        /// </summary>
+        public static string PublishSampleProject(string projectFilePath, params string[] extraArgs)
         {
             string outputDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(outputDirectory);
-            var p = Process.Start("dotnet", $"publish {projectFilePath} -r {CurrentRID} --self-contained -o {outputDirectory}");
-            await p.WaitForExitAsync();
+            var p = Process.Start("dotnet", $"publish {projectFilePath} -r {CurrentRID} --self-contained -o {outputDirectory} {extraArgs.Aggregate("", (agg, val) => agg + " " + val)}");
+            p.WaitForExit();
             return outputDirectory;
         }
     }
