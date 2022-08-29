@@ -24,6 +24,7 @@
 		<PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.3.1" />
 	</ItemGroup>
 
+	<!-- Make a copy of the sample project with the latest version of ILLink.Tasks -->
 	<Target Name="CreateProjectWithILLinkVersion"
 			Inputs="@(ProjectFileTemplate);@(ProjectFile);$(MicrosoftNetILLinkTasksVersion)"
 			Outputs="@(ProjectFile)"
@@ -37,17 +38,14 @@
 		</ItemGroup>
 		<Touch Files="@(ProjectFile)" AlwaysCreate="true"/>
 		<WriteLinesToFile
-          File="@(ProjectFile)"
-          Lines="$([System.IO.File]::ReadAllText('%(ProjectFileTemplate.FullPath)').Replace('$(TextToReplace)','$(MicrosoftNetILLinkTasksVersion)'))"
-          Overwrite="true"
-          Encoding="Unicode" />
-
+			File="@(ProjectFile)"
+			Lines="$([System.IO.File]::ReadAllText('%(ProjectFileTemplate.FullPath)').Replace('$(TextToReplace)','$(MicrosoftNetILLinkTasksVersion)'))"
+			Overwrite="true"
+			Encoding="Unicode" />
 	</Target>
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj" />
-		<!-- <ProjectReference Include="../../../../../linker-main/src/ILLink.Tasks/ILLink.Tasks.csproj" /> -->
-		<!-- <ProjectReference Include="./SampleProject/HelloWorld.csproj" /> -->
 	</ItemGroup>
 
 	<ItemGroup>

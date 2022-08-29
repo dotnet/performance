@@ -7,8 +7,6 @@ using System.Reflection;
 using BenchmarkDotNet.Extensions;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
-using CompilerBenchmarks;
-using ILLinkBenchmarks;
 
 namespace ILLinkBenchmarks;
 
