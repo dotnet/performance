@@ -3,6 +3,30 @@ from argparse import ArgumentParser
 class ChannelMap():
     channel_map = {
         'main': {
+            'tfm': 'net8.0',
+            'branch': '8.0',
+            'quality': 'daily'
+        },
+        'master': {
+            'tfm': 'net6.0',
+            'branch': 'master'
+        },
+        '8.0': {
+            'tfm': 'net8.0',
+            'branch': '8.0',
+            'quality': 'daily'
+        },
+        'release/8.0': {
+            'tfm': 'net8.0',
+            'branch': '8.0',
+            'quality': 'daily'
+        },
+        'nativeaot8.0': {
+            'tfm': 'nativeaot8.0',
+            'branch': '8.0',
+            'quality': 'daily'
+        },
+        '7.0': {
             'tfm': 'net7.0',
             'branch': '7.0.1xx',
             'quality': 'daily'
@@ -17,19 +41,20 @@ class ChannelMap():
             'branch': '7.0-rc1',
             'quality': 'daily'
         },
-        'release/7.0': {
-            'tfm': 'net7.0',
-            'branch': '7.0',
-            'quality': 'daily'
-        },
         'nativeaot7.0': {
             'tfm': 'nativeaot7.0',
             'branch': '7.0.1xx',
             'quality': 'daily'
         },
-        'master': {
+        'release/7.0': {
+            'tfm': 'net7.0',
+            'branch': '7.0',
+            'quality': 'daily'
+        },
+        'release/6.0': {
             'tfm': 'net6.0',
-            'branch': 'master'
+            'branch': '6.0.1xx',
+            'quality': 'daily'
         },
         '6.0': {
             'tfm': 'net6.0',
