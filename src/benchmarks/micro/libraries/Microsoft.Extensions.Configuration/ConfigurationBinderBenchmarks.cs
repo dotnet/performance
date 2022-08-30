@@ -7,6 +7,7 @@ using MicroBenchmarks;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 
@@ -15,8 +16,11 @@ namespace Microsoft.Extensions.Configuration
     [BenchmarkCategory(Categories.Libraries)]
     public class ConfigurationBinderBenchmarks
     {
-        [Params(32, 64, 128)]
-        public int MySettingsCount { get; set; }
+        [Params(8, 16, 32)]
+        public int ConfigurationProvidersCount { get; set; }
+
+        [Params(10, 20, 40)]
+        public int KeysCountPerProvider { get; set; }
 
         private IConfiguration _configuration;
 
@@ -24,11 +28,11 @@ namespace Microsoft.Extensions.Configuration
         public void GlobalSetup()
         {
             var builder = new ConfigurationBuilder();
-            for (int i = 0; i < this.MySettingsCount; i++)
+            for (int i = 0; i < this.ConfigurationProvidersCount; i++)
             {
                 var s = new MySettings
                 {
-                    IdMapping = new Dictionary<string, string> { [i.ToString()] = i.ToString() }
+                    IdMapping = Enumerable.Range(0, this.KeysCountPerProvider).ToDictionary(j => $"{i}_{j}", j => $"{j}_{i}")
                 };
                 builder.AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(s))));
             }
