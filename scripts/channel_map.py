@@ -3,8 +3,8 @@ from argparse import ArgumentParser
 class ChannelMap():
     channel_map = {
         'main': {
-            'tfm': 'net8.0',
-            'branch': '8.0',
+            'tfm': 'net7.0',
+            'branch': '7.0.1xx',
             'quality': 'daily'
         },
         'release/7.0': {
