@@ -2,47 +2,7 @@ from argparse import ArgumentParser
 
 class ChannelMap():
     channel_map = {
-        'release/7.0-rc1': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview8': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview7': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview6': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview5': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview4': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview3': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview2': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview1': {
+        'release/7.0': {
             'tfm': 'net7.0',
             'branch': '7.0.1xx',
             'quality': 'daily'
