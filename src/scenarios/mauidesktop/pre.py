@@ -12,7 +12,8 @@ from test import EXENAME
 import requests
 
 setup_loggers(True)
-NugetURL = 'https://raw.githubusercontent.com/dotnet/maui/main/NuGet.config'
+#NugetURL = 'https://raw.githubusercontent.com/dotnet/maui/main/NuGet.config' TODO: Remove Below
+NugetURL = 'https://raw.githubusercontent.com/dotnet/maui/b3747563c1fe5b6321ca3bc852ea6a998f91ae9a/NuGet.config'
 NugetFile = requests.get(NugetURL)
 open('./Nuget.config', 'wb').write(NugetFile.content)
 
