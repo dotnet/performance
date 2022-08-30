@@ -147,9 +147,10 @@ namespace Reporting
         }
         private string Print(Counter counter, int counterWidth, int resultWidth)
         {
-            string average = $"{counter.Results.Average():F3} {counter.MetricName}";
-            string max = $"{counter.Results.Max():F3} {counter.MetricName}";
-            string min = $"{counter.Results.Min():F3} {counter.MetricName}";
+            var results = counter.Results.Count > 0 ? counter.Results : new List<double> { 0 };
+            string average = $"{results.Average():F3} {counter.MetricName}";
+            string max = $"{results.Max():F3} {counter.MetricName}";
+            string min = $"{results.Min():F3} {counter.MetricName}";
             return $"{LeftJustify(counter.Name, counterWidth)}|{LeftJustify(average, resultWidth)}|{LeftJustify(min, resultWidth)}|{LeftJustify(max, resultWidth)}";
         }
 
