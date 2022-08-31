@@ -50,6 +50,9 @@
     <SDKWorkItem Include="SDK F# Console Template">
       <PayloadDirectory>$(ScenariosDir)emptyfsconsoletemplate</PayloadDirectory>
     </SDKWorkItem>
+    <SDKWorkItem Include="F# Compiler Service">
+      <PayloadDirectory>$(ScenariosDir)fsharpcompilerservice</PayloadDirectory>
+    </SDKWorkItem>
     <SDKWorkItem Include="SDK ASP.Net Core Empty Template">
       <PayloadDirectory>$(ScenariosDir)aspwebtemplate</PayloadDirectory>
     </SDKWorkItem>
