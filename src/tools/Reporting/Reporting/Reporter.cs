@@ -126,8 +126,7 @@ namespace Reporting
                 var topCounters = test.Counters.Where(c => c.TopCounter && !c.DefaultCounter);
                 var restCounters = test.Counters.Where(c => !(c.TopCounter || c.DefaultCounter));
                 var counterWidth = Math.Max(test.Counters.Max(c => c.Name.Length) + 1, 15);
-                var resultWidth = Math.Max(test.Counters.Max(c => 
-                    (c.Results.Count > 0 ? c.Results.Max().ToString("F3").Length : 1) + c.MetricName.Length) + 2, 15);
+                var resultWidth = Math.Max(test.Counters.Max(c => c.Results.Max().ToString("F3").Length + c.MetricName.Length) + 2, 15);
                 ret.AppendLine(test.Name);
                 ret.AppendLine($"{LeftJustify("Metric", counterWidth)}|{LeftJustify("Average",resultWidth)}|{LeftJustify("Min", resultWidth)}|{LeftJustify("Max",resultWidth)}");
                 ret.AppendLine($"{new String('-', counterWidth)}|{new String('-', resultWidth)}|{new String('-', resultWidth)}|{new String('-', resultWidth)}");
@@ -147,10 +146,9 @@ namespace Reporting
         }
         private string Print(Counter counter, int counterWidth, int resultWidth)
         {
-            var results = counter.Results.Count > 0 ? counter.Results : new List<double> { 0 };
-            string average = $"{results.Average():F3} {counter.MetricName}";
-            string max = $"{results.Max():F3} {counter.MetricName}";
-            string min = $"{results.Min():F3} {counter.MetricName}";
+            string average = $"{counter.Results.Average():F3} {counter.MetricName}";
+            string max = $"{counter.Results.Max():F3} {counter.MetricName}";
+            string min = $"{counter.Results.Min():F3} {counter.MetricName}";
             return $"{LeftJustify(counter.Name, counterWidth)}|{LeftJustify(average, resultWidth)}|{LeftJustify(min, resultWidth)}|{LeftJustify(max, resultWidth)}";
         }
 
