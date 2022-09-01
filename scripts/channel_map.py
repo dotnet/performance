@@ -4,14 +4,16 @@ class ChannelMap():
     channel_map = {
         'release/6.0': {
             'tfm': 'net6.0',
-            'branch': 'release/6.0',
+            'branch': '6.0.4xx',
+            'quality': 'daily'
         },'6.0': {
             'tfm': 'net6.0',
-            'branch': 'release/6.0',
+            'branch': '6.0.4xx',
+            'quality': 'daily'
         },
         'main': {
             'tfm': 'net6.0',
-            'branch': 'main',
+            'branch': '6.0',
             'quality': 'daily'
         },
         'master': {
