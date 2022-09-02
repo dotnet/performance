@@ -16,6 +16,9 @@ public class ILLinkBench
     {
         string thisAssembly = Assembly.GetExecutingAssembly().Location;
         string sampleProjectFile = Path.Combine(Path.GetDirectoryName(thisAssembly), "SampleProject", "HelloWorld.csproj");
+
+        // Benchmark.NET creates a new process to run the benchmark, so the easiest way
+        // to communicate information is pass by environment variable
         Environment.SetEnvironmentVariable("ILLINK_SAMPLE_PROJECT", sampleProjectFile);
 
         return BenchmarkSwitcher

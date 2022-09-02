@@ -11,6 +11,7 @@ namespace ILLinkBenchmarks;
 [SimpleJob(RunStrategy.Monitoring, launchCount: 1, warmupCount: 3, targetCount: 20)]
 public partial class BasicBenchmark
 {
+    MethodInfo _linkerMain;
     string[] _args;
     string _publishOutputFolder;
     string[] _linkerOutArgs => new string[] { "-out", Path.Combine(_publishOutputFolder, "linked") };
@@ -38,17 +39,22 @@ public partial class BasicBenchmark
     [GlobalSetup(Targets = new[] { nameof(LinkHelloWorld) })]
     public void LinkHelloWorldGlobalSetup()
     {
+        // Publish the hello world app to link
         string projectFilePath = Environment.GetEnvironmentVariable("ILLINK_SAMPLE_PROJECT");
         _publishOutputFolder = Utilities.PublishSampleProject(projectFilePath);
+        // Gather arguments
         string rootAssembly = Path.Combine(_publishOutputFolder, "HelloWorld.dll");
-
         var frameworkFiles = Directory.EnumerateFiles(_publishOutputFolder, "*.dll").Where(a =>
+            // Filter references - some .dll's can't be loaded by linker
             FrameworkAssemblies.Contains(Path.GetFileName(a))
         );
         var frameworkArgs = frameworkFiles.SelectMany(fileName => new string[] { "-reference", fileName });
         var assemblyArgs = new string[] { "-a", rootAssembly };
         _args = assemblyArgs.Concat(frameworkArgs).Concat(_extraArgs).Concat(_linkerOutArgs).ToArray();
-
+        // Use reflection to get the Driver.Main method to run the linker
+        Mono.Linker.WarnVersion warnVersion = Mono.Linker.WarnVersion.Latest;
+        Type driver = warnVersion.GetType().Assembly.GetType("Mono.Linker.Driver", true, false);
+        _linkerMain = driver.GetMethod("Main", BindingFlags.Static | BindingFlags.Public);
         return;
     }
 
@@ -62,10 +68,7 @@ public partial class BasicBenchmark
     [BenchmarkCategory("ILLink")]
     public object LinkHelloWorld()
     {
-        Mono.Linker.WarnVersion x = Mono.Linker.WarnVersion.Latest;
-        Type driver = x.GetType().Assembly.GetType("Mono.Linker.Driver", true, false);
-        MethodInfo linkerMain = driver.GetMethod("Main", BindingFlags.Static | BindingFlags.Public);
-        return linkerMain.Invoke(null, new object[] { _args });
+        return _linkerMain.Invoke(null, new object[] { _args });
     }
 
     private static readonly string[] FrameworkAssemblies = new string[]

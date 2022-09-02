@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<OutputType>library</OutputType>
+		<OutputType>exe</OutputType>
 		<TargetFramework>net6.0</TargetFramework>
 		<PublishTrimmed>false</PublishTrimmed>
 		<TrimmerDefaultAction>copy</TrimmerDefaultAction>
