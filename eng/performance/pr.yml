@@ -21,7 +21,7 @@ jobs:
         vmImage: windows-2019
       queue: Windows.10.Amd64.ClientRS4.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'coreclr corefx' 
+      runCategories: 'coreclr corefx'
       frameworks: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - netcoreapp3.0
 
@@ -40,7 +40,7 @@ jobs:
       runCategories: 'coreclr corefx'
       frameworks: # for public jobs we want to make sure that the PRs don't break x86
         - netcoreapp3.0
-        
+
 # Ubuntu 1604 x64 micro benchmarks, public correctness job
 - ${{ if eq(variables['System.TeamProject'], 'public') }}:
   - template: /eng/performance/benchmark_jobs.yml
@@ -123,4 +123,19 @@ jobs:
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       frameworks: # for Roslyn jobs we want to check .NET Core 3.0 only
         - netcoreapp3.0
-        
+
+# Windows x64 F# benchmarks, public correctness job
+- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS4
+      kind: fsharp
+      architecture: x64
+      pool:
+        vmImage: windows-2019
+      queue: Windows.10.Amd64.ClientRS4.Open
+      csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
+      runCategories: 'fsharp'
+      frameworks:
+        - netcoreapp3.0
