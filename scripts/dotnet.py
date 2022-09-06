@@ -16,6 +16,7 @@ from shutil import rmtree
 from stat import S_IRWXU
 from subprocess import CalledProcessError, check_output
 from sys import argv, platform
+import time
 from typing import Tuple
 from urllib.error import URLError
 from urllib.parse import urlparse
@@ -613,6 +614,7 @@ def get_commit_date(
 
     url = None
     urlformat = 'https://api.github.com/repos/%s/%s/commits/%s'
+    ratelimiturl = 'https://api.github.com/rate_limit'
     if repository is None:
         # The origin of the repo where the commit belongs to has changed
         # between release. Here we attempt to naively guess the repo.
@@ -625,8 +627,7 @@ def get_commit_date(
         url = urlformat % (owner, repo, commit_sha)
 
     build_timestamp = None
-    sleep_time = 10 # Start with 10 second sleep timer
-    for retrycount in range(5):
+    for retrycount in range(2): # Only retry once
         try:
             with urlopen(url) as response:
                 getLogger().info("Commit: %s", url)
@@ -634,9 +635,14 @@ def get_commit_date(
                 build_timestamp = item['commit']['committer']['date']
                 break
         except URLError as error:
-            getLogger().warning(f"URL Error trying to get commit date from {url}; Reason: {error.reason}; Attempt {retrycount}")
-            sleep(sleep_time)
-            sleep_time = sleep_time * 2
+            with urlopen(ratelimiturl) as response:
+                item = loads(response.read().decode('utf-8'))
+                reset_timestamp = item['resources']['core']['reset']
+                remaining_calls = item['resources']['core']['remaining']
+                seconds_to_retry = reset_timestamp - time.time() + 10 # Add 10 seconds to be safe
+                getLogger().warning(f"URL Error trying to get commit date from {url}; Reason: {error.reason}; Attempt {retrycount}; reset time: {reset_timestamp} (Unix Time); time to wait: {seconds_to_retry} seconds; remaining calls: {remaining_calls}")
+                if(remaining_calls == 0 and retrycount == 0):
+                    sleep(seconds_to_retry)
 
     if not build_timestamp:
         raise RuntimeError(
