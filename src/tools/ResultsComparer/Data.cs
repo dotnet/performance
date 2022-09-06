@@ -136,8 +136,10 @@ namespace ResultsComparer
                 return "nativeaot6.0";
             if (key.Contains("net7.0-preview"))
                 return "net7.0-preview" + key[key.IndexOf("net7.0-preview") + "net7.0-preview".Length];
+            if (key.Contains("net7.0-rc"))
+                return "net7.0-rc" + key[key.IndexOf("net7.0-rc") + "net7.0-rc".Length];
             if (key.Contains("nativeaot7.0-preview"))
-                return "nativeaot7.0-preview" + key[key.IndexOf("nativeaot7.0-preview") + "nativeaot7.0-preview".Length];
+                return "nativeaot7.0-preview" + key[key.IndexOf("nativeaot7.0-preview") + "nativeaot7.0-preview".Length];  
 
             return null;
         }
