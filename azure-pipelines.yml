@@ -646,7 +646,7 @@ jobs:
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/ILLink/ILLinkBenchmarks.csproj
       runCategories: 'illink'
-      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+      channels:
         - main
 
   # Windows x64 ILLinkBenchmarks
@@ -662,7 +662,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       csproj: src/benchmarks/real-world/ILLink/ILLinkBenchmarks.csproj
       runCategories: 'illink'
-      channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
+      channels:
         - main
 
 ################################################
