@@ -75,7 +75,7 @@ jobs:
       osVersion: 1804
       kind: scenarios
       architecture: x64
-      pool:
+      pool: 
         vmImage: ubuntu-latest
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
@@ -83,7 +83,7 @@ jobs:
       projectFile: scenarios.proj
       channels:
         - main
-
+  
   # Windows x64 Blazor scenario benchmarks
   - template: /eng/performance/scenarios.yml
     parameters:
@@ -113,7 +113,7 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - main
-
+  
   # Ubuntu 1804 x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
     parameters:
@@ -121,7 +121,7 @@ jobs:
       osVersion: 1804
       kind: sdk_scenarios
       architecture: x64
-      pool:
+      pool: 
         vmImage: ubuntu-latest
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
@@ -144,7 +144,7 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - main
-
+  
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
@@ -157,7 +157,7 @@ jobs:
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'runtime libraries'
+      runCategories: 'runtime libraries' 
       channels:
         - main
 
@@ -224,7 +224,7 @@ jobs:
       runCategories: 'roslyn'
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
         - main
-
+        
   # Ubuntu 1804 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
@@ -232,7 +232,7 @@ jobs:
       osVersion: 1804
       kind: micro
       architecture: x64
-      pool:
+      pool: 
         vmImage: ubuntu-latest
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
@@ -249,7 +249,7 @@ jobs:
       osVersion: 7
       kind: micro
       architecture: x64
-      pool:
+      pool: 
         vmImage: ubuntu-latest
       machinePool: Open
       queue: centos.7.amd64.open.rt
@@ -266,7 +266,7 @@ jobs:
       osVersion: 1804
       kind: mlnet
       architecture: x64
-      pool:
+      pool: 
         vmImage: ubuntu-latest
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
@@ -283,7 +283,7 @@ jobs:
       osVersion: 1804
       kind: roslyn
       architecture: x64
-      pool:
+      pool: 
         vmImage: ubuntu-latest
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
@@ -292,8 +292,7 @@ jobs:
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
         - main
-
-  # Ubuntu 1804 x64 ILLink Benchmarks
+# Ubuntu 1804 x64 ILLink Benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: ubuntu
@@ -354,7 +353,7 @@ jobs:
       osVersion: 1804
       kind: scenarios
       architecture: x64
-      pool:
+      pool: 
         vmImage: ubuntu-latest
       machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
@@ -413,7 +412,7 @@ jobs:
   #       #- main
   #       - release/5.0.1xx
   #       #- release/3.1.2xx
-
+      
   # # Windows x86 micro benchmarks
   # - template: /eng/performance/benchmark_jobs.yml
   #   parameters:
@@ -475,7 +474,7 @@ jobs:
   #     osVersion: 1804
   #     kind: micro
   #     architecture: x64
-  #     pool:
+  #     pool: 
   #       vmImage: ubuntu-latest
   #     machinePool: Tiger
   #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
@@ -494,7 +493,7 @@ jobs:
   #     osVersion: 1804
   #     kind: micro
   #     architecture: x64
-  #     pool:
+  #     pool: 
   #       vmImage: ubuntu-latest
   #     machinePool: Owl
   #     queue: Ubuntu.1804.Amd64.Owl.Perf # using a dedicated private Helix queue (perfowls)
@@ -513,7 +512,7 @@ jobs:
   #     osVersion: 1804
   #     kind: mlnet
   #     architecture: x64
-  #     pool:
+  #     pool: 
   #       vmImage: ubuntu-latest
   #     machinePool: Tiger
   #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
@@ -524,7 +523,7 @@ jobs:
   #       #- main
   #       - release/5.0.1xx
   #       #- release/3.1.2xx
-
+  
   # # Ubuntu 1804 x64 Roslyn benchmarks
   # - template: /eng/performance/benchmark_jobs.yml
   #   parameters:
@@ -532,7 +531,7 @@ jobs:
   #     osVersion: 1804
   #     kind: roslyn
   #     architecture: x64
-  #     pool:
+  #     pool: 
   #       vmImage: ubuntu-latest
   #     machinePool: Tiger
   #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
@@ -565,7 +564,7 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - main
-
+  
   # Windows x86 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
     parameters:
@@ -587,7 +586,7 @@ jobs:
       osName: ubuntu
       osVersion: 1804
       architecture: x64
-      pool:
+      pool: 
         vmImage: ubuntu-latest
       kind: sdk_scenarios
       machinePool: Tiger
@@ -611,7 +610,7 @@ jobs:
       projectFile: blazor_scenarios.proj
       channels:
         - main
-
+  
   # Secret Sync
   - job: Synchronize
     pool:
@@ -632,7 +631,7 @@ jobs:
         scriptLocation: inlineScript
         inlineScript: |
           Get-ChildItem .vault-config/*.yaml |% { dotnet secret-manager synchronize $_}
-
+  
   # Ubuntu 1804 x64 ILLink Benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
