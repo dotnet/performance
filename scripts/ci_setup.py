@@ -172,7 +172,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
     def __is_valid_dotnet_path(dp: str) -> str:
         if not os.path.isdir(dp):
-            raise ArgumentTypeError('Path {} does not exist'.format(dp))
+            raise ArgumentTypeError('Directory {} does not exist'.format(dp))
         if not os.path.isfile(os.path.join(dp, 'dotnet')):
             raise ArgumentTypeError('Could not find dotnet in {}'.format(dp))
         return dp
