@@ -6,7 +6,7 @@ using BenchmarkDotNet.Engines;
 namespace ILLinkBenchmarks;
 
 [BenchmarkCategory("ILLink")]
-[SimpleJob(RunStrategy.Monitoring, launchCount: 1, warmupCount: 3, targetCount: 20)]
+[SimpleJob(RunStrategy.Monitoring, launchCount: 5, warmupCount: 3, targetCount: 20)]
 public class RunMSBuildPublish
 {
     string _projectFilePath;

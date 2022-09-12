@@ -301,7 +301,7 @@ jobs:
       architecture: x64
       pool:
         vmImage: ubuntu-latest
-      machinePool: Tiger
+      machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
       csproj: src/benchmarks/real-world/ILLink/ILLinkBenchmarks.csproj
@@ -318,7 +318,7 @@ jobs:
       architecture: x64
       pool:
         vmImage: windows-2019
-      machinePool: Tiger
+      machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
       csproj: src/benchmarks/real-world/ILLink/ILLinkBenchmarks.csproj
       runCategories: 'illink'
