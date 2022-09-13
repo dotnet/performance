@@ -40,7 +40,7 @@
   </ItemDefinitionGroup>
   
   <ItemGroup>
-    <SDKWorkItem Include="@(Framework -> 'SDK Console Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0">
+    <SDKWorkItem Include="@(Framework -> 'SDK Console Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0;*6.0">
       <PayloadDirectory>$(ScenariosDir)emptyconsoletemplate</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
@@ -93,7 +93,7 @@
       <PayloadDirectory>$(ScenariosDir)netstandard2.0</PayloadDirectory>
     </SDKWorkItem>
 
-    <SDKWorkItem Include="@(Framework -> 'SDK ASP.NET MVC App Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0">
+    <SDKWorkItem Include="@(Framework -> 'SDK ASP.NET MVC App Template %(Identity)')" Exclude="*2.1;*3.0;*3.1;*5.0;*6.0">
       <PayloadDirectory>$(ScenariosDir)mvcapptemplate</PayloadDirectory>
       <PreCommands>%(PreCommands) -f %(FrameworkName)</PreCommands>
     </SDKWorkItem>
