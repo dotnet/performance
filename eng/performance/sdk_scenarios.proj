@@ -27,6 +27,7 @@
       <Framework Include="netcoreapp3.1" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '3.0'"/>
       <Framework Include="netcoreapp5.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '3.1'"/>
       <Framework Include="net6.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '5.0'"/>
+      <Framework Include="net7.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '6.0'"/>
   </ItemGroup>
 
   <ItemDefinitionGroup>
