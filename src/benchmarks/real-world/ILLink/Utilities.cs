@@ -49,8 +49,13 @@ namespace ILLinkBenchmarks
         {
             string outputDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(outputDirectory);
-            var p = Process.Start("dotnet", $"publish {projectFilePath} -r {CurrentRID} --self-contained -o {outputDirectory} {extraArgs.Aggregate("", (agg, val) => agg + " " + val)}");
+            ProcessStartInfo processStartInfo = new ProcessStartInfo("dotnet", $"publish {projectFilePath} -r {CurrentRID} --self-contained -o {outputDirectory} {extraArgs.Aggregate("", (agg, val) => agg + " " + val)}");
+            processStartInfo.RedirectStandardError = false;
+            processStartInfo.RedirectStandardOutput = true;
+            var p = Process.Start(processStartInfo);
             p.WaitForExit();
+            if (p.ExitCode != 0)
+                throw new ApplicationException($"Failed to publish application: \n\"{p.StandardOutput.ReadToEnd()}\n\"");
             return outputDirectory;
         }
     }
