@@ -51,7 +51,7 @@ namespace ILLinkBenchmarks
             return outputDirectory;
         }
 
-        public static string FormatStandardOut(string stdOutput)
+        public static string FormatStandardOutput(string stdOutput)
             => " >> " + stdOutput.ReplaceLineEndings(Environment.NewLine + " >> ");
 
         /// <summary>
