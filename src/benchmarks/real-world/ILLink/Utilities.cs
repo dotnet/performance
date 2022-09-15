@@ -1,8 +1,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace ILLinkBenchmarks
 {
@@ -41,21 +41,34 @@ namespace ILLinkBenchmarks
                 RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? OSPlatform.Linux :
                 throw new NotSupportedException("Current OS is not supported: " + RuntimeInformation.OSDescription);
         }
+        public static string GenerateTempFolder()
+        {
+            string outputDirectory;
+            do
+            {
+                outputDirectory = Path.Join(Path.GetTempPath(), Path.GetFileNameWithoutExtension(Path.GetRandomFileName()));
+            } while (System.IO.File.Exists(outputDirectory));
+            return outputDirectory;
+        }
+
+        public static string FormatStandardOut(string stdOutput)
+            => " >> " + stdOutput.ReplaceLineEndings(Environment.NewLine + " >> ");
 
         /// <summary>
         /// Shells out to run `dotnet publish --self-contained` on the project file passed in, and outputs to a random temp folder. Returns path to the output folder.
         /// </summary>
         public static string PublishSampleProject(string projectFilePath, params string[] extraArgs)
         {
-            string outputDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            string outputDirectory = GenerateTempFolder();
             Directory.CreateDirectory(outputDirectory);
             ProcessStartInfo processStartInfo = new ProcessStartInfo("dotnet", $"publish {projectFilePath} -r {CurrentRID} --self-contained -o {outputDirectory} {extraArgs.Aggregate("", (agg, val) => agg + " " + val)}");
             processStartInfo.RedirectStandardError = false;
             processStartInfo.RedirectStandardOutput = true;
             var p = Process.Start(processStartInfo);
+            string stdOutput = p.StandardOutput.ReadToEnd();
             p.WaitForExit();
             if (p.ExitCode != 0)
-                throw new ApplicationException($"Failed to publish application: \n\"{p.StandardOutput.ReadToEnd()}\n\"");
+                throw new ApplicationException($"Failed to publish trimmed sample application: \n{FormatStandardOutput(stdOutput)}\n");
             return outputDirectory;
         }
     }
