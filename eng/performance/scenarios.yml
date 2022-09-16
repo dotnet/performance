@@ -91,9 +91,9 @@ jobs:
           clean: true
         - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup$(ScriptExtension) --install-dir $(CorrelationStaging)dotnet
           displayName: Run ci_setup.py
-        - script: echo "test" > $(CorrelationStaging)jiri.txt
-          displayName: Create file in Correlation Staging
         - ${{ if eq(parameters.osName, 'windows') }}:
+          - powershell: gci -Recurse .
+            displayName: Structure
           - script: xcopy .\NuGet.config $(CorrelationStaging) && xcopy .\scripts $(CorrelationStaging)scripts\/e && xcopy .\src\scenarios\shared $(CorrelationStaging)shared\/e && xcopy .\src\scenarios\staticdeps $(CorrelationStaging)staticdeps\/e
             displayName: Copy python libraries and NuGet.config
           - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)startup -f $(PERFLAB_Framework) -r win-${{parameters.architecture}} $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\Startup\Startup.csproj
