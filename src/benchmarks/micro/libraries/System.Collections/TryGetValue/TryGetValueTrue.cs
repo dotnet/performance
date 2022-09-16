@@ -16,7 +16,8 @@ namespace System.Collections
 {
     [BenchmarkCategory(Categories.Libraries, Categories.Collections, Categories.GenericCollections)]
     [GenericTypeArguments(typeof(int), typeof(int))] // value type
-    [GenericTypeArguments(typeof(string), typeof(string))] // reference type
+    [GenericTypeArguments(typeof(SmallClass), typeof(SmallClass))] // reference type
+    [GenericTypeArguments(typeof(string), typeof(string))] // string type
     public class TryGetValueTrue<TKey, TValue>
     {
         private TKey[] _found;
