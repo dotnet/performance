@@ -47,4 +47,19 @@ namespace System.Collections
 
         public int CompareTo(BigStruct other) => _int1.CompareTo(other._int1);
     }
+
+    public class SmallClass : IEquatable<SmallClass>, IComparable<SmallClass>
+    {
+        public int Value;
+
+        public SmallClass(int value) => Value = value;
+
+        public int CompareTo(SmallClass other) => other == null ? -1 : Value.CompareTo(other.Value);
+
+        public bool Equals(SmallClass other) => other != null && Value == other.Value;
+
+        public override bool Equals(object obj) => obj is SmallClass other && Equals(other);
+
+        public override int GetHashCode() => Value;
+    }
 }
