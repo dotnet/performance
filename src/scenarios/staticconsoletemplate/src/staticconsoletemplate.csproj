@@ -3,12 +3,4 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>$FRAMEWORK</TargetFramework>
   </PropertyGroup>
-
-  <Import Condition="$(PublishTrimmed) == 'true'" Project="../../../../eng/Versions.props" />
-  <PropertyGroup Condition="$(PublishTrimmed) == 'true'">
-    <SelfContained>true</SelfContained>
-  </PropertyGroup>
-  <ItemGroup Condition="$(PublishTrimmed) == 'true'">
-    <PackageReference Include="Microsoft.Net.ILLink.Tasks" Version="$(MicrosoftNetILLinkTasksVersion)" />
-  </ItemGroup>
 </Project>
