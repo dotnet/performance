@@ -24,11 +24,14 @@
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemDefinitionGroup>
-  
+
 
   <ItemGroup>
     <Scenario Include="Static Console Template">
       <PayloadDirectory>$(ScenariosDir)staticconsoletemplate</PayloadDirectory>
+    </Scenario>
+    <Scenario Include="Trimmed Static Console Template">
+      <PayloadDirectory>$(ScenariosDir)trimmedstaticconsoletemplate</PayloadDirectory>
     </Scenario>
     <Scenario Include="Static VB Console Template">
       <PayloadDirectory>$(ScenariosDir)staticvbconsoletemplate</PayloadDirectory>
@@ -131,7 +134,7 @@
     To use this when you are changing how items are produced, uncomment the target
     and replace the Project item at the top of the file with this:
     <Project DefaultTargets="printItems">
-    
+
     Once you've done that you can run this to see the results:
     dotnet msbuild .\scenarios.proj /v:n
    -->
