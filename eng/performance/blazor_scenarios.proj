@@ -18,15 +18,6 @@
     <RID>linux-$(Architecture)</RID>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <FrameworkVersion>$(PERFLAB_Framework.Substring($([MSBuild]::Subtract($(PERFLAB_Framework.Length), 3))))</FrameworkVersion>
-  </PropertyGroup>
-
-  <ItemGroup>
-      <Framework Include="net5.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '3.1'"/>
-      <Framework Include="net6.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '5.0'"/>
-  </ItemGroup>
-
   <ItemDefinitionGroup>
       <HelixWorkItem>
       <PostCommands>$(Python) post.py</PostCommands>
