@@ -27,7 +27,7 @@
   
 
   <ItemGroup>
-    <Scenario Include="Static Console Template">
+    <!-- <Scenario Include="Static Console Template">
       <PayloadDirectory>$(ScenariosDir)staticconsoletemplate</PayloadDirectory>
     </Scenario>
     <Scenario Include="Static VB Console Template">
@@ -35,14 +35,14 @@
     </Scenario>
     <Scenario Include="Static F# Console Template">
       <PayloadDirectory>$(ScenariosDir)staticfsconsoletemplate</PayloadDirectory>
-    </Scenario>
+    </Scenario> -->
     <!-- <Scenario Include="Static Winforms Template" Condition="'$(PERFLAB_Framework)' != 'netcoreapp5.0'">
       <PayloadDirectory>$(ScenariosDir)staticwinformstemplate</PayloadDirectory>
     </Scenario> -->
     <Scenario Include="New Console Template">
       <PayloadDirectory>$(ScenariosDir)emptyconsoletemplate</PayloadDirectory>
     </Scenario>
-    <Scenario Include="New VB Console Template">
+    <!-- <Scenario Include="New VB Console Template">
       <PayloadDirectory>$(ScenariosDir)emptyvbconsoletemplate</PayloadDirectory>
     </Scenario>
     <UIScenario Include="WinForms Large" Condition="'$(TargetsWindows)' == 'true'">
@@ -56,74 +56,80 @@
     </UIScenario>
     <UIScenario Include="PaintDotNet" Condition="'$(TargetsWindows)' == 'true' And $(BUILD_REPOSITORY_PROVIDER) == 'TfsGit'">
       <PayloadDirectory>$(ScenariosDir)paintdotnet</PayloadDirectory>
-    </UIScenario>
+    </UIScenario> -->
   </ItemGroup>
 
 
   <!-- UI Startup FDD publish -->
-  <ItemGroup>
+  <!-- <ItemGroup>
     <HelixWorkItem Include="@(UIScenario -> 'Startup - %(Identity) - FDD Publish')">
-      <PreCommands>$(Python) pre.py publish -f $(PERFLAB_Framework) -c Release --windowsui</PreCommands>
-      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
+      <PreCommands>$(Python) pre.py publish -f $(PERFLAB_Framework) -c Release windowsui</PreCommands>
+      <Command>$(Python) test.py startup scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
-  </ItemGroup>
+  </ItemGroup> -->
 
   <!-- Startup FDD publish -->
-  <ItemGroup>
+  <!-- <ItemGroup>
     <HelixWorkItem Include="@(Scenario -> 'Startup - %(Identity) - FDD Publish')">
       <PreCommands>$(Python) pre.py publish -f $(PERFLAB_Framework) -c Release</PreCommands>
+      <Command>$(Python) test.py startup scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+  </ItemGroup> -->
+  <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
+    <HelixWorkItem Include="@(Scenario -> 'Startup - %(Identity) - FDD Publish')">
+      <PreCommands>xcopy %HELIX_CORRELATION_PAYLOAD%\scenarios\emptyconsoletemplate\pub\ .\pub\ /E</PreCommands>
       <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
 
   <!-- SOD FDD publish -->
-  <ItemGroup>
+  <!-- <ItemGroup>
     <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - FDD Publish')">
       <PreCommands>$(Python) pre.py publish -f $(PERFLAB_Framework) -c Release</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py sod scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
-  </ItemGroup>
+  </ItemGroup> -->
 
   <!-- SOD SCD publish w/ RID -->
-  <ItemGroup>
+  <!-- <ItemGroup>
     <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - SCD Publish')">
       <PreCommands>$(Python) pre.py publish -f $(PERFLAB_Framework) -c Release -r $(RID)</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py sod scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
-  </ItemGroup>
+  </ItemGroup> -->
 
   <!-- SOD build -->
-  <ItemGroup>
+  <!-- <ItemGroup>
     <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - Build')">
       <PreCommands>$(Python) pre.py build -c Release -f $(PERFLAB_Framework)</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py sod scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
-  </ItemGroup>
+  </ItemGroup> -->
 
   <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
     <!-- SOD & Device Startup for Windows Desktop MAUI -->
-    <HelixWorkItem Include="SOD - Desktop Maui Unpackaged">
+    <!-- <HelixWorkItem Include="SOD - Desktop Maui Unpackaged">
       <PayloadDirectory>$(ScenariosDir)mauidesktop</PayloadDirectory>
       <PreCommands>$(Python) pre.py publish -c Release -f $(PERFLAB_Framework)-windows10.0.19041.0</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
-    </HelixWorkItem>
-    <HelixWorkItem Include="Device Startup - Desktop Maui Default">
+      <Command>$(Python) test.py sod scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem> -->
+    <!-- <HelixWorkItem Include="Device Startup - Desktop Maui Default">
       <PayloadDirectory>$(ScenariosDir)mauidesktop</PayloadDirectory>
       <PreCommands>$(Python) pre.py publish -c Release -f $(PERFLAB_Framework)-windows10.0.19041.0</PreCommands>
-      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
-    </HelixWorkItem>
+      <Command>$(Python) test.py startup scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem> -->
 
     <!-- SOD & Device Startup for Windows Desktop MAUI Blazor -->
-    <HelixWorkItem Include="SOD - Desktop Maui Blazor Unpackaged">
+    <!-- <HelixWorkItem Include="SOD - Desktop Maui Blazor Unpackaged">
       <PayloadDirectory>$(ScenariosDir)mauiblazordesktop</PayloadDirectory>
       <PreCommands>$(Python) pre.py publish -c Release -f $(PERFLAB_Framework)-windows10.0.19041.0</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
-    </HelixWorkItem>
-    <HelixWorkItem Include="Device Startup - Desktop Maui Blazor Default">
+      <Command>$(Python) test.py sod scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem> -->
+    <!-- <HelixWorkItem Include="Device Startup - Desktop Maui Blazor Default">
       <PayloadDirectory>$(ScenariosDir)mauiblazordesktop</PayloadDirectory>
       <PreCommands>$(Python) pre.py publish -c Release -f $(PERFLAB_Framework)-windows10.0.19041.0</PreCommands>
-      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
-    </HelixWorkItem>
+      <Command>$(Python) test.py startup scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem> -->
   </ItemGroup>
 
   <!--
