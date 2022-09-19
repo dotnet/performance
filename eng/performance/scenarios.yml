@@ -107,6 +107,7 @@ jobs:
               cd emptyconsoletemplate
               $(Python) pre.py publish -f $(PERFLAB_Framework) -c Release
               cp -Recurse .\pub $(CorrelationStaging)scenarios\emptyconsoletemplate\pub
+              ni $(CorrelationStaging)scenarios\emptyconsoletemplate\pub\test.txt
             workingDirectory: $(Build.SourcesDirectory)\src\scenarios
             displayName: Publish emptyconsoletemplate
           - powershell: |-
@@ -114,6 +115,7 @@ jobs:
               cd emptyconsoletemplate
               $(Python) pre.py build -f $(PERFLAB_Framework) -c Release
               cp -Recurse .\pub $(CorrelationStaging)scenarios\emptyconsoletemplate\bin
+              ni $(CorrelationStaging)scenarios\emptyconsoletemplate\bin\test.txt
             workingDirectory: $(Build.SourcesDirectory)\src\scenarios
             displayName: Build emptyconsoletemplate
           # Current version of PaintDotNet zip file is PDN7 built on 5/18/2022
