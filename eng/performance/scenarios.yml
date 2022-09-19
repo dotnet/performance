@@ -109,6 +109,13 @@ jobs:
               cp -Recurse .\pub $(CorrelationStaging)scenarios\emptyconsoletemplate\pub
             workingDirectory: $(Build.SourcesDirectory)\src\scenarios
             displayName: Publish emptyconsoletemplate
+          - powershell: |-
+              .\init.ps1 -DotnetDirectory $(CorrelationStaging)dotnet
+              cd emptyconsoletemplate
+              $(Python) pre.py build -f $(PERFLAB_Framework) -c Release
+              cp -Recurse .\pub $(CorrelationStaging)scenarios\emptyconsoletemplate\bin
+            workingDirectory: $(Build.SourcesDirectory)\src\scenarios
+            displayName: Build emptyconsoletemplate
           # Current version of PaintDotNet zip file is PDN7 built on 5/18/2022
           - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
             - powershell: |
