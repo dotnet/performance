@@ -107,6 +107,7 @@ jobs:
               cd emptyconsoletemplate
               $(Python) pre.py publish -f $(PERFLAB_Framework) -c Release
               cp -Recurse .\pub $(CorrelationStaging)scenarios\emptyconsoletemplate\pub
+              $(Python) post.py
               ni $(CorrelationStaging)scenarios\emptyconsoletemplate\pub\test.txt
             workingDirectory: $(Build.SourcesDirectory)\src\scenarios
             displayName: Publish emptyconsoletemplate
@@ -115,6 +116,7 @@ jobs:
               cd emptyconsoletemplate
               $(Python) pre.py build -f $(PERFLAB_Framework) -c Release
               cp -Recurse .\pub $(CorrelationStaging)scenarios\emptyconsoletemplate\bin
+              $(Python) post.py
               ni $(CorrelationStaging)scenarios\emptyconsoletemplate\bin\test.txt
             workingDirectory: $(Build.SourcesDirectory)\src\scenarios
             displayName: Build emptyconsoletemplate
