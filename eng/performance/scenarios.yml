@@ -115,7 +115,7 @@ jobs:
               .\init.ps1 -DotnetDirectory $(CorrelationStaging)dotnet
               cd emptyconsoletemplate
               $(Python) pre.py build -f $(PERFLAB_Framework) -c Release
-              cp -Recurse .\pub $(CorrelationStaging)scenarios\emptyconsoletemplate\bin
+              cp -Recurse .\bin $(CorrelationStaging)scenarios\emptyconsoletemplate\bin
               $(Python) post.py
               ni $(CorrelationStaging)scenarios\emptyconsoletemplate\bin\test.txt
             workingDirectory: $(Build.SourcesDirectory)\src\scenarios
