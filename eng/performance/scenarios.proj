@@ -77,8 +77,7 @@
   </ItemGroup> -->
   <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
     <HelixWorkItem Include="@(Scenario -> 'Startup - %(Identity) - FDD Publish')">
-      <!-- <PreCommands>xcopy %HELIX_CORRELATION_PAYLOAD%\scenarios\emptyconsoletemplate\pub\ .\pub\ /E</PreCommands> -->
-      <PreCommands></PreCommands>
+      <PreCommands>xcopy %HELIX_CORRELATION_PAYLOAD%\scenarios\emptyconsoletemplate\pub\ .\pub\ /E</PreCommands>
       <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
