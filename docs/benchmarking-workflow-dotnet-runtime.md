@@ -6,7 +6,8 @@
   - [Table of Contents](#table-of-contents)
   - [Introduction](#introduction)
     - [Code Organization](#code-organization)
-    - [dotnet runtime Prerequisites](#dotnet-runtime-prerequisites)
+    - [dotnet runtime Prerequisites for non-wasm](#dotnet-runtime-prerequisites-for-non-wasm)
+    - [dotnet runtime Prerequisites for wasm](#dotnet-runtime-prerequisites-for-wasm)
   - [Preventing Regressions](#preventing-regressions)
     - [Running against the latest .NET Core SDK](#running-against-the-latest-net-core-sdk)
   - [Solving Regressions](#solving-regressions)
@@ -106,7 +107,7 @@ dotnet run -c Release -f net7.0 --filter System.Memory*
 
 Moreover, every Libaries benchmark belongs to a [Libraries category](../src/benchmarks/micro/README.md#Categories). Same goes for Runtime.
 
-### dotnet runtime Prerequisites (non-wasm)
+### dotnet runtime Prerequisites for non-wasm
 
 In order to run the benchmarks against local [dotnet/runtime](https://github.com/dotnet/runtime) build you need to build the dotnet/runtime repository in **Release**:
 
@@ -139,7 +140,7 @@ cp artifacts\bin\runtime\net7.0-Windows_NT-Release-x64\Microsoft.Extensions.Cach
 
 Of course only if you want to benchmark these specific libraries. If you don't, the default versions defined in [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) project file are going to get used.
 
-### dotnet runtime Prerequisites (wasm)
+### dotnet runtime Prerequisites for wasm
 
 In order to run the benchmarks against local [dotnet/runtime](https://github.com/dotnet/runtime) build:
 
