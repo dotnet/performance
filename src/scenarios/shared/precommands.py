@@ -182,7 +182,7 @@ class PreCommands:
             pass
         if self.operation == BUILD:
             self._restore()
-            self._build(configuration=self.configuration, framework=self.framework, build_args=build_args)
+            self._build(configuration=self.configuration, framework=self.framework, output=self.output, build_args=build_args)
         if self.operation == PUBLISH:
             self._restore()
             self._publish(configuration=self.configuration, runtime_identifier=self.runtime_identifier, framework=self.framework, output=self.output, build_args=build_args)
@@ -270,13 +270,15 @@ class PreCommands:
     def _restore(self):
         self.project.restore(packages_path=get_packages_directory(), verbose=True)
 
-    def _build(self, configuration: str, framework: str = None, build_args: list = []):
-        self.project.build(configuration=configuration,
-                               verbose=True,
-                               packages_path=get_packages_directory(),
-                               target_framework_monikers=[framework],
-                               output_to_bindir=True,
-                               *build_args)
+    def _build(self, configuration: str, framework: str = None, output: str = None, build_args: list = []):
+        self.project.build(configuration,
+                           True,
+                           get_packages_directory(),
+                           [framework],
+                           output is None,
+                           None,
+                           *['--output', output] if output else [],
+                           *build_args)
 
     def _backup(self, projectdir:str):
         'Copy from projectdir to appdir so we do not modify the source code'
