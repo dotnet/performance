@@ -263,9 +263,8 @@ class PreCommands:
                              framework if not self.windows else f'{framework}-windows',
                              runtime_identifier,
                              self._parsemsbuildproperties(),
-                             '-bl:%s' % self.binlog if self.binlog else "",
-                             *build_args
-                             )
+                             *['-bl:%s' % self.binlog] if self.binlog else [],
+                             *build_args)
 
     def _restore(self):
         self.project.restore(packages_path=get_packages_directory(), verbose=True)
