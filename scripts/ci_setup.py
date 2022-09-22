@@ -6,6 +6,8 @@ from logging import getLogger
 import os
 import sys
 
+
+from dateutil import parser as date_parser
 from subprocess import check_output
 
 from performance.common import get_repo_root_path
@@ -93,6 +95,13 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         required=False,
         type=str,
         help='Product commit sha.'
+    )
+    parser.add_argument(
+        '--commit-time',
+        dest='commit_time',
+        required=False,
+        type=str,
+        help='Product commit time.'
     )
     parser.add_argument(
         '--repository',
@@ -309,7 +318,8 @@ def __main(args: list) -> int:
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
         dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
         commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
-        source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
+        timestamp_value = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url) if args.commit_time is None else args.commit_time
+        source_timestamp = date_parser.parse(timestamp_value).strftime('%Y-%m-%dT%H:%M:%SZ')
 
         branch = ChannelMap.get_branch(args.channel) if not args.branch else args.branch
 
