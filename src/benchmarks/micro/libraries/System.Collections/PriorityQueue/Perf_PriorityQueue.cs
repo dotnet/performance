@@ -108,7 +108,7 @@ namespace System.Collections.Tests
         }
 
         [Benchmark]
-        public void KMaxPriorityQueueSize_DequeueEnqueue_PerformanceRegressionBenchmark()
+        public void DequeueEnqueue()
         {
             const int k = 5;
             var queue = _priorityQueue;
