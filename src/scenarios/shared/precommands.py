@@ -88,6 +88,7 @@ class PreCommands:
         self.has_workload = args.has_workload
         self.readonly_dotnet = args.readonly_dotnet
         self.windows = args.windows
+        self.output = args.output
         
         if self.operation == CROSSGEN:
             self.crossgen_arguments.parse_crossgen_args(args)
@@ -162,6 +163,10 @@ class PreCommands:
                             dest='windows',
                             action='store_true',
                             help='must be set for UI tests so the proper rid is used')
+        parser.add_argument('-o', '--output',
+                            dest='output',
+                            metavar='output',
+                            help='output directory')
         parser.set_defaults(configuration=RELEASE)
 
     def existing(self, projectdir: str, projectfile: str):
@@ -180,9 +185,7 @@ class PreCommands:
             self._build(configuration=self.configuration, framework=self.framework, build_args=build_args)
         if self.operation == PUBLISH:
             self._restore()
-            self._publish(configuration=self.configuration,
-                          runtime_identifier=self.runtime_identifier,
-                          framework=self.framework, build_args=build_args)
+            self._publish(configuration=self.configuration, runtime_identifier=self.runtime_identifier, framework=self.framework, output=self.output, build_args=build_args)
         if self.operation == CROSSGEN:
             startup_args = [
                 os.path.join(self.crossgen_arguments.coreroot, 'crossgen%s' % extension()),
@@ -252,9 +255,9 @@ class PreCommands:
             else:
                 replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
 
-    def _publish(self, configuration: str, framework: str = None, runtime_identifier: str = None, build_args: list = []):
+    def _publish(self, configuration: str, framework: str = None, runtime_identifier: str = None, output: str = None, build_args: list = []):
         self.project.publish(configuration,
-                             const.PUBDIR, 
+                             output or const.PUBDIR,
                              True,
                              os.path.join(get_packages_directory(), ''), # blazor publish targets require the trailing slash for joining the paths
                              framework if not self.windows else f'{framework}-windows',
