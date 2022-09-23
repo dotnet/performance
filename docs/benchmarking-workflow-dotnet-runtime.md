@@ -6,7 +6,7 @@
   - [Table of Contents](#table-of-contents)
   - [Introduction](#introduction)
     - [Code Organization](#code-organization)
-    - [dotnet runtime Prerequisites for non-wasm](#dotnet-runtime-prerequisites-for-non-wasm)
+    - [dotnet runtime Prerequisites for CLR](#dotnet-runtime-prerequisites-for-clr)
     - [dotnet runtime Prerequisites for wasm](#dotnet-runtime-prerequisites-for-wasm)
   - [Preventing Regressions](#preventing-regressions)
     - [Running against the latest .NET Core SDK](#running-against-the-latest-net-core-sdk)
