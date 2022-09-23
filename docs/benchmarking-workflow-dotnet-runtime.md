@@ -163,7 +163,7 @@ This would produce `/path/to/dotnet/runtime/artifacts/bin/dotnet-net7+latest`, w
 #### Run the benchmarks with the interpreter:
 
 ```cmd
-/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py --csproj src/benchmarks/micro/MicroBenchmarks.csproj -f net7.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-net7+latest --wasm --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
+/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py -f net7.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-net7+latest --wasm --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
     --bdn-arguments="--anyCategories Libraries Runtime --category-exclusion-filter NoInterpreter NoWASM NoMono --logBuildOutput --wasmDataDir </path/to/dotnet/runtime>/src/mono/wasm --filter <filter>"
 ```
 
