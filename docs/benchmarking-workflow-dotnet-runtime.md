@@ -153,7 +153,7 @@ In order to run the benchmarks against local [dotnet/runtime](https://github.com
 2. Prepare a sdk with `wasm-tools` workload installed using the built artifacts:
 
 ```cmd
-/path/to/dotnet/runtime$ dotnet build -p:TargetOS=Browser -p:TargetArchitecture=wasm -c Release src/mono/wasm/Wasm.Build.Tests /t:InstallWorkloadUsingArtifacts
+/path/to/dotnet/runtime$ ./dotnet.sh build -p:TargetOS=Browser -p:TargetArchitecture=wasm -c Release src/mono/wasm/Wasm.Build.Tests /t:InstallWorkloadUsingArtifacts
 ```
 
 This would produce `/path/to/dotnet/runtime/artifacts/bin/dotnet-net7+latest`, which should be used to run the benchmarks.
