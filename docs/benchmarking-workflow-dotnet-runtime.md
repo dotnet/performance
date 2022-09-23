@@ -173,7 +173,7 @@ Essentially, add `--aotcompilermode wasm` to the `--bdn-arguments=".."`:
 
 ```cmd
 /path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py --csproj src/benchmarks/micro/MicroBenchmarks.csproj -f net7.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-net7+latest --wasm --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
-    --bdn-arguments="--anyCategories Libraries Runtime --category-exclusion-filter NoInterpreter NoWASM NoMono --aotcompilermode wasm --logBuildOutput --buildTimeout 3600 --wasmDataDir </path/to/dotnet/runtime>/src/mono/wasm --filter <filter>"
+    --bdn-arguments="--category-exclusion-filter NoInterpreter NoWASM NoMono --aotcompilermode wasm --logBuildOutput --buildTimeout 3600 --wasmDataDir </path/to/dotnet/runtime>/src/mono/wasm --filter <filter>"
 ```
 
 ## Preventing Regressions
