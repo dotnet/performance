@@ -107,7 +107,7 @@ dotnet run -c Release -f net7.0 --filter System.Memory*
 
 Moreover, every Libaries benchmark belongs to a [Libraries category](../src/benchmarks/micro/README.md#Categories). Same goes for Runtime.
 
-### dotnet runtime Prerequisites for non-wasm
+### dotnet runtime Prerequisites for CLR
 
 In order to run the benchmarks against local [dotnet/runtime](https://github.com/dotnet/runtime) build you need to build the dotnet/runtime repository in **Release**:
 
