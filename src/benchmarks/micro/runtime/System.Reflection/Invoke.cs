@@ -78,13 +78,12 @@ namespace System.Reflection
             s_dummy++;
         }
 
-        [Benchmark]
         public void Method0_NoParms()
         {
             s_method.Invoke(s_MyClass, null);
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         // Include the array allocation and population for a typical scenario.
         public void StaticMethod4_arrayNotCached_int_string_struct_class()
         {
@@ -95,7 +94,7 @@ namespace System.Reflection
             }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void StaticMethod4_int_string_struct_class()
         {
             for (int i = 0; i < Iterations; i++)
@@ -104,7 +103,7 @@ namespace System.Reflection
             }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void StaticMethod4_ByRefParams_int_string_struct_class()
         {
             for (int i = 0; i < Iterations; i++)
@@ -113,7 +112,7 @@ namespace System.Reflection
             }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Ctor0_NoParams()
         {
             for (int i = 0; i < Iterations; i++)
@@ -122,7 +121,7 @@ namespace System.Reflection
             }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Ctor0_ActivatorCreateInstance_NoParams()
         {
             for (int i = 0; i < Iterations; i++)
@@ -131,7 +130,7 @@ namespace System.Reflection
             }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Ctor4_int_string_struct_class()
         {
             for (int i = 0; i < Iterations; i++)
@@ -140,7 +139,7 @@ namespace System.Reflection
             }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Ctor4_ActivatorCreateInstance()
         {
             for (int i = 0; i < Iterations; i++)
@@ -149,7 +148,7 @@ namespace System.Reflection
             }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Property_Get_int()
         {
             for (int i = 0; i < Iterations; i++)
@@ -158,7 +157,7 @@ namespace System.Reflection
             }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Property_Get_class()
         {
             for (int i = 0; i < Iterations; i++)
@@ -167,7 +166,7 @@ namespace System.Reflection
             }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Property_Set_int()
         {
             for (int i = 0; i < 1000; i++)
@@ -176,7 +175,7 @@ namespace System.Reflection
             }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Property_Set_class()
         {
             for (int i = 0; i < Iterations; i++)
@@ -185,7 +184,7 @@ namespace System.Reflection
             }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Field_Get_int()
         {
             for (int i = 0; i < Iterations; i++)
@@ -194,7 +193,7 @@ namespace System.Reflection
             }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Field_Get_class()
         {
             for (int i = 0; i < Iterations; i++)
@@ -203,7 +202,7 @@ namespace System.Reflection
             }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Field_Set_int()
         {
             for (int i = 0; i < Iterations; i++)
@@ -212,7 +211,7 @@ namespace System.Reflection
             }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Field_Set_class()
         {
             for (int i = 0; i < Iterations; i++)
