@@ -12,6 +12,11 @@ class ChannelMap():
             'branch': '7.0-rc1',
             'quality': 'daily'
         },
+        'release/7.0-rc2': {
+            'tfm': 'net7.0',
+            'branch': '7.0-rc2',
+            'quality': 'daily'
+        },
         'release/7.0': {
             'tfm': 'net7.0',
             'branch': '7.0',
