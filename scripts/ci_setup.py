@@ -318,7 +318,7 @@ def __main(args: list) -> int:
         dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
         commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
         if(args.commit_time is not None):
-            parsed_timestamp = datetime.datetime.strptime(timestamp_value, '%Y-%m-%d %H:%M:%S %z').astimezone(datetime.timezone.utc)
+            parsed_timestamp = datetime.datetime.strptime(args.commit_time, '%Y-%m-%d %H:%M:%S %z').astimezone(datetime.timezone.utc)
             source_timestamp = parsed_timestamp.strftime('%Y-%m-%dT%H:%M:%SZ')
         else:
             source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
