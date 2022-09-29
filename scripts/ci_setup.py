@@ -100,7 +100,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         dest='commit_time',
         required=False,
         type=str,
-        help='Product commit time.'
+        help='Product commit time. Format: %Y-%m-%d %H:%M:%S %z'
     )
     parser.add_argument(
         '--repository',
