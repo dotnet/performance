@@ -12,6 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <TrimmerRootDescriptor Include="$(MSBuildThisFileDirectory)ILLink.Descriptors.Serialization.xml" />
+
     <_AOT_InternalForceInterpretAssemblies Include="Microsoft.CodeAnalysis.CSharp.dll" />
     <_AOT_InternalForceInterpretAssemblies Include="Microsoft.CodeAnalysis.dll" />
   </ItemGroup>

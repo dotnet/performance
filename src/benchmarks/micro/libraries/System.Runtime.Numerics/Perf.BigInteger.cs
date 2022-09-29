@@ -91,7 +91,8 @@ namespace System.Numerics.Tests
         public IEnumerable<object> ModPowValues()
         {
             yield return new BigIntegers(new[] { 16, 16, 16 });
-            yield return new BigIntegers(new[] { 1024, 1024, 64 });
+            // currently commented out due to a bug in the product https://github.com/dotnet/performance/issues/2575
+            // yield return new BigIntegers(new[] { 1024, 1024, 64 });
             yield return new BigIntegers(new[] { 16384, 16384, 64 });
         }
 
