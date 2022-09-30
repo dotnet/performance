@@ -26,7 +26,7 @@ namespace System.Xml.Tests
 		public void CleanWriter() => _writer.Clean();
 
 		[Benchmark(OperationsPerInvoke = Iterations)]
-		public string AddPrimitives()
+		public int AddPrimitives()
 		{
 			for (int i = 0; i < Iterations; i++)
 			{
@@ -47,7 +47,7 @@ namespace System.Xml.Tests
 				_writer.Write(Guid.NewGuid());
 			}
 
-			return _writer.GetXml();
+			return _writer.GetXmlLength();
 		}
 	}
 
@@ -67,6 +67,6 @@ namespace System.Xml.Tests
 		public void Write<T>(T value) => WriteTypedPrimitive(null, null, value, false);
 
 		public void Clean() => _builder.Clear();
-		public string GetXml() => _builder.ToString();
+		public int GetXmlLength() => _builder.Length;
 	}
 }
