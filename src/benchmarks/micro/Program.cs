@@ -16,6 +16,15 @@ namespace MicroBenchmarks
     {
         static int Main(string[] args)
         {
+            //var bb = new System.Xml.Tests.Perf_XmlSerializationWriter();
+            //var xml = bb.AddPrimitives();
+            //bb.CleanWriter();
+            //var xml2 = bb.AddPrimitives();
+            //if (xml != xml2)
+            //{
+            //    Console.WriteLine("diff");
+            //}
+
             var argsList = new List<string>(args);
             int? partitionCount;
             int? partitionIndex;
