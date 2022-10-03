@@ -13,6 +13,10 @@ namespace System.Tests
     {
         DateTime date1 = new DateTime(1996, 6, 3, 22, 15, 0);
         DateTime date2 = new DateTime(1996, 12, 6, 13, 2, 0);
+        object date2Boxed;
+
+        [GlobalSetup]
+        public void Setup() => date2Boxed = date2;
 
         [Benchmark]
         public DateTime GetNow() => DateTime.Now;
@@ -32,6 +36,9 @@ namespace System.Tests
         [Benchmark]
         [ArgumentsSource(nameof(ToString_MemberData))]
         public string ToString(string format) => date1.ToString(format);
+        
+        [Benchmark]
+        public bool ObjectEquals() => date1.Equals(date2Boxed);
 
         [Benchmark]
         public TimeSpan op_Subtraction() => date1 - date2;
