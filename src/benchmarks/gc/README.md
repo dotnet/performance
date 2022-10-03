@@ -114,7 +114,7 @@ To avoid writing benchfiles yourself, `suite-create` can generate a few:
 py . suite-create bench/suite --coreclrs path_to_coreclr0 path_to_coreclr1
 ```
 
-`path_to_coreclr0` is the path to a [Core_Root](#Core_Root).
+`path_to_coreclr0` is the path to a [Core_Root](#core_root).
 
 `path_to_coreclr1` should be a different Core_Root. (It can be the same, but the point is to compare performance of two different builds.)
 You can omit this if you just intend to test a single coreclr.
@@ -205,7 +205,7 @@ py . run bench/suite/low_memory_container.yaml
 ```
 
 On Windows, all tests must be run as administrator as PerfView requires this,
-unless `collect: none` is set the benchfile's options. See [Running Without Traces](#Running%20Without%20Traces)
+unless `collect: none` is set the benchfile's options. See [Running Without Traces](#running-without-traces)
 for more details.
 
 On Linux, only tests with containers require super user privileges.
