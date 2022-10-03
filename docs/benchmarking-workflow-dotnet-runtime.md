@@ -144,13 +144,13 @@ Of course only if you want to benchmark these specific libraries. If you don't, 
 
 In order to run the benchmarks against local [dotnet/runtime](https://github.com/dotnet/runtime) build:
 
-1. build the dotnet/runtime repository in **Release**:
+1. build the dotnet/runtime repository in **Release**
 
 ```cmd
 /path/to/dotnet/runtime$ ./build.sh mono+libs -os browser -c Release
 ```
 
-2. Prepare a sdk with `wasm-tools` workload installed using the built artifacts:
+2. Prepare a sdk with `wasm-tools` workload installed using the built artifacts
 
 ```cmd
 /path/to/dotnet/runtime$ ./dotnet.sh build -p:TargetOS=Browser -p:TargetArchitecture=wasm -c Release src/mono/wasm/Wasm.Build.Tests /t:InstallWorkloadUsingArtifacts
@@ -160,14 +160,14 @@ This would produce `/path/to/dotnet/runtime/artifacts/bin/dotnet-net7+latest`, w
 
 3. And you need `/path/to/dotnet/runtime/src/mono/wasm/test-main.js`
 
-#### Run the benchmarks with the interpreter:
+#### Run the benchmarks with the interpreter
 
 ```cmd
 /path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py -f net7.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-net7+latest --wasm --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
     --bdn-arguments="--anyCategories Libraries Runtime --category-exclusion-filter NoInterpreter NoWASM NoMono --logBuildOutput --wasmDataDir </path/to/dotnet/runtime>/src/mono/wasm --filter <filter>"
 ```
 
-#### Run the benchmarks with AOT:
+#### Run the benchmarks with AOT
 
 Essentially, add `--aotcompilermode wasm` to the `--bdn-arguments=".."`:
 
