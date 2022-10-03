@@ -205,7 +205,7 @@ py . run bench/suite/low_memory_container.yaml
 ```
 
 On Windows, all tests must be run as administrator as PerfView requires this,
-unless `collect: none` is set the benchfile's options. See [Running Without Traces](#running%20without%20traces)
+unless `collect: none` is set the benchfile's options. See [Running Without Traces](#running-without-traces)
 for more details.
 
 On Linux, only tests with containers require super user privileges.
