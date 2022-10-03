@@ -7,7 +7,7 @@ BenchmarkDotNet is the benchmarking tool that allows to run benchmarks for .NET,
 - [Main Concepts](#main-concepts)
 - [Prerequisites](#prerequisites)
 - [Building the benchmarks](#building-the-benchmarks)
-  - [Using .NET Cli](#using-.net-cli)
+  - [Using .NET Cli](#using-net-cli)
   - [Using Python script](#using-python-script)
 - [Running the Benchmarks](#running-the-benchmarks)
   - [Interactive Mode](#interactive-mode)
