@@ -222,7 +222,7 @@ jobs:
       queue: Windows.10.Amd64.Client21H1.Open
       csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
       runCategories: 'fsharp'
-      channels: # for F# jobs we want to check .NET Core 3.1 and 5.0 only
+      channels:
         - main
 
   # Windows x64 Roslyn benchmarks
@@ -306,7 +306,7 @@ jobs:
       container: ubuntu_x64_build_container
       runCategories: 'fsharp'
       csproj: src/benchmarks/real-world/FSharp/FSharp.fsproj
-      channels: # for F# jobs we want to check .NET Core 3.1 and 5.0 only
+      channels:
         - main
 
   # Ubuntu 1804 x64 Roslyn benchmarks
@@ -612,6 +612,39 @@ jobs:
       channels:
         - main
   
+  # Windows x64 F# benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      kind: fsharp
+      architecture: x64
+      pool:
+        vmImage: windows-2019
+      machinePool: Tiger
+      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
+      runCategories: 'fsharp'
+      channels:
+        - main
+
+  # Ubuntu 1804 x64 F# benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: fsharp
+      architecture: x64
+      pool: 
+        vmImage: ubuntu-latest
+      machinePool: Tiger
+      queue: Ubuntu.1804.Amd64.Tiger.Perf
+      container: ubuntu_x64_build_container
+      runCategories: 'fsharp'
+      csproj: src/benchmarks/real-world/FSharp/FSharp.fsproj
+      channels:
+        - main
+
   # Secret Sync
   - job: Synchronize
     pool:
