@@ -254,6 +254,7 @@ def __main(args: list) -> int:
             target_framework_monikers,
             args.incremental,
             args.run_isolated,
+            args.wasm,
             verbose
         )
 

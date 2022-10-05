@@ -17,6 +17,9 @@
     <EnableXlfLocalization>false</EnableXlfLocalization>
     <!-- this repo needs to build with netcoreapp3.1, so we can't use latest C# syntax -->
     <LangVersion>8.0</LangVersion>
+
+    <!-- Allow building with one major version, and running using a sdk with a higher major version -->
+    <RollForward Condition="'$(BuildingForWasm)' == 'true'">LatestMajor</RollForward>
   </PropertyGroup>
   <!-- out-of-band packages that are not included in NetCoreApp have TFM-specific versions -->
   <Choose>
