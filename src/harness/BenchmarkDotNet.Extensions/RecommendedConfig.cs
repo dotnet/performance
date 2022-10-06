@@ -85,7 +85,7 @@ namespace BenchmarkDotNet.Extensions
         private static DisassemblyDiagnoser CreateDisassembler()
             => new DisassemblyDiagnoser(new DisassemblyDiagnoserConfig(
                 maxDepth: 1, // TODO: is depth == 1 enough?
-                formatter: null, // TODO: enable diffable format
+                syntax: DisassemblySyntax.Masm, // TODO: enable diffable format
                 printSource: false, // we are not interested in getting C#
                 printInstructionAddresses: false, // would make the diffing hard, however could be useful to determine alignment
                 exportGithubMarkdown: false,
