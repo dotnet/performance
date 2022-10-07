@@ -102,9 +102,14 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Runs each benchmark only once, useful for testing')
 
     parser.add_argument(
+        '--azure-feed-url',
+        dest='azure_feed_url',
+        help='Internal azure feed to fetch the build from')
+
+    parser.add_argument(
         '--internal-build-key',
         dest='internal_build_key',
-        help='Key used to fetch the build from an internal source')
+        help='Key used to fetch the build from an internal azure feed')
 
     return parser
 
@@ -178,10 +183,15 @@ def __main(args: list) -> int:
         elif version['tfm'].startswith('nativeaot'):
             benchmarkArgs += ['--bdn-arguments', '--ilCompilerVersion ' + version['ilc']]
         
-        if args.internal_build_key:
-            benchmarkArgs += ['--internal-build-key', args.internal_build_key]
-
-        log('Executing: benchmarks_ci.py ' + str.join(' ', benchmarkArgs))
+        if args.azure_feed_url or args.internal_build_key:
+            if args.azure_feed_url and args.internal_build_key:
+                benchmarkArgs += ['--azure-feed-url', args.azure_feed_url]
+                benchmarkArgs += ['--internal-build-key', args.internal_build_key]
+                log('Executing: benchmarks_ci.py ')
+            else:
+                raise("Must include both a --azure-feed-url and a --internal-build-key")
+        else:
+            log('Executing: benchmarks_ci.py ' + str.join(' ', benchmarkArgs))
 
         if not args.dry_run:
             try:
