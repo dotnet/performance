@@ -20,6 +20,7 @@ import sys
 import os
 
 VERSIONS = {
+    'net7.0-rc2': { 'tfm': 'net7.0', 'build': '7.0.100-rc.2.22477.23' },
     'net7.0-rc1': { 'tfm': 'net7.0', 'build': '7.0.100-rc.1.22425.9' },
     'net7.0-preview7': { 'tfm': 'net7.0', 'build': '7.0.100-preview.7.22370.3' },
     'net7.0-preview5': { 'tfm': 'net7.0', 'build': '7.0.100-preview.5.22276.3' },
@@ -100,6 +101,11 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         action='store_true',
         help='Runs each benchmark only once, useful for testing')
 
+    parser.add_argument(
+        '--internal-build-key',
+        dest='internal_build_key',
+        help='Key used to fetch the build from an internal source')
+
     return parser
 
 def __process_arguments(args: list):
@@ -171,6 +177,9 @@ def __main(args: list) -> int:
                 benchmarkArgs += ['--bdn-arguments', args.bdn_arguments]
         elif version['tfm'].startswith('nativeaot'):
             benchmarkArgs += ['--bdn-arguments', '--ilCompilerVersion ' + version['ilc']]
+        
+        if args.internal_build_key:
+            benchmarkArgs += ['--internal-build-key', args.internal_build_key]
 
         log('Executing: benchmarks_ci.py ' + str.join(' ', benchmarkArgs))
 
