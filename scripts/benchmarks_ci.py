@@ -40,7 +40,9 @@ def init_tools(
         architecture: str,
         dotnet_versions: str,
         target_framework_monikers: list,
-        verbose: bool) -> None:
+        verbose: bool,
+        azure_feed_url: str = None,
+        internal_build_key: str = None) -> None:
     '''
     Install tools used by this repository into the tools folder.
     This function writes a semaphore file when tools have been successfully
@@ -57,6 +59,8 @@ def init_tools(
         channels=channels,
         versions=dotnet_versions,
         verbose=verbose,
+        azure_feed_url=azure_feed_url,
+        internal_build_key=internal_build_key
     )
 
 
@@ -189,6 +193,22 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Skips the logger setup, for cases when invoked by another script that already sets logging up',
     )
 
+    parser.add_argument(
+        '--azure-feed-url',
+        dest='azure_feed_url',
+        required=False,
+        default=None,
+        help='Internal azure feed to fetch the build from',
+    )
+
+    parser.add_argument(
+        '--internal-build-key',
+        dest='internal_build_key',
+        required=False,
+        default=None,
+        help='Key used to fetch the build from an internal azure feed',
+    )
+
     return parser
 
 
@@ -222,7 +242,9 @@ def __main(args: list) -> int:
             architecture=args.architecture,
             dotnet_versions=args.dotnet_versions,
             target_framework_monikers=target_framework_monikers,
-            verbose=verbose
+            verbose=verbose,
+            azure_feed_url=args.azure_feed_url,
+            internal_build_key=args.internal_build_key
         )
     else:
         dotnet.setup_dotnet(args.dotnet_path)

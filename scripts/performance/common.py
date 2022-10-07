@@ -212,6 +212,9 @@ class RunCommand:
             quoted_cmdline = '$ '
             quoted_cmdline += list2cmdline(self.cmdline)
 
+            if '-AzureFeed' in self.cmdline or '-FeedCredential' in self.cmdline:
+                quoted_cmdline = "<dotnet-install command contains secrets, skipping log>"
+            
             getLogger().info(quoted_cmdline)
 
             with Popen(

@@ -744,7 +744,9 @@ def install(
         channels: list,
         versions: str,
         verbose: bool,
-        install_dir: str = None) -> None:
+        install_dir: str = None,
+        azure_feed_url: str = None,
+        internal_build_key: str = None) -> None:
     '''
     Downloads dotnet cli into the tools folder.
     '''
@@ -802,6 +804,10 @@ def install(
         '-InstallDir', install_dir,
         '-Architecture', architecture
     ]
+
+    if azure_feed_url and internal_build_key:
+        common_cmdline_args += ['-AzureFeed', azure_feed_url]
+        common_cmdline_args += ['-FeedCredential', internal_build_key]
 
     # Install Runtime/SDKs
     if versions:
