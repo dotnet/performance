@@ -292,6 +292,38 @@ jobs:
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
         - main
+# Ubuntu 1804 x64 ILLink Benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: illink
+      architecture: x64
+      pool:
+        vmImage: ubuntu-latest
+      machinePool: Open
+      queue: Ubuntu.1804.Amd64.Open
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/real-world/ILLink/ILLinkBenchmarks.csproj
+      runCategories: 'illink'
+      channels:
+        - main
+
+  # Windows x64 ILLinkBenchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 22H1
+      kind: illink
+      architecture: x64
+      pool:
+        vmImage: windows-2019
+      machinePool: Open
+      queue: Windows.10.Amd64.Client21H1.Open
+      csproj: src/benchmarks/real-world/ILLink/ILLinkBenchmarks.csproj
+      runCategories: 'illink'
+      channels:
+        - main
 
 ###########################################
 # Private Jobs
@@ -599,6 +631,39 @@ jobs:
         scriptLocation: inlineScript
         inlineScript: |
           Get-ChildItem .vault-config/*.yaml |% { dotnet secret-manager synchronize $_}
+  
+  # Ubuntu 1804 x64 ILLink Benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: illink
+      architecture: x64
+      pool:
+        vmImage: ubuntu-latest
+      machinePool: Tiger
+      queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/real-world/ILLink/ILLinkBenchmarks.csproj
+      runCategories: 'illink'
+      channels:
+        - main
+
+  # Windows x64 ILLinkBenchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 22H1
+      kind: illink
+      architecture: x64
+      pool:
+        vmImage: windows-2019
+      machinePool: Tiger
+      queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+      csproj: src/benchmarks/real-world/ILLink/ILLinkBenchmarks.csproj
+      runCategories: 'illink'
+      channels:
+        - main
 
 ################################################
 # Manually Triggered Job
