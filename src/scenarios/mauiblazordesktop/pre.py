@@ -72,7 +72,7 @@ else:
     
 
 precommands = PreCommands()
-precommands.install_workload('maui', ['--from-rollback-file', 'https://aka.ms/dotnet/maui/net7.0.json', '--configfile', './Nuget.config'])
+precommands.install_workload('maui-windows', ['--from-rollback-file', 'https://aka.ms/dotnet/maui/net7.0.json', '--configfile', './Nuget.config'])
 precommands.new(template='maui-blazor',
                 output_dir=const.APPDIR,
                 bin_dir=const.BINDIR,

@@ -331,36 +331,36 @@ jobs:
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest', 'Manual')) }}:
 
-  # Windows x64 scenario benchmarks
-  - template: /eng/performance/scenarios.yml
-    parameters:
-      osName: windows
-      osVersion: 19H1
-      architecture: x64
-      pool:
-        vmImage: windows-2019
-      kind: scenarios
-      machinePool: Tiger
-      queue: Windows.10.Amd64.19H1.Tiger.Perf
-      projectFile: scenarios.proj
-      channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
-        - main
+  # # Windows x64 scenario benchmarks
+  # - template: /eng/performance/scenarios.yml
+  #   parameters:
+  #     osName: windows
+  #     osVersion: 19H1
+  #     architecture: x64
+  #     pool:
+  #       vmImage: windows-2019
+  #     kind: scenarios
+  #     machinePool: Tiger
+  #     queue: Windows.10.Amd64.19H1.Tiger.Perf
+  #     projectFile: scenarios.proj
+  #     channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
+  #       - main
 
-  # Ubuntu 1804 x64 scenario benchmarks
-  - template: /eng/performance/scenarios.yml
-    parameters:
-      osName: ubuntu
-      osVersion: 1804
-      kind: scenarios
-      architecture: x64
-      pool: 
-        vmImage: ubuntu-latest
-      machinePool: Tiger
-      queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-      container: ubuntu_x64_build_container
-      projectFile: scenarios.proj
-      channels:
-        - main
+  # # Ubuntu 1804 x64 scenario benchmarks
+  # - template: /eng/performance/scenarios.yml
+  #   parameters:
+  #     osName: ubuntu
+  #     osVersion: 1804
+  #     kind: scenarios
+  #     architecture: x64
+  #     pool: 
+  #       vmImage: ubuntu-latest
+  #     machinePool: Tiger
+  #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+  #     container: ubuntu_x64_build_container
+  #     projectFile: scenarios.proj
+  #     channels:
+  #       - main
 
   # Windows Arm64 scenario benchmarks
   - template: /eng/performance/scenarios.yml
