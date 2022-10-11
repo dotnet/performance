@@ -276,8 +276,7 @@ class PreCommands:
                            [framework],
                            output is None,
                            None,
-                           *['--output', output] if output else [],
-                           *build_args)
+                           (['--output', output] if output else []) + build_args)
 
     def _backup(self, projectdir:str):
         'Copy from projectdir to appdir so we do not modify the source code'
