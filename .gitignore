@@ -55,7 +55,6 @@ bld/
 
 # Visual Studio 2017 auto generated files
 Generated\ Files/
-**/*Properties/launchSettings.json
 
 # scenario intermediate directories
 src/scenarios/*/pub
