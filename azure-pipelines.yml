@@ -1,9 +1,9 @@
 resources:
   containers:
     - container: ubuntu_x64_build_container
-      image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-20210311173856-047508b
+      image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04
     - container: centos_x64_build_container
-      image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-20220107135107-9b5bbc2
+      image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7
 
 # CI Trigger on main branch
 trigger:
