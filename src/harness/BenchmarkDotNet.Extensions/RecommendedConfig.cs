@@ -27,7 +27,6 @@ namespace BenchmarkDotNet.Extensions
             int? partitionIndex = null,
             List<string> exclusionFilterValue = null,
             List<string> categoryExclusionFilterValue = null,
-            Dictionary<string, string> parameterFilterValue = null,
             Job job = null,
             bool getDiffableDisasm = false,
             bool resumeRun = false)
@@ -61,7 +60,6 @@ namespace BenchmarkDotNet.Extensions
                 .AddFilter(new PartitionFilter(partitionCount, partitionIndex))
                 .AddFilter(new ExclusionFilter(exclusionFilterValue))
                 .AddFilter(new CategoryExclusionFilter(categoryExclusionFilterValue))
-                .AddFilter(new ParameterFilter(parameterFilterValue))
                 .AddExporter(JsonExporter.Full) // make sure we export to Json
                 .AddColumn(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
                 .AddValidator(TooManyTestCasesValidator.FailOnError)
@@ -85,7 +83,7 @@ namespace BenchmarkDotNet.Extensions
         private static DisassemblyDiagnoser CreateDisassembler()
             => new DisassemblyDiagnoser(new DisassemblyDiagnoserConfig(
                 maxDepth: 1, // TODO: is depth == 1 enough?
-                formatter: null, // TODO: enable diffable format
+                syntax: DisassemblySyntax.Masm, // TODO: enable diffable format
                 printSource: false, // we are not interested in getting C#
                 printInstructionAddresses: false, // would make the diffing hard, however could be useful to determine alignment
                 exportGithubMarkdown: false,
