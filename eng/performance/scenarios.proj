@@ -100,7 +100,7 @@
     </HelixWorkItem>
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetsWindows)' == 'true'">
+  <ItemGroup Condition="'$(TargetsWindows)' == 'true' And '$(Architecture)' != 'arm64' And '$(Architecture)' != 'arm'">
     <!-- SOD & Device Startup for Windows Desktop MAUI -->
     <HelixWorkItem Include="SOD - Desktop Maui Unpackaged">
       <PayloadDirectory>$(ScenariosDir)mauidesktop</PayloadDirectory>
