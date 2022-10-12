@@ -671,21 +671,6 @@ jobs:
 
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Manual')) }}:
-    # Windows Arm64 scenario benchmarks
-  - template: /eng/performance/scenarios.yml
-    parameters:
-      osName: windows
-      osVersion: 20H1
-      architecture: arm64
-      pool:
-        vmImage: windows-2019
-      kind: scenarios
-      machinePool: Tiger
-      queue: Windows.10.Arm64.Perf.Surf
-      projectFile: scenarios.proj
-      channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
-        - main
-  
   - job: Synchronize
     pool:
       name: NetCore1ESPool-Internal-NoMSI
