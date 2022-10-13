@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.NETCore.App.Runtime.win-x64" Version="3.1.29" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
+    <Dependency Name="Microsoft.NETCore.App.Runtime.win-x64" Version="3.1.30" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-core-setup</Uri>
-      <Sha>0bcbc312ffe4477aa5c9b0d73736f9377d0518e6</Sha>
+      <Sha>6ea71919a5bbed566449efe09e953e78abcc5363</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Dotnet.Sdk.Internal" Version="1.0.0-servicing.22506.2">
+    <Dependency Name="Microsoft.Dotnet.Sdk.Internal" Version="1.0.0-servicing.22512.19">
       <Uri>https://github.com/dotnet/installer</Uri>
-      <Sha>ab58215c351911ffea48044dbfebec75ba2bfd60</Sha>
+      <Sha>09018c66ea90159c0af77394a4bb1dafdd7b5be0</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.WindowsDesktop.App.Runtime.win-x64" Version="3.1.29" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
+    <Dependency Name="Microsoft.WindowsDesktop.App.Runtime.win-x64" Version="3.1.30" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-core-setup</Uri>
-      <Sha>0bcbc312ffe4477aa5c9b0d73736f9377d0518e6</Sha>
+      <Sha>6ea71919a5bbed566449efe09e953e78abcc5363</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.App.Runtime.win-x64" Version="3.1.29" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
+    <Dependency Name="Microsoft.AspNetCore.App.Runtime.win-x64" Version="3.1.30" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-aspnetcore</Uri>
-      <Sha>21d42143378ad6cc4bcbaebfda5f3acddf13aa47</Sha>
+      <Sha>2e51a0b6eba74bdf02aee71944e973487937cb99</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
