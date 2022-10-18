@@ -93,7 +93,7 @@ namespace System.IO.Tests
         public void SetupReadAllBytes()
         {
             // use non-temp file path to ensure that we don't test some unusal File System on Unix
-            string baseDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments, SpecialFolderOption.Create);
+            string baseDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments, Environment.SpecialFolderOption.Create);
             File.WriteAllBytes(_testFilePath = Path.Combine(baseDir, Path.GetRandomFileName()), Array.Empty<byte>());
             _filesToRead = new Dictionary<int, string>()
             {
