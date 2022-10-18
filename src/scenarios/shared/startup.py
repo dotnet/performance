@@ -153,6 +153,14 @@ class StartupWrapper(object):
         except CalledProcessError:
             getLogger().info("Run failure registered")
             # rethrow the original exception 
+            if runninginlab():
+                copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
+                if uploadtokenpresent():
+                    import upload
+                    upload_code = upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+                    getLogger().info("Startup Upload Code: " + str(upload_code))
+                    if upload_code != 0:
+                        sys.exit(upload_code)
             raise
 
         if runninginlab():
