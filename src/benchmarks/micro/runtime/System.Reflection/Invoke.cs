@@ -10,6 +10,8 @@ namespace System.Reflection
     [BenchmarkCategory(Categories.Runtime, Categories.Reflection)]
     public class Invoke
     {
+        private const int Iterations = 1_000; // Reduce the randomness of these short-lived calls.
+
         private static MyClass s_MyClass = new MyClass();
         private static object[] s_args = new object[] { 42, "Hello", default(MyBlittableStruct), s_MyClass };
         private static int s_dummy;
@@ -23,6 +25,9 @@ namespace System.Reflection
         private static PropertyInfo s_property_class;
         private static FieldInfo s_field_int;
         private static FieldInfo s_field_class;
+
+        public static int s_int;
+        public static object s_class;
 
         [GlobalSetup]
         public void Setup()
@@ -73,90 +78,150 @@ namespace System.Reflection
             s_dummy++;
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Method0_NoParms()
         {
-            s_method.Invoke(s_MyClass, null);
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_method.Invoke(s_MyClass, null);
+            }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         // Include the array allocation and population for a typical scenario.
         public void StaticMethod4_arrayNotCached_int_string_struct_class()
         {
-            object[] args = new object[] { 42, "Hello", default(MyBlittableStruct), s_MyClass };
-            s_method_int_string_struct_class.Invoke(null, args);
+            for (int i = 0; i < Iterations; i++)
+            {
+                object[] args = new object[] { 42, "Hello", default(MyBlittableStruct), s_MyClass };
+                s_method_int_string_struct_class.Invoke(null, args);
+            }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void StaticMethod4_int_string_struct_class()
         {
-            s_method_int_string_struct_class.Invoke(null, s_args);
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_method_int_string_struct_class.Invoke(null, s_args);
+            }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void StaticMethod4_ByRefParams_int_string_struct_class()
         {
-            s_method_byref_int_string_struct_class.Invoke(null, s_args);
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_method_byref_int_string_struct_class.Invoke(null, s_args);
+            }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Ctor0_NoParams()
         {
-            s_ctor_NoParams.Invoke(null);
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_ctor_NoParams.Invoke(null);
+            }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Ctor0_ActivatorCreateInstance_NoParams()
         {
-            Activator.CreateInstance(typeof(MyClass));
+            for (int i = 0; i < Iterations; i++)
+            {
+                Activator.CreateInstance(typeof(MyClass));
+            }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Ctor4_int_string_struct_class()
         {
-            s_ctor_int_string_struct_class.Invoke(s_args);
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_ctor_int_string_struct_class.Invoke(s_args);
+            }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Ctor4_ActivatorCreateInstance()
         {
-            Activator.CreateInstance(typeof(MyClass), s_args);
+            for (int i = 0; i < Iterations; i++)
+            {
+                Activator.CreateInstance(typeof(MyClass), s_args);
+            }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Property_Get_int()
         {
-            s_property_int.GetValue(s_MyClass);
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_int = (int)s_property_int.GetValue(s_MyClass);
+            }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Property_Get_class()
         {
-            s_property_class.GetValue(s_MyClass);
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_class = s_property_class.GetValue(s_MyClass);
+            }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Property_Set_int()
         {
-            s_property_int.SetValue(s_MyClass, 42);
+            for (int i = 0; i < 1000; i++)
+            {
+                s_property_int.SetValue(s_MyClass, 42);
+            }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Property_Set_class()
         {
-            s_property_class.SetValue(s_MyClass, null);
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_property_class.SetValue(s_MyClass, null);
+            }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Field_Get_int()
         {
-            s_field_int.GetValue(s_MyClass);
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_int = (int)s_field_int.GetValue(s_MyClass);
+            }
         }
 
-        [Benchmark]
+        [Benchmark(OperationsPerInvoke = Iterations)]
+        public void Field_Get_class()
+        {
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_class = s_field_class.GetValue(s_MyClass);
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void Field_Set_int()
         {
-            s_field_int.SetValue(s_MyClass, 42);
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_field_int.SetValue(s_MyClass, 42);
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = Iterations)]
+        public void Field_Set_class()
+        {
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_field_class.SetValue(s_MyClass, 42);
+            }
         }
 
         public struct MyBlittableStruct
