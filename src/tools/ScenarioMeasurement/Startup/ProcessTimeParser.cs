@@ -1,6 +1,7 @@
 ﻿using Microsoft.Diagnostics.Tracing;
 using Reporting;
 using System.Collections.Generic;
+using System;
 
 
 namespace ScenarioMeasurement
@@ -31,6 +32,7 @@ namespace ScenarioMeasurement
                 {
                     if (!pid.HasValue && ParserUtility.MatchProcessStart(evt, source, processName, pids, commandLine))
                     {
+                        Console.WriteLine($"ProcessStart: {evt.ProcessID} {evt.ProcessName} start: {evt.TimeStampRelativeMSec}");
                         pid = evt.ProcessID;
                         start = evt.TimeStampRelativeMSec;
                     }
@@ -66,6 +68,7 @@ namespace ScenarioMeasurement
                 {
                     if (pid.HasValue && ParserUtility.MatchSingleProcessID(evt, source, (int)pid))
                     {
+                        Console.WriteLine($"Adding result pid {pid}, start {start}, end {evt.TimeStampRelativeMSec}");
                         results.Add(evt.TimeStampRelativeMSec - start);
                         pid = null;
                         start = 0;
@@ -81,6 +84,7 @@ namespace ScenarioMeasurement
             }
 
             var ret = new List<Counter> { new Counter() { Name = "Process Time", Results = results.ToArray(), TopCounter = true, DefaultCounter = true, HigherIsBetter = false, MetricName = "ms" } }; 
+            Console.WriteLine("Results Length: " + results.Count);
             if (threadTimes.Count != 0)
             {
                 ret.Add(new Counter() { Name = "Time on Thread", Results = threadTimes.ToArray(), TopCounter = true, DefaultCounter = false, HigherIsBetter = false, MetricName = "ms" });

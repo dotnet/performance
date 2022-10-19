@@ -149,6 +149,7 @@ class StartupWrapper(object):
         upload_container = UPLOAD_CONTAINER
 
         try:
+            print(startup_args)
             RunCommand(startup_args, verbose=True).run()
         except CalledProcessError:
             getLogger().info("Run failure registered")

@@ -333,7 +333,6 @@ namespace ScenarioMeasurement
                 }
 
                 var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
-                logger.Log($"Number of counters in parsed trace file: {counters}");
                 CreateTestReport(scenarioName, counters, reportJsonPath, logger);
             }
 
