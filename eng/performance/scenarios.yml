@@ -102,6 +102,18 @@ jobs:
             displayName: Build SOD tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
+          - powershell: |
+              $(Python) -m pip install --upgrade pip
+              $(Python) -m pip install requests
+              .\src\scenarios\init.ps1
+              .\eng\common\msbuild.ps1 .\eng\performance\${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /bl:.\artifacts\log\$(_BuildConfig)\PrepareWorkItemPayloads.binlog
+            displayName: Prepare scenarios
+            env:
+              CorrelationPayloadDirectory: $(CorrelationStaging)
+              Architecture: ${{ parameters.architecture }}
+              TargetsWindows: 'true'
+              WorkItemDirectory: $(Build.SourcesDirectory)
+              HelixTargetQueues: ${{ parameters.queue }}
           # Current version of PaintDotNet zip file is PDN7 built on 5/18/2022
           - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
             - powershell: |
@@ -126,6 +138,18 @@ jobs:
             displayName: Build SOD tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
+          - script: |
+              $(Python) -m pip install --upgrade pip
+              $(Python) -m pip install requests
+              . ./src/scenarios/init.sh
+              ./eng/common/msbuild.sh ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
+            displayName: Prepare scenarios
+            env:
+              CorrelationPayloadDirectory: $(CorrelationStaging)
+              Architecture: ${{ parameters.architecture }}
+              TargetsWindows: 'false'
+              WorkItemDirectory: $(Build.SourcesDirectory)
+              HelixTargetQueues: ${{ parameters.queue }}
         - template: /eng/performance/send-to-helix.yml
           parameters:
             HelixSource: '$(HelixSourcePrefix)/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
