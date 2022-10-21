@@ -13,11 +13,14 @@ namespace System.Reflection
         private const int Iterations = 1_000; // Reduce the randomness of these short-lived calls.
 
         private static MyClass s_MyClass = new MyClass();
-        private static object[] s_args = new object[] { 42, "Hello", default(MyBlittableStruct), s_MyClass };
+        private static object[] s_args4 = new object[] { 42, "Hello", default(MyBlittableStruct), s_MyClass };
+        private static object[] s_args5 = new object[] { 42, "Hello", default(MyBlittableStruct), s_MyClass, true };
         private static int s_dummy;
         private static MethodInfo s_method;
         private static MethodInfo s_method_int_string_struct_class;
+        private static MethodInfo s_method_int_string_struct_class_bool;
         private static MethodInfo s_method_byref_int_string_struct_class;
+        private static MethodInfo s_method_byref_int_string_struct_class_bool;
         private static MethodInfo s_method_nullableInt;
         private static ConstructorInfo s_ctor_int_string_struct_class;
         private static ConstructorInfo s_ctor_NoParams;
@@ -38,8 +41,14 @@ namespace System.Reflection
             s_method_int_string_struct_class = typeof(Invoke).
                 GetMethod(nameof(Method_int_string_struct_class), BindingFlags.Public | BindingFlags.Static)!;
 
+            s_method_int_string_struct_class_bool = typeof(Invoke).
+                GetMethod(nameof(Method_int_string_struct_class_bool), BindingFlags.Public | BindingFlags.Static)!;
+
             s_method_byref_int_string_struct_class = typeof(Invoke).
                 GetMethod(nameof(Method_byref_int_string_struct_class), BindingFlags.Public | BindingFlags.Static)!;
+
+            s_method_byref_int_string_struct_class_bool = typeof(Invoke).
+                GetMethod(nameof(Method_byref_int_string_struct_class_bool), BindingFlags.Public | BindingFlags.Static)!;
 
             s_method_nullableInt = typeof(Invoke).
                 GetMethod(nameof(Method_nullableInt), BindingFlags.Public | BindingFlags.Static)!;
@@ -68,7 +77,17 @@ namespace System.Reflection
             s_dummy++;
         }
 
+        public static void Method_int_string_struct_class_bool(int i, string s, MyBlittableStruct myStruct, MyClass myClass, bool b)
+        {
+            s_dummy++;
+        }
+
         public static void Method_byref_int_string_struct_class(ref int i, ref string s, ref MyBlittableStruct myStruct, ref MyClass myClass)
+        {
+            s_dummy++;
+        }
+
+        public static void Method_byref_int_string_struct_class_bool(ref int i, ref string s, ref MyBlittableStruct myStruct, ref MyClass myClass, ref bool b)
         {
             s_dummy++;
         }
@@ -99,11 +118,23 @@ namespace System.Reflection
         }
 
         [Benchmark(OperationsPerInvoke = Iterations)]
+        // Include the array allocation and population for a typical scenario.
+        // Starting with 5 parameters, stack allocations are replaced with heap allocations.
+        public void StaticMethod5_arrayNotCached_int_string_struct_class_bool()
+        {
+            for (int i = 0; i < Iterations; i++)
+            {
+                object[] args = new object[] { 42, "Hello", default(MyBlittableStruct), s_MyClass, true };
+                s_method_int_string_struct_class_bool.Invoke(null, args);
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = Iterations)]
         public void StaticMethod4_int_string_struct_class()
         {
             for (int i = 0; i < Iterations; i++)
             {
-                s_method_int_string_struct_class.Invoke(null, s_args);
+                s_method_int_string_struct_class.Invoke(null, s_args4);
             }
         }
 
@@ -112,7 +143,17 @@ namespace System.Reflection
         {
             for (int i = 0; i < Iterations; i++)
             {
-                s_method_byref_int_string_struct_class.Invoke(null, s_args);
+                s_method_byref_int_string_struct_class.Invoke(null, s_args4);
+            }
+        }
+
+        [Benchmark(OperationsPerInvoke = Iterations)]
+        // Starting with 5 parameters, stack allocations are replaced with heap allocations.
+        public void StaticMethod5_ByRefParams_int_string_struct_class_bool()
+        {
+            for (int i = 0; i < Iterations; i++)
+            {
+                s_method_byref_int_string_struct_class_bool.Invoke(null, s_args5);
             }
         }
 
@@ -139,7 +180,7 @@ namespace System.Reflection
         {
             for (int i = 0; i < Iterations; i++)
             {
-                s_ctor_int_string_struct_class.Invoke(s_args);
+                s_ctor_int_string_struct_class.Invoke(s_args4);
             }
         }
 
@@ -148,7 +189,7 @@ namespace System.Reflection
         {
             for (int i = 0; i < Iterations; i++)
             {
-                Activator.CreateInstance(typeof(MyClass), s_args);
+                Activator.CreateInstance(typeof(MyClass), s_args4);
             }
         }
 
