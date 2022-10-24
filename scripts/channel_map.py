@@ -7,29 +7,19 @@ class ChannelMap():
             'branch': '7.0.1xx',
             'quality': 'daily'
         },
-        'release/7.0-rc1': {
-            'tfm': 'net7.0',
-            'branch': '7.0-rc1',
-            'quality': 'daily'
-        },
         'release/7.0-rc2': {
             'tfm': 'net7.0',
             'branch': '7.0-rc2',
             'quality': 'daily'
         },
+        'release/7.0-rc1': {
+            'tfm': 'net7.0',
+            'branch': '7.0-rc1',
+            'quality': 'daily'
+        },
         'release/7.0': {
             'tfm': 'net7.0',
             'branch': '7.0',
-            'quality': 'daily'
-        },
-        'release/6.0': {
-            'tfm': 'net6.0',
-            'branch': '6.0.1xx',
-            'quality': 'daily'
-        },
-        '6.0': {
-            'tfm': 'net6.0',
-            'branch': '6.0.1xx',
             'quality': 'daily'
         },
         'nativeaot7.0': {
@@ -40,6 +30,16 @@ class ChannelMap():
         'master': {
             'tfm': 'net6.0',
             'branch': 'master'
+        },
+        '6.0': {
+            'tfm': 'net6.0',
+            'branch': '6.0.1xx',
+            'quality': 'daily'
+        },
+        'release/6.0': {
+            'tfm': 'net6.0',
+            'branch': '6.0.1xx',
+            'quality': 'daily'
         },
         'nativeaot6.0': {
             'tfm': 'nativeaot6.0',
