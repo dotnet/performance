@@ -2,12 +2,6 @@
 
   <Import Project="Scenarios.Common.props" />
 
-  <ItemDefinitionGroup>
-    <HelixWorkItem>
-      <Timeout>4:00</Timeout>
-    </HelixWorkItem>
-  </ItemDefinitionGroup>
-
   <PropertyGroup>
     <AfterPreparePayloadWorkItemCommand>$(Python) post.py</AfterPreparePayloadWorkItemCommand>
     <PreparePayloadOutDirectoryName>scenarios_out</PreparePayloadOutDirectoryName>

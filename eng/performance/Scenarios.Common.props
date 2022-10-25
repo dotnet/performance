@@ -5,6 +5,12 @@
     </HelixCorrelationPayload>
   </ItemGroup>
 
+  <ItemDefinitionGroup>
+    <HelixWorkItem>
+      <Timeout>4:00</Timeout>
+    </HelixWorkItem>
+  </ItemDefinitionGroup>
+
   <PropertyGroup>
     <FrameworkVersion>$(PERFLAB_Framework.Substring($([MSBuild]::Subtract($(PERFLAB_Framework.Length), 3))))</FrameworkVersion>
   </PropertyGroup>

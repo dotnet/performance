@@ -16,7 +16,6 @@
       <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py sdk</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
     </SDKWorkItem>
   </ItemDefinitionGroup>
   
@@ -143,7 +142,6 @@
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <Command>$(Python) test.py sdk new_console --scenario-name &quot;%(Identity)&quot;</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemGroup>
 
@@ -154,7 +152,6 @@
       <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
     </HelixWorkItem>
     <HelixWorkItem Include="Inner Loop MVC">
       <ScenarioDirectoryName>mvcinnerloop</ScenarioDirectoryName>
@@ -162,7 +159,6 @@
       <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
     </HelixWorkItem>
     <HelixWorkItem Include="Inner Loop Blazor Server">
       <ScenarioDirectoryName>blazorserverinnerloop</ScenarioDirectoryName>
@@ -170,7 +166,6 @@
       <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
     </HelixWorkItem>
     <HelixWorkItem Include="Inner Loop MsBuild Console">
       <ScenarioDirectoryName>emptyconsoletemplateinnerloopmsbuild</ScenarioDirectoryName>
@@ -178,7 +173,6 @@
       <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py innerloopmsbuild --scenario-name &quot;%(Identity)&quot;</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
     </HelixWorkItem>
     <HelixWorkItem Include="Inner Loop Blazor Client">
       <ScenarioDirectoryName>blazorwasminnerloop</ScenarioDirectoryName>
@@ -186,7 +180,6 @@
       <PreCommands>$(Python) pre.py default</PreCommands>
       <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
     </HelixWorkItem>
     <!--
     <HelixWorkItem Include="Hot Reload Blazor Client" Condition="'$(FrameworkVersion)' == '6.0'">
@@ -195,7 +188,6 @@
       <PreCommands>$(Python) pre.py build -f net$(FrameworkVersion) -c Release</PreCommands>
       <Command>$(Python) test.py dotnetwatch -(-fixme when uncommenting!!)scenario-name &quot;%(Identity)&quot;</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
     </HelixWorkItem>
     -->
     <HelixWorkItem Include="Hot Reload MVC" Condition="'$(FrameworkVersion)' == '6.0'">
@@ -204,7 +196,6 @@
       <PreCommands>$(Python) pre.py build -f net$(FrameworkVersion) -c Release</PreCommands>
       <Command>$(Python) test.py dotnetwatch --scenario-name &quot;%(Identity)&quot;</Command>
       <PostCommands>$(Python) post.py</PostCommands>
-      <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemGroup>
 
