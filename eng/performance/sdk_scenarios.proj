@@ -1,11 +1,5 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
 
-  <ItemGroup>
-    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
-      <PayloadDirectory>%(Identity)</PayloadDirectory>
-    </HelixCorrelationPayload>
-  </ItemGroup>
-  
   <Import Project="Scenarios.Common.props" />
 
   <PropertyGroup>
