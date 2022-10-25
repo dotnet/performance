@@ -2,10 +2,6 @@
 
   <Import Project="Scenarios.Common.props" />
 
-  <PropertyGroup>
-    <FrameworkVersion>$(PERFLAB_Framework.Substring($([MSBuild]::Subtract($(PERFLAB_Framework.Length), 3))))</FrameworkVersion>
-  </PropertyGroup>
-
   <ItemGroup>
       <Framework Include="netcoreapp2.1" FrameworkName="%(Identity)"/>
       <Framework Include="netcoreapp3.0" FrameworkName="%(Identity)" Condition="'$(FrameworkVersion)' &gt; '2.1'"/>
