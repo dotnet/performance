@@ -6,16 +6,7 @@
     </HelixCorrelationPayload>
   </ItemGroup>
   
-  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
-    <ScenariosDir>$(WorkItemDirectory)\src\scenarios\</ScenariosDir>
-    <HelixPreCommands>$(HelixPreCommands);set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\scripts%3B%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
-    <ScenariosDir>$(WorkItemDirectory)/src/scenarios/</ScenariosDir>
-    <HelixPreCommands>$(HelixPreCommands);sudo apt-get update;chmod +x $HELIX_CORRELATION_PAYLOAD/startup/perfcollect</HelixPreCommands>
-    <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
-  </PropertyGroup>  
+  <Import Project="Scenarios.Common.props" />
 
   <PropertyGroup>
     <FrameworkVersion>$(PERFLAB_Framework.Substring($([MSBuild]::Subtract($(PERFLAB_Framework.Length), 3))))</FrameworkVersion>
