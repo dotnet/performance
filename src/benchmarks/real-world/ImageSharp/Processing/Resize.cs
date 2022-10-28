@@ -65,38 +65,10 @@ namespace SixLabors.ImageSharp.Benchmarks
             => ctx.Resize(this.DestSize, this.DestSize, KnownResamplers.Bicubic);
     }
 
-    /// <summary>
-    /// Is it worth to set a larger working buffer limit for resize?
-    /// Conclusion: It doesn't really have an effect.
-    /// </summary>
-    public class Resize_Bicubic_Rgba32_CompareWorkBufferSizes : Resize_Bicubic_Rgba32
-    {
-        [Params(128, 512, 1024, 8 * 1024)]
-        public int WorkingBufferSizeHintInKilobytes { get; set; }
-
-        public override void Setup()
-        {
-            this.Configuration.WorkingBufferSizeHintInBytes = this.WorkingBufferSizeHintInKilobytes * 1024;
-            base.Setup();
-        }
-    }
-
-    public class Resize_Bicubic_Bgra32 : Resize<Bgra32>
-    {
-        protected override void ExecuteResizeOperation(IImageProcessingContext ctx)
-            => ctx.Resize(this.DestSize, this.DestSize, KnownResamplers.Bicubic);
-    }
-
     public class Resize_Bicubic_Rgb24 : Resize<Rgb24>
     {
         protected override void ExecuteResizeOperation(IImageProcessingContext ctx)
             => ctx.Resize(this.DestSize, this.DestSize, KnownResamplers.Bicubic);
-    }
-
-    public class Resize_BicubicCompand_Rgba32 : Resize<Rgba32>
-    {
-        protected override void ExecuteResizeOperation(IImageProcessingContext ctx)
-            => ctx.Resize(this.DestSize, this.DestSize, KnownResamplers.Bicubic, true);
     }
 
     public class Resize_Bicubic_Compare_Rgba32_Rgb24
