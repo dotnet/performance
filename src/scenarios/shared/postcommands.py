@@ -1,4 +1,4 @@
-from shared.const import APPDIR, TMPDIR, TRACEDIR, PUBDIR, BINDIR, CROSSGENDIR
+from shared.const import APPDIR, TMPDIR, TRACEDIR, PUBDIR, BINDIR, CROSSGENDIR, PYCACHE
 from performance.common import remove_directory
 from argparse import ArgumentParser
 import subprocess
@@ -24,7 +24,7 @@ class PostCommands:
             subprocess.run(["dotnet", "workload", "uninstall", workloadid])
 
 def clean_directories():
-    to_remove = (APPDIR, TMPDIR, TRACEDIR, PUBDIR, BINDIR, CROSSGENDIR, "emsdk")
+    to_remove = (APPDIR, TMPDIR, TRACEDIR, PUBDIR, BINDIR, CROSSGENDIR, PYCACHE, "emsdk")
     print(f"Removing {','.join(to_remove)} if exist ...")
     for dir in to_remove:
         remove_directory(dir)

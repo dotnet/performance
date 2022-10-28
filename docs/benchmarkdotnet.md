@@ -4,29 +4,29 @@ BenchmarkDotNet is the benchmarking tool that allows to run benchmarks for .NET,
 
 ## Table of Contents
 
-- [Main Concepts](#Main-Concepts)
-- [Prerequisites](#Prerequisites)
-- [Building the benchmarks](#Building-the-Benchmarks)
-  - [Using .NET Cli](#Build-using-.NET-Cli)
-  - [Using Python script](#Build-using-Python-script)
-- [Running the Benchmarks](#Running-the-Benchmarks)
-  - [Interactive Mode](#Interactive-Mode)
-  - [Command Line](#Command-Line)
-    - [Filtering the Benchmarks](#Filtering-the-Benchmarks)
-    - [Listing the Benchmarks](#Listing-the-Benchmarks)
-- [Reading the Results](#Reading-the-Results)
-  - [Reading the Histogram](#Reading-the-Histogram)
-  - [Reading Memory Statistics](#Reading-Memory-Statistics)
-- [Multiple Runtimes](#Multiple-Runtimes)
-- [Regressions](#Regressions)
-- [Profiling](#Profiling)
-- [Disassembly](#Disassembly)
-- [Private Runtime Builds](#Private-Runtime-Builds)
-  - [Running In Process](#Running-In-Process)
-  - [CoreRun](#CoreRun)
+- [Main Concepts](#main-concepts)
+- [Prerequisites](#prerequisites)
+- [Building the benchmarks](#building-the-benchmarks)
+  - [Using .NET Cli](#using-net-cli)
+  - [Using Python script](#using-python-script)
+- [Running the Benchmarks](#running-the-benchmarks)
+  - [Interactive Mode](#interactive-mode)
+  - [Command Line](#command-line)
+    - [Filtering the Benchmarks](#filtering-the-benchmarks)
+    - [Listing the Benchmarks](#listing-the-benchmarks)
+- [Reading the Results](#reading-the-results)
+  - [Reading the Histogram](#reading-the-histogram)
+  - [Reading Memory Statistics](#reading-memory-statistics)
+- [Multiple Runtimes](#multiple-runtimes)
+- [Regressions](#regressions)
+- [Profiling](#profiling)
+- [Disassembly](#disassembly)
+- [Private Runtime Builds](#private-runtime-builds)
+  - [Running In Process](#running-in-process)
+  - [CoreRun](#corerun)
   - [dotnet cli](#dotnet-cli)
-  - [Private CLR Build](#Private-CLR-Build)
-  - [Private CoreRT Build](#Private-CoreRT-Build)
+  - [Private CLR Build](#private-clr-build)
+  - [Private CoreRT Build](#private-corert-build)
 
 ## Main Concepts
 
@@ -285,7 +285,7 @@ M00_L00:
 
 The `--runtimes` or just `-r` allows you to run the benchmarks for **multiple Runtimes**.
 
-Available options are: Mono, CoreRT, net461, net462, net47, net471, net472, netcoreapp3.1, net6.0 and net7.0.
+Available options are: Mono, wasmnet70, CoreRT, net461, net462, net47, net471, net472, netcoreapp3.1, net6.0 and net7.0.
 
 Example: run the benchmarks for .NET 6.0 and 7.0:
 

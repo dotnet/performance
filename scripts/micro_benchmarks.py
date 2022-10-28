@@ -288,6 +288,7 @@ def build(
         target_framework_monikers: list,
         incremental: str,
         run_isolated: bool,
+        for_wasm: bool,
         verbose: bool) -> None:
     '''Restores and builds the benchmarks'''
 
@@ -306,6 +307,10 @@ def build(
     __log_script_header("Restoring .NET micro benchmarks")
     BENCHMARKS_CSPROJ.restore(packages_path=packages, verbose=verbose)
 
+    build_args = []
+    if for_wasm:
+        build_args += ['/p:BuildingForWasm=true']
+
     # dotnet build
     build_title = "Building .NET micro benchmarks for '{}'".format(
         ' '.join(target_framework_monikers))
@@ -315,7 +320,8 @@ def build(
         target_framework_monikers=target_framework_monikers,
         output_to_bindir=run_isolated,
         verbose=verbose,
-        packages_path=packages)
+        packages_path=packages,
+        args=build_args)
 
     # When running isolated, artifacts/obj/{project_name} will still be
     # there, and would interfere with any subsequent builds. So, remove
@@ -398,7 +404,8 @@ def __main(args: list) -> int:
             target_framework_monikers,
             incremental,
             args.run_isolated,
-            verbose
+            for_wasm=args.wasm,
+            verbose=verbose
         )
 
         for framework in frameworks:

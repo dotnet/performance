@@ -2,59 +2,24 @@ from argparse import ArgumentParser
 
 class ChannelMap():
     channel_map = {
-        'release/7.0-preview8': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview7': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview6': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview5': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview4': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview3': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview2': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/7.0-preview1': {
-            'tfm': 'net7.0',
-            'branch': '7.0.1xx',
-            'quality': 'daily'
-        },
-        'release/6.0': {
-            'tfm': 'net6.0',
-            'branch': '6.0.1xx',
-            'quality': 'daily'
-        },
-        '6.0': {
-            'tfm': 'net6.0',
-            'branch': '6.0.1xx',
-            'quality': 'daily'
-        },
         'main': {
             'tfm': 'net7.0',
             'branch': '7.0.1xx',
+            'quality': 'daily'
+        },
+        'release/7.0-rc2': {
+            'tfm': 'net7.0',
+            'branch': '7.0-rc2',
+            'quality': 'daily'
+        },
+        'release/7.0-rc1': {
+            'tfm': 'net7.0',
+            'branch': '7.0-rc1',
+            'quality': 'daily'
+        },
+        'release/7.0': {
+            'tfm': 'net7.0',
+            'branch': '7.0',
             'quality': 'daily'
         },
         'nativeaot7.0': {
@@ -66,23 +31,20 @@ class ChannelMap():
             'tfm': 'net6.0',
             'branch': 'master'
         },
+        '6.0': {
+            'tfm': 'net6.0',
+            'branch': '6.0.1xx',
+            'quality': 'daily'
+        },
+        'release/6.0': {
+            'tfm': 'net6.0',
+            'branch': '6.0.1xx',
+            'quality': 'daily'
+        },
         'nativeaot6.0': {
             'tfm': 'nativeaot6.0',
             'branch': '6.0.1xx',
             'quality': 'daily'
-        },
-        '5.0':{
-            'tfm': 'net5.0',
-            'branch': '5.0.4xx',
-            'quality': 'daily'
-        },
-        'release/5.0.1xx-rc2':{
-            'tfm': 'net5.0',
-            'branch': 'release/5.0.1xx-rc2'
-        },
-        'release/5.0.1xx':{
-            'tfm': 'net5.0',
-            'branch': 'release/5.0.1xx'
         },
         'release/3.1.3xx':{
             'tfm': 'netcoreapp3.1',
@@ -100,18 +62,6 @@ class ChannelMap():
             'tfm': 'netcoreapp3.1',
             'branch': '3.1.4xx',
             'quality': 'daily'
-        },
-        '3.0': {
-            'tfm': 'netcoreapp3.0',
-            'branch': 'release/3.0'
-        },
-        'release/2.1.6xx': {
-            'tfm': 'netcoreapp2.1',
-            'branch': 'release/2.1.6xx'
-        },
-        '2.1': {
-            'tfm': 'netcoreapp2.1',
-            'branch': 'release/2.1'
         },
         'LTS': {
             'tfm': 'net461', # For Full Framework download the LTS for dotnet cli.

@@ -189,14 +189,24 @@ static CacheStats getCacheStats()
 
                 break;
             }
+
             case RelationProcessorPackage:
             case RelationGroup:
                 break;
 
             default:
-                printf("Invalid relationship %d\n", info.Relationship);
-                //assert(0); // invalid relationship
-                break;
+                // RelationProcessorModule:
+                if (info.Relationship == 7)
+                {
+                    break;
+                }
+
+                else
+                {
+                    printf("Invalid relationship %d\n", info.Relationship);
+                    //assert(0); // invalid relationship
+                    break;
+                }
         }
 
         info_ptr = offset(info_ptr, info.Size);

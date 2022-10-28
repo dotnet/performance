@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net7.0</TargetFrameworks>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+  </PropertyGroup>
+     
+  <ItemGroup>
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+      <ProjectReference Include="..\..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="$(BenchmarkDotNetVersion)" />
+    <PackageReference Include="FSharp.Compiler.Service" Version="41.0.5" />
+    <PackageReference Update="FSharp.Core" Version="6.0.5" />
+  </ItemGroup>
+
+</Project>

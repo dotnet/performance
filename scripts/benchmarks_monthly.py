@@ -20,6 +20,8 @@ import sys
 import os
 
 VERSIONS = {
+    'net7.0-rc2': { 'tfm': 'net7.0', 'build': '7.0.100-rc.2.22477.23' },
+    'net7.0-rc1': { 'tfm': 'net7.0', 'build': '7.0.100-rc.1.22425.9' },
     'net7.0-preview7': { 'tfm': 'net7.0', 'build': '7.0.100-preview.7.22370.3' },
     'net7.0-preview5': { 'tfm': 'net7.0', 'build': '7.0.100-preview.5.22276.3' },
     'nativeaot7.0-preview4': { 'tfm': 'nativeaot7.0', 'build': '7.0.100-preview.4.22227.3', 'ilc': '7.0.0-preview.4.22222.4' },
@@ -99,6 +101,16 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         action='store_true',
         help='Runs each benchmark only once, useful for testing')
 
+    parser.add_argument(
+        '--azure-feed-url',
+        dest='azure_feed_url',
+        help='Internal azure feed to fetch the build from')
+
+    parser.add_argument(
+        '--internal-build-key',
+        dest='internal_build_key',
+        help='Key used to fetch the build from an internal azure feed')
+
     return parser
 
 def __process_arguments(args: list):
@@ -170,8 +182,16 @@ def __main(args: list) -> int:
                 benchmarkArgs += ['--bdn-arguments', args.bdn_arguments]
         elif version['tfm'].startswith('nativeaot'):
             benchmarkArgs += ['--bdn-arguments', '--ilCompilerVersion ' + version['ilc']]
-
-        log('Executing: benchmarks_ci.py ' + str.join(' ', benchmarkArgs))
+        
+        if args.azure_feed_url or args.internal_build_key:
+            if args.azure_feed_url and args.internal_build_key:
+                benchmarkArgs += ['--azure-feed-url', args.azure_feed_url]
+                benchmarkArgs += ['--internal-build-key', args.internal_build_key]
+                log('Executing: benchmarks_ci.py ')
+            else:
+                raise("Must include both a --azure-feed-url and a --internal-build-key")
+        else:
+            log('Executing: benchmarks_ci.py ' + str.join(' ', benchmarkArgs))
 
         if not args.dry_run:
             try:

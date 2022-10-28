@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
+		<TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net6.0;net7.0</TargetFrameworks>
+		<IsShipping>false</IsShipping>
+		<!-- ignore warning about BenchmarkDotNet.Extensions being not signed -->
+		<NoWarn>$(NoWarn);8002</NoWarn>
+		<LangVersion>preview</LangVersion>
+		<StartupObject>ILLinkBenchmarks.ILLinkBench</StartupObject>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Net.ILLink" Version="$(MicrosoftNetILLinkPackageVersion)" />
+		<PackageReference Include="Microsoft.Net.ILLink.Tasks" Version="$(MicrosoftNetILLinkTasksVersion)" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" />
+		<PackageReference Include="Microsoft.Build" Version="17.3.1" />
+		<PackageReference Include="Microsoft.Build.Tasks.Core" Version="17.3.1" />
+		<PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.3.1" />
+	</ItemGroup>
+
+	<!-- Make a copy of the sample project with the latest version of ILLink.Tasks -->
+	<Target Name="CreateProjectWithILLinkVersion" Inputs="@(ProjectFileTemplate)" Outputs="@(ProjectFile)" BeforeTargets="Build">
+		<PropertyGroup>
+			<TextToReplace>==ILLINK TASKS VERSION==</TextToReplace>
+		</PropertyGroup>
+		<ItemGroup>
+			<VersionsProps />
+			<ProjectFileLines />
+		</ItemGroup>
+		<Touch Files="@(ProjectFile)" AlwaysCreate="true" />
+		<WriteLinesToFile File="@(ProjectFile)" Lines="$([System.IO.File]::ReadAllText('%(ProjectFileTemplate.FullPath)').Replace('$(TextToReplace)','$(MicrosoftNetILLinkTasksVersion)'))" Overwrite="true" Encoding="Unicode" />
+	</Target>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectFileTemplate Include="$(ProjectDir)SampleProject\HelloWorld.template.csproj" />
+		<ProjectFile Include="$(OutDir)SampleProject\HelloWorld.csproj" />
+		<None Include="$(ProjectDir)SampleProject\**\*" CopyToOutputDirectory="Always" />
+	</ItemGroup>
+</Project>

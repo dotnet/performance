@@ -88,6 +88,7 @@ class PreCommands:
         self.has_workload = args.has_workload
         self.readonly_dotnet = args.readonly_dotnet
         self.windows = args.windows
+        self.output = args.output
         
         if self.operation == CROSSGEN:
             self.crossgen_arguments.parse_crossgen_args(args)
@@ -104,7 +105,8 @@ class PreCommands:
             exename: str,
             working_directory: str,
             language: str = None,
-            no_https: bool = False):
+            no_https: bool = False,
+            no_restore: bool = True):
         'makes a new app with the given template'
         self.project = CSharpProject.new(template=template,
                                  output_dir=output_dir,
@@ -114,7 +116,8 @@ class PreCommands:
                                  force=True,
                                  verbose=True,
                                  language=language,
-                                 no_https=no_https)
+                                 no_https=no_https,
+                                 no_restore=no_restore)
         self._updateframework(self.project.csproj_file)
         self._addstaticmsbuildproperty(self.project.csproj_file)
 
@@ -160,6 +163,10 @@ class PreCommands:
                             dest='windows',
                             action='store_true',
                             help='must be set for UI tests so the proper rid is used')
+        parser.add_argument('-o', '--output',
+                            dest='output',
+                            metavar='output',
+                            help='output directory')
         parser.set_defaults(configuration=RELEASE)
 
     def existing(self, projectdir: str, projectfile: str):
@@ -175,12 +182,10 @@ class PreCommands:
             pass
         if self.operation == BUILD:
             self._restore()
-            self._build(configuration=self.configuration, framework=self.framework, build_args=build_args)
+            self._build(configuration=self.configuration, framework=self.framework, output=self.output, build_args=build_args)
         if self.operation == PUBLISH:
             self._restore()
-            self._publish(configuration=self.configuration,
-                          runtime_identifier=self.runtime_identifier,
-                          framework=self.framework, build_args=build_args)
+            self._publish(configuration=self.configuration, runtime_identifier=self.runtime_identifier, framework=self.framework, output=self.output, build_args=build_args)
         if self.operation == CROSSGEN:
             startup_args = [
                 os.path.join(self.crossgen_arguments.coreroot, 'crossgen%s' % extension()),
@@ -214,12 +219,12 @@ class PreCommands:
         filepath = os.path.join(projpath, file)
         insert_after(filepath, line, trace_statement)
 
-    def install_workload(self, workloadid: str):
+    def install_workload(self, workloadid: str, install_args: list = ["--skip-manifest-update"]):
         'Installs the workload, if needed'
         if not self.has_workload:
             if self.readonly_dotnet:
                 raise Exception('workload needed to build, but has_workload=false, and readonly_dotnet=true')
-            subprocess.run(["dotnet", "workload", "install", workloadid, "--skip-manifest-update"])
+            subprocess.run(["dotnet", "workload", "install", workloadid] + install_args)
 
     def uninstall_workload(self, workloadid: str):
         'Uninstalls the workload, if possible'
@@ -250,28 +255,28 @@ class PreCommands:
             else:
                 replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
 
-    def _publish(self, configuration: str, framework: str = None, runtime_identifier: str = None, build_args: list = []):
+    def _publish(self, configuration: str, framework: str = None, runtime_identifier: str = None, output: str = None, build_args: list = []):
         self.project.publish(configuration,
-                             const.PUBDIR, 
+                             output or const.PUBDIR,
                              True,
                              os.path.join(get_packages_directory(), ''), # blazor publish targets require the trailing slash for joining the paths
                              framework if not self.windows else f'{framework}-windows',
                              runtime_identifier,
                              self._parsemsbuildproperties(),
-                             '-bl:%s' % self.binlog if self.binlog else "",
-                             *build_args
-                             )
+                             *['-bl:%s' % self.binlog] if self.binlog else [],
+                             *build_args)
 
     def _restore(self):
         self.project.restore(packages_path=get_packages_directory(), verbose=True)
 
-    def _build(self, configuration: str, framework: str = None, build_args: list = []):
-        self.project.build(configuration=configuration,
-                               verbose=True,
-                               packages_path=get_packages_directory(),
-                               target_framework_monikers=[framework],
-                               output_to_bindir=True,
-                               *build_args)
+    def _build(self, configuration: str, framework: str = None, output: str = None, build_args: list = []):
+        self.project.build(configuration,
+                           True,
+                           get_packages_directory(),
+                           [framework],
+                           output is None,
+                           None,
+                           (['--output', output] if output else []) + build_args)
 
     def _backup(self, projectdir:str):
         'Copy from projectdir to appdir so we do not modify the source code'

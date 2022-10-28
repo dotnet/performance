@@ -5,6 +5,7 @@ from logging import getLogger
 
 import os
 import sys
+import datetime
 
 from subprocess import check_output
 
@@ -95,6 +96,13 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Product commit sha.'
     )
     parser.add_argument(
+        '--commit-time',
+        dest='commit_time',
+        required=False,
+        type=str,
+        help='Product commit time. Format: %Y-%m-%d %H:%M:%S %z'
+    )
+    parser.add_argument(
         '--repository',
         dest='repository',
         required=False,
@@ -172,7 +180,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
     def __is_valid_dotnet_path(dp: str) -> str:
         if not os.path.isdir(dp):
-            raise ArgumentTypeError('Path {} does not exist'.format(dp))
+            raise ArgumentTypeError('Directory {} does not exist'.format(dp))
         if not os.path.isfile(os.path.join(dp, 'dotnet')):
             raise ArgumentTypeError('Could not find dotnet in {}'.format(dp))
         return dp
@@ -309,7 +317,15 @@ def __main(args: list) -> int:
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
         dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
         commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
-        source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
+        if(args.commit_time is not None):
+            try:
+                parsed_timestamp = datetime.datetime.strptime(args.commit_time, '%Y-%m-%d %H:%M:%S %z').astimezone(datetime.timezone.utc)
+                source_timestamp = parsed_timestamp.strftime('%Y-%m-%dT%H:%M:%SZ')
+            except ValueError:
+                getLogger().warning('Invalid commit_time format. Please use YYYY-MM-DD HH:MM:SS +/-HHMM. Attempting to get commit time from api.github.com.')
+                source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
+        else:
+            source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
 
         branch = ChannelMap.get_branch(args.channel) if not args.branch else args.branch
 

@@ -1,9 +1,9 @@
 resources:
   containers:
     - container: ubuntu_x64_build_container
-      image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-20210311173856-047508b
+      image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04
     - container: centos_x64_build_container
-      image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-20220107135107-9b5bbc2
+      image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7
 
 # CI Trigger on main branch
 trigger:
@@ -35,6 +35,12 @@ pr:
 schedules:
 - cron: "0 */12 * * *"
   displayName: Every 12 hours build
+  branches:
+    include:
+    - main
+  always: true
+- cron: "0 21 * * THU"
+  displayName: Weekly Build
   branches:
     include:
     - main
@@ -203,6 +209,22 @@ jobs:
       channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
         - main
 
+  # Windows x64 F# benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 21H1
+      kind: fsharp
+      architecture: x64
+      pool:
+        vmImage: windows-2019
+      machinePool: Open
+      queue: Windows.10.Amd64.Client21H1.Open
+      csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
+      runCategories: 'fsharp'
+      channels:
+        - main
+
   # Windows x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
@@ -270,6 +292,23 @@ jobs:
       channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
         - main
 
+  # Ubuntu 1804 x64 F# benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: fsharp
+      architecture: x64
+      pool: 
+        vmImage: ubuntu-latest
+      machinePool: Open
+      queue: Ubuntu.1804.Amd64.Open
+      container: ubuntu_x64_build_container
+      runCategories: 'fsharp'
+      csproj: src/benchmarks/real-world/FSharp/FSharp.fsproj
+      channels:
+        - main
+
   # Ubuntu 1804 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
@@ -285,6 +324,38 @@ jobs:
       runCategories: 'roslyn'
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+        - main
+# Ubuntu 1804 x64 ILLink Benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: illink
+      architecture: x64
+      pool:
+        vmImage: ubuntu-latest
+      machinePool: Open
+      queue: Ubuntu.1804.Amd64.Open
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/real-world/ILLink/ILLinkBenchmarks.csproj
+      runCategories: 'illink'
+      channels:
+        - main
+
+  # Windows x64 ILLinkBenchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 22H1
+      kind: illink
+      architecture: x64
+      pool:
+        vmImage: windows-2019
+      machinePool: Open
+      queue: Windows.10.Amd64.Client21H1.Open
+      csproj: src/benchmarks/real-world/ILLink/ILLinkBenchmarks.csproj
+      runCategories: 'illink'
+      channels:
         - main
 
 ###########################################
@@ -510,7 +581,7 @@ jobs:
 ################################################
 
 # Scheduled runs will run all of the jobs on the PerfTigers, as well as the Arm64 job
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule')) }}:
+- ${{ if and(and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule')), not(contains(variables['Build.QueuedBy'], 'Weekly'))) }}:
 
   # Windows x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -572,6 +643,93 @@ jobs:
       projectFile: blazor_scenarios.proj
       channels:
         - main
+  
+  # Windows x64 F# benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: RS5
+      kind: fsharp
+      architecture: x64
+      pool:
+        vmImage: windows-2019
+      machinePool: Tiger
+      queue: Windows.10.Amd64.19H1.Tiger.Perf
+      csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
+      runCategories: 'fsharp'
+      channels:
+        - main
+
+  # Ubuntu 1804 x64 F# benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: fsharp
+      architecture: x64
+      pool: 
+        vmImage: ubuntu-latest
+      machinePool: Tiger
+      queue: Ubuntu.1804.Amd64.Tiger.Perf
+      container: ubuntu_x64_build_container
+      runCategories: 'fsharp'
+      csproj: src/benchmarks/real-world/FSharp/FSharp.fsproj
+      channels:
+        - main
+
+  # Secret Sync
+  - job: Synchronize
+    pool:
+      name: NetCore1ESPool-Internal-NoMSI
+      demands: ImageOverride -equals 1es-windows-2019
+    steps:
+    - task: UseDotNet@2
+      displayName: Install .NET 6.0 runtime
+      inputs:
+        version: 6.x
+
+    - script: dotnet tool restore
+
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: .NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)
+        scriptType: ps
+        scriptLocation: inlineScript
+        inlineScript: |
+          Get-ChildItem .vault-config/*.yaml |% { dotnet secret-manager synchronize $_}
+  
+  # Ubuntu 1804 x64 ILLink Benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: illink
+      architecture: x64
+      pool:
+        vmImage: ubuntu-latest
+      machinePool: Tiger
+      queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/real-world/ILLink/ILLinkBenchmarks.csproj
+      runCategories: 'illink'
+      channels:
+        - main
+
+  # Windows x64 ILLinkBenchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 22H1
+      kind: illink
+      architecture: x64
+      pool:
+        vmImage: windows-2019
+      machinePool: Tiger
+      queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+      csproj: src/benchmarks/real-world/ILLink/ILLinkBenchmarks.csproj
+      runCategories: 'illink'
+      channels:
+        - main
 
 ################################################
 # Manually Triggered Job
@@ -579,18 +737,48 @@ jobs:
 
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Manual')) }}:
-  
-  # Windows Arm64 scenario benchmarks
-  - template: /eng/performance/scenarios.yml
-    parameters:
-      osName: windows
-      osVersion: 20H1
-      architecture: arm64
-      pool:
-        vmImage: windows-2019
-      kind: scenarios
-      machinePool: Tiger
-      queue: Windows.10.Arm64.Perf.Surf
-      projectFile: scenarios.proj
-      channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
-        - main
+  - job: Synchronize
+    pool:
+      name: NetCore1ESPool-Internal-NoMSI
+      demands: ImageOverride -equals 1es-windows-2019
+    steps:
+    - task: UseDotNet@2
+      displayName: Install .NET 6.0 runtime
+      inputs:
+        version: 6.x
+
+    - script: dotnet tool restore
+
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: .NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)
+        scriptType: ps
+        scriptLocation: inlineScript
+        inlineScript: |
+          Get-ChildItem .vault-config/*.yaml |% { dotnet secret-manager synchronize $_}
+
+################################################
+# Scheduled Private jobs (Weekly)
+################################################
+
+# Scheduled runs will run all of the jobs on the PerfTigers, as well as the Arm64 job
+- ${{ if and(and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule')), contains(variables['Build.QueuedBy'], 'Weekly')) }}:
+  - job: Synchronize
+    pool:
+      name: NetCore1ESPool-Internal-NoMSI
+      demands: ImageOverride -equals 1es-windows-2019
+    steps:
+    - task: UseDotNet@2
+      displayName: Install .NET 6.0 runtime
+      inputs:
+        version: 6.x
+
+    - script: dotnet tool restore
+
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: .NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)
+        scriptType: ps
+        scriptLocation: inlineScript
+        inlineScript: |
+          Get-ChildItem .vault-config/*.yaml |% { dotnet secret-manager synchronize $_}

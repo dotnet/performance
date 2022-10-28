@@ -325,7 +325,7 @@ class CSharpProject:
               target_framework_monikers: list = None,
               output_to_bindir: bool = False,
               runtime_identifier: str = None,
-              *args) -> None:
+              args: list = None) -> None:
         '''Calls dotnet to build the specified project.'''
         if not target_framework_monikers:  # Build all supported frameworks.
             cmdline = [
@@ -344,7 +344,7 @@ class CSharpProject:
                 cmdline = cmdline + ['--runtime', runtime_identifier]
             
             if args:
-                cmdline = cmdline + list(args)
+                cmdline = cmdline + args
             
             RunCommand(cmdline, verbose=verbose).run(
                 self.working_directory)
@@ -368,7 +368,7 @@ class CSharpProject:
                     cmdline = cmdline + ['--runtime', runtime_identifier]
 
                 if args:
-                    cmdline = cmdline + list(args)
+                    cmdline = cmdline + args
                 
                 RunCommand(cmdline, verbose=verbose).run(
                     self.working_directory)
@@ -381,7 +381,8 @@ class CSharpProject:
             force: bool = False,
             exename: str = None,
             language: str = None,
-            no_https: bool = False
+            no_https: bool = False,
+            no_restore: bool = True
             ):
         '''
         Creates a new project with the specified template
@@ -389,9 +390,11 @@ class CSharpProject:
         cmdline = [
             'dotnet', 'new',
             template,
-            '--output', output_dir,
-            '--no-restore'
+            '--output', output_dir
         ]
+        if no_restore:
+            cmdline += ['--no-restore']
+
         if force:
             cmdline += ['--force']
         
@@ -614,7 +617,6 @@ def get_commit_date(
         # The origin of the repo where the commit belongs to has changed
         # between release. Here we attempt to naively guess the repo.
         core_sdk_frameworks = ChannelMap.get_supported_frameworks()
-        core_sdk_frameworks.remove('netcoreapp2.1')
         repo = 'core-sdk' if framework  in core_sdk_frameworks else 'cli'
         url = urlformat % ('dotnet', repo, commit_sha)
     else:
@@ -741,7 +743,9 @@ def install(
         channels: list,
         versions: str,
         verbose: bool,
-        install_dir: str = None) -> None:
+        install_dir: str = None,
+        azure_feed_url: str = None,
+        internal_build_key: str = None) -> None:
     '''
     Downloads dotnet cli into the tools folder.
     '''
@@ -799,6 +803,10 @@ def install(
         '-InstallDir', install_dir,
         '-Architecture', architecture
     ]
+
+    if azure_feed_url and internal_build_key:
+        common_cmdline_args += ['-AzureFeed', azure_feed_url]
+        common_cmdline_args += ['-FeedCredential', internal_build_key]
 
     # Install Runtime/SDKs
     if versions:

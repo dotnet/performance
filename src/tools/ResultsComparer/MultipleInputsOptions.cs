@@ -18,5 +18,6 @@ namespace ResultsComparer
         public int? TopCount { get; init; }
         public Regex[] Filters { get; init; }
         public bool PrintStats { get; init; }
+        public bool RatioOnly { get; init; }
     }
 }

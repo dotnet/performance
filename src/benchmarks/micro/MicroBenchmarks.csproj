@@ -17,6 +17,9 @@
     <EnableXlfLocalization>false</EnableXlfLocalization>
     <!-- this repo needs to build with netcoreapp3.1, so we can't use latest C# syntax -->
     <LangVersion>8.0</LangVersion>
+
+    <!-- Allow building with one major version, and running using a sdk with a higher major version -->
+    <RollForward Condition="'$(BuildingForWasm)' == 'true'">LatestMajor</RollForward>
   </PropertyGroup>
   <!-- out-of-band packages that are not included in NetCoreApp have TFM-specific versions -->
   <Choose>
@@ -45,6 +48,8 @@
     <PackageReference Include="MessagePack" Version="1.9.11" />
     <PackageReference Include="MessagePackAnalyzer" Version="1.7.3.7" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="$(ExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="$(ExtensionsVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Xml" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="$(ExtensionsVersion)" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(ExtensionsVersion)" />
