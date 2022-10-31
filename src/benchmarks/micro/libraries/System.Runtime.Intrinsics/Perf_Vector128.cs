@@ -63,7 +63,6 @@ namespace System.Runtime.Intrinsics.Tests
         private static readonly Vector128<float> Value2 = Vector128<float>.AllBitsSet + Vector128<float>.AllBitsSet;
         private static readonly Vector128<float> Value3 = Vector128<float>.AllBitsSet + Vector128<float>.AllBitsSet + Vector128<float>.AllBitsSet;
 
-
         [Benchmark]
         public int CountBenchmark() => Vector128<float>.Count;
 
