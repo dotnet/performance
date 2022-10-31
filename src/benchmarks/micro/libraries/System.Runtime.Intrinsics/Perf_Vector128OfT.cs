@@ -20,7 +20,7 @@ namespace System.Runtime.Intrinsics.Tests
     [GenericTypeArguments(typeof(uint))]
     [GenericTypeArguments(typeof(ulong))]
     [BenchmarkCategory(Categories.Libraries, Categories.SIMD, Categories.JIT)]
-    public class Perf_Vector128T<T>
+    public class Perf_Vector128Of<T>
         where T : struct
     {
         private static readonly Vector128<T> Value1 = Vector128<T>.AllBitsSet;
