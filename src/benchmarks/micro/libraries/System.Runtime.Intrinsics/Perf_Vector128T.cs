@@ -24,9 +24,7 @@ namespace System.Runtime.Intrinsics.Tests
         where T : struct
     {
         private static readonly Vector128<T> Value1 = Vector128<T>.AllBitsSet;
-
         private static readonly Vector128<T> Value2 = Vector128<T>.AllBitsSet + Vector128<T>.AllBitsSet;
-
         private static readonly Vector128<T> Value3 = Vector128<T>.AllBitsSet + Vector128<T>.AllBitsSet + Vector128<T>.AllBitsSet;
 
 
