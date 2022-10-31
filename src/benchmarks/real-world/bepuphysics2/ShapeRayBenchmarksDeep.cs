@@ -13,9 +13,9 @@ using static DemoBenchmarks.BenchmarkHelper;
 namespace DemoBenchmarks;
 
 /// <summary>
-/// Evaluates performance of shape ray tests.
+/// Evaluates performance of shape ray tests. Each benchmark covers a different shape type.
 /// </summary>
-public class ShapeRayTests
+public class ShapeRayBenchmarksDeep
 {
     const int iterationCount = 100;
     BufferPool pool;
@@ -69,7 +69,7 @@ public class ShapeRayTests
             return true;
         }
 
-        public void OnRayHit(in RayData ray, ref float maximumT, float t, in Vector3 normal, int childIndex)
+        public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal, int childIndex)
         {
             ResultSum += new Vector3(t) + normal;
         }

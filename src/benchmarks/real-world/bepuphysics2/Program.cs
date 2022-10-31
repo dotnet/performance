@@ -8,4 +8,3 @@ public class BepuPhysics2Benchmarks
         BenchmarkSwitcher.FromAssembly(typeof(BepuPhysics2Benchmarks).Assembly).Run(args);
     }
 }
-
