@@ -31,6 +31,14 @@ pr:
     - scripts/benchmarks_monthly.py
     - README.md
 
+schedules:
+  - cron: "0 */12 * * *"
+    displayName: Every 12 hours build
+    branches:
+      include:
+      - release/7.0
+    always: true
+
 jobs:
 
 ######################################################
