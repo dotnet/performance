@@ -10,6 +10,7 @@ trigger:
   branches:
     include:
     - main
+    - release/7.0
     - release/3.1.4xx
   paths:
     include:
@@ -20,6 +21,7 @@ pr:
   branches:
     include:
     - main
+    - release/7.0
   paths:
     exclude: # don't trigger the CI if only a doc file was changed
     - docs/*
@@ -38,6 +40,7 @@ schedules:
   branches:
     include:
     - main
+    - release/7.0
   always: true
 - cron: "0 21 * * THU"
   displayName: Weekly Build
