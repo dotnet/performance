@@ -11,11 +11,8 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.13.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\BepuPhysics\BepuPhysics.csproj" />
-    <ProjectReference Include="..\BepuUtilities\BepuUtilities.csproj" />
+    <PackageReference Include="BepuPhysics" Version="2.4.0" />
+    <PackageReference Include="BepuUtilities" Version="2.4.0" />
   </ItemGroup>
 
 </Project>
