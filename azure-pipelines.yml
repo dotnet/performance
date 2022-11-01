@@ -5,21 +5,20 @@ resources:
     - container: centos_x64_build_container
       image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7
 
-# CI Trigger on main branch
+# CI Trigger on release/7.0 branch
 trigger:
   branches:
     include:
-    - main
-    - release/3.1.4xx
+    - release/7.0
   paths:
     include:
     - eng/Version.Details.xml
 
-# Trigger builds for PR's targeting main
+# Trigger builds for PR's targeting release/7.0
 pr:
   branches:
     include:
-    - main
+    - release/7.0
   paths:
     exclude: # don't trigger the CI if only a doc file was changed
     - docs/*
@@ -33,18 +32,12 @@ pr:
     - README.md
 
 schedules:
-- cron: "0 */12 * * *"
-  displayName: Every 12 hours build
-  branches:
-    include:
-    - main
-  always: true
-- cron: "0 21 * * THU"
-  displayName: Weekly Build
-  branches:
-    include:
-    - main
-  always: true
+  - cron: "0 */12 * * *"
+    displayName: Every 12 hours build
+    branches:
+      include:
+      - release/7.0
+    always: true
 
 jobs:
 
@@ -66,7 +59,7 @@ jobs:
       queue: Windows.10.Amd64.Client21H1.Open
       projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - main
+        - release/7.0
 
   # Ubuntu 1804 x64 scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -82,7 +75,7 @@ jobs:
       container: ubuntu_x64_build_container
       projectFile: scenarios.proj
       channels:
-        - main
+        - release/7.0
   
   # Windows x64 Blazor scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -97,7 +90,7 @@ jobs:
       queue: Windows.10.Amd64.Client21H1.Open
       projectFile: blazor_scenarios.proj
       channels:
-        - main
+        - release/7.0
 
   # Windows x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -112,7 +105,7 @@ jobs:
       queue: Windows.10.Amd64.Client21H1.Open
       projectFile: sdk_scenarios.proj
       channels:
-        - main
+        - release/7.0
   
   # Ubuntu 1804 x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -128,7 +121,7 @@ jobs:
       container: ubuntu_x64_build_container
       projectFile: sdk_scenarios.proj
       channels:
-        - main
+        - release/7.0
 
   # Windows x86 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -143,7 +136,7 @@ jobs:
       queue: Windows.10.Amd64.Client21H1.Open
       projectFile: sdk_scenarios.proj
       channels:
-        - main
+        - release/7.0
   
   # Windows x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -159,23 +152,23 @@ jobs:
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries' 
       channels:
-        - main
+        - release/7.0
 
-  # Windows x64 net461 micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: windows
-      osVersion: RS5
-      kind: micro_net461
-      architecture: x64
-      pool:
-        vmImage: windows-2019
-      machinePool: Open
-      queue: Windows.10.Amd64.ClientRS5.Open
-      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'runtime libraries'
-      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - LTS # use LTS channel for net461 framework
+  # # Windows x64 net461 micro benchmarks
+  # - template: /eng/performance/benchmark_jobs.yml
+  #   parameters:
+  #     osName: windows
+  #     osVersion: RS5
+  #     kind: micro_net461
+  #     architecture: x64
+  #     pool:
+  #       vmImage: windows-2019
+  #     machinePool: Open
+  #     queue: Windows.10.Amd64.ClientRS5.Open
+  #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+  #     runCategories: 'runtime libraries'
+  #     channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+  #       - LTS # use LTS channel for net461 framework
 
   # Windows x86 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -191,7 +184,7 @@ jobs:
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
       channels: # for public jobs we want to make sure that the PRs don't break x86
-        - main
+        - release/7.0
 
   # Windows x64 ML.NET benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -207,7 +200,7 @@ jobs:
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
       channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
-        - main
+        - release/7.0
 
   # Windows x64 F# benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -223,7 +216,7 @@ jobs:
       csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
       runCategories: 'fsharp'
       channels:
-        - main
+        - release/7.0
 
   # Windows x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -239,7 +232,7 @@ jobs:
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-        - main
+        - release/7.0
         
   # Ubuntu 1804 x64 micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -256,7 +249,7 @@ jobs:
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - main
+        - release/7.0
 
   # Ubuntu 1804 x64 NativeAOT micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -290,7 +283,7 @@ jobs:
       runCategories: 'mldotnet'
       csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
       channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
-        - main
+        - release/7.0
 
   # Ubuntu 1804 x64 F# benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -307,7 +300,7 @@ jobs:
       runCategories: 'fsharp'
       csproj: src/benchmarks/real-world/FSharp/FSharp.fsproj
       channels:
-        - main
+        - release/7.0
 
   # Ubuntu 1804 x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -324,7 +317,7 @@ jobs:
       runCategories: 'roslyn'
       csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-        - main
+        - release/7.0
 # Ubuntu 1804 x64 ILLink Benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
@@ -340,7 +333,7 @@ jobs:
       csproj: src/benchmarks/real-world/ILLink/ILLinkBenchmarks.csproj
       runCategories: 'illink'
       channels:
-        - main
+        - release/7.0
 
   # Windows x64 ILLinkBenchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -356,7 +349,7 @@ jobs:
       csproj: src/benchmarks/real-world/ILLink/ILLinkBenchmarks.csproj
       runCategories: 'illink'
       channels:
-        - main
+        - release/7.0
 
 ###########################################
 # Private Jobs
@@ -377,7 +370,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
-        - main
+        - release/7.0
 
   # Ubuntu 1804 x64 scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -393,7 +386,7 @@ jobs:
       container: ubuntu_x64_build_container
       projectFile: scenarios.proj
       channels:
-        - main
+        - release/7.0
 
   # Windows Arm64 scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -408,173 +401,7 @@ jobs:
       queue: Windows.10.Arm64.Perf.Surf
       projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
-        - main
-
-  # # Windows x64 micro benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: windows
-  #     osVersion: 19H1
-  #     kind: micro
-  #     architecture: x64
-  #     pool:
-  #       vmImage: windows-2019
-  #     machinePool: Tiger
-  #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-  #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-  #     runCategories: 'runtime libraries'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
-
-  # # Windows AMD64 specific micro benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: windows
-  #     osVersion: 20H2
-  #     kind: micro
-  #     architecture: x64
-  #     pool:
-  #       vmImage: windows-2019
-  #     machinePool: Owl
-  #     queue: Windows.10.Amd64.20H2.Owl.Perf # using a dedicated private Helix queue (perfowls)
-  #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-  #     runCategories: 'runtime libraries'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
-      
-  # # Windows x86 micro benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: windows
-  #     osVersion: 19H1
-  #     kind: micro
-  #     architecture: x86
-  #     pool:
-  #       vmImage: windows-2019
-  #     machinePool: Tiger
-  #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-  #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-  #     runCategories: 'runtime libraries'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
-
-  # # Windows x64 ML.NET benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: windows
-  #     osVersion: 19H1
-  #     kind: mlnet
-  #     architecture: x64
-  #     pool:
-  #       vmImage: windows-2019
-  #     machinePool: Tiger
-  #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-  #     csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-  #     runCategories: 'mldotnet'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
-
-  # # Windows x64 Roslyn benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: windows
-  #     osVersion: 19H1
-  #     kind: roslyn
-  #     architecture: x64
-  #     pool:
-  #       vmImage: windows-2019
-  #     machinePool: Tiger
-  #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
-  #     csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
-  #     runCategories: 'roslyn'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
-
-  # # Ubuntu 1804 x64 micro benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: ubuntu
-  #     osVersion: 1804
-  #     kind: micro
-  #     architecture: x64
-  #     pool: 
-  #       vmImage: ubuntu-latest
-  #     machinePool: Tiger
-  #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-  #     container: ubuntu_x64_build_container
-  #     csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-  #     runCategories: 'runtime libraries'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
-
-  # # Ubuntu 1804 AMD64 specific micro benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: ubuntu
-  #     osVersion: 1804
-  #     kind: micro
-  #     architecture: x64
-  #     pool: 
-  #       vmImage: ubuntu-latest
-  #     machinePool: Owl
-  #     queue: Ubuntu.1804.Amd64.Owl.Perf # using a dedicated private Helix queue (perfowls)
-  #     container: ubuntu_x64_build_container
-  #     csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-  #     runCategories: 'runtime libraries'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
-
-  # # Ubuntu 1804 x64 ML.NET benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: ubuntu
-  #     osVersion: 1804
-  #     kind: mlnet
-  #     architecture: x64
-  #     pool: 
-  #       vmImage: ubuntu-latest
-  #     machinePool: Tiger
-  #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-  #     container: ubuntu_x64_build_container
-  #     csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
-  #     runCategories: 'mldotnet'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
-  
-  # # Ubuntu 1804 x64 Roslyn benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: ubuntu
-  #     osVersion: 1804
-  #     kind: roslyn
-  #     architecture: x64
-  #     pool: 
-  #       vmImage: ubuntu-latest
-  #     machinePool: Tiger
-  #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-  #     container: ubuntu_x64_build_container
-  #     csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
-  #     runCategories: 'roslyn'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
+        - release/7.0
 
 ################################################
 # Scheduled Private jobs
@@ -596,7 +423,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: sdk_scenarios.proj
       channels:
-        - main
+        - release/7.0
   
   # Windows x86 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -611,7 +438,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: sdk_scenarios.proj
       channels:
-        - main
+        - release/7.0
 
   # Ubuntu 1804 x64 SDK scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -627,7 +454,7 @@ jobs:
       container: ubuntu_x64_build_container
       projectFile: sdk_scenarios.proj
       channels:
-        - main
+        - release/7.0
 
   # Windows x64 Blazor 3.2 scenario benchmarks
   - template: /eng/performance/scenarios.yml
@@ -642,7 +469,7 @@ jobs:
       queue: Windows.10.Amd64.19H1.Tiger.Perf
       projectFile: blazor_scenarios.proj
       channels:
-        - main
+        - release/7.0
   
   # Windows x64 F# benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -658,7 +485,7 @@ jobs:
       csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
       runCategories: 'fsharp'
       channels:
-        - main
+        - release/7.0
 
   # Ubuntu 1804 x64 F# benchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -675,7 +502,7 @@ jobs:
       runCategories: 'fsharp'
       csproj: src/benchmarks/real-world/FSharp/FSharp.fsproj
       channels:
-        - main
+        - release/7.0
 
   # Secret Sync
   - job: Synchronize
@@ -713,7 +540,7 @@ jobs:
       csproj: src/benchmarks/real-world/ILLink/ILLinkBenchmarks.csproj
       runCategories: 'illink'
       channels:
-        - main
+        - release/7.0
 
   # Windows x64 ILLinkBenchmarks
   - template: /eng/performance/benchmark_jobs.yml
@@ -729,7 +556,7 @@ jobs:
       csproj: src/benchmarks/real-world/ILLink/ILLinkBenchmarks.csproj
       runCategories: 'illink'
       channels:
-        - main
+        - release/7.0
 
 ################################################
 # Manually Triggered Job
