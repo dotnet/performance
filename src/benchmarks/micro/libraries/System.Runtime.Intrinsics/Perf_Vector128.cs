@@ -12,6 +12,7 @@ namespace System.Runtime.Intrinsics.Tests
     [BenchmarkCategory(Categories.Libraries, Categories.SIMD, Categories.JIT)]
     public class Perf_Vector128
     {
+#if !NETFRAMEWORK
         private static readonly Vector128<double> _vectorDouble = Vector128.Create(1.0, 2.0);
         private static readonly Vector128<float> _vectorFloat = Vector128.Create(1.0F, 2.0F, 3.0F, 4.0F);
         private static readonly Vector128<long> _vectorLong = Vector128.Create(1, 2);
@@ -54,11 +55,13 @@ namespace System.Runtime.Intrinsics.Tests
         
         [Benchmark]
         public Vector128<ulong> ConvertDoubleToULongBenchmark() => Vector128.ConvertToUInt64(_vectorDouble);
+#endif
     }
 
     [BenchmarkCategory(Categories.Libraries, Categories.SIMD, Categories.JIT)]
     public class Perf_Vector128Float
     {
+#if !NETFRAMEWORK
         private static readonly Vector128<float> Value1 = Vector128<float>.AllBitsSet;
         private static readonly Vector128<float> Value2 = Vector128<float>.AllBitsSet + Vector128<float>.AllBitsSet;
         private static readonly Vector128<float> Value3 = Vector128<float>.AllBitsSet + Vector128<float>.AllBitsSet + Vector128<float>.AllBitsSet;
@@ -206,11 +209,13 @@ namespace System.Runtime.Intrinsics.Tests
 
         [Benchmark]
         public Vector128<float> XorBenchmark() => Vector128.Xor(Value1, Value2);
+#endif
     }
 
     [BenchmarkCategory(Categories.Libraries, Categories.SIMD, Categories.JIT)]
     public class Perf_Vector128Int
     {
+#if !NETFRAMEWORK
         private static readonly Vector128<int> Value1 = Vector128<int>.AllBitsSet;
         private static readonly Vector128<int> Value2 = Vector128<int>.AllBitsSet + Vector128<int>.AllBitsSet;
         private static readonly Vector128<int> Value3 = Vector128<int>.AllBitsSet + Vector128<int>.AllBitsSet + Vector128<int>.AllBitsSet;
@@ -359,5 +364,6 @@ namespace System.Runtime.Intrinsics.Tests
 
         [Benchmark]
         public Vector128<int> XorBenchmark() => Vector128.Xor(Value1, Value2);
+#endif
     }
 }
