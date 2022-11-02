@@ -13,6 +13,7 @@ using System.Text.Json;
 
 namespace Microsoft.Extensions.Configuration
 {
+    [AotFilter("Not supported.")]  // System.NotSupportedException: This object cannot be invoked because no code was generated for it: 'System.Collections.Generic.IDictionary`2[System.String, System.String].Item'.
     [BenchmarkCategory(Categories.Libraries)]
     public class ConfigurationBinderBenchmarks
     {
