@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+
+  <Import Project="Scenarios.Common.props" />
+
+  <PropertyGroup>
+    <AfterPreparePayloadWorkItemCommand>$(Python) post.py</AfterPreparePayloadWorkItemCommand>
+    <PreparePayloadOutDirectoryName>scenarios_out</PreparePayloadOutDirectoryName>
+    <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' == 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)\</PreparePayloadWorkItemBaseDirectory>
+    <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <MAUIScenario Include="Desktop Maui" Condition="'$(TargetsWindows)' == 'true' And '$(Architecture)' != 'arm64' And '$(Architecture)' != 'arm'">
+      <ScenarioDirectoryName>mauidesktop</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+    </MAUIScenario>
+    <MAUIScenario Include="Desktop Maui Blazor" Condition="'$(TargetsWindows)' == 'true' And '$(Architecture)' != 'arm64' And '$(Architecture)' != 'arm'">
+      <ScenarioDirectoryName>mauiblazordesktop</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+    </MAUIScenario>
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <PreparePayloadWorkItem Include="@(MAUIScenario)">
+      <Command>$(Python) pre.py publish -c Release -f $(PERFLAB_Framework)-windows10.0.19041.0 -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)_fdd</Command>
+      <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
+    </PreparePayloadWorkItem>
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <HelixWorkItem Include="@(MAUIScenario -> 'SOD - %(Identity) Unpackaged')">
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_fdd %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_fdd $HELIX_WORKITEM_ROOT/pub</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+    <HelixWorkItem Include="@(MAUIScenario -> 'Device Startup - %(Identity) Default')">
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_fdd %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_fdd $HELIX_WORKITEM_ROOT/pub</PreCommands>
+      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+  </ItemGroup>
+
+
+  <Import Project="PreparePayloadWorkItems.targets" />
+
+</Project>
