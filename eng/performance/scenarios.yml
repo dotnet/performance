@@ -106,7 +106,7 @@ jobs:
               $(Python) -m pip install --upgrade pip
               $(Python) -m pip install requests
               .\src\scenarios\init.ps1 -DotnetDirectory $(CorrelationStaging)dotnet
-              .\eng\common\msbuild.ps1 .\eng\performance\${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /bl:.\artifacts\log\$(_BuildConfig)\PrepareWorkItemPayloads.binlog
+              dotnet msbuild .\eng\performance\${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /bl:.\artifacts\log\$(_BuildConfig)\PrepareWorkItemPayloads.binlog
             displayName: Prepare scenarios
             env:
               CorrelationPayloadDirectory: $(CorrelationStaging)
@@ -142,7 +142,7 @@ jobs:
               $(Python) -m pip install --upgrade pip
               $(Python) -m pip install requests
               . ./src/scenarios/init.sh -dotnetdir $(CorrelationStaging)dotnet
-              ./eng/common/msbuild.sh ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
+              dotnet msbuild ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
             displayName: Prepare scenarios
             env:
               CorrelationPayloadDirectory: $(CorrelationStaging)
