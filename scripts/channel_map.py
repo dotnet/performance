@@ -51,11 +51,6 @@ class ChannelMap():
             'branch': '7.0',
             'quality': 'daily'
         },
-        'release/6.0': {
-            'tfm': 'net6.0',
-            'branch': '6.0.1xx',
-            'quality': 'daily'
-        },
         '6.0': {
             'tfm': 'net6.0',
             'branch': '6.0.1xx',
