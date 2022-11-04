@@ -70,32 +70,4 @@ namespace SixLabors.ImageSharp.Benchmarks
         protected override void ExecuteResizeOperation(IImageProcessingContext ctx)
             => ctx.Resize(this.DestSize, this.DestSize, KnownResamplers.Bicubic);
     }
-
-    public class Resize_Bicubic_Compare_Rgba32_Rgb24
-    {
-        private Resize_Bicubic_Rgb24 rgb24;
-        private Resize_Bicubic_Rgba32 rgba32;
-
-        [GlobalSetup]
-        public void Setup()
-        {
-            this.rgb24 = new Resize_Bicubic_Rgb24();
-            this.rgb24.Setup();
-            this.rgba32 = new Resize_Bicubic_Rgba32();
-            this.rgba32.Setup();
-        }
-
-        [GlobalCleanup]
-        public void Cleanup()
-        {
-            this.rgb24.Cleanup();
-            this.rgba32.Cleanup();
-        }
-
-        [Benchmark(Baseline = true)]
-        public void Rgba32() => this.rgba32.ImageSharp_P1();
-
-        [Benchmark]
-        public void Rgb24() => this.rgb24.ImageSharp_P1();
-    }
 }
