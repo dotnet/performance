@@ -259,6 +259,38 @@ jobs:
       channels:
         - main
 
+  # Windows x64 bepuphysics benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 21H1
+      kind: bepuphysics
+      architecture: x64
+      pool:
+        vmImage: windows-2019
+      machinePool: Open
+      queue: Windows.10.Amd64.Client21H1.Open
+      csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
+      runCategories: 'bepuphysics'
+      channels:
+        - main
+
+  # Windows x64 ImageSharp benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: windows
+      osVersion: 21H1
+      kind: imagesharp
+      architecture: x64
+      pool:
+        vmImage: windows-2019
+      machinePool: Open
+      queue: Windows.10.Amd64.Client21H1.Open
+      csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
+      runCategories: 'imagesharp'
+      channels:
+        - main
+
   # Windows x64 Roslyn benchmarks
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
@@ -340,6 +372,40 @@ jobs:
       container: ubuntu_x64_build_container
       runCategories: 'fsharp'
       csproj: src/benchmarks/real-world/FSharp/FSharp.fsproj
+      channels:
+        - main
+
+  # Ubuntu 1804 x64 bepuphysics benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: bepuphysics
+      architecture: x64
+      pool: 
+        vmImage: ubuntu-latest
+      machinePool: Open
+      queue: Ubuntu.1804.Amd64.Open
+      container: ubuntu_x64_build_container
+      csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
+      runCategories: 'bepuphysics'
+      channels:
+        - main
+
+  # Ubuntu 1804 x64 ImageSharp benchmarks
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: imagesharp
+      architecture: x64
+      pool: 
+        vmImage: ubuntu-latest
+      machinePool: Open
+      queue: Ubuntu.1804.Amd64.Open
+      container: ubuntu_x64_build_container
+      csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
+      runCategories: 'imagesharp'
       channels:
         - main
 
