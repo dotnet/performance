@@ -271,7 +271,7 @@ jobs:
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
       csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
-      runCategories: 'bepuphysics'
+      runCategories: 'BepuPhysics'
       channels:
         - main
 
@@ -287,7 +287,7 @@ jobs:
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
       csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
-      runCategories: 'imagesharp'
+      runCategories: 'ImageSharp'
       channels:
         - main
 
@@ -388,7 +388,7 @@ jobs:
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
       csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
-      runCategories: 'bepuphysics'
+      runCategories: 'BepuPhysics'
       channels:
         - main
 
@@ -405,7 +405,7 @@ jobs:
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
       csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
-      runCategories: 'imagesharp'
+      runCategories: 'ImageSharp'
       channels:
         - main
 

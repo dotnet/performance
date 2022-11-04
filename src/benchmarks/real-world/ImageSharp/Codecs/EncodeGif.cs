@@ -12,6 +12,7 @@ using SixLabors.ImageSharp.Tests;
 namespace SixLabors.ImageSharp.Benchmarks.Codecs
 {
     
+    [BenchmarkCategory(Categories.ImageSharp)]
     public class EncodeGif
     {
         // System.Drawing needs this.

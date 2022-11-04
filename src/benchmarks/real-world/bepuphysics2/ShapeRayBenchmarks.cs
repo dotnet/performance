@@ -4,6 +4,7 @@ namespace DemoBenchmarks;
 /// <summary>
 /// Evaluates performance of shape ray tests. Performs groups of types in single benchmarks: all convexes in one, compounds in the other.
 /// </summary>
+[BenchmarkCategory(Categories.BepuPhysics)]
 public class ShapeRayBenchmarks
 {
     ShapeRayBenchmarksDeep deep;

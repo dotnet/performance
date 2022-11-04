@@ -8,6 +8,7 @@ using SixLabors.ImageSharp.Tests;
 
 namespace SixLabors.ImageSharp.Benchmarks.Codecs.Jpeg
 {
+    [BenchmarkCategory(Categories.ImageSharp)]
     public class DecodeJpeg
     {
         private JpegDecoder decoder;

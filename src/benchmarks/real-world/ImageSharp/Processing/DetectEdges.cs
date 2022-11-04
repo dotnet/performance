@@ -9,6 +9,7 @@ using SixLabors.ImageSharp.Tests;
 
 namespace SixLabors.ImageSharp.Benchmarks
 {
+    [BenchmarkCategory(Categories.ImageSharp)]
     public class DetectEdges
     {
         private Image<Rgba32> image;

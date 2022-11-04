@@ -17,6 +17,7 @@ namespace DemoBenchmarks;
 /// Note that all of these collision testers operate across <see cref="Vector{}.Count"/> lanes simultaneously where T is of type <see cref="float"/>.
 /// <para>The number of bundles being executed does not change if <see cref="Vector{}.Count"/> changes; if larger bundles are allowed, then more lanes end up getting solved.</para>
 /// </remarks>
+[BenchmarkCategory(Categories.BepuPhysics)]
 public class GroupedCollisionTesterBenchmarks
 {
     ConvexCollisionTesterBenchmarks benchmarks;

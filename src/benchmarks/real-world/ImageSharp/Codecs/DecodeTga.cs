@@ -9,6 +9,7 @@ using SixLabors.ImageSharp.Tests;
 
 namespace SixLabors.ImageSharp.Benchmarks.Codecs
 {
+    [BenchmarkCategory(Categories.ImageSharp)]
     public class DecodeTga
     {
         private string TestImageFullPath => Path.Combine(TestEnvironment.InputImagesDirectoryFullPath, this.TestImage);

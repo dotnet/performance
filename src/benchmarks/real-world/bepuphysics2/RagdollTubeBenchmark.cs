@@ -14,6 +14,7 @@ namespace DemoBenchmarks;
 /// <summary>
 /// Evaluates performance of a simulation similar to the first timesteps of the RagdollTubeDemo.
 /// </summary>
+[BenchmarkCategory(Categories.BepuPhysics)]
 public class RagdollTubeBenchmark
 {
     public struct SubgroupCollisionFilter

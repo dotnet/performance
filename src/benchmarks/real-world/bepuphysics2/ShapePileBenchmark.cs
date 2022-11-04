@@ -14,6 +14,7 @@ namespace DemoBenchmarks;
 /// <summary>
 /// Evaluates performance of a simulation similar to the first timesteps of the ShapePileTestDemo.
 /// </summary>
+[BenchmarkCategory(Categories.BepuPhysics)]
 public class ShapePileBenchmark
 {
     public struct DemoPoseIntegratorCallbacks : IPoseIntegratorCallbacks

@@ -13,6 +13,7 @@ namespace DemoBenchmarks;
 /// <summary>
 /// Evaluates performance of scatter/gather operations used by constraints to pull body data.
 /// </summary>
+[BenchmarkCategory(Categories.BepuPhysics)]
 public class GatherScatterBenchmarks
 {
     unsafe struct NarrowPhaseCallbacks : INarrowPhaseCallbacks

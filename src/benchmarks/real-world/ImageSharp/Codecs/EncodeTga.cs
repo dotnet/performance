@@ -8,6 +8,7 @@ using SixLabors.ImageSharp.Tests;
 
 namespace SixLabors.ImageSharp.Benchmarks.Codecs
 {
+    [BenchmarkCategory(Categories.ImageSharp)]
     public class EncodeTga
     {
         private MemoryStream memoryStream;

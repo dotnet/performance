@@ -14,6 +14,7 @@ namespace DemoBenchmarks;
 /// <summary>
 /// Evaluates performance of all collision tasks together in a collision batcher.
 /// </summary>
+[BenchmarkCategory(Categories.BepuPhysics)]
 public class CollisionBatcherTaskBenchmarks
 {
     const int pairCount = 10000;
