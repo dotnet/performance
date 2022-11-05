@@ -28,7 +28,7 @@ class ChannelMap():
         },
         '7.0': {
             'tfm': 'net7.0',
-            'branch': '7.0.1xx',
+            'branch': '7.0',
             'quality': 'daily'
         },
         'release/7.0-rc2': {
