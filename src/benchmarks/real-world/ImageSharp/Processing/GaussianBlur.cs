@@ -7,6 +7,7 @@ using SixLabors.ImageSharp.Processing;
 
 namespace SixLabors.ImageSharp.Benchmarks.Samplers
 {
+    [BenchmarkCategory(Categories.ImageSharp)]
     public class GaussianBlur
     {
         [Benchmark]

@@ -62,14 +62,10 @@ namespace BenchmarkDotNet.Extensions
                 .AddFilter(new CategoryExclusionFilter(categoryExclusionFilterValue))
                 .AddExporter(JsonExporter.Full) // make sure we export to Json
                 .AddColumn(StatisticColumn.Median, StatisticColumn.Min, StatisticColumn.Max)
+                .AddValidator(new MandatoryCategoryValidator(mandatoryCategories))
                 .AddValidator(TooManyTestCasesValidator.FailOnError)
                 .AddValidator(new UniqueArgumentsValidator()) // don't allow for duplicated arguments #404
                 .WithSummaryStyle(SummaryStyle.Default.WithMaxParameterColumnWidth(36)); // the default is 20 and trims too aggressively some benchmark results
-
-            if (mandatoryCategories != null)
-            {
-                config = config.AddValidator(new MandatoryCategoryValidator(mandatoryCategories));
-            }
 
             if (Reporter.CreateReporter().InLab)
             {

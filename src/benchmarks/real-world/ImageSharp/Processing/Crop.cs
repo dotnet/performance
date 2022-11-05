@@ -7,6 +7,7 @@ using SixLabors.ImageSharp.Processing;
 
 namespace SixLabors.ImageSharp.Benchmarks.Processing
 {
+    [BenchmarkCategory(Categories.ImageSharp)]
     public class Crop
     {
         [Benchmark(Description = "ImageSharp Crop")]

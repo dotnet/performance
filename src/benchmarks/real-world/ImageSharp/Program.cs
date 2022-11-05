@@ -3,6 +3,7 @@
 
 using BenchmarkDotNet.Extensions;
 using BenchmarkDotNet.Running;
+using System.Collections.Immutable;
 using System.IO;
 
 namespace SixLabors.ImageSharp.Benchmarks
@@ -19,6 +20,6 @@ namespace SixLabors.ImageSharp.Benchmarks
             .FromAssembly(typeof(Program).Assembly)
             .Run(args, RecommendedConfig.Create(
                     artifactsPath: new DirectoryInfo(Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), "BenchmarkDotNet.Artifacts")),
-                    mandatoryCategories: null));
+                    mandatoryCategories: ImmutableHashSet.Create("ImageSharp")));
     }
 }

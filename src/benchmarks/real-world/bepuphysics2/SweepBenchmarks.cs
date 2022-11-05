@@ -145,6 +145,7 @@ public class Sweeper
 /// <summary>
 /// Evaluates performance of a representative subset of sweep tests.
 /// </summary>
+[BenchmarkCategory(Categories.BepuPhysics)]
 public class SweepBenchmarks
 {
     Sweeper sweeper;
