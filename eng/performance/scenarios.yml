@@ -27,7 +27,7 @@ jobs:
           - name: CorrelationStaging
             value: $(Build.SourcesDirectory)\CorrelationStaging\
           - name: AdditionalHelixPreCommands
-            value: 'call %HELIX_CORRELATION_PAYLOAD%\machine-setup$(ScriptExtension);xcopy %HELIX_CORRELATION_PAYLOAD%\NuGet.config %HELIX_WORKITEM_ROOT%'
+            value: 'call %HELIX_CORRELATION_PAYLOAD%\machine-setup$(ScriptExtension);xcopy %HELIX_CORRELATION_PAYLOAD%\NuGet.config %HELIX_WORKITEM_ROOT% /Y'
           - name: PreservePythonPath
             value: 'set ORIGPYPATH=%PYTHONPATH%'
           - name: HelixPostCommand
