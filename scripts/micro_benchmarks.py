@@ -262,7 +262,7 @@ def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
     if framework.startswith("nativeaot"):
         run_args += ['--runtimes', framework]
     if args.wasm:
-        if framework == "net5.0" or framework == "net6.0":
+        if framework == "net6.0":
             run_args += ['--runtimes', 'wasm']
         else:
             run_args += ['--runtimes', 'wasmnet70']
