@@ -4,8 +4,8 @@
     <!-- Used by Python script to narrow down the specified target frameworks to test, and avoid downloading all supported SDKs -->
     <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
     <!-- Supported target frameworks -->
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net461;netcoreapp3.1;net5.0;net6.0;net7.0;net8.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp3.1;net5.0;net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net462;netcoreapp3.1;net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp3.1;net6.0;net7.0;net8.0</TargetFrameworks>
     <NoWarn>$(NoWarn);CS8002</NoWarn>
     <!-- Suppress binaryformatter obsolete warning -->
     <NoWarn>$(NoWarn);SYSLIB0011</NoWarn>
@@ -29,17 +29,17 @@
             <SystemVersion>4.7.1</SystemVersion>
         </PropertyGroup>
     </When>
-    <When Condition="'$(TargetFramework)' == 'net5.0'">
-        <PropertyGroup>
-            <ExtensionsVersion>5.0.0</ExtensionsVersion>
-            <SystemVersion>5.0.0</SystemVersion>
-        </PropertyGroup>
-    </When>
-    <Otherwise>
-        <!-- when comparing against Full .NET Framework we are usually interested in CLR differences, so net461 belongs to this block -->
+    <When Condition="'$(TargetFramework)' == 'net6.0'">
         <PropertyGroup>
             <ExtensionsVersion>6.0.0</ExtensionsVersion>
             <SystemVersion>6.0.0</SystemVersion>
+        </PropertyGroup>
+    </When>
+    <Otherwise>
+        <!-- when comparing against Full .NET Framework we are usually interested in CLR differences, so net462 belongs to this block -->
+        <PropertyGroup>
+            <ExtensionsVersion>7.0.0</ExtensionsVersion>
+            <SystemVersion>7.0.0</SystemVersion>
         </PropertyGroup>
     </Otherwise>
   </Choose>
@@ -62,7 +62,7 @@
     <PackageReference Include="System.Drawing.Common" Version="$(SystemVersion)" />
     <PackageReference Include="System.Formats.Cbor" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' >= '5.0'" />
     <PackageReference Include="System.IO.Pipelines" Version="$(SystemVersion)" />
-    <PackageReference Include="System.Memory" Version="4.5.4" />
+    <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
     <PackageReference Include="System.Runtime.Serialization.Formatters" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Serialization.Json" Version="4.3.0" />
