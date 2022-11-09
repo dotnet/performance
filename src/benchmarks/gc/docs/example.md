@@ -9,7 +9,7 @@ We're going to see how changing gen0size affects performance. We'll start by cre
 ```yaml
 vary: config
 test_executables:
-  defgcperfsim: /performance/artifacts/bin/GCPerfSim/release/net7.0/GCPerfSim.dll
+  defgcperfsim: /performance/artifacts/bin/GCPerfSim/release/net8.0/GCPerfSim.dll
 coreclrs:
   a:
     core_root: ./coreclr
