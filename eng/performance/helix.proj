@@ -16,6 +16,10 @@
     <WorkItemCommand>$(WorkItemCommand) $(CliArguments)</WorkItemCommand>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <EnableAzurePipelinesReporter>false</EnableAzurePipelinesReporter>
+  </PropertyGroup>
+
   <ItemGroup>
     <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
       <PayloadDirectory>%(Identity)</PayloadDirectory>

@@ -19,6 +19,10 @@
     <RID>linux-$(Architecture)</RID>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <EnableAzurePipelinesReporter>false</EnableAzurePipelinesReporter>
+  </PropertyGroup>
+
   <ItemDefinitionGroup>
       <HelixWorkItem>
       <Timeout>4:00</Timeout>
