@@ -20,7 +20,7 @@ import sys
 import os
 
 VERSIONS = {
-    'net7.0': { 'tfm': 'net7.0' }
+    'net7.0': { 'tfm': 'net7.0' },
     'net7.0-rc2': { 'tfm': 'net7.0', 'build': '7.0.100-rc.2.22477.23' },
     'net7.0-rc1': { 'tfm': 'net7.0', 'build': '7.0.100-rc.1.22425.9' },
     'net7.0-preview7': { 'tfm': 'net7.0', 'build': '7.0.100-preview.7.22370.3' },
