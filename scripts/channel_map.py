@@ -7,10 +7,6 @@ class ChannelMap():
             'branch': '8.0',
             'quality': 'daily'
         },
-        'master': {
-            'tfm': 'net6.0',
-            'branch': 'master'
-        },
         '8.0': {
             'tfm': 'net8.0',
             'branch': '8.0',
@@ -53,17 +49,17 @@ class ChannelMap():
         },
         '6.0': {
             'tfm': 'net6.0',
-            'branch': '6.0.1xx',
+            'branch': '6.0',
             'quality': 'daily'
         },
         'release/6.0': {
             'tfm': 'net6.0',
-            'branch': '6.0.1xx',
+            'branch': '6.0',
             'quality': 'daily'
         },
         'nativeaot6.0': {
             'tfm': 'nativeaot6.0',
-            'branch': '6.0.1xx',
+            'branch': '6.0',
             'quality': 'daily'
         },
         'release/3.1.3xx':{
@@ -90,6 +86,10 @@ class ChannelMap():
         'net48': {
             'tfm': 'net48', # For Full Framework download the LTS for dotnet cli.
             'branch': 'LTS'
+        },
+        'master': {
+            'tfm': 'net6.0',
+            'branch': 'master'
         }
     }
     @staticmethod
