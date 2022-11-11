@@ -102,6 +102,12 @@ jobs:
             displayName: Build SOD tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
+          # Current version of PaintDotNet zip file is PDN7 built on 5/18/2022
+          - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+            - powershell: |
+                mkdir $(CorrelationStaging)PDN
+                curl "https://pvscmdupload.blob.core.windows.net/assets/PDN.zip$(PerfCommandUploadTokenNonEscaped)" -OutFile $(CorrelationStaging)PDN\PDN.zip
+              displayName: Download PDN
           - powershell: |
               $(Python) -m pip install --upgrade pip
               $(Python) -m pip install requests
@@ -114,12 +120,6 @@ jobs:
               TargetsWindows: 'true'
               WorkItemDirectory: $(Build.SourcesDirectory)
               HelixTargetQueues: ${{ parameters.queue }}
-          # Current version of PaintDotNet zip file is PDN7 built on 5/18/2022
-          - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
-            - powershell: |
-                mkdir $(CorrelationStaging)PDN
-                curl "https://pvscmdupload.blob.core.windows.net/assets/PDN.zip$(PerfCommandUploadTokenNonEscaped)" -OutFile $(CorrelationStaging)PDN\PDN.zip
-              displayName: Download PDN
           - ${{ if eq(parameters.architecture, 'arm64') }}:
             - script: taskkill /im dotnet.exe /f
               displayName: Stop dotnet.exe
