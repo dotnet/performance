@@ -18,6 +18,10 @@
   </PropertyGroup>  
 
   <PropertyGroup>
+    <EnableAzurePipelinesReporter>false</EnableAzurePipelinesReporter>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <FrameworkVersion>$(_Framework.Substring($([MSBuild]::Subtract($(_Framework.Length), 3))))</FrameworkVersion>
   </PropertyGroup>
 
