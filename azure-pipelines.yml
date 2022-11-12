@@ -134,8 +134,8 @@ jobs:
   - template: /eng/performance/scenarios.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-public }}
-        - ${{ parameters.buildMachines.ubuntu-x64-public }}
+        - ${{ parameters.buildMachines['win-x64-public'] }}
+        - ${{ parameters.buildMachines['ubuntu-x64-public'] }}
       kind: scenarios
       projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
@@ -145,8 +145,8 @@ jobs:
   #- template: /eng/performance/scenarios.yml
   #  parameters:
   #    buildMachines:
-  #    - ${{ parameters.buildMachines.win-x64-public }}
-  #    - ${{ parameters.buildMachines.ubuntu-x64-public }}
+  #    - ${{ parameters.buildMachines['win-x64-public'] }}
+  #    - ${{ parameters.buildMachines['ubuntu-x64-public'] }}
   #    kind: maui_scenarios
   #    projectFile: maui_scenarios.proj
   #    channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
@@ -156,7 +156,7 @@ jobs:
   - template: /eng/performance/scenarios.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-public }}
+        - ${{ parameters.buildMachines['win-x64-public'] }}
       kind: blazor_scenarios
       projectFile: blazor_scenarios.proj
       channels:
@@ -166,9 +166,9 @@ jobs:
   - template: /eng/performance/scenarios.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-public }}
-        - ${{ parameters.buildMachines.win-x86-public }}
-        - ${{ parameters.buildMachines.ubuntu-x64-public }}
+        - ${{ parameters.buildMachines['win-x64-public'] }}
+        - ${{ parameters.buildMachines['win-x86-public'] }}
+        - ${{ parameters.buildMachines['ubuntu-x64-public'] }}
       kind: sdk_scenarios
       projectFile: sdk_scenarios.proj
       channels:
@@ -178,9 +178,9 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-public }}
-        - ${{ parameters.buildMachines.win-x86-public }}
-        - ${{ parameters.buildMachines.ubuntu-x64-public }}
+        - ${{ parameters.buildMachines['win-x64-public'] }}
+        - ${{ parameters.buildMachines['win-x86-public'] }}
+        - ${{ parameters.buildMachines['ubuntu-x64-public'] }}
       kind: micro
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries' 
@@ -191,7 +191,7 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-rs5-x64-public }}
+        - ${{ parameters.buildMachines['win-rs5-x64-public'] }}
       kind: micro_net462
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
@@ -202,7 +202,7 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.centos-x64-public }}
+        - ${{ parameters.buildMachines['centos-x64-public'] }}
       kind: micro
       csproj: src/benchmarks/micro/MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
@@ -213,8 +213,8 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-public }}
-        - ${{ parameters.buildMachines.ubuntu-x64-public }}
+        - ${{ parameters.buildMachines['win-x64-public'] }}
+        - ${{ parameters.buildMachines['ubuntu-x64-public'] }}
       kind: mlnet
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
@@ -225,8 +225,8 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-public }}
-        - ${{ parameters.buildMachines.ubuntu-x64-public }}
+        - ${{ parameters.buildMachines['win-x64-public'] }}
+        - ${{ parameters.buildMachines['ubuntu-x64-public'] }}
       kind: fsharp
       csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
       runCategories: 'fsharp'
@@ -237,8 +237,8 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-public }}
-        - ${{ parameters.buildMachines.ubuntu-x64-public }}
+        - ${{ parameters.buildMachines['win-x64-public'] }}
+        - ${{ parameters.buildMachines['ubuntu-x64-public'] }}
       kind: bepuphysics
       csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
       runCategories: 'BepuPhysics'
@@ -249,8 +249,8 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-public }}
-        - ${{ parameters.buildMachines.ubuntu-x64-public }}
+        - ${{ parameters.buildMachines['win-x64-public'] }}
+        - ${{ parameters.buildMachines['ubuntu-x64-public'] }}
       kind: imagesharp
       csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
       runCategories: 'ImageSharp'
@@ -261,8 +261,8 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-public }}
-        - ${{ parameters.buildMachines.ubuntu-x64-public }}
+        - ${{ parameters.buildMachines['win-x64-public'] }}
+        - ${{ parameters.buildMachines['ubuntu-x64-public'] }}
       kind: roslyn
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
@@ -273,8 +273,8 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-public }}
-        - ${{ parameters.buildMachines.ubuntu-x64-public }}
+        - ${{ parameters.buildMachines['win-x64-public'] }}
+        - ${{ parameters.buildMachines['ubuntu-x64-public'] }}
       kind: illink
       csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
       runCategories: 'illink'
@@ -291,9 +291,9 @@ jobs:
   - template: /eng/performance/scenarios.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-private }}
-        - ${{ parameters.buildMachines.ubuntu-x64-private }}
-        - ${{ parameters.buildMachines.win-arm64-private }}
+        - ${{ parameters.buildMachines['win-x64-private'] }}
+        - ${{ parameters.buildMachines['ubuntu-x64-private'] }}
+        - ${{ parameters.buildMachines['win-arm64-private'] }}
       kind: scenarios
       projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
@@ -303,9 +303,9 @@ jobs:
   #- template: /eng/performance/scenarios.yml
   #  parameters:
   #    buildMachines:
-  #      - ${{ parameters.buildMachines.win-x64-private }}
-  #      - ${{ parameters.buildMachines.ubuntu-x64-private }}
-  #      - ${{ parameters.buildMachines.win-arm64-private }}
+  #      - ${{ parameters.buildMachines['win-x64-private'] }}
+  #      - ${{ parameters.buildMachines['ubuntu-x64-private'] }}
+  #      - ${{ parameters.buildMachines['win-arm64-private'] }}
   #    kind: maui_scenarios
   #    projectFile: maui_scenarios.proj
   #    channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
@@ -322,9 +322,9 @@ jobs:
   - template: /eng/performance/scenarios.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-private }}
-        - ${{ parameters.buildMachines.win-x86-private }}
-        - ${{ parameters.buildMachines.ubuntu-x64-private }}
+        - ${{ parameters.buildMachines['win-x64-private'] }}
+        - ${{ parameters.buildMachines['win-x86-private'] }}
+        - ${{ parameters.buildMachines['ubuntu-x64-private'] }}
       kind: sdk_scenarios
       projectFile: sdk_scenarios.proj
       channels:
@@ -334,7 +334,7 @@ jobs:
   - template: /eng/performance/scenarios.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-private }}
+        - ${{ parameters.buildMachines['win-x64-private'] }}
       kind: blazor_scenarios
       projectFile: blazor_scenarios.proj
       channels:
@@ -344,8 +344,8 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-private }}
-        - ${{ parameters.buildMachines.ubuntu-x64-private }}
+        - ${{ parameters.buildMachines['win-x64-private'] }}
+        - ${{ parameters.buildMachines['ubuntu-x64-private'] }}
       kind: mlnet
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
@@ -356,8 +356,8 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-private }}
-        - ${{ parameters.buildMachines.ubuntu-x64-private }}
+        - ${{ parameters.buildMachines['win-x64-private'] }}
+        - ${{ parameters.buildMachines['ubuntu-x64-private'] }}
       kind: fsharp
       csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
       runCategories: 'fsharp'
@@ -368,8 +368,8 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-private }}
-        - ${{ parameters.buildMachines.ubuntu-x64-private }}
+        - ${{ parameters.buildMachines['win-x64-private'] }}
+        - ${{ parameters.buildMachines['ubuntu-x64-private'] }}
       kind: bepuphysics
       csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
       runCategories: 'BepuPhysics'
@@ -380,8 +380,8 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-private }}
-        - ${{ parameters.buildMachines.ubuntu-x64-private }}
+        - ${{ parameters.buildMachines['win-x64-private'] }}
+        - ${{ parameters.buildMachines['ubuntu-x64-private'] }}
       kind: imagesharp
       csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
       runCategories: 'ImageSharp'
@@ -392,8 +392,8 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-private }}
-        - ${{ parameters.buildMachines.ubuntu-x64-private }}
+        - ${{ parameters.buildMachines['win-x64-private'] }}
+        - ${{ parameters.buildMachines['ubuntu-x64-private'] }}
       kind: roslyn
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
@@ -404,8 +404,8 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       buildMachines:
-        - ${{ parameters.buildMachines.win-x64-private }}
-        - ${{ parameters.buildMachines.ubuntu-x64-private }}
+        - ${{ parameters.buildMachines['win-x64-private'] }}
+        - ${{ parameters.buildMachines['ubuntu-x64-private'] }}
       kind: illink
       csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
       runCategories: 'illink'
