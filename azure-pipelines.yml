@@ -78,7 +78,7 @@ parameters:
       machinePool: Tiger
       queue: Windows.10.Arm64.Perf.Surf
 - name: runPublicJobs
-  type: bool
+  type: boolean
   default: false
 
 resources:
