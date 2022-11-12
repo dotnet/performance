@@ -105,7 +105,7 @@ pr:
   paths:
     exclude: # don't trigger the CI if only a doc file was changed
     - docs/
-    - **/*.md
+    - '**/*.md'
     - scripts/benchmarks_monthly.py
 
 schedules:
