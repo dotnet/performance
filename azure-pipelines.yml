@@ -1,7 +1,7 @@
 parameters:
-- runPublicJobs: false
-- runPrivateJobs: false
-- runScheduledPrivateJobs: false
+  runPublicJobs: false
+  runPrivateJobs: false
+  runScheduledPrivateJobs: false
 
 resources:
   containers:
