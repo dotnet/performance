@@ -17,7 +17,7 @@ jobs:
         osVersion: 21H1
         machinePool: Open
         queue: Windows.10.Amd64.Client21H1.Open
-      $${{ else }}:
+      ${{ else }}:
         osVersion: 19H1
         machinePool: Tiger
         queue: Windows.10.Amd64.19H1.Tiger.Perf
@@ -45,7 +45,7 @@ jobs:
         osVersion: 21H1
         machinePool: Open
         queue: Windows.10.Amd64.Client21H1.Open
-      $${{ else }}:
+      ${{ else }}:
         osVersion: 19H1
         machinePool: Tiger
         queue: Windows.10.Amd64.19H1.Tiger.Perf
@@ -63,7 +63,7 @@ jobs:
       ${{ if parameters.isPublic }}:
         machinePool: Open
         queue: Ubuntu.1804.Amd64.Open
-      $${{ else }}:
+      ${{ else }}:
         machinePool: Tiger
         queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
 
