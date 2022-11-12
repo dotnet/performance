@@ -2,7 +2,7 @@ parameters:
 - name: buildMachines
   type: object
   default:
-    - win-x64-public:
+    win-x64-public:
       osName: windows
       osVersion: 21H1
       architecture: x64
@@ -10,7 +10,7 @@ parameters:
         vmImage: windows-2019
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
-    - win-rs5-x64-public:
+    win-rs5-x64-public:
       osName: windows
       osVersion: RS5
       architecture: x64
@@ -18,7 +18,7 @@ parameters:
         vmImage: windows-2019
       machinePool: Open
       queue: Windows.10.Amd64.ClientRS5.Open
-    - win-x86-public:
+    win-x86-public:
       osName: windows
       osVersion: 21H1
       architecture: x86
@@ -26,7 +26,7 @@ parameters:
         vmImage: windows-2019
       machinePool: Open
       queue: Windows.10.Amd64.Client21H1.Open
-    - ubuntu-x64-public:
+    ubuntu-x64-public:
       osName: ubuntu
       osVersion: 1804
       architecture: x64
@@ -35,7 +35,7 @@ parameters:
       machinePool: Open
       queue: Ubuntu.1804.Amd64.Open
       container: ubuntu_x64_build_container
-    - centos-x64-public:
+    centos-x64-public:
       osName: centos
       osVersion: 7
       architecture: x64
@@ -44,7 +44,7 @@ parameters:
       machinePool: Open
       queue: centos.7.amd64.open
       container: centos_x64_build_container
-    - win-x64-private:
+    win-x64-private:
       osName: windows
       osVersion: 19H1
       architecture: x64
@@ -52,7 +52,7 @@ parameters:
         vmImage: windows-2019
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
-    - win-x86-private:
+    win-x86-private:
       osName: windows
       osVersion: 19H1
       architecture: x86
@@ -60,7 +60,7 @@ parameters:
         vmImage: windows-2019
       machinePool: Tiger
       queue: Windows.10.Amd64.19H1.Tiger.Perf
-    - ubuntu-x64-private:
+    ubuntu-x64-private:
       osName: ubuntu
       osVersion: 1804
       architecture: x64
@@ -69,7 +69,7 @@ parameters:
       machinePool: Tiger
       queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
       container: ubuntu_x64_build_container
-    - win-arm64-private:
+    win-arm64-private:
       osName: windows
       osVersion: 20H1
       architecture: arm64
