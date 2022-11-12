@@ -77,6 +77,9 @@ parameters:
         vmImage: windows-2019
       machinePool: Tiger
       queue: Windows.10.Arm64.Perf.Surf
+- name: runPublicJobs
+  type: bool
+  default: false
 
 resources:
   containers:
@@ -129,7 +132,7 @@ jobs:
 # Public correctness jobs
 ######################################################
 
-- ${{ if eq(variables['System.TeamProject'], 'public') }}:
+- ${{ if or(eq(variables['System.TeamProject'], 'public'), parameters.runPublicJobs) }}:
   # Scenario benchmarks
   - template: /eng/performance/scenarios.yml
     parameters:
@@ -438,7 +441,7 @@ jobs:
 ################################################
 
 
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Manual')) }}:
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Manual'), not(parameters.runPublicJobs)) }}:
   - job: Synchronize
     pool:
       name: NetCore1ESPool-Internal-NoMSI
