@@ -1,7 +1,13 @@
 parameters:
-  runPublicJobs: false
-  runPrivateJobs: false
-  runScheduledPrivateJobs: false
+- name: runPublicJobs
+  type: boolean
+  default: false
+- name: runPrivateJobs
+  type: boolean
+  default: false
+- name: runScheduledPrivateJobs
+  type: boolean
+  default: false
 
 resources:
   containers:
