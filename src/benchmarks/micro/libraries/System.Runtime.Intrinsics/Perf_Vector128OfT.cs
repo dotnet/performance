@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 
 namespace System.Runtime.Intrinsics.Tests
@@ -23,11 +21,9 @@ namespace System.Runtime.Intrinsics.Tests
     public class Perf_Vector128Of<T>
         where T : struct
     {
-#if !NETFRAMEWORK
         private static readonly Vector128<T> Value1 = Vector128<T>.AllBitsSet;
         private static readonly Vector128<T> Value2 = Vector128<T>.AllBitsSet + Vector128<T>.AllBitsSet;
         private static readonly Vector128<T> Value3 = Vector128<T>.AllBitsSet + Vector128<T>.AllBitsSet + Vector128<T>.AllBitsSet;
-
 
         [Benchmark]
         public int CountBenchmark() => Vector128<T>.Count;
@@ -172,6 +168,5 @@ namespace System.Runtime.Intrinsics.Tests
 
         [Benchmark]
         public Vector128<T> XorBenchmark() => Vector128.Xor(Value1, Value2);
-#endif
     }
 }
