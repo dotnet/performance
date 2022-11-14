@@ -191,6 +191,7 @@
     <Compile Remove="runtime\Math\Functions\Single\SinCosPi.cs" />
     <Compile Remove="runtime\Math\Functions\Single\TanPi.cs" />
     <Compile Remove="libraries\System.Formats.Tar\*.cs" />
+    <Compile Remove="libraries\System.Runtime.Intrinsics\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
