@@ -122,144 +122,135 @@ jobs:
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/benchmark_jobs.yml
-      parameters:
-        buildMachines:
-          - win-x64
-          - win-x86
-          - ubuntu-x64
-        isPublic: true
-        jobParameters:
+      buildMachines:
+        - win-x64
+        - win-x86
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
           kind: micro
           csproj: src\benchmarks\micro\MicroBenchmarks.csproj
           runCategories: 'runtime libraries' 
           channels:
-            - main
+          - main
 
   # net462 micro benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/benchmark_jobs.yml
-      parameters:
-        buildMachines:
-          - win-rs5-x64
-        isPublic: true
-        jobParameters:
-          kind: micro_net462
-          csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-          runCategories: 'runtime libraries' 
-          channels:
-            - LTS
+      buildMachines:
+        - win-rs5-x64
+      isPublic: true
+      jobParameters:
+        kind: micro_net462
+        csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+        runCategories: 'runtime libraries' 
+        channels:
+          - LTS
 
   # NativeAOT micro benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/benchmark_jobs.yml
-      parameters:
-        buildMachines:
-          - centos-x64
-        isPublic: true
-        jobParameters:
-          kind: micro
-          csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-          runCategories: 'runtime libraries' 
-          channels:
-            - nativeaot7.0
+      buildMachines:
+        - centos-x64
+      isPublic: true
+      jobParameters:
+        kind: micro
+        csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+        runCategories: 'runtime libraries' 
+        channels:
+          - nativeaot7.0
 
   # ML.NET benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/benchmark_jobs.yml
-      parameters:
-        buildMachines:
-          - win-x64
-          - ubuntu-x64
-        isPublic: true
-        jobParameters:
-          kind: mlnet
-          csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-          runCategories: 'mldotnet' 
-          channels:
-            - main
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: mlnet
+        csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
+        runCategories: 'mldotnet' 
+        channels:
+          - main
 
   # F# benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/benchmark_jobs.yml
-      parameters:
-        buildMachines:
-          - win-x64
-          - ubuntu-x64
-        isPublic: true
-        jobParameters:
-          kind: fsharp
-          csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
-          runCategories: 'fsharp'
-          channels:
-            - main
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: fsharp
+        csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
+        runCategories: 'fsharp'
+        channels:
+          - main
 
   # bepuphysics benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/benchmark_jobs.yml
-      parameters:
-        buildMachines:
-          - win-x64
-          - ubuntu-x64
-        isPublic: true
-        jobParameters:
-          kind: bepuphysics
-          csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
-          runCategories: 'BepuPhysics'
-          channels:
-            - main
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: bepuphysics
+        csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
+        runCategories: 'BepuPhysics'
+        channels:
+          - main
 
   # ImageSharp benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/benchmark_jobs.yml
-      parameters:
-        buildMachines:
-          - win-x64
-          - ubuntu-x64
-        isPublic: true
-        jobParameters:
-          kind: imagesharp
-          csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
-          runCategories: 'ImageSharp'
-          channels:
-            - main
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: imagesharp
+        csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
+        runCategories: 'ImageSharp'
+        channels:
+          - main
 
   # Roslyn benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/benchmark_jobs.yml
-      parameters:
-        buildMachines:
-          - win-x64
-          - ubuntu-x64
-        isPublic: true
-        jobParameters:
-          kind: roslyn
-          csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
-          runCategories: 'roslyn'
-          channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-            - main
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: roslyn
+        csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
+        runCategories: 'roslyn'
+        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+          - main
 
   # ILLink benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/benchmark_jobs.yml
-      parameters:
-        buildMachines:
-          - win-x64
-          - ubuntu-x64
-        isPublic: true
-        jobParameters:
-          kind: illink
-          csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
-          runCategories: 'illink'
-          channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-          - main
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: illink
+        csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
+        runCategories: 'illink'
+        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+        - main
 
 ###########################################
 # Private Jobs
@@ -271,33 +262,31 @@ jobs:
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
-      parameters:
-        buildMachines:
-          - win-x64
-          - ubuntu-x64
-          - win-arm64
-        isPublic: false
-        jobParameters:
-          kind: scenarios
-          projectFile: scenarios.proj
-          channels:
-            - main
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+        - win-arm64
+      isPublic: false
+      jobParameters:
+        kind: scenarios
+        projectFile: scenarios.proj
+        channels:
+          - main
 
   ## Maui scenario benchmarks
   #- template: /eng/performance/build_machine_matrix.yml
   #  parameters:
   #    jobTemplate: /eng/performance/scenarios.yml
-  #    parameters:
-  #      buildMachines:
-  #        - win-x64
-  #        - ubuntu-x64
-  #        - win-arm64
-  #      isPublic: false
-  #      jobParameters:
-  #        kind: maui_scenarios
-  #        projectFile: maui_scenarios.proj
-  #        channels:
-  #          - main
+  #    buildMachines:
+  #      - win-x64
+  #      - ubuntu-x64
+  #      - win-arm64
+  #    isPublic: false
+  #    jobParameters:
+  #      kind: maui_scenarios
+  #      projectFile: maui_scenarios.proj
+  #      channels:
+  #        - main
 
 ################################################
 # Scheduled Private jobs
@@ -310,127 +299,119 @@ jobs:
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
-      parameters:
-        buildMachines:
-          - win-x64
-          - win-x86
-          - ubuntu-x64
-        isPublic: false
-        jobParameters:
-          kind: sdk_scenarios
-          projectFile: sdk_scenarios.proj
-          channels:
-            - main
+      buildMachines:
+        - win-x64
+        - win-x86
+        - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: sdk_scenarios
+        projectFile: sdk_scenarios.proj
+        channels:
+          - main
 
   # Blazor 3.2 scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
-      parameters:
-        buildMachines:
-          - win-x64
-        isPublic: false
-        jobParameters:
-          kind: blazor_scenarios
-          projectFile: blazor_scenarios.proj
-          channels:
-            - main
+      buildMachines:
+        - win-x64
+      isPublic: false
+      jobParameters:
+        kind: blazor_scenarios
+        projectFile: blazor_scenarios.proj
+        channels:
+          - main
   
   # ML.NET benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
-      parameters:
-        buildMachines:
-          - win-x64
-          - ubuntu-x64
-        isPublic: false
-        jobParameters:
-          kind: mlnet
-          csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-          runCategories: 'mldotnet'
-          channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
-            - main
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: mlnet
+        csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
+        runCategories: 'mldotnet'
+        channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
+          - main
 
   # F# benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
-      parameters:
-        buildMachines:
-          - win-x64
-          - ubuntu-x64
-        isPublic: false
-        jobParameters:
-          kind: fsharp
-          csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
-          runCategories: 'fsharp'
-          channels:
-            - main
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: fsharp
+        csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
+        runCategories: 'fsharp'
+        channels:
+          - main
 
   # bepuphysics benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
-      parameters:
-        buildMachines:
-          - win-x64
-          - ubuntu-x64
-        isPublic: false
-        jobParameters:
-          kind: bepuphysics
-          csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
-          runCategories: 'BepuPhysics'
-          channels:
-            - main
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: bepuphysics
+        csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
+        runCategories: 'BepuPhysics'
+        channels:
+          - main
 
   # ImageSharp benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
-      parameters:
-        buildMachines:
-          - win-x64
-          - ubuntu-x64
-        isPublic: false
-        jobParameters:
-          kind: imagesharp
-          csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
-          runCategories: 'ImageSharp'
-          channels:
-            - main
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: imagesharp
+        csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
+        runCategories: 'ImageSharp'
+        channels:
+          - main
 
   # Roslyn benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
-      parameters:
-        buildMachines:
-          - win-x64
-          - ubuntu-x64
-        isPublic: false
-        jobParameters:
-          kind: roslyn
-          csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
-          runCategories: 'roslyn'
-          channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-            - main
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: roslyn
+        csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
+        runCategories: 'roslyn'
+        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+          - main
 
   # ILLink benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
-      parameters:
-        buildMachines:
-          - win-x64
-          - ubuntu-x64
-        isPublic: false
-        jobParameters:
-          kind: illink
-          csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
-          runCategories: 'illink'
-          channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-            - main
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: illink
+        csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
+        runCategories: 'illink'
+        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+          - main
 
   # Secret Sync
   - job: Synchronize
