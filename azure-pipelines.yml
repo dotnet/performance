@@ -329,7 +329,7 @@ jobs:
     parameters:
       osName: ubuntu
       osVersion: 1804
-      kind: micro
+      kind: micro_old_tfm
       architecture: x64
       pool: 
         vmImage: ubuntu-latest
