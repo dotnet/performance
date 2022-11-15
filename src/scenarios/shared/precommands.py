@@ -62,6 +62,16 @@ class PreCommands:
 
         publish_parser = subparsers.add_parser(PUBLISH, help='Publishes the project')
         self.add_common_arguments(publish_parser)
+        publish_parser.add_argument('--self-contained',
+                                    dest='self_contained',
+                                    default=False,
+                                    action='store_true',
+                                    help='Publish SCD')
+        publish_parser.add_argument('--no-self-contained',
+                                    dest='no_self_contained',
+                                    default=False,
+                                    action='store_true',
+                                    help='Publish FDD')
 
         crossgen_parser = subparsers.add_parser(CROSSGEN, help='Runs crossgen on a particular file')
         self.add_common_arguments(crossgen_parser)
@@ -90,6 +100,9 @@ class PreCommands:
         self.windows = args.windows
         self.output = args.output
         
+        if self.operation == PUBLISH:
+            self.self_contained = args.self_contained
+            self.no_self_contained = args.no_self_contained
         if self.operation == CROSSGEN:
             self.crossgen_arguments.parse_crossgen_args(args)
         if self.operation == CROSSGEN2:
@@ -185,6 +198,10 @@ class PreCommands:
             self._build(configuration=self.configuration, framework=self.framework, output=self.output, build_args=build_args)
         if self.operation == PUBLISH:
             self._restore()
+            if self.self_contained:
+                build_args.append('--self-contained')
+            elif self.no_self_contained:
+                build_args.append('--no-self-contained')
             self._publish(configuration=self.configuration, runtime_identifier=self.runtime_identifier, framework=self.framework, output=self.output, build_args=build_args)
         if self.operation == CROSSGEN:
             startup_args = [
