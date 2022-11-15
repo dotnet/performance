@@ -307,7 +307,7 @@ jobs:
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
         - main
         
-  # Ubuntu 1804 x64 micro benchmarks
+  # Ubuntu 1804 x64 micro benchmarks main
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: ubuntu
@@ -323,6 +323,25 @@ jobs:
       runCategories: 'runtime libraries'
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - main
+
+  # Ubuntu 1804 x64 micro benchmarks older TFMs
+  - template: /eng/performance/benchmark_jobs.yml
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      kind: micro
+      architecture: x64
+      pool: 
+        vmImage: ubuntu-latest
+      machinePool: Open
+      queue: Ubuntu.1804.Amd64.Open
+      container: ubuntu_x64_build_container
+      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
+      runCategories: 'LINQ' # run only few simple benchmarks to ensure we can build the project using old SDK
+      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+        - 7.0
+        - 6.0
+        - 3.1
 
   # Ubuntu 1804 x64 NativeAOT micro benchmarks
   - template: /eng/performance/benchmark_jobs.yml
