@@ -439,7 +439,7 @@ jobs:
 ################################################
 
 
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Manual'), not(parameters.runPublicJobs), not(parameters.runScheduledJobs), not(parameters.runPrivateJobs)) }}:
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Manual'), not(parameters.runPublicJobs), not(parameters.runScheduledPrivateJobs), not(parameters.runPrivateJobs)) }}:
   - job: Synchronize
     pool:
       name: NetCore1ESPool-Internal-NoMSI
