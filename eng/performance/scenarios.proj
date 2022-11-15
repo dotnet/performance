@@ -50,13 +50,15 @@
     <UIScenario Include="PaintDotNet" Condition="'$(TargetsWindows)' == 'true' And $(BUILD_REPOSITORY_PROVIDER) == 'TfsGit'">
       <ScenarioDirectoryName>paintdotnet</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <ExplicitPrepareCommand>$(Python) pre.py extract -p $(CorrelationPayloadDirectory)PDN\PDN.zip -o $(PreparePayloadWorkItemBaseDirectory)%(ScenarioDirectoryName)_fdd</ExplicitPrepareCommand>
     </UIScenario>
   </ItemGroup>
 
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(UIScenario)">
-      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework) -c Release --windowsui -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)_fdd</Command>
+      <Command Condition="'%(PreparePayloadWorkItem.ExplicitPrepareCommand)' != ''">%(PreparePayloadWorkItem.ExplicitPrepareCommand)</Command>
+      <Command Condition="'%(PreparePayloadWorkItem.ExplicitPrepareCommand)' == ''">$(Python) pre.py publish -f $(PERFLAB_Framework) -c Release --windowsui -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)_fdd</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
     <PreparePayloadWorkItem Include="@(Scenario)">
