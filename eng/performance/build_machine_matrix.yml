@@ -13,7 +13,7 @@ jobs:
       pool:
         vmImage: windows-2019
       ${{ insert }}: ${{ parameters.jobParameters }}
-      ${{ if parameters.isPublic }}:
+      ${{ if eq(parameters.isPublic, true) }}:
         osVersion: 21H1
         machinePool: Open
         queue: Windows.10.Amd64.Client21H1.Open
@@ -22,7 +22,7 @@ jobs:
         machinePool: Tiger
         queue: Windows.10.Amd64.19H1.Tiger.Perf
 
-- ${{ if and(containsValue(parameters.buildMachines, 'win-rs5-x64'), parameters.isPublic) }}: # RS5 only used in public builds currently
+- ${{ if and(containsValue(parameters.buildMachines, 'win-rs5-x64'), eq(parameters.isPublic, true)) }}: # RS5 only used in public builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
       osName: windows
@@ -41,7 +41,7 @@ jobs:
       pool:
         vmImage: windows-2019
       ${{ insert }}: ${{ parameters.jobParameters }}
-      ${{ if parameters.isPublic }}:
+      ${{ if eq(parameters.isPublic, true) }}:
         osVersion: 21H1
         machinePool: Open
         queue: Windows.10.Amd64.Client21H1.Open
@@ -60,14 +60,14 @@ jobs:
         vmImage: ubuntu-latest
       container: centos_x64_build_container
       ${{ insert }}: ${{ parameters.jobParameters }}
-      ${{ if parameters.isPublic }}:
+      ${{ if eq(parameters.isPublic, true) }}:
         machinePool: Open
         queue: Ubuntu.1804.Amd64.Open
       ${{ else }}:
         machinePool: Tiger
         queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
 
-- ${{ if and(containsValue(parameters.buildMachines, 'centos-x64'), parameters.isPublic) }}: # centos only used in public builds currently
+- ${{ if and(containsValue(parameters.buildMachines, 'centos-x64'), eq(parameters.isPublic, true)) }}: # centos only used in public builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
       osName: centos
@@ -80,7 +80,7 @@ jobs:
       container: centos_x64_build_container
       ${{ insert }}: ${{ parameters.jobParameters }}
 
-- ${{ if and(containsValue(parameters.buildMachines, 'win-arm64'), not(parameters.isPublic)) }}: # Windows ARM64 only used in private builds currently
+- ${{ if and(containsValue(parameters.buildMachines, 'win-arm64'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
       osName: windows
