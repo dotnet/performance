@@ -326,7 +326,7 @@ jobs:
   # ML.NET benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      jobTemplate: /eng/performance/scenarios.yml
+      jobTemplate: /eng/performance/benchmark_jobs.yml
       buildMachines:
         - win-x64
         - ubuntu-x64
@@ -341,7 +341,7 @@ jobs:
   # F# benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      jobTemplate: /eng/performance/scenarios.yml
+      jobTemplate: /eng/performance/benchmark_jobs.yml
       buildMachines:
         - win-x64
         - ubuntu-x64
@@ -356,7 +356,7 @@ jobs:
   # bepuphysics benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      jobTemplate: /eng/performance/scenarios.yml
+      jobTemplate: /eng/performance/benchmark_jobs.yml
       buildMachines:
         - win-x64
         - ubuntu-x64
@@ -371,7 +371,7 @@ jobs:
   # ImageSharp benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      jobTemplate: /eng/performance/scenarios.yml
+      jobTemplate: /eng/performance/benchmark_jobs.yml
       buildMachines:
         - win-x64
         - ubuntu-x64
@@ -386,7 +386,7 @@ jobs:
   # Roslyn benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      jobTemplate: /eng/performance/scenarios.yml
+      jobTemplate: /eng/performance/benchmark_jobs.yml
       buildMachines:
         - win-x64
         - ubuntu-x64
@@ -401,7 +401,7 @@ jobs:
   # ILLink benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      jobTemplate: /eng/performance/scenarios.yml
+      jobTemplate: /eng/performance/benchmark_jobs.yml
       buildMachines:
         - win-x64
         - ubuntu-x64
