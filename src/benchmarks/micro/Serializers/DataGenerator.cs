@@ -7,6 +7,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+#if NET6_0_OR_GREATER
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
+#endif
 using System.Xml;
 using System.Xml.Serialization;
 using BenchmarkDotNet.Extensions;
@@ -15,7 +19,7 @@ using ProtoBuf;
 
 namespace MicroBenchmarks.Serializers
 {
-    internal static class DataGenerator
+    internal static partial class DataGenerator
     {
         internal static T Generate<T>()
         {
@@ -215,6 +219,34 @@ namespace MicroBenchmarks.Serializers
             xmlElement.InnerText = "Element innertext";
             return xmlElement;
         }
+
+#if NET6_0_OR_GREATER
+        internal static JsonTypeInfo<T> GetSystemTextJsonSourceGenMetadata<T>()
+            => (JsonTypeInfo<T>)SystemTextJsonSourceGeneratedContext.Default.GetTypeInfo(typeof(T));
+
+        [JsonSerializable(typeof(LoginViewModel))]
+        [JsonSerializable(typeof(Location))]
+        [JsonSerializable(typeof(IndexViewModel))]
+        [JsonSerializable(typeof(MyEventsListerViewModel))]
+        [JsonSerializable(typeof(BinaryData))]
+        [JsonSerializable(typeof(CollectionsOfPrimitives))]
+        [JsonSerializable(typeof(XmlElement))]
+        [JsonSerializable(typeof(SimpleStructWithProperties))]
+        [JsonSerializable(typeof(SimpleListOfInt))]
+        [JsonSerializable(typeof(ClassImplementingIXmlSerialiable))]
+        [JsonSerializable(typeof(Dictionary<string, string>))]
+        [JsonSerializable(typeof(ImmutableDictionary<string, string>))]
+        [JsonSerializable(typeof(ImmutableSortedDictionary<string, string>))]
+        [JsonSerializable(typeof(HashSet<string>))]
+        [JsonSerializable(typeof(ArrayList))]
+        [JsonSerializable(typeof(Hashtable))]
+        [JsonSerializable(typeof(LargeStructWithProperties))]
+        [JsonSerializable(typeof(DateTimeOffset?))]
+        [JsonSerializable(typeof(int))]
+        private partial class SystemTextJsonSourceGeneratedContext : JsonSerializerContext
+        {
+        }
+#endif
     }
 
     // the view models come from a real world app called "AllReady"

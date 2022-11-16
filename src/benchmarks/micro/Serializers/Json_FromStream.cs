@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes.Filters;
 using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Attributes.Filters;
 
 namespace MicroBenchmarks.Serializers
 {
@@ -116,6 +116,49 @@ namespace MicroBenchmarks.Serializers
             memoryStream.Position = 0;
             return (T)dataContractJsonSerializer.ReadObject(memoryStream);
         }
+
+#if NET6_0_OR_GREATER
+        [GlobalSetup(Target = nameof(SystemTextJson_Reflection_))]
+        public void SetupSystemTextJson_Reflection_()
+        {
+            value = DataGenerator.Generate<T>();
+
+            // the stream is pre-allocated, we don't want the benchmarks to include stream allocaton cost
+            memoryStream = new MemoryStream(capacity: short.MaxValue);
+            memoryStream.Position = 0;
+            System.Text.Json.JsonSerializer.Serialize(memoryStream, value);
+        }
+
+        [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
+        [Benchmark(Description = "SystemTextJson_Reflection")]
+        public T SystemTextJson_Reflection_()
+        {
+            memoryStream.Position = 0;
+            return System.Text.Json.JsonSerializer.Deserialize<T>(memoryStream);
+        }
+
+        private System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> sourceGenMetadata;
+
+        [GlobalSetup(Target = nameof(SystemTextJson_SourceGen_))]
+        public void SetupSystemTextJson_SourceGen_()
+        {
+            value = DataGenerator.Generate<T>();
+            sourceGenMetadata = DataGenerator.GetSystemTextJsonSourceGenMetadata<T>();
+
+            // the stream is pre-allocated, we don't want the benchmarks to include stream allocaton cost
+            memoryStream = new MemoryStream(capacity: short.MaxValue);
+            memoryStream.Position = 0;
+            System.Text.Json.JsonSerializer.Serialize(memoryStream, value, sourceGenMetadata);
+        }
+
+        [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
+        [Benchmark(Description = "SystemTextJson_SourceGen")]
+        public T SystemTextJson_SourceGen_()
+        {
+            memoryStream.Position = 0;
+            return System.Text.Json.JsonSerializer.Deserialize(memoryStream, sourceGenMetadata);
+        }
+#endif
 
         [GlobalCleanup]
         public void Cleanup() => memoryStream.Dispose();

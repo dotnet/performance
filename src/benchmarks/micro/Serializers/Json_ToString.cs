@@ -17,9 +17,18 @@ namespace MicroBenchmarks.Serializers
     public class Json_ToString<T>
     {
         private T value;
+#if NET6_0_OR_GREATER
+        private System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> sourceGenMetadata;
+#endif
 
         [GlobalSetup]
-        public void Setup() => value = DataGenerator.Generate<T>();
+        public void Setup()
+        {
+            value = DataGenerator.Generate<T>();
+#if NET6_0_OR_GREATER
+            sourceGenMetadata = DataGenerator.GetSystemTextJsonSourceGenMetadata<T>();
+#endif
+        }
 
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Jil")]
@@ -35,5 +44,15 @@ namespace MicroBenchmarks.Serializers
 
         // DataContractJsonSerializer does not provide an API to serialize to string
         // so it's not included here (apples vs apples thing)
+
+        [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
+        [Benchmark(Description = "SystemTextJson_Reflection")]
+        public string SystemTextJson_Reflection_() => System.Text.Json.JsonSerializer.Serialize(value);
+
+#if NET6_0_OR_GREATER
+        [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
+        [Benchmark(Description = "SystemTextJson_SourceGen")]
+        public void SystemTextJson_SourceGen_() => System.Text.Json.JsonSerializer.Serialize(value, sourceGenMetadata);
+#endif
     }
 }
