@@ -32,6 +32,14 @@ namespace System.Text.Json.Serialization.Tests
     [AotFilter("Currently not supported due to missing metadata.")]
     public class ReadJson<T>
     {
+#if NET6_0_OR_GREATER
+        [Params(SystemTextJsonSerializationMode.Reflection, SystemTextJsonSerializationMode.SourceGen)]
+#else
+        [Params(SystemTextJsonSerializationMode.Reflection)]
+#endif
+        public SystemTextJsonSerializationMode Mode;
+
+        private JsonSerializerOptions _options;
         private string _serialized;
         private byte[] _utf8Serialized;
         private MemoryStream _memoryStream;
@@ -40,29 +48,30 @@ namespace System.Text.Json.Serialization.Tests
         public async Task Setup()
         {
             T value = DataGenerator.Generate<T>();
+            _options = DataGenerator.GetJsonSerializerOptions(Mode);
 
-            _serialized = JsonSerializer.Serialize(value);
+            _serialized = JsonSerializer.Serialize(value, _options);
 
             _utf8Serialized = Encoding.UTF8.GetBytes(_serialized);
 
             _memoryStream = new MemoryStream(capacity: short.MaxValue);
-            await JsonSerializer.SerializeAsync(_memoryStream, value);
+            await JsonSerializer.SerializeAsync(_memoryStream, value, _options);
         }
 
         [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
-        public T DeserializeFromString() => JsonSerializer.Deserialize<T>(_serialized);
+        public T DeserializeFromString() => JsonSerializer.Deserialize<T>(_serialized, _options);
 
         [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
-        public T DeserializeFromUtf8Bytes() => JsonSerializer.Deserialize<T>(_utf8Serialized);
+        public T DeserializeFromUtf8Bytes() => JsonSerializer.Deserialize<T>(_utf8Serialized, _options);
 
         [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
         public T DeserializeFromReader()
         {
             Utf8JsonReader reader = new Utf8JsonReader(_utf8Serialized);
-            return JsonSerializer.Deserialize<T>(ref reader);
+            return JsonSerializer.Deserialize<T>(ref reader, _options);
         }
 
         [BenchmarkCategory(Categories.Libraries, Categories.JSON, Categories.NoWASM)]
@@ -70,7 +79,7 @@ namespace System.Text.Json.Serialization.Tests
         public async Task<T> DeserializeFromStream()
         {
             _memoryStream.Position = 0;
-            T value = await JsonSerializer.DeserializeAsync<T>(_memoryStream);
+            T value = await JsonSerializer.DeserializeAsync<T>(_memoryStream, _options);
             return value;
         }
 

@@ -40,6 +40,20 @@ namespace System.Text.Json.Serialization.Tests
         [Benchmark]
         public T NewDefaultOptions() => RoundtripSerialization(new JsonSerializerOptions());
 
+#if NET6_0_OR_GREATER
+        [Benchmark]
+        public T CachedJsonSerializerContext() 
+            => RoundtripSerialization(SystemTextJsonSourceGeneratedContext.Default.Options);
+
+        [Benchmark]
+        public T NewJsonSerializerContext()
+        {
+            var options = new JsonSerializerOptions();
+            options.AddContext<SystemTextJsonSourceGeneratedContext>();
+            return RoundtripSerialization(options);
+        }
+#endif
+
         [Benchmark]
         public T NewCustomizedOptions() => 
             RoundtripSerialization(
@@ -61,11 +75,11 @@ namespace System.Text.Json.Serialization.Tests
 
         [Benchmark]
         public T NewCachedCustomConverter() =>
-            RoundtripSerialization(
-                new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    Converters = { _converter }
-                });
+    RoundtripSerialization(
+        new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Converters = { _converter }
+        });
     }
 }
