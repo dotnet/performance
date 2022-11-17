@@ -128,10 +128,10 @@ jobs:
         - ubuntu-x64
       isPublic: true
       jobParameters:
-          kind: micro
-          csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-          runCategories: 'runtime libraries' 
-          channels:
+        kind: micro
+        csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+        runCategories: 'runtime libraries' 
+        channels:
           - main
 
   # net462 micro benchmarks
@@ -144,7 +144,7 @@ jobs:
       jobParameters:
         kind: micro_net462
         csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-        runCategories: 'runtime libraries' 
+        runCategories: 'runtime libraries'
         channels:
           - LTS
 
@@ -250,7 +250,7 @@ jobs:
         csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
         runCategories: 'illink'
         channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-        - main
+          - main
 
 ###########################################
 # Private Jobs
