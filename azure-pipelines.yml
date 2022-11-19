@@ -182,36 +182,6 @@ jobs:
         channels:
           - release/7.0
 
-  # bepuphysics benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        kind: bepuphysics
-        csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
-        runCategories: 'BepuPhysics'
-        channels:
-          - release/7.0
-
-  # ImageSharp benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        kind: imagesharp
-        csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
-        runCategories: 'ImageSharp'
-        channels:
-          - release/7.0
-
   # Roslyn benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
@@ -340,36 +310,6 @@ jobs:
         kind: fsharp
         csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
         runCategories: 'fsharp'
-        channels:
-          - release/7.0
-
-  # bepuphysics benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: false
-      jobParameters:
-        kind: bepuphysics
-        csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
-        runCategories: 'BepuPhysics'
-        channels:
-          - release/7.0
-
-  # ImageSharp benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-      isPublic: false
-      jobParameters:
-        kind: imagesharp
-        csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
-        runCategories: 'ImageSharp'
         channels:
           - release/7.0
 
