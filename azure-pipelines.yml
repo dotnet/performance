@@ -240,7 +240,7 @@ jobs:
       buildMachines:
         - win-x64
         #- ubuntu-x64
-        - win-arm64
+        #- win-arm64
       isPublic: false
       jobParameters:
         kind: maui_scenarios
