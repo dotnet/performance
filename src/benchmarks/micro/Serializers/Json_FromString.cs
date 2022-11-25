@@ -41,5 +41,27 @@ namespace MicroBenchmarks.Serializers
         [BenchmarkCategory(Categories.ThirdParty)]
         [Benchmark(Description = "Utf8Json")]
         public T Utf8Json_() => Utf8Json.JsonSerializer.Deserialize<T>(serialized);
+
+        [GlobalSetup(Target = nameof(SystemTextJson_Reflection_))]
+        public void SetupSystemTextJson_Reflection_() => serialized = System.Text.Json.JsonSerializer.Serialize(DataGenerator.Generate<T>());
+
+        [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
+        [Benchmark(Description = "SystemTextJson_Reflection")]
+        public T SystemTextJson_Reflection_() => System.Text.Json.JsonSerializer.Deserialize<T>(serialized);
+
+#if NET6_0_OR_GREATER
+        private System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> sourceGenMetadata;
+
+        [GlobalSetup(Target = nameof(SystemTextJson_SourceGen_))]
+        public void SetupSystemTextJson_SourceGen_()
+        {
+            sourceGenMetadata = DataGenerator.GetSystemTextJsonSourceGenMetadata<T>();
+            serialized = System.Text.Json.JsonSerializer.Serialize(DataGenerator.Generate<T>(), sourceGenMetadata);
+        }
+
+        [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
+        [Benchmark(Description = "SystemTextJson_SourceGen")]
+        public T SystemTextJson_SourceGen_() => System.Text.Json.JsonSerializer.Deserialize(serialized, sourceGenMetadata);
+#endif
     }
 }

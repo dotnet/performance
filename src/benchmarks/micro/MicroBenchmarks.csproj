@@ -14,9 +14,8 @@
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <EnableXlfLocalization>false</EnableXlfLocalization>
-    <!-- this repo needs to build with netcoreapp3.1, so we can't use latest C# syntax -->
-    <LangVersion>8.0</LangVersion>
+    <EnableXlfLocalization>false</EnableXlfLocalization>    
+    <LangVersion>9.0</LangVersion>
 
     <!-- Allow building with one major version, and running using a sdk with a higher major version -->
     <RollForward Condition="'$(BuildingForWasm)' == 'true'">LatestMajor</RollForward>
@@ -27,6 +26,8 @@
         <PropertyGroup>
             <ExtensionsVersion>3.1.22</ExtensionsVersion>
             <SystemVersion>4.7.1</SystemVersion>
+            <!-- this repo needs to build with netcoreapp3.1, so we can't use latest C# syntax -->
+            <LangVersion>8.0</LangVersion>
         </PropertyGroup>
     </When>
     <When Condition="'$(TargetFramework)' == 'net6.0'">
