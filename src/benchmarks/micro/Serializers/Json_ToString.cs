@@ -52,7 +52,7 @@ namespace MicroBenchmarks.Serializers
 #if NET6_0_OR_GREATER
         [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
         [Benchmark(Description = "SystemTextJson_SourceGen")]
-        public void SystemTextJson_SourceGen_() => System.Text.Json.JsonSerializer.Serialize(value, sourceGenMetadata);
+        public string SystemTextJson_SourceGen_() => System.Text.Json.JsonSerializer.Serialize(value, sourceGenMetadata);
 #endif
     }
 }
