@@ -149,35 +149,35 @@
     <HelixWorkItem Include="Inner Loop Console">
       <ScenarioDirectoryName>emptyconsoletemplateinnerloop</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>$(Python) pre.py default</PreCommands>
+      <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>
       <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
     <HelixWorkItem Include="Inner Loop MVC">
       <ScenarioDirectoryName>mvcinnerloop</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>$(Python) pre.py default</PreCommands>
+      <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>
       <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
     <HelixWorkItem Include="Inner Loop Blazor Server">
       <ScenarioDirectoryName>blazorserverinnerloop</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>$(Python) pre.py default</PreCommands>
+      <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>
       <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
     <HelixWorkItem Include="Inner Loop MsBuild Console">
       <ScenarioDirectoryName>emptyconsoletemplateinnerloopmsbuild</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>$(Python) pre.py default</PreCommands>
+      <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>
       <Command>$(Python) test.py innerloopmsbuild --scenario-name &quot;%(Identity)&quot;</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
     <HelixWorkItem Include="Inner Loop Blazor Client">
       <ScenarioDirectoryName>blazorwasminnerloop</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>$(Python) pre.py default</PreCommands>
+      <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>
       <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
