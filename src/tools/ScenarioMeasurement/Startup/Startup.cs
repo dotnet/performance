@@ -332,9 +332,23 @@ namespace ScenarioMeasurement
                     commandLine = commandLine + " " + appArgs;
                 }
 
-                var counters = parser.Parse(traceFilePath, Path.GetFileNameWithoutExtension(appExe), pids, commandLine);
-
-                CreateTestReport(scenarioName, counters, reportJsonPath, logger);
+                var processName = Path.GetFileNameWithoutExtension(appExe);
+                try
+                {
+                    var counters = parser.Parse(traceFilePath, processName, pids, commandLine);
+                    CreateTestReport(scenarioName, counters, reportJsonPath, logger);
+                }
+                catch
+                {
+                    logger.Log($"{nameof(parser)} = {parser.GetType().FullName}");
+                    logger.Log($"{nameof(processName)} = {processName}");
+                    logger.Log($"{nameof(pids)} = {string.Join(", ", pids)}");
+                    logger.Log($"{nameof(commandLine)} = {commandLine}");
+                    var destFileName = Path.Join(Environment.GetEnvironmentVariable("HELIX_WORKITEM_UPLOAD_ROOT"), Path.GetFileName(traceFilePath));
+                    File.Copy(traceFilePath, destFileName, true);
+                    logger.Log($"Copied {traceFilePath} to {destFileName}");
+                    throw;
+                }
             }
 
             // Skip unimplemented Linux profiling
