@@ -140,6 +140,16 @@ namespace ResultsComparer
                 return "net7.0-rc" + key[key.IndexOf("net7.0-rc") + "net7.0-rc".Length];
             if (key.Contains("nativeaot7.0-preview"))
                 return "nativeaot7.0-preview" + key[key.IndexOf("nativeaot7.0-preview") + "nativeaot7.0-preview".Length];
+            if (key.Contains("net7.0"))
+                return "net7.0";
+            if (key.Contains("net8.0-preview"))
+                return "net8.0-preview" + key[key.IndexOf("net8.0-preview") + "net8.0-preview".Length];
+            if (key.Contains("net8.0-rc"))
+                return "net8.0-rc" + key[key.IndexOf("net8.0-rc") + "net8.0-rc".Length];
+            if (key.Contains("nativeaot8.0-preview"))
+                return "nativeaot8.0-preview" + key[key.IndexOf("nativeaot8.0-preview") + "nativeaot8.0-preview".Length];
+            if (key.Contains("net8.0"))
+                return "net8.0";
 
             return null;
         }
