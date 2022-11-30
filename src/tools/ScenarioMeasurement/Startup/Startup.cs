@@ -340,6 +340,7 @@ namespace ScenarioMeasurement
                 }
                 catch
                 {
+                    logger.Log($"{nameof(parser)} = {parser.GetType().FullName}");
                     logger.Log($"{nameof(processName)} = {processName}");
                     logger.Log($"{nameof(pids)} = {string.Join(", ", pids)}");
                     logger.Log($"{nameof(commandLine)} = {commandLine}");
