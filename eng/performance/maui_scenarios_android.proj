@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
 
   <Import Project="Scenarios.Common.props" />
+  
   <PropertyGroup>
     <IncludeXHarnessCli>true</IncludeXHarnessCli>
     <MicrosoftDotNetXHarnessCLIVersion>1.0.0-prerelease.21566.2</MicrosoftDotNetXHarnessCLIVersion>
