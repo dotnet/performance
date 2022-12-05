@@ -18,7 +18,10 @@ namespace System.Memory
     public class Span<T> 
         where T : struct, IComparable<T>, IEquatable<T>
     {
-        [Params(Utils.DefaultCollectionSize)]
+        [Params(
+            4, // non-vectorized code path
+            33, // both vectorized and non-vectorized code path
+            512)] // vectorized code path
         public int Size;
 
         private T[] _array, _same, _different, _emptyWithSingleValue;
