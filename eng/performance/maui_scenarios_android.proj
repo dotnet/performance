@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
 
   <Import Project="Scenarios.Common.props" />
-  
+
   <PropertyGroup>
     <IncludeXHarnessCli>true</IncludeXHarnessCli>
     <MicrosoftDotNetXHarnessCLIVersion>1.0.0-prerelease.21566.2</MicrosoftDotNetXHarnessCLIVersion>
@@ -34,7 +34,7 @@
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIAndroidScenario)">
-      <Command>$(Python) pre.py -f $(PERFLAB_Framework)-android -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName) -r android-arm64 --self-contained</Command>
+      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-android -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName) -r android-arm64 --self-contained</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
@@ -42,24 +42,26 @@
 
   <ItemGroup>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) APK Size')">
-      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\$(HelixWorkItem.ApkName) %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\%(HelixWorkItem.ApkName) %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
       <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)/$(HelixWorkItem.ApkName) $HELIX_WORKITEM_ROOT/pub</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
     <!-- <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) Extracted Size')">
-      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\$(HelixWorkItem.ApkName) %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\%(HelixWorkItem.ApkName) %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
       <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)/$(HelixWorkItem.ApkName) $HELIX_WORKITEM_ROOT/pub</PreCommands>
       <Command>$(Python) test.py sod -?-scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem> -->
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Device Startup - %(Identity)')">
-      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\$(HelixWorkItem.ApkName) %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\%(HelixWorkItem.ApkName) %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
       <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)/$(HelixWorkItem.ApkName) $HELIX_WORKITEM_ROOT/pub</PreCommands>
-      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName) --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command Condition="'$(TargetsWindows)' == 'true'">$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName) --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command Condition="'$(TargetsWindows)' != 'true'">$(Python) test.py devicestartup --device-type android --package-path pub/%(HelixWorkItem.ApkName) --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Device Startup - %(Identity) NoAnimation')">
-      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\$(HelixWorkItem.ApkName) %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\%(HelixWorkItem.ApkName) %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
       <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)/$(HelixWorkItem.ApkName) $HELIX_WORKITEM_ROOT/pub</PreCommands>
-      <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName) --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; --disable-animations</Command>
+      <Command Condition="'$(TargetsWindows)' == 'true'">$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName) --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; --disable-animations</Command>
+      <Command Condition="'$(TargetsWindows)' != 'true'">$(Python) test.py devicestartup --device-type android --package-path pub/%(HelixWorkItem.ApkName) --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; --disable-animations</Command>
     </HelixWorkItem>
   </ItemGroup>
 
