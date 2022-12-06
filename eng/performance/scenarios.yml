@@ -152,6 +152,22 @@ jobs:
               TargetsWindows: 'false'
               WorkItemDirectory: $(Build.SourcesDirectory)
               HelixTargetQueues: ${{ parameters.queue }}
+
+          # Upload the correlation staging
+          - task: ArchiveFiles@2
+            displayName: 'Zip Correlation Staging'
+            inputs:
+              rootFolderOrFile:  $(CorrelationStaging)
+              archiveFile:       $(Build.StagingDirectory)/CorrelationStaging.zip
+              archiveType:       'zip'
+              includeRootFolder: true
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Correlation Staging'
+            inputs:
+              pathtoPublish: $(Build.StagingDirectory)/CorrelationStaging.zip
+              artifactName:  CorrelationStaging
+
         - template: /eng/performance/send-to-helix.yml
           parameters:
             HelixSource: '$(HelixSourcePrefix)/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/
