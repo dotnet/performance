@@ -23,9 +23,11 @@ parser.add_argument(
         help='capture of the output directory')
 args, unknown_args = parser.parse_known_args()
 
+getLogger().info("Current directory: " + os.getcwd())
 # Download what we need
 with open ("MauiNuGet.config", "wb") as f:
     f.write(requests.get(f'https://raw.githubusercontent.com/dotnet/maui/net7.0/NuGet.config', allow_redirects=True).content)
+    getLogger().info("Downloaded MauiNuGet.config")
 
 precommands = PreCommands()
 precommands.install_workload('maui', ['--from-rollback-file', f'https://aka.ms/dotnet/maui/net7.0.json', '--configfile', 'MauiNuGet.config'])
@@ -39,7 +41,7 @@ precommands.new(template='maui',
                 no_restore=False)
 
 # Build the APK
-precommands.execute(['--source', 'MauiNuget.config'])
+precommands.execute(['--no-restore', '--source', 'MauiNuGet.config'])
 
 # Remove the aab files as we don't need them, this saves space
 output_file_partial_path = f"com.companyname.{str.lower(EXENAME)}"
