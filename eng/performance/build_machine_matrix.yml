@@ -93,14 +93,14 @@ jobs:
       queue: Windows.10.Arm64.Perf.Surf
       ${{ insert }}: ${{ parameters.jobParameters }}
 
-- ${{ if and(containsValue(parameters.buildMachines, 'win-android-arm64'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Pixel only used in private builds currently
+- ${{ if and(containsValue(parameters.buildMachines, 'mac-android-arm64'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Pixel only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
-      osName: windows
-      architecture: x64
-      osVersion: 21H1
+      osName: mac
+      architecture: arm64
+      osVersion: Darwin
       pool:
-        vmImage: windows-2019
+        vmImage: 'macos-12'
       queue: Windows.10.Amd64.Pixel.Perf
       machinePool: Pixel
       ${{ insert }}: ${{ parameters.jobParameters }}
