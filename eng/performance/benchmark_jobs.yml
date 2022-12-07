@@ -10,6 +10,7 @@ parameters:
   channels: []          # required -- list of channels to download .NET from
   runCategories: ''     # required -- string of space separated categories supplied to benchmark dotnet
   machinePool: ''       # required -- Name of perf machine pool (Tiger, Owl, etc)
+  compilationMode: 'Tiered' # optional -- Passed to `--build-configs CompilationMode=..`
 
 jobs:
 - template: ../common/templates/jobs/jobs.yml
@@ -108,7 +109,7 @@ jobs:
             ${{ each channel in parameters.channels }}:
               ${{ channel }}:
                 _Channel: ${{ channel }}
-                _Configs: CompilationMode=Tiered RunKind="${{ parameters.kind }}"
+                _Configs: CompilationMode=${{ parameters.compilationMode }} RunKind="${{ parameters.kind }}"
                 _PerfLabArguments: $(PerfLabArguments)
                 _BuildConfig: ${{ parameters.architecture }}_$(_Channel)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
         steps:

@@ -135,6 +135,21 @@ jobs:
         channels:
           - main
 
+  # micro benchmarks - wasm
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: micro
+        compilationMode: wasm
+        csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+        runCategories: 'runtime libraries'
+        channels:
+          - main
+
   # net462 micro benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
