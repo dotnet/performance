@@ -625,6 +625,9 @@ def get_commit_date(
 
     build_timestamp = None
     sleep_time = 10 # Start with 10 second sleep timer
+    # Get current rate limit for testing
+    with urlopen("https://api.github.com/rate_limit") as response:
+        getLogger().info(response.read().decode('utf-8'))
     for retrycount in range(5):
         try:
             with urlopen(url) as response:
