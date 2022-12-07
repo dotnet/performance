@@ -633,8 +633,8 @@ def get_commit_date(
                 patch = response.read().decode('utf-8')
                 dateMatch = search(r'^Date: (.+)$', patch, MULTILINE)
                 if dateMatch:
-                    getLogger().info("Match: %s", dateMatch)
                     build_timestamp = datetime.datetime.strptime(dateMatch.group(1), '%a, %d %b %Y %H:%M:%S %z').astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+                    getLogger().info(f"Got UTC timestamp {build_timestamp} from {dateMatch.group(1)}")
                     break
         except URLError as error:
             getLogger().warning(f"URL Error trying to get commit date from {url}; Reason: {error.reason}; Attempt {retrycount}")
