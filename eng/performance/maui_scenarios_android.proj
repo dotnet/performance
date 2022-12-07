@@ -15,6 +15,10 @@
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
   </PropertyGroup>
 
+  <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
+    <Message Text="Removing Dotnet from Correlation Staging" Importance="high" />
+    <RemoveDir Directories="$(CorrelationPayloadDirectory)\dotnet" />
+  </Target>
 
   <ItemGroup>
     <MAUIAndroidScenario Include="Maui Android Default">
