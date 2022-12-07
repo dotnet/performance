@@ -5,13 +5,14 @@ Contains the functionality around DotNet Cli.
 """
 
 import ssl
+import datetime
 from argparse import Action, ArgumentParser, ArgumentTypeError, ArgumentError
 from collections import namedtuple
 from glob import iglob
 from json import loads
 from logging import getLogger
 from os import chmod, environ, listdir, makedirs, path, pathsep, system
-from re import search
+from re import search, match, MULTILINE
 from shutil import rmtree
 from stat import S_IRWXU
 from subprocess import CalledProcessError, check_output
@@ -612,7 +613,7 @@ def get_commit_date(
         raise ValueError('.NET Commit sha was not defined.')
 
     url = None
-    urlformat = 'https://api.github.com/repos/%s/%s/commits/%s'
+    urlformat = 'https://github.com/%s/%s/commit/%s.patch'
     if repository is None:
         # The origin of the repo where the commit belongs to has changed
         # between release. Here we attempt to naively guess the repo.
@@ -624,17 +625,17 @@ def get_commit_date(
         url = urlformat % (owner, repo, commit_sha)
 
     build_timestamp = None
-    sleep_time = 10 # Start with 10 second sleep timer
-    # Get current rate limit for testing
-    with urlopen("https://api.github.com/rate_limit") as response:
-        getLogger().info(response.read().decode('utf-8'))
+    sleep_time = 10 # Start with 10 second sleep timer        
     for retrycount in range(5):
         try:
             with urlopen(url) as response:
                 getLogger().info("Commit: %s", url)
-                item = loads(response.read().decode('utf-8'))
-                build_timestamp = item['commit']['committer']['date']
-                break
+                patch = response.read().decode('utf-8')
+                dateMatch = search(r'^Date: (.+)$', patch, MULTILINE)
+                if dateMatch:
+                    getLogger().info("Match: %s", dateMatch)
+                    build_timestamp = datetime.datetime.strptime(dateMatch.group(1), '%a, %d %b %Y %H:%M:%S %z').astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+                    break
         except URLError as error:
             getLogger().warning(f"URL Error trying to get commit date from {url}; Reason: {error.reason}; Attempt {retrycount}")
             sleep(sleep_time)
