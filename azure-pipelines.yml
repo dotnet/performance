@@ -96,6 +96,7 @@ jobs:
       jobTemplate: /eng/performance/scenarios.yml
       buildMachines:
         - win-x64
+        - ubuntu-x64
       isPublic: true
       jobParameters:
         kind: blazor_scenarios
@@ -316,6 +317,7 @@ jobs:
       jobTemplate: /eng/performance/scenarios.yml
       buildMachines:
         - win-x64
+        - ubuntu-x64
       isPublic: false
       jobParameters:
         kind: blazor_scenarios
