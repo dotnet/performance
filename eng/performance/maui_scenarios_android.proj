@@ -17,7 +17,7 @@
 
   <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
     <Message Text="Removing Dotnet from Correlation Staging" Importance="high" />
-    <RemoveDir Directories="$(CorrelationPayloadDirectory)\dotnet" />
+    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet\packs" />
   </Target>
 
   <ItemGroup>
