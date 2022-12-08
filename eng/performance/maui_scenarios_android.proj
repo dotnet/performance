@@ -48,18 +48,22 @@
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) APK Size')">
       <PreCommands>xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\%(HelixWorkItem.ApkName) %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Timeout>00:30</Timeout>
     </HelixWorkItem>
     <!-- <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) Extracted Size')">
       <PreCommands>xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\%(HelixWorkItem.ApkName) %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
       <Command>$(Python) test.py sod -?-scenario-name &quot;%(Identity)&quot;</Command>
+      <Timeout>00:30</Timeout>
     </HelixWorkItem> -->
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Device Startup - %(Identity)')">
       <PreCommands>xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\%(HelixWorkItem.ApkName) %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
       <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName) --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot;</Command>
+      <Timeout>00:30</Timeout>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Device Startup - %(Identity) NoAnimation')">
       <PreCommands>xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\%(HelixWorkItem.ApkName) %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
       <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName) --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; --disable-animations</Command>
+      <Timeout>00:30</Timeout>
     </HelixWorkItem>
   </ItemGroup>
 
