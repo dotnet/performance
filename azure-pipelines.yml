@@ -375,7 +375,7 @@ jobs:
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
       buildMachines:
-        - mac-android-arm64
+        - win-x64-android-arm64
       isPublic: false
       jobParameters:
         kind: maui_scenarios_android
