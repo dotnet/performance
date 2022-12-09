@@ -1,14 +1,10 @@
 '''
 pre-command
 '''
-import sys
 import os
 import requests
 import subprocess
-from zipfile import ZipFile
 from performance.logger import setup_loggers, getLogger
-from shutil import copyfile
-from shared import const
 from shared.precommands import PreCommands
 from argparse import ArgumentParser
 from test import EXENAME
@@ -28,7 +24,8 @@ args, unknown_args = parser.parse_known_args()
 with open ("MauiNuGet.config", "wb") as f:
     f.write(requests.get(f'https://raw.githubusercontent.com/dotnet/maui/net7.0/NuGet.config', allow_redirects=True).content)
 
-subprocess.run(['git', 'clone', 'https://github.com/microsoft/dotnet-podcasts.git', '-b', 'net7.0', '--single-branch'])
+subprocess.run(['git', 'clone', 'https://github.com/microsoft/dotnet-podcasts.git', '-b', 'net7.0', '--single-branch', '--depth', '1'])
+subprocess.run(['powershell', '-Command', r'Remove-Item -Path .\\dotnet-podcasts\\.git -Recurse -Force']) # Git files have permission issues, for their deletion seperately
 
 precommands = PreCommands()
 precommands.install_workload('maui', ['--from-rollback-file', f'https://aka.ms/dotnet/maui/net7.0.json', '--configfile', 'MauiNuGet.config'])
