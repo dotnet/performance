@@ -4,6 +4,7 @@ pre-command
 import sys
 import os
 import requests
+import subprocess
 from zipfile import ZipFile
 from performance.logger import setup_loggers, getLogger
 from shutil import copyfile
@@ -27,22 +28,18 @@ args, unknown_args = parser.parse_known_args()
 with open ("MauiNuGet.config", "wb") as f:
     f.write(requests.get(f'https://raw.githubusercontent.com/dotnet/maui/net7.0/NuGet.config', allow_redirects=True).content)
 
+subprocess.run(['git', 'clone', 'https://github.com/microsoft/dotnet-podcasts.git', '-b', 'net7.0', '--single-branch'])
+
 precommands = PreCommands()
 precommands.install_workload('maui', ['--from-rollback-file', f'https://aka.ms/dotnet/maui/net7.0.json', '--configfile', 'MauiNuGet.config'])
-
-# Setup the Maui folder
-precommands.new(template='maui',
-                output_dir=const.APPDIR,
-                bin_dir=const.BINDIR,
-                exename=EXENAME,
-                working_directory=sys.path[0],
-                no_restore=False)
+precommands.existing(projectdir='./dotnet-podcasts',projectfile='./src/Mobile/Microsoft.NetConf2021.Maui.csproj')
 
 # Build the APK
-precommands.execute(['--no-restore', '--source', 'MauiNuGet.config'])
+precommands._restore()
+precommands.execute(['--no-restore'])
 
 # Remove the aab files as we don't need them, this saves space
-output_file_partial_path = f"com.companyname.{str.lower(EXENAME)}"
+output_file_partial_path = f"com.Microsoft.NetConf2021.Maui"
 if args.output_dir:
     output_file_partial_path = os.path.join(args.output_dir, output_file_partial_path)
 

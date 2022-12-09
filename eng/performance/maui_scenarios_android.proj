@@ -27,6 +27,12 @@
       <ApkName>com.companyname.mauiandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.mauiandroiddefault</PackageName>
     </MAUIAndroidScenario>
+    <MAUIAndroidScenario Include="Maui Android Podcast">
+      <ScenarioDirectoryName>mauiandroidpodcast</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <ApkName>com.Microsoft.NetConf2021.Maui-Signed</ApkName>
+      <PackageName>com.Microsoft.NetConf2021.Maui</PackageName>
+    </MAUIAndroidScenario>
     <MAUIAndroidScenario Include="Maui Blazor Android Default">
       <ScenarioDirectoryName>mauiblazorandroid</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
@@ -46,22 +52,22 @@
 <!-- We only run the android tests from Windows machines (at least for now) -->
   <ItemGroup>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) APK Size')">
-      <PreCommands>xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\%(HelixWorkItem.ApkName).apk %HELIX_WORKITEM_ROOT%\pub\ /Y</PreCommands>
+      <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\%(HelixWorkItem.ApkName).apk %HELIX_WORKITEM_ROOT%\pub\ /Y</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
       <Timeout>00:30</Timeout>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) Extracted Size')">
-      <PreCommands>xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\%(HelixWorkItem.ApkName).apk %HELIX_WORKITEM_ROOT%\pub\ /Y; Rename-Item %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).apk %(HelixWorkItem.ApkName).zip; Expand-Archive %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).zip -DestinationPath %HELIX_WORKITEM_ROOT%\pub\; Remove-Item %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).zip</PreCommands>
+      <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\%(HelixWorkItem.ApkName).apk %HELIX_WORKITEM_ROOT%\pub\ /Y; Rename-Item %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).apk %(HelixWorkItem.ApkName).zip; Expand-Archive %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).zip -DestinationPath %HELIX_WORKITEM_ROOT%\pub\; Remove-Item %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).zip</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
       <Timeout>00:30</Timeout>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Device Startup - %(Identity)')">
-      <PreCommands>xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\%(HelixWorkItem.ApkName).apk %HELIX_WORKITEM_ROOT%\pub\ /Y</PreCommands>
+      <PreCommands>echo on; set XHARNESSPATH=$(XharnessPath); xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\%(HelixWorkItem.ApkName).apk %HELIX_WORKITEM_ROOT%\pub\ /Y</PreCommands>
       <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot;</Command>
       <Timeout>00:30</Timeout>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'Device Startup - %(Identity) NoAnimation')">
-      <PreCommands>xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\%(HelixWorkItem.ApkName).apk %HELIX_WORKITEM_ROOT%\pub\ /Y</PreCommands>
+      <PreCommands>echo on; set XHARNESSPATH=$(XharnessPath); xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)\%(HelixWorkItem.ApkName).apk %HELIX_WORKITEM_ROOT%\pub\ /Y</PreCommands>
       <Command>$(Python) test.py devicestartup --device-type android --package-path pub\%(HelixWorkItem.ApkName).apk --package-name %(HelixWorkItem.PackageName) --scenario-name &quot;%(Identity)&quot; --disable-animations</Command>
       <Timeout>00:30</Timeout>
     </HelixWorkItem>
