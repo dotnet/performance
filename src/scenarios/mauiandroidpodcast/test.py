@@ -16,6 +16,7 @@ if __name__ == "__main__":
             else:
                 print(f"Found MAUI_VERSION {maui_version}")
                 os.environ["MAUI_VERSION"] = maui_version
+        os.remove(f'pub/{MAUIVERSIONFILE}')
             
     except Exception as e:
         print("Failed to read MAUI_VERSION.txt")
