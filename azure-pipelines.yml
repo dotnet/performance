@@ -380,8 +380,9 @@ jobs:
       jobParameters:
         kind: maui_scenarios_android
         projectFile: maui_scenarios_android.proj
+        channelHasVersionLink: true
         channels:
-          - release/7.0
+          - [release/7.0, https://aka.ms/dotnet/sdk/maui/net7.0.json]
 
 ################################################
 # Scheduled Private jobs (Weekly)
