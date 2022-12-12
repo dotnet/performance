@@ -57,7 +57,7 @@
       <Timeout>00:30</Timeout>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIAndroidScenario -> 'SOD - %(Identity) Extracted Size')">
-      <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y; Rename-Item %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).apk %(HelixWorkItem.ApkName).zip; Expand-Archive %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).zip -DestinationPath %HELIX_WORKITEM_ROOT%\pub\; Remove-Item %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).zip</PreCommands>
+      <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y; ren %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).apk %(HelixWorkItem.ApkName).zip; powershell.exe -nologo -noprofile -command "& {Expand-Archive %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).zip -DestinationPath %HELIX_WORKITEM_ROOT%\pub\}"; del %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.ApkName).zip</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
       <Timeout>00:30</Timeout>
     </HelixWorkItem>
