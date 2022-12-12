@@ -83,13 +83,13 @@ jobs:
         strategy:
           matrix:
             ${{ each channel in parameters.channels }}:
-              ${{ if eq(channelHasVersionLink, true) }}:
+              ${{ if eq(parameters.channelHasVersionLink, true) }}:
                 ${{ channel }}:
-                  _Channel: ${{ channel['channel'] }}
+                  _Channel: ${{ split(channel, '^')[0] }}
                   _Configs: CompilationMode=Tiered RunKind="${{ parameters.kind }}"
-                  _VersionLink: ${{ channel['link'] }}
+                  _VersionLink: ${{ split(channel, '^')[1] }}
                   _BuildConfig: ${{ parameters.architecture }}_$(_Channel)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
-              ${{ if ne(channelHasVersionLink, true) }}:
+              ${{ if ne(parameters.channelHasVersionLink, true) }}:
                 ${{ channel }}:
                   _Channel: ${{ channel }}
                   _Configs: CompilationMode=Tiered RunKind="${{ parameters.kind }}"
@@ -97,9 +97,9 @@ jobs:
         steps:
         - checkout: self
           clean: true
-        - ${{ if eq(channelHasVersionLink, true) }}:
+        - ${{ if eq(parameters.channelHasVersionLink, true) }}:
           # Get version from the link
-          - script: |
+          - powershell: |
               $json = Invoke-WebRequest -URI $(_VersionLink)
               $content = ConvertFrom-Json $json.content
               $version = $content.version
@@ -107,7 +107,7 @@ jobs:
             displayName: Get dotnet-version to use
           - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup$(ScriptExtension) --install-dir $(CorrelationStaging)dotnet --dotnet-versions $(dotnetVersion)
             displayName: Run ci_setup.py
-        - ${{ if ne(channelHasVersionLink, true) }}:
+        - ${{ if ne(parameters.channelHasVersionLink, true) }}:
           - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup$(ScriptExtension) --install-dir $(CorrelationStaging)dotnet
             displayName: Run ci_setup.py
         - ${{ if eq(parameters.osName, 'windows') }}:
