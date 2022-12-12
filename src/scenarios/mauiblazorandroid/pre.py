@@ -29,7 +29,7 @@ with open ("MauiNuGet.config", "wb") as f:
     f.write(requests.get(f'https://raw.githubusercontent.com/dotnet/maui/net7.0/NuGet.config', allow_redirects=True).content)
 
 precommands = PreCommands()
-precommands.install_workload('maui', ['--from-rollback-file', f'https://aka.ms/dotnet/maui/net7.0.json', '--configfile', 'MauiNuGet.config'])
+precommands.install_workload('maui', ['--configfile', 'MauiNuGet.config'])
 
 # Setup the Maui folder
 precommands.new(template='maui-blazor',

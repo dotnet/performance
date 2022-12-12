@@ -27,7 +27,7 @@
       <ApkName>com.companyname.mauiandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.mauiandroiddefault</PackageName>
     </MAUIAndroidScenario>
-    <!-- <MAUIAndroidScenario Include="Maui Android Podcast">
+    <MAUIAndroidScenario Include="Maui Android Podcast">
       <ScenarioDirectoryName>mauiandroidpodcast</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.Microsoft.NetConf2021.Maui-Signed</ApkName>
@@ -38,7 +38,7 @@
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ApkName>com.companyname.mauiblazorandroiddefault-Signed</ApkName>
       <PackageName>com.companyname.mauiblazorandroiddefault</PackageName>
-    </MAUIAndroidScenario> -->
+    </MAUIAndroidScenario>
   </ItemGroup>
 
 

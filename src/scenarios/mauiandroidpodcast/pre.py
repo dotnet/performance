@@ -29,7 +29,7 @@ subprocess.run(['git', 'clone', 'https://github.com/microsoft/dotnet-podcasts.gi
 subprocess.run(['powershell', '-Command', r'Remove-Item -Path .\\dotnet-podcasts\\.git -Recurse -Force']) # Git files have permission issues, for their deletion seperately
 
 precommands = PreCommands()
-precommands.install_workload('maui', ['--from-rollback-file', f'https://aka.ms/dotnet/maui/net7.0.json', '--configfile', 'MauiNuGet.config'])
+precommands.install_workload('maui', ['--configfile', 'MauiNuGet.config'])
 precommands.existing(projectdir='./dotnet-podcasts',projectfile='./src/Mobile/Microsoft.NetConf2021.Maui.csproj')
 
 # Build the APK
