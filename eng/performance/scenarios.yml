@@ -85,9 +85,9 @@ jobs:
             ${{ each channel in parameters.channels }}:
               ${{ if eq(channelHasVersionLink, true) }}:
                 ${{ channel }}:
-                  _Channel: ${{ channel[0] }}
+                  _Channel: ${{ channel['channel'] }}
                   _Configs: CompilationMode=Tiered RunKind="${{ parameters.kind }}"
-                  _VersionLink: ${{ channel[1] }}
+                  _VersionLink: ${{ channel['link'] }}
                   _BuildConfig: ${{ parameters.architecture }}_$(_Channel)_${{ parameters.kind }} # needs to be unique to avoid logs overwriting in mc.dot.net
               ${{ if ne(channelHasVersionLink, true) }}:
                 ${{ channel }}:
