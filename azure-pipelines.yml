@@ -248,7 +248,7 @@ jobs:
         channels:
           - release/7.0
     
-  # Maui scenario benchmarks
+  # Maui Android scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
@@ -383,25 +383,37 @@ jobs:
 
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Manual'), not(parameters.runPublicJobs), not(parameters.runScheduledPrivateJobs), not(parameters.runPrivateJobs)) }}:
-  - job: Synchronize
-    pool:
-      name: NetCore1ESPool-Internal-NoMSI
-      demands: ImageOverride -equals 1es-windows-2019
-    steps:
-    - task: UseDotNet@2
-      displayName: Install .NET 6.0 runtime
-      inputs:
-        version: 6.x
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64-android-arm64
+      isPublic: false
+      jobParameters:
+        kind: maui_scenarios_android
+        projectFile: maui_scenarios_android.proj
+        channels:
+          - release/7.0
 
-    - script: dotnet tool restore
+  # - job: Synchronize
+  #   pool:
+  #     name: NetCore1ESPool-Internal-NoMSI
+  #     demands: ImageOverride -equals 1es-windows-2019
+  #   steps:
+  #   - task: UseDotNet@2
+  #     displayName: Install .NET 6.0 runtime
+  #     inputs:
+  #       version: 6.x
 
-    - task: AzureCLI@2
-      inputs:
-        azureSubscription: .NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)
-        scriptType: ps
-        scriptLocation: inlineScript
-        inlineScript: |
-          Get-ChildItem .vault-config/*.yaml |% { dotnet secret-manager synchronize $_}
+  #   - script: dotnet tool restore
+
+  #   - task: AzureCLI@2
+  #     inputs:
+  #       azureSubscription: .NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)
+  #       scriptType: ps
+  #       scriptLocation: inlineScript
+  #       inlineScript: |
+  #         Get-ChildItem .vault-config/*.yaml |% { dotnet secret-manager synchronize $_}
 
 ################################################
 # Scheduled Private jobs (Weekly)
