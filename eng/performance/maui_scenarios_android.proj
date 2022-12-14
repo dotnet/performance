@@ -22,7 +22,7 @@
 
   <ItemDefinitionGroup>
     <HelixWorkItem>
-      <Timeout>30:00</Timeout>
+      <Timeout>00:30</Timeout>
     </HelixWorkItem>
   </ItemDefinitionGroup>
 
