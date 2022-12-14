@@ -5,6 +5,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -88,14 +89,13 @@ namespace Reporting
                 BuildName = environment.GetEnvironmentVariable("PERFLAB_BUILDNUM"),
                 TimeStamp = DateTime.Parse(environment.GetEnvironmentVariable("PERFLAB_BUILDTIMESTAMP")),
             };
-            build.AdditionalData["productVersion"] = environment.GetEnvironmentVariable("DOTNET_VERSION");
 
-            // Additional Data we only want populated if it is available
-            if (environment.GetEnvironmentVariable("MAUI_VERSION") != null)
-            {
-                build.AdditionalData["mauiVersion"] = environment.GetEnvironmentVariable("MAUI_VERSION");
-            }
-            
+            foreach (DictionaryEntry entry in environment.GetEnvironmentVariables()){
+                if (entry.Key.ToString().EndsWith("version", ignoreCase: true, culture: CultureInfo.InvariantCulture))
+                {
+                    build.AdditionalData[entry.Key.ToString()] = entry.Value.ToString();
+                }
+            }            
         }
         public string GetJson()
         {
