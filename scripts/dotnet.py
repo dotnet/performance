@@ -612,17 +612,17 @@ def get_commit_date(
     if not commit_sha:
         raise ValueError('.NET Commit sha was not defined.')
 
+    # Example URL: https://github.com/dotnet/runtime/commit/2d76178d5faa97be86fc8d049c7dbcbdf66dc497.patch
     url = None
-    urlformat = 'https://github.com/%s/%s/commit/%s.patch'
     if repository is None:
         # The origin of the repo where the commit belongs to has changed
         # between release. Here we attempt to naively guess the repo.
         core_sdk_frameworks = ChannelMap.get_supported_frameworks()
         repo = 'core-sdk' if framework  in core_sdk_frameworks else 'cli'
-        url = urlformat % ('dotnet', repo, commit_sha)
+        url = f'https://github.com/dotnet/{repo}/commit/{commit_sha}.patch'
     else:
         owner, repo = get_repository(repository)
-        url = urlformat % (owner, repo, commit_sha)
+        url = f'https://github.com/{owner}/{repo}/commit/{commit_sha}.patch'
 
     build_timestamp = None
     sleep_time = 10 # Start with 10 second sleep timer        
