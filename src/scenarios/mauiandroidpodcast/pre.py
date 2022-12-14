@@ -31,5 +31,5 @@ RemoveAABFiles(precommands.output)
 
 maui_version = GetVersionFromDll(f".\{const.APPDIR}\src\Mobile\obj\Release\{precommands.framework}\{precommands.runtime_identifier}\linked\Microsoft.Maui.dll")
 version_dict = { "maui_version": maui_version }
-versionswritejson(version_dict, rf".\{precommands.output}\versions.json")
+versionswritejson(version_dict, rf"{precommands.output}\versions.json")
 print(f"Versions: {version_dict}")
