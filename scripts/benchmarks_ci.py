@@ -115,8 +115,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     def __is_valid_dotnet_path(dp: str) -> str:
         if not os.path.isdir(dp):
             raise ArgumentTypeError('Path {} does not exist'.format(dp))
-        if not os.path.isfile(os.path.join(dp, 'dotnet')):
-            raise ArgumentTypeError('Could not find dotnet in {}'.format(dp))
+        if sys.platform == 'win32':
+            if not os.path.isfile(os.path.join(dp, 'dotnet.exe')):
+                raise ArgumentTypeError('Could not find dotnet.exe in {}'.format(dp))
+        else:
+            if not os.path.isfile(os.path.join(dp, 'dotnet')):
+                raise ArgumentTypeError('Could not find dotnet in {}'.format(dp))
         return dp
 
     parser.add_argument(
@@ -150,7 +154,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         required=False,
         help="Causes results files to be uploaded to perf container",
         action='store_true'
-    )   
+    )
 
     # Generic arguments.
     parser.add_argument(
