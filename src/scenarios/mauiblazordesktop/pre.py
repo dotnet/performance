@@ -14,7 +14,7 @@ import requests
 import winreg
 
 setup_loggers(True)
-NugetURL = 'https://raw.githubusercontent.com/dotnet/maui/main/NuGet.config'
+NugetURL = 'https://raw.githubusercontent.com/dotnet/maui/net6.0/NuGet.config'
 WebViewURL = 'https://go.microsoft.com/fwlink/p/?LinkId=2124703' # Obtained from https://developer.microsoft.com/en-us/microsoft-edge/webview2/#download-section
 WebViewInstalled = False
 NugetFile = requests.get(NugetURL)
