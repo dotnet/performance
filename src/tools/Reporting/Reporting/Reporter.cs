@@ -93,7 +93,14 @@ namespace Reporting
             foreach (DictionaryEntry entry in environment.GetEnvironmentVariables()){
                 if (entry.Key.ToString().EndsWith("version", ignoreCase: true, culture: CultureInfo.InvariantCulture))
                 {
-                    build.AdditionalData[entry.Key.ToString()] = entry.Value.ToString();
+                    // Special case the original two special cases, MAUI_VERSION is only needed because runtime based runs use MAUI_VERSION
+                    if(entry.Key.ToString().Equals("DOTNET_VERSION", StringComparison.InvariantCultureIgnoreCase)){
+                        build.AdditionalData["productVersion"] = entry.Value.ToString();
+                    } else if(entry.Key.ToString().Equals("MAUI_VERSION", StringComparison.InvariantCultureIgnoreCase)){
+                        build.AdditionalData["mauiVersion"] = entry.Value.ToString();
+                    } else { 
+                        build.AdditionalData[entry.Key.ToString()] = entry.Value.ToString();
+                    }
                 }
             }            
         }
