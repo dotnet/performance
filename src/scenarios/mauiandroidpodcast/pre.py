@@ -3,10 +3,10 @@ pre-command
 '''
 import requests
 import subprocess
-from mauishared.mauisharedpython import RemoveAABFiles, GetVersionFromDll
+from mauishared.mauisharedpython import RemoveAABFiles
 from performance.logger import setup_loggers, getLogger
 from shared.precommands import PreCommands
-from shared.versionmanager import versionswritejson
+from shared.versionmanager import versionswritejson, GetVersionFromDllPowershell
 from shared import const
 
 setup_loggers(True)
@@ -29,7 +29,7 @@ precommands.execute(['--no-restore'])
 # Remove the aab files as we don't need them, this saves space
 RemoveAABFiles(precommands.output)
 
-maui_version = GetVersionFromDll(f".\{const.APPDIR}\src\Mobile\obj\Release\{precommands.framework}\{precommands.runtime_identifier}\linked\Microsoft.Maui.dll")
+maui_version = GetVersionFromDllPowershell(f".\{const.APPDIR}\src\Mobile\obj\Release\{precommands.framework}\{precommands.runtime_identifier}\linked\Microsoft.Maui.dll")
 version_dict = { "mauiVersion": maui_version }
 versionswritejson(version_dict, rf"{precommands.output}\versions.json")
 print(f"Versions: {version_dict}")

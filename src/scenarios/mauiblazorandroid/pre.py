@@ -3,11 +3,11 @@ pre-command
 '''
 import sys
 import requests
-from mauishared.mauisharedpython import RemoveAABFiles, GetVersionFromDll
+from mauishared.mauisharedpython import RemoveAABFiles
 from performance.logger import setup_loggers, getLogger
 from shared import const
 from shared.precommands import PreCommands
-from shared.versionmanager import versionswritejson
+from shared.versionmanager import versionswritejson, GetVersionFromDllPowershell
 from test import EXENAME
 
 setup_loggers(True)
@@ -72,7 +72,7 @@ precommands.execute(['--no-restore', '--source', 'MauiNuGet.config'])
 RemoveAABFiles(precommands.output)
 
 # Copy the MauiVersion to a file so we have it on the machine
-maui_version = GetVersionFromDll(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\{precommands.runtime_identifier}\linked\Microsoft.Maui.dll")
+maui_version = GetVersionFromDllPowershell(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\{precommands.runtime_identifier}\linked\Microsoft.Maui.dll")
 version_dict = { "mauiVersion": maui_version }
 versionswritejson(version_dict, rf"{precommands.output}\versions.json")
 print(f"Versions: {version_dict}")
