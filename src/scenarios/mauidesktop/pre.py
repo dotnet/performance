@@ -12,7 +12,7 @@ from test import EXENAME
 import requests
 
 setup_loggers(True)
-NugetURL = 'https://raw.githubusercontent.com/dotnet/maui/main/NuGet.config'
+NugetURL = 'https://raw.githubusercontent.com/dotnet/maui/net7.0/NuGet.config'
 NugetFile = requests.get(NugetURL)
 open('./Nuget.config', 'wb').write(NugetFile.content)
 
