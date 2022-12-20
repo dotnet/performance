@@ -3,7 +3,8 @@
 | Build Source Version                        | Public Build Status                                                         | Internal Build Status                                                           |
 | :------------------------------------------ | :-------------------------------------------------------------------------- | :------------------------------------------------------------------------------ |
 | main                                        | [![public_build_icon_main]][public_build_status_main]                       | [![internal_build_icon_main]][internal_build_status_main]                       |
-| release/7.0                                 | [![public_build_icon_release_7.0]][public_build_status_release_7.0]         | [![internal_build_icon_release_7.0]][internal_build_status_release_7.0]                       |
+| release/7.0                                 | [![public_build_icon_release_7.0]][public_build_status_release_7.0]         | [![internal_build_icon_release_7.0]][internal_build_status_release_7.0]         |
+| release/6.0                                 | [![public_build_icon_release_6.0]][public_build_status_release_6.0]         | [![internal_build_icon_release_6.0]][internal_build_status_release_6.0]         |
 | release/3.1.4xx                             | [![public_build_icon_release_3.1.4xx]][public_build_status_release_3.1.4xx] | [![internal_build_icon_release_3.1.4xx]][internal_build_status_release_3.1.4xx] |
 
 This repo contains benchmarks used for testing the performance of all .NET Runtimes: .NET Core, Full .NET Framework, Mono and CoreRT.
@@ -30,6 +31,11 @@ This project has adopted the code of conduct defined by the Contributor Covenant
 [public_build_status_release_7.0]:               https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=38&branchName=release%2F7.0
 [internal_build_icon_release_7.0]:               https://dev.azure.com/dnceng/internal/_apis/build/status/dotnet/performance/dotnet-performance?branchName=release%2F7.0
 [internal_build_status_release_7.0]:             https://dev.azure.com/dnceng/internal/_build/latest?definitionId=306&branchName=release%2F7.0
+
+[public_build_icon_release_6.0]:                 https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/performance/performance-ci?branchName=release%2F6.0
+[public_build_status_release_6.0]:               https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=38&branchName=release%2F6.0
+[internal_build_icon_release_6.0]:               https://dev.azure.com/dnceng/internal/_apis/build/status/dotnet/performance/dotnet-performance?branchName=release%2F6.0
+[internal_build_status_release_6.0]:             https://dev.azure.com/dnceng/internal/_build/latest?definitionId=306&branchName=release%2F6.0
 
 [public_build_icon_release_3.1.4xx]:             https://dev.azure.com/dnceng-public/public/_apis/build/status/dotnet/performance/performance-ci?branchName=release%2F3.1.4xx
 [public_build_status_release_3.1.4xx]:           https://dev.azure.com/dnceng-public/public/_build/latest?definitionId=271&branchName=release%2F3.1.4xx
