@@ -1,11 +1,15 @@
 '''
-C# Console app
+Mobile Maui App
 '''
+from shared.const import PUBDIR
 from shared.runner import TestTraits, Runner
+from shared.versionmanager import versionsreadjsonfilesaveenv
 
 EXENAME = 'MauiBlazorAndroidDefault'
 
 if __name__ == "__main__":
+    versionsreadjsonfilesaveenv(rf".\{PUBDIR}\versions.json")
+
     traits = TestTraits(exename=EXENAME, 
                         guiapp='false',
                         )

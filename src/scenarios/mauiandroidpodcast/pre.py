@@ -1,17 +1,15 @@
 '''
 pre-command
 '''
-import sys
 import requests
+import subprocess
 from mauishared.mauisharedpython import RemoveAABFiles
 from performance.logger import setup_loggers, getLogger
-from shared import const
 from shared.precommands import PreCommands
 from shared.versionmanager import versionswritejson, GetVersionFromDllPowershell
-from test import EXENAME
+from shared import const
 
 setup_loggers(True)
-
 precommands = PreCommands()
 target_framework_wo_platform = precommands.framework.split('-')[0]
 
@@ -19,22 +17,20 @@ target_framework_wo_platform = precommands.framework.split('-')[0]
 with open ("MauiNuGet.config", "wb") as f:
     f.write(requests.get(f'https://raw.githubusercontent.com/dotnet/maui/{target_framework_wo_platform}/NuGet.config', allow_redirects=True).content)
 
+branch = f'{precommands.framework[:6]}'
+subprocess.run(['git', 'clone', 'https://github.com/microsoft/dotnet-podcasts.git', '-b', branch, '--single-branch', '--depth', '1'])
+subprocess.run(['powershell', '-Command', r'Remove-Item -Path .\\dotnet-podcasts\\.git -Recurse -Force']) # Git files have permission issues, do their deletion separately
+
 workload_install_args = ['--configfile', 'MauiNuGet.config']
 if int(target_framework_wo_platform.split('.')[0][3:]) > 7: # Use the rollback file for versions greater than 7
     workload_install_args += ['--from-rollback-file', f'https://aka.ms/dotnet/maui/{target_framework_wo_platform}.json']
 
 precommands.install_workload('maui', workload_install_args) 
-
-# Setup the Maui folder
-precommands.new(template='maui',
-                output_dir=const.APPDIR,
-                bin_dir=const.BINDIR,
-                exename=EXENAME,
-                working_directory=sys.path[0],
-                no_restore=False)
+precommands.existing(projectdir='./dotnet-podcasts',projectfile='./src/Mobile/Microsoft.NetConf2021.Maui.csproj')
 
 # Build the APK
-precommands.execute(['--no-restore', '--source', 'MauiNuGet.config'])
+precommands._restore()
+precommands.execute(['--no-restore'])
 
 # Remove the aab files as we don't need them, this saves space
 output_dir = const.PUBDIR
