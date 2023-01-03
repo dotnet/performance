@@ -338,7 +338,7 @@ class CSharpProject:
             ]
 
             if output_to_bindir:
-                cmdline = cmdline + ['--output', self.__bin_directory]
+                cmdline += self.__get_output_build_arg(self.__bin_directory)
             
             if runtime_identifier:
                 cmdline = cmdline + ['--runtime', runtime_identifier]
@@ -362,7 +362,7 @@ class CSharpProject:
                 ]
 
                 if output_to_bindir:
-                    cmdline = cmdline + ['--output', self.__bin_directory]
+                    cmdline += self.__get_output_build_arg(self.__bin_directory)
 
                 if runtime_identifier:
                     cmdline = cmdline + ['--runtime', runtime_identifier]
@@ -436,10 +436,10 @@ class CSharpProject:
             'dotnet', 'publish',
             self.csproj_file,
             '--configuration', configuration,
-            '--output', output_dir,
             "/p:NuGetPackageRoot={}".format(packages_path),
             '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1'
         ]
+        cmdline += self.__get_output_build_arg(output_dir)
         if runtime_identifier:
             cmdline += ['--runtime', runtime_identifier]
 
@@ -455,6 +455,14 @@ class CSharpProject:
         RunCommand(cmdline, verbose=verbose).run(
             self.working_directory
         )
+
+    def __get_output_build_arg(self, outdir) -> list:
+        # dotnet build/publish does not support `--output` with sln files
+        if path.splitext(self.csproj_file)[1] == '.sln':
+            outdir = outdir if path.isabs(outdir) else path.abspath(outdir)
+            return ['/p:PublishDir=' + outdir]
+        else:
+            return ['--output', outdir]
 
     @staticmethod
     def __print_complus_environment() -> None:
