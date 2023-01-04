@@ -21,6 +21,7 @@ namespace System.Net.Security.Tests
     {
         private readonly Barrier _twoParticipantBarrier = new Barrier(2);
         private static readonly X509Certificate2 _cert = Test.Common.Configuration.Certificates.GetServerCertificate();
+        private static readonly X509Certificate2 _clientCert = Test.Common.Configuration.Certificates.GetClientCertificate();
         private static readonly X509Certificate2 _ec256Cert = Test.Common.Configuration.Certificates.GetEC256Certificate();
         private static readonly X509Certificate2 _ec512Cert = Test.Common.Configuration.Certificates.GetEC512Certificate();
         private static readonly X509Certificate2 _rsa2048Cert = Test.Common.Configuration.Certificates.GetRSA2048Certificate();
@@ -106,11 +107,19 @@ namespace System.Net.Security.Tests
         public Task DefaultHandshakeIPv6Async() => DefaultHandshake(_clientIPv6, _serverIPv6);
 
         [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
+        public Task DefaultMutualHandshakeIPv4Async() => DefaultHandshake(_clientIPv4, _serverIPv4, requiteClientCert: true);
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
+        public Task DefaultMutualHandshakeIPv6Async() => DefaultHandshake(_clientIPv6, _serverIPv6, requiteClientCert: true);
+
+        [Benchmark]
         [OperatingSystemsFilter(allowed: true, platforms: OS.Linux)]    // Not supported on Windows at the moment.
         [BenchmarkCategory(Categories.NoAOT)]
         public Task DefaultHandshakePipeAsync() => DefaultHandshake(_clientPipe, _serverPipe);
 
-        private async Task DefaultHandshake(Stream client, Stream server)
+        private async Task DefaultHandshake(Stream client, Stream server, bool requiteClientCert = false)
         {
             SslClientAuthenticationOptions clientOptions = new SslClientAuthenticationOptions
             {
@@ -118,6 +127,7 @@ namespace System.Net.Security.Tests
                 EnabledSslProtocols = SslProtocols.None,
                 CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
                 TargetHost = "loopback",
+                ClientCertificates = requiteClientCert ? new X509CertificateCollection() { _clientCert } : null,
             };
 
             SslServerAuthenticationOptions serverOptions = new SslServerAuthenticationOptions
@@ -125,7 +135,8 @@ namespace System.Net.Security.Tests
                 AllowRenegotiation = false,
                 EnabledSslProtocols = SslProtocols.None,
                 CertificateRevocationCheckMode = X509RevocationMode.NoCheck,
-                ServerCertificate = _cert
+                ServerCertificate = _cert,
+                ClientCertificateRequired = requiteClientCert,
             };
 
             using (var sslClient = new SslStream(client, leaveInnerStreamOpen: true, delegate { return true; }))
