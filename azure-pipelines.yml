@@ -3,38 +3,8 @@ resources:
     - container: ubuntu_x64_build_container
       image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-20210311173856-047508b
 
-# CI Trigger on master branch
-trigger:
-  branches:
-    include:
-    - release/3.1.4xx
-  paths:
-    include:
-    - eng/Version.Details.xml
-
-# Trigger builds for PR's targeting master
-pr:
-  branches:
-    include:
-    - release/3.1.4xx
-  paths:
-    exclude: # don't trigger the CI if only a doc file was changed
-    - docs/*
-    - eng/common/README.md
-    - src/benchmarks/micro/Serializers/README.md
-    - src/benchmarks/micro/README.md
-    - src/benchmarks/real-world/JitBench/README.md
-    - src/benchmarks/real-world/Microsoft.ML.Benchmarks/Input/README.md
-    - src/tools/ResultsComparer/README.md
-    - README.md
-
-schedules:
-- cron: "0 */12 * * *"
-  displayName: Every 12 hours build
-  branches:
-    include:
-    - release/3.1.4xx
-  always: true
+trigger: none
+pr: none
 
 jobs:
 
