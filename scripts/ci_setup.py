@@ -242,9 +242,6 @@ def __main(args: list) -> int:
     verbose = not args.quiet
     setup_loggers(verbose=verbose)
 
-    if("main" in args.channel and "CompilationMode=wasm" in args.build_configs):
-        args.channel = "7.0"
-
     # if repository is not set, then we are doing a core-sdk in performance repo run
     # if repository is set, user needs to supply the commit_sha
     if not ((args.commit_sha is None) == (args.repository is None)):
