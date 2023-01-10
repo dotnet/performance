@@ -102,7 +102,7 @@ jobs:
             displayName: Build SOD tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
-          # Current version of PaintDotNet zip file is PDN9 built on 2022-12-09
+          # Current version of PaintDotNet zip file is PDN10 built on 2023-01-09
           - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
             - powershell: |
                 mkdir $(CorrelationStaging)PDN
