@@ -22,7 +22,6 @@ trigger:
     include:
     - main
     - release/7.0
-    - release/3.1.4xx
   paths:
     include:
     - eng/Version.Details.xml
