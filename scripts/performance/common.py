@@ -221,13 +221,15 @@ class RunCommand:
                     self.cmdline,
                     stdout=PIPE if should_pipe else DEVNULL,
                     stderr=STDOUT,
-                    universal_newlines=True,
-                    encoding="utf-8",
+                    universal_newlines=False,
+                    encoding=None,
+                    bufsize=0
             ) as proc:
                 if proc.stdout is not None:
                     with proc.stdout:
                         self.__stdout = StringIO()
-                        for line in iter(proc.stdout.readline, ''):
+                        for raw_line in iter(proc.stdout.readline, b''):
+                            line = raw_line.decode('utf-8', errors='backslashreplace')
                             self.__stdout.write(line)
                             line = line.rstrip()
                             getLogger().info(line)
