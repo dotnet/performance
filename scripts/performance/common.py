@@ -227,10 +227,16 @@ class RunCommand:
                 if proc.stdout is not None:
                     with proc.stdout:
                         self.__stdout = StringIO()
-                        for line in iter(proc.stdout.readline, ''):
-                            self.__stdout.write(line)
-                            line = line.rstrip()
-                            getLogger().info(line)
+                        previous_line = ''
+                        try:
+                            for line in iter(proc.stdout.readline, ''):
+                                self.__stdout.write(line)
+                                line = line.rstrip()
+                                getLogger().info(line)
+                                previous_line = line
+                        except:
+                            getLogger().info(f'*** Previous: {previous_line} ***')
+                            raise
                 proc.wait()
                 return (proc.returncode, quoted_cmdline)
 
