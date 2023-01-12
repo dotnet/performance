@@ -1,0 +1,11 @@
+<Project>
+  <Target Name="ValidateBlazorVersions" BeforeTargets="ResolvePackageAssets">
+    <Error
+      Condition="'$(AspNetCoreVersion)' == '' or '$(BlazorVersion)' == '' or '$(SystemNetHttpJsonVersion)' == ''"
+      Text="Package versions for blazor/aspnetcore not set. %24(AspNetCoreVersion)=$(AspNetCoreVersion), %24(BlazorVersion)==$(BlazorVersion), and %24(SystemNetHttpJsonVersion)=$(SystemNetHttpJsonVersion). TFM: $(TargetFramework)" />
+
+    <Warning
+      Condition="$(TargetFrameworks.Contains('net9.0')) or ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionGreaterThan('$(TargetFrameworkVersion)', '9.0')))"
+      Text="Package versions being used for blazor project might need to be updated for a new tfm. Current values: %24(AspNetCoreVersion)=$(AspNetCoreVersion), %24(BlazorVersion)==$(BlazorVersion), and %24(SystemNetHttpJsonVersion)=$(SystemNetHttpJsonVersion). TFM: $(TargetFramework)" />
+  </Target>
+</Project>
