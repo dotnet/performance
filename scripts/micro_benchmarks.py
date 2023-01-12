@@ -264,8 +264,10 @@ def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
     if args.wasm:
         if framework == "net6.0":
             run_args += ['--runtimes', 'wasm']
-        else:
+        elif framework == "net7.0":
             run_args += ['--runtimes', 'wasmnet70']
+        elif framework == "net8.0":
+            run_args += ['--runtimes', 'wasmnet80']
 
     # Increase default 2 min build timeout to accommodate slow (or even very slow) hardware
     if not args.bdn_arguments or '--buildTimeout' not in args.bdn_arguments:
