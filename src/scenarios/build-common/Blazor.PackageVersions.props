@@ -1,0 +1,19 @@
+<Project>
+    <PropertyGroup Condition="$(TargetFrameworks.Contains('net8.0')) or ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionEquals('$(TargetFrameworkVersion)', '8.0')))">
+        <AspNetCoreVersion>8.0.0-*</AspNetCoreVersion>
+        <BlazorVersion>8.0.0-*</BlazorVersion>
+        <SystemNetHttpJsonVersion>8.0.0-*</SystemNetHttpJsonVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition="$(TargetFrameworks.Contains('net7.0')) or ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionEquals('$(TargetFrameworkVersion)', '7.0')))">
+        <AspNetCoreVersion>7.0.0</AspNetCoreVersion>
+        <BlazorVersion>7.0.0</BlazorVersion>
+        <SystemNetHttpJsonVersion>7.0.0</SystemNetHttpJsonVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition="$(TargetFrameworks.Contains('net5.0')) or $(TargetFrameworks.Contains('net6.0')) or
+                              ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionEquals('$(TargetFrameworkVersion)', '6.0'))) or
+                              ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionEquals('$(TargetFrameworkVersion)', '7.0')))">
+        <AspNetCoreVersion Condition="'$(AspNetCoreVersion)' == ''">5.0.0</AspNetCoreVersion>
+        <BlazorVersion Condition="'$(BlazorVersion)' == ''">6.0.0-preview*</BlazorVersion>
+        <SystemNetHttpJsonVersion Condition="'$(SystemNetHttpJsonVersion)' == ''">6.0.0-preview*</SystemNetHttpJsonVersion>
+    </PropertyGroup>
+</Project>

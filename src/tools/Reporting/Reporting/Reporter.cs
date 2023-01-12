@@ -89,13 +89,13 @@ namespace Reporting
                 TimeStamp = DateTime.Parse(environment.GetEnvironmentVariable("PERFLAB_BUILDTIMESTAMP")),
             };
             build.AdditionalData["productVersion"] = environment.GetEnvironmentVariable("DOTNET_VERSION");
+            build.AdditionalData["targetFrameworks"] = environment.GetEnvironmentVariable("PERFLAB_TARGET_FRAMEWORKS");
 
             // Additional Data we only want populated if it is available
-            if (environment.GetEnvironmentVariable("MAUI_VERSION") != null)
+            if (!String.IsNullOrEmpty(environment.GetEnvironmentVariable("MAUI_VERSION")))
             {
                 build.AdditionalData["mauiVersion"] = environment.GetEnvironmentVariable("MAUI_VERSION");
             }
-            
         }
         public string GetJson()
         {
