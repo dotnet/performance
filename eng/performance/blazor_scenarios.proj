@@ -1,11 +1,18 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
 
-  <ItemGroup>
-    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
-      <PayloadDirectory>%(Identity)</PayloadDirectory>
-    </HelixCorrelationPayload>
-  </ItemGroup>
-  
+  <PropertyGroup>
+    <LogDirectory Condition="'$(TargetsWindows)' == 'true'">%HELIX_WORKITEM_UPLOAD_ROOT%\</LogDirectory>
+    <LogDirectory Condition="'$(TargetsWindows)' != 'true'">%24{HELIX_WORKITEM_UPLOAD_ROOT}/</LogDirectory>
+
+    <PerfLabTargetFrameworksEnvVar Condition="'$(TargetsWindows)' == 'true'">%PERFLAB_TARGET_FRAMEWORKS%</PerfLabTargetFrameworksEnvVar>
+    <PerfLabTargetFrameworksEnvVar Condition="'$(TargetsWindows)' != 'true'">%24{PERFLAB_TARGET_FRAMEWORKS}</PerfLabTargetFrameworksEnvVar>
+    <PublishArgs>--msbuild "/p:_TrimmerDumpDependencies=true" --msbuild /warnaserror:NU1602,NU1604 --msbuild-static AdditionalMonoLinkerOptions=%27&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;%27 --binlog $(LogDirectory)blazor_publish.binlog</PublishArgs>
+    <PublishCommand>$(Python) pre.py publish $(PublishArgs)</PublishCommand>
+
+    <PizzaAppPubLocation Condition="'$(TargetsWindows)' == 'true'">pub\wwwroot</PizzaAppPubLocation>
+    <PizzaAppPubLocation Condition="'$(TargetsWindows)' != 'true'">pub/wwwroot</PizzaAppPubLocation>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
     <ScenariosDir>$(WorkItemDirectory)\src\scenarios\</ScenariosDir>
     <HelixPreCommands>$(HelixPreCommands);set PYTHONPATH=%HELIX_CORRELATION_PAYLOAD%\scripts%3B%HELIX_CORRELATION_PAYLOAD%</HelixPreCommands>
@@ -17,6 +24,13 @@
     <HelixPreCommands>$(HelixPreCommands);export PYTHONPATH=$HELIX_CORRELATION_PAYLOAD/scripts:$HELIX_CORRELATION_PAYLOAD</HelixPreCommands>
     <RID>linux-$(Architecture)</RID>
   </PropertyGroup>
+
+  <ItemGroup>
+    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
+      <PayloadDirectory>%(Identity)</PayloadDirectory>
+    </HelixCorrelationPayload>
+    <HelixCorrelationPayload Include="$(ScenariosDir)build-common" Destination="build-common" />
+  </ItemGroup>
 
   <ItemDefinitionGroup>
       <HelixWorkItem>
@@ -30,49 +44,38 @@
     <HelixWorkItem Include="SOD - Minimum Blazor Template - Publish">
       <PayloadDirectory>$(ScenariosDir)blazorminapp</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <PreCommands>$(Python) pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(PublishCommand) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
 
     <HelixWorkItem Include="SOD - Minimum Blazor Template - Publish - AOT">
       <PayloadDirectory>$(ScenariosDir)blazorminappaot</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <PreCommands>$(Python) pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(PublishCommand) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
 
     <HelixWorkItem Include="SOD - New Blazor Template - Publish">
       <PayloadDirectory>$(ScenariosDir)blazor</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <PreCommands>$(Python) pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(PublishCommand) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
 
     <HelixWorkItem Include="SOD - New Blazor Template - Publish - AOT">
       <PayloadDirectory>$(ScenariosDir)blazoraot</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <PreCommands>$(Python) pre.py publish --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(PublishCommand) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
     
     <HelixWorkItem Include="SOD - Pizza App - Publish">
       <PayloadDirectory>$(ScenariosDir)blazorpizza</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <PreCommands>$(Python) pre.py publish -f %PERFLAB_TARGET_FRAMEWORKS% --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs pub\wwwroot</Command>
+      <Command>$(PublishCommand) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation)</Command>
     </HelixWorkItem>
-
 
     <HelixWorkItem Include="SOD - Pizza App - Publish - AOT"> 
       <PayloadDirectory>$(ScenariosDir)blazorpizzaaot</PayloadDirectory>
       <!-- Specifying both linker dump msbuild properties in case linker version is not updated -->
-      <PreCommands>$(Python) pre.py publish -f %PERFLAB_TARGET_FRAMEWORKS% --msbuild "/p:_TrimmerDumpDependencies=true" --msbuild-static AdditionalMonoLinkerOptions=&quot;%24(AdditionalMonoLinkerOptions) --dump-dependencies&quot;</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs pub\wwwroot</Command>
+      <Command>$(PublishCommand) -f $(PerfLabTargetFrameworksEnvVar) &amp;&amp; $(Python) test.py sod --scenario-name &quot;%(Identity)&quot; --dirs $(PizzaAppPubLocation)</Command>
     </HelixWorkItem>
   </ItemGroup>
-
-
   <Import Project="PreparePayloadWorkItems.targets" />
-
-
 </Project>
