@@ -95,7 +95,7 @@ namespace Reporting
                 {
                     build.AdditionalData["targetFrameworks"] = entry.Value.ToString();
                 }
-                if (entry.Key.ToString().EndsWith("version", ignoreCase: true, culture: CultureInfo.InvariantCulture))
+                else if(entry.Key.ToString().EndsWith("version", true, CultureInfo.InvariantCulture))
                 {
                     // Special case the original two special cases, MAUI_VERSION is only needed because runtime based runs use MAUI_VERSION
                     if(entry.Key.ToString().Equals("DOTNET_VERSION", StringComparison.InvariantCultureIgnoreCase)){
