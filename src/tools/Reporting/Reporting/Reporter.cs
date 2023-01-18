@@ -90,7 +90,8 @@ namespace Reporting
                 TimeStamp = DateTime.Parse(environment.GetEnvironmentVariable("PERFLAB_BUILDTIMESTAMP")),
             };
 
-            foreach (DictionaryEntry entry in environment.GetEnvironmentVariables()){
+            foreach (DictionaryEntry entry in environment.GetEnvironmentVariables())
+            {
                 if (entry.Key.ToString().Equals("PERFLAB_TARGET_FRAMEWORKS", StringComparison.InvariantCultureIgnoreCase)) 
                 {
                     build.AdditionalData["targetFrameworks"] = entry.Value.ToString();

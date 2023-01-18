@@ -3,26 +3,16 @@ pre-command
 '''
 import sys
 import requests
-from mauishared.mauisharedpython import RemoveAABFiles
 from performance.logger import setup_loggers, getLogger
 from shared import const
+from shared.mauisharedpython import remove_aab_files, install_versioned_maui
 from shared.precommands import PreCommands
-from shared.versionmanager import versionswritejson, GetVersionFromDllPowershell
+from shared.versionmanager import versions_write_json, get_version_from_dll_powershell
 from test import EXENAME
 
 setup_loggers(True)
 precommands = PreCommands()
-target_framework_wo_platform = precommands.framework.split('-')[0]
-
-# Download what we need
-with open ("MauiNuGet.config", "wb") as f:
-    f.write(requests.get(f'https://raw.githubusercontent.com/dotnet/maui/{target_framework_wo_platform}/NuGet.config', allow_redirects=True).content)
-
-workload_install_args = ['--configfile', 'MauiNuGet.config']
-if int(target_framework_wo_platform.split('.')[0][3:]) > 7: # Use the rollback file for versions greater than 7
-    workload_install_args += ['--from-rollback-file', f'https://aka.ms/dotnet/maui/{target_framework_wo_platform}.json']
-
-precommands.install_workload('maui', workload_install_args) 
+install_versioned_maui(precommands)
 
 # Setup the Maui folder
 precommands.new(template='maui-blazor',
@@ -77,11 +67,11 @@ precommands.execute(['--no-restore', '--source', 'MauiNuGet.config'])
 output_dir = const.PUBDIR
 if precommands.output:
     output_dir = precommands.output
-RemoveAABFiles(output_dir)
+remove_aab_files(output_dir)
 
 # Copy the MauiVersion to a file so we have it on the machine
-maui_version = GetVersionFromDllPowershell(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\{precommands.runtime_identifier}\linked\Microsoft.Maui.dll")
+maui_version = get_version_from_dll_powershell(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\{precommands.runtime_identifier}\linked\Microsoft.Maui.dll")
 version_dict = { "mauiVersion": maui_version }
-versionswritejson(version_dict, rf"{output_dir}\versions.json")
+versions_write_json(version_dict, rf"{output_dir}\versions.json")
 print(f"Versions: {version_dict}")
 
