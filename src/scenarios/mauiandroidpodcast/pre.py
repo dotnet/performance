@@ -1,7 +1,6 @@
 '''
 pre-command
 '''
-import requests
 import subprocess
 from performance.logger import setup_loggers, getLogger
 from shared.precommands import PreCommands

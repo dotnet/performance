@@ -2,7 +2,6 @@
 pre-command
 '''
 import sys
-import requests
 from performance.logger import setup_loggers, getLogger
 from shared import const
 from shared.mauisharedpython import remove_aab_files, install_versioned_maui
