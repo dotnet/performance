@@ -53,7 +53,7 @@ jobs:
         vmImage: windows-2019
       kind: scenarios
       machinePool: Open
-      queue: Windows.10.Amd64.Client21H1.Open
+      queue: Windows.10.Amd64.Client.Open
       projectFile: scenarios.proj
       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
         - release/6.0
@@ -84,7 +84,7 @@ jobs:
         vmImage: windows-2019
       kind: blazor_scenarios
       machinePool: Open
-      queue: Windows.10.Amd64.Client21H1.Open
+      queue: Windows.10.Amd64.Client.Open
       projectFile: blazor_scenarios.proj
       channels:
         - release/6.0
@@ -99,7 +99,7 @@ jobs:
         vmImage: windows-2019
       kind: sdk_scenarios
       machinePool: Open
-      queue: Windows.10.Amd64.Client21H1.Open
+      queue: Windows.10.Amd64.Client.Open
       projectFile: sdk_scenarios.proj
       channels:
         - release/6.0
@@ -130,7 +130,7 @@ jobs:
         vmImage: windows-2019
       kind: sdk_scenarios
       machinePool: Open
-      queue: Windows.10.Amd64.Client21H1.Open
+      queue: Windows.10.Amd64.Client.Open
       projectFile: sdk_scenarios.proj
       channels:
         - release/6.0
@@ -145,7 +145,7 @@ jobs:
       pool:
         vmImage: windows-2019
       machinePool: Open
-      queue: Windows.10.Amd64.Client21H1.Open
+      queue: Windows.10.Amd64.Client.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries' 
       channels:
@@ -177,7 +177,7 @@ jobs:
       pool:
         vmImage: windows-2019
       machinePool: Open
-      queue: Windows.10.Amd64.Client21H1.Open
+      queue: Windows.10.Amd64.Client.Open
       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
       runCategories: 'runtime libraries'
       channels: # for public jobs we want to make sure that the PRs don't break x86
@@ -193,7 +193,7 @@ jobs:
       pool:
         vmImage: windows-2019
       machinePool: Open
-      queue: Windows.10.Amd64.Client21H1.Open
+      queue: Windows.10.Amd64.Client.Open
       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
       runCategories: 'mldotnet'
       channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
@@ -209,7 +209,7 @@ jobs:
       pool:
         vmImage: windows-2019
       machinePool: Open
-      queue: Windows.10.Amd64.Client21H1.Open
+      queue: Windows.10.Amd64.Client.Open
       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
       runCategories: 'roslyn'
       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
