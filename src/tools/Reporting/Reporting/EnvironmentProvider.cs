@@ -11,5 +11,6 @@ namespace Reporting
     public class EnvironmentProvider : IEnvironment
     {
         public string GetEnvironmentVariable(string variable) => Environment.GetEnvironmentVariable(variable);
+        public System.Collections.IDictionary GetEnvironmentVariables() => Environment.GetEnvironmentVariables();
     }
 }
