@@ -47,7 +47,7 @@ jobs:
   - template: /eng/performance/scenarios.yml
     parameters:
       osName: windows
-      osVersion: 21H1
+      osVersion: 22H2
       architecture: x64
       pool:
         vmImage: windows-2019
@@ -78,7 +78,7 @@ jobs:
   - template: /eng/performance/scenarios.yml
     parameters:
       osName: windows
-      osVersion: 21H1
+      osVersion: 22H2
       architecture: x64
       pool:
         vmImage: windows-2019
@@ -93,7 +93,7 @@ jobs:
   - template: /eng/performance/scenarios.yml
     parameters:
       osName: windows
-      osVersion: 21H1
+      osVersion: 22H2
       architecture: x64
       pool:
         vmImage: windows-2019
@@ -124,7 +124,7 @@ jobs:
   - template: /eng/performance/scenarios.yml
     parameters:
       osName: windows
-      osVersion: 21H1
+      osVersion: 22H2
       architecture: x86
       pool:
         vmImage: windows-2019
@@ -139,7 +139,7 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
-      osVersion: 21H1
+      osVersion: 22H2
       kind: micro
       architecture: x64
       pool:
@@ -171,7 +171,7 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
-      osVersion: 21H1
+      osVersion: 22H2
       kind: micro
       architecture: x86
       pool:
@@ -187,7 +187,7 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
-      osVersion: 21H1
+      osVersion: 22H2
       kind: mlnet
       architecture: x64
       pool:
@@ -203,7 +203,7 @@ jobs:
   - template: /eng/performance/benchmark_jobs.yml
     parameters:
       osName: windows
-      osVersion: 21H1
+      osVersion: 22H2
       kind: roslyn
       architecture: x64
       pool:
