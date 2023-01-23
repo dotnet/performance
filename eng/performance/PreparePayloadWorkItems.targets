@@ -1,0 +1,7 @@
+<Project>
+  <Target Name="PreparePayloadWorkItems" Inputs="@(PreparePayloadWorkItem)" Outputs="%(PreparePayloadWorkItem.Identity)">
+    <Message Text="Command: %(PreparePayloadWorkItem.Command)" />
+    <Exec Command="%(PreparePayloadWorkItem.Command)" WorkingDirectory="%(PreparePayloadWorkItem.WorkingDirectory)" />
+    <Exec Command="$(AfterPreparePayloadWorkItemCommand)" WorkingDirectory="%(PreparePayloadWorkItem.WorkingDirectory)" Condition="'$(AfterPreparePayloadWorkItemCommand)' != ''" />
+  </Target>
+</Project>

@@ -121,5 +121,6 @@
      post: %(HelixWorkItem.PostCommands)
      timeout: %(HelixWorkItem.Timeout)  '"/>
   </Target> -->
+  <Import Project="PreparePayloadWorkItems.targets" />
 
 </Project>

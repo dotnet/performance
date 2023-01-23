@@ -57,11 +57,15 @@ class Runner:
 
         # parse only command
         parseonlyparser = subparsers.add_parser(const.DEVICESTARTUP,
-                                              description='measure time to main for Android apps')
+                                              description='measure time to startup for Android/iOS apps')
         parseonlyparser.add_argument('--device-type', choices=['android','ios'],type=str.lower,help='Device type for testing', dest='devicetype')
         parseonlyparser.add_argument('--package-path', help='Location of test application', dest='packagepath')
-        parseonlyparser.add_argument('--package-name', help='Classname of application', dest='packagename')
-        parseonlyparser.add_argument('--startup-iterations', help='Startups to run (1+)', type=int, default=5, dest='startupiterations')
+        parseonlyparser.add_argument('--package-name', help='Classname (Android) or Bundle ID (iOS) of application', dest='packagename')
+        parseonlyparser.add_argument('--startup-iterations', help='Startups to run (1+)', type=int, default=10, dest='startupiterations')
+        parseonlyparser.add_argument('--disable-animations', help='Disable Android device animations, does nothing on iOS.', action='store_true', dest='animationsdisabled')
+        parseonlyparser.add_argument('--use-fully-drawn-time', help='Use the startup time from reportFullyDrawn for android, the equivalent for iOS is handled via logging a magic string and passing it to --fully-drawn-magic-string', action='store_true', dest='usefullydrawntime')
+        parseonlyparser.add_argument('--fully-drawn-extra-delay', help='Set an additional delay time for an Android app to reportFullyDrawn (seconds), not on iOS. This should be greater than the greatest amount of extra time expected between first frame draw and reportFullyDrawn being called. Default = 3 seconds', type=int, default=3, dest='fullyDrawnDelaySecMax')
+        parseonlyparser.add_argument('--fully-drawn-magic-string', help='Set the magic string that is logged by the app to indicate when the app is fully drawn. Required when using --use-fully-drawn-time on iOS.', type=str, dest='fullyDrawnMagicString')
         self.add_common_arguments(parseonlyparser)
 
         # inner loop command
@@ -144,6 +148,10 @@ ex: C:\repos\performance;C:\repos\runtime
             self.packagename = args.packagename
             self.devicetype = args.devicetype
             self.startupiterations = args.startupiterations
+            self.animationsdisabled = args.animationsdisabled
+            self.usefullydrawntime = args.usefullydrawntime
+            self.fullyDrawnDelaySecMax = args.fullyDrawnDelaySecMax
+            self.fullyDrawnMagicString = args.fullyDrawnMagicString
 
         if args.scenarioname:
             self.scenarioname = args.scenarioname
@@ -304,7 +312,7 @@ ex: C:\repos\performance;C:\repos\runtime
             startup.runtests(self.traits)
 
 
-        elif self.testtype == const.DEVICESTARTUP:
+        elif self.testtype == const.DEVICESTARTUP and self.devicetype == 'android':
             # ADB Key Event corresponding numbers: https://gist.github.com/arjunv/2bbcca9a1a1c127749f8dcb6d36fb0bc
             # Regex used to split the response from starting the activity and saving each value
             #Example:
@@ -325,7 +333,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     getLogger().info("Removed: " + os.path.join(const.TRACEDIR, file))
                     os.remove(file)
 
-            cmdline = xharnesscommand() + [self.devicetype, 'state', '--adb']
+            cmdline = xharnesscommand() + ['android', 'state', '--adb']
             adb = RunCommand(cmdline, verbose=True)
             adb.run()
 
@@ -338,129 +346,287 @@ ex: C:\repos\performance;C:\repos\runtime
                 'size'
             ]
             RunCommand(cmdline, verbose=True).run()
-            stopAppCmd = [ 
+
+            # Get animation values
+            getLogger().info("Getting Values we will need set specifically")
+            cmdline = [
                 adb.stdout.strip(),
-                'shell',
-                'am',
-                'force-stop',
-                self.packagename
+                'shell', 'settings', 'get', 'global', 'window_animation_scale'
             ]
-
-            installCmd = xharnesscommand() + [
-                self.devicetype,
-                'install',
-                '--app', self.packagepath,
-                '--package-name',
-                self.packagename,
-                '-o',
-                const.TRACEDIR,
-                '-v'
-            ]
-            RunCommand(installCmd, verbose=True).run()
-
-            getLogger().info("Completed install, running shell.")
-            cmdline = [ 
+            window_animation_scale_cmd = RunCommand(cmdline, verbose=True)
+            window_animation_scale_cmd.run()
+            cmdline = [
                 adb.stdout.strip(),
-                'shell',
-                f'cmd package resolve-activity --brief {self.packagename} | tail -n 1'
+                'shell', 'settings', 'get', 'global', 'transition_animation_scale'
             ]
-            getActivity = RunCommand(cmdline, verbose=True)
-            getActivity.run()
-            getLogger().info(f"Target Activity {getActivity.stdout}")
-
-            # More setup stuff
-            checkScreenOnCmd = [ 
+            transition_animation_scale_cmd = RunCommand(cmdline, verbose=True)
+            transition_animation_scale_cmd.run()
+            cmdline = [
                 adb.stdout.strip(),
-                'shell',
-                f'dumpsys input_method | grep mInteractive'
+                'shell', 'settings', 'get', 'global', 'animator_duration_scale'
             ]
-            checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
-            checkScreenOn.run()
-
-            keyInputCmd = [
+            animator_duration_scale_cmd = RunCommand(cmdline, verbose=True)
+            animator_duration_scale_cmd.run()
+            cmdline = [
                 adb.stdout.strip(),
-                'shell',
-                'input',
-                'keyevent'
+                'shell', 'settings', 'get', 'system', 'screen_off_timeout'
             ]
+            screen_off_timeout_cmd = RunCommand(cmdline, verbose=True)
+            screen_off_timeout_cmd.run()
+            getLogger().info(f"Retrieved values window {window_animation_scale_cmd.stdout.strip()}, transition {transition_animation_scale_cmd.stdout.strip()}, animator {animator_duration_scale_cmd.stdout.strip()}, screen timeout {screen_off_timeout_cmd.stdout.strip()}")
 
-            if("mInteractive=false" in checkScreenOn.stdout): 
-                # Turn on the screen to make interactive and see if it worked
-                getLogger().info("Screen was off, turning on.")
-                screenWasOff = True
-                RunCommand(keyInputCmd + ['26'], verbose=True).run() # Press the power key
-                RunCommand(keyInputCmd + ['82'], verbose=True).run() # Unlock the screen with menu key (only works if it is not a password lock)
+            # Make sure animations are set to 1 or disabled
+            getLogger().info("Setting needed values")
+            if self.animationsdisabled:
+                animationValue = 0
+            else:
+                animationValue = 1
+            minimumTimeoutValue = 2 * 60 * 1000 # milliseconds
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'put', 'global', 'window_animation_scale', str(animationValue)
+            ]
+            RunCommand(cmdline, verbose=True).run()
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'put', 'global', 'transition_animation_scale', str(animationValue)
+            ]
+            RunCommand(cmdline, verbose=True).run()
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'put', 'global', 'animator_duration_scale', str(animationValue)
+            ]
+            RunCommand(cmdline, verbose=True).run()
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'put', 'system', 'screen_off_timeout', str(minimumTimeoutValue)
+            ]
+            if minimumTimeoutValue > int(screen_off_timeout_cmd.stdout.strip()):
+                getLogger().info("Screen off value is lower than minimum time, setting to higher time")
+                RunCommand(cmdline, verbose=True).run()
 
+            # Check for success
+            getLogger().info("Getting animation values to verify it worked")
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'get', 'global', 'window_animation_scale'
+            ]
+            windowSetValue = RunCommand(cmdline, verbose=True)
+            windowSetValue.run()
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'get', 'global', 'transition_animation_scale'
+            ]
+            transitionSetValue = RunCommand(cmdline, verbose=True)
+            transitionSetValue.run()
+            cmdline = [
+                adb.stdout.strip(),
+                'shell', 'settings', 'get', 'global', 'animator_duration_scale'
+            ]
+            animatorSetValue = RunCommand(cmdline, verbose=True)
+            animatorSetValue.run()
+            if int(windowSetValue.stdout.strip()) != animationValue or int(transitionSetValue.stdout.strip()) != animationValue or int(animatorSetValue.stdout.strip()) != animationValue:
+                # Setting the values didn't work, error out
+                getLogger().exception(f"Failed to set animation values to {animationValue}.")
+                raise Exception(f"Failed to set animation values to {animationValue}.")
+            else:
+                getLogger().info(f"Animation values successfully set to {animationValue}.")
+
+            try:
+                stopAppCmd = [ 
+                    adb.stdout.strip(),
+                    'shell',
+                    'am',
+                    'force-stop',
+                    self.packagename
+                ]
+                
+                installCmd = xharnesscommand() + [
+                    'android',
+                    'install',
+                    '--app', self.packagepath,
+                    '--package-name',
+                    self.packagename,
+                    '-o',
+                    const.TRACEDIR,
+                    '-v'
+                ]
+                RunCommand(installCmd, verbose=True).run()
+
+                getLogger().info("Completed install, running shell.")
+                cmdline = [ 
+                    adb.stdout.strip(),
+                    'shell',
+                    f'cmd package resolve-activity --brief {self.packagename} | tail -n 1'
+                ]
+                getActivity = RunCommand(cmdline, verbose=True)
+                getActivity.run()
+                getLogger().info(f"Target Activity {getActivity.stdout}")
+
+                # More setup stuff
+                checkScreenOnCmd = [ 
+                    adb.stdout.strip(),
+                    'shell',
+                    f'dumpsys input_method | grep mInteractive'
+                ]
                 checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
                 checkScreenOn.run()
-                if("mInteractive=false" in checkScreenOn.stdout):
-                    getLogger().exception("Failed to make screen interactive.")
 
-            # Actual testing some run stuff
-            getLogger().info("Test run to check if permissions are needed")
-            activityname = getActivity.stdout.strip()
+                keyInputCmd = [
+                    adb.stdout.strip(),
+                    'shell',
+                    'input',
+                    'keyevent'
+                ]
 
-            startAppCmd = [ 
-                adb.stdout.strip(),
-                'shell',
-                'am',
-                'start-activity',
-                '-W',
-                '-n',
-                activityname
-            ]
-            testRun = RunCommand(startAppCmd, verbose=True)
-            testRun.run()
-            testRunStats = re.findall(runSplitRegex, testRun.stdout) # Split results saving value (List: Starting, Status, LaunchState, Activity, TotalTime, WaitTime) 
-            getLogger().info(f"Test run activity: {testRunStats[3]}")
-            time.sleep(10)
-            RunCommand(stopAppCmd, verbose=True).run()
+                if "mInteractive=false" in checkScreenOn.stdout: 
+                    # Turn on the screen to make interactive and see if it worked
+                    getLogger().info("Screen was off, turning on.")
+                    screenWasOff = True
+                    RunCommand(keyInputCmd + ['26'], verbose=True).run() # Press the power key
+                    RunCommand(keyInputCmd + ['82'], verbose=True).run() # Unlock the screen with menu key (only works if it is not a password lock)
 
-            if "com.google.android.permissioncontroller" in testRunStats[3]:
-                # On perm screen, use the buttons to close it. it will stay away until the app is reinstalled
-                RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
-                time.sleep(1)
-                RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
-                time.sleep(1)
-                RunCommand(keyInputCmd + ['66'], verbose=True).run() # Press enter to close main perm screen
-                time.sleep(1)
-                RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
-                time.sleep(1)
-                RunCommand(keyInputCmd + ['66'], verbose=True).run() # Press enter to close out of second screen
-                time.sleep(1)
+                    checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
+                    checkScreenOn.run()
+                    if "mInteractive=false" in checkScreenOn.stdout:
+                        getLogger().exception("Failed to make screen interactive.")
+                        raise Exception("Failed to make screen interactive.")
 
-                # Check to make sure it worked
+                # Actual testing some run stuff
+                getLogger().info("Test run to check if permissions are needed")
+                activityname = getActivity.stdout.strip()
+
+                # -W in the start command waits for the app to finish initial draw.
+                startAppCmd = [ 
+                    adb.stdout.strip(),
+                    'shell',
+                    'am',
+                    'start-activity',
+                    '-W',
+                    '-n',
+                    activityname
+                ]
                 testRun = RunCommand(startAppCmd, verbose=True)
                 testRun.run()
-                testRunStats = re.findall(runSplitRegex, testRun.stdout) 
+                testRunStats = re.findall(runSplitRegex, testRun.stdout) # Split results saving value (List: Starting, Status, LaunchState, Activity, TotalTime, WaitTime) 
                 getLogger().info(f"Test run activity: {testRunStats[3]}")
-                RunCommand(stopAppCmd, verbose=True).run() 
-                
-                if "com.google.android.permissioncontroller" in testRunStats[3]:
-                    getLogger().exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
+                time.sleep(10) # Add delay to ensure app is fully installed and give it some time to settle
 
-            allResults = []
-            for i in range(self.startupiterations):
-                startStats = RunCommand(startAppCmd, verbose=True)
-                startStats.run()
                 RunCommand(stopAppCmd, verbose=True).run()
-                allResults.append(startStats.stdout) # Save results (List is Intent, Status, LaunchState Activity, TotalTime, WaitTime)
-                time.sleep(3) # Delay in seconds for ensuring a cold start
 
-            getLogger().info("Stopping App for uninstall")
-            RunCommand(stopAppCmd, verbose=True).run()
+                if "com.google.android.permissioncontroller" in testRunStats[3]:
+                    # On perm screen, use the buttons to close it. it will stay away until the app is reinstalled
+                    RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
+                    time.sleep(1)
+                    RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
+                    time.sleep(1)
+                    RunCommand(keyInputCmd + ['66'], verbose=True).run() # Press enter to close main perm screen
+                    time.sleep(1)
+                    RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
+                    time.sleep(1)
+                    RunCommand(keyInputCmd + ['66'], verbose=True).run() # Press enter to close out of second screen
+                    time.sleep(1)
+
+                    # Check to make sure it worked
+                    testRun = RunCommand(startAppCmd, verbose=True)
+                    testRun.run()
+                    testRunStats = re.findall(runSplitRegex, testRun.stdout) 
+                    getLogger().info(f"Test run activity: {testRunStats[3]}")
+                    RunCommand(stopAppCmd, verbose=True).run() 
                     
-            getLogger().info("Uninstalling app")
-            uninstallAppCmd = xharnesscommand() + [
-                'android',
-                'uninstall',
-                '--package-name',
-                self.packagename
-            ]
-            RunCommand(uninstallAppCmd, verbose=True).run()
+                    if "com.google.android.permissioncontroller" in testRunStats[3]:
+                        getLogger().exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
+                        raise Exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
 
-            if screenWasOff:
-                RunCommand(keyInputCmd + ['26'], verbose=True).run() # Turn the screen back off
+                # Create the fullydrawn command
+                fullyDrawnRetrieveCmd = [ 
+                    adb.stdout.strip(),
+                    'shell',
+                    f"logcat -d | grep 'ActivityTaskManager: Fully drawn {self.packagename}'"
+                ]
+
+                basicStartupRetrieveCmd = [ 
+                    adb.stdout.strip(),
+                    'shell',
+                    f"logcat -d | grep 'ActivityTaskManager: Displayed {activityname}'"
+                ]
+
+                clearLogsCmd = [
+                    adb.stdout.strip(),
+                    'logcat',
+                    '-c'
+                ]
+
+                allResults = []
+                for i in range(self.startupiterations):
+                    # Clear logs
+                    RunCommand(clearLogsCmd, verbose=True).run()
+                    startStats = RunCommand(startAppCmd, verbose=True)
+                    startStats.run()
+                    # Make sure we cold started (TODO Add other starts)
+                    if "LaunchState: COLD" not in startStats.stdout:
+                        getLogger().error("App Start not COLD!")
+                        
+                    # Save the results and get them from the log
+                    if self.usefullydrawntime: time.sleep(self.fullyDrawnDelaySecMax) # Start command doesn't wait for fully drawn report, force a wait for it. -W in the start command waits for the app to finish initial draw.
+                    RunCommand(stopAppCmd, verbose=True).run()
+                    if self.usefullydrawntime:
+                        retrieveTimeCmd = RunCommand(fullyDrawnRetrieveCmd, verbose=True)
+                    else:
+                        retrieveTimeCmd = RunCommand(basicStartupRetrieveCmd, verbose=True)
+                    retrieveTimeCmd.run()
+                    dirtyCapture = re.search("\+(\d*s?\d+)ms", retrieveTimeCmd.stdout)
+                    if not dirtyCapture:
+                        raise Exception("Failed to capture the reported start time!")
+                    captureList = dirtyCapture.group(1).split('s')
+                    if len(captureList) == 1: # Only have the ms, everything should be good
+                        formattedTime = f"TotalTime: {captureList[0]}\n"
+                    elif len(captureList) == 2: # Have s and ms, but maybe not padded ms, pad and combine (zfill left pads with 0)
+                        formattedTime = f"TotalTime: {captureList[0]}{captureList[1].zfill(3)}\n"
+                    else:
+                        getLogger().error("Time capture failed, found {len(captureList)}")
+                        raise Exception("Android Time Capture Failed! Incorrect number of captures found.")
+                    allResults.append(formattedTime) # append TotalTime: (TIME)
+                    time.sleep(3) # Delay in seconds for ensuring a cold start
+                
+            finally:
+                getLogger().info("Stopping App for uninstall")
+                RunCommand(stopAppCmd, verbose=True).run()
+                        
+                getLogger().info("Uninstalling app")
+                uninstallAppCmd = xharnesscommand() + [
+                    'android',
+                    'uninstall',
+                    '--package-name',
+                    self.packagename
+                ]
+                RunCommand(uninstallAppCmd, verbose=True).run()
+
+                # Reset animation values 
+                getLogger().info("Resetting animation values to pretest values")
+                cmdline = [
+                    adb.stdout.strip(),
+                    'shell', 'settings', 'put', 'global', 'window_animation_scale', window_animation_scale_cmd.stdout.strip()
+                ]
+                RunCommand(cmdline, verbose=True).run()
+                cmdline = [
+                    adb.stdout.strip(),
+                    'shell', 'settings', 'put', 'global', 'transition_animation_scale', transition_animation_scale_cmd.stdout.strip()
+                ]
+                RunCommand(cmdline, verbose=True).run()
+                cmdline = [
+                    adb.stdout.strip(),
+                    'shell', 'settings', 'put', 'global', 'animator_duration_scale', animator_duration_scale_cmd.stdout.strip()
+                ]
+                RunCommand(cmdline, verbose=True).run()
+                cmdline = [
+                    adb.stdout.strip(),
+                    'shell', 'settings', 'put', 'system', 'screen_off_timeout', screen_off_timeout_cmd.stdout.strip()
+                ]
+                RunCommand(cmdline, verbose=True).run()
+
+                if screenWasOff:
+                    RunCommand(keyInputCmd + ['26'], verbose=True).run() # Turn the screen back off
 
             # Create traces to store the data so we can keep the current general parse trace flow
             getLogger().info(f"Logs: \n{allResults}")
@@ -471,9 +637,247 @@ ex: C:\repos\performance;C:\repos\runtime
             traceFile.close()
 
             startup = StartupWrapper()
-            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname='Device Startup - Android %s' % (self.packagename))
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname=self.scenarioname)
             startup.parsetraces(self.traits)
 
+        elif self.testtype == const.DEVICESTARTUP and self.devicetype == 'ios':
+
+            getLogger().info("Clearing potential previous run nettraces")
+            for file in glob.glob(os.path.join(const.TRACEDIR, 'PerfTest', 'runoutput.trace')):
+                if exists(file):   
+                    getLogger().info("Removed: " + os.path.join(const.TRACEDIR, file))
+                    os.remove(file)
+
+            if not exists(const.TMPDIR):
+                os.mkdir(const.TMPDIR)
+
+            getLogger().info("Clearing potential previous run *.logarchive")
+            for logarchive in glob.glob(os.path.join(const.TMPDIR, '*.logarchive')):
+                if exists(logarchive):
+                    getLogger().info("Removed: " + os.path.join(const.TMPDIR, logarchive))
+                    rmtree(logarchive)
+
+            getLogger().info("Checking device state.")
+            cmdline = xharnesscommand() + ['apple', 'state']
+            adb = RunCommand(cmdline, verbose=True)
+            adb.run()
+
+            getLogger().info("Installing app on device.")
+            installCmd = xharnesscommand() + [
+                'apple',
+                'install',
+                '--app', self.packagepath,
+                '--target', 'ios-device',
+                '-o',
+                const.TRACEDIR,
+                '-v'
+            ]
+            RunCommand(installCmd, verbose=True).run()
+            getLogger().info("Completed install.")
+
+            allResults = []
+            for i in range(self.startupiterations + 1): # adding one iteration to account for the warmup iteration
+                getLogger().info("Waiting 10 secs to ensure we're not getting confused with previous app run.")
+                time.sleep(10)
+
+                getLogger().info(f"Collect startup data for iteration {i}.")
+                runCmdTimestamp = datetime.now()
+                runCmd = xharnesscommand() + [
+                    'apple',
+                    'mlaunch',
+                    '--',
+                    f'--launchdevbundleid={self.packagename}',
+                ]
+                runCmdCommand = RunCommand(runCmd, verbose=True)
+
+                try:
+                    runCmdCommand.run()
+                except CalledProcessError as ex:
+                    if ex.returncode == 70:
+                        # Exit code 70 from xharness means time out, this can happen sometimes when the device is in a screwed state
+                        # and doesn't correctly launch apps anymore. In that case we reboot the device
+                        getLogger().error("Device is in a broken state, rebooting.")
+                        rebootCmd = xharnesscommand() + [
+                            'apple',
+                            'mlaunch',
+                            '--',
+                            '--rebootdev',
+                        ]
+                        rebootCmdCommand = RunCommand(rebootCmd, verbose=True)
+                        rebootCmdCommand.run()
+
+                        getLogger().info("Waiting 30 secs for the device to boot.")
+                        time.sleep(30)
+
+                        # if we're in Helix, schedule the work item for retry by writing a special file to the workitem root
+                        if helixworkitemroot():
+                            getLogger().info("Requesting retry from Helix.")
+                            with open(f"{helixworkitemroot()}/.retry", "w") as retryFile:
+                                retryFile.write("Device was in a broken state, rebooted the device and retrying work item.")
+
+                    # rethrow exception so we end the process
+                    getLogger().error("App launch failed, please rerun the script to start a new measurement.")
+                    raise
+
+                app_pid_search = re.search("Launched application.*with pid (?P<app_pid>\d+)", runCmdCommand.stdout)
+                app_pid = int(app_pid_search.group('app_pid'))
+
+                logarchive_filename = os.path.join(const.TMPDIR, f'iteration{i}.logarchive')
+                getLogger().info(f"Waiting 5 secs to ensure app with PID {app_pid} is fully started.")
+                time.sleep(5)
+                collectCmd = [
+                    'sudo',
+                    'log',
+                    'collect',
+                    '--device',
+                    '--start', runCmdTimestamp.strftime("%Y-%m-%d %H:%M:%S"),
+                    '--output', logarchive_filename,
+                ]
+                RunCommand(collectCmd, verbose=True).run()
+
+                getLogger().info(f"Kill app with PID {app_pid}.")
+                killCmd = xharnesscommand() + [
+                    'apple',
+                    'mlaunch',
+                    '--',
+                    f'--killdev={app_pid}',
+                ]
+                killCmdCommand = RunCommand(killCmd, verbose=True)
+                killCmdCommand.run()
+
+                # Process Data
+
+                # There are four watchdog events from SpringBoard during an application startup:
+                #
+                # [application<net.dot.maui>:770] [realTime] Now monitoring resource allowance of 20.00s (at refreshInterval -1.00s)
+                # [application<net.dot.maui>:770] [realTime] Stopped monitoring.
+                # [application<net.dot.maui>:770] [realTime] Now monitoring resource allowance of 19.28s (at refreshInterval -1.00s)
+                # [application<net.dot.maui>:770] [realTime] Stopped monitoring.
+                #
+                # The first two are monitoring the time it takes the OS to create the process, load .dylibs and call into the app's main()
+                # The second two are monitoring the time it takes the app to draw the first frame of UI from main()
+                #
+                # An app has 20 seconds to complete this sequence or the OS will kill the app.
+                # We collect these log events to do our measurements.
+
+                logShowCmd = [
+                    'log',
+                    'show',
+                    '--predicate', '(process == "SpringBoard") && (category == "Watchdog")',
+                    '--info',
+                    '--style', 'ndjson',
+                    logarchive_filename,
+                ]
+                logShowCmdCommand = RunCommand(logShowCmd, verbose=True)
+                logShowCmdCommand.run()
+
+                events = []
+                for line in logShowCmdCommand.stdout.splitlines():
+                    try:
+                        lineData = json.loads(line)
+                        if 'Now monitoring resource allowance' in lineData['eventMessage'] or 'Stopped monitoring' in lineData['eventMessage']:
+                            events.append (lineData)
+                    except:
+                        break
+
+                # the startup measurement relies on the date/time of the device to be pretty much in sync with the host
+                # since we use the timestamps from the host to decide which parts of the device log to get and
+                # we then use that to calculate the time delta from watchdog events
+                if len(events) != 4:
+                    raise Exception("Didn't get the right amount of watchdog events, this could mean the app crashed or the device clock is not in sync with the host.")
+
+                timeToMainEventStart = events[0]
+                timeToMainEventStop = events[1]
+                timeToFirstDrawEventStart = events[2]
+                timeToFirstDrawEventStop = events[3]
+
+                # validate log messages
+                if f'application<{self.packagename}>:{app_pid}' not in timeToMainEventStart['eventMessage'] or 'Now monitoring resource allowance of 20.00s' not in timeToMainEventStart['eventMessage']:
+                    raise Exception(f"Invalid timeToMainEventStart: {timeToMainEventStart['eventMessage']}")
+
+                if f'application<{self.packagename}>:{app_pid}' not in timeToMainEventStop['eventMessage'] or 'Stopped monitoring' not in timeToMainEventStop['eventMessage']:
+                    raise Exception(f"Invalid timeToMainEventStop: {timeToMainEventStop['eventMessage']}")
+
+                if f'application<{self.packagename}>:{app_pid}' not in timeToFirstDrawEventStart['eventMessage'] or 'Now monitoring resource allowance of' not in timeToFirstDrawEventStart['eventMessage']:
+                    raise Exception(f"Invalid timeToFirstDrawEventStart: {timeToFirstDrawEventStart['eventMessage']}")
+
+                if f'application<{self.packagename}>:{app_pid}' not in timeToFirstDrawEventStop['eventMessage'] or 'Stopped monitoring' not in timeToFirstDrawEventStop['eventMessage']:
+                    raise Exception(f"Invalid timeToFirstDrawEventStop: {timeToFirstDrawEventStop['eventMessage']}")
+
+                timeToMainEventStartDateTime = datetime.strptime(timeToMainEventStart['timestamp'], '%Y-%m-%d %H:%M:%S.%f%z')
+                timeToMainEventEndDateTime = datetime.strptime(timeToMainEventStop['timestamp'], '%Y-%m-%d %H:%M:%S.%f%z')
+                timeToMainMilliseconds = (timeToMainEventEndDateTime - timeToMainEventStartDateTime).total_seconds() * 1000
+
+                timeToFirstDrawEventStartDateTime = datetime.strptime(timeToFirstDrawEventStart['timestamp'], '%Y-%m-%d %H:%M:%S.%f%z')
+                timeToFirstDrawEventEndDateTime = datetime.strptime(timeToFirstDrawEventStop['timestamp'], '%Y-%m-%d %H:%M:%S.%f%z')
+                timeToFirstDrawMilliseconds = (timeToFirstDrawEventEndDateTime - timeToFirstDrawEventStartDateTime).total_seconds() * 1000
+
+                if self.usefullydrawntime:
+                    # grab log event with the magic string in it
+                    logShowMagicStringCmd = [
+                        'log',
+                        'show',
+                        '--predicate', f'(processIdentifier == {app_pid}) && (composedMessage contains "{self.fullyDrawnMagicString}")',
+                        '--info',
+                        '--style', 'ndjson',
+                        logarchive_filename,
+                    ]
+                    logShowMagicStringCmd = RunCommand(logShowMagicStringCmd, verbose=True)
+                    logShowMagicStringCmd.run()
+
+                    magicStringEvent = ''
+                    for line in logShowMagicStringCmd.stdout.splitlines():
+                        try:
+                            lineData = json.loads(line)
+                            if self.fullyDrawnMagicString in lineData['eventMessage']:
+                                magicStringEvent = lineData
+                        except:
+                            break
+
+                    if magicStringEvent == '':
+                        raise Exception("Didn't get the fully-drawn magic string event.")
+
+                    timeToMagicStringEventDateTime = datetime.strptime(magicStringEvent['timestamp'], '%Y-%m-%d %H:%M:%S.%f%z')
+
+                    # startup time is time to the magic string event
+                    totalTimeMilliseconds = (timeToMagicStringEventDateTime - timeToMainEventStartDateTime).total_seconds() * 1000
+                else:
+                    # startup time is time to first draw
+                    totalTimeMilliseconds = timeToMainMilliseconds + timeToFirstDrawMilliseconds
+
+                if i == 0:
+                    # ignore the warmup iteration
+                    getLogger().info(f'Warmup iteration took {totalTimeMilliseconds}')
+                else:
+                    # TODO: this isn't really a COLD run, we should have separate measurements for starting the app right after install
+                    launchState = 'COLD'
+                    allResults.append(f'LaunchState: {launchState}\nTotalTime: {int(totalTimeMilliseconds)}\nTimeToMain: {int(timeToMainMilliseconds)}\n\n')
+
+            # Done with testing, uninstall the app
+            getLogger().info("Uninstalling app")
+            uninstallAppCmd = xharnesscommand() + [
+                'apple',
+                'uninstall',
+                '--app', self.packagename,
+                '--target', 'ios-device',
+                '-o',
+                const.TRACEDIR,
+                '-v'
+            ]
+            RunCommand(uninstallAppCmd, verbose=True).run()
+
+            # Create traces to store the data so we can keep the current general parse trace flow
+            getLogger().info(f"Logs: \n{allResults}")
+            os.makedirs(f"{const.TRACEDIR}/PerfTest", exist_ok=True)
+            traceFile = open(f"{const.TRACEDIR}/PerfTest/runoutput.trace", "w")
+            for result in allResults:
+                traceFile.write(result)
+            traceFile.close()
+
+            startup = StartupWrapper()
+            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname=self.scenarioname)
+            startup.parsetraces(self.traits)
+            
         elif self.testtype == const.SOD:
             sod = SODWrapper()
             builtdir = const.PUBDIR if os.path.exists(const.PUBDIR) else None

@@ -19,6 +19,7 @@ BUILD = 'build'
 PUBLISH = 'publish'
 CROSSGEN = 'crossgen'
 CROSSGEN2 = 'crossgen2'
+EXTRACT = 'extract'
 DEBUG = 'Debug'
 RELEASE = 'Release'
 
@@ -26,7 +27,8 @@ OPERATIONS = (DEFAULT,
               BUILD,
               PUBLISH,
               CROSSGEN,
-              CROSSGEN2
+              CROSSGEN2,
+              EXTRACT
              )
 
 class PreCommands:
@@ -46,12 +48,30 @@ class PreCommands:
 
         default_parser = subparsers.add_parser(DEFAULT, help='Default operation (placeholder command and no specific operation will be executed)' )
         self.add_common_arguments(default_parser)
+        
+        extract_parser = subparsers.add_parser(EXTRACT, help='Used for local runs that extract the binaries to be run from a zip file. Requires a path to the zip' )
+        self.add_common_arguments(extract_parser)
+        extract_parser.add_argument('-p', '--pathtozip',
+                    dest='pathtozip',
+                    metavar='pathtozip',
+                    help='Path to the zip file to extract',
+                    required=True)
 
         build_parser = subparsers.add_parser(BUILD, help='Builds the project')
         self.add_common_arguments(build_parser)
 
         publish_parser = subparsers.add_parser(PUBLISH, help='Publishes the project')
         self.add_common_arguments(publish_parser)
+        publish_parser.add_argument('--self-contained',
+                                    dest='self_contained',
+                                    default=False,
+                                    action='store_true',
+                                    help='Publish SCD')
+        publish_parser.add_argument('--no-self-contained',
+                                    dest='no_self_contained',
+                                    default=False,
+                                    action='store_true',
+                                    help='Publish FDD')
 
         crossgen_parser = subparsers.add_parser(CROSSGEN, help='Runs crossgen on a particular file')
         self.add_common_arguments(crossgen_parser)
@@ -77,11 +97,18 @@ class PreCommands:
         self.binlog = args.binlog
         self.has_workload = args.has_workload
         self.readonly_dotnet = args.readonly_dotnet
-
+        self.windows = args.windows
+        self.output = args.output
+        
+        if self.operation == PUBLISH:
+            self.self_contained = args.self_contained
+            self.no_self_contained = args.no_self_contained
         if self.operation == CROSSGEN:
             self.crossgen_arguments.parse_crossgen_args(args)
         if self.operation == CROSSGEN2:
             self.crossgen_arguments.parse_crossgen2_args(args)
+        if self.operation == EXTRACT:
+            self.pathtozip = args.pathtozip
 
 
     def new(self,
@@ -145,6 +172,14 @@ class PreCommands:
                             default=False,
                             action='store_true',
                             help='Indicates that the dotnet being used should not be modified (for example, when it is ahared with other builds)')
+        parser.add_argument('--windowsui',
+                            dest='windows',
+                            action='store_true',
+                            help='must be set for UI tests so the proper rid is used')
+        parser.add_argument('-o', '--output',
+                            dest='output',
+                            metavar='output',
+                            help='output directory')
         parser.set_defaults(configuration=RELEASE)
 
     def existing(self, projectdir: str, projectfile: str):
@@ -160,12 +195,14 @@ class PreCommands:
             pass
         if self.operation == BUILD:
             self._restore()
-            self._build(configuration=self.configuration, framework=self.framework, build_args=build_args)
+            self._build(configuration=self.configuration, framework=self.framework, output=self.output, build_args=build_args)
         if self.operation == PUBLISH:
             self._restore()
-            self._publish(configuration=self.configuration,
-                          runtime_identifier=self.runtime_identifier,
-                          framework=self.framework, build_args=build_args)
+            if self.self_contained:
+                build_args.append('--self-contained')
+            elif self.no_self_contained:
+                build_args.append('--no-self-contained')
+            self._publish(configuration=self.configuration, runtime_identifier=self.runtime_identifier, framework=self.framework, output=self.output, build_args=build_args)
         if self.operation == CROSSGEN:
             startup_args = [
                 os.path.join(self.crossgen_arguments.coreroot, 'crossgen%s' % extension()),
@@ -230,30 +267,33 @@ class PreCommands:
     def _updateframework(self, projectfile: str):
         'Update the <TargetFramework> property so we can re-use the template'
         if self.framework:
-            replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
+            if self.windows:
+                replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}-windows</TargetFramework>')
+            else:
+                replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
 
-    def _publish(self, configuration: str, framework: str = None, runtime_identifier: str = None, build_args: list = []):
+    def _publish(self, configuration: str, framework: str = None, runtime_identifier: str = None, output: str = None, build_args: list = []):
         self.project.publish(configuration,
-                             const.PUBDIR, 
+                             output or const.PUBDIR,
                              True,
                              os.path.join(get_packages_directory(), ''), # blazor publish targets require the trailing slash for joining the paths
-                             framework,
+                             framework if not self.windows else f'{framework}-windows',
                              runtime_identifier,
                              self._parsemsbuildproperties(),
-                             '-bl:%s' % self.binlog if self.binlog else "",
-                             *build_args
-                             )
+                             *['-bl:%s' % self.binlog] if self.binlog else [],
+                             *build_args)
 
     def _restore(self):
         self.project.restore(packages_path=get_packages_directory(), verbose=True)
 
-    def _build(self, configuration: str, framework: str = None, build_args: list = []):
-        self.project.build(configuration=configuration,
-                               verbose=True,
-                               packages_path=get_packages_directory(),
-                               target_framework_monikers=[framework],
-                               output_to_bindir=True,
-                               *build_args)
+    def _build(self, configuration: str, framework: str = None, output: str = None, build_args: list = []):
+        self.project.build(configuration,
+                           True,
+                           get_packages_directory(),
+                           [framework],
+                           output is None,
+                           None,
+                           (['--output', output] if output else []) + build_args)
 
     def _backup(self, projectdir:str):
         'Copy from projectdir to appdir so we do not modify the source code'
