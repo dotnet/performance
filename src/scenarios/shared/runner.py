@@ -338,6 +338,13 @@ ex: C:\repos\performance;C:\repos\runtime
                 'size'
             ]
             RunCommand(cmdline, verbose=True).run()
+            stopAppCmd = [ 
+                adb.stdout.strip(),
+                'shell',
+                'am',
+                'force-stop',
+                self.packagename
+            ]
 
             installCmd = xharnesscommand() + [
                 self.devicetype,
@@ -391,7 +398,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
             # Actual testing some run stuff
             getLogger().info("Test run to check if permissions are needed")
-            activityname = getActivity.stdout
+            activityname = getActivity.stdout.strip()
 
             startAppCmd = [ 
                 adb.stdout.strip(),
@@ -406,14 +413,7 @@ ex: C:\repos\performance;C:\repos\runtime
             testRun.run()
             testRunStats = re.findall(runSplitRegex, testRun.stdout) # Split results saving value (List: Starting, Status, LaunchState, Activity, TotalTime, WaitTime) 
             getLogger().info(f"Test run activity: {testRunStats[3]}")
-
-            stopAppCmd = [ 
-                adb.stdout.strip(),
-                'shell',
-                'am',
-                'force-stop',
-                self.packagename
-            ]
+            time.sleep(10)
             RunCommand(stopAppCmd, verbose=True).run()
 
             if "com.google.android.permissioncontroller" in testRunStats[3]:
