@@ -1,29 +1,26 @@
 '''
 pre-command
 '''
-import sys
+import subprocess
 from performance.logger import setup_loggers, getLogger
-from shared import const
-from shared.mauisharedpython import remove_aab_files, install_versioned_maui
 from shared.precommands import PreCommands
+from shared.mauisharedpython import remove_aab_files, install_versioned_maui
 from shared.versionmanager import versions_write_json, get_version_from_dll_powershell
-from test import EXENAME
+from shared import const
 
 setup_loggers(True)
-
 precommands = PreCommands()
 install_versioned_maui(precommands)
 
-# Setup the Maui folder
-precommands.new(template='maui',
-                output_dir=const.APPDIR,
-                bin_dir=const.BINDIR,
-                exename=EXENAME,
-                working_directory=sys.path[0],
-                no_restore=False)
+branch = f'{precommands.framework[:6]}'
+subprocess.run(['git', 'clone', 'https://github.com/microsoft/dotnet-podcasts.git', '-b', branch, '--single-branch', '--depth', '1'])
+subprocess.run(['powershell', '-Command', r'Remove-Item -Path .\\dotnet-podcasts\\.git -Recurse -Force']) # Git files have permission issues, do their deletion separately
+
+precommands.existing(projectdir='./dotnet-podcasts', projectfile='./src/Mobile/Microsoft.NetConf2021.Maui.csproj')
 
 # Build the APK
-precommands.execute(['--no-restore', '--source', 'MauiNuGet.config'])
+precommands._restore()
+precommands.execute(['--no-restore'])
 
 # Remove the aab files as we don't need them, this saves space
 output_dir = const.PUBDIR
