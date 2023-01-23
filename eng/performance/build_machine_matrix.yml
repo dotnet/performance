@@ -92,3 +92,15 @@ jobs:
       machinePool: Tiger
       queue: Windows.10.Arm64.Perf.Surf
       ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Pixel only used in private builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osName: windows
+      architecture: x64
+      osVersion: 19H1
+      pool:
+        vmImage: 'windows-2022'
+      queue: Windows.10.Amd64.Pixel.Perf
+      machinePool: Pixel
+      ${{ insert }}: ${{ parameters.jobParameters }}

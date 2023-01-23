@@ -106,6 +106,7 @@ CounterName    |10000000000000000.000 ns |10000000000000000.000 ns |100000000000
             var jsonObj = JsonConvert.DeserializeAnonymousType(jsonString, jsonType);
 
             Assert.Equal(environment.GetEnvironmentVariable("HELIX_CORRELATION_ID"), jsonObj.Run.CorrelationId);
+            Assert.Equal(environment.GetEnvironmentVariable("HELIX_WORKITEM_FRIENDLYNAME"), jsonObj.Run.WorkItemName);
             Assert.Equal(environment.GetEnvironmentVariable("PERFLAB_PERFHASH"), jsonObj.Run.PerfRepoHash);
             Assert.Equal(environment.GetEnvironmentVariable("PERFLAB_QUEUE"), jsonObj.Run.Queue);
             Assert.Equal(environment.GetEnvironmentVariable("PERFLAB_REPO"), jsonObj.Build.Repo);
