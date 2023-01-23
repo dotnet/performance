@@ -52,6 +52,10 @@
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ExplicitPrepareCommand>$(Python) pre.py extract -p $(CorrelationPayloadDirectory)PDN\PDN.zip -o $(PreparePayloadWorkItemBaseDirectory)%(ScenarioDirectoryName)_fdd</ExplicitPrepareCommand>
     </UIScenario>
+    <AOTScenario Include="Empty Console NativeAOT">
+      <ScenarioDirectoryName>emptyconsolenativeaot</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+    </AOTScenario>
   </ItemGroup>
 
 
@@ -71,6 +75,10 @@
     </PreparePayloadWorkItem>
     <PreparePayloadWorkItem Include="@(Scenario)">
       <Command>$(Python) pre.py build -f $(PERFLAB_Framework) -c Release -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)_build</Command>
+      <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
+    </PreparePayloadWorkItem>
+    <PreparePayloadWorkItem Include="@(AOTScenario)">
+      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework) -c Release -r $(RID) -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)_aot</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
@@ -117,6 +125,15 @@
     <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - Build')">
       <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_build %HELIX_WORKITEM_ROOT%\bin /E /I /Y</PreCommands>
       <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_build $HELIX_WORKITEM_ROOT/bin</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+  </ItemGroup>
+
+  <!-- SOD AOT -->
+  <ItemGroup>
+    <HelixWorkItem Include="@(AOTScenario -> 'SOD - %(Identity) - AOT')">
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_aot %HELIX_WORKITEM_ROOT%\bin /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_aot $HELIX_WORKITEM_ROOT/bin</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
