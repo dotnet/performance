@@ -604,3 +604,18 @@ jobs:
       projectFile: sdk_scenarios.proj
       channels:
         - $(channel)
+
+      # Maui Android scenario benchmarks
+  - template: /eng/performance/scenarios.yml
+    parameters:
+      osName: windows
+      architecture: x64
+      osVersion: 19H1
+      pool:
+        vmImage: 'windows-2022'
+      queue: Windows.10.Amd64.Pixel.Perf
+      machinePool: Pixel
+      kind: maui_scenarios_android
+      projectFile: maui_scenarios_android.proj
+      channels:
+        - $(channel)
