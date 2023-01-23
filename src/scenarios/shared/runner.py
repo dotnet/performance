@@ -440,6 +440,14 @@ ex: C:\repos\performance;C:\repos\runtime
                 getLogger().info(f"Animation values successfully set to {animationValue}.")
 
             try:
+                stopAppCmd = [ 
+                    adb.stdout.strip(),
+                    'shell',
+                    'am',
+                    'force-stop',
+                    self.packagename
+                ]
+                
                 installCmd = xharnesscommand() + [
                     'android',
                     'install',
@@ -493,7 +501,7 @@ ex: C:\repos\performance;C:\repos\runtime
 
                 # Actual testing some run stuff
                 getLogger().info("Test run to check if permissions are needed")
-                activityname = getActivity.stdout
+                activityname = getActivity.stdout.strip()
 
                 # -W in the start command waits for the app to finish initial draw.
                 startAppCmd = [ 
@@ -509,16 +517,8 @@ ex: C:\repos\performance;C:\repos\runtime
                 testRun.run()
                 testRunStats = re.findall(runSplitRegex, testRun.stdout) # Split results saving value (List: Starting, Status, LaunchState, Activity, TotalTime, WaitTime) 
                 getLogger().info(f"Test run activity: {testRunStats[3]}")
-
                 time.sleep(10) # Add delay to ensure app is fully installed and give it some time to settle
 
-                stopAppCmd = [ 
-                    adb.stdout.strip(),
-                    'shell',
-                    'am',
-                    'force-stop',
-                    self.packagename
-                ]
                 RunCommand(stopAppCmd, verbose=True).run()
 
                 if "com.google.android.permissioncontroller" in testRunStats[3]:

@@ -90,8 +90,13 @@ namespace Reporting
                 TimeStamp = DateTime.Parse(environment.GetEnvironmentVariable("PERFLAB_BUILDTIMESTAMP")),
             };
 
-            foreach (DictionaryEntry entry in environment.GetEnvironmentVariables()){
-                if (entry.Key.ToString().EndsWith("version", ignoreCase: true, culture: CultureInfo.InvariantCulture))
+            foreach (DictionaryEntry entry in environment.GetEnvironmentVariables())
+            {
+                if (entry.Key.ToString().Equals("PERFLAB_TARGET_FRAMEWORKS", StringComparison.InvariantCultureIgnoreCase)) 
+                {
+                    build.AdditionalData["targetFrameworks"] = entry.Value.ToString();
+                }
+                else if(entry.Key.ToString().EndsWith("version", true, CultureInfo.InvariantCulture))
                 {
                     // Special case the original two special cases, MAUI_VERSION is only needed because runtime based runs use MAUI_VERSION
                     if(entry.Key.ToString().Equals("DOTNET_VERSION", StringComparison.InvariantCultureIgnoreCase)){
