@@ -333,7 +333,7 @@ class CSharpProject:
                 self.csproj_file,
                 '--configuration', configuration,
                 '--no-restore',
-                "/p:NuGetPackageRoot={}".format(packages_path),
+                #"/p:NuGetPackageRoot={}".format(packages_path),
                 "/p:RestorePackagesPath={}".format(packages_path),
                 '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1',
             ]
@@ -358,7 +358,7 @@ class CSharpProject:
                     '--configuration', configuration,
                     '--framework', target_framework_moniker,
                     '--no-restore',
-                    "/p:NuGetPackageRoot={}".format(packages_path),
+                    #"/p:NuGetPackageRoot={}".format(packages_path),
                     "/p:RestorePackagesPath={}".format(packages_path),
                     '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1',
                 ]
@@ -438,7 +438,7 @@ class CSharpProject:
             'dotnet', 'publish',
             self.csproj_file,
             '--configuration', configuration,
-            "/p:NuGetPackageRoot={}".format(packages_path),
+            #"/p:NuGetPackageRoot={}".format(packages_path),
             "/p:RestorePackagesPath={}".format(packages_path),
             '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1'
         ]
