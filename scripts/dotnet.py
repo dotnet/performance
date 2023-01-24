@@ -334,6 +334,7 @@ class CSharpProject:
                 '--configuration', configuration,
                 '--no-restore',
                 "/p:NuGetPackageRoot={}".format(packages_path),
+                "/p:RestorePackagesPath={}".format(packages_path),
                 '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1',
             ]
 
@@ -358,6 +359,7 @@ class CSharpProject:
                     '--framework', target_framework_moniker,
                     '--no-restore',
                     "/p:NuGetPackageRoot={}".format(packages_path),
+                    "/p:RestorePackagesPath={}".format(packages_path),
                     '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1',
                 ]
 
@@ -437,6 +439,7 @@ class CSharpProject:
             self.csproj_file,
             '--configuration', configuration,
             "/p:NuGetPackageRoot={}".format(packages_path),
+            "/p:RestorePackagesPath={}".format(packages_path),
             '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1'
         ]
         cmdline += self.__get_output_build_arg(output_dir)
