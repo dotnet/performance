@@ -20,34 +20,73 @@
   </PropertyGroup>
 
   <ItemDefinitionGroup>
-      <HelixWorkItem>
+    <HelixWorkItem>
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemDefinitionGroup>
-  
+
+  <PropertyGroup>
+    <AfterPreparePayloadWorkItemCommand>$(Python) post.py</AfterPreparePayloadWorkItemCommand>
+    <PreparePayloadOutDirectoryName>scenarios_out</PreparePayloadOutDirectoryName>
+    <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' == 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)\</PreparePayloadWorkItemBaseDirectory>
+    <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
+  </PropertyGroup>
+
 
   <ItemGroup>
     <Scenario Include="Static Console Template">
-      <PayloadDirectory>$(ScenariosDir)staticconsoletemplate</PayloadDirectory>
+      <ScenarioDirectoryName>staticconsoletemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </Scenario>
     <Scenario Include="Static VB Console Template">
-      <PayloadDirectory>$(ScenariosDir)staticvbconsoletemplate</PayloadDirectory>
+      <ScenarioDirectoryName>staticvbconsoletemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </Scenario>
-    <!-- <Scenario Include="Static Winforms Template" Condition="'$(_Framework)' != 'netcoreapp5.0'">
-      <PayloadDirectory>$(ScenariosDir)staticwinformstemplate</PayloadDirectory>
-    </Scenario> -->
     <Scenario Include="New Console Template">
-      <PayloadDirectory>$(ScenariosDir)emptyconsoletemplate</PayloadDirectory>
+      <ScenarioDirectoryName>emptyconsoletemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </Scenario>
     <Scenario Include="New VB Console Template">
-      <PayloadDirectory>$(ScenariosDir)emptyvbconsoletemplate</PayloadDirectory>
+      <ScenarioDirectoryName>emptyvbconsoletemplate</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </Scenario>
+    
+    <MAUIScenario Include="Desktop Maui" Condition="'$(TargetsWindows)' == 'true' And '$(Architecture)' != 'arm64' And '$(Architecture)' != 'arm'">
+      <ScenarioDirectoryName>mauidesktop</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+    </MAUIScenario>
+    <MAUIScenario Include="Desktop Maui Blazor" Condition="'$(TargetsWindows)' == 'true' And '$(Architecture)' != 'arm64' And '$(Architecture)' != 'arm'">
+      <ScenarioDirectoryName>mauiblazordesktop</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+    </MAUIScenario>
   </ItemGroup>
+
+
+  <ItemGroup>
+    <PreparePayloadWorkItem Include="@(Scenario)">
+      <Command>$(Python) pre.py publish -f $(_Framework) -c Release -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)_fdd</Command>
+      <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
+    </PreparePayloadWorkItem>
+    <PreparePayloadWorkItem Include="@(Scenario)">
+      <Command>$(Python) pre.py publish -f $(_Framework) -c Release -r $(RID) -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)_scd</Command>
+      <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
+    </PreparePayloadWorkItem>
+    <PreparePayloadWorkItem Include="@(Scenario)">
+      <Command>$(Python) pre.py build -c Release -f $(_Framework) -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)_build</Command>
+      <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
+    </PreparePayloadWorkItem>
+    <PreparePayloadWorkItem Include="@(MAUIScenario)">
+      <Command>$(Python) pre.py publish -c Release -f $(_Framework)-windows10.0.19041.0 -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)_fdd</Command>
+      <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
+    </PreparePayloadWorkItem>
+  </ItemGroup>
+
 
   <!-- Startup FDD publish -->
   <ItemGroup>
     <HelixWorkItem Include="@(Scenario -> 'Startup - %(Identity) - FDD Publish')">
-      <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_fdd %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_fdd $HELIX_WORKITEM_ROOT/pub</PreCommands>
       <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
@@ -55,7 +94,8 @@
   <!-- SOD FDD publish -->
   <ItemGroup>
     <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - FDD Publish')">
-      <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_fdd %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_fdd $HELIX_WORKITEM_ROOT/pub</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
@@ -63,7 +103,8 @@
   <!-- SOD SCD publish w/ RID -->
   <ItemGroup>
     <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - SCD Publish')">
-      <PreCommands>$(Python) pre.py publish -f $(_Framework) -c Release -r $(RID)</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_scd %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_scd $HELIX_WORKITEM_ROOT/pub</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
@@ -71,38 +112,29 @@
   <!-- SOD build -->
   <ItemGroup>
     <HelixWorkItem Include="@(Scenario -> 'SOD - %(Identity) - Build')">
-      <PreCommands>$(Python) pre.py build -c Release -f $(_Framework)</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_build %HELIX_WORKITEM_ROOT%\bin /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_build $HELIX_WORKITEM_ROOT/bin</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
 
-  <!-- SOD & Device Startup for Windows Desktop MAUI -->
+  <!-- MAUI -->
   <ItemGroup>
-    <HelixWorkItem Include="SOD - Desktop Maui Unpackaged" Condition="'$(TargetsWindows)' == 'true'">
-      <PayloadDirectory>$(ScenariosDir)mauidesktop</PayloadDirectory>
-      <PreCommands>$(Python) pre.py publish -c Release -f $(_Framework)-windows10.0.19041.0</PreCommands>
+    <HelixWorkItem Include="@(MAUIScenario -> 'SOD - %(Identity) Unpackaged')">
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_fdd %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_fdd $HELIX_WORKITEM_ROOT/pub</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
-    <HelixWorkItem Include="Device Startup - Desktop Maui Default" Condition="'$(TargetsWindows)' == 'true'">
-      <PayloadDirectory>$(ScenariosDir)mauidesktop</PayloadDirectory>
-      <PreCommands>$(Python) pre.py publish -c Release -f $(_Framework)-windows10.0.19041.0</PreCommands>
+    <HelixWorkItem Include="@(MAUIScenario -> 'Device Startup - %(Identity) Default')">
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_fdd %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_fdd $HELIX_WORKITEM_ROOT/pub</PreCommands>
       <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
   </ItemGroup>
 
-  <!-- SOD & Device Startup for Windows Desktop MAUI Blazor -->
-  <ItemGroup>
-    <HelixWorkItem Include="SOD - Desktop Maui Blazor Unpackaged" Condition="'$(TargetsWindows)' == 'true'">
-      <PayloadDirectory>$(ScenariosDir)mauiblazordesktop</PayloadDirectory>
-      <PreCommands>$(Python) pre.py publish -c Release -f $(_Framework)-windows10.0.19041.0</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
-    </HelixWorkItem>
-    <HelixWorkItem Include="Device Startup - Desktop Maui Blazor Default" Condition="'$(TargetsWindows)' == 'true'">
-      <PayloadDirectory>$(ScenariosDir)mauiblazordesktop</PayloadDirectory>
-      <PreCommands>$(Python) pre.py publish -c Release -f $(_Framework)-windows10.0.19041.0</PreCommands>
-      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
-    </HelixWorkItem>
-  </ItemGroup>
+
+  <Import Project="PreparePayloadWorkItems.targets" />
+
 
   <!--
     This is useful for local testing to print the produced helix items
@@ -121,6 +153,5 @@
      post: %(HelixWorkItem.PostCommands)
      timeout: %(HelixWorkItem.Timeout)  '"/>
   </Target> -->
-  <Import Project="PreparePayloadWorkItems.targets" />
 
 </Project>

@@ -308,7 +308,7 @@ class CSharpProject:
               target_framework_monikers: list = None,
               output_to_bindir: bool = False,
               runtime_identifier: str = None,
-              *args) -> None:
+              args: list = None) -> None:
         '''Calls dotnet to build the specified project.'''
         if not target_framework_monikers:  # Build all supported frameworks.
             cmdline = [
@@ -327,7 +327,7 @@ class CSharpProject:
                 cmdline = cmdline + ['--runtime', runtime_identifier]
             
             if args:
-                cmdline = cmdline + list(args)
+                cmdline = cmdline + args
             
             RunCommand(cmdline, verbose=verbose).run(
                 self.working_directory)
@@ -351,7 +351,7 @@ class CSharpProject:
                     cmdline = cmdline + ['--runtime', runtime_identifier]
 
                 if args:
-                    cmdline = cmdline + list(args)
+                    cmdline = cmdline + args
                 
                 RunCommand(cmdline, verbose=verbose).run(
                     self.working_directory)
