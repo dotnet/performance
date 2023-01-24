@@ -3,11 +3,13 @@ import winreg
 from datetime import datetime, timezone
 from shared.runner import TestTraits, Runner
 from shared import const
-from logging import getLogger
+from performance.logger import setup_loggers, getLogger
 
 EXENAME = 'paintdotnet'
 
 def main():
+    setup_loggers(True)
+
     set_environment()
     set_registry()
     traits = TestTraits(exename=EXENAME,
