@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>exe</OutputType>
+		<TargetFramework>net7.0</TargetFramework>
+		<PublishTrimmed>false</PublishTrimmed>
+		<TrimmerDefaultAction>copy</TrimmerDefaultAction>
+		<TrimMode>copy</TrimMode>
+		<SelfContained>true</SelfContained>
+		<!-- ILLinkBenchmarks.csproj insert the latest ILLinkTasksVersion here -->
+		<ILLinkTasksVersion>==ILLINK TASKS VERSION==</ILLinkTasksVersion>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Net.ILLink.Tasks" Version="$(ILLinkTasksVersion)" />
+	</ItemGroup>
+</Project>

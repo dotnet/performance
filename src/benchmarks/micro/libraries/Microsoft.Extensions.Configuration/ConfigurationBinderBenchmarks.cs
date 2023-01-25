@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes.Filters;
 using MicroBenchmarks;
 using System;
 using System.Collections.Generic;
@@ -41,6 +42,7 @@ namespace Microsoft.Extensions.Configuration
         }
 
         [Benchmark]
+        [AotFilter("Not supported.")]  // System.NotSupportedException: This object cannot be invoked because no code was generated for it: 'System.Collections.Generic.IDictionary`2[System.String, System.String].Item'.
         public MySettings Get() => _configuration.Get<MySettings>();
 
         public class MySettings

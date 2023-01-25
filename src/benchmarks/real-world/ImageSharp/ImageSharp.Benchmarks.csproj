@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>ImageSharp.Benchmarks</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>SixLabors.ImageSharp.Benchmarks</RootNamespace>
+    <GenerateProgramFile>false</GenerateProgramFile>
+    <DebugType>portable</DebugType>
+    <!--Used to hide test project from dotnet test-->
+    <IsTestProject>false</IsTestProject>
+    <Configurations>Debug;Release</Configurations>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Uncomment this to run benchmarks depending on Colorful or Pfim (colorspaces and TGA): -->
+    <!--<SignAssembly>false</SignAssembly>-->
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net7.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Images\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

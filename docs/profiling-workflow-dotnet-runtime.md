@@ -37,18 +37,18 @@
 
 **This doc explains how to profile local [dotnet/runtime](https://github.com/dotnet/runtime) builds and it's targetted at [dotnet/runtime](https://github.com/dotnet/runtime) repository contributors.**
 
-Before you start any performance investigation, you need to [build](#Build) [dotnet/runtime](https://github.com/dotnet/runtime) in **Release**, create a small [repro](#Repro) app and change the default [project settings](#Project-Settings). If you want to profile a BenchmarkDotNet test (like those in this repo), [BenchmarkDotNet has built-in profiling option](https://github.com/dotnet/performance/blob/main/docs/benchmarkdotnet.md#profiling) to collect trace.
+Before you start any performance investigation, you need to [build](#build) [dotnet/runtime](https://github.com/dotnet/runtime) in **release**, create a small [repro](#repro) app and change the default [project settings](#project-settings). if you want to profile a benchmarkdotnet test (like those in this repo), [benchmarkdotnet has built-in profiling option](https://github.com/dotnet/performance/blob/main/docs/benchmarkdotnet.md#profiling) to collect trace.
 
 The next step is to choose the right profiler depending on the OS:
 
 * Windows
-  * [Visual Studio Profiler](#Visual-Studio-Profiler) allows for [CPU](#CPU-Investigation) and [memory](#Allocation-Tracking) profiling. It's intuitive to use and you should **use it be default**.
-  * [PerfView](#PerfView) is the ultimate .NET Profiler but it has a high entry cost. If Visual Studio Profiler is not enough, you should switch to [PerfView](#PerfView).
+  * [Visual Studio Profiler](#visual-studio-profiler) allows for [cpu](#cpu-investigation) and [memory](#allocation-tracking) profiling. It's intuitive to use and you should **use it be default**.
+  * [PerfView](#perfview) is the ultimate .net profiler but it has a high entry cost. if visual studio profiler is not enough, you should switch to [perfview](#perfview).
 * Linux
   * [dotnet trace](https://github.com/dotnet/diagnostics/blob/main/documentation/dotnet-trace-instructions.md) works on every OS, it's easy to use and it should be your **default choice** on Unix systems.
-  * [PerfCollect](#PerfCollect) is a simple, yet very powerful script that allows for profiling native parts of .NET Core. You should use it if `dotnet trace` can not handle your case.
+  * [PerfCollect](#perfcollect) is a simple, yet very powerful script that allows for profiling native parts of .NET Core. You should use it if `dotnet trace` can not handle your case.
 
-If you clearly need information on CPU instruction level, then depending on the hardware you should use [Intel VTune](#VTune) or [AMD uProf](https://developer.amd.com/amd-uprof/).
+If you clearly need information on CPU instruction level, then depending on the hardware you should use [Intel VTune](#vtune) or [amd uprof](https://developer.amd.com/amd-uprof/).
 
 ## Prerequisites
 
@@ -65,16 +65,16 @@ The build produces two things that we care about:
 * `dotnet` and all `System.XYZ.dlls` used internally to run Libraries unit tests. It can be used by Visual Studio Profiler to run the code that you want to profile. Example:
 
 ```log
-C:\Projects\runtime\artifacts\bin\testhost\net6.0-windows-Release-x64\dotnet.exe
+C:\Projects\runtime\artifacts\bin\testhost\net8.0-windows-Release-x64\dotnet.exe
 ```
 
 * `CoreRun` and all `System.XYZ.dlls` that can be used to run the code that you want to profile. Example:
 
 ```log
-C:\Projects\runtime\artifacts\bin\testhost\net7.0-windows-Release-x64\shared\Microsoft.NETCore.App\7.0.0\CoreRun.exe
+C:\Projects\runtime\artifacts\bin\testhost\net8.0-windows-Release-x64\shared\Microsoft.NETCore.App\8.0.0\CoreRun.exe
 ```
 
-* But the dotnet/runtime build only produces the artifacts necessary for a _runtime_, not for an _sdk_. Visual Studio will require a full SDK to be able to compile your console app from the next step. One way to convert your generated _runtime_ into a full _sdk_, is to navigate to the `runtime\.dotnet\` folder, copy the `packs` and `sdk` folders located inside, and then paste them inside `runtime\artifacts\bin\testhost\net6.0-windows-Release-x64\`.
+* But the dotnet/runtime build only produces the artifacts necessary for a _runtime_, not for an _sdk_. Visual Studio will require a full SDK to be able to compile your console app from the next step. One way to convert your generated _runtime_ into a full _sdk_, is to navigate to the `runtime\.dotnet\` folder, copy the `packs` and `sdk` folders located inside, and then paste them inside `runtime\artifacts\bin\testhost\net8.0-windows-Release-x64\`.
 
 Once you rebuild the part of [dotnet/runtime](https://github.com/dotnet/runtime) you are working on, the appropriate `.dll` gets updated and the next time you run profiler, dotnet|CoreRun is going to use the updated library.
 
@@ -134,7 +134,7 @@ It's recommended to disable Tiered JIT (to avoid the need of warmup) and emit fu
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
 
     <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
@@ -178,7 +178,7 @@ start %sln%
 You can just save it as `startvs.cmd` file and run providing path to the `testhost` folder produced by [dotnet/runtime](https://github.com/dotnet/runtime) build and a VS solution with repo project:
 
 ```cmd
-startvs.cmd "C:\Projects\runtime\artifacts\bin\testhost\net6.0-windows-Release-x64\" "C:\Projects\repro\ProfilingDocs.sln"
+startvs.cmd "C:\Projects\runtime\artifacts\bin\testhost\net8.0-windows-Release-x64\" "C:\Projects\repro\ProfilingDocs.sln"
 ```
 
 ### CPU Usage
@@ -614,7 +614,7 @@ sudo ./perfcollect install
 
 ### Preparing Repro
 
-Before you collect a trace, you need to prepare a [Repro](#Repro). As of today, `PerfCollect` does not give you the possibility to run a standalone executable. It collects the data machine wide with explicit start and stop. The simplest way to create a repo app is to simply put the code that you want to profile inside a `while(true)` loop.
+Before you collect a trace, you need to prepare a [Repro](#repro). as of today, `perfcollect` does not give you the possibility to run a standalone executable. it collects the data machine wide with explicit start and stop. the simplest way to create a repo app is to simply put the code that you want to profile inside a `while(true)` loop.
 
 As an example, we are going to use following app that tries to reproduce [String.StartsWith slower on Linux with some characters #40674](https://github.com/dotnet/corefx/issues/40674)
 
@@ -697,8 +697,8 @@ As mentioned previously, currently only PerfView is capable of opening a `PerfCo
 scp -r adsitnik@11.222.33.444:/home/adsitnik/Projects/tracing/slowStartsWith.zip C:\traces\startsWith
 ```
 
-The alternative is to use [VTune](#VTune) which allows for profiling and analyzing profile information on Linux.
+The alternative is to use [VTune](#vtune) which allows for profiling and analyzing profile information on Linux.
 
-Once you get it there, you need to open it with PerfView and follow the [filtering instructions](#filtering) to filter the trace and [analyze the results](#Analyzing-the-Results).
+Once you get it there, you need to open it with PerfView and follow the [filtering instructions](#filtering) to filter the trace and [analyze the results](#analyzing-the-results).
 
 ![Sample PerfCollect trace file opened in PerfView](img/perfcollect_perfview.png)

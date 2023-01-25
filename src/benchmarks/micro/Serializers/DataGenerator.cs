@@ -7,6 +7,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.Json;
+#if NET6_0_OR_GREATER
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
+#endif
 using System.Xml;
 using System.Xml.Serialization;
 using BenchmarkDotNet.Extensions;
@@ -215,6 +220,21 @@ namespace MicroBenchmarks.Serializers
             xmlElement.InnerText = "Element innertext";
             return xmlElement;
         }
+
+        internal static JsonSerializerOptions GetJsonSerializerOptions(SystemTextJsonSerializationMode mode)
+            => mode switch
+            {
+                SystemTextJsonSerializationMode.Reflection => new JsonSerializerOptions(),
+#if NET6_0_OR_GREATER
+                SystemTextJsonSerializationMode.SourceGen => SystemTextJsonSourceGeneratedContext.Default.Options,
+#endif
+                _ => throw new NotSupportedException(mode.ToString())
+            };
+
+#if NET6_0_OR_GREATER
+        internal static JsonTypeInfo<T> GetSystemTextJsonSourceGenMetadata<T>()
+            => (JsonTypeInfo<T>)SystemTextJsonSourceGeneratedContext.Default.GetTypeInfo(typeof(T));
+#endif
     }
 
     // the view models come from a real world app called "AllReady"
@@ -421,4 +441,42 @@ namespace MicroBenchmarks.Serializers
             writer.WriteAttributeString("BoolValue", BoolValue.ToString());
         }
     }
+
+    public class ClassWithObjectProperty
+    {
+        public object Prop { get; set; }
+    }
+
+    public enum SystemTextJsonSerializationMode
+    {
+        Reflection = 0,
+        SourceGen = 1
+    }
+
+#if NET6_0_OR_GREATER
+    [JsonSerializable(typeof(ClassWithObjectProperty))]
+    [JsonSerializable(typeof(LoginViewModel))]
+    [JsonSerializable(typeof(Location))]
+    [JsonSerializable(typeof(IndexViewModel))]
+    [JsonSerializable(typeof(MyEventsListerViewModel))]
+    [JsonSerializable(typeof(BinaryData))]
+    [JsonSerializable(typeof(CollectionsOfPrimitives))]
+    [JsonSerializable(typeof(XmlElement))]
+    [JsonSerializable(typeof(SimpleStructWithProperties))]
+    [JsonSerializable(typeof(SimpleListOfInt))]
+    [JsonSerializable(typeof(ClassImplementingIXmlSerialiable))]
+    [JsonSerializable(typeof(Dictionary<string, string>))]
+    [JsonSerializable(typeof(ImmutableDictionary<string, string>))]
+    [JsonSerializable(typeof(ImmutableSortedDictionary<string, string>))]
+    [JsonSerializable(typeof(HashSet<string>))]
+    [JsonSerializable(typeof(ArrayList))]
+    [JsonSerializable(typeof(Hashtable))]
+    [JsonSerializable(typeof(LargeStructWithProperties))]
+    [JsonSerializable(typeof(DateTimeOffset?))]
+    [JsonSerializable(typeof(int))]
+    [JsonSerializable(typeof(object))]
+    internal partial class SystemTextJsonSourceGeneratedContext : JsonSerializerContext
+    {
+    }
+#endif
 }

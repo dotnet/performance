@@ -6,7 +6,10 @@
   - [Table of Contents](#table-of-contents)
   - [Introduction](#introduction)
     - [Code Organization](#code-organization)
-    - [dotnet runtime Prerequisites](#dotnet-runtime-prerequisites)
+    - [dotnet runtime Prerequisites for CLR](#dotnet-runtime-prerequisites-for-clr)
+    - [dotnet runtime Prerequisites for wasm](#dotnet-runtime-prerequisites-for-wasm)
+      - [Run the benchmarks with the interpreter](#run-the-benchmarks-with-the-interpreter)
+      - [Run the benchmarks with AOT](#run-the-benchmarks-with-aot)
   - [Preventing Regressions](#preventing-regressions)
     - [Running against the latest .NET Core SDK](#running-against-the-latest-net-core-sdk)
   - [Solving Regressions](#solving-regressions)
@@ -99,14 +102,14 @@ During the port from xunit-performance to BenchmarkDotNet, the namespaces, type 
 Please remember that you can filter the benchmarks using a glob pattern applied to namespace.typeName.methodName ([read more](./benchmarkdotnet.md#Filtering-the-Benchmarks)):
 
 ```cmd
-dotnet run -c Release -f net7.0 --filter System.Memory*
+dotnet run -c Release -f net8.0 --filter System.Memory*
 ```
 
 (Run the above command on `src/benchmarks/micro/MicroBenchmarks.csproj`.)
 
 Moreover, every Libaries benchmark belongs to a [Libraries category](../src/benchmarks/micro/README.md#Categories). Same goes for Runtime.
 
-### dotnet runtime Prerequisites
+### dotnet runtime Prerequisites for CLR
 
 In order to run the benchmarks against local [dotnet/runtime](https://github.com/dotnet/runtime) build you need to build the dotnet/runtime repository in **Release**:
 
@@ -119,8 +122,8 @@ C:\Projects\runtime> build -c Release
 Every time you want to run the benchmarks against local build of [dotnet/runtime](https://github.com/dotnet/runtime) you need to provide the path to CoreRun:
 
 ```cmd
-dotnet run -c Release -f net7.0 --filter $someFilter \
-    --coreRun C:\Projects\runtime\artifacts\bin\testhost\net7.0-windows-Release-x64\shared\Microsoft.NETCore.App\7.0.0\CoreRun.exe
+dotnet run -c Release -f net8.0 --filter $someFilter \
+    --coreRun C:\Projects\runtime\artifacts\bin\testhost\net8.0-windows-Release-x64\shared\Microsoft.NETCore.App\8.0.0\CoreRun.exe
 ```
 
 **Note:** BenchmarkDotNet expects a path to `CoreRun.exe` file (`corerun` on Unix), not to `Core_Root` folder.
@@ -134,10 +137,46 @@ C:\Projects\runtime\src\libraries\System.Text.RegularExpressions\src> dotnet msb
 **Note:** the exception to this rule are libraries that **are not part of the shared SDK**. The `build` script of the runtime repo does not copy them to the CoreRun folder so you need to do it on your own:
 
 ```cmd
-cp artifacts\bin\runtime\net7.0-Windows_NT-Release-x64\Microsoft.Extensions.Caching.Memory.dll artifacts\bin\testhost\net7.0-windows-Release-x64\shared\Microsoft.NETCore.App\7.0.0\
+cp artifacts\bin\runtime\net8.0-Windows_NT-Release-x64\Microsoft.Extensions.Caching.Memory.dll artifacts\bin\testhost\net8.0-windows-Release-x64\shared\Microsoft.NETCore.App\8.0.0\
 ```
 
 Of course only if you want to benchmark these specific libraries. If you don't, the default versions defined in [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) project file are going to get used.
+
+### dotnet runtime Prerequisites for wasm
+
+In order to run the benchmarks against local [dotnet/runtime](https://github.com/dotnet/runtime) build:
+
+1. build the dotnet/runtime repository in **Release**
+
+```cmd
+/path/to/dotnet/runtime$ ./build.sh mono+libs -os browser -c Release
+```
+
+2. Prepare a sdk with `wasm-tools` workload installed using the built artifacts
+
+```cmd
+/path/to/dotnet/runtime$ ./dotnet.sh build -p:TargetOS=Browser -p:TargetArchitecture=wasm -c Release src/mono/wasm/Wasm.Build.Tests /t:InstallWorkloadUsingArtifacts
+```
+
+This would produce `/path/to/dotnet/runtime/artifacts/bin/dotnet-net8+latest`, which should be used to run the benchmarks.
+
+3. And you need `/path/to/dotnet/runtime/src/mono/wasm/test-main.js`
+
+#### Run the benchmarks with the interpreter
+
+```cmd
+/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py -f net8.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-net8+latest --wasm --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
+    --bdn-arguments="--anyCategories Libraries Runtime --category-exclusion-filter NoInterpreter NoWASM NoMono --logBuildOutput --wasmDataDir </path/to/dotnet/runtime>/src/mono/wasm --filter <filter>"
+```
+
+#### Run the benchmarks with AOT
+
+Essentially, add `--aotcompilermode wasm` to the `--bdn-arguments=".."`:
+
+```cmd
+/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py --csproj src/benchmarks/micro/MicroBenchmarks.csproj -f net8.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-net8+latest --wasm --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
+    --bdn-arguments="--category-exclusion-filter NoInterpreter NoWASM NoMono --aotcompilermode wasm --logBuildOutput --buildTimeout 3600 --wasmDataDir </path/to/dotnet/runtime>/src/mono/wasm --filter <filter>"
+```
 
 ## Preventing Regressions
 
@@ -146,9 +185,9 @@ Preventing regressions is a fundamental part of our performance culture. The che
 **Before introducing any changes that may impact performance**, you should run the benchmarks that test the performance of the feature that you are going to work on and store the results in a **dedicated** folder.
 
 ```cmd
-C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f net7.0 \
+C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f net8.0 \
     --artifacts "C:\results\before" \
-    --coreRun "C:\Projects\runtime\artifacts\bin\testhost\net7.0-windows-Release-x64\shared\Microsoft.NETCore.App\7.0.0\CoreRun.exe" \
+    --coreRun "C:\Projects\runtime\artifacts\bin\testhost\net8.0-windows-Release-x64\shared\Microsoft.NETCore.App\8.0.0\CoreRun.exe" \
     --filter System.IO.Pipes*
 ```
 
@@ -161,9 +200,9 @@ After you introduce the changes and rebuild the part of [dotnet/runtime](https:/
 ```cmd
 C:\Projects\runtime\src\libraries\System.IO.Pipes\src> dotnet msbuild /p:Configuration=Release
 
-C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f net7.0 \
+C:\Projects\performance\src\benchmarks\micro> dotnet run -c Release -f net8.0 \
     --artifacts "C:\results\after" \
-    --coreRun "C:\Projects\runtime\artifacts\bin\testhost\net7.0-windows-Release-x64\shared\Microsoft.NETCore.App\7.0.0\CoreRun.exe" \
+    --coreRun "C:\Projects\runtime\artifacts\bin\testhost\net8.0-windows-Release-x64\shared\Microsoft.NETCore.App\8.0.0\CoreRun.exe" \
     --filter System.IO.Pipes*
 ```
 
@@ -188,7 +227,7 @@ No Slower results for the provided threshold = 2% and noise filter = 0.3ns.
 To run the benchmarks against the latest .NET Core SDK you can use the [benchmarks_ci.py](../scripts/benchmarks_ci.py) script. It's going to download the latest .NET Core SDK(s) for the provided framework(s) and run the benchmarks for you. Please see [Prerequisites](./prerequisites.md#python) for more.
 
 ```cmd
-C:\Projects\performance> py scripts\benchmarks_ci.py -f net7.0 \
+C:\Projects\performance> py scripts\benchmarks_ci.py -f net8.0 \
     --bdn-arguments="--artifacts "C:\results\latest_sdk"" \
     --filter System.IO.Pipes*
 ```
@@ -208,7 +247,7 @@ The real performance investigation starts with profiling. We have a comprehensiv
 To profile the benchmarked code and produce an ETW Trace file ([read more](./benchmarkdotnet.md#Profiling)):
 
 ```cmd
-dotnet run -c Release -f net7.0 --profiler ETW --filter $YourFilter
+dotnet run -c Release -f net8.0 --profiler ETW --filter $YourFilter
 ```
 
 The benchmarking tool is going to print the path to the `.etl` trace file. You should open it with PerfView or Windows Performance Analyzer and start the analysis from there. If you are not familiar with PerfView, you should watch [PerfView Tutorial](https://channel9.msdn.com/Series/PerfView-Tutorial) by @vancem first. It's an investment that is going to pay off very quickly.
@@ -225,7 +264,7 @@ If profiling using the `--profiler ETW` is not enough, you should use a differen
 
 BenchmarkDotNet has some extra features that might be useful when doing performance investigation:
 
-- You can run the benchmarks against [multiple Runtimes](./benchmarkdotnet.md#Multiple-Runtimes). It can be very useful when the regression has been introduced between .NET Core releases, for example: between net6.0 and net7.0.
+- You can run the benchmarks against [multiple Runtimes](./benchmarkdotnet.md#Multiple-Runtimes). It can be very useful when the regression has been introduced between .NET Core releases, for example: between net7.0 and net8.0.
 - You can run the benchmarks using provided [dotnet cli](./benchmarkdotnet.md#dotnet-cli). You can download few dotnet SDKs, unzip them and just run the benchmarks to spot the version that has introduced the regression to narrow down your investigation.
 - You can run the benchmarks using few [CoreRuns](./benchmarkdotnet.md#CoreRun). You can build the latest [dotnet/runtime](https://github.com/dotnet/runtime) in Release, create a copy of the folder with CoreRun and use git to checkout an older commit. Then rebuild [dotnet/runtime](https://github.com/dotnet/runtime) and run the benchmarks against the old and new builds. This can narrow down your investigation to the commit that has introduced the bug.
 
@@ -276,7 +315,7 @@ Because the benchmarks are not in the [dotnet/runtime](https://github.com/dotnet
 The first thing you need to do is send a PR with the new API to the [dotnet/runtime](https://github.com/dotnet/runtime) repository. Once your PR gets merged and a new NuGet package is published to the [dotnet/runtime](https://github.com/dotnet/runtime) NuGet feed, you should remove the Reference to a `.dll` and install/update the package consumed by [MicroBenchmarks](../src/benchmarks/micro/MicroBenchmarks.csproj). You can do this by running the following script locally:
 
 ```cmd
-/home/adsitnik/projects/performance>python3 ./scripts/benchmarks_ci.py --filter $YourFilter -f net7.0
+/home/adsitnik/projects/performance>python3 ./scripts/benchmarks_ci.py --filter $YourFilter -f net8.0
 ```cmd
 This script will try to pull the latest .NET Core SDK from [dotnet/runtime](https://github.com/dotnet/runtime) nightly build, which should contain the new API that you just merged in your first PR, and use that to build MicroBenchmarks project and then run the benchmarks that satisfy the filter you provided.
 

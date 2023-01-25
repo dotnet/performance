@@ -1,0 +1,31 @@
+<Project>
+  <Target Name="ValidateBlazorVersions" BeforeTargets="ResolvePackageAssets">
+    <Error
+      Condition="'$(AspNetCoreVersion)' == '' or '$(BlazorVersion)' == '' or '$(SystemNetHttpJsonVersion)' == ''"
+      Text="Package versions for blazor/aspnetcore not set. %24(AspNetCoreVersion)=$(AspNetCoreVersion), %24(BlazorVersion)==$(BlazorVersion), and %24(SystemNetHttpJsonVersion)=$(SystemNetHttpJsonVersion). TFM: $(TargetFramework)" />
+
+    <Warning
+      Condition="$(TargetFrameworks.Contains('net9.0')) or ($(TargetFrameworkVersion) != '' and $([MSBuild]::VersionGreaterThan('$(TargetFrameworkVersion)', '9.0')))"
+      Text="Package versions being used for blazor project might need to be updated for a new tfm. Current values: %24(AspNetCoreVersion)=$(AspNetCoreVersion), %24(BlazorVersion)==$(BlazorVersion), and %24(SystemNetHttpJsonVersion)=$(SystemNetHttpJsonVersion). TFM: $(TargetFramework)" />
+  </Target>
+
+  <Target Name="PrintBlazorPackageVersions" AfterTargets="ResolvePackageAssets" Condition="$(MSBuildProjectName) == 'BlazingPizza.Client'">
+    <PropertyGroup>
+      <_MicrosoftAspNetCoreComponents Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Microsoft.AspNetCore.Components'">%(RuntimeCopyLocalItems.NuGetPackageVersion)</_MicrosoftAspNetCoreComponents>
+      <_MicrosoftAspNetCoreComponentsWebAssembly Condition="'%(RuntimeCopyLocalItems.NuGetPackageId)' == 'Microsoft.AspNetCore.Components.WebAssembly'">%(RuntimeCopyLocalItems.NuGetPackageVersion)</_MicrosoftAspNetCoreComponentsWebAssembly>
+    </PropertyGroup>
+
+    <Message Text="
+  *** Microsoft.AspNetCore.Components package version: $(_MicrosoftAspNetCoreComponents) ***
+  *** Microsoft.AspNetCore.Components.WebAssembly package version: $(_MicrosoftAspNetCoreComponentsWebAssembly) ***
+  "
+             Importance="High" />
+  </Target>
+
+  <Target Name="PrintPackageReferences" AfterTargets="CollectPackageReferences">
+    <Message
+      Text="** PackageReference: %(PackageReference.Identity) - %(PackageReference.Version)"
+      Condition="%(PackageReference.Identity) != ''"
+      Importance="High" />
+  </Target>
+</Project>

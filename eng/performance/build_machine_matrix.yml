@@ -1,0 +1,106 @@
+parameters:
+  buildMachines: []
+  isPublic: true
+  jobTemplate: ''
+  jobParameters: {}
+
+jobs:
+- ${{ if containsValue(parameters.buildMachines, 'win-x64') }}:
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osName: windows
+      architecture: x64
+      pool:
+        vmImage: windows-2019
+      ${{ insert }}: ${{ parameters.jobParameters }}
+      ${{ if eq(parameters.isPublic, true) }}:
+        osVersion: 22H2
+        machinePool: Open
+        queue: Windows.10.Amd64.Client.Open
+      ${{ else }}:
+        osVersion: 19H1
+        machinePool: Tiger
+        queue: Windows.10.Amd64.19H1.Tiger.Perf
+
+- ${{ if and(containsValue(parameters.buildMachines, 'win-rs5-x64'), eq(parameters.isPublic, true)) }}: # RS5 only used in public builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osName: windows
+      osVersion: RS5
+      architecture: x64
+      pool:
+        vmImage: windows-2019
+      machinePool: Open
+      queue: Windows.10.Amd64.ClientRS5.Open
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if containsValue(parameters.buildMachines, 'win-x86') }}:
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osName: windows
+      architecture: x86
+      pool:
+        vmImage: windows-2019
+      ${{ insert }}: ${{ parameters.jobParameters }}
+      ${{ if eq(parameters.isPublic, true) }}:
+        osVersion: 22H2
+        machinePool: Open
+        queue: Windows.10.Amd64.Client.Open
+      ${{ else }}:
+        osVersion: 19H1
+        machinePool: Tiger
+        queue: Windows.10.Amd64.19H1.Tiger.Perf
+
+- ${{ if containsValue(parameters.buildMachines, 'ubuntu-x64') }}:
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osName: ubuntu
+      osVersion: 1804
+      architecture: x64
+      pool: 
+        vmImage: ubuntu-latest
+      container: centos_x64_build_container
+      ${{ insert }}: ${{ parameters.jobParameters }}
+      ${{ if eq(parameters.isPublic, true) }}:
+        machinePool: Open
+        queue: Ubuntu.1804.Amd64.Open
+      ${{ else }}:
+        machinePool: Tiger
+        queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
+
+- ${{ if and(containsValue(parameters.buildMachines, 'centos-x64'), eq(parameters.isPublic, true)) }}: # centos only used in public builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osName: centos
+      osVersion: 7
+      architecture: x64
+      pool: 
+        vmImage: ubuntu-latest
+      machinePool: Open
+      queue: centos.7.amd64.open
+      container: centos_x64_build_container
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'win-arm64'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 only used in private builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osName: windows
+      osVersion: 20H1
+      architecture: arm64
+      pool:
+        vmImage: windows-2019
+      machinePool: Tiger
+      queue: Windows.10.Arm64.Perf.Surf
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Pixel only used in private builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osName: windows
+      architecture: x64
+      osVersion: 19H1
+      pool:
+        vmImage: 'windows-2022'
+      queue: Windows.10.Amd64.Pixel.Perf
+      machinePool: Pixel
+      ${{ insert }}: ${{ parameters.jobParameters }}

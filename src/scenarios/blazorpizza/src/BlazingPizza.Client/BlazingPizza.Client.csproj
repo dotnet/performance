@@ -4,8 +4,9 @@
     <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
     <!-- Supported target frameworks -->
     <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">net5.0;net6.0</TargetFrameworks>
-    <BlazorVersion Condition="$(TargetFrameworks.Contains('net5.0'))">5.0.0</BlazorVersion>
   </PropertyGroup>
+
+  <Import Project="$(BuildCommonPath)\Blazor.PackageVersions.props" />
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="$(BlazorVersion)" />

@@ -21,9 +21,7 @@ namespace MicroBenchmarks
             int? partitionIndex;
             List<string> exclusionFilterValue;
             List<string> categoryExclusionFilterValue;
-            Dictionary<string, string> parameterFilterValue;
             bool getDiffableDisasm;
-            bool resumeRun;
 
             // Parse and remove any additional parameters that we need that aren't part of BDN
             try
@@ -32,9 +30,7 @@ namespace MicroBenchmarks
                 argsList = CommandLineOptions.ParseAndRemoveIntParameter(argsList, "--partition-index", out partitionIndex);
                 argsList = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--exclusion-filter", out exclusionFilterValue);
                 argsList = CommandLineOptions.ParseAndRemoveStringsParameter(argsList, "--category-exclusion-filter", out categoryExclusionFilterValue);
-                argsList = CommandLineOptions.ParseAndRemovePairsParameter(argsList, "--parameter-filter", out parameterFilterValue);
                 CommandLineOptions.ParseAndRemoveBooleanParameter(argsList, "--disasm-diff", out getDiffableDisasm);
-                CommandLineOptions.ParseAndRemoveBooleanParameter(argsList, "--resume", out resumeRun);
 
                 CommandLineOptions.ValidatePartitionParameters(partitionCount, partitionIndex);
             }
@@ -54,9 +50,7 @@ namespace MicroBenchmarks
                         partitionIndex: partitionIndex,
                         exclusionFilterValue: exclusionFilterValue,
                         categoryExclusionFilterValue: categoryExclusionFilterValue,
-                        parameterFilterValue: parameterFilterValue,
-                        getDiffableDisasm: getDiffableDisasm,
-                        resumeRun: resumeRun)
+                        getDiffableDisasm: getDiffableDisasm)
                     .AddValidator(new NoWasmValidator(Categories.NoWASM)))
                 .ToExitCode();
         }

@@ -285,7 +285,7 @@ public static void Reverse<T>(T[] array, int index, int length)
 Does it make sense to test the code paths that throw?
 
 * No, because we would be measuring the performance of throwing and catching the exceptions. That was not the goal of this benchmark.
-* No, because throwing exceptions should be exceptional and [exceptions should not be used to control flow](https://docs.microsoft.com/en-US/visualstudio/profiling/da0007-avoid-using-exceptions-for-control-flow?view=vs-2019). It's an edge case, we should focus on [common use cases, not edge cases](#Benchmarks-are-not-Unit-Tests).
+* No, because throwing exceptions should be exceptional and [exceptions should not be used to control flow](https://docs.microsoft.com/en-US/visualstudio/profiling/da0007-avoid-using-exceptions-for-control-flow?view=vs-2019). It's an edge case, we should focus on [common use cases, not edge cases](#benchmarks-are-not-unit-tests).
 
 Should we test the code path for an array with one or zero elements?
 

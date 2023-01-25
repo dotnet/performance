@@ -14,6 +14,8 @@ namespace ScenarioMeasurement
 
     public class PDNStartupParser : IParser
     {
+        const string PaintDotNetTraceProviderName = "PaintDotNetTrace";
+
         public void EnableKernelProvider(ITraceSession kernel)
         {
             kernel.EnableKernelProvider(TraceSessionManager.KernelKeyword.Process, TraceSessionManager.KernelKeyword.Thread, TraceSessionManager.KernelKeyword.ContextSwitch);
@@ -21,7 +23,7 @@ namespace ScenarioMeasurement
 
         public void EnableUserProviders(ITraceSession user)
         {
-            user.EnableUserProvider("PaintDotnetTrace", TraceEventLevel.Verbose);
+            user.EnableUserProvider(PaintDotNetTraceProviderName, TraceEventLevel.Verbose);
         }
 
         public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
@@ -77,7 +79,7 @@ namespace ScenarioMeasurement
                     }
                 };
 
-                source.Dynamic.AddCallbackForProviderEvent("PaintDotnetTrace", "AppStarted", evt =>
+                source.Dynamic.AddCallbackForProviderEvent(PaintDotNetTraceProviderName, "AppStarted", evt =>
                 {
                     if (pid.HasValue && evt.ProcessID == pid && evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
                     {
@@ -86,7 +88,7 @@ namespace ScenarioMeasurement
                     }
                 });
 
-                source.Dynamic.AddCallbackForProviderEvent("PaintDotnetTrace", "AppReady", evt =>
+                source.Dynamic.AddCallbackForProviderEvent(PaintDotNetTraceProviderName, "AppReady", evt =>
                 {
                     if (pid.HasValue && evt.ProcessID == pid && evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
                     {
@@ -95,7 +97,7 @@ namespace ScenarioMeasurement
                     }
                 });
 
-                source.Dynamic.AddCallbackForProviderEvent("PaintDotnetTrace", "AppIdle", evt =>
+                source.Dynamic.AddCallbackForProviderEvent(PaintDotNetTraceProviderName, "AppIdle", evt =>
                 {
                     if (pid.HasValue && evt.ProcessID == pid && evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
                     {

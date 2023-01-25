@@ -42,8 +42,8 @@ Adding the new _GCPerfSim_ build, the `yaml` file would look like this:
 ```yml
 vary: executable
 test_executables:
-  orig_gcperfsim: C:\repos\gcperfsim-backup\GCPerfSim\release\net7.0\GCPerfSim.dll
-  mod_gcperfsim: C:\repos\performance\artifacts\bin\GCPerfSim\release\net7.0\GCPerfSim.dll
+  orig_gcperfsim: C:\repos\gcperfsim-backup\GCPerfSim\release\net8.0\GCPerfSim.dll
+  mod_gcperfsim: C:\repos\performance\artifacts\bin\GCPerfSim\release\net8.0\GCPerfSim.dll
 coreclrs:
   a:
     core_root: C:\repos\core_root

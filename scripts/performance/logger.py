@@ -67,7 +67,7 @@ def setup_loggers(verbose: bool):
         return console_handler
 
     def __get_file_handler(file: str) -> FileHandler:
-        file_handler = FileHandler(file)
+        file_handler = FileHandler(file, encoding='utf-8')
         file_handler.setLevel(INFO)
         file_handler.setFormatter(__formatter())
         return file_handler

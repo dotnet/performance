@@ -2,48 +2,37 @@
 pre-command
 '''
 import sys
-import os
-from zipfile import ZipFile
 from performance.logger import setup_loggers, getLogger
-from shutil import copyfile
+from shared import const
+from shared.mauisharedpython import remove_aab_files, install_versioned_maui
 from shared.precommands import PreCommands
-from shared.const import PUBDIR
-from argparse import ArgumentParser
+from shared.versionmanager import versions_write_json, get_version_from_dll_powershell
+from test import EXENAME
 
 setup_loggers(True)
 
-parser = ArgumentParser()
-parser.add_argument('--unzip', help='Unzip APK and report extracted tree', action='store_true', default=False)
-parser.add_argument(
-        '--apk-name',
-        dest='apk',
-        required=True,
-        type=str,
-        help='Name of the APK to setup')
-args = parser.parse_args()
+precommands = PreCommands()
+install_versioned_maui(precommands)
 
-if not os.path.exists(PUBDIR):
-    os.mkdir(PUBDIR)
-apkname = args.apk
-apknamezip = '%s.zip' % (apkname)
-if not os.path.exists(apkname):
-    getLogger().error('Cannot find %s' % (apkname))
-    exit(-1)
-if args.unzip:
-    if not os.path.exists(apknamezip):
-        copyfile(apkname, apknamezip)
+# Setup the Maui folder
+precommands.new(template='maui',
+                output_dir=const.APPDIR,
+                bin_dir=const.BINDIR,
+                exename=EXENAME,
+                working_directory=sys.path[0],
+                no_restore=False)
 
-    with ZipFile(apknamezip) as zip:
-        zip.extractall(os.path.join('.', PUBDIR))
+# Build the APK
+precommands.execute(['--no-restore', '--source', 'MauiNuGet.config'])
 
-    assets_dir = os.path.join(PUBDIR, 'assets')
-    assets_zip = os.path.join(assets_dir, 'assets.zip')
-    with ZipFile(assets_zip) as zip:
-        zip.extractall(assets_dir)
+# Remove the aab files as we don't need them, this saves space
+output_dir = const.PUBDIR
+if precommands.output:
+    output_dir = precommands.output
+remove_aab_files(output_dir)
 
-    os.remove(assets_zip)
-else:
-    copyfile(apkname, os.path.join(PUBDIR, apkname))
-
-
-
+# Copy the MauiVersion to a file so we have it on the machine
+maui_version = get_version_from_dll_powershell(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\{precommands.runtime_identifier}\linked\Microsoft.Maui.dll")
+version_dict = { "mauiVersion": maui_version }
+versions_write_json(version_dict, rf"{output_dir}\versions.json")
+print(f"Versions: {version_dict}")

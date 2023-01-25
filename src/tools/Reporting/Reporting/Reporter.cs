@@ -5,6 +5,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -88,14 +89,25 @@ namespace Reporting
                 BuildName = environment.GetEnvironmentVariable("PERFLAB_BUILDNUM"),
                 TimeStamp = DateTime.Parse(environment.GetEnvironmentVariable("PERFLAB_BUILDTIMESTAMP")),
             };
-            build.AdditionalData["productVersion"] = environment.GetEnvironmentVariable("DOTNET_VERSION");
 
-            // Additional Data we only want populated if it is available
-            if (environment.GetEnvironmentVariable("MAUI_VERSION") != null)
+            foreach (DictionaryEntry entry in environment.GetEnvironmentVariables())
             {
-                build.AdditionalData["mauiVersion"] = environment.GetEnvironmentVariable("MAUI_VERSION");
-            }
-            
+                if (entry.Key.ToString().Equals("PERFLAB_TARGET_FRAMEWORKS", StringComparison.InvariantCultureIgnoreCase)) 
+                {
+                    build.AdditionalData["targetFrameworks"] = entry.Value.ToString();
+                }
+                else if(entry.Key.ToString().EndsWith("version", true, CultureInfo.InvariantCulture))
+                {
+                    // Special case the original two special cases, MAUI_VERSION is only needed because runtime based runs use MAUI_VERSION
+                    if(entry.Key.ToString().Equals("DOTNET_VERSION", StringComparison.InvariantCultureIgnoreCase)){
+                        build.AdditionalData["productVersion"] = entry.Value.ToString();
+                    } else if(entry.Key.ToString().Equals("MAUI_VERSION", StringComparison.InvariantCultureIgnoreCase)){
+                        build.AdditionalData["mauiVersion"] = entry.Value.ToString();
+                    } else { 
+                        build.AdditionalData[entry.Key.ToString()] = entry.Value.ToString();
+                    }
+                }
+            }            
         }
         public string GetJson()
         {

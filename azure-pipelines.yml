@@ -1,16 +1,27 @@
+parameters:
+- name: runPublicJobs
+  type: boolean
+  default: false
+- name: runPrivateJobs
+  type: boolean
+  default: false
+- name: runScheduledPrivateJobs
+  type: boolean
+  default: false
+
 resources:
   containers:
     - container: ubuntu_x64_build_container
-      image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04-20210311173856-047508b
+      image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04
     - container: centos_x64_build_container
-      image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7-20220107135107-9b5bbc2
+      image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7
 
 # CI Trigger on main branch
 trigger:
   branches:
     include:
     - main
-    - release/3.1.4xx
+    - release/7.0
   paths:
     include:
     - eng/Version.Details.xml
@@ -20,17 +31,12 @@ pr:
   branches:
     include:
     - main
+    - release/7.0
   paths:
     exclude: # don't trigger the CI if only a doc file was changed
-    - docs/*
-    - eng/common/README.md
-    - src/benchmarks/micro/Serializers/README.md
-    - src/benchmarks/micro/README.md
-    - src/benchmarks/real-world/JitBench/README.md
-    - src/benchmarks/real-world/Microsoft.ML.Benchmarks/Input/README.md
-    - src/tools/ResultsComparer/README.md
+    - docs/
+    - '**/*.md'
     - scripts/benchmarks_monthly.py
-    - README.md
 
 schedules:
 - cron: "0 */12 * * *"
@@ -38,6 +44,7 @@ schedules:
   branches:
     include:
     - main
+    - release/7.0
   always: true
 - cron: "0 21 * * THU"
   displayName: Weekly Build
@@ -52,533 +59,373 @@ jobs:
 # Public correctness jobs
 ######################################################
 
-- ${{ if eq(variables['System.TeamProject'], 'public') }}:
-  # Windows x64 scenario benchmarks
-  - template: /eng/performance/scenarios.yml
-    parameters:
-      osName: windows
-      osVersion: 21H1
-      architecture: x64
-      pool:
-        vmImage: windows-2019
-      kind: scenarios
-      machinePool: Open
-      queue: Windows.10.Amd64.Client21H1.Open
-      projectFile: scenarios.proj
-      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - main
+- ${{ if or(eq(variables['System.TeamProject'], 'public'), parameters.runPublicJobs) }}:
 
-  # Ubuntu 1804 x64 scenario benchmarks
-  - template: /eng/performance/scenarios.yml
+  # Scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      osName: ubuntu
-      osVersion: 1804
-      kind: scenarios
-      architecture: x64
-      pool: 
-        vmImage: ubuntu-latest
-      machinePool: Open
-      queue: Ubuntu.1804.Amd64.Open
-      container: ubuntu_x64_build_container
-      projectFile: scenarios.proj
-      channels:
-        - main
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: scenarios
+        projectFile: scenarios.proj
+        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+          - main
+
+  ## MAUI scenario benchmarks
+  #- template: /eng/performance/build_machine_matrix.yml
+  #  parameters:
+  #    jobTemplate: /eng/performance/scenarios.yml
+  #    buildMachines:
+  #      - win-x64
+  #      - ubuntu-x64
+  #    isPublic: true
+  #    jobParameters:
+  #      kind: maui_scenarios
+  #      projectFile: maui_scenarios.proj
+  #      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+  #        - main
+
+  # Blazor scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: blazor_scenarios
+        projectFile: blazor_scenarios.proj
+        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+          - main
+
+  # SDK scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - win-x86
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: sdk_scenarios
+        projectFile: sdk_scenarios.proj
+        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+          - main
   
-  # Windows x64 Blazor scenario benchmarks
-  - template: /eng/performance/scenarios.yml
+  # micro benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      osName: windows
-      osVersion: 21H1
-      architecture: x64
-      pool:
-        vmImage: windows-2019
-      kind: blazor_scenarios
-      machinePool: Open
-      queue: Windows.10.Amd64.Client21H1.Open
-      projectFile: blazor_scenarios.proj
-      channels:
-        - main
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - win-x86
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: micro
+        csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+        runCategories: 'runtime libraries' 
+        channels:
+          - main
 
-  # Windows x64 SDK scenario benchmarks
-  - template: /eng/performance/scenarios.yml
+  # net462 micro benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      osName: windows
-      osVersion: 21H1
-      architecture: x64
-      pool:
-        vmImage: windows-2019
-      kind: sdk_scenarios
-      machinePool: Open
-      queue: Windows.10.Amd64.Client21H1.Open
-      projectFile: sdk_scenarios.proj
-      channels:
-        - main
-  
-  # Ubuntu 1804 x64 SDK scenario benchmarks
-  - template: /eng/performance/scenarios.yml
-    parameters:
-      osName: ubuntu
-      osVersion: 1804
-      kind: sdk_scenarios
-      architecture: x64
-      pool: 
-        vmImage: ubuntu-latest
-      machinePool: Open
-      queue: Ubuntu.1804.Amd64.Open
-      container: ubuntu_x64_build_container
-      projectFile: sdk_scenarios.proj
-      channels:
-        - main
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-rs5-x64
+      isPublic: true
+      jobParameters:
+        kind: micro_net462
+        csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+        runCategories: 'runtime libraries'
+        channels:
+          - LTS
 
-  # Windows x86 SDK scenario benchmarks
-  - template: /eng/performance/scenarios.yml
+  # NativeAOT micro benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      osName: windows
-      osVersion: 21H1
-      architecture: x86
-      pool:
-        vmImage: windows-2019
-      kind: sdk_scenarios
-      machinePool: Open
-      queue: Windows.10.Amd64.Client21H1.Open
-      projectFile: sdk_scenarios.proj
-      channels:
-        - main
-  
-  # Windows x64 micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: windows
-      osVersion: 21H1
-      kind: micro
-      architecture: x64
-      pool:
-        vmImage: windows-2019
-      machinePool: Open
-      queue: Windows.10.Amd64.Client21H1.Open
-      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'runtime libraries' 
-      channels:
-        - main
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - centos-x64
+      isPublic: true
+      jobParameters:
+        kind: micro
+        csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+        runCategories: 'runtime libraries' 
+        channels:
+          - nativeaot7.0
 
-  # Windows x64 net461 micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
+  # ML.NET benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      osName: windows
-      osVersion: RS5
-      kind: micro_net461
-      architecture: x64
-      pool:
-        vmImage: windows-2019
-      machinePool: Open
-      queue: Windows.10.Amd64.ClientRS5.Open
-      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'runtime libraries'
-      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - LTS # use LTS channel for net461 framework
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: mlnet
+        csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
+        runCategories: 'mldotnet' 
+        channels:
+          - main
 
-  # Windows x86 micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
+  # F# benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      osName: windows
-      osVersion: 21H1
-      kind: micro
-      architecture: x86
-      pool:
-        vmImage: windows-2019
-      machinePool: Open
-      queue: Windows.10.Amd64.Client21H1.Open
-      csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-      runCategories: 'runtime libraries'
-      channels: # for public jobs we want to make sure that the PRs don't break x86
-        - main
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: fsharp
+        csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
+        runCategories: 'fsharp'
+        channels:
+          - main
 
-  # Windows x64 ML.NET benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
+  # bepuphysics benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      osName: windows
-      osVersion: 21H1
-      kind: mlnet
-      architecture: x64
-      pool:
-        vmImage: windows-2019
-      machinePool: Open
-      queue: Windows.10.Amd64.Client21H1.Open
-      csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-      runCategories: 'mldotnet'
-      channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
-        - main
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: bepuphysics
+        csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
+        runCategories: 'BepuPhysics'
+        channels:
+          - main
 
-  # Windows x64 Roslyn benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
+  # ImageSharp benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      osName: windows
-      osVersion: 21H1
-      kind: roslyn
-      architecture: x64
-      pool:
-        vmImage: windows-2019
-      machinePool: Open
-      queue: Windows.10.Amd64.Client21H1.Open
-      csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
-      runCategories: 'roslyn'
-      channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-        - main
-        
-  # Ubuntu 1804 x64 micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: ubuntu
-      osVersion: 1804
-      kind: micro
-      architecture: x64
-      pool: 
-        vmImage: ubuntu-latest
-      machinePool: Open
-      queue: Ubuntu.1804.Amd64.Open
-      container: ubuntu_x64_build_container
-      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'runtime libraries'
-      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-        - main
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: imagesharp
+        csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
+        runCategories: 'ImageSharp'
+        channels:
+          - main
 
-  # Ubuntu 1804 x64 NativeAOT micro benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
+  # Roslyn benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      osName: centos
-      osVersion: 7
-      kind: micro
-      architecture: x64
-      pool: 
-        vmImage: ubuntu-latest
-      machinePool: Open
-      queue: centos.7.amd64.open.rt
-      container: centos_x64_build_container
-      csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-      runCategories: 'runtime libraries'
-      channels:
-        - nativeaot7.0
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: roslyn
+        csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
+        runCategories: 'roslyn'
+        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+          - main
 
-  # Ubuntu 1804 x64 ML.NET benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
+  # ILLink benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      osName: ubuntu
-      osVersion: 1804
-      kind: mlnet
-      architecture: x64
-      pool: 
-        vmImage: ubuntu-latest
-      machinePool: Open
-      queue: Ubuntu.1804.Amd64.Open
-      container: ubuntu_x64_build_container
-      runCategories: 'mldotnet'
-      csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
-      channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
-        - main
-
-  # Ubuntu 1804 x64 Roslyn benchmarks
-  - template: /eng/performance/benchmark_jobs.yml
-    parameters:
-      osName: ubuntu
-      osVersion: 1804
-      kind: roslyn
-      architecture: x64
-      pool: 
-        vmImage: ubuntu-latest
-      machinePool: Open
-      queue: Ubuntu.1804.Amd64.Open
-      container: ubuntu_x64_build_container
-      runCategories: 'roslyn'
-      csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
-      channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-        - main
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: illink
+        csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
+        runCategories: 'illink'
+        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+          - main
 
 ###########################################
 # Private Jobs
 ###########################################
 
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest', 'Manual')) }}:
+- ${{ if or(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest', 'Manual')), parameters.runPrivateJobs) }}:
 
-  # Windows x64 scenario benchmarks
-  - template: /eng/performance/scenarios.yml
+  # Scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      osName: windows
-      osVersion: 19H1
-      architecture: x64
-      pool:
-        vmImage: windows-2019
-      kind: scenarios
-      machinePool: Tiger
-      queue: Windows.10.Amd64.19H1.Tiger.Perf
-      projectFile: scenarios.proj
-      channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
-        - main
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+        - win-arm64
+      isPublic: false
+      jobParameters:
+        kind: scenarios
+        projectFile: scenarios.proj
+        channels:
+          - main
 
-  # Ubuntu 1804 x64 scenario benchmarks
-  - template: /eng/performance/scenarios.yml
+  # Maui Android scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      osName: ubuntu
-      osVersion: 1804
-      kind: scenarios
-      architecture: x64
-      pool: 
-        vmImage: ubuntu-latest
-      machinePool: Tiger
-      queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-      container: ubuntu_x64_build_container
-      projectFile: scenarios.proj
-      channels:
-        - main
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64-android-arm64
+      isPublic: false
+      jobParameters:
+        kind: maui_scenarios_android
+        projectFile: maui_scenarios_android.proj
+        dotnetVersionsLinks:
+          main: https://aka.ms/dotnet/sdk/maui/net8.0.json
 
-  # Windows Arm64 scenario benchmarks
-  - template: /eng/performance/scenarios.yml
-    parameters:
-      osName: windows
-      osVersion: 20H1
-      architecture: arm64
-      pool:
-        vmImage: windows-2019
-      kind: scenarios
-      machinePool: Tiger
-      queue: Windows.10.Arm64.Perf.Surf
-      projectFile: scenarios.proj
-      channels: # for public jobs we want to make sure that the PRs don't break any of the supported channels
-        - main
-
-  # # Windows x64 micro benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: windows
-  #     osVersion: 19H1
-  #     kind: micro
-  #     architecture: x64
-  #     pool:
-  #       vmImage: windows-2019
-  #     machinePool: Tiger
-  #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-  #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-  #     runCategories: 'runtime libraries'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
-
-  # # Windows AMD64 specific micro benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: windows
-  #     osVersion: 20H2
-  #     kind: micro
-  #     architecture: x64
-  #     pool:
-  #       vmImage: windows-2019
-  #     machinePool: Owl
-  #     queue: Windows.10.Amd64.20H2.Owl.Perf # using a dedicated private Helix queue (perfowls)
-  #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-  #     runCategories: 'runtime libraries'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
-      
-  # # Windows x86 micro benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: windows
-  #     osVersion: 19H1
-  #     kind: micro
-  #     architecture: x86
-  #     pool:
-  #       vmImage: windows-2019
-  #     machinePool: Tiger
-  #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-  #     csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-  #     runCategories: 'runtime libraries'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
-
-  # # Windows x64 ML.NET benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: windows
-  #     osVersion: 19H1
-  #     kind: mlnet
-  #     architecture: x64
-  #     pool:
-  #       vmImage: windows-2019
-  #     machinePool: Tiger
-  #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-  #     csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-  #     runCategories: 'mldotnet'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
-
-  # # Windows x64 Roslyn benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: windows
-  #     osVersion: 19H1
-  #     kind: roslyn
-  #     architecture: x64
-  #     pool:
-  #       vmImage: windows-2019
-  #     machinePool: Tiger
-  #     queue: Windows.10.Amd64.19H1.Tiger.Perf # using a dedicated private Helix queue (perfsnakes)
-  #     csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
-  #     runCategories: 'roslyn'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
-
-  # # Ubuntu 1804 x64 micro benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: ubuntu
-  #     osVersion: 1804
-  #     kind: micro
-  #     architecture: x64
-  #     pool: 
-  #       vmImage: ubuntu-latest
-  #     machinePool: Tiger
-  #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-  #     container: ubuntu_x64_build_container
-  #     csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-  #     runCategories: 'runtime libraries'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
-
-  # # Ubuntu 1804 AMD64 specific micro benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: ubuntu
-  #     osVersion: 1804
-  #     kind: micro
-  #     architecture: x64
-  #     pool: 
-  #       vmImage: ubuntu-latest
-  #     machinePool: Owl
-  #     queue: Ubuntu.1804.Amd64.Owl.Perf # using a dedicated private Helix queue (perfowls)
-  #     container: ubuntu_x64_build_container
-  #     csproj: src/benchmarks/micro/MicroBenchmarks.csproj
-  #     runCategories: 'runtime libraries'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
-
-  # # Ubuntu 1804 x64 ML.NET benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: ubuntu
-  #     osVersion: 1804
-  #     kind: mlnet
-  #     architecture: x64
-  #     pool: 
-  #       vmImage: ubuntu-latest
-  #     machinePool: Tiger
-  #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-  #     container: ubuntu_x64_build_container
-  #     csproj: src/benchmarks/real-world/Microsoft.ML.Benchmarks/Microsoft.ML.Benchmarks.csproj
-  #     runCategories: 'mldotnet'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
-  
-  # # Ubuntu 1804 x64 Roslyn benchmarks
-  # - template: /eng/performance/benchmark_jobs.yml
-  #   parameters:
-  #     osName: ubuntu
-  #     osVersion: 1804
-  #     kind: roslyn
-  #     architecture: x64
-  #     pool: 
-  #       vmImage: ubuntu-latest
-  #     machinePool: Tiger
-  #     queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-  #     container: ubuntu_x64_build_container
-  #     csproj: src/benchmarks/real-world/Roslyn/CompilerBenchmarks.csproj
-  #     runCategories: 'roslyn'
-  #     channels: # for private jobs we want to benchmark .NET Core 3.1 and 5.0 only
-  #       #- main
-  #       - release/5.0.1xx
-  #       #- release/3.1.2xx
+  ## Maui scenario benchmarks
+  #- template: /eng/performance/build_machine_matrix.yml
+  #  parameters:
+  #    jobTemplate: /eng/performance/scenarios.yml
+  #    buildMachines:
+  #      - win-x64
+  #      - ubuntu-x64
+  #      - win-arm64
+  #    isPublic: false
+  #    jobParameters:
+  #      kind: maui_scenarios
+  #      projectFile: maui_scenarios.proj
+  #      channels:
+  #        - main
 
 ################################################
 # Scheduled Private jobs
 ################################################
 
 # Scheduled runs will run all of the jobs on the PerfTigers, as well as the Arm64 job
-- ${{ if and(and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule')), not(contains(variables['Build.QueuedBy'], 'Weekly'))) }}:
+- ${{ if or(and(and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule')), not(contains(variables['Build.QueuedBy'], 'Weekly'))), parameters.runScheduledPrivateJobs) }}:
 
-  # Windows x64 SDK scenario benchmarks
-  - template: /eng/performance/scenarios.yml
+  # SDK scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      osName: windows
-      osVersion: RS5
-      architecture: x64
-      pool:
-        vmImage: windows-2019
-      kind: sdk_scenarios
-      machinePool: Tiger
-      queue: Windows.10.Amd64.19H1.Tiger.Perf
-      projectFile: sdk_scenarios.proj
-      channels:
-        - main
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - win-x86
+        - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: sdk_scenarios
+        projectFile: sdk_scenarios.proj
+        channels:
+          - main
+
+  # Blazor 3.2 scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+      isPublic: false
+      jobParameters:
+        kind: blazor_scenarios
+        projectFile: blazor_scenarios.proj
+        channels:
+          - main
   
-  # Windows x86 SDK scenario benchmarks
-  - template: /eng/performance/scenarios.yml
+  # ML.NET benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      osName: windows
-      osVersion: RS5
-      architecture: x86
-      pool:
-        vmImage: windows-2019
-      kind: sdk_scenarios
-      machinePool: Tiger
-      queue: Windows.10.Amd64.19H1.Tiger.Perf
-      projectFile: sdk_scenarios.proj
-      channels:
-        - main
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: mlnet
+        csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
+        runCategories: 'mldotnet'
+        channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
+          - main
 
-  # Ubuntu 1804 x64 SDK scenario benchmarks
-  - template: /eng/performance/scenarios.yml
+  # F# benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      osName: ubuntu
-      osVersion: 1804
-      architecture: x64
-      pool: 
-        vmImage: ubuntu-latest
-      kind: sdk_scenarios
-      machinePool: Tiger
-      queue: Ubuntu.1804.Amd64.Tiger.Perf
-      container: ubuntu_x64_build_container
-      projectFile: sdk_scenarios.proj
-      channels:
-        - main
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: fsharp
+        csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
+        runCategories: 'fsharp'
+        channels:
+          - main
 
-  # Windows x64 Blazor 3.2 scenario benchmarks
-  - template: /eng/performance/scenarios.yml
+  # bepuphysics benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
     parameters:
-      osName: windows
-      osVersion: RS5
-      architecture: x64
-      pool:
-        vmImage: windows-2019
-      kind: blazor_scenarios
-      machinePool: Tiger
-      queue: Windows.10.Amd64.19H1.Tiger.Perf
-      projectFile: blazor_scenarios.proj
-      channels:
-        - main
-  
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: bepuphysics
+        csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
+        runCategories: 'BepuPhysics'
+        channels:
+          - main
+
+  # ImageSharp benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: imagesharp
+        csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
+        runCategories: 'ImageSharp'
+        channels:
+          - main
+
+  # Roslyn benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: roslyn
+        csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
+        runCategories: 'roslyn'
+        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+          - main
+
+  # ILLink benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: illink
+        csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
+        runCategories: 'illink'
+        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+          - main
+
   # Secret Sync
   - job: Synchronize
     pool:
@@ -605,7 +452,7 @@ jobs:
 ################################################
 
 
-- ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Manual')) }}:
+- ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Manual'), not(parameters.runPublicJobs), not(parameters.runScheduledPrivateJobs), not(parameters.runPrivateJobs)) }}:
   - job: Synchronize
     pool:
       name: NetCore1ESPool-Internal-NoMSI

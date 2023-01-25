@@ -262,10 +262,12 @@ def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
     if framework.startswith("nativeaot"):
         run_args += ['--runtimes', framework]
     if args.wasm:
-        if framework == "net5.0" or framework == "net6.0":
+        if framework == "net6.0":
             run_args += ['--runtimes', 'wasm']
-        else:
+        elif framework == "net7.0":
             run_args += ['--runtimes', 'wasmnet70']
+        elif framework == "net8.0":
+            run_args += ['--runtimes', 'wasmnet80']
 
     # Increase default 2 min build timeout to accommodate slow (or even very slow) hardware
     if not args.bdn_arguments or '--buildTimeout' not in args.bdn_arguments:
@@ -288,6 +290,7 @@ def build(
         target_framework_monikers: list,
         incremental: str,
         run_isolated: bool,
+        for_wasm: bool,
         verbose: bool) -> None:
     '''Restores and builds the benchmarks'''
 
@@ -306,6 +309,10 @@ def build(
     __log_script_header("Restoring .NET micro benchmarks")
     BENCHMARKS_CSPROJ.restore(packages_path=packages, verbose=verbose)
 
+    build_args = []
+    if for_wasm:
+        build_args += ['/p:BuildingForWasm=true']
+
     # dotnet build
     build_title = "Building .NET micro benchmarks for '{}'".format(
         ' '.join(target_framework_monikers))
@@ -315,7 +322,8 @@ def build(
         target_framework_monikers=target_framework_monikers,
         output_to_bindir=run_isolated,
         verbose=verbose,
-        packages_path=packages)
+        packages_path=packages,
+        args=build_args)
 
     # When running isolated, artifacts/obj/{project_name} will still be
     # there, and would interfere with any subsequent builds. So, remove
@@ -398,7 +406,8 @@ def __main(args: list) -> int:
             target_framework_monikers,
             incremental,
             args.run_isolated,
-            verbose
+            for_wasm=args.wasm,
+            verbose=verbose
         )
 
         for framework in frameworks:

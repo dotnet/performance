@@ -5,7 +5,7 @@ An introduction of how to run scenario tests can be found in [Scenarios Tests Gu
 
 - [Crossgen Throughput Scenario](#crossgen-throughput-scenario)
 - [Crossgen2 Throughput Scenario](#crossgen2-throughput-scenario)
-- [Size on Disk Scenario](#Size-on-Disk-Scenario)
+- [Size on Disk Scenario](#size-on-disk-scenario)
 
 ## Before Running Any Scenario
 
@@ -48,7 +48,7 @@ Same instruction of [Scenario Tests Guide - Step 1](./scenarios-workflow.md#step
 
 with other applicable arguments and measures its throughput. We will walk through crossgen compiling `System.Private.Xml.dll` as an example.
 
-Ensure you've first followed the [preparatory steps](#Before-Running-Any-Scenario).
+Ensure you've first followed the [preparatory steps](#before-running-any-scenario).
 
 ### 1. Run Precommand
 
@@ -93,7 +93,7 @@ Compared to `Crossgen Throughput` scenario, `Crossgen2 Throughput` Scenario meas
 
 Steps to run **Crossgen2 Throughput** scenario are very similar to those of **Crossgen Throughput**. In addition to compilation of a single file, composite compilation is enabled in crossgen2, so the test command is different.
 
-Ensure you've first followed the [preparatory steps](#Before-Running-Any-Scenario).
+Ensure you've first followed the [preparatory steps](#before-running-any-scenario).
 
 ### 1. Run Precommand
 
@@ -145,7 +145,7 @@ python3 post.py
 
 The size on disk scenario for crossgen/crossgen2 measures the sizes of generated ready-to-run images. These tests use the precommand to generate a ready-to-run image, then run the size-on-disk tool on the containing directory.
 
-Ensure you've first followed the [preparatory steps](#Before-Running-Any-Scenario).
+Ensure you've first followed the [preparatory steps](#before-running-any-scenario).
 
 ### 1. Run Precommand
 
