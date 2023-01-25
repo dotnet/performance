@@ -6,6 +6,7 @@ from performance.logger import setup_loggers
 EXENAME = 'MauiDesktopTesting'
 
 def main():
+    setup_loggers(True)
     traits = TestTraits(exename=EXENAME,
                         guiapp='true',
                         startupmetric='WinUI',

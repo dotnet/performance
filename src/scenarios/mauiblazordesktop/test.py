@@ -9,6 +9,7 @@ import requests
 EXENAME = 'MauiBlazorDesktopTesting'
 
 def main():
+    setup_loggers(True)
     install_webview()
     traits = TestTraits(exename=EXENAME,
                         guiapp='true',
