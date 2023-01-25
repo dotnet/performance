@@ -1,11 +1,14 @@
 import os
 import subprocess
+import sys
 from shared.runner import TestTraits, Runner
+from performance.logger import setup_loggers, getLogger
+import winreg
+import requests
 
 EXENAME = 'MauiBlazorDesktopTesting'
 
 def main():
-    setup_loggers(True)
     install_webview()
     traits = TestTraits(exename=EXENAME,
                         guiapp='true',

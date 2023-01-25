@@ -11,7 +11,6 @@ from shared.precommands import PreCommands
 from shared import const
 from test import EXENAME
 import requests
-import winreg
 
 setup_loggers(True)
 NugetURL = 'https://raw.githubusercontent.com/dotnet/maui/net6.0/NuGet.config'

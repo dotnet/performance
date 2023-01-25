@@ -1,6 +1,7 @@
 import os
 import subprocess
 from shared.runner import TestTraits, Runner
+from performance.logger import setup_loggers
 
 EXENAME = 'MauiDesktopTesting'
 
