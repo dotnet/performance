@@ -39,7 +39,7 @@
   </Target>
 
   <ItemGroup>
-    <!-- <Scenario Include="Static Console Template">
+    <Scenario Include="Static Console Template">
       <ScenarioDirectoryName>staticconsoletemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </Scenario>
@@ -54,7 +54,7 @@
     <Scenario Include="New VB Console Template">
       <ScenarioDirectoryName>emptyvbconsoletemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-    </Scenario> -->
+    </Scenario>
     
     <MAUIScenario Include="Desktop Maui" Condition="'$(TargetsWindows)' == 'true' And '$(Architecture)' != 'arm64' And '$(Architecture)' != 'arm'">
       <ScenarioDirectoryName>mauidesktop</ScenarioDirectoryName>
@@ -68,7 +68,7 @@
 
 
   <ItemGroup>
-    <!-- <PreparePayloadWorkItem Include="@(Scenario)">
+    <PreparePayloadWorkItem Include="@(Scenario)">
       <Command>$(Python) pre.py publish -f $(_Framework) -c Release -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)_fdd</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
@@ -79,7 +79,7 @@
     <PreparePayloadWorkItem Include="@(Scenario)">
       <Command>$(Python) pre.py build -c Release -f $(_Framework) -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)_build</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
-    </PreparePayloadWorkItem> -->
+    </PreparePayloadWorkItem>
     <PreparePayloadWorkItem Include="@(MAUIScenario)">
       <Command>$(Python) pre.py publish -c Release -f $(_Framework)-windows10.0.19041.0 -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)_fdd</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
