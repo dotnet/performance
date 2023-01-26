@@ -27,7 +27,7 @@ jobs:
           - name: CorrelationStaging
             value: $(Build.SourcesDirectory)\CorrelationStaging\
           - name: AdditionalHelixPreCommands
-            value: 'call %HELIX_CORRELATION_PAYLOAD%\machine-setup$(ScriptExtension);xcopy %HELIX_CORRELATION_PAYLOAD%\NuGet.config %HELIX_WORKITEM_ROOT%'
+            value: 'call %HELIX_CORRELATION_PAYLOAD%\machine-setup$(ScriptExtension);xcopy %HELIX_CORRELATION_PAYLOAD%\NuGet.config %HELIX_WORKITEM_ROOT% /Y'
           - name: PreservePythonPath
             value: 'set ORIGPYPATH=%PYTHONPATH%'
           - name: HelixPostCommand
@@ -104,6 +104,19 @@ jobs:
             displayName: Build FailureReporter tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+          - powershell: |
+              $(Python) -m pip install --upgrade pip
+              $(Python) -m pip install requests
+              .\src\scenarios\init.ps1 -DotnetDirectory $(CorrelationStaging)dotnet
+              dotnet --info
+              dotnet msbuild .\eng\performance\${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /bl:.\artifacts\log\$(_BuildConfig)\PrepareWorkItemPayloads.binlog
+            displayName: Prepare scenarios
+            env:
+              CorrelationPayloadDirectory: $(CorrelationStaging)
+              Architecture: ${{ parameters.architecture }}
+              TargetsWindows: 'true'
+              WorkItemDirectory: $(Build.SourcesDirectory)
+              HelixTargetQueues: ${{ parameters.queue }}
         - ${{ if ne(parameters.osName, 'windows') }}:
           - script: cp ./NuGet.config $(CorrelationStaging);cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared;cp -r ./src/scenarios/staticdeps $(CorrelationStaging)staticdeps
             displayName: Copy python libraries and NuGet.config
@@ -119,6 +132,19 @@ jobs:
             displayName: Build FailureReporter tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+          - script: |
+              $(Python) -m pip install --upgrade pip
+              $(Python) -m pip install requests
+              . ./src/scenarios/init.sh -dotnetdir $(CorrelationStaging)dotnet
+              dotnet --info
+              dotnet msbuild ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
+            displayName: Prepare scenarios
+            env:
+              CorrelationPayloadDirectory: $(CorrelationStaging)
+              Architecture: ${{ parameters.architecture }}
+              TargetsWindows: 'false'
+              WorkItemDirectory: $(Build.SourcesDirectory)
+              HelixTargetQueues: ${{ parameters.queue }}
         - template: /eng/performance/send-to-helix.yml
           parameters:
             HelixSource: '$(HelixSourcePrefix)/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/

@@ -5,13 +5,14 @@ Contains the functionality around DotNet Cli.
 """
 
 import ssl
+import datetime
 from argparse import Action, ArgumentParser, ArgumentTypeError, ArgumentError
 from collections import namedtuple
 from glob import iglob
 from json import loads
 from logging import getLogger
 from os import chmod, environ, listdir, makedirs, path, pathsep, system
-from re import search
+from re import search, match, MULTILINE
 from shutil import rmtree
 from stat import S_IRWXU
 from subprocess import CalledProcessError, check_output
@@ -307,7 +308,7 @@ class CSharpProject:
               target_framework_monikers: list = None,
               output_to_bindir: bool = False,
               runtime_identifier: str = None,
-              *args) -> None:
+              args: list = None) -> None:
         '''Calls dotnet to build the specified project.'''
         if not target_framework_monikers:  # Build all supported frameworks.
             cmdline = [
@@ -326,7 +327,7 @@ class CSharpProject:
                 cmdline = cmdline + ['--runtime', runtime_identifier]
             
             if args:
-                cmdline = cmdline + list(args)
+                cmdline = cmdline + args
             
             RunCommand(cmdline, verbose=verbose).run(
                 self.working_directory)
@@ -350,7 +351,7 @@ class CSharpProject:
                     cmdline = cmdline + ['--runtime', runtime_identifier]
 
                 if args:
-                    cmdline = cmdline + list(args)
+                    cmdline = cmdline + args
                 
                 RunCommand(cmdline, verbose=verbose).run(
                     self.working_directory)
@@ -589,37 +590,39 @@ def get_commit_date(
     if not commit_sha:
         raise ValueError('.NET Commit sha was not defined.')
 
+    # Example URL: https://github.com/dotnet/runtime/commit/2d76178d5faa97be86fc8d049c7dbcbdf66dc497.patch
     url = None
-    urlformat = 'https://api.github.com/repos/%s/%s/commits/%s'
     if repository is None:
         # The origin of the repo where the commit belongs to has changed
         # between release. Here we attempt to naively guess the repo.
         core_sdk_frameworks = ChannelMap.get_supported_frameworks()
-        core_sdk_frameworks.remove('netcoreapp2.1')
         repo = 'core-sdk' if framework  in core_sdk_frameworks else 'cli'
-        url = urlformat % ('dotnet', repo, commit_sha)
+        url = f'https://github.com/dotnet/{repo}/commit/{commit_sha}.patch'
     else:
         owner, repo = get_repository(repository)
-        url = urlformat % (owner, repo, commit_sha)
+        url = f'https://github.com/{owner}/{repo}/commit/{commit_sha}.patch'
 
     build_timestamp = None
-    retrycount = 0
-    success = 0
-    while success == 0 and retrycount <= 3:
+    sleep_time = 10 # Start with 10 second sleep timer        
+    for retrycount in range(5):
         try:
             with urlopen(url) as response:
                 getLogger().info("Commit: %s", url)
-                item = loads(response.read().decode('utf-8'))
-                build_timestamp = item['commit']['committer']['date']
-                success = 1
-        except URLError:
-            retrycount += 1
+                patch = response.read().decode('utf-8')
+                dateMatch = search(r'^Date: (.+)$', patch, MULTILINE)
+                if dateMatch:
+                    build_timestamp = datetime.datetime.strptime(dateMatch.group(1), '%a, %d %b %Y %H:%M:%S %z').astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+                    getLogger().info(f"Got UTC timestamp {build_timestamp} from {dateMatch.group(1)}")
+                    break
+        except URLError as error:
+            getLogger().warning(f"URL Error trying to get commit date from {url}; Reason: {error.reason}; Attempt {retrycount}")
+            sleep(sleep_time)
+            sleep_time = sleep_time * 2
 
     if not build_timestamp:
         raise RuntimeError(
             'Could not get timestamp for commit %s' % commit_sha)
     return build_timestamp
-
 
 def get_build_directory(
         bin_directory: str,

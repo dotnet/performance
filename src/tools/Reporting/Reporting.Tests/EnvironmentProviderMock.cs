@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Reporting.Tests
@@ -14,6 +15,10 @@ namespace Reporting.Tests
         {
             return Vars?[variable];
         }
+        public IDictionary GetEnvironmentVariables()
+        {
+            return Vars;
+        }
     }
     internal class PerfLabEnvironmentProviderMock : EnvironmentProviderMockBase
     {
@@ -23,6 +28,7 @@ namespace Reporting.Tests
             {
                 {"PERFLAB_INLAB", "1" },
                 {"HELIX_CORRELATION_ID","testCorrelationId" },
+                {"HELIX_WORKITEM_FRIENDLYNAME","Test Friendly Name" },
                 {"PERFLAB_PERFHASH","testPerfHash" },
                 {"PERFLAB_QUEUE","testQueue" },
                 {"PERFLAB_REPO","testRepo" },
@@ -34,7 +40,7 @@ namespace Reporting.Tests
                 {"PERFLAB_HIDDEN", "false" },
                 {"PERFLAB_RUNNAME", "testRunName" },
                 {"PERFLAB_CONFIGS", "KEY1=VALUE1;KEY2=VALUE2" },
-                {"PERFLAB_BUILDTIMESTAMP", new DateTime(1970,1,1).ToString("o") },
+                {"PERFLAB_BUILDTIMESTAMP", new DateTime(1970,1,1).ToString("o") }
             };
         }
 

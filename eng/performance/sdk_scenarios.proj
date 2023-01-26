@@ -189,5 +189,6 @@
       <Timeout>4:00</Timeout>
     </HelixWorkItem>
   </ItemGroup>
+  <Import Project="PreparePayloadWorkItems.targets" />
 </Project>
 

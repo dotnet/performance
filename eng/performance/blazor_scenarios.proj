@@ -79,4 +79,6 @@
     </HelixWorkItem>
   </ItemGroup>
 
+  <Import Project="PreparePayloadWorkItems.targets" />
+
 </Project>
