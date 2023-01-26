@@ -343,6 +343,7 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-arm64
       isPublic: false
       jobParameters:
         kind: mlnet
@@ -358,6 +359,7 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-arm64
       isPublic: false
       jobParameters:
         kind: fsharp
@@ -373,6 +375,7 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-arm64
       isPublic: false
       jobParameters:
         kind: bepuphysics
@@ -388,6 +391,7 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-arm64
       isPublic: false
       jobParameters:
         kind: imagesharp
@@ -403,6 +407,7 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-arm64
       isPublic: false
       jobParameters:
         kind: roslyn
@@ -418,6 +423,7 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-arm64
       isPublic: false
       jobParameters:
         kind: illink
