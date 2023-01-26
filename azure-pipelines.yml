@@ -252,6 +252,20 @@ jobs:
         channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
           - main
 
+  # NativeAOT scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: nativeaot_scenarios
+        projectFile: nativeaot_scenarios.proj
+        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+          - main
+
 ###########################################
 # Private Jobs
 ###########################################
@@ -300,6 +314,21 @@ jobs:
   #      projectFile: maui_scenarios.proj
   #      channels:
   #        - main
+
+  # NativeAOT scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+        - win-arm64
+      isPublic: false
+      jobParameters:
+        kind: nativeaot_scenarios
+        projectFile: nativeaot_scenarios.proj
+        channels:
+          - main
 
 ################################################
 # Scheduled Private jobs
