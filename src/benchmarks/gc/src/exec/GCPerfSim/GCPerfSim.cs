@@ -174,6 +174,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Reflection;
+using System.Transactions;
 
 #if STATISTICS
 class Statistics
@@ -336,7 +337,7 @@ sealed class Rand
         GetRand(range.low, range.high);
 
     public double GetFloat() =>
-        (double)GetRand() / (double)0x7FFFFFFF;
+        (double)GetRand() / (double)0x80000000ul;
 };
 
 interface ITypeWithPayload
@@ -729,6 +730,7 @@ readonly struct BucketSpec
 {
     public readonly SizeRange sizeRange;
     public readonly uint survInterval;
+    public readonly uint reqSurvInterval;
     // Note: pinInterval and finalizableInterval only affect surviving objects
     public readonly uint pinInterval;
     public readonly uint finalizableInterval;
@@ -736,11 +738,13 @@ readonly struct BucketSpec
     public readonly double weight;
 
     public readonly bool isPoh;
-    public BucketSpec(SizeRange sizeRange, uint survInterval, uint pinInterval, uint finalizableInterval, double weight, bool isPoh = false)
+
+    public BucketSpec(SizeRange sizeRange, uint survInterval, uint reqSurvInterval, uint pinInterval, uint finalizableInterval, double weight, bool isPoh = false)
     {
         Debug.Assert(weight != 0);
         this.sizeRange = sizeRange;
         this.survInterval = survInterval;
+        this.reqSurvInterval = reqSurvInterval;
         this.pinInterval = pinInterval;
         this.finalizableInterval = finalizableInterval;
         this.weight = weight;
@@ -775,12 +779,15 @@ readonly struct Phase
     public readonly ItemType allocType;
     public readonly ulong totalLiveBytes;
     public readonly ulong totalAllocBytes;
+    public readonly ulong requestLiveBytes;
+    public readonly ulong requestAllocBytes;
     public readonly double totalMinutesToRun;
     public readonly BucketSpec[] buckets;
 
     public Phase(
         TestKind testKind,
         ulong totalLiveBytes, ulong totalAllocBytes, double totalMinutesToRun,
+        ulong requestLiveBytes, ulong requestAllocBytes,
         BucketSpec[] buckets,
         ItemType allocType)
     {
@@ -790,6 +797,8 @@ readonly struct Phase
         this.totalLiveBytes = totalLiveBytes;
         this.totalAllocBytes = totalAllocBytes;
         this.totalMinutesToRun = totalMinutesToRun;
+        this.requestLiveBytes = requestLiveBytes;
+        this.requestAllocBytes = requestAllocBytes;
         this.buckets = buckets;
         this.allocType = allocType;
     }
@@ -1035,7 +1044,7 @@ ref struct TextReader
     private static bool IsDigit(char c) =>
         '0' <= c && c <= '9';
     private static bool IsDigitOrDot(char c) =>
-        IsDigit(c) || c == '.';
+        IsDigit(c) || c == '.' || c == ',';
     private static bool IsWhite(char c) =>
         c == ' ' || c == '\t';
 }
@@ -1193,6 +1202,8 @@ class ArgsParser
         TestKind testKind = TestKind.time;
         ulong? totalLiveBytes = null;
         ulong? totalAllocBytes = null;
+        ulong requestLiveBytes = 0;
+        ulong requestAllocBytes = 0;
         double totalMinutesToRun = 0;
         ItemType allocType = ItemType.ReferenceItem;
 
@@ -1212,6 +1223,8 @@ class ArgsParser
                     testKind: testKind,
                     totalLiveBytes: livePerThread,
                     totalAllocBytes: allocPerThread,
+                    requestLiveBytes: requestLiveBytes,
+                    requestAllocBytes: requestAllocBytes,
                     totalMinutesToRun: totalMinutesToRun,
                     buckets: buckets,
                     allocType: allocType);
@@ -1220,48 +1233,35 @@ class ArgsParser
 
             CharSpan word = text.TakeWord();
             text.TakeSpace();
-            switch (word[0])
+            switch (word.ToString())
             {
-                case 'a':
-                    if (word == "allocType")
-                    {
-                        allocType = ParseItemType(text.TakeWord());
-                    }
-                    else
-                    {
-                        throw text.Fail($"Unexpected argument '{word.ToString()}'");
-                    }
+                case "allocType":
+                    allocType = ParseItemType(text.TakeWord());
                     break;
-                case 't':
-                    if (word == "testKind")
-                    {
-                        testKind = ParseTestKind(text.TakeWord());
-                    }
-                    else if (word == "threadCount")
-                    {
-                        threadCount = text.TakeUInt();
-                        text.Assert(threadCount != 0, "Cannot have 0 threads");
-                    }
-                    else if (word == "totalLiveGB")
-                    {
-                        totalLiveBytes = Util.GBToBytes(text.TakeUlong());
-                    }
-                    else if (word == "totalAllocGB")
-                    {
-                        totalAllocBytes = Util.GBToBytes(text.TakeUlong());
-                    }
-                    else if (word == "totalLiveMB")
-                    {
-                        totalLiveBytes = Util.MBToBytes(text.TakeUlong());
-                    }
-                    else if (word == "totalAllocMB")
-                    {
-                        totalAllocBytes = Util.MBToBytes(text.TakeUlong());
-                    }
-                    else
-                    {
-                        throw text.Fail($"Unexpected argument '{word.ToString()}'");
-                    }
+                case "testKind":
+                    testKind = ParseTestKind(text.TakeWord());
+                    break;
+                case "threadCount":
+                    threadCount = text.TakeUInt();
+                    text.Assert(threadCount != 0, "Cannot have 0 threads");
+                    break;
+                case "totalLiveGB":
+                    totalLiveBytes = Util.GBToBytes(text.TakeDouble());
+                    break;
+                case "totalAllocGB":
+                    totalAllocBytes = Util.GBToBytes(text.TakeDouble());
+                    break;
+                case "totalLiveMB":
+                    totalLiveBytes = Util.MBToBytes(text.TakeDouble());
+                    break;
+                case "totalAllocMB":
+                    totalAllocBytes = Util.MBToBytes(text.TakeDouble());
+                    break;
+                case "requestAllocMB":
+                    requestAllocBytes = Util.MBToBytes(text.TakeDouble());
+                    break;
+                case "requestLiveMB":
+                    requestLiveBytes = Util.MBToBytes(text.TakeDouble());
                     break;
                 default:
                     throw text.Fail($"Unexpected argument '{word.ToString()}'");
@@ -1290,9 +1290,11 @@ class ArgsParser
         uint lowSize = DEFAULT_SOH_ALLOC_LOW;
         uint highSize = DEFAULT_SOH_ALLOC_HIGH;
         uint survInterval = DEFAULT_SOH_SURV_INTERVAL;
+        uint reqSurvInterval = DEFAULT_REQ_SOH_SURV_INTERVAL;
         uint pinInterval = DEFAULT_PINNING_INTERVAL;
         uint finalizableInterval = DEFAULT_FINALIZABLE_INTERVAL;
         uint weight = 1;
+        bool isPoh = false;
         while (true)
         {
 
@@ -1302,37 +1304,40 @@ class ArgsParser
                 return (s.Value, new BucketSpec(
                     sizeRange: new SizeRange(lowSize, highSize),
                     survInterval: survInterval,
+                    reqSurvInterval: reqSurvInterval,
                     pinInterval: pinInterval,
                     finalizableInterval: finalizableInterval,
-                    weight: weight));
+                    weight: weight,
+                    isPoh: isPoh));
             }
 
             CharSpan word = text.TakeWord();
             text.TakeSpace();
-            switch (word[0])
+            switch (word.ToString())
             {
-                case 'l':
-                    text.Assert(word == "lowSize");
+                case "isPoh":
+                    isPoh = text.TakeUInt() != 0;
+                    break;
+                case "lowSize":
                     lowSize = text.TakeUInt();
                     break;
-                case 'h':
-                    text.Assert(word == "highSize");
+                case "highSize":
                     highSize = text.TakeUInt();
                     break;
-                case 's':
-                    text.Assert(word == "survInterval");
+                case "reqSurvInterval":
+                    reqSurvInterval = text.TakeUInt();
+                    break;
+                case "survInterval":
                     survInterval = text.TakeUInt();
                     break;
-                case 'p':
-                    text.Assert(word == "pinInterval");
+                case "pinInterval":
                     pinInterval = text.TakeUInt();
                     break;
-                case 'w':
-                    text.Assert(word == "weight");
+                case "weight":
                     weight = text.TakeUInt();
                     break;
                 default:
-                    throw text.Fail();
+                    throw text.Fail($"Unexpected argument '{word.ToString()}'");
             }
             text.SkipBlankLines();
         }
@@ -1377,10 +1382,14 @@ class ArgsParser
     private const uint DEFAULT_POH_PINNING_INTERVAL = 0;
     private const uint DEFAULT_POH_FINALIZABLE_INTERVAL = 0;
     private const uint DEFAULT_POH_SURV_INTERVAL = 0;
+    private const uint DEFAULT_REQ_POH_SURV_INTERVAL = 0;
 #endif
 
     private const uint DEFAULT_PINNING_INTERVAL = 100;
     private const uint DEFAULT_FINALIZABLE_INTERVAL = 0;
+
+    private const uint DEFAULT_REQ_SOH_SURV_INTERVAL = 3;
+    private const uint DEFAULT_REQ_LOH_SURV_INTERVAL = 2;
 
     private static Args ParseFromCommandLine(string[] args)
     {
@@ -1405,9 +1414,12 @@ class ArgsParser
         uint pohAllocLow = DEFAULT_POH_ALLOC_LOW;
         uint pohAllocHigh = DEFAULT_POH_ALLOC_HIGH;
 
+        uint reqSohSurvInterval = DEFAULT_REQ_SOH_SURV_INTERVAL;
+        uint reqLohSurvInterval = DEFAULT_REQ_LOH_SURV_INTERVAL;
 #if NET5_0_OR_GREATER
         uint pohFinalizableInterval = DEFAULT_POH_FINALIZABLE_INTERVAL;
         uint pohSurvInterval = DEFAULT_POH_SURV_INTERVAL;
+        uint reqPohSurvInterval = DEFAULT_REQ_POH_SURV_INTERVAL;
 #endif
         uint pohAllocRatioArg = 0;
 
@@ -1417,6 +1429,9 @@ class ArgsParser
         bool finishWithFullCollect = false;
         bool compute = false;
         bool endException = false;
+
+        ulong requestAllocBytes = 0;
+        ulong requestLiveBytes = 0;
 
         for (uint i = 0; i < args.Length; ++i)
         {
@@ -1462,6 +1477,14 @@ class ArgsParser
                 case "-tagb":
                     totalAllocBytes = Util.GBToBytes(ParseDouble(args[++i]));
                     break;
+                case "-requestAllocMB":
+                case "-ramb":
+                    requestAllocBytes = Util.MBToBytes(ParseDouble(args[++i]));
+                    break;
+                case "-requestLiveMB":
+                case "-rlmb":
+                    requestLiveBytes = Util.MBToBytes(ParseDouble(args[++i]));
+                    break;
                 case "-totalMins":
                 case "-tm":
                     totalMinutesToRun = ParseDouble(args[++i]);
@@ -1488,14 +1511,31 @@ class ArgsParser
                 case "-sohsi":
                     sohSurvInterval = ParseUInt32(args[++i]);
                     break;
+                case "-reqSohSurvInterval":
+                case "-rsohsi":
+                    reqSohSurvInterval = ParseUInt32(args[++i]);
+                    break;
                 case "-lohSurvInterval":
                 case "-lohsi":
                     lohSurvInterval = ParseUInt32(args[++i]);
+                    break;
+                case "-reqLohSurvInterval":
+                case "-rlohsi":
+                    reqLohSurvInterval = ParseUInt32(args[++i]);
                     break;
                 case "-pohSurvInterval":
                 case "-pohsi":
 #if NET5_0_OR_GREATER
                     pohSurvInterval = ParseUInt32(args[++i]);
+#else
+                    Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
+                                      args[i++]);
+#endif
+                    break;
+                case "-reqPohSurvInterval":
+                case "-rpohsi":
+#if NET5_0_OR_GREATER
+                    reqPohSurvInterval = ParseUInt32(args[++i]);
 #else
                     Console.WriteLine("The flag {0} is only supported on .NET Core 5+. Skipping in this run.",
                                       args[i++]);
@@ -1597,6 +1637,7 @@ class ArgsParser
             BucketSpec lohBucket = new BucketSpec(
                 sizeRange: new SizeRange(lohAllocLow, lohAllocHigh),
                 survInterval: lohSurvInterval,
+                reqSurvInterval: reqLohSurvInterval,
                 pinInterval: lohPinInterval,
                 finalizableInterval: lohFinalizableInterval,
                 weight: lohWeight);
@@ -1610,6 +1651,7 @@ class ArgsParser
             BucketSpec pohBucket = new BucketSpec(
                 sizeRange: new SizeRange(pohAllocLow, pohAllocHigh),
                 survInterval: pohSurvInterval,
+                reqSurvInterval: reqPohSurvInterval,
                 pinInterval: 0,
                 finalizableInterval: pohFinalizableInterval,
                 weight: pohWeight,
@@ -1624,6 +1666,7 @@ class ArgsParser
             BucketSpec sohBucket = new BucketSpec(
                 sizeRange: new SizeRange(sohAllocLow, sohAllocHigh),
                 survInterval: sohSurvInterval,
+                reqSurvInterval: reqSohSurvInterval,
                 pinInterval: sohPinInterval,
                 finalizableInterval: sohFinalizableInterval,
                 weight: sohWeight);
@@ -1637,6 +1680,8 @@ class ArgsParser
             testKind: testKind,
             totalLiveBytes: livePerThread,
             totalAllocBytes: allocPerThread,
+            requestAllocBytes: requestAllocBytes,
+            requestLiveBytes: requestAllocBytes,
             totalMinutesToRun: totalMinutesToRun,
             buckets: buckets,
             allocType: allocType);
@@ -1654,14 +1699,16 @@ readonly struct ObjectSpec
     public readonly bool ShouldBePinned;
     public readonly bool ShouldBeFinalizable;
     public readonly bool ShouldSurvive;
+    public readonly bool ShouldSurviveReq;
     public readonly bool IsPoh;
 
-    public ObjectSpec(uint size, bool shouldBePinned, bool shouldBeFinalizable, bool shouldSurvive, bool isPoh)
+    public ObjectSpec(uint size, bool shouldBePinned, bool shouldBeFinalizable, bool shouldSurvive, bool shouldSurviveReq, bool isPoh)
     {
         Size = size;
         ShouldBeFinalizable = shouldBeFinalizable;
         ShouldBePinned = shouldBePinned;
         ShouldSurvive = shouldSurvive;
+        ShouldSurviveReq = shouldSurviveReq;
         IsPoh = isPoh;
     }
 }
@@ -1697,6 +1744,7 @@ class Bucket
 
     public SizeRange sizeRange => spec.sizeRange;
     public uint survInterval => spec.survInterval;
+    public uint reqSurvInterval => spec.reqSurvInterval;
     public uint pinInterval => spec.pinInterval;
     public uint finalizableInterval => spec.finalizableInterval;
     // If we have buckets with weights of 2 and 1, we'll allocate 2 objects from the first bucket, then 1 from the next.
@@ -1709,6 +1757,7 @@ class Bucket
 
         uint size = rand.GetRand(sizeRange);
         bool shouldSurvive = Util.isNth(survInterval, count);
+        bool shouldSurviveReq = Util.isNth(reqSurvInterval, count);
         bool shouldBePinned = shouldSurvive && Util.isNth(pinInterval, count / survInterval);
         bool shouldBeFinalizable = shouldSurvive && Util.isNth(finalizableInterval, count / survInterval);
 
@@ -1738,7 +1787,7 @@ class Bucket
             survivedCountSinceLastPrint++;
         }
 
-        return new ObjectSpec(size, shouldBePinned: shouldBePinned, shouldBeFinalizable: shouldBeFinalizable, shouldSurvive: shouldSurvive, isPoh: isPoh);
+        return new ObjectSpec(size, shouldBePinned: shouldBePinned, shouldBeFinalizable: shouldBeFinalizable, shouldSurvive: shouldSurvive, shouldSurviveReq: shouldSurviveReq, isPoh: isPoh);
     }
 }
 
@@ -1907,10 +1956,12 @@ class MemoryAlloc
 
     private readonly Rand rand;
     OldArr oldArr;
+    OldArr reqArr;
     // TODO We should consider adding another array for medium lifetime.
     private readonly uint threadIndex;
     private readonly PerThreadArgs args;
     private long totalAllocBytesLeft;
+    private long requestAllocBytesLeft;
     // private readonly bool printIterInfo = false;
     private BucketChooser bucketChooser;
 
@@ -2098,7 +2149,16 @@ class MemoryAlloc
                 if (!GoToNextPhase()) break;
             }
 
-            MakeObjectAndMaybeSurvive(); // modifies totalAllocBytesLeft
+            if (requestAllocBytesLeft <= 0)
+            {
+                reqArr.FreeAll();
+                ulong numReqElements = curPhase.requestLiveBytes / bucketChooser.AverageObjectSize();
+                reqArr = new OldArr(numReqElements);
+                reqArr.NonEmptyLength = 0;
+                requestAllocBytesLeft = (long)curPhase.requestAllocBytes;
+            }
+
+            MakeObjectAndMaybeSurvive(); // modifies totalAllocBytesLeft && requestAllocBytesLeft
 
             if (args.compute)
             {
@@ -2118,6 +2178,7 @@ class MemoryAlloc
     void Finish()
     {
         oldArr.FreeAll();
+        reqArr.FreeAll();
     }
 
     // Returns false if no next phase
@@ -2128,6 +2189,7 @@ class MemoryAlloc
         {
             curPhase = args.phases[curPhaseIndex];
             totalAllocBytesLeft = (long)curPhase.totalAllocBytes;
+            requestAllocBytesLeft = (long)curPhase.requestAllocBytes;
 
             bucketChooser = new BucketChooser(curPhase.buckets);
 
@@ -2139,6 +2201,11 @@ class MemoryAlloc
                 (ITypeWithPayload item, ObjectSpec _) = MakeObjectAndTouchPage();
                 oldArr.Initialize(i, item);
             }
+
+            ulong numReqElements = curPhase.requestLiveBytes / bucketChooser.AverageObjectSize();
+            reqArr = new OldArr(numReqElements);
+            // we don't want to fill the request right away
+            reqArr.NonEmptyLength = 0;
 
             if (curPhase.totalLiveBytes == 0)
                 Util.AlwaysAssert(oldArr.TotalLiveBytes < 100);
@@ -2200,6 +2267,7 @@ class MemoryAlloc
 
         ObjectSpec spec = bucketChooser.GetNextObjectSpec(rand, SohOverhead);
         totalAllocBytesLeft -= spec.Size;
+        requestAllocBytesLeft -= spec.Size;
         switch (curPhase.allocType)
         {
             case ItemType.SimpleItem:
@@ -2244,7 +2312,11 @@ class MemoryAlloc
 
         if (spec.ShouldSurvive)
         {
-            DoSurvive(item, spec);
+            DoSurvive(ref oldArr, item, false);
+        }
+        else if (reqArr.Length > 0 && spec.ShouldSurviveReq)
+        {
+            DoSurvive(ref reqArr, item, reqArr.TotalLiveBytes < curPhase.requestLiveBytes);
         }
         else
         {
@@ -2252,54 +2324,63 @@ class MemoryAlloc
         }
     }
 
-    private void DoSurvive(ITypeWithPayload item, in ObjectSpec spec)
+    private void DoSurvive(ref OldArr arr, ITypeWithPayload item, bool rampUp)
     {
         // TODO: How to survive shouldn't belong here; it should
         // belong to the building block that churns the array.
         switch (curPhase.allocType)
         {
             case ItemType.SimpleItem:
-                oldArr.Replace(rand.GetRand(oldArr.Length), item);
+                arr.Replace(rand.GetRand(arr.Length), item);
                 break;
             case ItemType.ReferenceItem:
-                // Step 1: Decide which list to pick a victim to free
-                uint victimIndex = rand.GetRand(oldArr.NonEmptyLength);
-                // Step 2: Free the head
-                ITypeWithPayload? victimList = oldArr.TakeAndReduceTotalSizeButDoNotFree(victimIndex);
-                // Within the NonEmpty range, the list cannot be null
-                ReferenceItemWithSize victimHead = (ReferenceItemWithSize)victimList!;
-                ReferenceItemWithSize? victimTail = victimHead.FreeHead();
-                if (victimTail == null)
+                if (!rampUp)
                 {
-                    // If the list had just one head, and we removed it
-                    if (victimIndex != oldArr.NonEmptyLength - 1)
+                    // Step 1: Decide which list to pick a victim to free
+                    uint victimIndex = rand.GetRand(arr.NonEmptyLength);
+                    // Step 2: Free the head
+                    ITypeWithPayload? victimList = arr.TakeAndReduceTotalSizeButDoNotFree(victimIndex);
+                    // Within the NonEmpty range, the list cannot be null
+                    ReferenceItemWithSize victimHead = (ReferenceItemWithSize)victimList!;
+                    ReferenceItemWithSize? victimTail = victimHead.FreeHead();
+                    if (victimTail == null)
                     {
-                        // and when it is not the last one, move the last one to fill the hole
-                        ITypeWithPayload borrow = oldArr.TakeAndReduceTotalSizeButDoNotFree(oldArr.NonEmptyLength - 1)!;
-                        oldArr.Replace(victimIndex, borrow);
+                        // If the list had just one head, and we removed it
+                        if (victimIndex != arr.NonEmptyLength - 1)
+                        {
+                            // and when it is not the last one, move the last one to fill the hole
+                            ITypeWithPayload borrow = arr.TakeAndReduceTotalSizeButDoNotFree(arr.NonEmptyLength - 1)!;
+                            arr.Replace(victimIndex, borrow);
+                        }
+                        arr.NonEmptyLength = arr.NonEmptyLength - 1;
                     }
-                    oldArr.NonEmptyLength = oldArr.NonEmptyLength - 1;
-                }
-                else
-                {
-                    oldArr.Replace(victimIndex, victimTail);
+                    else
+                    {
+                        arr.Replace(victimIndex, victimTail);
+                    }
                 }
                 // Step 3: Do we want to create a new list?
                 const uint createProbability = 50;
-                bool create = rand.GetRand(100) < createProbability;
+                bool create;
+                if (arr.NonEmptyLength == 0)
+                    create = true;
+                else if (arr.NonEmptyLength == arr.Length)
+                    create = false;
+                else
+                    create = rand.GetRand(100) < createProbability;
                 if (create)
                 {
                     // Create a new list
-                    oldArr.Replace(oldArr.NonEmptyLength, item);
-                    oldArr.NonEmptyLength = oldArr.NonEmptyLength + 1;
+                    arr.Replace(arr.NonEmptyLength, item);
+                    arr.NonEmptyLength = arr.NonEmptyLength + 1;
                 }
                 else
                 {
                     // Or extend an existing one
-                    uint extendIndex = rand.GetRand(oldArr.NonEmptyLength);
-                    ReferenceItemWithSize extendList = (ReferenceItemWithSize)oldArr.TakeAndReduceTotalSizeButDoNotFree(extendIndex)!;
+                    uint extendIndex = rand.GetRand(arr.NonEmptyLength);
+                    ReferenceItemWithSize extendList = (ReferenceItemWithSize)arr.TakeAndReduceTotalSizeButDoNotFree(extendIndex)!;
                     extendList.AddToEndOfList((ReferenceItemWithSize)item);
-                    oldArr.Replace(extendIndex, extendList);
+                    arr.Replace(extendIndex, extendList);
                 }
                 break;
             default:
@@ -2308,7 +2389,7 @@ class MemoryAlloc
 
         if (args.verifyLiveSize)
         {
-            oldArr.VerifyLiveSize();
+            arr.VerifyLiveSize();
         }
     }
 
