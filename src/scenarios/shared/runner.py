@@ -181,6 +181,14 @@ ex: C:\repos\performance;C:\repos\runtime
             self.runtimeseconds = args.runtimeseconds
             self.closeToStartDelay = args.closeToStartDelay
 
+        if self.testtype == const.DEVICEMEMORYCONSUMPTION:
+            self.packagepath = args.packagepath
+            self.packagename = args.packagename
+            self.devicetype = args.devicetype
+            self.testiterations = args.testiterations
+            self.animationsdisabled = args.animationsdisabled
+            self.runtimeseconds = args.runtimeseconds
+
         if args.scenarioname:
             self.scenarioname = args.scenarioname
 
