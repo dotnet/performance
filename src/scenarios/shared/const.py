@@ -15,6 +15,7 @@ INNERLOOP = 'innerloop'
 INNERLOOPMSBUILD = "innerloopmsbuild"
 DOTNETWATCH = "dotnetwatch"
 DEVICESTARTUP = "devicestartup"
+DEVICEMEMORYCONSUMPTION = "devicememoryconsumption"
 
 SCENARIO_NAMES = {STARTUP: 'Startup',
                   SDK: 'SDK',
