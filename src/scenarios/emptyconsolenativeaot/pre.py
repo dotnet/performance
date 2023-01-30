@@ -15,6 +15,6 @@ precommands.new(template='console',
                 working_directory=sys.path[0])
 precommands.execute(['/p:PublishAot=true', '/p:StripSymbols=true', '/p:IlcGenerateMstatFile=true'])
 
-src = os.path.join(const.APPDIR, 'obj', precommands.configuration, precommands.framework, precommands.runtime_identifier, 'native', EXENAME)
+src = os.path.join(const.APPDIR, 'obj', precommands.configuration, precommands.framework, precommands.runtime_identifier, 'native', f'{EXENAME}.mstat')
 dst = os.path.join(precommands.output, f'{EXENAME}.mstat')
 copyfile(src, dst)
