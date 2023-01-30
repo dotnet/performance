@@ -83,7 +83,7 @@ namespace ScenarioMeasurement
                 test.Name = scenarioName;
                 test.AddCounter(counters);
                 reporter.AddTest(test);
-                if (reporter.InLab && !string.IsNullOrEmpty(reportJsonPath))
+                if (reporter.InLab && !String.IsNullOrEmpty(reportJsonPath))
                 {
                     File.WriteAllText(reportJsonPath, reporter.GetJson());
                 }
@@ -95,7 +95,7 @@ namespace ScenarioMeasurement
         private static string GetExtension(string fileName)
         {
             var extension = Path.GetExtension(fileName);
-            if (string.IsNullOrWhiteSpace(extension))
+            if (String.IsNullOrWhiteSpace(extension))
             {
                 return "No Extension";
             }
