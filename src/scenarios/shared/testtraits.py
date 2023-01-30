@@ -20,6 +20,7 @@ class TestTraits:
         self.apptorun = ''
         self.guiapp = ''
         self.startupmetric = ''
+        self.memoryconsumptionmetric = ''
         self.appargs = ''
         self.iterations = ''
         self.timeout = ''

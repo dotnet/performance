@@ -20,6 +20,7 @@ from shutil import move, rmtree
 from shared.androidhelper import AndroidHelper
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
+from shared.memoryconsumption import MemoryConsumptionWrapper
 from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand, publisheddll
 from shared.sod import SODWrapper
 from shared import const
@@ -392,27 +393,28 @@ ex: C:\repos\performance;C:\repos\runtime
                     # Example output we are regexing):
                     # Process summary:
                     # * net.dot.HelloAndroid / u0a1219 / v1:
-                    #        TOTAL: 100% (<Part we want>52MB-52MB-52MB/44MB-44MB-44MB/135MB-135MB-135MB</Part we want> over 1)
+                    #        TOTAL: 100% (<Part we want>52MB-52MB-52MB/44MB-44MB-44MB/135MB-135MB-135MB over 1</Part we want>)
                     #        Top: 100% (52MB-52MB-52MB/44MB-44MB-44MB/135MB-135MB-135MB over 1)
                     regexSearchString = fr"""^Process summary.*$
 ^[^a-z]*{self.packagename}.*$
-^.*Total:.*% \((\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB) over (\d+).*$"""
-                    print(regexSearchString)
+^.*Total:.*% \((\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB over \d+)\).*$"""
+# ^.*Total:.*% \((\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB) over (\d+).*$"""
                     dirtyCapture = re.search(regexSearchString, captureProcStats.stdout, flags=re.MULTILINE | re.IGNORECASE)
                     if not dirtyCapture:
                         raise Exception("Failed to capture the reported start time!")
-                    captureList = dirtyCapture.group(1).split('/')
-                    captureNumber = dirtyCapture.group(2)
-                    if len(captureList) == 3: # Only have the ms, everything should be good
-                        pss = captureList[0].split('-') # Proportional Set Size
-                        uss = captureList[1].split('-') # Unique Set Size
-                        rss = captureList[2].split('-') # Resident Set Size
-                        formattedTime = f"PSS: min {pss[0]}, avg {pss[1]}, max {pss[2]}; USS: min {uss[0]}, avg {uss[1]}, max {uss[2]}; RSS: min {rss[0]}, avg {rss[1]}, max {rss[2]}; Number: {CaptureNumber}"
-                        print(f"Memory Capture: {formattedTime}")
-                    else:
-                        getLogger().error(f"Memory Capture failed, found {len(captureList)}")
-                        raise Exception("Android memory capture failed! Incorrect number of captures found.")
-                    allResults.append(formattedTime) # append TotalTime: (TIME)
+                    memoryCapture = dirtyCapture.group(1)
+#                     captureNumber = dirtyCapture.group(2)
+#                     if len(captureList) == 3:
+#                         pss = captureList[0].split('-') # Proportional Set Size
+#                         uss = captureList[1].split('-') # Unique Set Size
+#                         rss = captureList[2].split('-') # Resident Set Size
+#                         formattedTime = f"PSS: min {pss[0]}, avg {pss[1]}, max {pss[2]}; USS: min {uss[0]}, avg {uss[1]}, max {uss[2]}; RSS: min {rss[0]}, avg {rss[1]}, max {rss[2]}; Number: {CaptureNumber}"
+                    print(f"Memory Capture: {memoryCapture}")
+                    
+                    # else:
+                    #     getLogger().error(f"Memory Capture failed, found {len(captureList)}")
+                    #     raise Exception("Android memory capture failed! Incorrect number of captures found.")
+                    allResults.append(memoryCapture)
                     time.sleep(3) # Delay in seconds for ensuring a cold start
                 
             finally:
@@ -427,9 +429,9 @@ ex: C:\repos\performance;C:\repos\runtime
             traceFile.close()
 
             ## TODO: Add Memory tool/wrapper for getting memory trace data stuff
-            startup = StartupWrapper()
-            self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname=self.scenarioname)
-            startup.parsetraces(self.traits)
+            memoryconsumption = MemoryConsumptionWrapper()
+            self.traits.add_traits(overwrite=True, apptorun="app", memoryconsumptionmetric=const.MEMORYCONSUMPTION_ANDROID, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname=self.scenarioname)
+            memoryconsumption.parsetraces(self.traits)
 
         elif self.testtype == const.DEVICESTARTUP and self.devicetype == 'android':
             # ADB Key Event corresponding numbers: https://gist.github.com/arjunv/2bbcca9a1a1c127749f8dcb6d36fb0bc
