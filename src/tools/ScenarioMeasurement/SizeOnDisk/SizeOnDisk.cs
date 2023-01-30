@@ -59,7 +59,7 @@ namespace ScenarioMeasurement
                     counters.Add(new Counter { MetricName = "bytes", Name = $"{Path.Join(name, fileName)}", Results = new[] { (double)file.Value } });
 
                     AddToBucket(buckets, $"Aggregate - {fileExtension}", file.Value);
-                    if(fileName.Contains(Path.Join("wwwroot", "_framework")))
+                    if (fileName.Contains(Path.Join("wwwroot", "_framework")))
                     {
                         AggregateBlazorCounters(buckets, fileExtension, file.Value);
                     }
@@ -83,7 +83,7 @@ namespace ScenarioMeasurement
                 test.Name = scenarioName;
                 test.AddCounter(counters);
                 reporter.AddTest(test);
-                if (reporter.InLab && !String.IsNullOrEmpty(reportJsonPath))
+                if (reporter.InLab && !string.IsNullOrEmpty(reportJsonPath))
                 {
                     File.WriteAllText(reportJsonPath, reporter.GetJson());
                 }
@@ -95,12 +95,13 @@ namespace ScenarioMeasurement
         private static string GetExtension(string fileName)
         {
             var extension = Path.GetExtension(fileName);
-            if (String.IsNullOrWhiteSpace(extension))
+            if (string.IsNullOrWhiteSpace(extension))
             {
                 return "No Extension";
             }
             return extension;
         }
+
         static HashSet<string> versions = new HashSet<string>();
 
         static string RemoveVersions(string name)
@@ -115,14 +116,12 @@ namespace ScenarioMeasurement
         static void FindVersionNumbers(string path)
         {
             var sdkDir = Path.Combine(path, "sdk");
-
-
-            if(Directory.Exists(sdkDir)) 
-            { 
+            if (Directory.Exists(sdkDir))
+            {
                 var sharedDir = Path.Combine(path, "shared");
                 var sdkVersion = new DirectoryInfo(Directory.GetDirectories(sdkDir).Single()).Name;
                 var templateDir = Path.Combine(path, "templates");
-                versions.Add(sdkVersion); 
+                versions.Add(sdkVersion);
                 // the Templates dir seems to have the same version as the SDK version, but with a slightly different format
                 versions.Add(Regex.Replace(sdkVersion, @"(\d+\.\d+\.\d)00", "$1"));
                 versions.Add(new DirectoryInfo(Directory.GetDirectories(templateDir).Single()).Name);
@@ -133,12 +132,11 @@ namespace ScenarioMeasurement
             }
 
             var wasmFile = Directory.GetFiles(path, "dotnet.*.js.*", SearchOption.AllDirectories).FirstOrDefault();
-            if(wasmFile != null)
+            if (wasmFile != null)
             {
                 var wasmVersion = Regex.Match(wasmFile, @"dotnet\.(.+)\.js").Groups[1].Value;
                 versions.Add(wasmVersion);
             }
-
         }
 
         static Dictionary<string, long> GetDirSize(string dir)
@@ -157,7 +155,7 @@ namespace ScenarioMeasurement
         }
 
 
-        static void AddToBucket(Dictionary<string, (long size, int count, bool isTop)> buckets, string bucketName, long size, bool isTop=false)
+        static void AddToBucket(Dictionary<string, (long size, int count, bool isTop)> buckets, string bucketName, long size, bool isTop = false)
         {
             if (!buckets.ContainsKey(bucketName))
             {
@@ -184,7 +182,6 @@ namespace ScenarioMeasurement
             {
                 AddToBucket(buckets, "Total Uncompressed _framework", size, true);
             }
-
         }
     }
 }
