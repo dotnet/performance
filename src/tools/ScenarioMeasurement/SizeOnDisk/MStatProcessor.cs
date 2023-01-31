@@ -5,7 +5,6 @@ using Mono.Cecil.Rocks;
 
 namespace ScenarioMeasurement
 {
-
     public sealed class MStatProcessor
     {
         public sealed record Result(string Name, int Size);
