@@ -63,6 +63,19 @@ namespace ScenarioMeasurement
                     {
                         AggregateBlazorCounters(buckets, fileExtension, file.Value);
                     }
+                    if (fileExtension.Equals(".mstat", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var processor = new MStatProcessor();
+                        processor.Process(file.Key);
+                        foreach (var item in processor.AssemblyStats)
+                        {
+                            counters.Add(new Counter { MetricName = "bytes", Name = $"{Path.Join(name, fileName)} - Assembly - {item.Name}", Results = new[] { (double)item.Size } });
+                        }
+                        foreach (var item in processor.BlobStats)
+                        {
+                            counters.Add(new Counter { MetricName = "bytes", Name = $"{Path.Join(name, fileName)} - Blob - {item.Name}", Results = new[] { (double)item.Size } });
+                        }
+                    }
                 }
             }
 
