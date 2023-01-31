@@ -66,7 +66,7 @@ namespace ScenarioMeasurement
                     if (fileExtension.Equals(".mstat", StringComparison.OrdinalIgnoreCase))
                     {
                         var processor = new MStatProcessor();
-                        processor.Process(file.Key);
+                        processor.Process(Path.Join(directory.Key, file.Key));
                         foreach (var item in processor.AssemblyStats)
                         {
                             counters.Add(new Counter { MetricName = "bytes", Name = $"{Path.Join(name, fileName)} - Assembly - {item.Name}", Results = new[] { (double)item.Size } });
