@@ -398,23 +398,12 @@ ex: C:\repos\performance;C:\repos\runtime
                     regexSearchString = fr"""^Process summary.*$
 ^[^a-z]*{self.packagename}.*$
 ^.*Total:.*% \((\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB over \d+)\).*$"""
-# ^.*Total:.*% \((\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB) over (\d+).*$"""
                     dirtyCapture = re.search(regexSearchString, captureProcStats.stdout, flags=re.MULTILINE | re.IGNORECASE)
                     if not dirtyCapture:
                         raise Exception("Failed to capture the reported start time!")
                     memoryCapture = dirtyCapture.group(1)
-#                     captureNumber = dirtyCapture.group(2)
-#                     if len(captureList) == 3:
-#                         pss = captureList[0].split('-') # Proportional Set Size
-#                         uss = captureList[1].split('-') # Unique Set Size
-#                         rss = captureList[2].split('-') # Resident Set Size
-#                         formattedTime = f"PSS: min {pss[0]}, avg {pss[1]}, max {pss[2]}; USS: min {uss[0]}, avg {uss[1]}, max {uss[2]}; RSS: min {rss[0]}, avg {rss[1]}, max {rss[2]}; Number: {CaptureNumber}"
                     print(f"Memory Capture: {memoryCapture}")
-                    
-                    # else:
-                    #     getLogger().error(f"Memory Capture failed, found {len(captureList)}")
-                    #     raise Exception("Android memory capture failed! Incorrect number of captures found.")
-                    allResults.append(memoryCapture)
+                    allResults.append(memoryCapture + "\n")
                     time.sleep(3) # Delay in seconds for ensuring a cold start
                 
             finally:
@@ -428,7 +417,6 @@ ex: C:\repos\performance;C:\repos\runtime
                 traceFile.write(result)
             traceFile.close()
 
-            ## TODO: Add Memory tool/wrapper for getting memory trace data stuff
             memoryconsumption = MemoryConsumptionWrapper()
             self.traits.add_traits(overwrite=True, apptorun="app", memoryconsumptionmetric=const.MEMORYCONSUMPTION_ANDROID, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname=self.scenarioname)
             memoryconsumption.parsetraces(self.traits)
