@@ -10,7 +10,6 @@ namespace ScenarioMeasurement
 {
     class ParserUtility
     {
-
         public static bool MatchProcessStart(TraceEvent evt, TraceSourceManager source, string processName, IList<int> pids, string commandLine)
         {
             return MatchCommandLine(evt, source, commandLine) &&
@@ -22,7 +21,7 @@ namespace ScenarioMeasurement
         {
             if (source.IsWindows)
             {
-                int bufferMax = 512; 
+                int bufferMax = 512;
                 string payloadCommandLine = (string)GetPayloadValue(evt, "CommandLine");
                 if (payloadCommandLine.Length >= bufferMax && commandLine.Length >= bufferMax)
                 {
@@ -61,12 +60,12 @@ namespace ScenarioMeasurement
                         return CompareResult.Mismatch;
                     }
                 }
-                else 
+                else
                 {
                     if (evt.PayloadByName("FileName") == null)
                     {
                         // match the first 15 characters only if FileName field is not present in the payload
-                        if(!processName.Substring(0, 15).Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase))
+                        if (!processName.Substring(0, 15).Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase))
                         {
                             return CompareResult.Mismatch;
                         }
@@ -109,9 +108,8 @@ namespace ScenarioMeasurement
 
         public static bool MatchSingleProcessID(TraceEvent evt, TraceSourceManager source, int pid)
         {
-            return MatchProcessID(evt, source, new List<int> { pid});
+            return MatchProcessID(evt, source, new List<int> { pid });
         }
-
 
         private static object GetPayloadValue(TraceEvent evt, string payloadName)
         {
@@ -123,7 +121,8 @@ namespace ScenarioMeasurement
             return result;
         }
 
-        public sealed class CompareResult {
+        public sealed class CompareResult
+        {
             public static readonly bool Match = true;
             public static readonly bool Mismatch = false;
             public static readonly bool NotApplicable = CompareResult.Match;

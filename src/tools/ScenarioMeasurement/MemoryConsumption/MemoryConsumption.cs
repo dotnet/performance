@@ -257,7 +257,6 @@ namespace ScenarioMeasurement
                     }
                 }
             }
-
             return (failed ? -1 : 0);
         }
 
@@ -344,7 +343,7 @@ namespace ScenarioMeasurement
                 runResult.Proc.Kill();
                 Thread.Sleep(2000);
             }
-            
+
             // need to clean up despite the result of setup and test
             if (cleanupHelper != null)
             {

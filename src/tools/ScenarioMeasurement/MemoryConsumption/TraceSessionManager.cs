@@ -4,7 +4,6 @@ using System;
 
 namespace ScenarioMeasurement
 {
-
     public interface ITraceSession : IDisposable
     {
         string TraceFilePath { get; }
@@ -19,7 +18,6 @@ namespace ScenarioMeasurement
         public static bool IsWindows { get { return Util.IsWindows(); } }
         public static ITraceSession CreateSession(string sessionName, string traceName, string traceDirectory, Logger logger)
         {
-
             if (IsWindows)
             {
                 return new WindowsTraceSession(sessionName, traceName, traceDirectory, logger);
@@ -42,7 +40,4 @@ namespace ScenarioMeasurement
             Startup
         }
     }
-
-
 }
-

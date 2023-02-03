@@ -71,6 +71,7 @@ class Runner:
         devicestartupparser.add_argument('--use-fully-drawn-time', help='Use the startup time from reportFullyDrawn for android, the equivalent for iOS is handled via logging a magic string and passing it to --fully-drawn-magic-string', action='store_true', dest='usefullydrawntime')
         devicestartupparser.add_argument('--fully-drawn-extra-delay', help='Set an additional delay time for an Android app to reportFullyDrawn (seconds), not on iOS. This should be greater than the greatest amount of extra time expected between first frame draw and reportFullyDrawn being called. Default = 3 seconds', type=int, default=3, dest='fullyDrawnDelaySecMax')
         devicestartupparser.add_argument('--fully-drawn-magic-string', help='Set the magic string that is logged by the app to indicate when the app is fully drawn. Required when using --use-fully-drawn-time on iOS.', type=str, dest='fullyDrawnMagicString')
+        devicestartupparser.add_argument('--time-from-kill-to-start', help='Set an additional delay time for ensuring an app is cleared after closing the app on Android, not on iOS. This should be greater than the greatest amount of expected time needed between closing an app and starting it again for a cold start. Default = 3 seconds', type=int, default=3, dest='closeToStartDelay')
         self.add_common_arguments(devicestartupparser)
 
                 # parse only command
@@ -82,6 +83,7 @@ class Runner:
         devicememoryconsumptionparser.add_argument('--test-iterations', help='Iterations to run (1+)', type=int, default=1, dest='testiterations')
         devicememoryconsumptionparser.add_argument('--disable-animations', help='Disable Android device animations, does nothing on iOS.', action='store_true', dest='animationsdisabled')
         devicememoryconsumptionparser.add_argument('--runtime', help='Amount of time to run the app between clearing procstats and dumping them', type=int, default=60, dest='runtimeseconds')
+        devicememoryconsumptionparser.add_argument('--time-from-kill-to-start', help='Set an additional delay time for ensuring an app is cleared after closing the app on Android, not on iOS. This should be greater than the greatest amount of expected time needed between closing an app and starting it again for a cold start. Default = 3 seconds', type=int, default=3, dest='closeToStartDelay')
         self.add_common_arguments(devicememoryconsumptionparser)
 
         # inner loop command
@@ -168,6 +170,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.usefullydrawntime = args.usefullydrawntime
             self.fullyDrawnDelaySecMax = args.fullyDrawnDelaySecMax
             self.fullyDrawnMagicString = args.fullyDrawnMagicString
+            self.closeToStartDelay = args.closeToStartDelay
 
         if self.testtype == const.DEVICEMEMORYCONSUMPTION:
             self.packagepath = args.packagepath
@@ -176,6 +179,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.testiterations = args.testiterations
             self.animationsdisabled = args.animationsdisabled
             self.runtimeseconds = args.runtimeseconds
+            self.closeToStartDelay = args.closeToStartDelay
 
         if args.scenarioname:
             self.scenarioname = args.scenarioname
@@ -380,9 +384,9 @@ ex: C:\repos\performance;C:\repos\runtime
                 for i in range(self.testiterations):
                     # Clear logs
                     RunCommand(clearLogsCmd, verbose=True).run()
+                    RunCommand(clearProcStatsCmd, verbose=True).run()
                     startStats = RunCommand(androidHelper.startappcommand, verbose=True)
                     startStats.run()
-                    RunCommand(clearProcStatsCmd, verbose=True).run()
                     time.sleep(self.runtimeseconds)
                     captureProcStats = RunCommand(captureProcStatsCmd, verbose=True)
                     captureProcStats.run()
@@ -390,32 +394,37 @@ ex: C:\repos\performance;C:\repos\runtime
                     # Save the results and get them from the log
                     RunCommand(androidHelper.stopappcommand, verbose=True).run()
                     
-                    # Example output we are regexing):
+                    # Part of the output we are regexing:
                     # Process summary:
                     # * net.dot.HelloAndroid / u0a1219 / v1:
-                    #        TOTAL: 100% (<Part we want>52MB-52MB-52MB/44MB-44MB-44MB/135MB-135MB-135MB over 1</Part we want>)
+                    #        TOTAL: ###% (<Part we want>52MB-52MB-52MB/44MB-44MB-44MB/135MB-135MB-135MB over 1</Part we want>)
                     #        Top: 100% (52MB-52MB-52MB/44MB-44MB-44MB/135MB-135MB-135MB over 1)
-                    regexSearchString = fr"""^Process summary.*$
-^[^a-z]*{self.packagename}.*$
-^.*Total:.*% \((\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB over \d+)\).*$"""
-                    dirtyCapture = re.search(regexSearchString, captureProcStats.stdout, flags=re.MULTILINE | re.IGNORECASE)
+                    regexSearchString = r"TOTAL: [0-9]{2,3}% \((\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB over \d+)\)"
+                    dirtyCapture = re.search(regexSearchString, captureProcStats.stdout)
                     if not dirtyCapture:
                         raise Exception("Failed to capture the reported start time!")
-                    memoryCapture = dirtyCapture.group(1)
+                    splitNumber = dirtyCapture.group(1).replace("MB", "").strip().split(" over ")
+                    splitMemory = splitNumber[0].split("/")
+                    pss = splitMemory[0].split("-")
+                    uss = splitMemory[1].split("-")
+                    rss = splitMemory[2].split("-")
+                    memoryCapture = f"PSS: min {pss[0]}, avg {pss[1]}, max {pss[2]}; USS: min {uss[0]}, avg {uss[1]}, max {uss[2]}; RSS: min {rss[0]}, avg {rss[1]}, max {rss[2]}; Number: {splitNumber[1]}\n"
                     print(f"Memory Capture: {memoryCapture}")
-                    allResults.append(memoryCapture + "\n")
-                    time.sleep(3) # Delay in seconds for ensuring a cold start
+                    allResults.append(memoryCapture)
+                    time.sleep(self.closeToStartDelay) # Delay in seconds for ensuring a cold start
                 
             finally:
                 androidHelper.close_device()
 
             # Create traces to store the data so we can keep the current general parse trace flow
             getLogger().info(f"Logs: \n{allResults}")
-            os.makedirs(f"{const.TRACEDIR}/PerfTest", exist_ok=True)
-            traceFile = open(f"{const.TRACEDIR}/PerfTest/runoutput.trace", "w")
+            outputdir = os.path.join(const.TRACEDIR,"PerfTest")
+            os.makedirs(outputdir, exist_ok=True)
+            outputtracefile = os.path.join(outputdir, "runoutput.trace")
+            tracefile = open(outputtracefile, "w")
             for result in allResults:
-                traceFile.write(result)
-            traceFile.close()
+                tracefile.write(result)
+            tracefile.close()
 
             memoryconsumption = MemoryConsumptionWrapper()
             self.traits.add_traits(overwrite=True, apptorun="app", memoryconsumptionmetric=const.MEMORYCONSUMPTION_ANDROID, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname=self.scenarioname)
@@ -495,18 +504,20 @@ ex: C:\repos\performance;C:\repos\runtime
                         getLogger().error("Time capture failed, found {len(captureList)}")
                         raise Exception("Android Time Capture Failed! Incorrect number of captures found.")
                     allResults.append(formattedTime) # append TotalTime: (TIME)
-                    time.sleep(3) # Delay in seconds for ensuring a cold start
+                    time.sleep(self.closeToStartDelay) # Delay in seconds for ensuring a cold start
                 
             finally:
                 androidHelper.close_device()
 
             # Create traces to store the data so we can keep the current general parse trace flow
             getLogger().info(f"Logs: \n{allResults}")
-            os.makedirs(f"{const.TRACEDIR}/PerfTest", exist_ok=True)
-            traceFile = open(f"{const.TRACEDIR}/PerfTest/runoutput.trace", "w")
+            outputdir = os.path.join(const.TRACEDIR,"PerfTest")
+            os.makedirs(outputdir, exist_ok=True)
+            outputtracefile = os.path.join(outputdir, "runoutput.trace")
+            tracefile = open(outputtracefile, "w")
             for result in allResults:
-                traceFile.write(result)
-            traceFile.close()
+                tracefile.write(result)
+            tracefile.close()
 
             startup = StartupWrapper()
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname=self.scenarioname)
@@ -740,11 +751,13 @@ ex: C:\repos\performance;C:\repos\runtime
 
             # Create traces to store the data so we can keep the current general parse trace flow
             getLogger().info(f"Logs: \n{allResults}")
-            os.makedirs(f"{const.TRACEDIR}/PerfTest", exist_ok=True)
-            traceFile = open(f"{const.TRACEDIR}/PerfTest/runoutput.trace", "w")
+            outputdir = os.path.join(const.TRACEDIR,"PerfTest")
+            os.makedirs(outputdir, exist_ok=True)
+            outputtracefile = os.path.join(outputdir, "runoutput.trace")
+            tracefile = open(outputtracefile, "w")
             for result in allResults:
-                traceFile.write(result)
-            traceFile.close()
+                tracefile.write(result)
+            tracefile.close()
 
             startup = StartupWrapper()
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname=self.scenarioname)

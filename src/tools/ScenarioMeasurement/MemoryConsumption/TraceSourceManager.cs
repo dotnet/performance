@@ -4,7 +4,6 @@ using System;
 
 namespace ScenarioMeasurement
 {
-
     public class TraceSourceManager : IDisposable
     {
         public bool IsWindows { get { return Source?.GetType() == typeof(ETWTraceEventSource); } }
@@ -43,7 +42,6 @@ namespace ScenarioMeasurement
         {
             Source.Dispose();
         }
-
     }
 
     public interface IKernelParser
@@ -77,5 +75,4 @@ namespace ScenarioMeasurement
             parser = new KernelTraceEventParser(source);
         }
     }
-
 }

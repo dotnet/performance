@@ -8,7 +8,6 @@ using System.Text.RegularExpressions;
 
 namespace ScenarioMeasurement
 {
-
     /// <summary>
     /// This is a custom parser that does not enable any profiling. Instead, it relies on being passed files collected
     /// off the test machine (usually on a device.) 
@@ -17,12 +16,12 @@ namespace ScenarioMeasurement
     {
         public void EnableKernelProvider(ITraceSession kernel)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public void EnableUserProviders(ITraceSession user)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
@@ -37,18 +36,14 @@ namespace ScenarioMeasurement
             var rssAvgs = new List<double>();
             var rssMaxs = new List<double>();
             var captureCounts = new List<double>();
-            // 52MB-52MB-52MB/45MB-45MB-45MB/138MB-138MB-138MB over 1
-            // PSS: min {pss[0]}, avg {pss[1]}, max {pss[2]}; USS: min {uss[0]}, avg {uss[1]}, max {uss[2]}; RSS: min {rss[0]}, avg {rss[1]}, max {rss[2]}; Number: {CaptureNumber}
-            Regex memoryConsumptionPattern = new Regex(@"(?<pssMin>\d+)MB-(?<pssAvg>\d+)MB-(?<pssMax>\d+)MB\/(?<ussMin>\d+)MB-(?<ussAvg>\d+)MB-(?<ussMax>\d+)MB\/(?<rssMin>\d+)MB-(?<rssAvg>\d+)MB-(?<rssMax>\d+)MB\s*over\s*(?<captureNumber>\d+)");
             var counters = new List<Counter>();
 
             if (File.Exists(mergeTraceFile))
             {
-                using(StreamReader sr = new StreamReader(mergeTraceFile))
+                using (StreamReader sr = new StreamReader(mergeTraceFile))
                 {
                     string line = sr.ReadToEnd();
-                    MatchCollection finds = memoryConsumptionPattern.Matches(line);
-                    Console.WriteLine($"Line: {line}");
+                    MatchCollection finds = Regex.Matches(line, @"PSS: min (?<pssMin>\d+), avg (?<pssAvg>\d+), max (?<pssMax>\d+); USS: min (?<ussMin>\d+), avg (?<ussAvg>\d+), max (?<ussMax>\d+); RSS: min (?<rssMin>\d+), avg (?<rssAvg>\d+), max (?<rssMax>\d+); Number: (?<captureNumber>\d+)");
                     Console.WriteLine($"Found # of MemoryConsumption Tests: {finds.Count}");
                     foreach (Match match in finds)
                     {
