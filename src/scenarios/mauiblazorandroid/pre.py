@@ -61,7 +61,7 @@ with open(f"{const.APPDIR}/Platforms/Android/MainActivity.cs", "w") as mainActiv
             mainActivityFile.write(line)
 
 # Build the APK
-precommands.execute([])
+precommands.execute(['--source', 'MauiNuGet.config'])
 
 output_dir = const.PUBDIR
 if precommands.output:

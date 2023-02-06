@@ -23,7 +23,7 @@ precommands.new(template='maui',
                 no_restore=False)
 
 # Build the APK
-precommands.execute([])
+precommands.execute(['--source', 'MauiNuGet.config'])
 
 # Remove the aab files as we don't need them, this saves space
 output_dir = const.PUBDIR
