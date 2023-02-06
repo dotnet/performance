@@ -61,7 +61,7 @@ with open(f"{const.APPDIR}/Platforms/Android/MainActivity.cs", "w") as mainActiv
             mainActivityFile.write(line)
 
 # Build the APK
-precommands.execute(['--no-restore', '--source', 'MauiNuGet.config'])
+precommands.execute([])
 
 output_dir = const.PUBDIR
 if precommands.output:
@@ -69,7 +69,7 @@ if precommands.output:
 remove_aab_files(output_dir)
 
 # Copy the MauiVersion to a file so we have it on the machine
-maui_version = get_version_from_dll_powershell(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\{precommands.runtime_identifier}\linked\Microsoft.Maui.dll")
+maui_version = get_version_from_dll_powershell(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\android-arm64\linked\Microsoft.Maui.dll")
 version_dict = { "mauiVersion": maui_version }
 versions_write_json(version_dict, rf"{output_dir}\versions.json")
 print(f"Versions: {version_dict}")

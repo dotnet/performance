@@ -23,7 +23,7 @@ precommands.new(template='maui',
                 no_restore=False)
 
 # Build the APK
-precommands.execute(['--no-restore', '--source', 'MauiNuGet.config'])
+precommands.execute([])
 
 # Remove the aab files as we don't need them, this saves space
 output_dir = const.PUBDIR
@@ -32,7 +32,7 @@ if precommands.output:
 remove_aab_files(output_dir)
 
 # Copy the MauiVersion to a file so we have it on the machine
-maui_version = get_version_from_dll_powershell(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\{precommands.runtime_identifier}\linked\Microsoft.Maui.dll")
+maui_version = get_version_from_dll_powershell(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\android-arm64\linked\Microsoft.Maui.dll")
 version_dict = { "mauiVersion": maui_version }
 versions_write_json(version_dict, rf"{output_dir}\versions.json")
 print(f"Versions: {version_dict}")
