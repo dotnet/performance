@@ -272,20 +272,20 @@ jobs:
 
 - ${{ if or(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest', 'Manual')), parameters.runPrivateJobs) }}:
 
-  # # Scenario benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/scenarios.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #       - win-arm64
-  #     isPublic: false
-  #     jobParameters:
-  #       kind: scenarios
-  #       projectFile: scenarios.proj
-  #       channels:
-  #         - main
+  # Scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+        - win-arm64
+      isPublic: false
+      jobParameters:
+        kind: scenarios
+        projectFile: scenarios.proj
+        channels:
+          - main
 
   # Maui Android scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -315,20 +315,20 @@ jobs:
   #      channels:
   #        - main
 
-  # # NativeAOT scenario benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/scenarios.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #       - win-arm64
-  #     isPublic: false
-  #     jobParameters:
-  #       kind: nativeaot_scenarios
-  #       projectFile: nativeaot_scenarios.proj
-  #       channels:
-  #         - main
+  # NativeAOT scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+        - win-arm64
+      isPublic: false
+      jobParameters:
+        kind: nativeaot_scenarios
+        projectFile: nativeaot_scenarios.proj
+        channels:
+          - main
 
 ################################################
 # Scheduled Private jobs
@@ -487,19 +487,6 @@ jobs:
 
 
 - ${{ if and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Manual'), not(parameters.runPublicJobs), not(parameters.runScheduledPrivateJobs), not(parameters.runPrivateJobs)) }}:
-    # Maui Android scenario benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/scenarios.yml
-      buildMachines:
-        - win-x64-android-arm64
-      isPublic: false
-      jobParameters:
-        kind: maui_scenarios_android
-        projectFile: maui_scenarios_android.proj
-        dotnetVersionsLinks:
-          main: https://aka.ms/dotnet/sdk/maui/net8.0.json
-
   - job: Synchronize
     pool:
       name: NetCore1ESPool-Internal-NoMSI
