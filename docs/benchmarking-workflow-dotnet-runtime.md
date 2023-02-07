@@ -155,17 +155,17 @@ In order to run the benchmarks against local [dotnet/runtime](https://github.com
 2. Prepare a sdk with `wasm-tools` workload installed using the built artifacts
 
 ```cmd
-/path/to/dotnet/runtime$ ./dotnet.sh build -p:TargetOS=Browser -p:TargetArchitecture=wasm -c Release src/mono/wasm/Wasm.Build.Tests /t:InstallWorkloadUsingArtifacts
+/path/to/dotnet/runtime$ ./dotnet.sh build -p:TargetOS=browser -p:TargetArchitecture=wasm -c Release src/mono/wasm/Wasm.Build.Tests /t:InstallWorkloadUsingArtifacts
 ```
 
-This would produce `/path/to/dotnet/runtime/artifacts/bin/dotnet-net8+latest`, which should be used to run the benchmarks.
+This would produce `/path/to/dotnet/runtime/artifacts/bin/dotnet-latest`, which should be used to run the benchmarks.
 
 3. And you need `/path/to/dotnet/runtime/src/mono/wasm/test-main.js`
 
 #### Run the benchmarks with the interpreter
 
 ```cmd
-/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py -f net8.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-net8+latest --wasm --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
+/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py -f net8.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-latest --wasm --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
     --bdn-arguments="--anyCategories Libraries Runtime --category-exclusion-filter NoInterpreter NoWASM NoMono --logBuildOutput --wasmDataDir </path/to/dotnet/runtime>/src/mono/wasm --filter <filter>"
 ```
 
@@ -174,7 +174,7 @@ This would produce `/path/to/dotnet/runtime/artifacts/bin/dotnet-net8+latest`, w
 Essentially, add `--aotcompilermode wasm` to the `--bdn-arguments=".."`:
 
 ```cmd
-/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py --csproj src/benchmarks/micro/MicroBenchmarks.csproj -f net8.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-net8+latest --wasm --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
+/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py --csproj src/benchmarks/micro/MicroBenchmarks.csproj -f net8.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-latest --wasm --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
     --bdn-arguments="--category-exclusion-filter NoInterpreter NoWASM NoMono --aotcompilermode wasm --logBuildOutput --buildTimeout 3600 --wasmDataDir </path/to/dotnet/runtime>/src/mono/wasm --filter <filter>"
 ```
 
