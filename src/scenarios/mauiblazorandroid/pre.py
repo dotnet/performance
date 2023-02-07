@@ -1,6 +1,7 @@
 '''
 pre-command
 '''
+import shutil
 import sys
 from performance.logger import setup_loggers, getLogger
 from shared import const
@@ -61,7 +62,8 @@ with open(f"{const.APPDIR}/Platforms/Android/MainActivity.cs", "w") as mainActiv
             mainActivityFile.write(line)
 
 # Build the APK
-precommands.execute(['--source', 'MauiNuGet.config'])
+shutil.copy('./MauiNuGet.config', './app/Nuget.config')
+precommands.execute([])
 
 output_dir = const.PUBDIR
 if precommands.output:

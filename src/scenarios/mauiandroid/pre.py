@@ -1,6 +1,7 @@
 '''
 pre-command
 '''
+import shutil
 import sys
 from performance.logger import setup_loggers, getLogger
 from shared import const
@@ -23,7 +24,8 @@ precommands.new(template='maui',
                 no_restore=False)
 
 # Build the APK
-precommands.execute(['--source', 'MauiNuGet.config'])
+shutil.copy('./MauiNuGet.config', './app/Nuget.config')
+precommands.execute([])
 
 # Remove the aab files as we don't need them, this saves space
 output_dir = const.PUBDIR
