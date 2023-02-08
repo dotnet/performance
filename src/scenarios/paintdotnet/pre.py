@@ -5,7 +5,7 @@ import sys
 import os, subprocess
 import zipfile
 from performance.logger import setup_loggers
-from os.path import join, normpath
+from os.path import join
 from shared.util import helixcorrelationpayload
 from performance.common import runninginlab
 from shared.precommands import PreCommands
