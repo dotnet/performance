@@ -15,7 +15,7 @@
     <DebugSymbols>true</DebugSymbols>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableXlfLocalization>false</EnableXlfLocalization>    
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
 
     <!-- Allow building with one major version, and running using a sdk with a higher major version -->
     <RollForward Condition="'$(BuildingForWasm)' == 'true'">LatestMajor</RollForward>
