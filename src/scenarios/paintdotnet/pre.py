@@ -5,7 +5,7 @@ import sys
 import os, subprocess
 import zipfile
 from performance.logger import setup_loggers
-from os.path import join
+from os.path import join, dirname
 from shared.util import helixcorrelationpayload
 from performance.common import runninginlab
 from shared.precommands import PreCommands
@@ -22,4 +22,5 @@ with zipfile.ZipFile(precommands.pathtozip, 'r') as publish:
     publish.extractall(output)
 copytree(join(output, 'PDN10', 'Release'), output, dirs_exist_ok=True)
 rmtree(join(output, 'PDN10'))
+rmtree(dirname(precommands.pathtozip))
 getLogger().info(f"Unpacked {precommands.pathtozip} into {output}.")
