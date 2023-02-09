@@ -165,7 +165,7 @@ This would produce `/path/to/dotnet/runtime/artifacts/bin/dotnet-latest`, which 
 #### Run the benchmarks with the interpreter
 
 ```cmd
-/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py -f net8.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-latest --wasm --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
+/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py -f net8.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-latest --wasm --run-isolated --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
     --bdn-arguments="--anyCategories Libraries Runtime --category-exclusion-filter NoInterpreter NoWASM NoMono --logBuildOutput --wasmDataDir </path/to/dotnet/runtime>/src/mono/wasm --filter <filter>"
 ```
 
@@ -174,9 +174,18 @@ This would produce `/path/to/dotnet/runtime/artifacts/bin/dotnet-latest`, which 
 Essentially, add `--aotcompilermode wasm` to the `--bdn-arguments=".."`:
 
 ```cmd
-/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py --csproj src/benchmarks/micro/MicroBenchmarks.csproj -f net8.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-latest --wasm --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
+/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py --csproj src/benchmarks/micro/MicroBenchmarks.csproj -f net8.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-latest --wasm --run-isolated --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
     --bdn-arguments="--category-exclusion-filter NoInterpreter NoWASM NoMono --aotcompilermode wasm --logBuildOutput --buildTimeout 3600 --wasmDataDir </path/to/dotnet/runtime>/src/mono/wasm --filter <filter>"
 ```
+
+#### Note about "file ... being used by another process" error
+
+If you are seeing warnings like:
+`warning MSB3026: Could not copy "/Users/radical/dev/performance/artifacts/obj/MicroBenchmarks/Release/net7.0/MicroBenchmarks.pdb" to "/Users/radical/dev/performance/artifacts/bin/MicroBenchmarks/Release/net7.0/MicroBenchmarks.pdb". Beginning retry 1 in 1000ms. The process cannot access the file '/Users/radical/dev/performance/artifacts/bin/MicroBenchmarks/Release/net7.0/MicroBenchmarks.pdb' because it is being used by another process.`
+
+.. then ensure that `--run-isolated` is being passed.
+
+The problem, and `--run-isolated` is described in the commit message - https://github.com/dotnet/performance/commit/2afd09171688e1a36cc9dbd8ac5d23c910ab80cb
 
 ## Preventing Regressions
 
