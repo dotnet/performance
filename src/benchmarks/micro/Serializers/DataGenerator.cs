@@ -60,6 +60,14 @@ namespace MicroBenchmarks.Serializers
                 return (T)(object)CreateLargeStructWithProperties();
             if (typeof(T) == typeof(DateTimeOffset?))
                 return (T)(object)new DateTimeOffset(2021, 08, 13, 11, 11, 05, TimeSpan.Zero);
+#if NET8_0_OR_GREATER
+            if (typeof(T) == typeof(ClassRecord))
+                return (T)(object)new ClassRecord(42, true, "param3", OptionalParam3: "Hello World");
+            if (typeof(T) == typeof(StructRecord))
+                return (T)(object)new StructRecord(42, true, "param3", OptionalParam3: "Hello World");
+            if (typeof(T) == typeof(TreeRecord))
+                return (T)(object)TreeRecord.Create(depth: 5);
+#endif
             if (typeof(T) == typeof(int))
                 return (T)(object)42;
 
@@ -447,6 +455,35 @@ namespace MicroBenchmarks.Serializers
         public object Prop { get; set; }
     }
 
+#if NET8_0_OR_GREATER
+    public record ClassRecord(
+        int Param1, 
+        bool Param2,
+        string Param3,
+        int OptionalParam1 = 42,
+        bool OptionalParam2 = false,
+        string OptionalParam3 = null);
+
+    public record struct StructRecord(
+        int Param1,
+        bool Param2,
+        string Param3,
+        int OptionalParam1 = 42,
+        bool OptionalParam2 = false,
+        string OptionalParam3 = null);
+
+    [JsonDerivedType(typeof(Leaf), "leaf")]
+    [JsonDerivedType(typeof(Node), "node")]
+    public abstract record TreeRecord
+    {
+        public sealed record Leaf : TreeRecord;
+        public sealed record Node(int Value, TreeRecord Left, TreeRecord Right) : TreeRecord;
+        public static TreeRecord Create(int depth)
+            => depth == 0 ? new Leaf() : new Node(depth, Create(depth - 1), Create(depth - 1));
+    }
+
+#endif
+
     public enum SystemTextJsonSerializationMode
     {
         Reflection = 0,
@@ -473,6 +510,11 @@ namespace MicroBenchmarks.Serializers
     [JsonSerializable(typeof(Hashtable))]
     [JsonSerializable(typeof(LargeStructWithProperties))]
     [JsonSerializable(typeof(DateTimeOffset?))]
+#if NET8_0_OR_GREATER
+    [JsonSerializable(typeof(ClassRecord))]
+    [JsonSerializable(typeof(StructRecord))]
+    [JsonSerializable(typeof(TreeRecord))]
+#endif
     [JsonSerializable(typeof(int))]
     [JsonSerializable(typeof(object))]
     internal partial class SystemTextJsonSourceGeneratedContext : JsonSerializerContext

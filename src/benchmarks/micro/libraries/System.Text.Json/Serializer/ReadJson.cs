@@ -28,6 +28,11 @@ namespace System.Text.Json.Serialization.Tests
     [GenericTypeArguments(typeof(SimpleStructWithProperties))]
     [GenericTypeArguments(typeof(LargeStructWithProperties))]
     [GenericTypeArguments(typeof(DateTimeOffset?))]
+#if NET8_0_OR_GREATER
+    [GenericTypeArguments(typeof(ClassRecord))]
+    [GenericTypeArguments(typeof(StructRecord))]
+    [GenericTypeArguments(typeof(TreeRecord))]
+#endif
     [GenericTypeArguments(typeof(int))]
     [AotFilter("Currently not supported due to missing metadata.")]
     public class ReadJson<T>
