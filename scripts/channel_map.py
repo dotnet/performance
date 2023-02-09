@@ -17,6 +17,26 @@ class ChannelMap():
             'branch': '8.0',
             'quality': 'daily'
         },
+        'release/8.0-preview4': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview4',
+            'quality': 'daily'
+        },
+        'release/8.0-preview3': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview3',
+            'quality': 'daily'
+        },
+        'release/8.0-preview2': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview2',
+            'quality': 'daily'
+        },
+        'release/8.0-preview1': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview1',
+            'quality': 'daily'
+        },
         'nativeaot8.0': {
             'tfm': 'nativeaot8.0',
             'branch': '8.0',
