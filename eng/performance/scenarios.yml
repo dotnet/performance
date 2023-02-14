@@ -160,8 +160,8 @@ jobs:
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
           - script: |
-              $(Python) -m pip install --upgrade pip
-              $(Python) -m pip install requests
+              $(Python) -m pip install --user --upgrade pip
+              $(Python) -m pip install --user requests
               . ./src/scenarios/init.sh -dotnetdir $(CorrelationStaging)dotnet
               dotnet msbuild ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
             displayName: Prepare scenarios
