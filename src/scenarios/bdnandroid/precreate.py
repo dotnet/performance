@@ -4,6 +4,7 @@ pre-command
 import subprocess
 import os
 from performance.logger import setup_loggers, getLogger
+from shared.mauisharedpython import install_versioned_maui
 from shared.precommands import PreCommands
 from shared.versionmanager import versions_write_json, get_version_from_dll_powershell
 from shared import const
@@ -15,6 +16,8 @@ precommands = PreCommands()
 if not os.path.exists('./maui'):
     subprocess.run(['git', 'clone', 'https://github.com/dotnet/maui.git', '-b', 'net8.0', '--single-branch', '--depth', '1'])
     subprocess.run(['powershell', '-Command', r'Remove-Item -Path .\\maui\\.git -Recurse -Force']) # Git files have permission issues, for their deletion seperately
+
+install_versioned_maui(precommands)
 
 # This part needs to be worked out as the precommands build is failing, but external build succeeds (dotnet build src/Core/tests/Benchmarks.Droid/Benchmarks.Droid.csproj -t:Benchmark -c Release) TODO Fix that/figure out the failure reason
 precommands.existing(projectdir='./maui',projectfile='./src/Core/tests/Benchmarks.Droid/Benchmarks.Droid.csproj')
