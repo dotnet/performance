@@ -243,6 +243,14 @@ class AndroidHelper:
         ]
         RunCommand(uninstallAppCmd, verbose=True).run()
 
+        
+        keyInputCmd = [
+            self.adbpath,
+            'shell',
+            'input',
+            'keyevent'
+        ]
+
         # Reset animation values 
         getLogger().info("Resetting animation values to pretest values")
         cmdline = [

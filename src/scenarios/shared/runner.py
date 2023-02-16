@@ -457,19 +457,19 @@ ex: C:\repos\performance;C:\repos\runtime
                 
                 # Create the fullydrawn command
                 fullyDrawnRetrieveCmd = [ 
-                    adb.stdout.strip(),
+                    androidHelper.adbpath,
                     'shell',
                     f"logcat -d | grep 'ActivityTaskManager: Fully drawn {self.packagename}'"
                 ]
 
                 basicStartupRetrieveCmd = [ 
-                    adb.stdout.strip(),
+                    androidHelper.adbpath,
                     'shell',
-                    f"logcat -d | grep 'ActivityTaskManager: Displayed {activityname}'"
+                    f"logcat -d | grep 'ActivityTaskManager: Displayed {androidHelper.activityname}'"
                 ]
 
                 clearLogsCmd = [
-                    adb.stdout.strip(),
+                    androidHelper.adbpath,
                     'logcat',
                     '-c'
                 ]
@@ -478,7 +478,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 for i in range(self.startupiterations):
                     # Clear logs
                     RunCommand(clearLogsCmd, verbose=True).run()
-                    startStats = RunCommand(startAppCmd, verbose=True)
+                    startStats = RunCommand(androidHelper.startappcommand, verbose=True)
                     startStats.run()
                     # Make sure we cold started (TODO Add other starts)
                     if "LaunchState: COLD" not in startStats.stdout:
@@ -486,7 +486,7 @@ ex: C:\repos\performance;C:\repos\runtime
                         
                     # Save the results and get them from the log
                     if self.usefullydrawntime: time.sleep(self.fullyDrawnDelaySecMax) # Start command doesn't wait for fully drawn report, force a wait for it. -W in the start command waits for the app to finish initial draw.
-                    RunCommand(stopAppCmd, verbose=True).run()
+                    RunCommand(androidHelper.stopappcommand, verbose=True).run()
                     if self.usefullydrawntime:
                         retrieveTimeCmd = RunCommand(fullyDrawnRetrieveCmd, verbose=True)
                     else:
