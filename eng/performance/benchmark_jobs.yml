@@ -39,6 +39,8 @@ jobs:
           - ${{ if eq(parameters.osVersion, 'RS1')}}:
             - name: ArtifactsDirectory
               value: '%HELIX_CORRELATION_PAYLOAD%\artifacts\BenchmarkDotNet.Artifacts'
+          - name: InstallPrerequisites
+            value: ''
         - ${{ if ne(parameters.osName, 'windows') }}:
           - name: CliArguments
             value: '--dotnet-versions $DOTNET_VERSION --cli-source-info args --cli-branch $PERFLAB_BRANCH --cli-commit-sha $PERFLAB_HASH --cli-repository https://github.com/$PERFLAB_REPO --cli-source-timestamp $PERFLAB_BUILDTIMESTAMP'
