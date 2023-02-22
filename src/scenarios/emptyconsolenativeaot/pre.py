@@ -5,6 +5,7 @@ from shared.precommands import PreCommands
 from test import EXENAME
 from shutil import copyfile
 import os
+from performance.common import iswin
 
 setup_loggers(True)
 precommands = PreCommands()
@@ -13,7 +14,8 @@ precommands.new(template='console',
                 bin_dir=const.BINDIR,
                 exename=EXENAME,
                 working_directory=sys.path[0])
-precommands.execute(['/p:PublishAot=true', '/p:StripSymbols=true', '/p:IlcGenerateMstatFile=true'])
+args = ['/p:PublishAot=true', '/p:StripSymbols=true', '/p:IlcGenerateMstatFile=true'] if iswin() else ['/p:PublishAot=true', '/p:StripSymbols=true', '/p:IlcGenerateMstatFile=true', '/p:ObjCopyName=objcopy']
+precommands.execute(args)
 
 src = os.path.join(const.APPDIR, 'obj', precommands.configuration, precommands.framework, precommands.runtime_identifier, 'native', f'{EXENAME}.mstat')
 dst = os.path.join(precommands.output, f'{EXENAME}.mstat')
