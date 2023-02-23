@@ -74,7 +74,7 @@
     <!-- following two dependencies must point to version 4.3.0 or newer to make it possible to publish MicroBenchmarks.csproj -->
     <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
-    <PackageReference Include="System.Collections.Immutable" Version="8.0.*-*" Condition="'$(TargetFramework)' == 'net462'" />
+    <PackageReference Include="System.Collections.Immutable" Version="8.0.*-*" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '8.0')" />
   </ItemGroup>
 
   <ItemGroup>
