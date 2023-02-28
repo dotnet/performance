@@ -160,7 +160,7 @@ jobs:
         csproj: src\benchmarks\micro\MicroBenchmarks.csproj
         runCategories: 'runtime libraries' 
         channels:
-          - nativeaot7.0
+          - nativeaot8.0
 
   # ML.NET benchmarks
   - template: /eng/performance/build_machine_matrix.yml

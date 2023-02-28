@@ -87,6 +87,8 @@ class FrameworkAction(Action):
             return 'net6.0'
         if framework == 'nativeaot7.0':
             return 'net7.0'
+        if framework == 'nativeaot8.0':
+            return 'net8.0'
         else:
             return framework
 
