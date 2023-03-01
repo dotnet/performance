@@ -74,7 +74,7 @@ class Runner:
         devicestartupparser.add_argument('--time-from-kill-to-start', help='Set an additional delay time for ensuring an app is cleared after closing the app on Android, not on iOS. This should be greater than the greatest amount of expected time needed between closing an app and starting it again for a cold start. Default = 3 seconds', type=int, default=3, dest='closeToStartDelay')
         self.add_common_arguments(devicestartupparser)
 
-                # parse only command
+        # parse only command
         devicememoryconsumptionparser = subparsers.add_parser(const.DEVICEMEMORYCONSUMPTION,
                                               description='measure memory consumption to startup for Android/iOS apps')
         devicememoryconsumptionparser.add_argument('--device-type', choices=['android'],type=str.lower,help='Device type for testing', dest='devicetype')
@@ -85,6 +85,14 @@ class Runner:
         devicememoryconsumptionparser.add_argument('--runtime', help='Amount of time to run the app between clearing procstats and dumping them', type=int, default=60, dest='runtimeseconds')
         devicememoryconsumptionparser.add_argument('--time-from-kill-to-start', help='Set an additional delay time for ensuring an app is cleared after closing the app on Android, not on iOS. This should be greater than the greatest amount of expected time needed between closing an app and starting it again for a cold start. Default = 3 seconds', type=int, default=3, dest='closeToStartDelay')
         self.add_common_arguments(devicememoryconsumptionparser)
+
+        androidinstrumentationparser = subparsers.add_parser(const.ANDROIDINSTRUMENTATION,
+                                              description='Run device BDN instrumentation to startup for Android apps')
+        androidinstrumentationparser.add_argument('--package-path', help='Location of test application', dest='packagepath')
+        androidinstrumentationparser.add_argument('--package-name', help='Classname (Android) or Bundle ID (iOS) of application', dest='packagename')
+        androidinstrumentationparser.add_argument('--instrumentation-name', help='Name of the instrumentation to run', dest='instrumentationname')
+        androidinstrumentationparser.add_argument('--timeout', help='Amount of time to run the app between clearing procstats and dumping them', type=int, default=300, dest='timeoutseconds')
+        self.add_common_arguments(androidinstrumentationparser)
 
         # inner loop command
         innerloopparser = subparsers.add_parser(const.INNERLOOP,
@@ -352,6 +360,133 @@ ex: C:\repos\performance;C:\repos\runtime
                                   ) 
             startup.runtests(self.traits)
 
+        elif self.testtype == const.ANDROIDINSTRUMENTATION:
+            cmdline = xharnesscommand() + ['android', 'state', '--adb']
+            adb = RunCommand(cmdline, verbose=True)
+            adb.run()
+
+            # Do not remove, XHarness install seems to fail without an adb command called before the xharness command
+            getLogger().info("Preparing ADB")
+            adbpath = adb.stdout.strip()
+            try:
+                clearLogsCmd = [
+                    adbpath,
+                    'logcat',
+                    '-c'
+                ]
+
+                startInstrumentationCmd = [
+                    adbpath,
+                    'shell',
+                    'am',
+                    'instrument',
+                    '-w',
+                    f'{self.packagename}/{self.instrumentationname}'
+                ]
+                
+                printMauiLogsCmd = [
+                    adbpath,
+                    'shell',
+                    'logcat',
+                    '-d',
+                    'v',
+                    'tag',
+                    '-s',
+                    '"DOTNET,MAUI"'
+                ]
+
+                installCmd = xharnesscommand() + [
+                    'android',
+                    'install',
+                    '--app', self.packagepath,
+                    '--package-name',
+                    self.packagename,
+                    '-o',
+                    const.TRACEDIR,
+                    '-v'
+                ]
+
+                RunCommand(installCmd, verbose=True).run()
+
+                # Clear logs
+                RunCommand(clearLogsCmd, verbose=True).run()
+
+                # Run instrumentation
+                RunCommand(startInstrumentationCmd, verbose=True).run()
+                
+                # Print logs
+                RunCommand(printMauiLogsCmd, verbose=True).run()
+                
+                ## Get logs off device and upload to helix (TODO: Make this optional, potentially add different methods of getting logs)
+                defaultDeviceBdnOutputDir = f'/sdcard/Android/data/{self.packagename}/files/'
+                pullFilesFromDeviceCmd = [
+                    adbpath,
+                    'pull',
+                    defaultDeviceBdnOutputDir,
+                    const.TRACEDIR
+                ]
+
+                RunCommand(pullFilesFromDeviceCmd, verbose=True).run()
+
+                """ JSON to be replaced
+                "build": {
+                        "repo": "REPLACE_PERFLAB_REPO",
+                        "branch": "REPLACE_PERFLAB_BRANCH",
+                        "architecture": "REPLACE_PERFLAB_BUILDARCH",
+                        "locale": "REPLACE_PERFLAB_LOCALE",
+                        "gitHash": "REPLACE_HASH",
+                        "buildName": "REPLACE_BUILDNUM",
+                        "timeStamp": "0001-01-01T16:07:00-07:53",
+                        "additionalData": {
+                        "productVersion": "REPLACE_DOTNET_VERSION"
+                        }
+                    },
+                    "os": {
+                        "locale": "en-US",
+                        "architecture": "Arm64",
+                        "name": "Unknown ",
+                        "machineName": "localhost"
+                    },
+                    "run": {
+                        "hidden": false,
+                        "correlationId": "REPLACE_HELIX_CORRELATION_ID",
+                        "perfRepoHash": "REPLACE_PERFLAB_PERFHASH",
+                        "name": "REPLACE_PERFLAB_RUNNAME",
+                        "queue": "REPLACE_PERFLAB_QUEUE",
+                        "workItemName": "REPLACE_HELIX_WORKITEM_FRIENDLYNAME",
+                        "configurations": {}
+                    },"""
+
+
+            # Create traces to store the data so we can keep the current general parse trace flow
+#         if runninginlab():
+            # copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
+            # if uploadtokenpresent():
+            #     import upload
+            #     upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+
+            finally:
+                # getLogger().info("Making sure app is stopped")
+                # forceStopAppCmd = xharnesscommand() + [
+                #     adbpath,
+                #     'shell',
+                #     'am',
+                #     'force-stop',
+                #     self.packagename
+                # ]
+                # RunCommand(forceStopAppCmd, verbose=True).run()
+                
+                #getLogger().info("Uninstalling app")
+                uninstallAppCmd = xharnesscommand() + [
+                    'android',
+                    'uninstall',
+                    '--package-name',
+                    self.packagename
+                ]
+                #RunCommand(uninstallAppCmd, verbose=True).run()
+
+
+  
 
         elif self.testtype == const.DEVICEMEMORYCONSUMPTION and self.devicetype == 'android':
             getLogger().info("Clearing potential previous run nettraces")
