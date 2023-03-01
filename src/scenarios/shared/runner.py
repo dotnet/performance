@@ -16,15 +16,16 @@ from collections import namedtuple
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 from io import StringIO
-from shutil import move, rmtree
+from shutil import move, rmtree, copytree
 from shared.androidhelper import AndroidHelper
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
 from shared.memoryconsumption import MemoryConsumptionWrapper
-from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand, publisheddll
+from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand, publisheddll, helixuploaddir
 from shared.sod import SODWrapper
 from shared import const
-from performance.common import RunCommand, iswin, extension, helixworkitemroot
+from performance.common import RunCommand, iswin, extension, helixworkitemroot, runninginlab
+from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from performance.logger import setup_loggers
 from shared.testtraits import TestTraits, testtypes
 from subprocess import CalledProcessError
@@ -461,18 +462,7 @@ ex: C:\repos\performance;C:\repos\runtime
                             os.remove(filePath)
                             with open(filePath, 'w') as jsonFile:
                                 json.dump(data, jsonFile, indent=4)            
-
-
-            # Create traces to store the data so we can keep the current general parse trace flow
-#         if runninginlab():
-            # copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
-            # if uploadtokenpresent():
-            #     import upload
-            #     from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
-            #     upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
-
             finally:
-
                 getLogger().info("Uninstalling app")
                 uninstallAppCmd = xharnesscommand() + [
                     'android',
@@ -482,9 +472,19 @@ ex: C:\repos\performance;C:\repos\runtime
                 ]
                 RunCommand(uninstallAppCmd, verbose=True).run()
 
-
+            
+            if runninginlab():
+                import upload
+                globpath = os.path.join(
+                    const.TRACEDIR,
+                    '**',
+                    '*perf-lab-report.json')
+                copytree(const.TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
+                upload_code = upload.upload(globpath, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
+                getLogger().info("Device Benchmarks Upload Code: " + str(upload_code))
+                if upload_code != 0:
+                    sys.exit(upload_code)
   
-
         elif self.testtype == const.DEVICEMEMORYCONSUMPTION and self.devicetype == 'android':
             getLogger().info("Clearing potential previous run nettraces")
             for file in glob.glob(os.path.join(const.TRACEDIR, 'PerfTest', 'runoutput.trace')):
