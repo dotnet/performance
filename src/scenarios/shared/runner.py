@@ -18,6 +18,7 @@ from argparse import RawTextHelpFormatter
 from io import StringIO
 from shutil import move, rmtree, copytree
 from shared.androidhelper import AndroidHelper
+from shared.androidinstrumentation import AndroidInstrumentationHelper
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
 from shared.memoryconsumption import MemoryConsumptionWrapper
@@ -92,7 +93,7 @@ class Runner:
         androidinstrumentationparser.add_argument('--package-path', help='Location of test application', dest='packagepath')
         androidinstrumentationparser.add_argument('--package-name', help='Classname (Android) or Bundle ID (iOS) of application', dest='packagename')
         androidinstrumentationparser.add_argument('--instrumentation-name', help='Name of the instrumentation to run', dest='instrumentationname')
-        androidinstrumentationparser.add_argument('--timeout', help='Amount of time to run the app between clearing procstats and dumping them', type=int, default=300, dest='timeoutseconds')
+        #androidinstrumentationparser.add_argument('--timeout', help='Amount of time to run the app between clearing procstats and dumping them', type=int, default=300, dest='timeoutseconds')
         self.add_common_arguments(androidinstrumentationparser)
 
         # inner loop command
@@ -362,128 +363,8 @@ ex: C:\repos\performance;C:\repos\runtime
             startup.runtests(self.traits)
 
         elif self.testtype == const.ANDROIDINSTRUMENTATION:
-            cmdline = xharnesscommand() + ['android', 'state', '--adb']
-            adb = RunCommand(cmdline, verbose=True)
-            adb.run()
-
-            # Do not remove, XHarness install seems to fail without an adb command called before the xharness command
-            getLogger().info("Preparing ADB")
-            adbpath = adb.stdout.strip()
-            try:
-                clearLogsCmd = [
-                    adbpath,
-                    'logcat',
-                    '-c'
-                ]
-
-                startInstrumentationCmd = [
-                    adbpath,
-                    'shell',
-                    'am',
-                    'instrument',
-                    '-w',
-                    f'{self.packagename}/{self.instrumentationname}'
-                ]
-                
-                printMauiLogsCmd = [
-                    adbpath,
-                    'shell',
-                    'logcat',
-                    '-d',
-                    'v',
-                    'tag',
-                    '-s',
-                    '"DOTNET,MAUI"'
-                ]
-
-                installCmd = xharnesscommand() + [
-                    'android',
-                    'install',
-                    '--app', self.packagepath,
-                    '--package-name',
-                    self.packagename,
-                    '-o',
-                    const.TRACEDIR,
-                    '-v'
-                ]
-
-                RunCommand(installCmd, verbose=True).run()
-
-                # Clear logs
-                RunCommand(clearLogsCmd, verbose=True).run()
-
-                # Run instrumentation
-                RunCommand(startInstrumentationCmd, verbose=True).run()
-                
-                # Print logs
-                RunCommand(printMauiLogsCmd, verbose=True).run()
-                
-                ## Get logs off device and upload to helix (TODO: Make this optional, potentially add different methods of getting logs)
-                defaultDeviceBdnOutputDir = f'/sdcard/Android/data/{self.packagename}/files/'
-                pullFilesFromDeviceCmd = [
-                    adbpath,
-                    'pull',
-                    defaultDeviceBdnOutputDir,
-                    const.TRACEDIR
-                ]
-
-                RunCommand(pullFilesFromDeviceCmd, verbose=True).run()
-
-                # Replace the JSON with the correct values
-                for (root, dirs, files) in os.walk(const.TRACEDIR):
-                    for file in files:
-                        if 'perf-lab-report.json' in file:
-                            filePath = os.path.join(root, file)
-                            print(file + " found at " + filePath)
-                            # Read the file and change the values
-                            with open(filePath, 'r') as jsonFile:
-                                data = json.load(jsonFile)
-                                data['build']['repo'] = os.environ['PERFLAB_REPO']
-                                data['build']['branch'] = os.environ['PERFLAB_BRANCH']
-                                data['build']['architecture'] = os.environ['PERFLAB_BUILDARCH']
-                                data['build']['locale'] = os.environ['PERFLAB_LOCALE']
-                                data['build']['gitHash'] = os.environ['PERFLAB_HASH']
-                                data['build']['buildName'] = os.environ['PERFLAB_BUILDNUM']
-                                data['build']['timeStamp'] = os.environ['PERFLAB_BUILDTIMESTAMP']
-                                data['build']['additionalData']['productVersion'] = os.environ['DOTNET_VERSION']
-                                data['os']['name'] = "Android"
-                                data['os']['machineName'] = "Android"
-                                data['run']['correlationId'] = os.environ['HELIX_CORRELATION_ID']
-                                data['run']['perfRepoHash'] = os.environ['PERFLAB_PERFHASH']
-                                data['run']['name'] = os.environ['PERFLAB_RUNNAME']
-                                data['run']['queue'] = os.environ['PERFLAB_QUEUE']
-                                data['run']['workItemName'] = os.environ['HELIX_WORKITEM_FRIENDLYNAME']
-                                configs = os.environ["PERFLAB_CONFIGS"]
-                                if configs != "":
-                                    for kvp in configs.split(';'):
-                                        split = kvp.split('=')
-                                        data['run']['configurations'][split[0]] = split[1]
-                            # write the new json
-                            os.remove(filePath)
-                            with open(filePath, 'w') as jsonFile:
-                                json.dump(data, jsonFile, indent=4)            
-            finally:
-                getLogger().info("Uninstalling app")
-                uninstallAppCmd = xharnesscommand() + [
-                    'android',
-                    'uninstall',
-                    '--package-name',
-                    self.packagename
-                ]
-                RunCommand(uninstallAppCmd, verbose=True).run()
-
-            
-            if runninginlab():
-                import upload
-                globpath = os.path.join(
-                    const.TRACEDIR,
-                    '**',
-                    '*perf-lab-report.json')
-                copytree(const.TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
-                upload_code = upload.upload(globpath, UPLOAD_CONTAINER, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
-                getLogger().info("Device Benchmarks Upload Code: " + str(upload_code))
-                if upload_code != 0:
-                    sys.exit(upload_code)
+            androidInstrumentation = AndroidInstrumentationHelper()
+            androidInstrumentation.runtests(self.packagepath, self.packagename, self.instrumentationname) # Do we want to make these part of traits? or keep them separate?
   
         elif self.testtype == const.DEVICEMEMORYCONSUMPTION and self.devicetype == 'android':
             getLogger().info("Clearing potential previous run nettraces")
