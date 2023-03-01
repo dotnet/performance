@@ -428,34 +428,39 @@ ex: C:\repos\performance;C:\repos\runtime
 
                 RunCommand(pullFilesFromDeviceCmd, verbose=True).run()
 
-                """ JSON to be replaced
-                "build": {
-                        "repo": "REPLACE_PERFLAB_REPO",
-                        "branch": "REPLACE_PERFLAB_BRANCH",
-                        "architecture": "REPLACE_PERFLAB_BUILDARCH",
-                        "locale": "REPLACE_PERFLAB_LOCALE",
-                        "gitHash": "REPLACE_HASH",
-                        "buildName": "REPLACE_BUILDNUM",
-                        "timeStamp": "0001-01-01T16:07:00-07:53",
-                        "additionalData": {
-                        "productVersion": "REPLACE_DOTNET_VERSION"
-                        }
-                    },
-                    "os": {
-                        "locale": "en-US",
-                        "architecture": "Arm64",
-                        "name": "Unknown ",
-                        "machineName": "localhost"
-                    },
-                    "run": {
-                        "hidden": false,
-                        "correlationId": "REPLACE_HELIX_CORRELATION_ID",
-                        "perfRepoHash": "REPLACE_PERFLAB_PERFHASH",
-                        "name": "REPLACE_PERFLAB_RUNNAME",
-                        "queue": "REPLACE_PERFLAB_QUEUE",
-                        "workItemName": "REPLACE_HELIX_WORKITEM_FRIENDLYNAME",
-                        "configurations": {}
-                    },"""
+                # Replace the JSON with the correct values
+                for (root, dirs, files) in os.walk(const.TRACEDIR):
+                    for file in files:
+                        if 'perf-lab-report.json' in file:
+                            filePath = os.path.join(root, file)
+                            print(file + " found at " + filePath)
+                            # Read the file and change the values
+                            with open(filePath, 'r') as jsonFile:
+                                data = json.load(jsonFile)
+                                data['build']['repo'] = os.environ['PERFLAB_REPO']
+                                data['build']['branch'] = os.environ['PERFLAB_BRANCH']
+                                data['build']['architecture'] = os.environ['PERFLAB_BUILDARCH']
+                                data['build']['locale'] = os.environ['PERFLAB_LOCALE']
+                                data['build']['gitHash'] = os.environ['PERFLAB_HASH']
+                                data['build']['buildName'] = os.environ['PERFLAB_BUILDNUM']
+                                data['build']['timeStamp'] = os.environ['PERFLAB_BUILDTIMESTAMP']
+                                data['build']['additionalData']['productVersion'] = os.environ['DOTNET_VERSION']
+                                data['os']['name'] = "Android"
+                                data['os']['machineName'] = "Android"
+                                data['run']['correlationId'] = os.environ['HELIX_CORRELATION_ID']
+                                data['run']['perfRepoHash'] = os.environ['PERFLAB_PERFHASH']
+                                data['run']['name'] = os.environ['PERFLAB_RUNNAME']
+                                data['run']['queue'] = os.environ['PERFLAB_QUEUE']
+                                data['run']['workItemName'] = os.environ['HELIX_WORKITEM_FRIENDLYNAME']
+                                configs = os.environ["PERFLAB_CONFIGS"]
+                                if configs != "":
+                                    for kvp in configs.split(';'):
+                                        split = kvp.split('=')
+                                        data['run']['configurations'][split[0]] = split[1]
+                            # write the new json
+                            os.remove(filePath)
+                            with open(filePath, 'w') as jsonFile:
+                                json.dump(data, jsonFile, indent=4)            
 
 
             # Create traces to store the data so we can keep the current general parse trace flow
@@ -463,27 +468,19 @@ ex: C:\repos\performance;C:\repos\runtime
             # copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
             # if uploadtokenpresent():
             #     import upload
+            #     from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
             #     upload.upload(self.reportjson, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
 
             finally:
-                # getLogger().info("Making sure app is stopped")
-                # forceStopAppCmd = xharnesscommand() + [
-                #     adbpath,
-                #     'shell',
-                #     'am',
-                #     'force-stop',
-                #     self.packagename
-                # ]
-                # RunCommand(forceStopAppCmd, verbose=True).run()
-                
-                #getLogger().info("Uninstalling app")
+
+                getLogger().info("Uninstalling app")
                 uninstallAppCmd = xharnesscommand() + [
                     'android',
                     'uninstall',
                     '--package-name',
                     self.packagename
                 ]
-                #RunCommand(uninstallAppCmd, verbose=True).run()
+                RunCommand(uninstallAppCmd, verbose=True).run()
 
 
   
