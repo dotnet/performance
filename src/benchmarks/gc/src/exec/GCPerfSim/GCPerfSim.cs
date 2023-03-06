@@ -782,6 +782,7 @@ struct SizeSlot
         this.count = count;
     }
 
+    // an object size distribution for SOH/LOH derived from a real server scenario
     public static SizeSlot[] sohLohSizeSlots = new SizeSlot[]
     {
 //        new SizeSlot(        24,  16229766), We are creating some small wrapper objects of 32 and 40 bytes around the
@@ -880,6 +881,7 @@ struct SizeSlot
             BuildBucketSpecsFromSizeDistribution(bucketSpecs, sohLohSizeSlots, new SizeRange(85_000, uint.MaxValue), survInterval, reqSurvInterval, pinInterval, finalizableInterval, false);
     }
 
+    // an object size distribution for OH derived from a real server scenario
     public static SizeSlot[] pohSizeSlots = new SizeSlot[]
     {
         new SizeSlot(        56,        16),
