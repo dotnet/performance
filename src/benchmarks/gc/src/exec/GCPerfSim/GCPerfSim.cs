@@ -174,7 +174,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Reflection;
-using System.Transactions;
 
 #if STATISTICS
 class Statistics
