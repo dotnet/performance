@@ -124,6 +124,10 @@ jobs:
             displayName: Build SOD tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
+          - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)MemoryConsumption -f $(PERFLAB_Framework) -r win-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\MemoryConsumption\MemoryConsumption.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
+            displayName: Build MemoryConsumption tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
           - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
             - powershell: |
                 mkdir $(CorrelationStaging)PDN
@@ -157,6 +161,10 @@ jobs:
               PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
           - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)SOD -f $(PERFLAB_Framework) -r linux-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/SizeOnDisk/SizeOnDisk.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
             displayName: Build SOD tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
+          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)MemoryConsumption -f $(PERFLAB_Framework) -r linux-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/MemoryConsumption/MemoryConsumption.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
+            displayName: Build MemoryConsumption tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
           - script: |
