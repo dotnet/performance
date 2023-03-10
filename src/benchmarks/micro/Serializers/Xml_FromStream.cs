@@ -26,6 +26,8 @@ namespace MicroBenchmarks.Serializers
         private XmlSerializer xmlSerializer;
         private DataContractSerializer dataContractSerializer;
         private MemoryStream memoryStream;
+        private byte[] memoryBytes;
+        private XmlDictionaryReader xmlDictionaryReader;
 
         [GlobalSetup(Target = nameof(XmlSerializer_))]
         public void SetupXmlSerializer()
@@ -63,9 +65,35 @@ namespace MicroBenchmarks.Serializers
             return (T)dataContractSerializer.ReadObject(memoryStream);
         }
 
-        // YAXSerializer is not included in the benchmarks because it does not allow to deserialize from stream (only from file and string)
+        [GlobalSetup(Target = nameof(DataContractSerializer_BinaryXml_))]
+        public void SetupDataContractSerializer_BinaryXml_()
+        {
+            value = DataGenerator.Generate<T>();
+            memoryStream = new MemoryStream(capacity: short.MaxValue);
+            memoryStream.Position = 0;
+            dataContractSerializer = new DataContractSerializer(typeof(T));
+            using (XmlDictionaryWriter writer = XmlDictionaryWriter.CreateBinaryWriter(memoryStream, null, null, ownsStream: false))
+               dataContractSerializer.WriteObject(writer, value);
+
+            memoryBytes = memoryStream.ToArray();
+            xmlDictionaryReader = XmlDictionaryReader.CreateBinaryReader(memoryBytes, XmlDictionaryReaderQuotas.Max);
+        }
+
+        [BenchmarkCategory(Categories.Libraries)]
+        [Benchmark(Description = nameof(XmlDictionaryReader))]
+        public T DataContractSerializer_BinaryXml_()
+        {
+            ((IXmlBinaryReaderInitializer)xmlDictionaryReader).SetInput(memoryBytes, 0, memoryBytes.Length, null, XmlDictionaryReaderQuotas.Max, null, null);
+            return (T)dataContractSerializer.ReadObject(xmlDictionaryReader);
+        }
+
+      // YAXSerializer is not included in the benchmarks because it does not allow to deserialize from stream (only from file and string)
 
         [GlobalCleanup]
-        public void Cleanup() => memoryStream.Dispose();
+        public void Cleanup()
+        {
+            xmlDictionaryReader?.Dispose();
+            memoryStream?.Dispose();
+        }
     }
 }
