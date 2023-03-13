@@ -17,8 +17,10 @@ from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 from io import StringIO
 from shutil import move, rmtree
+from shared.androidhelper import AndroidHelper
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
+from shared.memoryconsumption import MemoryConsumptionWrapper
 from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand, publisheddll
 from shared.sod import SODWrapper
 from shared import const
@@ -59,17 +61,30 @@ class Runner:
         self.add_common_arguments(startupparser)
 
         # parse only command
-        parseonlyparser = subparsers.add_parser(const.DEVICESTARTUP,
+        devicestartupparser = subparsers.add_parser(const.DEVICESTARTUP,
                                               description='measure time to startup for Android/iOS apps')
-        parseonlyparser.add_argument('--device-type', choices=['android','ios'],type=str.lower,help='Device type for testing', dest='devicetype')
-        parseonlyparser.add_argument('--package-path', help='Location of test application', dest='packagepath')
-        parseonlyparser.add_argument('--package-name', help='Classname (Android) or Bundle ID (iOS) of application', dest='packagename')
-        parseonlyparser.add_argument('--startup-iterations', help='Startups to run (1+)', type=int, default=10, dest='startupiterations')
-        parseonlyparser.add_argument('--disable-animations', help='Disable Android device animations, does nothing on iOS.', action='store_true', dest='animationsdisabled')
-        parseonlyparser.add_argument('--use-fully-drawn-time', help='Use the startup time from reportFullyDrawn for android, the equivalent for iOS is handled via logging a magic string and passing it to --fully-drawn-magic-string', action='store_true', dest='usefullydrawntime')
-        parseonlyparser.add_argument('--fully-drawn-extra-delay', help='Set an additional delay time for an Android app to reportFullyDrawn (seconds), not on iOS. This should be greater than the greatest amount of extra time expected between first frame draw and reportFullyDrawn being called. Default = 3 seconds', type=int, default=3, dest='fullyDrawnDelaySecMax')
-        parseonlyparser.add_argument('--fully-drawn-magic-string', help='Set the magic string that is logged by the app to indicate when the app is fully drawn. Required when using --use-fully-drawn-time on iOS.', type=str, dest='fullyDrawnMagicString')
-        self.add_common_arguments(parseonlyparser)
+        devicestartupparser.add_argument('--device-type', choices=['android','ios'],type=str.lower,help='Device type for testing', dest='devicetype')
+        devicestartupparser.add_argument('--package-path', help='Location of test application', dest='packagepath')
+        devicestartupparser.add_argument('--package-name', help='Classname (Android) or Bundle ID (iOS) of application', dest='packagename')
+        devicestartupparser.add_argument('--startup-iterations', help='Startups to run (1+)', type=int, default=10, dest='startupiterations')
+        devicestartupparser.add_argument('--disable-animations', help='Disable Android device animations, does nothing on iOS.', action='store_true', dest='animationsdisabled')
+        devicestartupparser.add_argument('--use-fully-drawn-time', help='Use the startup time from reportFullyDrawn for android, the equivalent for iOS is handled via logging a magic string and passing it to --fully-drawn-magic-string', action='store_true', dest='usefullydrawntime')
+        devicestartupparser.add_argument('--fully-drawn-extra-delay', help='Set an additional delay time for an Android app to reportFullyDrawn (seconds), not on iOS. This should be greater than the greatest amount of extra time expected between first frame draw and reportFullyDrawn being called. Default = 3 seconds', type=int, default=3, dest='fullyDrawnDelaySecMax')
+        devicestartupparser.add_argument('--fully-drawn-magic-string', help='Set the magic string that is logged by the app to indicate when the app is fully drawn. Required when using --use-fully-drawn-time on iOS.', type=str, dest='fullyDrawnMagicString')
+        devicestartupparser.add_argument('--time-from-kill-to-start', help='Set an additional delay time for ensuring an app is cleared after closing the app on Android, not on iOS. This should be greater than the greatest amount of expected time needed between closing an app and starting it again for a cold start. Default = 3 seconds', type=int, default=3, dest='closeToStartDelay')
+        self.add_common_arguments(devicestartupparser)
+
+                # parse only command
+        devicememoryconsumptionparser = subparsers.add_parser(const.DEVICEMEMORYCONSUMPTION,
+                                              description='measure memory consumption to startup for Android/iOS apps')
+        devicememoryconsumptionparser.add_argument('--device-type', choices=['android'],type=str.lower,help='Device type for testing', dest='devicetype')
+        devicememoryconsumptionparser.add_argument('--package-path', help='Location of test application', dest='packagepath')
+        devicememoryconsumptionparser.add_argument('--package-name', help='Classname (Android) or Bundle ID (iOS) of application', dest='packagename')
+        devicememoryconsumptionparser.add_argument('--test-iterations', help='Iterations to run (1+)', type=int, default=1, dest='testiterations')
+        devicememoryconsumptionparser.add_argument('--disable-animations', help='Disable Android device animations, does nothing on iOS.', action='store_true', dest='animationsdisabled')
+        devicememoryconsumptionparser.add_argument('--runtime', help='Amount of time to run the app between clearing procstats and dumping them', type=int, default=60, dest='runtimeseconds')
+        devicememoryconsumptionparser.add_argument('--time-from-kill-to-start', help='Set an additional delay time for ensuring an app is cleared after closing the app on Android, not on iOS. This should be greater than the greatest amount of expected time needed between closing an app and starting it again for a cold start. Default = 3 seconds', type=int, default=3, dest='closeToStartDelay')
+        self.add_common_arguments(devicememoryconsumptionparser)
 
         # inner loop command
         innerloopparser = subparsers.add_parser(const.INNERLOOP,
@@ -155,6 +170,16 @@ ex: C:\repos\performance;C:\repos\runtime
             self.usefullydrawntime = args.usefullydrawntime
             self.fullyDrawnDelaySecMax = args.fullyDrawnDelaySecMax
             self.fullyDrawnMagicString = args.fullyDrawnMagicString
+            self.closeToStartDelay = args.closeToStartDelay
+
+        if self.testtype == const.DEVICEMEMORYCONSUMPTION:
+            self.packagepath = args.packagepath
+            self.packagename = args.packagename
+            self.devicetype = args.devicetype
+            self.testiterations = args.testiterations
+            self.animationsdisabled = args.animationsdisabled
+            self.runtimeseconds = args.runtimeseconds
+            self.closeToStartDelay = args.closeToStartDelay
 
         if args.scenarioname:
             self.scenarioname = args.scenarioname
@@ -319,6 +344,92 @@ ex: C:\repos\performance;C:\repos\runtime
             startup.runtests(self.traits)
 
 
+        elif self.testtype == const.DEVICEMEMORYCONSUMPTION and self.devicetype == 'android':
+            getLogger().info("Clearing potential previous run nettraces")
+            for file in glob.glob(os.path.join(const.TRACEDIR, 'PerfTest', 'runoutput.trace')):
+                if exists(file):   
+                    getLogger().info("Removed: " + os.path.join(const.TRACEDIR, file))
+                    os.remove(file)
+
+            androidHelper = AndroidHelper()
+            try:
+                androidHelper.setup_device(self.packagename, self.packagepath, self.animationsdisabled)
+
+                # Create the fullydrawn command
+                clearProcStatsCmd = [ 
+                    androidHelper.adbpath,
+                    'shell',
+                    'dumpsys',
+                    'procstats',
+                    '--clear'
+                ]
+
+                captureProcStatsCmd = [ 
+                    androidHelper.adbpath,
+                    'shell',
+                    'dumpsys',
+                    'procstats',
+                    self.packagename,
+                    '--section',
+                    'proc'
+                ]
+
+                clearLogsCmd = [
+                    androidHelper.adbpath,
+                    'logcat',
+                    '-c'
+                ]
+
+                allResults = []
+                for i in range(self.testiterations):
+                    # Clear logs
+                    RunCommand(clearLogsCmd, verbose=True).run()
+                    RunCommand(clearProcStatsCmd, verbose=True).run()
+                    startStats = RunCommand(androidHelper.startappcommand, verbose=True)
+                    startStats.run()
+                    time.sleep(self.runtimeseconds)
+                    captureProcStats = RunCommand(captureProcStatsCmd, verbose=True)
+                    captureProcStats.run()
+
+                    # Save the results and get them from the log
+                    RunCommand(androidHelper.stopappcommand, verbose=True).run()
+                    
+                    # Part of the output we are regexing:
+                    # Process summary:
+                    # * net.dot.HelloAndroid / u0a1219 / v1:
+                    #        TOTAL: ###% (<Part we want>52MB-52MB-52MB/44MB-44MB-44MB/135MB-135MB-135MB over 1</Part we want>)
+                    #        Top: 100% (52MB-52MB-52MB/44MB-44MB-44MB/135MB-135MB-135MB over 1)
+                    regexSearchString = r"TOTAL: [0-9]{2,3}% \((\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB over \d+)\)"
+                    dirtyCapture = re.search(regexSearchString, captureProcStats.stdout)
+                    if not dirtyCapture:
+                        raise Exception("Failed to capture the reported start time!")
+                    splitNumber = dirtyCapture.group(1).replace("MB", "").strip().split(" over ")
+                    splitMemory = splitNumber[0].split("/")
+                    pss = splitMemory[0].split("-")
+                    uss = splitMemory[1].split("-")
+                    rss = splitMemory[2].split("-")
+                    memoryCapture = f"PSS: min {pss[0]}, avg {pss[1]}, max {pss[2]}; USS: min {uss[0]}, avg {uss[1]}, max {uss[2]}; RSS: min {rss[0]}, avg {rss[1]}, max {rss[2]}; Number: {splitNumber[1]}\n"
+                    print(f"Memory Capture: {memoryCapture}")
+                    allResults.append(memoryCapture)
+                    time.sleep(self.closeToStartDelay) # Delay in seconds for ensuring a cold start
+                
+            finally:
+                androidHelper.close_device()
+
+            # Create traces to store the data so we can keep the current general parse trace flow
+            getLogger().info(f"Logs: \n{allResults}")
+            outputdir = os.path.join(const.TRACEDIR,"PerfTest")
+            os.makedirs(outputdir, exist_ok=True)
+            outputtracefile = os.path.join(outputdir, "runoutput.trace")
+            tracefile = open(outputtracefile, "w")
+            for result in allResults:
+                tracefile.write(result)
+            tracefile.close()
+
+            memoryconsumption = MemoryConsumptionWrapper()
+            self.traits.add_traits(overwrite=True, apptorun="app", memoryconsumptionmetric=const.MEMORYCONSUMPTION_ANDROID, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname=self.scenarioname)
+            memoryconsumption.parsetraces(self.traits)
+
         elif self.testtype == const.DEVICESTARTUP and self.devicetype == 'android':
             # ADB Key Event corresponding numbers: https://gist.github.com/arjunv/2bbcca9a1a1c127749f8dcb6d36fb0bc
             # Regex used to split the response from starting the activity and saving each value
@@ -340,225 +451,25 @@ ex: C:\repos\performance;C:\repos\runtime
                     getLogger().info("Removed: " + os.path.join(const.TRACEDIR, file))
                     os.remove(file)
 
-            cmdline = xharnesscommand() + ['android', 'state', '--adb']
-            adb = RunCommand(cmdline, verbose=True)
-            adb.run()
-
-            # Do not remove, XHarness install seems to fail without an adb command called before the xharness command
-            getLogger().info("Preparing ADB")
-            cmdline = [
-                adb.stdout.strip(),
-                'shell',
-                'wm',
-                'size'
-            ]
-            RunCommand(cmdline, verbose=True).run()
-
-            # Get animation values
-            getLogger().info("Getting Values we will need set specifically")
-            cmdline = [
-                adb.stdout.strip(),
-                'shell', 'settings', 'get', 'global', 'window_animation_scale'
-            ]
-            window_animation_scale_cmd = RunCommand(cmdline, verbose=True)
-            window_animation_scale_cmd.run()
-            cmdline = [
-                adb.stdout.strip(),
-                'shell', 'settings', 'get', 'global', 'transition_animation_scale'
-            ]
-            transition_animation_scale_cmd = RunCommand(cmdline, verbose=True)
-            transition_animation_scale_cmd.run()
-            cmdline = [
-                adb.stdout.strip(),
-                'shell', 'settings', 'get', 'global', 'animator_duration_scale'
-            ]
-            animator_duration_scale_cmd = RunCommand(cmdline, verbose=True)
-            animator_duration_scale_cmd.run()
-            cmdline = [
-                adb.stdout.strip(),
-                'shell', 'settings', 'get', 'system', 'screen_off_timeout'
-            ]
-            screen_off_timeout_cmd = RunCommand(cmdline, verbose=True)
-            screen_off_timeout_cmd.run()
-            getLogger().info(f"Retrieved values window {window_animation_scale_cmd.stdout.strip()}, transition {transition_animation_scale_cmd.stdout.strip()}, animator {animator_duration_scale_cmd.stdout.strip()}, screen timeout {screen_off_timeout_cmd.stdout.strip()}")
-
-            # Make sure animations are set to 1 or disabled
-            getLogger().info("Setting needed values")
-            if self.animationsdisabled:
-                animationValue = 0
-            else:
-                animationValue = 1
-            minimumTimeoutValue = 2 * 60 * 1000 # milliseconds
-            cmdline = [
-                adb.stdout.strip(),
-                'shell', 'settings', 'put', 'global', 'window_animation_scale', str(animationValue)
-            ]
-            RunCommand(cmdline, verbose=True).run()
-            cmdline = [
-                adb.stdout.strip(),
-                'shell', 'settings', 'put', 'global', 'transition_animation_scale', str(animationValue)
-            ]
-            RunCommand(cmdline, verbose=True).run()
-            cmdline = [
-                adb.stdout.strip(),
-                'shell', 'settings', 'put', 'global', 'animator_duration_scale', str(animationValue)
-            ]
-            RunCommand(cmdline, verbose=True).run()
-            cmdline = [
-                adb.stdout.strip(),
-                'shell', 'settings', 'put', 'system', 'screen_off_timeout', str(minimumTimeoutValue)
-            ]
-            if minimumTimeoutValue > int(screen_off_timeout_cmd.stdout.strip()):
-                getLogger().info("Screen off value is lower than minimum time, setting to higher time")
-                RunCommand(cmdline, verbose=True).run()
-
-            # Check for success
-            getLogger().info("Getting animation values to verify it worked")
-            cmdline = [
-                adb.stdout.strip(),
-                'shell', 'settings', 'get', 'global', 'window_animation_scale'
-            ]
-            windowSetValue = RunCommand(cmdline, verbose=True)
-            windowSetValue.run()
-            cmdline = [
-                adb.stdout.strip(),
-                'shell', 'settings', 'get', 'global', 'transition_animation_scale'
-            ]
-            transitionSetValue = RunCommand(cmdline, verbose=True)
-            transitionSetValue.run()
-            cmdline = [
-                adb.stdout.strip(),
-                'shell', 'settings', 'get', 'global', 'animator_duration_scale'
-            ]
-            animatorSetValue = RunCommand(cmdline, verbose=True)
-            animatorSetValue.run()
-            if int(windowSetValue.stdout.strip()) != animationValue or int(transitionSetValue.stdout.strip()) != animationValue or int(animatorSetValue.stdout.strip()) != animationValue:
-                # Setting the values didn't work, error out
-                getLogger().exception(f"Failed to set animation values to {animationValue}.")
-                raise Exception(f"Failed to set animation values to {animationValue}.")
-            else:
-                getLogger().info(f"Animation values successfully set to {animationValue}.")
-
+            androidHelper = AndroidHelper()
             try:
-                stopAppCmd = [ 
-                    adb.stdout.strip(),
-                    'shell',
-                    'am',
-                    'force-stop',
-                    self.packagename
-                ]
-
-                installCmd = xharnesscommand() + [
-                    'android',
-                    'install',
-                    '--app', self.packagepath,
-                    '--package-name',
-                    self.packagename,
-                    '-o',
-                    const.TRACEDIR,
-                    '-v'
-                ]
-                RunCommand(installCmd, verbose=True).run()
-
-                getLogger().info("Completed install, running shell.")
-                cmdline = [ 
-                    adb.stdout.strip(),
-                    'shell',
-                    f'cmd package resolve-activity --brief {self.packagename} | tail -n 1'
-                ]
-                getActivity = RunCommand(cmdline, verbose=True)
-                getActivity.run()
-                getLogger().info(f"Target Activity {getActivity.stdout}")
-
-                # More setup stuff
-                checkScreenOnCmd = [ 
-                    adb.stdout.strip(),
-                    'shell',
-                    f'dumpsys input_method | grep mInteractive'
-                ]
-                checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
-                checkScreenOn.run()
-
-                keyInputCmd = [
-                    adb.stdout.strip(),
-                    'shell',
-                    'input',
-                    'keyevent'
-                ]
-
-                if "mInteractive=false" in checkScreenOn.stdout: 
-                    # Turn on the screen to make interactive and see if it worked
-                    getLogger().info("Screen was off, turning on.")
-                    screenWasOff = True
-                    RunCommand(keyInputCmd + ['26'], verbose=True).run() # Press the power key
-                    RunCommand(keyInputCmd + ['82'], verbose=True).run() # Unlock the screen with menu key (only works if it is not a password lock)
-
-                    checkScreenOn = RunCommand(checkScreenOnCmd, verbose=True)
-                    checkScreenOn.run()
-                    if "mInteractive=false" in checkScreenOn.stdout:
-                        getLogger().exception("Failed to make screen interactive.")
-                        raise Exception("Failed to make screen interactive.")
-
-                # Actual testing some run stuff
-                getLogger().info("Test run to check if permissions are needed")
-                activityname = getActivity.stdout.strip()
-
-                # -W in the start command waits for the app to finish initial draw.
-                startAppCmd = [ 
-                    adb.stdout.strip(),
-                    'shell',
-                    'am',
-                    'start-activity',
-                    '-W',
-                    '-n',
-                    activityname
-                ]
-                testRun = RunCommand(startAppCmd, verbose=True)
-                testRun.run()
-                testRunStats = re.findall(runSplitRegex, testRun.stdout) # Split results saving value (List: Starting, Status, LaunchState, Activity, TotalTime, WaitTime) 
-                getLogger().info(f"Test run activity: {testRunStats[3]}")
-                time.sleep(10) # Add delay to ensure app is fully installed and give it some time to settle
+                androidHelper.setup_device(self.packagename, self.packagepath, self.animationsdisabled)
                 
-                RunCommand(stopAppCmd, verbose=True).run()
-                if "com.google.android.permissioncontroller" in testRunStats[3]:
-                    # On perm screen, use the buttons to close it. it will stay away until the app is reinstalled
-                    RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
-                    time.sleep(1)
-                    RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
-                    time.sleep(1)
-                    RunCommand(keyInputCmd + ['66'], verbose=True).run() # Press enter to close main perm screen
-                    time.sleep(1)
-                    RunCommand(keyInputCmd + ['22'], verbose=True).run() # Select next button
-                    time.sleep(1)
-                    RunCommand(keyInputCmd + ['66'], verbose=True).run() # Press enter to close out of second screen
-                    time.sleep(1)
-
-                    # Check to make sure it worked
-                    testRun = RunCommand(startAppCmd, verbose=True)
-                    testRun.run()
-                    testRunStats = re.findall(runSplitRegex, testRun.stdout) 
-                    getLogger().info(f"Test run activity: {testRunStats[3]}")
-                    RunCommand(stopAppCmd, verbose=True).run() 
-                    
-                    if "com.google.android.permissioncontroller" in testRunStats[3]:
-                        getLogger().exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
-                        raise Exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
-
                 # Create the fullydrawn command
                 fullyDrawnRetrieveCmd = [ 
-                    adb.stdout.strip(),
+                    androidHelper.adbpath,
                     'shell',
                     f"logcat -d | grep 'ActivityTaskManager: Fully drawn {self.packagename}'"
                 ]
 
                 basicStartupRetrieveCmd = [ 
-                    adb.stdout.strip(),
+                    androidHelper.adbpath,
                     'shell',
-                    f"logcat -d | grep 'ActivityTaskManager: Displayed {activityname}'"
+                    f"logcat -d | grep 'ActivityTaskManager: Displayed {androidHelper.activityname}'"
                 ]
 
                 clearLogsCmd = [
-                    adb.stdout.strip(),
+                    androidHelper.adbpath,
                     'logcat',
                     '-c'
                 ]
@@ -567,7 +478,7 @@ ex: C:\repos\performance;C:\repos\runtime
                 for i in range(self.startupiterations):
                     # Clear logs
                     RunCommand(clearLogsCmd, verbose=True).run()
-                    startStats = RunCommand(startAppCmd, verbose=True)
+                    startStats = RunCommand(androidHelper.startappcommand, verbose=True)
                     startStats.run()
                     # Make sure we cold started (TODO Add other starts)
                     if "LaunchState: COLD" not in startStats.stdout:
@@ -575,7 +486,7 @@ ex: C:\repos\performance;C:\repos\runtime
                         
                     # Save the results and get them from the log
                     if self.usefullydrawntime: time.sleep(self.fullyDrawnDelaySecMax) # Start command doesn't wait for fully drawn report, force a wait for it. -W in the start command waits for the app to finish initial draw.
-                    RunCommand(stopAppCmd, verbose=True).run()
+                    RunCommand(androidHelper.stopappcommand, verbose=True).run()
                     if self.usefullydrawntime:
                         retrieveTimeCmd = RunCommand(fullyDrawnRetrieveCmd, verbose=True)
                     else:
@@ -593,54 +504,20 @@ ex: C:\repos\performance;C:\repos\runtime
                         getLogger().error("Time capture failed, found {len(captureList)}")
                         raise Exception("Android Time Capture Failed! Incorrect number of captures found.")
                     allResults.append(formattedTime) # append TotalTime: (TIME)
-                    time.sleep(3) # Delay in seconds for ensuring a cold start
+                    time.sleep(self.closeToStartDelay) # Delay in seconds for ensuring a cold start
                 
             finally:
-                getLogger().info("Stopping App for uninstall")
-                RunCommand(stopAppCmd, verbose=True).run()
-                        
-                getLogger().info("Uninstalling app")
-                uninstallAppCmd = xharnesscommand() + [
-                    'android',
-                    'uninstall',
-                    '--package-name',
-                    self.packagename
-                ]
-                RunCommand(uninstallAppCmd, verbose=True).run()
-
-                # Reset animation values 
-                getLogger().info("Resetting animation values to pretest values")
-                cmdline = [
-                    adb.stdout.strip(),
-                    'shell', 'settings', 'put', 'global', 'window_animation_scale', window_animation_scale_cmd.stdout.strip()
-                ]
-                RunCommand(cmdline, verbose=True).run()
-                cmdline = [
-                    adb.stdout.strip(),
-                    'shell', 'settings', 'put', 'global', 'transition_animation_scale', transition_animation_scale_cmd.stdout.strip()
-                ]
-                RunCommand(cmdline, verbose=True).run()
-                cmdline = [
-                    adb.stdout.strip(),
-                    'shell', 'settings', 'put', 'global', 'animator_duration_scale', animator_duration_scale_cmd.stdout.strip()
-                ]
-                RunCommand(cmdline, verbose=True).run()
-                cmdline = [
-                    adb.stdout.strip(),
-                    'shell', 'settings', 'put', 'system', 'screen_off_timeout', screen_off_timeout_cmd.stdout.strip()
-                ]
-                RunCommand(cmdline, verbose=True).run()
-
-                if screenWasOff:
-                    RunCommand(keyInputCmd + ['26'], verbose=True).run() # Turn the screen back off
+                androidHelper.close_device()
 
             # Create traces to store the data so we can keep the current general parse trace flow
             getLogger().info(f"Logs: \n{allResults}")
-            os.makedirs(f"{const.TRACEDIR}/PerfTest", exist_ok=True)
-            traceFile = open(f"{const.TRACEDIR}/PerfTest/runoutput.trace", "w")
+            outputdir = os.path.join(const.TRACEDIR,"PerfTest")
+            os.makedirs(outputdir, exist_ok=True)
+            outputtracefile = os.path.join(outputdir, "runoutput.trace")
+            tracefile = open(outputtracefile, "w")
             for result in allResults:
-                traceFile.write(result)
-            traceFile.close()
+                tracefile.write(result)
+            tracefile.close()
 
             startup = StartupWrapper()
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname=self.scenarioname)
@@ -874,11 +751,13 @@ ex: C:\repos\performance;C:\repos\runtime
 
             # Create traces to store the data so we can keep the current general parse trace flow
             getLogger().info(f"Logs: \n{allResults}")
-            os.makedirs(f"{const.TRACEDIR}/PerfTest", exist_ok=True)
-            traceFile = open(f"{const.TRACEDIR}/PerfTest/runoutput.trace", "w")
+            outputdir = os.path.join(const.TRACEDIR,"PerfTest")
+            os.makedirs(outputdir, exist_ok=True)
+            outputtracefile = os.path.join(outputdir, "runoutput.trace")
+            tracefile = open(outputtracefile, "w")
             for result in allResults:
-                traceFile.write(result)
-            traceFile.close()
+                tracefile.write(result)
+            tracefile.close()
 
             startup = StartupWrapper()
             self.traits.add_traits(overwrite=True, apptorun="app", startupmetric=const.STARTUP_DEVICETIMETOMAIN, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname=self.scenarioname)
