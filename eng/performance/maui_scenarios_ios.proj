@@ -1,0 +1,77 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+  <Import Project="Scenarios.Common.props" />
+
+  <PropertyGroup>
+    <IncludeXHarnessCli>true</IncludeXHarnessCli>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AfterPreparePayloadWorkItemCommand>$(Python) post.py</AfterPreparePayloadWorkItemCommand>
+    <PreparePayloadOutDirectoryName>scenarios_out</PreparePayloadOutDirectoryName>
+    <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' == 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)\</PreparePayloadWorkItemBaseDirectory>
+    <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
+  </PropertyGroup>
+
+  <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
+    <Message Text="Removing Dotnet Packs from Correlation Staging" Importance="high" />
+    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet\packs" />
+  </Target>
+
+  <ItemDefinitionGroup>
+    <HelixWorkItem>
+      <Timeout>00:30</Timeout>
+    </HelixWorkItem>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <MAUIiOSScenario Include="Maui iOS Default">
+      <ScenarioDirectoryName>mauiios</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <IPAName>HelloiOS</IPAName>
+      <PackageName>net.dot.HelloiOS</PackageName>
+    </MAUIiOSScenario>
+    <!-- MessagingCenter was removed: https://github.com/dotnet/maui/pull/12582, needs to be replaced likely with something like: https://github.com/dotnet/maui/commit/762e07e04d1fdf8fca3edd948bab294c8762cd2c -->
+    <!-- <MAUIiOSScenario Include="Maui iOS Podcast">
+      <ScenarioDirectoryName>mauiiospodcast</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <IPAName>MauiiOSPodcast</IPAName>
+      <PackageName>net.dot.net.dot.netconf2021.maui</PackageName>
+    </MAUIiOSScenario> -->
+    <MAUIiOSScenario Include="Maui Blazor iOS Default">
+      <ScenarioDirectoryName>mauiblazorios</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <IPAName>MauiBlazoriOSDefault</IPAName>
+      <PackageName>net.dot.mauiblazortesting</PackageName>
+    </MAUIiOSScenario>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PreparePayloadWorkItem Include="@(MAUIiOSScenario)">
+      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release /p:_RequireCodeSigning=false /p:ApplicationId=net.dot.mauitesting -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
+      <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
+    </PreparePayloadWorkItem>
+  </ItemGroup>
+
+  <ItemGroup>
+    <HelixWorkItem Include="@(MAUIiOSenario -> 'SOD - %(Identity) IPA Size')">
+      <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+    <HelixWorkItem Include="@(MAUIiOSenario -> 'SOD - %(Identity) Unzipped')">
+      <PreCommands>echo on; xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName) %HELIX_WORKITEM_ROOT%\pub\ /E /I /Y; ren %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.IPAName).ipa %(HelixWorkItem.ApkName).zip; powershell.exe -nologo -noprofile -command "&amp; {Expand-Archive %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.IPAName).zip -DestinationPath %HELIX_WORKITEM_ROOT%\pub\}"; del %HELIX_WORKITEM_ROOT%\pub\%(HelixWorkItem.IPAName).zip</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+  </ItemGroup>
+
+//////////////////////////////////
+  <!--
+    This target is to work around the XHarness command that depend on scripts in ORIGPYPATH
+    being run before we get to run our normal Post commands. AddXHarnessCLI is the XHarness
+    Target so we just make sure we add this after that.
+  -->
+  <Target Name="ResetPYTHONPATHBeforeXHarnessCommand" AfterTargets="AddXHarnessCLI">
+    <PropertyGroup>
+      <HelixPostCommands>export PYTHONPATH=$ORIGPYPATH;$(HelixPostCommands)</HelixPostCommands>
+    </PropertyGroup>
+  </Target>
+</Project>
