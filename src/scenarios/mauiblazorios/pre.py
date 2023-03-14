@@ -62,8 +62,9 @@ with open(f"{const.APPDIR}/Platforms/Android/MainActivity.cs", "w") as mainActiv
             mainActivityFile.write(line)
 
 # Build the APK
-shutil.copy('./MauiNuGet.config', './app/Nuget.config')
-precommands.execute([])
+# NuGet.config file cannot be in the build directory currently due to https://github.com/dotnet/aspnetcore/issues/41397
+# shutil.copy('./MauiNuGet.config', './app/Nuget.config')
+precommands.execute(['/p:_RequireCodeSigning=false', '/p:ApplicationId=net.dot.mauiblazortesting'])
 
 output_dir = const.PUBDIR
 if precommands.output:

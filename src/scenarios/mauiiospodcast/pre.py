@@ -19,7 +19,7 @@ subprocess.run(['powershell', '-Command', r'Remove-Item -Path .\\dotnet-podcasts
 precommands.existing(projectdir='./dotnet-podcasts', projectfile='./src/Mobile/Microsoft.NetConf2021.Maui.csproj')
 
 # Build the APK
-precommands.execute([])
+precommands.execute(['/p:_RequireCodeSigning=false', '/p:ApplicationId=net.dot.netconf2021.maui'])
 
 # Remove the aab files as we don't need them, this saves space
 output_dir = const.PUBDIR

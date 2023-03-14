@@ -25,7 +25,7 @@ precommands.new(template='maui',
 
 # Build the APK
 shutil.copy('./MauiNuGet.config', './app/Nuget.config')
-precommands.execute([])
+precommands.execute(['/p:_RequireCodeSigning=false', '/p:ApplicationId=net.dot.mauitesting'])
 
 # Remove the aab files as we don't need them, this saves space
 output_dir = const.PUBDIR
