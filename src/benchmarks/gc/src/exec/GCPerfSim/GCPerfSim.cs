@@ -63,6 +63,23 @@ this is the total live data size in GB
 this is the total allocated size in GB, instead of accepting an arg like # of iterations where you don't really know what 
 an iteration does, we use the allocated bytes to indicate how much work the threads do.
 
+-requestAllocMB/-ramb: requestAllocBytes
+this is used to simulate "request processing" in servers. we allocate this much and keep a fraction of it live 
+until we've reached the total. Then we let go of all the objects allocated for this request. Multiple threads
+may be working in parallel on separate requests. The idea is to keep a certain amount of memory live for requests in flight.
+
+-requestLiveMB/-rlmb: requestLiveBytes
+how much memory to keep live during a request.
+
+-reqSohSurvInterval/-rsohsi:
+meaning every Nth SOH object allocated during a request survives
+
+-reqLohSurvInterval/-rlohsi":
+meaning every Nth LOH object allocated during a request survives
+
+-reqPohSurvInterval/-rpohsi":
+meaning every Nth POH object allocated during a request survives
+
 -totalMins/-tm: totalMinutesToRun
 time to run in minutes (for things that need long term effects like scheduling you want to run for 
 a while, eg, a few hours to see how stable it is)
@@ -1167,9 +1184,9 @@ ref struct TextReader
 
     public double TakeDouble()
     {
-        Assert(IsDigitOrDot(Peek), "Expected to parse a double");
+        Assert(IsDigitOrDecimalSeparator(Peek), "Expected to parse a double");
         uint i = 1;
-        for (; i < text.Length && IsDigitOrDot(text[i]); i++) { }
+        for (; i < text.Length && IsDigitOrDecimalSeparator(text[i]); i++) { }
         return double.Parse(TakeN(i).ToString());
     }
 
@@ -1186,7 +1203,7 @@ ref struct TextReader
         ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z');
     private static bool IsDigit(char c) =>
         '0' <= c && c <= '9';
-    private static bool IsDigitOrDot(char c) =>
+    private static bool IsDigitOrDecimalSeparator(char c) =>
         IsDigit(c) || c == '.' || c == ',';
     private static bool IsWhite(char c) =>
         c == ' ' || c == '\t';
@@ -1612,6 +1629,8 @@ class ArgsParser
             {
                 case "-compute":
                 case "-c":
+                    // add some computation - the magic number below
+                    // will reduce the allocation rate by a factor of 2-4
                     compute = 1000;
                     break;
                 case "-finishWithFullCollect":
