@@ -1,10 +1,10 @@
 {
   "tools": {
-    "dotnet": "6.0.114"
+    "dotnet": "6.0.115"
   },
   "msbuild-sdks": {
-    "Microsoft.DotNet.Arcade.Sdk": "6.0.0-beta.23122.5",
-    "Microsoft.DotNet.Helix.Sdk": "6.0.0-beta.23122.5"
+    "Microsoft.DotNet.Arcade.Sdk": "6.0.0-beta.23165.1",
+    "Microsoft.DotNet.Helix.Sdk": "6.0.0-beta.23165.1"
   },
   "native-tools": {
     "python3": "3.7.1"
