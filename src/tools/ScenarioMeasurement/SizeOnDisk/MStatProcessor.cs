@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
@@ -17,19 +18,21 @@ namespace ScenarioMeasurement
             var asm = AssemblyDefinition.ReadAssembly(path);
             var globalType = (TypeDefinition)asm.MainModule.LookupToken(0x02000001);
 
-            AssemblyStats = GetAssemblyStats(globalType);
+            var version = asm.Name.Version;
+
+            AssemblyStats = GetAssemblyStats(version, globalType);
             BlobStats = GetBlobStats(globalType);
         }
 
-        static List<Result> GetAssemblyStats(TypeDefinition globalType)
+        static List<Result> GetAssemblyStats(Version version, TypeDefinition globalType)
         {
             var types = globalType.Methods.First(x => x.Name == "Types");
-            var typesByModules = GetTypes(types)
+            var typesByModules = GetTypes(version, types)
                 .GroupBy(x => x.Type.Scope)
                 .Select(x => new Result(x.Key.Name, x.Sum(x => x.Size)));
 
             var methods = globalType.Methods.First(x => x.Name == "Methods");
-            var methodsByModules = GetMethods(methods)
+            var methodsByModules = GetMethods(version, methods)
                 .GroupBy(x => x.Method.DeclaringType.Scope)
                 .Select(x => new Result(x.Key.Name, x.Sum(x => x.Size + x.GcInfoSize + x.EhInfoSize)));
 
@@ -50,11 +53,13 @@ namespace ScenarioMeasurement
         }
 
         sealed record TypeStats(TypeReference Type, int Size);
-        static IEnumerable<TypeStats> GetTypes(MethodDefinition types)
+        static IEnumerable<TypeStats> GetTypes(Version version, MethodDefinition types)
         {
+            int entrySize = version.Major == 1 ? 2 : 3;
+
             types.Body.SimplifyMacros();
             var il = types.Body.Instructions;
-            for (int i = 0; i + 2 < il.Count; i += 2)
+            for (int i = 0; i + entrySize < il.Count; i += entrySize)
             {
                 var type = (TypeReference)il[i + 0].Operand;
                 var size = (int)il[i + 1].Operand;
@@ -63,11 +68,13 @@ namespace ScenarioMeasurement
         }
 
         sealed record MethodStats(MethodReference Method, int Size, int GcInfoSize, int EhInfoSize);
-        static IEnumerable<MethodStats> GetMethods(MethodDefinition methods)
+        static IEnumerable<MethodStats> GetMethods(Version version, MethodDefinition methods)
         {
+            int entrySize = version.Major == 1 ? 4 : 5;
+
             methods.Body.SimplifyMacros();
             var il = methods.Body.Instructions;
-            for (int i = 0; i + 4 < il.Count; i += 4)
+            for (int i = 0; i + entrySize < il.Count; i += entrySize)
             {
                 var method = (MethodReference)il[i + 0].Operand;
                 var size = (int)il[i + 1].Operand;
