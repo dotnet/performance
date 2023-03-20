@@ -146,7 +146,7 @@ jobs:
         csproj: src\benchmarks\micro\MicroBenchmarks.csproj
         runCategories: 'runtime libraries'
         channels:
-          - LTS
+          - net462
 
   # NativeAOT micro benchmarks
   - template: /eng/performance/build_machine_matrix.yml
