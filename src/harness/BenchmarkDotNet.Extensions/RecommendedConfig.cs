@@ -38,11 +38,6 @@ namespace BenchmarkDotNet.Extensions
                     .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
             }
 
-            job = job.WithArguments(new[]
-            {
-                new MsBuildArgument("/p:IlcVerboseLogging=true"),
-            });
-
             var config = ManualConfig.CreateEmpty()
                 .WithBuildTimeout(TimeSpan.FromMinutes(15)) // for slow machines
                 .AddLogger(ConsoleLogger.Default) // log output to console
