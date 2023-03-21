@@ -100,7 +100,7 @@ class ChannelMap():
             'quality': 'daily'
         },
         'net462': {
-            'tfm': 'net462', # For Full Framework download the LTS for dotnet cli.
+            'tfm': 'net462',
             'branch': '8.0'
         },
         'net48': {
