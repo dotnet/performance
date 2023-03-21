@@ -99,9 +99,9 @@ class ChannelMap():
             'branch': '3.1.4xx',
             'quality': 'daily'
         },
-        'LTS': {
-            'tfm': 'net462', # For Full Framework download the LTS for dotnet cli.
-            'branch': 'LTS'
+        'net462': {
+            'tfm': 'net462',
+            'branch': '8.0'
         },
         'net48': {
             'tfm': 'net48', # For Full Framework download the LTS for dotnet cli.
