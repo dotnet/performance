@@ -47,20 +47,21 @@
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIiOSScenario)">
-      <Command>zip -r ../mauiios.zip ../mauiios; $(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
+      <!-- <Command>pwd; cd ../; pwd; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName); ls</Command>  -->
+      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command> 
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
 
   <ItemGroup>
-    <HelixWorkItem Include="@(MAUIiOSScenario -> 'SOD - %(Identity) IPA Size')">
+    <!-- <HelixWorkItem Include="@(MAUIiOSScenario -> 'SOD - %(Identity) IPA Size')">
       <PreCommands>cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName) $HELIX_WORKITEM_ROOT/pub</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py sod -1-scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIiOSScenario -> 'SOD - %(Identity) Unzipped')">
       <PreCommands>cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName) $HELIX_WORKITEM_ROOT/pub; mv $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).ipa $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; unzip -d $HELIX_WORKITEM_ROOT/pub $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; rm $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip</PreCommands>
-      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
-    </HelixWorkItem>
+      <Command>$(Python) test.py sod -1-scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem> -->
     <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Default">
       <AppBundlePath>$(ScenariosDir)mauiios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
@@ -71,16 +72,17 @@
             export XHARNESSPATH=$XHARNESS_CLI_PATH
             
             # Get the .app so we can resign in the xharness item for Maui Blazor
-            #cp -v $HELIX_CORRELATION_PAYLOAD/MauiiOSDefault.ipa $HELIX_CORRELATION_PAYLOAD/MauiiOSDefault.zip
-            #unzip -d $HELIX_CORRELATION_PAYLOAD $HELIX_CORRELATION_PAYLOAD/MauiiOSDefault.zip
-            #mv $HELIX_CORRELATION_PAYLOAD/Payload/MauiiOSDefault.app $(ScenarioDirectory)mauiios/MauiiOSDefault.app
-            
-            echo HELIX_CORR: $HELIX_CORRELATION_PAYLOAD
-            cp -r $HELIX_CORRELATION_PAYLOAD/scenarios_out/mauiios $HELIX_WORKITEM_ROOT/pub
-            
-            #cp -r $HELIX_CORRELATION_PAYLOAD/MauiiOSDefault.app $(ScenarioDirectory)mauiios/MauiiOSDefault.app
-            cp -f embedded.mobileprovision $(ScenarioDirectory)mauiios/MauiiOSDefault.app
-            cd $(ScenarioDirectory)mauiios
+            pwd
+            ls -R $HELIX_WORKITEM_ROOT
+            echo "SPLIT LS HERE" 
+            ls $HELIX_CORRELATION_PAYLOAD
+            echo "LS DONE HERE"
+            cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauiios/MauiiOSDefault.ipa $HELIX_WORKITEM_ROOT/mauiios/MauiiOSDefault.zip
+            unzip -d $HELIX_WORKITEM_ROOT/mauiios $HELIX_WORKITEM_ROOT/mauiios/MauiiOSDefault.zip
+            ls -R $HELIX_WORKITEM_ROOT/mauiios
+            mv $HELIX_WORKITEM_ROOT/mauiios/Payload/MauiiOSDefault.app $HELIX_WORKITEM_ROOT/mauiios/MauiiOSDefault.app
+            cp -f embedded.mobileprovision $HELIX_WORKITEM_ROOT/mauiios/MauiiOSDefault.app
+            cd $HELIX_WORKITEM_ROOT/mauiios
             sign MauiiOSDefault.app
 
             $(Python) pre.py --name MauiiOSDefault.app
