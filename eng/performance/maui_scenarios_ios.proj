@@ -37,31 +37,30 @@
       <IPAName>MauiiOSPodcast</IPAName>
       <PackageName>net.dot.net.dot.netconf2021.maui</PackageName>
     </MAUIiOSScenario> -->
-    <!-- <MAUIiOSScenario Include="Maui Blazor iOS Default">
+    <MAUIiOSScenario Include="Maui Blazor iOS Default">
       <ScenarioDirectoryName>mauiblazorios</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>MauiBlazoriOSDefault</IPAName>
       <PackageName>net.dot.mauiblazortesting</PackageName>
-    </MAUIiOSScenario> -->
+    </MAUIiOSScenario>
   </ItemGroup>
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIiOSScenario)">
-      <!-- <Command>pwd; cd ../; pwd; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName); ls</Command>  -->
       <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command> 
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
 
   <ItemGroup>
-    <!-- <HelixWorkItem Include="@(MAUIiOSScenario -> 'SOD - %(Identity) IPA Size')">
+    <HelixWorkItem Include="@(MAUIiOSScenario -> 'SOD - %(Identity) IPA Size')">
       <PreCommands>cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName) $HELIX_WORKITEM_ROOT/pub</PreCommands>
-      <Command>$(Python) test.py sod -1-scenario-name &quot;%(Identity)&quot;</Command>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
     <HelixWorkItem Include="@(MAUIiOSScenario -> 'SOD - %(Identity) Unzipped')">
       <PreCommands>cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName) $HELIX_WORKITEM_ROOT/pub; mv $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).ipa $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; unzip -d $HELIX_WORKITEM_ROOT/pub $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; rm $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip</PreCommands>
-      <Command>$(Python) test.py sod -1-scenario-name &quot;%(Identity)&quot;</Command>
-    </HelixWorkItem> -->
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
     <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Default">
       <AppBundlePath>$(ScenariosDir)mauiios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
@@ -71,15 +70,8 @@
             # PreCommands
             export XHARNESSPATH=$XHARNESS_CLI_PATH
             
-            # Get the .app so we can resign in the xharness item for Maui Blazor
-            pwd
-            ls -R $HELIX_WORKITEM_ROOT
-            echo "SPLIT LS HERE" 
-            ls $HELIX_CORRELATION_PAYLOAD
-            echo "LS DONE HERE"
             cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauiios/MauiiOSDefault.ipa $HELIX_WORKITEM_ROOT/mauiios/MauiiOSDefault.zip
             unzip -d $HELIX_WORKITEM_ROOT/mauiios $HELIX_WORKITEM_ROOT/mauiios/MauiiOSDefault.zip
-            ls -R $HELIX_WORKITEM_ROOT/mauiios
             mv $HELIX_WORKITEM_ROOT/mauiios/Payload/MauiiOSDefault.app $HELIX_WORKITEM_ROOT/mauiios/MauiiOSDefault.app
             cp -f embedded.mobileprovision $HELIX_WORKITEM_ROOT/mauiios/MauiiOSDefault.app
             cd $HELIX_WORKITEM_ROOT/mauiios
@@ -97,8 +89,8 @@
           ]]>
         </CustomCommands>
     </XHarnessAppBundleToTest>
-    <!-- <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Blazor Default" Condition="'$(iOSLlvmBuild)' == 'False'">
-      <AppBundlePath>$(WorkItemDirectory).zip</AppBundlePath>
+    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Blazor Default">
+      <AppBundlePath>$(ScenariosDir)mauiblazorios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
       <CustomCommands>
@@ -106,15 +98,17 @@
           # PreCommands
           export XHARNESSPATH=$XHARNESS_CLI_PATH
 
-          cp -r $HELIX_CORRELATION_PAYLOAD/MauiBlazorTesting.app $(ScenarioDirectory)mauiblazorios/MauiBlazorTesting.app
-          cp -f embedded.mobileprovision $(ScenarioDirectory)mauiblazorios/MauiBlazorTesting.app
-          cd $(ScenarioDirectory)mauiblazorios
-          sign MauiBlazorTesting.app
+          cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauiblazorios/MauiBlazoriOSDefault.ipa $HELIX_WORKITEM_ROOT/mauiblazorios/MauiBlazoriOSDefault.zip
+          unzip -d $HELIX_WORKITEM_ROOT/mauiblazorios $HELIX_WORKITEM_ROOT/mauiblazorios/MauiBlazoriOSDefault.zip
+          mv $HELIX_WORKITEM_ROOT/mauiblazorios/Payload/MauiBlazoriOSDefault.app $HELIX_WORKITEM_ROOT/mauiblazorios/MauiBlazoriOSDefault.app
+          cp -f embedded.mobileprovision $HELIX_WORKITEM_ROOT/mauiblazorios/MauiBlazoriOSDefault.app
+          cd $HELIX_WORKITEM_ROOT/mauiblazorios
+          sign MauiBlazoriOSDefault.app
 
-          $(Python) pre.py -1-name MauiBlazorTesting.app
+          $(Python) pre.py --name MauiBlazoriOSDefault.app
 
           # Testing commands
-          $(Python) test.py devicestartup -1-device-type ios -1-package-path MauiBlazorTesting.app -1-package-name net.dot.mauiblazortesting -1-scenario-name "%(Identity)" -1-use-fully-drawn-time -1-fully-drawn-magic-string __MAUI_Blazor_WebView_OnAfterRender__ -1-startup-iterations 5
+          $(Python) test.py devicestartup --device-type ios --package-path MauiBlazoriOSDefault.app --package-name net.dot.mauiblazortesting --scenario-name "%(Identity)" --use-fully-drawn-time --fully-drawn-magic-string __MAUI_Blazor_WebView_OnAfterRender__ --startup-iterations 5
           ((result=$?))
 
           # Post commands
@@ -122,7 +116,7 @@
           exit $result
         ]]>
       </CustomCommands>
-    </XHarnessAppBundleToTest> -->
+    </XHarnessAppBundleToTest>
     <!-- <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Podcast" Condition="'$(iOSLlvmBuild)' == 'False'">
       <AppBundlePath>$(WorkItemDirectory).zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
@@ -157,11 +151,11 @@
     being run before we get to run our normal Post commands. AddXHarnessCLI is the XHarness
     Target so we just make sure we add this after that.
   -->
-  <!-- <Target Name="ResetPYTHONPATHBeforeXHarnessCommand" AfterTargets="AddXHarnessCLI">
+  <Target Name="ResetPYTHONPATHBeforeXHarnessCommand" AfterTargets="AddXHarnessCLI">
     <PropertyGroup>
       <HelixPostCommands>export PYTHONPATH=$ORIGPYPATH;$(HelixPostCommands)</HelixPostCommands>
     </PropertyGroup>
-  </Target> -->
+  </Target>
 
   <Import Project="PreparePayloadWorkItems.targets" />
 </Project>
