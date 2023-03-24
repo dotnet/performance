@@ -8,6 +8,7 @@ jobs:
       branchOrCommit: main
       project: src/benchmarks/gc/src/exec/GCPerfSim/GCPerfSim.csproj
     waitForExit: true
+    readyStateText: GCPerfSim
     variables:
       tc: 20
       tagb: 40
