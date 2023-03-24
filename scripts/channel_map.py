@@ -34,7 +34,7 @@ class ChannelMap():
         },
         'release/8.0-preview5': {
             'tfm': 'net8.0',
-            'branch': '8.0-preview',
+            'branch': '8.0-preview5',
             'quality': 'daily'
         },
         'release/8.0-preview4': {
