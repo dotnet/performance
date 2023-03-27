@@ -65,16 +65,19 @@ class AndroidInstrumentationHelper(object):
                     '"DOTNET,MAUI"'
                 ]
 
-
+                getLogger().info("Installing APK")
                 RunCommand(installCmd, verbose=True).run()
 
                 # Clear logs
+                getLogger().info("Clearing logs")
                 RunCommand(clearLogsCmd, verbose=True).run()
 
                 # Run instrumentation
+                getLogger().info("Running instrumentation")
                 RunCommand(startInstrumentationCmd, verbose=True).run()
                 
                 # Print logs
+                getLogger().info("Printing logs")
                 RunCommand(printMauiLogsCmd, verbose=True).run()
                 
                 ## Get logs off device and upload to helix (TODO: Make this optional, potentially add different methods of getting logs)
