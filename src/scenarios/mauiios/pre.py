@@ -3,6 +3,7 @@ pre-command
 '''
 import shutil
 import sys
+import subprocess
 from performance.logger import setup_loggers, getLogger
 from shared import const
 from shared.mauisharedpython import remove_aab_files, install_versioned_maui
@@ -32,6 +33,9 @@ output_dir = const.PUBDIR
 if precommands.output:
     output_dir = precommands.output
 remove_aab_files(output_dir)
+
+result = subprocess.run(['pwsh', '-Command', 'Write-Output "Powershell is working!!"'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False)
+print(result.stdout.decode('utf-8').strip())
 
 # Copy the MauiVersion to a file so we have it on the machine
 #maui_version = get_version_from_dll_powershell(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\android-arm64\linked\Microsoft.Maui.dll") # TODO: Figure out another way to get the Maui Version
