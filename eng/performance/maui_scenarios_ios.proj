@@ -71,6 +71,8 @@
             export XHARNESSPATH=$XHARNESS_CLI_PATH
             
             cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauiios/MauiiOSDefault.ipa $HELIX_WORKITEM_ROOT/mauiios/MauiiOSDefault.zip
+            mkdir $HELIX_WORKITEM_ROOT/mauiios/pub
+            cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauiios/versions.json $HELIX_WORKITEM_ROOT/mauiios/pub/versions.json
             unzip -d $HELIX_WORKITEM_ROOT/mauiios $HELIX_WORKITEM_ROOT/mauiios/MauiiOSDefault.zip
             mv $HELIX_WORKITEM_ROOT/mauiios/Payload/MauiiOSDefault.app $HELIX_WORKITEM_ROOT/mauiios/MauiiOSDefault.app
             cp -f embedded.mobileprovision $HELIX_WORKITEM_ROOT/mauiios/MauiiOSDefault.app
@@ -97,6 +99,8 @@
           export XHARNESSPATH=$XHARNESS_CLI_PATH
 
           cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauiblazorios/MauiBlazoriOSDefault.ipa $HELIX_WORKITEM_ROOT/mauiblazorios/MauiBlazoriOSDefault.zip
+          mkdir $HELIX_WORKITEM_ROOT/mauiblazorios/pub
+          cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauiblazorios/versions.json $HELIX_WORKITEM_ROOT/mauiblazorios/pub/versions.json
           unzip -d $HELIX_WORKITEM_ROOT/mauiblazorios $HELIX_WORKITEM_ROOT/mauiblazorios/MauiBlazoriOSDefault.zip
           mv $HELIX_WORKITEM_ROOT/mauiblazorios/Payload/MauiBlazoriOSDefault.app $HELIX_WORKITEM_ROOT/mauiblazorios/MauiBlazoriOSDefault.app
           cp -f embedded.mobileprovision $HELIX_WORKITEM_ROOT/mauiblazorios/MauiBlazoriOSDefault.app

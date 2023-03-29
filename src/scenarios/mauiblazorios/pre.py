@@ -74,6 +74,6 @@ remove_aab_files(output_dir)
 # Copy the MauiVersion to a file so we have it on the machine
 maui_version = get_version_from_dll_powershell_ios(rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/ipa/Payload/{EXENAME}.app/Microsoft.Maui.dll")
 version_dict = { "mauiVersion": maui_version }
-versions_write_json(version_dict, rf"{output_dir}\versions.json")
+versions_write_json(version_dict, rf"{output_dir}/versions.json")
 print(f"Versions: {version_dict} from location " + rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/ipa/Payload/{EXENAME}.app/Microsoft.Maui.dll")
 
