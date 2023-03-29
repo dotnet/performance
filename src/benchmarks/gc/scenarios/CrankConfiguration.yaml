@@ -10,9 +10,9 @@ jobs:
     waitForExit: true
     readyStateText: GCPerfSim
     variables:
-      tc: 20
-      tagb: 40
-      tlgb: 5
+      tc: 52 # ( 28 Cores - 2 ) = 26 * 2 = 52
+      tagb: 560
+      tlgb: 0
       lohar: 0
       pohar: 0
       sohsr: 100-4000
