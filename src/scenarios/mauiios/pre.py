@@ -8,7 +8,7 @@ from performance.logger import setup_loggers, getLogger
 from shared import const
 from shared.mauisharedpython import remove_aab_files, install_versioned_maui
 from shared.precommands import PreCommands
-from shared.versionmanager import versions_write_json, get_version_from_dll_powershell
+from shared.versionmanager import versions_write_json, get_version_from_dll_powershell_ios
 from test import EXENAME
 
 setup_loggers(True)
@@ -38,7 +38,7 @@ result = subprocess.run(['pwsh', '-Command', 'Write-Output "Powershell is workin
 print(result.stdout.decode('utf-8').strip())
 
 # Copy the MauiVersion to a file so we have it on the machine
-#maui_version = get_version_from_dll_powershell(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\android-arm64\linked\Microsoft.Maui.dll") # TODO: Figure out another way to get the Maui Version
-#version_dict = { "mauiVersion": maui_version }
-#versions_write_json(version_dict, rf"{output_dir}\versions.json")
-#print(f"Versions: {version_dict}")
+maui_version = get_version_from_dll_powershell_ios(rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/ipa/Payload/{EXENAME}.app/Microsoft.Maui.dll") # TODO: Figure out another way to get the Maui Version
+version_dict = { "mauiVersion": maui_version }
+versions_write_json(version_dict, rf"{output_dir}\versions.json")
+print(f"Versions: {version_dict} from location " + rf"./{const.APPDIR}/obj/Release/{precommands.framework}/ios-arm64/ipa/Payload/{EXENAME}.app/Microsoft.Maui.dll")
