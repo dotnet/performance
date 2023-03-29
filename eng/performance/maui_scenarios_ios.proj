@@ -77,8 +77,6 @@
             cd $HELIX_WORKITEM_ROOT/mauiios
             sign MauiiOSDefault.app
 
-            $(Python) pre.py --name MauiiOSDefault.app
-
             # Testing commands
             $(Python) test.py devicestartup --device-type ios --package-path MauiiOSDefault.app --package-name net.dot.mauitesting --scenario-name "%(Identity)"
             ((result=$?))
@@ -104,8 +102,6 @@
           cp -f embedded.mobileprovision $HELIX_WORKITEM_ROOT/mauiblazorios/MauiBlazoriOSDefault.app
           cd $HELIX_WORKITEM_ROOT/mauiblazorios
           sign MauiBlazoriOSDefault.app
-
-          $(Python) pre.py --name MauiBlazoriOSDefault.app
 
           # Testing commands
           $(Python) test.py devicestartup --device-type ios --package-path MauiBlazoriOSDefault.app --package-name net.dot.mauiblazortesting --scenario-name "%(Identity)" --use-fully-drawn-time --fully-drawn-magic-string __MAUI_Blazor_WebView_OnAfterRender__ --startup-iterations 5
