@@ -95,22 +95,22 @@ class AndroidInstrumentationHelper(object):
                             # Read the file and change the values
                             with open(filePath, 'r') as jsonFile:
                                 data = json.load(jsonFile)
-                                data['build']['repo'] = os.environ['PERFLAB_REPO']
-                                data['build']['branch'] = os.environ['PERFLAB_BRANCH']
-                                data['build']['architecture'] = os.environ['PERFLAB_BUILDARCH']
-                                data['build']['locale'] = os.environ['PERFLAB_LOCALE']
-                                data['build']['gitHash'] = os.environ['PERFLAB_HASH']
-                                data['build']['buildName'] = os.environ['PERFLAB_BUILDNUM']
-                                data['build']['timeStamp'] = os.environ['PERFLAB_BUILDTIMESTAMP']
-                                data['build']['additionalData']['productVersion'] = os.environ['DOTNET_VERSION']
+                                data['build']['repo'] = os.environ.get('PERFLAB_REPO', "")
+                                data['build']['branch'] = os.environ.get('PERFLAB_BRANCH', "")
+                                data['build']['architecture'] = os.environ.get('PERFLAB_BUILDARCH', "")
+                                data['build']['locale'] = os.environ.get('PERFLAB_LOCALE', "")
+                                data['build']['gitHash'] = os.environ.get('PERFLAB_HASH', "")
+                                data['build']['buildName'] = os.environ.get('PERFLAB_BUILDNUM', "")
+                                data['build']['timeStamp'] = os.environ.get('PERFLAB_BUILDTIMESTAMP', "")
+                                data['build']['additionalData']['productVersion'] = os.environ.get('DOTNET_VERSION', "")
                                 data['os']['name'] = "Android"
                                 data['os']['machineName'] = "Android"
-                                data['run']['correlationId'] = os.environ['HELIX_CORRELATION_ID']
-                                data['run']['perfRepoHash'] = os.environ['PERFLAB_PERFHASH']
-                                data['run']['name'] = os.environ['PERFLAB_RUNNAME'] or "" # Runname is not currently used, default to empty string
-                                data['run']['queue'] = os.environ['PERFLAB_QUEUE']
-                                data['run']['workItemName'] = os.environ['HELIX_WORKITEM_FRIENDLYNAME']
-                                configs = os.environ["PERFLAB_CONFIGS"]
+                                data['run']['correlationId'] = os.environ.get('HELIX_CORRELATION_ID', "")
+                                data['run']['perfRepoHash'] = os.environ.get('PERFLAB_PERFHASH', "")
+                                data['run']['name'] = os.environ.get('PERFLAB_RUNNAME', "")
+                                data['run']['queue'] = os.environ.get('PERFLAB_QUEUE', "")
+                                data['run']['workItemName'] = os.environ.get('HELIX_WORKITEM_FRIENDLYNAME', "")
+                                configs = os.environ.get("PERFLAB_CONFIGS", "")
                                 if configs != "":
                                     for kvp in configs.split(';'):
                                         split = kvp.split('=')
