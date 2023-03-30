@@ -28,15 +28,10 @@ class AndroidInstrumentationHelper(object):
             getLogger().info("Preparing ADB")
             adbpath = adb.stdout.strip()
             try:
-                installCmd = xharnesscommand() + [
-                    'android',
+                installCmd = [
+                    adbpath,
                     'install',
-                    '--app', packagepath,
-                    '--package-name',
-                    packagename,
-                    '-o',
-                    TRACEDIR,
-                    '-v'
+                    packagepath,
                 ]
                 
                 clearLogsCmd = [
@@ -112,7 +107,7 @@ class AndroidInstrumentationHelper(object):
                                 data['os']['machineName'] = "Android"
                                 data['run']['correlationId'] = os.environ['HELIX_CORRELATION_ID']
                                 data['run']['perfRepoHash'] = os.environ['PERFLAB_PERFHASH']
-                                data['run']['name'] = os.environ['PERFLAB_RUNNAME']
+                                data['run']['name'] = os.environ['PERFLAB_RUNNAME'] or "" # Runname is not currently used, default to empty string
                                 data['run']['queue'] = os.environ['PERFLAB_QUEUE']
                                 data['run']['workItemName'] = os.environ['HELIX_WORKITEM_FRIENDLYNAME']
                                 configs = os.environ["PERFLAB_CONFIGS"]
