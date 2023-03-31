@@ -147,6 +147,8 @@
     <Compile Remove="libraries\System.Text.Json\Serializer\WritePreservedReferences.cs" />
     <Compile Remove="libraries\System.Net.Security\SslStreamTests.Context.cs" />
     <Compile Remove="libraries\System.Formats.Cbor\*.cs" />
+    <Compile Remove="libraries\System\ConvertHalfToSingle.cs" />
+    <Compile Remove="libraries\System\ConvertSingleToHalf.cs" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '6.0')">
