@@ -134,7 +134,7 @@ namespace CompilerBenchmarks
                 metadataPEStreamProvider: null,
                 pdbStreamProvider: null,
                 rebuildData: null,
-                testSymWriterFactory: null, // error CS8323: Named argument 'testSymWriterFactory' is used out-of-position but is followed by an unnamed argument [CompilerBenchmarks]csharp(CS8323)
+                testSymWriterFactory: null,
                 diagnostics,
                 _options,
                 privateKeyOpt: null,
