@@ -28,15 +28,10 @@ class AndroidInstrumentationHelper(object):
             getLogger().info("Preparing ADB")
             adbpath = adb.stdout.strip()
             try:
-                installCmd = xharnesscommand() + [
-                    'android',
+                installCmd = [
+                    adbpath,
                     'install',
-                    '--app', packagepath,
-                    '--package-name',
-                    packagename,
-                    '-o',
-                    TRACEDIR,
-                    '-v'
+                    packagepath,
                 ]
                 
                 clearLogsCmd = [
