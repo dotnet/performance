@@ -22,22 +22,22 @@ namespace System
         [GlobalSetup]
         public void Setup()
         {
-            var samples = 65536;
-            var vS = bufferSrc = new float[samples];
-            bufferDst = new Half[samples];
-            var vspan = vS.AsSpan();
+            const int Samples = 65536;
+            var vS = bufferSrc = new float[Samples];
+            bufferDst = new Half[Samples];
+            Span<float> vspan = vS.AsSpan();
             for (var i = 0; i < vspan.Length; i++)
             {
                 vspan[i] = (float)BitConverter.UInt16BitsToHalf((ushort)i);
             }
             //Random Permutation
-            ref var x9 = ref MemoryMarshal.GetReference(vspan);
-            var length = vspan.Length;
-            var olen = length - 2;
+            ref float x9 = ref MemoryMarshal.GetReference(vspan);
+            int length = vspan.Length;
+            int olen = length - 2;
             var rng = new Random(12345);    //ValuesGenerator doesn't support exhaustive permutation
             for (var i = 0; i < olen; i++)
             {
-                var x = rng.Next(i, length);
+                int x = rng.Next(i, length);
                 (Unsafe.Add(ref x9, x), Unsafe.Add(ref x9, i)) = (Unsafe.Add(ref x9, i), Unsafe.Add(ref x9, x));
             }
         }
@@ -45,10 +45,10 @@ namespace System
         [Benchmark(Baseline = true)]
         public void SimpleLoop()
         {
-            var bA = bufferSrc.AsSpan();
-            var bD = bufferDst.AsSpan();
-            ref var rsi = ref MemoryMarshal.GetReference(bA);
-            ref var rdi = ref MemoryMarshal.GetReference(bD);
+            Span<float> bA = bufferSrc.AsSpan();
+            Span<Half> bD = bufferDst.AsSpan();
+            ref float rsi = ref MemoryMarshal.GetReference(bA);
+            ref Half rdi = ref MemoryMarshal.GetReference(bD);
             nint i = 0, length = Math.Min(bA.Length, bD.Length);
             for (; i < length; i++)
             {
@@ -59,10 +59,10 @@ namespace System
         [Benchmark]
         public void UnrolledLoop()
         {
-            var bA = bufferSrc.AsSpan();
-            var bD = bufferDst.AsSpan();
-            ref var rsi = ref MemoryMarshal.GetReference(bA);
-            ref var rdi = ref MemoryMarshal.GetReference(bD);
+            Span<float> bA = bufferSrc.AsSpan();
+            Span<Half> bD = bufferDst.AsSpan();
+            ref float rsi = ref MemoryMarshal.GetReference(bA);
+            ref Half rdi = ref MemoryMarshal.GetReference(bD);
             nint i = 0, length = Math.Min(bA.Length, bD.Length);
             var olen = length - 3;
             for (; i < olen; i += 4)

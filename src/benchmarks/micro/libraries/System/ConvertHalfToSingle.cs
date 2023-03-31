@@ -23,21 +23,21 @@ namespace System
         [GlobalSetup]
         public void Setup()
         {
-            var samples = 65536;
-            bufferDst = new float[samples];
-            var bA = bufferA = new Half[samples];
-            var spanA = bA.AsSpan();
+            const int Samples = 65536;
+            bufferDst = new float[Samples];
+            Half[] bA = bufferA = new Half[Samples];
+            Span<Half> spanA = bA.AsSpan();
             for (var i = 0; i < spanA.Length; i++)
             {
                 spanA[i] = BitConverter.UInt16BitsToHalf((ushort)i);
             }
-            ref var x9 = ref MemoryMarshal.GetReference(spanA);
-            var length = spanA.Length;
-            var olen = length - 2;
+            ref Half x9 = ref MemoryMarshal.GetReference(spanA);
+            int length = spanA.Length;
+            int olen = length - 2;
             var rng = new Random(12345);    //ValuesGenerator doesn't support exhaustive permutation
             for (var i = 0; i < olen; i++)
             {
-                var x = rng.Next(i, length);
+                int x = rng.Next(i, length);
                 (Unsafe.Add(ref x9, x), Unsafe.Add(ref x9, i)) = (Unsafe.Add(ref x9, i), Unsafe.Add(ref x9, x));
             }
         }
@@ -45,10 +45,10 @@ namespace System
         [Benchmark]
         public void SimpleLoop()
         {
-            var bA = bufferA.AsSpan();
-            var bD = bufferDst.AsSpan();
-            ref var rsi = ref MemoryMarshal.GetReference(bA);
-            ref var rdi = ref MemoryMarshal.GetReference(bD);
+            Span<Half> bA = bufferA.AsSpan();
+            Span<float> bD = bufferDst.AsSpan();
+            ref Half rsi = ref MemoryMarshal.GetReference(bA);
+            ref float rdi = ref MemoryMarshal.GetReference(bD);
             nint i = 0, length = Math.Min(bA.Length, bD.Length);
             for (; i < length; i++)
             {
@@ -59,10 +59,10 @@ namespace System
         [Benchmark]
         public void UnrolledLoop()
         {
-            var bA = bufferA.AsSpan();
-            var bD = bufferDst.AsSpan();
-            ref var rsi = ref MemoryMarshal.GetReference(bA);
-            ref var rdi = ref MemoryMarshal.GetReference(bD);
+            Span<Half> bA = bufferA.AsSpan();
+            Span<float> bD = bufferDst.AsSpan();
+            ref Half rsi = ref MemoryMarshal.GetReference(bA);
+            ref float rdi = ref MemoryMarshal.GetReference(bD);
             nint i = 0, length = Math.Min(bA.Length, bD.Length);
             var olen = length - 3;
             for (; i < olen; i += 4)
