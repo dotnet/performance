@@ -113,15 +113,10 @@ namespace CompilerBenchmarks
                 throw new InvalidOperationException("Did not successfully compile methods");
             }
 
-            _comp.GenerateResourcesAndDocumentationComments(
-                _moduleBeingBuilt,
-                xmlDocStream: null,
-                win32Resources: null,
-                _options.OutputNameOverride,
-                diagnostics,
-                cancellationToken: default);
+            _comp.GenerateResources(_moduleBeingBuilt, win32Resources: null, useRawWin32Resources: false, diagnostics, cancellationToken: default);
+            _comp.GenerateDocumentationComments(xmlDocStream: null, _options.OutputNameOverride, diagnostics, cancellationToken: default);
 
-            _comp.ReportUnusedImports(null, diagnostics, default);
+            _comp.ReportUnusedImports(diagnostics, default);
             _moduleBeingBuilt.CompilationFinished();
 
             diagnostics.Free();
@@ -138,7 +133,8 @@ namespace CompilerBenchmarks
                 new SimpleEmitStreamProvider(_peStream),
                 metadataPEStreamProvider: null,
                 pdbStreamProvider: null,
-                testSymWriterFactory: null,
+                rebuildData: null,
+                testSymWriterFactory: null, // error CS8323: Named argument 'testSymWriterFactory' is used out-of-position but is followed by an unnamed argument [CompilerBenchmarks]csharp(CS8323)
                 diagnostics,
                 _options,
                 privateKeyOpt: null,
