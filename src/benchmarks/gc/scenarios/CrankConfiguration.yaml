@@ -28,7 +28,7 @@ jobs:
       pohfi: 0
       allocType: reference
       testKind: time
-    arguments: "-tc {{ tc }} -tagb {{ tagb }} -tlgb {{ tlgb }} -lohar {{ lohar }} -lohsr {{ lohsr }} -sohsi {{ sohsi }} -lohsi {{ lohsi }} -sohpi {{ sohpi }} -lohpi {{ lohpi }} -sohfi {{ sohfi }} -lohfi {{ lohfi }} -allocType {{ allocType }} -testKind {{ testKind }}"
+    arguments: "-tc {{ cores | minus : 2 | times: 2 }} -tagb {{ tagb }} -tlgb {{ tlgb }} -lohar {{ lohar }} -lohsr {{ lohsr }} -sohsi {{ sohsi }} -lohsi {{ lohsi }} -sohpi {{ sohpi }} -lohpi {{ lohpi }} -sohfi {{ sohfi }} -lohfi {{ lohfi }} -allocType {{ allocType }} -testKind {{ testKind }}"
 
 scenarios:
   gcperfsim:
