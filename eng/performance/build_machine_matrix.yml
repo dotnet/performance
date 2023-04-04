@@ -93,7 +93,7 @@ jobs:
       queue: Windows.10.Arm64.Perf.Surf
       ${{ insert }}: ${{ parameters.jobParameters }}
 
-- ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Pixel only used in private builds currently
+- ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64-pixel'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Pixel only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
       osName: windows
@@ -103,6 +103,18 @@ jobs:
         vmImage: 'windows-2022'
       queue: Windows.10.Amd64.Pixel.Perf
       machinePool: Pixel
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64-galaxy'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Galaxy only used in private builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osName: windows
+      architecture: x64
+      osVersion: 19H1
+      pool:
+        vmImage: 'windows-2022'
+      queue: Windows.10.Amd64.Galaxy.Perf
+      machinePool: Galaxy
       ${{ insert }}: ${{ parameters.jobParameters }}
 
 - ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64'), not(eq(parameters.isPublic, true))) }}: # iPhone ARM64 12mini only used in private builds currently

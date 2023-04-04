@@ -292,7 +292,20 @@ jobs:
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
       buildMachines:
-        - win-x64-android-arm64
+        - win-x64-android-arm64-pixel
+      isPublic: false
+      jobParameters:
+        kind: maui_scenarios_android
+        projectFile: maui_scenarios_android.proj
+        dotnetVersionsLinks:
+          main: https://aka.ms/dotnet/sdk/maui/net8.0.json
+
+    # Maui Android scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64-android-arm64-pixel
       isPublic: false
       jobParameters:
         kind: maui_scenarios_android
@@ -519,6 +532,19 @@ jobs:
         scriptLocation: inlineScript
         inlineScript: |
           Get-ChildItem .vault-config/*.yaml |% { dotnet secret-manager synchronize $_}
+
+  # Maui Android scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64-android-arm64-galaxy
+      isPublic: false
+      jobParameters:
+        kind: maui_scenarios_android
+        projectFile: maui_scenarios_android.proj
+        dotnetVersionsLinks:
+          main: https://aka.ms/dotnet/sdk/maui/net8.0.json
 
 ################################################
 # Scheduled Private jobs (Weekly)
