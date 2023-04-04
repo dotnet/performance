@@ -152,7 +152,34 @@ jobs:
               displayName: Delete old dotnet
             - script: xcopy tools\dotnet\arm64\* $(CorrelationStaging)dotnet\/E /I /Y
               displayName: Copy Arm64 Dotnet to Correlation Payload
-        - ${{ if ne(parameters.osName, 'windows') }}:
+        - ${{ if eq(parameters.osName, 'osx') }}:
+          - script: cp ./NuGet.config $(CorrelationStaging);cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared;cp -r ./src/scenarios/staticdeps $(CorrelationStaging)staticdeps
+            displayName: Copy python libraries and NuGet.config
+          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)startup -f $(PERFLAB_Framework) -r osx-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/Startup/Startup.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
+            displayName: Build startup tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
+          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)SOD -f $(PERFLAB_Framework) -r osx-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/SizeOnDisk/SizeOnDisk.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
+            displayName: Build SOD tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
+          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)MemoryConsumption -f $(PERFLAB_Framework) -r osx-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/MemoryConsumption/MemoryConsumption.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
+            displayName: Build MemoryConsumption tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
+          - script: |
+              $(Python) -m pip install --user --upgrade pip
+              $(Python) -m pip install --user requests
+              . ./src/scenarios/init.sh -dotnetdir $(CorrelationStaging)dotnet
+              dotnet msbuild ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
+            displayName: Prepare scenarios
+            env:
+              CorrelationPayloadDirectory: $(CorrelationStaging)
+              Architecture: ${{ parameters.architecture }}
+              TargetsWindows: 'false'
+              WorkItemDirectory: $(Build.SourcesDirectory)
+              HelixTargetQueues: ${{ parameters.queue }}
+        - ${{ if and(ne(parameters.osName, 'windows'), ne(parameters.osName, 'osx')) }}:
           - script: cp ./NuGet.config $(CorrelationStaging);cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared;cp -r ./src/scenarios/staticdeps $(CorrelationStaging)staticdeps
             displayName: Copy python libraries and NuGet.config
           - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)startup -f $(PERFLAB_Framework) -r linux-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/Startup/Startup.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true

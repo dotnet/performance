@@ -1,0 +1,161 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+  <Import Project="Scenarios.Common.props" />
+
+  <PropertyGroup>
+    <IncludeXHarnessCli>true</IncludeXHarnessCli>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AfterPreparePayloadWorkItemCommand>$(Python) post.py</AfterPreparePayloadWorkItemCommand>
+    <PreparePayloadOutDirectoryName>scenarios_out</PreparePayloadOutDirectoryName>
+    <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' == 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)\</PreparePayloadWorkItemBaseDirectory>
+    <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
+  </PropertyGroup>
+
+  <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
+    <Message Text="Removing Dotnet Packs from Correlation Staging" Importance="high" />
+    <RemoveDir Directories="$(CorrelationPayloadDirectory)dotnet\packs" />
+  </Target>
+
+  <ItemDefinitionGroup>
+    <HelixWorkItem>
+      <Timeout>00:30</Timeout>
+    </HelixWorkItem>
+  </ItemDefinitionGroup>
+
+  <ItemGroup>
+    <MAUIiOSScenario Include="Maui iOS Default">
+      <ScenarioDirectoryName>mauiios</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <IPAName>MauiiOSDefault</IPAName>
+      <PackageName>net.dot.mauitesting</PackageName>
+    </MAUIiOSScenario>
+    <!-- MessagingCenter was removed: https://github.com/dotnet/maui/pull/12582, needs to be replaced likely with something like: https://github.com/dotnet/maui/commit/762e07e04d1fdf8fca3edd948bab294c8762cd2c -->
+    <!-- <MAUIiOSScenario Include="Maui iOS Podcast">
+      <ScenarioDirectoryName>mauiiospodcast</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <IPAName>MauiiOSPodcast</IPAName>
+      <PackageName>net.dot.net.dot.netconf2021.maui</PackageName>
+    </MAUIiOSScenario> -->
+    <MAUIiOSScenario Include="Maui Blazor iOS Default">
+      <ScenarioDirectoryName>mauiblazorios</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <IPAName>MauiBlazoriOSDefault</IPAName>
+      <PackageName>net.dot.mauiblazortesting</PackageName>
+    </MAUIiOSScenario>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PreparePayloadWorkItem Include="@(MAUIiOSScenario)">
+      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command> 
+      <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
+    </PreparePayloadWorkItem>
+  </ItemGroup>
+
+  <ItemGroup>
+    <HelixWorkItem Include="@(MAUIiOSScenario -> 'SOD - %(Identity) IPA Size')">
+      <PreCommands>cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName) $HELIX_WORKITEM_ROOT/pub</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+    <HelixWorkItem Include="@(MAUIiOSScenario -> 'SOD - %(Identity) Unzipped')">
+      <PreCommands>cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName) $HELIX_WORKITEM_ROOT/pub; mv $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).ipa $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; unzip -d $HELIX_WORKITEM_ROOT/pub $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; rm $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip</PreCommands>
+      <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Default">
+      <AppBundlePath>$(ScenariosDir)mauiios.zip</AppBundlePath>
+      <WorkItemTimeout>00:15:00</WorkItemTimeout>
+      <TestTarget>ios-device</TestTarget>
+      <CustomCommands>
+        <![CDATA[
+            # PreCommands
+            export XHARNESSPATH=$XHARNESS_CLI_PATH
+            
+            cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauiios/MauiiOSDefault.ipa $HELIX_WORKITEM_ROOT/mauiios/MauiiOSDefault.zip
+            mkdir $HELIX_WORKITEM_ROOT/mauiios/pub
+            cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauiios/versions.json $HELIX_WORKITEM_ROOT/mauiios/pub/versions.json
+            unzip -d $HELIX_WORKITEM_ROOT/mauiios $HELIX_WORKITEM_ROOT/mauiios/MauiiOSDefault.zip
+            mv $HELIX_WORKITEM_ROOT/mauiios/Payload/MauiiOSDefault.app $HELIX_WORKITEM_ROOT/mauiios/MauiiOSDefault.app
+            cp -f embedded.mobileprovision $HELIX_WORKITEM_ROOT/mauiios/MauiiOSDefault.app
+            cd $HELIX_WORKITEM_ROOT/mauiios
+            sign MauiiOSDefault.app
+
+            # Testing commands
+            $(Python) test.py devicestartup --device-type ios --package-path MauiiOSDefault.app --package-name net.dot.mauitesting --scenario-name "%(Identity)"
+            ((result=$?))
+
+            # Post commands
+            $(Python) post.py
+            exit $result
+          ]]>
+        </CustomCommands>
+    </XHarnessAppBundleToTest>
+    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Blazor Default">
+      <AppBundlePath>$(ScenariosDir)mauiblazorios.zip</AppBundlePath>
+      <WorkItemTimeout>00:15:00</WorkItemTimeout>
+      <TestTarget>ios-device</TestTarget>
+      <CustomCommands>
+        <![CDATA[
+          # PreCommands
+          export XHARNESSPATH=$XHARNESS_CLI_PATH
+
+          cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauiblazorios/MauiBlazoriOSDefault.ipa $HELIX_WORKITEM_ROOT/mauiblazorios/MauiBlazoriOSDefault.zip
+          mkdir $HELIX_WORKITEM_ROOT/mauiblazorios/pub
+          cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/mauiblazorios/versions.json $HELIX_WORKITEM_ROOT/mauiblazorios/pub/versions.json
+          unzip -d $HELIX_WORKITEM_ROOT/mauiblazorios $HELIX_WORKITEM_ROOT/mauiblazorios/MauiBlazoriOSDefault.zip
+          mv $HELIX_WORKITEM_ROOT/mauiblazorios/Payload/MauiBlazoriOSDefault.app $HELIX_WORKITEM_ROOT/mauiblazorios/MauiBlazoriOSDefault.app
+          cp -f embedded.mobileprovision $HELIX_WORKITEM_ROOT/mauiblazorios/MauiBlazoriOSDefault.app
+          cd $HELIX_WORKITEM_ROOT/mauiblazorios
+          sign MauiBlazoriOSDefault.app
+
+          # Testing commands
+          $(Python) test.py devicestartup --device-type ios --package-path MauiBlazoriOSDefault.app --package-name net.dot.mauiblazortesting --scenario-name "%(Identity)" --use-fully-drawn-time --fully-drawn-magic-string __MAUI_Blazor_WebView_OnAfterRender__ --startup-iterations 5
+          ((result=$?))
+
+          # Post commands
+          $(Python) post.py
+          exit $result
+        ]]>
+      </CustomCommands>
+    </XHarnessAppBundleToTest>
+    <!-- <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Podcast" Condition="'$(iOSLlvmBuild)' == 'False'">
+      <AppBundlePath>$(WorkItemDirectory).zip</AppBundlePath>
+      <WorkItemTimeout>00:15:00</WorkItemTimeout>
+      <TestTarget>ios-device</TestTarget>
+      <CustomCommands>
+        <![CDATA[
+          # PreCommands
+          export XHARNESSPATH=$XHARNESS_CLI_PATH
+
+          cp -r $HELIX_CORRELATION_PAYLOAD/Microsoft.NetConf2021.Maui.app $(ScenarioDirectory)mauiios/Microsoft.NetConf2021.Maui.app
+          cp -f embedded.mobileprovision $(ScenarioDirectory)mauiios/Microsoft.NetConf2021.Maui.app
+          cd $(ScenarioDirectory)mauiios
+          sign Microsoft.NetConf2021.Maui.app
+
+          $(Python) pre.py -1-name Microsoft.NetConf2021.Maui.app
+
+          # Testing commands
+          $(Python) test.py devicestartup -1-device-type ios -1-package-path Microsoft.NetConf2021.Maui.app -1-package-name net.dot.netconf2021.maui -1-scenario-name "%(Identity)"
+          ((result=$?))
+          
+          # Post commands
+          $(Python) post.py
+          exit $result
+        ]]>
+      </CustomCommands>
+    </XHarnessAppBundleToTest> -->
+  </ItemGroup>
+
+
+  <!--
+    This target is to work around the XHarness command that depend on scripts in ORIGPYPATH
+    being run before we get to run our normal Post commands. AddXHarnessCLI is the XHarness
+    Target so we just make sure we add this after that.
+  -->
+  <Target Name="ResetPYTHONPATHBeforeXHarnessCommand" AfterTargets="AddXHarnessCLI">
+    <PropertyGroup>
+      <HelixPostCommands>export PYTHONPATH=$ORIGPYPATH;$(HelixPostCommands)</HelixPostCommands>
+    </PropertyGroup>
+  </Target>
+
+  <Import Project="PreparePayloadWorkItems.targets" />
+</Project>
