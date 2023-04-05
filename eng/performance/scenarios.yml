@@ -139,10 +139,6 @@ jobs:
             displayName: Build SOD tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
-          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)MemoryConsumption -f $(PERFLAB_Framework) -r osx-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/MemoryConsumption/MemoryConsumption.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
-            displayName: Build MemoryConsumption tool
-            env:
-              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
           - script: |
               $(Python) -m pip install --user --upgrade pip
               $(Python) -m pip install --user requests
