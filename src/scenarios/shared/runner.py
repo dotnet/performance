@@ -93,7 +93,6 @@ class Runner:
         androidinstrumentationparser.add_argument('--package-path', help='Location of test application', dest='packagepath')
         androidinstrumentationparser.add_argument('--package-name', help='Classname (Android) or Bundle ID (iOS) of application', dest='packagename')
         androidinstrumentationparser.add_argument('--instrumentation-name', help='Name of the instrumentation to run', dest='instrumentationname')
-        #androidinstrumentationparser.add_argument('--timeout', help='Amount of time to run the app between clearing procstats and dumping them', type=int, default=300, dest='timeoutseconds')
         self.add_common_arguments(androidinstrumentationparser)
 
         # inner loop command
@@ -180,15 +179,6 @@ ex: C:\repos\performance;C:\repos\runtime
             self.usefullydrawntime = args.usefullydrawntime
             self.fullyDrawnDelaySecMax = args.fullyDrawnDelaySecMax
             self.fullyDrawnMagicString = args.fullyDrawnMagicString
-            self.closeToStartDelay = args.closeToStartDelay
-
-        if self.testtype == const.DEVICEMEMORYCONSUMPTION:
-            self.packagepath = args.packagepath
-            self.packagename = args.packagename
-            self.devicetype = args.devicetype
-            self.testiterations = args.testiterations
-            self.animationsdisabled = args.animationsdisabled
-            self.runtimeseconds = args.runtimeseconds
             self.closeToStartDelay = args.closeToStartDelay
 
         if self.testtype == const.DEVICEMEMORYCONSUMPTION:
