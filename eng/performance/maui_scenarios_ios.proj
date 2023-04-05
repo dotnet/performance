@@ -47,7 +47,7 @@
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIiOSScenario)">
-      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command> 
+      <Command>$(Python) pre.py publish -f $(_Framework)-ios --self-contained -c Release -r ios-arm64 -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command> 
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
