@@ -10,7 +10,7 @@ jobs:
     waitForExit: true
     readyStateText: GCPerfSim
     variables:
-      tc: {{ cores |minus: 2 |times: 3 }}
+      tc: "{{ cores | minus: 2 | times : 3 }}"
       tagb: 150 
       tlgb: 0
       lohar: 0
