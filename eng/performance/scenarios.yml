@@ -120,18 +120,18 @@ jobs:
         - ${{ if eq(parameters.osName, 'osx') }}:
           - script: cp ./NuGet.config $(CorrelationStaging);cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared;cp -r ./src/scenarios/staticdeps $(CorrelationStaging)staticdeps
             displayName: Copy python libraries and NuGet.config
-          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)startup -f $(PERFLAB_Framework) -r osx-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/Startup/Startup.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
+          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)startup -f $(_Framework) -r osx-${{parameters.architecture}} $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/Startup/Startup.csproj
             displayName: Build startup tool
             env:
-              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
-          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)SOD -f $(PERFLAB_Framework) -r osx-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/SizeOnDisk/SizeOnDisk.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
+              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)SOD -f $(_Framework) -r osx-${{parameters.architecture}} $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/SizeOnDisk/SizeOnDisk.csproj
             displayName: Build SOD tool
             env:
-              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
-          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)MemoryConsumption -f $(PERFLAB_Framework) -r osx-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)/src/tools/ScenarioMeasurement/MemoryConsumption/MemoryConsumption.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
-            displayName: Build MemoryConsumption tool
+              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
+          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)FailureReporter -f $(_Framework) -r osx-${{parameters.architecture}} $(Build.SourcesDirectory)/src/tools/Reporting/FailureReporting/FailureReporting.csproj
+            displayName: Build FailureReporter tool
             env:
-              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
+              PERFLAB_TARGET_FRAMEWORKS: $(_Framework)
           - script: |
               $(Python) -m pip install --user --upgrade pip
               $(Python) -m pip install --user requests
