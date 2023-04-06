@@ -10,18 +10,18 @@ jobs:
     waitForExit: true
     readyStateText: GCPerfSim
     variables:
-      tc: 20
-      tagb: 40
-      tlgb: 5
+      tc: "{{ cores | minus: 2 | times: 3 }}"
+      tagb: 500
+      tlgb: 0
       lohar: 0
       pohar: 0
       sohsr: 100-4000
       lohsr: 102400-204800
       pohsr: 100-204800
-      sohsi: 30
+      sohsi: 0
       lohsi: 0
       pohsi: 0
-      sohpi: 50
+      sohpi: 0
       lohpi: 0
       sohfi: 0
       lohfi: 0
@@ -34,3 +34,33 @@ scenarios:
   gcperfsim:
     application:
       job: gcperfsim
+
+  0gb:
+    application:
+      job: gcperfsim
+      variables: 
+        tlgb: 0 
+
+  2gb:
+    application:
+      job: gcperfsim
+      variables: 
+        tlgb: 2
+        sohsi: 50
+
+  2gb-pinning:
+    application:
+      job: gcperfsim
+      variables: 
+        tlgb: 2
+        sohsi: 50
+        sohpi: 50
+
+  20gb:
+    application:
+      job: gcperfsim
+      variables:
+        tagb: 300 
+        tlgb: 20
+        sohsi: 50
+        allocType: simple
