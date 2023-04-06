@@ -14,7 +14,9 @@ precommands.new(template='console',
                 bin_dir=const.BINDIR,
                 exename=EXENAME,
                 working_directory=sys.path[0])
-args = ['/p:PublishAot=true', '/p:StripSymbols=true', '/p:IlcGenerateMstatFile=true'] if iswin() else ['/p:PublishAot=true', '/p:StripSymbols=true', '/p:IlcGenerateMstatFile=true', '/p:ObjCopyName=objcopy']
+args = ['/p:PublishAot=true', '/p:StripSymbols=true', '/p:IlcGenerateMstatFile=true', '/p:DebugType=None']
+if not iswin():
+    args.extend(['/p:ObjCopyName=objcopy'])
 precommands.execute(args)
 
 src = os.path.join(const.APPDIR, 'obj', precommands.configuration, precommands.framework, precommands.runtime_identifier, 'native', f'{EXENAME}.mstat')
