@@ -190,6 +190,11 @@ ex: C:\repos\performance;C:\repos\runtime
             self.runtimeseconds = args.runtimeseconds
             self.closeToStartDelay = args.closeToStartDelay
 
+        if self.testtype == const.ANDROIDINSTRUMENTATION:
+            self.packagepath = args.packagepath
+            self.packagename = args.packagename
+            self.instrumentationname = args.instrumentationname
+
         if args.scenarioname:
             self.scenarioname = args.scenarioname
 
