@@ -20,7 +20,7 @@ from shared.startup import StartupWrapper
 from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand
 from shared.sod import SODWrapper
 from shared import const
-from performance.common import RunCommand, iswin, extension
+from performance.common import RunCommand, iswin, extension, helixworkitemroot
 from performance.logger import setup_loggers
 from shared.testtraits import TestTraits, testtypes
 from subprocess import CalledProcessError
