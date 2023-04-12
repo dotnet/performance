@@ -8,21 +8,22 @@ import os
 import glob
 import re
 import time
+from datetime import datetime
+import json
 
 from logging import getLogger
-from collections import namedtuple
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
-from io import StringIO
-from shutil import move
+from shutil import rmtree
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
 from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand
 from shared.sod import SODWrapper
 from shared import const
-from performance.common import RunCommand, iswin, extension
+from performance.common import RunCommand, iswin, extension, helixworkitemroot
 from performance.logger import setup_loggers
 from shared.testtraits import TestTraits, testtypes
+from subprocess import CalledProcessError
 
 
 class Runner:
