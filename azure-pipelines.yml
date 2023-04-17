@@ -280,6 +280,7 @@ jobs:
         - win-x64
         - ubuntu-x64
         - win-arm64
+        - ubuntu-arm64
       isPublic: false
       jobParameters:
         kind: scenarios
@@ -321,6 +322,7 @@ jobs:
   #      - win-x64
   #      - ubuntu-x64
   #      - win-arm64
+  #      - ubuntu-arm64
   #    isPublic: false
   #    jobParameters:
   #      kind: maui_scenarios
@@ -336,6 +338,7 @@ jobs:
         - win-x64
         - ubuntu-x64
         - win-arm64
+        - ubuntu-arm64
       isPublic: false
       jobParameters:
         kind: nativeaot_scenarios
@@ -386,6 +389,7 @@ jobs:
         - win-x64
         - ubuntu-x64
         - win-arm64
+        - ubuntu-arm64
       isPublic: false
       jobParameters:
         kind: mlnet
@@ -402,6 +406,7 @@ jobs:
         - win-x64
         - ubuntu-x64
         - win-arm64
+        - ubuntu-arm64
       isPublic: false
       jobParameters:
         kind: fsharp
@@ -418,6 +423,7 @@ jobs:
         - win-x64
         - ubuntu-x64
         - win-arm64
+        - ubuntu-arm64
       isPublic: false
       jobParameters:
         kind: bepuphysics
@@ -434,6 +440,7 @@ jobs:
         - win-x64
         - ubuntu-x64
         - win-arm64
+        - ubuntu-arm64
       isPublic: false
       jobParameters:
         kind: imagesharp
@@ -450,6 +457,7 @@ jobs:
         - win-x64
         - ubuntu-x64
         - win-arm64
+        - ubuntu-arm64
       isPublic: false
       jobParameters:
         kind: roslyn
