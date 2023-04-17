@@ -59,7 +59,7 @@ namespace CompilerBenchmarks
                 LanguageNames.CSharp,
                 new List<DiagnosticInfo>(),
                 MessageProvider.Instance,
-                new CoreClrAnalyzerAssemblyLoader(),
+                new DefaultAnalyzerAssemblyLoader(),
                 skipAnalyzers: false,
                 out var analyzers,
                 out var generators);

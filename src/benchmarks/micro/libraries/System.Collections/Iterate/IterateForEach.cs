@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
@@ -43,6 +44,7 @@ namespace System.Collections
         private ImmutableStack<T> _immutablestack;
         private ImmutableSortedDictionary<T, T> _immutablesorteddictionary;
         private ImmutableSortedSet<T> _immutablesortedset;
+        private FrozenDictionary<T, T> _frozenDictionary;
 
         [GlobalSetup(Targets = new [] { nameof(Array), nameof(Span), nameof(ReadOnlySpan)})]
         public void SetupArray() => _array = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
@@ -365,6 +367,19 @@ namespace System.Collections
             var collection = _immutablesortedset;
             foreach (var item in collection)
                 result = item;
+            return result;
+        }
+
+        [GlobalSetup(Target = nameof(FrozenDictionary))]
+        public void SetupFrozenDictionary() => _frozenDictionary = ValuesGenerator.Dictionary<T, T>(Size).ToFrozenDictionary();
+
+        [Benchmark]
+        public T FrozenDictionary()
+        {
+            T result = default;
+            var collection = _frozenDictionary;
+            foreach (var item in collection)
+                result = item.Value;
             return result;
         }
     }

@@ -7,9 +7,22 @@
   - [Introduction](#introduction)
     - [Code Organization](#code-organization)
     - [dotnet runtime Prerequisites for CLR](#dotnet-runtime-prerequisites-for-clr)
-    - [dotnet runtime Prerequisites for wasm](#dotnet-runtime-prerequisites-for-wasm)
+    - [dotnet runtime testing for wasm](#dotnet-runtime-testing-for-wasm)
       - [Run the benchmarks with the interpreter](#run-the-benchmarks-with-the-interpreter)
       - [Run the benchmarks with AOT](#run-the-benchmarks-with-aot)
+      - [Note about "file ... being used by another process" error](#note-about-file--being-used-by-another-process-error)
+    - [dotnet runtime testing for MonoAOT](#dotnet-runtime-testing-for-monoaot)
+      - [Prerequisites (Files either built locally (with build.(sh/cmd) or downloaded from payload above (if same system setup) (in this order))](#prerequisites-files-either-built-locally-with-buildshcmd-or-downloaded-from-payload-above-if-same-system-setup-in-this-order)
+      - [Running on Linux](#running-on-linux)
+      - [Running on Windows](#running-on-windows)
+    - [dotnet runtime testing for MonoInterpreter](#dotnet-runtime-testing-for-monointerpreter)
+      - [Prerequisites (Build files either built locally or downloaded from payload above)](#prerequisites-build-files-either-built-locally-or-downloaded-from-payload-above)
+      - [Running on Linux](#running-on-linux-1)
+      - [Running on Windows](#running-on-windows-1)
+    - [dotnet runtime testing for Mono Default (JIT)](#dotnet-runtime-testing-for-mono-default-jit)
+      - [Prerequisites (Build files either built locally or downloaded from payload above)](#prerequisites-build-files-either-built-locally-or-downloaded-from-payload-above-1)
+      - [Running on Linux](#running-on-linux-2)
+      - [Running on Windows](#running-on-windows-2)
   - [Preventing Regressions](#preventing-regressions)
     - [Running against the latest .NET Core SDK](#running-against-the-latest-net-core-sdk)
   - [Solving Regressions](#solving-regressions)
@@ -142,7 +155,7 @@ cp artifacts\bin\runtime\net8.0-Windows_NT-Release-x64\Microsoft.Extensions.Cach
 
 Of course only if you want to benchmark these specific libraries. If you don't, the default versions defined in [MicroBenchmarks.csproj](../src/benchmarks/micro/MicroBenchmarks.csproj) project file are going to get used.
 
-### dotnet runtime Prerequisites for wasm
+### dotnet runtime testing for wasm
 
 In order to run the benchmarks against local [dotnet/runtime](https://github.com/dotnet/runtime) build:
 
@@ -155,17 +168,17 @@ In order to run the benchmarks against local [dotnet/runtime](https://github.com
 2. Prepare a sdk with `wasm-tools` workload installed using the built artifacts
 
 ```cmd
-/path/to/dotnet/runtime$ ./dotnet.sh build -p:TargetOS=Browser -p:TargetArchitecture=wasm -c Release src/mono/wasm/Wasm.Build.Tests /t:InstallWorkloadUsingArtifacts
+/path/to/dotnet/runtime$ ./dotnet.sh build -p:TargetOS=browser -p:TargetArchitecture=wasm -c Release src/mono/wasm/Wasm.Build.Tests /t:InstallWorkloadUsingArtifacts
 ```
 
-This would produce `/path/to/dotnet/runtime/artifacts/bin/dotnet-net8+latest`, which should be used to run the benchmarks.
+This would produce `/path/to/dotnet/runtime/artifacts/bin/dotnet-latest`, which should be used to run the benchmarks.
 
 3. And you need `/path/to/dotnet/runtime/src/mono/wasm/test-main.js`
 
 #### Run the benchmarks with the interpreter
 
 ```cmd
-/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py -f net8.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-net8+latest --wasm --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
+/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py -f net8.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-latest --wasm --run-isolated --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
     --bdn-arguments="--anyCategories Libraries Runtime --category-exclusion-filter NoInterpreter NoWASM NoMono --logBuildOutput --wasmDataDir </path/to/dotnet/runtime>/src/mono/wasm --filter <filter>"
 ```
 
@@ -174,8 +187,279 @@ This would produce `/path/to/dotnet/runtime/artifacts/bin/dotnet-net8+latest`, w
 Essentially, add `--aotcompilermode wasm` to the `--bdn-arguments=".."`:
 
 ```cmd
-/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py --csproj src/benchmarks/micro/MicroBenchmarks.csproj -f net8.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-net8+latest --wasm --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
+/path/to/dotnet/performance$ python3 ./scripts/benchmarks_ci.py --csproj src/benchmarks/micro/MicroBenchmarks.csproj -f net8.0 --dotnet-path </path/to/dotnet/runtime/>artifacts/bin/dotnet-latest --wasm --run-isolated --bdn-artifacts artifacts/BenchmarkDotNet.Artifacts
     --bdn-arguments="--category-exclusion-filter NoInterpreter NoWASM NoMono --aotcompilermode wasm --logBuildOutput --buildTimeout 3600 --wasmDataDir </path/to/dotnet/runtime>/src/mono/wasm --filter <filter>"
+```
+
+#### Note about "file ... being used by another process" error
+
+If you are seeing warnings like:
+`warning MSB3026: Could not copy "/Users/radical/dev/performance/artifacts/obj/MicroBenchmarks/Release/net7.0/MicroBenchmarks.pdb" to "/Users/radical/dev/performance/artifacts/bin/MicroBenchmarks/Release/net7.0/MicroBenchmarks.pdb". Beginning retry 1 in 1000ms. The process cannot access the file '/Users/radical/dev/performance/artifacts/bin/MicroBenchmarks/Release/net7.0/MicroBenchmarks.pdb' because it is being used by another process.`
+
+.. then ensure that `--run-isolated` is being passed.
+
+The problem, and `--run-isolated` is described in the commit message - https://github.com/dotnet/performance/commit/2afd09171688e1a36cc9dbd8ac5d23c910ab80cb
+
+### dotnet runtime testing for MonoAOT
+
+#### Prerequisites (Files either built locally (with build.(sh/cmd) or downloaded from payload above (if same system setup) (in this order))
+
+- Libraries build extracted to `runtime/artifacts` or build instructions: [Libraries README](https://github.com/dotnet/runtime/blob/main/docs/workflow/building/libraries/README.md) args: `-subset libs+libs.tests -rc release -configuration Release -arch $RunArch -framework net8.0`
+- CoreCLR product build extracted to `runtime/artifacts/bin/coreclr/$RunOS.$RunArch.Release`, build instructions: [CoreCLR README](https://github.com/dotnet/runtime/blob/main/docs/workflow/building/coreclr/README.md) args: `-subset clr+libs -rc release -configuration Release -arch $RunArch -framework net8.0`
+- AOT MONO build extracted to `runtime/artifacts/bin/mono/$RunOS.$RunArch.Release`, build instructions: [MONO README](https://github.com/dotnet/runtime/blob/main/docs/workflow/building/mono/README.md) args: `-arch $RunArch -os $RunOS -s mono+libs+host+packs -c Release /p:CrossBuild=false /p:MonoLLVMUseCxx11Abi=false`
+- Dotnet SDK installed for dotnet commands
+- Running commands from the runtime folder
+
+#### Running on Linux
+
+```cmd
+# Set $RunDir to the runtime directory
+RunDir=`pwd`
+
+# Set the OS, arch, and OSId
+RunOS='linux'
+RunOSId='linux'
+RunArch='x64'
+
+# Create aot directory 
+mkdir -p $RunDir/artifacts/bin/aot/sgen
+mkdir -p $RunDir/artifacts/bin/aot/pack
+cp -r $RunDir/artifacts/obj/mono/$RunOS.$RunArch.Release/mono/* $RunDir/artifacts/bin/aot/sgen
+cp -r $RunDir/artifacts/bin/microsoft.netcore.app.runtime.$RunOS-$RunArch/Release/* $RunDir/artifacts/bin/aot/pack
+
+# Create Core Root
+$RunDir/src/tests/build.sh release $RunArch generatelayoutonly /p:LibrariesConfiguration=Release
+
+# Clone performance 
+git clone --branch main --depth 1 --quiet https://github.com/dotnet/performance.git $RunDir/performance
+
+# One line run:
+python3 $RunDir/performance/scripts/benchmarks_ci.py --csproj $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net8.0 --filter '$TestToRun*' --bdn-artifacts $RunDir/artifacts/BenchmarkDotNet.Artifacts --bdn-arguments=""--anyCategories Libraries Runtime  --category-exclusion-filter NoAOT NoWASM --runtimes monoaotllvm --aotcompilerpath $RunDir/artifacts/bin/aot/sgen/mini/mono-sgen --customruntimepack $RunDir/artifacts/bin/aot/pack --aotcompilermode llvm --logBuildOutput --generateBinLog""
+
+# Individual Commands:
+# Restore 
+dotnet restore $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --packages $RunDir/performance/artifacts/packages /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1
+
+# Build
+dotnet build $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --configuration Release --framework net8.0 --no-restore /p:NuGetPackageRoot=$RunDir/performance/artifacts/packages /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1
+
+# Run
+dotnet run --project $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --configuration Release --framework net8.0 --no-restore --no-build -- --filter $TestToRun* --anyCategories Libraries Runtime "" --category-exclusion-filter NoAOT NoWASM --runtimes monoaotllvm --aotcompilerpath $RunDir/artifacts/bin/aot/sgen/mini/mono-sgen --customruntimepack $RunDir/artifacts/bin/aot/pack --aotcompilermode llvm --logBuildOutput --generateBinLog "" --artifacts $RunDir/artifacts/BenchmarkDotNet.Artifacts --packages $RunDir/performance/artifacts/packages --buildTimeout 1200
+```
+
+#### Running on Windows
+
+```cmd
+# Set $RunDir to the runtime directory
+$RunDir=""FullPathHere""
+
+# Set the OS, arch, and OSId
+RunOS='windows'
+RunOSId='win'
+RunArch='x64'
+
+# Create aot directory
+mkdir $RunDir\artifacts\bin\aot\sgen
+mkdir $RunDir\artifacts\bin\aot\pack
+xcopy $RunDir\artifacts\obj\mono\$RunOS.$RunArch.Release\mono $RunDir\artifacts\bin\aot\sgen\ /e /y
+xcopy $RunDir\artifacts\bin\microsoft.netcore.app.runtime.$RunOSId-$RunArch\Release $RunDir\artifacts\bin\aot\pack\ /e /y
+
+# Create Core Root
+$RunDir\src\tests\build.cmd release $RunArch generatelayoutonly /p:LibrariesConfiguration=Release
+
+# Clone performance 
+git clone --branch main --depth 1 --quiet https://github.com/dotnet/performance.git $RunDir\performance
+
+# One line run:
+python3 $RunDir\performance\scripts\benchmarks_ci.py --csproj $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net8.0 --filter '$TestToRun*' --bdn-artifacts $RunDir\artifacts\BenchmarkDotNet.Artifacts --bdn-arguments=""--anyCategories Libraries Runtime  --category-exclusion-filter NoAOT NoWASM --runtimes monoaotllvm --aotcompilerpath $RunDir\artifacts\bin\aot\sgen\mini\mono-sgen.exe --customruntimepack $RunDir\artifacts\bin\aot\pack --aotcompilermode llvm --logBuildOutput --generateBinLog""
+
+# Individual Commands:
+# Restore 
+dotnet restore $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --packages $RunDir\performance\artifacts\packages /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1
+
+# Build
+dotnet build $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --configuration Release --framework net8.0 --no-restore /p:NuGetPackageRoot=$RunDir\performance\artifacts\packages /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1
+
+# Run
+dotnet run --project $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --configuration Release --framework net8.0 --no-restore --no-build -- --filter $TestToRun* --anyCategories Libraries Runtime "" --category-exclusion-filter NoAOT NoWASM --runtimes monoaotllvm --aotcompilerpath $RunDir\artifacts\bin\aot\sgen\mini\mono-sgen.exe --customruntimepack $RunDir\artifacts\bin\aot\pack -aotcompilermode llvm --logBuildOutput --generateBinLog "" --artifacts $RunDir\artifacts\BenchmarkDotNet.Artifacts --packages $RunDir\performance\artifacts\packages --buildTimeout 1200
+```
+
+### dotnet runtime testing for MonoInterpreter
+
+#### Prerequisites (Build files either built locally or downloaded from payload above)
+
+- Libraries build extracted to `runtime/artifacts` or build instructions: [Libraries README](https://github.com/dotnet/runtime/blob/main/docs/workflow/building/libraries/README.md) args: `-subset libs+libs.tests -rc release -configuration Release -arch $RunArch -framework net8.0`
+- CoreCLR product build extracted to `runtime/artifacts/bin/coreclr/$RunOS.$RunArch.Release`, build instructions: [CoreCLR README](https://github.com/dotnet/runtime/blob/main/docs/workflow/building/coreclr/README.md) args: `-subset clr+libs -rc release -configuration Release -arch $RunArch -framework net8.0`
+- Mono Runtime build extracted to `runtime/artifacts/bin/mono/$RunOS.$RunArch.Release`, build instructions: [MONO README](https://github.com/dotnet/runtime/blob/main/docs/workflow/building/mono/README.md) args: `-arch $RunArch -os $RunOS -s mono+libs+host+packs -c Release`
+- Dotnet SDK installed for dotnet commands
+- Running commands from the runtime folder
+
+#### Running on Linux
+
+```cmd
+# Set $RunDir to the runtime directory
+RunDir=`pwd`
+
+# Set the OS, arch, and OSId
+RunOS='linux'
+RunOSId='linux'
+RunArch='x64'
+
+# Create mono dotnet
+mkdir -p $RunDir/artifacts/dotnet-mono
+$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeArtifactsPath=$RunDir/artifacts/bin/mono/$RunOS.$RunArch.Release /p:RuntimeFlavor=mono
+cp $RunDir/artifacts/bin/runtime/net8.0-$RunOS-Release-$RunArch/* $RunDir/artifacts/bin/testhost/net8.0-$RunOS-Release-$RunArch/shared/Microsoft.NETCore.App/8.0.0 -rf
+cp $RunDir/artifacts/bin/testhost/net8.0-$RunOS-Release-$RunArch/* $RunDir/artifacts/dotnet-mono -r
+cp $RunDir/artifacts/bin/coreclr/$RunOS.$RunArch.Release/corerun $RunDir/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/8.0.0/corerun
+
+# Create Core Root
+$RunDir/src/tests/build.sh release $RunArch generatelayoutonly /p:LibrariesConfiguration=Release
+
+# Clone performance 
+git clone --branch main --depth 1 --quiet https://github.com/dotnet/performance.git $RunDir/performance
+
+# Use Interpreter
+export MONO_ENV_OPTIONS=""--interpreter""
+
+# One line run:
+python3 $RunDir/performance/scripts/benchmarks_ci.py --csproj $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net8.0 --filter '$TestToRun*' --bdn-artifacts $RunDir/artifacts/BenchmarkDotNet.Artifacts --bdn-arguments=""--anyCategories Libraries Runtime  --category-exclusion-filter NoInterpreter NoMono --logBuildOutput --generateBinLog --corerun $RunDir/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/8.0.0/corerun"" 
+
+# Individual Commands:
+# Restore 
+dotnet restore $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --packages $RunDir/performance/artifacts/packages /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1
+
+# Build
+dotnet build $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --configuration Release --framework net8.0 --no-restore /p:NuGetPackageRoot=$RunDir/performance/artifacts/packages /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1
+
+# Run
+dotnet run --project $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --configuration Release --framework net8.0 --no-restore --no-build -- --filter '$TestToRun*' --anyCategories Libraries Runtime "" --category-exclusion-filter NoInterpreter NoMono --logBuildOutput --generateBinLog --corerun $RunDir/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/8.0.0/corerun --artifacts $RunDir/artifacts/BenchmarkDotNet.Artifacts --packages $RunDir/performance/artifacts/packages
+```
+
+#### Running on Windows
+
+```cmd
+# Set $RunDir to the runtime directory
+$RunDir=""FullPathHere""
+
+# Set the OS, arch, and OSId
+RunOS='windows'
+RunOSId='win'
+RunArch='x64'
+
+# Create mono dotnet
+mkdir -p $RunDir/artifacts/dotnet-mono
+$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeArtifactsPath=$RunDir\artifacts\bin\mono\$RunOS.$RunArch.Release /p:RuntimeFlavor=mono
+xcopy $RunDir\artifacts\bin\runtime\net8.0-$RunOS-Release-$RunArch\ $RunDir\artifacts\bin\testhost\net8.0-$RunOS-Release-$RunArch\shared\Microsoft.NETCore.App\8.0.0\ /e /y
+xcopy $RunDir\artifacts\bin\testhost\net8.0-$RunOS-Release-$RunArch\ $RunDir\artifacts\dotnet-mono\ /e /y
+xcopy $RunDir\artifacts\bin\coreclr\$RunOS.$RunArch.Release\corerun $RunDir\artifacts\dotnet-mono\shared\Microsoft.NETCore.App\8.0.0\corerun /y
+
+# Create Core Root
+$RunDir\src\tests\build.cmd release $RunArch generatelayoutonly /p:LibrariesConfiguration=Release
+
+# Clone performance 
+git clone --branch main --depth 1 --quiet https://github.com/dotnet/performance.git $RunDir\performance
+
+# Use Interpreter
+export MONO_ENV_OPTIONS=""--interpreter""
+
+# One line run:
+python3 $RunDir\performance\scripts\benchmarks_ci.py --csproj $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net8.0 --filter '$TestToRun*' --bdn-artifacts $RunDir\artifacts\BenchmarkDotNet.Artifacts --bdn-arguments=""--anyCategories Libraries Runtime  --category-exclusion-filter NoInterpreter NoMono --logBuildOutput --generateBinLog --corerun $RunDir\artifacts\dotnet-mono\shared\Microsoft.NETCore.App\8.0.0\corerun.exe"" 
+
+# Individual Commands:
+# Restore 
+dotnet restore $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --packages $RunDir\performance\artifacts\packages /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1
+
+# Build
+dotnet build $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --configuration Release --framework net8.0 --no-restore /p:NuGetPackageRoot=$RunDir\performance\artifacts\packages /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1
+
+# Run
+dotnet run --project $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --configuration Release --framework net8.0 --no-restore --no-build -- --filter '$TestToRun*' --anyCategories Libraries Runtime "" --category-exclusion-filter NoInterpreter NoMono --logBuildOutput --generateBinLog --corerun $RunDir\artifacts\dotnet-mono\shared\Microsoft.NETCore.App\8.0.0\corerun.exe --artifacts $RunDir\artifacts\BenchmarkDotNet.Artifacts --packages $RunDir\performance\artifacts\packages
+```
+
+### dotnet runtime testing for Mono Default (JIT)
+
+#### Prerequisites (Build files either built locally or downloaded from payload above)
+
+- Libraries build extracted to `runtime/artifacts` or build instructions: [Libraries README](https://github.com/dotnet/runtime/blob/main/docs/workflow/building/libraries/README.md) args: `-subset libs+libs.tests -rc release -configuration Release -arch $RunArch -framework net8.0`
+- CoreCLR product build extracted to `runtime/artifacts/bin/coreclr/$RunOS.$RunArch.Release`, build instructions: [CoreCLR README](https://github.com/dotnet/runtime/blob/main/docs/workflow/building/coreclr/README.md) args: `-subset clr+libs -rc release -configuration Release -arch $RunArch -framework net8.0`
+- Mono Runtime build extracted to `runtime/artifacts/bin/mono/$RunOS.$RunArch.Release`, build instructions: [MONO README](https://github.com/dotnet/runtime/blob/main/docs/workflow/building/mono/README.md) args: `-arch $RunArch -os $RunOS -s mono+libs+host+packs -c Release`
+- Dotnet SDK installed for dotnet commands
+- Running commands from the runtime folder
+
+#### Running on Linux
+
+```cmd
+# Set $RunDir to the runtime directory
+RunDir=`pwd`
+
+# Set the OS, arch, and OSId
+RunOS='linux'
+RunOSId='linux'
+RunArch='x64'
+
+# Create mono dotnet
+mkdir -p $RunDir/artifacts/dotnet-mono
+$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeArtifactsPath=$RunDir/artifacts/bin/mono/$RunOS.$RunArch.Release /p:RuntimeFlavor=mono
+cp $RunDir/artifacts/bin/runtime/net8.0-$RunOS-Release-$RunArch/* $RunDir/artifacts/bin/testhost/net8.0-$RunOS-Release-$RunArch/shared/Microsoft.NETCore.App/8.0.0 -rf
+cp $RunDir/artifacts/bin/testhost/net8.0-$RunOS-Release-$RunArch/* $RunDir/artifacts/dotnet-mono -r
+cp $RunDir/artifacts/bin/coreclr/$RunOS.$RunArch.Release/corerun $RunDir/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/8.0.0/corerun
+
+# Create Core Root
+$RunDir/src/tests/build.sh release $RunArch generatelayoutonly /p:LibrariesConfiguration=Release
+
+# Clone performance 
+git clone --branch main --depth 1 --quiet https://github.com/dotnet/performance.git $RunDir/performance
+
+# One line run:
+python3 $RunDir/performance/scripts/benchmarks_ci.py --csproj $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net8.0 --filter '$TestToRun*' --bdn-artifacts $RunDir/artifacts/BenchmarkDotNet.Artifacts --bdn-arguments=""--anyCategories Libraries Runtime  --category-exclusion-filter NoInterpreter NoMono --logBuildOutput --generateBinLog --corerun $RunDir/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/8.0.0/corerun"" 
+
+# Individual Commands:
+# Restore 
+dotnet restore $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --packages $RunDir/performance/artifacts/packages /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1
+
+# Build
+dotnet build $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --configuration Release --framework net8.0 --no-restore /p:NuGetPackageRoot=$RunDir/performance/artifacts/packages /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1
+
+# Run
+dotnet run --project $RunDir/performance/src/benchmarks/micro/MicroBenchmarks.csproj --configuration Release --framework net8.0 --no-restore --no-build -- --filter '$TestToRun*' --anyCategories Libraries Runtime "" --category-exclusion-filter NoInterpreter NoMono --logBuildOutput --generateBinLog --corerun $RunDir/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/8.0.0/corerun --artifacts $RunDir/artifacts/BenchmarkDotNet.Artifacts --packages $RunDir/performance/artifacts/packages
+```
+
+#### Running on Windows
+
+```cmd
+# Set $RunDir to the runtime directory
+$RunDir=""FullPathHere""
+
+# Set the OS, arch, and OSId
+RunOS='windows'
+RunOSId='win'
+RunArch='x64'
+
+# Create mono dotnet
+mkdir -p $RunDir/artifacts/dotnet-mono
+$RunDir/build.sh -subset libs.pretest -configuration release -ci -arch $RunArch -testscope innerloop /p:RuntimeArtifactsPath=$RunDir\artifacts\bin\mono\$RunOS.$RunArch.Release /p:RuntimeFlavor=mono
+xcopy $RunDir\artifacts\bin\runtime\net8.0-$RunOS-Release-$RunArch\ $RunDir\artifacts\bin\testhost\net8.0-$RunOS-Release-$RunArch\shared\Microsoft.NETCore.App\8.0.0\ /e /y
+xcopy $RunDir\artifacts\bin\testhost\net8.0-$RunOS-Release-$RunArch\ $RunDir\artifacts\dotnet-mono\ /e /y
+xcopy $RunDir\artifacts\bin\coreclr\$RunOS.$RunArch.Release\corerun $RunDir\artifacts\dotnet-mono\shared\Microsoft.NETCore.App\8.0.0\corerun /y
+
+# Create Core Root
+$RunDir\src\tests\build.cmd release $RunArch generatelayoutonly /p:LibrariesConfiguration=Release
+
+# Clone performance 
+git clone --branch main --depth 1 --quiet https://github.com/dotnet/performance.git $RunDir\performance
+
+# One line run:
+python3 $RunDir\performance\scripts\benchmarks_ci.py --csproj $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --incremental no --architecture $RunArch -f net8.0 --filter '$TestToRun*' --bdn-artifacts $RunDir\artifacts\BenchmarkDotNet.Artifacts --bdn-arguments=""--anyCategories Libraries Runtime  --category-exclusion-filter NoInterpreter NoMono --logBuildOutput --generateBinLog --corerun $RunDir\artifacts\dotnet-mono\shared\Microsoft.NETCore.App\8.0.0\corerun.exe"" 
+
+# Individual Commands:
+# Restore 
+dotnet restore $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --packages $RunDir\performance\artifacts\packages /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1
+
+# Build
+dotnet build $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --configuration Release --framework net8.0 --no-restore /p:NuGetPackageRoot=$RunDir\performance\artifacts\packages /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1
+
+# Run
+dotnet run --project $RunDir\performance\src\benchmarks\micro\MicroBenchmarks.csproj --configuration Release --framework net8.0 --no-restore --no-build -- --filter '$TestToRun*' --anyCategories Libraries Runtime "" --category-exclusion-filter NoInterpreter NoMono --logBuildOutput --generateBinLog --corerun $RunDir\artifacts\dotnet-mono\shared\Microsoft.NETCore.App\8.0.0\corerun.exe --artifacts $RunDir\artifacts\BenchmarkDotNet.Artifacts --packages $RunDir\performance\artifacts\packages
 ```
 
 ## Preventing Regressions

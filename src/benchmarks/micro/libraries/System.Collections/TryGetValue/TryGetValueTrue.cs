@@ -5,6 +5,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.Frozen;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
@@ -27,6 +28,8 @@ namespace System.Collections
         private ConcurrentDictionary<TKey, TValue> _concurrentDictionary;
         private ImmutableDictionary<TKey, TValue> _immutableDictionary;
         private ImmutableSortedDictionary<TKey, TValue> _immutableSortedDictionary;
+        private FrozenDictionary<TKey, TValue> _frozenDictionary;
+        private FrozenDictionary<TKey, TValue> _frozenDictionaryOptimized;
 
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
@@ -42,6 +45,8 @@ namespace System.Collections
             _concurrentDictionary = new ConcurrentDictionary<TKey, TValue>(_source);
             _immutableDictionary = Immutable.ImmutableDictionary.CreateRange<TKey, TValue>(_source);
             _immutableSortedDictionary = Immutable.ImmutableSortedDictionary.CreateRange<TKey, TValue>(_source);
+            _frozenDictionary = _source.ToFrozenDictionary();
+            _frozenDictionaryOptimized = _source.ToFrozenDictionary(optimizeForReading: true);
         }
 
         [Benchmark]
@@ -118,6 +123,28 @@ namespace System.Collections
         {
             bool result = default;
             ImmutableSortedDictionary<TKey, TValue> collection = _immutableSortedDictionary;
+            TKey[] found = _found;
+            for (int i = 0; i < found.Length; i++)
+                result ^= collection.TryGetValue(found[i], out _);
+            return result;
+        }
+
+        [Benchmark]
+        public bool FrozenDictionary()
+        {
+            bool result = default;
+            FrozenDictionary<TKey, TValue> collection = _frozenDictionary;
+            TKey[] found = _found;
+            for (int i = 0; i < found.Length; i++)
+                result ^= collection.TryGetValue(found[i], out _);
+            return result;
+        }
+
+        [Benchmark]
+        public bool FrozenDictionaryOptimized()
+        {
+            bool result = default;
+            FrozenDictionary<TKey, TValue> collection = _frozenDictionaryOptimized;
             TKey[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.TryGetValue(found[i], out _);

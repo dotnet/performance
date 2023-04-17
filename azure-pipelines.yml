@@ -146,7 +146,7 @@ jobs:
         csproj: src\benchmarks\micro\MicroBenchmarks.csproj
         runCategories: 'runtime libraries'
         channels:
-          - LTS
+          - net462
 
   # NativeAOT micro benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -160,7 +160,7 @@ jobs:
         csproj: src\benchmarks\micro\MicroBenchmarks.csproj
         runCategories: 'runtime libraries' 
         channels:
-          - nativeaot7.0
+          - nativeaot8.0
 
   # ML.NET benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -252,6 +252,20 @@ jobs:
         channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
           - main
 
+  # NativeAOT scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: nativeaot_scenarios
+        projectFile: nativeaot_scenarios.proj
+        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+          - main
+
 ###########################################
 # Private Jobs
 ###########################################
@@ -286,6 +300,19 @@ jobs:
         dotnetVersionsLinks:
           main: https://aka.ms/dotnet/sdk/maui/net8.0.json
 
+  # Maui iOS scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        kind: maui_scenarios_ios
+        projectFile: maui_scenarios_ios.proj
+        dotnetVersionsLinks:
+          main: https://aka.ms/dotnet/sdk/maui/net8.0.json
+
   ## Maui scenario benchmarks
   #- template: /eng/performance/build_machine_matrix.yml
   #  parameters:
@@ -300,6 +327,21 @@ jobs:
   #      projectFile: maui_scenarios.proj
   #      channels:
   #        - main
+
+  # NativeAOT scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+        - win-arm64
+      isPublic: false
+      jobParameters:
+        kind: nativeaot_scenarios
+        projectFile: nativeaot_scenarios.proj
+        channels:
+          - main
 
 ################################################
 # Scheduled Private jobs
@@ -343,6 +385,7 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-arm64
       isPublic: false
       jobParameters:
         kind: mlnet
@@ -358,6 +401,7 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-arm64
       isPublic: false
       jobParameters:
         kind: fsharp
@@ -373,6 +417,7 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-arm64
       isPublic: false
       jobParameters:
         kind: bepuphysics
@@ -388,6 +433,7 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-arm64
       isPublic: false
       jobParameters:
         kind: imagesharp
@@ -403,6 +449,7 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-arm64
       isPublic: false
       jobParameters:
         kind: roslyn

@@ -17,6 +17,46 @@ class ChannelMap():
             'branch': '8.0',
             'quality': 'daily'
         },
+        '8.0-preview': {
+            'tfm': 'net8.0',
+            'branch': '8.0',
+            'qualtiy': 'preview'
+        },
+        'release/8.0-preview7': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview7',
+            'quality': 'daily'
+        },
+        'release/8.0-preview6': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview6',
+            'quality': 'daily'
+        },
+        'release/8.0-preview5': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview5',
+            'quality': 'daily'
+        },
+        'release/8.0-preview4': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview4',
+            'quality': 'daily'
+        },
+        'release/8.0-preview3': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview3',
+            'quality': 'daily'
+        },
+        'release/8.0-preview2': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview2',
+            'quality': 'daily'
+        },
+        'release/8.0-preview1': {
+            'tfm': 'net8.0',
+            'branch': '8.0-preview1',
+            'quality': 'daily'
+        },
         'nativeaot8.0': {
             'tfm': 'nativeaot8.0',
             'branch': '8.0',
@@ -79,9 +119,9 @@ class ChannelMap():
             'branch': '3.1.4xx',
             'quality': 'daily'
         },
-        'LTS': {
-            'tfm': 'net462', # For Full Framework download the LTS for dotnet cli.
-            'branch': 'LTS'
+        'net462': {
+            'tfm': 'net462',
+            'branch': '8.0'
         },
         'net48': {
             'tfm': 'net48', # For Full Framework download the LTS for dotnet cli.

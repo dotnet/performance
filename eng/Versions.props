@@ -8,6 +8,7 @@
   <!--Package versions-->
   <PropertyGroup>
     <MicrosoftDotnetSdkInternalPackageVersion>5.0.104-servicing.21213.7</MicrosoftDotnetSdkInternalPackageVersion>
+    <MicrosoftDotNetXHarnessCLIVersion>1.0.0-prerelease.23157.1</MicrosoftDotNetXHarnessCLIVersion>
     <MicrosoftNETCoreAppRuntimewinx64PackageVersion>5.0.4</MicrosoftNETCoreAppRuntimewinx64PackageVersion>
     <MicrosoftNETSdkInternalPackageVersion>
     </MicrosoftNETSdkInternalPackageVersion>

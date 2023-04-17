@@ -1,0 +1,66 @@
+imports:
+  - https://github.com/aspnet/Benchmarks/blob/main/scenarios/aspnet.profiles.yml?raw=true
+
+jobs:
+  gcperfsim:
+    source:
+      repository: https://github.com/dotnet/performance
+      branchOrCommit: main
+      project: src/benchmarks/gc/src/exec/GCPerfSim/GCPerfSim.csproj
+    waitForExit: true
+    readyStateText: GCPerfSim
+    variables:
+      tc: "{{ cores | minus: 2 | times: 3 }}"
+      tagb: 500
+      tlgb: 0
+      lohar: 0
+      pohar: 0
+      sohsr: 100-4000
+      lohsr: 102400-204800
+      pohsr: 100-204800
+      sohsi: 0
+      lohsi: 0
+      pohsi: 0
+      sohpi: 0
+      lohpi: 0
+      sohfi: 0
+      lohfi: 0
+      pohfi: 0
+      allocType: reference
+      testKind: time
+    arguments: "-tc {{ tc }} -tagb {{ tagb }} -tlgb {{ tlgb }} -lohar {{ lohar }} -lohsr {{ lohsr }} -sohsi {{ sohsi }} -lohsi {{ lohsi }} -sohpi {{ sohpi }} -lohpi {{ lohpi }} -sohfi {{ sohfi }} -lohfi {{ lohfi }} -allocType {{ allocType }} -testKind {{ testKind }}"
+
+scenarios:
+  gcperfsim:
+    application:
+      job: gcperfsim
+
+  0gb:
+    application:
+      job: gcperfsim
+      variables: 
+        tlgb: 0 
+
+  2gb:
+    application:
+      job: gcperfsim
+      variables: 
+        tlgb: 2
+        sohsi: 50
+
+  2gb-pinning:
+    application:
+      job: gcperfsim
+      variables: 
+        tlgb: 2
+        sohsi: 50
+        sohpi: 50
+
+  20gb:
+    application:
+      job: gcperfsim
+      variables:
+        tagb: 300 
+        tlgb: 20
+        sohsi: 50
+        allocType: simple

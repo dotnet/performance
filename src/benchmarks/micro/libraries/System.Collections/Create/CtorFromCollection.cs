@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using BenchmarkDotNet.Attributes;
@@ -27,7 +28,7 @@ namespace System.Collections
             nameof(ConcurrentBag), nameof(ImmutableArray), nameof(ImmutableHashSet), nameof(ImmutableList), nameof(ImmutableQueue), nameof(ImmutableStack), nameof(ImmutableSortedSet)})]
         public void SetupCollection() => _collection = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
-        [GlobalSetup(Targets = new[] { nameof(Dictionary), nameof(SortedList), nameof(SortedDictionary), nameof(ConcurrentDictionary), nameof(ImmutableDictionary), nameof(ImmutableSortedDictionary) })]
+        [GlobalSetup(Targets = new[] { nameof(Dictionary), nameof(SortedList), nameof(SortedDictionary), nameof(ConcurrentDictionary), nameof(ImmutableDictionary), nameof(ImmutableSortedDictionary), nameof(FrozenDictionary), nameof(FrozenDictionaryOptimized) })]
         public void SetupDictionary() => _dictionary = ValuesGenerator.Dictionary<T, T>(Size);
 
         [GlobalSetup(Targets = new[] { nameof(SortedDictionaryDeepCopy) })]
@@ -98,5 +99,11 @@ namespace System.Collections
 
         [Benchmark]
         public ImmutableSortedSet<T> ImmutableSortedSet() => Immutable.ImmutableSortedSet.CreateRange<T>(_collection);
+
+        [Benchmark]
+        public FrozenDictionary<T, T> FrozenDictionary() => _dictionary.ToFrozenDictionary();
+
+        [Benchmark]
+        public FrozenDictionary<T, T> FrozenDictionaryOptimized() => _dictionary.ToFrozenDictionary(optimizeForReading: true);
     }
 }

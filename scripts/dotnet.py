@@ -87,6 +87,8 @@ class FrameworkAction(Action):
             return 'net6.0'
         if framework == 'nativeaot7.0':
             return 'net7.0'
+        if framework == 'nativeaot8.0':
+            return 'net8.0'
         else:
             return framework
 
@@ -335,6 +337,7 @@ class CSharpProject:
                 '--configuration', configuration,
                 '--no-restore',
                 "/p:NuGetPackageRoot={}".format(packages_path),
+                "/p:RestorePackagesPath={}".format(packages_path),
                 '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1',
             ]
 
@@ -359,6 +362,7 @@ class CSharpProject:
                     '--framework', target_framework_moniker,
                     '--no-restore',
                     "/p:NuGetPackageRoot={}".format(packages_path),
+                    "/p:RestorePackagesPath={}".format(packages_path),
                     '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1',
                 ]
 
@@ -438,6 +442,7 @@ class CSharpProject:
             self.csproj_file,
             '--configuration', configuration,
             "/p:NuGetPackageRoot={}".format(packages_path),
+            "/p:RestorePackagesPath={}".format(packages_path),
             '/p:UseSharedCompilation=false', '/p:BuildInParallel=false', '/m:1'
         ]
         cmdline += self.__get_output_build_arg(output_dir)

@@ -15,7 +15,7 @@
     <DebugSymbols>true</DebugSymbols>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableXlfLocalization>false</EnableXlfLocalization>    
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
 
     <!-- Allow building with one major version, and running using a sdk with a higher major version -->
     <RollForward Condition="'$(BuildingForWasm)' == 'true'">LatestMajor</RollForward>
@@ -60,8 +60,8 @@
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="$(ExtensionsVersion)" />
     <PackageReference Include="protobuf-net" Version="3.0.73" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="$(SystemVersion)" />
-    <PackageReference Include="System.Drawing.Common" Version="$(SystemVersion)" />
-    <PackageReference Include="System.Formats.Cbor" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' >= '5.0'" />
+    <PackageReference Include="System.Drawing.Common" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '8.0'" />
+    <PackageReference Include="System.Formats.Cbor" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &gt;= '5.0'" />
     <PackageReference Include="System.IO.Pipelines" Version="$(SystemVersion)" />
     <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
@@ -74,6 +74,7 @@
     <!-- following two dependencies must point to version 4.3.0 or newer to make it possible to publish MicroBenchmarks.csproj -->
     <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
+    <PackageReference Include="System.Collections.Immutable" Version="8.0.*-*" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '8.0')" />
   </ItemGroup>
 
   <ItemGroup>
@@ -193,6 +194,11 @@
     <Compile Remove="runtime\Math\Functions\Single\TanPi.cs" />
     <Compile Remove="libraries\System.Formats.Tar\*.cs" />
     <Compile Remove="libraries\System.Runtime.Intrinsics\*.cs" />
+  </ItemGroup>
+
+  <!-- This is not removing things from older Net versions, it is removing from newer Net versions -->
+  <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &gt;= '8.0')">
+    <Compile Remove="libraries\System.Drawing\*.cs" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
