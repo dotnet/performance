@@ -67,6 +67,9 @@ an iteration does, we use the allocated bytes to indicate how much work the thre
 this is used to simulate "request processing" in servers. we allocate this much and keep a fraction of it live 
 until we've reached the total. Then we let go of all the objects allocated for this request. Multiple threads
 may be working in parallel on separate requests. The idea is to keep a certain amount of memory live for requests in flight.
+for the GC, this creates objects with an intermediate lifetime, so the percentage of surviving objects in gen 1 goes
+down (otherwise, it would be very close to 100%, because most objects would either die in gen 0, or survive long enough so they
+get promoted to gen 2).
 
 -requestLiveMB/-rlmb: requestLiveBytes
 how much memory to keep live during a request.
