@@ -101,7 +101,7 @@ jobs:
       architecture: arm64
       pool:
         vmImage: ubuntu-20.04
-      machinePool: Perf
+      machinePool: Ampere
       queue: Ubuntu.2004.Arm64.Perf
       ${{ insert }}: ${{ parameters.jobParameters }}
 
