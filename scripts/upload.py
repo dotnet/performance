@@ -3,6 +3,7 @@ from azure.storage.queue import QueueClient, TextBase64EncodePolicy
 from traceback import format_exc
 from glob import glob
 import os
+import time
 
 from logging import getLogger
 
@@ -30,14 +31,33 @@ def upload(globpath, container, queue, sas_token_env, storage_account_uri):
 
             blob_client = BlobClient(account_url=storage_account_uri.format('blob'), container_name=container, blob_name=blob_name, credential=sas_token)
             
-            with open(infile, "rb") as data:
-                blob_client.upload_blob(data, blob_type="BlockBlob", content_settings=ContentSettings(content_type="application/json"))
-
-            if queue is not None:
-                queue_client = QueueClient(account_url=storage_account_uri.format('queue'), queue_name=queue, credential=sas_token, message_encode_policy=TextBase64EncodePolicy())
-                queue_client.send_message(blob_client.url)
-
-            getLogger().info("upload complete")
+            uploadedSuccessfully = False
+            for i in range(3):
+                try:
+                    with open(infile, "rb") as data:
+                        blob_client.upload_blob(data, blob_type="BlockBlob", content_settings=ContentSettings(content_type="application/json"))
+                    uploadedSuccessfully = True
+                    break
+                except Exception as ex:
+                    getLogger().error('{0}: {1}'.format(type(ex), str(ex)))
+                    time.sleep(5)
+                    continue
+                
+            if uploadedSuccessfully:
+                for i in range(3):
+                    try:
+                        if queue is not None:
+                            queue_client = QueueClient(account_url=storage_account_uri.format('queue'), queue_name=queue, credential=sas_token, message_encode_policy=TextBase64EncodePolicy())
+                            queue_client.send_message(blob_client.url)
+                        break
+                    except Exception as ex:
+                        getLogger().error('{0}: {1}'.format(type(ex), str(ex)))
+                        time.sleep(5)
+                        continue
+                getLogger().info("upload complete")
+            else:
+                getLogger().error("upload failed")
+                return 1
         return 0
 
     except Exception as ex:
