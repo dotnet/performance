@@ -260,6 +260,19 @@ jobs:
         projectFile: maui_scenarios_android.proj
         channels:
           - release/7.0
+  
+  # Maui iOS scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        kind: maui_scenarios_ios
+        projectFile: maui_scenarios_ios.proj
+        channels:
+          - release/7.0
 
 ################################################
 # Scheduled Private jobs

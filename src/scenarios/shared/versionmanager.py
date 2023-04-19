@@ -29,3 +29,7 @@ def versions_read_json_file_save_env(inputfile = 'versions.json'):
 def get_version_from_dll_powershell(dll_path: str):
     result = subprocess.run(['powershell', '-Command', rf'Get-ChildItem {dll_path} | Select-Object -ExpandProperty VersionInfo | Select-Object -ExpandProperty ProductVersion'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
     return result.stdout.decode('utf-8').strip()
+
+def get_version_from_dll_powershell_ios(dll_path: str):
+    result = subprocess.run(['pwsh', '-Command', rf'Get-ChildItem {dll_path} | Select-Object -ExpandProperty VersionInfo | Select-Object -ExpandProperty ProductVersion'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False)
+    return result.stdout.decode('utf-8').strip()
