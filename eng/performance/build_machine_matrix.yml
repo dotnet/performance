@@ -59,7 +59,7 @@ jobs:
       architecture: x64
       pool: 
         vmImage: ubuntu-latest
-      container: centos_x64_build_container
+      container: ubuntu_x64_build_container
       ${{ insert }}: ${{ parameters.jobParameters }}
       ${{ if eq(parameters.isPublic, true) }}:
         machinePool: Open
@@ -78,7 +78,7 @@ jobs:
         vmImage: ubuntu-latest
       machinePool: Open
       queue: centos.7.amd64.open
-      container: centos_x64_build_container
+      container: ubuntu_x64_build_container
       ${{ insert }}: ${{ parameters.jobParameters }}
 
 - ${{ if and(containsValue(parameters.buildMachines, 'win-arm64'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 only used in private builds currently
