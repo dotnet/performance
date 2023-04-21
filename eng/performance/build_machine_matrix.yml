@@ -59,7 +59,7 @@ jobs:
       architecture: x64
       pool: 
         vmImage: ubuntu-latest
-      container: centos_x64_build_container
+      container: ubuntu_x64_build_container
       ${{ insert }}: ${{ parameters.jobParameters }}
       ${{ if eq(parameters.isPublic, true) }}:
         machinePool: Open
