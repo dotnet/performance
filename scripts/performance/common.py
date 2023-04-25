@@ -158,7 +158,7 @@ def push_dir(path: str = None) -> None:
     else:
         yield
 
-def retry_on_exception(function, retry_count=3, retry_delay=5, retry_delay_multiplier=1, retry_on_exception=None):
+def retry_on_exception(function, retry_count=3, retry_delay=5, retry_delay_multiplier=1, retry_on_exception=Exception):
     '''
     Retries the specified function if it throws an exception.
 
@@ -175,9 +175,6 @@ def retry_on_exception(function, retry_count=3, retry_delay=5, retry_delay_multi
     if retry_delay_multiplier < 1:
         raise ValueError('retry_delay_multiplier must be >= 1')
 
-    if retry_on_exception is None:
-        retry_on_exception = Exception
-
     for i in range(retry_count):
         try:
             return function()
@@ -188,7 +185,6 @@ def retry_on_exception(function, retry_count=3, retry_delay=5, retry_delay_multi
             getLogger().info('Retrying in %d seconds...', retry_delay)
             time.sleep(retry_delay)
             retry_delay *= retry_delay_multiplier
-
 
 class RunCommand:
     '''
