@@ -93,6 +93,18 @@ jobs:
       queue: Windows.10.Arm64.Perf.Surf
       ${{ insert }}: ${{ parameters.jobParameters }}
 
+- ${{ if and(containsValue(parameters.buildMachines, 'ubuntu-arm64'), not(eq(parameters.isPublic, true))) }}: # Ubuntu ARM64 only used in private builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osName: ubuntu
+      osVersion: 2004
+      architecture: arm64
+      pool:
+        vmImage: ubuntu-20.04
+      machinePool: Ampere
+      queue: Ubuntu.2004.Arm64.Perf
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
 - ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Pixel only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
