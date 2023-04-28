@@ -22,10 +22,10 @@ class RuntimeRefType(Enum):
     HASH = 2
 
 class RunType(Enum):
-    MonoAOT = 1
-    MonoInterpreter = 2
-    MonoJIT = 3
-    CoreCLR = 4
+    CoreCLR = 1
+    MonoAOT = 2
+    MonoInterpreter = 3
+    MonoJIT = 4
 
 def generate_runtype_dependencies(parsed_args: Namespace, repo_path: str):
     getLogger().info("Generating dependencies for " + RunType[parsed_args.run_type_name].name + " run type in " + repo_path + ".")
@@ -42,7 +42,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, repo_path: str) -> list:
 # Run tests on the local machine
 def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_url: str, repo_dir: str, branch_name_or_commit_hash: str):
     repo_path = os.path.join(parsed_args.repo_storage_dir, repo_dir)
-    getLogger().info("Running benchmark for " + repo_path + " at " + branch_name_or_commit_hash + ".")
+    getLogger().info("Running for " + repo_path + " at " + branch_name_or_commit_hash + ".")
     # Clone runtime or checkout the correct commit or branch
     if not os.path.exists(repo_path):
         if reference_type == RuntimeRefType.BRANCH:
@@ -87,11 +87,10 @@ def check_references_exist(repo_url: str, references: list, repo_storage_dir: st
     
     # Check if each reference exists in the repository
     for reference in references:
-        try:
-            repo.git.ls_remote(repo_url, reference)
-        except GitCommandError:
-            # If a reference does not exist, raise an exception
+        remotes = repo.git.ls_remote(repo_url, reference)
+        if len(remotes) == 0:
             raise Exception(f"Reference {reference} does not exist in {repo_url}.")
+
 
 def add_arguments(parser):
     parser.add_argument('--branches', nargs='+', type=str, help='The branches to test.')
@@ -106,7 +105,7 @@ def add_arguments(parser):
             raise ArgumentTypeError(f"Invalid run type: {value}.")
         return value
     parser.add_argument('--run-type', dest='run_type_name', type=__is_valid_run_type, choices=[run_type.name for run_type in RunType], help='The type of run to perform. (Without "RunType" prefix)')
-    parser.add_argument('--verbose', action='store_true', help='Whether to print verbose output.')
+    parser.add_argument('--quiet', dest='verbose', action='store_false', help='Whether to not print verbose output.')
     
     # Arguments specifically for BDN
     parser.add_argument('--bdn-arguments', nargs=1, type=str, default="", help='Command line arguments to be passed to BenchmarkDotNet, wrapped in quotes')
@@ -150,7 +149,9 @@ def __main(args: list):
         raise Exception("Invalid runtime ref type.")
 
     references = branch_names if runtime_ref_type == RuntimeRefType.BRANCH else commit_hashes
+    getLogger().info("Checking if references " + str(references) + " exist in " + repo_url + ".")
     check_references_exist(repo_url, references, parsed_args.repo_storage_dir, repo_dirs[0])
+    getLogger().info("References exist in " + repo_url + ".")
     for repo_dir, git_selector_attribute in zip(repo_dirs, references):
         if parsed_args.separate_repos:
             run_benchmark(parsed_args, runtime_ref_type, repo_url, repo_dir, git_selector_attribute)
