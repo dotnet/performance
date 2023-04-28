@@ -1,4 +1,5 @@
 from argparse import ArgumentParser, ArgumentTypeError, Namespace
+from channel_map import ChannelMap
 from enum import Enum
 from logging import getLogger
 from git.repo import Repo
@@ -10,6 +11,7 @@ from subprocess import CalledProcessError
 import benchmarks_ci
 import sys
 import os
+
 
 # Assumptions: We are only testing this Performance repo, should allow single run or multiple runs
 # For dotnet_version based runs, use the benchmarks_monthly .py script instead
@@ -33,9 +35,10 @@ def generate_runtype_dependencies(parsed_args: Namespace, repo_path: str):
 def generate_benchmark_ci_args(parsed_args: Namespace, repo_path: str) -> list:
     bdn_args = []
     bdn_args += ['--architecture', parsed_args.architecture]
-    bdn_args += ['-f', parsed_args.framework]
+    bdn_args += ['--frameworks', parsed_args.frameworks]
     bdn_args += ['--filter', parsed_args.filter]
-    bdn_args += parsed_args.bdn_arguments
+    if parsed_args.bdn_arguments:
+        bdn_args += ['--bdn-arguments', parsed_args.bdn_arguments]
     getLogger().info("Generating benchmark_ci.py arguments for " + RunType[parsed_args.run_type_name].name + " run type in " + repo_path + ".")
     return bdn_args
 
@@ -64,6 +67,7 @@ def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_u
 
     # Run the benchmarks_ci.py test and save results
     try:
+        getLogger().info("Running benchmarks_ci.py for " + repo_path + " at " + branch_name_or_commit_hash + " with arguments \"" + ' '.join(map(str, benchmark_ci_args)) + "\".")
         benchmarks_ci.__main(benchmark_ci_args)
     except CalledProcessError:
         getLogger().error('benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
@@ -93,6 +97,7 @@ def check_references_exist(repo_url: str, references: list, repo_storage_dir: st
 
 
 def add_arguments(parser):
+    # Arguments for the local runner script
     parser.add_argument('--branches', nargs='+', type=str, help='The branches to test.')
     parser.add_argument('--hashes', nargs='+', type=str, help='The hashes to test.')
     parser.add_argument('--repo', type=str, default='https://github.com/dotnet/runtime.git', help='The runtime repo to test from, used to get data for a fork.')
@@ -108,10 +113,10 @@ def add_arguments(parser):
     parser.add_argument('--quiet', dest='verbose', action='store_false', help='Whether to not print verbose output.')
     
     # Arguments specifically for BDN
-    parser.add_argument('--bdn-arguments', nargs=1, type=str, default="", help='Command line arguments to be passed to BenchmarkDotNet, wrapped in quotes')
+    parser.add_argument('--bdn-arguments', type=str, default="", help='Command line arguments to be passed to BenchmarkDotNet, wrapped in quotes')
     parser.add_argument('--architecture', choices=['x64', 'x86', 'arm64', 'arm'], default=get_machine_architecture(), help='Specifies the SDK processor architecture')
-    parser.add_argument('--filter', nargs=1, type=str, default='*', help='Specifies the benchmark filter to pass to BenchmarkDotNet')
-    parser.add_argument('-f', '--framework', default='net8.0', help='The target framework to run the benchmarks against.')
+    parser.add_argument('--filter', type=str, default='*', help='Specifies the benchmark filter to pass to BenchmarkDotNet')
+    parser.add_argument('-f', '--frameworks', choices=ChannelMap.get_supported_frameworks(), nargs='+', default='net8.0', help='The target framework(s) to run the benchmarks against.')
 
 def __main(args: list):
     # Define the ArgumentParser
