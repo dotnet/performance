@@ -4,11 +4,13 @@ from enum import Enum
 from logging import getLogger
 from git.repo import Repo
 from git import GitCommandError
-from performance.common import get_machine_architecture
+from performance.common import get_machine_architecture, RunCommand
 from performance.logger import setup_loggers
 from subprocess import CalledProcessError
 
 import benchmarks_ci
+import platform
+import subprocess
 import sys
 import os
 
@@ -17,20 +19,61 @@ import os
 # For dotnet_version based runs, use the benchmarks_monthly .py script instead
 # Verify the input commands
 # What do we want to be able to test on: git commits, branches, etc?
-# What are supported default cases: MonoJIT, MonoAOT, MonoInter, CoreCLR, etc. 
+# What are supported default cases: MonoJIT, MonoAOT, MonoInter, Corerun, etc. 
 
 class RuntimeRefType(Enum):
     BRANCH = 1
     HASH = 2
 
 class RunType(Enum):
-    CoreCLR = 1
+    CoreRun = 1
     MonoAOT = 2
     MonoInterpreter = 3
     MonoJIT = 4
 
+from performance.common import RunCommand
+
+def generate_libraries_and_corerun_dependency(parsed_args: Namespace, repo_path: str):
+    build_file_extension = '.sh'
+    if parsed_args.os == 'windows':
+        build_file_extension = '.cmd'
+    
+    # Run the command
+    build_libs_and_corerun_command = [
+                f"build{build_file_extension}", 
+                "-subset", "clr+libs+libs.tests", 
+                "-rc", "release", 
+                "-configuration", "Release", 
+                "-arch", f"{parsed_args.architecture}", 
+                "-framework", f"{parsed_args.frameworks}"
+            ]
+    RunCommand(build_libs_and_corerun_command, verbose=True).run(repo_path)
+
+def generate_mono_dependency(parsed_args: Namespace, repo_path: str):
+    build_file_extension = '.sh'
+    if parsed_args.os == 'windows':
+        build_file_extension = '.cmd'
+    
+    # Run the command
+    build_mono_command = [
+                f"build{build_file_extension}", 
+                "-subset", "mono+libs+host+packs", 
+                "-configuration", "Release", 
+                "-arch", f"{parsed_args.architecture}", 
+                "-os", f"{parsed_args.os}"
+            ]
+    RunCommand(build_mono_command, verbose=True).run(repo_path)
+
+
 def generate_runtype_dependencies(parsed_args: Namespace, repo_path: str):
     getLogger().info("Generating dependencies for " + RunType[parsed_args.run_type_name].name + " run type in " + repo_path + ".")
+    generate_libraries_and_corerun_dependency(parsed_args, repo_path)
+    if parsed_args.run_type_name == RunType.MonoAOT:
+        generate_mono_dependency(parsed_args, repo_path)
+    if parsed_args.run_type_name == RunType.MonoInterpreter:
+        generate_mono_dependency(parsed_args, repo_path)
+    if parsed_args.run_type_name == RunType.MonoJIT:
+        generate_mono_dependency(parsed_args, repo_path)
 
 def generate_benchmark_ci_args(parsed_args: Namespace, repo_path: str) -> list:
     bdn_args = []
@@ -112,9 +155,10 @@ def add_arguments(parser):
     parser.add_argument('--run-type', dest='run_type_name', type=__is_valid_run_type, choices=[run_type.name for run_type in RunType], help='The type of run to perform. (Without "RunType" prefix)')
     parser.add_argument('--quiet', dest='verbose', action='store_false', help='Whether to not print verbose output.')
     
-    # Arguments specifically for BDN
+    # Arguments specifically for dependency generation and BDN
     parser.add_argument('--bdn-arguments', type=str, default="", help='Command line arguments to be passed to BenchmarkDotNet, wrapped in quotes')
     parser.add_argument('--architecture', choices=['x64', 'x86', 'arm64', 'arm'], default=get_machine_architecture(), help='Specifies the SDK processor architecture')
+    parser.add_argument('--os', choices=['windows', 'linux'], default=platform.system().lower(), help='Specifies the operating system of the system')
     parser.add_argument('--filter', type=str, default='*', help='Specifies the benchmark filter to pass to BenchmarkDotNet')
     parser.add_argument('-f', '--frameworks', choices=ChannelMap.get_supported_frameworks(), nargs='+', default='net8.0', help='The target framework(s) to run the benchmarks against.')
 
