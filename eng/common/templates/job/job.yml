@@ -148,6 +148,8 @@ jobs:
           disableComponentGovernance: false
         ${{ else }}:
           disableComponentGovernance: true
+      ${{ else }}:
+        disableComponentGovernance: ${{ parameters.disableComponentGovernance }}
 
   - ${{ if eq(parameters.enableMicrobuild, 'true') }}:
     - ${{ if and(eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
