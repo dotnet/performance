@@ -31,59 +31,84 @@ class RunType(Enum):
     MonoInterpreter = 3
     MonoJIT = 4
 
-from performance.common import RunCommand
+def check_for_runtype_specified(parsed_args: Namespace, run_types_to_check: list) -> bool:
+    for run_type in run_types_to_check:
+        if run_type in parsed_args.run_type_name:
+            return True
+    return False
 
-def generate_libraries_and_corerun_dependency(parsed_args: Namespace, repo_path: str):
-    build_file_extension = '.sh'
-    if parsed_args.os == 'windows':
-        build_file_extension = '.cmd'
-    
+# Builds libs and corerun by default
+def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str = "clr+libs+libs.tests", configuration: str = "Release", additional_args: list = []):    
     # Run the command
     build_libs_and_corerun_command = [
-                f"build{build_file_extension}", 
-                "-subset", "clr+libs+libs.tests", 
-                "-rc", "release", 
-                "-configuration", "Release", 
+                f"build.ps1", 
+                "-subset", subset, 
+                "-configuration", configuration, 
+                "-os", f"{parsed_args.operating_system}",
                 "-arch", f"{parsed_args.architecture}", 
                 "-framework", f"{parsed_args.frameworks}"
-            ]
-    RunCommand(build_libs_and_corerun_command, verbose=True).run(repo_path)
+            ] + additional_args
+    RunCommand(build_libs_and_corerun_command, verbose=True).run(os.path.join(repo_path, "eng"))
 
-def generate_mono_dependency(parsed_args: Namespace, repo_path: str):
-    build_file_extension = '.sh'
-    if parsed_args.os == 'windows':
-        build_file_extension = '.cmd'
-    
+def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: list):
     # Run the command
-    build_mono_command = [
-                f"build{build_file_extension}", 
-                "-subset", "mono+libs+host+packs", 
-                "-configuration", "Release", 
-                "-arch", f"{parsed_args.architecture}", 
-                "-os", f"{parsed_args.os}"
-            ]
-    RunCommand(build_mono_command, verbose=True).run(repo_path)
+    generate_layout_command = [
+                f"build.ps1", 
+                "release",
+                parsed_args.architecture,
+                "generatelayoutonly",
+                "/p:LibrariesConfiguration=Release"
+            ] + additional_args
+    RunCommand(generate_layout_command, verbose=True).run(os.path.join(repo_path, "eng"))
 
+# Try to generate all of a single runs dependencies at once to save time
+def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str):
+    getLogger().info("Generating dependencies for " + parsed_args.run_type_name + " run types in " + repo_path + ".")
+    
+    if check_for_runtype_specified(parsed_args, [RunType.CoreRun, RunType.MonoInterpreter, RunType.MonoJIT]):
+        build_runtime_dependency(parsed_args, repo_path) # Build libs and corerun by default
+    if check_for_runtype_specified(parsed_args, [RunType.MonoInterpreter, RunType.MonoJIT]):
+        build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs") 
+        build_runtime_dependency(parsed_args, repo_path, "libs.pretest", additional_args=['-testscope', 'innerloop', '/p:RuntimeFlavor=mono', f"/p:RuntimeArtifactsPath={repo_path}/artifacts/bin/mono/{parsed_args.os}.{parsed_args.architecture}.Release"]) 
+    if check_for_runtype_specified(parsed_args, [RunType.MonoAOT]):
+        build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['/p:CrossBuild=false' '/p:MonoLLVMUseCxx11Abi=false']) 
+    
+    getLogger().info("Finished generating dependencies for " + parsed_args.run_type_name + " run types in " + repo_path + ".")
 
-def generate_runtype_dependencies(parsed_args: Namespace, repo_path: str):
-    getLogger().info("Generating dependencies for " + RunType[parsed_args.run_type_name].name + " run type in " + repo_path + ".")
-    generate_libraries_and_corerun_dependency(parsed_args, repo_path)
-    if parsed_args.run_type_name == RunType.MonoAOT:
-        generate_mono_dependency(parsed_args, repo_path)
-    if parsed_args.run_type_name == RunType.MonoInterpreter:
-        generate_mono_dependency(parsed_args, repo_path)
-    if parsed_args.run_type_name == RunType.MonoJIT:
-        generate_mono_dependency(parsed_args, repo_path)
+def generate_benchmark_ci_args(parsed_args: Namespace, repo_path: str, specific_run_type: RunType) -> list:
+    getLogger().info("Generating benchmark_ci.py arguments for " + specific_run_type.name + " run type in " + repo_path + ".")
+    benchmark_ci_args = []
+    benchmark_ci_args += ['--architecture', parsed_args.architecture]
+    benchmark_ci_args += ['--frameworks', parsed_args.frameworks]
+    benchmark_ci_args += ['--filter', parsed_args.filter]
+    benchmark_ci_args += ['--csproj', parsed_args.csproj]
+    benchmark_ci_args += ['--incremental', "no"]
+    benchmark_ci_args += ['--bdn-artifacts-directory', os.path.join(repo_path, "artifacts", "BenchmarkDotNet.Artifacts", parsed_args.os + "." + parsed_args.architecture + ".Release")]
 
-def generate_benchmark_ci_args(parsed_args: Namespace, repo_path: str) -> list:
-    bdn_args = []
-    bdn_args += ['--architecture', parsed_args.architecture]
-    bdn_args += ['--frameworks', parsed_args.frameworks]
-    bdn_args += ['--filter', parsed_args.filter]
+    if specific_run_type == RunType.CoreRun:
+        benchmark_ci_args += ['--core-run']
+        raise NotImplementedError("CoreRun is not yet implemented.")
+    elif specific_run_type == RunType.MonoAOT:
+        benchmark_ci_args += ['--mono-aot']
+        raise NotImplementedError("MonoAOT is not yet implemented.")
+    elif specific_run_type == RunType.MonoInterpreter:
+        benchmark_ci_args += [
+                                '--anyCategories', 'Libraries', 'Runtime', 
+                                '--category-exclusion-filter', 'NoInterpreter', 'NoMono', 
+                                '--logBuildOutput', 
+                                '--generateBinLog', 
+                                '--corerun', f'{repo_path}/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/8.0.0/corerun'
+                              ]
+        benchmark_ci_args += ['--envVars', 'MONO_ENV_OPTIONS=--interpreter']
+        raise NotImplementedError("MonoInterpreter is not yet implemented.")
+    elif specific_run_type == RunType.MonoJIT:
+        benchmark_ci_args += ['--mono-jit']
+        raise NotImplementedError("MonoJIT is not yet implemented.")
+    
     if parsed_args.bdn_arguments:
-        bdn_args += ['--bdn-arguments', parsed_args.bdn_arguments]
-    getLogger().info("Generating benchmark_ci.py arguments for " + RunType[parsed_args.run_type_name].name + " run type in " + repo_path + ".")
-    return bdn_args
+        benchmark_ci_args += ['--bdn-arguments', parsed_args.bdn_arguments]
+    getLogger().info("Finished generating benchmark_ci.py arguments for " + specific_run_type.name + " run type in " + repo_path + ".")
+    return benchmark_ci_args
 
 # Run tests on the local machine
 def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_url: str, repo_dir: str, branch_name_or_commit_hash: str):
@@ -103,18 +128,18 @@ def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_u
         repo.git.checkout(branch_name_or_commit_hash)
 
     # Determine what we need to generate for the local benchmarks
-    generate_runtype_dependencies(parsed_args, repo_path)
+    generate_all_runtype_dependencies(parsed_args, repo_path)
 
     # Generate the correct benchmarks_ci.py arguments for the run type
-    benchmark_ci_args = generate_benchmark_ci_args(parsed_args, repo_path)
-
-    # Run the benchmarks_ci.py test and save results
-    try:
-        getLogger().info("Running benchmarks_ci.py for " + repo_path + " at " + branch_name_or_commit_hash + " with arguments \"" + ' '.join(map(str, benchmark_ci_args)) + "\".")
-        benchmarks_ci.__main(benchmark_ci_args)
-    except CalledProcessError:
-        getLogger().error('benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
-        raise
+    for run_type in parsed_args.run_type_name:
+        # Run the benchmarks_ci.py test and save results
+        try:
+            benchmark_ci_args = generate_benchmark_ci_args(parsed_args, repo_path, run_type)
+            getLogger().info("Running benchmarks_ci.py for " + repo_path + " at " + branch_name_or_commit_hash + " with arguments \"" + ' '.join(map(str, benchmark_ci_args)) + "\".")
+            benchmarks_ci.__main(benchmark_ci_args)
+        except CalledProcessError:
+            getLogger().error('benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
+            raise
 
     getLogger().info("Finished running benchmark for " + repo_path + " at " + branch_name_or_commit_hash + ".")
 
@@ -140,6 +165,7 @@ def check_references_exist(repo_url: str, references: list, repo_storage_dir: st
 
 
 def add_arguments(parser):
+    
     # Arguments for the local runner script
     parser.add_argument('--branches', nargs='+', type=str, help='The branches to test.')
     parser.add_argument('--hashes', nargs='+', type=str, help='The hashes to test.')
@@ -152,7 +178,7 @@ def add_arguments(parser):
         except KeyError:
             raise ArgumentTypeError(f"Invalid run type: {value}.")
         return value
-    parser.add_argument('--run-type', dest='run_type_name', type=__is_valid_run_type, choices=[run_type.name for run_type in RunType], help='The type of run to perform. (Without "RunType" prefix)')
+    parser.add_argument('--run-type', dest='run_type_name', nargs='+', type=__is_valid_run_type, choices=[run_type.name for run_type in RunType], help='The type of run to perform. (Without "RunType" prefix)')
     parser.add_argument('--quiet', dest='verbose', action='store_false', help='Whether to not print verbose output.')
     
     # Arguments specifically for dependency generation and BDN
@@ -161,6 +187,8 @@ def add_arguments(parser):
     parser.add_argument('--os', choices=['windows', 'linux'], default=platform.system().lower(), help='Specifies the operating system of the system')
     parser.add_argument('--filter', type=str, default='*', help='Specifies the benchmark filter to pass to BenchmarkDotNet')
     parser.add_argument('-f', '--frameworks', choices=ChannelMap.get_supported_frameworks(), nargs='+', default='net8.0', help='The target framework(s) to run the benchmarks against.')
+    parser.add_argument('--csproj', type=str, default='../src/benchmarks/micro/MicroBenchmarks.csproj', help='The path to the csproj file to run benchmarks against.')
+    
 
 def __main(args: list):
     # Define the ArgumentParser
