@@ -231,6 +231,13 @@ class AndroidHelper:
                 raise Exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
 
     def close_device(self):
+        keyInputCmd = [
+            self.adbpath,
+            'shell',
+            'input',
+            'keyevent'
+        ]
+                
         getLogger().info("Stopping App for uninstall")
         RunCommand(self.stopappcommand, verbose=True).run()
                 

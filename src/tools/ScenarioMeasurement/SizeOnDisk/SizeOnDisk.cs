@@ -56,7 +56,8 @@ namespace ScenarioMeasurement
                 {
                     var fileName = RemoveVersions(file.Key);
                     var fileExtension = GetExtension(fileName);
-                    counters.Add(new Counter { MetricName = "bytes", Name = $"{Path.Join(name, fileName)}", Results = new[] { (double)file.Value } });
+                    var counterName = Path.Join(name, fileName);
+                    counters.Add(new Counter { MetricName = "bytes", Name = $"{counterName}", Results = new[] { (double)file.Value } });
 
                     AddToBucket(buckets, $"Aggregate - {fileExtension}", file.Value);
                     if (fileName.Contains(Path.Join("wwwroot", "_framework")))
@@ -66,15 +67,18 @@ namespace ScenarioMeasurement
                     if (fileExtension.Equals(".mstat", StringComparison.OrdinalIgnoreCase))
                     {
                         var processor = new MStatProcessor();
-                        processor.Process(Path.Join(directory.Key, file.Key));
+                        var fullName = Path.Join(directory.Key, file.Key);
+                        processor.Process(fullName);
                         foreach (var item in processor.AssemblyStats)
                         {
-                            counters.Add(new Counter { MetricName = "bytes", Name = $"{Path.Join(name, fileName)} - Assembly - {item.Name}", Results = new[] { (double)item.Size } });
+                            counters.Add(new Counter { MetricName = "bytes", Name = $"{counterName} - Assembly - {item.Name}", Results = new[] { (double)item.Size } });
                         }
                         foreach (var item in processor.BlobStats)
                         {
-                            counters.Add(new Counter { MetricName = "bytes", Name = $"{Path.Join(name, fileName)} - Blob - {item.Name}", Results = new[] { (double)item.Size } });
+                            counters.Add(new Counter { MetricName = "bytes", Name = $"{counterName} - Blob - {item.Name}", Results = new[] { (double)item.Size } });
                         }
+                        totalSize -= new FileInfo(fullName).Length;
+                        totalCount -= 1;
                     }
                 }
             }

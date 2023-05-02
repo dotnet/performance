@@ -14,6 +14,7 @@ import __main__
 
 from .common import get_repo_root_path
 
+__initialized = False
 
 def setup_loggers(verbose: bool):
     '''Setup the root logger for the performance scripts.'''
@@ -72,4 +73,7 @@ def setup_loggers(verbose: bool):
         file_handler.setFormatter(__formatter())
         return file_handler
 
-    __initialize(verbose)
+    global __initialized
+    if not __initialized:
+        __initialize(verbose)
+        __initialized = True

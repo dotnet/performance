@@ -16,6 +16,7 @@ INNERLOOPMSBUILD = "innerloopmsbuild"
 DOTNETWATCH = "dotnetwatch"
 DEVICESTARTUP = "devicestartup"
 DEVICEMEMORYCONSUMPTION = "devicememoryconsumption"
+ANDROIDINSTRUMENTATION = "androidinstrumentation"
 
 SCENARIO_NAMES = {STARTUP: 'Startup',
                   SDK: 'SDK',

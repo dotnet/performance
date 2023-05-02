@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace BenchmarkDotNet.Extensions
 {
-    internal class PerfLabExporter : ExporterBase
+    public class PerfLabExporter : ExporterBase
     {
         protected override string FileExtension => "json";
         protected override string FileCaption => "perf-lab-report";

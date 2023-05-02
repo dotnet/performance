@@ -16,15 +16,17 @@ from collections import namedtuple
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 from io import StringIO
-from shutil import move, rmtree
+from shutil import move, rmtree, copytree
 from shared.androidhelper import AndroidHelper
+from shared.androidinstrumentation import AndroidInstrumentationHelper
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
 from shared.memoryconsumption import MemoryConsumptionWrapper
-from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand, publisheddll
+from shared.util import publishedexe, pythoncommand, appfolder, xharnesscommand, publisheddll, helixuploaddir
 from shared.sod import SODWrapper
 from shared import const
-from performance.common import RunCommand, iswin, extension, helixworkitemroot
+from performance.common import RunCommand, iswin, extension, helixworkitemroot, runninginlab
+from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from performance.logger import setup_loggers
 from shared.testtraits import TestTraits, testtypes
 from subprocess import CalledProcessError
@@ -74,7 +76,7 @@ class Runner:
         devicestartupparser.add_argument('--time-from-kill-to-start', help='Set an additional delay time for ensuring an app is cleared after closing the app on Android, not on iOS. This should be greater than the greatest amount of expected time needed between closing an app and starting it again for a cold start. Default = 3 seconds', type=int, default=3, dest='closeToStartDelay')
         self.add_common_arguments(devicestartupparser)
 
-                # parse only command
+        # parse only command
         devicememoryconsumptionparser = subparsers.add_parser(const.DEVICEMEMORYCONSUMPTION,
                                               description='measure memory consumption to startup for Android/iOS apps')
         devicememoryconsumptionparser.add_argument('--device-type', choices=['android'],type=str.lower,help='Device type for testing', dest='devicetype')
@@ -85,6 +87,13 @@ class Runner:
         devicememoryconsumptionparser.add_argument('--runtime', help='Amount of time to run the app between clearing procstats and dumping them', type=int, default=60, dest='runtimeseconds')
         devicememoryconsumptionparser.add_argument('--time-from-kill-to-start', help='Set an additional delay time for ensuring an app is cleared after closing the app on Android, not on iOS. This should be greater than the greatest amount of expected time needed between closing an app and starting it again for a cold start. Default = 3 seconds', type=int, default=3, dest='closeToStartDelay')
         self.add_common_arguments(devicememoryconsumptionparser)
+
+        androidinstrumentationparser = subparsers.add_parser(const.ANDROIDINSTRUMENTATION,
+                                              description='Run device BDN instrumentation to startup for Android apps')
+        androidinstrumentationparser.add_argument('--package-path', help='Location of test application', dest='packagepath')
+        androidinstrumentationparser.add_argument('--package-name', help='Classname (Android) or Bundle ID (iOS) of application', dest='packagename')
+        androidinstrumentationparser.add_argument('--instrumentation-name', help='Name of the instrumentation to run', dest='instrumentationname')
+        self.add_common_arguments(androidinstrumentationparser)
 
         # inner loop command
         innerloopparser = subparsers.add_parser(const.INNERLOOP,
@@ -180,6 +189,11 @@ ex: C:\repos\performance;C:\repos\runtime
             self.animationsdisabled = args.animationsdisabled
             self.runtimeseconds = args.runtimeseconds
             self.closeToStartDelay = args.closeToStartDelay
+
+        if self.testtype == const.ANDROIDINSTRUMENTATION:
+            self.packagepath = args.packagepath
+            self.packagename = args.packagename
+            self.instrumentationname = args.instrumentationname
 
         if args.scenarioname:
             self.scenarioname = args.scenarioname
@@ -343,7 +357,10 @@ ex: C:\repos\performance;C:\repos\runtime
                                   ) 
             startup.runtests(self.traits)
 
-
+        elif self.testtype == const.ANDROIDINSTRUMENTATION:
+            androidInstrumentation = AndroidInstrumentationHelper()
+            androidInstrumentation.runtests(self.packagepath, self.packagename, self.instrumentationname) # Do we want to make these part of traits? or keep them separate?
+  
         elif self.testtype == const.DEVICEMEMORYCONSUMPTION and self.devicetype == 'android':
             getLogger().info("Clearing potential previous run nettraces")
             for file in glob.glob(os.path.join(const.TRACEDIR, 'PerfTest', 'runoutput.trace')):
