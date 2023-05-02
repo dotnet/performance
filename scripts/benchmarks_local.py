@@ -86,10 +86,8 @@ def generate_benchmark_ci_args(parsed_args: Namespace, repo_path: str, specific_
     benchmark_ci_args += ['--bdn-artifacts-directory', os.path.join(repo_path, "artifacts", "BenchmarkDotNet.Artifacts", parsed_args.os + "." + parsed_args.architecture + ".Release")]
 
     if specific_run_type == RunType.CoreRun:
-        benchmark_ci_args += ['--core-run']
         raise NotImplementedError("CoreRun is not yet implemented.")
     elif specific_run_type == RunType.MonoAOT:
-        benchmark_ci_args += ['--mono-aot']
         raise NotImplementedError("MonoAOT is not yet implemented.")
     elif specific_run_type == RunType.MonoInterpreter:
         benchmark_ci_args += [
@@ -100,10 +98,14 @@ def generate_benchmark_ci_args(parsed_args: Namespace, repo_path: str, specific_
                                 '--corerun', f'{repo_path}/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/8.0.0/corerun'
                               ]
         benchmark_ci_args += ['--envVars', 'MONO_ENV_OPTIONS=--interpreter']
-        raise NotImplementedError("MonoInterpreter is not yet implemented.")
     elif specific_run_type == RunType.MonoJIT:
-        benchmark_ci_args += ['--mono-jit']
-        raise NotImplementedError("MonoJIT is not yet implemented.")
+        benchmark_ci_args += [
+                                '--anyCategories', 'Libraries', 'Runtime', 
+                                '--category-exclusion-filter', 'NoInterpreter', 'NoMono', 
+                                '--logBuildOutput', 
+                                '--generateBinLog', 
+                                '--corerun', f'{repo_path}/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/8.0.0/corerun'
+                            ]
     
     if parsed_args.bdn_arguments:
         benchmark_ci_args += ['--bdn-arguments', parsed_args.bdn_arguments]
@@ -165,7 +167,6 @@ def check_references_exist(repo_url: str, references: list, repo_storage_dir: st
 
 
 def add_arguments(parser):
-    
     # Arguments for the local runner script
     parser.add_argument('--branches', nargs='+', type=str, help='The branches to test.')
     parser.add_argument('--hashes', nargs='+', type=str, help='The hashes to test.')
