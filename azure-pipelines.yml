@@ -13,8 +13,8 @@ resources:
   containers:
     - container: ubuntu_x64_build_container
       image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04
-    - container: centos_x64_build_container
-      image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7
+    - container: mariner_x64_build_container
+      image: mcr.microsoft.com/dotnet-buildtools/prereqs:cbl-mariner-2.0
 
 # CI Trigger on main branch
 trigger:
@@ -153,7 +153,7 @@ jobs:
     parameters:
       jobTemplate: /eng/performance/benchmark_jobs.yml
       buildMachines:
-        - centos-x64
+        - mariner-x64
       isPublic: true
       jobParameters:
         kind: micro

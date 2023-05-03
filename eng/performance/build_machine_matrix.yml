@@ -68,17 +68,17 @@ jobs:
         machinePool: Tiger
         queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
 
-- ${{ if and(containsValue(parameters.buildMachines, 'centos-x64'), eq(parameters.isPublic, true)) }}: # centos only used in public builds currently
+- ${{ if and(containsValue(parameters.buildMachines, 'mariner-x64'), eq(parameters.isPublic, true)) }}: # mariner only used in public builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
-      osName: centos
-      osVersion: 7
+      osName: mariner
+      osVersion: 2
       architecture: x64
       pool: 
         vmImage: ubuntu-latest
       machinePool: Open
-      queue: centos.7.amd64.open
-      container: centos_x64_build_container
+      queue: mariner.2.amd64.open
+      container: mariner_x64_build_container
       ${{ insert }}: ${{ parameters.jobParameters }}
 
 - ${{ if and(containsValue(parameters.buildMachines, 'win-arm64'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 only used in private builds currently
