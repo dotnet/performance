@@ -31,9 +31,18 @@ class RunType(Enum):
     MonoInterpreter = 3
     MonoJIT = 4
 
+def enum_name_to_enum(EnumType, enum_name: str):
+    for enum in EnumType:
+        if enum.name == enum_name:
+            return enum
+    raise ValueError(f"Enum name {enum_name} not found in {EnumType}.")
+
+def enum_name_list_to_enum_list(EnumType, enum_name_list: list):
+    return [enum_name_to_enum(EnumType, enum_name) for enum_name in enum_name_list]
+
 def check_for_runtype_specified(parsed_args: Namespace, run_types_to_check: list) -> bool:
     for run_type in run_types_to_check:
-        if run_type in parsed_args.run_type_name:
+        if run_type.name in parsed_args.run_type_names:
             return True
     return False
 
@@ -41,10 +50,12 @@ def check_for_runtype_specified(parsed_args: Namespace, run_types_to_check: list
 def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str = "clr+libs+libs.tests", configuration: str = "Release", additional_args: list = []):    
     # Run the command
     build_libs_and_corerun_command = [
+                "powershell.exe", # Will need to see if this works on Linux powershell core
+                "-File",
                 f"build.ps1", 
                 "-subset", subset, 
                 "-configuration", configuration, 
-                "-os", f"{parsed_args.operating_system}",
+                "-os", f"{parsed_args.os}",
                 "-arch", f"{parsed_args.architecture}", 
                 "-framework", f"{parsed_args.frameworks}"
             ] + additional_args
@@ -53,6 +64,8 @@ def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str
 def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: list):
     # Run the command
     generate_layout_command = [
+                "powershell.exe", 
+                "-File",
                 f"build.ps1", 
                 "release",
                 parsed_args.architecture,
@@ -63,7 +76,7 @@ def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: lis
 
 # Try to generate all of a single runs dependencies at once to save time
 def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str):
-    getLogger().info("Generating dependencies for " + parsed_args.run_type_name + " run types in " + repo_path + ".")
+    getLogger().info("Generating dependencies for " + ' '.join(map(str, parsed_args.run_type_names)) + " run types in " + repo_path + ".")
     
     if check_for_runtype_specified(parsed_args, [RunType.CoreRun, RunType.MonoInterpreter, RunType.MonoJIT]):
         build_runtime_dependency(parsed_args, repo_path) # Build libs and corerun by default
@@ -73,7 +86,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str):
     if check_for_runtype_specified(parsed_args, [RunType.MonoAOT]):
         build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['/p:CrossBuild=false' '/p:MonoLLVMUseCxx11Abi=false']) 
     
-    getLogger().info("Finished generating dependencies for " + parsed_args.run_type_name + " run types in " + repo_path + ".")
+    getLogger().info("Finished generating dependencies for " + ' '.join(map(str, parsed_args.run_type_names)) + " run types in " + repo_path + ".")
 
 def generate_benchmark_ci_args(parsed_args: Namespace, repo_path: str, specific_run_type: RunType) -> list:
     getLogger().info("Generating benchmark_ci.py arguments for " + specific_run_type.name + " run type in " + repo_path + ".")
@@ -133,15 +146,18 @@ def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_u
     generate_all_runtype_dependencies(parsed_args, repo_path)
 
     # Generate the correct benchmarks_ci.py arguments for the run type
-    for run_type in parsed_args.run_type_name:
+    for run_type in enum_name_list_to_enum_list(RunType, parsed_args.run_type_names):
         # Run the benchmarks_ci.py test and save results
         try:
             benchmark_ci_args = generate_benchmark_ci_args(parsed_args, repo_path, run_type)
             getLogger().info("Running benchmarks_ci.py for " + repo_path + " at " + branch_name_or_commit_hash + " with arguments \"" + ' '.join(map(str, benchmark_ci_args)) + "\".")
             benchmarks_ci.__main(benchmark_ci_args)
+            # TODO: Save the results
         except CalledProcessError:
             getLogger().error('benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
             raise
+
+    # Compare the results
 
     getLogger().info("Finished running benchmark for " + repo_path + " at " + branch_name_or_commit_hash + ".")
 
@@ -179,7 +195,7 @@ def add_arguments(parser):
         except KeyError:
             raise ArgumentTypeError(f"Invalid run type: {value}.")
         return value
-    parser.add_argument('--run-type', dest='run_type_name', nargs='+', type=__is_valid_run_type, choices=[run_type.name for run_type in RunType], help='The type of run to perform. (Without "RunType" prefix)')
+    parser.add_argument('--run-type', dest='run_type_names', nargs='+', type=__is_valid_run_type, choices=[run_type.name for run_type in RunType], help='The type of run to perform. (Without "RunType" prefix)')
     parser.add_argument('--quiet', dest='verbose', action='store_false', help='Whether to not print verbose output.')
     
     # Arguments specifically for dependency generation and BDN
