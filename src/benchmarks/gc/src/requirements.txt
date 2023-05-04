@@ -1,5 +1,5 @@
 black==19.3b0
-flask==1.1.1
+flask==2.3.2
 gitignore_parser==0.0.5
 ipython==8.10.0
 jupyter==1.0.0
