@@ -11,6 +11,7 @@ from subprocess import CalledProcessError
 import benchmarks_ci
 import platform
 import subprocess
+import shutil
 import sys
 import os
 
@@ -61,18 +62,20 @@ def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str
             ] + additional_args
     RunCommand(build_libs_and_corerun_command, verbose=True).run(os.path.join(repo_path, "eng"))
 
-def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: list):
+def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: list = []):
     # Run the command
+    if parsed_args.os == "windows":
+        build_script = "build.cmd"
+    else:
+        build_script = "build.sh"
     generate_layout_command = [
-                "powershell.exe", 
-                "-File",
-                f"build.ps1", 
+                f"{build_script}",
                 "release",
                 parsed_args.architecture,
                 "generatelayoutonly",
                 "/p:LibrariesConfiguration=Release"
             ] + additional_args
-    RunCommand(generate_layout_command, verbose=True).run(os.path.join(repo_path, "eng"))
+    RunCommand(generate_layout_command, verbose=True).run(os.path.join(repo_path, "src/tests"))
 
 # Try to generate all of a single runs dependencies at once to save time
 def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str):
@@ -82,7 +85,24 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str):
         build_runtime_dependency(parsed_args, repo_path) # Build libs and corerun by default
     if check_for_runtype_specified(parsed_args, [RunType.MonoInterpreter, RunType.MonoJIT]):
         build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs") 
-        build_runtime_dependency(parsed_args, repo_path, "libs.pretest", additional_args=['-testscope', 'innerloop', '/p:RuntimeFlavor=mono', f"/p:RuntimeArtifactsPath={repo_path}/artifacts/bin/mono/{parsed_args.os}.{parsed_args.architecture}.Release"]) 
+        build_runtime_dependency(parsed_args, repo_path, "libs.pretest", additional_args=['-testscope', 'innerloop', '/p:RuntimeFlavor=mono', f"/p:RuntimeArtifactsPath={os.path.join(repo_path, 'artifacts', 'bin', 'mono', f'{parsed_args.os}.{parsed_args.architecture}.Release')}"])
+        # Create the mono-dotnet
+        src_dir = os.path.join(repo_path, "artifacts", "bin", "runtime", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}")
+        dest_dir = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}", "shared", "Microsoft.NETCore.App", "8.0.0")
+        shutil.rmtree(dest_dir, ignore_errors=True)
+        shutil.copytree(src_dir, dest_dir)
+        src_dir = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}")
+        dest_dir = os.path.join(repo_path, "artifacts", "dotnet-mono")
+        shutil.rmtree(dest_dir, ignore_errors=True)
+        shutil.copytree(src_dir, dest_dir)
+        src_file = os.path.join(repo_path, "artifacts", "bin", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", f"corerun{'.exe' if parsed_args.os == 'windows' else ''}")
+        dest_dir = os.path.join(repo_path, "artifacts", "dotnet-mono", "shared", "Microsoft.NETCore.App", "8.0.0")
+        dest_file = os.path.join(dest_dir, f"corerun{'.exe' if parsed_args.os == 'windows' else ''}")
+        shutil.rmtree(dest_file, ignore_errors=True)
+        os.makedirs(dest_dir, exist_ok=True)
+        shutil.copy2(src_file, dest_file)
+        # Create the core root
+        generate_layout(parsed_args, repo_path)
     if check_for_runtype_specified(parsed_args, [RunType.MonoAOT]):
         build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['/p:CrossBuild=false' '/p:MonoLLVMUseCxx11Abi=false']) 
     
@@ -91,37 +111,37 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str):
 def generate_benchmark_ci_args(parsed_args: Namespace, repo_path: str, specific_run_type: RunType) -> list:
     getLogger().info("Generating benchmark_ci.py arguments for " + specific_run_type.name + " run type in " + repo_path + ".")
     benchmark_ci_args = []
+    bdn_args_unescaped = []
     benchmark_ci_args += ['--architecture', parsed_args.architecture]
     benchmark_ci_args += ['--frameworks', parsed_args.frameworks]
     benchmark_ci_args += ['--filter', parsed_args.filter]
     benchmark_ci_args += ['--csproj', parsed_args.csproj]
     benchmark_ci_args += ['--incremental', "no"]
-    benchmark_ci_args += ['--bdn-artifacts-directory', os.path.join(repo_path, "artifacts", "BenchmarkDotNet.Artifacts", parsed_args.os + "." + parsed_args.architecture + ".Release")]
+    benchmark_ci_args += ['--bdn-artifacts', os.path.join(repo_path, "artifacts", "BenchmarkDotNet.Artifacts")]
 
     if specific_run_type == RunType.CoreRun:
         raise NotImplementedError("CoreRun is not yet implemented.")
     elif specific_run_type == RunType.MonoAOT:
         raise NotImplementedError("MonoAOT is not yet implemented.")
     elif specific_run_type == RunType.MonoInterpreter:
-        benchmark_ci_args += [
+        bdn_args_unescaped += [
                                 '--anyCategories', 'Libraries', 'Runtime', 
                                 '--category-exclusion-filter', 'NoInterpreter', 'NoMono', 
                                 '--logBuildOutput', 
                                 '--generateBinLog', 
-                                '--corerun', f'{repo_path}/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/8.0.0/corerun'
+                                '--corerun', f'{repo_path}/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/8.0.0/corerun{".exe" if parsed_args.os == "windows" else ""}'
                               ]
-        benchmark_ci_args += ['--envVars', 'MONO_ENV_OPTIONS=--interpreter']
+        bdn_args_unescaped += ['--envVars', 'MONO_ENV_OPTIONS=--interpreter']
     elif specific_run_type == RunType.MonoJIT:
-        benchmark_ci_args += [
+        bdn_args_unescaped += [ 
                                 '--anyCategories', 'Libraries', 'Runtime', 
                                 '--category-exclusion-filter', 'NoInterpreter', 'NoMono', 
                                 '--logBuildOutput', 
                                 '--generateBinLog', 
-                                '--corerun', f'{repo_path}/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/8.0.0/corerun'
+                                '--corerun', f'{repo_path}/artifacts/dotnet-mono/shared/Microsoft.NETCore.App/8.0.0/corerun{".exe" if parsed_args.os == "windows" else ""}'
                             ]
-    
-    if parsed_args.bdn_arguments:
-        benchmark_ci_args += ['--bdn-arguments', parsed_args.bdn_arguments]
+    bdn_args_unescaped += [parsed_args.bdn_arguments]
+    benchmark_ci_args += [f'--bdn-arguments={" ".join(bdn_args_unescaped)}']
     getLogger().info("Finished generating benchmark_ci.py arguments for " + specific_run_type.name + " run type in " + repo_path + ".")
     return benchmark_ci_args
 
@@ -187,6 +207,7 @@ def add_arguments(parser):
     parser.add_argument('--branches', nargs='+', type=str, help='The branches to test.')
     parser.add_argument('--hashes', nargs='+', type=str, help='The hashes to test.')
     parser.add_argument('--repo', type=str, default='https://github.com/dotnet/runtime.git', help='The runtime repo to test from, used to get data for a fork.')
+    #TODO: Add a local repo to build and test for results comparison
     parser.add_argument('--separate-repos', action='store_true', help='Whether to test each runtime version from their own separate repo directory.')
     parser.add_argument('--repo-storage-dir', type=str, default='.', help='The directory to store the cloned repositories.')
     def __is_valid_run_type(value):
@@ -214,7 +235,7 @@ def __main(args: list):
 
     # Parse the arguments
     parsed_args = parser.parse_args(args)
-
+    
     setup_loggers(verbose=parsed_args.verbose)
     runtime_ref_type = RuntimeRefType.BRANCH
 
@@ -228,6 +249,8 @@ def __main(args: list):
         getLogger().info("Hashes to test are: " + str(parsed_args.hashes))
     else:
         raise Exception("Either a branch or hash must be specified.")
+
+    getLogger().info("Input arguments: " + str(parsed_args))
 
     branch_names = []
     commit_hashes = []
