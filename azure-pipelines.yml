@@ -14,7 +14,7 @@ resources:
     - container: ubuntu_x64_build_container
       image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04
     - container: mariner_x64_build_container
-      image: mcr.microsoft.com/dotnet-buildtools/prereqs:cbl-mariner-2.0
+      image: mcr.microsoft.com/dotnet-buildtools/prereqs:cbl-mariner-2.0-cross-amd64
 
 # CI Trigger on main branch
 trigger:
