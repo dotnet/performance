@@ -61,92 +61,92 @@ jobs:
 
 - ${{ if or(eq(variables['System.TeamProject'], 'public'), parameters.runPublicJobs) }}:
 
-  # # Scenario benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/scenarios.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #     isPublic: true
-  #     jobParameters:
-  #       kind: scenarios
-  #       projectFile: scenarios.proj
-  #       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-  #         - main
+  # Scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: scenarios
+        projectFile: scenarios.proj
+        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+          - main
 
-  # ## MAUI scenario benchmarks
-  # #- template: /eng/performance/build_machine_matrix.yml
-  # #  parameters:
-  # #    jobTemplate: /eng/performance/scenarios.yml
-  # #    buildMachines:
-  # #      - win-x64
-  # #      - ubuntu-x64
-  # #    isPublic: true
-  # #    jobParameters:
-  # #      kind: maui_scenarios
-  # #      projectFile: maui_scenarios.proj
-  # #      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-  # #        - main
+  ## MAUI scenario benchmarks
+  #- template: /eng/performance/build_machine_matrix.yml
+  #  parameters:
+  #    jobTemplate: /eng/performance/scenarios.yml
+  #    buildMachines:
+  #      - win-x64
+  #      - ubuntu-x64
+  #    isPublic: true
+  #    jobParameters:
+  #      kind: maui_scenarios
+  #      projectFile: maui_scenarios.proj
+  #      channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+  #        - main
 
-  # # Blazor scenario benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/scenarios.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #     isPublic: true
-  #     jobParameters:
-  #       kind: blazor_scenarios
-  #       projectFile: blazor_scenarios.proj
-  #       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-  #         - main
+  # Blazor scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: blazor_scenarios
+        projectFile: blazor_scenarios.proj
+        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+          - main
 
-  # # SDK scenario benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/scenarios.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - win-x86
-  #       - ubuntu-x64
-  #     isPublic: true
-  #     jobParameters:
-  #       kind: sdk_scenarios
-  #       projectFile: sdk_scenarios.proj
-  #       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-  #         - main
+  # SDK scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - win-x86
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: sdk_scenarios
+        projectFile: sdk_scenarios.proj
+        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+          - main
   
-  # # micro benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/benchmark_jobs.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - win-x86
-  #       - ubuntu-x64
-  #     isPublic: true
-  #     jobParameters:
-  #       kind: micro
-  #       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-  #       runCategories: 'runtime libraries' 
-  #       channels:
-  #         - main
+  # micro benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - win-x86
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: micro
+        csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+        runCategories: 'runtime libraries' 
+        channels:
+          - main
 
-  # # net462 micro benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/benchmark_jobs.yml
-  #     buildMachines:
-  #       - win-rs5-x64
-  #     isPublic: true
-  #     jobParameters:
-  #       kind: micro_net462
-  #       csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-  #       runCategories: 'runtime libraries'
-  #       channels:
-  #         - net462
+  # net462 micro benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-rs5-x64
+      isPublic: true
+      jobParameters:
+        kind: micro_net462
+        csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+        runCategories: 'runtime libraries'
+        channels:
+          - net462
 
   # NativeAOT micro benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -162,109 +162,109 @@ jobs:
         channels:
           - nativeaot8.0
 
-  # # ML.NET benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/benchmark_jobs.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #     isPublic: true
-  #     jobParameters:
-  #       kind: mlnet
-  #       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-  #       runCategories: 'mldotnet' 
-  #       channels:
-  #         - main
+  # ML.NET benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: mlnet
+        csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
+        runCategories: 'mldotnet' 
+        channels:
+          - main
 
-  # # F# benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/benchmark_jobs.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #     isPublic: true
-  #     jobParameters:
-  #       kind: fsharp
-  #       csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
-  #       runCategories: 'fsharp'
-  #       channels:
-  #         - main
+  # F# benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: fsharp
+        csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
+        runCategories: 'fsharp'
+        channels:
+          - main
 
-  # # bepuphysics benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/benchmark_jobs.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #     isPublic: true
-  #     jobParameters:
-  #       kind: bepuphysics
-  #       csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
-  #       runCategories: 'BepuPhysics'
-  #       channels:
-  #         - main
+  # bepuphysics benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: bepuphysics
+        csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
+        runCategories: 'BepuPhysics'
+        channels:
+          - main
 
-  # # ImageSharp benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/benchmark_jobs.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #     isPublic: true
-  #     jobParameters:
-  #       kind: imagesharp
-  #       csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
-  #       runCategories: 'ImageSharp'
-  #       channels:
-  #         - main
+  # ImageSharp benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: imagesharp
+        csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
+        runCategories: 'ImageSharp'
+        channels:
+          - main
 
-  # # Roslyn benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/benchmark_jobs.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #     isPublic: true
-  #     jobParameters:
-  #       kind: roslyn
-  #       csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
-  #       runCategories: 'roslyn'
-  #       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-  #         - main
+  # Roslyn benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: roslyn
+        csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
+        runCategories: 'roslyn'
+        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+          - main
 
-  # # ILLink benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/benchmark_jobs.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #     isPublic: true
-  #     jobParameters:
-  #       kind: illink
-  #       csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
-  #       runCategories: 'illink'
-  #       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-  #         - main
+  # ILLink benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: illink
+        csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
+        runCategories: 'illink'
+        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+          - main
 
-  # # NativeAOT scenario benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/scenarios.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #     isPublic: true
-  #     jobParameters:
-  #       kind: nativeaot_scenarios
-  #       projectFile: nativeaot_scenarios.proj
-  #       channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
-  #         - main
+  # NativeAOT scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: true
+      jobParameters:
+        kind: nativeaot_scenarios
+        projectFile: nativeaot_scenarios.proj
+        channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
+          - main
 
 ###########################################
 # Private Jobs
