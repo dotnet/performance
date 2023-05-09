@@ -123,6 +123,19 @@ jobs:
       buildMachines:
         - win-x64
         - win-x86
+      isPublic: true
+      jobParameters:
+        kind: micro
+        csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+        runCategories: 'runtime libraries' 
+        channels:
+          - main
+
+  # Ubuntux64 Default and NativeAOT micro benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
         - ubuntu-x64
       isPublic: true
       jobParameters:
@@ -131,6 +144,7 @@ jobs:
         runCategories: 'runtime libraries' 
         channels:
           - main
+          - nativeaot8.0
 
   # net462 micro benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -145,20 +159,6 @@ jobs:
         runCategories: 'runtime libraries'
         channels:
           - net462
-
-  # NativeAOT micro benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - ubuntu-x64
-      isPublic: true
-      jobParameters:
-        kind: micro
-        csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-        runCategories: 'runtime libraries' 
-        channels:
-          - nativeaot8.0
 
   # ML.NET benchmarks
   - template: /eng/performance/build_machine_matrix.yml
