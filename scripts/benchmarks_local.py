@@ -25,6 +25,7 @@ import os
 class RuntimeRefType(Enum):
     BRANCH = 1
     HASH = 2
+    LOCAL_ONLY = 3
 
 class RunType(Enum):
     CoreRun = 1
@@ -146,21 +147,27 @@ def generate_benchmark_ci_args(parsed_args: Namespace, repo_path: str, specific_
     return benchmark_ci_args
 
 # Run tests on the local machine
-def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_url: str, repo_dir: str, branch_name_or_commit_hash: str):
-    repo_path = os.path.join(parsed_args.repo_storage_dir, repo_dir)
-    getLogger().info("Running for " + repo_path + " at " + branch_name_or_commit_hash + ".")
+def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_url: str, repo_dir: str, branch_name_or_commit_hash: str, is_local: bool = False) -> None:
     # Clone runtime or checkout the correct commit or branch
-    if not os.path.exists(repo_path):
-        if reference_type == RuntimeRefType.BRANCH:
-            Repo.clone_from(repo_url, repo_path, branch=branch_name_or_commit_hash)
-        elif reference_type == RuntimeRefType.HASH:
-            Repo.clone_from(repo_url, repo_path)
-            repo = Repo(repo_path)
-            repo.git.checkout(branch_name_or_commit_hash)
+    if is_local:
+        repo_path = repo_dir
+        if(not os.path.exists(repo_path)):
+            raise RuntimeError(f"The specified local path {repo_path} does not exist.")
+        getLogger().info("Running for " + repo_path + " at " + branch_name_or_commit_hash + ".")
     else:
-        repo = Repo(repo_path)
-        repo.remotes.origin.fetch()
-        repo.git.checkout(branch_name_or_commit_hash)
+        repo_path = os.path.join(parsed_args.repo_storage_dir, repo_dir)
+        getLogger().info("Running for " + repo_path + " at " + branch_name_or_commit_hash + ".")
+        if not os.path.exists(repo_path):
+            if reference_type == RuntimeRefType.BRANCH:
+                Repo.clone_from(repo_url, repo_path, branch=branch_name_or_commit_hash)
+            elif reference_type == RuntimeRefType.HASH:
+                Repo.clone_from(repo_url, repo_path)
+                repo = Repo(repo_path)
+                repo.git.checkout(branch_name_or_commit_hash)
+        else:
+            repo = Repo(repo_path)
+            repo.remotes.origin.fetch()
+            repo.git.checkout(branch_name_or_commit_hash)
 
     # Determine what we need to generate for the local benchmarks
     generate_all_runtype_dependencies(parsed_args, repo_path)
@@ -176,8 +183,6 @@ def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_u
         except CalledProcessError:
             getLogger().error('benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
             raise
-
-    # Compare the results
 
     getLogger().info("Finished running benchmark for " + repo_path + " at " + branch_name_or_commit_hash + ".")
 
@@ -207,7 +212,7 @@ def add_arguments(parser):
     parser.add_argument('--branches', nargs='+', type=str, help='The branches to test.')
     parser.add_argument('--hashes', nargs='+', type=str, help='The hashes to test.')
     parser.add_argument('--repo', type=str, default='https://github.com/dotnet/runtime.git', help='The runtime repo to test from, used to get data for a fork.')
-    #TODO: Add a local repo to build and test for results comparison
+    parser.add_argument('--local-test-repo', type=str, help='Path to a local repo with the runtime source code to test from.') 
     parser.add_argument('--separate-repos', action='store_true', help='Whether to test each runtime version from their own separate repo directory.')
     parser.add_argument('--repo-storage-dir', type=str, default='.', help='The directory to store the cloned repositories.')
     def __is_valid_run_type(value):
@@ -224,7 +229,7 @@ def add_arguments(parser):
     parser.add_argument('--architecture', choices=['x64', 'x86', 'arm64', 'arm'], default=get_machine_architecture(), help='Specifies the SDK processor architecture')
     parser.add_argument('--os', choices=['windows', 'linux'], default=platform.system().lower(), help='Specifies the operating system of the system')
     parser.add_argument('--filter', type=str, default='*', help='Specifies the benchmark filter to pass to BenchmarkDotNet')
-    parser.add_argument('-f', '--frameworks', choices=ChannelMap.get_supported_frameworks(), nargs='+', default='net8.0', help='The target framework(s) to run the benchmarks against.')
+    parser.add_argument('-f', '--frameworks', choices=ChannelMap.get_supported_frameworks(), nargs='+', default='net8.0', help='The target framework(s) to run the benchmarks against.') # TODO: Should we accept a list of repo, branch, and framework tuples?
     parser.add_argument('--csproj', type=str, default='../src/benchmarks/micro/MicroBenchmarks.csproj', help='The path to the csproj file to run benchmarks against.')
     
 
@@ -247,8 +252,11 @@ def __main(args: list):
     elif parsed_args.hashes:
         runtime_ref_type = RuntimeRefType.HASH
         getLogger().info("Hashes to test are: " + str(parsed_args.hashes))
+    elif parsed_args.local_test_repo:
+        runtime_ref_type = RuntimeRefType.LOCAL_ONLY
+        getLogger().info("Local repo to test is: " + str(parsed_args.local_test_repo))
     else:
-        raise Exception("Either a branch or hash must be specified.")
+        raise Exception("Either a branch, hash, or local repo must be specified.")
 
     getLogger().info("Input arguments: " + str(parsed_args))
 
@@ -262,18 +270,24 @@ def __main(args: list):
         repo_url = parsed_args.repo
         commit_hashes = parsed_args.hashes
         repo_dirs = ["runtime-" + commit_hash for commit_hash in commit_hashes]
-    else:
+    elif not runtime_ref_type == RuntimeRefType.LOCAL_ONLY:
         raise Exception("Invalid runtime ref type.")
 
-    references = branch_names if runtime_ref_type == RuntimeRefType.BRANCH else commit_hashes
-    getLogger().info("Checking if references " + str(references) + " exist in " + repo_url + ".")
-    check_references_exist(repo_url, references, parsed_args.repo_storage_dir, repo_dirs[0])
-    getLogger().info("References exist in " + repo_url + ".")
-    for repo_dir, git_selector_attribute in zip(repo_dirs, references):
-        if parsed_args.separate_repos:
-            run_benchmark(parsed_args, runtime_ref_type, repo_url, repo_dir, git_selector_attribute)
-        else:
-            run_benchmark(parsed_args, runtime_ref_type, repo_url, "runtime", git_selector_attribute)
+    if not runtime_ref_type == RuntimeRefType.LOCAL_ONLY:
+        references = branch_names if runtime_ref_type == RuntimeRefType.BRANCH else commit_hashes
+        getLogger().info("Checking if references " + str(references) + " exist in " + repo_url + ".")
+        check_references_exist(repo_url, references, parsed_args.repo_storage_dir, repo_dirs[0])
+        getLogger().info("References exist in " + repo_url + ".")
+        for repo_dir, git_selector_attribute in zip(repo_dirs, references):
+            if parsed_args.separate_repos:
+                run_benchmark(parsed_args, runtime_ref_type, repo_url, repo_dir, git_selector_attribute)
+            else:
+                run_benchmark(parsed_args, runtime_ref_type, repo_url, "runtime", git_selector_attribute)
+
+    if parsed_args.local_test_repo:
+        run_benchmark(parsed_args, runtime_ref_type, "local", parsed_args.local_test_repo, "local", True)
+
+    # Compare the results of the benchmarks
 
 if __name__ == "__main__":
     __main(sys.argv[1:])
