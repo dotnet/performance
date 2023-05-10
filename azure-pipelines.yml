@@ -454,6 +454,20 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: roslyn
+        csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
+        runCategories: 'roslyn'
+        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+          - main
+        affinity: '85'
+
+        # Roslyn benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
         - win-arm64
         - ubuntu-arm64
       isPublic: false
@@ -463,6 +477,7 @@ jobs:
         runCategories: 'roslyn'
         channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
           - main
+        affinity: '15'
 
   # ILLink benchmarks
   - template: /eng/performance/build_machine_matrix.yml

@@ -219,6 +219,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         type=str,
         help='Version of Maui used to build app packages'
     )
+
+    parser.add_argument(
+        '--additional-environment-variables',
+        nargs='*',
+        help='Additional environment variables to set in the setup script'
+    )
     return parser
 
 def __process_arguments(args: list):
@@ -355,6 +361,8 @@ def __main(args: list) -> int:
             out_file.write(variable_format % ('UseSharedCompilation', 'false'))
             out_file.write(variable_format % ('DOTNET_ROOT', dotnet_path))
             out_file.write(variable_format % ('MAUI_VERSION', args.maui_version))
+            for env_var in args.additional_environment_variables:
+                out_file.write(variable_format % (env_var.split('=')[0], env_var.split('=')[1]))
             out_file.write(path_variable % dotnet_path)
             out_file.write(showenv)
     else:
