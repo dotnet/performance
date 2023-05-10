@@ -20,7 +20,5 @@ precommands = PreCommands()
 output = precommands.output or const.PUBDIR
 with zipfile.ZipFile(precommands.pathtozip, 'r') as publish:
     publish.extractall(output)
-copytree(join(output, 'PDN10', 'Release'), output, dirs_exist_ok=True)
-rmtree(join(output, 'PDN10'))
 rmtree(dirname(precommands.pathtozip))
 getLogger().info(f"Unpacked {precommands.pathtozip} into {output}.")
