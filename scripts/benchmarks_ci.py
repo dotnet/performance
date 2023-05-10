@@ -27,11 +27,13 @@ from logging import getLogger
 import os
 import sys
 
-from performance.common import extension, helixpayload, runninginlab, validate_supported_runtime, get_artifacts_directory, RunCommand
+from performance.common import extension, helixpayload, runninginlab, validate_supported_runtime, get_artifacts_directory, helixuploadroot, RunCommand
 from performance.logger import setup_loggers
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from channel_map import ChannelMap
 from subprocess import Popen, CalledProcessError
+from shutil import copy
+from glob import glob
 
 import dotnet
 import micro_benchmarks
@@ -316,6 +318,8 @@ def __main(args: list) -> int:
 
         if args.upload_to_perflab_container:
             import upload
+            for file in glob.glob(globpath, recursive=True):
+                copy(file, os.path.join(helixuploadroot(), file))
             upload_code = upload.upload(globpath, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
             getLogger().info("Benchmarks Upload Code: " + str(upload_code))
             if upload_code != 0:
