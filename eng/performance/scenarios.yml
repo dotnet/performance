@@ -131,7 +131,7 @@ jobs:
           - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
             - powershell: |
                 mkdir $(CorrelationStaging)PDN
-                curl "https://pvscmdupload.blob.core.windows.net/assets/PDN.zip$(PerfCommandUploadTokenNonEscaped)" -OutFile $(CorrelationStaging)PDN\PDN.zip
+                curl "https://pvscmdupload.blob.core.windows.net/assets/paint.net.5.0.3.portable.${{parameters.architecture}}.zip$(PerfCommandUploadTokenNonEscaped)" -OutFile $(CorrelationStaging)PDN\PDN.zip
               displayName: Download PDN
           - powershell: |
               $(Python) -m pip install --upgrade pip
