@@ -311,7 +311,7 @@ def __main(args: list) -> int:
                 '*perf-lab-report.json')
 
             for file in glob(globpath, recursive=True):
-                copy(file, os.path.join(helixuploadroot(), 'report-jsons', file.split(os.sep)[-1]))
+                copy(file, os.path.join(helixuploadroot(), file.split(os.sep)[-1]))
         except CalledProcessError:
             getLogger().info("Run failure registered")
             # rethrow the caught CalledProcessError exception so that the exception being bubbled up correctly.
