@@ -309,6 +309,9 @@ def __main(args: list) -> int:
                 get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
                 '**',
                 '*perf-lab-report.json')
+
+            for file in glob.glob(globpath, recursive=True):
+                copy(file, os.path.join(helixuploadroot(), file))
         except CalledProcessError:
             getLogger().info("Run failure registered")
             # rethrow the caught CalledProcessError exception so that the exception being bubbled up correctly.
@@ -318,8 +321,6 @@ def __main(args: list) -> int:
 
         if args.upload_to_perflab_container:
             import upload
-            for file in glob.glob(globpath, recursive=True):
-                copy(file, os.path.join(helixuploadroot(), file))
             upload_code = upload.upload(globpath, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
             getLogger().info("Benchmarks Upload Code: " + str(upload_code))
             if upload_code != 0:
