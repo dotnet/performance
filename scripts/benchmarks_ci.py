@@ -310,7 +310,7 @@ def __main(args: list) -> int:
                 '**',
                 '*perf-lab-report.json')
 
-            for file in glob.glob(globpath, recursive=True):
+            for file in glob(globpath, recursive=True):
                 copy(file, os.path.join(helixuploadroot(), file))
         except CalledProcessError:
             getLogger().info("Run failure registered")
