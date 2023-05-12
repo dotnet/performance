@@ -219,6 +219,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         type=str,
         help='Version of Maui used to build app packages'
     )
+
+    parser.add_argument(
+        '--affinity',
+        required=False,
+        help='Affinity value set for BenchmarkDotNet to set as PERFLAB_DATA_AFFINITY'
+    )
     return parser
 
 def __process_arguments(args: list):
@@ -355,6 +361,8 @@ def __main(args: list) -> int:
             out_file.write(variable_format % ('UseSharedCompilation', 'false'))
             out_file.write(variable_format % ('DOTNET_ROOT', dotnet_path))
             out_file.write(variable_format % ('MAUI_VERSION', args.maui_version))
+            if args.affinity:
+                out_file.write(variable_format % ('PERFLAB_DATA_AFFINITY', args.affinity))
             out_file.write(path_variable % dotnet_path)
             out_file.write(showenv)
     else:
