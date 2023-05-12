@@ -351,101 +351,101 @@ jobs:
 # Scheduled runs will run all of the jobs on the PerfTigers, as well as the Arm64 job
 - ${{ if or(and(and(ne(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'Schedule')), not(contains(variables['Build.QueuedBy'], 'Weekly'))), parameters.runScheduledPrivateJobs) }}:
 
-  # # SDK scenario benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/scenarios.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - win-x86
-  #       - ubuntu-x64
-  #     isPublic: false
-  #     jobParameters:
-  #       kind: sdk_scenarios
-  #       projectFile: sdk_scenarios.proj
-  #       channels:
-  #         - main
+  # SDK scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - win-x86
+        - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: sdk_scenarios
+        projectFile: sdk_scenarios.proj
+        channels:
+          - main
 
-  # # Blazor 3.2 scenario benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/scenarios.yml
-  #     buildMachines:
-  #       - win-x64
-  #     isPublic: false
-  #     jobParameters:
-  #       kind: blazor_scenarios
-  #       projectFile: blazor_scenarios.proj
-  #       channels:
-  #         - main
+  # Blazor 3.2 scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+      isPublic: false
+      jobParameters:
+        kind: blazor_scenarios
+        projectFile: blazor_scenarios.proj
+        channels:
+          - main
   
-  # # ML.NET benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/benchmark_jobs.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #       - win-arm64
-  #       - ubuntu-arm64
-  #     isPublic: false
-  #     jobParameters:
-  #       kind: mlnet
-  #       csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-  #       runCategories: 'mldotnet'
-  #       channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
-  #         - main
+  # ML.NET benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+        - win-arm64
+        - ubuntu-arm64
+      isPublic: false
+      jobParameters:
+        kind: mlnet
+        csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
+        runCategories: 'mldotnet'
+        channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
+          - main
 
-  # # F# benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/benchmark_jobs.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #       - win-arm64
-  #       - ubuntu-arm64
-  #     isPublic: false
-  #     jobParameters:
-  #       kind: fsharp
-  #       csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
-  #       runCategories: 'fsharp'
-  #       channels:
-  #         - main
+  # F# benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+        - win-arm64
+        - ubuntu-arm64
+      isPublic: false
+      jobParameters:
+        kind: fsharp
+        csproj: src\benchmarks\real-world\FSharp\FSharp.fsproj
+        runCategories: 'fsharp'
+        channels:
+          - main
 
-  # # bepuphysics benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/benchmark_jobs.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #       - win-arm64
-  #       - ubuntu-arm64
-  #     isPublic: false
-  #     jobParameters:
-  #       kind: bepuphysics
-  #       csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
-  #       runCategories: 'BepuPhysics'
-  #       channels:
-  #         - main
+  # bepuphysics benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+        - win-arm64
+        - ubuntu-arm64
+      isPublic: false
+      jobParameters:
+        kind: bepuphysics
+        csproj: src\benchmarks\real-world\bepuphysics2\DemoBenchmarks.csproj
+        runCategories: 'BepuPhysics'
+        channels:
+          - main
 
-  # # ImageSharp benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/benchmark_jobs.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #       - win-arm64
-  #       - ubuntu-arm64
-  #     isPublic: false
-  #     jobParameters:
-  #       kind: imagesharp
-  #       csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
-  #       runCategories: 'ImageSharp'
-  #       channels:
-  #         - main
+  # ImageSharp benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+        - win-arm64
+        - ubuntu-arm64
+      isPublic: false
+      jobParameters:
+        kind: imagesharp
+        csproj: src\benchmarks\real-world\ImageSharp\ImageSharp.Benchmarks.csproj
+        runCategories: 'ImageSharp'
+        channels:
+          - main
 
   # Roslyn benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -479,41 +479,41 @@ jobs:
           - main
         affinity: '15'
 
-  # # ILLink benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/benchmark_jobs.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #     isPublic: false
-  #     jobParameters:
-  #       kind: illink
-  #       csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
-  #       runCategories: 'illink'
-  #       channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-  #         - main
+  # ILLink benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+      isPublic: false
+      jobParameters:
+        kind: illink
+        csproj: src\benchmarks\real-world\ILLink\ILLinkBenchmarks.csproj
+        runCategories: 'illink'
+        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
+          - main
 
-  # # Secret Sync
-  # - job: Synchronize
-  #   pool:
-  #     name: NetCore1ESPool-Internal-NoMSI
-  #     demands: ImageOverride -equals 1es-windows-2019
-  #   steps:
-  #   - task: UseDotNet@2
-  #     displayName: Install .NET 6.0 runtime
-  #     inputs:
-  #       version: 6.x
+  # Secret Sync
+  - job: Synchronize
+    pool:
+      name: NetCore1ESPool-Internal-NoMSI
+      demands: ImageOverride -equals 1es-windows-2019
+    steps:
+    - task: UseDotNet@2
+      displayName: Install .NET 6.0 runtime
+      inputs:
+        version: 6.x
 
-  #   - script: dotnet tool restore
+    - script: dotnet tool restore
 
-  #   - task: AzureCLI@2
-  #     inputs:
-  #       azureSubscription: .NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)
-  #       scriptType: ps
-  #       scriptLocation: inlineScript
-  #       inlineScript: |
-  #         Get-ChildItem .vault-config/*.yaml |% { dotnet secret-manager synchronize $_}
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: .NET Performance (790c4451-dad9-4fda-af8b-10bd9ca328fa)
+        scriptType: ps
+        scriptLocation: inlineScript
+        inlineScript: |
+          Get-ChildItem .vault-config/*.yaml |% { dotnet secret-manager synchronize $_}
 
 ################################################
 # Manually Triggered Job
