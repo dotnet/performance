@@ -107,6 +107,10 @@ namespace Reporting
                         build.AdditionalData[entry.Key.ToString()] = entry.Value.ToString();
                     }
                 }
+                else if(entry.Key.ToString().StartsWith("PERFLAB_DATA_", true, CultureInfo.InvariantCulture))
+                {
+                    build.AdditionalData[entry.Key.ToString().Substring("PERFLAB_DATA_".Length)] = entry.Value.ToString();
+                }
             }            
         }
         public string GetJson()
