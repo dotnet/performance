@@ -444,7 +444,7 @@ jobs:
         runCategories: 'mldotnet'
         channels:
           - main
-        affinity: '85'
+        #affinity: '85'
 
   # ML.NET benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -460,7 +460,7 @@ jobs:
         runCategories: 'mldotnet'
         channels:
           - main
-        affinity: '15'
+        #affinity: '15'
 
   # Roslyn benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -476,7 +476,7 @@ jobs:
         runCategories: 'roslyn'
         channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
           - main
-        affinity: '85'
+        #affinity: '85'
 
   # Roslyn benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -492,7 +492,7 @@ jobs:
         runCategories: 'roslyn'
         channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
           - main
-        affinity: '15'
+        #affinity: '15'
 
   # ILLink benchmarks
   - template: /eng/performance/build_machine_matrix.yml
