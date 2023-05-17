@@ -20,7 +20,7 @@ This repository contains all the code responsible for conducting GC, CPU and Thr
 
 The first time you make use of the TraceEvent dlls to conduct CPU Analysis, whether you are on a fresh machine or not or if you pulled in a newer version of the Trace Event library, you will encounter the following error:
 
-```
+```powershell
 Exception: System.ApplicationException: Could not load native DLL C:\Users\<User>\.nuget\packages\microsoft.diagnostics.tracing.traceevent\<TraceEvent Version>\lib\native\amd64\msdia140.dll
    at NativeDlls.LoadNative(String simpleName)
    at Dia2Lib.DiaLoader.GetDiaSourceObject()
