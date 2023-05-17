@@ -5,13 +5,14 @@ This repository contains the code to invoke the GC Infrastructure that currently
 1. GCPerfSim
 2. Microbenchmarks
 3. ASP.NET Benchmarks
-Currently, the infrastructure runs exclusively on Windows if you want to run the scenarios locally. 
+
+Currently, the infrastructure runs exclusively on Windows if you want to run the scenarios locally.
 
 ## Workflow
+
 This section details the end-to-end workflow associated with getting the infrastructure to run for the GCPerfSim, Microbenchmark and ASP.NET Benchmark test suites.
 
 ### 1. Prerequisites
-
 1. Clone the repo: ``git clone https://github.com/mrsharm/GC.Analysis.API.git C:\Infrastructure\``.
 2. Clone the performance repo: ``git clone https://github.com/dotnet/performance C:\performance`` for GCPerfSim and Microbenchmarks.
 3. Install:
@@ -29,8 +30,10 @@ The next step is to build the Infrastructure. To build the infrastructure in Rel
 1. ``cd C:\Infrastructure\GC.Infrastructure``.
 2. ``dotnet build -c Release``.
 
-## 3. Running the Infrastructure.
+### 3. Running the Infrastructure.
+
 To run all the test suites, do the following steps:
+
 1. ``cd C:\Infrastructure\GC.Infrastructure``.
 2. Ensure you have the right fields set in ``C:\Infrastructure\ExampleConfiguration\Run.yaml`` for:
     1. The output path. As an example, by default, the results will be stored in ``C:\InfraRuns\Run``.
@@ -59,25 +62,25 @@ As an aside, you can run the infrastructure with just the binaries on a machine 
 
 #### Running Individual Test Suites
 
-### GCPerfSim
+##### GCPerfSim
 
 To run a specific GCPerfSim scenario such as the Normal Server scenario, invoke the following command:
 
 1. ``cd C:\Infrastructure\GC.Infrastructure\bin\Release\net7.0`` 
 2. ``.\GC.Infrastructure.exe gcperfsim --configuration C:\InfrastructureConfigurations\GCPerfSim\Normal_Server.yaml``.
 
-### Microbenchmarks
+##### Microbenchmarks
 
 To run the infrastructure on a specific Microbenchmark scenario such as the Server case invoke the following command: 
 
-1. ``cd C:\Infrastructure\GC.Infrastructure\bin\Release\net7.0`` 
-2. ``.\GC.Infrastructure.exe microbenchmarks --configuration C:\InfrastructureConfigurations\Microbenchmark\Microbenchmark_Server.yaml``
+1. ``cd C:\Infrastructure\GC.Infrastructure\bin\Release\net7.0``.
+2. ``.\GC.Infrastructure.exe microbenchmarks --configuration C:\InfrastructureConfigurations\Microbenchmark\Microbenchmark_Server.yaml``.
 
-#### How To Update The Microbenchmarks To Run
+###### How To Update The Microbenchmarks To Run
 
 If you wish to change the microbenchmarks you'd wish to run, you can edit the txt file that's referenced in the Microbenchmark Configuration file or reference another file in the ``filter_path`` of the ``microbenchmark_configurations``: 
 
-```
+```yaml
 microbenchmark_configurations:
   filter: 
   filter_path: C:\InfraRuns\RunNew_All\Suites\Microbenchmark\MicrobenchmarksToRun.txt # CHANGE THIS.
@@ -88,21 +91,21 @@ microbenchmark_configurations:
 As an example, if you want to _just_ run the "System.IO.Tests.Perf_File.ReadAllBytes(size: 104857600)" microbenchmark, the steps to run the infrastructure would be:
 
 1. Creating a new text file: ``notepad C:\Infrastructure\ExampleConfigurations\Microbenchmark\MicrobenchmarksToRun.txt``.
-2. Updating the text file with: ``"System.IO.Tests.Perf_File.ReadAllBytes(size: 104857600)"``. 
+2. Updating the text file with: ``"System.IO.Tests.Perf_File.ReadAllBytes(size: 104857600)"``.
    1. Note: If you want add more microbenchmarks, they should be separated by the ``|`` operator. As an example, if you want to also add all V8 tests, the file would be: ``"System.IO.Tests.Perf_File.ReadAllBytes(size: 104857600)" | V8.*``
-3. Updating the filter_path in ``C:\Infrastructure\ExampleConfigurations\Microbenchmark\Microbenchmark_Server.yaml`` to point to MicrobenchmarksToRun.txt: 
+3. Updating the filter_path in ``C:\Infrastructure\ExampleConfigurations\Microbenchmark\Microbenchmark_Server.yaml`` to point to MicrobenchmarksToRun.txt:
    1. ``filter_path: C:\Infrastructure\ExampleConfigurations\Microbenchmark\MicrobenchmarksToRun.txt``.
-4. Run the infrastructure:
+4. Running the infrastructure:
    1. ``cd C:\Infrastructure\GC.Infrastructure\bin\Release\net7.0`` 
    2. ``.\GC.Infrastructure.exe microbenchmarks --configuration C:\InfrastructureConfigurations\Microbenchmark\Microbenchmark_Server.yaml``
 
-#### Using Cached Invocation Counts
+###### Using Cached Invocation Counts
 
 The microbenchmarks run by the GC instructure must have the same invocation counts amongst the various comparative runs; this is important as we want to conduct an extremely fair comparison between the comparands. To ensure the same invocation counts are used amongst the runs, the value must be discerned before hand or in other words, we must do a dry run of the benchmark and parse the invocation count out of the results and then use that value while running it for the different microbenchmarks. 
 
 To save time, you can pass in a "psv" file (the psv stands for pipe separated values) of the following format that contains the name of the benchmark and the invocation count that can be used. Without providing this file, the infrastructure will run the test run to discern the invocation count:
 
-```
+```psv
 Benchmark|InvocationCount
 System.Numerics.Tests.Perf_BigInteger.Add(arguments: 65536*|135392
 System.Tests.Perf_GC<Byte>.AllocateArray(length: 1000, *|4382544
@@ -111,22 +114,24 @@ System.Tests.Perf_GC<Char>.AllocateArray(length: 1000, *|2700576
 
 The path to this file can be passed in as an optional argument for the ``microbenchmarks`` command and can be invoked in the following manner:
 
-1. ```cd C:\Infrastructure\GC.Infrastructure\bin\Release\net7.0```
-2. ``.\GC.Infrastructure.exe microbenchmarks --configuration  C:\Infrastructure\ExampleConfigurations\Microbenchmark\Microbenchmarks_Server.yaml --invocationCountPSV C:\GC.Analysis.API\ExampleConfigurations\Microbenchmark\MicrobenchmarkInvocationCounts.psv``
+1. ```cd C:\Infrastructure\GC.Infrastructure\bin\Release\net7.0```.
+2. ``.\GC.Infrastructure.exe microbenchmarks --configuration  C:\Infrastructure\ExampleConfigurations\Microbenchmark\Microbenchmarks_Server.yaml --invocationCountPSV C:\GC.Analysis.API\ExampleConfigurations\Microbenchmark\MicrobenchmarkInvocationCounts.psv``.
 
-### ASP.NET Benchmarks
+##### ASP.NET Benchmarks
 
 To run the infrastructure on a specific set of ASP.NET Benchmarks such as the suite comprising of The Json Min, Fortunes ETF and the Stage1gRPC run the following: 
 
-1. ``cd C:\Infrastructure\GC.Infrastructure\bin\Release\net7.0`` 
-2. ``.\GC.Infrastructure.exe aspnetbenchmarks --configuration C:\GC.Analysis.API\ExampleConfigurations\ASPNetBenchmarks\ASPNetBenchmarks.yaml``
+1. ``cd C:\Infrastructure\GC.Infrastructure\bin\Release\net7.0``.
+2. ``.\GC.Infrastructure.exe aspnetbenchmarks --configuration C:\GC.Analysis.API\ExampleConfigurations\ASPNetBenchmarks\ASPNetBenchmarks.yaml``.
 
-#### Uploading Only A Subset of the Binaries 
+###### Uploading Only A Subset of the Binaries 
 
-The ASP.NET benchmarks can be run without any of the users changes however, if the user wants to upload modified binaries with their changes, it is advisable to only upload those as long as they are compatible with the version of .NET runtime you wish to test against. Currently, the default framework to run these tests is net8.0. This can be accomplished in 2 steps:
+The ASP.NET benchmarks can be run without any of the users changes however, if the user wants to upload modified binaries with their changes, it is advisable to only upload those as long as they are compatible with the version of .NET runtime you wish to test against. Currently, the default framework to run these tests is net8.0. 
+
+This can be accomplished in 2 steps:
 
 1. Copy over the binaries you want to change to a new empty folder.
-2. Set the run's corerun path in the configuration to that of a folder with just the copied over binaries. 
+2. Set the run's corerun path in the configuration to that of a folder with just the copied over binaries.
 
 As an example, if I were to only update ``gc.cpp`` and build a standalone ``clrgc.dll``, I would copy the binary to a folder such as the following, update the ``runs`` section of the configuration and point to the folder containing the binary; NOTE: the environment variable ``COMPlus_GCName`` must be set in this case:
 
@@ -147,7 +152,7 @@ runs:
       COMPlus_GCName: clrgc.dll # This environment variable was set.
 ```
 
-##### Updating Which Benchmarks to Run
+###### Updating Which Benchmarks to Run
 
 The file that dictates which ASP.NET benchmarks to run is a CSV file and can be configured based on what test you need to run; an example of this file can be found [here](./ExampleConfigurations/ASPNetBenchmarks/ASPNetBenchmarks.csv).
 
@@ -169,7 +174,7 @@ where:
 
 It's worth noting that if you have specified Linux based binaries in the corerun path, the Windows based ASP.NET benchmarks will exhibit undefined behavior.
 
-#### How To Add New Benchmarks
+###### How To Add New Benchmarks
 
 1. If you are collecting traces, make sure to include Linux (_Linux) or Windows (_Windows) suffix in the Legend column because we run PerfView to collect traces for Windows and dotnet-trace for `gc` trace; currently not working for other types of traces on Linux.
 2. Find the base commandline for the benchmark to run by choosing the appropriate test and configuration from the [ASP.NET Dashboard](https://msit.powerbi.com/groups/me/reports/10265790-7e2e-41d3-9388-86ab72be3fe9/ReportSection30725cd056a647733762?experience=power-bi)

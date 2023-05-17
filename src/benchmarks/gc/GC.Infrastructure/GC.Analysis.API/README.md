@@ -10,8 +10,8 @@ This repository contains all the code responsible for conducting GC, CPU and Thr
    3. Ensure you have Jupyter:
       1. Install python using the Windows Store.
       2. Manually install Jupyter:
-         1.  ``pip`` is in your PATH:
-             1. Manually installing python through the Windows Store. 
+         1. ``pip`` is in your PATH:
+            1. Manually installing python through the Windows Store.
       3. OR: Downloading Anaconda and using conda commands - this should also automatically install ``jupyter`` for you.
    4. Invoking the ``Install.cmd`` command.
 2. Examine [GCAnalysisExamples.ipynb](GCAnalysisExamples.ipynb) for example usage for GC Analysis.
