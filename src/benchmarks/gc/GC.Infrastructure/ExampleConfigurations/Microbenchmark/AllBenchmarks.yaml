@@ -1,0 +1,65 @@
+runs:
+
+  segments:
+    corerun: "C:\\CoreRuns\\Segments_Core_Root\\corerun.exe" 
+    environment_variables:
+      COMPlus_GCName: "clrgc.dll"
+    is_baseline: true
+
+  regions:
+    corerun: "C:\\CoreRuns\\Segments_Core_Root\\corerun.exe" 
+    environment_variables:
+      COMPlus_GCName: "clrgc.dll"
+
+microbenchmark_configurations:
+  filter_path: "C:\\GC.Analysis.API\\LargeGCBenchmarks_2.txt"
+  bdn_arguments: "--memory --warmupCount 1 --iterationCount 20 --allStats --outliers DontRemove"
+  dotnet_installer : net7.0
+
+# Configurations that involve capturing a trace.
+trace_configurations:
+  type: gc # Choices: gc, verbose, cpu, threadtime, none
+
+output: 
+  path: "C:\\AllTopMicrobenchmarks\\"
+  percentage_disk_remaining_to_stop_per_run: 0 
+  formats:
+    - markdown
+    - json
+  additional_report_metrics:
+  #run_comparisons: - segments, regions - regions, regions_write_barrier
+  cpu_columns:
+  columns:
+    - number of iterations
+    - gc count
+    - induced gc count
+    - non induced gc count
+    - standard error
+    - standard error / mean
+    - max size peak (mb)
+    - total allocated (mb)
+    - total pause time (msec)
+    - gc pause time %
+  all_columns:
+    # GC Specific Columns 
+    - gc count
+    - non induced gc count
+    - induced gc count
+    - total allocated (mb)
+    - max size peak (mb)
+    - total pause time (msec)
+    - gc pause time %
+    - avg. heap size (mb)
+    # BDN Based Columns 
+    - number of iterations
+    - min 
+    - max 
+    - median
+    - q1
+    - q3
+    - variance
+    - standard deviation
+    - skewness
+    - kurtosis
+    - standard error
+    - standard error / mean

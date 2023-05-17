@@ -1,0 +1,73 @@
+# Suite.. 
+# Container / High Memory.
+# Analysis.
+runs:
+
+  test:
+    corerun: "C:\\runtime\\artifacts\\tests\\coreclr\\windows.x64.Release\\Tests\\Core_Root\\"
+
+# Top level microbenchmark configuration.
+gcperfsim_configurations:
+  parameters:
+    tc: 18
+    tagb: 40 
+    tlgb: 5 
+    lohar: 0
+    pohar: 0
+    sohsr: 100-4000
+    lohsr: 102400-204800
+    pohsr: 100-204800
+    sohsi: 0
+    lohsi: 0
+    pohsi: 0
+    sohpi: 50
+    lohpi: 0
+    sohfi: 0
+    lohfi: 0
+    pohfi: 0
+    allocType: reference
+    testKind: time
+  gcperfsim_path: "C:\\performance\\artifacts\\bin\\GCPerfSim\\release\\net7.0\\GCPerfSim.dll"
+
+environment:
+  #memory_limit_mb: 600 
+  #cpu_limit: 
+  memory_load_percent: 80
+  environment_variables:
+    COMPlus_GCServer: 1
+    COMPlus_GCLargePages: 1
+    COMPlus_GCHeapHardLimitSOH: 0x800000000
+    COMPlus_GCHeapHardLimitLOH: 0x400000000
+    COMPlus_GCHeapHardLimitPOH: 0x100000000
+    COMPlus_GCName: clrgc.dll 
+  default_max_seconds: 300 
+  iterations: 2
+
+# Configurations that involve capturing a trace.
+trace_configurations:
+  type: gc # Choices: gc, verbose, cpu, threadtime, none
+
+output: 
+  path: "C:\\LargePages_HighMemory\\"
+  percentage_disk_remaining_to_stop_per_run: 0 
+  formats:
+    - markdown
+    - json
+  additional_report_metrics:
+  cpu_columns:
+  columns:
+    - gc count
+    - induced gc count
+    - max size peak (mb)
+    - total allocated (mb)
+    - total pause time (msec)
+    - gc pause time %
+  all_columns:
+    - gc count
+    - non induced gc count
+    - induced gc count
+    - total allocated (mb)
+    - max size peak (mb)
+    - total pause time (msec)
+    - gc pause time %
+    - avg. heap size (mb)

@@ -1,0 +1,129 @@
+runs:
+
+  0gb:
+    override_parameters:
+      tlgb: 0 
+
+  2gb:
+    override_parameters:
+      tlgb: 2
+      sohsi: 50
+
+  2gb_pinning:
+    override_parameters:
+      tlgb: 2
+      sohsi: 50
+      sohpi: 50
+
+  20gb:
+    override_parameters:
+      tagb: 300 
+      tlgb: 20
+      sohsi: 50
+      allocType: simple
+
+# Top level microbenchmark configuration.
+gcperfsim_configurations:
+  parameters:
+    tc: 2
+    tagb: 150 
+    tlgb: 0
+    lohar: 0
+    pohar: 0
+    sohsr: 100-4000
+    lohsr: 102400-204800
+    pohsr: 100-204800
+    sohsi: 0
+    lohsi: 0
+    pohsi: 0
+    sohpi: 0
+    lohpi: 0
+    sohfi: 0
+    lohfi: 0
+    pohfi: 0
+    allocType: reference
+    testKind: time
+
+environment:
+  environment_variables:
+    COMPlus_GCServer: 0 
+  default_max_seconds: 300
+  iterations: 1
+
+# Configurations that involve capturing a trace.
+trace_configurations:
+  type: gc # Choices: gc, verbose, cpu, threadtime, none
+
+output: 
+  percentage_disk_remaining_to_stop_per_run: 0 
+  formats:
+    - markdown
+    - json
+  columns:
+    - Count 
+    - total allocated (mb)
+    - total pause time (msec)
+    - PctTimePausedInGC 
+    - FirstToLastGCSeconds 
+    - HeapSizeAfter_Mean 
+    - HeapSizeBeforeMB_Mean 
+    - PauseDurationMSec_95PWhereIsGen0 
+    - PauseDurationMSec_95PWhereIsGen1 
+    - PauseDurationMSec_95PWhereIsBackground 
+    - PauseDurationMSec_95PWhereIsBlockingGen2
+    - CountIsBlockingGen2 
+    - HeapCount
+    - TotalNumberGCs
+    - TotalAllocatedMB
+    - Speed
+    - PauseDurationMSec_MeanWhereIsEphemeral
+    - PauseDurationMSec_MeanWhereIsBackground
+    - PauseDurationMSec_MeanWhereIsBlockingGen2
+    - PauseDurationSeconds_SumWhereIsGen1
+    - PauseDurationSeconds_Sum
+    - CountIsGen1
+    - ExecutionTimeMSec
+  all_columns:
+    - Count 
+    - total allocated (mb)
+    - total pause time (msec)
+    - PctTimePausedInGC 
+    - FirstToLastGCSeconds 
+    - HeapSizeAfter_Mean 
+    - HeapSizeBeforeMB_Mean 
+    - PauseDurationMSec_95PWhereIsGen0 
+    - PauseDurationMSec_95PWhereIsGen1 
+    - PauseDurationMSec_95PWhereIsBackground 
+    - PauseDurationMSec_95PWhereIsBlockingGen2
+    - CountIsBlockingGen2 
+    - HeapCount
+    - TotalNumberGCs
+    - TotalAllocatedMB
+    - Speed
+    - PauseDurationMSec_MeanWhereIsEphemeral
+    - PauseDurationMSec_MeanWhereIsBackground
+    - PauseDurationMSec_MeanWhereIsBlockingGen2
+    - PauseDurationSeconds_SumWhereIsGen1
+    - PauseDurationSeconds_Sum
+    - CountIsGen1
+    - ExecutionTimeMSec
+    - Count
+    - PctTimePausedInGC 
+    - FirstToLastGCSeconds 
+    - HeapSizeAfter_Mean 
+    - HeapSizeBeforeMB_Mean 
+    - PauseDurationMSec_95PWhereIsGen0 
+    - PauseDurationMSec_95PWhereIsGen1 
+    - PauseDurationMSec_95PWhereIsBackground 
+    - PauseDurationMSec_95PWhereIsBlockingGen2
+    - CountIsBlockingGen2 
+    - HeapCount
+    - TotalNumberGCs
+    - TotalAllocatedMB
+    - Speed
+    - PauseDurationMSec_MeanWhereIsEphemeral
+    - PauseDurationSeconds_SumWhereIsGen1
+    - PauseDurationSeconds_Sum
+    - CountIsGen1
+    - ExecutionTimeMSec
+    # And all the columns from GCStats.

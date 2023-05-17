@@ -1,0 +1,36 @@
+imports:
+  - https://github.com/aspnet/Benchmarks/blob/main/scenarios/aspnet.profiles.yml?raw=true
+
+jobs:
+  gcperfsim:
+    source:
+      repository: https://github.com/dotnet/performance
+      branchOrCommit: main
+      project: src/benchmarks/gc/src/exec/GCPerfSim/GCPerfSim.csproj
+    readyStateText: "GCPerfSim"
+    waitForExit: true
+    variables:
+      tc: 20
+      tagb: 40
+      tlgb: 5
+      lohar: 0
+      pohar: 0
+      sohsr: 100-4000
+      lohsr: 102400-204800
+      pohsr: 100-204800
+      sohsi: 30
+      lohsi: 0
+      pohsi: 0
+      sohpi: 50
+      lohpi: 0
+      sohfi: 0
+      lohfi: 0
+      pohfi: 0
+      allocType: reference
+      testKind: time
+    arguments: "-tc {{ tc }} -tagb {{ tagb }} -tlgb {{ tlgb }} -lohar {{ lohar }} -lohsr {{ lohsr }} -sohsi {{ sohsi }} -lohsi {{ lohsi }} -sohpi {{ sohpi }} -lohpi {{ lohpi }} -sohfi {{ sohfi }} -lohfi {{ lohfi }} -allocType {{ allocType }} -testKind {{ testKind }}"
+
+scenarios:
+  gcperfsim:
+    application:
+      job: gcperfsim

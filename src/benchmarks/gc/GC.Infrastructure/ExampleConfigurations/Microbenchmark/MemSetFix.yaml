@@ -1,0 +1,88 @@
+runs:
+
+  #segments_beforefix:
+  #  corerun: "C:\\RecentGCFixes\\BeforePetersCommit_Segments\\Core_Root\\corerun.exe"
+  #  environment_variables:
+  #    COMPlus_GCName: "clrgc.dll"
+  #    COMPlus_GCServer: 1 
+  #  is_baseline: true
+
+  #regions_beforefix:
+  #  corerun: "C:\\RecentGCFixes\\BeforePetersCommit_Regions\\Core_Root\\corerun.exe"
+  #  environment_variables:
+  #    COMPlus_GCName: "clrgc.dll"
+  #    COMPlus_GCServer: 1 
+
+#  peters_fix:
+#    corerun: "C:\\RecentGCFixes\\PetersCommit\\Core_Root\\corerun.exe" 
+#    environment_variables:
+#      COMPlus_GCName: "clrgc.dll"
+#      COMPlus_GCServer: 1 
+#    is_baseline: true
+
+  maonis_cherrypicked:
+    corerun: "C:\\RecentGCFixes\\MaonisChangeCherryPickCommit\\Core_Root\\corerun.exe"
+    environment_variables:
+      COMPlus_GCName: "clrgc.dll"
+      COMPlus_GCServer: 1 
+    is_baseline: true
+
+  maonis_cherrypicked_1:
+    corerun: "C:\\RecentGCFixes\\MaonisChangeCherryPickCommit\\Core_Root\\corerun.exe"
+    environment_variables:
+      COMPlus_GCName: "clrgc.dll"
+      COMPlus_GCServer: 1 
+
+# Top level microbenchmark configuration.
+microbenchmark_configurations:
+  #filter_path: "C:\\Users\\musharm\\GC.Analysis.API\\LargeGCBenchmarks.txt" 
+  filter: "Microsoft.Extensions.Caching.Memory.Tests.MemoryCacheTests.AddThenRemove_AbsoluteExpiration*"
+  bdn_arguments: "--memory --warmupCount 1 --iterationCount 20 --allStats --outliers DontRemove --keepFiles true"
+  dotnet_installer : net7.0
+
+# Configurations that involve capturing a trace.
+trace_configurations:
+  type: gc # Choices: gc, verbose, cpu, threadtime, none
+
+output: 
+  path: "C:\\Memset_AllocStacks_Same_2\\"
+  percentage_disk_remaining_to_stop_per_run: 0 
+  formats:
+    - markdown
+    - json
+  additional_report_metrics:
+  cpu_columns:
+  columns:
+    - number of iterations
+    - gc count
+    - induced gc count
+    - non induced gc count
+    - standard error
+    - standard error / mean
+    - max size peak (mb)
+    - total allocated (mb)
+    - total pause time (msec)
+    - gc pause time %
+  all_columns:
+    # GC Specific Columns 
+    - gc count
+    - non induced gc count
+    - induced gc count
+    - total allocated (mb)
+    - max size peak (mb)
+    - total pause time (msec)
+    - gc pause time %
+    - avg. heap size (mb)
+    # BDN Based Columns 
+    - number of iterations
+    - min 
+    - max 
+    - median
+    - q1
+    - q3
+    - variance
+    - standard deviation
+    - skewness
+    - kurtosis
+    - standard error
+    - standard error / mean

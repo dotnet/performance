@@ -1,0 +1,64 @@
+runs:
+
+  segments:
+    dotnet_installer : net7.0
+    environment_variables:
+      COMPlus_GCName : "clrgc.dll" 
+    is_baseline: true
+
+  regions:
+    dotnet_installer : net7.0
+
+  writebarrier_3:
+    environment_variables:
+      COMPlus_GCWriteBarrier: 3 
+      COMPlus_EnableWriteXorExecute: 0
+
+# Top level microbenchmark configuration.
+microbenchmark_configurations:
+  #filter: "System.Reflection.Activator<EmptyClass>*  System.Tests.Perf_Type*  Microsoft.Extensions.Primitives.StringSegmentBenchmark*  System.Text.Tests.Perf_StringBuilder*  System.Tests.Perf_Enum*  System.Tests.Perf_UInt64*  System.Collections.Concurrent.AddRemoveFromSameThreads<Int32>*  System.IO.Tests.StringReaderReadToEndTests*  System.Threading.Tests.Perf_CancellationToken*  System.Tests.Perf_Int64*  Benchstone.BenchI.NDhrystone*  System.Tests.Perf_Object*  PerfLabTests.CastingPerf2.CastingPerf*  System.Net.Primitives.Tests.IPAddressPerformanceTests*  System.Collections.CtorDefaultSize<String>*  System.Tests.Perf_SByte*  ByteMark*  System.Collections.CtorFromCollection<String>*  System.Reflection.Activator<EmptyStruct>*  System.Numerics.Tests.Perf_BigInteger*  System.Tests.Perf_Array*  System.Collections.CtorDefaultSizeNonGeneric*  System.Tests.Perf_Int16*  System.Tests.Perf_GC<Byte>*  System.Collections.CtorDefaultSize<Int32>*  Microsoft.Extensions.DependencyInjection.GetService*  System.Text.Tests.Perf_Encoding*  System.Tests.Perf_Version*  System.Collections.Tests.Perf_BitArray*  System.Tests.Perf_GC<Char>*  System.Xml.Linq.Perf_XDocument*  System.Tests.Perf_UInt32*  System.Tests.Perf_Uri*  Microsoft.AspNetCore.Server.Kestrel.Performance.PipeThroughputBenchmark*  System.Linq.Tests.Perf_Enumerable*  System.Xml.Linq.Perf_XElementList*  System.Tests.Perf_UInt16*  XmlDocumentTests.XmlNodeTests.Perf_XmlNode*  System.Collections.Sort<IntClass>*  System.Tests.Perf_Int32*  BenchmarksGame.KNucleotide_9*  PerfLabTests.EnumPerf*  System.IO.Tests.StreamReaderReadToEndTests*  PerfLabTests.CastingPerf*  PerfLabTests.LowLevelPerf*  System.Xml.Linq.Perf_XName*  Microsoft.Extensions.Primitives.Performance.StringValuesBenchmark*  System.Tests.Perf_Boolean*  System.Tests.Perf_Byte*  Benchstone.MDBenchI.MDNDhrystone*  System.Tests.Perf_String*"  #"System.Xml.Linq.Perf_XName.NonEmptyNameSpaceToString*"
+  filter: "Microsoft.Extensions.Caching.Memory.Tests.MemoryCacheTests.AddThenRemove_AbsoluteExpiration"
+  #filter: "System.Tests.Perf_Type*"
+  bdn_arguments: "--memory --warmupCount 1 --iterationCount 20 --allStats --outliers DontRemove" # Don't include invocation count.
+  dotnet_installer : net7.0
+
+trace_configurations:
+  type: cpu # Choices: gc, verbose, cpu, threadtime, none
+
+output: 
+  path: "C:\\Top_5\\"
+  percentage_disk_remaining_to_stop_per_run: 0
+  formats:
+    - markdown
+    - json
+  additional_report_metrics:
+  cpu_columns:
+  columns:
+    - number of iterations
+    - gc count
+    - induced gc count
+    - non induced gc count
+    - standard error
+    - max size peak (mb)
+    - total allocated (mb)
+    - total pause time (msec)
+    - gc pause time %
+  all_columns:
+    # GC Specific Columns 
+    - gc count
+    - non induced gc count
+    - total allocated (mb)
+    - max size peak (mb)
+    - total pause time (msec)
+    - gc pause time %
+    # BDN Based Columns 
+    - number of iterations
+    - min 
+    - max 
+    - median
+    - q1
+    - q3
+    - variance
+    - standard deviation
+    - skewness
+    - kurtosis
