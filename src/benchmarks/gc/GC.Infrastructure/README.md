@@ -5,15 +5,12 @@ This repository contains the code to invoke the GC Infrastructure that currently
 1. GCPerfSim
 2. Microbenchmarks
 3. ASP.NET Benchmarks
-
 Currently, the infrastructure runs exclusively on Windows if you want to run the scenarios locally. 
 
 ## Workflow
-
 This section details the end-to-end workflow associated with getting the infrastructure to run for the GCPerfSim, Microbenchmark and ASP.NET Benchmark test suites.
 
 ### 1. Prerequisites
-
 1. Clone the repo: ``git clone https://github.com/mrsharm/GC.Analysis.API.git C:\Infrastructure\``.
 2. Clone the performance repo: ``git clone https://github.com/dotnet/performance C:\performance`` for GCPerfSim and Microbenchmarks.
 3. Install:
@@ -28,28 +25,25 @@ This section details the end-to-end workflow associated with getting the infrast
 
 The next step is to build the Infrastructure. To build the infrastructure in Release Mode do the following steps:
 
-1. ```cd C:\Infrastructure\GC.Infrastructure```
-2. ``dotnet build -c Release``
+1. ``cd C:\Infrastructure\GC.Infrastructure``.
+2. ``dotnet build -c Release``.
 
 ## 3. Running the Infrastructure. 
 
 To run all the test suites, do the following steps:
-
-1.  ```cd C:\Infrastructure\GC.Infrastructure```
-
+1.  ```cd C:\Infrastructure\GC.Infrastructure```.
 2.  Ensure you have the right fields set in ``C:\Infrastructure\ExampleConfiguration\Run.yaml`` for
-    1.  The output path. As an example, by default, the results will be stored in ``C:\InfraRuns\Run``.
-        1.  Ensure the output directory is empty as the analysis code will pick up the older traces and will interfere with the results generation.
-    2.  The gcperfsim path: The path of the GCPerfSim.dll.
+    1. The output path. As an example, by default, the results will be stored in ``C:\InfraRuns\Run``.
+        1. Ensure the output directory is empty as the analysis code will pick up the older traces and will interfere with the results generation.
+    2. The gcperfsim path: The path of the GCPerfSim.dll.
         1.  This dll can be built by the following steps:
-            1.  ``cd C:\Performance\src\benchmarks\gc\src\exec\GCPerfSim``.
-            2.  ``dotnet build -c Release``
-            3.  The path of GCPerfSim.dll will be available in: ``C:\Performance\artifacts\bin\GCPerfSim\Release\{.NET Version}\GCPerfSim.dll``
+            1. ``cd C:\Performance\src\benchmarks\gc\src\exec\GCPerfSim``.
+            2. ``dotnet build -c Release``.
+            3. The path of GCPerfSim.dll will be available in: ``C:\Performance\artifacts\bin\GCPerfSim\Release\{.NET Version}\GCPerfSim.dll``
                 1.  For example: C:\Performance\artifacts\bin\GCPerfSim\Release\net7.0\GCPerfSim.dll
     3.  The path to the microbenchmark folder or the root path of the Microbenchmarks projects which, will be in:  ``C:\performance\src\benchmarks\micro``
         1.  Ensure that the microbenchmarks have been compiled using: ``dotnet build -c Release``.
     4.  The corerun path for the baseline and the run.
-
 3.  ``dotnet run -- run --configuration C:\Infrastructure\ExampleConfiguration\Run.yaml``.
 
 The aggregate results for each of the test suites will be written in ``C:\InfraRuns\Run\Result.md``.
