@@ -11,6 +11,7 @@ Currently, the infrastructure runs exclusively on Windows if you want to run the
 This section details the end-to-end workflow associated with getting the infrastructure to run for the GCPerfSim, Microbenchmark and ASP.NET Benchmark test suites.
 
 ### 1. Prerequisites
+
 1. Clone the repo: ``git clone https://github.com/mrsharm/GC.Analysis.API.git C:\Infrastructure\``.
 2. Clone the performance repo: ``git clone https://github.com/dotnet/performance C:\performance`` for GCPerfSim and Microbenchmarks.
 3. Install:
@@ -28,23 +29,22 @@ The next step is to build the Infrastructure. To build the infrastructure in Rel
 1. ``cd C:\Infrastructure\GC.Infrastructure``.
 2. ``dotnet build -c Release``.
 
-## 3. Running the Infrastructure. 
-
+## 3. Running the Infrastructure.
 To run all the test suites, do the following steps:
-1.  ```cd C:\Infrastructure\GC.Infrastructure```.
-2.  Ensure you have the right fields set in ``C:\Infrastructure\ExampleConfiguration\Run.yaml`` for
+1. ``cd C:\Infrastructure\GC.Infrastructure``.
+2. Ensure you have the right fields set in ``C:\Infrastructure\ExampleConfiguration\Run.yaml`` for:
     1. The output path. As an example, by default, the results will be stored in ``C:\InfraRuns\Run``.
         1. Ensure the output directory is empty as the analysis code will pick up the older traces and will interfere with the results generation.
     2. The gcperfsim path: The path of the GCPerfSim.dll.
-        1.  This dll can be built by the following steps:
+        1. This dll can be built by the following steps:
             1. ``cd C:\Performance\src\benchmarks\gc\src\exec\GCPerfSim``.
             2. ``dotnet build -c Release``.
             3. The path of GCPerfSim.dll will be available in: ``C:\Performance\artifacts\bin\GCPerfSim\Release\{.NET Version}\GCPerfSim.dll``
-                1.  For example: C:\Performance\artifacts\bin\GCPerfSim\Release\net7.0\GCPerfSim.dll
-    3.  The path to the microbenchmark folder or the root path of the Microbenchmarks projects which, will be in:  ``C:\performance\src\benchmarks\micro``
-        1.  Ensure that the microbenchmarks have been compiled using: ``dotnet build -c Release``.
-    4.  The corerun path for the baseline and the run.
-3.  ``dotnet run -- run --configuration C:\Infrastructure\ExampleConfiguration\Run.yaml``.
+                1. For example: C:\Performance\artifacts\bin\GCPerfSim\Release\net7.0\GCPerfSim.dll
+    3. The path to the microbenchmark folder or the root path of the Microbenchmarks projects which, will be in:  ``C:\performance\src\benchmarks\micro``
+        1. Ensure that the microbenchmarks have been compiled using: ``dotnet build -c Release``.
+    4. The corerun path for the baseline and the run.
+3. ``dotnet run -- run --configuration C:\Infrastructure\ExampleConfiguration\Run.yaml``.
 
 The aggregate results for each of the test suites will be written in ``C:\InfraRuns\Run\Result.md``.
 
@@ -71,7 +71,7 @@ To run a specific GCPerfSim scenario such as the Normal Server scenario, invoke 
 To run the infrastructure on a specific Microbenchmark scenario such as the Server case invoke the following command: 
 
 1. ``cd C:\Infrastructure\GC.Infrastructure\bin\Release\net7.0`` 
-2.  ``.\GC.Infrastructure.exe microbenchmarks --configuration C:\InfrastructureConfigurations\Microbenchmark\Microbenchmark_Server.yaml``
+2. ``.\GC.Infrastructure.exe microbenchmarks --configuration C:\InfrastructureConfigurations\Microbenchmark\Microbenchmark_Server.yaml``
 
 #### How To Update The Microbenchmarks To Run
 
@@ -126,19 +126,20 @@ To run the infrastructure on a specific set of ASP.NET Benchmarks such as the su
 The ASP.NET benchmarks can be run without any of the users changes however, if the user wants to upload modified binaries with their changes, it is advisable to only upload those as long as they are compatible with the version of .NET runtime you wish to test against. Currently, the default framework to run these tests is net8.0. This can be accomplished in 2 steps:
 
 1. Copy over the binaries you want to change to a new empty folder.
-1. Set the run's corerun path in the configuration to that of a folder with just the copied over binaries. 
+2. Set the run's corerun path in the configuration to that of a folder with just the copied over binaries. 
 
 As an example, if I were to only update ``gc.cpp`` and build a standalone ``clrgc.dll``, I would copy the binary to a folder such as the following, update the ``runs`` section of the configuration and point to the folder containing the binary; NOTE: the environment variable ``COMPlus_GCName`` must be set in this case:
 
 1. Copy the clrgc.dll to a new and empty folder.
-```
+
+```powershell
 C:\ASPNETUPLOAD
 |-----> clrgc.dll
 ```
 
 2. Adjust the corerun to point to the new folder:
 
-```
+```yaml
 runs:
   run:
     corerun: C:\ASPNetUpload\ # This was updated.
@@ -152,7 +153,7 @@ The file that dictates which ASP.NET benchmarks to run is a CSV file and can be 
 
 You can update this file by changing the following field:
 
-```
+```yaml
 benchmark_settings:
   benchmark_file: C:\InfraRuns\RunNew_All\Suites\ASPNETBenchmarks\ASPNetBenchmarks.csv # Change this.
 ```
@@ -170,9 +171,9 @@ It's worth noting that if you have specified Linux based binaries in the corerun
 
 #### How To Add New Benchmarks
 
-1. If you are collecting traces, make sure to include Linux (_Linux) or Windows (_Windows) suffix in the Legend column because we run PerfView to collect traces for Windows and dotnet-trace for `gc` trace; currently not working for other types of traces on Linux. 
+1. If you are collecting traces, make sure to include Linux (_Linux) or Windows (_Windows) suffix in the Legend column because we run PerfView to collect traces for Windows and dotnet-trace for `gc` trace; currently not working for other types of traces on Linux.
 2. Find the base commandline for the benchmark to run by choosing the appropriate test and configuration from the [ASP.NET Dashboard](https://msit.powerbi.com/groups/me/reports/10265790-7e2e-41d3-9388-86ab72be3fe9/ReportSection30725cd056a647733762?experience=power-bi)
-3. Copy over the command line from the table to the Base CommandLine column after: 
+3. Copy over the command line from the table to the Base CommandLine column after:
    1. Remove the ``crank`` prefix from the command line.
    2. Remove the ``--application.aspNetCoreVersion``, ``--application.runtimeVersion`` and ``--application.sdkVersion`` command args from the command line that you paste in the CSV as the versions are set by the infrastructure itself.
 
