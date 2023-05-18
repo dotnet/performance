@@ -25,7 +25,7 @@ jobs:
         variables:
         - ${{ if ne(parameters.runEnvVars, '')}}:
           - name: runEnvVarsParam
-            value: '--run-env-vars ${{ parameters.runEnvVars }}'
+            value: "--run-env-vars ${{ join(' ', parameters.runEnvVars)}} "
         - ${{ if eq(parameters.runEnvVars, '')}}: # if no runEnvVars are specified, don't pass the parameter to ci_setup
           - name: runEnvVarsParam
             value: ''
