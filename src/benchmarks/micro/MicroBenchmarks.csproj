@@ -4,8 +4,8 @@
     <!-- Used by Python script to narrow down the specified target frameworks to test, and avoid downloading all supported SDKs -->
     <TargetFrameworks>$(PERFLAB_TARGET_FRAMEWORKS)</TargetFrameworks>
     <!-- Supported target frameworks -->
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net462;netcoreapp3.1;net6.0;net7.0;net8.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(TargetFrameworks)' == ''">netcoreapp3.1;net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' == 'Windows_NT'">net462;net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(TargetFrameworks)' == '' AND '$(OS)' != 'Windows_NT'">net6.0;net7.0;net8.0</TargetFrameworks>
     <NoWarn>$(NoWarn);CS8002</NoWarn>
     <!-- Suppress binaryformatter obsolete warning -->
     <NoWarn>$(NoWarn);SYSLIB0011</NoWarn>
@@ -14,26 +14,26 @@
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <EnableXlfLocalization>false</EnableXlfLocalization>    
-    <LangVersion>10.0</LangVersion>
+    <EnableXlfLocalization>false</EnableXlfLocalization>
+    <LangVersion>latest</LangVersion>
 
     <!-- Allow building with one major version, and running using a sdk with a higher major version -->
     <RollForward Condition="'$(BuildingForWasm)' == 'true'">LatestMajor</RollForward>
   </PropertyGroup>
   <!-- out-of-band packages that are not included in NetCoreApp have TFM-specific versions -->
   <Choose>
-    <When Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-        <PropertyGroup>
-            <ExtensionsVersion>3.1.22</ExtensionsVersion>
-            <SystemVersion>4.7.1</SystemVersion>
-            <!-- this repo needs to build with netcoreapp3.1, so we can't use latest C# syntax -->
-            <LangVersion>8.0</LangVersion>
-        </PropertyGroup>
-    </When>
     <When Condition="'$(TargetFramework)' == 'net6.0'">
         <PropertyGroup>
+            <LangVersion>10.0</LangVersion>
             <ExtensionsVersion>6.0.0</ExtensionsVersion>
             <SystemVersion>6.0.0</SystemVersion>
+        </PropertyGroup>
+    </When>
+    <When Condition="'$(TargetFramework)' == 'net7.0'">
+        <PropertyGroup>
+            <LangVersion>11.0</LangVersion>
+            <ExtensionsVersion>7.0.0</ExtensionsVersion>
+            <SystemVersion>7.0.0</SystemVersion>
         </PropertyGroup>
     </When>
     <Otherwise>
