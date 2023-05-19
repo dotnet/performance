@@ -29,9 +29,9 @@ namespace ScenarioMeasurement
             double start = -1;
             double buildEvalStart = -1;
             int? pid = null;
-            Dictionary<string, List<double>> firstRun = new Dictionary<string, List<double>>();
-            Dictionary<string, List<double>> secondRun = new Dictionary<string, List<double>>();
-            Dictionary<string, List<double>> currentRun = firstRun;
+            var firstRun = new Dictionary<string, List<double>>();
+            var secondRun = new Dictionary<string, List<double>>();
+            var currentRun = firstRun;
             using (var source = new TraceSourceManager(mergeTraceFile))
             {
 
@@ -141,19 +141,19 @@ namespace ScenarioMeasurement
                 source.Process();
             }
 
-            List<double> diffGS = new List<double>();
-            List<double> diffTOT = new List<double>();
-            List<double> diffEBT = new List<double>();
+            var diffGS = new List<double>();
+            var diffTOT = new List<double>();
+            var diffEBT = new List<double>();
 
-            for(int i = 0; i < firstRun["Process/Stop"].Count; i++)
+            for(var i = 0; i < firstRun["Process/Stop"].Count; i++)
             {
                 diffGS.Add(firstRun["Process/Stop"][i] - secondRun["Process/Stop"][i]);
             }
-            for(int i = 0; i < firstRun["ThreadCSwitch"].Count; i++)
+            for(var i = 0; i < firstRun["ThreadCSwitch"].Count; i++)
             {
                 diffTOT.Add(firstRun["ThreadCSwitch"][i] - secondRun["ThreadCSwitch"][i]);
             }
-            for(int i = 0; i < firstRun["Evaluate/Stop"].Count; i++)
+            for(var i = 0; i < firstRun["Evaluate/Stop"].Count; i++)
             {
                 diffEBT.Add(firstRun["Evaluate/Stop"][i] - secondRun["Evaluate/Stop"][i]);
             }

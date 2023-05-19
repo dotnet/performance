@@ -27,7 +27,7 @@ namespace ScenarioMeasurement
             var ins = new Dictionary<int, double>();
             double start = -1;
             int? pid = null;
-            HashSet<int> pidSet = new HashSet<int>(pids);
+            var pidSet = new HashSet<int>(pids);
             using (var source = new ETWTraceEventSource(mergeTraceFile))
             {
 

@@ -25,8 +25,8 @@ namespace ScenarioMeasurement
                 Console.WriteLine("Admin mode is required to start ETW.");
                 Environment.Exit(1);
             }
-            string kernelFileName = Path.ChangeExtension(traceName, "perflabkernel.etl");
-            string userFileName = Path.ChangeExtension(traceName, "perflabuser.etl");
+            var kernelFileName = Path.ChangeExtension(traceName, "perflabkernel.etl");
+            var userFileName = Path.ChangeExtension(traceName, "perflabuser.etl");
             TraceFilePath = Path.Combine(traceDirectory, Path.ChangeExtension(traceName, ".etl"));
 
             KernelSession = new TraceEventSession(sessionName + "_kernel", Path.Combine(traceDirectory, kernelFileName));
@@ -90,7 +90,7 @@ namespace ScenarioMeasurement
             {
                 flags |= kernelKeywords[keyword];
             }
-            bool enabled = false;
+            var enabled = false;
             try
             {
                 enabled = KernelSession.EnableKernelProvider(flags);
@@ -117,7 +117,7 @@ namespace ScenarioMeasurement
             {
                 flags |= clrKeywords[keyword];
             }
-            bool enabled = false;
+            var enabled = false;
             try
             {
                 enabled = UserSession.EnableProvider(ClrPrivateTraceEventParser.ProviderGuid, TraceEventLevel.Verbose, (ulong)flags);
@@ -155,9 +155,9 @@ namespace ScenarioMeasurement
         public static bool IsAdministrator()
         {
 #pragma warning disable CA1416 // WindowsTraceSession only called from TraceSessionManager if platform is windows
-            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            using (var identity = WindowsIdentity.GetCurrent())
             {
-                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                var principal = new WindowsPrincipal(identity);
                 return principal.IsInRole(WindowsBuiltInRole.Administrator);
             }
 #pragma warning restore CA1416

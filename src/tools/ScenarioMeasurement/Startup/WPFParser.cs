@@ -25,8 +25,8 @@ namespace ScenarioMeasurement
             var ins = new Dictionary<int, double>();
             double start = -1;
             int? pid = null;
-            bool doneParsingXaml = false;
-            double lastKnownTime = 0.0;
+            var doneParsingXaml = false;
+            var lastKnownTime = 0.0;
             using (var source = new ETWTraceEventSource(mergeTraceFile))
             {
 

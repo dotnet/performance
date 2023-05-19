@@ -59,7 +59,7 @@ namespace Reporting
                 Queue = environment.GetEnvironmentVariable("PERFLAB_QUEUE"),
                 WorkItemName = environment.GetEnvironmentVariable("HELIX_WORKITEM_FRIENDLYNAME"),
             };
-            Boolean.TryParse(environment.GetEnvironmentVariable("PERFLAB_HIDDEN"), out bool hidden);
+            Boolean.TryParse(environment.GetEnvironmentVariable("PERFLAB_HIDDEN"), out var hidden);
             run.Hidden = hidden;
             var configs = environment.GetEnvironmentVariable("PERFLAB_CONFIGS");
             if (!String.IsNullOrEmpty(configs)) // configs should be optional.
@@ -135,7 +135,7 @@ namespace Reporting
 
         public string WriteResultTable()
         {
-            StringBuilder ret = new StringBuilder();
+            var ret = new StringBuilder();
             foreach (var test in tests)
             {
                 var defaultCounter = test.Counters.Single(c => c.DefaultCounter);
@@ -162,9 +162,9 @@ namespace Reporting
         }
         private string Print(Counter counter, int counterWidth, int resultWidth)
         {
-            string average = $"{counter.Results.Average():F3} {counter.MetricName}";
-            string max = $"{counter.Results.Max():F3} {counter.MetricName}";
-            string min = $"{counter.Results.Min():F3} {counter.MetricName}";
+            var average = $"{counter.Results.Average():F3} {counter.MetricName}";
+            var max = $"{counter.Results.Max():F3} {counter.MetricName}";
+            var min = $"{counter.Results.Min():F3} {counter.MetricName}";
             return $"{LeftJustify(counter.Name, counterWidth)}|{LeftJustify(average, resultWidth)}|{LeftJustify(min, resultWidth)}|{LeftJustify(max, resultWidth)}";
         }
 

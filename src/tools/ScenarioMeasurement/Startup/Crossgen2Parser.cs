@@ -167,11 +167,11 @@ namespace ScenarioMeasurement
             // time elapsed between each pair as the interval of this event. 
 
             // Get time elapsed for this pair of start&stop events
-            double interval = evt.TimeStampRelativeMSec - Start;
+            var interval = evt.TimeStampRelativeMSec - Start;
             // If previous pid exists, this is the same process and time elapsed is added to the last value in the stack.
             if (PrevPid.HasValue && evt.ProcessID == PrevPid)
             {
-                double lastValue = Intervals.Pop();
+                var lastValue = Intervals.Pop();
                 Intervals.Push(lastValue + interval);
             }
             // If previous pid doesn't exist, this is the next process and time elapsed is a new value pushed to the stack.

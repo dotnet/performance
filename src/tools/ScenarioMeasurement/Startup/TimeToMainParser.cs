@@ -63,7 +63,7 @@ namespace ScenarioMeasurement
                     };
                 }
 
-                ClrPrivateTraceEventParser clrpriv = new ClrPrivateTraceEventParser(source.Source);
+                var clrpriv = new ClrPrivateTraceEventParser(source.Source);
                 clrpriv.StartupMainStart += evt =>
                 {
                     if(pid.HasValue && ParserUtility.MatchSingleProcessID(evt, source, (int)pid))

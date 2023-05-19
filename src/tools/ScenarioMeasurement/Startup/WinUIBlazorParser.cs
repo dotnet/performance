@@ -30,7 +30,7 @@ namespace ScenarioMeasurement
             var ins = new Dictionary<int, double>();
             double start = -1;
             int? pid = null;
-            bool frameStopCaught = false;
+            var frameStopCaught = false;
             using (var source = new ETWTraceEventSource(mergeTraceFile))
             {
                 source.Kernel.ProcessStart += evt =>
