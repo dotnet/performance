@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -18,6 +18,7 @@ namespace System
         private byte[] _binaryData;
         private char[] _base64CharArray;
         private string _base64String;
+        private string _hexString;
         private char[] _base64Chars;
 
         [GlobalSetup(Target = nameof(GetTypeCode))]
@@ -85,8 +86,16 @@ namespace System
             new Random(42).NextBytes(_binaryData);
         }
 
+        [GlobalSetup(Target = nameof(FromHexString))]
+        public void SetupFromHexString()
+        {
+            _hexString = Convert.ToHexString(Encoding.ASCII.GetBytes("This is a test of Convert."));   
+        }
+
         [Benchmark]
         public string ToHexString() => Convert.ToHexString(_binaryData);
+        [Benchmark]
+        public byte[] FromHexString() => Convert.FromHexString(_hexString);
 #endif
 
         private static byte[] InitializeBinaryDataCollection(int size)
