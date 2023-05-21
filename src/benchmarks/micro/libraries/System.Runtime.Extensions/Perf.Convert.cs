@@ -18,7 +18,9 @@ namespace System
         private byte[] _binaryData;
         private char[] _base64CharArray;
         private string _base64String;
+#if NET5_0_OR_GREATER
         private string _hexString;
+#endif
         private char[] _base64Chars;
 
         [GlobalSetup(Target = nameof(GetTypeCode))]
