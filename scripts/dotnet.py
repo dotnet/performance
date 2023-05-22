@@ -778,29 +778,38 @@ def install(
     # Download appropriate dotnet install script
     dotnetInstallScriptExtension = '.ps1' if platform == 'win32' else '.sh'
     dotnetInstallScriptName = 'dotnet-install' + dotnetInstallScriptExtension
-    url = 'https://dot.net/v1/'  
+    url = 'https://dot.net/v1/'
     dotnetInstallScriptUrl = url + dotnetInstallScriptName
 
     dotnetInstallScriptPath = path.join(install_dir, dotnetInstallScriptName)
 
     getLogger().info('Downloading %s', dotnetInstallScriptUrl)
     count = 0
-    while count < 3:
+    max_count = 10
+    while count < max_count:
         try:
             with urlopen(dotnetInstallScriptUrl, context=ssl._create_unverified_context()) as response:
                 if "html" in response.info()['Content-Type']:
                     count = count + 1
-                    sleep(1) # sleep one second
+                    sleep(count ** 2)
                     continue
                 with open(dotnetInstallScriptPath, 'wb') as outfile:
                     outfile.write(response.read())
                     break
-        except Exception:
+        except URLError as error:
+            getLogger().warning(f"Could not download dotnet-install script from {dotnetInstallScriptUrl}; {Reason: {error.reason}}; Attempt {count}")
             count = count + 1
-            sleep(1)
+            sleep(count ** 2)
+            continue
+        except Exception as error:
+            getLogger().warning(f"Could not download dotnet-install script from {dotnetInstallScriptUrl}; {type(error).__name__}; Attempt {count}")
+            count = count + 1
+            sleep(count ** 2)
             continue
 
-    if count == 3:
+    getLogger().info(f"Downloaded {dotnetInstallScriptUrl} OK")
+
+    if count == max_count:
         getLogger().error("Fatal error: could not download dotnet-install script")
         raise Exception("Fatal error: could not download dotnet-install script")
 
