@@ -114,6 +114,5 @@ namespace System.Formats.Tar.Tests
             _memoryStream.Position = 0;
             return new TarWriter(_memoryStream, leaveOpen: true);
         }
-
     }
 }
