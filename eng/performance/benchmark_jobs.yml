@@ -23,11 +23,10 @@ jobs:
         displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.machinePool }}'
         timeoutInMinutes: 320
         variables:
-        - ${{ if ne(parameters.affinity, '0')}}:
-          - name: AffinityParam
+        - name: AffinityParam
+          ${{ if ne(parameters.affinity, '0')}}:
             value: '--affinity ${{ parameters.affinity }}'
-        - ${{ if eq(parameters.affinity, '0')}}: # Affinity of 0 seems to cause problems with BDN, so don't set it if we don't need to
-          - name: AffinityParam
+          ${{ else }}: # Affinity of 0 seems to cause problems with BDN, so don't set it if we don't need to
             value: ''
         - ${{ if eq(parameters.osName, 'windows') }}:
           - name: CliArguments
