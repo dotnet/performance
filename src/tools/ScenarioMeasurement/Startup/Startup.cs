@@ -38,7 +38,7 @@ class Startup
 {
     private static IProcessHelper TestProcess { get; set; }
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="appExe">Full path to test executable</param>
     /// <param name="metricType">Type of interval measurement</param>
@@ -68,6 +68,7 @@ class Startup
     /// <param name="skipMeasurementIteration">Don't run measurement collection</param>
     /// <param name="parseOnly">Parse trace(s) without running app</param>
     /// <param name="runWithDotnet">Run the app with dotnet, but don't include dotnet startup time</param>
+    /// <param name="processorAffinity">Processor affinity mask to set for the process</param>
     /// <returns></returns>
 
     static int Main(string appExe,
@@ -97,7 +98,8 @@ class Startup
                     int hotReloadIters = 1,
                     bool skipMeasurementIteration = false,
                     bool parseOnly = false,
-                    bool runWithDotnet = false
+                    bool runWithDotnet = false,
+                    int processorAffinity = 0
                     )
     {
         var logger = new Logger(String.IsNullOrEmpty(logFileName) ? $"{appExe}.startup.log" : logFileName);
@@ -135,6 +137,21 @@ class Startup
 
         logger.Log($"Running {appExe} (args: \"{appArgs}\")");
         logger.Log($"Working Directory: {workingDir}");
+
+        if(processorAffinity > 0 && (OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
+        {
+            Process.GetCurrentProcess().ProcessorAffinity = (IntPtr)processorAffinity;
+            logger.Log($"Process Affinity: {Process.GetCurrentProcess().ProcessorAffinity}, mask: {Convert.ToString((int)Process.GetCurrentProcess().ProcessorAffinity, 2)}");
+        }
+        else if (processorAffinity != 0 && !(OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
+        {
+            throw new ArgumentException(nameof(processorAffinity) + " not supported on non-windows and non-linux platforms!");
+        }
+        else if (processorAffinity < 0)
+        {
+            throw new ArgumentException(nameof(processorAffinity) + " cannot be negative!");
+        }
+
         if(runWithoutExit)
         {
             TestProcess = new RawProcessHelper(logger)
@@ -285,7 +302,7 @@ class Startup
             case MetricType.WinUI:
                 parser = new WinUIParser();
                 break;
-            case MetricType.WinUIBlazor:    
+            case MetricType.WinUIBlazor:
                 parser = new WinUIBlazorParser();
                 break;
         }
@@ -293,7 +310,7 @@ class Startup
         var pids = new List<int>();
         var failed = false;
 
-        if(!skipMeasurementIteration) 
+        if(!skipMeasurementIteration)
         {
             // Run trace session
             using (var traceSession = TraceSessionManager.CreateSession("StartupSession", traceName, traceDirectory, logger))
@@ -305,7 +322,7 @@ class Startup
                     (bool Success, List<int> Pids) iterationResult;
 
                     iterationResult = RunIteration(setupProcHelper, TestProcess, waitForSteadyState, innerLoopProcHelper, waitForRecompile, secondTestProcess, cleanupProcHelper, logger, hotReloadIters);
-                    
+
                     if (!iterationResult.Success)
                     {
                         failed = true;
@@ -452,7 +469,7 @@ class Startup
                 pids.Add(runResult.Pid);
             }
         }
-        
+
         if (waitForSteadyState != null && !failed)
         {
             logger.LogStepHeader("Waiting for steady state");
@@ -477,7 +494,7 @@ class Startup
                 failed = failed || !waitForRecompile(runResult.Proc, "Hot reload of changes succeeded");
             }
         }
-        
+
         if (secondTestHelper != null  && !failed)
         {
             var test = InnerLoopMarkerEventSource.GetSources();

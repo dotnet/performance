@@ -45,6 +45,7 @@ class TestTraits:
         self.tracename = ''
         self.tracefolder = ''
         self.runwithdotnet = ''
+        self.processoraffinity = ''
 
         # add test types to traits
         for testtype in testtypes:
