@@ -47,7 +47,7 @@ namespace System.Formats.Tar.Tests
         public void V7TarEntry_WriteEntry()
         {
             V7TarEntry entry = new V7TarEntry(TarEntryType.RegularFile, _fileName);
-            using TarWriter writer = new TarWriter(_memoryStream);
+            using TarWriter writer = CreateWriter();
             writer.WriteEntry(entry);
         }
 
@@ -55,7 +55,7 @@ namespace System.Formats.Tar.Tests
         public async Task V7TarEntry_WriteEntry_Async()
         {
             V7TarEntry entry = new V7TarEntry(TarEntryType.RegularFile, _fileName);
-            await using TarWriter writer = new TarWriter(_memoryStream);
+            await using TarWriter writer = CreateWriter();
             await writer.WriteEntryAsync(entry);
         }
 
@@ -63,7 +63,7 @@ namespace System.Formats.Tar.Tests
         public void UstarTarEntry_WriteEntry()
         {
             UstarTarEntry entry = new UstarTarEntry(TarEntryType.RegularFile, _fileName);
-            using TarWriter writer = new TarWriter(_memoryStream);
+            using TarWriter writer = CreateWriter();
             writer.WriteEntry(entry);
         }
 
@@ -71,7 +71,7 @@ namespace System.Formats.Tar.Tests
         public async Task UstarTarEntry_WriteEntry_Async()
         {
             UstarTarEntry entry = new UstarTarEntry(TarEntryType.RegularFile, _fileName);
-            await using TarWriter writer = new TarWriter(_memoryStream);
+            await using TarWriter writer = CreateWriter();
             await writer.WriteEntryAsync(entry);
         }
 
@@ -79,7 +79,7 @@ namespace System.Formats.Tar.Tests
         public void PaxTarEntry_WriteEntry()
         {
             PaxTarEntry entry = new PaxTarEntry(TarEntryType.RegularFile, _fileName, _ea);
-            using TarWriter writer = new TarWriter(_memoryStream);
+            using TarWriter writer = CreateWriter();
             writer.WriteEntry(entry);
         }
 
@@ -87,7 +87,7 @@ namespace System.Formats.Tar.Tests
         public async Task PaxTarEntry_WriteEntry_Async()
         {
             PaxTarEntry entry = new PaxTarEntry(TarEntryType.RegularFile, _fileName, _ea);
-            await using TarWriter writer = new TarWriter(_memoryStream);
+            await using TarWriter writer = CreateWriter();
             await writer.WriteEntryAsync(entry);
         }
 
@@ -95,7 +95,7 @@ namespace System.Formats.Tar.Tests
         public void GnuTarEntry_WriteEntry()
         {
             GnuTarEntry entry = new GnuTarEntry(TarEntryType.RegularFile, _fileName);
-            using TarWriter writer = new TarWriter(_memoryStream);
+            using TarWriter writer = CreateWriter();
             writer.WriteEntry(entry);
         }
 
@@ -103,8 +103,16 @@ namespace System.Formats.Tar.Tests
         public async Task GnuTarEntry_WriteEntry_Async()
         {
             GnuTarEntry entry = new GnuTarEntry(TarEntryType.RegularFile, _fileName);
-            await using TarWriter writer = new TarWriter(_memoryStream);
+            await using TarWriter writer = CreateWriter();
             await writer.WriteEntryAsync(entry);
+        }
+
+        private TarWriter CreateWriter()
+        {
+            // BDN runs every benchmark more than once, so we want to reuse the memory stream instance
+            // and have it always perform the same amount of work.
+            _memoryStream.Position = 0;
+            return new TarWriter(_memoryStream, leaveOpen: true);
         }
 
     }
