@@ -11,7 +11,7 @@ parameters:
   runCategories: ''     # required -- string of space separated categories supplied to benchmark dotnet
   machinePool: ''       # required -- Name of perf machine pool (Tiger, Owl, etc)
   affinity: '0'         # optional -- Affinity bitmask to a specific machine in the pool (e.g. 1, 2, etc)
-  runEnvVars: ''        # optional -- Environment variables to set for the benchmark run in the form of a multi-line object like: "runEnvVars:\n - DOTNET_GCgen0size=1E00000 \n - DOTNET_GCHeapCount=4 \n - DOTNET_GCTotalPhysicalMemory=200000000"
+  runEnvVars: []       # optional -- Environment variables to set for the benchmark run in the form of a multi-line object like: "runEnvVars:\n - DOTNET_GCgen0size=1E00000 \n - DOTNET_GCHeapCount=4 \n - DOTNET_GCTotalPhysicalMemory=200000000"
 
 jobs:
 - template: ../common/templates/jobs/jobs.yml
@@ -30,12 +30,11 @@ jobs:
         - ${{ if eq(parameters.affinity, '0')}}: # Affinity of 0 seems to cause problems with BDN, so don't set it if we don't need to
           - name: AffinityParam
             value: ''
-        - ${{ if ne(parameters.runEnvVars, '')}}:
-          - name: runEnvVarsParam
-            value: "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
-        - ${{ if eq(parameters.runEnvVars, '')}}: # if no runEnvVars are specified, don't pass the parameter to ci_setup
-          - name: runEnvVarsParam
-            value: ''
+        - name: runEnvVarsParam
+        - ${{ if ne(length(parameters.runEnvVars), 0)}}:
+          value: "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
+        - ${{ else }}: # if no runEnvVars are specified, don't pass the parameter to ci_setup
+          value: ''
         - ${{ if eq(parameters.osName, 'windows') }}:
           - name: CliArguments
             value: '--dotnet-versions %DOTNET_VERSION% --cli-source-info args --cli-branch %PERFLAB_BRANCH% --cli-commit-sha %PERFLAB_HASH% --cli-repository https://github.com/%PERFLAB_REPO% --cli-source-timestamp %PERFLAB_BUILDTIMESTAMP%'
