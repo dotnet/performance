@@ -62,6 +62,7 @@
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="$(SystemVersion)" />
     <PackageReference Include="System.Drawing.Common" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '8.0'" />
     <PackageReference Include="System.Formats.Cbor" Version="$(SystemVersion)" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &gt;= '5.0'" />
+    <PackageReference Include="System.IO.Hashing" Version="$(SystemVersion)" />
     <PackageReference Include="System.IO.Pipelines" Version="$(SystemVersion)" />
     <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
