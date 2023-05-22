@@ -23,10 +23,10 @@ jobs:
         timeoutInMinutes: 320
         variables:
         - name: runEnvVarsParam
-        - ${{ if ne(length(parameters.runEnvVars), 0)}}:
-          value: "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
-        - ${{ else }}: # if no runEnvVars are specified, don't pass the parameter to ci_setup
-          value: ''
+          ${{ if ne(length(parameters.runEnvVars), 0)}}:
+            value: "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
+          ${{ else }}: # if no runEnvVars are specified, don't pass the parameter to ci_setup
+            value: ''
         - ${{ if eq(parameters.osName, 'windows') }}:
           - name: ScriptExtension
             value: .cmd

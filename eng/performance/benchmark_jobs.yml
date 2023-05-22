@@ -31,10 +31,10 @@ jobs:
           - name: AffinityParam
             value: ''
         - name: runEnvVarsParam
-        - ${{ if ne(length(parameters.runEnvVars), 0)}}:
-          value: "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
-        - ${{ else }}: # if no runEnvVars are specified, don't pass the parameter to ci_setup
-          value: ''
+          ${{ if ne(length(parameters.runEnvVars), 0)}}:
+            value: "--run-env-vars ${{ join(' ', parameters.runEnvVars)}}"
+          ${{ else }}: # if no runEnvVars are specified, don't pass the parameter to ci_setup
+            value: ''
         - ${{ if eq(parameters.osName, 'windows') }}:
           - name: CliArguments
             value: '--dotnet-versions %DOTNET_VERSION% --cli-source-info args --cli-branch %PERFLAB_BRANCH% --cli-commit-sha %PERFLAB_HASH% --cli-repository https://github.com/%PERFLAB_REPO% --cli-source-timestamp %PERFLAB_BUILDTIMESTAMP%'
