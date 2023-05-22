@@ -22,8 +22,8 @@ namespace ScenarioMeasurement
         {
             if (source.IsWindows)
             {
-                int bufferMax = 512; 
-                string payloadCommandLine = (string)GetPayloadValue(evt, "CommandLine");
+                var bufferMax = 512; 
+                var payloadCommandLine = (string)GetPayloadValue(evt, "CommandLine");
                 if (payloadCommandLine.Length >= bufferMax && commandLine.Length >= bufferMax)
                 {
                     commandLine = commandLine.Substring(0, bufferMax);
@@ -74,7 +74,7 @@ namespace ScenarioMeasurement
                     else
                     {
                         // match the full process name by extracting the file name
-                        string filename = (string)GetPayloadValue(evt, "FileName");
+                        var filename = (string)GetPayloadValue(evt, "FileName");
                         if (!processName.Equals(Path.GetFileName(filename)))
                         {
                             return CompareResult.Mismatch;

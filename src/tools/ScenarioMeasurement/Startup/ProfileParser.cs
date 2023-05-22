@@ -15,7 +15,7 @@ namespace ScenarioMeasurement
 
         public void EnableKernelProvider(ITraceSession kernel)
         {
-            TraceEventSession kernelSession = ((WindowsTraceSession)kernel).KernelSession;
+            var kernelSession = ((WindowsTraceSession)kernel).KernelSession;
             kernelSession.StackCompression = true;
             var keywords = KernelTraceEventParser.Keywords.Default;
             kernelSession.EnableKernelProvider(keywords, keywords);
@@ -24,7 +24,7 @@ namespace ScenarioMeasurement
         public void EnableUserProviders(ITraceSession user)
         {
             other.EnableUserProviders(user);
-            TraceEventSession userSession = ((WindowsTraceSession)user).UserSession;
+            var userSession = ((WindowsTraceSession)user).UserSession;
             // make sure we turn on whatever the user wanted so the start/stops are findable.
             userSession.EnableProvider(ClrTraceEventParser.ProviderGuid, Microsoft.Diagnostics.Tracing.TraceEventLevel.Verbose, (ulong)ClrTraceEventParser.Keywords.Default);
             userSession.EnableProvider(ClrPrivateTraceEventParser.ProviderGuid, Microsoft.Diagnostics.Tracing.TraceEventLevel.Verbose, (ulong)(ClrPrivateTraceEventParser.Keywords.GC

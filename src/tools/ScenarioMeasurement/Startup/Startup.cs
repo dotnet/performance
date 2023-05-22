@@ -100,7 +100,7 @@ namespace ScenarioMeasurement
                         bool runWithDotnet = false
                         )
         {
-            Logger logger = new Logger(String.IsNullOrEmpty(logFileName) ? $"{appExe}.startup.log" : logFileName);
+            var logger = new Logger(String.IsNullOrEmpty(logFileName) ? $"{appExe}.startup.log" : logFileName);
             static void checkArg(string arg, string name)
             {
                 if (String.IsNullOrEmpty(arg))
@@ -109,7 +109,7 @@ namespace ScenarioMeasurement
             checkArg(appExe, nameof(appExe));
             checkArg(traceName, nameof(traceName));
 
-            string traceFilePath = "";
+            var traceFilePath = "";
 
 
             if (parseOnly == true)
@@ -131,7 +131,7 @@ namespace ScenarioMeasurement
                 }
             }
 
-            Dictionary<string, string> envVariables = new Dictionary<string, string>(ParseStringToDictionary(environmentVariables));
+            var envVariables = new Dictionary<string, string>(ParseStringToDictionary(environmentVariables));
 
             logger.Log($"Running {appExe} (args: \"{appArgs}\")");
             logger.Log($"Working Directory: {workingDir}");
@@ -165,12 +165,12 @@ namespace ScenarioMeasurement
                 };
             }
 
-            IProcessHelper secondTestProcess = metricType == MetricType.InnerLoop || metricType == MetricType.InnerLoopMsBuild ? TestProcess : null;
+            var secondTestProcess = metricType == MetricType.InnerLoop || metricType == MetricType.InnerLoopMsBuild ? TestProcess : null;
 
             //Create wait funcs for steady state and post-compilation
             Func<Process, string, bool> waitForSteadyState = metricType == MetricType.DotnetWatch ? (Proc, searchString) =>
             {
-                StringBuilder output = new StringBuilder();
+                var output = new StringBuilder();
                 DataReceivedEventHandler stdOutProcessor = (s, e) =>
                 {
                     if (!String.IsNullOrEmpty(e.Data))
@@ -190,8 +190,8 @@ namespace ScenarioMeasurement
                 Proc.ErrorDataReceived += stdErrProcessor;
                 Proc.BeginOutputReadLine();
                 Proc.BeginErrorReadLine();
-                bool isSteadyState = false;
-                int timeoutCount = 0;
+                var isSteadyState = false;
+                var timeoutCount = 0;
                 while (!isSteadyState && timeoutCount < timeout)
                 {
                     foreach (var line in output.ToString().Split(Environment.NewLine))
@@ -213,7 +213,7 @@ namespace ScenarioMeasurement
             }
             : null;
 
-            Func<Process, string, bool> waitForRecompile = waitForSteadyState;
+            var waitForRecompile = waitForSteadyState;
 
             // create iteration setup process helper
             logger.Log($"Iteration set up: {iterationSetup} (args: {setupArgs})");
@@ -291,7 +291,7 @@ namespace ScenarioMeasurement
             }
 
             var pids = new List<int>();
-            bool failed = false;
+            var failed = false;
 
             if(!skipMeasurementIteration) 
             {
@@ -299,7 +299,7 @@ namespace ScenarioMeasurement
                 using (var traceSession = TraceSessionManager.CreateSession("StartupSession", traceName, traceDirectory, logger))
                 {
                     traceSession.EnableProviders(parser);
-                    for (int i = 0; i < iterations; i++)
+                    for (var i = 0; i < iterations; i++)
                     {
                         logger.LogIterationHeader($"Iteration {i}");
                         (bool Success, List<int> Pids) iterationResult;
@@ -326,7 +326,7 @@ namespace ScenarioMeasurement
                 {
                     appExe = Path.Join(workingDir, appExe);
                 }
-                string commandLine = $"\"{appExe}\"";
+                var commandLine = $"\"{appExe}\"";
                 if (!String.IsNullOrEmpty(appArgs))
                 {
                     commandLine = commandLine + " " + appArgs;
@@ -357,7 +357,7 @@ namespace ScenarioMeasurement
             if (!failed && !skipProfileIteration)
             {
                 logger.LogIterationHeader("Profile Iteration");
-                ProfileParser profiler = new ProfileParser(parser);
+                var profiler = new ProfileParser(parser);
                 (bool Success, List<int> Pids) iterationResult;
                 using (var profileSession = TraceSessionManager.CreateSession("ProfileSession", "profile_" + traceName, traceDirectory, logger))
                 {
@@ -427,8 +427,8 @@ namespace ScenarioMeasurement
                 }
             }
 
-            List<int> pids = new List<int>();
-            bool failed = false;
+            var pids = new List<int>();
+            var failed = false;
             (Process Proc, bool Success, int Pid) runResult = default((Process p, bool Success, int Pid));
 
             if (setupHelper != null)
@@ -458,7 +458,7 @@ namespace ScenarioMeasurement
                 logger.LogStepHeader("Waiting for steady state");
                 failed = failed || !waitForSteadyState(runResult.Proc, "Hot reload capabilities");
             }
-            for(int i = 0; i < hotReloadIters; i++)
+            for(var i = 0; i < hotReloadIters; i++)
             {
                 if(innerLoopProcHelper != null  && !failed)
                 {
@@ -523,7 +523,7 @@ namespace ScenarioMeasurement
             var dict = new Dictionary<string, string>();
             if (!String.IsNullOrEmpty(s))
             {
-                foreach (string substring in s.Split(';', StringSplitOptions.RemoveEmptyEntries))
+                foreach (var substring in s.Split(';', StringSplitOptions.RemoveEmptyEntries))
                 {
                     var pair = substring.Split('=');
                     dict.Add(pair[0], pair[1]);

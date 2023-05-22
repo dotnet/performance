@@ -40,8 +40,8 @@ namespace ScenarioMeasurement
             var ins = new Dictionary<int, double>();
             double start = -1;
             int? pid = null;
-            List<List<double>> firstRun = new List<List<double>>();
-            List<List<double>> secondRun = new List<List<double>>();
+            var firstRun = new List<List<double>>();
+            var secondRun = new List<List<double>>();
             using (var source = new TraceSourceManager(mergeTraceFile))
             {
 
@@ -146,13 +146,13 @@ namespace ScenarioMeasurement
                 source.Process();
             }
 
-            List<double> diffGS = new List<double>();
-            List<double> diffTOT = new List<double>();
-            for(int i = 0; i < firstRun[0].Count; i++)
+            var diffGS = new List<double>();
+            var diffTOT = new List<double>();
+            for(var i = 0; i < firstRun[0].Count; i++)
             {
                 diffGS.Add(firstRun[0][i] - secondRun[0][i]);
             }
-            for(int i = 0; i < firstRun[1].Count; i++)
+            for(var i = 0; i < firstRun[1].Count; i++)
             {
                 diffTOT.Add(firstRun[1][i] - secondRun[1][i]);
             }

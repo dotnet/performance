@@ -55,11 +55,11 @@ namespace ScenarioMeasurement
         sealed record TypeStats(TypeReference Type, int Size);
         static IEnumerable<TypeStats> GetTypes(Version version, MethodDefinition types)
         {
-            int entrySize = version.Major == 1 ? 2 : 3;
+            var entrySize = version.Major == 1 ? 2 : 3;
 
             types.Body.SimplifyMacros();
             var il = types.Body.Instructions;
-            for (int i = 0; i + entrySize < il.Count; i += entrySize)
+            for (var i = 0; i + entrySize < il.Count; i += entrySize)
             {
                 var type = (TypeReference)il[i + 0].Operand;
                 var size = (int)il[i + 1].Operand;
@@ -70,11 +70,11 @@ namespace ScenarioMeasurement
         sealed record MethodStats(MethodReference Method, int Size, int GcInfoSize, int EhInfoSize);
         static IEnumerable<MethodStats> GetMethods(Version version, MethodDefinition methods)
         {
-            int entrySize = version.Major == 1 ? 4 : 5;
+            var entrySize = version.Major == 1 ? 4 : 5;
 
             methods.Body.SimplifyMacros();
             var il = methods.Body.Instructions;
-            for (int i = 0; i + entrySize < il.Count; i += entrySize)
+            for (var i = 0; i + entrySize < il.Count; i += entrySize)
             {
                 var method = (MethodReference)il[i + 0].Operand;
                 var size = (int)il[i + 1].Operand;
@@ -88,7 +88,7 @@ namespace ScenarioMeasurement
         {
             blobs.Body.SimplifyMacros();
             var il = blobs.Body.Instructions;
-            for (int i = 0; i + 2 < il.Count; i += 2)
+            for (var i = 0; i + 2 < il.Count; i += 2)
             {
                 var name = (string)il[i + 0].Operand;
                 var size = (int)il[i + 1].Operand;

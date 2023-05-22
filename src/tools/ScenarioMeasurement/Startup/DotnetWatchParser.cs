@@ -31,7 +31,7 @@ namespace ScenarioMeasurement
             var ins = new Dictionary<int, double>();
             double start = -1;
             int? pid = null;
-            bool firstHotReload = true;
+            var firstHotReload = true;
             using (var source = new TraceSourceManager(mergeTraceFile))
             {
 

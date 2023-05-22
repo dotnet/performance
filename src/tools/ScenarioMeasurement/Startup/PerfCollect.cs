@@ -23,7 +23,7 @@ namespace ScenarioMeasurement
 
         public PerfCollect(string traceName, string traceDirectory, Logger logger)
         {
-            string perfCollectScript = Path.Combine(startupDirectory, "perfcollect");
+            var perfCollectScript = Path.Combine(startupDirectory, "perfcollect");
             if (!File.Exists(perfCollectScript))
             {
                 throw new FileNotFoundException($"Pefcollect not found at {perfCollectScript}. Please rebuild the project to download it.");
@@ -74,7 +74,7 @@ namespace ScenarioMeasurement
                 arguments.Append(",");
             }
 
-            string args = arguments.Remove(arguments.Length - 1, 1).ToString();
+            var args = arguments.Remove(arguments.Length - 1, 1).ToString();
 
             perfCollectProcess.Arguments = args;
             return perfCollectProcess.Run().Result;
@@ -82,7 +82,7 @@ namespace ScenarioMeasurement
 
         public Result Stop()
         {
-            string arguments = $"stop {TraceName} ";
+            var arguments = $"stop {TraceName} ";
             perfCollectProcess.Arguments = arguments;
             var result = perfCollectProcess.Run().Result;
             // By default perfcollect saves traces in the current directory
@@ -115,8 +115,8 @@ namespace ScenarioMeasurement
             perfCollectProcess.Arguments = "install -force";
             perfCollectProcess.Run();
 
-            int retry = 10;
-            for(int i=0; i<retry; i++)
+            var retry = 10;
+            for(var i=0; i<retry; i++)
             {
                 if (!LttngInstalled())
                 {
@@ -148,11 +148,11 @@ namespace ScenarioMeasurement
 
         private bool LttngInstalled()
         {
-            ProcessStartInfo procStartInfo = new ProcessStartInfo("modinfo", "lttng_probe_writeback");
-            Process proc = new Process() { StartInfo = procStartInfo, };
+            var procStartInfo = new ProcessStartInfo("modinfo", "lttng_probe_writeback");
+            var proc = new Process() { StartInfo = procStartInfo, };
             proc.StartInfo.RedirectStandardOutput = true;
             proc.Start();
-            string result = proc.StandardOutput.ReadToEnd();
+            var result = proc.StandardOutput.ReadToEnd();
             proc.WaitForExit();
             // If the lttng_probe_writeback module is installed, the modinfo output will include the filename field
             return result.Contains("filename:");

@@ -43,8 +43,8 @@ namespace ScenarioMeasurement
 
                 source.Kernel.ProcessStart += evt =>
                 {
-                    string commandLineArgs = commandLine.Substring(commandLine.LastIndexOf("\"")+1).Trim();
-                    string payloadCommandLineArgs = evt.CommandLine.Substring(evt.CommandLine.LastIndexOf("\"")+1).Trim();
+                    var commandLineArgs = commandLine.Substring(commandLine.LastIndexOf("\"")+1).Trim();
+                    var payloadCommandLineArgs = evt.CommandLine.Substring(evt.CommandLine.LastIndexOf("\"")+1).Trim();
                     if (processName.Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase) && pids.Contains(evt.ProcessID) && payloadCommandLineArgs == commandLineArgs)
                     {
                         if (pid.HasValue)

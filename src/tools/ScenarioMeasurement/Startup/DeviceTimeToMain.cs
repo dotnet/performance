@@ -28,18 +28,18 @@ namespace ScenarioMeasurement
         public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
         {
             var times = new List<double>();
-            Regex totalTimePattern = new Regex(@"TotalTime:\s(?<totalTime>.+)");
+            var totalTimePattern = new Regex(@"TotalTime:\s(?<totalTime>.+)");
 
             if (File.Exists(mergeTraceFile))
             {
-                using(StreamReader sr = new StreamReader(mergeTraceFile))
+                using(var sr = new StreamReader(mergeTraceFile))
                 {
-                    string line = sr.ReadToEnd();
-                    MatchCollection finds = totalTimePattern.Matches(line);
+                    var line = sr.ReadToEnd();
+                    var finds = totalTimePattern.Matches(line);
                     Console.WriteLine($"Found Startup Times: {finds.Count}");
                     foreach (Match match in finds)
                     {
-                        GroupCollection groups = match.Groups;
+                        var groups = match.Groups;
                         Console.WriteLine($"Found Value (ms): {groups["totalTime"].Value}");
                         times.Add(Double.Parse(groups["totalTime"].Value));
                     }

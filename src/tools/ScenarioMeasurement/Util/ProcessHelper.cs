@@ -58,7 +58,7 @@ namespace ScenarioMeasurement
 
         public RawProcessHelper(Logger logger)
         {
-            this.Logger = logger;
+            Logger = logger;
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace ScenarioMeasurement
         }
         public ProcessResult Run()
         {
-            (Result Result, int Pid) exitResult = default((Result Result, int Pid));
+            var exitResult = default((Result Result, int Pid));
             exitResult.Pid = -1;
             Process p = null;
 
@@ -159,7 +159,7 @@ namespace ScenarioMeasurement
 
         public ManagedProcessHelper(Logger logger)
         {
-            this.Logger = logger;
+            Logger = logger;
         }
 
         public void AddEnvironmentVariable(string name, string value)
@@ -168,7 +168,7 @@ namespace ScenarioMeasurement
         }
         public ProcessResult Run()
         {
-            (Result Result, int Pid) exitResult = default((Result Result, int Pid));
+            var exitResult = default((Result Result, int Pid));
             exitResult.Pid = -1;
             Process p = null;
 
@@ -221,8 +221,8 @@ namespace ScenarioMeasurement
             {
                 psi.WindowStyle = ProcessWindowStyle.Maximized;
             }
-            StringBuilder output = new StringBuilder();
-            StringBuilder error = new StringBuilder();
+            var output = new StringBuilder();
+            var error = new StringBuilder();
             using (var process = new Process())
             {
                 process.StartInfo = psi;
@@ -244,7 +244,7 @@ namespace ScenarioMeasurement
                     };
                 }
                 process.Start();
-                int pid = process.Id;
+                var pid = process.Id;
                 if (!GuiApp)
                 {
                     process.BeginOutputReadLine();
@@ -253,7 +253,7 @@ namespace ScenarioMeasurement
 
                 if (ProcessWillExit)
                 {
-                    bool exited = process.WaitForExit(Timeout * 1000);
+                    var exited = process.WaitForExit(Timeout * 1000);
                     if (!exited)
                     {
                         process.Kill();
@@ -279,7 +279,7 @@ namespace ScenarioMeasurement
                     {
                         return (Result.ExitedEarly, pid);
                     }
-                    bool exited = process.WaitForExit(5000);
+                    var exited = process.WaitForExit(5000);
                     if (!exited)
                     {
                         process.Kill();

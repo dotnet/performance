@@ -40,8 +40,8 @@ namespace ScenarioMeasurement
 
             var counters = new List<Counter>();
             long totalSize = 0;
-            int totalCount = 0;
-            bool directoryIsTop = dirs.Length > 1; // if we were asked to log more than one directory, include the summary info as top counters.
+            var totalCount = 0;
+            var directoryIsTop = dirs.Length > 1; // if we were asked to log more than one directory, include the summary info as top counters.
             var buckets = new Dictionary<string, (long size, int count, bool isTop)>();
             foreach (var directory in directories)
             {
