@@ -138,7 +138,7 @@ class Startup
         logger.Log($"Running {appExe} (args: \"{appArgs}\")");
         logger.Log($"Working Directory: {workingDir}");
 
-        if(processorAffinity > 0 && (OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
+        if (processorAffinity > 0 && (OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
         {
             Process.GetCurrentProcess().ProcessorAffinity = (IntPtr)processorAffinity;
             logger.Log($"Process Affinity: {Process.GetCurrentProcess().ProcessorAffinity}, mask: {Convert.ToString((int)Process.GetCurrentProcess().ProcessorAffinity, 2)}");
@@ -152,7 +152,7 @@ class Startup
             throw new ArgumentException(nameof(processorAffinity) + " cannot be negative!");
         }
 
-        if(runWithoutExit)
+        if (runWithoutExit)
         {
             TestProcess = new RawProcessHelper(logger)
             {
@@ -310,7 +310,7 @@ class Startup
         var pids = new List<int>();
         var failed = false;
 
-        if(!skipMeasurementIteration)
+        if (!skipMeasurementIteration)
         {
             // Run trace session
             using (var traceSession = TraceSessionManager.CreateSession("StartupSession", traceName, traceDirectory, logger))
@@ -395,7 +395,7 @@ class Startup
     private static IProcessHelper CreateProcHelper(string command, string args, bool runWithExit, Logger logger)
     {
         IProcessHelper procHelper;
-        if(runWithExit)
+        if (runWithExit)
         {
             procHelper = new ManagedProcessHelper(logger)
             {
@@ -460,7 +460,7 @@ class Startup
             logger.LogStepHeader("Test");
             runResult = RunProcess(testHelper);
             failed = !runResult.Success;
-            if(runResult.Pid == -1)
+            if (runResult.Pid == -1)
             {
                 pids.Add(runResult.Proc.Id);
             }
@@ -475,15 +475,15 @@ class Startup
             logger.LogStepHeader("Waiting for steady state");
             failed = failed || !waitForSteadyState(runResult.Proc, "Hot reload capabilities");
         }
-        for(var i = 0; i < hotReloadIters; i++)
+        for (var i = 0; i < hotReloadIters; i++)
         {
-            if(innerLoopProcHelper != null  && !failed)
+            if (innerLoopProcHelper != null && !failed)
             {
                 //Do some stuff to change the project
                 logger.LogStepHeader("Inner Loop Setup");
                 var innerLoopReturn = innerLoopProcHelper.Run();
                 InnerLoopMarkerEventSource.Log.DroppedFile();
-                if(innerLoopReturn.Result != Result.Success)
+                if (innerLoopReturn.Result != Result.Success)
                 {
                     failed = true;
                 }
@@ -495,7 +495,7 @@ class Startup
             }
         }
 
-        if (secondTestHelper != null  && !failed)
+        if (secondTestHelper != null && !failed)
         {
             var test = InnerLoopMarkerEventSource.GetSources();
             InnerLoopMarkerEventSource.Log.Split();
@@ -507,7 +507,7 @@ class Startup
                 failed = true;
             }
             InnerLoopMarkerEventSource.Log.EndIteration();
-            if(iterationResult.Pid == -1)
+            if (iterationResult.Pid == -1)
             {
                 pids.Add(iterationResult.Proc.Id);
             }
