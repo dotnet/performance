@@ -437,20 +437,6 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
-      isPublic: false
-      jobParameters:
-        kind: mlnet
-        csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-        runCategories: 'mldotnet'
-        channels:
-          - main
-        #affinity: '85'
-
-  # ML.NET benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
         - win-arm64
         - ubuntu-arm64
       isPublic: false
@@ -460,7 +446,11 @@ jobs:
         runCategories: 'mldotnet'
         channels:
           - main
-        #affinity: '15'
+        affinity: '85' # (01010101) Enables alternating process threads to take hyperthreading into account
+        runEnvVars: 
+          - DOTNET_GCgen0size=410000 # ~4MB
+          - DOTNET_GCHeapCount=4
+          - DOTNET_GCTotalPhysicalMemory=400000000 # 16GB
 
   # Roslyn benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -469,20 +459,6 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
-      isPublic: false
-      jobParameters:
-        kind: roslyn
-        csproj: src\benchmarks\real-world\Roslyn\CompilerBenchmarks.csproj
-        runCategories: 'roslyn'
-        channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
-          - main
-        #affinity: '85'
-
-  # Roslyn benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
         - win-arm64
         - ubuntu-arm64
       isPublic: false
@@ -492,7 +468,11 @@ jobs:
         runCategories: 'roslyn'
         channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
           - main
-        #affinity: '15'
+        affinity: '85' # (01010101) Enables alternating process threads to take hyperthreading into account
+        runEnvVars: 
+          - DOTNET_GCgen0size=410000 # ~4MB
+          - DOTNET_GCHeapCount=4
+          - DOTNET_GCTotalPhysicalMemory=400000000 # 16GB
 
   # ILLink benchmarks
   - template: /eng/performance/build_machine_matrix.yml
