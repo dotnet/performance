@@ -23,9 +23,6 @@ namespace System.Formats.Tar.Tests
             _memoryStream = new MemoryStream();
         }
 
-        [GlobalCleanup]
-        public void Cleanup() => _memoryStream.Dispose();
-
         [GlobalSetup(Targets = new[] { nameof(PaxTarEntry_WriteEntry), nameof(PaxTarEntry_WriteEntry_Async) })]
         public void SetupPax()
         {
