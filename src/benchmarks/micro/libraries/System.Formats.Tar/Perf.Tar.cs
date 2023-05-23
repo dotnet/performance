@@ -43,7 +43,7 @@ namespace System.Formats.Tar.Tests
         [Benchmark]
         public void V7TarEntry_WriteEntry()
         {
-            V7TarEntry entry = new V7TarEntry(TarEntryType.RegularFile, _fileName);
+            V7TarEntry entry = new V7TarEntry(TarEntryType.V7RegularFile, _fileName);
             using TarWriter writer = CreateWriter();
             writer.WriteEntry(entry);
         }
@@ -51,7 +51,7 @@ namespace System.Formats.Tar.Tests
         [Benchmark]
         public async Task V7TarEntry_WriteEntry_Async()
         {
-            V7TarEntry entry = new V7TarEntry(TarEntryType.RegularFile, _fileName);
+            V7TarEntry entry = new V7TarEntry(TarEntryType.V7RegularFile, _fileName);
             await using TarWriter writer = CreateWriter();
             await writer.WriteEntryAsync(entry);
         }
