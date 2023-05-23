@@ -67,15 +67,15 @@ namespace System.Formats.Tar.Tests
         [Benchmark]
         public void CreateFromDirectory_Stream()
         {
-            using MemoryStream ms = new MemoryStream();
+            MemoryStream ms = new MemoryStream();
             TarFile.CreateFromDirectory(sourceDirectoryName: _inputDirPath, destination: ms, includeBaseDirectory: false);
         }
 
         [Benchmark]
-        public async Task CreateFromDirectory_Stream_Async()
+        public Task CreateFromDirectory_Stream_Async()
         {
-            await using MemoryStream ms = new MemoryStream();
-            await TarFile.CreateFromDirectoryAsync(sourceDirectoryName: _inputDirPath, destination: ms, includeBaseDirectory: false);
+            MemoryStream ms = new MemoryStream();
+            return TarFile.CreateFromDirectoryAsync(sourceDirectoryName: _inputDirPath, destination: ms, includeBaseDirectory: false);
         }
 
         [Benchmark]
