@@ -9,7 +9,7 @@ using MicroBenchmarks;
 namespace System.IO.Hashing.Tests
 {
     [BenchmarkCategory(Categories.Libraries)]
-    public abstract class CrcAppendTests<T>
+    public abstract class Crc_Perf<T>
         where T : NonCryptographicHashAlgorithm, new()
     {
         protected T Crc;

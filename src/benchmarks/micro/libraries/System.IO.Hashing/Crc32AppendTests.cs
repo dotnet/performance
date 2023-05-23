@@ -6,7 +6,7 @@ using BenchmarkDotNet.Attributes;
 
 namespace System.IO.Hashing.Tests
 {
-    public class Crc32AppendTests : CrcAppendTests<Crc32>
+    public class Crc32_Perf : Crc_Perf<Crc32>
     {
         [Params(16, 128, 10240)]
         public override int BufferSize { get; set; }
