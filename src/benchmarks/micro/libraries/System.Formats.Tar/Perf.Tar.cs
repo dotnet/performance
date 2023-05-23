@@ -14,18 +14,20 @@ namespace System.Formats.Tar.Tests
     public class Perf_TarWriter
     {
         private static readonly string _fileName = "file.txt";
-        private static Dictionary<string, string> _ea;
-        private static MemoryStream _memoryStream;
+        private Dictionary<string, string> _ea;
+        private MemoryStream _memoryStream;
 
         [GlobalSetup]
-        public void Setup()
-        {
-            _memoryStream = new MemoryStream();
-        }
+        public void Setup() => _memoryStream = new MemoryStream();
+        
+        [GlobalCleanup]
+        public void Cleanup() => _memoryStream.Dispose();
 
         [GlobalSetup(Targets = new[] { nameof(PaxTarEntry_WriteEntry), nameof(PaxTarEntry_WriteEntry_Async) })]
         public void SetupPax()
         {
+            Setup();
+
             _ea = new Dictionary<string, string>
             {
                 { "uname", "username" },
