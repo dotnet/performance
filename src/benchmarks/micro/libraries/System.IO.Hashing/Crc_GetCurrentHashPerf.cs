@@ -9,25 +9,24 @@ using MicroBenchmarks;
 namespace System.IO.Hashing.Tests
 {
     [BenchmarkCategory(Categories.Libraries)]
-    public abstract class Crc_Perf<T>
+    public abstract class Crc_GetCurrentHashPerf<T>
         where T : NonCryptographicHashAlgorithm, new()
     {
         protected T Crc;
-        protected byte[] Buffer;
-
-        public abstract int BufferSize { get; set; }
+        protected byte[] HashBuffer;
 
         [GlobalSetup]
         public void Setup()
         {
-            Buffer = ValuesGenerator.Array<byte>(BufferSize);
             Crc = new T();
+            Crc.Append(ValuesGenerator.Array<byte>(128));
+            HashBuffer = new byte[Crc.HashLengthInBytes];
         }
 
         [Benchmark]
-        public void Append()
+        public int GetCurrentHash()
         {
-            Crc.Append(Buffer);
+            return Crc.GetCurrentHash(HashBuffer);
         }
     }
 }
