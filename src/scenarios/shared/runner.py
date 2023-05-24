@@ -46,7 +46,7 @@ class Runner:
         self.crossgenfile = None
         self.dirs = None
         self.crossgen_arguments = CrossgenArguments()
-        self.processoraffinity = None
+        self.affinity = None
         setup_loggers(True)
 
     def parseargs(self):
@@ -206,8 +206,8 @@ ex: C:\repos\performance;C:\repos\runtime
         if args.scenarioname:
             self.scenarioname = args.scenarioname
         
-        if args.processoraffinity or os.environ.get('PERFLAB_DATA_AFFINITY'):
-            self.processoraffinity = args.processoraffinity if args.processoraffinity else os.environ.get('PERFLAB_DATA_AFFINITY')
+        if args.affinity or os.environ.get('PERFLAB_DATA_AFFINITY'):
+            self.affinity = args.affinity if args.affinity else os.environ.get('PERFLAB_DATA_AFFINITY')
 
     
     def add_common_arguments(self, parser: ArgumentParser):
@@ -218,7 +218,7 @@ ex: C:\repos\performance;C:\repos\runtime
     def add_affinity_argument(self, parser: ArgumentParser):
         "Affinity arguments to add to subparsers"
         parser.add_argument('--affinity',
-                            dest='processoraffinity',
+                            dest='affinity',
                             type=str,
                             help='Processor affinity to run the test on. Passed as integer. EX. 1 for first processor, 2 for second processor, 3 for first and second processor, 4 for third processor, etc.')
 
@@ -237,7 +237,7 @@ ex: C:\repos\performance;C:\repos\runtime
             setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
             iterationcleanup=pythoncommand(),
             cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
-            processoraffinity=self.processoraffinity)
+            affinity=self.affinity)
             startup.runtests(self.traits)
 
         if self.testtype == const.INNERLOOPMSBUILD:
@@ -250,7 +250,7 @@ ex: C:\repos\performance;C:\repos\runtime
             setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
             iterationcleanup=pythoncommand(),
             cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
-            processoraffinity=self.processoraffinity)
+            affinity=self.affinity)
             startup.runtests(self.traits)
             
         if self.testtype == const.DOTNETWATCH:
@@ -263,7 +263,7 @@ ex: C:\repos\performance;C:\repos\runtime
             setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
             iterationcleanup=pythoncommand(),
             cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
-            processoraffinity=self.processoraffinity)
+            affinity=self.affinity)
             self.traits.add_traits(workingdir = const.APPDIR)
             startup.runtests(self.traits)
 
@@ -274,7 +274,7 @@ ex: C:\repos\performance;C:\repos\runtime
                                    scenarioname=self.scenarioname,
                                    scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
                                    apptorun=publishedexe(self.traits.exename),
-                                   processoraffinity=self.processoraffinity
+                                   affinity=self.affinity
                                    )
             if self.traits.runwithdotnet:
                 self.traits.add_traits(overwrite=True,
@@ -333,7 +333,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     workingdir=const.APPDIR
                 )
                 self.traits.add_traits(overwrite=True, startupmetric=const.STARTUP_PROCESSTIME)
-                self.traits.add_traits(overwrite=True, processoraffinity=self.processoraffinity)
+                self.traits.add_traits(overwrite=True, affinity=self.affinity)
                 startup.runtests(self.traits)
 
         elif self.testtype == const.CROSSGEN:
@@ -347,7 +347,7 @@ ex: C:\repos\performance;C:\repos\runtime
                                    startupmetric=const.STARTUP_PROCESSTIME,
                                    workingdir=coreroot,
                                    appargs=' '.join(crossgenargs),
-                                   processoraffinity=self.processoraffinity
+                                   affinity=self.affinity
                                    )
             self.traits.add_traits(overwrite=False,
                                    scenarioname='Crossgen Throughput - %s' % scenario_filename,
@@ -373,7 +373,7 @@ ex: C:\repos\performance;C:\repos\runtime
                                    startupmetric=const.STARTUP_CROSSGEN2,
                                    workingdir=self.crossgen_arguments.coreroot,
                                    appargs='%s %s' % (os.path.join('crossgen2', 'crossgen2.dll'), ' '.join(crossgen2args)),
-                                   processoraffinity=self.processoraffinity
+                                   affinity=self.affinity
                                    )
             self.traits.add_traits(overwrite=False,
                                    scenarioname=scenarioname,
