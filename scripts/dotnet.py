@@ -797,7 +797,7 @@ def install(
                     outfile.write(response.read())
                     break
         except URLError as error:
-            getLogger().warning(f"Could not download dotnet-install script from {dotnetInstallScriptUrl}; {Reason: {error.reason}}; Attempt {count}")
+            getLogger().warning(f"Could not download dotnet-install script from {dotnetInstallScriptUrl}; {error.reason}; Attempt {count}")
             count = count + 1
             sleep(count ** 2)
             continue
