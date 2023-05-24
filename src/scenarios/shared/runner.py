@@ -206,8 +206,8 @@ ex: C:\repos\performance;C:\repos\runtime
         if args.scenarioname:
             self.scenarioname = args.scenarioname
         
-        if args.processoraffinity:
-            self.processoraffinity = args.processoraffinity
+        if args.processoraffinity or os.environ.get('PERFLAB_DATA_AFFINITY'):
+            self.processoraffinity = args.processoraffinity if args.processoraffinity else os.environ.get('PERFLAB_DATA_AFFINITY')
 
     
     def add_common_arguments(self, parser: ArgumentParser):
@@ -217,10 +217,10 @@ ex: C:\repos\performance;C:\repos\runtime
         
     def add_affinity_argument(self, parser: ArgumentParser):
         "Affinity arguments to add to subparsers"
-        parser.add_argument('--processor-affinity',
+        parser.add_argument('--affinity',
                             dest='processoraffinity',
                             type=str,
-                            help='Processor affinity to run the test on. Ex: 0x1,0x2,0x4,0x8')
+                            help='Processor affinity to run the test on. Passed as integer. EX. 1 for first processor, 2 for second processor, 3 for first and second processor, 4 for third processor, etc.')
 
     def run(self):
         '''

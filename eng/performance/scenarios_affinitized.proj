@@ -7,10 +7,8 @@
     <PreparePayloadOutDirectoryName>scenarios_out</PreparePayloadOutDirectoryName>
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' == 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)\</PreparePayloadWorkItemBaseDirectory>
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
-    <AffinityArg Condition="'$(Affinity)' != ''"> --processor-affinity $(Affinity) </AffinityArg>
-    <AffinityArg Condition="'$(Affinity)' == ''"></AffinityArg>
-    <AffinityTestName Condition="'$(Affinity)' != ''">- Affinity $(Affinity)</AffinityTestName>
-    <AffinityTestName Condition="'$(Affinity)' == ''"></AffinityTestName>
+    <AffinityTestName Condition="'$(AffinityValue)' != ''">- Affinity $(AffinityValue)</AffinityTestName>
+    <AffinityTestName Condition="'$(AffinityValue)' == ''"></AffinityTestName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,7 +16,7 @@
       <ScenarioDirectoryName>emptyconsoletemplateinnerloopmsbuild</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>
-      <Command>$(Python) test.py innerloopmsbuild --scenario-name &quot;%(Identity)&quot; $(AffinityArg)</Command>
+      <Command>$(Python) test.py innerloopmsbuild --scenario-name &quot;%(Identity)&quot;</Command>
       <PostCommands>$(Python) post.py</PostCommands>
     </HelixWorkItem>
   </ItemGroup>
