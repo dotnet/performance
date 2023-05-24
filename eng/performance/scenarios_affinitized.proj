@@ -1,0 +1,46 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+
+  <Import Project="Scenarios.Common.props" />
+
+  <PropertyGroup>
+    <AfterPreparePayloadWorkItemCommand>$(Python) post.py</AfterPreparePayloadWorkItemCommand>
+    <PreparePayloadOutDirectoryName>scenarios_out</PreparePayloadOutDirectoryName>
+    <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' == 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)\</PreparePayloadWorkItemBaseDirectory>
+    <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
+    <AffinityArg Condition="'$(Affinity)' != ''"> --processor-affinity $(Affinity) </AffinityArg>
+    <AffinityArg Condition="'$(Affinity)' == ''"></AffinityArg>
+    <AffinityTestName Condition="'$(Affinity)' != ''">- Affinity $(Affinity)</AffinityTestName>
+    <AffinityTestName Condition="'$(Affinity)' == ''"></AffinityTestName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <HelixWorkItem Include="Inner Loop MsBuild Console $(AffinityTestName)">
+      <ScenarioDirectoryName>emptyconsoletemplateinnerloopmsbuild</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>
+      <Command>$(Python) test.py innerloopmsbuild --scenario-name &quot;%(Identity)&quot; $(AffinityArg)</Command>
+      <PostCommands>$(Python) post.py</PostCommands>
+    </HelixWorkItem>
+  </ItemGroup>
+
+  <Import Project="PreparePayloadWorkItems.targets" />
+
+  <!--
+    This is useful for local testing to print the produced helix items
+    To use this when you are changing how items are produced, uncomment the target
+    and replace the Project item at the top of the file with this:
+    <Project DefaultTargets="printItems">
+    
+    Once you've done that you can run this to see the results:
+    dotnet msbuild .\scenarios.proj /v:n
+   -->
+  <!-- <Target Name="printItems">
+        <Message Text="@(HelixWorkItem -> 'name: %(HelixWorkItem.Identity)
+     dir: %(HelixWorkItem.PayloadDirectory)
+     pre: %(HelixWorkItem.PreCommands)
+     command: %(HelixWorkItem.Command)
+     post: %(HelixWorkItem.PostCommands)
+     timeout: %(HelixWorkItem.Timeout)  '"/>
+  </Target> -->
+
+</Project>
