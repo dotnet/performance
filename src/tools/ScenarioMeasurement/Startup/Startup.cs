@@ -140,8 +140,8 @@ class Startup
 
         if (affinity > 0 && (OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
         {
-            Process.GetCurrentProcess().affinity = (IntPtr)affinity;
-            logger.Log($"Process Affinity: {Process.GetCurrentProcess().affinity}, mask: {Convert.ToString((int)Process.GetCurrentProcess().affinity, 2)}");
+            Process.GetCurrentProcess().ProcessorAffinity = (IntPtr)affinity;
+            logger.Log($"Process Affinity: {Process.GetCurrentProcess().ProcessorAffinity}, mask: {Convert.ToString((int)Process.GetCurrentProcess().ProcessorAffinity, 2)}");
         }
         else if (affinity != 0 && !(OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
         {

@@ -7,12 +7,12 @@
     <PreparePayloadOutDirectoryName>scenarios_out</PreparePayloadOutDirectoryName>
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' == 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)\</PreparePayloadWorkItemBaseDirectory>
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
-    <AffinityTestName Condition="'$(AffinityValue)' != ''">- Affinity $(AffinityValue)</AffinityTestName>
-    <AffinityTestName Condition="'$(AffinityValue)' == ''"></AffinityTestName>
+    <AffinityTestName Condition="'$(AffinityValue)' != '0'"> - Affinity $(AffinityValue)</AffinityTestName>
+    <AffinityTestName Condition="'$(AffinityValue)' == '0'"></AffinityTestName>
   </PropertyGroup>
 
   <ItemGroup>
-    <HelixWorkItem Include="Inner Loop MsBuild Console $(AffinityTestName)">
+    <HelixWorkItem Include="Inner Loop MsBuild Console$(AffinityTestName)">
       <ScenarioDirectoryName>emptyconsoletemplateinnerloopmsbuild</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>

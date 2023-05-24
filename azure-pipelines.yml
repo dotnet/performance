@@ -85,8 +85,7 @@ jobs:
         projectFile: scenarios_affinitized.proj
         channels: # for public jobs we want to make sure that the PRs don't break any of the supported frameworks
           - main
-        env:
-          Affinity: 1
+        affinity: 1
 
   # ## MAUI scenario benchmarks
   # #- template: /eng/performance/build_machine_matrix.yml
