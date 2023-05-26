@@ -20,7 +20,7 @@ public class Reporter
     private Run run;
     private Os os;
     private Build build;
-    private List<Test> tests = new List<Test>();
+    private List<Test> tests = new();
     protected IEnvironment environment;
 
     private Reporter() { }

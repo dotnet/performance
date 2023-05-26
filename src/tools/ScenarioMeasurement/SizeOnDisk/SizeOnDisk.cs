@@ -119,7 +119,7 @@ class SizeOnDisk
         return extension;
     }
 
-    static HashSet<string> versions = new HashSet<string>();
+    static HashSet<string> versions = new();
 
     static string RemoveVersions(string name)
     {

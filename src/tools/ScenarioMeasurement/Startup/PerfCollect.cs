@@ -15,8 +15,8 @@ public class PerfCollect : IDisposable
     public string TraceFileName { get; private set; }
     public string TraceDirectory { get; private set; }
     public string TraceFilePath { get; private set; }
-    private List<KernelKeyword> KernelEvents = new List<KernelKeyword>();
-    private List<ClrKeyword> ClrEvents = new List<ClrKeyword>();
+    private List<KernelKeyword> KernelEvents = new();
+    private List<ClrKeyword> ClrEvents = new();
     public PerfCollect(string traceName, Logger logger) : this(traceName, Environment.CurrentDirectory, logger)
     {
     }

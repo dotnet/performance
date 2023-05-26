@@ -11,7 +11,7 @@ namespace Startup.Tests;
 
 public class StartupTests
 {
-    Logger logger = new Logger("test-startup.log");
+    Logger logger = new("test-startup.log");
     string traceDirectory = Environment.CurrentDirectory;
     string testAssetDirectory = "inputs";
 
