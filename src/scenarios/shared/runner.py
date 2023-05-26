@@ -205,8 +205,8 @@ ex: C:\repos\performance;C:\repos\runtime
 
         if args.scenarioname:
             self.scenarioname = args.scenarioname
-        
-        if args.affinity or os.environ.get('PERFLAB_DATA_AFFINITY'):
+
+        if self.testtype in [const.STARTUP, const.INNERLOOP, const.INNERLOOPMSBUILD, const.DOTNETWATCH, const.SDK, const.CROSSGEN, const.CROSSGEN2] and (args.affinity or os.environ.get('PERFLAB_DATA_AFFINITY')): # Set affinity if doing a Startup based test
             self.affinity = args.affinity if args.affinity else os.environ.get('PERFLAB_DATA_AFFINITY')
 
     
