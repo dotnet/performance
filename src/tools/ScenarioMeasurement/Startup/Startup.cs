@@ -140,8 +140,13 @@ class Startup
 
         if (affinity > 0 && (OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
         {
-            Process.GetCurrentProcess().ProcessorAffinity = (IntPtr)affinity;
-            logger.Log($"Process Affinity: {Process.GetCurrentProcess().ProcessorAffinity}, mask: {Convert.ToString((int)Process.GetCurrentProcess().ProcessorAffinity, 2)}");
+            var currentProcessAffinity = Process.GetCurrentProcess().ProcessorAffinity;
+            if(affinity > currentProcessAffinity.ToInt64())
+            {
+                throw new ArgumentException(nameof(affinity) + " cannot be greater than the number of processors available to this process!");
+            }
+            currentProcessAffinity = (IntPtr)affinity;
+            logger.Log($"Process Affinity: {currentProcessAffinity}, mask: {Convert.ToString((int)currentProcessAffinity, 2)}");
         }
         else if (affinity != 0 && !(OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
         {
