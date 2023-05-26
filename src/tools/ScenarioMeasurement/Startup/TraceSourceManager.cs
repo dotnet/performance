@@ -55,7 +55,7 @@ public interface IKernelParser
 
 public sealed class LinuxKernelParser : IKernelParser
 {
-    LinuxKernelEventParser parser;
+    readonly LinuxKernelEventParser parser;
     public event Action<TraceEvent> ProcessStart { add { parser.ProcessStart += value; } remove { parser.ProcessStart -= value; } }
     public event Action<TraceEvent> ProcessStop { add { parser.ProcessStop += value; } remove { parser.ProcessStop -= value; } }
     public event Action<TraceEvent> ContextSwitch { add { } remove { } } // not implemented
@@ -67,7 +67,7 @@ public sealed class LinuxKernelParser : IKernelParser
 
 public sealed class WindowsKernelParser : IKernelParser
 {
-    KernelTraceEventParser parser;
+    readonly KernelTraceEventParser parser;
     public event Action<TraceEvent> ProcessStart { add { parser.ProcessStart += value; } remove { parser.ProcessStart -= value; } }
     public event Action<TraceEvent> ProcessStop { add { parser.ProcessEndGroup += value; } remove { parser.ProcessEndGroup -= value; } }
     public event Action<TraceEvent> ContextSwitch { add { parser.ThreadCSwitch += value; } remove { parser.ThreadCSwitch -= value; } }
