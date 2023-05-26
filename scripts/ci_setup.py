@@ -219,6 +219,18 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         type=str,
         help='Version of Maui used to build app packages'
     )
+
+    parser.add_argument(
+        '--affinity',
+        required=False,
+        help='Affinity value set for BenchmarkDotNet to set as PERFLAB_DATA_AFFINITY'
+    )
+
+    parser.add_argument(
+        '--run-env-vars',
+        nargs='*',
+        help='Environment variables to set on the machine in the form of key=value key2=value2. Will also be saved to additional data'
+    )
     return parser
 
 def __process_arguments(args: list):
@@ -356,6 +368,13 @@ def __main(args: list) -> int:
             out_file.write(variable_format % ('DOTNET_ROOT', dotnet_path))
             out_file.write(variable_format % ('MAUI_VERSION', args.maui_version))
             out_file.write(path_variable % dotnet_path)
+            if args.affinity:
+                out_file.write(variable_format % ('PERFLAB_DATA_AFFINITY', args.affinity))
+            if args.run_env_vars:
+                for env_var in args.run_env_vars:
+                    key, value = env_var.split('=', 1) 
+                    out_file.write(variable_format % (key, value))
+                    out_file.write(variable_format % ("PERFLAB_DATA_" + key, value))
             out_file.write(showenv)
     else:
         with open(args.output_file, 'w') as out_file:

@@ -13,8 +13,6 @@ resources:
   containers:
     - container: ubuntu_x64_build_container
       image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04
-    - container: centos_x64_build_container
-      image: mcr.microsoft.com/dotnet-buildtools/prereqs:centos-7
 
 # CI Trigger on main branch
 trigger:
@@ -125,6 +123,19 @@ jobs:
       buildMachines:
         - win-x64
         - win-x86
+      isPublic: true
+      jobParameters:
+        kind: micro
+        csproj: src\benchmarks\micro\MicroBenchmarks.csproj
+        runCategories: 'runtime libraries' 
+        channels:
+          - main
+
+  # Ubuntux64 Default and NativeAOT micro benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
         - ubuntu-x64
       isPublic: true
       jobParameters:
@@ -133,6 +144,7 @@ jobs:
         runCategories: 'runtime libraries' 
         channels:
           - main
+          - nativeaot8.0
 
   # net462 micro benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -147,20 +159,6 @@ jobs:
         runCategories: 'runtime libraries'
         channels:
           - net462
-
-  # NativeAOT micro benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - centos-x64
-      isPublic: true
-      jobParameters:
-        kind: micro
-        csproj: src\benchmarks\micro\MicroBenchmarks.csproj
-        runCategories: 'runtime libraries' 
-        channels:
-          - nativeaot8.0
 
   # ML.NET benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -280,6 +278,7 @@ jobs:
         - win-x64
         - ubuntu-x64
         - win-arm64
+        - ubuntu-arm64
       isPublic: false
       jobParameters:
         kind: scenarios
@@ -292,11 +291,25 @@ jobs:
     parameters:
       jobTemplate: /eng/performance/scenarios.yml
       buildMachines:
-        - win-x64-android-arm64
+        - win-x64-android-arm64-pixel
+        - win-x64-android-arm64-galaxy
       isPublic: false
       jobParameters:
         kind: maui_scenarios_android
         projectFile: maui_scenarios_android.proj
+        dotnetVersionsLinks:
+          main: https://aka.ms/dotnet/sdk/maui/net8.0.json
+
+  # Maui iOS scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        kind: maui_scenarios_ios
+        projectFile: maui_scenarios_ios.proj
         dotnetVersionsLinks:
           main: https://aka.ms/dotnet/sdk/maui/net8.0.json
 
@@ -308,6 +321,7 @@ jobs:
   #      - win-x64
   #      - ubuntu-x64
   #      - win-arm64
+  #      - ubuntu-arm64
   #    isPublic: false
   #    jobParameters:
   #      kind: maui_scenarios
@@ -364,22 +378,6 @@ jobs:
         projectFile: blazor_scenarios.proj
         channels:
           - main
-  
-  # ML.NET benchmarks
-  - template: /eng/performance/build_machine_matrix.yml
-    parameters:
-      jobTemplate: /eng/performance/benchmark_jobs.yml
-      buildMachines:
-        - win-x64
-        - ubuntu-x64
-        - win-arm64
-      isPublic: false
-      jobParameters:
-        kind: mlnet
-        csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
-        runCategories: 'mldotnet'
-        channels: # for ML.NET jobs we want to check .NET Core 3.1 and 5.0 only
-          - main
 
   # F# benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -389,6 +387,7 @@ jobs:
         - win-x64
         - ubuntu-x64
         - win-arm64
+        - ubuntu-arm64
       isPublic: false
       jobParameters:
         kind: fsharp
@@ -405,6 +404,7 @@ jobs:
         - win-x64
         - ubuntu-x64
         - win-arm64
+        - ubuntu-arm64
       isPublic: false
       jobParameters:
         kind: bepuphysics
@@ -421,6 +421,7 @@ jobs:
         - win-x64
         - ubuntu-x64
         - win-arm64
+        - ubuntu-arm64
       isPublic: false
       jobParameters:
         kind: imagesharp
@@ -428,6 +429,28 @@ jobs:
         runCategories: 'ImageSharp'
         channels:
           - main
+
+  # ML.NET benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/benchmark_jobs.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+        - win-arm64
+        - ubuntu-arm64
+      isPublic: false
+      jobParameters:
+        kind: mlnet
+        csproj: src\benchmarks\real-world\Microsoft.ML.Benchmarks\Microsoft.ML.Benchmarks.csproj
+        runCategories: 'mldotnet'
+        channels:
+          - main
+        affinity: '85' # (01010101) Enables alternating process threads to take hyperthreading into account
+        runEnvVars: 
+          - DOTNET_GCgen0size=410000 # ~4MB
+          - DOTNET_GCHeapCount=4
+          - DOTNET_GCTotalPhysicalMemory=400000000 # 16GB
 
   # Roslyn benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -437,6 +460,7 @@ jobs:
         - win-x64
         - ubuntu-x64
         - win-arm64
+        - ubuntu-arm64
       isPublic: false
       jobParameters:
         kind: roslyn
@@ -444,6 +468,11 @@ jobs:
         runCategories: 'roslyn'
         channels: # for Roslyn jobs we want to check .NET Core 3.1 and 5.0 only
           - main
+        affinity: '85' # (01010101) Enables alternating process threads to take hyperthreading into account
+        runEnvVars: 
+          - DOTNET_GCgen0size=410000 # ~4MB
+          - DOTNET_GCHeapCount=4
+          - DOTNET_GCTotalPhysicalMemory=400000000 # 16GB
 
   # ILLink benchmarks
   - template: /eng/performance/build_machine_matrix.yml

@@ -175,6 +175,10 @@ This would produce `/path/to/dotnet/runtime/artifacts/bin/dotnet-latest`, which 
 
 3. And you need `/path/to/dotnet/runtime/src/mono/wasm/test-main.js`
 
+#### Install v8 engine
+
+Make sure you have the v8 engine installed and in the PATH. Follow the installation [instructions](https://github.com/dotnet/runtime/tree/main/src/mono/wasm#installation-of-javascript-engines) if you don't have v8 installed.
+
 #### Run the benchmarks with the interpreter
 
 ```cmd

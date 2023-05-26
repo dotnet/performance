@@ -27,11 +27,13 @@ from logging import getLogger
 import os
 import sys
 
-from performance.common import extension, helixpayload, runninginlab, validate_supported_runtime, get_artifacts_directory, RunCommand
+from performance.common import extension, helixpayload, runninginlab, validate_supported_runtime, get_artifacts_directory, helixuploadroot, RunCommand
 from performance.logger import setup_loggers
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from channel_map import ChannelMap
 from subprocess import Popen, CalledProcessError
+from shutil import copy
+from glob import glob
 
 import dotnet
 import micro_benchmarks
@@ -307,6 +309,9 @@ def __main(args: list) -> int:
                 get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
                 '**',
                 '*perf-lab-report.json')
+
+            for file in glob(globpath, recursive=True):
+                copy(file, os.path.join(helixuploadroot(), file.split(os.sep)[-1]))
         except CalledProcessError:
             getLogger().info("Run failure registered")
             # rethrow the caught CalledProcessError exception so that the exception being bubbled up correctly.

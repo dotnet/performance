@@ -59,7 +59,7 @@ jobs:
       architecture: x64
       pool: 
         vmImage: ubuntu-latest
-      container: centos_x64_build_container
+      container: ubuntu_x64_build_container
       ${{ insert }}: ${{ parameters.jobParameters }}
       ${{ if eq(parameters.isPublic, true) }}:
         machinePool: Open
@@ -67,19 +67,6 @@ jobs:
       ${{ else }}:
         machinePool: Tiger
         queue: Ubuntu.1804.Amd64.Tiger.Perf # using a dedicated private Helix queue (perftigers)
-
-- ${{ if and(containsValue(parameters.buildMachines, 'centos-x64'), eq(parameters.isPublic, true)) }}: # centos only used in public builds currently
-  - template: ${{ parameters.jobTemplate }}
-    parameters:
-      osName: centos
-      osVersion: 7
-      architecture: x64
-      pool: 
-        vmImage: ubuntu-latest
-      machinePool: Open
-      queue: centos.7.amd64.open
-      container: centos_x64_build_container
-      ${{ insert }}: ${{ parameters.jobParameters }}
 
 - ${{ if and(containsValue(parameters.buildMachines, 'win-arm64'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
@@ -93,7 +80,19 @@ jobs:
       queue: Windows.10.Arm64.Perf.Surf
       ${{ insert }}: ${{ parameters.jobParameters }}
 
-- ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Pixel only used in private builds currently
+- ${{ if and(containsValue(parameters.buildMachines, 'ubuntu-arm64'), not(eq(parameters.isPublic, true))) }}: # Ubuntu ARM64 only used in private builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osName: ubuntu
+      osVersion: 2004
+      architecture: arm64
+      pool:
+        vmImage: ubuntu-20.04
+      machinePool: Ampere
+      queue: Ubuntu.2004.Arm64.Perf
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64-pixel'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Pixel only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
       osName: windows
@@ -103,4 +102,28 @@ jobs:
         vmImage: 'windows-2022'
       queue: Windows.10.Amd64.Pixel.Perf
       machinePool: Pixel
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'win-x64-android-arm64-galaxy'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 Galaxy only used in private builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osName: windows
+      architecture: x64
+      osVersion: 19H1
+      pool:
+        vmImage: 'windows-2022'
+      queue: Windows.10.Amd64.Galaxy.Perf
+      machinePool: Galaxy
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'osx-x64-ios-arm64'), not(eq(parameters.isPublic, true))) }}: # iPhone ARM64 12mini only used in private builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osName: osx
+      architecture: x64
+      osVersion: 12
+      pool:
+        vmImage: 'macos-12'
+      queue: OSX.1015.Amd64.Iphone.Perf
+      machinePool: iPhoneMini12
       ${{ insert }}: ${{ parameters.jobParameters }}

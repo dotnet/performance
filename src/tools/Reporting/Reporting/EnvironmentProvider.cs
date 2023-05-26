@@ -6,11 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Reporting
+namespace Reporting;
+
+public class EnvironmentProvider : IEnvironment
 {
-    public class EnvironmentProvider : IEnvironment
-    {
-        public string GetEnvironmentVariable(string variable) => Environment.GetEnvironmentVariable(variable);
-        public System.Collections.IDictionary GetEnvironmentVariables() => Environment.GetEnvironmentVariables();
-    }
+    public string GetEnvironmentVariable(string variable) => Environment.GetEnvironmentVariable(variable);
+    public System.Collections.IDictionary GetEnvironmentVariables() => Environment.GetEnvironmentVariables();
 }

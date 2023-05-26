@@ -17,6 +17,7 @@ from platform import machine
 
 import os
 import sys
+import time
 
 
 def get_machine_architecture():
@@ -157,6 +158,33 @@ def push_dir(path: str = None) -> None:
     else:
         yield
 
+def retry_on_exception(function, retry_count=3, retry_delay=5, retry_delay_multiplier=1, retry_on_exception=Exception):
+    '''
+    Retries the specified function if it throws an exception.
+
+    :param function: The function to execute.
+    :param retry_count: The number of times to retry the function.
+    :param retry_delay: The delay between retries (seconds).
+    :param retry_delay_multiplier: The multiplier to apply to the retry delay after failure.
+    :param retry_on_exception: The exception to retry on (Defaults to Exception).
+    '''
+    if retry_count < 0:
+        raise ValueError('retry_count must be >= 0')
+    if retry_delay < 0:
+        raise ValueError('retry_delay must be >= 0')
+    if retry_delay_multiplier < 1:
+        raise ValueError('retry_delay_multiplier must be >= 1')
+
+    for i in range(retry_count):
+        try:
+            return function()
+        except retry_on_exception as e:
+            if i == retry_count - 1:
+                raise
+            getLogger().info('Exception caught: %s', e)
+            getLogger().info('Retrying in %d seconds...', retry_delay)
+            time.sleep(retry_delay)
+            retry_delay *= retry_delay_multiplier
 
 class RunCommand:
     '''
