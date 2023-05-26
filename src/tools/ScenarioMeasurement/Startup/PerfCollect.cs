@@ -29,7 +29,7 @@ public class PerfCollect : IDisposable
             throw new FileNotFoundException($"Pefcollect not found at {perfCollectScript}. Please rebuild the project to download it.");
         }
 
-        if (String.IsNullOrEmpty(traceName))
+        if (string.IsNullOrEmpty(traceName))
         {
             throw new ArgumentException("Trace file name cannot be empty.");
         }

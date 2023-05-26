@@ -7,7 +7,7 @@ namespace ScenarioMeasurement;
 
 public class WinUIParser : IParser
 {
-    const String WinUIProvider = "Microsoft-Windows-XAML";
+    const string WinUIProvider = "Microsoft-Windows-XAML";
 
     public void EnableKernelProvider(ITraceSession kernel)
     {
