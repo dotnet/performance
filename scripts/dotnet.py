@@ -734,7 +734,9 @@ def remove_dotnet(architecture: str) -> str:
     Removes the dotnet installed in the tools directory associated with the
     specified architecture.
     '''
-    rmtree(__get_directory(architecture))
+    dotnet_path = __get_directory(architecture)
+    if path.isdir(dotnet_path):
+        rmtree(dotnet_path)
 
 def shutdown_server(verbose:bool) -> None:
     '''

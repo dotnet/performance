@@ -56,6 +56,9 @@ def init_tools(
         for target_framework_moniker in target_framework_monikers
     ]
 
+    dotnet.remove_dotnet(
+        architecture=architecture
+    )
     dotnet.install(
         architecture=architecture,
         channels=channels,
