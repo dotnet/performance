@@ -146,7 +146,7 @@ public class PerfCollect : IDisposable
         KernelEvents.Add(keyword);
     }
 
-    private bool LttngInstalled()
+    private static bool LttngInstalled()
     {
         var procStartInfo = new ProcessStartInfo("modinfo", "lttng_probe_writeback");
         var proc = new Process() { StartInfo = procStartInfo, };
