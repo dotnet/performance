@@ -28,7 +28,7 @@ enum MetricType
 
 public class InnerLoopMarkerEventSource : EventSource
 {
-    public static InnerLoopMarkerEventSource Log = new InnerLoopMarkerEventSource();
+    public static InnerLoopMarkerEventSource Log = new();
     public void Split() => WriteEvent(1);
     public void EndIteration() => WriteEvent(2);
     public void DroppedFile() => WriteEvent(3);
@@ -100,10 +100,10 @@ class Startup
                     bool runWithDotnet = false
                     )
     {
-        var logger = new Logger(String.IsNullOrEmpty(logFileName) ? $"{appExe}.startup.log" : logFileName);
+        var logger = new Logger(string.IsNullOrEmpty(logFileName) ? $"{appExe}.startup.log" : logFileName);
         static void checkArg(string arg, string name)
         {
-            if (String.IsNullOrEmpty(arg))
+            if (string.IsNullOrEmpty(arg))
                 throw new ArgumentException(name);
         };
         checkArg(appExe, nameof(appExe));
@@ -119,7 +119,7 @@ class Startup
             traceFilePath = Path.Join(traceDirectory, traceName);
         }
 
-        if (String.IsNullOrEmpty(traceDirectory))
+        if (string.IsNullOrEmpty(traceDirectory))
         {
             traceDirectory = Environment.CurrentDirectory;
         }
@@ -173,7 +173,7 @@ class Startup
             var output = new StringBuilder();
             DataReceivedEventHandler stdOutProcessor = (s, e) =>
             {
-                if (!String.IsNullOrEmpty(e.Data))
+                if (!string.IsNullOrEmpty(e.Data))
                 {
                     output.AppendLine(e.Data);
                     Console.WriteLine(e.Data);
@@ -181,7 +181,7 @@ class Startup
             };
             DataReceivedEventHandler stdErrProcessor = (s, e) =>
             {
-                if (!String.IsNullOrEmpty(e.Data))
+                if (!string.IsNullOrEmpty(e.Data))
                 {
                     Console.WriteLine(e.Data);
                 }
@@ -219,7 +219,7 @@ class Startup
         logger.Log($"Iteration set up: {iterationSetup} (args: {setupArgs})");
         IProcessHelper setupProcHelper = null;
 
-        if (!String.IsNullOrEmpty(iterationSetup))
+        if (!string.IsNullOrEmpty(iterationSetup))
         {
             setupProcHelper = CreateProcHelper(iterationSetup, setupArgs, true, logger);
         }
@@ -227,12 +227,12 @@ class Startup
         // create iteration cleanup process helper
         logger.Log($"Iteration clean up: {iterationCleanup} (args: {cleanupArgs})");
         IProcessHelper cleanupProcHelper = null;
-        if (!String.IsNullOrEmpty(iterationCleanup))
+        if (!string.IsNullOrEmpty(iterationCleanup))
         {
             cleanupProcHelper = CreateProcHelper(iterationCleanup, cleanupArgs, true, logger);
         }
         IProcessHelper innerLoopProcHelper = null;
-        if (!String.IsNullOrEmpty(innerLoopCommand))
+        if (!string.IsNullOrEmpty(innerLoopCommand))
         {
             innerLoopProcHelper = CreateProcHelper(innerLoopCommand, innerLoopCommandArgs, true, logger);
         }
@@ -327,7 +327,7 @@ class Startup
                 appExe = Path.Join(workingDir, appExe);
             }
             var commandLine = $"\"{appExe}\"";
-            if (!String.IsNullOrEmpty(appArgs))
+            if (!string.IsNullOrEmpty(appArgs))
             {
                 commandLine = commandLine + " " + appArgs;
             }
@@ -521,7 +521,7 @@ class Startup
     private static Dictionary<string, string> ParseStringToDictionary(string s)
     {
         var dict = new Dictionary<string, string>();
-        if (!String.IsNullOrEmpty(s))
+        if (!string.IsNullOrEmpty(s))
         {
             foreach (var substring in s.Split(';', StringSplitOptions.RemoveEmptyEntries))
             {
@@ -540,7 +540,7 @@ class Startup
         test.Name = scenarioName;
         test.AddCounter(counters);
         reporter.AddTest(test);
-        if (reporter.InLab && !String.IsNullOrEmpty(reportJsonPath))
+        if (reporter.InLab && !string.IsNullOrEmpty(reportJsonPath))
         {
             File.WriteAllText(reportJsonPath, reporter.GetJson());
         }

@@ -11,7 +11,7 @@ namespace Startup.Tests;
 
 public class StartupTests
 {
-    readonly Logger logger = new Logger("test-startup.log");
+    readonly Logger logger = new("test-startup.log");
     readonly string traceDirectory = Environment.CurrentDirectory;
     readonly string testAssetDirectory = "inputs";
 
@@ -123,7 +123,7 @@ public class StartupTests
             traceFilePath = session.TraceFilePath;
         }
 
-        Assert.False(String.IsNullOrEmpty(traceFilePath));
+        Assert.False(string.IsNullOrEmpty(traceFilePath));
         Assert.True(File.Exists(traceFilePath));
     }
 
