@@ -10,7 +10,7 @@ namespace ScenarioMeasurement;
 
 public class WindowsTraceSession : ITraceSession
 {
-    private Logger logger;
+    private readonly Logger logger;
     public string TraceFilePath { get; }
     public TraceEventSession KernelSession { get; set; }
     public TraceEventSession UserSession { get; set; }

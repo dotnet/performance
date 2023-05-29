@@ -9,7 +9,7 @@ public class LinuxTraceSession : ITraceSession
     {
         get { return perfCollect?.TraceFilePath; }
     }
-    private PerfCollect perfCollect;
+    private readonly PerfCollect perfCollect;
     private Dictionary<TraceSessionManager.KernelKeyword, PerfCollect.KernelKeyword> kernelKeywords;
     private Dictionary<TraceSessionManager.ClrKeyword, PerfCollect.ClrKeyword> clrKeywords;
 

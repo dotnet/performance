@@ -10,13 +10,13 @@ namespace ScenarioMeasurement;
 public class PerfCollect : IDisposable
 {
     private readonly string startupDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-    private ManagedProcessHelper perfCollectProcess;
+    private readonly ManagedProcessHelper perfCollectProcess;
     public string TraceName { get; private set; }
     public string TraceFileName { get; private set; }
     public string TraceDirectory { get; private set; }
     public string TraceFilePath { get; private set; }
-    private List<KernelKeyword> KernelEvents = new();
-    private List<ClrKeyword> ClrEvents = new();
+    private readonly List<KernelKeyword> KernelEvents = new();
+    private readonly List<ClrKeyword> ClrEvents = new();
     public PerfCollect(string traceName, Logger logger) : this(traceName, Environment.CurrentDirectory, logger)
     {
     }

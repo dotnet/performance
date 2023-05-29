@@ -8,7 +8,7 @@ namespace ScenarioMeasurement;
 
 public class InnerLoopParser : IParser
 {
-    private bool useLoggingExtension = false;
+    private readonly bool useLoggingExtension = false;
 
     public InnerLoopParser()
     {
