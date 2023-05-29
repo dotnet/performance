@@ -28,7 +28,7 @@ enum MetricType
 
 public class InnerLoopMarkerEventSource : EventSource
 {
-    public static InnerLoopMarkerEventSource Log = new InnerLoopMarkerEventSource();
+    public static InnerLoopMarkerEventSource Log = new();
     public void Split() => WriteEvent(1);
     public void EndIteration() => WriteEvent(2);
     public void DroppedFile() => WriteEvent(3);
