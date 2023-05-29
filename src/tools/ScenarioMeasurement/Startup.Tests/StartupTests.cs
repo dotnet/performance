@@ -123,7 +123,7 @@ public class StartupTests
             traceFilePath = session.TraceFilePath;
         }
 
-        Assert.False(String.IsNullOrEmpty(traceFilePath));
+        Assert.False(string.IsNullOrEmpty(traceFilePath));
         Assert.True(File.Exists(traceFilePath));
     }
 

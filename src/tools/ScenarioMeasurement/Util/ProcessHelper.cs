@@ -45,8 +45,8 @@ public class RawProcessHelper : IProcessHelper
 
     public string Executable { get; set; }
 
-    public string Arguments { get; set; } = String.Empty;
-    public string WorkingDirectory { get; set; } = String.Empty;
+    public string Arguments { get; set; } = string.Empty;
+    public string WorkingDirectory { get; set; } = string.Empty;
 
     public bool GuiApp { get; set; } = false;
 
@@ -145,8 +145,8 @@ public class ManagedProcessHelper : IProcessHelper
 
     public string Executable { get; set; }
 
-    public string Arguments { get; set; } = String.Empty;
-    public string WorkingDirectory { get; set; } = String.Empty;
+    public string Arguments { get; set; } = string.Empty;
+    public string WorkingDirectory { get; set; } = string.Empty;
 
     public bool GuiApp { get; set; } = false;
 
@@ -230,14 +230,14 @@ public class ManagedProcessHelper : IProcessHelper
             {
                 process.OutputDataReceived += (s, e) =>
                 {
-                    if (!String.IsNullOrEmpty(e.Data))
+                    if (!string.IsNullOrEmpty(e.Data))
                     {
                         output.AppendLine(e.Data);
                     }
                 };
                 process.ErrorDataReceived += (s, e) =>
                 {
-                    if (!String.IsNullOrEmpty(e.Data))
+                    if (!string.IsNullOrEmpty(e.Data))
                     {
                         error.AppendLine(e.Data);
                     }

@@ -7,8 +7,8 @@ namespace ScenarioMeasurement;
 
 public class WinUIBlazorParser : IParser
 {
-    const String WinUIProvider = "Microsoft-Windows-XAML";
-    const String PerfProvider = "PerfLabGenericEventSource";
+    const string WinUIProvider = "Microsoft-Windows-XAML";
+    const string PerfProvider = "PerfLabGenericEventSource";
 
     public void EnableKernelProvider(ITraceSession kernel)
     {
