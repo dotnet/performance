@@ -43,8 +43,8 @@ public class PDNStartupParser : IParser
 
             source.Kernel.ProcessStart += evt =>
             {
-                var commandLineArgs = commandLine.Substring(commandLine.LastIndexOf("\"")+1).Trim();
-                var payloadCommandLineArgs = evt.CommandLine.Substring(evt.CommandLine.LastIndexOf("\"")+1).Trim();
+                var commandLineArgs = commandLine[(commandLine.LastIndexOf("\"") + 1)..].Trim();
+                var payloadCommandLineArgs = evt.CommandLine[(evt.CommandLine.LastIndexOf("\"") + 1)..].Trim();
                 if (processName.Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase) && pids.Contains(evt.ProcessID) && payloadCommandLineArgs == commandLineArgs)
                 {
                     if (pid.HasValue)

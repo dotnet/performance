@@ -26,8 +26,8 @@ class ParserUtility
             var payloadCommandLine = (string)GetPayloadValue(evt, "CommandLine");
             if (payloadCommandLine.Length >= bufferMax && commandLine.Length >= bufferMax)
             {
-                commandLine = commandLine.Substring(0, bufferMax);
-                payloadCommandLine = payloadCommandLine.Substring(0, bufferMax);
+                commandLine = commandLine[..bufferMax];
+                payloadCommandLine = payloadCommandLine[..bufferMax];
             }
             if (!commandLine.Trim().Equals(payloadCommandLine.Trim()))
             {
@@ -66,7 +66,7 @@ class ParserUtility
                 if (evt.PayloadByName("FileName") == null)
                 {
                     // match the first 15 characters only if FileName field is not present in the payload
-                    if(!processName.Substring(0, 15).Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase))
+                    if(!processName[..15].Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase))
                     {
                         return CompareResult.Mismatch;
                     }
