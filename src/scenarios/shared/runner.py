@@ -46,6 +46,7 @@ class Runner:
         self.crossgenfile = None
         self.dirs = None
         self.crossgen_arguments = CrossgenArguments()
+        self.affinity = None
         setup_loggers(True)
 
     def parseargs(self):
@@ -60,6 +61,7 @@ class Runner:
         # startup command
         startupparser = subparsers.add_parser(const.STARTUP,
                                               description='measure time to main of running the project')
+        self.add_affinity_argument(startupparser)
         self.add_common_arguments(startupparser)
 
         # parse only command
@@ -98,16 +100,19 @@ class Runner:
         # inner loop command
         innerloopparser = subparsers.add_parser(const.INNERLOOP,
                                               description='measure time to main and difference between two runs in a row')
+        self.add_affinity_argument(innerloopparser)
         self.add_common_arguments(innerloopparser)
 
         # inner loop msbuild command
         innerloopparser = subparsers.add_parser(const.INNERLOOPMSBUILD,
                                               description='measure time to main and difference between two runs in a row')
+        self.add_affinity_argument(innerloopparser)
         self.add_common_arguments(innerloopparser)
 
         # dotnet watch command
         dotnetwatchparser = subparsers.add_parser(const.DOTNETWATCH,
                                               description='measure time to main and time for hot reload')
+        self.add_affinity_argument(dotnetwatchparser)
         self.add_common_arguments(dotnetwatchparser)
 
         # sdk command
@@ -124,18 +129,21 @@ build_no_change: measure duration of building with existing output in each itera
 new_console:     measure duration of creating a new console template
 '''
                                )
+        self.add_affinity_argument(sdkparser)
         self.add_common_arguments(sdkparser)
 
         crossgenparser = subparsers.add_parser(const.CROSSGEN,
                                                description='measure duration of the crossgen compilation',
                                                formatter_class=RawTextHelpFormatter)
         self.crossgen_arguments.add_crossgen_arguments(crossgenparser)
+        self.add_affinity_argument(crossgenparser)
         self.add_common_arguments(crossgenparser)
 
         crossgen2parser = subparsers.add_parser(const.CROSSGEN2,
                                                 description='measure duration of the crossgen compilation',
                                                 formatter_class=RawTextHelpFormatter)
         self.crossgen_arguments.add_crossgen2_arguments(crossgen2parser)
+        self.add_affinity_argument(crossgen2parser)
         self.add_common_arguments(crossgen2parser)
 
         sodparser = subparsers.add_parser(const.SOD,
@@ -198,11 +206,21 @@ ex: C:\repos\performance;C:\repos\runtime
         if args.scenarioname:
             self.scenarioname = args.scenarioname
 
+        if self.testtype in [const.STARTUP, const.INNERLOOP, const.INNERLOOPMSBUILD, const.DOTNETWATCH, const.SDK, const.CROSSGEN, const.CROSSGEN2] and (args.affinity or os.environ.get('PERFLAB_DATA_AFFINITY')): # Set affinity if doing a Startup based test
+            self.affinity = args.affinity if args.affinity else os.environ.get('PERFLAB_DATA_AFFINITY')
+
     
     def add_common_arguments(self, parser: ArgumentParser):
         "Common arguments to add to subparsers"
         parser.add_argument('--scenario-name',
                             dest='scenarioname')
+        
+    def add_affinity_argument(self, parser: ArgumentParser):
+        "Affinity arguments to add to subparsers"
+        parser.add_argument('--affinity',
+                            dest='affinity',
+                            type=str,
+                            help='Processor affinity to run the test on. Passed as integer. EX. 1 for first processor, 2 for second processor, 3 for first and second processor, 4 for third processor, etc.')
 
     def run(self):
         '''
@@ -218,7 +236,8 @@ ex: C:\repos\performance;C:\repos\runtime
             iterationsetup=pythoncommand(),
             setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
             iterationcleanup=pythoncommand(),
-            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE))
+            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
+            affinity=self.affinity)
             startup.runtests(self.traits)
 
         if self.testtype == const.INNERLOOPMSBUILD:
@@ -230,7 +249,8 @@ ex: C:\repos\performance;C:\repos\runtime
             iterationsetup=pythoncommand(),
             setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
             iterationcleanup=pythoncommand(),
-            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE))
+            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
+            affinity=self.affinity)
             startup.runtests(self.traits)
             
         if self.testtype == const.DOTNETWATCH:
@@ -242,7 +262,8 @@ ex: C:\repos\performance;C:\repos\runtime
             iterationsetup=pythoncommand(),
             setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
             iterationcleanup=pythoncommand(),
-            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE))
+            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
+            affinity=self.affinity)
             self.traits.add_traits(workingdir = const.APPDIR)
             startup.runtests(self.traits)
 
@@ -252,7 +273,8 @@ ex: C:\repos\performance;C:\repos\runtime
                                    environmentvariables='COMPlus_EnableEventLog=1' if not iswin() else '',
                                    scenarioname=self.scenarioname,
                                    scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
-                                   apptorun=publishedexe(self.traits.exename)
+                                   apptorun=publishedexe(self.traits.exename),
+                                   affinity=self.affinity
                                    )
             if self.traits.runwithdotnet:
                 self.traits.add_traits(overwrite=True,
@@ -311,6 +333,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     workingdir=const.APPDIR
                 )
                 self.traits.add_traits(overwrite=True, startupmetric=const.STARTUP_PROCESSTIME)
+                self.traits.add_traits(overwrite=True, affinity=self.affinity)
                 startup.runtests(self.traits)
 
         elif self.testtype == const.CROSSGEN:
@@ -323,7 +346,8 @@ ex: C:\repos\performance;C:\repos\runtime
             self.traits.add_traits(overwrite=True,
                                    startupmetric=const.STARTUP_PROCESSTIME,
                                    workingdir=coreroot,
-                                   appargs=' '.join(crossgenargs)
+                                   appargs=' '.join(crossgenargs),
+                                   affinity=self.affinity
                                    )
             self.traits.add_traits(overwrite=False,
                                    scenarioname='Crossgen Throughput - %s' % scenario_filename,
@@ -348,7 +372,8 @@ ex: C:\repos\performance;C:\repos\runtime
             self.traits.add_traits(overwrite=True,
                                    startupmetric=const.STARTUP_CROSSGEN2,
                                    workingdir=self.crossgen_arguments.coreroot,
-                                   appargs='%s %s' % (os.path.join('crossgen2', 'crossgen2.dll'), ' '.join(crossgen2args))
+                                   appargs='%s %s' % (os.path.join('crossgen2', 'crossgen2.dll'), ' '.join(crossgen2args)),
+                                   affinity=self.affinity
                                    )
             self.traits.add_traits(overwrite=False,
                                    scenarioname=scenarioname,
