@@ -223,7 +223,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument(
         '--affinity',
         required=False,
-        help='Affinity value set for BenchmarkDotNet to set as PERFLAB_DATA_AFFINITY'
+        help='Affinity value set as PERFLAB_DATA_AFFINITY. In scenarios, this value is directly used to set affinity. In benchmark jobs, affinity is set in benchmark_jobs.yml via BDN command line arg'
     )
 
     parser.add_argument(

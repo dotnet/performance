@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
+
+  <Import Project="Scenarios.Common.props" />
+
+  <PropertyGroup>
+    <AfterPreparePayloadWorkItemCommand>$(Python) post.py</AfterPreparePayloadWorkItemCommand>
+    <PreparePayloadOutDirectoryName>scenarios_out</PreparePayloadOutDirectoryName>
+    <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' == 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)\</PreparePayloadWorkItemBaseDirectory>
+    <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
+    <AffinityTestName Condition="'$(AffinityValue)' != '0'"> - Affinity $(AffinityValue)</AffinityTestName>
+    <AffinityTestName Condition="'$(AffinityValue)' == '0'"></AffinityTestName>
+  </PropertyGroup>
+
+  <!-- Scenario definitions -->
+  <ItemGroup>
+    <UIScenario Include="PaintDotNet" Condition="'$(TargetsWindows)' == 'true' And $(BUILD_REPOSITORY_PROVIDER) == 'TfsGit'">
+      <ScenarioDirectoryName>paintdotnet</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <ExplicitPrepareCommand>$(Python) pre.py extract -p $(CorrelationPayloadDirectory)PDN\PDN.zip -o $(PreparePayloadWorkItemBaseDirectory)%(ScenarioDirectoryName)_fdd</ExplicitPrepareCommand>
+    </UIScenario>
+  </ItemGroup>
+
+  <!-- Scenario prepare steps-->
+  <ItemGroup>
+    <PreparePayloadWorkItem Include="@(UIScenario)">
+      <Command Condition="'%(PreparePayloadWorkItem.ExplicitPrepareCommand)' != ''">%(PreparePayloadWorkItem.ExplicitPrepareCommand)</Command>
+      <Command Condition="'%(PreparePayloadWorkItem.ExplicitPrepareCommand)' == ''">$(Python) pre.py publish -f $(PERFLAB_Framework) -c Release --windowsui -r $(RID) --no-self-contained -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)_fdd</Command>
+      <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
+    </PreparePayloadWorkItem>
+  </ItemGroup>
+
+  <!-- UI Startup FDD publish -->
+  <ItemGroup>
+    <HelixWorkItem Include="@(UIScenario -> 'Startup - %(Identity) - FDD Publish$(AffinityTestName)')">
+      <PreCommands Condition="'$(TargetsWindows)' == 'true'">xcopy %HELIX_CORRELATION_PAYLOAD%\$(PreparePayloadOutDirectoryName)\%(HelixWorkItem.ScenarioDirectoryName)_fdd %HELIX_WORKITEM_ROOT%\pub /E /I /Y</PreCommands>
+      <PreCommands Condition="'$(TargetsWindows)' != 'true'">cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName)_fdd $HELIX_WORKITEM_ROOT/pub</PreCommands>
+      <Command>$(Python) test.py startup --scenario-name &quot;%(Identity)&quot;</Command>
+    </HelixWorkItem>
+  </ItemGroup>
+
+  <Import Project="PreparePayloadWorkItems.targets" />
+
+  <!--
+    This is useful for local testing to print the produced helix items
+    To use this when you are changing how items are produced, uncomment the target
+    and replace the Project item at the top of the file with this:
+    <Project DefaultTargets="printItems">
+    
+    Once you've done that you can run this to see the results:
+    dotnet msbuild .\scenarios.proj /v:n
+   -->
+  <!-- <Target Name="printItems">
+        <Message Text="@(HelixWorkItem -> 'name: %(HelixWorkItem.Identity)
+     dir: %(HelixWorkItem.PayloadDirectory)
+     pre: %(HelixWorkItem.PreCommands)
+     command: %(HelixWorkItem.Command)
+     post: %(HelixWorkItem.PostCommands)
+     timeout: %(HelixWorkItem.Timeout)  '"/>
+  </Target> -->
+
+</Project>
