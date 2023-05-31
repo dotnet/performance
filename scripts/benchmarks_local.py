@@ -1,3 +1,9 @@
+# This is a script for testing the performance of the different dotnet/runtime build types locally
+# Example usage from the performance/scripts folder: 
+# python .\benchmarks_local.py --local-test-repo "<absolute path to runtime folder>/runtime" --run-type MonoJIT --filter *Span.IndexerBench.CoveredIndex2* --bdn-arguments='-i'
+# or if you want remotes:
+# python .\benchmarks_local.py --branches main --repo-storage-dir "<absolute path to where you want to store runtime clones>" --run-type MonoJIT --filter *Span.IndexerBench.CoveredIndex2* --bdn-arguments='-i'
+
 from argparse import ArgumentParser, ArgumentTypeError, Namespace
 from channel_map import ChannelMap
 from enum import Enum
@@ -83,7 +89,8 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str):
     getLogger().info("Generating dependencies for " + ' '.join(map(str, parsed_args.run_type_names)) + " run types in " + repo_path + ".")
     
     if check_for_runtype_specified(parsed_args, [RunType.CoreRun, RunType.MonoInterpreter, RunType.MonoJIT]):
-        build_runtime_dependency(parsed_args, repo_path) # Build libs and corerun by default
+        build_runtime_dependency(parsed_args, repo_path) # Build libs and corerun by default TODO: Check if we actually need to build these for MonoInterpreter and MonoJIT
+
     if check_for_runtype_specified(parsed_args, [RunType.MonoInterpreter, RunType.MonoJIT]):
         build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs") 
         build_runtime_dependency(parsed_args, repo_path, "libs.pretest", additional_args=['-testscope', 'innerloop', '/p:RuntimeFlavor=mono', f"/p:RuntimeArtifactsPath={os.path.join(repo_path, 'artifacts', 'bin', 'mono', f'{parsed_args.os}.{parsed_args.architecture}.Release')}"])
@@ -104,6 +111,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str):
         shutil.copy2(src_file, dest_file)
         # Create the core root
         generate_layout(parsed_args, repo_path)
+
     if check_for_runtype_specified(parsed_args, [RunType.MonoAOT]):
         build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['/p:CrossBuild=false' '/p:MonoLLVMUseCxx11Abi=false']) 
     
@@ -244,6 +252,7 @@ def __main(args: list):
     setup_loggers(verbose=parsed_args.verbose)
     runtime_ref_type = RuntimeRefType.BRANCH
 
+    # TODO: Should we allow for both branches and hashes to be specified?
     if parsed_args.branches and parsed_args.hashes:
         raise Exception("Cannot specify both branches and hashes.")
     elif parsed_args.branches:
@@ -273,6 +282,7 @@ def __main(args: list):
     elif not runtime_ref_type == RuntimeRefType.LOCAL_ONLY:
         raise Exception("Invalid runtime ref type.")
 
+    # Run the test for each of the remote versions to test
     if not runtime_ref_type == RuntimeRefType.LOCAL_ONLY:
         references = branch_names if runtime_ref_type == RuntimeRefType.BRANCH else commit_hashes
         getLogger().info("Checking if references " + str(references) + " exist in " + repo_url + ".")
@@ -284,10 +294,11 @@ def __main(args: list):
             else:
                 run_benchmark(parsed_args, runtime_ref_type, repo_url, "runtime", git_selector_attribute)
 
+    # Run the test for the local version to test
     if parsed_args.local_test_repo:
         run_benchmark(parsed_args, runtime_ref_type, "local", parsed_args.local_test_repo, "local", True)
 
-    # Compare the results of the benchmarks
+    # TODO: Compare the results of the benchmarks
 
 if __name__ == "__main__":
     __main(sys.argv[1:])
