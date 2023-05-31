@@ -69,14 +69,14 @@ To run a specific GCPerfSim scenario such as the Normal Server scenario, invoke 
 1. ``cd C:\performance\artifacts\bin\GC.Infrastructure\Release\net7.0\``.
 2. ``.\GC.Infrastructure.exe gcperfsim --configuration C:\InfrastructureConfigurations\GCPerfSim\Normal_Server.yaml``.
 
-###### Running GCPerfSim Scenarios on the ASP.NET Machines 
+###### Running GCPerfSim Scenarios on the ASP.NET Machines
 
 To run GCPerfSim on the ASP.NET Machines, do the following:
 
 1. Ensure you are connected to Corp Net.
 2. Pass in the name of the machine name as the optional ``--server`` parameter.
    1. For example: ``.\GC.Infrastructure.exe gcperfsim --configuration C:\InfrastructureConfigurations\GCPerfSim\Normal_Server.yaml --server aspnet-perf-win``.
-3. To run GCPerfSim scenarios via crank locally, set the ``--server`` to ``local`` after ensuring that you are running the crank-agent. 
+3. To run GCPerfSim scenarios via crank locally, set the ``--server`` to ``local`` after ensuring that you are running the crank-agent.
    1. To install ``crank-agent``, invoke:
       1. ``dotnet tool install -g Microsoft.Crank.Agent --version "0.2.0-*"``.
       2. ``sc.exe create "CrankAgentService" binpath= "%USERPROFILE%\crank-agent.exe --url http://*:5001 --service"``.
@@ -84,13 +84,13 @@ To run GCPerfSim on the ASP.NET Machines, do the following:
 
 The following are the machines you can choose to run the configuration on:
 
-| Profile	| Arch	| OS	| Proc |
+| Profile  | Arch	    | OS	     | Proc |
 | -------- | -------- | ------- | ---| 
-| aspnet-perf-lin	| INTEL, 11 cores, 32GB	| Ubuntu 20.04, Kernel 5.4.0	| Intel(R) Xeon(R) E-2336 CPU @ 2.90GHz
-| aspnet-perf-win	| INTEL, 11 cores, 32GB	| Windows Server 2022	| Intel(R) Xeon(R) E-2336 CPU @ 2.90GHz
-| aspnet-citrine-lin	| INTEL, 27 cores	| Ubuntu 20.04, Kernel 5.4.0	| Intel(R) Xeon(R) Gold 5120 CPU @ 2.20GHz
-| aspnet-citrine-win	| INTEL, 27 cores	| Windows Server 2022 | Intel(R) Xeon(R) Gold 5120 CPU @ 2.20GHz
-| aspnet-citrine-amd	| AMD, 47 cores, 64GB, 1 NUMA	| Ubuntu 20.04, Kernel 5.4.0 | AMD EPYC 7402P 24-Core Processor
+| aspnet-perf-lin| INTEL, 11 cores, 32GB| Ubuntu 20.04, Kernel 5.4.0	| Intel(R) Xeon(R) E-2336 CPU @ 2.90GHz
+| aspnet-perf-win| INTEL, 11 cores, 32GB| Windows Server 2022| Intel(R) Xeon(R) E-2336 CPU @ 2.90GHz
+| aspnet-citrine-lin| INTEL, 27 cores| Ubuntu 20.04, Kernel 5.4.0	| Intel(R) Xeon(R) Gold 5120 CPU @ 2.20GHz
+| aspnet-citrine-win| INTEL, 27 cores	| Windows Server 2022 | Intel(R) Xeon(R) Gold 5120 CPU @ 2.20GHz
+| aspnet-citrine-amd| AMD, 47 cores, 64GB, 1 NUMA| Ubuntu 20.04, Kernel 5.4.0 | AMD EPYC 7402P 24-Core Processor
 
 ##### Microbenchmarks
 
