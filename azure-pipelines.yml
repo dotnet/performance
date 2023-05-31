@@ -300,7 +300,7 @@ jobs:
         channels:
           - main
         additionalJobIdentifier: 'Affinity_85'
-        affinity: '85'
+        affinity: '85'  # (01010101) Enables alternating process threads to take hyperthreading into account
         runEnvVars: 
           - DOTNET_GCgen0size=410000 # ~4MB
           - DOTNET_GCHeapCount=4
