@@ -170,4 +170,4 @@ Data/
 
 *launchSettings.json
 
-*.ipynb
+#*.ipynb

@@ -55,9 +55,17 @@ namespace GC.Infrastructure.Core.CommandBuilders
 
                 else
                 {
-                    traceFileSuffix = ".nettrace";
-                    commandStringBuilder.Append(" --application.dotnetTrace true ");
-                    commandStringBuilder.Append(" --application.dotnetTraceProviders gc-collect ");
+                    if (configuration.TraceConfigurations.Type != "gc")
+                    {
+                        throw new ArgumentException($"{nameof(ASPNetBenchmarksCommandBuilder)}: Currently only GCCollectOnly traces are allowed for Linux.");
+                    }
+
+                    else
+                    {
+                        traceFileSuffix = ".nettrace";
+                        commandStringBuilder.Append(" --application.dotnetTrace true ");
+                        commandStringBuilder.Append(" --application.dotnetTraceProviders gc-collect ");
+                    }
                 }
 
                 // Add name of output.

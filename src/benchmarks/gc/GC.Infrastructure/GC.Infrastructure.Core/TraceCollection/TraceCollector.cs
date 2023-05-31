@@ -11,6 +11,7 @@ namespace GC.Infrastructure.Core.TraceCollection
         cpu,
         cpu_managed,
         threadtime,
+        threadtime_managed,
         join
     }
 
@@ -30,8 +31,9 @@ namespace GC.Infrastructure.Core.TraceCollection
             { CollectType.verbose, "/ClrEventLevel:Verbose /ClrEvents:GC+Stack" },
             { CollectType.cpu,  "/KernelEvents=Process+Thread+ImageLoad+Profile /ClrEventLevel:Informational /ClrEvents:GC+Stack /BufferSize:3000 /CircularMB:3000"  },
             { CollectType.cpu_managed,  "/KernelEvents=Process+Thread+ImageLoad+Profile /ClrEventLevel:Informational /ClrEvents:GC+Stack+Codesymbols+JitSymbols+Compilation+Type+GCHeapAndTypeNames /BufferSize:3000 /CircularMB:3000"  },
-            { CollectType.threadtime, "/KernelEvents=Process+Thread+ImageLoad+Profile+ContextSwitch+ReadyThread /ClrEvents:GC+Stack+Codesymbols+JitSymbols+Compilation+Type+GCHeapAndTypeNames /clrEventLevel=Informational /BufferSize:3000 /CircularMB:3000" },
-            { CollectType.join, " /BufferSizeMB:4096 /CircularMB:4096 /KernelEvents:Process+Thread+ImageLoad  /ClrEvents:GC+Threading" },
+            { CollectType.threadtime_managed, "/KernelEvents=Process+Thread+ImageLoad+Profile+ContextSwitch+Dispatcher /ClrEvents:GC+Stack+Codesymbols+JitSymbols+Compilation+Type+GCHeapAndTypeNames /BufferSize:3000 /CircularMB:3000 /ClrEventLevel=Verbose" },
+            { CollectType.threadtime, "/KernelEvents=Process+Thread+ImageLoad+Profile+ContextSwitch+Dispatcher /ClrEvents:GC /ClrEventLevel=Verbose /BufferSize:3000 /CircularMB:3000 " },
+            { CollectType.join, " /BufferSizeMB:4096 /CircularMB:4096 /KernelEvents:Process+Thread+ImageLoad  /ClrEvents:GC+Threading /ClrEventLevel=Verbose " },
         };
 
         internal static readonly Dictionary<CollectType, string> LinuxCollectTypeMap = new()
@@ -48,6 +50,7 @@ namespace GC.Infrastructure.Core.TraceCollection
             { "cpu", CollectType.cpu },
             { "cpu_managed", CollectType.cpu_managed },
             { "threadtime", CollectType.threadtime },
+            { "threadtime_managed", CollectType.threadtime_managed },
             { "join", CollectType.join },
             { "none", CollectType.none }
         };

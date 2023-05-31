@@ -1,16 +1,31 @@
 runs:
-
-  3gb:
+  0gb:
     override_parameters:
-      tlgb: 3 
+      tlgb: 0
+    environment_variables: 
+  2gb:
+    override_parameters:
+      tlgb: 2
       sohsi: 50
-
-# Top level microbenchmark configuration.
+    environment_variables: 
+  2gb_pinning:
+    override_parameters:
+      tlgb: 2
+      sohsi: 50
+      sohpi: 50
+    environment_variables: 
+  20gb:
+    override_parameters:
+      tagb: 300
+      tlgb: 20
+      sohsi: 50
+      allocType: simple
+    environment_variables: 
 gcperfsim_configurations:
   parameters:
     tc: 36
     tagb: 540
-    tlgb: 3 
+    tlgb: 0
     lohar: 0
     pohar: 0
     sohsr: 100-4000
@@ -26,8 +41,13 @@ gcperfsim_configurations:
     pohfi: 0
     allocType: reference
     testKind: time
-  gcperfsim_path: "C:\\performance\\artifacts\\bin\\GCPerfSim\\release\\net7.0\\GCPerfSim.dll"
-
+  gcperfsim_path: C:\performance\artifacts\bin\GCPerfSim\release\net7.0\GCPerfSim.dll
+environment:
+  environment_variables:
+    COMPlus_GCServer: 1
+    COMPlus_GCHeapCount: 12
+  default_max_seconds: 300
+  iterations: 1
 coreruns:
   baseline:
     path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
@@ -37,21 +57,9 @@ coreruns:
     path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
     environment_variables:
       COMPlus_GCName: clrgc.dll
-
-environment:
-  environment_variables:
-    COMPlus_GCServer: 0 
-    COMPlus_GCHeapHardLimit: "0x10000000"
-    COMPlus_GCTotalPhysicalMemory: "0x10000000"
-  default_max_seconds: 300 
-  iterations: 1
-
-# Configurations that involve capturing a trace.
-trace_configurations:
-  type: gc # Choices: gc, verbose, cpu, threadtime, none
-
+linux_coreruns: 
 output:
-  path: C:\InfraRuns\RunNew_All\GCPerfSim\HighMemory_NormalWorkstation
+  path: C:\InfraRuns\RunNew_All\GCPerfSim\Normal_Server_
   columns:
   - Count
   - total allocated (mb)
@@ -123,6 +131,6 @@ output:
   formats:
   - markdown
   - json
-name: HighMemory_NormalWorkstation
+name: Normal_Server
 trace_configurations:
-  type: gc
+  type: threadtime # gc, verbose cpu, cpu_managed, threadtime, threadtime_managed, join.
