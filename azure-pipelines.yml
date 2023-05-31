@@ -299,7 +299,7 @@ jobs:
         projectFile: scenarios_affinitized.proj
         channels:
           - main
-        additionlJobIdentifier: 'Affinity_85'
+        additionalJobIdentifier: 'Affinity_85'
         affinity: '85'
         runEnvVars: 
           - DOTNET_GCgen0size=410000 # ~4MB
