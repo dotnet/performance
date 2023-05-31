@@ -14,41 +14,40 @@ This section details the end-to-end workflow associated with getting the infrast
 
 ### 1. Prerequisites
 
-1. Clone the repo: ``git clone https://github.com/mrsharm/GC.Analysis.API.git C:\Infrastructure\``.
-2. Clone the performance repo: ``git clone https://github.com/dotnet/performance C:\performance`` for GCPerfSim and Microbenchmarks.
-3. Install:
+1. Clone the performance repo: ``git clone https://github.com/dotnet/performance C:\performance\``.
+2. Install:
    1. The Dotnet 7 SDK.
       1. The link to the installers can be found [here](https://dotnet.microsoft.com/en-us/download/dotnet/7.0).
    2. [crank](https://github.com/dotnet/crank)
       1. crank can be installed by invoking: ``dotnet tool install Microsoft.Crank.Controller --version "0.2.0-*" --global``.
-4. Ensure that your machine can connected to Corp Net for the ASP.NET Scenarios. You can still run GCPerfSim and Microbenchmark test suites without being connected to Corp Net.
-5. Invoke the rest of the commands in Admin Mode.
+3. Ensure that your machine can connected to Corp Net for the ASP.NET Scenarios. You can still run GCPerfSim and Microbenchmark test suites without being connected to Corp Net.
+4. Invoke the rest of the commands in Admin Mode.
 
 ### 2. Building the Infrastructure
 
 The next step is to build the Infrastructure. To build the infrastructure in Release Mode do the following steps:
 
-1. ``cd C:\Infrastructure\GC.Infrastructure``.
+1. ``cd C:\performance\src\benchmarks\gc\GC.Infrastructure\GC.Infrastructure``.
 2. ``dotnet build -c Release``.
 
 ### 3. Running the Infrastructure
 
 To run all the test suites, do the following steps:
 
-1. ``cd C:\Infrastructure\GC.Infrastructure``.
-2. Ensure you have the right fields set in ``C:\Infrastructure\ExampleConfiguration\Run.yaml`` for:
+1. ``cd C:\performance\src\benchmarks\gc\GC.Infrastructure\GC.Infrastructure``.
+2. Ensure you have the right fields set in ``C:\performance\src\benchmarks\gc\GC.Infrastructure\ExampleConfigurations\Run.yaml`` for:
     1. The output path. As an example, by default, the results will be stored in ``C:\InfraRuns\Run``.
         1. Ensure the output directory is empty as the analysis code will pick up the older traces and will interfere with the results generation.
     2. The gcperfsim path: The path of the GCPerfSim.dll.
         1. This dll can be built by the following steps:
-            1. ``cd C:\Performance\src\benchmarks\gc\src\exec\GCPerfSim``.
+            1. ``cd C:\performance\src\benchmarks\gc\src\exec\GCPerfSim``.
             2. ``dotnet build -c Release``.
-            3. The path of GCPerfSim.dll will be available in: ``C:\Performance\artifacts\bin\GCPerfSim\Release\{.NET Version}\GCPerfSim.dll``
-                1. For example: C:\Performance\artifacts\bin\GCPerfSim\Release\net7.0\GCPerfSim.dll
-    3. The path to the microbenchmark folder or the root path of the Microbenchmarks projects which, will be in:  ``C:\performance\src\benchmarks\micro``
+            3. The path of GCPerfSim.dll will be available in: ``C:\performance\artifacts\bin\GCPerfSim\Release\{.NET Version}\GCPerfSim.dll``.
+                1. For example: C:\Performance\artifacts\bin\GCPerfSim\Release\net7.0\GCPerfSim.dll.
+    3. The path to the microbenchmark folder or the root path of the Microbenchmarks projects which, will be in: ``C:\performance\src\benchmarks\micro``.
         1. Ensure that the microbenchmarks have been compiled using: ``dotnet build -c Release``.
     4. The corerun path for the baseline and the run.
-3. ``dotnet run -- run --configuration C:\Infrastructure\ExampleConfiguration\Run.yaml``.
+3. Invoke: ``dotnet run -- run --configuration C:\performance\src\benchmarks\gc\GC.Infrastructure\ExampleConfiguration\Run.yaml``.
 
 The aggregate results for each of the test suites will be written in ``C:\InfraRuns\Run\Result.md``.
 
@@ -56,8 +55,8 @@ The aggregate results for each of the test suites will be written in ``C:\InfraR
 
 As an aside, you can run the infrastructure with just the binaries on a machine without the source. To achieve this do the following steps:
 
-1. Copy the contents from ``C:\Infrastructure\GC.Infrastructure\bin\Release\net7.0`` onto the machine you wish to run the infrastructure on. Such as ``C:\InfrastructureBinary\``.
-2. Copy the contents of the ExampleConfigurations from ``C:\Infrastructure\ExampleConfigurations`` onto the machine you wish the infrastructure on. Such as ``C:\InfrastructureConfigurations``.
+1. Copy the contents from ``C:\performance\artifacts\bin\GC.Infrastructure\Release\net7.0\`` onto the machine you wish to run the infrastructure on such as ``C:\InfrastructureBinary\``.
+2. Copy the contents of the ExampleConfigurations from ``C:\performance\src\benchmarks\gc\GC.Infrastructure\ExampleConfiguration\`` onto the machine you wish the infrastructure on such as ``C:\InfrastructureConfigurations``.
 3. ``cd C:\InfrastructureBinary``.
 4. ``.\GC.Infrastructure.exe run --configuration C:\InfrastructureConfigurations\Run.yaml``.
 
@@ -67,14 +66,14 @@ As an aside, you can run the infrastructure with just the binaries on a machine 
 
 To run a specific GCPerfSim scenario such as the Normal Server scenario, invoke the following command:
 
-1. ``cd C:\Infrastructure\GC.Infrastructure\bin\Release\net7.0``
+1. ``cd C:\performance\artifacts\bin\GC.Infrastructure\Release\net7.0\``.
 2. ``.\GC.Infrastructure.exe gcperfsim --configuration C:\InfrastructureConfigurations\GCPerfSim\Normal_Server.yaml``.
 
 ##### Microbenchmarks
 
 To run the infrastructure on a specific Microbenchmark scenario such as the Server case invoke the following command:
 
-1. ``cd C:\Infrastructure\GC.Infrastructure\bin\Release\net7.0``.
+1. ``cd C:\performance\artifacts\bin\GC.Infrastructure\Release\net7.0\``.
 2. ``.\GC.Infrastructure.exe microbenchmarks --configuration C:\InfrastructureConfigurations\Microbenchmark\Microbenchmark_Server.yaml``.
 
 ###### How To Update The Microbenchmarks To Run
@@ -91,13 +90,13 @@ microbenchmark_configurations:
 
 As an example, if you want to _just_ run the "System.IO.Tests.Perf_File.ReadAllBytes(size: 104857600)" microbenchmark, the steps to run the infrastructure would be:
 
-1. Creating a new text file: ``notepad C:\Infrastructure\ExampleConfigurations\Microbenchmark\MicrobenchmarksToRun.txt``.
+1. Creating a new text file: ``notepad C:\performance\src\benchmarks\gc\GC.Infrastructure\ExampleConfigurations\Microbenchmark\MicrobenchmarksToRun.txt`` 
 2. Updating the text file with: ``"System.IO.Tests.Perf_File.ReadAllBytes(size: 104857600)"``.
-   1. Note: If you want add more microbenchmarks, they should be separated by the ``|`` operator. As an example, if you want to also add all V8 tests, the file would be: ``"System.IO.Tests.Perf_File.ReadAllBytes(size: 104857600)" | V8.*``
-3. Updating the filter_path in ``C:\Infrastructure\ExampleConfigurations\Microbenchmark\Microbenchmark_Server.yaml`` to point to MicrobenchmarksToRun.txt:
-   1. ``filter_path: C:\Infrastructure\ExampleConfigurations\Microbenchmark\MicrobenchmarksToRun.txt``.
+   1. Note: If you want add more microbenchmarks, they should be separated by the ``|`` operator. As an example, if you want to also add all V8 tests, the file would be: ``"System.IO.Tests.Perf_File.ReadAllBytes(size: 104857600)" | "V8.*"``
+3. Updating the filter_path in ``C:\performance\src\benchmarks\gc\GC.Infrastructure\ExampleConfigurations\Microbenchmark\Microbenchmarks_Server.yaml`` to point to MicrobenchmarksToRun.txt:
+   1. ``filter_path: C:\performance\src\benchmarks\gc\GC.Infrastructure\ExampleConfigurations\Microbenchmark\MicrobenchmarksToRun.txt`` 
 4. Running the infrastructure:
-   1. ``cd C:\Infrastructure\GC.Infrastructure\bin\Release\net7.0``
+   1. ``cd C:\performance\artifacts\bin\GC.Infrastructure\Release\net7.0\``.
    2. ``.\GC.Infrastructure.exe microbenchmarks --configuration C:\InfrastructureConfigurations\Microbenchmark\Microbenchmark_Server.yaml``
 
 ###### Using Cached Invocation Counts
@@ -122,7 +121,7 @@ The path to this file can be passed in as an optional argument for the ``microbe
 
 To run the infrastructure on a specific set of ASP.NET Benchmarks such as the suite comprising of The Json Min, Fortunes ETF and the Stage1gRPC run the following:
 
-1. ``cd C:\Infrastructure\GC.Infrastructure\bin\Release\net7.0``.
+1. ``cd C:\performance\artifacts\bin\GC.Infrastructure\Release\net7.0\``.
 2. ``.\GC.Infrastructure.exe aspnetbenchmarks --configuration C:\GC.Analysis.API\ExampleConfigurations\ASPNetBenchmarks\ASPNetBenchmarks.yaml``.
 
 ###### Uploading Only A Subset of the Binaries
