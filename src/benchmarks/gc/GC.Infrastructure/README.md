@@ -94,7 +94,7 @@ As an example, if you want to _just_ run the "System.IO.Tests.Perf_File.ReadAllB
 2. Updating the text file with: ``"System.IO.Tests.Perf_File.ReadAllBytes(size: 104857600)"``.
    1. Note: If you want add more microbenchmarks, they should be separated by the ``|`` operator. As an example, if you want to also add all V8 tests, the file would be: ``"System.IO.Tests.Perf_File.ReadAllBytes(size: 104857600)" | "V8.*"``
 3. Updating the filter_path in ``C:\performance\src\benchmarks\gc\GC.Infrastructure\ExampleConfigurations\Microbenchmark\Microbenchmarks_Server.yaml`` to point to MicrobenchmarksToRun.txt:
-   1. ``filter_path: C:\performance\src\benchmarks\gc\GC.Infrastructure\ExampleConfigurations\Microbenchmark\MicrobenchmarksToRun.txt``. 
+   1. ``filter_path: C:\performance\src\benchmarks\gc\GC.Infrastructure\ExampleConfigurations\Microbenchmark\MicrobenchmarksToRun.txt``.
 4. Running the infrastructure:
    1. ``cd C:\performance\artifacts\bin\GC.Infrastructure\Release\net7.0\``.
    2. ``.\GC.Infrastructure.exe microbenchmarks --configuration C:\InfrastructureConfigurations\Microbenchmark\Microbenchmark_Server.yaml``.
