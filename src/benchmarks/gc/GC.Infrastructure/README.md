@@ -84,12 +84,12 @@ To run GCPerfSim on the ASP.NET Machines, do the following:
 
 The following are the machines you can choose to run the configuration on:
 
-| Profile  | Arch	    | OS	     | Proc |
-| -------- | -------- | ------- | ---| 
-| aspnet-perf-lin| INTEL, 11 cores, 32GB| Ubuntu 20.04, Kernel 5.4.0	| Intel(R) Xeon(R) E-2336 CPU @ 2.90GHz
+| Profile  | Arch | OS | Proc |
+| -------- | -------- | ------- |----|
+| aspnet-perf-lin| INTEL, 11 cores, 32GB| Ubuntu 20.04, Kernel 5.4.0| Intel(R) Xeon(R) E-2336 CPU @ 2.90GHz
 | aspnet-perf-win| INTEL, 11 cores, 32GB| Windows Server 2022| Intel(R) Xeon(R) E-2336 CPU @ 2.90GHz
-| aspnet-citrine-lin| INTEL, 27 cores| Ubuntu 20.04, Kernel 5.4.0	| Intel(R) Xeon(R) Gold 5120 CPU @ 2.20GHz
-| aspnet-citrine-win| INTEL, 27 cores	| Windows Server 2022 | Intel(R) Xeon(R) Gold 5120 CPU @ 2.20GHz
+| aspnet-citrine-lin| INTEL, 27 cores| Ubuntu 20.04, Kernel 5.4.0| Intel(R) Xeon(R) Gold 5120 CPU @ 2.20GHz
+| aspnet-citrine-win| INTEL, 27 cores| Windows Server 2022 | Intel(R) Xeon(R) Gold 5120 CPU @ 2.20GHz
 | aspnet-citrine-amd| AMD, 47 cores, 64GB, 1 NUMA| Ubuntu 20.04, Kernel 5.4.0 | AMD EPYC 7402P 24-Core Processor
 
 ##### Microbenchmarks
