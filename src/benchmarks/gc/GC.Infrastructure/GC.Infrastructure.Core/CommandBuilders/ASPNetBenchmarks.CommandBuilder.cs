@@ -50,7 +50,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
                 {
                     commandStringBuilder.Append(" --application.collect true ");
                     commandStringBuilder.Append(" --application.collectStartup true ");
-                    commandStringBuilder.Append($" --application.collectArguments {collectionCommand} ");
+                    commandStringBuilder.Append($" --application.collectArguments \"{collectionCommand}\" ");
                 }
 
                 else
