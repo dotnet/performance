@@ -10,8 +10,9 @@ parameters:
   dotnetVersionsLinks: [] # optional alternative to channels that uses 'channel: link' values to scrape the link's json for dotnet_version or version
   projectFile: ''       # required -- project file to build (current choices: scenarios.proj/sdk_scenarios.proj )
   machinePool: ''       # required -- Name of perf machine pool (Tiger, Owl, etc)
-  affinity: '0'         # optional -- Affinity bitmask to a specific machine in the pool (e.g. 1, 2, etc) 
+  affinity: '0'         # optional -- Affinity bitmask to a specific machine in the pool as a decimal number (e.g. 1, 2, etc) 
   runEnvVars: []        # optional -- Environment variables to set for the benchmark run in the form of a multi-line object like: "runEnvVars:\n - DOTNET_GCgen0size=1E00000 \n - DOTNET_GCHeapCount=4 \n - DOTNET_GCTotalPhysicalMemory=200000000"
+  additionalJobIdentifier: '' # optional -- Additional identifier to append to the job name (no spaces)
 
 jobs:
 - template: ../common/templates/jobs/jobs.yml
@@ -20,8 +21,8 @@ jobs:
     enablePublishBuildArtifacts: true
     helixRepo: dotnet/performance
     jobs:
-      - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}_${{ parameters.machinePool }}'
-        displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.machinePool }}'
+      - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}_${{ parameters.machinePool }}${{ parameters.additionalJobIdentifier }}'
+        displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.machinePool }} ${{ parameters.additionalJobIdentifier }}'
         timeoutInMinutes: 320
         variables:
         - name: AffinityValue # Make the affinity value available to the csproj generation
