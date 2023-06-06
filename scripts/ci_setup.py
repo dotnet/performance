@@ -61,25 +61,11 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Channel to download product from'
     )
     parser.add_argument(
-        '--no-pgo',
+        '--no-dynamic-pgo',
         dest='pgo_status',
         required=False,
         action='store_const',
-        const='nopgo'
-    )
-    parser.add_argument(
-        '--dynamic-pgo',
-        dest='pgo_status',
-        required=False,
-        action='store_const',
-        const='dynamicpgo'
-    )
-    parser.add_argument(
-        '--full-pgo',
-        dest='pgo_status',
-        required=False,
-        action='store_const',
-        const='fullpgo'
+        const='nodynamicpgo'
     )
     parser.add_argument(
         '--branch',
@@ -300,15 +286,8 @@ def __main(args: list) -> int:
     pgo_config = ''
     showenv = 'set' if sys.platform == 'win32' else 'printenv'
 
-    if args.pgo_status == 'nopgo':
-        pgo_config = variable_format % ('COMPlus_TC_QuickJitForLoops', '1')
-        pgo_config += variable_format % ('COMPlus_TC_OnStackReplacement','1')
-    elif args.pgo_status == 'dynamicpgo':
-        pgo_config = variable_format % ('COMPlus_TieredPGO', '1')
-    elif args.pgo_status == 'fullpgo':
-        pgo_config = variable_format % ('COMPlus_TieredPGO', '1')
-        pgo_config += variable_format % ('COMPlus_ReadyToRun','0')
-        pgo_config += variable_format % ('COMPlus_TC_QuickJitForLoops','1')
+    if args.pgo_status == 'nodynamicpgo':
+        pgo_config = variable_format % ('COMPlus_TieredPGO', '0')
 
     output = ''
 
