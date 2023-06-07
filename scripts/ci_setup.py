@@ -68,6 +68,13 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         const='nodynamicpgo'
     )
     parser.add_argument(
+        '--physical-promotion',
+        dest='physical_promotion',
+        required=False,
+        action='store_const',
+        const='physicalpromotion'
+    )
+    parser.add_argument(
         '--branch',
         dest='branch',
         required=False,
@@ -284,10 +291,14 @@ def __main(args: list) -> int:
     owner, repo = ('dotnet', 'core-sdk') if args.repository is None else (dotnet.get_repository(repo_url))
     config_string = ';'.join(args.build_configs) if sys.platform == 'win32' else '"%s"' % ';'.join(args.build_configs)
     pgo_config = ''
+    physical_promotion_config = ''
     showenv = 'set' if sys.platform == 'win32' else 'printenv'
 
     if args.pgo_status == 'nodynamicpgo':
         pgo_config = variable_format % ('COMPlus_TieredPGO', '0')
+
+    if args.physical_promotion == 'physicalpromotion':
+        physical_promotion_config = variable_format % ('DOTNET_JitEnablePhysicalPromotion', '1')
 
     output = ''
 
@@ -328,6 +339,7 @@ def __main(args: list) -> int:
         with open(args.output_file, 'w') as out_file:
             out_file.write(which)
             out_file.write(pgo_config)
+            out_file.write(physical_promotion_config)
             out_file.write(variable_format % ('PERFLAB_INLAB', '0' if args.not_in_lab else '1'))
             out_file.write(variable_format % ('PERFLAB_REPO', '/'.join([owner, repo])))
             out_file.write(variable_format % ('PERFLAB_BRANCH', branch))
