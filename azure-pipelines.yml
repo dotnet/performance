@@ -278,7 +278,7 @@ jobs:
         - win-x64
         - ubuntu-x64
         - win-arm64
-        - ubuntu-arm64
+        - ubuntu-arm64-ampere
       isPublic: false
       jobParameters:
         kind: scenarios
@@ -292,7 +292,7 @@ jobs:
       jobTemplate: /eng/performance/scenarios.yml
       buildMachines:
         - win-x64
-        - win-arm64
+        - win-arm64-ampere
       isPublic: false
       jobParameters:
         kind: scenarios
@@ -341,7 +341,7 @@ jobs:
   #      - win-x64
   #      - ubuntu-x64
   #      - win-arm64
-  #      - ubuntu-arm64
+  #      - ubuntu-arm64-ampere
   #    isPublic: false
   #    jobParameters:
   #      kind: maui_scenarios
@@ -407,7 +407,7 @@ jobs:
         - win-x64
         - ubuntu-x64
         - win-arm64
-        - ubuntu-arm64
+        - ubuntu-arm64-ampere
       isPublic: false
       jobParameters:
         kind: fsharp
@@ -424,7 +424,7 @@ jobs:
         - win-x64
         - ubuntu-x64
         - win-arm64
-        - ubuntu-arm64
+        - ubuntu-arm64-ampere
       isPublic: false
       jobParameters:
         kind: bepuphysics
@@ -441,7 +441,7 @@ jobs:
         - win-x64
         - ubuntu-x64
         - win-arm64
-        - ubuntu-arm64
+        - ubuntu-arm64-ampere
       isPublic: false
       jobParameters:
         kind: imagesharp
@@ -457,8 +457,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
-        - win-arm64
-        - ubuntu-arm64
+        - win-arm64-ampere
+        - ubuntu-arm64-ampere
       isPublic: false
       jobParameters:
         kind: mlnet
@@ -479,8 +479,8 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
-        - win-arm64
-        - ubuntu-arm64
+        - win-arm64-ampere
+        - ubuntu-arm64-ampere
       isPublic: false
       jobParameters:
         kind: roslyn
