@@ -22,16 +22,18 @@ https://github.com/dotnet/performance/blob/main/docs/benchmarking-workflow.md
 
 from argparse import ArgumentParser, ArgumentTypeError
 from datetime import datetime
+import json
 from logging import getLogger
 
 import os
 import sys
+from typing import Any, Optional
 
-from performance.common import extension, helixpayload, runninginlab, validate_supported_runtime, get_artifacts_directory, helixuploadroot, RunCommand
+from performance.common import validate_supported_runtime, get_artifacts_directory, helixuploadroot
 from performance.logger import setup_loggers
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from channel_map import ChannelMap
-from subprocess import Popen, CalledProcessError
+from subprocess import CalledProcessError
 from shutil import copy
 from glob import glob
 
@@ -40,11 +42,11 @@ import micro_benchmarks
 
 def init_tools(
         architecture: str,
-        dotnet_versions: str,
-        target_framework_monikers: list,
+        dotnet_versions: list[str],
+        target_framework_monikers: list[str],
         verbose: bool,
-        azure_feed_url: str = None,
-        internal_build_key: str = None) -> None:
+        azure_feed_url: Optional[str] = None,
+        internal_build_key: Optional[str] = None) -> None:
     '''
     Install tools used by this repository into the tools folder.
     This function writes a semaphore file when tools have been successfully
@@ -215,10 +217,18 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Key used to fetch the build from an internal azure feed',
     )
 
+    parser.add_argument(
+        '--partition',
+        dest='partition',
+        required=False,
+        type=int,
+        help='Partition Index of the run',
+    )
+
     return parser
 
 
-def __process_arguments(args: list):
+def __process_arguments(args: list[str]):
     parser = ArgumentParser(
         description='Tool to run .NET micro benchmarks',
         allow_abbrev=False,
@@ -228,9 +238,9 @@ def __process_arguments(args: list):
     add_arguments(parser)
     return parser.parse_args(args)
 
-def __main(args: list) -> int:
+def __main(argv: list[str]):
     validate_supported_runtime()
-    args = __process_arguments(args)
+    args = __process_arguments(argv)
     verbose = not args.quiet
 
     if not args.skip_logger_setup:
@@ -305,13 +315,26 @@ def __main(args: list) -> int:
                     getLogger().warning(f"Benchmark run for framework '{framework}' contains errors")
                     run_contains_errors = True
 
-            globpath = os.path.join(
-                get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts,
-                '**',
-                '*perf-lab-report.json')
+            artifacts_dir = get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts
 
+            globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
+            
+            all_reports: list[Any] = []
             for file in glob(globpath, recursive=True):
-                copy(file, os.path.join(helixuploadroot(), file.split(os.sep)[-1]))
+                with open(file, 'r') as report_file:
+                    all_reports.append(json.load(report_file))
+
+            combined_file_name = "combined" if args.partition is None else f"Partition{args.partition}-combined"
+            with open(os.path.join(artifacts_dir, f"{combined_file_name}-perf-lab-report.json")) as all_reports_file:
+                json.dump(all_reports, all_reports_file)
+
+            helix_upload_root = helixuploadroot()
+            if helix_upload_root is not None:
+                for file in glob(globpath, recursive=True):
+                    copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
+            else:
+                getLogger().info("Skipping upload of artifacts to Helix as HELIX_WORKITEM_UPLOAD_ROOT environment variable is not set.")
+
         except CalledProcessError:
             getLogger().info("Run failure registered")
             # rethrow the caught CalledProcessError exception so that the exception being bubbled up correctly.

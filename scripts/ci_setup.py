@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser, ArgumentTypeError
+from dataclasses import dataclass, field
 from logging import getLogger
 
 import os
@@ -8,8 +9,9 @@ import sys
 import datetime
 
 from subprocess import check_output
+from typing import Optional
 
-from performance.common import get_repo_root_path
+from performance.common import get_machine_architecture, get_repo_root_path, set_environment_variable
 from performance.common import get_tools_directory
 from performance.common import push_dir
 from performance.common import validate_supported_runtime
@@ -19,14 +21,12 @@ from channel_map import ChannelMap
 import dotnet
 import micro_benchmarks
 
-global_extension = ".cmd" if sys.platform == 'win32' else '.sh'
-
 def init_tools(
         architecture: str,
-        dotnet_versions: str,
+        dotnet_versions: list[str],
         channel: str,
         verbose: bool,
-        install_dir: str=None) -> None:
+        install_dir: Optional[str]=None) -> None:
     '''
     Install tools used by this repository into the tools folder.
     This function writes a semaphore file when tools have been successfully
@@ -156,7 +156,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         '--output-file',
         dest='output_file',
         required=False,
-        default=os.path.join(get_tools_directory(),'machine-setup' + global_extension),
+        default=os.path.join(get_tools_directory(),'machine-setup'),
         type=str,
         help='Filename to write the setup script to'
     )
@@ -231,9 +231,19 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         nargs='*',
         help='Environment variables to set on the machine in the form of key=value key2=value2. Will also be saved to additional data'
     )
+
+    parser.add_argument(
+        '--target-windows',
+        dest='target_windows',
+        default=True,
+        required=False,
+        type=lambda x: (str(x).lower() == 'true'),
+        help='Will it run on a Windows Helix Queue?'
+    )
+
     return parser
 
-def __process_arguments(args: list):
+def __process_arguments(args: list[str]):
     parser = ArgumentParser(
         description='Tool to generate a machine setup script',
         allow_abbrev=False,
@@ -243,14 +253,35 @@ def __process_arguments(args: list):
     add_arguments(parser)
     return parser.parse_args(args)
 
-def __write_pipeline_variable(name: str, value: str):
-    # Create a variable in the build pipeline
-    getLogger().info("Writing pipeline variable %s with value %s" % (name, value))
-    print('##vso[task.setvariable variable=%s]%s' % (name, value))
 
-def __main(args: list) -> int:
-    validate_supported_runtime()
-    args = __process_arguments(args)
+@dataclass
+class CiSetupArgs:
+    channel: str
+    quiet: bool = False
+    commit_sha: str | None = None
+    repository: str | None = None
+    architecture: str = get_machine_architecture()
+    dotnet_path: str | None = None
+    dotnet_versions: list[str] = field(default_factory=list[str])
+    install_dir: str | None = None
+    build_configs: dict[str, str] = field(default_factory=dict[str, str])
+    pgo_status: str | None = None
+    get_perf_hash: bool = False
+    perf_hash: str = 'testSha'
+    cli: str | None = None
+    commit_time: str | None = None
+    branch: str | None = None
+    output_file: str = os.path.join(get_tools_directory(), 'machine-setup')
+    not_in_lab: bool = False
+    queue: str = 'testQueue'
+    build_number: str = '1234.1'
+    locale: str = 'en-US'
+    maui_version: str = ''
+    affinity: str | None = None
+    run_env_vars: list[str] | None = None
+    target_windows: bool = True
+
+def main(args: CiSetupArgs):
     verbose = not args.quiet
     setup_loggers(verbose=verbose)
 
@@ -291,14 +322,14 @@ def __main(args: list) -> int:
     # (ie https://github.com/dotnet-coreclr). Replace dashes with slashes in that case.
     repo_url = None if args.repository is None else args.repository.replace('-','/')
 
-    variable_format = 'set %s=%s\n' if sys.platform == 'win32' else 'export %s=%s\n'
-    path_variable = 'set PATH=%s;%%PATH%%\n' if sys.platform == 'win32' else 'export PATH=%s:$PATH\n'
-    which = 'where dotnet\n' if sys.platform == 'win32' else 'which dotnet\n'
-    dotnet_path = '%HELIX_CORRELATION_PAYLOAD%\dotnet' if sys.platform == 'win32' else '$HELIX_CORRELATION_PAYLOAD/dotnet'
-    owner, repo = ('dotnet', 'core-sdk') if args.repository is None else (dotnet.get_repository(repo_url))
-    config_string = ';'.join(args.build_configs) if sys.platform == 'win32' else '"%s"' % ';'.join(args.build_configs)
+    variable_format = 'set "%s=%s"\n' if args.target_windows else 'export %s="%s"\n'
+    path_variable = 'set PATH=%s;%%PATH%%\n' if args.target_windows else 'export PATH=%s:$PATH\n'
+    which = 'where dotnet\n' if args.target_windows else 'which dotnet\n'
+    dotnet_path = '%HELIX_CORRELATION_PAYLOAD%\\dotnet' if args.target_windows else '$HELIX_CORRELATION_PAYLOAD/dotnet'
+    owner, repo = ('dotnet', 'core-sdk') if repo_url is None else (dotnet.get_repository(repo_url))
+    config_string = ';'.join(f"{k}={v}" for k, v in args.build_configs.items()) if args.target_windows else '"%s"' % ';'.join(args.build_configs)
     pgo_config = ''
-    showenv = 'set' if sys.platform == 'win32' else 'printenv'
+    showenv = 'set' if args.target_windows else 'printenv'
 
     if args.pgo_status == 'nopgo':
         pgo_config = variable_format % ('COMPlus_TC_QuickJitForLoops', '1')
@@ -315,7 +346,7 @@ def __main(args: list) -> int:
     with push_dir(get_repo_root_path()):
         output = check_output(['git', 'rev-parse', 'HEAD'])
 
-    decoded_lines = []
+    decoded_lines: list[str] = []
 
     for line in output.splitlines():
         decoded_lines = decoded_lines + [line.decode('utf-8')]
@@ -325,28 +356,37 @@ def __main(args: list) -> int:
     perfHash = decoded_output if args.get_perf_hash else args.perf_hash
 
     framework = ChannelMap.get_target_framework_moniker(args.channel)
+
+    extension = ".cmd" if args.target_windows else ".sh"
+    output_file = args.output_file + extension
+
     if not framework.startswith('net4'):
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
         dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
         commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
-        if(args.commit_time is not None):
-            try:
-                parsed_timestamp = datetime.datetime.strptime(args.commit_time, '%Y-%m-%d %H:%M:%S %z').astimezone(datetime.timezone.utc)
-                source_timestamp = parsed_timestamp.strftime('%Y-%m-%dT%H:%M:%SZ')
-            except ValueError:
-                getLogger().warning('Invalid commit_time format. Please use YYYY-MM-DD HH:MM:SS +/-HHMM. Attempting to get commit time from api.github.com.')
-                source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
-        else:
-            source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
+        # TODO: Fix this
+        source_timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+
+        # if(args.commit_time is not None):
+        #     try:
+        #         parsed_timestamp = datetime.datetime.strptime(args.commit_time, '%Y-%m-%d %H:%M:%S %z').astimezone(datetime.timezone.utc)
+        #         source_timestamp = parsed_timestamp.strftime('%Y-%m-%dT%H:%M:%SZ')
+        #     except ValueError:
+        #         getLogger().warning('Invalid commit_time format. Please use YYYY-MM-DD HH:MM:SS +/-HHMM. Attempting to get commit time from api.github.com.')
+        #         source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
+        # else:
+        #     source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
 
         branch = ChannelMap.get_branch(args.channel) if not args.branch else args.branch
 
-        getLogger().info("Writing script to %s" % args.output_file)
-        dir_path = os.path.dirname(args.output_file)
+        getLogger().info("Writing script to %s" % output_file)
+        dir_path = os.path.dirname(output_file)
         if not os.path.isdir(dir_path):
             os.mkdir(dir_path)
 
-        with open(args.output_file, 'w') as out_file:
+        perflab_upload_token = os.environ['PerfCommandUploadToken' if args.target_windows else 'PerfCommandUploadTokenLinux']
+
+        with open(output_file, 'w') as out_file:
             out_file.write(which)
             out_file.write(pgo_config)
             out_file.write(variable_format % ('PERFLAB_INLAB', '0' if args.not_in_lab else '1'))
@@ -367,6 +407,9 @@ def __main(args: list) -> int:
             out_file.write(variable_format % ('UseSharedCompilation', 'false'))
             out_file.write(variable_format % ('DOTNET_ROOT', dotnet_path))
             out_file.write(variable_format % ('MAUI_VERSION', args.maui_version))
+            out_file.write(variable_format % ('PERFLAB_UPLOAD_TOKEN', perflab_upload_token))
+            if os.environ["PERFLAB_RUNNAME"]:
+                out_file.write(variable_format % ('PERFLAB_RUNNAME', os.environ["PERFLAB_RUNNAME"]))
             out_file.write(path_variable % dotnet_path)
             if args.affinity:
                 out_file.write(variable_format % ('PERFLAB_DATA_AFFINITY', args.affinity))
@@ -377,15 +420,18 @@ def __main(args: list) -> int:
                     out_file.write(variable_format % ("PERFLAB_DATA_" + key, value))
             out_file.write(showenv)
     else:
-        with open(args.output_file, 'w') as out_file:
+        with open(output_file, 'w') as out_file:
             out_file.write(variable_format % ('PERFLAB_INLAB', '0'))
             out_file.write(variable_format % ('PERFLAB_TARGET_FRAMEWORKS', framework))
             out_file.write(path_variable % dotnet_path)
     
     # The '_Framework' is needed for specifying frameworks in proj files and for building tools later in the pipeline
-    __write_pipeline_variable('PERFLAB_Framework', framework)
+    set_environment_variable('PERFLAB_Framework', framework)
 
-
+def __main(argv: list[str]):
+    validate_supported_runtime()
+    args = __process_arguments(argv)
+    main(CiSetupArgs(**vars(args)))
 
 
 if __name__ == "__main__":

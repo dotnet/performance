@@ -1,0 +1,92 @@
+jobs:
+  run_performance_job:
+    readyStateText: Helix
+    isConsoleApp: true
+    waitForExit: true
+    framework: net7.0
+    variables:
+      architecture: 'x64'
+      queue: ''
+      framework: 'net8.0'
+      runCategories: ''
+      kind: ''
+      runtimeRepoDir: '../runtime' # A guess that the performance repo is next to the runtime repo
+      osGroup: ''
+      coreRootDir: '{{ runtimeRepoDir }}/artifacts/tests/coreclr/{{ osGroup }}.{{ architecture }}.Release/Tests/Core_Root' 
+      performanceRepoDir: '.'
+      targetsWindows: '{% if osGroup == "windows" %}true{% else %}false{% endif %}'
+      runName: '20230608-testing'
+      buildNumber: '20230608.1'
+      buildSourceVersion: 'abc123'
+      buildSourceBranch: 'main'
+      internal: true
+      bdnArgs: ''
+    sources:
+      coreRoot:
+        localFolder: '{{ coreRootDir }}'
+      performance:
+        localFolder: '{{ performanceRepoDir }}'
+    dockerfile: performance/eng/performance/helix_sender.Dockerfile
+    dockerImageName: helix_sender
+    dockerCommand: python ./performance/scripts/send_to_helix.py --queue {{ queue }} --framework {{ framework }} --run-kind {{ kind }} --core-root-dir /performance/coreRoot --performance-repo-dir /performance/performance --architecture {{ architecture }} {% if targetsWindows %}--targets-windows{% endif %} {% if internal %}--internal{% endif %} --run-categories "{{ runCategories }}" {% if bdnArgs != blank and bdnArgs != empty %} --extra-bdn-args "{{ bdnArgs }}" {% endif %}
+    dockerContextDirectory: .
+    arguments: '--env HelixAccessToken --env SYSTEM_ACCESSTOKEN --env PerfCommandUploadToken --env PerfCommandUploadTokenLinux'
+    environmentVariables:
+      BUILD_BUILDNUMBER: '{{ buildNumber }}'
+      BUILD_SOURCEVERSION: '{{ buildSourceVersion }}'
+      BUILD_SOURCEBRANCH: '{{ buildSourceBranch }}'
+      BUILD_REPOSITORY_NAME: 'dotnet/performance'
+      SYSTEM_TEAMPROJECT: 'internal'
+      BUILD_REASON: 'manual'
+      PERFLAB_RUNNAME: '{{ runName }}'
+scenarios:
+  micro:
+    benchmark:
+      job: run_performance_job
+      variables:
+        kind: 'micro'
+        runCategories: 'runtime libraries'
+
+profiles:
+  local:
+    jobs:
+      benchmark:
+        endpoints: 
+          - http://localhost:5010
+  
+  win-x64-public:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: windows
+          queue: Windows.10.Amd64.Client.Open
+          internal: false
+
+  win-x64:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: windows
+          queue: Windows.11.Amd64.Tiger.Perf
+
+  ubuntu-x64-public:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: linux
+          queue: Ubuntu.2204.Amd64.Open
+          internal: false
+
+  ubuntu-x64:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: linux
+          queue: Ubuntu.2204.Amd64.Tiger.Perf
+
+  alpine:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: linux
+          queue: alpine.amd64.tiger.perf

@@ -8,6 +8,7 @@ import shutil
 import subprocess
 from logging import getLogger
 from argparse import ArgumentParser
+from typing import Optional
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
 from shared.crossgen import CrossgenArguments
@@ -43,7 +44,7 @@ class PreCommands:
         parser = ArgumentParser()
 
         subparsers = parser.add_subparsers(title='Operations', 
-                                           description='Common preperation steps for perf tests. Should run under src\scenarios\<test asset folder>',
+                                           description='Common preperation steps for perf tests. Should run under src\\scenarios\\<test asset folder>',
                                            dest='operation')
 
         default_parser = subparsers.add_parser(DEFAULT, help='Default operation (placeholder command and no specific operation will be executed)' )
@@ -117,7 +118,7 @@ class PreCommands:
             bin_dir: str,
             exename: str,
             working_directory: str,
-            language: str = None,
+            language: Optional[str] = None,
             no_https: bool = False,
             no_restore: bool = True):
         'makes a new app with the given template'
@@ -189,7 +190,7 @@ class PreCommands:
         self.project = CSharpProject(csproj, const.BINDIR)
         self._updateframework(csproj.file_name)
 
-    def execute(self, build_args: list = []):
+    def execute(self, build_args: list[str] = []):
         'Parses args and runs precommands'
         if self.operation == DEFAULT:
             pass
@@ -236,7 +237,7 @@ class PreCommands:
         filepath = os.path.join(projpath, file)
         insert_after(filepath, line, trace_statement)
 
-    def install_workload(self, workloadid: str, install_args: list = ["--skip-manifest-update"]):
+    def install_workload(self, workloadid: str, install_args: list[str] = ["--skip-manifest-update"]):
         'Installs the workload, if needed'
         if not self.has_workload:
             if self.readonly_dotnet:
@@ -272,7 +273,7 @@ class PreCommands:
             else:
                 replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
 
-    def _publish(self, configuration: str, framework: str = None, runtime_identifier: str = None, output: str = None, build_args: list = []):
+    def _publish(self, configuration: str, framework: str, runtime_identifier: Optional[str] = None, output: Optional[str] = None, build_args: list[str] = []):
         self.project.publish(configuration,
                              output or const.PUBDIR,
                              True,
@@ -286,7 +287,7 @@ class PreCommands:
     def _restore(self):
         self.project.restore(packages_path=get_packages_directory(), verbose=True)
 
-    def _build(self, configuration: str, framework: str = None, output: str = None, build_args: list = []):
+    def _build(self, configuration: str, framework: str, output: Optional[str] = None, build_args: list[str] = []):
         self.project.build(configuration,
                            True,
                            get_packages_directory(),

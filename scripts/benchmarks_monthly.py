@@ -8,7 +8,7 @@ monthly manual performance runs.
 
 from performance.common import get_machine_architecture
 from performance.logger import setup_loggers
-from argparse import ArgumentParser, ArgumentTypeError
+from argparse import ArgumentParser
 from datetime import datetime
 from logging import getLogger
 from subprocess import CalledProcessError
@@ -35,10 +35,9 @@ VERSIONS = {
     'net6.0': { 'tfm': 'net6.0' }
 }
 
-def get_version_from_name(name: str) -> str:
-    for version in VERSIONS:
-        if version == name:
-            return VERSIONS[version]
+def get_version_from_name(name: str) -> dict[str, str]:
+    if name in VERSIONS:
+        return VERSIONS[name]
 
     raise Exception('The version specified is not supported', name)
 
@@ -114,7 +113,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
     return parser
 
-def __process_arguments(args: list):
+def __process_arguments(args: list[str]):
     parser = ArgumentParser(
         description='Tool to execute the monthly manual micro benchmark performance runs',
         allow_abbrev=False
@@ -123,10 +122,10 @@ def __process_arguments(args: list):
     add_arguments(parser)
     return parser.parse_args(args)
 
-def __main(args: list) -> int:
+def __main(argv: list[str]):
     setup_loggers(verbose=True)
 
-    args = __process_arguments(args)
+    args = __process_arguments(argv)
     rootPath = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
     sdkPath = os.path.join(rootPath, 'tools', 'dotnet')
 
@@ -146,7 +145,7 @@ def __main(args: list) -> int:
         else:
             args.bdn_arguments = '--iterationCount 1 --warmupCount 0 --invocationCount 1 --unrollFactor 1 --strategy ColdStart'
 
-    versionTarFiles = []
+    versionTarFiles: list[str] = []
 
     for versionName in args.versions:
         version = get_version_from_name(versionName)
@@ -162,7 +161,7 @@ def __main(args: list) -> int:
                 if not args.dry_run:
                     shutil.rmtree(sdkPath)
 
-        benchmarkArgs = ['--skip-logger-setup', '--filter', args.filter, '--architecture', args.architecture, '-f', version['tfm']]
+        benchmarkArgs: list[str] = ['--skip-logger-setup', '--filter', args.filter, '--architecture', args.architecture, '-f', version['tfm']]
 
         if 'build' in version:
             benchmarkArgs += ['--dotnet-versions', version['build']]
@@ -190,7 +189,7 @@ def __main(args: list) -> int:
                 benchmarkArgs += ['--internal-build-key', args.internal_build_key]
                 log('Executing: benchmarks_ci.py ')
             else:
-                raise("Must include both a --azure-feed-url and a --internal-build-key")
+                raise Exception("Must include both a --azure-feed-url and a --internal-build-key")
         else:
             log('Executing: benchmarks_ci.py ' + str.join(' ', benchmarkArgs))
 
@@ -214,7 +213,7 @@ def __main(args: list) -> int:
             resultsName = timestamp + '-' + versionName
 
         resultsName = args.architecture + '-' + resultsName
-        resultsTarPath = os.path.join(rootPath, 'artifacts', resultsName + '.tar.gz')
+        resultsTarPath: str = os.path.join(rootPath, 'artifacts', resultsName + '.tar.gz')
         versionTarFiles += [resultsTarPath]
 
         if not args.dry_run:
