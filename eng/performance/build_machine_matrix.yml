@@ -84,7 +84,7 @@ jobs:
   - template: ${{ parameters.jobTemplate }}
     parameters:
       osName: windows
-      osVersion: 20H1
+      osVersion: 22H2
       architecture: arm64
       pool:
         vmImage: windows-2019
