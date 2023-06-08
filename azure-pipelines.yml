@@ -292,6 +292,7 @@ jobs:
       jobTemplate: /eng/performance/scenarios.yml
       buildMachines:
         - win-x64
+        - win-arm64
         - win-arm64-ampere
       isPublic: false
       jobParameters:
@@ -457,6 +458,7 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-arm64
         - win-arm64-ampere
         - ubuntu-arm64-ampere
       isPublic: false
@@ -479,6 +481,7 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        - win-arm64
         - win-arm64-ampere
         - ubuntu-arm64-ampere
       isPublic: false
