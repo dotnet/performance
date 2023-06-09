@@ -80,7 +80,19 @@ jobs:
       queue: Windows.10.Arm64.Perf.Surf
       ${{ insert }}: ${{ parameters.jobParameters }}
 
-- ${{ if and(containsValue(parameters.buildMachines, 'ubuntu-arm64'), not(eq(parameters.isPublic, true))) }}: # Ubuntu ARM64 only used in private builds currently
+- ${{ if and(containsValue(parameters.buildMachines, 'win-arm64-ampere'), not(eq(parameters.isPublic, true))) }}: # Windows ARM64 only used in private builds currently
+  - template: ${{ parameters.jobTemplate }}
+    parameters:
+      osName: windows
+      osVersion: 22H2
+      architecture: arm64
+      pool:
+        vmImage: windows-2019
+      machinePool: Ampere
+      queue: Windows.Server.Arm64.Perf
+      ${{ insert }}: ${{ parameters.jobParameters }}
+
+- ${{ if and(containsValue(parameters.buildMachines, 'ubuntu-arm64-ampere'), not(eq(parameters.isPublic, true))) }}: # Ubuntu ARM64 only used in private builds currently
   - template: ${{ parameters.jobTemplate }}
     parameters:
       osName: ubuntu
