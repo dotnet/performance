@@ -51,7 +51,7 @@
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIAndroidScenario)">
-      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-android -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
+      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-android -r android-arm64 --self-contained -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
