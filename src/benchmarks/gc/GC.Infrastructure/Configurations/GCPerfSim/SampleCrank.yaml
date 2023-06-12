@@ -1,0 +1,121 @@
+# Inputs:
+# - How to control the version of dotnet and SDK
+#   --application.framework net8.0
+#   --application.runtimeVersion 7.0.0-rtm.22511.4 
+# - How to get custom corerun: both as commits and locally.
+#   --application.options.outputFiles c:\git\runtime\artifacts\bin\coreclr\windows.x64.Release\clrgc.dll
+# - How to get environment variables set.
+#   --application.environmentVariables COMPlus_GCName=clrgc.dll 
+
+# crank --config C:\Users\musharm\source\repos\GC.Analysis.API\ExampleConfigurations\GCPerfSim\SampleCrank.yaml --scenario gcperfsim --profile aspnet-perf-win --application.variables.threadCount 2 --application.options.displayOutput true --application.framework net7.0 --profile pgo --application.cpuSet 1 --application.options.collectCounters true --chart --json Result_1.json --property cpu=2
+# crank --config C:\Users\musharm\source\repos\GC.Analysis.API\ExampleConfigurations\GCPerfSim\SampleCrank.yaml --scenario gcperfsim --application.variables.tc 2 --application.options.displayOutput true --application.framework net7.0 --profile aspnet-citrine-win --application.collect true --application.collectArguments GCCollectOnly --application.cpuSet 0-1 --application.options.collectCounters true --chart --application.options.downloadOutput true  --application.options.downloadOutputOutput ".\gc.etl.zip"  --application.options.traceOutput "./gc.etl.zip"
+
+# Outputs:
+# - How to get tracing started.
+#   --application.collect true  
+#   --application.collectArguments "GCCollectOnly;MaxCollectSec=300;CircularMB=3000;
+#     -- Format here? 
+# - How to get log file of the run back. 
+#   --application.options.displayOutput true
+# Saving outputs to a specific dir.
+
+# Machines:
+# - List: 
+#   - aspnet-citrine-lin
+#   - aspnet-citrine-win
+#   - aspnet-citrine-arm
+#   - aspnet-citrine-ampere
+#   - aspnet-citrine-arm-lin
+#   - aspnet-citrine-arm-win
+#   - aspnet-citrine-amd2 - 1 numa node 
+#   - aspnet-citrine-amd - 4 numa node
+#   - aspnet-perf-lin
+#   - aspnet-perf-win 
+
+# Relay - public relay into internal machines.
+
+imports:
+  - https://github.com/aspnet/Benchmarks/blob/main/scenarios/aspnet.profiles.yml?raw=true
+
+jobs:
+  make_memory:
+    source:
+      # TODO: Change this.
+      repository: https://github.com/dotnet/performance
+      branchOrCommit: main
+      #localFolder: C:\Project
+      #executable:  Foo.exe 
+      #dockerfile: ....
+      # TODO: Change the project to point appropriately.
+      project: src/benchmarks/gc/src/exec/GCPerfSim/GCPerfSim.csproj
+    isConsoleApp: true
+    variables:
+      percent: 90
+    arguments: "-percent {{ percent }}"
+
+  gcperfsim:
+    source:
+      repository: https://github.com/dotnet/performance
+      branchOrCommit: main
+      #localFolder: C:\Project
+      #executable:  Foo.exe 
+      #dockerfile: ....
+      project: src/benchmarks/gc/src/exec/GCPerfSim/GCPerfSim.csproj
+    # readyStateText: Application started.
+    waitForExit: true
+    variables:
+      tc: 20
+      tagb: 40
+      tlgb: 5
+      lohar: 0
+      pohar: 0
+      sohsr: 100-4000
+      lohsr: 102400-204800
+      pohsr: 100-204800
+      sohsi: 30
+      lohsi: 0
+      pohsi: 0
+      sohpi: 50
+      lohpi: 0
+      sohfi: 0
+      lohfi: 0
+      pohfi: 0
+      allocType: reference
+      testKind: time
+    arguments: "-tc {{ cores |div: 2 }} -tagb {{ tagb }} -tlgb {{ tlgb }} -lohar {{ lohar }} -lohsr {{ lohsr }} -sohsi {{ 31 }} -lohsi {{ lohsi }} -sohpi {{ sohpi }} -lohpi {{ lohpi }} -sohfi {{ sohfi }} -lohfi {{ lohfi }} -allocType {{ allocType }} -testKind {{ testKind }}"
+
+profiles:
+  pgo:
+    jobs: 
+      application:
+        environmentVariables:
+        - DOTNET_TieredPGO: 1
+        - DOTNET_TC_QuickJitForLoops: 1
+        - DOTNET_ReadyToRun: 0
+
+scenarios:
+  singlethreaded:
+    application:
+      job: gcperfsim
+      environmentVariables:
+        COMPlus_GCServer: 1
+      variables:
+        threadCount: 1
+
+  gcperfsim:
+    application:
+      job: gcperfsim
+
+  high_memory:
+    make_memory:
+      job: make_memory
+      variables:
+        duration: 10
+        size: 100
+
+    application:
+      job: gcperfsim
+      environmentVariables:
+        COMPlus_GCServer: 1
+      variables:
+        threadCount: 1

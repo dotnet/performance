@@ -1,0 +1,4 @@
+Legend,Base CommandLine
+JsonMin_Windows, --config https://raw.githubusercontent.com/aspnet/Benchmarks/main/scenarios/json.benchmarks.yml --scenario mapaction --application.options.collectCounters true --property os=windows --property arch=x64 --profile aspnet-citrine-win
+FortunesEf_Windows, --config https://raw.githubusercontent.com/aspnet/Benchmarks/main/scenarios/database.benchmarks.yml --scenario fortunes_ef --application.options.collectCounters true --property os=windows --property arch=x64 --profile aspnet-citrine-win
+Stage1Grpc_Windows, --config https://raw.githubusercontent.com/aspnet/Benchmarks/main/scenarios/goldilocks.benchmarks.yml --config https://raw.githubusercontent.com/aspnet/Benchmarks/main/build/ci.profile.yml --scenario basicgrpcvanilla --profile intel-win-app --profile intel-lin-load --application.framework net8.0 --application.options.collectCounters true
