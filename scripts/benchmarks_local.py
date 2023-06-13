@@ -29,9 +29,8 @@ import os
 # What are supported default cases: MonoJIT, MonoAOT, MonoInter, Corerun, etc. 
 
 class RuntimeRefType(Enum):
-    BRANCH = 1
-    HASH = 2
-    LOCAL_ONLY = 3
+    COMMITISH = 1
+    LOCAL_ONLY = 2
 
 class RunType(Enum):
     CoreRun = 1
@@ -155,27 +154,25 @@ def generate_benchmark_ci_args(parsed_args: Namespace, repo_path: str, specific_
     return benchmark_ci_args
 
 # Run tests on the local machine
-def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_url: str, repo_dir: str, branch_name_or_commit_hash: str, is_local: bool = False) -> None:
+def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_url: str, repo_dir: str, commitish_value: str, is_local: bool = False) -> None:
     # Clone runtime or checkout the correct commit or branch
     if is_local:
         repo_path = repo_dir
         if(not os.path.exists(repo_path)):
             raise RuntimeError(f"The specified local path {repo_path} does not exist.")
-        getLogger().info("Running for " + repo_path + " at " + branch_name_or_commit_hash + ".")
+        getLogger().info("Running for " + repo_path + " at " + commitish_value + ".")
     else:
         repo_path = os.path.join(parsed_args.repo_storage_dir, repo_dir)
-        getLogger().info("Running for " + repo_path + " at " + branch_name_or_commit_hash + ".")
+        getLogger().info("Running for " + repo_path + " at " + commitish_value + ".")
         if not os.path.exists(repo_path):
-            if reference_type == RuntimeRefType.BRANCH:
-                Repo.clone_from(repo_url, repo_path, branch=branch_name_or_commit_hash)
-            elif reference_type == RuntimeRefType.HASH:
+            if reference_type == RuntimeRefType.COMMITISH:
                 Repo.clone_from(repo_url, repo_path)
                 repo = Repo(repo_path)
-                repo.git.checkout(branch_name_or_commit_hash)
+                repo.git.checkout(commitish_value)
         else:
             repo = Repo(repo_path)
             repo.remotes.origin.fetch()
-            repo.git.checkout(branch_name_or_commit_hash)
+            repo.git.checkout(commitish_value)
 
     # Determine what we need to generate for the local benchmarks
     generate_all_runtype_dependencies(parsed_args, repo_path)
@@ -185,14 +182,14 @@ def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_u
         # Run the benchmarks_ci.py test and save results
         try:
             benchmark_ci_args = generate_benchmark_ci_args(parsed_args, repo_path, run_type)
-            getLogger().info("Running benchmarks_ci.py for " + repo_path + " at " + branch_name_or_commit_hash + " with arguments \"" + ' '.join(map(str, benchmark_ci_args)) + "\".")
+            getLogger().info("Running benchmarks_ci.py for " + repo_path + " at " + commitish_value + " with arguments \"" + ' '.join(map(str, benchmark_ci_args)) + "\".")
             benchmarks_ci.__main(benchmark_ci_args)
             # TODO: Save the results
         except CalledProcessError:
             getLogger().error('benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
             raise
 
-    getLogger().info("Finished running benchmark for " + repo_path + " at " + branch_name_or_commit_hash + ".")
+    getLogger().info("Finished running benchmark for " + repo_path + " at " + commitish_value + ".")
 
 # Check if the specified references exist in the given repository URL.
 # If a reference does not exist, raise an exception.
@@ -217,8 +214,7 @@ def check_references_exist(repo_url: str, references: list, repo_storage_dir: st
 
 def add_arguments(parser):
     # Arguments for the local runner script
-    parser.add_argument('--branches', nargs='+', type=str, help='The branches to test.')
-    parser.add_argument('--hashes', nargs='+', type=str, help='The hashes to test.')
+    parser.add_argument('--commitishs', nargs='+', type=str, help='The commitish values to test.')
     parser.add_argument('--repo', type=str, default='https://github.com/dotnet/runtime.git', help='The runtime repo to test from, used to get data for a fork.')
     parser.add_argument('--local-test-repo', type=str, help='Path to a local repo with the runtime source code to test from.') 
     parser.add_argument('--separate-repos', action='store_true', help='Whether to test each runtime version from their own separate repo directory.')
@@ -250,17 +246,11 @@ def __main(args: list):
     parsed_args = parser.parse_args(args)
     
     setup_loggers(verbose=parsed_args.verbose)
-    runtime_ref_type = RuntimeRefType.BRANCH
+    runtime_ref_type = RuntimeRefType.COMMITISH
 
-    # TODO: Should we allow for both branches and hashes to be specified?
-    if parsed_args.branches and parsed_args.hashes:
-        raise Exception("Cannot specify both branches and hashes.")
-    elif parsed_args.branches:
-        runtime_ref_type = RuntimeRefType.BRANCH
-        getLogger().info("Branches to test are: " + str(parsed_args.branches))
-    elif parsed_args.hashes:
-        runtime_ref_type = RuntimeRefType.HASH
-        getLogger().info("Hashes to test are: " + str(parsed_args.hashes))
+    if parsed_args.commitishs:
+        runtime_ref_type = RuntimeRefType.COMMITISH
+        getLogger().info("Commitishs to test are: " + str(parsed_args.commitishs))
     elif parsed_args.local_test_repo:
         runtime_ref_type = RuntimeRefType.LOCAL_ONLY
         getLogger().info("Local repo to test is: " + str(parsed_args.local_test_repo))
@@ -269,22 +259,17 @@ def __main(args: list):
 
     getLogger().info("Input arguments: " + str(parsed_args))
 
-    branch_names = []
-    commit_hashes = []
-    if runtime_ref_type == RuntimeRefType.BRANCH:
+    commitish_values = []
+    if runtime_ref_type == RuntimeRefType.COMMITISH:
         repo_url = parsed_args.repo
-        branch_names = parsed_args.branches
-        repo_dirs = ["runtime-" + branch_name.replace('/', '-') for branch_name in branch_names]
-    elif runtime_ref_type == RuntimeRefType.HASH:
-        repo_url = parsed_args.repo
-        commit_hashes = parsed_args.hashes
-        repo_dirs = ["runtime-" + commit_hash for commit_hash in commit_hashes]
+        commitish_values = parsed_args.commitishs
+        repo_dirs = ["runtime-" + branch_name.replace('/', '-') for branch_name in commitish_values]
     elif not runtime_ref_type == RuntimeRefType.LOCAL_ONLY:
         raise Exception("Invalid runtime ref type.")
 
     # Run the test for each of the remote versions to test
     if not runtime_ref_type == RuntimeRefType.LOCAL_ONLY:
-        references = branch_names if runtime_ref_type == RuntimeRefType.BRANCH else commit_hashes
+        references = commitish_values
         getLogger().info("Checking if references " + str(references) + " exist in " + repo_url + ".")
         check_references_exist(repo_url, references, parsed_args.repo_storage_dir, repo_dirs[0])
         getLogger().info("References exist in " + repo_url + ".")
