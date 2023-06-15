@@ -154,25 +154,27 @@ def generate_benchmark_ci_args(parsed_args: Namespace, repo_path: str, specific_
     return benchmark_ci_args
 
 # Run tests on the local machine
-def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_url: str, repo_dir: str, commitish_value: str, is_local: bool = False) -> None:
+def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_url: str, repo_dir: str, commitish_pair: list, is_local: bool = False) -> None:
     # Clone runtime or checkout the correct commit or branch
     if is_local:
         repo_path = repo_dir
         if(not os.path.exists(repo_path)):
             raise RuntimeError(f"The specified local path {repo_path} does not exist.")
-        getLogger().info("Running for " + repo_path + " at " + commitish_value + ".")
+        getLogger().info("Running for " + repo_path + " at " + ' '.join(commitish_pair) + ".")
     else:
         repo_path = os.path.join(parsed_args.repo_storage_dir, repo_dir)
-        getLogger().info("Running for " + repo_path + " at " + commitish_value + ".")
+        getLogger().info("Running for " + repo_path + " at " + ' '.join(commitish_pair) + ".")
+
+        #TODO Update checkout logic
         if not os.path.exists(repo_path):
             if reference_type == RuntimeRefType.COMMITISH:
                 Repo.clone_from(repo_url, repo_path)
                 repo = Repo(repo_path)
-                repo.git.checkout(commitish_value)
+                repo.git.checkout(commitish_pair[-1])
         else:
             repo = Repo(repo_path)
             repo.remotes.origin.fetch()
-            repo.git.checkout(commitish_value)
+            repo.git.checkout(commitish_pair[-1])
 
     # Determine what we need to generate for the local benchmarks
     generate_all_runtype_dependencies(parsed_args, repo_path)
@@ -182,14 +184,14 @@ def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_u
         # Run the benchmarks_ci.py test and save results
         try:
             benchmark_ci_args = generate_benchmark_ci_args(parsed_args, repo_path, run_type)
-            getLogger().info("Running benchmarks_ci.py for " + repo_path + " at " + commitish_value + " with arguments \"" + ' '.join(map(str, benchmark_ci_args)) + "\".")
+            getLogger().info("Running benchmarks_ci.py for " + repo_path + " at " + ' '.join(commitish_pair) + " with arguments \"" + ' '.join(map(str, benchmark_ci_args)) + "\".")
             benchmarks_ci.__main(benchmark_ci_args)
             # TODO: Save the results
         except CalledProcessError:
             getLogger().error('benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
             raise
 
-    getLogger().info("Finished running benchmark for " + repo_path + " at " + commitish_value + ".")
+    getLogger().info("Finished running benchmark for " + repo_path + " at " + ' '.join(commitish_pair) + ".")
 
 # Check if the specified references exist in the given repository URL.
 # If a reference does not exist, raise an exception.
@@ -202,19 +204,27 @@ def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_u
 #
 # Returns: None
 def check_references_exist(repo_url: str, references: list, repo_storage_dir: str, repo_dir: str):
+    getLogger().info(f"Checking if references {references} exist in {repo_url}. Cloning repo for remote information.")
     # Initialize a new Git repository in the specified directory
-    repo = Repo.init(os.path.join(repo_storage_dir, repo_dir))
-    
+    repo = Repo.clone_from(repo_url, os.path.join(repo_storage_dir, repo_dir), multi_options=['--sparse'])
     # Check if each reference exists in the repository
     for reference in references:
-        remotes = repo.git.ls_remote(repo_url, reference)
-        if len(remotes) == 0:
+        try:
+            # Check if just a branch name was specified
+            if len(reference) == 1:
+                result = repo.git.branch('-r')
+            # Check if a commit hash was specified with the branch name
+            else:
+                result = repo.git.branch('-r', '--contains', reference[1]) # Use git branch -r --contains <commit> to check if a commit is in a branch
+            if("origin/" + reference[0]) not in result:
+                raise Exception(f"Reference {reference} does not exist in {repo_url}.")
+        except GitCommandError:
             raise Exception(f"Reference {reference} does not exist in {repo_url}.")
 
 
 def add_arguments(parser):
     # Arguments for the local runner script
-    parser.add_argument('--commitishs', nargs='+', type=str, help='The commitish values to test.')
+    parser.add_argument('--commitishs', nargs='+', type=str, help='The commitish values to test. Passed as Branch:Commit or Branch')
     parser.add_argument('--repo', type=str, default='https://github.com/dotnet/runtime.git', help='The runtime repo to test from, used to get data for a fork.')
     parser.add_argument('--local-test-repo', type=str, help='Path to a local repo with the runtime source code to test from.') 
     parser.add_argument('--separate-repos', action='store_true', help='Whether to test each runtime version from their own separate repo directory.')
@@ -259,17 +269,22 @@ def __main(args: list):
 
     getLogger().info("Input arguments: " + str(parsed_args))
 
-    commitish_values = []
+    branch_commit_pairs = []
+    repo_dirs = []
     if runtime_ref_type == RuntimeRefType.COMMITISH:
         repo_url = parsed_args.repo
-        commitish_values = parsed_args.commitishs
-        repo_dirs = ["runtime-" + branch_name.replace('/', '-') for branch_name in commitish_values]
+        branch_commit_pairs = [pair.split(":") for pair in parsed_args.commitishs]
+        for pair in branch_commit_pairs:
+            if len(pair) == 1:
+                repo_dirs.append("runtime-" + pair[0].replace('/', '-'))
+            else:
+                repo_dirs.append("runtime-" + pair[0].replace('/', '-') + "-" + pair[1])
     elif not runtime_ref_type == RuntimeRefType.LOCAL_ONLY:
         raise Exception("Invalid runtime ref type.")
 
     # Run the test for each of the remote versions to test
     if not runtime_ref_type == RuntimeRefType.LOCAL_ONLY:
-        references = commitish_values
+        references = branch_commit_pairs
         getLogger().info("Checking if references " + str(references) + " exist in " + repo_url + ".")
         check_references_exist(repo_url, references, parsed_args.repo_storage_dir, repo_dirs[0])
         getLogger().info("References exist in " + repo_url + ".")
@@ -281,7 +296,7 @@ def __main(args: list):
 
     # Run the test for the local version to test
     if parsed_args.local_test_repo:
-        run_benchmark(parsed_args, runtime_ref_type, "local", parsed_args.local_test_repo, "local", True)
+        run_benchmark(parsed_args, runtime_ref_type, "local", parsed_args.local_test_repo, ["local"], True)
 
     # TODO: Compare the results of the benchmarks
 
