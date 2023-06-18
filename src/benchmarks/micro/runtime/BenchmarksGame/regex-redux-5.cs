@@ -57,27 +57,19 @@ namespace BenchmarksGame
                 return newseq.Length;
             });
 
-            var variant2 = Task.Run(() => regexCount(sequences, "[cgt]gggtaaa|tttaccc[acg]", options));
-            var variant3 = Task.Run(() => regexCount(sequences, "a[act]ggtaaa|tttacc[agt]t", options));
-            var variant7 = Task.Run(() => regexCount(sequences, "agggt[cgt]aa|tt[acg]accct", options));
-            var variant6 = Task.Run(() => regexCount(sequences, "aggg[acg]aaa|ttt[cgt]ccct", options));
-            var variant4 = Task.Run(() => regexCount(sequences, "ag[act]gtaaa|tttac[agt]ct", options));
-            var variant5 = Task.Run(() => regexCount(sequences, "agg[act]taaa|ttta[agt]cct", options));
-            var variant1 = Task.Run(() => regexCount(sequences, "agggtaaa|tttaccct", options));
-            var variant9 = Task.Run(() => regexCount(sequences, "agggtaa[cgt]|[acg]ttaccct", options));
-            var variant8 = Task.Run(() => regexCount(sequences, "agggta[cgt]a|t[acg]taccct", options));
+            var variant2 = Task.Run(() => "[cgt]gggtaaa|tttaccc[acg] " + Regex.Count(sequences, "[cgt]gggtaaa|tttaccc[acg]", options));
+            var variant3 = Task.Run(() => "a[act]ggtaaa|tttacc[agt]t " + Regex.Count(sequences, "a[act]ggtaaa|tttacc[agt]t", options));
+            var variant7 = Task.Run(() => "agggt[cgt]aa|tt[acg]accct " + Regex.Count(sequences, "agggt[cgt]aa|tt[acg]accct", options));
+            var variant6 = Task.Run(() => "aggg[acg]aaa|ttt[cgt]ccct " + Regex.Count(sequences, "aggg[acg]aaa|ttt[cgt]ccct", options));
+            var variant4 = Task.Run(() => "ag[act]gtaaa|tttac[agt]ct " + Regex.Count(sequences, "ag[act]gtaaa|tttac[agt]ct", options));
+            var variant5 = Task.Run(() => "agg[act]taaa|ttta[agt]cct " + Regex.Count(sequences, "agg[act]taaa|ttta[agt]cct", options));
+            var variant1 = Task.Run(() => "agggtaaa|tttaccct " +         Regex.Count(sequences, "agggtaaa|tttaccct", options));
+            var variant9 = Task.Run(() => "agggtaa[cgt]|[acg]ttaccct " + Regex.Count(sequences, "agggtaa[cgt]|[acg]ttaccct", options));
+            var variant8 = Task.Run(() => "agggta[cgt]a|t[acg]taccct " + Regex.Count(sequences, "agggta[cgt]a|t[acg]taccct", options));
 
             Task.WaitAll(variant1, variant2, variant3, variant4, variant5, variant6, variant7, variant8, variant9);
 
             return magicTask.Result;
-        }
-
-        private static string regexCount(string s, string r, RegexOptions regexOptions)
-        {
-            int c = 0;
-            var m = Regex.Match(s, r, regexOptions);
-            while (m.Success) { c++; m = m.NextMatch(); }
-            return r + " " + c;
         }
     }
 }
