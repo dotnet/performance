@@ -92,7 +92,7 @@ def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: lis
     RunCommand(generate_layout_command, verbose=True).run(os.path.join(repo_path, "src/tests"))
 
 def get_run_artifact_path(parsed_args: Namespace, run_type: RunType, commitish_information: list) -> str:
-    return os.path.join(parsed_args.artifact_storage_path, f"{run_type.name}-{commitish_information[0]}{'-'+commitish_information[1] if len(commitish_information) == 1 else ''}-{parsed_args.os}-{parsed_args.architecture}-{parsed_args.framework}")
+    return os.path.join(parsed_args.artifact_storage_path, f"{run_type.name}-{commitish_information[0]}{'-'+commitish_information[1] if len(commitish_information) == 2 else ''}-{parsed_args.os}-{parsed_args.architecture}-{parsed_args.framework}")
 
 # Try to generate all of a single runs dependencies at once to save time
 # TODO: Special case the local build saving to take into account local changes (Maybe include an option to skip rebuilds but still rebuild local)
@@ -101,47 +101,56 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
     getLogger().info("Generating dependencies for " + ' '.join(map(str, parsed_args.run_type_names)) + " run types in " + repo_path + " and storing in " + parsed_args.artifact_storage_path + ".")
     
     if check_for_runtype_specified(parsed_args, [RunType.CoreRun]):
-        build_runtime_dependency(parsed_args, repo_path)
-        generate_layout(parsed_args, repo_path)
-        # Store the corerun in the artifact storage path
-        core_root_path = os.path.join(repo_path, "artifacts", "tests", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", "Tests", "Core_Root")
         dest_dir = os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commitish_information), "Core_Root")
-        shutil.rmtree(dest_dir, ignore_errors=True)
-        shutil.copytree(core_root_path, dest_dir)
+        
+        if parsed_args.rebuild_artifacts or not os.path.exists(dest_dir):
+            build_runtime_dependency(parsed_args, repo_path)
+            generate_layout(parsed_args, repo_path)
+            # Store the corerun in the artifact storage path
+            core_root_path = os.path.join(repo_path, "artifacts", "tests", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", "Tests", "Core_Root")
+            shutil.rmtree(dest_dir, ignore_errors=True)
+            shutil.copytree(core_root_path, dest_dir)
+        else:
+            getLogger().info(f"CoreRun already exists in {dest_dir}. Skipping generation.")
 
     if check_for_runtype_specified(parsed_args, [RunType.MonoInterpreter, RunType.MonoJIT]):
-        build_runtime_dependency(parsed_args, repo_path, "mono+libs") 
-        build_runtime_dependency(parsed_args, repo_path, "libs.pretest", additional_args=['-testscope', 'innerloop', '/p:RuntimeFlavor=mono', f"/p:RuntimeArtifactsPath={os.path.join(repo_path, 'artifacts', 'bin', 'mono', f'{parsed_args.os}.{parsed_args.architecture}.Release')}"])
-        # Create the mono-dotnet
-        src_dir = os.path.join(repo_path, "artifacts", "bin", "runtime", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}")
-        dest_dir = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}", "shared", "Microsoft.NETCore.App", "8.0.0")
-        shutil.rmtree(dest_dir, ignore_errors=True)
-        shutil.copytree(src_dir, dest_dir)
-        src_dir = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}")
-        dest_dir = os.path.join(repo_path, "artifacts", "dotnet-mono")
-        shutil.rmtree(dest_dir, ignore_errors=True)
-        shutil.copytree(src_dir, dest_dir)
-        src_file = os.path.join(repo_path, "artifacts", "bin", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", f"corerun{'.exe' if parsed_args.os == 'windows' else ''}")
-        dest_dir = os.path.join(repo_path, "artifacts", "dotnet-mono", "shared", "Microsoft.NETCore.App", "8.0.0")
-        dest_file = os.path.join(dest_dir, f"corerun{'.exe' if parsed_args.os == 'windows' else ''}")
-        shutil.rmtree(dest_file, ignore_errors=True)
-        os.makedirs(dest_dir, exist_ok=True)
-        shutil.copy2(src_file, dest_file)
+        dest_dir_mono_interpreter = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commitish_information), "dotnet_mono")
+        dest_dir_mono_jit = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commitish_information), "dotnet_mono")
 
-        # Store the dotnet-mono in the artifact storage path
-        dotnet_mono_path = os.path.join(repo_path, "artifacts", "dotnet-mono")
-        dest_dir = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commitish_information), "dotnet_mono")
-        shutil.rmtree(dest_dir, ignore_errors=True)
-        shutil.copytree(dotnet_mono_path, dest_dir)
-        dest_dir = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commitish_information), "dotnet_mono")
-        shutil.rmtree(dest_dir, ignore_errors=True)
-        shutil.copytree(dotnet_mono_path, dest_dir)
+        if parsed_args.rebuild_artifacts or not os.path.exists(dest_dir_mono_interpreter) or not os.path.exists(dest_dir_mono_jit):
+            build_runtime_dependency(parsed_args, repo_path, "mono+libs") 
+            build_runtime_dependency(parsed_args, repo_path, "libs.pretest", additional_args=['-testscope', 'innerloop', '/p:RuntimeFlavor=mono', f"/p:RuntimeArtifactsPath={os.path.join(repo_path, 'artifacts', 'bin', 'mono', f'{parsed_args.os}.{parsed_args.architecture}.Release')}"])
+            # Create the mono-dotnet
+            src_dir = os.path.join(repo_path, "artifacts", "bin", "runtime", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}")
+            dest_dir = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}", "shared", "Microsoft.NETCore.App", "8.0.0")
+            shutil.rmtree(dest_dir, ignore_errors=True)
+            shutil.copytree(src_dir, dest_dir)
+            src_dir = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}")
+            dest_dir = os.path.join(repo_path, "artifacts", "dotnet-mono")
+            shutil.rmtree(dest_dir, ignore_errors=True)
+            shutil.copytree(src_dir, dest_dir)
+            src_file = os.path.join(repo_path, "artifacts", "bin", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", f"corerun{'.exe' if parsed_args.os == 'windows' else ''}")
+            dest_dir = os.path.join(repo_path, "artifacts", "dotnet-mono", "shared", "Microsoft.NETCore.App", "8.0.0")
+            dest_file = os.path.join(dest_dir, f"corerun{'.exe' if parsed_args.os == 'windows' else ''}")
+            shutil.rmtree(dest_file, ignore_errors=True)
+            os.makedirs(dest_dir, exist_ok=True)
+            shutil.copy2(src_file, dest_file)
+
+            # Store the dotnet-mono in the artifact storage path
+            dotnet_mono_path = os.path.join(repo_path, "artifacts", "dotnet-mono")
+            shutil.rmtree(dest_dir_mono_interpreter, ignore_errors=True)
+            shutil.copytree(dotnet_mono_path, dest_dir_mono_interpreter)
+            shutil.rmtree(dest_dir_mono_jit, ignore_errors=True)
+            shutil.copytree(dotnet_mono_path, dest_dir_mono_jit)
+        else:
+            getLogger().info(f"dotnet-mono already exists in {dest_dir_mono_interpreter} and {dest_dir_mono_jit}. Skipping generation.")
 
     if check_for_runtype_specified(parsed_args, [RunType.MonoAOT]):
         build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['/p:CrossBuild=false' '/p:MonoLLVMUseCxx11Abi=false'])
+        # TODO: Finish MonoAOT Build stuff
 
     # Clean up the build results
-    shutil.rmtree(os.path.join(repo_path, "artifacts", "bin"), ignore_errors=True) 
+    shutil.rmtree(os.path.join(repo_path, "artifacts", "bin"), ignore_errors=True) # TODO: Can we trust the build system to update these when necessary or do we need to clean them up ourselves?
     
     getLogger().info("Finished generating dependencies for " + ' '.join(map(str, parsed_args.run_type_names)) + " run types in " + repo_path + " and stored in " + parsed_args.artifact_storage_path + ".")
 
@@ -285,7 +294,7 @@ def add_arguments(parser):
     parser.add_argument('--repo-storage-path', type=str, default='.', help='The path to store the cloned repositories in.')
     parser.add_argument('--artifact-storage-path', type=str, default='./runtime-testing-artifacts', help='The path to store the artifacts in (builds, results, etc).')
     parser.add_argument('--rebuild-artifacts', action='store_true', help='Whether to rebuild the artifacts for the specified commitishs before benchmarking.') # TODO
-    parser.add_argument('--build-only', action='store_true', help='Whether to only build the artifacts for the specified commitishs and not run the benchmarks.') # TODO
+    parser.add_argument('--build-only', action='store_true', help='Whether to only build the artifacts for the specified commitishs and not run the benchmarks.')
     def __is_valid_run_type(value):
         try:
             RunType[value]
