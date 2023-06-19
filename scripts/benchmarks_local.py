@@ -4,6 +4,14 @@
 # or if you want remotes:
 # python .\benchmarks_local.py --branches main --repo-storage-dir "<absolute path to where you want to store runtime clones>" --run-type MonoJIT --filter *Span.IndexerBench.CoveredIndex2* --bdn-arguments='-i'
 
+# The general flow as it stands is:
+# * For each commitish single or pair value specified:
+#   * Get the repo to the proper commitish
+#   * Build the dependencies for the run types specified and copy them to the artifact storage path
+# * Run the benchmarks:
+#   * For each run type specified with the artifacts all passed as coreruns to take advantage of BDN's comparisons
+
+
 from argparse import ArgumentParser, ArgumentTypeError, Namespace
 from channel_map import ChannelMap
 from enum import Enum
@@ -64,7 +72,7 @@ def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str
                 "-configuration", configuration, 
                 "-os", f"{parsed_args.os}",
                 "-arch", f"{parsed_args.architecture}", 
-                "-framework", f"{parsed_args.frameworks}"
+                "-framework", f"{parsed_args.framework}"
             ] + additional_args
     RunCommand(build_libs_and_corerun_command, verbose=True).run(os.path.join(repo_path, "eng"))
 
@@ -84,14 +92,16 @@ def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: lis
     RunCommand(generate_layout_command, verbose=True).run(os.path.join(repo_path, "src/tests"))
 
 def get_run_artifact_path(parsed_args: Namespace, run_type: RunType, commitish_information: list) -> str:
-    return os.path.join(parsed_args.artifact_storage_path, f"{run_type.name}-{commitish_information[0]}{'-'+commitish_information[1] if len(commitish_information) == 1 else ''}-{parsed_args.os}-{parsed_args.architecture}")
+    return os.path.join(parsed_args.artifact_storage_path, f"{run_type.name}-{commitish_information[0]}{'-'+commitish_information[1] if len(commitish_information) == 1 else ''}-{parsed_args.os}-{parsed_args.architecture}-{parsed_args.framework}")
 
 # Try to generate all of a single runs dependencies at once to save time
+# TODO: Special case the local build saving to take into account local changes (Maybe include an option to skip rebuilds but still rebuild local)
+# TODO: Check to see if we need to build all the runtypes or if they are already built (Also include a flag to force the rebuild and replacement of the artifacts)
 def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, commitish_information: list, is_local: bool = False):
     getLogger().info("Generating dependencies for " + ' '.join(map(str, parsed_args.run_type_names)) + " run types in " + repo_path + " and storing in " + parsed_args.artifact_storage_path + ".")
     
     if check_for_runtype_specified(parsed_args, [RunType.CoreRun]):
-        build_runtime_dependency(parsed_args, repo_path) # Build libs and corerun by default TODO: Check if we actually need to build these for MonoInterpreter and MonoJIT
+        build_runtime_dependency(parsed_args, repo_path)
         generate_layout(parsed_args, repo_path)
         # Store the corerun in the artifact storage path
         core_root_path = os.path.join(repo_path, "artifacts", "tests", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", "Tests", "Core_Root")
@@ -117,65 +127,79 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         shutil.rmtree(dest_file, ignore_errors=True)
         os.makedirs(dest_dir, exist_ok=True)
         shutil.copy2(src_file, dest_file)
+
         # Store the dotnet-mono in the artifact storage path
         dotnet_mono_path = os.path.join(repo_path, "artifacts", "dotnet-mono")
-        dest_dir = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commitish_information), "dotnet_mono")
+        dest_dir = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commitish_information), "dotnet_mono")
         shutil.rmtree(dest_dir, ignore_errors=True)
         shutil.copytree(dotnet_mono_path, dest_dir)
-        dest_dir = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commitish_information), "dotnet_mono")
+        dest_dir = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commitish_information), "dotnet_mono")
         shutil.rmtree(dest_dir, ignore_errors=True)
         shutil.copytree(dotnet_mono_path, dest_dir)
 
     if check_for_runtype_specified(parsed_args, [RunType.MonoAOT]):
-        build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['/p:CrossBuild=false' '/p:MonoLLVMUseCxx11Abi=false']) 
+        build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['/p:CrossBuild=false' '/p:MonoLLVMUseCxx11Abi=false'])
+
+    # Clean up the build results
+    shutil.rmtree(os.path.join(repo_path, "artifacts", "bin"), ignore_errors=True) 
     
     getLogger().info("Finished generating dependencies for " + ' '.join(map(str, parsed_args.run_type_names)) + " run types in " + repo_path + " and stored in " + parsed_args.artifact_storage_path + ".")
 
-def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, commitish_information: list) -> list:
+def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, all_commitish_information: list) -> list:
     getLogger().info("Generating benchmark_ci.py arguments for " + specific_run_type.name + " run type using artifacts in " + parsed_args.artifact_storage_path + ".")
     benchmark_ci_args = []
     bdn_args_unescaped = []
     benchmark_ci_args += ['--architecture', parsed_args.architecture]
-    benchmark_ci_args += ['--frameworks', parsed_args.frameworks]
+    benchmark_ci_args += ['--frameworks', parsed_args.framework]
     benchmark_ci_args += ['--filter', parsed_args.filter]
     benchmark_ci_args += ['--csproj', parsed_args.csproj]
     benchmark_ci_args += ['--incremental', "no"]
-    benchmark_ci_args += ['--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, "artifacts", "BenchmarkDotNet.Artifacts")]
+    benchmark_ci_args += ['--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, "BenchmarkDotNet.Artifacts")]
 
     if specific_run_type == RunType.CoreRun:
         bdn_args_unescaped += [
                                 '--anyCategories', 'Libraries', 'Runtime',
                                 '--logBuildOutput', 
                                 '--generateBinLog', 
-                                '--corerun', f'{get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commitish_information)}/Core_Root/corerun{".exe" if parsed_args.os == "windows" else ""}'
                             ]
+        
+        bdn_args_unescaped += [ '--corerun' ]
+        for commitish_pair in all_commitish_information: # Add each commitish_pair that is built to the run
+            bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commitish_pair), "Core_Root", f'corerun{".exe" if parsed_args.os == "windows" else ""}') ]
+
     elif specific_run_type == RunType.MonoAOT:
         raise NotImplementedError("MonoAOT is not yet implemented.")
+    
     elif specific_run_type == RunType.MonoInterpreter:
         bdn_args_unescaped += [
                                 '--anyCategories', 'Libraries', 'Runtime', 
                                 '--category-exclusion-filter', 'NoInterpreter', 'NoMono', 
                                 '--logBuildOutput', 
                                 '--generateBinLog', 
-                                '--corerun', f'{get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commitish_information)}/dotnet-mono/shared/Microsoft.NETCore.App/8.0.0/corerun{".exe" if parsed_args.os == "windows" else ""}'
                             ]
+        bdn_args_unescaped += [ '--corerun' ]
+        for commitish_pair in all_commitish_information: # Add each commitish_pair that is built to the run
+            bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commitish_pair), "dotnet-mono", "shared", "Microsoft.NETCore.App", "8.0.0", f'corerun{".exe" if parsed_args.os == "windows" else ""}') ]
+        
         bdn_args_unescaped += ['--envVars', 'MONO_ENV_OPTIONS=--interpreter']
+
     elif specific_run_type == RunType.MonoJIT:
         bdn_args_unescaped += [ 
                                 '--anyCategories', 'Libraries', 'Runtime', 
                                 '--category-exclusion-filter', 'NoInterpreter', 'NoMono', 
                                 '--logBuildOutput', 
                                 '--generateBinLog', 
-                                '--corerun', f'{get_run_artifact_path(parsed_args, RunType.MonoJIT, commitish_information)}/dotnet-mono/shared/Microsoft.NETCore.App/8.0.0/corerun{".exe" if parsed_args.os == "windows" else ""}'
                             ]
+        bdn_args_unescaped += [ '--corerun' ]
+        for commitish_pair in all_commitish_information: # Add each commitish_pair that is built to the run
+            bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commitish_pair), "dotnet-mono", "shared", "Microsoft.NETCore.App", "8.0.0", f'corerun{".exe" if parsed_args.os == "windows" else ""}') ]
+
     bdn_args_unescaped += [parsed_args.bdn_arguments]
     benchmark_ci_args += [f'--bdn-arguments={" ".join(bdn_args_unescaped)}']
     getLogger().info("Finished generating benchmark_ci.py arguments for " + specific_run_type.name + " run type using artifacts in " + parsed_args.artifact_storage_path + ".")
     return benchmark_ci_args
 
-# Run tests on the local machine
-def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_url: str, repo_dir: str, commitish_pair: list, is_local: bool = False) -> None:
-    # Clone runtime or checkout the correct commit or branch
+def generate_artifacts_for_commitish(parsed_args: Namespace, reference_type: RuntimeRefType, repo_url: str, repo_dir: str, commitish_pair: list, is_local: bool = False) -> None:
     if is_local:
         repo_path = repo_dir
         if(not os.path.exists(repo_path)):
@@ -185,12 +209,13 @@ def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_u
         repo_path = os.path.join(parsed_args.repo_storage_path, repo_dir)
         getLogger().info("Running for " + repo_path + " at " + ' '.join(commitish_pair) + ".")
 
-        #TODO Update checkout logic 
+        # TODO Update checkout logic 
+        # TODO Check to see if we already have all necessary artifacts generated for the commitish_pair and run types (Also use a flag to force regeneration)
         if not os.path.exists(repo_path):
             if reference_type == RuntimeRefType.COMMITISH:
                 Repo.clone_from(repo_url, repo_path)
                 repo = Repo(repo_path)
-                repo.git.checkout(commitish_pair[-1])
+                repo.git.checkout(commitish_pair[-1]) # Use -1 to get the commit or the branch name
         else:
             repo = Repo(repo_path)
             repo.remotes.origin.fetch()
@@ -198,20 +223,22 @@ def run_benchmark(parsed_args: Namespace, reference_type: RuntimeRefType, repo_u
 
     # Determine what we need to generate for the local benchmarks
     generate_all_runtype_dependencies(parsed_args, repo_path, commitish_pair, is_local)
-    # TODO: Split the generation into a different function from the run_benchmarks
+
+# Run tests on the local machine
+def run_benchmarks(parsed_args: Namespace, commitish_pairs: list) -> None:
     # Generate the correct benchmarks_ci.py arguments for the run type
     for run_type in enum_name_list_to_enum_list(RunType, parsed_args.run_type_names):
         # Run the benchmarks_ci.py test and save results
         try:
-            benchmark_ci_args = generate_benchmark_ci_args(parsed_args, run_type, commitish_pair)
-            getLogger().info("Running benchmarks_ci.py for " + repo_path + " at " + ' '.join(commitish_pair) + " with arguments \"" + ' '.join(map(str, benchmark_ci_args)) + "\".")
-            benchmarks_ci.__main(["--dotnet-path", os.path.join(repo_path, ".dotnet")] + benchmark_ci_args) # Build the runtime includes a download of dotnet at this location
-            # TODO: Save the results
+            benchmark_ci_args = generate_benchmark_ci_args(parsed_args, run_type, commitish_pairs)
+            getLogger().info(f"Running benchmarks_ci.py for {run_type} at {' '.join(commitish_pairs)} with arguments \"{' '.join(map(str, benchmark_ci_args))}\".")
+            benchmarks_ci.__main(benchmark_ci_args) # Build the runtime includes a download of dotnet at this location
+            # TODO: Save the results. These may already be saved in the BDN Artifacts folder, maybe move the results instead
         except CalledProcessError:
             getLogger().error('benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
             raise
 
-    getLogger().info("Finished running benchmark for " + repo_path + " at " + ' '.join(commitish_pair) + ".")
+        getLogger().info(f"Finished running benchmark for {run_type} at {' '.join(commitish_pairs)}.")
 
 # Check if the specified references exist in the given repository URL.
 # If a reference does not exist, raise an exception.
@@ -228,6 +255,7 @@ def check_references_exist(repo_url: str, references: list, repo_storage_path: s
     # Initialize a new Git repository in the specified directory
     repo_combined_path = os.path.join(repo_storage_path, repo_dir)
     if not os.path.exists(repo_combined_path):
+        getLogger().debug(f"Cloning {repo_url} to {repo_combined_path}.")
         repo = Repo.clone_from(repo_url, repo_combined_path)
     else:
         repo = Repo(repo_combined_path)
@@ -236,6 +264,7 @@ def check_references_exist(repo_url: str, references: list, repo_storage_path: s
     for reference in references:
         try:
             # Check if just a branch name was specified
+            # TODO: Check if either work rather than requiring branch names included with commits (or always include both branch and commit (probably this is better))
             if len(reference) == 1:
                 result = repo.git.branch('-r')
             # Check if a commit hash was specified with the branch name
@@ -254,7 +283,9 @@ def add_arguments(parser):
     parser.add_argument('--local-test-repo', type=str, help='Path to a local repo with the runtime source code to test from.') 
     parser.add_argument('--separate-repos', action='store_true', help='Whether to test each runtime version from their own separate repo directory.')
     parser.add_argument('--repo-storage-path', type=str, default='.', help='The path to store the cloned repositories in.')
-    parser.add_argument('--artifact-storage-path', type=str, default='./artifacts', help='The path to store the artifacts in (builds, results, etc).')
+    parser.add_argument('--artifact-storage-path', type=str, default='./runtime-testing-artifacts', help='The path to store the artifacts in (builds, results, etc).')
+    parser.add_argument('--rebuild-artifacts', action='store_true', help='Whether to rebuild the artifacts for the specified commitishs before benchmarking.') # TODO
+    parser.add_argument('--build-only', action='store_true', help='Whether to only build the artifacts for the specified commitishs and not run the benchmarks.') # TODO
     def __is_valid_run_type(value):
         try:
             RunType[value]
@@ -269,7 +300,7 @@ def add_arguments(parser):
     parser.add_argument('--architecture', choices=['x64', 'x86', 'arm64', 'arm'], default=get_machine_architecture(), help='Specifies the SDK processor architecture')
     parser.add_argument('--os', choices=['windows', 'linux'], default=platform.system().lower(), help='Specifies the operating system of the system')
     parser.add_argument('--filter', type=str, default='*', help='Specifies the benchmark filter to pass to BenchmarkDotNet')
-    parser.add_argument('-f', '--frameworks', choices=ChannelMap.get_supported_frameworks(), nargs='+', default='net8.0', help='The target framework(s) to run the benchmarks against.') # TODO: Should we accept a list of repo, branch, and framework tuples?
+    parser.add_argument('-f', '--framework', choices=ChannelMap.get_supported_frameworks(), default='net8.0', help='The target framework to run the benchmarks against.') # Can and should this accept multiple frameworks?
     parser.add_argument('--csproj', type=str, default='../src/benchmarks/micro/MicroBenchmarks.csproj', help='The path to the csproj file to run benchmarks against.')
     
 
@@ -295,13 +326,13 @@ def __main(args: list):
 
     getLogger().info("Input arguments: " + str(parsed_args))
 
-    branch_commit_pairs = []
+    branch_commit_info = []
     repo_dirs = []
     repo_url = parsed_args.repo
     if runtime_ref_type == RuntimeRefType.COMMITISH:
-        branch_commit_pairs = [pair.split(":") for pair in parsed_args.commitishs]
-        for pair in branch_commit_pairs:
-            if len(pair) == 1:
+        branch_commit_info = [pair.split(":") for pair in parsed_args.commitishs]
+        for pair in branch_commit_info:
+            if len(pair) == 1: # TODO: Do we need to take into account the repo URL here? Maybe for just the branch name but probably not for branch + commit?
                 repo_dirs.append("runtime-" + pair[0].replace('/', '-'))
             else:
                 repo_dirs.append("runtime-" + pair[0].replace('/', '-') + "-" + pair[1])
@@ -309,33 +340,41 @@ def __main(args: list):
         raise Exception("Invalid runtime ref type.")
 
     try:
+        getLogger().info("Killing any running dotnet, vstest, or msbuild processes... (ignore system cannot find path specified)")
         if platform == 'win32':
             os.system('TASKKILL /F /T /IM dotnet.exe 2> nul || TASKKILL /F /T /IM VSTest.Console.exe 2> nul || TASKKILL /F /T /IM msbuild.exe 2> nul')
         else:
             os.system('killall -9 dotnet 2> /dev/null || killall -9 VSTest.Console 2> /dev/null || killall -9 msbuild 2> /dev/null') # Make sure dotnet doesn't have file locks when we start
-        getLogger().info("****** MAKE SURE TO RUN AS ADMINISTRATOR (ESPECIALLY ON WINDOWS) ******")
+        getLogger().info("****** MAKE SURE TO RUN AS ADMINISTRATOR ******")
 
-        # Run the test for each of the remote versions to test
+        # Generate the artifacts for each of the remote versions
         if not runtime_ref_type == RuntimeRefType.LOCAL_ONLY:
-            references = branch_commit_pairs
-            getLogger().info("Checking if references " + str(references) + " exist in " + repo_url + ".")
-            check_references_exist(repo_url, references, parsed_args.repo_storage_path, repo_dirs[0] if parsed_args.separate_repos else "runtime")
+            getLogger().info("Checking if references " + str(branch_commit_info) + " exist in " + repo_url + ".")
+            check_references_exist(repo_url, branch_commit_info, parsed_args.repo_storage_path, repo_dirs[0] if parsed_args.separate_repos else "runtime")
             getLogger().info("References exist in " + repo_url + ".")
-            for repo_dir, git_selector_attribute in zip(repo_dirs, references):
+            for repo_dir, commitish_info in zip(repo_dirs, branch_commit_info):
                 if parsed_args.separate_repos:
-                    run_benchmark(parsed_args, runtime_ref_type, repo_url, repo_dir, git_selector_attribute)
+                    generate_artifacts_for_commitish(parsed_args, runtime_ref_type, repo_url, repo_dir, commitish_info)
                 else:
-                    run_benchmark(parsed_args, runtime_ref_type, repo_url, "runtime", git_selector_attribute)
+                    generate_artifacts_for_commitish(parsed_args, runtime_ref_type, repo_url, "runtime", commitish_info)
 
-        # Run the test for the local version to test
+        # Generate the artifacts for the local version
         if parsed_args.local_test_repo:
-            run_benchmark(parsed_args, runtime_ref_type, "local", parsed_args.local_test_repo, ["local"], True)
+            generate_artifacts_for_commitish(parsed_args, runtime_ref_type, "local", parsed_args.local_test_repo, ["local"], True)
+
+        if(not parsed_args.build_only):
+            # Run the benchmarks
+            run_benchmarks(parsed_args, branch_commit_info)
+        else:
+            getLogger().info("Skipping benchmark run because --build-only was specified.")
+        
     finally:
         if platform == 'win32':
             os.system('TASKKILL /F /T /IM dotnet.exe 2> nul || TASKKILL /F /T /IM VSTest.Console.exe 2> nul || TASKKILL /F /T /IM msbuild.exe 2> nul')
         else:
             os.system('killall -9 dotnet 2> /dev/null || killall -9 VSTest.Console 2> /dev/null || killall -9 msbuild 2> /dev/null') # Always kill dotnet so it isn't left with handles on its files
-    # TODO: Compare the results of the benchmarks
+    
+    # TODO: Compare the results of the benchmarks // This may be doable with just BDN as a start for now
 
 if __name__ == "__main__":
     __main(sys.argv[1:])
