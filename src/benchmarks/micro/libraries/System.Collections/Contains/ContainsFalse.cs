@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -30,6 +31,7 @@ namespace System.Collections
         private ImmutableHashSet<T> _immutableHashSet;
         private ImmutableList<T> _immutableList;
         private ImmutableSortedSet<T> _immutableSortedSet;
+        private FrozenSet<T> _frozenSet;
 
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
@@ -215,12 +217,34 @@ namespace System.Collections
             return result;
         }
 
+        [GlobalSetup(Target = nameof(FrozenSet))]
+        public void SetupFrozenSet() => _frozenSet = Setup().ToFrozenSet(optimizeForReading: false);
+
+        [Benchmark]
+        public bool FrozenSet() => FrozenSetInternal();
+
+        [GlobalSetup(Target = nameof(FrozenSetOptimized))]
+        public void SetupFrozenSetOptimized() => _frozenSet = Setup().ToFrozenSet(optimizeForReading: true);
+
+        [Benchmark]
+        public bool FrozenSetOptimized() => FrozenSetInternal();
+
         private T[] Setup()
         {
             var values = ValuesGenerator.ArrayOfUniqueValues<T>(Size * 2);
             _notFound = values.Take(Size).ToArray();
             var secondHalf = values.Skip(Size).Take(Size).ToArray();
             return secondHalf;
+        }
+
+        private bool FrozenSetInternal()
+        {
+            bool result = default;
+            FrozenSet<T> collection = _frozenSet;
+            T[] notFound = _notFound;
+            for (int i = 0; i < notFound.Length; i++)
+                result ^= collection.Contains(notFound[i]);
+            return result;
         }
     }
 }

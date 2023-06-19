@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace System.Collections
         where T : IEquatable<T>
     {
         private T[] _found;
-        
+
         private T[] _array;
         private List<T> _list;
         private LinkedList<T> _linkedList;
@@ -31,6 +32,7 @@ namespace System.Collections
         private ImmutableHashSet<T> _immutableHashSet;
         private ImmutableList<T> _immutableList;
         private ImmutableSortedSet<T> _immutableSortedSet;
+        private FrozenSet<T> _frozenSet;
 
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
@@ -254,6 +256,36 @@ namespace System.Collections
         {
             bool result = default;
             ImmutableSortedSet<T> collection = _immutableSortedSet;
+            T[] found = _found;
+            for (int i = 0; i < found.Length; i++)
+                result ^= collection.Contains(found[i]);
+            return result;
+        }
+
+        [GlobalSetup(Target = nameof(FrozenSet))]
+        public void SetupFrozenSet()
+        {
+            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _frozenSet = _found.ToFrozenSet(optimizeForReading: false);
+        }
+
+        [Benchmark]
+        public bool FrozenSet() => FrozenSetInternal();
+
+        [GlobalSetup(Target = nameof(FrozenSetOptimized))]
+        public void SetupFrozenSetOptimized()
+        {
+            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
+            _frozenSet = _found.ToFrozenSet(optimizeForReading: true);
+        }
+
+        [Benchmark]
+        public bool FrozenSetOptimized() => FrozenSetInternal();
+
+        private bool FrozenSetInternal()
+        {
+            bool result = default;
+            FrozenSet<T> collection = _frozenSet;
             T[] found = _found;
             for (int i = 0; i < found.Length; i++)
                 result ^= collection.Contains(found[i]);

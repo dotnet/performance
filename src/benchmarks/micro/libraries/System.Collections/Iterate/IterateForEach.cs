@@ -45,6 +45,7 @@ namespace System.Collections
         private ImmutableSortedDictionary<T, T> _immutablesorteddictionary;
         private ImmutableSortedSet<T> _immutablesortedset;
         private FrozenDictionary<T, T> _frozenDictionary;
+        private FrozenSet<T> _frozenset;
 
         [GlobalSetup(Targets = new [] { nameof(Array), nameof(Span), nameof(ReadOnlySpan)})]
         public void SetupArray() => _array = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
@@ -371,15 +372,44 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(FrozenDictionary))]
-        public void SetupFrozenDictionary() => _frozenDictionary = ValuesGenerator.Dictionary<T, T>(Size).ToFrozenDictionary();
+        public void SetupFrozenDictionary() => _frozenDictionary = ValuesGenerator.Dictionary<T, T>(Size).ToFrozenDictionary(optimizeForReading: false);
 
         [Benchmark]
-        public T FrozenDictionary()
+        public T FrozenDictionary() => FrozenDictionaryInternal();
+
+        [GlobalSetup(Target = nameof(FrozenDictionaryOptimized))]
+        public void SetupFrozenDictionaryOptimized() => _frozenDictionary = ValuesGenerator.Dictionary<T, T>(Size).ToFrozenDictionary(optimizeForReading: true);
+
+        [Benchmark]
+        public T FrozenDictionaryOptimized() => FrozenDictionaryInternal();
+
+        private T FrozenDictionaryInternal()
         {
             T result = default;
             var collection = _frozenDictionary;
             foreach (var item in collection)
                 result = item.Value;
+            return result;
+        }
+
+        [GlobalSetup(Target = nameof(FrozenSet))]
+        public void SetupFrozenSet() => _frozenset = ValuesGenerator.ArrayOfUniqueValues<T>(Size).ToFrozenSet(optimizeForReading: false);
+
+        [Benchmark]
+        public T FrozenSet() => FrozenSetInternal();
+
+        [GlobalSetup(Target = nameof(FrozenSetOptimized))]
+        public void SetupFrozenSetOptimized() => _frozenset = ValuesGenerator.ArrayOfUniqueValues<T>(Size).ToFrozenSet(optimizeForReading: true);
+
+        [Benchmark]
+        public T FrozenSetOptimized() => FrozenSetInternal();
+
+        private T FrozenSetInternal()
+        {
+            T result = default;
+            var collection = _frozenset;
+            foreach (var item in collection)
+                result = item;
             return result;
         }
     }
