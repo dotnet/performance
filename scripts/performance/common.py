@@ -166,8 +166,8 @@ def retry_on_exception(function, retry_count=3, retry_delay=5, retry_delay_multi
     :param retry_count: The number of times to retry the function.
     :param retry_delay: The delay between retries (seconds).
     :param retry_delay_multiplier: The multiplier to apply to the retry delay after failure.
-    :param retry_exceptions: The exception to retry on (Defaults to Exception). (Exclusive use from raise_exceptions)
-    :param raise_exceptions: The exceptions to ignore (Defaults to no exceptions ignored). (Exclusive use from retry_exceptions)
+    :param retry_exceptions: The exception to retry on (Defaults to Exception). (Cannot be used with raise_exceptions)
+    :param raise_exceptions: The exceptions to ignore (Defaults to no exceptions ignored). (Cannot be used with retry_exceptions)
     '''
     if retry_count < 0:
         raise ValueError('retry_count must be >= 0')
