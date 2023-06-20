@@ -119,4 +119,40 @@ namespace System.Collections
             }
         }
     }
+
+    public class Perf_SubstringFrozenDictionary : Perf_FrozenDictionary
+    {
+        [Params(10, 100, 1000, 10_000)]
+        public int Count;
+
+        public override void Setup()
+        {
+            if (Count % 2 != 0)
+            {
+                throw new ArgumentException($"{nameof(Count)} needs to be a multiply of 2");
+            }
+
+            // Generate sth like:
+            // abaaaaaa
+            // acaaaaaa
+            // bcbbbbbb
+            // bdbbbbbb
+            // so the first char is not unique, but the combination of 1st and 2nd is.
+            _array = Enumerable.Range(char.MinValue, Count / 2)
+                .SelectMany(character => new string[]
+                {
+                    $"{(char)character}{(char)(character+1)}{new string((char)character, 8)}",
+                    $"{(char)character}{(char)(character+2)}{new string((char)character, 8)}"
+                })
+                .ToArray();
+            _dictionary = _array.ToDictionary(item => item, item => item);
+            _frozenDictionary = _dictionary.ToFrozenDictionary(optimizeForReading: false);
+            _frozenDictionaryOptimized = _dictionary.ToFrozenDictionary(optimizeForReading: true);
+
+            if (!_frozenDictionaryOptimized.GetType().Name.Contains("Substring"))
+            {
+                throw new InvalidOperationException("Either we are using wrong strategy, or the type has been renamed.");
+            }
+        }
+    }
 }
