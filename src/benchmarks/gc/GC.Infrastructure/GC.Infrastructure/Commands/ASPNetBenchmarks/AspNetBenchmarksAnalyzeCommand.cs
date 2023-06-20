@@ -183,6 +183,11 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             List<MetricResult> results = new();
             string[] firstLineSplit = resultsLineSplit[0].Split("|", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
+            if (firstLineSplit.Length < 3)
+            {
+                return results;
+            }
+
             string baseline  = firstLineSplit[1];
             string comparand = firstLineSplit[2];
 

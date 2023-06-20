@@ -75,7 +75,8 @@ namespace GC.Infrastructure.Core.CommandBuilders
             commandStringBuilder.Append($" --application.framework net8.0 ");
 
             string corerunToSend = run.Value.corerun.EndsWith("\\") ? run.Value.corerun.Remove(run.Value.corerun.Length - 1) : run.Value.corerun;
-            commandStringBuilder.Append($" --application.options.outputFiles {Path.Combine(Path.GetDirectoryName(corerunToSend), "*.*" )}");
+            commandStringBuilder.Append($" --application.options.outputFiles {Path.Combine(Path.GetDirectoryName(corerunToSend), "coreclr.dll" )}");
+            commandStringBuilder.Append($" --application.options.outputFiles {Path.Combine(Path.GetDirectoryName(corerunToSend), "clrgc.dll" )}");
 
             // Get the log.
             commandStringBuilder.Append(" --application.options.downloadOutput true ");

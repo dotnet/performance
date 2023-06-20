@@ -27,7 +27,14 @@
             // Preconditions.
             if (configuration.coreruns == null)
             {
-                throw new ArgumentException($"{nameof(InputConfigurationParser)}: Provide a set of coreruns use for the analysis.");
+                throw new ArgumentException($"{nameof(InputConfigurationParser)}: Provide a set of coreruns use for the analysis.");                
+            }
+            foreach (CoreRunInfo corerun in configuration.coreruns.Values)
+            {
+                if (string.IsNullOrEmpty(corerun.Path) || !File.Exists(corerun.Path))
+                {
+                    throw new ArgumentException($"{nameof(InputConfigurationParser)}: CoreRun.exe must be provided or exist.");                
+                }
             }
 
             if (string.IsNullOrEmpty(configuration.output_path))
@@ -40,7 +47,9 @@
                 throw new ArgumentException($"{nameof(InputConfigurationParser)}: A path to the gcperfsim dll must be provided or exist.");
             }
 
-            if (string.IsNullOrEmpty(configuration.microbenchmark_path) || !Directory.Exists(configuration.microbenchmark_path))
+            string microbenchmarkExecutablePath = Path.Combine(configuration.microbenchmark_path, "../../../artifacts/bin/MicroBenchmarks/Release/net7.0/MicroBenchmarks.exe");
+
+            if (string.IsNullOrEmpty(configuration.microbenchmark_path) || !Directory.Exists(configuration.microbenchmark_path) || !File.Exists(microbenchmarkExecutablePath))
             {
                 throw new ArgumentException($"{nameof(InputConfigurationParser)}: A path to the microbenchmarks must be provided or exist.");
             }

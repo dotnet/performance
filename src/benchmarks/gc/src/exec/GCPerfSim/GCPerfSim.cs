@@ -1808,7 +1808,9 @@ class ArgsParser
         {
             SizeSlot.BuildSOHBucketSpecsFromSizeDistribution(bucketList, sohSurvInterval, reqSohSurvInterval, sohPinInterval, sohFinalizableInterval);
             SizeSlot.BuildLOHBucketSpecsFromSizeDistribution(bucketList, lohSurvInterval, reqLohSurvInterval, lohPinInterval, lohFinalizableInterval);
+#if NET5_0_OR_GREATER
             SizeSlot.BuildPOHBucketSpecsFromSizeDistribution(bucketList, pohSurvInterval, reqPohSurvInterval, 0,              pohFinalizableInterval);
+#endif
         }
         else
         {

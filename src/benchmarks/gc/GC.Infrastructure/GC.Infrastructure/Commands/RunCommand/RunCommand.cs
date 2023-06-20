@@ -153,8 +153,11 @@ namespace GC.Infrastructure.Commands.RunCommand
                         uniqueMicrobenchmarks.Add(r);
                     }
 
-                    MicrobenchmarkComparisonResults comparisonResults = microbenchmarkResults.AnalysisResults.First();
-                    allMicrobenchmarkResults[config.Name] = comparisonResults;
+                    if (microbenchmarkResults.AnalysisResults.Count > 0)
+                    {
+                        MicrobenchmarkComparisonResults comparisonResults = microbenchmarkResults.AnalysisResults.First();
+                        allMicrobenchmarkResults[config.Name] = comparisonResults;
+                    }
                 }
 
                 catch (Exception e)

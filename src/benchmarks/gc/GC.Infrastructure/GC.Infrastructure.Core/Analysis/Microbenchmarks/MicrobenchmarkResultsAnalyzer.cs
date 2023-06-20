@@ -136,39 +136,42 @@ namespace GC.Infrastructure.Core.Analysis.Microbenchmarks
             else
             {
                 string baselineName = configuration.Runs.FirstOrDefault(r => r.Value.is_baseline).Key;
-                KeyValuePair<Run, ConcurrentDictionary<string, MicrobenchmarkResult>> baselineResult = baselineName != null ? runResults.First(r => r.Key.Name == baselineName) : runResults.First();
-
-                // For each run, we want to grab it and it's baseline and then do a per microbenchmark association.
-                foreach(var runResult in runResults)
+                KeyValuePair<Run, ConcurrentDictionary<string, MicrobenchmarkResult>>? baselineResultOrNull = baselineName != null ? runResults.FirstOrDefault(r => r.Key.Name == baselineName) : runResults.FirstOrDefault();
+                if (baselineResultOrNull != null)
                 {
-                    Run run = runResult.Key;
-                    string runName = run.Name;
-                    
-                    if (string.CompareOrdinal(runName, baselineName) == 0)
+                    KeyValuePair<Run, ConcurrentDictionary<string, MicrobenchmarkResult>> baselineResult = baselineResultOrNull.Value;
+                    // For each run, we want to grab it and it's baseline and then do a per microbenchmark association.
+                    foreach(var runResult in runResults)
                     {
-                        continue;
-                    }
-
-                    List<MicrobenchmarkComparisonResult> microbenchmarkResults = new();
-
-                    // Go through all the microbenchmarks for the current run and find the corresponding runs in the baseline.
-                    foreach (var r in runResult.Value)
-                    {
-                        string microbenchmarkName = r.Key;
-                        if (baselineResult.Value.TryGetValue(microbenchmarkName, out var m))
+                        Run run = runResult.Key;
+                        string runName = run.Name;
+                        
+                        if (string.CompareOrdinal(runName, baselineName) == 0)
                         {
-                            MicrobenchmarkComparisonResult microbenchmarkResult = new(m, r.Value);
-                            microbenchmarkResults.Add(microbenchmarkResult);
+                            continue;
                         }
 
-                        else
-                        {
-                            Console.WriteLine($"Microbenchmark: {microbenchmarkName} isn't found on the baseline: {baselineName} for run: {runName}");
-                            // TODO: Log the fact that we haven't found a corresponding result in the baseline.
-                        }
-                    }
+                        List<MicrobenchmarkComparisonResult> microbenchmarkResults = new();
 
-                    comparisonResults.Add(new MicrobenchmarkComparisonResults(baselineName, runName, microbenchmarkResults));
+                        // Go through all the microbenchmarks for the current run and find the corresponding runs in the baseline.
+                        foreach (var r in runResult.Value)
+                        {
+                            string microbenchmarkName = r.Key;
+                            if (baselineResult.Value.TryGetValue(microbenchmarkName, out var m))
+                            {
+                                MicrobenchmarkComparisonResult microbenchmarkResult = new(m, r.Value);
+                                microbenchmarkResults.Add(microbenchmarkResult);
+                            }
+
+                            else
+                            {
+                                Console.WriteLine($"Microbenchmark: {microbenchmarkName} isn't found on the baseline: {baselineName} for run: {runName}");
+                                // TODO: Log the fact that we haven't found a corresponding result in the baseline.
+                            }
+                        }
+
+                        comparisonResults.Add(new MicrobenchmarkComparisonResults(baselineName, runName, microbenchmarkResults));
+                    }
                 }
             }
 
