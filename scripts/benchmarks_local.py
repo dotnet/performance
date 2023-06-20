@@ -96,7 +96,6 @@ def get_run_artifact_path(parsed_args: Namespace, run_type: RunType, commitish_i
 
 # Try to generate all of a single runs dependencies at once to save time
 # TODO: Special case the local build saving to take into account local changes (Maybe include an option to skip rebuilds but still rebuild local)
-# TODO: Check to see if we need to build all the runtypes or if they are already built (Also include a flag to force the rebuild and replacement of the artifacts)
 def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, commitish_information: list, is_local: bool = False):
     getLogger().info("Generating dependencies for " + ' '.join(map(str, parsed_args.run_type_names)) + " run types in " + repo_path + " and storing in " + parsed_args.artifact_storage_path + ".")
     
@@ -169,7 +168,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
         bdn_args_unescaped += [
                                 '--anyCategories', 'Libraries', 'Runtime',
                                 '--logBuildOutput', 
-                                '--generateBinLog', 
+                                '--generateBinLog',
                             ]
         
         bdn_args_unescaped += [ '--corerun' ]
@@ -203,7 +202,8 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
         for commitish_pair in all_commitish_information: # Add each commitish_pair that is built to the run
             bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commitish_pair), "dotnet-mono", "shared", "Microsoft.NETCore.App", "8.0.0", f'corerun{".exe" if parsed_args.os == "windows" else ""}') ]
 
-    bdn_args_unescaped += [parsed_args.bdn_arguments]
+    if parsed_args.bdn_arguments:
+        bdn_args_unescaped += [parsed_args.bdn_arguments]
     benchmark_ci_args += [f'--bdn-arguments={" ".join(bdn_args_unescaped)}']
     getLogger().info("Finished generating benchmark_ci.py arguments for " + specific_run_type.name + " run type using artifacts in " + parsed_args.artifact_storage_path + ".")
     return benchmark_ci_args
@@ -240,14 +240,14 @@ def run_benchmarks(parsed_args: Namespace, commitish_pairs: list) -> None:
         # Run the benchmarks_ci.py test and save results
         try:
             benchmark_ci_args = generate_benchmark_ci_args(parsed_args, run_type, commitish_pairs)
-            getLogger().info(f"Running benchmarks_ci.py for {run_type} at {' '.join(commitish_pairs)} with arguments \"{' '.join(map(str, benchmark_ci_args))}\".")
+            getLogger().info(f"Running benchmarks_ci.py for {run_type} at {commitish_pairs} with arguments \"{' '.join(benchmark_ci_args)}\".")
             benchmarks_ci.__main(benchmark_ci_args) # Build the runtime includes a download of dotnet at this location
             # TODO: Save the results. These may already be saved in the BDN Artifacts folder, maybe move the results instead
         except CalledProcessError:
             getLogger().error('benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
             raise
 
-        getLogger().info(f"Finished running benchmark for {run_type} at {' '.join(commitish_pairs)}.")
+        getLogger().info(f"Finished running benchmark for {run_type} at {commitish_pairs}.")
 
 # Check if the specified references exist in the given repository URL.
 # If a reference does not exist, raise an exception.
@@ -292,8 +292,8 @@ def add_arguments(parser):
     parser.add_argument('--local-test-repo', type=str, help='Path to a local repo with the runtime source code to test from.') 
     parser.add_argument('--separate-repos', action='store_true', help='Whether to test each runtime version from their own separate repo directory.')
     parser.add_argument('--repo-storage-path', type=str, default='.', help='The path to store the cloned repositories in.')
-    parser.add_argument('--artifact-storage-path', type=str, default='./runtime-testing-artifacts', help='The path to store the artifacts in (builds, results, etc).')
-    parser.add_argument('--rebuild-artifacts', action='store_true', help='Whether to rebuild the artifacts for the specified commitishs before benchmarking.') # TODO
+    parser.add_argument('--artifact-storage-path', type=str, default=f'{os.getcwd()}{os.path.sep}runtime-testing-artifacts', help='The path to store the artifacts in (builds, results, etc).')
+    parser.add_argument('--rebuild-artifacts', action='store_true', help='Whether to rebuild the artifacts for the specified commitishs before benchmarking.')
     parser.add_argument('--build-only', action='store_true', help='Whether to only build the artifacts for the specified commitishs and not run the benchmarks.')
     def __is_valid_run_type(value):
         try:
