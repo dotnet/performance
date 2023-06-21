@@ -190,7 +190,7 @@ def retry_on_exception(function, retry_count=3, retry_delay=5, retry_delay_multi
                 raise
             if i == retry_count - 1:
                 raise
-            getLogger().info('Exception caught {0}: {1}'.format(type(e), str(e)))
+            getLogger().info(f'Exception caught {type(e)}: {str(e)}')
             getLogger().info('Retrying in %d seconds...', retry_delay)
             time.sleep(retry_delay)
             retry_delay *= retry_delay_multiplier
