@@ -504,6 +504,7 @@ jobs:
       buildMachines:
         - win-x64
         - ubuntu-x64
+        # Illink.Utilities is not supported on ARM: The type initializer for 'ILLinkBenchmarks.Utilities' threw a NotSupportedException (Unsupported architecture). (06/2023)
       isPublic: false
       jobParameters:
         kind: illink
