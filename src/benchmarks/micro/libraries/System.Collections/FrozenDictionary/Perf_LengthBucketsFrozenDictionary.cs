@@ -1,8 +1,10 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 using System.Collections.Frozen;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace System.Collections
@@ -80,6 +82,14 @@ namespace System.Collections
                 result ^= collection.TryGetValue(found[i], out _);
             return result;
         }
+
+        protected void EnsureRightStrategyIsUsed(string name)
+        {
+            if (!_frozenDictionaryOptimized.GetType().Name.Contains(name))
+            {
+                throw new InvalidOperationException("Either we are using wrong strategy, or the type has been renamed.");
+            }
+        }
     }
 
 
@@ -108,10 +118,7 @@ namespace System.Collections
             _frozenDictionary = _dictionary.ToFrozenDictionary(optimizeForReading: false);
             _frozenDictionaryOptimized = _dictionary.ToFrozenDictionary(optimizeForReading: true);
 
-            if (!_frozenDictionaryOptimized.GetType().Name.Contains("LengthBucketsFrozenDictionary"))
-            {
-                throw new InvalidOperationException("Either we are using wrong strategy, or the type has been renamed.");
-            }
+            EnsureRightStrategyIsUsed("LengthBucketsFrozenDictionary");
         }
     }
 
@@ -130,10 +137,7 @@ namespace System.Collections
             _frozenDictionary = _dictionary.ToFrozenDictionary(optimizeForReading: false);
             _frozenDictionaryOptimized = _dictionary.ToFrozenDictionary(optimizeForReading: true);
 
-            if (!_frozenDictionaryOptimized.GetType().Name.Contains("SingleChar"))
-            {
-                throw new InvalidOperationException("Either we are using wrong strategy, or the type has been renamed.");
-            }
+            EnsureRightStrategyIsUsed("SingleChar");
         }
     }
 
@@ -167,10 +171,23 @@ namespace System.Collections
             _frozenDictionary = _dictionary.ToFrozenDictionary(optimizeForReading: false);
             _frozenDictionaryOptimized = _dictionary.ToFrozenDictionary(optimizeForReading: true);
 
-            if (!_frozenDictionaryOptimized.GetType().Name.Contains("Substring"))
-            {
-                throw new InvalidOperationException("Either we are using wrong strategy, or the type has been renamed.");
-            }
+            EnsureRightStrategyIsUsed("Substring");
+    }
+
+    public class Perf_DefaultFrozenDictionary : Perf_FrozenDictionary
+    {
+        [Params(10, 100, 1000, 10_000)]
+        public int Count;
+
+        public override void Setup()
+        {
+            _array = ValuesGenerator.ArrayOfUniqueValues<string>(Count);
+            _dictionary = _array.ToDictionary(item => item, item => item);
+            _immutableDictionary = _dictionary.ToImmutableDictionary();
+            _frozenDictionary = _dictionary.ToFrozenDictionary(optimizeForReading: false);
+            _frozenDictionaryOptimized = _dictionary.ToFrozenDictionary(optimizeForReading: true);
+
+            EnsureRightStrategyIsUsed("OrdinalStringFrozenDictionary");
         }
     }
 }
