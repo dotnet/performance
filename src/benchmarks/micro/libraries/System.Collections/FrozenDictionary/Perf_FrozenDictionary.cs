@@ -1,5 +1,4 @@
 ﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Extensions;
 using MicroBenchmarks;
 using System.Collections.Frozen;
@@ -9,7 +8,6 @@ using System.Linq;
 
 namespace System.Collections
 {
-    [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByJob, BenchmarkLogicalGroupRule.ByCategory)]
     [BenchmarkCategory(Categories.Libraries)]
     public abstract class Perf_FrozenDictionary
     {
@@ -21,24 +19,19 @@ namespace System.Collections
         [GlobalSetup]
         public abstract void Setup();
 
-        [BenchmarkCategory("Creation")]
         [Benchmark]
         public Dictionary<string, string> ToDictionary() => new(_dictionary);
 
-        [BenchmarkCategory("Creation")]
-        [Benchmark(Baseline = true)]
+        [Benchmark]
         public ImmutableDictionary<string, string> ToImmutableDictionary() => _dictionary.ToImmutableDictionary();
 
-        [BenchmarkCategory("Creation")]
         [Benchmark]
         public FrozenDictionary<string, string> ToFrozenDictionary() => _dictionary.ToFrozenDictionary(optimizeForReading: false);
 
-        [BenchmarkCategory("Creation")]
         [Benchmark]
         public FrozenDictionary<string, string> ToFrozenDictionary_Optimized() => _dictionary.ToFrozenDictionary(optimizeForReading: true);
 
-        [BenchmarkCategory("TryGetValue")]
-        [Benchmark(Baseline = true)]
+        [Benchmark]
         public bool TryGetValue_True_Dictionary()
         {
             bool result = default;
@@ -49,7 +42,6 @@ namespace System.Collections
             return result;
         }
 
-        [BenchmarkCategory("TryGetValue")]
         [Benchmark]
         public bool TryGetValue_True_ImmutableDictionary()
         {
@@ -72,7 +64,6 @@ namespace System.Collections
             return result;
         }
 
-        [BenchmarkCategory("TryGetValue")]
         [Benchmark]
         public bool TryGetValue_True_FrozenDictionaryOptimized()
         {
@@ -93,8 +84,6 @@ namespace System.Collections
         }
     }
 
-    [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByJob, BenchmarkLogicalGroupRule.ByCategory)]
-    [BenchmarkCategory(Categories.Libraries)]
     public class Perf_LengthBucketsFrozenDictionary : Perf_FrozenDictionary
     {
         [Params(10, 100, 1000, 10_000)]
