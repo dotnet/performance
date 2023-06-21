@@ -22,13 +22,14 @@ namespace System.Collections
         public abstract void Setup();
 
         [BenchmarkCategory("Creation")]
-        [Benchmark(Baseline = true)]
+        [Benchmark]
         public Dictionary<string, string> ToDictionary() => new(_dictionary);
 
         [BenchmarkCategory("Creation")]
-        [Benchmark]
+        [Benchmark(Baseline = true)]
         public ImmutableDictionary<string, string> ToImmutableDictionary() => _dictionary.ToImmutableDictionary();
 
+        [BenchmarkCategory("Creation")]
         [Benchmark]
         public FrozenDictionary<string, string> ToFrozenDictionary() => _dictionary.ToFrozenDictionary(optimizeForReading: false);
 
@@ -87,11 +88,10 @@ namespace System.Collections
         {
             if (!_frozenDictionaryOptimized.GetType().Name.Contains(name))
             {
-                throw new InvalidOperationException("Either we are using wrong strategy, or the type has been renamed.");
+                throw new InvalidOperationException($"Either we are using wrong strategy ({_frozenDictionaryOptimized.GetType().Name}), or the type has been renamed.");
             }
         }
     }
-
 
     [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByJob, BenchmarkLogicalGroupRule.ByCategory)]
     [BenchmarkCategory(Categories.Libraries)]
@@ -172,6 +172,7 @@ namespace System.Collections
             _frozenDictionaryOptimized = _dictionary.ToFrozenDictionary(optimizeForReading: true);
 
             EnsureRightStrategyIsUsed("Substring");
+        }
     }
 
     public class Perf_DefaultFrozenDictionary : Perf_FrozenDictionary
@@ -181,7 +182,11 @@ namespace System.Collections
 
         public override void Setup()
         {
-            _array = ValuesGenerator.ArrayOfUniqueValues<string>(Count);
+            _array = Count == 10
+                // to avoid using LengthBucketsFrozenDictionary we specify the same length for more than 5 strings
+                ? ValuesGenerator.ArrayOfUniqueStrings(10, minLength: 25, maxLength: 25)
+                : ValuesGenerator.ArrayOfUniqueValues<string>(Count);
+
             _dictionary = _array.ToDictionary(item => item, item => item);
             _immutableDictionary = _dictionary.ToImmutableDictionary();
             _frozenDictionary = _dictionary.ToFrozenDictionary(optimizeForReading: false);
