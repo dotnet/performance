@@ -13,6 +13,7 @@ namespace System.Collections
     {
         protected string[] _array;
         protected Dictionary<string, string> _dictionary;
+        protected ImmutableDictionary<string, string> _immutableDictionary;
         protected FrozenDictionary<string, string> _frozenDictionary, _frozenDictionaryOptimized;
 
         [GlobalSetup]
@@ -23,6 +24,9 @@ namespace System.Collections
         public Dictionary<string, string> ToDictionary() => new(_dictionary);
 
         [BenchmarkCategory("Creation")]
+        [Benchmark]
+        public ImmutableDictionary<string, string> ToImmutableDictionary() => _dictionary.ToImmutableDictionary();
+
         [Benchmark]
         public FrozenDictionary<string, string> ToFrozenDictionary() => _dictionary.ToFrozenDictionary(optimizeForReading: false);
 
@@ -43,6 +47,17 @@ namespace System.Collections
         }
 
         [BenchmarkCategory("TryGetValue")]
+        [Benchmark]
+        public bool TryGetValue_True_ImmutableDictionary()
+        {
+            bool result = default;
+            var collection = _immutableDictionary;
+            string[] found = _array;
+            for (int i = 0; i < found.Length; i++)
+                result ^= collection.TryGetValue(found[i], out _);
+            return result;
+        }
+
         [Benchmark]
         public bool TryGetValue_True_FrozenDictionary()
         {
@@ -89,6 +104,7 @@ namespace System.Collections
                 .SelectMany(length => Enumerable.Range('a', ItemsPerBucket).Select(character => new string((char)character, length)))
                 .ToArray();
             _dictionary = _array.ToDictionary(item => item, item => item);
+            _immutableDictionary = _dictionary.ToImmutableDictionary();
             _frozenDictionary = _dictionary.ToFrozenDictionary(optimizeForReading: false);
             _frozenDictionaryOptimized = _dictionary.ToFrozenDictionary(optimizeForReading: true);
 
@@ -110,6 +126,7 @@ namespace System.Collections
                 .Select(character => new string((char)character, 10))
                 .ToArray();
             _dictionary = _array.ToDictionary(item => item, item => item);
+            _immutableDictionary = _dictionary.ToImmutableDictionary();
             _frozenDictionary = _dictionary.ToFrozenDictionary(optimizeForReading: false);
             _frozenDictionaryOptimized = _dictionary.ToFrozenDictionary(optimizeForReading: true);
 
@@ -146,6 +163,7 @@ namespace System.Collections
                 })
                 .ToArray();
             _dictionary = _array.ToDictionary(item => item, item => item);
+            _immutableDictionary = _dictionary.ToImmutableDictionary();
             _frozenDictionary = _dictionary.ToFrozenDictionary(optimizeForReading: false);
             _frozenDictionaryOptimized = _dictionary.ToFrozenDictionary(optimizeForReading: true);
 
