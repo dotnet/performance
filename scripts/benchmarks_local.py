@@ -64,10 +64,18 @@ def check_for_runtype_specified(parsed_args: Namespace, run_types_to_check: list
 # Builds libs and corerun by default
 def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str = "clr+libs+libs.tests", configuration: str = "Release", additional_args: list = []):    
     # Run the command
-    build_libs_and_corerun_command = [
-                "powershell.exe", # Will need to see if this works on Linux powershell core
+    if parsed_args.os == "windows":
+        build_libs_and_corerun_command = [
+                "pwsh",
                 "-File",
-                f"build.ps1", 
+                f"build.ps1"
+        ]
+    else:
+        build_libs_and_corerun_command = [
+                "bash",
+                "build.sh"
+        ]
+    build_libs_and_corerun_command += [ # TODO: 
                 "-subset", subset, 
                 "-configuration", configuration, 
                 "-os", f"{parsed_args.os}",
@@ -81,7 +89,7 @@ def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: lis
     if parsed_args.os == "windows":
         build_script = "build.cmd"
     else:
-        build_script = "build.sh"
+        build_script = "./build.sh"
     generate_layout_command = [
                 f"{build_script}",
                 "release",
@@ -117,32 +125,33 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         dest_dir_mono_jit = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commitish_information), "dotnet_mono")
 
         if parsed_args.rebuild_artifacts or not os.path.exists(dest_dir_mono_interpreter) or not os.path.exists(dest_dir_mono_jit):
-            build_runtime_dependency(parsed_args, repo_path, "mono+libs") 
+            build_runtime_dependency(parsed_args, repo_path, "clr+mono+libs")
             build_runtime_dependency(parsed_args, repo_path, "libs.pretest", additional_args=['-testscope', 'innerloop', '/p:RuntimeFlavor=mono', f"/p:RuntimeArtifactsPath={os.path.join(repo_path, 'artifacts', 'bin', 'mono', f'{parsed_args.os}.{parsed_args.architecture}.Release')}"])
+            generate_layout(parsed_args, repo_path)
             # Create the mono-dotnet
             src_dir = os.path.join(repo_path, "artifacts", "bin", "runtime", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}")
             dest_dir = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}", "shared", "Microsoft.NETCore.App", "8.0.0")
             shutil.rmtree(dest_dir, ignore_errors=True)
             shutil.copytree(src_dir, dest_dir)
             src_dir = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}")
-            dest_dir = os.path.join(repo_path, "artifacts", "dotnet-mono")
+            dest_dir = os.path.join(repo_path, "artifacts", "dotnet_mono")
             shutil.rmtree(dest_dir, ignore_errors=True)
             shutil.copytree(src_dir, dest_dir)
             src_file = os.path.join(repo_path, "artifacts", "bin", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", f"corerun{'.exe' if parsed_args.os == 'windows' else ''}")
-            dest_dir = os.path.join(repo_path, "artifacts", "dotnet-mono", "shared", "Microsoft.NETCore.App", "8.0.0")
+            dest_dir = os.path.join(repo_path, "artifacts", "dotnet_mono", "shared", "Microsoft.NETCore.App", "8.0.0")
             dest_file = os.path.join(dest_dir, f"corerun{'.exe' if parsed_args.os == 'windows' else ''}")
             shutil.rmtree(dest_file, ignore_errors=True)
             os.makedirs(dest_dir, exist_ok=True)
             shutil.copy2(src_file, dest_file)
 
-            # Store the dotnet-mono in the artifact storage path
-            dotnet_mono_path = os.path.join(repo_path, "artifacts", "dotnet-mono")
+            # Store the dotnet_mono in the artifact storage path
+            dotnet_mono_path = os.path.join(repo_path, "artifacts", "dotnet_mono")
             shutil.rmtree(dest_dir_mono_interpreter, ignore_errors=True)
             shutil.copytree(dotnet_mono_path, dest_dir_mono_interpreter)
             shutil.rmtree(dest_dir_mono_jit, ignore_errors=True)
             shutil.copytree(dotnet_mono_path, dest_dir_mono_jit)
         else:
-            getLogger().info(f"dotnet-mono already exists in {dest_dir_mono_interpreter} and {dest_dir_mono_jit}. Skipping generation.")
+            getLogger().info(f"dotnet_mono already exists in {dest_dir_mono_interpreter} and {dest_dir_mono_jit}. Skipping generation.")
 
     if check_for_runtype_specified(parsed_args, [RunType.MonoAOT]):
         build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['/p:CrossBuild=false' '/p:MonoLLVMUseCxx11Abi=false'])
@@ -187,9 +196,9 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                             ]
         bdn_args_unescaped += [ '--corerun' ]
         for commitish_pair in all_commitish_information: # Add each commitish_pair that is built to the run
-            bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commitish_pair), "dotnet-mono", "shared", "Microsoft.NETCore.App", "8.0.0", f'corerun{".exe" if parsed_args.os == "windows" else ""}') ]
+            bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commitish_pair), "dotnet_mono", "shared", "Microsoft.NETCore.App", "8.0.0", f'corerun{".exe" if parsed_args.os == "windows" else ""}') ]
         
-        bdn_args_unescaped += ['--envVars', 'MONO_ENV_OPTIONS=--interpreter']
+        bdn_args_unescaped += ['--envVars', 'MONO_ENV_OPTIONS:--interpreter']
 
     elif specific_run_type == RunType.MonoJIT:
         bdn_args_unescaped += [ 
@@ -200,7 +209,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                             ]
         bdn_args_unescaped += [ '--corerun' ]
         for commitish_pair in all_commitish_information: # Add each commitish_pair that is built to the run
-            bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commitish_pair), "dotnet-mono", "shared", "Microsoft.NETCore.App", "8.0.0", f'corerun{".exe" if parsed_args.os == "windows" else ""}') ]
+            bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commitish_pair), "dotnet_mono", "shared", "Microsoft.NETCore.App", "8.0.0", f'corerun{".exe" if parsed_args.os == "windows" else ""}') ]
 
     if parsed_args.bdn_arguments:
         bdn_args_unescaped += [parsed_args.bdn_arguments]
