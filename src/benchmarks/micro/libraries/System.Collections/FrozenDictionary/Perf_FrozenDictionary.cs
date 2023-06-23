@@ -8,7 +8,9 @@ using System.Linq;
 
 namespace System.Collections
 {
-    [BenchmarkCategory(Categories.Libraries)]
+    // We don't want to run all these benchmarks for every CI run, that is why they belong to ThirdParty category.
+    // The benchmarks that we care about the most: optimized frozen dictionary benchmarks belong to Libraries category.
+    [BenchmarkCategory(Categories.ThirdParty)]
     public abstract class Perf_FrozenDictionary
     {
         protected string[] _array;
@@ -29,6 +31,7 @@ namespace System.Collections
         public FrozenDictionary<string, string> ToFrozenDictionary() => _dictionary.ToFrozenDictionary(optimizeForReading: false);
 
         [Benchmark]
+        [BenchmarkCategory(Categories.Libraries)]
         public FrozenDictionary<string, string> ToFrozenDictionary_Optimized() => _dictionary.ToFrozenDictionary(optimizeForReading: true);
 
         [Benchmark]
@@ -65,6 +68,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.Libraries)]
         public bool TryGetValue_True_FrozenDictionaryOptimized()
         {
             bool result = default;
