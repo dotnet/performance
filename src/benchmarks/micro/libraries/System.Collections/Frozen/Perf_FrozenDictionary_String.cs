@@ -11,12 +11,12 @@ namespace System.Collections
     // We don't want to run all these benchmarks for every CI run, that is why they belong to ThirdParty category.
     // The benchmarks that we care about the most: optimized frozen dictionary benchmarks belong to Libraries category.
     [BenchmarkCategory(Categories.ThirdParty)]
-    public abstract class Perf_FrozenDictionary
+    public abstract class Perf_FrozenDictionary_String
     {
         protected string[] _array;
         protected Dictionary<string, string> _dictionary;
         protected ImmutableDictionary<string, string> _immutableDictionary;
-        protected FrozenDictionary<string, string> _frozenDictionary, _frozenDictionaryOptimized;
+        protected FrozenDictionary<string, string> _frozenDictionary;
 
         [GlobalSetup]
         public abstract void Setup();
@@ -28,11 +28,8 @@ namespace System.Collections
         public ImmutableDictionary<string, string> ToImmutableDictionary() => _dictionary.ToImmutableDictionary();
 
         [Benchmark]
-        public FrozenDictionary<string, string> ToFrozenDictionary() => _dictionary.ToFrozenDictionary(optimizeForReading: false);
-
-        [Benchmark]
         [BenchmarkCategory(Categories.Libraries)]
-        public FrozenDictionary<string, string> ToFrozenDictionary_Optimized() => _dictionary.ToFrozenDictionary(optimizeForReading: true);
+        public FrozenDictionary<string, string> ToFrozenDictionary() => _dictionary.ToFrozenDictionary();
 
         [Benchmark]
         public bool TryGetValue_True_Dictionary()
@@ -57,6 +54,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [BenchmarkCategory(Categories.Libraries)]
         public bool TryGetValue_True_FrozenDictionary()
         {
             bool result = default;
@@ -67,28 +65,16 @@ namespace System.Collections
             return result;
         }
 
-        [Benchmark]
-        [BenchmarkCategory(Categories.Libraries)]
-        public bool TryGetValue_True_FrozenDictionaryOptimized()
-        {
-            bool result = default;
-            var collection = _frozenDictionaryOptimized;
-            string[] found = _array;
-            for (int i = 0; i < found.Length; i++)
-                result ^= collection.TryGetValue(found[i], out _);
-            return result;
-        }
-
         protected void EnsureRightStrategyIsUsed(string name)
         {
-            if (!_frozenDictionaryOptimized.GetType().Name.Contains(name))
+            if (!_frozenDictionary.GetType().Name.Contains(name))
             {
-                throw new InvalidOperationException($"Either we are using wrong strategy ({_frozenDictionaryOptimized.GetType().Name}), or the type has been renamed.");
+                throw new InvalidOperationException($"Either we are using wrong strategy ({_frozenDictionary.GetType().Name}), or the type has been renamed.");
             }
         }
     }
 
-    public class Perf_LengthBucketsFrozenDictionary : Perf_FrozenDictionary
+    public class Perf_LengthBucketsFrozenDictionary : Perf_FrozenDictionary_String
     {
         [Params(10, 100, 1000, 10_000)]
         public int Count;
@@ -108,14 +94,13 @@ namespace System.Collections
                 .ToArray();
             _dictionary = _array.ToDictionary(item => item, item => item);
             _immutableDictionary = _dictionary.ToImmutableDictionary();
-            _frozenDictionary = _dictionary.ToFrozenDictionary(optimizeForReading: false);
-            _frozenDictionaryOptimized = _dictionary.ToFrozenDictionary(optimizeForReading: true);
+            _frozenDictionary = _dictionary.ToFrozenDictionary();
 
             EnsureRightStrategyIsUsed("LengthBucketsFrozenDictionary");
         }
     }
 
-    public class Perf_SingleCharFrozenDictionary : Perf_FrozenDictionary
+    public class Perf_SingleCharFrozenDictionary : Perf_FrozenDictionary_String
     {
         [Params(10, 100, 1000, 10_000)]
         public int Count;
@@ -127,14 +112,13 @@ namespace System.Collections
                 .ToArray();
             _dictionary = _array.ToDictionary(item => item, item => item);
             _immutableDictionary = _dictionary.ToImmutableDictionary();
-            _frozenDictionary = _dictionary.ToFrozenDictionary(optimizeForReading: false);
-            _frozenDictionaryOptimized = _dictionary.ToFrozenDictionary(optimizeForReading: true);
+            _frozenDictionary = _dictionary.ToFrozenDictionary();
 
             EnsureRightStrategyIsUsed("SingleChar");
         }
     }
 
-    public class Perf_SubstringFrozenDictionary : Perf_FrozenDictionary
+    public class Perf_SubstringFrozenDictionary : Perf_FrozenDictionary_String
     {
         [Params(10, 100, 1000, 10_000)]
         public int Count;
@@ -161,14 +145,13 @@ namespace System.Collections
                 .ToArray();
             _dictionary = _array.ToDictionary(item => item, item => item);
             _immutableDictionary = _dictionary.ToImmutableDictionary();
-            _frozenDictionary = _dictionary.ToFrozenDictionary(optimizeForReading: false);
-            _frozenDictionaryOptimized = _dictionary.ToFrozenDictionary(optimizeForReading: true);
+            _frozenDictionary = _dictionary.ToFrozenDictionary();
 
             EnsureRightStrategyIsUsed("Substring");
         }
     }
 
-    public class Perf_DefaultFrozenDictionary : Perf_FrozenDictionary
+    public class Perf_DefaultFrozenDictionary : Perf_FrozenDictionary_String
     {
         [Params(10, 100, 1000, 10_000)]
         public int Count;
@@ -182,8 +165,7 @@ namespace System.Collections
 
             _dictionary = _array.ToDictionary(item => item, item => item);
             _immutableDictionary = _dictionary.ToImmutableDictionary();
-            _frozenDictionary = _dictionary.ToFrozenDictionary(optimizeForReading: false);
-            _frozenDictionaryOptimized = _dictionary.ToFrozenDictionary(optimizeForReading: true);
+            _frozenDictionary = _dictionary.ToFrozenDictionary();
 
             EnsureRightStrategyIsUsed("OrdinalStringFrozenDictionary");
         }
