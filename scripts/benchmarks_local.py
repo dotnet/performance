@@ -61,6 +61,16 @@ def check_for_runtype_specified(parsed_args: Namespace, run_types_to_check: list
             return True
     return False
 
+# Uses python copy to copy the contents of a directory to another directory while overwriting any existing files
+def copy_directory_contents(src_dir: str, dest_dir: str):
+    for src_dirpath, src_dirnames, src_filenames in os.walk(src_dir):
+        dest_dirpath = os.path.join(dest_dir, os.path.relpath(src_dirpath, src_dir))
+        if not os.path.exists(dest_dirpath):
+            os.makedirs(dest_dirpath)
+        for src_filename in src_filenames:
+            shutil.copy2(os.path.join(src_dirpath, src_filename), dest_dirpath)
+        
+
 # Builds libs and corerun by default
 def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str = "clr+libs", configuration: str = "Release", additional_args: list = []):    
     # Run the command
@@ -116,7 +126,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             # Store the corerun in the artifact storage path
             core_root_path = os.path.join(repo_path, "artifacts", "tests", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", "Tests", "Core_Root")
             shutil.rmtree(dest_dir, ignore_errors=True)
-            shutil.copytree(core_root_path, dest_dir)
+            copy_directory_contents(core_root_path, dest_dir)
         else:
             getLogger().info(f"CoreRun already exists in {dest_dir}. Skipping generation.")
 
@@ -125,34 +135,29 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         dest_dir_mono_jit = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commitish_information), "dotnet_mono")
 
         if parsed_args.rebuild_artifacts or not os.path.exists(dest_dir_mono_interpreter) or not os.path.exists(dest_dir_mono_jit):
-            build_runtime_dependency(parsed_args, repo_path)
-            shutil.move(os.path.join(repo_path, "artifacts", "bin", "coreclr"), os.path.join(repo_path, "artifacts-coreclr"))
-            build_runtime_dependency(parsed_args, repo_path, "mono+libs")
-            shutil.copytree(os.path.join(repo_path, "artifacts-coreclr"), os.path.join(repo_path, "artifacts", "bin", "coreclr"))
+            build_runtime_dependency(parsed_args, repo_path, "clr+mono+libs")
             build_runtime_dependency(parsed_args, repo_path, "libs.pretest", additional_args=['-testscope', 'innerloop', '/p:RuntimeFlavor=mono', f"/p:RuntimeArtifactsPath={os.path.join(repo_path, 'artifacts', 'bin', 'mono', f'{parsed_args.os}.{parsed_args.architecture}.Release')}"])
             generate_layout(parsed_args, repo_path)
+
             # Create the mono-dotnet
             src_dir = os.path.join(repo_path, "artifacts", "bin", "runtime", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}")
             dest_dir = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}", "shared", "Microsoft.NETCore.App", "8.0.0")
-            shutil.rmtree(dest_dir, ignore_errors=True)
-            shutil.copytree(src_dir, dest_dir)
+            copy_directory_contents(src_dir, dest_dir)
             src_dir = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}")
             dest_dir = os.path.join(repo_path, "artifacts", "dotnet_mono")
-            shutil.rmtree(dest_dir, ignore_errors=True)
-            shutil.copytree(src_dir, dest_dir)
+            copy_directory_contents(src_dir, dest_dir)
             src_file = os.path.join(repo_path, "artifacts", "bin", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", f"corerun{'.exe' if parsed_args.os == 'windows' else ''}")
             dest_dir = os.path.join(repo_path, "artifacts", "dotnet_mono", "shared", "Microsoft.NETCore.App", "8.0.0")
             dest_file = os.path.join(dest_dir, f"corerun{'.exe' if parsed_args.os == 'windows' else ''}")
-            shutil.rmtree(dest_file, ignore_errors=True)
             os.makedirs(dest_dir, exist_ok=True)
             shutil.copy2(src_file, dest_file)
 
             # Store the dotnet_mono in the artifact storage path
             dotnet_mono_path = os.path.join(repo_path, "artifacts", "dotnet_mono")
             shutil.rmtree(dest_dir_mono_interpreter, ignore_errors=True)
-            shutil.copytree(dotnet_mono_path, dest_dir_mono_interpreter)
+            copy_directory_contents(dotnet_mono_path, dest_dir_mono_interpreter)
             shutil.rmtree(dest_dir_mono_jit, ignore_errors=True)
-            shutil.copytree(dotnet_mono_path, dest_dir_mono_jit)
+            copy_directory_contents(dotnet_mono_path, dest_dir_mono_jit)
         else:
             getLogger().info(f"dotnet_mono already exists in {dest_dir_mono_interpreter} and {dest_dir_mono_jit}. Skipping generation.")
 
