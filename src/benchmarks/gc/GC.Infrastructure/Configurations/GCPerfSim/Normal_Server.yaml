@@ -1,0 +1,136 @@
+runs:
+  0gb:
+    override_parameters:
+      tlgb: 0
+    environment_variables: 
+  2gb:
+    override_parameters:
+      tlgb: 2
+      sohsi: 50
+    environment_variables: 
+  2gb_pinning:
+    override_parameters:
+      tlgb: 2
+      sohsi: 50
+      sohpi: 50
+    environment_variables: 
+  20gb:
+    override_parameters:
+      tagb: 300
+      tlgb: 20
+      sohsi: 50
+      allocType: simple
+    environment_variables: 
+gcperfsim_configurations:
+  parameters:
+    tc: 36
+    tagb: 540
+    tlgb: 0
+    lohar: 0
+    pohar: 0
+    sohsr: 100-4000
+    lohsr: 102400-204800
+    pohsr: 100-204800
+    sohsi: 0
+    lohsi: 0
+    pohsi: 0
+    sohpi: 0
+    lohpi: 0
+    sohfi: 0
+    lohfi: 0
+    pohfi: 0
+    allocType: reference
+    testKind: time
+  gcperfsim_path: C:\performance\artifacts\bin\GCPerfSim\release\net7.0\GCPerfSim.dll
+environment:
+  environment_variables:
+    COMPlus_GCServer: 1
+    COMPlus_GCHeapCount: 12
+  default_max_seconds: 300
+  iterations: 1
+coreruns:
+  baseline:
+    path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
+    environment_variables:
+      COMPlus_GCName: clrgc.dll
+  run:
+    path: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
+    environment_variables:
+      COMPlus_GCName: clrgc.dll
+linux_coreruns: 
+output:
+  path: C:\InfraRuns\RunNew_All\GCPerfSim\Normal_Server_
+  columns:
+  - Count
+  - total allocated (mb)
+  - total pause time (msec)
+  - PctTimePausedInGC
+  - FirstToLastGCSeconds
+  - HeapSizeAfter_Mean
+  - HeapSizeBeforeMB_Mean
+  - PauseDurationMSec_95PWhereIsGen0
+  - PauseDurationMSec_95PWhereIsGen1
+  - PauseDurationMSec_95PWhereIsBackground
+  - PauseDurationMSec_95PWhereIsBlockingGen2
+  - CountIsBlockingGen2
+  - HeapCount
+  - TotalNumberGCs
+  - TotalAllocatedMB
+  - Speed
+  - PauseDurationMSec_MeanWhereIsEphemeral
+  - PauseDurationMSec_MeanWhereIsBackground
+  - PauseDurationMSec_MeanWhereIsBlockingGen2
+  - PauseDurationSeconds_SumWhereIsGen1
+  - PauseDurationSeconds_Sum
+  - CountIsGen1
+  - ExecutionTimeMSec
+  percentage_disk_remaining_to_stop_per_run: 0
+  all_columns:
+  - Count
+  - total allocated (mb)
+  - total pause time (msec)
+  - PctTimePausedInGC
+  - FirstToLastGCSeconds
+  - HeapSizeAfter_Mean
+  - HeapSizeBeforeMB_Mean
+  - PauseDurationMSec_95PWhereIsGen0
+  - PauseDurationMSec_95PWhereIsGen1
+  - PauseDurationMSec_95PWhereIsBackground
+  - PauseDurationMSec_95PWhereIsBlockingGen2
+  - CountIsBlockingGen2
+  - HeapCount
+  - TotalNumberGCs
+  - TotalAllocatedMB
+  - Speed
+  - PauseDurationMSec_MeanWhereIsEphemeral
+  - PauseDurationMSec_MeanWhereIsBackground
+  - PauseDurationMSec_MeanWhereIsBlockingGen2
+  - PauseDurationSeconds_SumWhereIsGen1
+  - PauseDurationSeconds_Sum
+  - CountIsGen1
+  - ExecutionTimeMSec
+  - Count
+  - PctTimePausedInGC
+  - FirstToLastGCSeconds
+  - HeapSizeAfter_Mean
+  - HeapSizeBeforeMB_Mean
+  - PauseDurationMSec_95PWhereIsGen0
+  - PauseDurationMSec_95PWhereIsGen1
+  - PauseDurationMSec_95PWhereIsBackground
+  - PauseDurationMSec_95PWhereIsBlockingGen2
+  - CountIsBlockingGen2
+  - HeapCount
+  - TotalNumberGCs
+  - TotalAllocatedMB
+  - Speed
+  - PauseDurationMSec_MeanWhereIsEphemeral
+  - PauseDurationSeconds_SumWhereIsGen1
+  - PauseDurationSeconds_Sum
+  - CountIsGen1
+  - ExecutionTimeMSec
+  formats:
+  - markdown
+  - json
+name: Normal_Server
+trace_configurations:
+  type: threadtime # gc, verbose cpu, cpu_managed, threadtime, threadtime_managed, join.

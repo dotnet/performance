@@ -61,25 +61,18 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Channel to download product from'
     )
     parser.add_argument(
-        '--no-pgo',
+        '--no-dynamic-pgo',
         dest='pgo_status',
         required=False,
         action='store_const',
-        const='nopgo'
+        const='nodynamicpgo'
     )
     parser.add_argument(
-        '--dynamic-pgo',
-        dest='pgo_status',
+        '--physical-promotion',
+        dest='physical_promotion',
         required=False,
         action='store_const',
-        const='dynamicpgo'
-    )
-    parser.add_argument(
-        '--full-pgo',
-        dest='pgo_status',
-        required=False,
-        action='store_const',
-        const='fullpgo'
+        const='physicalpromotion'
     )
     parser.add_argument(
         '--branch',
@@ -219,6 +212,18 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         type=str,
         help='Version of Maui used to build app packages'
     )
+
+    parser.add_argument(
+        '--affinity',
+        required=False,
+        help='Affinity value set as PERFLAB_DATA_AFFINITY. In scenarios, this value is directly used to set affinity. In benchmark jobs, affinity is set in benchmark_jobs.yml via BDN command line arg'
+    )
+
+    parser.add_argument(
+        '--run-env-vars',
+        nargs='*',
+        help='Environment variables to set on the machine in the form of key=value key2=value2. Will also be saved to additional data'
+    )
     return parser
 
 def __process_arguments(args: list):
@@ -286,17 +291,14 @@ def __main(args: list) -> int:
     owner, repo = ('dotnet', 'core-sdk') if args.repository is None else (dotnet.get_repository(repo_url))
     config_string = ';'.join(args.build_configs) if sys.platform == 'win32' else '"%s"' % ';'.join(args.build_configs)
     pgo_config = ''
+    physical_promotion_config = ''
     showenv = 'set' if sys.platform == 'win32' else 'printenv'
 
-    if args.pgo_status == 'nopgo':
-        pgo_config = variable_format % ('COMPlus_TC_QuickJitForLoops', '1')
-        pgo_config += variable_format % ('COMPlus_TC_OnStackReplacement','1')
-    elif args.pgo_status == 'dynamicpgo':
-        pgo_config = variable_format % ('COMPlus_TieredPGO', '1')
-    elif args.pgo_status == 'fullpgo':
-        pgo_config = variable_format % ('COMPlus_TieredPGO', '1')
-        pgo_config += variable_format % ('COMPlus_ReadyToRun','0')
-        pgo_config += variable_format % ('COMPlus_TC_QuickJitForLoops','1')
+    if args.pgo_status == 'nodynamicpgo':
+        pgo_config = variable_format % ('COMPlus_TieredPGO', '0')
+
+    if args.physical_promotion == 'physicalpromotion':
+        physical_promotion_config = variable_format % ('DOTNET_JitEnablePhysicalPromotion', '1')
 
     output = ''
 
@@ -337,6 +339,7 @@ def __main(args: list) -> int:
         with open(args.output_file, 'w') as out_file:
             out_file.write(which)
             out_file.write(pgo_config)
+            out_file.write(physical_promotion_config)
             out_file.write(variable_format % ('PERFLAB_INLAB', '0' if args.not_in_lab else '1'))
             out_file.write(variable_format % ('PERFLAB_REPO', '/'.join([owner, repo])))
             out_file.write(variable_format % ('PERFLAB_BRANCH', branch))
@@ -356,6 +359,13 @@ def __main(args: list) -> int:
             out_file.write(variable_format % ('DOTNET_ROOT', dotnet_path))
             out_file.write(variable_format % ('MAUI_VERSION', args.maui_version))
             out_file.write(path_variable % dotnet_path)
+            if args.affinity:
+                out_file.write(variable_format % ('PERFLAB_DATA_AFFINITY', args.affinity))
+            if args.run_env_vars:
+                for env_var in args.run_env_vars:
+                    key, value = env_var.split('=', 1) 
+                    out_file.write(variable_format % (key, value))
+                    out_file.write(variable_format % ("PERFLAB_DATA_" + key, value))
             out_file.write(showenv)
     else:
         with open(args.output_file, 'w') as out_file:

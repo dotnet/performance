@@ -1,0 +1,70 @@
+microbenchmarks_path: C:\performance\src\benchmarks\micro
+runs:
+  baseline:
+    dotnet_installer: 
+    name: baseline
+    corerun: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
+    is_baseline: true
+    environment_variables:
+      COMPlus_GCName: clrgc.dll
+      COMPlus_GCServer: 1
+  run:
+    dotnet_installer: 
+    name: run
+    corerun: C:\CoreRuns\EmitEvent_Core_Root\corerun.exe
+    is_baseline: false
+    environment_variables:
+      COMPlus_GCName: clrgc.dll
+      COMPlus_GCServer: 1
+microbenchmark_configurations:
+  filter: 
+  filter_path: C:\InfraRuns\RunNew_All\Suites\Microbenchmark\MicrobenchmarksToRun.txt
+  dotnet_installer: net7.0
+  bdn_arguments: --warmupCount 1 --iterationCount 20 --allStats --outliers DontRemove --keepFiles
+environment:
+  default_max_seconds: 3000
+output:
+  cpu_columns: 
+  additional_report_metrics: 
+  run_comparisons: 
+  path: C:\InfraRuns\RunNew_All\Microbenchmarks\Server
+  columns:
+  - number of iterations
+  - gc count
+  - induced gc count
+  - non induced gc count
+  - standard error
+  - standard error / mean
+  - max size peak (mb)
+  - total allocated (mb)
+  - total pause time (msec)
+  - gc pause time %
+  percentage_disk_remaining_to_stop_per_run: 0
+  all_columns:
+  - gc count
+  - non induced gc count
+  - induced gc count
+  - total allocated (mb)
+  - max size peak (mb)
+  - total pause time (msec)
+  - gc pause time %
+  - avg. heap size (mb)
+  - number of iterations
+  - min
+  - max
+  - median
+  - q1
+  - q3
+  - variance
+  - standard deviation
+  - skewness
+  - kurtosis
+  - standard error
+  - standard error / mean
+  formats:
+  - markdown
+  - json
+path: 
+name: Server
+trace_configurations:
+  type: gc

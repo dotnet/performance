@@ -158,7 +158,7 @@ def push_dir(path: str = None) -> None:
     else:
         yield
 
-def retry_on_exception(function, retry_count=3, retry_delay=5, retry_delay_multiplier=1, retry_on_exception=Exception):
+def retry_on_exception(function, retry_count=3, retry_delay=5, retry_delay_multiplier=1, retry_exceptions=[Exception], raise_exceptions=[]):
     '''
     Retries the specified function if it throws an exception.
 
@@ -166,7 +166,8 @@ def retry_on_exception(function, retry_count=3, retry_delay=5, retry_delay_multi
     :param retry_count: The number of times to retry the function.
     :param retry_delay: The delay between retries (seconds).
     :param retry_delay_multiplier: The multiplier to apply to the retry delay after failure.
-    :param retry_on_exception: The exception to retry on (Defaults to Exception).
+    :param retry_exceptions: The exception to retry on (Defaults to Exception). (Cannot be used with raise_exceptions)
+    :param raise_exceptions: The exceptions to ignore (Defaults to no exceptions ignored). (Cannot be used with retry_exceptions)
     '''
     if retry_count < 0:
         raise ValueError('retry_count must be >= 0')
@@ -174,14 +175,22 @@ def retry_on_exception(function, retry_count=3, retry_delay=5, retry_delay_multi
         raise ValueError('retry_delay must be >= 0')
     if retry_delay_multiplier < 1:
         raise ValueError('retry_delay_multiplier must be >= 1')
+    if len(raise_exceptions) > 0 and retry_exceptions != [Exception]:
+        raise ValueError('retry_exceptions and raise_exceptions are mutually exclusive')
 
     for i in range(retry_count):
         try:
             return function()
-        except retry_on_exception as e:
+        except Exception as e:
+            # If using the raise_exceptions list, raise those exceptions no matter what
+            if len(raise_exceptions) > 0 and type(e) in raise_exceptions:
+                raise
+            # If use retry_exceptions list, only retry on those exceptions (or all if Exception is in the list)
+            elif Exception not in retry_exceptions and type(e) not in retry_exceptions:
+                raise
             if i == retry_count - 1:
                 raise
-            getLogger().info('Exception caught: %s', e)
+            getLogger().info(f'Exception caught {type(e)}: {str(e)}')
             getLogger().info('Retrying in %d seconds...', retry_delay)
             time.sleep(retry_delay)
             retry_delay *= retry_delay_multiplier

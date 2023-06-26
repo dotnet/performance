@@ -1,0 +1,2 @@
+Legend,Base CommandLine
+Stage1Grpc_Linux, --config https://raw.githubusercontent.com/aspnet/Benchmarks/main/scenarios/goldilocks.benchmarks.yml --config https://raw.githubusercontent.com/aspnet/Benchmarks/main/build/ci.profile.yml --scenario basicgrpcvanilla --profile intel-load2-app --profile amd-lin2-load --profile amd-lin2-db --application.options.collectCounters true
