@@ -109,23 +109,11 @@ namespace System.Collections
         public void SetupFrozenSet()
         {
             _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
-            _frozenSet = _found.ToFrozenSet(new WrapDefaultComparer(), optimizeForReading: false);
+            _frozenSet = _found.ToFrozenSet(new WrapDefaultComparer());
         }
 
         [Benchmark]
-        public bool FrozenSet() => FrozenSetInternal();
-
-        [GlobalSetup(Target = nameof(FrozenSetOptimized))]
-        public void SetupFrozenSetOptimized()
-        {
-            _found = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
-            _frozenSet = _found.ToFrozenSet(new WrapDefaultComparer(), optimizeForReading: true);
-        }
-
-        [Benchmark]
-        public bool FrozenSetOptimized() => FrozenSetInternal();
-
-        private bool FrozenSetInternal()
+        public bool FrozenSet()
         {
             bool result = default;
             FrozenSet<T> collection = _frozenSet;

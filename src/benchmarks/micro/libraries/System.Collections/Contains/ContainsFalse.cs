@@ -218,26 +218,10 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(FrozenSet))]
-        public void SetupFrozenSet() => _frozenSet = Setup().ToFrozenSet(optimizeForReading: false);
+        public void SetupFrozenSet() => _frozenSet = Setup().ToFrozenSet();
 
         [Benchmark]
-        public bool FrozenSet() => FrozenSetInternal();
-
-        [GlobalSetup(Target = nameof(FrozenSetOptimized))]
-        public void SetupFrozenSetOptimized() => _frozenSet = Setup().ToFrozenSet(optimizeForReading: true);
-
-        [Benchmark]
-        public bool FrozenSetOptimized() => FrozenSetInternal();
-
-        private T[] Setup()
-        {
-            var values = ValuesGenerator.ArrayOfUniqueValues<T>(Size * 2);
-            _notFound = values.Take(Size).ToArray();
-            var secondHalf = values.Skip(Size).Take(Size).ToArray();
-            return secondHalf;
-        }
-
-        private bool FrozenSetInternal()
+        public bool FrozenSet()
         {
             bool result = default;
             FrozenSet<T> collection = _frozenSet;
@@ -245,6 +229,14 @@ namespace System.Collections
             for (int i = 0; i < notFound.Length; i++)
                 result ^= collection.Contains(notFound[i]);
             return result;
+        }
+
+        private T[] Setup()
+        {
+            var values = ValuesGenerator.ArrayOfUniqueValues<T>(Size * 2);
+            _notFound = values.Take(Size).ToArray();
+            var secondHalf = values.Skip(Size).Take(Size).ToArray();
+            return secondHalf;
         }
     }
 }

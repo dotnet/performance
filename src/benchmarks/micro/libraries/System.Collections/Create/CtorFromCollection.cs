@@ -26,7 +26,7 @@ namespace System.Collections
 
         [GlobalSetup(Targets = new[] { nameof(List), nameof(LinkedList), nameof(HashSet), nameof(Queue), nameof(Stack), nameof(SortedSet), nameof(ConcurrentQueue), nameof(ConcurrentStack), 
             nameof(ConcurrentBag), nameof(ImmutableArray), nameof(ImmutableHashSet), nameof(ImmutableList), nameof(ImmutableQueue), nameof(ImmutableStack), nameof(ImmutableSortedSet),
-            nameof(FrozenSet), nameof(FrozenSetOptimized)})]
+            nameof(FrozenSet)})]
         public void SetupCollection() => _collection = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
         [GlobalSetup(Targets = new[] { nameof(Dictionary), nameof(SortedList), nameof(SortedDictionary), nameof(ConcurrentDictionary), nameof(ImmutableDictionary), nameof(ImmutableSortedDictionary), nameof(FrozenDictionary), nameof(FrozenDictionaryOptimized) })]
@@ -101,16 +101,11 @@ namespace System.Collections
         [Benchmark]
         public ImmutableSortedSet<T> ImmutableSortedSet() => Immutable.ImmutableSortedSet.CreateRange<T>(_collection);
 
-        [Benchmark]
-        public FrozenDictionary<T, T> FrozenDictionary() => _dictionary.ToFrozenDictionary(optimizeForReading: false);
+        [Benchmark(Description = "FrozenDictionary")]
+        public FrozenDictionary<T, T> FrozenDictionaryOptimized() // we kept the old name on purpose to avoid loosing historical data
+            => _dictionary.ToFrozenDictionary();
 
         [Benchmark]
-        public FrozenDictionary<T, T> FrozenDictionaryOptimized() => _dictionary.ToFrozenDictionary(optimizeForReading: true);
-
-        [Benchmark]
-        public FrozenSet<T> FrozenSet() => _collection.ToFrozenSet(optimizeForReading: false);
-
-        [Benchmark]
-        public FrozenSet<T> FrozenSetOptimized() => _collection.ToFrozenSet(optimizeForReading: true);
+        public FrozenSet<T> FrozenSet() => _collection.ToFrozenSet();
     }
 }

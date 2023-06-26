@@ -29,7 +29,6 @@ namespace System.Collections
         private ImmutableDictionary<TKey, TValue> _immutableDictionary;
         private ImmutableSortedDictionary<TKey, TValue> _immutableSortedDictionary;
         private FrozenDictionary<TKey, TValue> _frozenDictionary;
-        private FrozenDictionary<TKey, TValue> _frozenDictionaryOptimized;
 
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
@@ -47,8 +46,7 @@ namespace System.Collections
             _concurrentDictionary = new ConcurrentDictionary<TKey, TValue>(_source);
             _immutableDictionary = Immutable.ImmutableDictionary.CreateRange<TKey, TValue>(_source);
             _immutableSortedDictionary = Immutable.ImmutableSortedDictionary.CreateRange<TKey, TValue>(_source);
-            _frozenDictionary = _source.ToFrozenDictionary(optimizeForReading: false);
-            _frozenDictionaryOptimized = _source.ToFrozenDictionary(optimizeForReading: true);
+            _frozenDictionary = _source.ToFrozenDictionary();
         }
 
         [Benchmark]
@@ -136,17 +134,6 @@ namespace System.Collections
         {
             bool result = default;
             var collection = _frozenDictionary;
-            var notFound = _notFound;
-            for (int i = 0; i < notFound.Length; i++)
-                result ^= collection.ContainsKey(notFound[i]);
-            return result;
-        }
-
-        [Benchmark]
-        public bool FrozenDictionaryOptimized()
-        {
-            bool result = default;
-            var collection = _frozenDictionaryOptimized;
             var notFound = _notFound;
             for (int i = 0; i < notFound.Length; i++)
                 result ^= collection.ContainsKey(notFound[i]);

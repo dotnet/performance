@@ -372,18 +372,10 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(FrozenDictionary))]
-        public void SetupFrozenDictionary() => _frozenDictionary = ValuesGenerator.Dictionary<T, T>(Size).ToFrozenDictionary(optimizeForReading: false);
+        public void SetupFrozenDictionary() => _frozenDictionary = ValuesGenerator.Dictionary<T, T>(Size).ToFrozenDictionary();
 
         [Benchmark]
-        public T FrozenDictionary() => FrozenDictionaryInternal();
-
-        [GlobalSetup(Target = nameof(FrozenDictionaryOptimized))]
-        public void SetupFrozenDictionaryOptimized() => _frozenDictionary = ValuesGenerator.Dictionary<T, T>(Size).ToFrozenDictionary(optimizeForReading: true);
-
-        [Benchmark]
-        public T FrozenDictionaryOptimized() => FrozenDictionaryInternal();
-
-        private T FrozenDictionaryInternal()
+        public T FrozenDictionary()
         {
             T result = default;
             var collection = _frozenDictionary;
@@ -393,18 +385,10 @@ namespace System.Collections
         }
 
         [GlobalSetup(Target = nameof(FrozenSet))]
-        public void SetupFrozenSet() => _frozenset = ValuesGenerator.ArrayOfUniqueValues<T>(Size).ToFrozenSet(optimizeForReading: false);
+        public void SetupFrozenSet() => _frozenset = ValuesGenerator.ArrayOfUniqueValues<T>(Size).ToFrozenSet();
 
         [Benchmark]
-        public T FrozenSet() => FrozenSetInternal();
-
-        [GlobalSetup(Target = nameof(FrozenSetOptimized))]
-        public void SetupFrozenSetOptimized() => _frozenset = ValuesGenerator.ArrayOfUniqueValues<T>(Size).ToFrozenSet(optimizeForReading: true);
-
-        [Benchmark]
-        public T FrozenSetOptimized() => FrozenSetInternal();
-
-        private T FrozenSetInternal()
+        public T FrozenSet()
         {
             T result = default;
             var collection = _frozenset;
