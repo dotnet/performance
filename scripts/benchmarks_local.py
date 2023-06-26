@@ -34,7 +34,7 @@ import os
 # For dotnet_version based runs, use the benchmarks_monthly .py script instead
 # Verify the input commands
 # What do we want to be able to test on: git commits, branches, etc?
-# What are supported default cases: MonoJIT, MonoAOT, MonoInter, Corerun, etc. 
+# What are supported default cases: MonoJIT, MonoAOTLLVM, MonoInter, Corerun, etc. 
 
 class RuntimeRefType(Enum):
     COMMITISH = 1
@@ -42,7 +42,7 @@ class RuntimeRefType(Enum):
 
 class RunType(Enum):
     CoreRun = 1
-    MonoAOT = 2
+    MonoAOTLLVM = 2
     MonoInterpreter = 3
     MonoJIT = 4
 
@@ -156,9 +156,9 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         else:
             getLogger().info(f"dotnet_mono already exists in {dest_dir_mono_interpreter} and {dest_dir_mono_jit}. Skipping generation.")
 
-    if check_for_runtype_specified(parsed_args, [RunType.MonoAOT]):
+    if check_for_runtype_specified(parsed_args, [RunType.MonoAOTLLVM]):
         build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['/p:CrossBuild=false' '/p:MonoLLVMUseCxx11Abi=false'])
-        # TODO: Finish MonoAOT Build stuff
+        # TODO: Finish MonoAOTLLVM Build stuff
 
     # Clean up the build results
     shutil.rmtree(os.path.join(repo_path, "artifacts", "bin"), ignore_errors=True) # TODO: Can we trust the build system to update these when necessary or do we need to clean them up ourselves?
@@ -187,8 +187,8 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
         for commitish_pair in all_commitish_information: # Add each commitish_pair that is built to the run
             bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commitish_pair), "Core_Root", f'corerun{".exe" if parsed_args.os == "windows" else ""}') ]
 
-    elif specific_run_type == RunType.MonoAOT:
-        raise NotImplementedError("MonoAOT is not yet implemented.")
+    elif specific_run_type == RunType.MonoAOTLLVM:
+        raise NotImplementedError("MonoAOTLLVM is not yet implemented.")
     
     elif specific_run_type == RunType.MonoInterpreter:
         bdn_args_unescaped += [
