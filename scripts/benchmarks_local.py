@@ -68,6 +68,8 @@ def copy_directory_contents(src_dir: str, dest_dir: str):
         if not os.path.exists(dest_dirpath):
             os.makedirs(dest_dirpath)
         for src_filename in src_filenames:
+            if os.path.samefile(os.path.join(src_dirpath, src_filename), os.path.join(dest_dirpath, src_filename)):
+                continue
             shutil.copy2(os.path.join(src_dirpath, src_filename), dest_dirpath)
         
 
