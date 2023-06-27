@@ -363,6 +363,7 @@ namespace GC.Infrastructure.Commands.RunCommand
             GCPerfSimConfiguration largePagesServer = CreateNormalServerCase(inputConfiguration, name);
             largePagesServer.Environment.environment_variables["COMPlus_GCLargePages"] = "1";
             largePagesServer.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x960000000";
+            largePagesServer.Name = name;
             return largePagesServer;
         }
 
