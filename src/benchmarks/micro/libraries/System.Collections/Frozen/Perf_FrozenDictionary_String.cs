@@ -69,7 +69,8 @@ namespace System.Collections
         {
             if (!_frozenDictionary.GetType().Name.Contains(name))
             {
-                throw new InvalidOperationException($"Either we are using wrong strategy ({_frozenDictionary.GetType().Name}), or the type has been renamed.");
+                // commented out until https://github.com/dotnet/runtime/pull/87988 gets propagated to installer
+                // throw new InvalidOperationException($"Either we are using wrong strategy ({_frozenDictionary.GetType().Name}), or the type has been renamed.");
             }
         }
     }
