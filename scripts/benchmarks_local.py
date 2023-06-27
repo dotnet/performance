@@ -139,7 +139,6 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         if parsed_args.rebuild_artifacts or not os.path.exists(dest_dir_mono_interpreter) or not os.path.exists(dest_dir_mono_jit):
             build_runtime_dependency(parsed_args, repo_path, "clr+mono+libs")
             build_runtime_dependency(parsed_args, repo_path, "libs.pretest", additional_args=['-testscope', 'innerloop', '/p:RuntimeFlavor=mono', f"/p:RuntimeArtifactsPath={os.path.join(repo_path, 'artifacts', 'bin', 'mono', f'{parsed_args.os}.{parsed_args.architecture}.Release')}"])
-            generate_layout(parsed_args, repo_path)
 
             # Create the mono-dotnet
             src_dir = os.path.join(repo_path, "artifacts", "bin", "runtime", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}")
