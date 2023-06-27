@@ -72,7 +72,6 @@ def copy_directory_contents(src_dir: str, dest_dir: str):
                 continue
             shutil.copy2(os.path.join(src_dirpath, src_filename), dest_dirpath)
         
-
 # Builds libs and corerun by default
 def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str = "clr+libs", configuration: str = "Release", additional_args: list = []):    
     # Run the command
@@ -115,20 +114,21 @@ def get_run_artifact_path(parsed_args: Namespace, run_type: RunType, commitish_i
     return os.path.join(parsed_args.artifact_storage_path, f"{run_type.name}-{commitish_information[0]}{'-'+commitish_information[1] if len(commitish_information) == 2 else ''}-{parsed_args.os}-{parsed_args.architecture}-{parsed_args.framework}")
 
 # Try to generate all of a single runs dependencies at once to save time
-# TODO: Special case the local build saving to take into account local changes (Maybe include an option to skip rebuilds but still rebuild local)
-def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, commitish_information: list, is_local: bool = False):
-    getLogger().info("Generating dependencies for " + ' '.join(map(str, parsed_args.run_type_names)) + " run types in " + repo_path + " and storing in " + parsed_args.artifact_storage_path + ".")
+def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, commitish_information: list, force_regenerate: bool = False):
+    getLogger().info(f"Generating dependencies for {' '.join(map(str, parsed_args.run_type_names))} run types in {repo_path} and storing in {parsed_args.artifact_storage_path}.")
     
     if check_for_runtype_specified(parsed_args, [RunType.CoreRun]):
         dest_dir = os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commitish_information), "Core_Root")
         
-        if parsed_args.rebuild_artifacts or not os.path.exists(dest_dir):
+        if force_regenerate or not os.path.exists(dest_dir):
             build_runtime_dependency(parsed_args, repo_path)
             generate_layout(parsed_args, repo_path)
             # Store the corerun in the artifact storage path
             core_root_path = os.path.join(repo_path, "artifacts", "tests", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", "Tests", "Core_Root")
             shutil.rmtree(dest_dir, ignore_errors=True)
             copy_directory_contents(core_root_path, dest_dir)
+            # Clean up the build results
+            shutil.rmtree(os.path.join(repo_path, "artifacts", "bin"), ignore_errors=True) # TODO: Can we trust the build system to update these when necessary or do we need to clean them up ourselves?
         else:
             getLogger().info(f"CoreRun already exists in {dest_dir}. Skipping generation.")
 
@@ -136,7 +136,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         dest_dir_mono_interpreter = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commitish_information), "dotnet_mono")
         dest_dir_mono_jit = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commitish_information), "dotnet_mono")
 
-        if parsed_args.rebuild_artifacts or not os.path.exists(dest_dir_mono_interpreter) or not os.path.exists(dest_dir_mono_jit):
+        if force_regenerate or not os.path.exists(dest_dir_mono_interpreter) or not os.path.exists(dest_dir_mono_jit):
             build_runtime_dependency(parsed_args, repo_path, "clr+mono+libs")
             build_runtime_dependency(parsed_args, repo_path, "libs.pretest", additional_args=['-testscope', 'innerloop', '/p:RuntimeFlavor=mono', f"/p:RuntimeArtifactsPath={os.path.join(repo_path, 'artifacts', 'bin', 'mono', f'{parsed_args.os}.{parsed_args.architecture}.Release')}"])
 
@@ -159,20 +159,24 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             copy_directory_contents(dotnet_mono_path, dest_dir_mono_interpreter)
             shutil.rmtree(dest_dir_mono_jit, ignore_errors=True)
             copy_directory_contents(dotnet_mono_path, dest_dir_mono_jit)
+            # Clean up the build results
+            shutil.rmtree(os.path.join(repo_path, "artifacts", "bin"), ignore_errors=True) # TODO: Can we trust the build system to update these when necessary or do we need to clean them up ourselves?
         else:
             getLogger().info(f"dotnet_mono already exists in {dest_dir_mono_interpreter} and {dest_dir_mono_jit}. Skipping generation.")
 
     if check_for_runtype_specified(parsed_args, [RunType.MonoAOTLLVM]):
+        raise NotImplementedError("MonoAOTLLVM is not yet implemented.")
         build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['/p:CrossBuild=false' '/p:MonoLLVMUseCxx11Abi=false'])
         # TODO: Finish MonoAOTLLVM Build stuff
+        # Clean up the build results
+        shutil.rmtree(os.path.join(repo_path, "artifacts", "bin"), ignore_errors=True) # TODO: Can we trust the build system to update these when necessary or do we need to clean them up ourselves?
 
-    # Clean up the build results
-    shutil.rmtree(os.path.join(repo_path, "artifacts", "bin"), ignore_errors=True) # TODO: Can we trust the build system to update these when necessary or do we need to clean them up ourselves?
+
     
-    getLogger().info("Finished generating dependencies for " + ' '.join(map(str, parsed_args.run_type_names)) + " run types in " + repo_path + " and stored in " + parsed_args.artifact_storage_path + ".")
+    getLogger().info(f"Finished generating dependencies for {' '.join(map(str, parsed_args.run_type_names))} run types in {repo_path} and stored in {parsed_args.artifact_storage_path}.")
 
 def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, all_commitish_information: list) -> list:
-    getLogger().info("Generating benchmark_ci.py arguments for " + specific_run_type.name + " run type using artifacts in " + parsed_args.artifact_storage_path + ".")
+    getLogger().info(f"Generating benchmark_ci.py arguments for {specific_run_type.name} run type using artifacts in {parsed_args.artifact_storage_path}.")
     benchmark_ci_args = []
     bdn_args_unescaped = []
     benchmark_ci_args += ['--architecture', parsed_args.architecture]
@@ -223,7 +227,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
     if parsed_args.bdn_arguments:
         bdn_args_unescaped += [parsed_args.bdn_arguments]
     benchmark_ci_args += [f'--bdn-arguments={" ".join(bdn_args_unescaped)}']
-    getLogger().info("Finished generating benchmark_ci.py arguments for " + specific_run_type.name + " run type using artifacts in " + parsed_args.artifact_storage_path + ".")
+    getLogger().info(f"Finished generating benchmark_ci.py arguments for {specific_run_type.name} run type using artifacts in {parsed_args.artifact_storage_path}.")
     return benchmark_ci_args
 
 def generate_artifacts_for_commitish(parsed_args: Namespace, reference_type: RuntimeRefType, repo_url: str, repo_dir: str, commitish_pair: list, is_local: bool = False) -> None:
@@ -231,13 +235,12 @@ def generate_artifacts_for_commitish(parsed_args: Namespace, reference_type: Run
         repo_path = repo_dir
         if(not os.path.exists(repo_path)):
             raise RuntimeError(f"The specified local path {repo_path} does not exist.")
-        getLogger().info("Running for " + repo_path + " at " + ' '.join(commitish_pair) + ".")
+        getLogger().info(f"Running for {repo_path} at {' '.join(commitish_pair)}.")
     else:
         repo_path = os.path.join(parsed_args.repo_storage_path, repo_dir)
-        getLogger().info("Running for " + repo_path + " at " + ' '.join(commitish_pair) + ".")
+        getLogger().info(f"Running for {repo_path} at {' '.join(commitish_pair)}.")
 
-        # TODO Update checkout logic 
-        # TODO Check to see if we already have all necessary artifacts generated for the commitish_pair and run types (Also use a flag to force regeneration)
+        # TODO Check to see if we already have all necessary artifacts generated for the commitish_pair and run types (Move the check from generate_all_runtype_dependencies to here before checkout)
         if not os.path.exists(repo_path):
             if reference_type == RuntimeRefType.COMMITISH:
                 Repo.clone_from(repo_url, repo_path)
@@ -245,11 +248,13 @@ def generate_artifacts_for_commitish(parsed_args: Namespace, reference_type: Run
                 repo.git.checkout(commitish_pair[-1]) # Use -1 to get the commit or the branch name
         else:
             repo = Repo(repo_path)
-            repo.remotes.origin.fetch()
+            repo.remotes.origin.pull()
             repo.git.checkout(commitish_pair[-1])
+            repo.remotes.origin.pull()
+        repo.git.show('HEAD')
 
     # Determine what we need to generate for the local benchmarks
-    generate_all_runtype_dependencies(parsed_args, repo_path, commitish_pair, is_local)
+    generate_all_runtype_dependencies(parsed_args, repo_path, commitish_pair, is_local or parsed_args.rebuild_artifacts)
 
 # Run tests on the local machine
 def run_benchmarks(parsed_args: Namespace, commitish_pairs: list) -> None:
@@ -277,8 +282,8 @@ def run_benchmarks(parsed_args: Namespace, commitish_pairs: list) -> None:
 # - repo_dir (str): The name of the directory where the cloned repository is stored.
 #
 # Returns: None
-def check_references_exist(repo_url: str, references: list, repo_storage_path: str, repo_dir: str):
-    getLogger().debug(f"Inside check_references_exist: Checking if references {references} exist in {repo_url}.")
+def check_references_exist_and_add_branch_commits(repo_url: str, references: list, repo_storage_path: str, repo_dir: str):
+    getLogger().debug(f"Inside check_references_exist_and_add_branch_commits: Checking if references {references} exist in {repo_url}.")
     # Initialize a new Git repository in the specified directory
     repo_combined_path = os.path.join(repo_storage_path, repo_dir)
     if not os.path.exists(repo_combined_path):
@@ -287,25 +292,25 @@ def check_references_exist(repo_url: str, references: list, repo_storage_path: s
     else:
         repo = Repo(repo_combined_path)
         repo.remotes.origin.fetch()
+
     # Check if each reference exists in the repository
     for reference in references:
         try:
-            # Check if just a branch name was specified
             # TODO: Check if either work rather than requiring branch names included with commits (or always include both branch and commit (probably this is better))
+            # TODO: Should commit be required?
+            # Check if just a branch name was specified
             if len(reference) == 1:
                 result = repo.git.branch('-r')
-            # Check if a commit hash was specified with the branch name
             else:
                 result = repo.git.branch('-r', '--contains', reference[1]) # Use git branch -r --contains <commit> to check if a commit is in a branch
-            if("origin/" + reference[0]) not in result:
+            if(f"origin/{reference[0]}") not in result:
                 raise Exception(f"Reference {reference} does not exist in {repo_url}.")
         except GitCommandError:
             raise Exception(f"Reference {reference} does not exist in {repo_url}.")
 
-
 def add_arguments(parser):
     # Arguments for the local runner script
-    parser.add_argument('--commitishs', nargs='+', type=str, help='The commitish values to test. Passed as Branch:Commit or Branch')
+    parser.add_argument('--commitishs', nargs='+', type=str, help='The commitish values to test. Passed as <Branch>:<Commit> or <Branch>')
     parser.add_argument('--repo', type=str, default='https://github.com/dotnet/runtime.git', help='The runtime repo to test from, used to get data for a fork.')
     parser.add_argument('--local-test-repo', type=str, help='Path to a local repo with the runtime source code to test from.') 
     parser.add_argument('--separate-repos', action='store_true', help='Whether to test each runtime version from their own separate repo directory.')
@@ -328,8 +333,7 @@ def add_arguments(parser):
     parser.add_argument('--os', choices=['windows', 'linux'], default=platform.system().lower(), help='Specifies the operating system of the system')
     parser.add_argument('--filter', type=str, default='*', help='Specifies the benchmark filter to pass to BenchmarkDotNet')
     parser.add_argument('-f', '--framework', choices=ChannelMap.get_supported_frameworks(), default='net8.0', help='The target framework to run the benchmarks against.') # Can and should this accept multiple frameworks?
-    parser.add_argument('--csproj', type=str, default='../src/benchmarks/micro/MicroBenchmarks.csproj', help='The path to the csproj file to run benchmarks against.')
-    
+    parser.add_argument('--csproj', type=str, default='../src/benchmarks/micro/MicroBenchmarks.csproj', help='The path to the csproj file to run benchmarks against.')    
 
 def __main(args: list):
     # Define the ArgumentParser
@@ -344,25 +348,26 @@ def __main(args: list):
 
     if parsed_args.commitishs:
         runtime_ref_type = RuntimeRefType.COMMITISH
-        getLogger().info("Commitishs to test are: " + str(parsed_args.commitishs))
+        getLogger().info(f"Commitishs to test are: {parsed_args.commitishs}")
     elif parsed_args.local_test_repo:
         runtime_ref_type = RuntimeRefType.LOCAL_ONLY
-        getLogger().info("Local repo to test is: " + str(parsed_args.local_test_repo))
+        getLogger().info(f"Local repo to test is: {parsed_args.local_test_repo}")
     else:
         raise Exception("Either a branch, hash, or local repo must be specified.")
 
-    getLogger().info("Input arguments: " + str(parsed_args))
+    getLogger().info(f"Input arguments: {parsed_args}")
 
     branch_commit_info = []
     repo_dirs = []
     repo_url = parsed_args.repo
     if runtime_ref_type == RuntimeRefType.COMMITISH:
         branch_commit_info = [pair.split(":") for pair in parsed_args.commitishs]
+        check_references_exist_and_add_branch_commits(repo_url, branch_commit_info, parsed_args.repo_storage_path, repo_dirs[0] if parsed_args.separate_repos else "runtime")
         for pair in branch_commit_info:
-            if len(pair) == 1: # TODO: Do we need to take into account the repo URL here? Maybe for just the branch name but probably not for branch + commit?
-                repo_dirs.append("runtime-" + pair[0].replace('/', '-'))
+            if len(pair) == 1: # TODO: Do we need to take into account the repo URL here? Maybe for just the branch name but probably not for branch + commit? (This is unnecessary if the branch and commit are generated)
+                repo_dirs.append(f"runtime-{pair[0].replace('/', '-')}")
             else:
-                repo_dirs.append("runtime-" + pair[0].replace('/', '-') + "-" + pair[1])
+                repo_dirs.append(f"runtime-{pair[0].replace('/', '-')}-{pair[1]}")
     elif not runtime_ref_type == RuntimeRefType.LOCAL_ONLY:
         raise Exception("Invalid runtime ref type.")
 
@@ -376,9 +381,8 @@ def __main(args: list):
 
         # Generate the artifacts for each of the remote versions
         if not runtime_ref_type == RuntimeRefType.LOCAL_ONLY:
-            getLogger().info("Checking if references " + str(branch_commit_info) + " exist in " + repo_url + ".")
-            check_references_exist(repo_url, branch_commit_info, parsed_args.repo_storage_path, repo_dirs[0] if parsed_args.separate_repos else "runtime")
-            getLogger().info("References exist in " + repo_url + ".")
+            getLogger().info(f"Checking if references {branch_commit_info} exist in {repo_url}.")
+            getLogger().info(f"References {branch_commit_info} exist in {repo_url}.")
             for repo_dir, commitish_info in zip(repo_dirs, branch_commit_info):
                 if parsed_args.separate_repos:
                     generate_artifacts_for_commitish(parsed_args, runtime_ref_type, repo_url, repo_dir, commitish_info)
