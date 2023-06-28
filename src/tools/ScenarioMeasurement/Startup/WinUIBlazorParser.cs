@@ -8,7 +8,6 @@ namespace ScenarioMeasurement;
 public class WinUIBlazorParser : IParser
 {
     const string WinUIProvider = "Microsoft-Windows-XAML";
-    const string PerfProvider = "PerfLabGenericEventSource";
 
     public void EnableKernelProvider(ITraceSession kernel)
     {
@@ -18,7 +17,7 @@ public class WinUIBlazorParser : IParser
     public void EnableUserProviders(ITraceSession user)
     {
         user.EnableUserProvider(WinUIProvider, TraceEventLevel.Verbose);
-        user.EnableUserProvider(PerfProvider, TraceEventLevel.Verbose);
+        user.EnableUserProvider(GenericStartupParser.PerfLabGenericEventSourceName, TraceEventLevel.Verbose);
     }
 
     public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
@@ -78,7 +77,7 @@ public class WinUIBlazorParser : IParser
                 }
             });
 
-            source.Dynamic.AddCallbackForProviderEvent(PerfProvider, "Startup", evt =>
+            source.Dynamic.AddCallbackForProviderEvent(GenericStartupParser.PerfLabGenericEventSourceName, GenericStartupParser.StartupEventName, evt =>
             {
                 if (pid.HasValue && evt.ProcessID == pid && evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
                 {
