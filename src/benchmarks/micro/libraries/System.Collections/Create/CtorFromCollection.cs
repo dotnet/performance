@@ -29,7 +29,7 @@ namespace System.Collections
             nameof(FrozenSet)})]
         public void SetupCollection() => _collection = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
-        [GlobalSetup(Targets = new[] { nameof(Dictionary), nameof(SortedList), nameof(SortedDictionary), nameof(ConcurrentDictionary), nameof(ImmutableDictionary), nameof(ImmutableSortedDictionary), nameof(FrozenDictionary), nameof(FrozenDictionaryOptimized) })]
+        [GlobalSetup(Targets = new[] { nameof(Dictionary), nameof(SortedList), nameof(SortedDictionary), nameof(ConcurrentDictionary), nameof(ImmutableDictionary), nameof(ImmutableSortedDictionary), nameof(FrozenDictionaryOptimized) })]
         public void SetupDictionary() => _dictionary = ValuesGenerator.Dictionary<T, T>(Size);
 
         [GlobalSetup(Targets = new[] { nameof(SortedDictionaryDeepCopy) })]
