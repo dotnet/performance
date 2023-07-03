@@ -82,6 +82,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             // Launch new process.
             Dictionary<string, string> benchmarkToComparisons = new();
             Dictionary<string, List<MetricResult>> metricResults = new();
+            Dictionary<string, double> gcScore = new();
 
             foreach (var benchmark in benchmarkToRunToPaths)
             {
@@ -125,9 +126,9 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
                 foreach (var r in metricResults)
                 {
-                    double workingSet    = r.Value.FirstOrDefault(m => m.MetricName == "application_Working Set (MB)")?.DeltaPercent ?? double.NaN;
+                    double workingSet    = r.Value.FirstOrDefault(m => m.MetricName.Contains("Working Set (MB)") && m.MetricName.Contains("application"))?.DeltaPercent ?? double.NaN;
                     workingSet = Math.Round(workingSet, 2);
-                    double privateMemory = r.Value.FirstOrDefault(m => m.MetricName == "application_Private Memory (MB)")?.DeltaPercent ?? double.NaN;
+                    double privateMemory = r.Value.FirstOrDefault(m => m.MetricName.Contains("Private Memory (MB)") && m.MetricName.Contains("application"))?.DeltaPercent ?? double.NaN;
                     privateMemory = Math.Round(privateMemory, 2);
                     double rps           = r.Value.FirstOrDefault(m => m.MetricName == "load_Requests/sec")?.DeltaPercent ?? double.NaN;
                     rps = Math.Round(rps, 2);
