@@ -24,7 +24,6 @@ from subprocess import CalledProcessError
 
 import benchmarks_ci
 import platform
-import subprocess
 import shutil
 import sys
 import os
@@ -48,9 +47,9 @@ class RunType(Enum):
 
 def kill_dotnet_processes():
     if platform == 'win32':
-        os.system('TASKKILL /F /T /IM dotnet.exe 2> nul || TASKKILL /F /T /IM VSTest.Console.exe 2> nul || TASKKILL /F /T /IM msbuild.exe 2> nul')
+        os.system('TASKKILL /F /T /IM dotnet.exe 2> nul || TASKKILL /F /T /IM VSTest.Console.exe 2> nul || TASKKILL /F /T /IM msbuild.exe 2> nul || TASKKILL /F /T /IM ".NET Host" 2> nul')
     else:
-        os.system('killall -9 dotnet 2> /dev/null || killall -9 VSTest.Console 2> /dev/null || killall -9 msbuild 2> /dev/null') # Always kill dotnet so it isn't left with handles on its files
+        os.system('killall -9 dotnet 2> /dev/null || killall -9 VSTest.Console 2> /dev/null || killall -9 msbuild 2> /dev/null || killall -9 ".NET Host" 2> /dev/null') # Always kill dotnet so it isn't left with handles on its files
 
 def enum_name_to_enum(EnumType, enum_name: str):
     for enum in EnumType:
@@ -116,7 +115,7 @@ def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: lis
             ] + additional_args
     RunCommand(generate_layout_command, verbose=True).run(os.path.join(repo_path, "src/tests"))
 
-def get_run_artifact_path(parsed_args: Namespace, run_type: RunType, commit: list) -> str:
+def get_run_artifact_path(parsed_args: Namespace, run_type: RunType, commit: str) -> str:
     return os.path.join(parsed_args.artifact_storage_path, f"{run_type.name}-{commit}-{parsed_args.os}-{parsed_args.architecture}-{parsed_args.framework}")
 
 # Try to generate all of a single runs dependencies at once to save time
@@ -247,15 +246,15 @@ def generate_artifacts_for_commit(parsed_args: Namespace, reference_type: Runtim
 
         # TODO Check to see if we already have all necessary artifacts generated for the commit and run types (Move the check from generate_all_runtype_dependencies to here before checkout)
         if not os.path.exists(repo_path):
-            if reference_type == RuntimeRefType.COMMITS:
-                Repo.clone_from(repo_url, repo_path)
-                repo = Repo(repo_path)
-                repo.git.checkout(commit)
+            Repo.clone_from(repo_url, repo_path)
+            repo = Repo(repo_path)
+            repo.git.checkout(commit)
+            repo.git.show('HEAD')
         else:
             repo = Repo(repo_path)
             repo.remotes.origin.fetch()
             repo.git.checkout(commit)
-        repo.git.show('HEAD')
+            repo.git.show('HEAD')
 
     # Determine what we need to generate for the local benchmarks
     generate_all_runtype_dependencies(parsed_args, repo_path, commit, is_local or parsed_args.rebuild_artifacts)
@@ -308,8 +307,9 @@ def check_references_exist_and_add_branch_commits(repo_url: str, references: lis
 
 def add_arguments(parser):
     # Arguments for the local runner script
+    parser.add_argument('--list-cached-builds', action='store_true', help='Lists the cached builds located in the artifact-storage-path.')
     parser.add_argument('--commits', nargs='+', type=str, help='The commits to test.')
-    parser.add_argument('--repo', type=str, default='https://github.com/dotnet/runtime.git', help='The runtime repo to test from, used to get data for a fork.')
+    parser.add_argument('--repo_url', type=str, default='https://github.com/dotnet/runtime.git', help='The runtime repo to test from, used to get data for a fork.')
     parser.add_argument('--local-test-repo', type=str, help='Path to a local repo with the runtime source code to test from.') 
     parser.add_argument('--separate-repos', action='store_true', help='Whether to test each runtime version from their own separate repo directory.')
     parser.add_argument('--repo-storage-path', type=str, default='.', help='The path to store the cloned repositories in.')
@@ -322,7 +322,7 @@ def add_arguments(parser):
         except KeyError:
             raise ArgumentTypeError(f"Invalid run type: {value}.")
         return value
-    parser.add_argument('--run-type', dest='run_type_names', nargs='+', type=__is_valid_run_type, choices=[run_type.name for run_type in RunType], help='The type of run to perform. (Without "RunType" prefix)')
+    parser.add_argument('--run-types', dest='run_type_names', nargs='+', type=__is_valid_run_type, choices=[run_type.name for run_type in RunType], help='The types of runs to perform.')
     parser.add_argument('--quiet', dest='verbose', action='store_false', help='Whether to not print verbose output.')
     
     # Arguments specifically for dependency generation and BDN
@@ -342,6 +342,14 @@ def __main(args: list):
     parsed_args = parser.parse_args(args)
     
     setup_loggers(verbose=parsed_args.verbose)
+
+    # If list cached builds is specified, list the cached builds and exit
+    if parsed_args.list_cached_builds:
+        for folder in os.listdir(parsed_args.artifact_storage_path):
+            if any([run_type.name in folder for run_type in RunType]):
+                print(folder)
+        return
+
     runtime_ref_type = RuntimeRefType.COMMITS
 
     if parsed_args.commits:
@@ -356,7 +364,7 @@ def __main(args: list):
     getLogger().info(f"Input arguments: {parsed_args}")
 
     repo_dirs = []
-    repo_url = parsed_args.repo
+    repo_url = parsed_args.repo_url
     if runtime_ref_type == RuntimeRefType.COMMITS:
         check_references_exist_and_add_branch_commits(repo_url, parsed_args.commits, parsed_args.repo_storage_path, repo_dirs[0] if parsed_args.separate_repos else "runtime")
         for commit in parsed_args.commits:
@@ -366,10 +374,7 @@ def __main(args: list):
 
     try:
         getLogger().info("Killing any running dotnet, vstest, or msbuild processes... (ignore system cannot find path specified)")
-        if platform == 'win32':
-            os.system('TASKKILL /F /T /IM dotnet.exe 2> nul || TASKKILL /F /T /IM VSTest.Console.exe 2> nul || TASKKILL /F /T /IM msbuild.exe 2> nul')
-        else:
-            os.system('killall -9 dotnet 2> /dev/null || killall -9 VSTest.Console 2> /dev/null || killall -9 msbuild 2> /dev/null') # Make sure dotnet doesn't have file locks when we start
+        kill_dotnet_processes()
         getLogger().info("****** MAKE SURE TO RUN AS ADMINISTRATOR ******")
 
         # Generate the artifacts for each of the remote versions
