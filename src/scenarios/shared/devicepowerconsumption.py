@@ -5,6 +5,7 @@ import glob
 import re
 import sys
 import os
+import json
 from logging import getLogger
 from shutil import copytree
 import time
@@ -130,19 +131,21 @@ class DevicePowerConsumptionHelper(object):
                 '-u'
             ]
 
-            captureBatteryStatsCmd = [ 
-                androidHelper.adbpath,
-                'shell',
-                'dumpsys',
-                'batterystats',
-                '--charged',
-                packagename,
-            ]
-
             clearLogsCmd = [
                 androidHelper.adbpath,
                 'logcat',
                 '-c'
+            ]
+
+            getUidOfPackageCmd = [
+                androidHelper.adbpath,
+                'shell',
+                'cmd',
+                'package',
+                'list',
+                'packages',
+                '-U',
+                packagename
             ]
 
             allResults = []
@@ -163,29 +166,71 @@ class DevicePowerConsumptionHelper(object):
                 time.sleep(runtimeseconds)
                 RunCommand(reconnectYepKitPowerCmd, verbose=True).run()
                 time.sleep(5) # Wait for the phone to reconnect to the commputer
+                RunCommand(androidHelper.stopappcommand, verbose=True).run()
+                
+                captureUid = RunCommand(getUidOfPackageCmd, verbose=True)
+                captureUid.run()
+
+                # Get the Uid from the captureUid output
+                # The output format and target are as follows:
+                # package:com.companyname.mauiandroiddefault uid:1<capture start>1453<end capture>
+                uidSearchString = r"package:" + packagename + r" uid:([0-9]*)"
+                uidCapture = re.search(uidSearchString, captureUid.stdout)
+                if not uidCapture:
+                    raise Exception("Failed to capture the uid!")
+                uid = uidCapture.group(1)
+
+                # Include the uid filter to keep the output smaller
+                captureBatteryStatsCmd = [
+                    androidHelper.adbpath,
+                    'shell',
+                    'dumpsys',
+                    'batterystats',
+                    '--charged',
+                    packagename,
+                    '-c',
+                    '|',
+                    'grep',
+                    uid               
+                ]
+                
                 captureProcStats = RunCommand(captureBatteryStatsCmd, verbose=True)
                 captureProcStats.run()
 
-                # Save the results and get them from the log
-                RunCommand(androidHelper.stopappcommand, verbose=True).run()
+                capturedValues = {}
+                # Get the mAh estimated power use based on the Uid from the battery stats
+                # Explanation of the 4 groups: https://stackoverflow.com/questions/75390939/android-how-to-interpret-pwi-power-use-item-from-battery-stats-dumpsys
+                # Example output section and target:
+                # 9,11458,l,pwi,uid,0.0820,0,0.134,0.0342 captures total usage, is battery consumer (consult link below), screen usage, and proportional usage
+                totalPowerSearchString = r"[\d]*," + uid + r",l,pwi,uid,([\d]*.?[\d]*),([\d]*.?[\d]*),([\d]*.?[\d]*),([\d]*.?[\d]*)"
+                totalPowerCapture = re.search(totalPowerSearchString, captureProcStats.stdout)
+                if not totalPowerCapture:
+                    raise Exception("Failed to capture the total power!")
+                capturedValues["totalPowermAh"] = totalPowerCapture.group(1)
+                capturedValues["isSystemBatteryConsumer"] = totalPowerCapture.group(2)
+                capturedValues["screenPowermAh"] = totalPowerCapture.group(3)
+                capturedValues["proportionalPowermAh"] = totalPowerCapture.group(4)
                 
-                # # Part of the output we are regexing:
-                # # Process summary:
-                # # * net.dot.HelloAndroid / u0a1219 / v1:
-                # #        TOTAL: ###% (<Part we want>52MB-52MB-52MB/44MB-44MB-44MB/135MB-135MB-135MB over 1</Part we want>)
-                # #        Top: 100% (52MB-52MB-52MB/44MB-44MB-44MB/135MB-135MB-135MB over 1)
-                # regexSearchString = r"TOTAL: [0-9]{2,3}% \((\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB\/\d+MB-\d+MB-\d+MB over \d+)\)"
-                # dirtyCapture = re.search(regexSearchString, captureProcStats.stdout)
-                # if not dirtyCapture:
-                #     raise Exception("Failed to capture the reported start time!")
-                # splitNumber = dirtyCapture.group(1).replace("MB", "").strip().split(" over ")
-                # splitMemory = splitNumber[0].split("/")
-                # pss = splitMemory[0].split("-")
-                # uss = splitMemory[1].split("-")
-                # rss = splitMemory[2].split("-")
-                # memoryCapture = f"PSS: min {pss[0]}, avg {pss[1]}, max {pss[2]}; USS: min {uss[0]}, avg {uss[1]}, max {uss[2]}; RSS: min {rss[0]}, avg {rss[1]}, max {rss[2]}; Number: {splitNumber[1]}\n"
-                # print(f"Memory Capture: {memoryCapture}")
-                # allResults.append(memoryCapture)
+                # Get timing information
+                # 9,11458,l,fg,10294,0 # Foreground Time (ms, count)
+                # Total cpu time: u=567ms s=167ms               #(user and system/kernel?)
+                foregroundTimeSearchString = r"[\d]*," + uid + r",l,fg,([\d]*),([\d]*)"
+                foregroundTimeCapture = re.search(foregroundTimeSearchString, captureProcStats.stdout)
+                if not foregroundTimeCapture:
+                    raise Exception("Failed to capture the foreground running time!")
+                capturedValues["foregroundTimeMs"] = foregroundTimeCapture.group(1)
+                capturedValues["foregroundTimeCount"] = foregroundTimeCapture.group(2)
+
+                # Get timing information https://cs.android.com/android/platform/superproject/+/master:frameworks/base/core/java/android/os/BatteryStats.java;l=4894
+                # 9,11458,l,cpu,668,155,0 # cpu time (user, system, 0)
+                cpuTimeSearchString = r"[\d]*," + uid + r",l,cpu,([\d]*),([\d]*),[\d]*"
+                cpuTimeCapture = re.search(cpuTimeSearchString, captureProcStats.stdout)
+                if not cpuTimeCapture:
+                    raise Exception("Failed to capture the cpu running time!")
+                capturedValues["cpuTimeUserMs"] = cpuTimeCapture.group(1)
+                capturedValues["cpuTimeSystemMs"] = cpuTimeCapture.group(2)
+
+                allResults.append(json.dumps(capturedValues))
                 time.sleep(closeToStartDelay) # Delay in seconds for ensuring a cold start
                 
         finally:
