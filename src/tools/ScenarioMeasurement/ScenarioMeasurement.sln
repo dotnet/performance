@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Startup.Tests", "Startup.Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MemoryConsumption", "MemoryConsumption\MemoryConsumption.csproj", "{03F692B1-9290-447B-AECB-A3AFC8ECA944}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PowerConsumption", "PowerConsumption\PowerConsumption.csproj", "{192DB7E6-1263-4651-BC8C-BFF09AB2481F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{03F692B1-9290-447B-AECB-A3AFC8ECA944}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03F692B1-9290-447B-AECB-A3AFC8ECA944}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03F692B1-9290-447B-AECB-A3AFC8ECA944}.Release|Any CPU.Build.0 = Release|Any CPU
+		{192DB7E6-1263-4651-BC8C-BFF09AB2481F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{192DB7E6-1263-4651-BC8C-BFF09AB2481F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{192DB7E6-1263-4651-BC8C-BFF09AB2481F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{192DB7E6-1263-4651-BC8C-BFF09AB2481F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
