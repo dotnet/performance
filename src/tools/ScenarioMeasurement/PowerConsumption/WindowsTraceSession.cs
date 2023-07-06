@@ -125,11 +125,12 @@ namespace ScenarioMeasurement
             catch (System.Runtime.InteropServices.COMException)
             {
             }
-            finally{
+            finally
+            {
                 if (!enabled)
                 {
-/*                    Console.WriteLine("Unable to enable user provider due to insufficient system resources. Try freeing some memory.");
-                    Environment.Exit(1);*/
+                    /*                    Console.WriteLine("Unable to enable user provider due to insufficient system resources. Try freeing some memory.");
+                                        Environment.Exit(1);*/
                 }
             }
         }

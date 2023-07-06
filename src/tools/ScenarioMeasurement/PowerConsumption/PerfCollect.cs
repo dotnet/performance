@@ -116,7 +116,7 @@ namespace ScenarioMeasurement
             perfCollectProcess.Run();
 
             int retry = 10;
-            for(int i=0; i<retry; i++)
+            for (int i = 0; i < retry; i++)
             {
                 if (!LttngInstalled())
                 {

@@ -42,7 +42,8 @@ namespace ScenarioMeasurement
             if (File.Exists(mergeTraceFile))
             {
                 var jsonText = File.ReadAllText(mergeTraceFile);
-                using (JsonDocument document = JsonDocument.Parse(jsonText)){
+                using (JsonDocument document = JsonDocument.Parse(jsonText))
+                {
                     var root = document.RootElement;
                     foreach (var test in root.EnumerateArray())
                     {
