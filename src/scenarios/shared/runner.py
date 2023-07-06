@@ -402,12 +402,12 @@ ex: C:\repos\performance;C:\repos\runtime
 
         elif self.testtype == const.ANDROIDINSTRUMENTATION:
             androidInstrumentation = AndroidInstrumentationHelper()
-            androidInstrumentation.runtests(self.packagepath, self.packagename, self.instrumentationname) # TODO Do we want to make these part of traits? or keep them separate?
+            androidInstrumentation.runtests(self.packagepath, self.packagename, self.instrumentationname)
 
         elif self.testtype == const.DEVICEPOWERCONSUMPTION:
             devicePowerConsumption = DevicePowerConsumptionHelper()
-            self.traits.add_traits(overwrite=True, apptorun="app", powerconsumptionmetric=const.POWERCONSUMPTION_ANDROID, scenarioname=self.scenarioname)
-            devicePowerConsumption.runtests(self.devicetype, self.packagepath, self.packagename, self.testiterations, self.runtimeseconds, self.closeToStartDelay, self.traits) # TODO Do we want to make these part of traits? or keep them separate?
+            self.traits.add_traits(overwrite=True, apptorun="app", powerconsumptionmetric=const.POWERCONSUMPTION_ANDROID, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname=self.scenarioname)
+            devicePowerConsumption.runtests(self.devicetype, self.packagepath, self.packagename, self.testiterations, self.runtimeseconds, self.closeToStartDelay, self.traits)
   
         elif self.testtype == const.DEVICEMEMORYCONSUMPTION and self.devicetype == 'android':
             getLogger().info("Clearing potential previous run nettraces")

@@ -246,8 +246,7 @@ class DevicePowerConsumptionHelper(object):
             tracefile.write(result)
         tracefile.close()
 
-        # self.traits.add_traits(overwrite=True, apptorun="app", powerconsumptionmetric=const.POWERCONSUMPTION_ANDROID, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname=self.scenarioname)
-        # self.parsetraces(self.traits)
+        #self.parsetraces(traits)
 
     def runtests(self, devicetype: str, packagepath: str, packagename: str, testiterations: int, runtimeseconds: int, closeToStartDelay: int, traits: TestTraits):
         '''
