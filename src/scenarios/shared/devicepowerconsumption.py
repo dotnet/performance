@@ -14,7 +14,7 @@ from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_T
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
 from shared.androidhelper import AndroidHelper
-from shared.util import helixworkitempayload, helixuploaddir, uploadtokenpresent, getruntimeidentifier, xharnesscommand
+from shared.util import helixworkitempayload, helixuploaddir, uploadtokenpresent, getruntimeidentifier
 from shared.const import *
 from shared.testtraits import TestTraits
 from subprocess import CalledProcessError
@@ -23,39 +23,40 @@ class DevicePowerConsumptionHelper(object):
     '''
     Wraps powerconsumption.exe, building it if necessary.
     '''
-    #def __init__(self):
-        # powerconsumptiondir = 'powerconsumption'
-        # self.reportjson = os.path.join(TRACEDIR, 'perf-lab-report.json')
-        # if helixpayload() and os.path.exists(os.path.join(helixpayload(), powerconsumptiondir)):
-        #     self._setpowerconsumptionpath(os.path.join(helixpayload(), powerconsumptiondir))
-        # elif helixworkitempayload() and os.path.exists(os.path.join(helixworkitempayload(), powerconsumptiondir)):
-        #     self._setpowerconsumptionpath(os.path.join(helixworkitempayload(), powerconsumptiondir))
-        # else:
-        #     relpath = os.path.join(get_artifacts_directory(), powerconsumptiondir)
-        #     powerconsumptionproj = os.path.join('..',
-        #                                '..',
-        #                                'tools',
-        #                                'ScenarioMeasurement',
-        #                                'PowerConsumption',
-        #                                'PowerConsumption.csproj')
-        #     powerconsumption = CSharpProject(CSharpProjFile(powerconsumptionproj,
-        #                                            sys.path[0]),
-        #                                            os.path.join(os.path.dirname(powerconsumptionproj),
-        #                                            os.path.join(get_artifacts_directory(), powerconsumptiondir)))
-        #     if not os.path.exists(relpath):
-        #         powerconsumption.restore(get_packages_directory(),
-        #                         True,
-        #                         getruntimeidentifier())
-        #         powerconsumption.publish('Release',
-        #                         relpath,
-        #                         True,
-        #                         get_packages_directory(),
-        #                         None,
-        #                         getruntimeidentifier(),
-        #                         None,
-        #                         '--no-restore'
-        #                         )
-        #     self._setpowerconsumptionpath(powerconsumption.bin_path)
+    def __init__(self):
+        powerconsumptiondir = 'powerconsumption'
+        self.reportjson = os.path.join(TRACEDIR, 'perf-lab-report.json')
+        if helixpayload() and os.path.exists(os.path.join(helixpayload(), powerconsumptiondir)):
+            self._setpowerconsumptionpath(os.path.join(helixpayload(), powerconsumptiondir))
+        elif helixworkitempayload() and os.path.exists(os.path.join(helixworkitempayload(), powerconsumptiondir)):
+            self._setpowerconsumptionpath(os.path.join(helixworkitempayload(), powerconsumptiondir))
+        else:
+            relpath = os.path.join(get_artifacts_directory(), powerconsumptiondir)
+            powerconsumptionproj = os.path.join('..',
+                                       '..',
+                                       'tools',
+                                       'ScenarioMeasurement',
+                                       'PowerConsumption',
+                                       'PowerConsumption.csproj')
+            powerconsumption = CSharpProject(CSharpProjFile(powerconsumptionproj,
+                                                   sys.path[0]),
+                                                   os.path.join(os.path.dirname(powerconsumptionproj),
+                                                   os.path.join(get_artifacts_directory(), powerconsumptiondir)))
+            if not os.path.exists(relpath):
+                powerconsumption.restore(get_packages_directory(),
+                                True,
+                                getruntimeidentifier())
+                powerconsumption.publish('Release',
+                                relpath,
+                                True,
+                                get_packages_directory(),
+                                None,
+                                getruntimeidentifier(),
+                                None,
+                                '--no-restore',
+                                '--self-contained'
+                                )
+            self._setpowerconsumptionpath(powerconsumption.bin_path)
   
     def _setpowerconsumptionpath(self, path: str):
         self.powerconsumptionpath = os.path.join(path, "powerconsumption%s" % extension()) 
@@ -230,7 +231,7 @@ class DevicePowerConsumptionHelper(object):
                 capturedValues["cpuTimeUserMs"] = cpuTimeCapture.group(1)
                 capturedValues["cpuTimeSystemMs"] = cpuTimeCapture.group(2)
 
-                allResults.append(json.dumps(capturedValues))
+                allResults.append(capturedValues)
                 time.sleep(closeToStartDelay) # Delay in seconds for ensuring a cold start
                 
         finally:
@@ -242,11 +243,10 @@ class DevicePowerConsumptionHelper(object):
         os.makedirs(outputdir, exist_ok=True)
         outputtracefile = os.path.join(outputdir, "runoutput.trace")
         tracefile = open(outputtracefile, "w")
-        for result in allResults:
-            tracefile.write(result)
+        tracefile.write(json.dumps(allResults))
         tracefile.close()
 
-        #self.parsetraces(traits)
+        self.parsetraces(traits)
 
     def runtests(self, devicetype: str, packagepath: str, packagename: str, testiterations: int, runtimeseconds: int, closeToStartDelay: int, traits: TestTraits):
         '''
