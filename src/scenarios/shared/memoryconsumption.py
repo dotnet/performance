@@ -46,8 +46,7 @@ class MemoryConsumptionWrapper(object):
                                 None,
                                 getruntimeidentifier(),
                                 None,
-                                '--no-restore',
-                                '--self-contained'
+                                '--no-restore'
                                 )
             self._setmemoryconsumptionpath(memoryconsumption.bin_path)
 
