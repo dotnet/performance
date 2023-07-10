@@ -1,5 +1,7 @@
 '''
 pre-command
+WARNING: blazorserver is no longer a template in dotnet 8.0 (https://github.com/dotnet/performance/issues/3108)
+         runs have been removed but keeping the test folder for now
 '''
 import sys
 import shutil
