@@ -149,6 +149,14 @@ class DevicePowerConsumptionHelper(object):
                 packagename
             ]
 
+            # Gets information about the battery (https://cs.android.com/android/platform/superproject/main/+/main:frameworks/base/services/core/java/com/android/server/BatteryService.java;l=1117-1119?q=%22Current%20Battery%20Service%20state%22)
+            getGeneralBatteryInformation = [
+                androidHelper.adbpath,
+                'shell',
+                'dumpsys',
+                'battery'
+            ]
+
             allResults = []
             # Verify that a yepkit board is found
             yepkitCheck = RunCommand(listYepkitBoardsCmd, verbose=True)
@@ -163,10 +171,14 @@ class DevicePowerConsumptionHelper(object):
                 RunCommand(clearBatteryStatsCmd, verbose=True).run()
                 startStats = RunCommand(androidHelper.startappcommand, verbose=True)
                 startStats.run()
+                preExecutionBatteryInfo = RunCommand(getGeneralBatteryInformation, verbose=True)
+                preExecutionBatteryInfo.run()
                 RunCommand(disconnectYepKitPowerCmd, verbose=True).run()
                 time.sleep(runtimeseconds)
                 RunCommand(reconnectYepKitPowerCmd, verbose=True).run()
                 time.sleep(5) # Wait for the phone to reconnect to the commputer
+                postExecutionBatteryInfo = RunCommand(getGeneralBatteryInformation, verbose=True)
+                postExecutionBatteryInfo.run()
                 RunCommand(androidHelper.stopappcommand, verbose=True).run()
                 
                 captureUid = RunCommand(getUidOfPackageCmd, verbose=True)
@@ -230,6 +242,20 @@ class DevicePowerConsumptionHelper(object):
                     raise Exception("Failed to capture the cpu running time!")
                 capturedValues["cpuTimeUserMs"] = cpuTimeCapture.group(1)
                 capturedValues["cpuTimeSystemMs"] = cpuTimeCapture.group(2)
+
+                # Get the battery level and voltage (mV), https://cs.android.com/android/platform/superproject/main/+/main:frameworks/base/services/core/java/com/android/server/BatteryService.java;l=1117-1119?q=%22Current%20Battery%20Service%20state%22
+                #  level: 93
+                #  scale: 100 # ignore
+                #  voltage: 4237
+                levelAndVoltageSearchString = r"level: ([\d]*)[\s\S]*voltage: ([\d]*)"
+                preExecutionCapture = re.search(levelAndVoltageSearchString, preExecutionBatteryInfo.stdout)
+                postExecutionCapture = re.search(levelAndVoltageSearchString, postExecutionBatteryInfo.stdout)
+                if not preExecutionCapture or not postExecutionCapture:
+                    raise Exception("Failed to capture the pre or post execution battery state!")
+                capturedValues["preExecutionBatteryLevel"] = preExecutionCapture.group(1)
+                capturedValues["preExecutionBatteryVoltage"] = preExecutionCapture.group(2)
+                capturedValues["postExecutionBatteryLevel"] = postExecutionCapture.group(1)
+                capturedValues["postExecutionBatteryVoltage"] = postExecutionCapture.group(2)
 
                 allResults.append(capturedValues)
                 time.sleep(closeToStartDelay) # Delay in seconds for ensuring a cold start
