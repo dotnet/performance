@@ -16,6 +16,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableXlfLocalization>false</EnableXlfLocalization>
     <LangVersion>latest</LangVersion>
+    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 
     <!-- Allow building with one major version, and running using a sdk with a higher major version -->
     <RollForward Condition="'$(BuildingForWasm)' == 'true'">LatestMajor</RollForward>
