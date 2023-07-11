@@ -8,7 +8,7 @@ using System.IO;
 
 namespace System.Text
 {
-    [BenchmarkCategory(Categories.Libraries, Categories.Runtime, Categories.NoWASM)]
+    [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
     public class Perf_Utf8Encoding : Perf_TextBase
     {
         private string _unicode;
