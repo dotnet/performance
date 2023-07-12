@@ -102,8 +102,8 @@ class Runner:
         devicepowerconsumptionparser.add_argument('--device-type', choices=['android'],type=str.lower,help='Device type for testing', dest='devicetype') # choices=['android','ios'] Only android is supported for now
         devicepowerconsumptionparser.add_argument('--package-path', help='Location of test application', dest='packagepath')
         devicepowerconsumptionparser.add_argument('--package-name', help='Classname (Android)', dest='packagename')
-        devicepowerconsumptionparser.add_argument('--iterations', help='Iterations to run (1+)', type=int, default=6, dest='iterations')
-        devicepowerconsumptionparser.add_argument('--runtime', help='Amount of time to run the app between clearing procstats and dumping them', type=int, default=30, dest='runtimeseconds')
+        devicepowerconsumptionparser.add_argument('--test-iterations', help='Iterations to run (1+)', type=int, default=4, dest='testiterations')
+        devicepowerconsumptionparser.add_argument('--runtime', help='Amount of time to run the app between clearing procstats and dumping them', type=int, default=60, dest='runtimeseconds')
         devicepowerconsumptionparser.add_argument('--time-from-kill-to-start', help='Set an additional delay time for ensuring an app is cleared after closing the app on Android, not on iOS. This should be greater than the greatest amount of expected time needed between closing an app and starting it again for a cold start. Default = 3 seconds', type=int, default=3, dest='closeToStartDelay')
         self.add_common_arguments(devicepowerconsumptionparser)
 
@@ -217,7 +217,7 @@ ex: C:\repos\performance;C:\repos\runtime
             self.devicetype = args.devicetype
             self.packagepath = args.packagepath
             self.packagename = args.packagename
-            self.testiterations = args.iterations
+            self.testiterations = args.testiterations
             self.runtimeseconds = args.runtimeseconds
             self.closeToStartDelay = args.closeToStartDelay
 
