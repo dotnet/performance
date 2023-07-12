@@ -16,7 +16,7 @@
     <MicrosoftAspNetCoreAppRuntimewinx64PackageVersion>5.0.4</MicrosoftAspNetCoreAppRuntimewinx64PackageVersion>
     <MicrosoftNetILLinkTasksVersion>8.0.100-1.23067.1</MicrosoftNetILLinkTasksVersion>
     <MicrosoftNetILLinkPackageVersion>8.0.100-1.23067.1</MicrosoftNetILLinkPackageVersion>
-    <BenchmarkDotNetVersion>0.13.5.2136</BenchmarkDotNetVersion>
+    <BenchmarkDotNetVersion>0.13.7-nightly.20230712.33</BenchmarkDotNetVersion>
   </PropertyGroup>
   <!--Package names-->
   <PropertyGroup>
