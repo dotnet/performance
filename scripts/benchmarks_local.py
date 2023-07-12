@@ -27,6 +27,7 @@ from performance.logger import setup_loggers
 from subprocess import CalledProcessError
 
 import benchmarks_ci
+from datetime import datetime
 import platform
 import shutil
 import sys
@@ -42,6 +43,8 @@ class RunType(Enum):
     MonoAOTLLVM = 2
     MonoInterpreter = 3
     MonoJIT = 4
+
+start_time = datetime.now()
 
 def kill_dotnet_processes():
     if platform == 'win32':
@@ -188,7 +191,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
     benchmark_ci_args += ['--filter', parsed_args.filter]
     benchmark_ci_args += ['--csproj', parsed_args.csproj]
     benchmark_ci_args += ['--incremental', "no"]
-    benchmark_ci_args += ['--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, "BenchmarkDotNet.Artifacts")]
+    benchmark_ci_args += ['--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, f"BenchmarkDotNet.Artifacts.{specific_run_type.name}.{start_time.strftime('%y%m%d_%H%M%S')}")]
 
     if specific_run_type == RunType.CoreRun:
         bdn_args_unescaped += [
@@ -269,9 +272,6 @@ def run_benchmarks(parsed_args: Namespace, commits: list) -> None:
             benchmark_ci_args = generate_benchmark_ci_args(parsed_args, run_type, commits)
             getLogger().info(f"Running benchmarks_ci.py for {run_type} at {commits} with arguments \"{' '.join(benchmark_ci_args)}\".")
             benchmarks_ci.__main(benchmark_ci_args) # Build the runtime includes a download of dotnet at this location
-
-            # TODO: Save the results. These are already saved in the BDN Artifacts folder, maybe move the results instead
-
         except CalledProcessError:
             getLogger().error('benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
             raise
