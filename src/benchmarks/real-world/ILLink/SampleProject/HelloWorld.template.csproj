@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>exe</OutputType>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<PublishTrimmed>false</PublishTrimmed>
 		<TrimmerDefaultAction>copy</TrimmerDefaultAction>
 		<TrimMode>copy</TrimMode>
