@@ -134,8 +134,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             core_root_path = os.path.join(repo_path, "artifacts", "tests", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", "Tests", "Core_Root")
             shutil.rmtree(dest_dir, ignore_errors=True)
             copy_directory_contents(core_root_path, dest_dir)
-            # Clean up the build results
-            #shutil.rmtree(os.path.join(repo_path, "artifacts"), ignore_errors=True) # TODO: Can we trust the build system to update these when necessary or do we need to clean them up ourselves?
+            shutil.rmtree(os.path.join(repo_path, "artifacts"), ignore_errors=True)
         else:
             getLogger().info(f"CoreRun already exists in {dest_dir}. Skipping generation.")
 
@@ -164,12 +163,11 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
 
             # Store the dotnet_mono in the artifact storage path
             dotnet_mono_path = os.path.join(repo_path, "artifacts", "dotnet_mono")
-            #shutil.rmtree(dest_dir_mono_interpreter, ignore_errors=True)
+            shutil.rmtree(dest_dir_mono_interpreter, ignore_errors=True)
             copy_directory_contents(dotnet_mono_path, dest_dir_mono_interpreter)
-            #shutil.rmtree(dest_dir_mono_jit, ignore_errors=True)
+            shutil.rmtree(dest_dir_mono_jit, ignore_errors=True)
             copy_directory_contents(dotnet_mono_path, dest_dir_mono_jit)
-            # Clean up the build results
-            #shutil.rmtree(os.path.join(repo_path, "artifacts"), ignore_errors=True) # TODO: Can we trust the build system to update these when necessary or do we need to clean them up ourselves?
+            shutil.rmtree(os.path.join(repo_path, "artifacts"), ignore_errors=True)
         else:
             getLogger().info(f"dotnet_mono already exists in {dest_dir_mono_interpreter} and {dest_dir_mono_jit}. Skipping generation.")
 
@@ -201,7 +199,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                             ]
         
         bdn_args_unescaped += [ '--corerun' ]
-        for commit in all_commits: # Add each commit that is built to the run
+        for commit in all_commits:
             bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commit), "Core_Root", f'corerun{".exe" if parsed_args.os == "windows" else ""}') ]
 
     elif specific_run_type == RunType.MonoAOTLLVM:
@@ -215,7 +213,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                                 '--generateBinLog'
                             ]
         bdn_args_unescaped += [ '--corerun' ]
-        for commit in all_commits: # Add each commit that is built to the run
+        for commit in all_commits:
             bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "8.0.0", f'corerun{".exe" if parsed_args.os == "windows" else ""}') ]
         
         bdn_args_unescaped += ['--envVars', 'MONO_ENV_OPTIONS:--interpreter']
@@ -228,7 +226,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                                 '--generateBinLog'
                             ]
         bdn_args_unescaped += [ '--corerun' ]
-        for commit in all_commits: # Add each commit that is built to the run
+        for commit in all_commits:
             bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "8.0.0", f'corerun{".exe" if parsed_args.os == "windows" else ""}') ]
 
     if parsed_args.bdn_arguments:
@@ -290,6 +288,7 @@ def run_benchmarks(parsed_args: Namespace, commits: list) -> None:
 # Returns: None
 def check_references_exist_and_add_branch_commits(repo_url: str, references: list, repo_storage_path: str, repo_dir: str):
     getLogger().debug(f"Inside check_references_exist_and_add_branch_commits: Checking if references {references} exist in {repo_url}.")
+    
     # Initialize a new Git repository in the specified directory
     repo_combined_path = os.path.join(repo_storage_path, repo_dir)
     if not os.path.exists(repo_combined_path):
@@ -356,10 +355,10 @@ def __main(args: list):
     if parsed_args.commits or parsed_args.local_test_repo:
         if parsed_args.commits:
             getLogger().info(f"Commits to test are: {parsed_args.commits}")
-        elif parsed_args.local_test_repo:
+        if parsed_args.local_test_repo:
             getLogger().info(f"Local repo to test is: {parsed_args.local_test_repo}")
     else:
-        raise Exception("Either a branch, hash, or local repo must be specified.")
+        raise Exception("A commit id and/or local repo must be specified.")
 
     getLogger().debug(f"Input arguments: {parsed_args}")
 
