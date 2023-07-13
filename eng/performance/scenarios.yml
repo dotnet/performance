@@ -128,6 +128,10 @@ jobs:
             displayName: Get dotnetVersion to use
           - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --dotnet-versions $(DotnetVersion) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup$(ScriptExtension) --install-dir $(CorrelationStaging)dotnet $(runEnvVarsParam) $(AffinityParam)
             displayName: Run ci_setup.py with dotnetVersionsLinks
+        - powershell: |
+            Write-Host "##vso[task.setvariable variable=DOTNET_ROOT;]$(CorrelationStaging)dotnet"
+            Write-Host "Set DOTNET_ROOT to $(CorrelationStaging)dotnet"
+          displayName: Explicitly set DOTNET_ROOT
         - ${{ if eq(parameters.osName, 'windows') }}:
           - script: xcopy .\NuGet.config $(CorrelationStaging) && xcopy .\scripts $(CorrelationStaging)scripts\/e && xcopy .\src\scenarios\shared $(CorrelationStaging)shared\/e && xcopy .\src\scenarios\staticdeps $(CorrelationStaging)staticdeps\/e
             displayName: Copy python libraries and NuGet.config
