@@ -46,8 +46,8 @@ class RunType(Enum):
 
 start_time = datetime.now()
 
-def kill_dotnet_processes():
-    if platform == 'win32':
+def kill_dotnet_processes(parsed_args: Namespace):
+    if parsed_args.os == "windows":
         os.system('TASKKILL /F /T /IM dotnet.exe 2> nul || TASKKILL /F /T /IM VSTest.Console.exe 2> nul || TASKKILL /F /T /IM msbuild.exe 2> nul || TASKKILL /F /T /IM ".NET Host" 2> nul')
     else:
         os.system('killall -9 dotnet 2> /dev/null || killall -9 VSTest.Console 2> /dev/null || killall -9 msbuild 2> /dev/null || killall -9 ".NET Host" 2> /dev/null') # Always kill dotnet so it isn't left with handles on its files
@@ -157,9 +157,6 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             src_file = os.path.join(repo_path, "artifacts", "bin", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", f"corerun{'.exe' if parsed_args.os == 'windows' else ''}")
             dest_dir = os.path.join(repo_path, "artifacts", "dotnet_mono", "shared", "Microsoft.NETCore.App", "8.0.0")
             dest_file = os.path.join(dest_dir, f"corerun{'.exe' if parsed_args.os == 'windows' else ''}")
-            if os.path.exists(dest_dir):
-                shutil.rmtree(dest_dir, ignore_errors=True)
-            os.makedirs(dest_dir)
             shutil.copy2(src_file, dest_file)
 
             # Store the dotnet_mono in the artifact storage path
@@ -238,7 +235,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
     return benchmark_ci_args
 
 def generate_artifacts_for_commit(parsed_args: Namespace, repo_url: str, repo_dir: str, commit: str, is_local: bool = False) -> None:
-    kill_dotnet_processes()
+    kill_dotnet_processes(parsed_args)
     if is_local:
         repo_path = repo_dir
         if(not os.path.exists(repo_path)):
@@ -372,7 +369,7 @@ def __main(args: list):
 
     try:
         getLogger().info("Killing any running dotnet, vstest, or msbuild processes... (ignore system cannot find path specified)")
-        kill_dotnet_processes()
+        kill_dotnet_processes(parsed_args)
         getLogger().info("****** MAKE SURE TO RUN AS ADMINISTRATOR ******")
 
         # Generate the artifacts for each of the remote versions
@@ -401,7 +398,7 @@ def __main(args: list):
             getLogger().info("Skipping benchmark run because --build-only was specified.")
         
     finally:
-        kill_dotnet_processes()
+        kill_dotnet_processes(parsed_args)
     # TODO: Compare the results of the benchmarks || This is doable with just BDN as a start for now
 
 if __name__ == "__main__":
