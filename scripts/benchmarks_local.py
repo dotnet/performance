@@ -1,8 +1,8 @@
 # This is a script for testing the performance of the different dotnet/runtime build types locally
 # Example usage from the performance/scripts folder: 
-# python .\benchmarks_local.py --local-test-repo "<absolute path to runtime folder>/runtime" --run-type MonoJIT --filter *Span.IndexerBench.CoveredIndex2* --bdn-arguments='-i'
+# python .\benchmarks_local.py --local-test-repo "<absolute path to runtime folder>/runtime" --run-type MonoJIT --filter *Span.IndexerBench.CoveredIndex2*
 # or if you want remotes:
-# python .\benchmarks_local.py --branches main --repo-storage-dir "<absolute path to where you want to store runtime clones>" --run-type MonoJIT --filter *Span.IndexerBench.CoveredIndex2* --bdn-arguments='-i'
+# python .\benchmarks_local.py --commits dd079f53b95519c8398d8b0c6e796aaf7686b99a --repo-storage-dir "<absolute path to where you want to store runtime clones>" --run-types MonoInterpreter MonoJIT --filter *Span.IndexerBench.CoveredIndex2*
 
 # The general flow as it stands is:
 # * For each commit single or pair value specified:
