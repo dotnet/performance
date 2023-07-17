@@ -266,6 +266,7 @@ def run_benchmarks(parsed_args: Namespace, commits: list) -> None:
         try:
             benchmark_ci_args = generate_benchmark_ci_args(parsed_args, run_type, commits)
             getLogger().info(f"Running benchmarks_ci.py for {run_type} at {commits} with arguments \"{' '.join(benchmark_ci_args)}\".")
+            kill_dotnet_processes(parsed_args)
             benchmarks_ci.__main(benchmark_ci_args) # Build the runtime includes a download of dotnet at this location
         except CalledProcessError:
             getLogger().error('benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
