@@ -1,4 +1,4 @@
-# This is a script for testing the performance of the different dotnet/runtime build types locally
+# This is a script for testing the performance of the different dotnet/runtime build types locally. It is assumed that prereqs for the build type are already installed.
 # Example usage from the performance/scripts folder: 
 # python .\benchmarks_local.py --local-test-repo "<absolute path to runtime folder>/runtime" --run-type MonoJIT --filter *Span.IndexerBench.CoveredIndex2*
 # or if you want remotes:
@@ -243,7 +243,6 @@ def generate_artifacts_for_commit(parsed_args: Namespace, repo_url: str, repo_di
         repo_path = os.path.join(parsed_args.repo_storage_path, repo_dir)
         getLogger().info(f"Running for {repo_path} at {commit}.")
 
-        # TODO Check to see if we already have all necessary artifacts generated for the commit and run types (Move the check from generate_all_runtype_dependencies to here before checkout)
         if not os.path.exists(repo_path):
             Repo.clone_from(repo_url, repo_path)
             repo = Repo(repo_path)
@@ -309,11 +308,11 @@ def add_arguments(parser):
     # Arguments for the local runner script
     parser.add_argument('--list-cached-builds', action='store_true', help='Lists the cached builds located in the artifact-storage-path.')
     parser.add_argument('--commits', nargs='+', type=str, help='The commits to test.')
-    parser.add_argument('--repo_url', type=str, default='https://github.com/dotnet/runtime.git', help='The runtime repo to test from, used to get data for a fork.')
+    parser.add_argument('--repo-url', type=str, default='https://github.com/dotnet/runtime.git', help='The runtime repo to test from, used to get data for a fork.')
     parser.add_argument('--local-test-repo', type=str, help='Path to a local repo with the runtime source code to test from.') 
     parser.add_argument('--separate-repos', action='store_true', help='Whether to test each runtime version from their own separate repo directory.')
     parser.add_argument('--repo-storage-path', type=str, default='.', help='The path to store the cloned repositories in.')
-    parser.add_argument('--artifact-storage-path', type=str, default=f'{os.getcwd()}{os.path.sep}runtime-testing-artifacts', help='The path to store the artifacts in (builds, results, etc).')
+    parser.add_argument('--artifact-storage-path', type=str, default=f'{os.getcwd()}{os.path.sep}runtime-testing-artifacts', help=f'The path to store the artifacts in (builds, results, etc). Default is {os.getcwd()}{os.path.sep}runtime-testing-artifacts')
     parser.add_argument('--rebuild-artifacts', action='store_true', help='Whether to rebuild the artifacts for the specified commits before benchmarking.')
     parser.add_argument('--build-only', action='store_true', help='Whether to only build the artifacts for the specified commits and not run the benchmarks.')
     parser.add_argument('--skip-local-rebuild', action='store_true', help='Whether to skip rebuilding the local repo and use the already built version (if already built). Useful if you need to run against local changes again.')
