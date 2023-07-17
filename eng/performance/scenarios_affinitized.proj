@@ -13,7 +13,7 @@
 
   <!-- Scenario definitions -->
   <ItemGroup>
-    <UIScenario Include="PaintDotNet" Condition="'$(TargetsWindows)' == 'true' And $(BUILD_REPOSITORY_PROVIDER) == 'TfsGit'">
+    <UIScenario Include="PaintDotNet" Condition="'$(TargetsWindows)' == 'true' And $(BUILD_REPOSITORY_PROVIDER) == 'TfsGit' And '$(Architecture)' != 'x86'">
       <ScenarioDirectoryName>paintdotnet</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <ExplicitPrepareCommand>$(Python) pre.py extract -p $(CorrelationPayloadDirectory)PDN\PDN.zip -o $(PreparePayloadWorkItemBaseDirectory)%(ScenarioDirectoryName)_fdd</ExplicitPrepareCommand>
