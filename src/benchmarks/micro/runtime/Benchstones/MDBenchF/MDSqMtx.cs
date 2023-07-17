@@ -16,6 +16,7 @@ public class MDSqMtx
     private const int MatrixSize = 40;
 
     [Benchmark(Description = nameof(MDSqMtx))]
+    [MemoryRandomization]
     public bool Test()
     {
         double[,] a = new double[41, 41];

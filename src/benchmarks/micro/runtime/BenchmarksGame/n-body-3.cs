@@ -24,6 +24,7 @@ namespace BenchmarksGame
     public class NBody_3
     {
         [Benchmark(Description = nameof(NBody_3))]
+[MemoryRandomization]
         public bool RunBench() => Bench(5000000, false);
 
         static bool Bench(int n, bool verbose)

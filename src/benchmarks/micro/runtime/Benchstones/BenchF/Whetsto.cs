@@ -18,6 +18,7 @@ public class Whetsto
     private static double s_t, s_t2;
 
     [Benchmark(Description = nameof(Whetsto))]
+    [MemoryRandomization]
     public double Test()
     {
         double[] e1 = new double[4];

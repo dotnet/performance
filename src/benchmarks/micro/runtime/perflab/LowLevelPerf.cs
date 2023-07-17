@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -243,6 +243,7 @@ namespace PerfLabTests
         public void SetupNewDelegateClassEmptyInstanceFn() => aClassFiled = new Class();
 
         [Benchmark]
+        [MemoryRandomization]
         public void NewDelegateClassEmptyInstanceFn()
         {
             Class aClass = aClassFiled;
@@ -253,6 +254,7 @@ namespace PerfLabTests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void NewDelegateClassEmptyStaticFn()
         {
             MyDelegate aMyDelegate;
@@ -425,6 +427,7 @@ namespace PerfLabTests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public string IntegerFormatting()
         {
             int number = Int32.MaxValue;

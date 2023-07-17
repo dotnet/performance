@@ -86,6 +86,7 @@ public class CscBench
     }
 
     [Benchmark]
+    [MemoryRandomization]
     public bool CompileTest() => CompileBench();
 
     public static TextSpan GetSpanBetweenMarkers(SyntaxTree tree)
@@ -160,5 +161,6 @@ class C {
     }
 
     [Benchmark]
+    [MemoryRandomization]
     public bool DatflowTest() => DataflowBench();
 }

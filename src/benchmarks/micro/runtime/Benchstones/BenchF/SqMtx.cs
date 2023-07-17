@@ -26,6 +26,7 @@ public class SqMtx
     }
 
     [Benchmark(Description = nameof(SqMtx))]
+    [MemoryRandomization]
     public bool Test()
     {
         double[][] a = AllocArray<double>(41, 41);

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -45,6 +45,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public bool Dictionary()
         {
             bool result = default;
@@ -57,6 +58,7 @@ namespace System.Collections
 
         [Benchmark]
         [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
+        [MemoryRandomization]
         public bool IDictionary() => ContainsKey(_dictionary);
         
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -70,6 +72,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public bool SortedList()
         {
             bool result = default;
@@ -81,6 +84,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public bool SortedDictionary()
         {
             bool result = default;
@@ -92,6 +96,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public bool ConcurrentDictionary()
         {
             bool result = default;
@@ -103,6 +108,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public bool ImmutableDictionary()
         {
             bool result = default;
@@ -114,6 +120,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public bool ImmutableSortedDictionary()
         {
             bool result = default;

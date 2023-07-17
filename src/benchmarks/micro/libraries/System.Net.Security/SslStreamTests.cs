@@ -100,23 +100,28 @@ namespace System.Net.Security.Tests
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
+        [MemoryRandomization]
         public Task DefaultHandshakeIPv4Async() => DefaultHandshake(_clientIPv4, _serverIPv4);
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
+        [MemoryRandomization]
         public Task DefaultHandshakeIPv6Async() => DefaultHandshake(_clientIPv6, _serverIPv6);
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
+        [MemoryRandomization]
         public Task DefaultMutualHandshakeIPv4Async() => DefaultHandshake(_clientIPv4, _serverIPv4, requireClientCert: true);
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
+        [MemoryRandomization]
         public Task DefaultMutualHandshakeIPv6Async() => DefaultHandshake(_clientIPv6, _serverIPv6, requireClientCert: true);
 
         [Benchmark]
         [OperatingSystemsFilter(allowed: true, platforms: OS.Linux)]    // Not supported on Windows at the moment.
         [BenchmarkCategory(Categories.NoAOT)]
+        [MemoryRandomization]
         public Task DefaultHandshakePipeAsync() => DefaultHandshake(_clientPipe, _serverPipe);
 
         private async Task DefaultHandshake(Stream client, Stream server, bool requireClientCert = false)
@@ -214,6 +219,7 @@ namespace System.Net.Security.Tests
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
         [BenchmarkCategory(Categories.NoAOT)]
+        [MemoryRandomization]
         public async Task ReadWriteAsync()
         {
             Memory<byte> clientBuffer = _clientBuffer;
@@ -230,6 +236,7 @@ namespace System.Net.Security.Tests
 
         [Benchmark(OperationsPerInvoke = ConcurrentReadWriteIterations)]
         [BenchmarkCategory(Categories.NoAOT)]
+        [MemoryRandomization]
         public async Task ConcurrentReadWrite()
         {
             Memory<byte> buffer1 = _clientBuffer;
@@ -259,6 +266,7 @@ namespace System.Net.Security.Tests
 
         [Benchmark(OperationsPerInvoke = ConcurrentReadWriteLargeBufferIterations)]
         [BenchmarkCategory(Categories.NoAOT)]
+        [MemoryRandomization]
         public async Task ConcurrentReadWriteLargeBuffer()
         {
             Memory<byte> buffer1 = _largeClientBuffer;

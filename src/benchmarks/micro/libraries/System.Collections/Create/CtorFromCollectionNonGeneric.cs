@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -26,18 +26,23 @@ namespace System.Collections
         public void SetupDictionary() => _dictionary = ValuesGenerator.Dictionary<T, T>(Size);
 
         [Benchmark]
+        [MemoryRandomization]
         public ArrayList ArrayList() => new ArrayList(_collection);
 
         [Benchmark]
+        [MemoryRandomization]
         public Hashtable Hashtable() => new Hashtable(_dictionary);
 
         [Benchmark]
+        [MemoryRandomization]
         public Queue Queue() => new Queue(_collection);
 
         [Benchmark]
+        [MemoryRandomization]
         public Stack Stack() => new Stack(_collection);
 
         [Benchmark]
+        [MemoryRandomization]
         public SortedList SortedList() => new SortedList(_dictionary);
     }
 }

@@ -24,6 +24,7 @@ public class MatInv4
     }
 
     [Benchmark(Description = nameof(MatInv4))]
+    [MemoryRandomization]
     public bool Test()
     {
         X a = new X(Iterations * Iterations);

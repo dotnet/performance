@@ -47,6 +47,7 @@ public class MDMidpoint
     }
 
     [Benchmark(Description = nameof(MDMidpoint))]
+    [MemoryRandomization]
     public bool Test() {
         int[,] a = new int[2001, 4];
         int[] mid = new int[2001];

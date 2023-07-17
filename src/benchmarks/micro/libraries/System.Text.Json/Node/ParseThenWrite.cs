@@ -1,4 +1,4 @@
-﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 using System.Buffers;
 using System.Collections.Generic;
@@ -57,6 +57,7 @@ namespace System.Text.Json.Node.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void ParseThenWrite()
         {
             _writer.Reset();

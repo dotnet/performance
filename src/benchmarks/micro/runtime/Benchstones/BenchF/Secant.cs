@@ -19,6 +19,7 @@ public class Secant
     private static void Escape(object _) { }
 
     [Benchmark(Description = nameof(Secant))]
+    [MemoryRandomization]
     public bool Test()
     {
         int idbg, iflag;

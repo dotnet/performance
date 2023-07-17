@@ -28,6 +28,7 @@ namespace BenchmarksGame
     public class SpectralNorm_3
     {
         [Benchmark(Description = nameof(SpectralNorm_3))]
+[MemoryRandomization]
         public double RunBench() => Bench(100);
 
         [MethodImpl(MethodImplOptions.NoInlining)]

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -70,6 +70,7 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.Runtime, Categories.Libraries, Categories.ThirdParty)] // JSON.NET is so popular that despite being 3rd Party lib we run the benchmarks for CoreFX and CoreCLR CI
         [Benchmark(Description = "JSON.NET")]
+        [MemoryRandomization]
         public T JsonNet_()
         {
             memoryStream.Position = 0;
@@ -111,6 +112,7 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
         [Benchmark(Description = "DataContractJsonSerializer")]
+        [MemoryRandomization]
         public T DataContractJsonSerializer_()
         {
             memoryStream.Position = 0;

@@ -110,6 +110,7 @@ public class TreeSort
     }
 
     [Benchmark(Description = nameof(TreeSort))]
+    [MemoryRandomization]
     public bool Test() {
         int[] sortList = new int[SortElements + 1];
         bool result = Trees(sortList);

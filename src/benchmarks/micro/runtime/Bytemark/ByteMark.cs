@@ -368,6 +368,7 @@ public class ByteMark
     const int NumericSortJaggedIterations = 10;
 
     [Benchmark]
+    [MemoryRandomization]
     public void BenchNumericSortJagged()
     {
         NumericSortJagged t = new NumericSortJagged();
@@ -381,6 +382,7 @@ public class ByteMark
     const int NumericSortRectangularIterations = 5;
 
     [Benchmark]
+    [MemoryRandomization]
     public void BenchNumericSortRectangular()
     {
         NumericSortRect t = new NumericSortRect();
@@ -394,6 +396,7 @@ public class ByteMark
     const int StringSortIterations = 15;
 
     [Benchmark]
+    [MemoryRandomization]
     public void BenchStringSort()
     {
         StringSort t = new StringSort();
@@ -407,6 +410,7 @@ public class ByteMark
     const int BitOpsIterations = 100000;
 
     [Benchmark]
+    [MemoryRandomization]
     public void BenchBitOps()
     {
         BitOps t = new BitOps();
@@ -420,6 +424,7 @@ public class ByteMark
 
     [Benchmark]
     [BenchmarkCategory(Categories.NoInterpreter)]
+    [MemoryRandomization]
     public void BenchEmFloat()
     {
         EmFloatStruct t = new EMFloat();
@@ -433,6 +438,7 @@ public class ByteMark
     const int EmFloatClassIterations = 2;
 
     [Benchmark]
+    [MemoryRandomization]
     public void BenchEmFloatClass()
     {
         EmFloatStruct t = new EMFloatClass();
@@ -446,6 +452,7 @@ public class ByteMark
     const int FourierIterations = 300;
 
     [Benchmark]
+    [MemoryRandomization]
     public void BenchFourier()
     {
         FourierStruct t = new Fourier();
@@ -458,6 +465,7 @@ public class ByteMark
     const int AssignJaggedIterations = 2;
 
     [Benchmark]
+    [MemoryRandomization]
     public void BenchAssignJagged()
     {
         AssignStruct t = new AssignJagged();
@@ -471,6 +479,7 @@ public class ByteMark
     const int AssignRectangularIterations = 5;
 
     [Benchmark]
+    [MemoryRandomization]
     public void BenchAssignRectangular()
     {
         AssignStruct t = new AssignRect();
@@ -484,6 +493,7 @@ public class ByteMark
     const int IDEAEncryptionIterations = 50;
 
     [Benchmark]
+    [MemoryRandomization]
     public void BenchIDEAEncryption()
     {
         IDEAStruct t = new IDEAEncryption();
@@ -497,6 +507,7 @@ public class ByteMark
     const int NeuralJaggedIterations = 10;
 
     [Benchmark]
+    [MemoryRandomization]
     public void BenchNeuralJagged()
     {
         NNetStruct t = new NeuralJagged();
@@ -510,6 +521,7 @@ public class ByteMark
     const int NeuralIterations = 20;
 
     [Benchmark]
+    [MemoryRandomization]
     public void BenchNeural()
     {
         NNetStruct t = new Neural();
@@ -523,6 +535,7 @@ public class ByteMark
     const int LUDecompIterations = 10;
 
     [Benchmark]
+    [MemoryRandomization]
     public void BenchLUDecomp()
     {
         LUStruct t = new LUDecomp();

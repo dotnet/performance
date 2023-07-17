@@ -62,6 +62,7 @@ public class MDArray2
     }
 
     [Benchmark(Description = nameof(MDArray2))]
+    [MemoryRandomization]
     public bool Test() => Bench(Iterations);
 }
 }

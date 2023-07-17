@@ -22,6 +22,7 @@ public class FFT
     private static void Escape(object _) { }
 
     [Benchmark(Description = nameof(FFT))]
+    [MemoryRandomization]
     public bool Test()
     {
         double[] fr = new double[17];

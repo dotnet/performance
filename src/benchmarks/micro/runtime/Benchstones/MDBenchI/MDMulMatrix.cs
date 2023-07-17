@@ -86,6 +86,7 @@ public class MDMulMatrix
     }
 
     [Benchmark(Description = nameof(MDMulMatrix))]
+    [MemoryRandomization]
     public int[,] Test() {
         int[,] a = new int[Size, Size];
         int[,] b = new int[Size, Size];

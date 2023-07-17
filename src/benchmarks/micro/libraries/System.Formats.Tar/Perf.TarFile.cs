@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -45,6 +45,7 @@ namespace System.Formats.Tar.Tests
         public void Cleanup() => Directory.Delete(_rootDirPath, recursive: true);
 
         [Benchmark]
+        [MemoryRandomization]
         public void CreateFromDirectory_Path()
         {
             TarFile.CreateFromDirectory(sourceDirectoryName: _inputDirPath, destinationFileName: _outputTarFilePath, includeBaseDirectory: false);
@@ -52,6 +53,7 @@ namespace System.Formats.Tar.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public async Task CreateFromDirectory_Path_Async()
         {
             await TarFile.CreateFromDirectoryAsync(sourceDirectoryName: _inputDirPath, destinationFileName: _outputTarFilePath, includeBaseDirectory: false);
@@ -59,12 +61,15 @@ namespace System.Formats.Tar.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void ExtractToDirectory_Path() => TarFile.ExtractToDirectory(sourceFileName: _inputTarFilePath, destinationDirectoryName: _outputDirPath, overwriteFiles: true);
 
         [Benchmark]
+        [MemoryRandomization]
         public Task ExtractToDirectory_Path_Async() => TarFile.ExtractToDirectoryAsync(sourceFileName: _inputTarFilePath, destinationDirectoryName: _outputDirPath, overwriteFiles: true);
 
         [Benchmark]
+        [MemoryRandomization]
         public void CreateFromDirectory_Stream()
         {
             using MemoryStream ms = new MemoryStream();
@@ -72,6 +77,7 @@ namespace System.Formats.Tar.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public async Task CreateFromDirectory_Stream_Async()
         {
             await using MemoryStream ms = new MemoryStream();
@@ -79,6 +85,7 @@ namespace System.Formats.Tar.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void ExtractToDirectory_Stream()
         {
             using FileStream fs = File.OpenRead(_inputTarFilePath);
@@ -86,6 +93,7 @@ namespace System.Formats.Tar.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public async Task ExtractToDirectory_Stream_Async()
         {
             await using FileStream fs = new FileStream(_inputTarFilePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, useAsync: true);

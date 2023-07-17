@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -17,6 +17,7 @@ namespace System.Xml.Linq
         public XDocument Create() => new XDocument();
 
         [Benchmark]
+        [MemoryRandomization]
         public XDocument Parse()
         {
             return XDocument.Parse("<elem1 child1='' child2='duu' child3='e1;e2;' child4='a1' child5='goody'> some xml element content </elem1>");

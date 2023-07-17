@@ -17,6 +17,7 @@ public class MDInvMt
     private const int MatSize = Iterations;
 
     [Benchmark(Description = nameof(MDInvMt))]
+    [MemoryRandomization]
     public bool Test()
     {
         double[,] t = new double[MatSize + 1, (MatSize + 1) * 2];

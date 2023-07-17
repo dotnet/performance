@@ -18,6 +18,7 @@ namespace System.Net.NetworkInformation.Tests
         public void PAMedium() => _medium.ToString();
 
         [Benchmark]
+        [MemoryRandomization]
         public void PALong() => _long.ToString();
     }
 }

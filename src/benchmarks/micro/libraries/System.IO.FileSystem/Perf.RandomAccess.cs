@@ -75,6 +75,8 @@ namespace System.IO.Tests
         
         [Benchmark]
         [ArgumentsSource(nameof(ReadWrite_SingleBuffer_Arguments))]
+
+        [MemoryRandomization]
         public long Read(long fileSize, int bufferSize, FileOptions options)
         {
             byte[] userBuffer = _sizeToBuffer[bufferSize];
@@ -93,6 +95,7 @@ namespace System.IO.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ReadWrite_SingleBuffer_Arguments))]
+        [MemoryRandomization]
         public void Write(long fileSize, int bufferSize, FileOptions options)
         {
             byte[] userBuffer = _sizeToBuffer[bufferSize];
@@ -110,6 +113,7 @@ namespace System.IO.Tests
         [Benchmark]
         [ArgumentsSource(nameof(ReadWrite_SingleBuffer_Arguments))]
         [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
         public async Task<long> ReadAsync(long fileSize, int bufferSize, FileOptions options)
         {
             CancellationToken cancellationToken = CancellationToken.None;
@@ -129,6 +133,7 @@ namespace System.IO.Tests
         [Benchmark]
         [ArgumentsSource(nameof(ReadWrite_SingleBuffer_Arguments))]
         [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
         public async Task WriteAsync(long fileSize, int bufferSize, FileOptions options)
         {
             CancellationToken cancellationToken = CancellationToken.None;
@@ -156,6 +161,7 @@ namespace System.IO.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ReadWrite_MultipleBuffers_Arguments))]
+        [MemoryRandomization]
         public long ReadScatter(long fileSize, int buffersSize, FileOptions options)
         {
             byte[][] b = _sizeToBuffers[buffersSize];
@@ -175,6 +181,7 @@ namespace System.IO.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ReadWrite_MultipleBuffers_Arguments))]
+        [MemoryRandomization]
         public void WriteGather(long fileSize, int buffersSize, FileOptions options)
         {
             byte[][] b = _sizeToBuffers[buffersSize];
@@ -193,6 +200,7 @@ namespace System.IO.Tests
         [Benchmark]
         [ArgumentsSource(nameof(ReadWrite_MultipleBuffers_Arguments))]
         [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
         public async Task<long> ReadScatterAsync(long fileSize, int buffersSize, FileOptions options)
         {
             CancellationToken cancellationToken = CancellationToken.None;
@@ -213,6 +221,7 @@ namespace System.IO.Tests
         [Benchmark]
         [ArgumentsSource(nameof(ReadWrite_MultipleBuffers_Arguments))]
         [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
         public async Task WriteGatherAsync(long fileSize, int buffersSize, FileOptions options)
         {
             CancellationToken cancellationToken = CancellationToken.None;

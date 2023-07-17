@@ -19,6 +19,7 @@ public class Bisect
     private static void Escape(object _) { }
 
     [Benchmark(Description = nameof(Bisect))]
+    [MemoryRandomization]
     public bool Test()
     {
         int idbg, iflag;

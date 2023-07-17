@@ -46,6 +46,7 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public object Transient() => _serviceProvider.GetService<IEnumerable<A>>();
 
         [Benchmark]

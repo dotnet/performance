@@ -93,6 +93,7 @@ public class RayTracerBench
     }
 
     [Benchmark(Description = nameof(RayTracerBench))]
+    [MemoryRandomization]
     public void Bench() => RenderBench();
 }
 }

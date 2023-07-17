@@ -31,6 +31,7 @@ namespace System.Numerics.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(NumberStrings))]
+        [MemoryRandomization]
         public BigInteger Parse(BigIntegerData numberString) 
             => BigInteger.Parse(numberString.Text);
 
@@ -41,6 +42,7 @@ namespace System.Numerics.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(NumberStrings))]
+        [MemoryRandomization]
         public string ToStringD(BigIntegerData numberString)
             => numberString.Value.ToString("D");
 
@@ -53,21 +55,25 @@ namespace System.Numerics.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ValuesSameSize))]
+        [MemoryRandomization]
         public BigInteger Add(BigIntegers arguments)
             => BigInteger.Add(arguments.Left, arguments.Right);
 
         [Benchmark]
         [ArgumentsSource(nameof(ValuesSameSize))]
+        [MemoryRandomization]
         public BigInteger Subtract(BigIntegers arguments)
             => BigInteger.Subtract(arguments.Left, arguments.Right);
 
         [Benchmark]
         [ArgumentsSource(nameof(ValuesSameSize))]
+        [MemoryRandomization]
         public BigInteger Multiply(BigIntegers arguments)
             => BigInteger.Multiply(arguments.Left, arguments.Right);
 
         [Benchmark]
         [ArgumentsSource(nameof(ValuesSameSize))]
+        [MemoryRandomization]
         public BigInteger GreatestCommonDivisor(BigIntegers arguments)
             => BigInteger.GreatestCommonDivisor(arguments.Left, arguments.Right);
 
@@ -80,11 +86,13 @@ namespace System.Numerics.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ValuesHalfSize))]
+        [MemoryRandomization]
         public BigInteger Divide(BigIntegers arguments)
             => BigInteger.Divide(arguments.Left, arguments.Right);
 
         [Benchmark]
         [ArgumentsSource(nameof(ValuesHalfSize))]
+        [MemoryRandomization]
         public BigInteger Remainder(BigIntegers arguments)
             => BigInteger.Remainder(arguments.Left, arguments.Right);
 
@@ -97,6 +105,7 @@ namespace System.Numerics.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ModPowValues))]
+        [MemoryRandomization]
         public BigInteger ModPow(BigIntegers arguments)
             => BigInteger.ModPow(arguments.Left, arguments.Right, arguments.Other);
 

@@ -28,6 +28,7 @@ public class InProd
     }
 
     [Benchmark(Description = nameof(InProd))]
+    [MemoryRandomization]
     public bool Test()
     {
         double[][] rma = AllocArray<double>(RowSize, RowSize);

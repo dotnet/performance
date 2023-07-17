@@ -23,10 +23,12 @@ namespace System.Net.Security.Tests
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
+        [MemoryRandomization]
         public Task DefaultHandshakeContextIPv4Async() => DefaultContextHandshake(_clientIPv4, _serverIPv4);
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
+        [MemoryRandomization]
         public Task DefaultHandshakeContextIPv6Async() => DefaultContextHandshake(_clientIPv6, _serverIPv6);
 
         private async Task DefaultContextHandshake(Stream client, Stream server)

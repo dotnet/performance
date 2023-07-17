@@ -183,16 +183,20 @@ public class Burgers
     }
 
     [Benchmark(Description = "Burgers_0")]
+    [MemoryRandomization]
     public double[] Test0() => GetCalculated0(nt, nx, dx, dt, nu, initial);
 
     [Benchmark(Description = "Burgers_1")]
+    [MemoryRandomization]
     public double[] Test1() => GetCalculated1(nt, nx, dx, dt, nu, initial);
 
     [Benchmark(Description = "Burgers_2")]
+    [MemoryRandomization]
     public double[] Test2() => GetCalculated2(nt, nx, dx, dt, nu, initial);
 
     [Benchmark(Description = "Burgers_3")]
     [BenchmarkCategory(Categories.NoInterpreter, Categories.NoAOT)]
+    [MemoryRandomization]
     public double[] Test3() => GetCalculated3(nt * 2, nx, dx, dt, nu, initial);
 }
 

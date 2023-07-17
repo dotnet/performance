@@ -50,6 +50,7 @@ namespace System.Collections.Concurrent
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void ConcurrentBag() => SignalAndWaitForAllTasks();
 
         [IterationSetup(Target = nameof(ConcurrentStack))]
@@ -74,6 +75,7 @@ namespace System.Collections.Concurrent
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void ConcurrentStack() => SignalAndWaitForAllTasks();
 
         [IterationSetup(Target = nameof(ConcurrentQueue))]
@@ -98,6 +100,7 @@ namespace System.Collections.Concurrent
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void ConcurrentQueue() => SignalAndWaitForAllTasks();
 
         private void SignalAndWaitForAllTasks()

@@ -72,6 +72,7 @@ public class HeapSort
     }
 
     [Benchmark(Description = nameof(HeapSort))]
+    [MemoryRandomization]
     public bool Test() {
         int[] x = new int[ArraySize + 1];
         for (int i = 1; i <= ArraySize; i++) {

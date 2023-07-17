@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -14,6 +14,8 @@ namespace PerfLabTests
         public static int InnerIterationCount = 1000; // do not change the value and keep it public static NOT-readonly, ported "as is" from CoreCLR repo
         
         [Benchmark]
+
+        [MemoryRandomization]
         public void Walk()
         {
             A(5);

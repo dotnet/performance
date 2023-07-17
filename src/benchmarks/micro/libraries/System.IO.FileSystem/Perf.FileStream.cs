@@ -141,6 +141,7 @@ namespace System.IO.Tests
         [Benchmark]
         [Arguments(OneKibibyte, FileOptions.None)]
         [Arguments(OneKibibyte, FileOptions.Asynchronous)] // calling ReadByte() on bigger files makes no sense, so we don't have more test cases
+        [MemoryRandomization]
         public int ReadByte(long fileSize, FileOptions options)
         {
             int result = default;
@@ -158,6 +159,7 @@ namespace System.IO.Tests
         [Benchmark]
         [Arguments(OneKibibyte, FileOptions.None)]
         [Arguments(OneKibibyte, FileOptions.Asynchronous)]
+        [MemoryRandomization]
         public void WriteByte(long fileSize, FileOptions options)
         {
             using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
@@ -198,11 +200,14 @@ namespace System.IO.Tests
         
         [Benchmark]
         [ArgumentsSource(nameof(SyncArguments))]
+
+        [MemoryRandomization]
         public long Read(long fileSize, int userBufferSize, FileOptions options)
             => Read(fileSize, userBufferSize, options, streamBufferSize: FourKibibytes);
 
         [Benchmark]
         [ArgumentsSource(nameof(SyncArguments_NoBuffering))]
+        [MemoryRandomization]
         public long Read_NoBuffering(long fileSize, int userBufferSize, FileOptions options)
             => Read(fileSize, userBufferSize, options, streamBufferSize: 1);
 
@@ -224,11 +229,13 @@ namespace System.IO.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(SyncArguments))]
+        [MemoryRandomization]
         public void Write(long fileSize, int userBufferSize, FileOptions options)
             => Write(FileMode.Create, fileSize, userBufferSize, options, streamBufferSize: FourKibibytes);
 
         [Benchmark]
         [ArgumentsSource(nameof(SyncArguments_NoBuffering))]
+        [MemoryRandomization]
         public void Write_NoBuffering(long fileSize, int userBufferSize, FileOptions options)
             => Write(FileMode.Create, fileSize, userBufferSize, options, streamBufferSize: 1);
 
@@ -280,12 +287,14 @@ namespace System.IO.Tests
         [Benchmark]
         [ArgumentsSource(nameof(AsyncArguments))]
         [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
         public Task<long> ReadAsync(long fileSize, int userBufferSize, FileOptions options)
             => ReadAsync(fileSize, userBufferSize, options, streamBufferSize: FourKibibytes);
 
         [Benchmark]
         [ArgumentsSource(nameof(AsyncArguments_NoBuffering))]
         [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
         public Task<long> ReadAsync_NoBuffering(long fileSize, int userBufferSize, FileOptions options)
             => ReadAsync(fileSize, userBufferSize, options, streamBufferSize: 1);
 
@@ -308,18 +317,21 @@ namespace System.IO.Tests
         [Benchmark]
         [ArgumentsSource(nameof(AsyncArguments))]
         [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
         public Task WriteAsync(long fileSize, int userBufferSize, FileOptions options)
             => WriteAsync(FileMode.Create, fileSize, userBufferSize, options, streamBufferSize: FourKibibytes);
 
         [Benchmark]
         [ArgumentsSource(nameof(AsyncArguments_NoBuffering))]
         [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
         public Task WriteAsync_NoBuffering(long fileSize, int userBufferSize, FileOptions options)
             => WriteAsync(FileMode.Create, fileSize, userBufferSize, options, streamBufferSize: 1);
 
         [Benchmark]
         [Arguments(OneMibibyte, FourKibibytes, FileOptions.DeleteOnClose | FileOptions.Asynchronous)]
         [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
         public Task AppendAsync(long fileSize, int userBufferSize, FileOptions options)
             => WriteAsync(FileMode.Append, fileSize, userBufferSize, options, streamBufferSize: FourKibibytes);
 
@@ -396,6 +408,63 @@ namespace System.IO.Tests
         [Benchmark]
         [Arguments(OneKibibyte, FileOptions.None)]
         [Arguments(OneKibibyte, FileOptions.Asynchronous)]
+#if NET6_0_OR_GREATER // APIs added in .NET 6
+        private string _nonExistingFile;
+
+        [GlobalSetup(Targets = new[] { nameof(Write_NoBuffering_PreallocationSize), nameof(WriteAsync_NoBuffering_PreallocationSize) })]
+        public void SetupNonExistingFile()
+        {
+            _userBuffers = new Dictionary<int, byte[]>()
+            {
+                { SixteenKibibytes, ValuesGenerator.Array<byte>(SixteenKibibytes) },
+            };
+
+            string filePath = FileUtils.GetTestFilePath();
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+            _nonExistingFile = filePath;
+        }
+
+        [Benchmark]
+        [Arguments(OneMibibyte, SixteenKibibytes, FileOptions.None)]
+        [Arguments(HundredMibibytes, SixteenKibibytes, FileOptions.None)]
+        public void Write_NoBuffering_PreallocationSize(long fileSize, int userBufferSize, FileOptions options)
+        {
+            byte[] userBuffer = _userBuffers[userBufferSize];
+            FileStreamOptions fsOptions = new FileStreamOptions() { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None,
+                BufferSize = 0, Options = options | FileOptions.DeleteOnClose, PreallocationSize = fileSize };
+            using (FileStream fileStream = new FileStream(_nonExistingFile, fsOptions))
+            {
+                for (int i = 0; i < fileSize / userBufferSize; i++)
+                {
+                    fileStream.Write(userBuffer, 0, userBuffer.Length);
+                }
+            }
+        }
+
+        [Benchmark]
+        [BenchmarkCategory(Categories.NoWASM)]
+        [Arguments(OneMibibyte, SixteenKibibytes, FileOptions.Asynchronous)]
+        [Arguments(HundredMibibytes, SixteenKibibytes, FileOptions.Asynchronous)]
+        public async Task WriteAsync_NoBuffering_PreallocationSize(long fileSize, int userBufferSize, FileOptions options)
+        {
+            CancellationToken cancellationToken = CancellationToken.None;
+            Memory<byte> userBuffer = new Memory<byte>(_userBuffers[userBufferSize]);
+            FileStreamOptions fsOptions = new FileStreamOptions() { Mode = FileMode.CreateNew, Access = FileAccess.Write, Share = FileShare.None,
+                BufferSize = 0, Options = options | FileOptions.DeleteOnClose, PreallocationSize = fileSize };
+            using (FileStream fileStream = new FileStream(_nonExistingFile, fsOptions))
+            {
+                for (int i = 0; i < fileSize / userBufferSize; i++)
+                {
+                    await fileStream.WriteAsync(userBuffer, cancellationToken);
+                }
+            }
+        }
+#endif
+
+        [MemoryRandomization]
         public void Flush(long fileSize, FileOptions options)
         {
             using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
@@ -413,6 +482,7 @@ namespace System.IO.Tests
         [Benchmark]
         [Arguments(OneKibibyte, FileOptions.None)]
         [Arguments(OneKibibyte, FileOptions.Asynchronous)]
+        [MemoryRandomization]
         public async Task FlushAsync(long fileSize, FileOptions options)
         {
             using (FileStream fileStream = new FileStream(_destinationFilePaths[fileSize], FileMode.Create, FileAccess.Write, FileShare.Read, FourKibibytes, options))
@@ -430,6 +500,7 @@ namespace System.IO.Tests
         [Arguments(OneKibibyte, FileOptions.None)]
         [Arguments(OneMibibyte, FileOptions.None)]
         [Arguments(HundredMibibytes, FileOptions.None)]
+        [MemoryRandomization]
         public void CopyToFile(long fileSize, FileOptions options)
         {
             using (FileStream source = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))
@@ -447,6 +518,7 @@ namespace System.IO.Tests
         [Arguments(HundredMibibytes, FileOptions.Asynchronous)]
         [Arguments(HundredMibibytes, FileOptions.None)]
         [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
         public async Task CopyToFileAsync(long fileSize, FileOptions options)
         {
             using (FileStream source = new FileStream(_sourceFilePaths[fileSize], FileMode.Open, FileAccess.Read, FileShare.Read, FourKibibytes, options))

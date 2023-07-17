@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -26,6 +26,7 @@ namespace System.Collections
         public void Setup() => _uniqueValues = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
         [Benchmark]
+        [MemoryRandomization]
         public List<T> List()
         {
             var collection = new List<T>(Size);
@@ -37,6 +38,7 @@ namespace System.Collections
 
         [Benchmark]
         [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
+        [MemoryRandomization]
         public ICollection<T> ICollection() => AddToICollection(new List<T>(Size));
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -50,6 +52,7 @@ namespace System.Collections
 
 #if !NETFRAMEWORK // API added in .NET Core 2.0
         [Benchmark]
+        [MemoryRandomization]
         public HashSet<T> HashSet()
         {
             var collection = new HashSet<T>(Size);
@@ -61,6 +64,8 @@ namespace System.Collections
 #endif
 
         [Benchmark]
+
+        [MemoryRandomization]
         public Dictionary<T, T> Dictionary()
         {
             var collection = new Dictionary<T, T>(Size);
@@ -72,6 +77,7 @@ namespace System.Collections
 
         [Benchmark]
         [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
+        [MemoryRandomization]
         public IDictionary<T, T> IDictionary() => AddToIDictionary(new Dictionary<T, T>(Size));
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -84,6 +90,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public SortedList<T, T> SortedList()
         {
             var collection = new SortedList<T, T>(Size);
@@ -94,6 +101,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public Queue<T> Queue()
         {
             var collection = new Queue<T>(Size);
@@ -104,6 +112,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public Stack<T> Stack()
         {
             var collection = new Stack<T>(Size);
@@ -114,6 +123,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public ConcurrentDictionary<T, T> ConcurrentDictionary()
         {
             var collection = new ConcurrentDictionary<T, T>(Utils.ConcurrencyLevel, Size);
@@ -124,6 +134,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public ObservableCollection<T> ObservableCollection()
         {
             var collection = new ObservableCollection<T>();

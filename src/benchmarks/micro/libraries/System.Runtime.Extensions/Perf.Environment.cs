@@ -27,6 +27,7 @@ namespace System.Tests
         public string ExpandEnvironmentVariables() => Environment.ExpandEnvironmentVariables(ExpandedKey);
 
         [Benchmark]
+        [MemoryRandomization]
         public IDictionary GetEnvironmentVariables() => Environment.GetEnvironmentVariables();
 
         [Benchmark]
@@ -36,6 +37,7 @@ namespace System.Tests
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
+        [MemoryRandomization]
         public string[] GetLogicalDrives() => Environment.GetLogicalDrives();
 
         [Benchmark(OperationsPerInvoke = 2)]

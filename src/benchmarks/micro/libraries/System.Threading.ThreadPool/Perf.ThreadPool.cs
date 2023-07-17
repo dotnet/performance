@@ -14,6 +14,7 @@ namespace System.Threading.Tests
         public int WorkItemsPerCore;
 
         [Benchmark]
+        [MemoryRandomization]
         public void QueueUserWorkItem_WaitCallback_Throughput()
         {
             int remaining = WorkItemsPerCore;

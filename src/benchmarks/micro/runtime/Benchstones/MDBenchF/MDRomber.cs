@@ -15,6 +15,7 @@ public class MDRomber
     public const int Iterations = 640000;
 
     [Benchmark(Description = nameof(MDRomber))]
+    [MemoryRandomization]
     public bool Test()
     {
         double[,] r = new double[11, 11];

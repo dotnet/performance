@@ -53,6 +53,7 @@ public class LogicArray
     }
 
     [Benchmark(Description = nameof(LogicArray))]
+    [MemoryRandomization]
     public bool Test() {
         Workarea cmn = new Workarea();
         cmn.X = 0;

@@ -60,6 +60,7 @@ namespace System.Buffers.Tests
         }
 
         [Benchmark(OperationsPerInvoke = Iterations)]
+        [MemoryRandomization]
         public async Task SingleParallel()
         {
             ArrayPool<T> pool = Pool;

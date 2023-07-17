@@ -94,6 +94,7 @@ public class MulMatrix
     }
 
     [Benchmark(Description = nameof(MulMatrix))]
+    [MemoryRandomization]
     public int[][] Test() {
         int[][] a = AllocArray<int>(Size, Size);
         int[][] b = AllocArray<int>(Size, Size);

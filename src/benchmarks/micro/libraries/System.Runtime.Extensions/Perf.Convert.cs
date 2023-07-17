@@ -56,6 +56,7 @@ namespace System
         [Benchmark]
         [Arguments(Base64FormattingOptions.InsertLineBreaks)]
         [Arguments(Base64FormattingOptions.None)]
+        [MemoryRandomization]
         public string ToBase64String(Base64FormattingOptions formattingOptions)
             => Convert.ToBase64String(_binaryData, formattingOptions);
 

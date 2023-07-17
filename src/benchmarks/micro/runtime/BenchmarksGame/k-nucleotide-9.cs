@@ -260,6 +260,7 @@ namespace BenchmarksGame
         NucleotideHelpers helpers = new NucleotideHelpers(bigInput: true);
 
         [Benchmark(Description = nameof(KNucleotide_9))]
+        [MemoryRandomization]
         public bool RunBench() => Bench(helpers, false);
 
         static bool Bench(NucleotideHelpers helpers, bool verbose)

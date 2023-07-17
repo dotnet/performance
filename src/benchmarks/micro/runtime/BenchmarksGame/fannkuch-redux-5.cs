@@ -104,6 +104,7 @@ namespace BenchmarksGame
 
         [Benchmark(Description = nameof(FannkuchRedux_5))]
         [Arguments(10, 38)]
+        [MemoryRandomization]
         public int RunBench(int n, int expectedSum) => Bench(n, false);
 
         static int Bench(int n, bool verbose)

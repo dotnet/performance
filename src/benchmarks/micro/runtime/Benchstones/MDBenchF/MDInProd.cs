@@ -18,6 +18,7 @@ public class MDInProd
     private static int s_seed;
 
     [Benchmark(Description = nameof(MDInProd))]
+    [MemoryRandomization]
     public bool Test()
     {
         double[,] rma = new double[RowSize, RowSize];

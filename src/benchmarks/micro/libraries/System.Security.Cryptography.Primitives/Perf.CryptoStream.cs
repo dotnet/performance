@@ -17,6 +17,7 @@ namespace System.Security.Cryptography.Primitives.Tests.Performance
         private readonly MemoryStream _destination = new MemoryStream();
 
         [Benchmark]
+        [MemoryRandomization]
         public async Task Base64EncodeAsync()
         {
             _destination.Position = 0;

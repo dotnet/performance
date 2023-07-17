@@ -81,6 +81,7 @@ namespace System.IO.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(RecursiveDepthData))]
+        [MemoryRandomization]
         public void RecursiveCreateDeleteDirectory(int depth)
         {
             var root = _testFile;
@@ -115,6 +116,7 @@ namespace System.IO.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int EnumerateFiles() => Directory.EnumerateFiles(_testFile, "*", SearchOption.AllDirectories).Count();
 
         [GlobalCleanup(Target = nameof(EnumerateFiles))]

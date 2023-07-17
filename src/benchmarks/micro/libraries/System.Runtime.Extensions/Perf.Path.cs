@@ -60,9 +60,11 @@ namespace System.IO.Tests
 
 #if !NETFRAMEWORK // long paths are always supported on .NET Core
         [Benchmark]
+        [MemoryRandomization]
         public string GetFullPathForTypicalLongPath() => Path.GetFullPath(_testPath500);
 
         [Benchmark]
+        [MemoryRandomization]
         public void GetFullPathForReallyLongPath() => Path.GetFullPath(_testPath1000);
 #endif
 
@@ -70,6 +72,7 @@ namespace System.IO.Tests
         public void GetFullPathNoRedundantSegments() => Path.GetFullPath(_testPathNoRedundantSegments);
 
         [Benchmark]
+        [MemoryRandomization]
         public void GetFullPathWithRedundantSegments() => Path.GetFullPath(_testPathWithRedundantSegments);
 
         [Benchmark]

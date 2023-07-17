@@ -52,6 +52,7 @@ namespace System.Collections.Tests
         public void Setup_BitArrayIntArrayCtor() => _ints = ValuesGenerator.Array<int>(Size);
 
         [Benchmark]
+        [MemoryRandomization]
         public BitArray BitArrayIntArrayCtor() => new BitArray(_ints);
 
         [GlobalSetup(Targets = new [] { nameof(BitArraySetAll), nameof(BitArrayNot), nameof(BitArrayGet) })]
@@ -115,6 +116,7 @@ namespace System.Collections.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public BitArray BitArraySetLengthGrow()
         {
             var original = new BitArray(_bytes);

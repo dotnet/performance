@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -47,9 +47,11 @@ namespace System.Text.Json.Reader.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public byte[] ReadBase64EncodedByteArray_NoEscaping() => ReadBase64EncodedByteArrayCore(_base64NoEscaping);
 
         [Benchmark]
+        [MemoryRandomization]
         public byte[] ReadBase64EncodedByteArray_HeavyEscaping() => ReadBase64EncodedByteArrayCore(_base64HeavyEscaping);
 
         private byte[] ReadBase64EncodedByteArrayCore(ReadOnlySpan<byte> base64)

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -11,6 +11,7 @@ namespace System.Tests
     public class Perf_HashCode
     {
         [Benchmark]
+[MemoryRandomization]
         public int Add()
         { 
             var hc = new HashCode();
@@ -24,6 +25,7 @@ namespace System.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int Combine_1()
         {
             int result = 0;
@@ -36,6 +38,7 @@ namespace System.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int Combine_2()
         {
             int result = 0;
@@ -49,6 +52,7 @@ namespace System.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int Combine_3()
         {
             int result = 0;
@@ -63,6 +67,7 @@ namespace System.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int Combine_4()
         {
             int result = 0;
@@ -78,6 +83,7 @@ namespace System.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int Combine_5()
         {
             int result = 0;
@@ -94,6 +100,7 @@ namespace System.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int Combine_6()
         {
             int result = 0;
@@ -111,6 +118,7 @@ namespace System.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int Combine_7()
         {
             int result = 0;
@@ -129,6 +137,7 @@ namespace System.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int Combine_8()
         {
             int result = 0;

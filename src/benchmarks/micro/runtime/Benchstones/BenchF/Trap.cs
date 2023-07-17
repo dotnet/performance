@@ -15,6 +15,7 @@ public class Trap
     public const int Iterations = 240000;
 
     [Benchmark(Description = nameof(Trap))]
+    [MemoryRandomization]
     public bool Test()
     {
         int nm1, idbg;

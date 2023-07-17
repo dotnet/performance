@@ -20,6 +20,7 @@ namespace System.Net.Sockets.Tests
         private Socket _listener, _client, _server;
 
         [Benchmark(OperationsPerInvoke = 1000)]
+        [MemoryRandomization]
         public async Task ConnectAcceptAsync()
         {
             using var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -35,6 +36,7 @@ namespace System.Net.Sockets.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public async Task SendAsyncThenReceiveAsync_Task()
         {
             Socket client = _client, server = _server;
@@ -50,6 +52,7 @@ namespace System.Net.Sockets.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public async Task ReceiveAsyncThenSendAsync_Task()
         {
             Socket client = _client, server = _server;
@@ -66,6 +69,7 @@ namespace System.Net.Sockets.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public async Task SendAsyncThenReceiveAsync_SocketAsyncEventArgs()
         {
             Socket client = _client, server = _server;
@@ -90,6 +94,7 @@ namespace System.Net.Sockets.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public async Task ReceiveAsyncThenSendAsync_SocketAsyncEventArgs()
         {
             Socket client = _client, server = _server;

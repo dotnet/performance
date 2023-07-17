@@ -106,6 +106,7 @@ namespace V8.Richards
         public const int DATA_SIZE = 4;
 
         [Benchmark(Description = nameof(Richards))]
+        [MemoryRandomization]
         public bool Bench() => runRichards();
     }
 

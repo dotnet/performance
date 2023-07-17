@@ -30,71 +30,96 @@ namespace System.Numerics.Tests
 
         // Vector.ConvertToXXX
         [Benchmark]
+        // Vector.ConvertToXXX
+        [MemoryRandomization]
         public Vector<int> Convert_float_int() => Convert<float, int>(s_valuesFloat);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<uint> Convert_float_uint() => Convert<float, uint>(s_valuesFloat);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<long> Convert_double_long() => Convert<double, long>(s_valuesDouble);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<ulong> Convert_double_ulong() => Convert<double, ulong>(s_valuesDouble);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<float> Convert_int_float() => Convert<int, float>(s_valuesInt);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<float> Convert_uint_float() => Convert<uint, float>(s_valuesUInt);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<double> Convert_long_double() => Convert<long, double>(s_valuesLong);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<double> Convert_ulong_double() => Convert<ulong, double>(s_valuesULong);
 
         // Vector.Narrow
         [Benchmark]
+        // Vector.Narrow
+        [MemoryRandomization]
         public Vector<float> Narrow_double() => Narrow<double, float>(s_valuesDouble);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<sbyte> Narrow_short() => Narrow<short, sbyte>(s_valuesShort);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<byte> Narrow_ushort() => Narrow<ushort, byte>(s_valuesUShort);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<short> Narrow_int() => Narrow<int, short>(s_valuesInt);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<ushort> Narrow_uint() => Narrow<uint, ushort>(s_valuesUInt);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<int> Narrow_long() => Narrow<long, int>(s_valuesLong);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<uint> Narrow_ulong() => Narrow<ulong, uint>(s_valuesULong);
 
         // Vector.Widen
         [Benchmark]
+        // Vector.Widen
+        [MemoryRandomization]
         public Vector<double> Widen_float() => Widen<float, double>(s_valuesFloat);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<short> Widen_sbyte() => Widen<sbyte, short>(s_valuesSByte);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<ushort> Widen_byte() => Widen<byte, ushort>(s_valuesByte);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<int> Widen_short() => Widen<short, int>(s_valuesShort);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<uint> Widen_ushort() => Widen<ushort, uint>(s_valuesUShort);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<long> Widen_int() => Widen<int, long>(s_valuesInt);
 
         [Benchmark]
+        [MemoryRandomization]
         public Vector<ulong> Widen_uint() => Widen<uint, ulong>(s_valuesUInt);
 
         private static Vector<TTo> Convert<TFrom, TTo>(TFrom[] values) where TFrom : struct where TTo : struct

@@ -33,6 +33,7 @@ namespace System.Linq.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(SelectArguments))]
+        [MemoryRandomization]
         public void Select(LinqTestData input) => input.Collection.Select(i => i + 1).Consume(_consumer);
 
         public IEnumerable<object> WhereArguments()
@@ -47,12 +48,16 @@ namespace System.Linq.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(WhereArguments))]
+        [MemoryRandomization]
         public void Where(LinqTestData input) => input.Collection.Where(i => i >= 0).Consume(_consumer);
 
         // Where().Select() has 3 code paths: WhereSelectEnumerableIterator, WhereSelectArrayIterator, WhereSelectListIterator, exactly as Where
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Where.cs
         [Benchmark]
         [ArgumentsSource(nameof(WhereArguments))]
+        // Where().Select() has 3 code paths: WhereSelectEnumerableIterator, WhereSelectArrayIterator, WhereSelectListIterator, exactly as Where
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Where.cs
+        [MemoryRandomization]
         public void WhereSelect(LinqTestData input) => input.Collection.Where(i => i >= 0).Select(i => i + 1).Consume(_consumer);
 
         // Where().First() has no special treatment, the code execution paths are based on WhereIterators
@@ -80,6 +85,7 @@ namespace System.Linq.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(FirstPredicateArguments))]
+        [MemoryRandomization]
         public int FirstWithPredicate_LastElementMatches(LinqTestData input) => input.Collection.First(i => i >= LinqTestData.Size - 1);
 
         public IEnumerable<object> LastPredicateArguments()
@@ -94,6 +100,7 @@ namespace System.Linq.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(LastPredicateArguments))]
+        [MemoryRandomization]
         public int LastWithPredicate_FirstElementMatches(LinqTestData input) => input.Collection.Last(i => i >= 0);
 
         // FirstOrDefault() runs the same code as First, except that it does not throw. Benchmarking it does not add any value so it go removed.
@@ -111,6 +118,9 @@ namespace System.Linq.Tests
         // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/First.cs
         [Benchmark]
         [ArgumentsSource(nameof(FirstPredicateArguments))]
+        // Any uses TryGetFirst internally.
+        // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/First.cs
+        [MemoryRandomization]
         public bool AnyWithPredicate_LastElementMatches(LinqTestData input) => input.Collection.Any(i => i >= LinqTestData.Size - 1);
 
         // All() has no special treatment and it has a single execution path
@@ -156,48 +166,71 @@ namespace System.Linq.Tests
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Cast.cs
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        // SingleOrDefault() runs the same code as Single, except that it does not throw. Benchmarking it does not add any value so it go removed.
+        // https://github.com/dotnet/corefx/blob/master/src/System.Linq/src/System/Linq/First.cs
+
+        // Cast has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Cast.cs
+        [MemoryRandomization]
         public void CastToBaseClass(LinqTestData input) => input.Collection.Cast<object>().Consume(_consumer);
 
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        [MemoryRandomization]
         public void CastToSameType(LinqTestData input) => input.Collection.Cast<int>().Consume(_consumer);
 
         // OrderBy() has no special treatment and it has a single execution path
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/OrderBy.cs
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        // OrderBy() has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/OrderBy.cs
+        [MemoryRandomization]
         public void OrderBy(LinqTestData input) => input.Collection.OrderBy(i => i).Consume(_consumer);
 
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        [MemoryRandomization]
         public void OrderByDescending(LinqTestData input) => input.Collection.OrderByDescending(i => i).Consume(_consumer);
 
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        [MemoryRandomization]
         public void OrderByThenBy(LinqTestData input) => input.Collection.OrderBy(i => i).ThenBy(i => -i).Consume(_consumer);
 
         [Benchmark]
+        [MemoryRandomization]
         public void Range() => Enumerable.Range(0, LinqTestData.Size).Consume(_consumer);
 
         [Benchmark]
+        [MemoryRandomization]
         public void Repeat() => Enumerable.Repeat(0, LinqTestData.Size).Consume(_consumer);
 
         // Reverse() has no special treatment and it has a single execution path
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Reverse.cs
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        // Reverse() has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Reverse.cs
+        [MemoryRandomization]
         public void Reverse(LinqTestData input) => input.Collection.Reverse().Consume(_consumer);
 
         // Skip() has no special treatment and it has a single execution path
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Skip.cs
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        // Skip() has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Skip.cs
+        [MemoryRandomization]
         public void Skip_One(LinqTestData input) => input.Collection.Skip(1).Consume(_consumer);
 
         // Take() has no special treatment and it has a single execution path
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Take.cs
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        // Take() has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Take.cs
+        [MemoryRandomization]
         public void Take_All(LinqTestData input) => input.Collection.Take(LinqTestData.Size - 1).Consume(_consumer);
 
 #if !NETFRAMEWORK
@@ -212,6 +245,7 @@ namespace System.Linq.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(TakeLastArguments))]
+        [MemoryRandomization]
         public void TakeLastHalf(LinqTestData input) => input.Collection.TakeLast(LinqTestData.Size / 2).Consume(_consumer);
 #endif
 
@@ -232,6 +266,7 @@ namespace System.Linq.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ToArrayArguments))]
+        [MemoryRandomization]
         public int[] ToArray(LinqTestData input) => input.Collection.ToArray();
 
         public IEnumerable<object> SelectToArrayArguments()
@@ -248,6 +283,7 @@ namespace System.Linq.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(SelectToArrayArguments))]
+        [MemoryRandomization]
         public int[] SelectToArray(LinqTestData input) => input.Collection.Select(i => i + 1).ToArray();
 
         // ToList() has same 2 code paths as ToArray
@@ -255,11 +291,17 @@ namespace System.Linq.Tests
         // https://github.com/dotnet/coreclr/blob/d61a380bbfde580986f416d8bf3e687104cd5701/src/System.Private.CoreLib/shared/System/Collections/Generic/List.cs#L61
         [Benchmark]
         [ArgumentsSource(nameof(ToArrayArguments))]
+        // ToList() has same 2 code paths as ToArray
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/ToCollection.cs#L30
+        // https://github.com/dotnet/coreclr/blob/d61a380bbfde580986f416d8bf3e687104cd5701/src/System.Private.CoreLib/shared/System/Collections/Generic/List.cs#L61
+        [MemoryRandomization]
         public List<int> ToList(LinqTestData input) => input.Collection.ToList();
 
         // Select().ToList() has same 5 code paths as Select.ToArray
         [Benchmark]
         [ArgumentsSource(nameof(SelectToArrayArguments))]
+        // Select().ToList() has same 5 code paths as Select.ToArray
+        [MemoryRandomization]
         public List<int> SelectToList(LinqTestData input) => input.Collection.Select(i => i + 1).ToList();
 
         public IEnumerable<object> ToDictionaryArguments()
@@ -274,6 +316,7 @@ namespace System.Linq.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ToDictionaryArguments))]
+        [MemoryRandomization]
         public Dictionary<int, int> ToDictionary(LinqTestData input) => input.Collection.ToDictionary(key => key);
 
         public IEnumerable<object> ContainsArguments()
@@ -287,16 +330,21 @@ namespace System.Linq.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ContainsArguments))]
+        [MemoryRandomization]
         public bool Contains_ElementNotFound(LinqTestData input) => input.Collection.Contains(LinqTestData.Size + 1);
 
         // Concat() has two execution paths: ConcatIterator (a result of another Concatenation) and IEnumerable
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Concat.cs
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        // Concat() has two execution paths: ConcatIterator (a result of another Concatenation) and IEnumerable
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Concat.cs
+        [MemoryRandomization]
         public void Concat_Once(LinqTestData input) => input.Collection.Concat(input.Collection).Consume(_consumer);
 
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        [MemoryRandomization]
         public void Concat_TenTimes(LinqTestData input)
         {
             IEnumerable<int> result = input.Collection;
@@ -360,6 +408,9 @@ namespace System.Linq.Tests
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Distinct.cs
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        // Distinct() has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Distinct.cs
+        [MemoryRandomization]
         public void Distinct(LinqTestData input) => input.Collection.Distinct().Consume(_consumer);
 
         public IEnumerable<object> ElementAtArguments()
@@ -379,24 +430,36 @@ namespace System.Linq.Tests
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Grouping.cs
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        // GroupBy(func) has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Grouping.cs
+        [MemoryRandomization]
         public void GroupBy(LinqTestData input) => input.Collection.GroupBy(x => x % 10).Consume(_consumer);
 
         // Zip(func) has no special treatment and it has a single execution path
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Zip.cs
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        // Zip(func) has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Zip.cs
+        [MemoryRandomization]
         public void Zip(LinqTestData input) => input.Collection.Zip(input.Collection, (x, y) => x + y).Consume(_consumer);
 
         // Intersect() has no special treatment and it has a single execution path
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Intersect.cs
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        // Intersect() has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Intersect.cs
+        [MemoryRandomization]
         public void Intersect(LinqTestData input) => input.Collection.Intersect(input.Collection).Consume(_consumer);
 
         // Except() has no special treatment and it has a single execution path
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Except.cs
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        // Except() has no special treatment and it has a single execution path
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/Except.cs
+        [MemoryRandomization]
         public void Except(LinqTestData input) => input.Collection.Except(input.Collection).Consume(_consumer);
 
         [Benchmark]
@@ -411,12 +474,16 @@ namespace System.Linq.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(SequenceEqualArguments))]
+        [MemoryRandomization]
         public bool SequenceEqual(LinqTestData input1, LinqTestData input2) => input1.Collection.SequenceEqual(input2.Collection);
 
         // Append() has two execution paths: AppendPrependIterator (a result of another Append or Prepend) and IEnumerable, this benchmark tests both
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/AppendPrepend.cs
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        // Append() has two execution paths: AppendPrependIterator (a result of another Append or Prepend) and IEnumerable, this benchmark tests both
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/AppendPrepend.cs
+        [MemoryRandomization]
         public void Append(LinqTestData input)
         {
             IEnumerable<int> result = Enumerable.Empty<int>();
@@ -431,6 +498,9 @@ namespace System.Linq.Tests
         // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/AppendPrepend.cs
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        // Prepend()has two execution paths: AppendPrependIterator (a result of another Append or Prepend) and IEnumerable, this benchmark tests both
+        // https://github.com/dotnet/corefx/blob/dcf1c8f51bcdbd79e08cc672e327d50612690a25/src/System.Linq/src/System/Linq/AppendPrepend.cs
+        [MemoryRandomization]
         public void Prepend(LinqTestData input)
         {
             IEnumerable<int> result = Enumerable.Empty<int>();
@@ -443,6 +513,7 @@ namespace System.Linq.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(IEnumerableArgument))]
+        [MemoryRandomization]
         public void AppendPrepend(LinqTestData input)
         {
             IEnumerable<int> result = Enumerable.Empty<int>();

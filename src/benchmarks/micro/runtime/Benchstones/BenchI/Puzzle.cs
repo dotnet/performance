@@ -345,6 +345,7 @@ public class Puzzle
     }
 
     [Benchmark(Description = nameof(Puzzle))]
+    [MemoryRandomization]
     public bool Test()
     {
         _p = AllocArray<bool>(TypeMax + 1, PuzzleSize + 1);

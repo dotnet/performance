@@ -24,6 +24,7 @@ namespace System.Formats.Cbor.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(CborEncodings))]
+        [MemoryRandomization]
         public void SkipValue(CborEncoding encoding)
         {
             var reader = new CborReader(encoding.Payload, encoding.ConformanceMode);

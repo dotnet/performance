@@ -47,6 +47,7 @@ public class Pi
     }
 
     [Benchmark]
+    [MemoryRandomization]
     public bool Test() {
         int[] digits = ComputePi(a);
         return (digits[0] == 3 && digits[1] == 1415 && digits[2] == 9265 && digits[250] == 1989);

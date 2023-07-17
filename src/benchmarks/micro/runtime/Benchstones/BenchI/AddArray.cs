@@ -18,6 +18,7 @@ public class AddArray
     static void Escape(object _) { }
 
     [Benchmark(Description = nameof(AddArray))]
+    [MemoryRandomization]
     public bool Test() {
 
         int[] flags1 = new int[Size + 1];

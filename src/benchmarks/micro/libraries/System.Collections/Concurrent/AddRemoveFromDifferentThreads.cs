@@ -67,6 +67,7 @@ namespace System.Collections.Concurrent
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void ConcurrentBag() => SignalAndWaitForAllTasks();
 
         [IterationSetup(Target = nameof(ConcurrentStack))]
@@ -106,6 +107,7 @@ namespace System.Collections.Concurrent
         }
 
         [Benchmark]
+        [MemoryRandomization]
 #if NET7_0 // https://github.com/dotnet/runtime/issues/64980
         [OperatingSystemsArchitectureFilter(false, System.Runtime.InteropServices.Architecture.Arm64)]
 #endif
@@ -148,6 +150,7 @@ namespace System.Collections.Concurrent
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void ConcurrentQueue() => SignalAndWaitForAllTasks();
 
         private void SignalAndWaitForAllTasks()

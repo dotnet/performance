@@ -60,6 +60,7 @@ public class MDGeneralArray
     }
 
     [Benchmark(Description = nameof(MDGeneralArray))]
+    [MemoryRandomization]
     public bool Test() {
         int[,,] s = new int[10, 10, 10];
         int[,,] d = new int[10, 10, 10];
@@ -68,6 +69,7 @@ public class MDGeneralArray
 
     [Benchmark(Description = "MDGeneralArray2")]
     [AotFilter("Arrays with non-zero lower bounds are not supported.")]
+    [MemoryRandomization]
     public bool Test2() {
         int[] lengths = new int[3] { 10, 10, 10 };
         int[] lowerBounds = new int[3] { -5, 0, 5 };

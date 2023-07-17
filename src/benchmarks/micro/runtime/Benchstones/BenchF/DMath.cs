@@ -47,6 +47,7 @@ public class DMath
     }
 
     [Benchmark(Description = nameof(DMath))]
+    [MemoryRandomization]
     public bool Test() => Bench(Iterations);
     
     [MethodImpl(MethodImplOptions.NoInlining)]

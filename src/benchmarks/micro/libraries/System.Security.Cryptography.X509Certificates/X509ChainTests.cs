@@ -23,10 +23,12 @@ namespace System.Security.Cryptography.X509Certificates.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public bool BuildX509ChainSelfSigned() => BuildChain(_rsa4096Cert);
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
+        [MemoryRandomization]
         public bool BuildX509ChainContoso() => BuildChain(_cert);
     }
 }

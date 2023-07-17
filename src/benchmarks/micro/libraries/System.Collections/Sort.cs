@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -42,6 +42,7 @@ namespace System.Collections
         public void SetupArrayIteration() => Utils.FillArrays(ref _arrays, InvocationsPerIteration, _values);
 
         [Benchmark]
+        [MemoryRandomization]
         public void Array() => System.Array.Sort(_arrays[_iterationIndex++], 0, Size);
 
         [Benchmark]
@@ -57,10 +58,12 @@ namespace System.Collections
         public void SetupListIteration() => Utils.ClearAndFillCollections(ref _lists, InvocationsPerIteration, _values);
 
         [Benchmark]
+        [MemoryRandomization]
         public void List() => _lists[_iterationIndex++].Sort();
 
         [BenchmarkCategory(Categories.LINQ)]
         [Benchmark]
+        [MemoryRandomization]
         public int LinqQuery()
         {
             int count = 0;
@@ -71,6 +74,7 @@ namespace System.Collections
 
         [BenchmarkCategory(Categories.LINQ)]
         [Benchmark]
+        [MemoryRandomization]
         public int LinqOrderByExtension()
         {
             int count = 0;

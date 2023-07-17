@@ -75,6 +75,7 @@ namespace System.Formats.Tar.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void PaxTarEntry_WriteEntry()
         {
             PaxTarEntry entry = new PaxTarEntry(TarEntryType.RegularFile, _fileName, _ea);
@@ -83,6 +84,7 @@ namespace System.Formats.Tar.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public async Task PaxTarEntry_WriteEntry_Async()
         {
             PaxTarEntry entry = new PaxTarEntry(TarEntryType.RegularFile, _fileName, _ea);

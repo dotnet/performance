@@ -14,9 +14,13 @@ namespace XmlDocumentTests.XmlDocumentTests
         private XmlDocument _doc;
         
         [Benchmark]
+
+        [MemoryRandomization]
         public XmlDocument Create() => new XmlDocument();
         
         [Benchmark(OperationsPerInvoke = 8)]
+
+        [MemoryRandomization]
         public XmlDocument LoadXml()
         {
             XmlDocument doc =  new XmlDocument();

@@ -16,6 +16,7 @@ public class NewtE
     public const int Iterations = 1000000;
 
     [Benchmark(Description = nameof(NewtE))]
+    [MemoryRandomization]
     public bool Test()
     {
         double idgb, a, b, x, y, deltaX, deltaY;

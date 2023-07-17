@@ -28,26 +28,31 @@ namespace System.Net.Security.Tests
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
         [ArgumentsSource(nameof(TlsProtocols))]
+        [MemoryRandomization]
         public Task HandshakeContosoAsync(SslProtocols protocol) => SslStreamTests.HandshakeAsync(SslStreamTests._cert, protocol);
 
         [Benchmark]
         [ArgumentsSource(nameof(TlsProtocols))]
         [BenchmarkCategory(Categories.NoAOT)]
+        [MemoryRandomization]
         public Task HandshakeECDSA256CertAsync(SslProtocols protocol) => SslStreamTests.HandshakeAsync(SslStreamTests._ec256Cert, protocol);
 
         [Benchmark]
         [ArgumentsSource(nameof(TlsProtocols))]
         [BenchmarkCategory(Categories.NoAOT)]
         [OperatingSystemsFilter(allowed: true, platforms: OS.Linux)]    // Not supported on Windows at the moment.
+        [MemoryRandomization]
         public Task HandshakeECDSA512CertAsync(SslProtocols protocol) => SslStreamTests.HandshakeAsync(SslStreamTests._ec512Cert, protocol);
 
         [Benchmark]
         [ArgumentsSource(nameof(TlsProtocols))]
         [BenchmarkCategory(Categories.NoAOT)]
+        [MemoryRandomization]
         public Task HandshakeRSA2048CertAsync(SslProtocols protocol) => SslStreamTests.HandshakeAsync(SslStreamTests._rsa2048Cert, protocol);
 
         [Benchmark]
         [ArgumentsSource(nameof(TlsProtocols))]
+        [MemoryRandomization]
         public Task HandshakeRSA4096CertAsync(SslProtocols protocol) => SslStreamTests.HandshakeAsync(SslStreamTests._rsa4096Cert, protocol);
 
         private static bool GetTls13Support()

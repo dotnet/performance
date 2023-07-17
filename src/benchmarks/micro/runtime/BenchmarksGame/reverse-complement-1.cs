@@ -51,6 +51,8 @@ namespace BenchmarksGame
         byte[] outBytes = new byte[helpers.FileLength];
         
         [Benchmark(Description = nameof(ReverseComplement_1))]
+
+        [MemoryRandomization]
         public void RunBench()
         {
             using (var input = new FileStream(helpers.InputFile, FileMode.Open))

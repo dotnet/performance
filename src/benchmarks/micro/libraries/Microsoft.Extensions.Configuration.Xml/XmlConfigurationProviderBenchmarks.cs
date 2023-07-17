@@ -1,4 +1,4 @@
-﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 using System.Collections.Generic;
 using System.IO;
@@ -41,6 +41,7 @@ namespace Microsoft.Extensions.Configuration.Xml
         public void Cleanup() => _memoryStream.Dispose();
 
         [Benchmark]
+        [MemoryRandomization]
         public void Load()
         {
             _memoryStream.Position = 0;

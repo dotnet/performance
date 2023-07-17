@@ -334,6 +334,7 @@ public class MDPuzzle
     }
 
     [Benchmark(Description = nameof(MDPuzzle))]
+    [MemoryRandomization]
     public bool Test()
     {
         _p = new bool[TypeMax + 1, PuzzleSize + 1];

@@ -55,6 +55,7 @@ public class Midpoint
     }
 
     [Benchmark(Description = nameof(Midpoint))]
+    [MemoryRandomization]
     public bool Test() {
         int[][] a = AllocArray<int>(2001, 4);
         int[] mid = new int[2001];

@@ -27,6 +27,7 @@ public class InvMt
     }
 
     [Benchmark(Description = nameof(InvMt))]
+    [MemoryRandomization]
     public bool Test()
     {
         double[][] t = AllocArray<double>(MatSize + 1, (MatSize + 1) * 2);

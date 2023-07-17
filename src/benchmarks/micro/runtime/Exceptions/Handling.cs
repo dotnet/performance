@@ -1,4 +1,4 @@
-﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using MicroBenchmarks;
 using System;
@@ -62,6 +62,7 @@ namespace Exceptions
         [Arguments(ExceptionKind.Hardware)]
         [Arguments(ExceptionKind.ReflectionSoftware)]
         [Arguments(ExceptionKind.ReflectionHardware)]
+        [MemoryRandomization]
         public Exception ThrowAndCatch(ExceptionKind kind)
         {
             try
@@ -81,6 +82,7 @@ namespace Exceptions
         [Arguments(ExceptionKind.Hardware)]
         [Arguments(ExceptionKind.ReflectionSoftware)]
         [Arguments(ExceptionKind.ReflectionHardware)]
+        [MemoryRandomization]
         public Exception ThrowAndCatch_ManyCatchBlocks(ExceptionKind kind)
         {
             try
@@ -196,6 +198,7 @@ namespace Exceptions
         [Arguments(ExceptionKind.Hardware)]
         [Arguments(ExceptionKind.ReflectionSoftware)]
         [Arguments(ExceptionKind.ReflectionHardware)]
+        [MemoryRandomization]
         public Exception ThrowAndCatchDeep(ExceptionKind kind)
         {
             try
@@ -228,6 +231,7 @@ namespace Exceptions
         [Arguments(ExceptionKind.Hardware)]
         [Arguments(ExceptionKind.ReflectionSoftware)]
         [Arguments(ExceptionKind.ReflectionHardware)]
+        [MemoryRandomization]
         public Exception ThrowAndCatchDeepRecursive(ExceptionKind kind)
         {
             try
@@ -380,6 +384,7 @@ namespace Exceptions
         [Benchmark]
         [Arguments(ExceptionKind.Software)]
         [Arguments(ExceptionKind.Hardware)]
+        [MemoryRandomization]
         public Exception CatchAndRethrowDeep(ExceptionKind kind)
         {
             try
@@ -418,6 +423,7 @@ namespace Exceptions
         [Benchmark]
         [Arguments(ExceptionKind.Software)]
         [Arguments(ExceptionKind.Hardware)]
+        [MemoryRandomization]
         public Exception CatchAndThrowOtherDeep(ExceptionKind kind)
         {
             try
@@ -456,6 +462,7 @@ namespace Exceptions
         [Benchmark]
         [Arguments(ExceptionKind.Software)]
         [Arguments(ExceptionKind.Hardware)]
+        [MemoryRandomization]
         public Exception TryAndFinallyDeep(ExceptionKind kind)
         {
             try
@@ -494,6 +501,7 @@ namespace Exceptions
         [Benchmark]
         [Arguments(ExceptionKind.Software)]
         [Arguments(ExceptionKind.Hardware)]
+        [MemoryRandomization]
         public Exception TryAndCatchDeep_CaugtAtTheTop(ExceptionKind kind)
         {
             try

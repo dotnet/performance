@@ -48,6 +48,7 @@ namespace System.IO.Pipelines.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public async Task ReadAsync()
         {
             PipeWriter writer = _pipe.Writer;
@@ -97,6 +98,7 @@ namespace System.IO.Pipelines.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public async Task ReadAsyncWithCancellationToken()
         {
             PipeWriter writer = _pipe.Writer;

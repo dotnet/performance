@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -41,6 +41,7 @@ namespace System.Globalization.Tests
         public void Setup() => _value = new string(File.ReadAllText(CompressedFile.GetFilePath("alice29.txt")).Take(Count).ToArray());
 
         [Benchmark]
+        [MemoryRandomization]
         public new void GetHashCode() => Options.CultureInfo.CompareInfo.GetHashCode(_value, Options.CompareOptions);
     }
 }

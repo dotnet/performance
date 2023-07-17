@@ -40,6 +40,7 @@ namespace System.Net.WebSockets.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public async Task ReceiveSend()
         {
             ValueTask<ValueWebSocketReceiveResult> read = _server.ReceiveAsync(_buffer, default);

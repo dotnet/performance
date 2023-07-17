@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -33,6 +33,7 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.Runtime, Categories.Libraries, Categories.ThirdParty)]
         [Benchmark(Description = "JSON.NET")]
+        [MemoryRandomization]
         public T JsonNet_() => Newtonsoft.Json.JsonConvert.DeserializeObject<T>(serialized);
 
         [GlobalSetup(Target = nameof(Utf8Json_))]
@@ -47,6 +48,7 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.Runtime, Categories.Libraries)]
         [Benchmark(Description = "SystemTextJson_Reflection")]
+        [MemoryRandomization]
         public T SystemTextJson_Reflection_() => System.Text.Json.JsonSerializer.Deserialize<T>(serialized);
 
 #if NET6_0_OR_GREATER

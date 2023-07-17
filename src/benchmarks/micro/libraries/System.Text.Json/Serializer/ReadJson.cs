@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -65,14 +65,17 @@ namespace System.Text.Json.Serialization.Tests
 
         [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
+        [MemoryRandomization]
         public T DeserializeFromString() => JsonSerializer.Deserialize<T>(_serialized, _options);
 
         [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
+        [MemoryRandomization]
         public T DeserializeFromUtf8Bytes() => JsonSerializer.Deserialize<T>(_utf8Serialized, _options);
 
         [BenchmarkCategory(Categories.Libraries, Categories.JSON)]
         [Benchmark]
+        [MemoryRandomization]
         public T DeserializeFromReader()
         {
             Utf8JsonReader reader = new Utf8JsonReader(_utf8Serialized);
@@ -81,6 +84,7 @@ namespace System.Text.Json.Serialization.Tests
 
         [BenchmarkCategory(Categories.Libraries, Categories.JSON, Categories.NoWASM)]
         [Benchmark]
+        [MemoryRandomization]
         public async Task<T> DeserializeFromStream()
         {
             _memoryStream.Position = 0;

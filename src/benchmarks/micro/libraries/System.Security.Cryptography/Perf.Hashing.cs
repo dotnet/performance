@@ -19,15 +19,19 @@ namespace System.Security.Cryptography.Tests
         private readonly SHA512 _sha512 = SHA512.Create();
 
         [Benchmark]
+        [MemoryRandomization]
         public byte[] Sha1() => _sha1.ComputeHash(_data);
 
         [Benchmark]
+        [MemoryRandomization]
         public byte[] Sha256() => _sha256.ComputeHash(_data);
 
         [Benchmark]
+        [MemoryRandomization]
         public byte[] Sha384() => _sha384.ComputeHash(_data);
 
         [Benchmark]
+        [MemoryRandomization]
         public byte[] Sha512() => _sha512.ComputeHash(_data);
     }
 }

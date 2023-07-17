@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -84,6 +84,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public Dictionary<T, T> Dictionary()
         {
             var dictionary = _dictionary;
@@ -101,6 +102,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public SortedList<T, T> SortedList()
         {
             var sortedList = _sortedList;
@@ -118,6 +120,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public SortedDictionary<T, T> SortedDictionary()
         {
             var dictionary = _sortedDictionary;
@@ -135,6 +138,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public ConcurrentDictionary<T, T> ConcurrentDictionary()
         {
             var dictionary = _concurrentDictionary;

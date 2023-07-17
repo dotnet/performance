@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2018 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -479,6 +479,7 @@ namespace JetStream {
         };
 
         [Benchmark]
+        [MemoryRandomization]
         public void MaximizeSchwarzCriterion() {
             const double segmentCountWeight = 2.5;
             const int gridLength = 500;

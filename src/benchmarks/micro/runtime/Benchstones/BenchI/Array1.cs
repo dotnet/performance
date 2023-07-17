@@ -89,6 +89,7 @@ public class Array1
     }
 
     [Benchmark(Description = nameof(Array1))]
+    [MemoryRandomization]
     public bool Test()
     {
         int[] buffer = new int[Maxnum + 1];

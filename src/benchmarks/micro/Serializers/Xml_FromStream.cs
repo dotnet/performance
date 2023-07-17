@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -41,6 +41,7 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.Libraries, Categories.Runtime)]
         [Benchmark(Description = nameof(XmlSerializer))]
+        [MemoryRandomization]
         public T XmlSerializer_()
         {
             memoryStream.Position = 0;
@@ -59,6 +60,7 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.Libraries)]
         [Benchmark(Description = nameof(DataContractSerializer))]
+        [MemoryRandomization]
         public T DataContractSerializer_()
         {
             memoryStream.Position = 0;
@@ -81,6 +83,7 @@ namespace MicroBenchmarks.Serializers
 
         [BenchmarkCategory(Categories.Libraries)]
         [Benchmark(Description = nameof(XmlDictionaryReader))]
+        [MemoryRandomization]
         public T DataContractSerializer_BinaryXml_()
         {
             ((IXmlBinaryReaderInitializer)xmlDictionaryReader).SetInput(memoryBytes, 0, memoryBytes.Length, null, XmlDictionaryReaderQuotas.Max, null, null);

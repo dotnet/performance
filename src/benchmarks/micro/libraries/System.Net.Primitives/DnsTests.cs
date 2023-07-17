@@ -14,6 +14,7 @@ namespace System.Net.Tests
         private string _hostname;
 
         [Benchmark]
+        [MemoryRandomization]
         public IPHostEntry GetHostEntry() => Dns.GetHostEntry("34.206.253.53");
 
         [Benchmark]
@@ -23,6 +24,7 @@ namespace System.Net.Tests
         public void SetupGetHostAddressesAsync() => _hostname = Dns.GetHostName();
 
         [Benchmark]
+        [MemoryRandomization]
         public Task GetHostAddressesAsync() => Dns.GetHostAddressesAsync(_hostname);
     }
 }

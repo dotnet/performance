@@ -88,6 +88,7 @@ namespace BenchmarksGame
         private NucleotideHelpers _nucleotideHarnessHelpers = new NucleotideHelpers(bigInput: true);
 
         [Benchmark(Description = nameof(KNucleotide_1))]
+        [MemoryRandomization]
         public bool RunBench()
         {
             using (var inputFile = new FileStream(_nucleotideHarnessHelpers.InputFile, FileMode.Open))

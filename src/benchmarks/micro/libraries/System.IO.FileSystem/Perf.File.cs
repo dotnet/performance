@@ -87,6 +87,7 @@ namespace System.IO.Tests
         [Arguments(SixteenKibibytes)]
         [Arguments(OneMibibyte)]
         [Arguments(HundredMibibytes)]
+        [MemoryRandomization]
         public void WriteAllBytes(int size) => File.WriteAllBytes(_testFilePath, _userBuffers[size]);
 
         [GlobalSetup(Targets = new[] { nameof(ReadAllBytes), "ReadAllBytesAsync", nameof(CopyTo), nameof(CopyToOverwrite) })]
@@ -127,6 +128,7 @@ namespace System.IO.Tests
         [Arguments(SixteenKibibytes)]
         [Arguments(OneMibibyte)]
         [Arguments(HundredMibibytes)]
+        [MemoryRandomization]
         public byte[] ReadAllBytes(int size) => File.ReadAllBytes(_filesToRead[size]);
 
 #if !NETFRAMEWORK
@@ -137,6 +139,7 @@ namespace System.IO.Tests
         [Arguments(SixteenKibibytes)]
         [Arguments(OneMibibyte)]
         [Arguments(HundredMibibytes)]
+        [MemoryRandomization]
         public Task WriteAllBytesAsync(int size) => File.WriteAllBytesAsync(_testFilePath, _userBuffers[size]);
 
         [BenchmarkCategory(Categories.NoWASM)]
@@ -146,6 +149,7 @@ namespace System.IO.Tests
         [Arguments(SixteenKibibytes)]
         [Arguments(OneMibibyte)]
         [Arguments(HundredMibibytes)]
+        [MemoryRandomization]
         public Task<byte[]> ReadAllBytesAsync(int size) => File.ReadAllBytesAsync(_filesToRead[size]);
 #endif
 
@@ -154,11 +158,13 @@ namespace System.IO.Tests
             => File.WriteAllLines(_testFilePath = FileUtils.GetTestFilePath(), ValuesGenerator.ArrayOfStrings(count: 100, minLength: 20, maxLength: 80));
 
         [Benchmark]
+        [MemoryRandomization]
         public string[] ReadAllLines() => File.ReadAllLines(_testFilePath);
 
 #if !NETFRAMEWORK
         [BenchmarkCategory(Categories.NoWASM)]
         [Benchmark]
+        [MemoryRandomization]
         public Task<string[]> ReadAllLinesAsync() => File.ReadAllLinesAsync(_testFilePath);
 #endif
 
@@ -170,6 +176,7 @@ namespace System.IO.Tests
         }
 
         [Benchmark(OperationsPerInvoke = 1000)]
+        [MemoryRandomization]
         public void AppendAllLines()
         {
             for (int i = 0; i < 1000; i++)
@@ -200,6 +207,7 @@ namespace System.IO.Tests
         [Benchmark(OperationsPerInvoke = 1000)]
         [Arguments(100)]
         [Arguments(10_000)]
+        [MemoryRandomization]
         public void AppendAllText(int size)
         {
             string content = _textToAppend[size];
@@ -215,11 +223,13 @@ namespace System.IO.Tests
         [Arguments(100)]
         [Arguments(10_000)]
         [Arguments(100_000)]
+        [MemoryRandomization]
         public void WriteAllText(int size) => File.WriteAllText(_testFilePath, _textToAppend[size]);
 
 #if !NETFRAMEWORK
         [BenchmarkCategory(Categories.NoWASM)]
         [Benchmark(OperationsPerInvoke = 1000)]
+        [MemoryRandomization]
         public async Task AppendAllLinesAsync()
         {
             for (int i = 0; i < 1000; i++)
@@ -234,6 +244,7 @@ namespace System.IO.Tests
         [Benchmark(OperationsPerInvoke = 1000)]
         [Arguments(100)]
         [Arguments(10_000)]
+        [MemoryRandomization]
         public async Task AppendAllTextAsync(int size)
         {
             string content = _textToAppend[size];
@@ -250,6 +261,7 @@ namespace System.IO.Tests
         [Arguments(100)]
         [Arguments(10_000)]
         [Arguments(100_000)]
+        [MemoryRandomization]
         public Task WriteAllTextAsync(int size) => File.WriteAllTextAsync(_testFilePath, _textToAppend[size]);
 #endif
 
@@ -258,6 +270,8 @@ namespace System.IO.Tests
         [Arguments(FourKibibytes)]
         [Arguments(OneMibibyte)]
         [Arguments(HundredMibibytes)]
+
+        [MemoryRandomization]
         public void CopyTo(int size)
         {
             File.Delete(_testFilePath);
@@ -269,6 +283,7 @@ namespace System.IO.Tests
         [Arguments(FourKibibytes)]
         [Arguments(OneMibibyte)]
         [Arguments(HundredMibibytes)]
+        [MemoryRandomization]
         public void CopyToOverwrite(int size) => File.Copy(_filesToRead[size], _testFilePath, overwrite: true);
     }
 }

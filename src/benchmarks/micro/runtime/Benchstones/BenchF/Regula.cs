@@ -19,6 +19,7 @@ public class Regula
     private static void Escape(object _) { }
 
     [Benchmark(Description = nameof(Regula))]
+    [MemoryRandomization]
     public bool Test()
     {
         double error, fxi;

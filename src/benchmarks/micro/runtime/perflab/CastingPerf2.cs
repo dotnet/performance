@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+// Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 using System;
@@ -173,6 +173,7 @@ namespace PerfLabTests.CastingPerf2
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void ObjInt()
         {
             for (int i = 0; i < InnerIterationCount100000; i++)
@@ -190,6 +191,7 @@ namespace PerfLabTests.CastingPerf2
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void ObjScalarValueType()
         {
             for (int i = 0; i < InnerIterationCount100000; i++)
@@ -207,6 +209,7 @@ namespace PerfLabTests.CastingPerf2
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void ObjObjrefValueType()
         {
             for (int i = 0; i < InnerIterationCount100000; i++)

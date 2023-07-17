@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -45,6 +45,9 @@ namespace System.Reflection
         // GetCustomAttributes
 
         [Benchmark(Description = "GetCustomAttributes - Class: Hit (inherit)")]
+        // GetCustomAttributes
+
+        [MemoryRandomization]
         public object[] GetCustomAttributesClassHitInherit() => typeof(AttributedClass).GetCustomAttributes(typeof(MyAttribute), true);
         [Benchmark(Description = "GetCustomAttributes - Class: Miss (inherit)")]
         public object[] GetCustomAttributesClassMissInherit() => typeof(NonAttributedClass).GetCustomAttributes(typeof(MyAttribute), true);
@@ -55,8 +58,10 @@ namespace System.Reflection
         public object[] GetCustomAttributesClassMiss() => typeof(NonAttributedClass).GetCustomAttributes(typeof(MyAttribute), false);
 
         [Benchmark(Description = "GetCustomAttributes - Method Override: Hit (inherit)")]
+        [MemoryRandomization]
         public object[] GetCustomAttributesMethodOverrideHitInherit() => AttributedOverride.GetCustomAttributes(typeof(MyAttribute), true);
         [Benchmark(Description = "GetCustomAttributes - Method Override: Miss (inherit)")]
+[MemoryRandomization]
         public object[] GetCustomAttributesMethodOverrideMissInherit() => NonAttributedOverride.GetCustomAttributes(typeof(MyAttribute), true);
 
         [Benchmark(Description = "GetCustomAttributes - Method Override: Hit (no inherit)")]

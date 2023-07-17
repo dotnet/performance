@@ -23,6 +23,7 @@ namespace BenchmarksGame
     {
         [Benchmark(Description = nameof(FannkuchRedux_2))]
         [Arguments(10, 73196)]
+[MemoryRandomization]
         public int[] RunBench(int n, int expectedSum) => fannkuch(n);
 
         public int[] fannkuch(int n)

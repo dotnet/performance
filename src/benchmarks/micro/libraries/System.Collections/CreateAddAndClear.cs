@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -27,6 +27,7 @@ namespace System.Collections
 
         [BenchmarkCategory(Categories.Runtime)]
         [Benchmark]
+        [MemoryRandomization]
         public T[] Array()
         {
             T[] array = new T[_uniqueValues.Length];
@@ -40,6 +41,7 @@ namespace System.Collections
 
         [BenchmarkCategory(Categories.Runtime, Categories.Span)]
         [Benchmark]
+        [MemoryRandomization]
         public Span<T> Span()
         {
             Span<T> span = new T[_uniqueValues.Length];
@@ -52,6 +54,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public List<T> List()
         {
             List<T> list = new List<T>();
@@ -65,6 +68,7 @@ namespace System.Collections
 
         [Benchmark]
         [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
+        [MemoryRandomization]
         public ICollection<T> ICollection() => ICollection(new List<T>());
 
         [MethodImpl(MethodImplOptions.NoInlining)] // we want to prevent from inlining this particular method to make sure that JIT does not find out that ICollection is always List
@@ -79,6 +83,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public LinkedList<T> LinkedList()
         {
             LinkedList<T> linkedList = new LinkedList<T>();
@@ -91,6 +96,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public HashSet<T> HashSet()
         {
             HashSet<T> hashSet = new HashSet<T>();
@@ -103,6 +109,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public Dictionary<T, T> Dictionary()
         {
             Dictionary<T, T> dictionary = new Dictionary<T, T>();
@@ -116,6 +123,7 @@ namespace System.Collections
 
         [Benchmark]
         [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
+        [MemoryRandomization]
         public IDictionary<T, T> IDictionary() => IDictionary(new Dictionary<T, T>());
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -130,6 +138,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public SortedList<T, T> SortedList()
         {
             SortedList<T, T> sortedList = new SortedList<T, T>();
@@ -142,6 +151,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public SortedSet<T> SortedSet()
         {
             SortedSet<T> sortedSet = new SortedSet<T>();
@@ -154,6 +164,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public SortedDictionary<T, T> SortedDictionary()
         {
             SortedDictionary<T, T> sortedDictionary = new SortedDictionary<T, T>();
@@ -166,6 +177,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public ConcurrentDictionary<T, T> ConcurrentDictionary()
         {
             ConcurrentDictionary<T, T> concurrentDictionary = new ConcurrentDictionary<T, T>();
@@ -178,6 +190,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public Stack<T> Stack()
         {
             Stack<T> stack = new Stack<T>();
@@ -190,6 +203,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public ConcurrentStack<T> ConcurrentStack()
         {
             ConcurrentStack<T> stack = new ConcurrentStack<T>();
@@ -202,6 +216,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public Queue<T> Queue()
         {
             Queue<T> queue = new Queue<T>();
@@ -215,6 +230,7 @@ namespace System.Collections
 
 #if !NETFRAMEWORK // API added in .NET Core 2.0
         [Benchmark]
+        [MemoryRandomization]
         public ConcurrentQueue<T> ConcurrentQueue()
         {
             ConcurrentQueue<T> concurrentQueue = new ConcurrentQueue<T>();
@@ -227,6 +243,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public ConcurrentBag<T> ConcurrentBag()
         {
             ConcurrentBag<T> concurrentBag = new ConcurrentBag<T>();
@@ -240,6 +257,8 @@ namespace System.Collections
 #endif
 
         [Benchmark]
+
+        [MemoryRandomization]
         public ImmutableArray<T> ImmutableArray()
         {
             ImmutableArray<T> immutableArray = ImmutableArray<T>.Empty;
@@ -251,6 +270,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public ImmutableList<T> ImmutableList()
         {
             ImmutableList<T> immutableList = ImmutableList<T>.Empty;
@@ -262,6 +282,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public ImmutableDictionary<T, T> ImmutableDictionary()
         {
             ImmutableDictionary<T, T> immutableDictionary = ImmutableDictionary<T, T>.Empty;
@@ -273,6 +294,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public ImmutableHashSet<T> ImmutableHashSet()
         {
             ImmutableHashSet<T> immutableHashSet = ImmutableHashSet<T>.Empty;
@@ -284,6 +306,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public ImmutableSortedDictionary<T, T> ImmutableSortedDictionary()
         {
             ImmutableSortedDictionary<T, T> immutableSortedDictionary = ImmutableSortedDictionary<T, T>.Empty;
@@ -295,6 +318,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public ImmutableSortedSet<T> ImmutableSortedSet()
         {
             ImmutableSortedSet<T> immutableSortedSet = ImmutableSortedSet<T>.Empty;
@@ -306,6 +330,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public ImmutableStack<T> ImmutableStack()
         {
             ImmutableStack<T> immutableStack = ImmutableStack<T>.Empty;
@@ -317,6 +342,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public ImmutableQueue<T> ImmutableQueue()
         {
             ImmutableQueue<T> immutableQueue = ImmutableQueue<T>.Empty;

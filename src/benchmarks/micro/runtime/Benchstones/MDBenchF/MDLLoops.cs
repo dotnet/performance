@@ -108,6 +108,7 @@ public class MDLLoops
     private static void Escape(object _) { }
 
     [Benchmark(Description = nameof(MDLLoops))]
+    [MemoryRandomization]
     public bool Test()
     {
         _px = new double[16, 101];

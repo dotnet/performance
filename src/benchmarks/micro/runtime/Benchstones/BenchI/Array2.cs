@@ -74,6 +74,7 @@ public class Array2
     }
 
     [Benchmark(Description = nameof(Array2))]
+    [MemoryRandomization]
     public bool Test() => Bench(Iterations);
 }
 }

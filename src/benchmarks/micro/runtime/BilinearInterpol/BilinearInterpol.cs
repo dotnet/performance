@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 //
@@ -296,6 +296,7 @@ public class BilinearTest
 
     [Benchmark]
     [BenchmarkCategory(Categories.Runtime)]
+    [MemoryRandomization]
     public double[] Interpol_Scalar()
     {
         output = BilinearInterpol(input, A, minXA, maxXA, B, minXB, maxXB, weightB);
@@ -304,6 +305,7 @@ public class BilinearTest
 
     [Benchmark]
     [BenchmarkCategory(Categories.Runtime)]
+    [MemoryRandomization]
     public double[] Interpol_Vector()
     {
         double[] vectorOutput = BilinearInterpol_Vector(input, A, minXA, maxXA, B, minXB, maxXB, weightB);
@@ -314,6 +316,7 @@ public class BilinearTest
     [BenchmarkCategory(Categories.Runtime)]
     [Benchmark]
     [OperatingSystemsArchitectureFilter(allowed: true, Architecture.X64, Architecture.X86)]
+    [MemoryRandomization]
     public double[] Interpol_AVX()
     {
         if (Avx2.IsSupported)

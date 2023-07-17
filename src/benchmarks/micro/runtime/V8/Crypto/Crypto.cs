@@ -52,6 +52,7 @@ namespace V8.Crypto
         private const string INPUT = "The quick brown fox jumped over the extremely lazy frogs!";
 
         [Benchmark(Description = nameof(Crypto))]
+        [MemoryRandomization]
         public void Bench()
         {
             runEncrypt(false);

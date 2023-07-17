@@ -36,6 +36,7 @@ namespace System.Runtime.Serialization.Formatters.Tests
         public void Cleanup() => _largeListStream.Dispose();
 
         [Benchmark]
+        [MemoryRandomization]
         public List<Book> DeserializeLargeList()
         {
             _largeListStream.Position = 0;

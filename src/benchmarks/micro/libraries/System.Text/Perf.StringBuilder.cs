@@ -29,11 +29,13 @@ namespace System.Text.Tests
         [Benchmark]
         [Arguments(100)]
         [Arguments(LOHAllocatedStringSize)]
+        [MemoryRandomization]
         public StringBuilder ctor_string(int length) => new StringBuilder(length == 100 ? _string100 : _stringLOH);
 
         [Benchmark]
         [Arguments(100)]
         [Arguments(LOHAllocatedStringSize)]
+        [MemoryRandomization]
         public StringBuilder ctor_capacity(int length) => new StringBuilder(length);
 
         [GlobalSetup(Target = nameof(ToString_SingleSegment))]
@@ -46,6 +48,7 @@ namespace System.Text.Tests
         [Benchmark]
         [Arguments(100)]
         [Arguments(LOHAllocatedStringSize)]
+        [MemoryRandomization]
         public string ToString_SingleSegment(int length) => (length == 100 ? _builderSingleSegment100 : _builderSingleSegmentLOH).ToString();
 
         [GlobalSetup(Target = nameof(ToString_MultipleSegments))]
@@ -60,11 +63,15 @@ namespace System.Text.Tests
         [Benchmark]
         [Arguments(100)]
         [Arguments(LOHAllocatedStringSize)]
+        // internally StringBuilder is a linked list of StringBuilders and each of them contains a buffer of character (char[])
+        // this benchmark tests this very common execution path - joining all the buffers from multiple StringBuffer instances into one string
+        [MemoryRandomization]
         public string ToString_MultipleSegments(int length) => (length == 100 ? _builderMultipleSegments100 : _builderMultipleSegmentsLOH).ToString();
 
         [Benchmark]
         [Arguments(100)]
         [Arguments(LOHAllocatedStringSize)]
+        [MemoryRandomization]
         public StringBuilder Append_Char(int length)
         {
             StringBuilder builder = new StringBuilder();
@@ -80,6 +87,7 @@ namespace System.Text.Tests
         [Benchmark]
         [Arguments(100)]
         [Arguments(LOHAllocatedStringSize)]
+        [MemoryRandomization]
         public StringBuilder Append_Char_Capacity(int length)
         {
             StringBuilder builder = new StringBuilder(length);
@@ -95,6 +103,7 @@ namespace System.Text.Tests
         [Benchmark]
         [Arguments(1)]
         [Arguments(1_000)]
+        [MemoryRandomization]
         public StringBuilder Append_Strings(int repeat)
         {
             StringBuilder builder = new StringBuilder();
@@ -118,6 +127,7 @@ namespace System.Text.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public StringBuilder AppendLine_Strings()
         {
             StringBuilder builder = new StringBuilder();
@@ -138,6 +148,7 @@ namespace System.Text.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public StringBuilder Append_Primitives()
         {
             var builder = new StringBuilder();
@@ -160,6 +171,8 @@ namespace System.Text.Tests
 
         // as of today the following types are added using Append(object) and hence boxed
         [Benchmark]
+        // as of today the following types are added using Append(object) and hence boxed
+        [MemoryRandomization]
         public StringBuilder Append_ValueTypes()
         {
             var builder = new StringBuilder();
@@ -180,6 +193,8 @@ namespace System.Text.Tests
 
         // on .NET 6+, interpolated string handlers make appending more efficient by avoiding boxing and using ISpanFormattable.
         [Benchmark]
+        // on .NET 6+, interpolated string handlers make appending more efficient by avoiding boxing and using ISpanFormattable.
+        [MemoryRandomization]
         public StringBuilder Append_ValueTypes_Interpolated()
         {
             var builder = new StringBuilder();
@@ -199,6 +214,7 @@ namespace System.Text.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public StringBuilder Append_Memory()
         {
             ReadOnlyMemory<char> memory = _string100.AsMemory();
@@ -217,6 +233,7 @@ namespace System.Text.Tests
         public void Setup_Append_NonEmptySpan() => _string100 = new string('a', 100);
 
         [Benchmark]
+        [MemoryRandomization]
         public StringBuilder Append_NonEmptySpan()
         {
             ReadOnlySpan<char> span = _string100.AsSpan();
@@ -232,6 +249,8 @@ namespace System.Text.Tests
 #endif
 
         [Benchmark]
+
+        [MemoryRandomization]
         public StringBuilder Insert_Primitives()
         {
             StringBuilder builder = new StringBuilder();
@@ -256,6 +275,7 @@ namespace System.Text.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public StringBuilder Insert_Strings()
         {
             StringBuilder builder = new StringBuilder();

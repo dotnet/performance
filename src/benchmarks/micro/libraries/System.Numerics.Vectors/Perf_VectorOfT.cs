@@ -99,6 +99,7 @@ namespace System.Numerics.Tests
         public Vector<T> DivideBenchmark() => Vector.Divide(Value1, Value2);
 
         [Benchmark]
+        [MemoryRandomization]
         public T DotBenchmark() => Vector.Dot(Value1, Value2);
 
         [Benchmark]

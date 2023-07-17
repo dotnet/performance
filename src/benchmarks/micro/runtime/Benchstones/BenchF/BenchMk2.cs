@@ -19,6 +19,7 @@ public class BenchMk2
     private static double s_p, s_a, s_x, s_f, s_e;
 
     [Benchmark(Description = nameof(BenchMk2))]
+    [MemoryRandomization]
     public bool Test()
     {
         s_p = Math.Acos(-1.0);

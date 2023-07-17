@@ -17,6 +17,7 @@ public class CSieve
     const int Size = 8190;
 
     [Benchmark(Description = nameof(CSieve))]
+    [MemoryRandomization]
     public bool Test() {
         bool[] flags = new bool[Size + 1];
         int count = 0;

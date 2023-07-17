@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -24,6 +24,7 @@ namespace System.Collections
         public void Setup() => _keys = ValuesGenerator.ArrayOfUniqueValues<T>(Size);
 
         [Benchmark]
+        [MemoryRandomization]
         public List<T> List()
         {
             List<T> list = new List<T>();
@@ -39,6 +40,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public LinkedList<T> LinkedList()
         {
             LinkedList<T> linkedList = new LinkedList<T>();
@@ -54,6 +56,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public HashSet<T> HashSet()
         {
             HashSet<T> hashSet = new HashSet<T>();
@@ -69,6 +72,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public Dictionary<T, T> Dictionary()
         {
             Dictionary<T, T> dictionary = new Dictionary<T, T>();
@@ -84,6 +88,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public SortedList<T, T> SortedList()
         {
             SortedList<T, T> sortedList = new SortedList<T, T>();
@@ -99,6 +104,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public SortedSet<T> SortedSet()
         {
             SortedSet<T> sortedSet = new SortedSet<T>();
@@ -114,6 +120,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public SortedDictionary<T, T> SortedDictionary()
         {
             SortedDictionary<T, T> sortedDictionary = new SortedDictionary<T, T>();
@@ -129,6 +136,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public Stack<T> Stack()
         {
             Stack<T> stack = new Stack<T>();
@@ -144,6 +152,7 @@ namespace System.Collections
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public Queue<T> Queue()
         {
             Queue<T> queue = new Queue<T>();

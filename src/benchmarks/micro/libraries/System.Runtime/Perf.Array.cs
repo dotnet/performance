@@ -32,18 +32,22 @@ namespace System.Tests
         private static readonly int s_DIM_3 = (int) (Math.Pow(MAX_ARRAY_SIZE, (1.0 / 3.0)) + .001);
 
         [Benchmark]
+        [MemoryRandomization]
         public Array ArrayCreate1D() => Array.CreateInstance(typeof(int), s_DIM_1);
 
         [Benchmark]
+        [MemoryRandomization]
         public Array ArrayCreate2D() => Array.CreateInstance(typeof(int), s_DIM_2, s_DIM_2);
 
         [Benchmark]
+        [MemoryRandomization]
         public Array ArrayCreate3D() => Array.CreateInstance(typeof(int), s_DIM_3, s_DIM_3, s_DIM_3);
 
         [GlobalSetup(Target = nameof(ArrayAssign1D))]
         public void SetupArrayAssign1D() => _arr1 = Array.CreateInstance(typeof(int), s_DIM_1);
 
         [Benchmark]
+        [MemoryRandomization]
         public void ArrayAssign1D()
         {
             Array arr1 = _arr1;
@@ -67,6 +71,7 @@ namespace System.Tests
         public void SetupArrayAssign2D() => _arr2 = Array.CreateInstance(typeof(int), s_DIM_2, s_DIM_2);
 
         [Benchmark]
+        [MemoryRandomization]
         public void ArrayAssign2D()
         {
             Array arr2 = _arr2;
@@ -93,6 +98,7 @@ namespace System.Tests
         public void SetupArrayAssign3D() => _arr3 = Array.CreateInstance(typeof(int), s_DIM_3, s_DIM_3, s_DIM_3);
 
         [Benchmark]
+        [MemoryRandomization]
         public void ArrayAssign3D()
         {
             Array arr3 = _arr3;
@@ -128,6 +134,7 @@ namespace System.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int ArrayRetrieve1D()
         {
             Array arr1 = _arr1;
@@ -163,6 +170,7 @@ namespace System.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int ArrayRetrieve2D()
         {
             Array arr2 = _arr2;
@@ -204,6 +212,7 @@ namespace System.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int ArrayRetrieve3D()
         {
             Array arr3 = _arr3;

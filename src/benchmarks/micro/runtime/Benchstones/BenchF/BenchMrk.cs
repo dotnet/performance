@@ -18,6 +18,7 @@ public class BenchMrk
     private static float s_p, s_a, s_x, s_f, s_e;
 
     [Benchmark(Description = nameof(BenchMrk))]
+    [MemoryRandomization]
     public bool Test()
     {
         s_p = (float)Math.Acos(-1.0);

@@ -67,6 +67,7 @@ public class Permutate
     }
 
     [Benchmark(Description = nameof(Permutate))]
+    [MemoryRandomization]
     public bool Test()
     {
         Initialize();

@@ -19,6 +19,10 @@ public  class IniArray
     /// this benchmark is very dependent on loop alignment
     /// </summary>
     [Benchmark(Description = nameof(IniArray))]
+    /// <summary>
+    /// this benchmark is very dependent on loop alignment
+    /// </summary>
+    [MemoryRandomization]
     public char[] Test() {
         char[] workarea = new char[Allotted];
         for (int i = 0; i < Iterations; i++) {

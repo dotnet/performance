@@ -26,6 +26,7 @@ namespace System.Threading.Tests
         public void SetupScheduleManyThenDisposeMany() => _timers = new Timer[Count];
 
         [Benchmark]
+        [MemoryRandomization]
         public void ScheduleManyThenDisposeMany()
         {
             Timer[] timers = _timers;
@@ -46,6 +47,7 @@ namespace System.Threading.Tests
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
         public void SynchronousContention()
         {
             Task[] tasks = _tasks;
@@ -64,6 +66,7 @@ namespace System.Threading.Tests
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
         public void AsynchronousContention()
         {
             Task[] tasks = _tasks;

@@ -40,6 +40,7 @@ namespace BenchmarksGame
         static int seed = 42;
 
         [Benchmark(Description = nameof(Fasta_1))]
+        [MemoryRandomization]
         public void RunBench() => Bench(5000, false);
 
         static void Bench(int n, bool verbose)

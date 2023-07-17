@@ -67,6 +67,7 @@ namespace System.Text.RegularExpressions.Tests
         private string _input;
 
         [Benchmark]
+        [MemoryRandomization]
         public Regex Ctor() => new Regex(Pattern, Options);
 
         [GlobalSetup(Target = nameof(Count))]
@@ -77,6 +78,7 @@ namespace System.Text.RegularExpressions.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int Count() => Perf_Regex_Industry.Count(_regex, _input);
     }
 
@@ -110,6 +112,7 @@ namespace System.Text.RegularExpressions.Tests
 
         [Benchmark]
         [MinIterationCount(3)] // each iteration takes several seconds
+        [MemoryRandomization]
         public int Count()
         {
             int found = 0;
@@ -189,6 +192,7 @@ namespace System.Text.RegularExpressions.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int Count() => Perf_Regex_Industry.Count(_regex, _sherlock);
     }
 
@@ -237,6 +241,7 @@ namespace System.Text.RegularExpressions.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public int Count() => Perf_Regex_Industry.Count(_regex, _3200);
     }
 

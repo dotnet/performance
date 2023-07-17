@@ -35,6 +35,7 @@ namespace BenchmarksGame
         const int N = 18;
 
         [Benchmark(Description = nameof(BinaryTrees_6))]
+        [MemoryRandomization]
         public int RunBench() => Bench(N, verbose: false);
 
         static int Bench(int param, bool verbose)

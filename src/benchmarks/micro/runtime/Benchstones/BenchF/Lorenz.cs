@@ -24,6 +24,7 @@ public class Lorenz
     private static int s_printDerivative = -1;
 
     [Benchmark(Description = nameof(Lorenz))]
+    [MemoryRandomization]
     public bool Test()
     {
         double k1, k2, k3, k4;

@@ -19,6 +19,7 @@ public class NewtR
     private static void Escape(object _) { }
 
     [Benchmark(Description = nameof(NewtR))]
+    [MemoryRandomization]
     public bool Test()
     {
         int idbg, iflag;

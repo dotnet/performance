@@ -45,6 +45,7 @@ public class MDLogicArray
     }
 
     [Benchmark(Description = nameof(MDLogicArray))]
+    [MemoryRandomization]
     public bool Test() {
         Workarea cmn = new Workarea();
         cmn.X = 0;

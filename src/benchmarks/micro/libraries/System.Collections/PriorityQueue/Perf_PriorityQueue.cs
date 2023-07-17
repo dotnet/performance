@@ -33,6 +33,7 @@ namespace System.Collections.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void HeapSort()
         {
             var queue = _priorityQueue;
@@ -54,6 +55,7 @@ namespace System.Collections.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void Dequeue_And_Enqueue()
         {
             // benchmarks dequeue and enqueue operations
@@ -83,6 +85,7 @@ namespace System.Collections.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void K_Max_Elements()
         {
             const int k = 5;

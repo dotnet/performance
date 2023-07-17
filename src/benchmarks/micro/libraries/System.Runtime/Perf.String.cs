@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -28,27 +28,33 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(TestStringSizes))]
+        [MemoryRandomization]
         public char[] GetChars(StringArguments size) // the argument is called "size" to keep the old benchmark ID, do NOT rename it
             => size.TestString1.ToCharArray();
         
         [Benchmark]
         [ArgumentsSource(nameof(TestStringSizes))]
+
+        [MemoryRandomization]
         public string Concat_str_str(StringArguments size)
             => string.Concat(size.TestString1, size.TestString2);
 
         [Benchmark]
         [ArgumentsSource(nameof(TestStringSizes))]
+        [MemoryRandomization]
         public string Concat_str_str_str(StringArguments size)
             => string.Concat(size.TestString1, size.TestString2, size.TestString3);
 
         [Benchmark]
         [ArgumentsSource(nameof(TestStringSizes))]
+        [MemoryRandomization]
         public string Concat_str_str_str_str(StringArguments size)
             => string.Concat(size.TestString1, size.TestString2, size.TestString3, size.TestString4);
 
         private static readonly IEnumerable<char> s_longCharEnumerable = Enumerable.Range(0, 1000).Select(i => (char)('a' + i % 26));
 
         [Benchmark]
+        [MemoryRandomization]
         public string Concat_CharEnumerable() =>
             string.Concat(s_longCharEnumerable);
 
@@ -74,6 +80,7 @@ namespace System.Tests
         [Benchmark]
         [Arguments(18)]
         [Arguments(2142)]
+        [MemoryRandomization]
         public string PadLeft(int n)
             => "a".PadLeft(n);
 
@@ -155,6 +162,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(ReplaceArguments))]
+        [MemoryRandomization]
         public string Replace_Char(string text, char oldChar, char newChar)
             => text.Replace(oldChar, newChar);
 

@@ -95,15 +95,19 @@ namespace Benchmark
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void AddChainedConfigurationNoDelimiter() => _chainedConfig.GetChildKeys(_emptyArray, null);
 
         [Benchmark]
+        [MemoryRandomization]
         public void AddChainedConfigurationEmpty() => _chainedConfigEmpty.GetChildKeys(_emptyArray, null);
 
         [Benchmark]
+        [MemoryRandomization]
         public void AddChainedConfigurationWithSplitting() => _chainedConfigWithSplitting.GetChildKeys(_emptyArray, null);
 
         [Benchmark]
+        [MemoryRandomization]
         public void AddChainedConfigurationWithCommonPaths() => _chainedConfigWithCommonPaths.GetChildKeys(_emptyArray, null);
     }
 }

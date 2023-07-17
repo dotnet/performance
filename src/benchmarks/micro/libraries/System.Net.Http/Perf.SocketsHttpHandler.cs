@@ -94,6 +94,7 @@ namespace System.Net.Http.Tests
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
+        [MemoryRandomization]
         public async Task Get()
         {
             HttpMessageInvoker invoker = _invoker;
@@ -108,6 +109,7 @@ namespace System.Net.Http.Tests
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
+        [MemoryRandomization]
         public async Task Get_EnumerateHeaders_Validated()
         {
             HttpMessageInvoker invoker = _invoker;

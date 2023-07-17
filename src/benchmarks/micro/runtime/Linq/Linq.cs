@@ -122,6 +122,10 @@ public class LinqBenchmarks
     #region Where00
 
     [Benchmark]
+
+    #region Where00
+
+    [MemoryRandomization]
     public bool Where00LinqQueryX()
     {
         List<Product> products = Product.GetProductList();
@@ -143,6 +147,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
+    [MemoryRandomization]
     public bool Where00LinqMethodX()
     {
         List<Product> products = Product.GetProductList();
@@ -161,6 +166,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
+    [MemoryRandomization]
     public bool Where00ForX()
     {
         List<Product> products = Product.GetProductList();
@@ -190,6 +196,11 @@ public class LinqBenchmarks
     #region Where01
 
     [Benchmark]
+#endregion
+
+    #region Where01
+
+    [MemoryRandomization]
     public bool Where01LinqQueryX()
     {
         List<Product> products = Product.GetProductList();
@@ -211,6 +222,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
+    [MemoryRandomization]
     public bool Where01LinqMethodX()
     {
         List<Product> products = Product.GetProductList();
@@ -229,6 +241,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
+    [MemoryRandomization]
     public bool Where01LinqMethodNestedX()
     {
         List<Product> products = Product.GetProductList();
@@ -247,6 +260,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
+    [MemoryRandomization]
     public bool Where01ForX()
     {
         List<Product> products = Product.GetProductList();
@@ -276,6 +290,11 @@ public class LinqBenchmarks
     #region Count00
 
     [Benchmark]
+#endregion
+
+    #region Count00
+
+    [MemoryRandomization]
     public bool Count00LinqMethodX()
     {
         List<Product> products = Product.GetProductList();
@@ -311,6 +330,11 @@ public class LinqBenchmarks
     #region Order00
 
     [Benchmark]
+#endregion
+
+    #region Order00
+
+    [MemoryRandomization]
     public bool Order00LinqQueryX()
     {
         List<Product> products = Product.GetProductList();
@@ -326,6 +350,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
+    [MemoryRandomization]
     public bool Order00LinqMethodX()
     {
         List<Product> products = Product.GetProductList();
@@ -341,6 +366,7 @@ public class LinqBenchmarks
     }
 
     [Benchmark]
+    [MemoryRandomization]
     public bool Order00ManualX()
     {
         List<Product> products = Product.GetProductList();

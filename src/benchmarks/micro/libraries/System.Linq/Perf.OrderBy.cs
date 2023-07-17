@@ -136,12 +136,15 @@ namespace System.Linq.Tests
         public void GlobalSetup() => _people = PersonData.Generate(NumberOfPeople);
 
         [Benchmark]
+        [MemoryRandomization]
         public void OrderByString() => _people.OrderBy(p => p.FirstName).Consume(_consumer);
 
         [Benchmark]
+        [MemoryRandomization]
         public void OrderByValueType() => _people.OrderBy(p => p.DOB).Consume(_consumer);
 
         [Benchmark]
+        [MemoryRandomization]
         public void OrderByCustomComparer() => _people.OrderBy(p => p.FavouriteColour, FavourColourComparer.Instance).Consume(_consumer);
     }
 }

@@ -126,6 +126,7 @@ namespace FractalPerf
     public class Launch
     {
         [Benchmark(Description = nameof(FractalPerf))]
+[MemoryRandomization]
         public double Test()
         {
             Mandelbrot m = new Mandelbrot();

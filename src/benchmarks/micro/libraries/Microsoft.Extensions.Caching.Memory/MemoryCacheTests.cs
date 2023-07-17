@@ -55,6 +55,7 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void AddThenRemove_NoExpiration()
         {
             using (MemoryCache cache = new MemoryCache(new MemoryCacheOptions()))
@@ -75,6 +76,7 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void AddThenRemove_AbsoluteExpiration()
         {
             DateTimeOffset absolute = DateTimeOffset.UtcNow.AddHours(1);
@@ -98,6 +100,7 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void AddThenRemove_RelativeExpiration()
         {
             TimeSpan relative = TimeSpan.FromHours(1);
@@ -121,6 +124,7 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void AddThenRemove_SlidingExpiration()
         {
             TimeSpan relative = TimeSpan.FromHours(1);
@@ -144,6 +148,7 @@ namespace Microsoft.Extensions.Caching.Memory.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void AddThenRemove_ExpirationTokens()
         {
             Token token = new Token();

@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -17,6 +17,7 @@ namespace System.Diagnostics
         public void GetCurrentProcess() => Process.GetCurrentProcess().Dispose();
 
         [Benchmark]
+        [MemoryRandomization]
         public string GetCurrentProcessName()
         {
             using var process = Process.GetCurrentProcess();
@@ -30,6 +31,7 @@ namespace System.Diagnostics
         public void GetProcessById() => Process.GetProcessById(_currentProcessId).Dispose();
 
         [Benchmark]
+        [MemoryRandomization]
         public void GetProcesses()
         {
             foreach (var process in Process.GetProcesses())
@@ -39,6 +41,8 @@ namespace System.Diagnostics
         }
         
         [Benchmark]
+
+        [MemoryRandomization]
         public void GetProcessesByName()
         {
             foreach (var process in Process.GetProcessesByName(_nonExistingName))
@@ -56,6 +60,7 @@ namespace System.Diagnostics
         private Process _startedProcess;
 
         [Benchmark]
+        [MemoryRandomization]
         public void Start()
         {
             _startedProcess = Process.Start(s_startProcessStartInfo);
@@ -73,6 +78,7 @@ namespace System.Diagnostics
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void StartAndWaitForExit()
         {
             using (Process p = Process.Start(s_startProcessStartInfo))

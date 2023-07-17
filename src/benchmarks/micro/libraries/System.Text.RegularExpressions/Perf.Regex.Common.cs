@@ -51,17 +51,25 @@ namespace System.Text.RegularExpressions.Tests
         [Benchmark] public void Uri_IsMatch() => _uri.IsMatch("http://example.org");
         [Benchmark] public void Uri_IsNotMatch() => _uri.IsMatch("http://a http://b");
 
-        [Benchmark] public int MatchesSet() => _searchSet.Matches(_loremIpsum).Count;
-        [Benchmark] public int MatchesBoundary() => _searchBoundary.Matches(_loremIpsum).Count;
-        [Benchmark] public int MatchesWord() => _searchWord.Matches(_loremIpsum).Count;
-        [Benchmark] public int MatchesWords() => _searchWords.Matches(_loremIpsum).Count;
+        [Benchmark]         [MemoryRandomization]
+public int MatchesSet() => _searchSet.Matches(_loremIpsum).Count;
+        [Benchmark] [MemoryRandomization]
+public int MatchesBoundary() => _searchBoundary.Matches(_loremIpsum).Count;
+        [Benchmark] [MemoryRandomization]
+public int MatchesWord() => _searchWord.Matches(_loremIpsum).Count;
+        [Benchmark] [MemoryRandomization]
+public int MatchesWords() => _searchWords.Matches(_loremIpsum).Count;
 
         [Benchmark] public Match MatchWord() => _searchWords.Match(_loremIpsum);
-        [Benchmark] public string ReplaceWords() => _searchWords.Replace(_loremIpsum, "amoveatur");
-        [Benchmark] public string[] SplitWords() => _searchWords.Split(_loremIpsum);
+        [Benchmark] [MemoryRandomization]
+public string ReplaceWords() => _searchWords.Replace(_loremIpsum, "amoveatur");
+        [Benchmark] [MemoryRandomization]
+public string[] SplitWords() => _searchWords.Split(_loremIpsum);
 
-        [Benchmark] public void Ctor() => new Regex(WarningPattern, Options);
-        [Benchmark] public void CtorInvoke() => new Regex(WarningPattern, Options).IsMatch(@"(1");
+        [Benchmark]         [MemoryRandomization]
+public void Ctor() => new Regex(WarningPattern, Options);
+        [Benchmark] [MemoryRandomization]
+public void CtorInvoke() => new Regex(WarningPattern, Options).IsMatch(@"(1");
 
         private const string WarningPattern = @"(^(.*)(\(([0-9]+),([0-9]+)\)): )(error|warning) ([A-Z]+[0-9]+) ?: (.*)";
 

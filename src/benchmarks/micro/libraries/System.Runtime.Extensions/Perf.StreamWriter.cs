@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -49,6 +49,7 @@ namespace System.IO.Tests
         [Benchmark]
         [ArgumentsSource(nameof(WriteLengthMemberData))]
         [BenchmarkCategory(Categories.NoInterpreter)]
+        [MemoryRandomization]
         public void WriteCharArray(int writeLength)
         {
             char[] buffer = writeLength == 2 ? _buffer2 : _buffer100;
@@ -72,6 +73,7 @@ namespace System.IO.Tests
         [Benchmark]
         [ArgumentsSource(nameof(WriteLengthMemberData))]
         [BenchmarkCategory(Categories.NoInterpreter)]
+        [MemoryRandomization]
         public void WritePartialCharArray(int writeLength)
         {
             char[] buffer = writeLength == 2 ? _buffer12 : _buffer110;
@@ -95,6 +97,7 @@ namespace System.IO.Tests
         [Benchmark]
         [ArgumentsSource(nameof(WriteLengthMemberData))]
         [BenchmarkCategory(Categories.NoInterpreter)]
+        [MemoryRandomization]
         public void WriteString(int writeLength)
         {
             string value = writeLength == 2 ? _string2 : _string100;

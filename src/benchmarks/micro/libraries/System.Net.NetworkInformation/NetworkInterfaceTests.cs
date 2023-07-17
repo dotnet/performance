@@ -12,9 +12,11 @@ namespace System.Net.NetworkInformation.Tests
     public class NetworkInterfaceTests
     {
         [Benchmark]
+[MemoryRandomization]
         public NetworkInterface[] GetAllNetworkInterfaces() => NetworkInterface.GetAllNetworkInterfaces();
 
         [Benchmark]
+        [MemoryRandomization]
     #if NET5_0_OR_GREATER
         [System.Runtime.Versioning.UnsupportedOSPlatform("osx")]
         [System.Runtime.Versioning.UnsupportedOSPlatform("ios")]

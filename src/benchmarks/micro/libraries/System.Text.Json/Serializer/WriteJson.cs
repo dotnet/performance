@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -73,12 +73,15 @@ namespace System.Text.Json.Serialization.Tests
         public void Cleanup() => _memoryStream.Dispose();
 
         [Benchmark]
+        [MemoryRandomization]
         public string SerializeToString() => JsonSerializer.Serialize(_value, _options);
 
         [Benchmark]
+        [MemoryRandomization]
         public byte[] SerializeToUtf8Bytes() => JsonSerializer.SerializeToUtf8Bytes(_value, _options);
 
         [Benchmark]
+        [MemoryRandomization]
         public void SerializeToWriter()
         {
             JsonSerializer.Serialize(_writer, _value, _options);
@@ -88,6 +91,7 @@ namespace System.Text.Json.Serialization.Tests
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
         public async Task SerializeToStream()
         {
             _memoryStream.Position = 0;
@@ -95,6 +99,7 @@ namespace System.Text.Json.Serialization.Tests
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public string SerializeObjectProperty() => JsonSerializer.Serialize(_objectWithObjectProperty, _options);
 
         private sealed class ArrayBufferWriter : IBufferWriter<byte>

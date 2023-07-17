@@ -42,6 +42,8 @@ namespace BenchmarksGame
         [Benchmark(Description = nameof(RegexRedux_5))]
         [Arguments(RegexOptions.Compiled)]
         [Arguments(RegexOptions.None)]
+
+        [MemoryRandomization]
         public int RunBench(RegexOptions options)
         {
             var sequences = _sequences;

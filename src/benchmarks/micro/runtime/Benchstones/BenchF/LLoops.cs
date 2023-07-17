@@ -133,6 +133,7 @@ public class LLoops
     }
 
     [Benchmark(Description = nameof(LLoops))]
+    [MemoryRandomization]
     public bool Test()
     {
         _px = AllocArray<double>(16, 101);

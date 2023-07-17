@@ -68,6 +68,7 @@ public class BenchE
     }
 
     [Benchmark(Description = nameof(BenchE))]
+    [MemoryRandomization]
     public bool Test()
     {
         char[] s = {

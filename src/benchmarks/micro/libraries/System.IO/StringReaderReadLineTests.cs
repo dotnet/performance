@@ -18,6 +18,7 @@ namespace System.IO.Tests
         public void GlobalSetup() => _text = GenerateLinesText(LineLengthRange, 16 * 1024);
 
         [Benchmark]
+        [MemoryRandomization]
         public void ReadLine()
         {
             using (StringReader reader = new StringReader(_text))
@@ -28,6 +29,7 @@ namespace System.IO.Tests
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoWASM)]
+        [MemoryRandomization]
         public async Task ReadLineAsync()
         {
             using (StringReader reader = new StringReader(_text))

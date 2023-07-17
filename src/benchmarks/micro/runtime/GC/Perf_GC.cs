@@ -1,4 +1,4 @@
-﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
 using System.Collections.Generic;
 
@@ -12,6 +12,7 @@ namespace System.Tests
         [Benchmark]
         [Arguments(1000)]
         [Arguments(10_000)]
+[MemoryRandomization]
         public T[] NewOperator_Array(int length) => new T[length];
 
 #if NET5_0_OR_GREATER // API introduced in .NET 5

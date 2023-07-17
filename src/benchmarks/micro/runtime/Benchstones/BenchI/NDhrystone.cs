@@ -252,6 +252,7 @@ public class NDhrystone
     }
 
     [Benchmark(Description = nameof(NDhrystone))]
+    [MemoryRandomization]
     public bool Test() {
         m_array2Glob = AllocArray<int>(51, 51);
         Proc0();

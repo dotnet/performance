@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -38,6 +38,7 @@ namespace System.Collections
         public void SetupArray() => _array = Setup();
 
         [Benchmark]
+        [MemoryRandomization]
         public bool Array()
         {
             bool result = default;
@@ -51,6 +52,7 @@ namespace System.Collections
 #if !NETFRAMEWORK
         [BenchmarkCategory(Categories.Span)]
         [Benchmark]
+        [MemoryRandomization]
         public bool Span()
         {
             bool result = default;
@@ -65,6 +67,7 @@ namespace System.Collections
         public void SetupList() => _list = new List<T>(Setup());
 
         [Benchmark]
+        [MemoryRandomization]
         public bool List()
         {
             bool result = default;
@@ -77,6 +80,7 @@ namespace System.Collections
 
         [Benchmark]
         [BenchmarkCategory(Categories.Runtime, Categories.Virtual)]
+        [MemoryRandomization]
         public bool ICollection() => Contains(_list);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -93,6 +97,7 @@ namespace System.Collections
         public void SetupLinkedList() => _linkedList = new LinkedList<T>(Setup());
 
         [Benchmark]
+        [MemoryRandomization]
         public bool LinkedList()
         {
             bool result = default;
@@ -107,6 +112,7 @@ namespace System.Collections
         public void SetupHashSet() => _hashSet = new HashSet<T>(Setup());
 
         [Benchmark]
+        [MemoryRandomization]
         public bool HashSet()
         {
             bool result = default;
@@ -121,6 +127,7 @@ namespace System.Collections
         public void SetupQueue() => _queue = new Queue<T>(Setup());
 
         [Benchmark]
+        [MemoryRandomization]
         public bool Queue()
         {
             bool result = default;
@@ -135,6 +142,7 @@ namespace System.Collections
         public void SetupStack() => _stack = new Stack<T>(Setup());
 
         [Benchmark]
+        [MemoryRandomization]
         public bool Stack()
         {
             bool result = default;
@@ -149,6 +157,7 @@ namespace System.Collections
         public void SetupSortedSet() => _sortedSet = new SortedSet<T>(Setup());
 
         [Benchmark]
+        [MemoryRandomization]
         public bool SortedSet()
         {
             bool result = default;
@@ -163,6 +172,7 @@ namespace System.Collections
         public void SetupImmutableArray() => _immutableArray = Immutable.ImmutableArray.CreateRange<T>(Setup());
 
         [Benchmark]
+        [MemoryRandomization]
         public bool ImmutableArray()
         {
             bool result = default;
@@ -177,6 +187,7 @@ namespace System.Collections
         public void SetupImmutableHashSet() => _immutableHashSet = Immutable.ImmutableHashSet.CreateRange<T>(Setup());
 
         [Benchmark]
+        [MemoryRandomization]
         public bool ImmutableHashSet()
         {
             bool result = default;
@@ -191,6 +202,7 @@ namespace System.Collections
         public void SetupImmutableList() => _immutableList = Immutable.ImmutableList.CreateRange<T>(Setup());
 
         [Benchmark]
+        [MemoryRandomization]
         public bool ImmutableList()
         {
             bool result = default;
@@ -205,6 +217,7 @@ namespace System.Collections
         public void SetupImmutableSortedSet() => _immutableSortedSet = Immutable.ImmutableSortedSet.CreateRange<T>(Setup());
 
         [Benchmark]
+        [MemoryRandomization]
         public bool ImmutableSortedSet()
         {
             bool result = default;

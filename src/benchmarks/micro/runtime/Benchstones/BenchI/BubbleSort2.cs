@@ -28,6 +28,8 @@ public class BubbleSort2
 
     // this benchmark is BAD, it should not allocate the array and check the order, but I am porting "as is"
     [Benchmark(Description = nameof(BubbleSort2))]
+    // this benchmark is BAD, it should not allocate the array and check the order, but I am porting "as is"
+    [MemoryRandomization]
     public bool Test() {
         int[] x = new int[Bound + 1];
         int i, j;

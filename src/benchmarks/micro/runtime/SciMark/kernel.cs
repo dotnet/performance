@@ -44,6 +44,8 @@ namespace SciMark2
         }
         
         [Benchmark]
+
+        [MemoryRandomization]
         public void benchFFT()
         {
             long Iterations = 20000;
@@ -70,6 +72,7 @@ namespace SciMark2
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void benchSOR()
         {
             int Iterations = 20000;
@@ -78,6 +81,7 @@ namespace SciMark2
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void benchMonteCarlo()
         {
             int Iterations = 40000000;
@@ -118,6 +122,7 @@ namespace SciMark2
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void benchSparseMult()
         {
             int Iterations = 100000;
@@ -142,6 +147,7 @@ namespace SciMark2
         }
 
         [Benchmark]
+        [MemoryRandomization]
         public void benchmarkLU()
         {
             int Iterations = 2000;

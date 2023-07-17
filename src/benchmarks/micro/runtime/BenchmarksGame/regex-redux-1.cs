@@ -40,6 +40,7 @@ namespace BenchmarksGame
         }
 
         [Benchmark(Description = nameof(RegexRedux_1))]
+        [MemoryRandomization]
         public int RunBench()
         {
             var sequence = _sequences;

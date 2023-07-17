@@ -25,6 +25,7 @@ public class Romber
     }
 
     [Benchmark(Description = nameof(Romber))]
+    [MemoryRandomization]
     public bool Test()
     {
         double[][] r = AllocArray<double>(11, 11);

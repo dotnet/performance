@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -39,6 +39,7 @@ namespace System.Collections
         public void SetupHashtable() => _hashtable = new Hashtable(ValuesGenerator.Dictionary<T, T>(Size));
 
         [Benchmark]
+        [MemoryRandomization]
         public object Hashtable()
         {
             object result = default;
@@ -78,6 +79,7 @@ namespace System.Collections
         public void SetupSortedList() => _sortedlist = new SortedList(ValuesGenerator.Dictionary<T, T>(Size));
 
         [Benchmark]
+        [MemoryRandomization]
         public object SortedList()
         {
             object result = default;

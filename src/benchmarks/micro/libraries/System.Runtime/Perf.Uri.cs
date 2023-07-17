@@ -77,6 +77,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(CtorIdnHostPathAndQuery_MemberData))]
+        [MemoryRandomization]
         public (string, string) CtorIdnHostPathAndQuery(string input)
         {
             // Representative of the most common usage with HttpClient
@@ -91,6 +92,7 @@ namespace System.Tests
 
         [Benchmark]
         [ArgumentsSource(nameof(EscapeDataString_MemberData))]
+        [MemoryRandomization]
         public string EscapeDataString(string input) => Uri.EscapeDataString(input);
 
         [Benchmark]
