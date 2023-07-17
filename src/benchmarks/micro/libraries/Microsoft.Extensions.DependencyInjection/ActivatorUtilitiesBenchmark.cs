@@ -5,7 +5,6 @@
 using System;
 using BenchmarkDotNet.Attributes;
 using MicroBenchmarks;
-using ProtoBuf.Serializers;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -77,65 +76,35 @@ namespace Microsoft.Extensions.DependencyInjection
         [BenchmarkCategory(Categories.NoAOT)]
         public TypeWith1ParameterToBeActivated GetService_1Injected()
         {
-            TypeWith1ParameterToBeActivated obj = _serviceProvider.GetService<TypeWith1ParameterToBeActivated>();
-            if (obj._a is null)
-            {
-                throw new Exception("Not expected.");
-            }
-
-            return obj;
+            return _serviceProvider.GetService<TypeWith1ParameterToBeActivated>();
         }
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
         public TypeWith2ParametersToBeActivated GetService_2Injected()
         {
-            TypeWith2ParametersToBeActivated obj = _serviceProvider.GetService<TypeWith2ParametersToBeActivated>();
-            if (obj._a is null || obj._b is null)
-            {
-                throw new Exception("Not expected.");
-            }
-
-            return obj;
+            return _serviceProvider.GetService<TypeWith2ParametersToBeActivated>();
         }
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
         public TypeWith3ParametersToBeActivated GetService_3Injected()
         {
-            TypeWith3ParametersToBeActivated obj = _serviceProvider.GetService<TypeWith3ParametersToBeActivated>();
-            if (obj._a is null || obj._b is null || obj._c is null)
-            {
-                throw new Exception("Not expected.");
-            }
-
-            return obj;
+            return _serviceProvider.GetService<TypeWith3ParametersToBeActivated>();
         }
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
         public TypeWith4ParametersToBeActivated GetService_4Injected()
         {
-            TypeWith4ParametersToBeActivated obj = _serviceProvider.GetService<TypeWith4ParametersToBeActivated>();
-            if (obj._a is null || obj._b is null || obj._c is null || obj._d is null)
-            {
-                throw new Exception("Not expected.");
-            }
-
-            return obj;
+            return _serviceProvider.GetService<TypeWith4ParametersToBeActivated>();
         }
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
         public TypeWith5ParametersToBeActivated GetService_5Injected()
         {
-            TypeWith5ParametersToBeActivated obj = _serviceProvider.GetService<TypeWith5ParametersToBeActivated>();
-            if (obj._a is null || obj._b is null || obj._c is null || obj._d is null || obj._e is null)
-            {
-                throw new Exception("Not expected.");
-            }
-
-            return obj;
+            return _serviceProvider.GetService<TypeWith5ParametersToBeActivated>();
         }
 
         [Benchmark]
@@ -166,36 +135,21 @@ namespace Microsoft.Extensions.DependencyInjection
         [BenchmarkCategory(Categories.NoAOT)]
         public TypeWith3ParametersToBeActivated Factory_1Injected_2Explicit()
         {
-            TypeWith3ParametersToBeActivated obj = (TypeWith3ParametersToBeActivated)_factory2(_serviceProvider, _factoryArguments2);
-            if (obj is null || obj._a is null || obj._b is null || obj._c is null)
-            {
-                throw new Exception("Not expected.");
-            }
-            return obj;
+            return (TypeWith3ParametersToBeActivated)_factory2(_serviceProvider, _factoryArguments2);
         }
 
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
         public TypeWith3ParametersToBeActivated Factory_1Injected_2Explicit_OutOfOrder()
         {
-            TypeWith3ParametersToBeActivated obj = (TypeWith3ParametersToBeActivated)_factory2_OutOfOrder(_serviceProvider, _factoryArguments2_OutOfOrder);
-            if (obj is null || obj._a is null || obj._b is null || obj._c is null)
-            {
-                throw new Exception("Not expected.");
-            }
-            return obj;
+            return (TypeWith3ParametersToBeActivated)_factory2_OutOfOrder(_serviceProvider, _factoryArguments2_OutOfOrder);
         }
        
         [Benchmark]
         [BenchmarkCategory(Categories.NoAOT)]
         public TypeWith3ParametersToBeActivated Factory_3Explicit()
         {
-            TypeWith3ParametersToBeActivated obj = (TypeWith3ParametersToBeActivated)_factory3(_serviceProvider, _factoryArguments3);
-            if (obj is null || obj._a is null || obj._b is null || obj._c is null)
-            {
-                throw new Exception("Not expected.");
-            }
-            return obj;
+            return (TypeWith3ParametersToBeActivated)_factory3(_serviceProvider, _factoryArguments3);
         }
 
         public class TypeWith0ParametersToBeActivated
@@ -367,9 +321,9 @@ namespace Microsoft.Extensions.DependencyInjection
             }
         }
 
-        public class DependencyA {}
-        public class DependencyB {}
-        public class DependencyC {}
+        public class DependencyA { }
+        public class DependencyB { }
+        public class DependencyC { }
         public class DependencyD { }
         public class DependencyE { }
     }
