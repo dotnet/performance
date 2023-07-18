@@ -23,9 +23,10 @@ parameters:
   condition: succeeded()                 # optional -- condition for step to execute; defaults to succeeded()
   continueOnError: false                 # optional -- determines whether to continue the build if the step errors; defaults to false
   ProjectFile: helix.proj                # optional -- override default project used to send benchmarks
+  RuntimeFlavor: ''                      # optional -- runtime flavor used for scenarios
 
 steps:
-  - powershell: 'powershell "$env:BUILD_SOURCESDIRECTORY\eng\common\msbuild.ps1 -warnaserror 0 $env:BUILD_SOURCESDIRECTORY\eng\performance\${{ parameters.ProjectFile }} /restore /t:Test /bl:$env:BUILD_SOURCESDIRECTORY\artifacts\log\$env:BuildConfig\SendToHelix.binlog"'
+  - powershell: 'powershell "$env:BUILD_SOURCESDIRECTORY\eng\common\msbuild.ps1 -warnaserror 0 $env:BUILD_SOURCESDIRECTORY\eng\performance\${{ parameters.ProjectFile }} /restore /t:Test /p:RuntimeFlavor=${{ parameters.RuntimeFlavor }} /bl:$env:BUILD_SOURCESDIRECTORY\artifacts\log\$env:BuildConfig\SendToHelix.binlog"'
     displayName: ${{ parameters.DisplayNamePrefix }} (Windows)
     env:
       Python: ${{ parameters.Python }}
@@ -51,7 +52,7 @@ steps:
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
     condition: and(${{ parameters.condition }}, eq(variables['Agent.Os'], 'Windows_NT'))
     continueOnError: ${{ parameters.continueOnError }}
-  - script: $BUILD_SOURCESDIRECTORY/eng/common/msbuild.sh --warnaserror false $BUILD_SOURCESDIRECTORY/eng/performance/${{ parameters.ProjectFile }} /restore /t:Test /bl:$BUILD_SOURCESDIRECTORY/artifacts/log/$BuildConfig/SendToHelix.binlog
+  - script: $BUILD_SOURCESDIRECTORY/eng/common/msbuild.sh --warnaserror false $BUILD_SOURCESDIRECTORY/eng/performance/${{ parameters.ProjectFile }} /restore /t:Test /p:RuntimeFlavor=${{ parameters.RuntimeFlavor }} /bl:$BUILD_SOURCESDIRECTORY/artifacts/log/$BuildConfig/SendToHelix.binlog
     displayName: ${{ parameters.DisplayNamePrefix }} (Unix)
     env:
       Python: ${{ parameters.Python }}

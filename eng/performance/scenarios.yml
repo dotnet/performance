@@ -13,7 +13,7 @@ parameters:
   affinity: '0'         # optional -- Affinity bitmask to a specific machine in the pool as a decimal number (e.g. 1, 2, etc) 
   runEnvVars: []        # optional -- Environment variables to set for the benchmark run in the form of a multi-line object like: "runEnvVars:\n - DOTNET_GCgen0size=1E00000 \n - DOTNET_GCHeapCount=4 \n - DOTNET_GCTotalPhysicalMemory=200000000"
   additionalJobIdentifier: '' # optional -- Additional identifier to append to the job name (no spaces)
-  runtimeFlavor: '' # optional -- Runtime flavor used for the scenarios
+  runtimeFlavor: ''     # optional -- Runtime flavor used for scenarios
 
 jobs:
 - template: ../common/templates/jobs/jobs.yml
@@ -245,3 +245,4 @@ jobs:
             Architecture: ${{ parameters.architecture }}
             WorkItemTimeout: 4:00 # 4 hours
             Python: $(Python)
+            RuntimeFlavor: ${{ parameters.runtimeFlavor }}
