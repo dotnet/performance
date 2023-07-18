@@ -245,7 +245,7 @@ def generate_artifacts_for_commit(parsed_args: Namespace, repo_url: str, repo_di
     kill_dotnet_processes(parsed_args)
     if is_local:
         repo_path = repo_dir
-        if(not os.path.exists(repo_path)):
+        if not os.path.exists(repo_path):
             raise RuntimeError(f"The specified local path {repo_path} does not exist.")
         getLogger().info(f"Running for {repo_path} at {commit}.")
     else:
@@ -401,7 +401,7 @@ def __main(args: list):
         if parsed_args.local_test_repo:
             generate_artifacts_for_commit(parsed_args, "local", parsed_args.local_test_repo, "local", True)
 
-        if(not parsed_args.build_only):
+        if not parsed_args.build_only:
             # Run the benchmarks
             commitsToRun = []
             if parsed_args.commits:
