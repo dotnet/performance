@@ -208,7 +208,8 @@ class PreCommands:
             elif self.no_self_contained:
                 build_args.append('--no-self-contained')
             if self.nativeaot:
-                build_args.append('/p:PublishAot=true /p:PublishAotUsingRuntimePack=true')
+                build_args.append('/p:PublishAot=true')
+                build_args.append('/p:PublishAotUsingRuntimePack=true')
             self._publish(configuration=self.configuration, runtime_identifier=self.runtime_identifier, framework=self.framework, output=self.output, build_args=build_args)
         if self.operation == CROSSGEN:
             startup_args = [
