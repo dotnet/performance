@@ -10,6 +10,7 @@
     <PreparePayloadOutDirectoryName>scenarios_out</PreparePayloadOutDirectoryName>
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' == 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)\</PreparePayloadWorkItemBaseDirectory>
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
+    <OptionalCommandProps Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:PublishAot=true /p:PublishAotUsingRuntimePack=true</OptionalCommandProps>
   </PropertyGroup>
 
   <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
@@ -47,7 +48,6 @@
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIiOSScenario)">
-      <OptionalCommandProps Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:PublishAot=true /p:PublishAotUsingRuntimePack=true</OptionalCommandProps>
       <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 $(OptionalCommandProps) -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
