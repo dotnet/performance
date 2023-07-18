@@ -25,11 +25,23 @@
   </ItemDefinitionGroup>
 
   <ItemGroup>
+    <MAUIiOSScenario Include="Xamarin iOS Default $(RuntimeFlavor)">
+      <ScenarioDirectoryName>xamarinios</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <IPAName>XamariniOSDefault</IPAName>
+      <PackageName>net.dot.xamarintesting</PackageName>
+    </MAUIiOSScenario>
     <MAUIiOSScenario Include="Maui iOS Default $(RuntimeFlavor)">
       <ScenarioDirectoryName>mauiios</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>MauiiOSDefault</IPAName>
       <PackageName>net.dot.mauitesting</PackageName>
+    </MAUIiOSScenario>
+    <MAUIiOSScenario Include="Maui Blazor iOS Default $(RuntimeFlavor)">
+      <ScenarioDirectoryName>mauiblazorios</ScenarioDirectoryName>
+      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
+      <IPAName>MauiBlazoriOSDefault</IPAName>
+      <PackageName>net.dot.mauiblazortesting</PackageName>
     </MAUIiOSScenario>
     <!-- MessagingCenter was removed: https://github.com/dotnet/maui/pull/12582, needs to be replaced likely with something like: https://github.com/dotnet/maui/commit/762e07e04d1fdf8fca3edd948bab294c8762cd2c -->
     <!-- <MAUIiOSScenario Include="Maui iOS Podcast">
@@ -38,12 +50,6 @@
       <IPAName>MauiiOSPodcast</IPAName>
       <PackageName>net.dot.net.dot.netconf2021.maui</PackageName>
     </MAUIiOSScenario> -->
-    <MAUIiOSScenario Include="Maui Blazor iOS Default $(RuntimeFlavor)">
-      <ScenarioDirectoryName>mauiblazorios</ScenarioDirectoryName>
-      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <IPAName>MauiBlazoriOSDefault</IPAName>
-      <PackageName>net.dot.mauiblazortesting</PackageName>
-    </MAUIiOSScenario>
   </ItemGroup>
 
   <ItemGroup>
@@ -62,7 +68,35 @@
       <PreCommands>cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName) $HELIX_WORKITEM_ROOT/pub; mv $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).ipa $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; unzip -d $HELIX_WORKITEM_ROOT/pub $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; rm $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
-    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Default">
+    <XHarnessAppBundleToTest Include="Device Startup - iOS Xamarin Default $(RuntimeFlavor)">
+      <AppBundlePath>$(ScenariosDir)xamarinios.zip</AppBundlePath>
+      <WorkItemTimeout>00:15:00</WorkItemTimeout>
+      <TestTarget>ios-device</TestTarget>
+      <CustomCommands>
+        <![CDATA[
+            # PreCommands
+            export XHARNESSPATH=$XHARNESS_CLI_PATH
+
+            cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/xamarinios/XamariniOSDefault.ipa $HELIX_WORKITEM_ROOT/xamarinios/XamariniOSDefault.zip
+            mkdir $HELIX_WORKITEM_ROOT/xamarinios/pub
+            cp -v $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/xamarinios/versions.json $HELIX_WORKITEM_ROOT/xamarinios/pub/versions.json
+            unzip -d $HELIX_WORKITEM_ROOT/xamarinios $HELIX_WORKITEM_ROOT/xamarinios/XamariniOSDefault.zip
+            mv $HELIX_WORKITEM_ROOT/xamarinios/Payload/XamariniOSDefault.app $HELIX_WORKITEM_ROOT/xamarinios/XamariniOSDefault.app
+            cp -f embedded.mobileprovision $HELIX_WORKITEM_ROOT/xamarinios/XamariniOSDefault.app
+            cd $HELIX_WORKITEM_ROOT/xamarinios
+            sign XamariniOSDefault.app
+
+            # Testing commands
+            $(Python) test.py devicestartup --device-type ios --package-path XamariniOSDefault.app --package-name net.dot.mauitesting --scenario-name "%(Identity)"
+            ((result=$?))
+
+            # Post commands
+            $(Python) post.py
+            exit $result
+          ]]>
+        </CustomCommands>
+    </XHarnessAppBundleToTest>
+    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Default $(RuntimeFlavor)">
       <AppBundlePath>$(ScenariosDir)mauiios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
@@ -90,7 +124,7 @@
           ]]>
         </CustomCommands>
     </XHarnessAppBundleToTest>
-    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Blazor Default">
+    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Blazor Default $(RuntimeFlavor)">
       <AppBundlePath>$(ScenariosDir)mauiblazorios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
