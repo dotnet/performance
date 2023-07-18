@@ -18,7 +18,7 @@ def install_versioned_xamarin(precommands):
         f.write(requests.get(f'https://raw.githubusercontent.com/xamarin/xamarin-macios/{target_framework_wo_platform}/NuGet.config', allow_redirects=True).content)
 
     workload_install_args = ['--configfile', 'XamarinNuGet.config']
-    # if int(target_framework_wo_platform.split('.')[0][3:]) > 7: # Use the rollback file for versions greater than 7
-    #     workload_install_args += ['--from-rollback-file', f'https://aka.ms/dotnet/maui/{target_framework_wo_platform}.json']
+    if int(target_framework_wo_platform.split('.')[0][3:]) > 7: # Use the rollback file for versions greater than 7
+        workload_install_args += ['--from-rollback-file', f'https://aka.ms/dotnet/maui/{target_framework_wo_platform}.json']
 
     precommands.install_workload('ios', workload_install_args) 
