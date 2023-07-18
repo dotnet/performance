@@ -6,7 +6,7 @@ import sys
 import subprocess
 from performance.logger import setup_loggers, getLogger
 from shared import const
-from shared.xamarinsharedpython import remove_aab_files, install_versioned_xamarin
+from shared.mauisharedpython import remove_aab_files, install_versioned_maui
 from shared.precommands import PreCommands
 from shared.versionmanager import versions_write_json, get_version_from_dll_powershell_ios
 from test import EXENAME
@@ -14,7 +14,7 @@ from test import EXENAME
 setup_loggers(True)
 
 precommands = PreCommands()
-install_versioned_xamarin(precommands)
+install_versioned_maui(precommands)
 
 # Setup the Xamarin folder
 precommands.new(template='ios',
@@ -25,7 +25,7 @@ precommands.new(template='ios',
                 no_restore=False)
 
 # Build the APK
-shutil.copy('./XamarinNuGet.config', './app/Nuget.config')
+shutil.copy('./MauiNuGet.config', './app/Nuget.config')
 precommands.execute(['/p:_RequireCodeSigning=false', '/p:ApplicationId=net.dot.xamarintesting'])
 
 # Remove the aab files as we don't need them, this saves space
