@@ -118,7 +118,7 @@ def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: lis
                 "generatelayoutonly",
                 "/p:LibrariesConfiguration=Release"
             ] + additional_args
-    RunCommand(generate_layout_command, verbose=True).run(os.path.join(repo_path, "src/tests"))
+    RunCommand(generate_layout_command, verbose=True).run(os.path.join(repo_path, "src", "tests"))
 
 def get_run_artifact_path(parsed_args: Namespace, run_type: RunType, commit: str) -> str:
     return os.path.join(parsed_args.artifact_storage_path, f"{run_type.name}-{commit}-{parsed_args.os}-{parsed_args.architecture}-{parsed_args.framework}")
@@ -334,7 +334,7 @@ def add_arguments(parser):
     parser.add_argument('--os', choices=['windows', 'linux'], default=platform.system().lower(), help='Specifies the operating system of the system')
     parser.add_argument('--filter', type=str, default='*', help='Specifies the benchmark filter to pass to BenchmarkDotNet')
     parser.add_argument('-f', '--framework', choices=ChannelMap.get_supported_frameworks(), default='net8.0', help='The target framework to run the benchmarks against.') # Can and should this accept multiple frameworks?
-    parser.add_argument('--csproj', type=str, default='../src/benchmarks/micro/MicroBenchmarks.csproj', help='The path to the csproj file to run benchmarks against.')    
+    parser.add_argument('--csproj', type=str, default=os.path.join("..", "src", "benchmarks", "micro", "MicroBenchmarks.csproj"), help='The path to the csproj file to run benchmarks against.')    
 
 def __main(args: list):
     # Define the ArgumentParser
