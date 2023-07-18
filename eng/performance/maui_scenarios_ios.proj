@@ -10,7 +10,7 @@
     <PreparePayloadOutDirectoryName>scenarios_out</PreparePayloadOutDirectoryName>
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' == 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)\</PreparePayloadWorkItemBaseDirectory>
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
-    <OptionalCommandProps Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:PublishAot=true /p:PublishAotUsingRuntimePack=true</OptionalCommandProps>
+    <OptionalCommandProps Condition="'$(RuntimeFlavor)' == 'coreclr'">--nativeaot true</OptionalCommandProps>
   </PropertyGroup>
 
   <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
