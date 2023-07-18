@@ -46,8 +46,11 @@ class RunType(Enum):
 
 start_time = datetime.now()
 
+def is_windows(parsed_args: Namespace):
+    return parsed_args.os == "windows"
+
 def kill_dotnet_processes(parsed_args: Namespace):
-    if parsed_args.os == "windows":
+    if is_windows(parsed_args):
         os.system('TASKKILL /F /T /IM dotnet.exe 2> nul || TASKKILL /F /T /IM VSTest.Console.exe 2> nul || TASKKILL /F /T /IM msbuild.exe 2> nul || TASKKILL /F /T /IM ".NET Host" 2> nul')
     else:
         os.system('killall -9 dotnet 2> /dev/null || killall -9 VSTest.Console 2> /dev/null || killall -9 msbuild 2> /dev/null || killall -9 ".NET Host" 2> /dev/null') # Always kill dotnet so it isn't left with handles on its files
@@ -81,7 +84,7 @@ def copy_directory_contents(src_dir: str, dest_dir: str):
 # Builds libs and corerun by default
 def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str = "clr+libs", configuration: str = "Release", additional_args: list = []):    
     # Run the command
-    if parsed_args.os == "windows":
+    if is_windows(parsed_args):
         build_libs_and_corerun_command = [
                 "pwsh",
                 "-File",
@@ -104,7 +107,7 @@ def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str
 
 def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: list = []):
     # Run the command
-    if parsed_args.os == "windows":
+    if is_windows(parsed_args):
         build_script = "build.cmd"
     else:
         build_script = "./build.sh"
@@ -153,9 +156,9 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             src_dir = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}")
             dest_dir = os.path.join(repo_path, "artifacts", "dotnet_mono")
             copy_directory_contents(src_dir, dest_dir)
-            src_file = os.path.join(repo_path, "artifacts", "bin", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", f"corerun{'.exe' if parsed_args.os == 'windows' else ''}")
+            src_file = os.path.join(repo_path, "artifacts", "bin", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", f"corerun{'.exe' if is_windows(parsed_args) else ''}")
             dest_dir = os.path.join(repo_path, "artifacts", "dotnet_mono", "shared", "Microsoft.NETCore.App", "8.0.0")
-            dest_file = os.path.join(dest_dir, f"corerun{'.exe' if parsed_args.os == 'windows' else ''}")
+            dest_file = os.path.join(dest_dir, f"corerun{'.exe' if is_windows(parsed_args) else ''}")
             shutil.copy2(src_file, dest_file)
 
             # Store the dotnet_mono in the artifact storage path
@@ -197,7 +200,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
         
         bdn_args_unescaped += [ '--corerun' ]
         for commit in all_commits:
-            bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commit), "Core_Root", f'corerun{".exe" if parsed_args.os == "windows" else ""}') ]
+            bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commit), "Core_Root", f'corerun{".exe" if is_windows(parsed_args) else ""}') ]
 
     elif specific_run_type == RunType.MonoAOTLLVM:
         raise NotImplementedError("MonoAOTLLVM is not yet implemented.")
@@ -211,7 +214,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                             ]
         bdn_args_unescaped += [ '--corerun' ]
         for commit in all_commits:
-            bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "8.0.0", f'corerun{".exe" if parsed_args.os == "windows" else ""}') ]
+            bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "8.0.0", f'corerun{".exe" if is_windows(parsed_args) else ""}') ]
         
         bdn_args_unescaped += ['--envVars', 'MONO_ENV_OPTIONS:--interpreter']
 
@@ -224,7 +227,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                             ]
         bdn_args_unescaped += [ '--corerun' ]
         for commit in all_commits:
-            bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "8.0.0", f'corerun{".exe" if parsed_args.os == "windows" else ""}') ]
+            bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "8.0.0", f'corerun{".exe" if is_windows(parsed_args) else ""}') ]
 
     if parsed_args.bdn_arguments:
         bdn_args_unescaped += [parsed_args.bdn_arguments]
