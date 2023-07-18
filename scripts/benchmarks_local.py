@@ -88,7 +88,7 @@ def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str
         build_libs_and_corerun_command = [
                 "pwsh",
                 "-File",
-                f"build.ps1"
+                "build.ps1"
         ]
     else:
         build_libs_and_corerun_command = [
@@ -98,9 +98,9 @@ def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str
     build_libs_and_corerun_command += [
                 "-subset", subset, 
                 "-configuration", configuration, 
-                "-os", f"{parsed_args.os}",
-                "-arch", f"{parsed_args.architecture}", 
-                "-framework", f"{parsed_args.framework}",
+                "-os", parsed_args.os,
+                "-arch", parsed_args.architecture, 
+                "-framework", parsed_args.framework,
                 "-bl"
             ] + additional_args
     RunCommand(build_libs_and_corerun_command, verbose=True).run(os.path.join(repo_path, "eng"))
@@ -112,7 +112,7 @@ def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: lis
     else:
         build_script = "./build.sh"
     generate_layout_command = [
-                f"{build_script}",
+                build_script,
                 "release",
                 parsed_args.architecture,
                 "generatelayoutonly",
