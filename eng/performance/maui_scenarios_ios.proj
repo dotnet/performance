@@ -24,7 +24,7 @@
   </ItemDefinitionGroup>
 
   <ItemGroup>
-    <MAUIiOSScenario Include="Maui iOS Default">
+    <MAUIiOSScenario Include="Maui iOS Default $(RuntimeFlavor)">
       <ScenarioDirectoryName>mauiios</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>MauiiOSDefault</IPAName>
@@ -37,7 +37,7 @@
       <IPAName>MauiiOSPodcast</IPAName>
       <PackageName>net.dot.net.dot.netconf2021.maui</PackageName>
     </MAUIiOSScenario> -->
-    <MAUIiOSScenario Include="Maui Blazor iOS Default">
+    <MAUIiOSScenario Include="Maui Blazor iOS Default $(RuntimeFlavor)">
       <ScenarioDirectoryName>mauiblazorios</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>MauiBlazoriOSDefault</IPAName>
@@ -47,7 +47,8 @@
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIiOSScenario)">
-      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command> 
+      <OptionalCommandProps Condition="'$(RuntimeFlavor)' == 'coreclr'">/p:PublishAot=true /p:PublishAotUsingRuntimePack=true</OptionalCommandProps>
+      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 $(OptionalCommandProps) -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
