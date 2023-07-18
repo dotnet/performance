@@ -32,7 +32,7 @@ import platform
 import shutil
 import sys
 import os
-
+import ctypes
 
 # Assumptions: We are only testing this Performance repo, should allow single run or multiple runs
 # For dotnet_version based runs, use the benchmarks_monthly .py script instead
@@ -48,6 +48,12 @@ start_time = datetime.now()
 
 def is_windows(parsed_args: Namespace):
     return parsed_args.os == "windows"
+
+def is_running_as_admin(parsed_args: Namespace):
+    if is_windows(parsed_args):
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    else:
+        return os.getuid() == 0
 
 def kill_dotnet_processes(parsed_args: Namespace):
     if is_windows(parsed_args):
@@ -319,6 +325,7 @@ def add_arguments(parser):
     parser.add_argument('--rebuild-artifacts', action='store_true', help='Whether to rebuild the artifacts for the specified commits before benchmarking.')
     parser.add_argument('--build-only', action='store_true', help='Whether to only build the artifacts for the specified commits and not run the benchmarks.')
     parser.add_argument('--skip-local-rebuild', action='store_true', help='Whether to skip rebuilding the local repo and use the already built version (if already built). Useful if you need to run against local changes again.')
+    parser.add_argument('--allow-non-admin-execution', action='store_true', help='Whether to allow non-admin execution of the script. Admin execution is highly recommended as it minimizes the chance of encountering errors, but may not be possible in all cases.')
     def __is_valid_run_type(value):
         try:
             RunType[value]
@@ -344,11 +351,18 @@ def __main(args: list):
     
     setup_loggers(verbose=parsed_args.verbose)
 
+    # Ensure we are running as admin
+    if not is_running_as_admin(parsed_args):
+        if parsed_args.allow_non_admin_execution:
+            getLogger().warning("This script is not running as an administrator. This may cause errors.")
+        else:
+            raise Exception("This script must be run as an administrator or --allow-non-admin-execution must be passed.")
+
     # If list cached builds is specified, list the cached builds and exit
     if parsed_args.list_cached_builds:
         for folder in os.listdir(parsed_args.artifact_storage_path):
             if any([run_type.name in folder for run_type in RunType]):
-                print(folder)
+                getLogger().info(folder)
         return
 
     # Check to make sure we have something specified to test
@@ -372,7 +386,6 @@ def __main(args: list):
     try:
         getLogger().info("Killing any running dotnet, vstest, or msbuild processes... (ignore system cannot find path specified)")
         kill_dotnet_processes(parsed_args)
-        getLogger().info("****** MAKE SURE TO RUN AS ADMINISTRATOR ******")
 
         # Generate the artifacts for each of the remote versions
         if parsed_args.commits:
