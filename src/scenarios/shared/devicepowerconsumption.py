@@ -186,8 +186,8 @@ class DevicePowerConsumptionHelper(object):
 
                 # Get the Uid from the captureUid output
                 # The output format and target are as follows:
-                # package:com.companyname.mauiandroiddefault uid:1<capture start>1453<end capture>
-                uidSearchString = r"package:" + packagename + r" uid:([0-9]*)"
+                # package:com.companyname.mauiandroiddefault uid:<capture start>11453<end capture>
+                uidSearchString = r"package:" + packagename + r" uid:([0-9]+)"
                 uidCapture = re.search(uidSearchString, captureUid.stdout)
                 if not uidCapture:
                     raise Exception("Failed to capture the uid!")
@@ -215,7 +215,7 @@ class DevicePowerConsumptionHelper(object):
                 # Explanation of the 4 groups: https://stackoverflow.com/questions/75390939/android-how-to-interpret-pwi-power-use-item-from-battery-stats-dumpsys
                 # Example output section and target:
                 # 9,11458,l,pwi,uid,0.0820,0,0.134,0.0342 captures total usage, is battery consumer (consult link below), screen usage, and proportional usage
-                totalPowerSearchString = r"[\d]*," + uid + r",l,pwi,uid,([\d]*.?[\d]*),([\d]*.?[\d]*),([\d]*.?[\d]*),([\d]*.?[\d]*)"
+                totalPowerSearchString = r"\d+," + uid + r",l,pwi,uid,(\d+.?\d*),(\d+.?\d*),(\d+.?\d*),(\d+.?\d*)"
                 totalPowerCapture = re.search(totalPowerSearchString, captureProcStats.stdout)
                 if not totalPowerCapture:
                     raise Exception("Failed to capture the total power!")
@@ -227,16 +227,16 @@ class DevicePowerConsumptionHelper(object):
                 # Get timing information
                 # 9,11458,l,fg,10294,0 # Foreground Time (ms, count)
                 # Total cpu time: u=567ms s=167ms               #(user and system/kernel?)
-                foregroundTimeSearchString = r"[\d]*," + uid + r",l,fg,([\d]*),([\d]*)"
+                foregroundTimeSearchString = r"\d+," + uid + r",l,fg,(\d+),(\d+)"
                 foregroundTimeCapture = re.search(foregroundTimeSearchString, captureProcStats.stdout)
                 if not foregroundTimeCapture:
                     raise Exception("Failed to capture the foreground running time!")
                 capturedValues["foregroundTimeMs"] = foregroundTimeCapture.group(1)
                 capturedValues["foregroundTimeCount"] = foregroundTimeCapture.group(2)
 
-                # Get timing information https://cs.android.com/android/platform/superproject/+/master:frameworks/base/core/java/android/os/BatteryStats.java;l=4894
+                # Get more timing information https://cs.android.com/android/platform/superproject/+/master:frameworks/base/core/java/android/os/BatteryStats.java;l=4894
                 # 9,11458,l,cpu,668,155,0 # cpu time (user, system, 0)
-                cpuTimeSearchString = r"[\d]*," + uid + r",l,cpu,([\d]*),([\d]*),[\d]*"
+                cpuTimeSearchString = r"\d+," + uid + r",l,cpu,(\d+),(\d+),\d+"
                 cpuTimeCapture = re.search(cpuTimeSearchString, captureProcStats.stdout)
                 if not cpuTimeCapture:
                     raise Exception("Failed to capture the cpu running time!")
@@ -247,7 +247,7 @@ class DevicePowerConsumptionHelper(object):
                 #  level: 93
                 #  scale: 100 # ignore
                 #  voltage: 4237
-                levelAndVoltageSearchString = r"level: ([\d]*)[\s\S]*voltage: ([\d]*)"
+                levelAndVoltageSearchString = r"level: (\d+)[\s\S]*voltage: (\d+)"
                 preExecutionCapture = re.search(levelAndVoltageSearchString, preExecutionBatteryInfo.stdout)
                 postExecutionCapture = re.search(levelAndVoltageSearchString, postExecutionBatteryInfo.stdout)
                 if not preExecutionCapture or not postExecutionCapture:
