@@ -16,26 +16,25 @@
 #   * Add the BDN run arguments to the generate_benchmark_ci_args function
 
 
-from argparse import ArgumentParser, ArgumentTypeError, Namespace
-from channel_map import ChannelMap
-from enum import Enum
-from logging import getLogger
-from git.repo import Repo
-from git import GitCommandError
-from performance.common import get_machine_architecture, RunCommand
-from performance.logger import setup_loggers
-from subprocess import CalledProcessError
-
-import benchmarks_ci
-from datetime import datetime
+import ctypes
+import glob
+import os
 import platform
 import shutil
 import sys
-import os
-import ctypes
-import glob
 import xml.etree.ElementTree as xmlTree
+from argparse import ArgumentParser, ArgumentTypeError, Namespace
+from datetime import datetime
+from enum import Enum
+from logging import getLogger
+from subprocess import CalledProcessError
 
+import benchmarks_ci
+from channel_map import ChannelMap
+from git import GitCommandError
+from git.repo import Repo
+from performance.common import RunCommand, get_machine_architecture
+from performance.logger import setup_loggers
 
 # Assumptions: We are only testing this Performance repo, should allow single run or multiple runs
 # For dotnet_version based runs, use the benchmarks_monthly .py script instead
@@ -43,8 +42,6 @@ import xml.etree.ElementTree as xmlTree
 # What are supported default cases: MonoJIT, MonoAOTLLVM, MonoInter, Corerun, etc. (WASM)
 
 start_time = datetime.now()
-default_framework = "net8.0"
-
 
 class RunType(Enum):
     CoreRun = 1
@@ -240,9 +237,9 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
         for commit in all_commits:
             # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
             corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
-            if(len(corerun_capture) == 0):
+            if len(corerun_capture) == 0:
                 raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
-            elif(len(corerun_capture) > 1):
+            elif len(corerun_capture) > 1:
                 raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
             else:
                 corerun_path = corerun_capture[0]
@@ -261,9 +258,9 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
         for commit in all_commits:
             # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
             corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
-            if(len(corerun_capture) == 0):
+            if len(corerun_capture) == 0:
                 raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, RunType.MonoJIT, commit)}")
-            elif(len(corerun_capture) > 1):
+            elif len(corerun_capture) > 1:
                 raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoJIT, commit)}")
             else:
                 corerun_path = corerun_capture[0]
