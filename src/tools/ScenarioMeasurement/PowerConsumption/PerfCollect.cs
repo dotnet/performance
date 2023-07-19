@@ -149,13 +149,15 @@ namespace ScenarioMeasurement
         private bool LttngInstalled()
         {
             ProcessStartInfo procStartInfo = new ProcessStartInfo("modinfo", "lttng_probe_writeback");
-            Process proc = new Process() { StartInfo = procStartInfo, };
-            proc.StartInfo.RedirectStandardOutput = true;
-            proc.Start();
-            string result = proc.StandardOutput.ReadToEnd();
-            proc.WaitForExit();
-            // If the lttng_probe_writeback module is installed, the modinfo output will include the filename field
-            return result.Contains("filename:");
+            using (Process proc = new Process() { StartInfo = procStartInfo })
+            {
+                proc.StartInfo.RedirectStandardOutput = true;
+                proc.Start();
+                string result = proc.StandardOutput.ReadToEnd();
+                proc.WaitForExit();
+                // If the lttng_probe_writeback module is installed, the modinfo output will include the filename field
+                return result.Contains("filename:");
+            }
         }
 
         public enum KernelKeyword

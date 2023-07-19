@@ -7,9 +7,8 @@ namespace ScenarioMeasurement;
 
 public class GenericStartupParser : IParser
 {
-    // see src\scenarios\staticdeps\PerfLab.cs
-    public const string PerfLabGenericEventSourceName = "PerfLabGenericEventSource";
-    public const string StartupEventName = "Startup";
+    private const string EventSourceName = PerfLabValues.EventSourceName;
+    private const string StartupEventName = PerfLabValues.StartupEventName;
 
     public void EnableKernelProvider(ITraceSession kernel)
     {
@@ -18,7 +17,7 @@ public class GenericStartupParser : IParser
 
     public void EnableUserProviders(ITraceSession user)
     {
-        user.EnableUserProvider(PerfLabGenericEventSourceName, TraceEventLevel.Verbose);
+        user.EnableUserProvider(EventSourceName, TraceEventLevel.Verbose);
     }
 
     public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
@@ -68,7 +67,7 @@ public class GenericStartupParser : IParser
                 }
             };
 
-            source.Dynamic.AddCallbackForProviderEvent(PerfLabGenericEventSourceName, StartupEventName, evt =>
+            source.Dynamic.AddCallbackForProviderEvent(EventSourceName, StartupEventName, evt =>
             {
                 if (pid.HasValue && evt.ProcessID == pid && evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
                 {
