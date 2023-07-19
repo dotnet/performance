@@ -79,7 +79,7 @@ def check_for_runtype_specified(parsed_args: Namespace, run_types_to_check: list
             return True
     return False
 
-# Uses python copy to copy the contents of a directory to another directory while overwriting any existing files
+# Uses python copy, to copy the contents of a directory to another directory while overwriting any existing files
 def copy_directory_contents(src_dir: str, dest_dir: str):
     for src_dirpath, src_dirnames, src_filenames in os.walk(src_dir):
         dest_dirpath = os.path.join(dest_dir, os.path.relpath(src_dirpath, src_dir))
@@ -338,9 +338,7 @@ def check_references_exist_and_add_branch_commits(repo_url: str, references: lis
     # Check if each reference exists in the repository
     for reference in references:
         try:
-            result = repo.git.branch('-r', '--contains', reference) # Use git branch -r --contains <commit> to check if a commit is in a branch
-            if "error: malformed object" in result:
-                raise Exception(f"Reference {reference} does not exist in {repo_url}.")
+            repo.git.branch('-r', '--contains', reference) # Use git branch -r --contains <commit> to check if a commit is in a branch
         except GitCommandError:
             raise Exception(f"Reference {reference} does not exist in {repo_url}.")
 
@@ -410,6 +408,7 @@ def __main(args: list):
     repo_dirs = []
     repo_url = parsed_args.repo_url
     if parsed_args.commits:
+        getLogger().info(f"Checking if references {parsed_args.commits} exist in {repo_url}.")
         check_references_exist_and_add_branch_commits(repo_url, parsed_args.commits, parsed_args.repo_storage_path, repo_dirs[0] if parsed_args.separate_repos else "runtime")
         for commit in parsed_args.commits:
             repo_dirs.append(f"runtime-{commit.replace('/', '-')}")
@@ -420,7 +419,6 @@ def __main(args: list):
 
         # Generate the artifacts for each of the remote versions
         if parsed_args.commits:
-            getLogger().info(f"Checking if references {parsed_args.commits} exist in {repo_url}.")
             getLogger().info(f"References {parsed_args.commits} exist in {repo_url}.")
             for repo_dir, commit in zip(repo_dirs, parsed_args.commits):
                 if parsed_args.separate_repos:
