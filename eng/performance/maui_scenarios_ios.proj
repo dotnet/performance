@@ -29,7 +29,7 @@
       <ScenarioDirectoryName>xamarinios</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>XamariniOSDefault</IPAName>
-      <PackageName>net.dot.xamarintesting</PackageName>
+      <PackageName>com.companyname.XamariniOSDefault</PackageName>
     </MAUIiOSScenario>
     <MAUIiOSScenario Include="Maui iOS Default $(RuntimeFlavor)">
       <ScenarioDirectoryName>mauiios</ScenarioDirectoryName>
