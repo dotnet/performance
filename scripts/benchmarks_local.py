@@ -33,18 +33,24 @@ import shutil
 import sys
 import os
 import ctypes
+import glob
+import xml.etree.ElementTree as xmlTree
+
 
 # Assumptions: We are only testing this Performance repo, should allow single run or multiple runs
 # For dotnet_version based runs, use the benchmarks_monthly .py script instead
 # Verify the input commands
 # What are supported default cases: MonoJIT, MonoAOTLLVM, MonoInter, Corerun, etc. (WASM)
+
+start_time = datetime.now()
+default_framework = "net8.0"
+
+
 class RunType(Enum):
     CoreRun = 1
     MonoAOTLLVM = 2
     MonoInterpreter = 3
     MonoJIT = 4
-
-start_time = datetime.now()
 
 def is_windows(parsed_args: Namespace):
     return parsed_args.os == "windows"
@@ -143,7 +149,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             core_root_path = os.path.join(repo_path, "artifacts", "tests", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", "Tests", "Core_Root")
             shutil.rmtree(dest_dir, ignore_errors=True)
             copy_directory_contents(core_root_path, dest_dir)
-            shutil.rmtree(os.path.join(repo_path, "artifacts"), ignore_errors=True)
+            # shutil.rmtree(os.path.join(repo_path, "artifacts"), ignore_errors=True)
         else:
             getLogger().info(f"CoreRun already exists in {dest_dir}. Skipping generation.")
 
@@ -155,15 +161,27 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             build_runtime_dependency(parsed_args, repo_path, "clr+mono+libs")
             build_runtime_dependency(parsed_args, repo_path, "libs.pretest", additional_args=['-testscope', 'innerloop', '/p:RuntimeFlavor=mono', f"/p:RuntimeArtifactsPath={os.path.join(repo_path, 'artifacts', 'bin', 'mono', f'{parsed_args.os}.{parsed_args.architecture}.Release')}"])
 
+            # Get the dotnet version from the currently checked out runtimes Versions.props file (we assume that it exists)
+            versions_props_path = os.path.join(repo_path, "eng", "Versions.props")
+            tree = xmlTree.parse(versions_props_path)
+            root = tree.getroot()
+            product_version_element = root.find(".//ProductVersion")
+            major_version_element = root.find(".//MajorVersion")
+            if product_version_element is not None and major_version_element is not None:
+                product_version = product_version_element.text
+                major_version = major_version_element.text
+            else:
+                raise RuntimeError("ProductVersion or MajorVersion element not found in Versions.props file.")
+                
             # Create the mono-dotnet
-            src_dir = os.path.join(repo_path, "artifacts", "bin", "runtime", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}")
-            dest_dir = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}", "shared", "Microsoft.NETCore.App", "8.0.0")
+            src_dir = os.path.join(repo_path, "artifacts", "bin", "runtime", f"net{major_version}.0-{parsed_args.os}-Release-{parsed_args.architecture}")
+            dest_dir = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net{major_version}.0-{parsed_args.os}-Release-{parsed_args.architecture}", "shared", "Microsoft.NETCore.App", f"{product_version}") # Wrap product_version to force string type, otherwise we get warning: Argument of type "str | Any | None" cannot be assigned to parameter "paths" of type "BytesPath" in function "join"
             copy_directory_contents(src_dir, dest_dir)
-            src_dir = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net8.0-{parsed_args.os}-Release-{parsed_args.architecture}")
+            src_dir = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net{major_version}.0-{parsed_args.os}-Release-{parsed_args.architecture}")
             dest_dir = os.path.join(repo_path, "artifacts", "dotnet_mono")
             copy_directory_contents(src_dir, dest_dir)
             src_file = os.path.join(repo_path, "artifacts", "bin", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", f"corerun{'.exe' if is_windows(parsed_args) else ''}")
-            dest_dir = os.path.join(repo_path, "artifacts", "dotnet_mono", "shared", "Microsoft.NETCore.App", "8.0.0")
+            dest_dir = os.path.join(repo_path, "artifacts", "dotnet_mono", "shared", "Microsoft.NETCore.App", f"{product_version}") # Wrap product_version to force string type, otherwise we get warning: Argument of type "str | Any | None" cannot be assigned to parameter "paths" of type "BytesPath" in function "join"
             dest_file = os.path.join(dest_dir, f"corerun{'.exe' if is_windows(parsed_args) else ''}")
             shutil.copy2(src_file, dest_file)
 
@@ -173,7 +191,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             copy_directory_contents(dotnet_mono_path, dest_dir_mono_interpreter)
             shutil.rmtree(dest_dir_mono_jit, ignore_errors=True)
             copy_directory_contents(dotnet_mono_path, dest_dir_mono_jit)
-            shutil.rmtree(os.path.join(repo_path, "artifacts"), ignore_errors=True)
+            # shutil.rmtree(os.path.join(repo_path, "artifacts"), ignore_errors=True)
         else:
             getLogger().info(f"dotnet_mono already exists in {dest_dir_mono_interpreter} and {dest_dir_mono_jit}. Skipping generation.")
 
@@ -220,7 +238,8 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                             ]
         bdn_args_unescaped += [ '--corerun' ]
         for commit in all_commits:
-            bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "8.0.0", f'corerun{".exe" if is_windows(parsed_args) else ""}') ]
+            corerun_path = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))[0]
+            bdn_args_unescaped += [ corerun_path ]
         
         bdn_args_unescaped += ['--envVars', 'MONO_ENV_OPTIONS:--interpreter']
 
@@ -233,7 +252,8 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                             ]
         bdn_args_unescaped += [ '--corerun' ]
         for commit in all_commits:
-            bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "8.0.0", f'corerun{".exe" if is_windows(parsed_args) else ""}') ]
+            corerun_path = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))[0]
+            bdn_args_unescaped += [ corerun_path ]
 
     if parsed_args.bdn_arguments:
         bdn_args_unescaped += [parsed_args.bdn_arguments]
