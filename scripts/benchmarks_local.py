@@ -350,7 +350,7 @@ def add_arguments(parser):
     parser.add_argument('--commits', nargs='+', type=str, help='The commits to test.')
     parser.add_argument('--repo-url', type=str, default='https://github.com/dotnet/runtime.git', help='The runtime repo to test from, used to get data for a fork.')
     parser.add_argument('--local-test-repo', type=str, help='Path to a local repo with the runtime source code to test from.') 
-    parser.add_argument('--separate-repos', action='store_true', help='Whether to test each runtime version from their own separate repo directory.')
+    parser.add_argument('--separate-repos', action='store_true', help='Whether to test each runtime version from their own separate repo directory.') # TODO: Do we want to have this as an actual option? It made sense before a shared build cache was added
     parser.add_argument('--repo-storage-path', type=str, default='.', help='The path to store the cloned repositories in.')
     parser.add_argument('--artifact-storage-path', type=str, default=f'{os.getcwd()}{os.path.sep}runtime-testing-artifacts', help=f'The path to store the artifacts in (builds, results, etc). Default is {os.getcwd()}{os.path.sep}runtime-testing-artifacts')
     parser.add_argument('--rebuild-artifacts', action='store_true', help='Whether to rebuild the artifacts for the specified commits before benchmarking.')
