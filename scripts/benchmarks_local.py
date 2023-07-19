@@ -238,7 +238,14 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                             ]
         bdn_args_unescaped += [ '--corerun' ]
         for commit in all_commits:
-            corerun_path = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))[0]
+            # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
+            corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
+            if(len(corerun_capture) == 0):
+                raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
+            elif(len(corerun_capture) > 1):
+                raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
+            else:
+                corerun_path = corerun_capture[0]
             bdn_args_unescaped += [ corerun_path ]
         
         bdn_args_unescaped += ['--envVars', 'MONO_ENV_OPTIONS:--interpreter']
@@ -252,7 +259,14 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                             ]
         bdn_args_unescaped += [ '--corerun' ]
         for commit in all_commits:
-            corerun_path = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))[0]
+            # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
+            corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
+            if(len(corerun_capture) == 0):
+                raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, RunType.MonoJIT, commit)}")
+            elif(len(corerun_capture) > 1):
+                raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoJIT, commit)}")
+            else:
+                corerun_path = corerun_capture[0]
             bdn_args_unescaped += [ corerun_path ]
 
     if parsed_args.bdn_arguments:
