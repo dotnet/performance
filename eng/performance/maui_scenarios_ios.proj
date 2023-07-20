@@ -87,7 +87,7 @@
             sign XamariniOSDefault.app
 
             # Testing commands
-            $(Python) test.py devicestartup --device-type ios --package-path XamariniOSDefault.app --package-name net.dot.xamarintesting --scenario-name "%(Identity)"
+            $(Python) test.py devicestartup --device-type ios --package-path XamariniOSDefault.app --package-name com.companyname.XamariniOSDefault --scenario-name "%(Identity)"
             ((result=$?))
 
             # Post commands
