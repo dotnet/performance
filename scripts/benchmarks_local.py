@@ -39,9 +39,10 @@ from performance.logger import setup_loggers
 # Assumptions: We are only testing this Performance repo, should allow single run or multiple runs
 # For dotnet_version based runs, use the benchmarks_monthly .py script instead
 # Verify the input commands
-# What are supported default cases: MonoJIT, MonoAOTLLVM, MonoInter, Corerun, etc. (WASM)
+# What are supported default cases: MonoJIT, MonoAOTLLVM, MonoInterpreter, Corerun, etc. (WASM)
 
 start_time = datetime.now()
+local_shared_string = "local"
 
 class RunType(Enum):
     CoreRun = 1
@@ -428,7 +429,7 @@ def __main(args: list):
 
         # Generate the artifacts for the local version
         if parsed_args.local_test_repo:
-            generate_artifacts_for_commit(parsed_args, "local", parsed_args.local_test_repo, "local", True)
+            generate_artifacts_for_commit(parsed_args, local_shared_string, parsed_args.local_test_repo, local_shared_string, True)
 
         if not parsed_args.build_only:
             # Run the benchmarks
@@ -436,7 +437,7 @@ def __main(args: list):
             if parsed_args.commits:
                 commitsToRun = parsed_args.commits
             if parsed_args.local_test_repo:
-                commitsToRun.append("local")
+                commitsToRun.append(local_shared_string)
             run_benchmarks(parsed_args, commitsToRun)
         else:
             getLogger().info("Skipping benchmark run because --build-only was specified.")
