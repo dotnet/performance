@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28801.201
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.33707.68
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Startup", "Startup\Startup.csproj", "{756B0602-0D94-4EB7-A987-25BF1ED7B712}"
 EndProject
@@ -9,9 +9,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Util", "Util\Util.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reporting", "..\Reporting\Reporting\Reporting.csproj", "{1A871E0D-F5E0-4A61-B336-D7B080BC30A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SizeOnDisk", "SizeOnDisk\SizeOnDisk.csproj", "{F915B017-D1D8-47EA-A51D-34B7A051E83F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SizeOnDisk", "SizeOnDisk\SizeOnDisk.csproj", "{F915B017-D1D8-47EA-A51D-34B7A051E83F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Startup.Tests", "Startup.Tests\Startup.Tests.csproj", "{4905858E-0871-4DDD-B93F-490E106029B6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Startup.Tests", "Startup.Tests\Startup.Tests.csproj", "{4905858E-0871-4DDD-B93F-490E106029B6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MemoryConsumption", "MemoryConsumption\MemoryConsumption.csproj", "{03F692B1-9290-447B-AECB-A3AFC8ECA944}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PowerConsumption", "PowerConsumption\PowerConsumption.csproj", "{192DB7E6-1263-4651-BC8C-BFF09AB2481F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +43,14 @@ Global
 		{4905858E-0871-4DDD-B93F-490E106029B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4905858E-0871-4DDD-B93F-490E106029B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4905858E-0871-4DDD-B93F-490E106029B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03F692B1-9290-447B-AECB-A3AFC8ECA944}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03F692B1-9290-447B-AECB-A3AFC8ECA944}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03F692B1-9290-447B-AECB-A3AFC8ECA944}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03F692B1-9290-447B-AECB-A3AFC8ECA944}.Release|Any CPU.Build.0 = Release|Any CPU
+		{192DB7E6-1263-4651-BC8C-BFF09AB2481F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{192DB7E6-1263-4651-BC8C-BFF09AB2481F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{192DB7E6-1263-4651-BC8C-BFF09AB2481F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{192DB7E6-1263-4651-BC8C-BFF09AB2481F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

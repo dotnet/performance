@@ -28,7 +28,7 @@ enum MetricType
 
 public class InnerLoopMarkerEventSource : EventSource
 {
-    public static InnerLoopMarkerEventSource Log = new InnerLoopMarkerEventSource();
+    public static InnerLoopMarkerEventSource Log = new();
     public void Split() => WriteEvent(1);
     public void EndIteration() => WriteEvent(2);
     public void DroppedFile() => WriteEvent(3);
@@ -38,7 +38,7 @@ class Startup
 {
     private static IProcessHelper TestProcess { get; set; }
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="appExe">Full path to test executable</param>
     /// <param name="metricType">Type of interval measurement</param>
@@ -68,6 +68,7 @@ class Startup
     /// <param name="skipMeasurementIteration">Don't run measurement collection</param>
     /// <param name="parseOnly">Parse trace(s) without running app</param>
     /// <param name="runWithDotnet">Run the app with dotnet, but don't include dotnet startup time</param>
+    /// <param name="affinity">Processor affinity mask to set for the process</param>
     /// <returns></returns>
 
     static int Main(string appExe,
@@ -97,13 +98,14 @@ class Startup
                     int hotReloadIters = 1,
                     bool skipMeasurementIteration = false,
                     bool parseOnly = false,
-                    bool runWithDotnet = false
+                    bool runWithDotnet = false,
+                    int affinity = 0
                     )
     {
-        var logger = new Logger(String.IsNullOrEmpty(logFileName) ? $"{appExe}.startup.log" : logFileName);
+        var logger = new Logger(string.IsNullOrEmpty(logFileName) ? $"{appExe}.startup.log" : logFileName);
         static void checkArg(string arg, string name)
         {
-            if (String.IsNullOrEmpty(arg))
+            if (string.IsNullOrEmpty(arg))
                 throw new ArgumentException(name);
         };
         checkArg(appExe, nameof(appExe));
@@ -119,7 +121,7 @@ class Startup
             traceFilePath = Path.Join(traceDirectory, traceName);
         }
 
-        if (String.IsNullOrEmpty(traceDirectory))
+        if (string.IsNullOrEmpty(traceDirectory))
         {
             traceDirectory = Environment.CurrentDirectory;
         }
@@ -135,7 +137,27 @@ class Startup
 
         logger.Log($"Running {appExe} (args: \"{appArgs}\")");
         logger.Log($"Working Directory: {workingDir}");
-        if(runWithoutExit)
+
+        if (affinity > 0 && (OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
+        {
+            var currentProcessAffinity = Process.GetCurrentProcess().ProcessorAffinity;
+            if(affinity > currentProcessAffinity.ToInt64())
+            {
+                throw new ArgumentException(nameof(affinity) + " cannot be greater than the number of processors available to this process!");
+            }
+            currentProcessAffinity = (IntPtr)affinity;
+            logger.Log($"Process Affinity: {currentProcessAffinity}, mask: {Convert.ToString((int)currentProcessAffinity, 2)}");
+        }
+        else if (affinity != 0 && !(OperatingSystem.IsWindows() || OperatingSystem.IsLinux()))
+        {
+            throw new ArgumentException(nameof(affinity) + " not supported on non-windows and non-linux platforms!");
+        }
+        else if (affinity < 0)
+        {
+            throw new ArgumentException(nameof(affinity) + " cannot be negative!");
+        }
+
+        if (runWithoutExit)
         {
             TestProcess = new RawProcessHelper(logger)
             {
@@ -173,7 +195,7 @@ class Startup
             var output = new StringBuilder();
             DataReceivedEventHandler stdOutProcessor = (s, e) =>
             {
-                if (!String.IsNullOrEmpty(e.Data))
+                if (!string.IsNullOrEmpty(e.Data))
                 {
                     output.AppendLine(e.Data);
                     Console.WriteLine(e.Data);
@@ -181,7 +203,7 @@ class Startup
             };
             DataReceivedEventHandler stdErrProcessor = (s, e) =>
             {
-                if (!String.IsNullOrEmpty(e.Data))
+                if (!string.IsNullOrEmpty(e.Data))
                 {
                     Console.WriteLine(e.Data);
                 }
@@ -219,7 +241,7 @@ class Startup
         logger.Log($"Iteration set up: {iterationSetup} (args: {setupArgs})");
         IProcessHelper setupProcHelper = null;
 
-        if (!String.IsNullOrEmpty(iterationSetup))
+        if (!string.IsNullOrEmpty(iterationSetup))
         {
             setupProcHelper = CreateProcHelper(iterationSetup, setupArgs, true, logger);
         }
@@ -227,12 +249,12 @@ class Startup
         // create iteration cleanup process helper
         logger.Log($"Iteration clean up: {iterationCleanup} (args: {cleanupArgs})");
         IProcessHelper cleanupProcHelper = null;
-        if (!String.IsNullOrEmpty(iterationCleanup))
+        if (!string.IsNullOrEmpty(iterationCleanup))
         {
             cleanupProcHelper = CreateProcHelper(iterationCleanup, cleanupArgs, true, logger);
         }
         IProcessHelper innerLoopProcHelper = null;
-        if (!String.IsNullOrEmpty(innerLoopCommand))
+        if (!string.IsNullOrEmpty(innerLoopCommand))
         {
             innerLoopProcHelper = CreateProcHelper(innerLoopCommand, innerLoopCommandArgs, true, logger);
         }
@@ -285,7 +307,7 @@ class Startup
             case MetricType.WinUI:
                 parser = new WinUIParser();
                 break;
-            case MetricType.WinUIBlazor:    
+            case MetricType.WinUIBlazor:
                 parser = new WinUIBlazorParser();
                 break;
         }
@@ -293,7 +315,7 @@ class Startup
         var pids = new List<int>();
         var failed = false;
 
-        if(!skipMeasurementIteration) 
+        if (!skipMeasurementIteration)
         {
             // Run trace session
             using (var traceSession = TraceSessionManager.CreateSession("StartupSession", traceName, traceDirectory, logger))
@@ -305,7 +327,7 @@ class Startup
                     (bool Success, List<int> Pids) iterationResult;
 
                     iterationResult = RunIteration(setupProcHelper, TestProcess, waitForSteadyState, innerLoopProcHelper, waitForRecompile, secondTestProcess, cleanupProcHelper, logger, hotReloadIters);
-                    
+
                     if (!iterationResult.Success)
                     {
                         failed = true;
@@ -327,7 +349,7 @@ class Startup
                 appExe = Path.Join(workingDir, appExe);
             }
             var commandLine = $"\"{appExe}\"";
-            if (!String.IsNullOrEmpty(appArgs))
+            if (!string.IsNullOrEmpty(appArgs))
             {
                 commandLine = commandLine + " " + appArgs;
             }
@@ -378,7 +400,7 @@ class Startup
     private static IProcessHelper CreateProcHelper(string command, string args, bool runWithExit, Logger logger)
     {
         IProcessHelper procHelper;
-        if(runWithExit)
+        if (runWithExit)
         {
             procHelper = new ManagedProcessHelper(logger)
             {
@@ -443,7 +465,7 @@ class Startup
             logger.LogStepHeader("Test");
             runResult = RunProcess(testHelper);
             failed = !runResult.Success;
-            if(runResult.Pid == -1)
+            if (runResult.Pid == -1)
             {
                 pids.Add(runResult.Proc.Id);
             }
@@ -452,21 +474,21 @@ class Startup
                 pids.Add(runResult.Pid);
             }
         }
-        
+
         if (waitForSteadyState != null && !failed)
         {
             logger.LogStepHeader("Waiting for steady state");
             failed = failed || !waitForSteadyState(runResult.Proc, "Hot reload capabilities");
         }
-        for(var i = 0; i < hotReloadIters; i++)
+        for (var i = 0; i < hotReloadIters; i++)
         {
-            if(innerLoopProcHelper != null  && !failed)
+            if (innerLoopProcHelper != null && !failed)
             {
                 //Do some stuff to change the project
                 logger.LogStepHeader("Inner Loop Setup");
                 var innerLoopReturn = innerLoopProcHelper.Run();
                 InnerLoopMarkerEventSource.Log.DroppedFile();
-                if(innerLoopReturn.Result != Result.Success)
+                if (innerLoopReturn.Result != Result.Success)
                 {
                     failed = true;
                 }
@@ -477,8 +499,8 @@ class Startup
                 failed = failed || !waitForRecompile(runResult.Proc, "Hot reload of changes succeeded");
             }
         }
-        
-        if (secondTestHelper != null  && !failed)
+
+        if (secondTestHelper != null && !failed)
         {
             var test = InnerLoopMarkerEventSource.GetSources();
             InnerLoopMarkerEventSource.Log.Split();
@@ -490,7 +512,7 @@ class Startup
                 failed = true;
             }
             InnerLoopMarkerEventSource.Log.EndIteration();
-            if(iterationResult.Pid == -1)
+            if (iterationResult.Pid == -1)
             {
                 pids.Add(iterationResult.Proc.Id);
             }
@@ -521,7 +543,7 @@ class Startup
     private static Dictionary<string, string> ParseStringToDictionary(string s)
     {
         var dict = new Dictionary<string, string>();
-        if (!String.IsNullOrEmpty(s))
+        if (!string.IsNullOrEmpty(s))
         {
             foreach (var substring in s.Split(';', StringSplitOptions.RemoveEmptyEntries))
             {
@@ -540,7 +562,7 @@ class Startup
         test.Name = scenarioName;
         test.AddCounter(counters);
         reporter.AddTest(test);
-        if (reporter.InLab && !String.IsNullOrEmpty(reportJsonPath))
+        if (reporter.InLab && !string.IsNullOrEmpty(reportJsonPath))
         {
             File.WriteAllText(reportJsonPath, reporter.GetJson());
         }

@@ -10,13 +10,13 @@ namespace ScenarioMeasurement;
 public class PerfCollect : IDisposable
 {
     private readonly string startupDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-    private ManagedProcessHelper perfCollectProcess;
+    private readonly ManagedProcessHelper perfCollectProcess;
     public string TraceName { get; private set; }
     public string TraceFileName { get; private set; }
     public string TraceDirectory { get; private set; }
     public string TraceFilePath { get; private set; }
-    private List<KernelKeyword> KernelEvents = new List<KernelKeyword>();
-    private List<ClrKeyword> ClrEvents = new List<ClrKeyword>();
+    private readonly List<KernelKeyword> KernelEvents = new();
+    private readonly List<ClrKeyword> ClrEvents = new();
     public PerfCollect(string traceName, Logger logger) : this(traceName, Environment.CurrentDirectory, logger)
     {
     }
@@ -29,7 +29,7 @@ public class PerfCollect : IDisposable
             throw new FileNotFoundException($"Pefcollect not found at {perfCollectScript}. Please rebuild the project to download it.");
         }
 
-        if (String.IsNullOrEmpty(traceName))
+        if (string.IsNullOrEmpty(traceName))
         {
             throw new ArgumentException("Trace file name cannot be empty.");
         }
@@ -146,7 +146,7 @@ public class PerfCollect : IDisposable
         KernelEvents.Add(keyword);
     }
 
-    private bool LttngInstalled()
+    private static bool LttngInstalled()
     {
         var procStartInfo = new ProcessStartInfo("modinfo", "lttng_probe_writeback");
         var proc = new Process() { StartInfo = procStartInfo, };

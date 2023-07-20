@@ -16,9 +16,9 @@ public enum Result
 }
 public class ProcessResult
 {
-    public Process Proc {get;set;}
-    public Result Result {get;set;}
-    public int Pid {get;set;}
+    public Process Proc { get; set; }
+    public Result Result { get; set; }
+    public int Pid { get; set; }
 }
 
 public interface IProcessHelper
@@ -45,8 +45,8 @@ public class RawProcessHelper : IProcessHelper
 
     public string Executable { get; set; }
 
-    public string Arguments { get; set; } = String.Empty;
-    public string WorkingDirectory { get; set; } = String.Empty;
+    public string Arguments { get; set; } = string.Empty;
+    public string WorkingDirectory { get; set; } = string.Empty;
 
     public bool GuiApp { get; set; } = false;
 
@@ -106,7 +106,7 @@ public class RawProcessHelper : IProcessHelper
         }
 
         var process = new Process();
-        
+
         process.StartInfo = psi;
         process.Start();
         return process;
@@ -123,7 +123,7 @@ public class RawProcessHelper : IProcessHelper
 
         p = RunWithNoExit();
 
-        return new ProcessResult() {Proc = p, Result = exitResult.Result, Pid = exitResult.Pid};
+        return new ProcessResult() { Proc = p, Result = exitResult.Result, Pid = exitResult.Pid };
     }
 }
 public class ManagedProcessHelper : IProcessHelper
@@ -145,8 +145,8 @@ public class ManagedProcessHelper : IProcessHelper
 
     public string Executable { get; set; }
 
-    public string Arguments { get; set; } = String.Empty;
-    public string WorkingDirectory { get; set; } = String.Empty;
+    public string Arguments { get; set; } = string.Empty;
+    public string WorkingDirectory { get; set; } = string.Empty;
 
     public bool GuiApp { get; set; } = false;
 
@@ -174,7 +174,7 @@ public class ManagedProcessHelper : IProcessHelper
 
         exitResult = RunWithExit();
 
-        return new ProcessResult() {Proc = p, Result = exitResult.Result, Pid = exitResult.Pid};
+        return new ProcessResult() { Proc = p, Result = exitResult.Result, Pid = exitResult.Pid };
     }
 
     /// <summary>
@@ -230,14 +230,14 @@ public class ManagedProcessHelper : IProcessHelper
             {
                 process.OutputDataReceived += (s, e) =>
                 {
-                    if (!String.IsNullOrEmpty(e.Data))
+                    if (!string.IsNullOrEmpty(e.Data))
                     {
                         output.AppendLine(e.Data);
                     }
                 };
                 process.ErrorDataReceived += (s, e) =>
                 {
-                    if (!String.IsNullOrEmpty(e.Data))
+                    if (!string.IsNullOrEmpty(e.Data))
                     {
                         error.AppendLine(e.Data);
                     }
@@ -265,7 +265,7 @@ public class ManagedProcessHelper : IProcessHelper
                 Thread.Sleep(MeasurementDelay * 1000);
                 if (!process.HasExited)
                 {
-                    if(GuiApp)
+                    if (GuiApp)
                     {
                         process.CloseMainWindow();
                     }

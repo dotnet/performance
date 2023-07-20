@@ -21,6 +21,7 @@ class TestTraits:
         self.guiapp = ''
         self.startupmetric = ''
         self.memoryconsumptionmetric = ''
+        self.powerconsumptionmetric = ''
         self.appargs = ''
         self.iterations = ''
         self.timeout = ''
@@ -45,6 +46,7 @@ class TestTraits:
         self.tracename = ''
         self.tracefolder = ''
         self.runwithdotnet = ''
+        self.affinity = ''
 
         # add test types to traits
         for testtype in testtypes:

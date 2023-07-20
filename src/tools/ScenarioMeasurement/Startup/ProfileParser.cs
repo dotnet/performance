@@ -10,7 +10,7 @@ namespace ScenarioMeasurement;
 
 public class ProfileParser : IParser
 {
-    IParser other;
+    readonly IParser other;
     public ProfileParser(IParser other) => this.other = other;
 
     public void EnableKernelProvider(ITraceSession kernel)

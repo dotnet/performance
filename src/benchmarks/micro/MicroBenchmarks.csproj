@@ -36,6 +36,13 @@
             <SystemVersion>7.0.0</SystemVersion>
         </PropertyGroup>
     </When>
+    <When Condition="'$(TargetFramework)' == 'net8.0'">
+        <PropertyGroup>
+            <LangVersion>preview</LangVersion>
+            <ExtensionsVersion>8.0.*-*</ExtensionsVersion>
+            <SystemVersion>8.0.*-*</SystemVersion>
+        </PropertyGroup>
+    </When>
     <Otherwise>
         <!-- when comparing against Full .NET Framework we are usually interested in CLR differences, so net462 belongs to this block -->
         <PropertyGroup>
@@ -147,6 +154,7 @@
     <Compile Remove="libraries\System.Text.Json\Serializer\WritePreservedReferences.cs" />
     <Compile Remove="libraries\System.Net.Security\SslStreamTests.Context.cs" />
     <Compile Remove="libraries\System.Formats.Cbor\*.cs" />
+    <Compile Remove="libraries\System.Runtime\Perf.Half.cs" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '6.0')">
@@ -217,5 +225,4 @@
     <!-- Workaround https://github.com/dotnet/project-system/issues/935 -->
     <None Include="**/*.cs" />
   </ItemGroup>
-
 </Project>

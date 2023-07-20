@@ -100,7 +100,7 @@ class SizeOnDisk
             test.Name = scenarioName;
             test.AddCounter(counters);
             reporter.AddTest(test);
-            if (reporter.InLab && !String.IsNullOrEmpty(reportJsonPath))
+            if (reporter.InLab && !string.IsNullOrEmpty(reportJsonPath))
             {
                 File.WriteAllText(reportJsonPath, reporter.GetJson());
             }
@@ -112,14 +112,14 @@ class SizeOnDisk
     private static string GetExtension(string fileName)
     {
         var extension = Path.GetExtension(fileName);
-        if (String.IsNullOrWhiteSpace(extension))
+        if (string.IsNullOrWhiteSpace(extension))
         {
             return "No Extension";
         }
         return extension;
     }
 
-    static HashSet<string> versions = new HashSet<string>();
+    static readonly HashSet<string> versions = new();
 
     static string RemoveVersions(string name)
     {

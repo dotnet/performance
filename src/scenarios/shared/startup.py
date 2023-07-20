@@ -145,6 +145,8 @@ class StartupWrapper(object):
             startup_args.extend(['--skip-measurement-iteration', traits.skipmeasurementiteration])
         if traits.runwithdotnet:
             startup_args.extend(['--run-with-dotnet'])
+        if traits.affinity:
+            startup_args.extend(['--affinity', traits.affinity])
             
         upload_container = UPLOAD_CONTAINER
 

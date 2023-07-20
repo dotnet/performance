@@ -61,25 +61,18 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Channel to download product from'
     )
     parser.add_argument(
-        '--no-pgo',
+        '--no-dynamic-pgo',
         dest='pgo_status',
         required=False,
         action='store_const',
-        const='nopgo'
+        const='nodynamicpgo'
     )
     parser.add_argument(
-        '--dynamic-pgo',
-        dest='pgo_status',
+        '--physical-promotion',
+        dest='physical_promotion',
         required=False,
         action='store_const',
-        const='dynamicpgo'
-    )
-    parser.add_argument(
-        '--full-pgo',
-        dest='pgo_status',
-        required=False,
-        action='store_const',
-        const='fullpgo'
+        const='physicalpromotion'
     )
     parser.add_argument(
         '--branch',
@@ -223,7 +216,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument(
         '--affinity',
         required=False,
-        help='Affinity value set for BenchmarkDotNet to set as PERFLAB_DATA_AFFINITY'
+        help='Affinity value set as PERFLAB_DATA_AFFINITY. In scenarios, this value is directly used to set affinity. In benchmark jobs, affinity is set in benchmark_jobs.yml via BDN command line arg'
     )
 
     parser.add_argument(
@@ -329,17 +322,14 @@ def main(args: CiSetupArgs):
     owner, repo = ('dotnet', 'core-sdk') if repo_url is None else (dotnet.get_repository(repo_url))
     config_string = ';'.join(f"{k}={v}" for k, v in args.build_configs.items()) if args.target_windows else '"%s"' % ';'.join(args.build_configs)
     pgo_config = ''
+    physical_promotion_config = ''
     showenv = 'set' if args.target_windows else 'printenv'
 
-    if args.pgo_status == 'nopgo':
-        pgo_config = variable_format % ('COMPlus_TC_QuickJitForLoops', '1')
-        pgo_config += variable_format % ('COMPlus_TC_OnStackReplacement','1')
-    elif args.pgo_status == 'dynamicpgo':
-        pgo_config = variable_format % ('COMPlus_TieredPGO', '1')
-    elif args.pgo_status == 'fullpgo':
-        pgo_config = variable_format % ('COMPlus_TieredPGO', '1')
-        pgo_config += variable_format % ('COMPlus_ReadyToRun','0')
-        pgo_config += variable_format % ('COMPlus_TC_QuickJitForLoops','1')
+    if args.pgo_status == 'nodynamicpgo':
+        pgo_config = variable_format % ('COMPlus_TieredPGO', '0')
+
+    if args.physical_promotion == 'physicalpromotion':
+        physical_promotion_config = variable_format % ('DOTNET_JitEnablePhysicalPromotion', '1')
 
     output = ''
 
@@ -389,6 +379,7 @@ def main(args: CiSetupArgs):
         with open(output_file, 'w') as out_file:
             out_file.write(which)
             out_file.write(pgo_config)
+            out_file.write(physical_promotion_config)
             out_file.write(variable_format % ('PERFLAB_INLAB', '0' if args.not_in_lab else '1'))
             out_file.write(variable_format % ('PERFLAB_REPO', '/'.join([owner, repo])))
             out_file.write(variable_format % ('PERFLAB_BRANCH', branch))

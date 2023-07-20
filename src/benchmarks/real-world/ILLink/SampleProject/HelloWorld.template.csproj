@@ -1,10 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>exe</OutputType>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<PublishTrimmed>false</PublishTrimmed>
-		<TrimmerDefaultAction>copy</TrimmerDefaultAction>
-		<TrimMode>copy</TrimMode>
+		<TrimMode>partial</TrimMode>
 		<SelfContained>true</SelfContained>
 		<!-- ILLinkBenchmarks.csproj insert the latest ILLinkTasksVersion here -->
 		<ILLinkTasksVersion>==ILLINK TASKS VERSION==</ILLinkTasksVersion>

@@ -20,7 +20,7 @@ public class Reporter
     private Run run;
     private Os os;
     private Build build;
-    private List<Test> tests = new List<Test>();
+    private readonly List<Test> tests = new();
     protected IEnvironment environment;
 
     private Reporter() { }
@@ -59,10 +59,10 @@ public class Reporter
             Queue = environment.GetEnvironmentVariable("PERFLAB_QUEUE"),
             WorkItemName = environment.GetEnvironmentVariable("HELIX_WORKITEM_FRIENDLYNAME"),
         };
-        Boolean.TryParse(environment.GetEnvironmentVariable("PERFLAB_HIDDEN"), out var hidden);
+        bool.TryParse(environment.GetEnvironmentVariable("PERFLAB_HIDDEN"), out var hidden);
         run.Hidden = hidden;
         var configs = environment.GetEnvironmentVariable("PERFLAB_CONFIGS");
-        if (!String.IsNullOrEmpty(configs)) // configs should be optional.
+        if (!string.IsNullOrEmpty(configs)) // configs should be optional.
         {
             foreach (var kvp in configs.Split(';'))
             {
@@ -145,7 +145,7 @@ public class Reporter
             var resultWidth = Math.Max(test.Counters.Max(c => c.Results.Max().ToString("F3").Length + c.MetricName.Length) + 2, 15);
             ret.AppendLine(test.Name);
             ret.AppendLine($"{LeftJustify("Metric", counterWidth)}|{LeftJustify("Average",resultWidth)}|{LeftJustify("Min", resultWidth)}|{LeftJustify("Max",resultWidth)}");
-            ret.AppendLine($"{new String('-', counterWidth)}|{new String('-', resultWidth)}|{new String('-', resultWidth)}|{new String('-', resultWidth)}");
+            ret.AppendLine($"{new string('-', counterWidth)}|{new string('-', resultWidth)}|{new string('-', resultWidth)}|{new string('-', resultWidth)}");
 
        
             ret.AppendLine(Print(defaultCounter, counterWidth, resultWidth));
@@ -170,7 +170,7 @@ public class Reporter
 
     private string LeftJustify(string str, int width)
     {
-        return String.Format("{0,-" + width + "}", str);
+        return string.Format("{0,-" + width + "}", str);
     }
 
     public bool InLab => environment.GetEnvironmentVariable("PERFLAB_INLAB")?.Equals("1") ?? false;

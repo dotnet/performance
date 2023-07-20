@@ -18,7 +18,7 @@ class AndroidHelper:
         self.startanimatordurationscale = None
         self.startscreenofftimeout = None
 
-    def setup_device(self, packagename, packagepath, animationsdisabled):
+    def setup_device(self, packagename: str, packagepath: str, animationsdisabled: bool, forcewaitstart: bool = True):
         runSplitRegex = ":\s(.+)" 
         self.screenwasoff = False
         self.packagename = packagename
@@ -199,6 +199,7 @@ class AndroidHelper:
             '-n',
             self.activityname
         ]
+
         testRun = RunCommand(self.startappcommand, verbose=True)
         testRun.run()
         testRunStats = re.findall(runSplitRegex, testRun.stdout) # Split results saving value (List: Starting, Status, LaunchState, Activity, TotalTime, WaitTime) 
@@ -229,6 +230,20 @@ class AndroidHelper:
             if "com.google.android.permissioncontroller" in testRunStats[3]:
                 getLogger().exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
                 raise Exception("Failed to get past permission screen, run locally to see if enough next button presses were used.")
+            
+        self.startappcommand = [ 
+            self.adbpath,
+            'shell',
+            'am',
+            'start-activity'
+        ]
+        if forcewaitstart:
+            self.startappcommand += '-W'
+
+        self.startappcommand += [
+            '-n',
+            self.activityname
+        ]
 
     def close_device(self):
         keyInputCmd = [

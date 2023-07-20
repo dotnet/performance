@@ -113,7 +113,7 @@
   <!-- TODO: Support Compare from runtime repo -->
 
   <!-- 
-    Partition the Microbenchamrks project, but nothing else
+    Partition the MicroBenchmarks project, but nothing else
   -->
   <ItemGroup Condition="$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
     <HelixWorkItem Include="@(Partition)">

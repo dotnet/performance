@@ -5,13 +5,6 @@ using System.Collections.Generic;
 
 namespace ScenarioMeasurement;
 
-// [EventSource(Guid = "9bb228bd-1033-5cf0-1a56-c2dbbe0ebc86")]
-// class PerfLabGenericEventSource : EventSource
-// {
-//     public static PerfLabGenericEventSource Log = new PerfLabGenericEventSource();
-//     public void Startup() => WriteEvent(1);
-// }
-
 public class PDNStartupParser : IParser
 {
     const string PaintDotNetTraceProviderName = "PaintDotNetTrace";
@@ -43,8 +36,8 @@ public class PDNStartupParser : IParser
 
             source.Kernel.ProcessStart += evt =>
             {
-                var commandLineArgs = commandLine.Substring(commandLine.LastIndexOf("\"")+1).Trim();
-                var payloadCommandLineArgs = evt.CommandLine.Substring(evt.CommandLine.LastIndexOf("\"")+1).Trim();
+                var commandLineArgs = commandLine[(commandLine.LastIndexOf("\"") + 1)..].Trim();
+                var payloadCommandLineArgs = evt.CommandLine[(evt.CommandLine.LastIndexOf("\"") + 1)..].Trim();
                 if (processName.Equals(evt.ProcessName, StringComparison.OrdinalIgnoreCase) && pids.Contains(evt.ProcessID) && payloadCommandLineArgs == commandLineArgs)
                 {
                     if (pid.HasValue)

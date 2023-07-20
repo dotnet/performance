@@ -19,6 +19,7 @@ from io import StringIO
 from shutil import move, rmtree, copytree
 from shared.androidhelper import AndroidHelper
 from shared.androidinstrumentation import AndroidInstrumentationHelper
+from shared.devicepowerconsumption import DevicePowerConsumptionHelper
 from shared.crossgen import CrossgenArguments
 from shared.startup import StartupWrapper
 from shared.memoryconsumption import MemoryConsumptionWrapper
@@ -46,6 +47,7 @@ class Runner:
         self.crossgenfile = None
         self.dirs = None
         self.crossgen_arguments = CrossgenArguments()
+        self.affinity = None
         setup_loggers(True)
 
     def parseargs(self):
@@ -60,6 +62,7 @@ class Runner:
         # startup command
         startupparser = subparsers.add_parser(const.STARTUP,
                                               description='measure time to main of running the project')
+        self.add_affinity_argument(startupparser)
         self.add_common_arguments(startupparser)
 
         # parse only command
@@ -76,7 +79,6 @@ class Runner:
         devicestartupparser.add_argument('--time-from-kill-to-start', help='Set an additional delay time for ensuring an app is cleared after closing the app on Android, not on iOS. This should be greater than the greatest amount of expected time needed between closing an app and starting it again for a cold start. Default = 3 seconds', type=int, default=3, dest='closeToStartDelay')
         self.add_common_arguments(devicestartupparser)
 
-        # parse only command
         devicememoryconsumptionparser = subparsers.add_parser(const.DEVICEMEMORYCONSUMPTION,
                                               description='measure memory consumption to startup for Android/iOS apps')
         devicememoryconsumptionparser.add_argument('--device-type', choices=['android'],type=str.lower,help='Device type for testing', dest='devicetype')
@@ -95,19 +97,32 @@ class Runner:
         androidinstrumentationparser.add_argument('--instrumentation-name', help='Name of the instrumentation to run', dest='instrumentationname')
         self.add_common_arguments(androidinstrumentationparser)
 
+        devicepowerconsumptionparser = subparsers.add_parser(const.DEVICEPOWERCONSUMPTION,
+                                              description='Run device BDN instrumentation to startup for Android apps')
+        devicepowerconsumptionparser.add_argument('--device-type', choices=['android'],type=str.lower,help='Device type for testing', dest='devicetype') # choices=['android','ios'] Only android is supported for now
+        devicepowerconsumptionparser.add_argument('--package-path', help='Location of test application', dest='packagepath')
+        devicepowerconsumptionparser.add_argument('--package-name', help='Classname (Android)', dest='packagename')
+        devicepowerconsumptionparser.add_argument('--test-iterations', help='Iterations to run (1+)', type=int, default=4, dest='testiterations')
+        devicepowerconsumptionparser.add_argument('--runtime', help='Amount of time to run the app between clearing procstats and dumping them', type=int, default=60, dest='runtimeseconds')
+        devicepowerconsumptionparser.add_argument('--time-from-kill-to-start', help='Set an additional delay time for ensuring an app is cleared after closing the app on Android, not on iOS. This should be greater than the greatest amount of expected time needed between closing an app and starting it again for a cold start. Default = 3 seconds', type=int, default=3, dest='closeToStartDelay')
+        self.add_common_arguments(devicepowerconsumptionparser)
+
         # inner loop command
         innerloopparser = subparsers.add_parser(const.INNERLOOP,
                                               description='measure time to main and difference between two runs in a row')
+        self.add_affinity_argument(innerloopparser)
         self.add_common_arguments(innerloopparser)
 
         # inner loop msbuild command
         innerloopparser = subparsers.add_parser(const.INNERLOOPMSBUILD,
                                               description='measure time to main and difference between two runs in a row')
+        self.add_affinity_argument(innerloopparser)
         self.add_common_arguments(innerloopparser)
 
         # dotnet watch command
         dotnetwatchparser = subparsers.add_parser(const.DOTNETWATCH,
                                               description='measure time to main and time for hot reload')
+        self.add_affinity_argument(dotnetwatchparser)
         self.add_common_arguments(dotnetwatchparser)
 
         # sdk command
@@ -124,18 +139,21 @@ build_no_change: measure duration of building with existing output in each itera
 new_console:     measure duration of creating a new console template
 '''
                                )
+        self.add_affinity_argument(sdkparser)
         self.add_common_arguments(sdkparser)
 
         crossgenparser = subparsers.add_parser(const.CROSSGEN,
                                                description='measure duration of the crossgen compilation',
                                                formatter_class=RawTextHelpFormatter)
         self.crossgen_arguments.add_crossgen_arguments(crossgenparser)
+        self.add_affinity_argument(crossgenparser)
         self.add_common_arguments(crossgenparser)
 
         crossgen2parser = subparsers.add_parser(const.CROSSGEN2,
                                                 description='measure duration of the crossgen compilation',
                                                 formatter_class=RawTextHelpFormatter)
         self.crossgen_arguments.add_crossgen2_arguments(crossgen2parser)
+        self.add_affinity_argument(crossgen2parser)
         self.add_common_arguments(crossgen2parser)
 
         sodparser = subparsers.add_parser(const.SOD,
@@ -195,14 +213,32 @@ ex: C:\repos\performance;C:\repos\runtime
             self.packagename = args.packagename
             self.instrumentationname = args.instrumentationname
 
+        if self.testtype == const.DEVICEPOWERCONSUMPTION:
+            self.devicetype = args.devicetype
+            self.packagepath = args.packagepath
+            self.packagename = args.packagename
+            self.testiterations = args.testiterations
+            self.runtimeseconds = args.runtimeseconds
+            self.closeToStartDelay = args.closeToStartDelay
+
         if args.scenarioname:
             self.scenarioname = args.scenarioname
 
-    
+        if self.testtype in [const.STARTUP, const.INNERLOOP, const.INNERLOOPMSBUILD, const.DOTNETWATCH, const.SDK, const.CROSSGEN, const.CROSSGEN2] and (args.affinity or os.environ.get('PERFLAB_DATA_AFFINITY')): # Set affinity if doing a Startup based test
+            self.affinity = args.affinity if args.affinity else os.environ.get('PERFLAB_DATA_AFFINITY')
+
+
     def add_common_arguments(self, parser: ArgumentParser):
         "Common arguments to add to subparsers"
         parser.add_argument('--scenario-name',
                             dest='scenarioname')
+        
+    def add_affinity_argument(self, parser: ArgumentParser):
+        "Affinity arguments to add to subparsers"
+        parser.add_argument('--affinity',
+                            dest='affinity',
+                            type=str,
+                            help='Processor affinity to run the test on. Passed as integer. EX. 1 for first processor, 2 for second processor, 3 for first and second processor, 4 for third processor, etc.')
 
     def run(self):
         '''
@@ -218,7 +254,8 @@ ex: C:\repos\performance;C:\repos\runtime
             iterationsetup=pythoncommand(),
             setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
             iterationcleanup=pythoncommand(),
-            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE))
+            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
+            affinity=self.affinity)
             startup.runtests(self.traits)
 
         if self.testtype == const.INNERLOOPMSBUILD:
@@ -230,7 +267,8 @@ ex: C:\repos\performance;C:\repos\runtime
             iterationsetup=pythoncommand(),
             setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
             iterationcleanup=pythoncommand(),
-            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE))
+            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
+            affinity=self.affinity)
             startup.runtests(self.traits)
             
         if self.testtype == const.DOTNETWATCH:
@@ -242,7 +280,8 @@ ex: C:\repos\performance;C:\repos\runtime
             iterationsetup=pythoncommand(),
             setupargs='%s %s setup_build' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
             iterationcleanup=pythoncommand(),
-            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE))
+            cleanupargs='%s %s cleanup' % ('-3' if iswin() else '', const.ITERATION_SETUP_FILE),
+            affinity=self.affinity)
             self.traits.add_traits(workingdir = const.APPDIR)
             startup.runtests(self.traits)
 
@@ -252,7 +291,8 @@ ex: C:\repos\performance;C:\repos\runtime
                                    environmentvariables='COMPlus_EnableEventLog=1' if not iswin() else '',
                                    scenarioname=self.scenarioname,
                                    scenariotypename=const.SCENARIO_NAMES[const.STARTUP],
-                                   apptorun=publishedexe(self.traits.exename)
+                                   apptorun=publishedexe(self.traits.exename),
+                                   affinity=self.affinity
                                    )
             if self.traits.runwithdotnet:
                 self.traits.add_traits(overwrite=True,
@@ -311,6 +351,7 @@ ex: C:\repos\performance;C:\repos\runtime
                     workingdir=const.APPDIR
                 )
                 self.traits.add_traits(overwrite=True, startupmetric=const.STARTUP_PROCESSTIME)
+                self.traits.add_traits(overwrite=True, affinity=self.affinity)
                 startup.runtests(self.traits)
 
         elif self.testtype == const.CROSSGEN:
@@ -323,7 +364,8 @@ ex: C:\repos\performance;C:\repos\runtime
             self.traits.add_traits(overwrite=True,
                                    startupmetric=const.STARTUP_PROCESSTIME,
                                    workingdir=coreroot,
-                                   appargs=' '.join(crossgenargs)
+                                   appargs=' '.join(crossgenargs),
+                                   affinity=self.affinity
                                    )
             self.traits.add_traits(overwrite=False,
                                    scenarioname='Crossgen Throughput - %s' % scenario_filename,
@@ -348,7 +390,8 @@ ex: C:\repos\performance;C:\repos\runtime
             self.traits.add_traits(overwrite=True,
                                    startupmetric=const.STARTUP_CROSSGEN2,
                                    workingdir=self.crossgen_arguments.coreroot,
-                                   appargs='%s %s' % (os.path.join('crossgen2', 'crossgen2.dll'), ' '.join(crossgen2args))
+                                   appargs='%s %s' % (os.path.join('crossgen2', 'crossgen2.dll'), ' '.join(crossgen2args)),
+                                   affinity=self.affinity
                                    )
             self.traits.add_traits(overwrite=False,
                                    scenarioname=scenarioname,
@@ -359,7 +402,12 @@ ex: C:\repos\performance;C:\repos\runtime
 
         elif self.testtype == const.ANDROIDINSTRUMENTATION:
             androidInstrumentation = AndroidInstrumentationHelper()
-            androidInstrumentation.runtests(self.packagepath, self.packagename, self.instrumentationname) # Do we want to make these part of traits? or keep them separate?
+            androidInstrumentation.runtests(self.packagepath, self.packagename, self.instrumentationname)
+
+        elif self.testtype == const.DEVICEPOWERCONSUMPTION:
+            devicePowerConsumption = DevicePowerConsumptionHelper()
+            self.traits.add_traits(overwrite=True, apptorun="app", powerconsumptionmetric=const.POWERCONSUMPTION_ANDROID, tracefolder='PerfTest/', tracename='runoutput.trace', scenarioname=self.scenarioname)
+            devicePowerConsumption.runtests(self.devicetype, self.packagepath, self.packagename, self.testiterations, self.runtimeseconds, self.closeToStartDelay, self.traits)
   
         elif self.testtype == const.DEVICEMEMORYCONSUMPTION and self.devicetype == 'android':
             getLogger().info("Clearing potential previous run nettraces")

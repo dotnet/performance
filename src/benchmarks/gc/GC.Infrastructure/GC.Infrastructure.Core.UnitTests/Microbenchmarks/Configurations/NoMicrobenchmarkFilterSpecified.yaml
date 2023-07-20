@@ -1,0 +1,35 @@
+﻿runs:
+  heapcount_1:
+    environment_variables:
+      COMPLUS_GCHeapCount: 1 
+      COMPLUS_GCServer: 0 
+
+  heapcount_2:
+    environment_variables:
+      COMPLUS_GCHeapCount: 2 
+      COMPLUS_GCServer: 1 
+
+  heapcount_3:
+    environment_variables:
+      COMPLUS_GCHeapCount: 3 
+      COMPLUS_GCServer: 1 
+
+  heapcount_4:
+    environment_variables:
+      COMPLUS_GCHeapCount: 4 
+      COMPLUS_GCServer: 1 
+
+  heapcount_5:
+    environment_variables:
+      COMPLUS_GCHeapCount: 5 
+      COMPLUS_GCServer: 1 
+
+# Top level microbenchmark configuration.
+microbenchmark_configurations:
+  framework_version: net7.0
+
+# Configurations that involve capturing a trace.
+trace_configurations:
+  type: gc # Choices: gc, verbose, cpu, threadtime 
+
+output: 'C:\\ManyRegressions\\'

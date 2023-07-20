@@ -1,0 +1,10 @@
+﻿# Top level microbenchmark configuration.
+microbenchmark_configurations:
+  filter: V8.* 
+  framework_version: net7.0
+
+# Configurations that involve capturing a trace.
+trace_configurations:
+  type: gc # Choices: gc, verbose, cpu, threadtime 
+
+output: 'C:\\ManyRegressions\\'

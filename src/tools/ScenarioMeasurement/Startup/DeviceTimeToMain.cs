@@ -41,7 +41,7 @@ class DeviceTimeToMain : IParser
                 {
                     var groups = match.Groups;
                     Console.WriteLine($"Found Value (ms): {groups["totalTime"].Value}");
-                    times.Add(Double.Parse(groups["totalTime"].Value));
+                    times.Add(double.Parse(groups["totalTime"].Value));
                 }
             }
         }

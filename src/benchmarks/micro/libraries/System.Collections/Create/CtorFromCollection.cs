@@ -104,6 +104,6 @@ namespace System.Collections
         public FrozenDictionary<T, T> FrozenDictionary() => _dictionary.ToFrozenDictionary();
 
         [Benchmark]
-        public FrozenDictionary<T, T> FrozenDictionaryOptimized() => _dictionary.ToFrozenDictionary(optimizeForReading: true);
+        public FrozenDictionary<T, T> FrozenDictionaryOptimized() => _dictionary.ToFrozenDictionary();
     }
 }

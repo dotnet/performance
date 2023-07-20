@@ -2,6 +2,7 @@ from random import randint
 import uuid
 from azure.storage.blob import BlobClient, ContentSettings
 from azure.storage.queue import QueueClient, TextBase64EncodePolicy
+from azure.core.exceptions import ResourceExistsError
 from traceback import format_exc
 from glob import glob
 from performance.common import retry_on_exception
@@ -34,7 +35,7 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
             upload_succeded = False
             with open(infile, "rb") as data:
                 try:
-                    retry_on_exception(lambda: blob_client.upload_blob(data, blob_type="BlockBlob", content_settings=ContentSettings(content_type="application/json")))
+                    retry_on_exception(lambda: blob_client.upload_blob(data, blob_type="BlockBlob", content_settings=ContentSettings(content_type="application/json")), raise_exceptions=[ResourceExistsError])
                     upload_succeded = True
                 except Exception as ex:
                     any_upload_or_queue_failed = True
