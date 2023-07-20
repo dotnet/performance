@@ -132,13 +132,15 @@ jobs:
             Write-Host "##vso[task.setvariable variable=DOTNET_ROOT;]$(CorrelationStaging)dotnet"
             Write-Host "Set DOTNET_ROOT to $(CorrelationStaging)dotnet"
           displayName: Explicitly set DOTNET_ROOT
+        - powershell: |
+            Write-Host "##vso[task.setvariable variable=PERFLAB_TARGET_FRAMEWORKS;]net8.0"
+            Write-Host "Set PERFLAB_TARGET_FRAMEWORKS to net8.0"
+          displayName: Explicitly set PERFLAB_TARGET_FRAMEWORKS
         - ${{ if eq(parameters.osName, 'windows') }}:
           - script: xcopy .\NuGet.config $(CorrelationStaging) && xcopy .\scripts $(CorrelationStaging)scripts\/e && xcopy .\src\scenarios\shared $(CorrelationStaging)shared\/e && xcopy .\src\scenarios\staticdeps $(CorrelationStaging)staticdeps\/e
             displayName: Copy python libraries and NuGet.config
-          - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)startup -f $(PERFLAB_Framework) -r win-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\Startup\Startup.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
+          - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)startup -f $(PERFLAB_TARGET_FRAMEWORKS) -r win-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\Startup\Startup.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
             displayName: Build startup tool
-            env:
-              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
           - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)SOD -f $(PERFLAB_Framework) -r win-${{parameters.architecture}} --self-contained $(Build.SourcesDirectory)\src\tools\ScenarioMeasurement\SizeOnDisk\SizeOnDisk.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
             displayName: Build SOD tool
             env:
