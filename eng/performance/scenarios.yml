@@ -13,6 +13,7 @@ parameters:
   affinity: '0'         # optional -- Affinity bitmask to a specific machine in the pool as a decimal number (e.g. 1, 2, etc) 
   runEnvVars: []        # optional -- Environment variables to set for the benchmark run in the form of a multi-line object like: "runEnvVars:\n - DOTNET_GCgen0size=1E00000 \n - DOTNET_GCHeapCount=4 \n - DOTNET_GCTotalPhysicalMemory=200000000"
   additionalJobIdentifier: '' # optional -- Additional identifier to append to the job name (no spaces)
+  runtimeFlavor: ''     # optional -- Runtime flavor used for scenarios
 
 jobs:
 - template: ../common/templates/jobs/jobs.yml
@@ -21,8 +22,8 @@ jobs:
     enablePublishBuildArtifacts: true
     helixRepo: dotnet/performance
     jobs:
-      - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}_${{ parameters.machinePool }}${{ parameters.additionalJobIdentifier }}'
-        displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.machinePool }} ${{ parameters.additionalJobIdentifier }}'
+      - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}_${{ parameters.runtimeFlavor }}_${{ parameters.machinePool }}${{ parameters.additionalJobIdentifier }}'
+        displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.runtimeFlavor }} ${{ parameters.machinePool }} ${{ parameters.additionalJobIdentifier }}'
         timeoutInMinutes: 320
         variables:
         - name: AffinityValue # Make the affinity value available to the csproj generation
@@ -158,7 +159,7 @@ jobs:
               $(Python) -m pip install urllib3==1.26.15
               $(Python) -m pip install requests
               .\src\scenarios\init.ps1 -DotnetDirectory $(CorrelationStaging)dotnet
-              dotnet msbuild .\eng\performance\${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /bl:.\artifacts\log\$(_BuildConfig)\PrepareWorkItemPayloads.binlog
+              dotnet msbuild .\eng\performance\${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /p:RuntimeFlavor=${{ parameters.runtimeFlavor }} /bl:.\artifacts\log\$(_BuildConfig)\PrepareWorkItemPayloads.binlog
             displayName: Prepare scenarios
             env:
               CorrelationPayloadDirectory: $(CorrelationStaging)
@@ -193,7 +194,7 @@ jobs:
               $(Python) -m pip install --user urllib3==1.26.15
               $(Python) -m pip install --user requests
               . ./src/scenarios/init.sh -dotnetdir $(CorrelationStaging)dotnet
-              dotnet msbuild ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
+              dotnet msbuild ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /p:RuntimeFlavor=${{ parameters.runtimeFlavor }} /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
             displayName: Prepare scenarios
             env:
               CorrelationPayloadDirectory: $(CorrelationStaging)
@@ -221,7 +222,7 @@ jobs:
               $(Python) -m pip install --user urllib3==1.26.15
               $(Python) -m pip install --user requests
               . ./src/scenarios/init.sh -dotnetdir $(CorrelationStaging)dotnet
-              dotnet msbuild ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
+              dotnet msbuild ./eng/performance/${{ parameters.projectFile }} /restore /t:PreparePayloadWorkItems /p:RuntimeFlavor=${{ parameters.runtimeFlavor }} /bl:./artifacts/log/$(_BuildConfig)/PrepareWorkItemPayloads.binlog
             displayName: Prepare scenarios
             env:
               CorrelationPayloadDirectory: $(CorrelationStaging)
@@ -244,3 +245,4 @@ jobs:
             Architecture: ${{ parameters.architecture }}
             WorkItemTimeout: 4:00 # 4 hours
             Python: $(Python)
+            RuntimeFlavor: ${{ parameters.runtimeFlavor }}

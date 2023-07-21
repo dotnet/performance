@@ -333,6 +333,21 @@ jobs:
         projectFile: maui_scenarios_ios.proj
         dotnetVersionsLinks:
           main: https://aka.ms/dotnet/sdk/maui/net8.0.json
+        runtimeFlavor: mono
+
+  # Maui iOS scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        kind: maui_scenarios_ios
+        projectFile: maui_scenarios_ios.proj
+        dotnetVersionsLinks:
+          main: https://aka.ms/dotnet/sdk/maui/net8.0.json
+        runtimeFlavor: coreclr
 
   ## Maui scenario benchmarks
   #- template: /eng/performance/build_machine_matrix.yml
