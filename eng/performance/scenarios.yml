@@ -129,8 +129,16 @@ jobs:
           - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --dotnet-versions $(DotnetVersion) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup$(ScriptExtension) --install-dir $(CorrelationStaging)dotnet $(runEnvVarsParam) $(AffinityParam)
             displayName: Run ci_setup.py with dotnetVersionsLinks
         - powershell: |
-            Write-Host "##vso[task.setvariable variable=PATH;]$(CorrelationStaging)dotnet;$(PATH))"
-            Write-Host "Prepend PATH with $(CorrelationStaging)dotnet"
+            Write-Host "##vso[task.setvariable variable=DOTNET_ROOT;]$(CorrelationStaging)dotnet"
+            Write-Host "Set DOTNET_ROOT to $(CorrelationStaging)dotnet"
+          displayName: Explicitly set DOTNET_ROOT
+        - powershell: |
+            Write-Host "##vso[task.setvariable variable=PERFLAB_TARGET_FRAMEWORKS;]net8.0"
+            Write-Host "Set PERFLAB_TARGET_FRAMEWORKS to net8.0"
+          displayName: Explicitly set PERFLAB_TARGET_FRAMEWORKS
+        - powershell: |
+            Write-Host "##vso[task.setvariable variable=PATH;]$(DOTNET_ROOT);$(PATH))"
+            Write-Host "Prepend PATH with $(DOTNET_ROOT)"
           displayName: Explicitly set PATH
         - ${{ if eq(parameters.osName, 'windows') }}:
           - script: xcopy .\NuGet.config $(CorrelationStaging) && xcopy .\scripts $(CorrelationStaging)scripts\/e && xcopy .\src\scenarios\shared $(CorrelationStaging)shared\/e && xcopy .\src\scenarios\staticdeps $(CorrelationStaging)staticdeps\/e
