@@ -136,6 +136,10 @@ jobs:
             Write-Host "##vso[task.setvariable variable=PERFLAB_TARGET_FRAMEWORKS;]net8.0"
             Write-Host "Set PERFLAB_TARGET_FRAMEWORKS to net8.0"
           displayName: Explicitly set PERFLAB_TARGET_FRAMEWORKS
+        - powershell: |
+            Write-Host "##vso[task.setvariable variable=PATH;]$(DOTNET_ROOT);$(PATH))"
+            Write-Host "Prepend PATH with $(DOTNET_ROOT)"
+          displayName: Explicitly set PATH
         - ${{ if eq(parameters.osName, 'windows') }}:
           - script: xcopy .\NuGet.config $(CorrelationStaging) && xcopy .\scripts $(CorrelationStaging)scripts\/e && xcopy .\src\scenarios\shared $(CorrelationStaging)shared\/e && xcopy .\src\scenarios\staticdeps $(CorrelationStaging)staticdeps\/e
             displayName: Copy python libraries and NuGet.config
