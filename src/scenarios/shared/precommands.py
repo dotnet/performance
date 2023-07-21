@@ -236,13 +236,17 @@ class PreCommands:
         trace_statement: Statement to insert
         '''
 
+        self.add_perflab_file()
+        projpath = os.path.dirname(self.project.csproj_file)
+        filepath = os.path.join(projpath, file)
+        insert_after(filepath, line, trace_statement)
+
+    def add_perflab_file(self):
         projpath = os.path.dirname(self.project.csproj_file)
         staticpath = os.path.join(get_repo_root_path(), "src", "scenarios", "staticdeps")
         if helixpayload():
             staticpath = os.path.join(helixpayload(), "staticdeps")
         shutil.copyfile(os.path.join(staticpath, "PerfLab.cs"), os.path.join(projpath, "PerfLab.cs"))
-        filepath = os.path.join(projpath, file)
-        insert_after(filepath, line, trace_statement)
 
     def install_workload(self, workloadid: str, install_args: list = ["--skip-manifest-update"]):
         'Installs the workload, if needed'
