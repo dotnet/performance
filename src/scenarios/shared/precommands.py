@@ -243,7 +243,6 @@ class PreCommands:
             trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.OnMain()"
         elif language_file_extension == 'fs':
             trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.OnMain()"
-        #print(f"{' ' * 10}Hello world")
         else:
             raise Exception(f"{language_file_extension} not supported.")
         self.add_event_source(file, line, trace_statement, language_file_extension)
