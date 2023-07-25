@@ -96,7 +96,7 @@ def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str
     # Run the command
     if is_windows(parsed_args):
         build_libs_and_corerun_command = [
-                "pwsh",
+                "powershell",
                 "-File",
                 "build.ps1"
         ]
