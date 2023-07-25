@@ -6,8 +6,11 @@ open System.Diagnostics.Tracing
 type PerfLabGenericEventSource() =
     inherit EventSource()
 
+    [<Literal>]
+    let MagicConstant = 6666
+
     static member val Log = new PerfLabGenericEventSource()
 
-    member this.Startup() = this.WriteEvent(1)
+    member this.Startup() = this.WriteEvent(MagicConstant + 1)
 
-    member this.OnMain() = this.WriteEvent(2)
+    member this.OnMain() = this.WriteEvent(MagicConstant + 2)

@@ -4,13 +4,15 @@ Imports System.Diagnostics.Tracing
 Class PerfLabGenericEventSource
     Inherits EventSource
 
+    Private Const MagicConstant As Integer = 6666
+
     Public Shared ReadOnly Property Log As PerfLabGenericEventSource = New PerfLabGenericEventSource()
 
     Public Sub Startup()
-        WriteEvent(1)
+        WriteEvent(MagicConstant + 1)
     End Sub
 
     Public Sub OnMain()
-        WriteEvent(2)
+        WriteEvent(MagicConstant + 2)
     End Sub
 End Class
