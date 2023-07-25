@@ -99,7 +99,7 @@ public class TimeToMain2Parser : IParser
         var result = new List<Counter>();
         result.Add(new Counter() { Name = "Time To Main", MetricName = "ms", DefaultCounter = true, TopCounter = true, Results = results.ToArray() });
         // below is supported only on Windows, other platform will have 0s
-        if (threadTimes.All(x => x != 0))
+        if (!threadTimes.All(x => x == 0))
         {
             result.Add(new Counter() { Name = "Time on Thread", MetricName = "ms", TopCounter = true, Results = threadTimes.ToArray() });
         };
