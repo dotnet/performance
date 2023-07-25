@@ -238,7 +238,7 @@ class AndroidHelper:
             'start-activity'
         ]
         if forcewaitstart:
-            self.startappcommand += '-W'
+            self.startappcommand.append('-W')
 
         self.startappcommand += [
             '-n',
