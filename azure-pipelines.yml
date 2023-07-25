@@ -270,42 +270,42 @@ jobs:
 
 - ${{ if or(and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest', 'Manual')), parameters.runPrivateJobs) }}:
 
-  # # Scenario benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/scenarios.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #       - win-arm64
-  #       - ubuntu-arm64-ampere
-  #     isPublic: false
-  #     jobParameters:
-  #       kind: scenarios
-  #       projectFile: scenarios.proj
-  #       channels:
-  #         - main
+  # Scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+        - win-arm64
+        - ubuntu-arm64-ampere
+      isPublic: false
+      jobParameters:
+        kind: scenarios
+        projectFile: scenarios.proj
+        channels:
+          - main
 
-  # # Affinitized Scenario benchmarks (Initially just PDN)
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/scenarios.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - win-arm64
-  #       - win-arm64-ampere
-  #     isPublic: false
-  #     jobParameters:
-  #       kind: scenarios
-  #       projectFile: scenarios_affinitized.proj
-  #       channels:
-  #         - main
-  #       additionalJobIdentifier: 'Affinity_85'
-  #       affinity: '85'  # (01010101) Enables alternating process threads to take hyperthreading into account
-  #       runEnvVars: 
-  #         - DOTNET_GCgen0size=410000 # ~4MB
-  #         - DOTNET_GCHeapCount=4
-  #         - DOTNET_GCTotalPhysicalMemory=400000000 # 16GB
+  # Affinitized Scenario benchmarks (Initially just PDN)
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - win-arm64
+        - win-arm64-ampere
+      isPublic: false
+      jobParameters:
+        kind: scenarios
+        projectFile: scenarios_affinitized.proj
+        channels:
+          - main
+        additionalJobIdentifier: 'Affinity_85'
+        affinity: '85'  # (01010101) Enables alternating process threads to take hyperthreading into account
+        runEnvVars: 
+          - DOTNET_GCgen0size=410000 # ~4MB
+          - DOTNET_GCHeapCount=4
+          - DOTNET_GCTotalPhysicalMemory=400000000 # 16GB
 
   # Maui Android scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -365,20 +365,20 @@ jobs:
   #      channels:
   #        - main
 
-  # # NativeAOT scenario benchmarks
-  # - template: /eng/performance/build_machine_matrix.yml
-  #   parameters:
-  #     jobTemplate: /eng/performance/scenarios.yml
-  #     buildMachines:
-  #       - win-x64
-  #       - ubuntu-x64
-  #       - win-arm64
-  #     isPublic: false
-  #     jobParameters:
-  #       kind: nativeaot_scenarios
-  #       projectFile: nativeaot_scenarios.proj
-  #       channels:
-  #         - main
+  # NativeAOT scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - win-x64
+        - ubuntu-x64
+        - win-arm64
+      isPublic: false
+      jobParameters:
+        kind: nativeaot_scenarios
+        projectFile: nativeaot_scenarios.proj
+        channels:
+          - main
 
 ################################################
 # Scheduled Private jobs
