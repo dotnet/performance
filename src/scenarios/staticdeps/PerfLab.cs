@@ -7,7 +7,9 @@ class PerfLabGenericEventSource : EventSource
 
     public static PerfLabGenericEventSource Log { get; } = new PerfLabGenericEventSource();
 
+    [Event(MagicConstant + 1)]
     public void Startup() => WriteEvent(MagicConstant + 1);
 
+    [Event(MagicConstant + 2)]
     public void OnMain() => WriteEvent(MagicConstant + 2);
 }

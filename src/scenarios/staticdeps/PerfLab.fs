@@ -11,6 +11,8 @@ type PerfLabGenericEventSource() =
 
     static member val Log = new PerfLabGenericEventSource()
 
+    [<Event(6667)>] // MagicConstant + 1
     member this.Startup() = this.WriteEvent(MagicConstant + 1)
 
+    [<Event(6668)>] // MagicConstant + 2
     member this.OnMain() = this.WriteEvent(MagicConstant + 2)

@@ -8,10 +8,12 @@ Class PerfLabGenericEventSource
 
     Public Shared ReadOnly Property Log As PerfLabGenericEventSource = New PerfLabGenericEventSource()
 
+    <[Event](MagicConstant + 1)>
     Public Sub Startup()
         WriteEvent(MagicConstant + 1)
     End Sub
 
+    <[Event](MagicConstant + 2)>
     Public Sub OnMain()
         WriteEvent(MagicConstant + 2)
     End Sub
