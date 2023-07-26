@@ -151,8 +151,11 @@ class SizeOnDisk
         var wasmFile = Directory.GetFiles(path, "dotnet.*.js.*", SearchOption.AllDirectories).FirstOrDefault();
         if (wasmFile != null)
         {
-            var wasmVersion = Regex.Match(wasmFile, @"dotnet\.(.+)\.js").Groups[1].Value;
-            versions.Add(wasmVersion);
+            var groups = Regex.Match(wasmFile, @"-(?<versionWithHash>.*).js").Groups;
+            // e.g. dotnet.native.8.0.0-rc.1.23375.3.trarwnmzt5.js -> rc.1.23375.3.trarwnmzt5
+            string versionWithHash = groups["versionWithHash"].Value;
+            if (!string.IsNullOrEmpty(versionWithHash))
+                versions.Add(versionWithHash);
         }
     }
 
