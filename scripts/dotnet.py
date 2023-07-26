@@ -294,7 +294,8 @@ class CSharpProject:
     def restore(self, 
                 packages_path: str, 
                 verbose: bool,
-                runtime_identifier: str = None) -> None:
+                runtime_identifier: str = None,
+                args: list = None) -> None:
         '''
         Calls dotnet to restore the dependencies and tools of the specified
         project.
@@ -317,7 +318,10 @@ class CSharpProject:
 
         if runtime_identifier:
             cmdline += ['--runtime', runtime_identifier]
-            
+
+        if args:
+            cmdline = cmdline + args
+
         RunCommand(cmdline, verbose=verbose, retry=1).run(
             self.working_directory)
 
