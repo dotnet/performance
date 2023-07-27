@@ -23,7 +23,8 @@ enum MetricType
     DeviceTimeToMain,
     PDN,
     WinUI,
-    WinUIBlazor
+    WinUIBlazor,
+    TimeToMain2,
 }
 
 public class InnerLoopMarkerEventSource : EventSource
@@ -271,46 +272,23 @@ class Startup
             }
         }
 
-        IParser parser = null;
-        switch (metricType)
+        IParser parser = metricType switch
         {
-            case MetricType.TimeToMain:
-                parser = new TimeToMainParser();
-                break;
-            case MetricType.GenericStartup:
-                parser = new GenericStartupParser();
-                break;
-            case MetricType.ProcessTime:
-                parser = new ProcessTimeParser();
-                break;
-            case MetricType.Crossgen2:
-                parser = new Crossgen2Parser();
-                break;
-            case MetricType.InnerLoop:
-                parser = new InnerLoopParser(processWillExit);
-                break;
-            case MetricType.InnerLoopMsBuild:
-                parser = new InnerLoopMsBuildParser();
-                break;
-            case MetricType.DotnetWatch:
-                parser = new DotnetWatchParser();
-                break;
-            case MetricType.DeviceTimeToMain:
-                parser = new DeviceTimeToMain();
-                break;
-            case MetricType.WPF:
-                parser = new WPFParser();
-                break;
-            case MetricType.PDN:
-                parser = new PDNStartupParser();
-                break;
-            case MetricType.WinUI:
-                parser = new WinUIParser();
-                break;
-            case MetricType.WinUIBlazor:
-                parser = new WinUIBlazorParser();
-                break;
-        }
+            MetricType.TimeToMain => new TimeToMainParser(),
+            MetricType.GenericStartup => new GenericStartupParser(),
+            MetricType.ProcessTime => new ProcessTimeParser(),
+            MetricType.Crossgen2 => new Crossgen2Parser(),
+            MetricType.WPF => new WPFParser(),
+            MetricType.InnerLoop => new InnerLoopParser(processWillExit),
+            MetricType.InnerLoopMsBuild => new InnerLoopMsBuildParser(),
+            MetricType.DotnetWatch => new DotnetWatchParser(),
+            MetricType.DeviceTimeToMain => new DeviceTimeToMain(),
+            MetricType.PDN => new PDNStartupParser(),
+            MetricType.WinUI => new WinUIParser(),
+            MetricType.WinUIBlazor => new WinUIBlazorParser(),
+            MetricType.TimeToMain2 => new TimeToMain2Parser(),
+            _ => throw new ArgumentOutOfRangeException(),
+        };
 
         var pids = new List<int>();
         var failed = false;
