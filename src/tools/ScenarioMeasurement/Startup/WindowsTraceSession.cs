@@ -134,6 +134,11 @@ public class WindowsTraceSession : ITraceSession
         }
     }
 
+    public void AddRawEvent(string name)
+    {
+        throw new NotSupportedException("RawEvents are supported only for PerfCollect.");
+    }
+
     private void InitWindowsKeywordMaps()
     {
         // initialize windows kernel keyword map
