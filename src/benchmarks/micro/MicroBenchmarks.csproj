@@ -87,7 +87,7 @@
   <!--
     Workaround for https://github.com/dotnet/performance/issues/3164
   -->
-  <ItemGroup Condition="$([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion), '8.0'))">
+  <ItemGroup Condition="$([MSBuild]::VersionGreaterThanOrEquals($(_TargetFrameworkVersionWithoutV), '8.0'))">
     <PackageReference Include="System.Text.Json" Version="$(SystemVersion)" />
     <PackageReference Include="System.Security.Cryptography.Xml" Version="$(SystemVersion)" />
     <PackageReference Include="System.Text.Encodings.Web" Version="$(SystemVersion)" />
