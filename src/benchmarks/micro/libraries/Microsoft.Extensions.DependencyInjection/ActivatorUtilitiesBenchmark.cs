@@ -12,10 +12,12 @@ namespace Microsoft.Extensions.DependencyInjection
     public class ActivatorUtilitiesBenchmark
     {
         private ServiceProvider _serviceProvider;
+        private Type[] _types0;
         private Type[] _types2;
         private Type[] _types2_OutOfOrder;
         private Type[] _types3;
 
+        private ObjectFactory _factory0;
         private ObjectFactory _factory2;
         private ObjectFactory _factory2_OutOfOrder;
         private ObjectFactory _factory3;
@@ -44,10 +46,12 @@ namespace Microsoft.Extensions.DependencyInjection
             collection.AddSingleton<DependencyD>();
             collection.AddSingleton<DependencyE>();
 
+            _types0 = new Type[] { };
             _types2 = new Type[] { typeof(DependencyA), typeof(DependencyB) };
             _types2_OutOfOrder = new Type[] { typeof(DependencyB), typeof(DependencyC) };
             _types3 = new Type[] { typeof(DependencyA), typeof(DependencyB), typeof(DependencyC) };
 
+            _factory0 = ActivatorUtilities.CreateFactory(typeof(TypeWith3ParametersToBeActivated), _types0);
             _factory2 = ActivatorUtilities.CreateFactory(typeof(TypeWith3ParametersToBeActivated), _types2);
             _factory2_OutOfOrder = ActivatorUtilities.CreateFactory(typeof(TypeWith3ParametersToBeActivated), _types2_OutOfOrder);
             _factory3 = ActivatorUtilities.CreateFactory(typeof(TypeWith3ParametersToBeActivated), _types3);
@@ -152,9 +156,16 @@ namespace Microsoft.Extensions.DependencyInjection
             return (TypeWith3ParametersToBeActivated)_factory3(_serviceProvider, _factoryArguments3);
         }
 
+        [Benchmark]
+        [BenchmarkCategory(Categories.NoAOT)]
+        public TypeWith3ParametersToBeActivated Factory_3Injected()
+        {
+            return (TypeWith3ParametersToBeActivated)_factory0(_serviceProvider, _factoryArguments0);
+        }
+
         public class TypeWith0ParametersToBeActivated
         {
-            // DI  picks these over the correct one below and throws TargetInvocationException.
+            // DI picks these over the correct one below and throws TargetInvocationException.
             //public TypeWith0ParametersToBeActivated(int i)
             //{
             //    throw new NotImplementedException();
@@ -234,20 +245,21 @@ namespace Microsoft.Extensions.DependencyInjection
             public DependencyB _b;
             public DependencyC _c;
 
-            public TypeWith3ParametersToBeActivated(int i)
-            {
-                throw new NotImplementedException();
-            }
+            // DI picks these over the correct one below and throws InvalidOperation.
+            //public TypeWith3ParametersToBeActivated(int i)
+            //{
+            //    throw new NotImplementedException();
+            //}
 
-            public TypeWith3ParametersToBeActivated(string s)
-            {
-                throw new NotImplementedException();
-            }
+            //public TypeWith3ParametersToBeActivated(string s)
+            //{
+            //    throw new NotImplementedException();
+            //}
 
-            public TypeWith3ParametersToBeActivated(object o)
-            {
-                throw new NotImplementedException();
-            }
+            //public TypeWith3ParametersToBeActivated(object o)
+            //{
+            //    throw new NotImplementedException();
+            //}
 
             public TypeWith3ParametersToBeActivated(DependencyA a, DependencyB b, DependencyC c)
             {
