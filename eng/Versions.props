@@ -19,6 +19,8 @@
     <BenchmarkDotNetVersion>0.13.7-nightly.20230717.35</BenchmarkDotNetVersion>
     <SystemThreadingChannelsPackageVersion>
     </SystemThreadingChannelsPackageVersion>
+    <MicrosoftExtensionsLoggingPackageVersion>
+    </MicrosoftExtensionsLoggingPackageVersion>
   </PropertyGroup>
   <!--Package names-->
   <PropertyGroup>
