@@ -84,6 +84,15 @@
     <PackageReference Include="System.Collections.Immutable" Version="8.0.*-*" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '8.0')" />
   </ItemGroup>
 
+  <!--
+    Workaround for https://github.com/dotnet/performance/issues/3164
+  -->
+  <ItemGroup Condition="$([MSBuild]::VersionGreaterThanOrEquals($(TargetFrameworkVersion), '8.0'))">
+    <PackageReference Include="System.Text.Json" Version="$(SystemVersion)" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="$(SystemVersion)" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="$(SystemVersion)" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\harness\BenchmarkDotNet.Extensions\BenchmarkDotNet.Extensions.csproj" />
   </ItemGroup>
