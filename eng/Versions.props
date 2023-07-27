@@ -17,6 +17,8 @@
     <MicrosoftNetILLinkTasksVersion>8.0.100-1.23067.1</MicrosoftNetILLinkTasksVersion>
     <MicrosoftNetILLinkPackageVersion>8.0.100-1.23067.1</MicrosoftNetILLinkPackageVersion>
     <BenchmarkDotNetVersion>0.13.7-nightly.20230717.35</BenchmarkDotNetVersion>
+    <SystemThreadingChannelsPackageVersion>
+    </SystemThreadingChannelsPackageVersion>
   </PropertyGroup>
   <!--Package names-->
   <PropertyGroup>
