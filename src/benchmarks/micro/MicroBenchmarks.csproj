@@ -20,6 +20,7 @@
     <!-- Allow building with one major version, and running using a sdk with a higher major version -->
     <RollForward Condition="'$(BuildingForWasm)' == 'true'">LatestMajor</RollForward>
   </PropertyGroup>
+
   <!-- out-of-band packages that are not included in NetCoreApp have TFM-specific versions -->
   <Choose>
     <When Condition="'$(TargetFramework)' == 'net6.0'">
@@ -39,8 +40,8 @@
     <When Condition="'$(TargetFramework)' == 'net8.0'">
         <PropertyGroup>
             <LangVersion>preview</LangVersion>
-            <ExtensionsVersion>8.0.*-*</ExtensionsVersion>
-            <SystemVersion>8.0.*-*</SystemVersion>
+            <ExtensionsVersion>$(MicrosoftExtensionsLoggingPackageVersion)</ExtensionsVersion>
+            <SystemVersion>$(SystemThreadingChannelsPackageVersion)</SystemVersion>
         </PropertyGroup>
     </When>
     <Otherwise>
