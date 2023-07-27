@@ -296,7 +296,9 @@ class PreCommands:
                              *build_args)
 
     def _restore(self):
-        self.project.restore(packages_path=get_packages_directory(), verbose=True)
+        self.project.restore(packages_path=get_packages_directory(),
+                             verbose=True,
+                             args=['-bl:%s-restore.binlog' % self.binlog] if self.binlog else [])
 
     def _build(self, configuration: str, framework: str = None, output: str = None, build_args: list = []):
         self.project.build(configuration,
