@@ -17,13 +17,13 @@
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-aspnetcore</Uri>
       <Sha>e882394a7bb38930da748291fe2c2ceaa6a80588</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="8.0.0-rc.1.23377.1">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>89030ce9a75c98f350a13ddbe42f39a37aea1371</Sha>
+    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="8.0.100-1.23067.1">
+      <Uri>https://github.com/dotnet/linker</Uri>
+      <Sha>c790896f128957acd2999208f44f09ae1e826c8c</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.ILLink" Version="8.0.0-rc.1.23377.1">
-      <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>89030ce9a75c98f350a13ddbe42f39a37aea1371</Sha>
+    <Dependency Name="Microsoft.NET.ILLink" Version="8.0.100-1.23067.1">
+      <Uri>https://github.com/dotnet/linker</Uri>
+      <Sha>c790896f128957acd2999208f44f09ae1e826c8c</Sha>
     </Dependency>
     <Dependency Name="System.Threading.Channels" Version="8.0.0-rc.1.23377.1">
       <Uri>https://github.com/dotnet/runtime</Uri>
