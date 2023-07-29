@@ -25,13 +25,13 @@
       <Uri>https://github.com/dotnet/linker</Uri>
       <Sha>c790896f128957acd2999208f44f09ae1e826c8c</Sha>
     </Dependency> -->
-    <Dependency Name="System.Threading.Channels" Version="8.0.0-rc.1.23377.8">
+    <Dependency Name="System.Threading.Channels" Version="8.0.0-rc.1.23378.11">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>afed0a9f40d51e51c95dd0842913d7caaf5a9beb</Sha>
+      <Sha>d5c4a4e6b7e78d4dc9fc5ff560c802a4b901b2ed</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging" Version="8.0.0-rc.1.23377.8">
+    <Dependency Name="Microsoft.Extensions.Logging" Version="8.0.0-rc.1.23378.11">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>afed0a9f40d51e51c95dd0842913d7caaf5a9beb</Sha>
+      <Sha>d5c4a4e6b7e78d4dc9fc5ff560c802a4b901b2ed</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
