@@ -14,11 +14,11 @@
     </MicrosoftNETSdkInternalPackageVersion>
     <MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>5.0.4</MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>
     <MicrosoftAspNetCoreAppRuntimewinx64PackageVersion>5.0.4</MicrosoftAspNetCoreAppRuntimewinx64PackageVersion>
-    <MicrosoftNETILLinkTasksVersion>8.0.0-rc.1.23378.8</MicrosoftNETILLinkTasksVersion>
-    <MicrosoftNETILLinkPackageVersion>8.0.0-rc.1.23378.8</MicrosoftNETILLinkPackageVersion>
+    <MicrosoftNETILLinkTasksVersion>8.0.0-rc.1.23378.9</MicrosoftNETILLinkTasksVersion>
+    <MicrosoftNETILLinkPackageVersion>8.0.0-rc.1.23378.9</MicrosoftNETILLinkPackageVersion>
     <BenchmarkDotNetVersion>0.13.7-nightly.20230717.35</BenchmarkDotNetVersion>
-    <SystemThreadingChannelsPackageVersion>8.0.0-rc.1.23378.8</SystemThreadingChannelsPackageVersion>
-    <MicrosoftExtensionsLoggingPackageVersion>8.0.0-rc.1.23378.8</MicrosoftExtensionsLoggingPackageVersion>
+    <SystemThreadingChannelsPackageVersion>8.0.0-rc.1.23378.9</SystemThreadingChannelsPackageVersion>
+    <MicrosoftExtensionsLoggingPackageVersion>8.0.0-rc.1.23378.9</MicrosoftExtensionsLoggingPackageVersion>
   </PropertyGroup>
   <!--Package names-->
   <PropertyGroup>

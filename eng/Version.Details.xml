@@ -17,21 +17,21 @@
       <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-aspnetcore</Uri>
       <Sha>e882394a7bb38930da748291fe2c2ceaa6a80588</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="8.0.0-rc.1.23378.8">
+    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="8.0.0-rc.1.23378.9">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>43e47b8e1d31fe23f9c174669d38203c67ecde82</Sha>
+      <Sha>d54c1b89ca193c1578a2df55b681b56ba6df94f5</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.ILLink" Version="8.0.0-rc.1.23378.8">
+    <Dependency Name="Microsoft.NET.ILLink" Version="8.0.0-rc.1.23378.9">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>43e47b8e1d31fe23f9c174669d38203c67ecde82</Sha>
+      <Sha>d54c1b89ca193c1578a2df55b681b56ba6df94f5</Sha>
     </Dependency>
-    <Dependency Name="System.Threading.Channels" Version="8.0.0-rc.1.23378.8">
+    <Dependency Name="System.Threading.Channels" Version="8.0.0-rc.1.23378.9">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>43e47b8e1d31fe23f9c174669d38203c67ecde82</Sha>
+      <Sha>d54c1b89ca193c1578a2df55b681b56ba6df94f5</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Extensions.Logging" Version="8.0.0-rc.1.23378.8">
+    <Dependency Name="Microsoft.Extensions.Logging" Version="8.0.0-rc.1.23378.9">
       <Uri>https://github.com/dotnet/runtime</Uri>
-      <Sha>43e47b8e1d31fe23f9c174669d38203c67ecde82</Sha>
+      <Sha>d54c1b89ca193c1578a2df55b681b56ba6df94f5</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
