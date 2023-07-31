@@ -1,22 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.NETCore.App.Runtime.win-x64" Version="5.0.4" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
-      <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-runtime</Uri>
-      <Sha>f27d33729518f5aa478aa818b7b4f54a4d50bef1</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.Dotnet.Sdk.Internal" Version="5.0.104-servicing.21213.7">
-      <Uri>https://github.com/dotnet/installer</Uri>
-      <Sha>fc017003558786d1a8d15b01934799f432097aab</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.WindowsDesktop.App.Runtime.win-x64" Version="5.0.4" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
-      <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-windowsdesktop</Uri>
-      <Sha>e708867037ec6edbe7965b8f0f1193999785037e</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.App.Runtime.win-x64" Version="5.0.4" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
-      <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-aspnetcore</Uri>
-      <Sha>e882394a7bb38930da748291fe2c2ceaa6a80588</Sha>
-    </Dependency>
     <!-- <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="8.0.100-1.23067.1">
       <Uri>https://github.com/dotnet/linker</Uri>
       <Sha>c790896f128957acd2999208f44f09ae1e826c8c</Sha>
