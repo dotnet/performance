@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <!-- <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="8.0.100-1.23067.1">
-      <Uri>https://github.com/dotnet/linker</Uri>
-      <Sha>c790896f128957acd2999208f44f09ae1e826c8c</Sha>
+  <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="8.0.0-rc.1.23381.1">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha></Sha>
     </Dependency>
-    <Dependency Name="Microsoft.NET.ILLink" Version="8.0.100-1.23067.1">
-      <Uri>https://github.com/dotnet/linker</Uri>
-      <Sha>c790896f128957acd2999208f44f09ae1e826c8c</Sha>
-    </Dependency> -->
-    <Dependency Name="System.Threading.Channels" Version="8.0.0-rc.1.23381.3">
+    <Dependency Name="Microsoft.NET.ILLink" Version="8.0.0-rc.1.23381.1">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha></Sha>
+    </Dependency>
+    <Dependency Name="System.Threading.Channels" Version="8.0.0-rc.1.23381.1">
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>e71faeeeccba29c1f06c7020929cfdadbd32401e</Sha>
     </Dependency>

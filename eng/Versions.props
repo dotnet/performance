@@ -7,8 +7,8 @@
   </PropertyGroup>
   <!--Package versions-->
   <PropertyGroup>
-    <MicrosoftNETILLinkTasksVersion>8.0.100-1.23067.1</MicrosoftNETILLinkTasksVersion>
-    <MicrosoftNETILLinkPackageVersion>8.0.100-1.23067.1</MicrosoftNETILLinkPackageVersion>
+    <MicrosoftNETILLinkTasksVersion>8.0.0-rc.1.23381.1</MicrosoftNETILLinkTasksVersion>
+    <MicrosoftNETILLinkPackageVersion>8.0.0-rc.1.23381.1</MicrosoftNETILLinkPackageVersion>
     <BenchmarkDotNetVersion>0.13.7-nightly.20230717.35</BenchmarkDotNetVersion>
     <SystemThreadingChannelsPackageVersion>8.0.0-rc.1.23381.3</SystemThreadingChannelsPackageVersion>
     <MicrosoftExtensionsLoggingPackageVersion>8.0.0-rc.1.23381.3</MicrosoftExtensionsLoggingPackageVersion>
