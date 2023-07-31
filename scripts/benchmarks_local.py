@@ -49,6 +49,7 @@ class RunType(Enum):
     MonoAOTLLVM = 2
     MonoInterpreter = 3
     MonoJIT = 4
+    WasmWasm = 5
 
 def is_windows(parsed_args: Namespace):
     return parsed_args.os == "windows"
@@ -92,7 +93,7 @@ def copy_directory_contents(src_dir: str, dest_dir: str):
             shutil.copy2(os.path.join(src_dirpath, src_filename), dest_dirpath)
         
 # Builds libs and corerun by default
-def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str = "clr+libs", configuration: str = "Release", additional_args: list = []):    
+def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str = "clr+libs", configuration: str = "Release", os_override = "", arch_override = "", additional_args: list = []):    
     # Run the command
     if is_windows(parsed_args):
         build_libs_and_corerun_command = [
@@ -108,8 +109,8 @@ def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str
     build_libs_and_corerun_command += [
                 "-subset", subset, 
                 "-configuration", configuration, 
-                "-os", parsed_args.os,
-                "-arch", parsed_args.architecture, 
+                "-os", os_override if os_override else parsed_args.os,
+                "-arch", arch_override if arch_override else parsed_args.architecture,  
                 "-framework", parsed_args.framework,
                 "-bl"
             ] + additional_args
@@ -194,12 +195,35 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             getLogger().info(f"dotnet_mono already exists in {dest_dir_mono_interpreter} and {dest_dir_mono_jit}. Skipping generation.")
 
     if check_for_runtype_specified(parsed_args, [RunType.MonoAOTLLVM]):
-        raise NotImplementedError("MonoAOTLLVM is not yet implemented.")
+        raise NotImplementedError("MonoAOTLLVM is not yet implemented.") # TODO: Finish MonoAOTLLVM Build stuff
         build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['/p:CrossBuild=false' '/p:MonoLLVMUseCxx11Abi=false'])
         # TODO: Finish MonoAOTLLVM Build stuff
         # Clean up the build results
         shutil.rmtree(os.path.join(repo_path, "artifacts"), ignore_errors=True) # TODO: Can we trust the build system to update these when necessary or do we need to clean them up ourselves?
-    
+
+    if check_for_runtype_specified(parsed_args, [RunType.WasmWasm]):
+        dest_dir_wasm = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmWasm, commit), "wasm_bundle")
+        if force_regenerate or not os.path.exists(dest_dir_wasm):
+            build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", os_override="browser", arch_override="wasm", additional_args=[f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}'])
+
+            src_dir = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "dotnet-latest")
+            dest_dir = os.path.join(repo_path, "artifacts", "bin", "wasm", "dotnet")
+            copy_directory_contents(src_dir, dest_dir)
+            src_dir = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "build-nugets")
+            dest_dir = os.path.join(repo_path, "artifacts", "bin", "wasm")
+            copy_directory_contents(src_dir, dest_dir)
+            src_file = os.path.join(repo_path, "src", "mono", "wasm", "test-main.js")
+            dest_file = os.path.join(repo_path, "artifacts", "bin", "wasm", "wasm-data", "test-main.js")
+            shutil.copy2(src_file, dest_file)
+
+            # Store the dotnet_mono in the artifact storage path
+            dotnet_wasm_path = os.path.join(repo_path, "artifacts", "bin", "wasm")
+            shutil.rmtree(dest_dir_wasm, ignore_errors=True)
+            copy_directory_contents(dotnet_wasm_path, dest_dir_wasm)
+        else:
+            getLogger().info(f"wasm_bundle already exists in {dest_dir_wasm}. Skipping generation.")
+
+
     getLogger().info(f"Finished generating dependencies for {' '.join(map(str, parsed_args.run_type_names))} run types in {repo_path} and stored in {parsed_args.artifact_storage_path}.")
 
 def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, all_commits: list) -> list:
@@ -266,6 +290,22 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
             else:
                 corerun_path = corerun_capture[0]
             bdn_args_unescaped += [ corerun_path ]
+
+    elif specific_run_type == RunType.WasmWasm:
+        benchmark_ci_args += [ '--wasm' ]
+        bdn_args_unescaped += [
+                                '--anyCategories', 'Libraries', 'Runtime',
+                                '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
+                                '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmWasm, commit), "wasm_bundle", "wasm-data"),
+                                '--wasmEngine', parsed_args.wasm_engine_path,
+                                '--wasmArgs', '--experimental-wasm-eh --expose_wasm --module',
+                                # '--cli', '',
+                                '--logBuildOutput',
+                                '--generateBinLog'
+                            ]
+        
+        # for commit in all_commits: # TODO see if there is a way to run multiple Wasm's at once.
+        #     bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commit), "Core_Root", f'corerun{".exe" if is_windows(parsed_args) else ""}') ]
 
     if parsed_args.bdn_arguments:
         bdn_args_unescaped += [parsed_args.bdn_arguments]
@@ -371,7 +411,8 @@ def add_arguments(parser):
     parser.add_argument('--os', choices=['windows', 'linux', 'osx'], default=get_default_os(), help='Specifies the operating system of the system')
     parser.add_argument('--filter', type=str, default='*', help='Specifies the benchmark filter to pass to BenchmarkDotNet')
     parser.add_argument('-f', '--framework', choices=ChannelMap.get_supported_frameworks(), default='net8.0', help='The target framework to run the benchmarks against.') # Can and should this accept multiple frameworks?
-    parser.add_argument('--csproj', type=str, default=os.path.join("..", "src", "benchmarks", "micro", "MicroBenchmarks.csproj"), help='The path to the csproj file to run benchmarks against.')    
+    parser.add_argument('--csproj', type=str, default=os.path.join("..", "src", "benchmarks", "micro", "MicroBenchmarks.csproj"), help='The path to the csproj file to run benchmarks against.')   
+    parser.add_argument('--wasm-engine-path', type=str, help='The full path to the wasm engine to use for the benchmarks. e.g. /usr/local/bin/v8') 
 
 def get_default_os():
     system = platform.system().lower()
@@ -403,6 +444,8 @@ def __main(args: list):
             if any([run_type.name in folder for run_type in RunType]):
                 getLogger().info(folder)
         return
+
+    # TODO: Add check to make sure there is only one commit specified if running for wasm
 
     # Check to make sure we have something specified to test
     if parsed_args.commits or parsed_args.local_test_repo:
