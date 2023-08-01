@@ -22,7 +22,7 @@ jobs:
     jobs:
       - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}_${{ parameters.machinePool }}'
         displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.machinePool }}'
-        timeoutInMinutes: 320
+        timeoutInMinutes: 1260
         variables:
         - name: AffinityParam
           ${{ if ne(parameters.affinity, '0')}}:
