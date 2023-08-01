@@ -18,6 +18,7 @@ namespace System.Net.Sockets.Tests
         private const int InnerIterationCount = 10_000;
 
         private Socket _listener, _client, _server;
+        private Socket _udpClient1, _udpClient2, _udpServer;
 
         [Benchmark(OperationsPerInvoke = 1000)]
         public async Task ConnectAcceptAsync()
@@ -116,6 +117,43 @@ namespace System.Net.Sockets.Tests
             }
         }
 
+        [Benchmark]
+        public async Task ReceiveFromAsyncThenSendToAsync_Task()
+        {
+            ReadOnlyMemory<byte> clientBuffer = new byte[1];
+            Memory<byte> serverBuffer = new byte[1];
+
+            EndPoint ep = new IPEndPoint(IPAddress.None, 0);
+
+            for (int i = 0; i < InnerIterationCount; i++)
+            {
+                ValueTask<SocketReceiveFromResult> r = _udpServer.ReceiveFromAsync(serverBuffer, SocketFlags.None, ep);
+                await _udpClient1.SendToAsync(clientBuffer, SocketFlags.None, _udpServer.LocalEndPoint);
+                await r;
+                r = _udpServer.ReceiveFromAsync(serverBuffer, SocketFlags.None, ep);
+                await _udpClient2.SendToAsync(clientBuffer, SocketFlags.None, _udpServer.LocalEndPoint);
+                await r;
+            }
+        }
+
+        [Benchmark]
+        public void SendToThenReceiveFrom()
+        {
+            Socket client = _udpClient1, server = _udpServer;
+
+            ReadOnlySpan<byte> clientBuffer = new byte[1];
+            Span<byte> serverBuffer = new byte[1];
+
+            EndPoint ep = new IPEndPoint(IPAddress.None, 0);
+            for (int i = 0; i < InnerIterationCount; i++)
+            {
+                _udpClient1.SendTo(clientBuffer, SocketFlags.None, _udpServer.LocalEndPoint);
+                _udpServer.ReceiveFrom(serverBuffer, SocketFlags.None, ref ep);
+                _udpClient2.SendTo(clientBuffer, SocketFlags.None, _udpServer.LocalEndPoint);
+                _udpServer.ReceiveFrom(serverBuffer, SocketFlags.None, ref ep);
+            }
+        }
+
         [GlobalSetup]
         public async Task OpenLoopbackConnectionAsync()
         {
@@ -132,6 +170,13 @@ namespace System.Net.Sockets.Tests
             await Task.WhenAll(acceptTask, connectTask);
 
             _server = await acceptTask;
+
+            _udpClient1 = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            _udpClient1.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+            _udpClient2 = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            _udpClient2.Bind(new IPEndPoint(IPAddress.Loopback, 0));
+            _udpServer = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            _udpServer.Bind(new IPEndPoint(IPAddress.Loopback, 0));
         }
 
         [GlobalCleanup]
@@ -140,6 +185,9 @@ namespace System.Net.Sockets.Tests
             _server.Dispose();
             _client.Dispose();
             _listener.Dispose();
+            _udpClient1.Dispose();
+            _udpClient2.Dispose();
+            _udpServer.Dispose();
         }
 
         internal sealed class AwaitableSocketAsyncEventArgs : SocketAsyncEventArgs, ICriticalNotifyCompletion
