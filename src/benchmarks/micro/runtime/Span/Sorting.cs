@@ -16,7 +16,7 @@ namespace Span
     [MinWarmupCount(6, forceAutoWarmup: true)] // when InvocationCount is set, BDN does not run Pilot Stage, so to get the code promoted to Tier 1 before Actual Workload, we enforce more Warmups
     public class Sorting
     {
-        private const int InvocationsPerIteration = 1000;
+        private const int InvocationsPerIteration = 10_000;
 
         [Params(Utils.DefaultCollectionSize)]
         public int Size;
