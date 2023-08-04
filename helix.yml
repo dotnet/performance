@@ -53,6 +53,18 @@ profiles:
       benchmark:
         endpoints: 
           - http://localhost:5010
+
+  msft-internal:
+    jobs:
+      benchmark:
+        endpoints:
+          - https://dotnetperf-crankagent:5010
+
+  relay:
+    jobs:
+      benchmark:
+        endpoints: 
+          - https://dotnetperf-crankagent-relay.servicebus.windows.net/dotnetperf-crankagent
   
   win-x64-public:
     jobs:
@@ -69,6 +81,34 @@ profiles:
           osGroup: windows
           queue: Windows.11.Amd64.Tiger.Perf
 
+  win-x64-android-arm64-pixel:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: windows
+          queue: Windows.10.Amd64.Pixel.Perf
+    
+  win-x64-android-arm64-galaxy:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: windows
+          queue: Windows.10.Amd64.Galaxy.Perf
+  
+  win-arm64:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: windows
+          queue: Windows.11.Arm64.Perf.Surf
+  
+  win-arm64-ampere:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: windows
+          queue: Windows.Server.Arm64.Perf
+
   ubuntu-x64-public:
     jobs:
       benchmark:
@@ -83,6 +123,20 @@ profiles:
         variables:
           osGroup: linux
           queue: Ubuntu.2204.Amd64.Tiger.Perf
+
+  ubuntu-arm64-ampere:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: linux
+          queue: Ubuntu.2004.Arm64.Perf
+
+  osx-x64-ios-arm64:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: osx
+          queue: OSX.1015.Amd64.Iphone.Perf
 
   alpine:
     jobs:

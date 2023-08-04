@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from glob import glob
 import os
 import shutil
 from ci_setup import CiSetupArgs
@@ -40,14 +41,16 @@ class PerformanceSetupArgs:
     configurations: dict[str, str] | None = None
     android_mono: bool = False
     ios_mono: bool = False
-    no_pgo: bool = False
-    dynamic_pgo: bool = False
-    full_pgo: bool = False
+    ios_nativeaot: bool = False
+    no_dynamic_pgo: bool = False
+    physical_promotion: bool = False
     ios_llvm_build: bool = False
+    ios_strip_symbols: bool = False
     maui_version: str | None = None
     use_local_commit_time: bool = False
     only_sanity_check: bool = False
     extra_bdn_args: list[str] | None = None
+    affinity: str | None = None
 
 @dataclass
 class PerformanceSetupData:
@@ -70,10 +73,12 @@ class PerformanceSetupData:
     mono_dotnet: bool
     wasm_dotnet: bool
     ios_llvm_build: bool
+    ios_strip_symbols: bool
     creator: str
     queue: str
     helix_source_prefix: str
     build_config: str
+    runtime_type: str
     only_sanity_check: bool
 
     def set_environment_variables(self, save_to_pipeline: bool = True):
@@ -105,10 +110,12 @@ class PerformanceSetupData:
         set_env_var("MonoDotnet", self.mono_dotnet)
         set_env_var("WasmDotnet", self.wasm_dotnet)
         set_env_var("iOSLlvmBuild", self.ios_llvm_build)
+        set_env_var("iOSStripSymbols", self.ios_strip_symbols)
         set_env_var("Creator", self.creator)
         set_env_var("Queue", self.queue)
         set_env_var("HelixSourcePrefix", self.helix_source_prefix)
         set_env_var("_BuildConfig", self.build_config)
+        set_env_var("RuntimeType", self.runtime_type)
         set_env_var("OnlySanityCheck", self.only_sanity_check)
 
 
@@ -118,6 +125,9 @@ def run(args: PerformanceSetupArgs):
     work_item_directory = os.path.join(args.working_directory, "workitem")
 
     bdn_arguments = ["--anyCategories", args.run_categories]
+
+    if args.affinity is not None and not "0":
+        bdn_arguments += ["--affinity", args.affinity]
 
     extra_bdn_arguments = [] if args.extra_bdn_args is None else args.extra_bdn_args[:]
     if args.internal:
@@ -176,16 +186,24 @@ def run(args: PerformanceSetupArgs):
 
         category_exclusions += ["NoInterpreter", "NoWASM", "NoMono"]
 
-    if args.no_pgo:
-        args.configurations["PGOType"] = "nopgo"
-    elif args.dynamic_pgo:
-        args.configurations["PGOType"] = "dynamicpgo"
-    elif args.full_pgo:
-        args.configurations["PGOType"] = "fullpgo"
-        category_exclusions += ["NoAOT"]
+    if args.no_dynamic_pgo:
+        args.configurations["PGOType"] = "nodynamicpgo"
+
+    if args.physical_promotion:
+        args.configurations["PhysicalPromotionType"] = "physicalpromotion"
+
+    runtime_type = ""
 
     if args.ios_mono:
+        runtime_type = "Mono"
         args.configurations["iOSLlvmBuild"] = str(args.ios_llvm_build)
+        args.configurations["iOSStripSymbols"] = str(args.ios_strip_symbols)
+        args.configurations["RuntimeType"] = str(runtime_type)
+
+    if args.ios_nativeaot:
+        runtime_type = "NativeAOT"
+        args.configurations["iOSStripSymbols"] = str(args.ios_strip_symbols)
+        args.configurations["RuntimeType"] = str(runtime_type)
 
     if category_exclusions:
         extra_bdn_arguments += ["--category-exclusion-filter", *set(category_exclusions)]
@@ -237,8 +255,15 @@ def run(args: PerformanceSetupArgs):
     if args.wasm_bundle_directory is not None:
         wasm_bundle_directory_path = payload_directory
         shutil.copytree(args.wasm_bundle_directory, wasm_bundle_directory_path)
+        
+        wasm_args = "--experimental-wasm-eh --expose_wasm"
+
+        if args.javascript_engine == "v8":
+            wasm_args += " --module"
+
         extra_bdn_arguments += [
             "--wasmEngine", f"/home/helixbot/.jsvu/{args.javascript_engine}",
+            "--wasmArgs", f"\"{wasm_args}\""
             "--cli", "$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet",
             "--wasmDataDir", "$HELIX_CORRELATION_PAYLOAD/wasm-data"
         ]
@@ -251,12 +276,11 @@ def run(args: PerformanceSetupArgs):
 
         setup_arguments.dotnet_path = f"{wasm_bundle_directory_path}/dotnet"
 
-    if args.no_pgo:
-        setup_arguments.pgo_status = "nopgo"
-    elif args.dynamic_pgo:
-        setup_arguments.pgo_status = "dynamicpgo"
-    elif args.full_pgo:
-        setup_arguments.pgo_status = "fullpgo"
+    if args.no_dynamic_pgo:
+        setup_arguments.pgo_status = "nodynamicpgo"
+
+    if args.physical_promotion:
+        setup_arguments.physical_promotion = "physicalpromotion"
 
     if args.mono_aot:
         if args.mono_aot_path is None:
@@ -294,17 +318,17 @@ def run(args: PerformanceSetupArgs):
         shutil.copy(os.path.join(args.runtime_directory, "androidHelloWorld", "HelloAndroid.apk"), payload_directory)
         setup_arguments.architecture = "arm64"
 
-    # TODO: Update this code with the latest changes from performance-setup.sh
-    if args.ios_mono:
+    if args.ios_mono or args.ios_nativeaot:
         if args.runtime_directory is None:
-            raise Exception("Runtime directory must be present for IOS Mono benchmarks")
+            raise Exception("Runtime directory must be present for IOS Mono or IOS Native AOT benchmarks")
         
-        if args.ios_llvm_build:
-            shutil.copy(os.path.join(args.runtime_directory, "iosHelloWorld", "llvm"), os.path.join(payload_directory, "iosHelloWorld"))
-            shutil.copy(os.path.join(args.runtime_directory, "iosHelloWorldZip", "llvmzip"), os.path.join(payload_directory, "iosHelloWorldZip"))
-        else:
-            shutil.copy(os.path.join(args.runtime_directory, "iosHelloWorld", "nollvm"), os.path.join(payload_directory, "iosHelloWorld"))
-            shutil.copy(os.path.join(args.runtime_directory, "iosHelloWorldZip", "nollvmzip"), os.path.join(payload_directory, "iosHelloWorldZip"))
+        dest_zip_folder = os.path.join(payload_directory, "iosHelloWorldZip")
+        shutil.copy(os.path.join(args.runtime_directory, "iosHelloWorld"), os.path.join(payload_directory, "iosHelloWorld"))
+        shutil.copy(os.path.join(args.runtime_directory, "iosHelloWorldZip"), dest_zip_folder)
+
+        # rename all zips in the 2nd folder to iOSSampleApp.zip
+        for file in glob(os.path.join(dest_zip_folder, "*.zip")):
+            os.rename(file, os.path.join(dest_zip_folder, "iOSSampleApp.zip"))
 
     shutil.copytree(os.path.join(performance_directory, "docs"), work_item_directory)
 
@@ -328,8 +352,10 @@ def run(args: PerformanceSetupArgs):
         mono_dotnet=using_mono,
         wasm_dotnet=using_wasm,
         ios_llvm_build=args.ios_llvm_build,
+        ios_strip_symbols=args.ios_strip_symbols,
         creator=creator,
         queue=args.queue,
         helix_source_prefix=helix_source_prefix,
         build_config=build_config,
+        runtime_type=runtime_type,
         only_sanity_check=args.only_sanity_check)

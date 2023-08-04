@@ -18,7 +18,7 @@ from platform import machine
 import os
 import sys
 import time
-from typing import Callable, Optional, Tuple, TypeVar
+from typing import Callable, List, Optional, Tuple, Type, TypeVar
 
 
 def get_machine_architecture():
@@ -165,8 +165,8 @@ def retry_on_exception(
         retry_count = 3,
         retry_delay = 5,
         retry_delay_multiplier = 1,
-        retry_exceptions=[Exception], 
-        raise_exceptions=[]) -> Optional[TRet]:
+        retry_exceptions: List[Type[Exception]]=[Exception], 
+        raise_exceptions: List[Type[Exception]]=[]) -> Optional[TRet]:
     '''
     Retries the specified function if it throws an exception.
 

@@ -273,6 +273,7 @@ class CiSetupArgs:
     affinity: str | None = None
     run_env_vars: list[str] | None = None
     target_windows: bool = True
+    physical_promotion: str | None = None
 
 def main(args: CiSetupArgs):
     verbose = not args.quiet
