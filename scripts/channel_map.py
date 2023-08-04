@@ -17,6 +17,16 @@ class ChannelMap():
             'branch': '8.0',
             'quality': 'daily'
         },
+        'release/8.0-rc2': {
+            'tfm': 'net8.0',
+            'branch': '8.0-rc2',
+            'quality': 'daily'
+        },
+        'release/8.0-rc1': {
+            'tfm': 'net8.0',
+            'branch': '8.0-rc1',
+            'quality': 'daily'
+        },
         '8.0-preview': {
             'tfm': 'net8.0',
             'branch': '8.0',

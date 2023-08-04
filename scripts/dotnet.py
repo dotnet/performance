@@ -15,7 +15,7 @@ from shutil import rmtree
 from stat import S_IRWXU
 from subprocess import CalledProcessError, check_output
 from sys import argv, platform
-from typing import Any, NamedTuple, Optional, Tuple
+from typing import Any, List, NamedTuple, Optional, Tuple
 from urllib.error import URLError
 from urllib.parse import urlparse
 from urllib.request import urlopen
@@ -289,7 +289,8 @@ class CSharpProject:
     def restore(self, 
                 packages_path: str, 
                 verbose: bool,
-                runtime_identifier: Optional[str] = None) -> None:
+                runtime_identifier: Optional[str] = None,
+                args: Optional[List[str]] = None) -> None:
         '''
         Calls dotnet to restore the dependencies and tools of the specified
         project.
@@ -312,7 +313,10 @@ class CSharpProject:
 
         if runtime_identifier:
             cmdline += ['--runtime', runtime_identifier]
-            
+
+        if args:
+            cmdline = cmdline + args
+
         RunCommand(cmdline, verbose=verbose, retry=1).run(
             self.working_directory)
 

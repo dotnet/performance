@@ -17,7 +17,7 @@ public class WinUIBlazorParser : IParser
     public void EnableUserProviders(ITraceSession user)
     {
         user.EnableUserProvider(WinUIProvider, TraceEventLevel.Verbose);
-        user.EnableUserProvider(GenericStartupParser.PerfLabGenericEventSourceName, TraceEventLevel.Verbose);
+        user.EnableUserProvider(PerfLabValues.EventSourceName, TraceEventLevel.Verbose);
     }
 
     public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
@@ -77,7 +77,7 @@ public class WinUIBlazorParser : IParser
                 }
             });
 
-            source.Dynamic.AddCallbackForProviderEvent(GenericStartupParser.PerfLabGenericEventSourceName, GenericStartupParser.StartupEventName, evt =>
+            source.Dynamic.AddCallbackForProviderEvent(PerfLabValues.EventSourceName, PerfLabValues.StartupEventName, evt =>
             {
                 if (pid.HasValue && evt.ProcessID == pid && evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
                 {

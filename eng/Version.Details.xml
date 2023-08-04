@@ -1,39 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.NETCore.App.Runtime.win-x64" Version="5.0.4" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
-      <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-runtime</Uri>
-      <Sha>f27d33729518f5aa478aa818b7b4f54a4d50bef1</Sha>
+    <Dependency Name="Microsoft.NET.ILLink.Tasks" Version="8.0.0-rc.1.23403.12">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>b9c11299d520ba7476b158a6cb69e7476328d7ae</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Dotnet.Sdk.Internal" Version="5.0.104-servicing.21213.7">
-      <Uri>https://github.com/dotnet/installer</Uri>
-      <Sha>fc017003558786d1a8d15b01934799f432097aab</Sha>
+    <Dependency Name="Microsoft.NET.ILLink" Version="8.0.0-rc.1.23403.12">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>b9c11299d520ba7476b158a6cb69e7476328d7ae</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.WindowsDesktop.App.Runtime.win-x64" Version="5.0.4" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
-      <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-windowsdesktop</Uri>
-      <Sha>e708867037ec6edbe7965b8f0f1193999785037e</Sha>
+    <Dependency Name="System.Threading.Channels" Version="8.0.0-rc.1.23403.12">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>b9c11299d520ba7476b158a6cb69e7476328d7ae</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.App.Runtime.win-x64" Version="5.0.4" CoherentParentDependency="Microsoft.Dotnet.Sdk.Internal">
-      <Uri>https://dev.azure.com/dnceng/internal/_git/dotnet-aspnetcore</Uri>
-      <Sha>e882394a7bb38930da748291fe2c2ceaa6a80588</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.Net.ILLink.Tasks" Version="7.0.100-1.22057.1">
-      <Uri>https://github.com/dotnet/linker</Uri>
-      <Sha />
-    </Dependency>
-    <Dependency Name="Microsoft.Net.ILLink" Version="7.0.100-1.22057.1">
-      <Uri>https://github.com/dotnet/linker</Uri>
-      <Sha />
+    <Dependency Name="Microsoft.Extensions.Logging" Version="8.0.0-rc.1.23403.12">
+      <Uri>https://github.com/dotnet/runtime</Uri>
+      <Sha>b9c11299d520ba7476b158a6cb69e7476328d7ae</Sha>
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="8.0.0-beta.23371.1">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="8.0.0-beta.23402.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>602351e3681015ea789b2aeaa7b2a9156a8baf38</Sha>
+      <Sha>3addc5d978d01e864792d2c6bce0b50ec105f857</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="8.0.0-beta.23371.1">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="8.0.0-beta.23402.2">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>602351e3681015ea789b2aeaa7b2a9156a8baf38</Sha>
+      <Sha>3addc5d978d01e864792d2c6bce0b50ec105f857</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>

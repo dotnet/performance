@@ -226,10 +226,29 @@ class PreCommands:
             startup_args += self.crossgen_arguments.get_crossgen2_command_line()
             RunCommand(startup_args, verbose=True).run(self.crossgen_arguments.coreroot)
 
-    def add_startup_logging(self, file: str, line: str):
-        self.add_event_source(file, line, "PerfLabGenericEventSource.Log.Startup();")
+    def add_startup_logging(self, file: str, line: str, language_file_extension: str = 'cs', indent: int = 0):
+        if language_file_extension == 'cs':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.Startup();"
+        elif language_file_extension == 'vb':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.Startup()"
+        elif language_file_extension == 'fs':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.Startup()"
+        else:
+            raise Exception(f"{language_file_extension} not supported.")
+        self.add_event_source(file, line, trace_statement, language_file_extension)
 
-    def add_event_source(self, file: str, line: str, trace_statement: str):
+    def add_onmain_logging(self, file: str, line: str, language_file_extension: str = 'cs', indent: int = 0):
+        if language_file_extension == 'cs':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.OnMain();"
+        elif language_file_extension == 'vb':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.OnMain()"
+        elif language_file_extension == 'fs':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.OnMain()"
+        else:
+            raise Exception(f"{language_file_extension} not supported.")
+        self.add_event_source(file, line, trace_statement, language_file_extension)
+
+    def add_event_source(self, file: str, line: str, trace_statement: str, language_file_extension: str = 'cs'):
         '''
         Adds a copy of the event source to the project and inserts the correct call
         file: relative path to the root of the project (where the project file lives)
@@ -237,17 +256,17 @@ class PreCommands:
         trace_statement: Statement to insert
         '''
 
-        self.add_perflab_file()
+        self.add_perflab_file(language_file_extension)
         projpath = os.path.dirname(self.project.csproj_file)
         filepath = os.path.join(projpath, file)
         insert_after(filepath, line, trace_statement)
 
-    def add_perflab_file(self):
+    def add_perflab_file(self, language_file_extension: str = 'cs'):
         projpath = os.path.dirname(self.project.csproj_file)
         staticpath = os.path.join(get_repo_root_path(), "src", "scenarios", "staticdeps")
         if helixpayload():
             staticpath = os.path.join(helixpayload(), "staticdeps")
-        shutil.copyfile(os.path.join(staticpath, "PerfLab.cs"), os.path.join(projpath, "PerfLab.cs"))
+        shutil.copyfile(os.path.join(staticpath, f"PerfLab.{language_file_extension}"), os.path.join(projpath, f"PerfLab.{language_file_extension}"))
 
     def install_workload(self, workloadid: str, install_args: list[str] = ["--skip-manifest-update"]):
         'Installs the workload, if needed'
@@ -297,7 +316,9 @@ class PreCommands:
                              *build_args)
 
     def _restore(self):
-        self.project.restore(packages_path=get_packages_directory(), verbose=True)
+        self.project.restore(packages_path=get_packages_directory(),
+                             verbose=True,
+                             args=['-bl:%s-restore.binlog' % self.binlog] if self.binlog else [])
 
     def _build(self, configuration: str, framework: str, output: Optional[str] = None, build_args: list[str] = []):
         self.project.build(configuration,
