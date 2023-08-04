@@ -56,7 +56,7 @@
   <PropertyGroup>
     <WorkItemTimeout>6:00</WorkItemTimeout>
     <WorkItemTimeout Condition="'$(OnlySanityCheck)' == 'true'">1:30</WorkItemTimeout>
-    <HelixResultsDestinationDir>$(PerformanceDirectory)/artifacts/helix-results</HelixResultsDestinationDir>
+    <HelixResultsDestinationDir>$(CorrelationPayloadDirectory)/performance/artifacts/helix-results</HelixResultsDestinationDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -71,7 +71,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <PartitionCount Condition="'$(PartitionCount)' != ''">15</PartitionCount>
+    <PartitionCount Condition="'$(PartitionCount)' == ''">15</PartitionCount>
   </PropertyGroup>
   <ItemGroup>
     <Partition Include="Partition0" Index="0" Condition="$(PartitionCount) &gt; 0" />
@@ -104,7 +104,7 @@
     <Partition Include="Partition27" Index="27" Condition="$(PartitionCount) &gt; 27" />
     <Partition Include="Partition28" Index="28" Condition="$(PartitionCount) &gt; 28" />
     <Partition Include="Partition29" Index="29" Condition="$(PartitionCount) &gt; 29" />
-  </PropertyGroup>
+  </ItemGroup>
 
   <PropertyGroup>
     <BenchmarkDotNetArguments>$(BenchmarkDotNetArguments) $(ExtraBenchmarkDotNetArguments) $(CoreRunArgument)</BenchmarkDotNetArguments>

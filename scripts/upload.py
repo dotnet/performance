@@ -1,11 +1,14 @@
+import json
 from random import randint
+import shutil
+from typing import Any
 import uuid
 from azure.storage.blob import BlobClient, ContentSettings
 from azure.storage.queue import QueueClient, TextBase64EncodePolicy
 from azure.core.exceptions import ResourceExistsError
 from traceback import format_exc
 from glob import glob
-from performance.common import retry_on_exception
+from performance.common import helixuploadroot, retry_on_exception
 import os
 
 from logging import getLogger
@@ -61,3 +64,20 @@ def upload(globpath: str, container: str, queue: str, sas_token_env: str, storag
         getLogger().error('{0}: {1}'.format(type(ex), str(ex)))
         getLogger().error(format_exc())
         return 1
+    
+def copy_perflab_jsons_to_helix_root(artifacts_dir: str, combined_file_prefix: str = "combined"):
+    globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
+    all_reports: list[Any] = []
+    for file in glob(globpath, recursive=True):
+        with open(file, 'r') as report_file:
+            all_reports.append(json.load(report_file))
+
+    with open(os.path.join(artifacts_dir, f"{combined_file_prefix}combined-perf-lab-report.json"), "w") as all_reports_file:
+        json.dump(all_reports, all_reports_file)
+
+    helix_upload_root = helixuploadroot()
+    if helix_upload_root is not None:
+        for file in glob(globpath, recursive=True):
+            shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
+    else:
+        getLogger().info("Skipping upload of artifacts to Helix as HELIX_WORKITEM_UPLOAD_ROOT environment variable is not set.")

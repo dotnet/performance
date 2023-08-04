@@ -12,15 +12,18 @@ jobs:
       kind: ''
       runtimeRepoDir: '../runtime' # A guess that the performance repo is next to the runtime repo
       osGroup: ''
+      osSubGroup: ''
       coreRootDir: '{{ runtimeRepoDir }}/artifacts/tests/coreclr/{{ osGroup }}.{{ architecture }}.Release/Tests/Core_Root' 
       performanceRepoDir: '.'
-      targetsWindows: '{% if osGroup == "windows" %}true{% else %}false{% endif %}'
-      runName: '20230608-testing'
-      buildNumber: '20230608.1'
+      runName: '{{ buildNumber }}-testing'
+      buildNumber: 'local'
       buildSourceVersion: 'abc123'
       buildSourceBranch: 'main'
       internal: true
       bdnArgs: ''
+      partitionCount: 5
+      projectFile: 'performance/eng/performance/helix.proj'
+      isScenario: false
     sources:
       coreRoot:
         localFolder: '{{ coreRootDir }}'
@@ -28,7 +31,7 @@ jobs:
         localFolder: '{{ performanceRepoDir }}'
     dockerfile: performance/eng/performance/helix_sender.Dockerfile
     dockerImageName: helix_sender
-    dockerCommand: python ./performance/scripts/send_to_helix.py --queue {{ queue }} --framework {{ framework }} --run-kind {{ kind }} --core-root-dir /performance/coreRoot --performance-repo-dir /performance/performance --architecture {{ architecture }} {% if targetsWindows %}--targets-windows{% endif %} {% if internal %}--internal{% endif %} --run-categories "{{ runCategories }}" {% if bdnArgs != blank and bdnArgs != empty %} --extra-bdn-args "{{ bdnArgs }}" {% endif %}
+    dockerCommand: python ./performance/scripts/run_performance_job.py --queue {{ queue }} --framework {{ framework }} --run-kind {{ kind }} --core-root-dir /performance/coreRoot --performance-repo-dir /performance/performance --architecture {{ architecture }} --os-group {{ osGroup }} --os-sub-group {{ osSubGroup }} {% if internal %}--internal{% endif %} --run-categories "{{ runCategories }}" {% if bdnArgs != blank and bdnArgs != empty %} --extra-bdn-args "{{ bdnArgs }}" {% endif %} --partition-count {{ partitionCount }} --project-file {{ projectFile }} {% if isScenario %} --is-scenario {% endif %}
     dockerContextDirectory: .
     arguments: '--env HelixAccessToken --env SYSTEM_ACCESSTOKEN --env PerfCommandUploadToken --env PerfCommandUploadTokenLinux'
     environmentVariables:
@@ -46,6 +49,14 @@ scenarios:
       variables:
         kind: 'micro'
         runCategories: 'runtime libraries'
+  
+  scenarios:
+    benchmark:
+      job: run_performance_job
+      variables:
+        kind: scenarios
+        isScenario: true
+        projectFile: 'performance/eng/performance/scenarios.proj'
 
 profiles:
   local:
@@ -58,7 +69,7 @@ profiles:
     jobs:
       benchmark:
         endpoints:
-          - https://dotnetperf-crankagent:5010
+          - http://dotnetperf-crankagent:5001
 
   relay:
     jobs:

@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 import dataclasses
 from datetime import timedelta
+from glob import glob
+import json
 import os
 import shutil
 import sys
@@ -9,6 +11,40 @@ import ci_setup
 from performance.common import RunCommand
 import performance_setup
 from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
+
+def output_counters_for_crank(reports: list[Any]):
+    print("#StartJobStatistics")
+
+    statistics: dict[str, list[Any]] = {
+        "metadata": [],
+        "measurements": []
+    }
+
+    for report in reports:
+        for test in report["tests"]:
+            for counter in test["counters"]:
+                measurement_name = f"benchmarkdotnet/{test['name']}/{counter['name']}"
+                for result in counter["results"]:
+                    statistics["measurements"].append({
+                        "name": measurement_name,
+                        "value": result
+                    })
+
+                if counter["topCounter"] == True:
+                    statistics["metadata"].append({
+                        "source": "BenchmarkDotNet",
+                        "name": measurement_name,
+                        "aggregate": "avg",
+                        "reduce": "avg",
+                        "format": "n0",
+                        "shortDescription": f"{test['name']} ({counter['metricName']})"
+                    })
+
+    statistics["metadata"] = sorted(statistics["metadata"], key=lambda m: m["name"])
+
+    print(json.dumps(statistics))
+
+    print("#EndJobStatistics")
 
 @dataclass
 class RunPerformanceJobArgs:
@@ -346,6 +382,15 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
     perf_send_to_helix(perf_send_to_helix_args)
 
+    results_glob = os.path.join(performance_setup_data.payload_directory, "performance", "artifacts", "helix-results", '**', '*perf-lab-report.json')
+    all_results: list[Any] = []
+    for result_file in glob(results_glob, recursive=True):
+        with open(result_file, 'r') as report_file:
+            all_results.extend(json.load(report_file))
+
+    output_counters_for_crank(all_results)
+
+
 def main(argv: list[str]):
     args: dict[str, Any] = {}
 
@@ -353,8 +398,6 @@ def main(argv: list[str]):
     while i < len(argv):
         key = argv[i]
         bool_args = {
-            "--targets-windows": "targets_windows",
-            "--targets-musl": "targets_musl",
             "--internal": "internal",
             "--is-scenario": "is_scenario"
         }
@@ -384,7 +427,9 @@ def main(argv: list[str]):
             "--runtime-type": "runtime_type",
             "--run-categories": "run_categories",
             "--extra-bdn-args": "extra_bdn_args",
-            "--affinity": "affinity"
+            "--affinity": "affinity",
+            "--os-group": "os_group",
+            "--os-sub-group": "os_sub_group",
         }
 
         if key in simple_arg_map:

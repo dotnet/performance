@@ -320,23 +320,9 @@ def __main(argv: list[str]):
 
             artifacts_dir = get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts
 
-            globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
-            
-            all_reports: list[Any] = []
-            for file in glob(globpath, recursive=True):
-                with open(file, 'r') as report_file:
-                    all_reports.append(json.load(report_file))
-
-            combined_file_name = "combined" if args.partition is None else f"Partition{args.partition}-combined"
-            with open(os.path.join(artifacts_dir, f"{combined_file_name}-perf-lab-report.json")) as all_reports_file:
-                json.dump(all_reports, all_reports_file)
-
-            helix_upload_root = helixuploadroot()
-            if helix_upload_root is not None:
-                for file in glob(globpath, recursive=True):
-                    copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
-            else:
-                getLogger().info("Skipping upload of artifacts to Helix as HELIX_WORKITEM_UPLOAD_ROOT environment variable is not set.")
+            import upload
+            combined_file_prefix = "" if args.partition is None else f"Partition{args.partition}-"
+            upload.copy_perflab_jsons_to_helix_root(artifacts_dir, combined_file_prefix)
 
         except CalledProcessError:
             getLogger().info("Run failure registered")
@@ -346,6 +332,7 @@ def __main(argv: list[str]):
         dotnet.shutdown_server(verbose)
 
         if args.upload_to_perflab_container:
+            globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
             import upload
             upload_code = upload.upload(globpath, upload_container, UPLOAD_QUEUE, UPLOAD_TOKEN_VAR, UPLOAD_STORAGE_URI)
             getLogger().info("Benchmarks Upload Code: " + str(upload_code))

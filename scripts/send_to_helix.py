@@ -33,6 +33,7 @@ class PerfSendToHelixArgs:
     system_access_token: str
 
 def run_shell(script: str, args: list[str]):
+    RunCommand(["chmod", "+x", script]).run()
     RunCommand([script, *args], verbose=True).run()
 
 def run_powershell(script: str, args: list[str]):
