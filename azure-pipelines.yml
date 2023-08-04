@@ -42,7 +42,7 @@ schedules:
   branches:
     include:
     - main
-    - release/7.0
+    #- release/7.0 #Removing release 7.0 while we wait for the queue to empty
   always: true
 - cron: "0 21 * * THU"
   displayName: Weekly Build
