@@ -221,7 +221,6 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             os.environ["EMSDK_PATH"] =os.path.join(repo_path, 'src', 'mono', 'wasm', 'emsdk')
 
             build_runtime_dependency(parsed_args, repo_path, "mono+libs", os_override="browser", arch_override="wasm", additional_args=[f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}'])
-
             src_dir = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "dotnet-latest")
             dest_dir = os.path.join(repo_path, "artifacts", "bin", "wasm", "dotnet")
             copy_directory_contents(src_dir, dest_dir)
@@ -229,7 +228,10 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             dest_dir = os.path.join(repo_path, "artifacts", "bin", "wasm")
             copy_directory_contents(src_dir, dest_dir)
             src_file = os.path.join(repo_path, "src", "mono", "wasm", "test-main.js")
-            dest_file = os.path.join(repo_path, "artifacts", "bin", "wasm", "wasm-data", "test-main.js")
+            dest_dir = os.path.join(repo_path, "artifacts", "bin", "wasm", "wasm-data")
+            dest_file = os.path.join(dest_dir, "test-main.js")
+            if not os.path.exists(dest_dir):
+                os.makedirs(dest_dir)
             shutil.copy2(src_file, dest_file)
 
             # Store the dotnet_mono in the artifact storage path
