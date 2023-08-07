@@ -35,6 +35,7 @@ from logging import getLogger
 from subprocess import CalledProcessError
 
 import benchmarks_ci
+import dotnet
 from channel_map import ChannelMap
 from git import GitCommandError
 from git.repo import Repo
@@ -251,6 +252,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
     benchmark_ci_args += ['--architecture', parsed_args.architecture]
     benchmark_ci_args += ['--frameworks', parsed_args.framework]
     benchmark_ci_args += ['--filter', parsed_args.filter]
+    benchmark_ci_args += ['--dotnet-path', parsed_args.dotnet_path]
     benchmark_ci_args += ['--csproj', parsed_args.csproj]
     benchmark_ci_args += ['--incremental', "no"]
     benchmark_ci_args += ['--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, f"BenchmarkDotNet.Artifacts.{specific_run_type.name}.{start_time.strftime('%y%m%d_%H%M%S')}")]
@@ -317,7 +319,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                                 '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
                                 '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmWasm, all_commits[0]), "wasm_bundle", "wasm-data"),
                                 '--wasmEngine', parsed_args.wasm_engine_path,
-                                '--wasmArgs', '--experimental-wasm-eh --expose_wasm --module',
+                                '--wasmArgs', '\"--experimental-wasm-eh --expose_wasm --module\"',
                                 # '--cli', '',
                                 '--logBuildOutput',
                                 '--generateBinLog'
@@ -373,6 +375,11 @@ def run_benchmarks(parsed_args: Namespace, commits: list) -> None:
 
         getLogger().info(f"Finished running benchmark for {run_type} at {commits}.")
 
+def install_dotnet(parsed_args: Namespace) -> None:
+    if not os.path.exists(parsed_args.dotnet_path): #TODO Do we want to just always install dotnet?
+        dotnet.install(parsed_args.architecture, ["main"], parsed_args.dotnet_versions, parsed_args.verbose, parsed_args.dotnet_path)
+    dotnet.setup_dotnet(parsed_args.dotnet_path)
+
 # Check if the specified references exist in the given repository URL.
 # If a reference does not exist, raise an exception.
 # 
@@ -403,6 +410,8 @@ def check_references_exist_and_add_branch_commits(repo_url: str, references: lis
             raise Exception(f"Reference {reference} does not exist in {repo_url}.")
 
 def add_arguments(parser):
+    dotnet.add_arguments(parser)
+
     # Arguments for the local runner script
     parser.add_argument('--list-cached-builds', action='store_true', help='Lists the cached builds located in the artifact-storage-path.')
     parser.add_argument('--commits', nargs='+', type=str, help='The commits to test.')
@@ -410,7 +419,7 @@ def add_arguments(parser):
     parser.add_argument('--local-test-repo', type=str, help='Path to a local repo with the runtime source code to test from.') 
     parser.add_argument('--separate-repos', action='store_true', help='Whether to test each runtime version from their own separate repo directory.') # TODO: Do we want to have this as an actual option? It made sense before a shared build cache was added
     parser.add_argument('--repo-storage-path', type=str, default='.', help='The path to store the cloned repositories in.')
-    parser.add_argument('--artifact-storage-path', type=str, default=f'{os.getcwd()}{os.path.sep}runtime-testing-artifacts', help=f'The path to store the artifacts in (builds, results, etc). Default is {os.getcwd()}{os.path.sep}runtime-testing-artifacts')
+    parser.add_argument('--artifact-storage-path', type=str, default=os.path.join(os.getcwd(), "runtime-testing-artifacts"), help=f'The path to store the artifacts in (builds, results, etc). Default is {os.path.join(os.getcwd(), "runtime-testing-artifacts")}')
     parser.add_argument('--rebuild-artifacts', action='store_true', help='Whether to rebuild the artifacts for the specified commits before benchmarking.')
     parser.add_argument('--build-only', action='store_true', help='Whether to only build the artifacts for the specified commits and not run the benchmarks.')
     parser.add_argument('--skip-local-rebuild', action='store_true', help='Whether to skip rebuilding the local repo and use the already built version (if already built). Useful if you need to run against local changes again.')
@@ -423,7 +432,7 @@ def add_arguments(parser):
         return value
     parser.add_argument('--run-types', dest='run_type_names', nargs='+', type=__is_valid_run_type, choices=[run_type.name for run_type in RunType], help='The types of runs to perform.')
     parser.add_argument('--quiet', dest='verbose', action='store_false', help='Whether to not print verbose output.')
-    
+
     # Arguments specifically for dependency generation and BDN
     parser.add_argument('--bdn-arguments', type=str, default="", help='Command line arguments to be passed to BenchmarkDotNet, wrapped in quotes')
     parser.add_argument('--architecture', choices=['x64', 'x86', 'arm64', 'arm'], default=get_machine_architecture(), help='Specifies the SDK processor architecture')
@@ -444,9 +453,10 @@ def get_default_os():
 
 def __main(args: list):
     # Define the ArgumentParser
-    parser = ArgumentParser(description='Run local benchmarks for the Performance repo.')
+    parser = ArgumentParser(description='Run local benchmarks for the Performance repo.', conflict_handler='resolve')
     add_arguments(parser)
     parsed_args = parser.parse_args(args)
+    parsed_args.dotnet_path = os.path.join(parsed_args.artifact_storage_path, "dotnet")
     
     setup_loggers(verbose=parsed_args.verbose)
 
@@ -488,6 +498,9 @@ def __main(args: list):
     try:
         getLogger().info("Killing any running dotnet, vstest, or msbuild processes... (ignore system cannot find path specified)")
         kill_dotnet_processes(parsed_args)
+
+        # Install Dotnet so we can add tools
+        install_dotnet(parsed_args)
 
         # Generate the artifacts for each of the remote versions
         if parsed_args.commits:
