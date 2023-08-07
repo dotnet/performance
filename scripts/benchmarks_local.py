@@ -14,6 +14,11 @@
 #   * Add the run type to the RunType enum
 #   * Add the build instructions to the generate_all_runtime_artifacts function
 #   * Add the BDN run arguments to the generate_benchmark_ci_args function
+#
+# Prereqs:
+# Normal prereqs for building the target runtime
+# Python 3
+# gitpython (pip install gitpython)
 
 
 import ctypes
@@ -39,7 +44,7 @@ from performance.logger import setup_loggers
 # Assumptions: We are only testing this Performance repo, should allow single run or multiple runs
 # For dotnet_version based runs, use the benchmarks_monthly .py script instead
 # Verify the input commands
-# What are supported default cases: MonoJIT, MonoAOTLLVM, MonoInterpreter, Corerun, etc. (WASM)
+# What are supported default cases: MonoJIT, MonoInterpreter, Corerun, WasmWasm etc. (WIP: MONOAOTLLVM, WASMAOT, WASMINTERPRETER)
 
 start_time = datetime.now()
 local_shared_string = "local"
@@ -202,18 +207,19 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         shutil.rmtree(os.path.join(repo_path, "artifacts"), ignore_errors=True) # TODO: Can we trust the build system to update these when necessary or do we need to clean them up ourselves?
 
     if check_for_runtype_specified(parsed_args, [RunType.WasmWasm]):
+        ## TODO: Figure out prereq check flow
+        # Must have jsvu installed
         dest_dir_wasm = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmWasm, commit), "wasm_bundle")
         if force_regenerate or not os.path.exists(dest_dir_wasm):
-            provision_emsdk = [
+            provision_wasm = [
                 "make",
                 "-C",
                 os.path.join("src", "mono", "wasm"),
-                "provision-emsdk"
+                "provision-wasm"
             ]
-            RunCommand(provision_emsdk, verbose=True).run(os.path.join(repo_path))
-            if not is_windows(parsed_args):
-                RunCommand(["export", f"EMSDK_PATH={os.path.join(repo_path, 'src', 'mono', 'wasm', 'emsdk')}"], verbose=True).run(os.path.join(repo_path))
-                
+            RunCommand(provision_wasm, verbose=True).run(os.path.join(repo_path))
+            os.environ["EMSDK_PATH"] =os.path.join(repo_path, 'src', 'mono', 'wasm', 'emsdk')
+
             build_runtime_dependency(parsed_args, repo_path, "mono+libs", os_override="browser", arch_override="wasm", additional_args=[f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}'])
 
             src_dir = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "dotnet-latest")
