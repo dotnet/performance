@@ -204,7 +204,17 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
     if check_for_runtype_specified(parsed_args, [RunType.WasmWasm]):
         dest_dir_wasm = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmWasm, commit), "wasm_bundle")
         if force_regenerate or not os.path.exists(dest_dir_wasm):
-            build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", os_override="browser", arch_override="wasm", additional_args=[f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}'])
+            provision_emsdk = [
+                "make",
+                "-C",
+                os.path.join("src", "mono", "wasm"),
+                "provision-emsdk"
+            ]
+            RunCommand(provision_emsdk, verbose=True).run(os.path.join(repo_path))
+            if not is_windows(parsed_args):
+                RunCommand(["export", f"EMSDK_PATH={os.path.join(repo_path, 'src', 'mono', 'wasm', 'emsdk')}"], verbose=True).run(os.path.join(repo_path))
+                
+            build_runtime_dependency(parsed_args, repo_path, "mono+libs", os_override="browser", arch_override="wasm", additional_args=[f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}'])
 
             src_dir = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "dotnet-latest")
             dest_dir = os.path.join(repo_path, "artifacts", "bin", "wasm", "dotnet")
