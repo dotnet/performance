@@ -310,11 +310,12 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
             bdn_args_unescaped += [ corerun_path ]
 
     elif specific_run_type == RunType.WasmWasm:
+        # TODO: Fail or print somewhere that we only support one commit for WasmWasm.
         benchmark_ci_args += [ '--wasm' ]
         bdn_args_unescaped += [
                                 '--anyCategories', 'Libraries', 'Runtime',
                                 '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
-                                '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmWasm, commit), "wasm_bundle", "wasm-data"),
+                                '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmWasm, all_commits[0]), "wasm_bundle", "wasm-data"),
                                 '--wasmEngine', parsed_args.wasm_engine_path,
                                 '--wasmArgs', '--experimental-wasm-eh --expose_wasm --module',
                                 # '--cli', '',
