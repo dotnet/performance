@@ -211,6 +211,7 @@ class PreCommands:
             if self.nativeaot:
                 build_args.append('/p:PublishAot=true')
                 build_args.append('/p:PublishAotUsingRuntimePack=true')
+            build_args.append("/p:EnableWindowsTargeting=true")
             self._publish(configuration=self.configuration, runtime_identifier=self.runtime_identifier, framework=self.framework, output=self.output, build_args=build_args)
         if self.operation == CROSSGEN:
             startup_args = [
@@ -315,10 +316,10 @@ class PreCommands:
                              *['-bl:%s' % self.binlog] if self.binlog else [],
                              *build_args)
 
-    def _restore(self):
+    def _restore(self, restore_args: list[str] = ["/p:EnableWindowsTargeting=true"]):
         self.project.restore(packages_path=get_packages_directory(),
                              verbose=True,
-                             args=['-bl:%s-restore.binlog' % self.binlog] if self.binlog else [])
+                             args=(['-bl:%s-restore.binlog' % self.binlog] if self.binlog else []) + restore_args)
 
     def _build(self, configuration: str, framework: str, output: Optional[str] = None, build_args: list[str] = []):
         self.project.build(configuration,

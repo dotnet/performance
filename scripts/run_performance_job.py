@@ -6,9 +6,11 @@ import json
 import os
 import shutil
 import sys
+import urllib.request
 from typing import Any
+
 import ci_setup
-from performance.common import RunCommand
+from performance.common import RunCommand, iswin
 import performance_setup
 from send_to_helix import PerfSendToHelixArgs, perf_send_to_helix
 
@@ -78,6 +80,7 @@ class RunPerformanceJobArgs:
     affinity: str | None = "0"
     run_env_vars: dict[str, str] = field(default_factory=dict[str, str])
     is_scenario: bool = False
+    runtime_flavor: str | None = None
 
 def run_performance_job(args: RunPerformanceJobArgs):
     if args.project_file is None:
@@ -94,61 +97,111 @@ def run_performance_job(args: RunPerformanceJobArgs):
     
     helix_post_commands: list[str] = []
 
-    artifacts_directory = os.path.join(args.performance_repo_dir, "artifacts")
-
     if args.is_scenario:
         if args.os_group == "windows":
+            script_extension = ".cmd"
+            additional_helix_pre_commands = [
+                f"call %HELIX_CORRELATION_PAYLOAD%\\machine-setup{script_extension}",
+                "xcopy %HELIX_CORRELATION_PAYLOAD%\\NuGet.config %HELIX_WORKITEM_ROOT% /Y"
+            ]
+            preserve_python_path = "set ORIGPYPATH=%PYTHONPATH%"
+            python = "py -3"
+        else:
+            script_extension = ".sh"
+            additional_helix_pre_commands = [
+                "chmod +x $HELIX_CORRELATION_PAYLOAD/machine-setup.sh",
+                f". $HELIX_CORRELATION_PAYLOAD/machine-setup{script_extension}",
+                "cp $HELIX_CORRELATION_PAYLOAD/NuGet.config $HELIX_WORKITEM_ROOT"
+            ]
+            preserve_python_path = "export ORIGPYPATH=$PYTHONPATH"
+            python = "python3"
+        
+        if not args.internal:
             helix_pre_commands = [
-                "set ORIGPYPATH=%PYTHONPATH%",
+                preserve_python_path,
+                *additional_helix_pre_commands
+            ]
+        elif args.os_group == "windows":
+            helix_pre_commands = [
+                preserve_python_path,
                 "py -3 -m venv %HELIX_WORKITEM_PAYLOAD%\\.venv",
                 "call %HELIX_WORKITEM_PAYLOAD%\\.venv\\Scripts\\activate.bat",
                 "set PYTHONPATH=",
-                "py -3 -m pip install -U pip",
-                "py -3 -m pip install --user urllib3==1.26.15 --force-reinstall",
-                "py -3 -m pip install --user azure.storage.blob==12.0.0 --force-reinstall",
-                "py -3 -m pip install --user azure.storage.queue==12.0.0 --force-reinstall",
-                f'set "PERFLAB_UPLOAD_TOKEN={args.perflab_upload_token}"'
-            ]
-        elif args.os_group == "osx":
-            helix_pre_commands = [
-                "export ORIGPYPATH=$PYTHONPATH",
-                "export CRYPTOGRAPHY_ALLOW_OPENSSL_102=true",
-                "python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv",
-                "source $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate",
-                "export PYTHONPATH=",
-                "python3 -m pip install -U pip",
-                "pip3 install --user urllib3==1.26.15 --force-reinstall",
-                "pip3 install --user azure.storage.blob==12.7.1 --force-reinstall",
-                "pip3 install --user azure.storage.queue==12.1.5 --force-reinstall",
-                f'export PERFLAB_UPLOAD_TOKEN="{args.perflab_upload_token}"'
-            ]
-        elif args.os_sub_group == "_musl":
-            helix_pre_commands = [
-                "export ORIGPYPATH=$PYTHONPATH",
-                "sudo apk add py3-virtualenv",
-                "python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv",
-                "source $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate",
-                "export PYTHONPATH=",
-                "python3 -m pip install -U pip",
-                "pip3 install --user urllib3==1.26.15 --force-reinstall",
-                "pip3 install --user azure.storage.blob==12.7.1 --force-reinstall",
-                "pip3 install --user azure.storage.queue==12.1.5 --force-reinstall",
-                f'export PERFLAB_UPLOAD_TOKEN="{args.perflab_upload_token}"'
+                "py -3 -m pip install azure.storage.blob==12.0.0",
+                "py -3 -m pip install azure.storage.queue==12.0.0",
+                "py -3 -m pip install urllib3==1.26.15 --force-reinstall",
+                f"set \"PERFLAB_UPLOAD_TOKEN={args.perflab_upload_token}\"",
+                *additional_helix_pre_commands
             ]
         else:
             helix_pre_commands = [
-                "export ORIGPYPATH=$PYTHONPATH",
-                "export CRYPTOGRAPHY_ALLOW_OPENSSL_102=true",
+                preserve_python_path,
+                "export CRYPTOGRAPHY_ALLOW_OPENSSL_102=true"
                 "sudo apt-get -y install python3-venv",
                 "python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv",
-                "source $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate",
+                ". $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate",
                 "export PYTHONPATH=",
                 "python3 -m pip install -U pip",
-                "pip3 install --user urllib3==1.26.15 --force-reinstall",
-                "pip3 install --user azure.storage.blob==12.7.1 --force-reinstall",
-                "pip3 install --user azure.storage.queue==12.1.5 --force-reinstall",
-                f'export PERFLAB_UPLOAD_TOKEN="{args.perflab_upload_token}"'
+                "pip3 install azure.storage.blob==12.0.0",
+                "pip3 install azure.storage.queue==12.0.0",
+                "pip3 install urllib3==1.26.15 --force-reinstall",
+                f"export PERFLAB_UPLOAD_TOKEN=\"{args.perflab_upload_token}\"",
+                *additional_helix_pre_commands
             ]
+
+        # if args.os_group == "windows":
+        #     helix_pre_commands = [
+        #         "set ORIGPYPATH=%PYTHONPATH%",
+        #         "py -3 -m venv %HELIX_WORKITEM_PAYLOAD%\\.venv",
+        #         "call %HELIX_WORKITEM_PAYLOAD%\\.venv\\Scripts\\activate.bat",
+        #         "set PYTHONPATH=",
+        #         "py -3 -m pip install -U pip",
+        #         "py -3 -m pip install --user urllib3==1.26.15 --force-reinstall",
+        #         "py -3 -m pip install --user azure.storage.blob==12.0.0 --force-reinstall",
+        #         "py -3 -m pip install --user azure.storage.queue==12.0.0 --force-reinstall",
+        #         f'set "PERFLAB_UPLOAD_TOKEN={args.perflab_upload_token}"'
+        #     ]
+        # elif args.os_group == "osx":
+        #     helix_pre_commands = [
+        #         "export ORIGPYPATH=$PYTHONPATH",
+        #         "export CRYPTOGRAPHY_ALLOW_OPENSSL_102=true",
+        #         "python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv",
+        #         "source $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate",
+        #         "export PYTHONPATH=",
+        #         "python3 -m pip install -U pip",
+        #         "pip3 install --user urllib3==1.26.15 --force-reinstall",
+        #         "pip3 install --user azure.storage.blob==12.7.1 --force-reinstall",
+        #         "pip3 install --user azure.storage.queue==12.1.5 --force-reinstall",
+        #         f'export PERFLAB_UPLOAD_TOKEN="{args.perflab_upload_token}"'
+        #     ]
+        # elif args.os_sub_group == "_musl":
+        #     helix_pre_commands = [
+        #         "export ORIGPYPATH=$PYTHONPATH",
+        #         "sudo apk add py3-virtualenv",
+        #         "python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv",
+        #         "source $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate",
+        #         "export PYTHONPATH=",
+        #         "python3 -m pip install -U pip",
+        #         "pip3 install --user urllib3==1.26.15 --force-reinstall",
+        #         "pip3 install --user azure.storage.blob==12.7.1 --force-reinstall",
+        #         "pip3 install --user azure.storage.queue==12.1.5 --force-reinstall",
+        #         f'export PERFLAB_UPLOAD_TOKEN="{args.perflab_upload_token}"'
+        #     ]
+        # else:
+        #     helix_pre_commands = [
+        #         "export ORIGPYPATH=$PYTHONPATH",
+        #         "export CRYPTOGRAPHY_ALLOW_OPENSSL_102=true",
+        #         "sudo apt-get -y install python3-venv",
+        #         "python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv",
+        #         "source $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate",
+        #         "export PYTHONPATH=",
+        #         "python3 -m pip install -U pip",
+        #         "pip3 install --user urllib3==1.26.15 --force-reinstall",
+        #         "pip3 install --user azure.storage.blob==12.7.1 --force-reinstall",
+        #         "pip3 install --user azure.storage.queue==12.1.5 --force-reinstall",
+        #         f'export PERFLAB_UPLOAD_TOKEN="{args.perflab_upload_token}"'
+        #     ]
+        pass
     else:
         if args.os_group == "windows":
             helix_pre_commands = [
@@ -257,6 +310,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         use_local_commit_time=False,
         run_categories=args.run_categories,
         extra_bdn_args=[] if args.extra_bdn_args is None else args.extra_bdn_args.split(" "),
+        python="py -3" if args.os_group == "windows" else "python3",
         **args.additional_performance_setup_parameters
     )
 
@@ -276,10 +330,8 @@ def run_performance_job(args: RunPerformanceJobArgs):
         os.environ["TargetsWindows"] = "true"
 
     if args.is_scenario:
-        if args.runtime_type != "wasm":
-            setup_arguments.install_dir = os.path.join(performance_setup_data.payload_directory, "dotnet")
-
-        setup_arguments.output_file = os.path.join(performance_setup_data.work_item_directory, "machine-setup")
+        setup_arguments.output_file = os.path.join(performance_setup_data.payload_directory, "machine-setup")
+        setup_arguments.install_dir = os.path.join(performance_setup_data.payload_directory, "dotnet")
     else:
         tools_dir = os.path.join(performance_setup_data.performance_directory, "tools")
         setup_arguments.output_file = os.path.join(tools_dir, "machine-setup")
@@ -288,20 +340,17 @@ def run_performance_job(args: RunPerformanceJobArgs):
     ci_setup.main(setup_arguments)
 
     if args.is_scenario:
-        if args.runtime_type == "wasm":
-            os.makedirs(os.path.join(artifacts_directory, "bin", "wasm", "data"))
-            shutil.copytree(os.path.join(artifacts_directory, "BrowserWasm", "staging", "dotnet-latest"), os.path.join(artifacts_directory, "bin", "wasm"))
-            shutil.copytree(os.path.join(artifacts_directory, "BrowserWasm", "staging", "built-nugets"), os.path.join(artifacts_directory, "bin", "wasm"))
-            # TODO: Add test-main.js as a source for wasm runs so that it gets uploaded to the agent
-            # cp src/mono/wasm/test-main.js $(librariesDownloadDir)/bin/wasm/data/test-main.js &&
-            # find $(librariesDownloadDir)/bin/wasm -type f -exec chmod 664 {} \;
+        performance_setup_data.payload_directory += os.path.sep
 
-        # copy scenario support files
-        shutil.copytree(os.path.join(args.performance_repo_dir, "scripts"), os.path.join(performance_setup_data.work_item_directory, "scripts"))
-        shutil.copytree(os.path.join(args.performance_repo_dir, "src", "scenarios", "shared"), os.path.join(performance_setup_data.work_item_directory, "shared"))
-        shutil.copytree(os.path.join(args.performance_repo_dir, "src", "scenarios", "staticdeps"), os.path.join(performance_setup_data.work_item_directory, "staticdeps"))
+        dotnet_path = os.path.join(setup_arguments.install_dir, "dotnet")
 
-        os.environ["PERFLAB_TARGET_FRAMEWORKS"] = "net7.0"
+        shutil.copyfile(os.path.join(args.performance_repo_dir, "NuGet.config"), performance_setup_data.payload_directory)
+        shutil.copytree(os.path.join(args.performance_repo_dir, "scripts"), os.path.join(performance_setup_data.payload_directory, "scripts"))
+        shutil.copytree(os.path.join(args.performance_repo_dir, "src", "scenarios", "shared"), os.path.join(performance_setup_data.payload_directory, "shared"))
+        shutil.copytree(os.path.join(args.performance_repo_dir, "src", "scenarios", "staticdeps"), os.path.join(performance_setup_data.payload_directory, "staticdeps"))
+
+        framework = os.environ["PERFLAB_Framework"]
+        os.environ["PERFLAB_TARGET_FRAMEWORKS"] = framework
         if args.os_group == "windows":
             runtime_id = f"win-{args.architecture}"
         elif args.os_group == "osx":
@@ -311,28 +360,94 @@ def run_performance_job(args: RunPerformanceJobArgs):
 
         # build Startup
         RunCommand([
-            "dotnet", "publish", 
+            dotnet_path, "publish", 
             "-c", "Release", 
-            "-o", os.path.join(performance_setup_data.work_item_directory, "startup"),
-            "-f", "net7.0",
+            "-o", os.path.join(performance_setup_data.payload_directory, "startup"),
+            "-f", framework,
             "-r", runtime_id,
+            "--self-contained",
             os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "Startup", "Startup.csproj"),
-            "-p:DisableTransitiveFrameworkReferenceDownloads=true"])
+            "-p:DisableTransitiveFrameworkReferenceDownloads=true"]).run()
 
         # build SizeOnDisk
         RunCommand([
-            "dotnet", "publish", 
+            dotnet_path, "publish", 
             "-c", "Release", 
-            "-o", os.path.join(performance_setup_data.work_item_directory, "SOD"),
-            "-f", "net7.0",
+            "-o", os.path.join(performance_setup_data.payload_directory, "SOD"),
+            "-f", framework,
             "-r", runtime_id,
+            "--self-contained",
             os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "SizeOnDisk", "SizeOnDisk.csproj"),
-            "-p:DisableTransitiveFrameworkReferenceDownloads=true"])
+            "-p:DisableTransitiveFrameworkReferenceDownloads=true"]).run()
         
-        # zip work item directory
-        if args.run_kind == "android_scenarios" or args.run_kind == "ios_scenarios":
-            shutil.make_archive(performance_setup_data.work_item_directory, "zip", performance_setup_data.work_item_directory)
+        # build MemoryConsumption
+        RunCommand([
+            dotnet_path, "publish", 
+            "-c", "Release", 
+            "-o", os.path.join(performance_setup_data.payload_directory, "MemoryConsumption"),
+            "-f", framework,
+            "-r", runtime_id,
+            "--self-contained",
+            os.path.join(args.performance_repo_dir, "src", "tools", "ScenarioMeasurement", "MemoryConsumption", "MemoryConsumption.csproj"),
+            "-p:DisableTransitiveFrameworkReferenceDownloads=true"]).run()
+        
+        # download PDN
+        escaped_upload_token = str(os.environ.get("PerfCommandUploadTokenLinux")).replace("%25", "%")
+        pdn_url = f"https://pvscmdupload.blob.core.windows.net/assets/paint.net.5.0.3.portable.{args.architecture}.zip{escaped_upload_token}"
+        pdn_dest = os.path.join(performance_setup_data.payload_directory, "PDN")
+        os.makedirs(pdn_dest)
+        with urllib.request.urlopen(pdn_url) as response, open(os.path.join(pdn_dest, "PDN.zip"), "wb") as f:
+            data = response.read()
+            f.write(data)
 
+        environ_copy = os.environ.copy()
+
+        python = "py -3" if iswin() else "python3"
+        os.environ["CorrelationPayloadDirectory"] = performance_setup_data.payload_directory
+        os.environ["Architecture"] = args.architecture
+        os.environ["TargetsWindows"] = "true" if args.os_group == "windows" else "false"
+        os.environ["WorkItemDirectory"] = args.performance_repo_dir
+        os.environ["HelixTargetQueues"] = args.queue
+        os.environ["Python"] = python
+
+        RunCommand([*(python.split(" ")), "-m", "pip", "install", "--upgrade", "pip"]).run()
+        RunCommand([*(python.split(" ")), "-m", "pip", "install", "urllib3==1.26.15"]).run()
+        RunCommand([*(python.split(" ")), "-m", "pip", "install", "requests"]).run()
+
+        scenarios_path = os.path.join(args.performance_repo_dir, "src", "scenarios")
+        script_path = os.path.join(args.performance_repo_dir, "scripts")
+        os.environ["PYTHONPATH"] = f"{os.environ.get('PYTHONPATH', '')}{os.pathsep}{script_path}{os.pathsep}{scenarios_path}"
+        print(f"PYTHONPATH={os.environ['PYTHONPATH']}")
+
+        os.environ["DOTNET_ROOT"] = setup_arguments.install_dir
+        os.environ["PATH"] = f"{setup_arguments.install_dir}{os.pathsep}{os.environ['PATH']}"
+        os.environ["DOTNET_CLI_TELEMETRY_OPTOUT"] = "1"
+        os.environ["DOTNET_MULTILEVEL_LOOKUP"] = "0"
+        os.environ["UseSharedCompilation"] = "false"
+
+        print("Current dotnet directory:", setup_arguments.install_dir)
+        print("If more than one version exist in this directory, usually the latest runtime and sdk will be used.")
+
+        RunCommand([
+            "dotnet", "msbuild", args.project_file, 
+            "/restore", 
+            "/t:PreparePayloadWorkItems",
+            f"/p:RuntimeFlavor={args.runtime_flavor or ''}"
+            f"/bl:{os.path.join(args.performance_repo_dir, 'artifacts', 'log', performance_setup_data.build_config, 'PrepareWorkItemPayloads.binlog')}"],
+            verbose=True).run()
+        
+        if args.os_group == "windows" and args.architecture == "arm64":
+            RunCommand(["taskkill", "/im", "dotnet.exe", "/f"]).run()
+            RunCommand(["del", os.path.join(setup_arguments.install_dir, "*"), "/F", "/S", "/Q"]).run()
+            RunCommand(["xcopy", os.path.join(args.performance_repo_dir, "tools", "dotnet", "arm64", "*"), "/E", "/I", "/Y"]).run()
+
+        # restore env vars
+        os.environ.update(environ_copy)
+
+        performance_setup_data.work_item_directory = args.performance_repo_dir
+
+        # TODO: Support WASM from runtime repository
+        
     if args.os_group == "windows":
         cli_arguments = [
             "--dotnet-versions", "%DOTNET_VERSION%", 
@@ -377,7 +492,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         wait_for_work_item_completion=True,
         partition_count=args.partition_count,
         cli_arguments=cli_arguments,
-        runtime_flavor=''
+        runtime_flavor=args.runtime_flavor or ""
     )
 
     perf_send_to_helix(perf_send_to_helix_args)
@@ -430,6 +545,7 @@ def main(argv: list[str]):
             "--affinity": "affinity",
             "--os-group": "os_group",
             "--os-sub-group": "os_sub_group",
+            "--runtime-flavor": "runtime_flavor"
         }
 
         if key in simple_arg_map:

@@ -51,6 +51,7 @@ class PerformanceSetupArgs:
     only_sanity_check: bool = False
     extra_bdn_args: list[str] | None = None
     affinity: str | None = None
+    python: str = "python3"
 
 @dataclass
 class PerformanceSetupData:
@@ -336,7 +337,7 @@ def run(args: PerformanceSetupArgs):
         payload_directory=payload_directory,
         performance_directory=performance_directory,
         work_item_directory=work_item_directory,
-        python="py -3",
+        python=args.python,
         bdn_arguments=bdn_arguments,
         extra_bdn_arguments=extra_bdn_arguments,
         setup_arguments=setup_arguments,

@@ -916,21 +916,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''
     Adds new arguments to the specified ArgumentParser object.
     '''
-
     parser = __add_arguments(parser)
-
-    # .NET Compilation modes.
-    parser.add_argument(
-        '--dotnet-compilation-mode',
-        dest='dotnet_compilation_mode',
-        required=False,
-        action=CompilationAction,
-        choices=CompilationAction.modes(),
-        default=CompilationAction.noenv(),
-        type=CompilationAction.validate,
-        help='{}'.format(CompilationAction.help_text())
-    )
-
     return parser
 
 

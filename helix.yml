@@ -1,6 +1,5 @@
 jobs:
   run_performance_job:
-    readyStateText: Helix
     isConsoleApp: true
     waitForExit: true
     framework: net7.0
@@ -24,6 +23,7 @@ jobs:
       partitionCount: 5
       projectFile: 'performance/eng/performance/helix.proj'
       isScenario: false
+      isLocalBuild: true
     sources:
       coreRoot:
         localFolder: '{{ coreRootDir }}'
@@ -31,7 +31,7 @@ jobs:
         localFolder: '{{ performanceRepoDir }}'
     dockerfile: performance/eng/performance/helix_sender.Dockerfile
     dockerImageName: helix_sender
-    dockerCommand: python ./performance/scripts/run_performance_job.py --queue {{ queue }} --framework {{ framework }} --run-kind {{ kind }} --core-root-dir /performance/coreRoot --performance-repo-dir /performance/performance --architecture {{ architecture }} --os-group {{ osGroup }} --os-sub-group {{ osSubGroup }} {% if internal %}--internal{% endif %} --run-categories "{{ runCategories }}" {% if bdnArgs != blank and bdnArgs != empty %} --extra-bdn-args "{{ bdnArgs }}" {% endif %} --partition-count {{ partitionCount }} --project-file {{ projectFile }} {% if isScenario %} --is-scenario {% endif %}
+    dockerCommand: python ./performance/scripts/run_performance_job.py --queue {{ queue }} --framework {{ framework }} --run-kind {{ kind }} --core-root-dir /performance/coreRoot --performance-repo-dir /performance/performance --architecture {{ architecture }} --os-group {{ osGroup }} --os-sub-group {{ osSubGroup }} {% if internal %}--internal{% endif %} --run-categories "{{ runCategories }}" {% if bdnArgs != blank and bdnArgs != empty %} --extra-bdn-args "{{ bdnArgs }}" {% endif %} --partition-count {{ partitionCount }} --project-file {{ projectFile }} {% if isScenario %} --is-scenario {% endif %} {% if isLocalBuild %} --local-build {% endif %}
     dockerContextDirectory: .
     arguments: '--env HelixAccessToken --env SYSTEM_ACCESSTOKEN --env PerfCommandUploadToken --env PerfCommandUploadTokenLinux'
     environmentVariables:

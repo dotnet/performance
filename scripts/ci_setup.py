@@ -96,6 +96,14 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Product commit time. Format: %Y-%m-%d %H:%M:%S %z'
     )
     parser.add_argument(
+        '--local-build',
+        dest="local_build",
+        required=False,
+        action='store_true',
+        default=False,
+        help='Whether the test is being run against a local build'
+    )
+    parser.add_argument(
         '--repository',
         dest='repository',
         required=False,
@@ -263,6 +271,7 @@ class CiSetupArgs:
     perf_hash: str = 'testSha'
     cli: str | None = None
     commit_time: str | None = None
+    local_build: bool = False
     branch: str | None = None
     output_file: str = os.path.join(get_tools_directory(), 'machine-setup')
     not_in_lab: bool = False
@@ -355,18 +364,18 @@ def main(args: CiSetupArgs):
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
         dotnet_version = dotnet.get_dotnet_version(target_framework_moniker, args.cli) if args.dotnet_versions == [] else args.dotnet_versions[0]
         commit_sha = dotnet.get_dotnet_sdk(target_framework_moniker, args.cli) if args.commit_sha is None else args.commit_sha
-        # TODO: Fix this
-        source_timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 
-        # if(args.commit_time is not None):
-        #     try:
-        #         parsed_timestamp = datetime.datetime.strptime(args.commit_time, '%Y-%m-%d %H:%M:%S %z').astimezone(datetime.timezone.utc)
-        #         source_timestamp = parsed_timestamp.strftime('%Y-%m-%dT%H:%M:%SZ')
-        #     except ValueError:
-        #         getLogger().warning('Invalid commit_time format. Please use YYYY-MM-DD HH:MM:SS +/-HHMM. Attempting to get commit time from api.github.com.')
-        #         source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
-        # else:
-        #     source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
+        if args.local_build:
+            source_timestamp = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+        elif(args.commit_time is not None):
+            try:
+                parsed_timestamp = datetime.datetime.strptime(args.commit_time, '%Y-%m-%d %H:%M:%S %z').astimezone(datetime.timezone.utc)
+                source_timestamp = parsed_timestamp.strftime('%Y-%m-%dT%H:%M:%SZ')
+            except ValueError:
+                getLogger().warning('Invalid commit_time format. Please use YYYY-MM-DD HH:MM:SS +/-HHMM. Attempting to get commit time from api.github.com.')
+                source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
+        else:
+            source_timestamp = dotnet.get_commit_date(target_framework_moniker, commit_sha, repo_url)
 
         branch = ChannelMap.get_branch(args.channel) if not args.branch else args.branch
 
