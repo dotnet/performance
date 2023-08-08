@@ -148,60 +148,6 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 f"export PERFLAB_UPLOAD_TOKEN=\"{args.perflab_upload_token}\"",
                 *additional_helix_pre_commands
             ]
-
-        # if args.os_group == "windows":
-        #     helix_pre_commands = [
-        #         "set ORIGPYPATH=%PYTHONPATH%",
-        #         "py -3 -m venv %HELIX_WORKITEM_PAYLOAD%\\.venv",
-        #         "call %HELIX_WORKITEM_PAYLOAD%\\.venv\\Scripts\\activate.bat",
-        #         "set PYTHONPATH=",
-        #         "py -3 -m pip install -U pip",
-        #         "py -3 -m pip install --user urllib3==1.26.15 --force-reinstall",
-        #         "py -3 -m pip install --user azure.storage.blob==12.0.0 --force-reinstall",
-        #         "py -3 -m pip install --user azure.storage.queue==12.0.0 --force-reinstall",
-        #         f'set "PERFLAB_UPLOAD_TOKEN={args.perflab_upload_token}"'
-        #     ]
-        # elif args.os_group == "osx":
-        #     helix_pre_commands = [
-        #         "export ORIGPYPATH=$PYTHONPATH",
-        #         "export CRYPTOGRAPHY_ALLOW_OPENSSL_102=true",
-        #         "python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv",
-        #         "source $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate",
-        #         "export PYTHONPATH=",
-        #         "python3 -m pip install -U pip",
-        #         "pip3 install --user urllib3==1.26.15 --force-reinstall",
-        #         "pip3 install --user azure.storage.blob==12.7.1 --force-reinstall",
-        #         "pip3 install --user azure.storage.queue==12.1.5 --force-reinstall",
-        #         f'export PERFLAB_UPLOAD_TOKEN="{args.perflab_upload_token}"'
-        #     ]
-        # elif args.os_sub_group == "_musl":
-        #     helix_pre_commands = [
-        #         "export ORIGPYPATH=$PYTHONPATH",
-        #         "sudo apk add py3-virtualenv",
-        #         "python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv",
-        #         "source $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate",
-        #         "export PYTHONPATH=",
-        #         "python3 -m pip install -U pip",
-        #         "pip3 install --user urllib3==1.26.15 --force-reinstall",
-        #         "pip3 install --user azure.storage.blob==12.7.1 --force-reinstall",
-        #         "pip3 install --user azure.storage.queue==12.1.5 --force-reinstall",
-        #         f'export PERFLAB_UPLOAD_TOKEN="{args.perflab_upload_token}"'
-        #     ]
-        # else:
-        #     helix_pre_commands = [
-        #         "export ORIGPYPATH=$PYTHONPATH",
-        #         "export CRYPTOGRAPHY_ALLOW_OPENSSL_102=true",
-        #         "sudo apt-get -y install python3-venv",
-        #         "python3 -m venv $HELIX_WORKITEM_PAYLOAD/.venv",
-        #         "source $HELIX_WORKITEM_PAYLOAD/.venv/bin/activate",
-        #         "export PYTHONPATH=",
-        #         "python3 -m pip install -U pip",
-        #         "pip3 install --user urllib3==1.26.15 --force-reinstall",
-        #         "pip3 install --user azure.storage.blob==12.7.1 --force-reinstall",
-        #         "pip3 install --user azure.storage.queue==12.1.5 --force-reinstall",
-        #         f'export PERFLAB_UPLOAD_TOKEN="{args.perflab_upload_token}"'
-        #     ]
-        pass
     else:
         if args.os_group == "windows":
             helix_pre_commands = [

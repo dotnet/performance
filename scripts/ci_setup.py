@@ -19,7 +19,6 @@ from performance.logger import setup_loggers
 from channel_map import ChannelMap
 
 import dotnet
-import micro_benchmarks
 
 def init_tools(
         architecture: str,
@@ -50,7 +49,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
     # Download DotNet Cli
     dotnet.add_arguments(parser)
-    micro_benchmarks.add_arguments(parser)
 
     parser.add_argument(
         '--channel',
@@ -151,6 +149,21 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         action='store_true',
         default=False,
         help='Discover the hash of the performance repository'
+    )
+
+    def __valid_file_path(file_path: str) -> str:
+        '''Verifies that specified file path exists.'''
+        file_path = os.path.abspath(file_path)
+        if not os.path.isfile(file_path):
+            raise ArgumentTypeError('{} does not exist.'.format(file_path))
+        return file_path
+
+    parser.add_argument(
+        '--cli',
+        dest='cli',
+        required=False,
+        type=__valid_file_path,
+        help='Full path to dotnet.exe',
     )
 
     parser.add_argument(
