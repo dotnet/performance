@@ -237,7 +237,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             copy_directory_contents(dotnet_wasm_path, dest_dir_wasm)
 
             # Add wasm-tools to dotnet instance:
-            RunCommand([parsed_args.dotnet_dir_path, "workload", "install", "wasmsdk"], verbose=True).run()
+            RunCommand([parsed_args.dotnet_dir_path, "workload", "install", "wasm-tools"], verbose=True).run()
         else:
             getLogger().info(f"wasm_bundle already exists in {dest_dir_wasm}. Skipping generation.")
 
