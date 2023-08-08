@@ -100,7 +100,6 @@ def copy_directory_contents(src_dir: str, dest_dir: str):
         
 # Builds libs and corerun by default
 def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str = "clr+libs", configuration: str = "Release", os_override = "", arch_override = "", additional_args: list = []):    
-    # Run the command
     if is_windows(parsed_args):
         build_libs_and_corerun_command = [
                 "powershell",
@@ -154,7 +153,6 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             core_root_path = os.path.join(repo_path, "artifacts", "tests", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", "Tests", "Core_Root")
             shutil.rmtree(dest_dir, ignore_errors=True)
             copy_directory_contents(core_root_path, dest_dir)
-            # shutil.rmtree(os.path.join(repo_path, "artifacts"), ignore_errors=True)
         else:
             getLogger().info(f"CoreRun already exists in {dest_dir}. Skipping generation.")
 
@@ -196,20 +194,18 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             copy_directory_contents(dotnet_mono_path, dest_dir_mono_interpreter)
             shutil.rmtree(dest_dir_mono_jit, ignore_errors=True)
             copy_directory_contents(dotnet_mono_path, dest_dir_mono_jit)
-            # shutil.rmtree(os.path.join(repo_path, "artifacts"), ignore_errors=True)
         else:
             getLogger().info(f"dotnet_mono already exists in {dest_dir_mono_interpreter} and {dest_dir_mono_jit}. Skipping generation.")
 
     if check_for_runtype_specified(parsed_args, [RunType.MonoAOTLLVM]):
         raise NotImplementedError("MonoAOTLLVM is not yet implemented.") # TODO: Finish MonoAOTLLVM Build stuff
         build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['/p:CrossBuild=false' '/p:MonoLLVMUseCxx11Abi=false'])
-        # TODO: Finish MonoAOTLLVM Build stuff
         # Clean up the build results
         shutil.rmtree(os.path.join(repo_path, "artifacts"), ignore_errors=True) # TODO: Can we trust the build system to update these when necessary or do we need to clean them up ourselves?
 
     if check_for_runtype_specified(parsed_args, [RunType.WasmWasm]):
-        ## TODO: Figure out prereq check flow
-        # Must have jsvu installed
+        # TODO: Figure out prereq check flow
+        # Must have jsvu installed also
         dest_dir_wasm = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmWasm, commit), "wasm_bundle")
         if force_regenerate or not os.path.exists(dest_dir_wasm):
             provision_wasm = [
@@ -315,7 +311,6 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
             bdn_args_unescaped += [ corerun_path ]
 
     elif specific_run_type == RunType.WasmWasm:
-        # TODO: Fail or print somewhere that we only support one commit for WasmWasm.
         benchmark_ci_args += [ '--wasm' ]
         bdn_args_unescaped += [
                                 '--anyCategories', 'Libraries', 'Runtime',
@@ -323,7 +318,6 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                                 '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmWasm, all_commits[0]), "wasm_bundle", "wasm-data"),
                                 '--wasmEngine', parsed_args.wasm_engine_path,
                                 '--wasmArgs', '\"--experimental-wasm-eh --expose_wasm --module\"',
-                                # '--cli', '',
                                 '--logBuildOutput',
                                 '--generateBinLog'
                             ]
@@ -531,7 +525,7 @@ def __main(args: list):
         
     finally:
         kill_dotnet_processes(parsed_args)
-    # TODO: Compare the results of the benchmarks || This is doable with just BDN as a start for now
+    # TODO: Compare the results of the benchmarks with results comparer (Currently will need to be done manually)
 
 if __name__ == "__main__":
     __main(sys.argv[1:])
