@@ -216,7 +216,7 @@ def run(args: PerformanceSetupArgs):
     setup_arguments = CiSetupArgs(
         channel=cleaned_branch_name,
         queue=args.queue,
-        build_configs=args.configurations,
+        build_configs=[f"{k}={v}" for k, v in args.configurations.items()],
         architecture=args.architecture,
         get_perf_hash=True
     )
