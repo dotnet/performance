@@ -45,7 +45,7 @@ from performance.logger import setup_loggers
 # Assumptions: We are only testing this Performance repo, should allow single run or multiple runs
 # For dotnet_version based runs, use the benchmarks_monthly .py script instead
 # Verify the input commands
-# What are supported default cases: MonoJIT, MonoInterpreter, Corerun, WasmWasm etc. (WIP: MONOAOTLLVM, WASMAOT, WASMINTERPRETER)
+# What are supported default cases: MonoJIT, MonoInterpreter, Corerun, WasmWasm etc. (WIP: MONOAOTLLVM)
 
 start_time = datetime.now()
 local_shared_string = "local"
@@ -56,6 +56,7 @@ class RunType(Enum):
     MonoInterpreter = 3
     MonoJIT = 4
     WasmWasm = 5
+    WasmAOT = 6
 
 def is_windows(parsed_args: Namespace):
     return parsed_args.os == "windows"
@@ -203,11 +204,12 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         # Clean up the build results
         shutil.rmtree(os.path.join(repo_path, "artifacts"), ignore_errors=True) # TODO: Can we trust the build system to update these when necessary or do we need to clean them up ourselves?
 
-    if check_for_runtype_specified(parsed_args, [RunType.WasmWasm]):
+    if check_for_runtype_specified(parsed_args, [RunType.WasmWasm, RunType.WasmAOT]):
         # TODO: Figure out prereq check flow
         # Must have jsvu installed also
-        dest_dir_wasm = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmWasm, commit), "wasm_bundle")
-        if force_regenerate or not os.path.exists(dest_dir_wasm):
+        dest_dir_wasm_wasm = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmWasm, commit), "wasm_bundle")
+        dest_dir_wasm_aot = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle")
+        if force_regenerate or not os.path.exists(dest_dir_wasm_wasm) or not os.path.exists(dest_dir_wasm_aot):
             provision_wasm = [
                 "make",
                 "-C",
@@ -221,7 +223,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             src_dir = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "dotnet-latest")
             dest_dir = os.path.join(repo_path, "artifacts", "bin", "wasm", "dotnet")
             copy_directory_contents(src_dir, dest_dir)
-            src_dir = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "build-nugets")
+            src_dir = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "built-nugets")
             dest_dir = os.path.join(repo_path, "artifacts", "bin", "wasm")
             copy_directory_contents(src_dir, dest_dir)
             src_file = os.path.join(repo_path, "src", "mono", "wasm", "test-main.js")
@@ -233,13 +235,15 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
 
             # Store the dotnet_mono in the artifact storage path
             dotnet_wasm_path = os.path.join(repo_path, "artifacts", "bin", "wasm")
-            shutil.rmtree(dest_dir_wasm, ignore_errors=True)
-            copy_directory_contents(dotnet_wasm_path, dest_dir_wasm)
+            shutil.rmtree(dest_dir_wasm_wasm, ignore_errors=True)
+            copy_directory_contents(dotnet_wasm_path, dest_dir_wasm_wasm)
+            shutil.rmtree(dest_dir_wasm_aot, ignore_errors=True)
+            copy_directory_contents(dotnet_wasm_path, dest_dir_wasm_aot)
 
             # Add wasm-tools to dotnet instance:
             RunCommand([parsed_args.dotnet_dir_path, "workload", "install", "wasm-tools"], verbose=True).run()
         else:
-            getLogger().info(f"wasm_bundle already exists in {dest_dir_wasm}. Skipping generation.")
+            getLogger().info(f"wasm_bundle already exists in {dest_dir_wasm_wasm} and {dest_dir_wasm_aot}. Skipping generation.")
 
 
     getLogger().info(f"Finished generating dependencies for {' '.join(map(str, parsed_args.run_type_names))} run types in {repo_path} and stored in {parsed_args.artifact_storage_path}.")
@@ -318,6 +322,22 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                                 '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmWasm, all_commits[0]), "wasm_bundle", "wasm-data"),
                                 '--wasmEngine', parsed_args.wasm_engine_path,
                                 '--wasmArgs', '\"--experimental-wasm-eh --expose_wasm --module\"',
+                                '--logBuildOutput',
+                                '--generateBinLog'
+                            ]
+        
+        # for commit in all_commits: # TODO see if there is a way to run multiple Wasm's at once.
+        #     bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commit), "Core_Root", f'corerun{".exe" if is_windows(parsed_args) else ""}') ]
+
+    elif specific_run_type == RunType.WasmAOT:
+        benchmark_ci_args += [ '--wasm' ]
+        bdn_args_unescaped += [
+                                '--anyCategories', 'Libraries', 'Runtime',
+                                '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
+                                '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, all_commits[0]), "wasm_bundle", "wasm-data"),
+                                '--wasmEngine', parsed_args.wasm_engine_path,
+                                '--wasmArgs', '\"--experimental-wasm-eh --expose_wasm --module\"',
+                                '--aotcompilermode', 'wasm'
                                 '--logBuildOutput',
                                 '--generateBinLog'
                             ]
