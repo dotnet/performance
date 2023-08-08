@@ -239,6 +239,9 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             dotnet_wasm_path = os.path.join(repo_path, "artifacts", "bin", "wasm")
             shutil.rmtree(dest_dir_wasm, ignore_errors=True)
             copy_directory_contents(dotnet_wasm_path, dest_dir_wasm)
+
+            # Add wasm-tools to dotnet instance:
+            RunCommand([parsed_args.dotnet_dir_path, "workload", "install", "wasmsdk"], verbose=True).run()
         else:
             getLogger().info(f"wasm_bundle already exists in {dest_dir_wasm}. Skipping generation.")
 
@@ -252,7 +255,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
     benchmark_ci_args += ['--architecture', parsed_args.architecture]
     benchmark_ci_args += ['--frameworks', parsed_args.framework]
     benchmark_ci_args += ['--filter', parsed_args.filter]
-    benchmark_ci_args += ['--dotnet-path', parsed_args.dotnet_path]
+    benchmark_ci_args += ['--dotnet-path', parsed_args.dotnet_dir_path]
     benchmark_ci_args += ['--csproj', parsed_args.csproj]
     benchmark_ci_args += ['--incremental', "no"]
     benchmark_ci_args += ['--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, f"BenchmarkDotNet.Artifacts.{specific_run_type.name}.{start_time.strftime('%y%m%d_%H%M%S')}")]
@@ -376,9 +379,9 @@ def run_benchmarks(parsed_args: Namespace, commits: list) -> None:
         getLogger().info(f"Finished running benchmark for {run_type} at {commits}.")
 
 def install_dotnet(parsed_args: Namespace) -> None:
-    if not os.path.exists(parsed_args.dotnet_path): #TODO Do we want to just always install dotnet?
-        dotnet.install(parsed_args.architecture, ["main"], parsed_args.dotnet_versions, parsed_args.verbose, parsed_args.dotnet_path)
-    dotnet.setup_dotnet(parsed_args.dotnet_path)
+    if not os.path.exists(parsed_args.dotnet_dir_path): #TODO Do we want to just always install dotnet?
+        dotnet.install(parsed_args.architecture, ["main"], parsed_args.dotnet_versions, parsed_args.verbose, parsed_args.dotnet_dir_path)
+    dotnet.setup_dotnet(parsed_args.dotnet_dir_path)
 
 # Check if the specified references exist in the given repository URL.
 # If a reference does not exist, raise an exception.
@@ -456,7 +459,7 @@ def __main(args: list):
     parser = ArgumentParser(description='Run local benchmarks for the Performance repo.', conflict_handler='resolve')
     add_arguments(parser)
     parsed_args = parser.parse_args(args)
-    parsed_args.dotnet_path = os.path.join(parsed_args.artifact_storage_path, "dotnet")
+    parsed_args.dotnet_dir_path = os.path.join(parsed_args.artifact_storage_path, "dotnet")
     
     setup_loggers(verbose=parsed_args.verbose)
 
