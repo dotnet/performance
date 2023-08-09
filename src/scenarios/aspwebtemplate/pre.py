@@ -7,7 +7,7 @@ import os.path
 from performance.logger import setup_loggers
 from shared import const
 from shared.precommands import PreCommands
-from aspwebtemplate.test import EXENAME
+from test import EXENAME
 
 setup_loggers(True)
 precommands = PreCommands()

@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
 
-  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
+  <PropertyGroup Condition="'$(TargetsWindows)' == 'true' AND '$(UseCoreRun)' == 'true'">
     <PerformanceDirectory>%HELIX_WORKITEM_ROOT%\performance</PerformanceDirectory>
     <HelixPreCommands>$(HelixPreCommands) &amp;&amp; robocopy /np /nfl /e %HELIX_CORRELATION_PAYLOAD%\performance $(PerformanceDirectory) /XD %HELIX_CORRELATION_PAYLOAD%\performance\.git</HelixPreCommands>
     <WorkItemCommand>$(PerformanceDirectory)\scripts\benchmarks_ci.py --csproj $(PerformanceDirectory)\$(TargetCsproj)</WorkItemCommand>
@@ -12,7 +12,7 @@
     <BaselineArtifactsDirectory>%HELIX_WORKITEM_ROOT%\artifacts\BenchmarkDotNet.Artifacts_Baseline</BaselineArtifactsDirectory>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
+  <PropertyGroup Condition="'$(TargetsWindows)' != 'true' AND '$(UseCoreRun)' == 'true'">
     <PerformanceDirectory>$HELIX_WORKITEM_ROOT/performance</PerformanceDirectory>
     <HelixPreCommands>$(HelixPreCommands);cp -R $(BaseDirectory)/performance $(PerformanceDirectory)</HelixPreCommands>
     <WorkItemCommand>$(PerformanceDirectory)/scripts/benchmarks_ci.py --csproj $(PerformanceDirectory)/$(TargetCsproj)</WorkItemCommand>
@@ -22,6 +22,14 @@
     <HelixPreCommands>$(HelixPreCommands);cp -R $HELIX_CORRELATION_PAYLOAD/performance $(PerformanceDirectory);chmod +x $(PerformanceDirectory)/tools/machine-setup.sh;. $(PerformanceDirectory)/tools/machine-setup.sh</HelixPreCommands>
     <ArtifactsDirectory>$HELIX_WORKITEM_ROOT/artifacts/BenchmarkDotNet.Artifacts</ArtifactsDirectory>
     <BaselineArtifactsDirectory>$HELIX_WORKITEM_ROOT/artifacts/BenchmarkDotNet.Artifacts_Baseline</BaselineArtifactsDirectory>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetsWindows)' == 'true' AND '$(UseCoreRun)' != 'true'">
+    <WorkItemCommand>%HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --csproj %HELIX_CORRELATION_PAYLOAD%\$(TargetCsproj)</WorkItemCommand>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetsWindows)' != 'true' AND '$(UseCoreRun)' != 'true'">
+    <WorkItemCommand>scripts/benchmarks_ci.py --csproj $(TargetCsproj)</WorkItemCommand>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(WasmDotnet)' == 'true'">
@@ -60,13 +68,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)/Core_Root">
+    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)/Core_Root" Condition="'$(UseCoreRun)' == 'true'">
       <PayloadDirectory>%(Identity)</PayloadDirectory>
       <Destination>Core_Root</Destination>
     </HelixCorrelationPayload>
-    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)/performance">
+    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)/performance" Condition="'$(UseCoreRun)' == 'true'">
       <PayloadDirectory>%(Identity)</PayloadDirectory>
       <Destination>performance</Destination>
+    </HelixCorrelationPayload>
+    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)" Condition="'$(UseCoreRun)' != 'true'">
+      <PayloadDirectory>%(Identity)</PayloadDirectory>
     </HelixCorrelationPayload>
   </ItemGroup>
 
