@@ -240,8 +240,8 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             shutil.rmtree(dest_dir_wasm_aot, ignore_errors=True)
             copy_directory_contents(dotnet_wasm_path, dest_dir_wasm_aot)
 
-            # Add wasm-tools to dotnet instance:
-            RunCommand([parsed_args.dotnet_dir_path, "workload", "install", "wasm-tools"], verbose=True).run()
+            # Add wasm-tools to dotnet instance: # TODO: Check if dotnet.exe is windows
+            RunCommand([os.path.join(parsed_args.dotnet_dir_path, f'dotnet{".exe" if is_windows(parsed_args) else ""}'), "workload", "install", "wasm-tools"], verbose=True).run()
         else:
             getLogger().info(f"wasm_bundle already exists in {dest_dir_wasm_wasm} and {dest_dir_wasm_aot}. Skipping generation.")
 
@@ -337,7 +337,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                                 '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, all_commits[0]), "wasm_bundle", "wasm-data"),
                                 '--wasmEngine', parsed_args.wasm_engine_path,
                                 '--wasmArgs', '\"--experimental-wasm-eh --expose_wasm --module\"',
-                                '--aotcompilermode', 'wasm'
+                                '--aotcompilermode', 'wasm',
                                 '--logBuildOutput',
                                 '--generateBinLog'
                             ]
