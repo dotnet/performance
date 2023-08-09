@@ -26,6 +26,7 @@ import json
 from logging import getLogger
 
 import os
+import shutil
 import sys
 from typing import Any, Optional
 
@@ -34,7 +35,6 @@ from performance.logger import setup_loggers
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from channel_map import ChannelMap
 from subprocess import CalledProcessError
-from shutil import copy
 from glob import glob
 
 import dotnet
@@ -320,9 +320,22 @@ def __main(argv: list[str]):
 
             artifacts_dir = get_artifacts_directory() if not args.bdn_artifacts else args.bdn_artifacts
 
-            import upload
             combined_file_prefix = "" if args.partition is None else f"Partition{args.partition}-"
-            upload.copy_perflab_jsons_to_helix_root(artifacts_dir, combined_file_prefix)
+            globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
+            all_reports: list[Any] = []
+            for file in glob(globpath, recursive=True):
+                with open(file, 'r') as report_file:
+                    all_reports.append(json.load(report_file))
+
+            with open(os.path.join(artifacts_dir, f"{combined_file_prefix}combined-perf-lab-report.json"), "w") as all_reports_file:
+                json.dump(all_reports, all_reports_file)
+
+            helix_upload_root = helixuploadroot()
+            if helix_upload_root is not None:
+                for file in glob(globpath, recursive=True):
+                    shutil.copy(file, os.path.join(helix_upload_root, file.split(os.sep)[-1]))
+            else:
+                getLogger().info("Skipping upload of artifacts to Helix as HELIX_WORKITEM_UPLOAD_ROOT environment variable is not set.")
 
         except CalledProcessError:
             getLogger().info("Run failure registered")

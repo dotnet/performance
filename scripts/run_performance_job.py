@@ -81,6 +81,7 @@ class RunPerformanceJobArgs:
     run_env_vars: dict[str, str] = field(default_factory=dict[str, str])
     is_scenario: bool = False
     runtime_flavor: str | None = None
+    local_build: bool = False
 
 def run_performance_job(args: RunPerformanceJobArgs):
     if args.project_file is None:
@@ -264,6 +265,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     performance_setup_data.set_environment_variables(save_to_pipeline=False)
 
     setup_arguments = dataclasses.replace(performance_setup_data.setup_arguments, **args.additional_ci_setup_parameters)
+    setup_arguments.local_build = args.local_build
 
     if args.affinity != "0":
         setup_arguments.affinity = args.affinity
@@ -460,7 +462,8 @@ def main(argv: list[str]):
         key = argv[i]
         bool_args = {
             "--internal": "internal",
-            "--is-scenario": "is_scenario"
+            "--is-scenario": "is_scenario",
+            "--local-build": "local_build",
         }
 
         if key in bool_args:
