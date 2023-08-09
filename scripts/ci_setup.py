@@ -398,6 +398,7 @@ def main(args: CiSetupArgs):
             os.mkdir(dir_path)
 
         perflab_upload_token = os.environ.get('PerfCommandUploadToken' if args.target_windows else 'PerfCommandUploadTokenLinux')
+        run_name = os.environ.get("PERFLAB_RUNNAME")
 
         with open(output_file, 'w') as out_file:
             out_file.write(which)
@@ -423,8 +424,8 @@ def main(args: CiSetupArgs):
             out_file.write(variable_format % ('MAUI_VERSION', args.maui_version))
             if perflab_upload_token is not None:
                 out_file.write(variable_format % ('PERFLAB_UPLOAD_TOKEN', perflab_upload_token))
-            if os.environ["PERFLAB_RUNNAME"]:
-                out_file.write(variable_format % ('PERFLAB_RUNNAME', os.environ["PERFLAB_RUNNAME"]))
+            if run_name is not None:
+                out_file.write(variable_format % ('PERFLAB_RUNNAME', run_name))
             out_file.write(path_variable % dotnet_path)
             if args.affinity:
                 out_file.write(variable_format % ('PERFLAB_DATA_AFFINITY', args.affinity))
