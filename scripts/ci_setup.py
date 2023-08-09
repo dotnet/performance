@@ -397,7 +397,7 @@ def main(args: CiSetupArgs):
         if not os.path.isdir(dir_path):
             os.mkdir(dir_path)
 
-        perflab_upload_token = os.environ['PerfCommandUploadToken' if args.target_windows else 'PerfCommandUploadTokenLinux']
+        perflab_upload_token = os.environ.get('PerfCommandUploadToken' if args.target_windows else 'PerfCommandUploadTokenLinux')
 
         with open(output_file, 'w') as out_file:
             out_file.write(which)
@@ -421,7 +421,8 @@ def main(args: CiSetupArgs):
             out_file.write(variable_format % ('UseSharedCompilation', 'false'))
             out_file.write(variable_format % ('DOTNET_ROOT', dotnet_path))
             out_file.write(variable_format % ('MAUI_VERSION', args.maui_version))
-            out_file.write(variable_format % ('PERFLAB_UPLOAD_TOKEN', perflab_upload_token))
+            if perflab_upload_token is not None:
+                out_file.write(variable_format % ('PERFLAB_UPLOAD_TOKEN', perflab_upload_token))
             if os.environ["PERFLAB_RUNNAME"]:
                 out_file.write(variable_format % ('PERFLAB_RUNNAME', os.environ["PERFLAB_RUNNAME"]))
             out_file.write(path_variable % dotnet_path)
