@@ -324,10 +324,10 @@ def __main(argv: list[str]):
             globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
             all_reports: list[Any] = []
             for file in glob(globpath, recursive=True):
-                with open(file, 'r') as report_file:
+                with open(file, 'r', encoding="utf8") as report_file:
                     all_reports.append(json.load(report_file))
 
-            with open(os.path.join(artifacts_dir, f"{combined_file_prefix}combined-perf-lab-report.json"), "w") as all_reports_file:
+            with open(os.path.join(artifacts_dir, f"{combined_file_prefix}combined-perf-lab-report.json"), "w", encoding="utf8") as all_reports_file:
                 json.dump(all_reports, all_reports_file)
 
             helix_upload_root = helixuploadroot()
