@@ -448,7 +448,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
     results_glob = os.path.join(performance_setup_data.payload_directory, "performance", "artifacts", "helix-results", '**', '*perf-lab-report.json')
     all_results: list[Any] = []
     for result_file in glob(results_glob, recursive=True):
-        with open(result_file, 'r') as report_file:
+        with open(result_file, 'r', encoding="utf8") as report_file:
             all_results.extend(json.load(report_file))
 
     output_counters_for_crank(all_results)

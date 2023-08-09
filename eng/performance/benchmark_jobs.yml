@@ -130,13 +130,8 @@ jobs:
           clean: true
         - task: UsePythonVersion@0
           inputs:
-            versionSpec: '3.10'
-          name: UsePythonVersionData # $(UsePythonVersionData.pythonLocation) will contain the location where python is installed
-          displayName: Install Python 3.10
-        - ${{ if ne(parameters.osName, 'windows')}}:
-          # Info: https://stackoverflow.com/a/43623903
-          - script: export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(UsePythonVersionData.pythonLocation)/lib
-            displayName: Add python lib folder to LD_LIBRARY_PATH
+            versionSpec: '3.11'
+          displayName: Install Python 3.11
         - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) $(AffinityParam) $(runEnvVarsParam)
           displayName: Run ci_setup.py
         - ${{ if eq(parameters.osName, 'windows') }}:
