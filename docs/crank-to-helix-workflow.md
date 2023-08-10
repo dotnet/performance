@@ -20,7 +20,7 @@
 
 ## Introduction
 
-We have support and documentation today explaining how to run the performance tests in this repository locally on your machine, however these steps may be quite difficult to follow, or you may not have the hardware that you wish to run the performance tests on. This document provides a way for internal Microsoft employees to schedule performance tests to be run on Helix machines using Crank. 
+We have support and documentation today explaining how to run the performance tests in this repository locally on your machine, however these steps may be quite difficult to follow, or you may not have the hardware that you wish to run the performance tests on. This document provides a way for internal Microsoft employees to schedule performance tests to be run on Helix machines using Crank.
 
 - [Helix](https://github.com/dotnet/arcade/blob/main/Documentation/Helix.md) is the work scheduler that we use in our CI pipelines to run performance tests. We have many Helix queues available to us which provide different hardware capabilities so that we are able to test a wide array of situations.
 
@@ -35,7 +35,7 @@ We have support and documentation today explaining how to run the performance te
 
 ## Prerequisites
 
-- The [dotnet/runtime](https://github.com/dotnet/runtime) and [dotnet/performance](https://github.com/dotnet/perforamnce) repositories must be cloned to your machine. 
+- The [dotnet/runtime](https://github.com/dotnet/runtime) and [dotnet/performance](https://github.com/dotnet/perforamnce) repositories must be cloned to your machine.
   - It is not required, but running crank will be simpler if the two repositories are cloned to the same parent directory such that doing `cd ../runtime` in the performance repository will navigate you to the runtime repository.
 - Crank must be installed to your machine.
   - Only the crank controller is required. We are hosting a crank agent accessible to Microsoft employees which has all the required environment variables set up to schedule Helix jobs and upload performance results.
@@ -55,6 +55,7 @@ The crank configuration only supports builds that have been generated to the Cor
 #### Building for Windows on Windows
 
 Run the following in the cloned runtime repository
+
 ```cmd
 .\build.cmd clr+libs -c Release && .\src\tests\build.cmd release generatelayoutonly
 ```
@@ -63,6 +64,7 @@ Run the following in the cloned runtime repository
 
 Docker can be used to build for Linux ([see documentation](https://github.com/dotnet/runtime/blob/main/docs/workflow/building/coreclr/linux-instructions.md#build-using-docker)).
 Ensure that you have Docker installed on your machine with WSL enabled. In the below script, RUNTIME_REPO_PATH should be a full path to the repo from the root.
+
 ```cmd
 docker run --rm `
   -v <RUNTIME_REPO_PATH>:/runtime `
@@ -73,13 +75,13 @@ docker run --rm `
 
 ### Using the Crank CLI
 
-After installing crank as mentioned in the prerequisites, you will be able to invoke crank using `crank` in the command line. 
+After installing crank as mentioned in the prerequisites, you will be able to invoke crank using `crank` in the command line.
 
 #### Example: Run microbenchmarks on Windows x64
 
 Below is an example of a crank command which will run any benchmarks with Linq in the name on a Windows x64 queue. This command must be run in the performance repository, and the runtime repository must be located next to it so that you could navigate to it with `cd ../runtime`.
 
-```
+```cmd
 crank --config .\helix.yml --scenario micro --profile win-x64 --variable bdnArgs="--filter *Linq*" --profile msft-internal --variable buildNumber="myalias-20230811.1"
 ```
 
@@ -115,11 +117,11 @@ Once the helix jobs have completed, crank will output a simplfied benchmark resu
 
 #### Azure Data Explorer
 
-If you made use of a non-public queue, the results will be uploaded our [Azure Data Explorer](https://dataexplorer.azure.com/clusters/dotnetperf.westus/databases/PerformanceData) database and be accessible almost immediately to query. If you don't have access to see the Azure Data Explorer database, please join the ".NET Perf Data Readers" Security Group. 
+If you made use of a non-public queue, the results will be uploaded our [Azure Data Explorer](https://dataexplorer.azure.com/clusters/dotnetperf.westus/databases/PerformanceData) database and be accessible almost immediately to query. If you don't have access to see the Azure Data Explorer database, please join the ".NET Perf Data Readers" Security Group.
 
 Using the `buildNumber` you set on the command line, you can search for that build number in the "Build Name" column in the Measurements table. Using the build number from earlier `myalias-20230811.1` as an example, you could query for your data with the following:
 
-```
+```kql
 Measurements
 | where BuildName == "myalias-20230811.1"
 | where TestCounterDefaultCounter // filter to only the default counter
