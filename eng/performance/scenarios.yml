@@ -114,7 +114,9 @@ jobs:
         steps:
         - checkout: self
           clean: true
-        - script: $(Python) -m pip install --user dataclasses
+        - script: |
+            $(Python) -m pip install --upgrade pip
+            $(Python) -m pip install --user dataclasses
         - ${{ if ne(length(parameters.channels), 0) }}:
           - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) --output-file $(CorrelationStaging)machine-setup$(ScriptExtension) --install-dir $(CorrelationStaging)dotnet $(runEnvVarsParam) $(AffinityParam)
             displayName: Run ci_setup.py
