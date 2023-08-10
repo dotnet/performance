@@ -263,7 +263,7 @@ def run(args: PerformanceSetupArgs):
             wasm_args += " --module"
 
         extra_bdn_arguments += [
-            "--wasmEngine", f"/home/helixbot/.jsvu/{args.javascript_engine}",
+            "--wasmEngine", f"/home/helixbot/.jsvu/bin/{args.javascript_engine}",
             "--wasmArgs", f"\"{wasm_args}\""
             "--cli", "$HELIX_CORRELATION_PAYLOAD/dotnet/dotnet",
             "--wasmDataDir", "$HELIX_CORRELATION_PAYLOAD/wasm-data"

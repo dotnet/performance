@@ -2,7 +2,6 @@ jobs:
   run_performance_job:
     isConsoleApp: true
     waitForExit: true
-    framework: net7.0
     variables:
       architecture: 'x64'
       queue: ''

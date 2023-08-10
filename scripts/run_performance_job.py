@@ -181,12 +181,12 @@ def run_performance_job(args: RunPerformanceJobArgs):
             if args.runtime_type == "wasm":
                 wasm_precommand = (
                     "sudo apt-get -y remove nodejs && "
-                    "curl -fsSL https://deb.nodesource.com/setup_14.x | sudo -E bash - && "
+                    "curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash - && "
                     "sudo apt-get -y install nodejs && "
                     "npm install --prefix $HELIX_WORKITEM_PAYLOAD jsvu -g && "
                     "$HELIX_WORKITEM_PAYLOAD/bin/jsvu --os=linux64 --engines=v8 && "
                     "find ~/.jsvu -ls && "
-                    "~/.jsvu/v8 -e \"console.log(`V8 version: ${this.version()}`)\"")
+                    "~/.jsvu/bin/v8 -e 'console.log(`V8 version: ${this.version()}`)'")
             else:
                 wasm_precommand = "echo"
 
