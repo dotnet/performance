@@ -249,9 +249,9 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     parser.add_argument(
         '--target-windows',
         dest='target_windows',
-        default=True,
         required=False,
-        type=lambda x: (str(x).lower() == 'true'),
+        action='store_true',
+        default=False,
         help='Will it run on a Windows Helix Queue?'
     )
 
