@@ -129,7 +129,7 @@ jobs:
         - checkout: self
           clean: true
         - ${{ if ne(parameters.osName, 'windows') }}:
-          - script: wget https://bootstrap.pypa.io/get-pip.py && $(Python) get-pip.py --user
+          - script: wget https://bootstrap.pypa.io/pip/3.6/get-pip.py && $(Python) get-pip.py --user
             displayName: Ensure pip is installed
         - script: $(Python) -m pip install --user dataclasses
           displayName: Install dataclasses library used in ci_setup.py
