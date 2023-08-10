@@ -9,7 +9,7 @@ import sys
 import datetime
 
 from subprocess import check_output
-from typing import Optional
+from typing import Optional, List
 
 from performance.common import get_machine_architecture, get_repo_root_path, set_environment_variable
 from performance.common import get_tools_directory
@@ -22,7 +22,7 @@ import dotnet
 
 def init_tools(
         architecture: str,
-        dotnet_versions: list[str],
+        dotnet_versions: List[str],
         channel: str,
         verbose: bool,
         install_dir: Optional[str]=None) -> None:
@@ -257,7 +257,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
     return parser
 
-def __process_arguments(args: list[str]):
+def __process_arguments(args: List[str]):
     parser = ArgumentParser(
         description='Tool to generate a machine setup script',
         allow_abbrev=False,
@@ -276,9 +276,9 @@ class CiSetupArgs:
     repository: str | None = None
     architecture: str = get_machine_architecture()
     dotnet_path: str | None = None
-    dotnet_versions: list[str] = field(default_factory=list[str])
+    dotnet_versions: List[str] = field(default_factory=List[str])
     install_dir: str | None = None
-    build_configs: list[str] = field(default_factory=list[str])
+    build_configs: List[str] = field(default_factory=List[str])
     pgo_status: str | None = None
     get_perf_hash: bool = False
     perf_hash: str = 'testSha'
@@ -293,7 +293,7 @@ class CiSetupArgs:
     locale: str = 'en-US'
     maui_version: str = ''
     affinity: str | None = None
-    run_env_vars: list[str] | None = None
+    run_env_vars: List[str] | None = None
     target_windows: bool = True
     physical_promotion: str | None = None
 
@@ -359,7 +359,7 @@ def main(args: CiSetupArgs):
     with push_dir(get_repo_root_path()):
         output = check_output(['git', 'rev-parse', 'HEAD'])
 
-    decoded_lines: list[str] = []
+    decoded_lines: List[str] = []
 
     for line in output.splitlines():
         decoded_lines = decoded_lines + [line.decode('utf-8')]
@@ -444,7 +444,7 @@ def main(args: CiSetupArgs):
     # The '_Framework' is needed for specifying frameworks in proj files and for building tools later in the pipeline
     set_environment_variable('PERFLAB_Framework', framework)
 
-def __main(argv: list[str]):
+def __main(argv: List[str]):
     validate_supported_runtime()
     args = __process_arguments(argv)
     main(CiSetupArgs(**vars(args)))

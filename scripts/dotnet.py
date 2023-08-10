@@ -39,7 +39,7 @@ def info(verbose: bool) -> None:
     cmdline = ['dotnet', '--info']
     RunCommand(cmdline, verbose=verbose).run()
 
-def exec(asm_path: str, success_exit_codes: list[int], verbose: bool, *args: str) -> int:
+def exec(asm_path: str, success_exit_codes: List[int], verbose: bool, *args: str) -> int:
     """
     Executes `dotnet exec` which can be used to execute assemblies
     """
@@ -88,7 +88,7 @@ class FrameworkAction(Action):
             return framework
 
     @staticmethod
-    def get_target_framework_monikers(frameworks: list[str]) -> list[str]:
+    def get_target_framework_monikers(frameworks: List[str]) -> List[str]:
         '''
         Translates framework names to target framework monikers (TFM)
         Required to run AOT benchmarks where the host process must be .NET
@@ -197,7 +197,7 @@ class CompilationAction(Action):
         return requested_mode
 
     @staticmethod
-    def modes() -> list[str]:
+    def modes() -> List[str]:
         '''Available .NET Performance modes.'''
         return [
             CompilationAction.DEFAULT,
@@ -324,10 +324,10 @@ class CSharpProject:
               configuration: str,
               verbose: bool,
               packages_path: str,
-              target_framework_monikers: Optional[list[str]] = None,
+              target_framework_monikers: Optional[List[str]] = None,
               output_to_bindir: bool = False,
               runtime_identifier: Optional[str] = None,
-              args: Optional[list[str]] = None) -> None:
+              args: Optional[List[str]] = None) -> None:
         '''Calls dotnet to build the specified project.'''
         if not target_framework_monikers:  # Build all supported frameworks.
             cmdline = [
@@ -430,7 +430,7 @@ class CSharpProject:
                 packages_path: str,
                 target_framework_moniker: Optional[str] = None,
                 runtime_identifier: Optional[str] = None,
-                msbuildprops: Optional[list[str]] = None,
+                msbuildprops: Optional[List[str]] = None,
                 *args: str
                 ) -> None:
         '''
@@ -461,7 +461,7 @@ class CSharpProject:
             self.working_directory
         )
 
-    def __get_output_build_arg(self, outdir: str) -> list[str]:
+    def __get_output_build_arg(self, outdir: str) -> List[str]:
         # dotnet build/publish does not support `--output` with sln files
         if path.splitext(self.csproj_file)[1] == '.sln':
             outdir = outdir if path.isabs(outdir) else path.abspath(outdir)
@@ -485,7 +485,7 @@ class CSharpProject:
     def run(self,
             configuration: str,
             target_framework_moniker: str,
-            success_exit_codes: list[int],
+            success_exit_codes: List[int],
             verbose: bool,
             *args: str) -> int:
         '''
@@ -759,8 +759,8 @@ def shutdown_server(verbose:bool) -> None:
 
 def install(
         architecture: str,
-        channels: list[str],
-        versions: list[str],
+        channels: List[str],
+        versions: List[str],
         verbose: bool,
         install_dir: Optional[str] = None,
         azure_feed_url: Optional[str] = None,
@@ -920,7 +920,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     return parser
 
 
-def __process_arguments(args: list[str]) -> Any:
+def __process_arguments(args: List[str]) -> Any:
     parser = ArgumentParser(
         description='DotNet Cli wrapper.',
         allow_abbrev=False
@@ -970,7 +970,7 @@ def __process_arguments(args: list[str]) -> Any:
     return parser.parse_args(args)
 
 
-def __main(argv: list[str]) -> None:
+def __main(argv: List[str]) -> None:
     validate_supported_runtime()
     args = __process_arguments(argv)
     setup_loggers(verbose=args.verbose)

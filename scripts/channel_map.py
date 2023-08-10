@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 class ChannelMap():
     channel_map = {
@@ -143,7 +143,7 @@ class ChannelMap():
         }
     }
     @staticmethod
-    def get_supported_channels() -> list[str]:
+    def get_supported_channels() -> List[str]:
         '''List of supported channels.'''
         return list(ChannelMap.channel_map.keys())
 
@@ -161,7 +161,7 @@ class ChannelMap():
             raise Exception('Channel %s is not supported. Supported channels %s' % (channel, ChannelMap.get_supported_channels()))
 
     @staticmethod
-    def get_target_framework_monikers(channels: list[str]) -> list[str]:
+    def get_target_framework_monikers(channels: List[str]) -> List[str]:
         '''
         Translates channel names to Target Framework Monikers (TFMs).
         '''

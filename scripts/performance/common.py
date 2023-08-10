@@ -225,8 +225,8 @@ class RunCommand:
 
     def __init__(
             self,
-            cmdline: list[str],
-            success_exit_codes: Optional[list[int]] = None,
+            cmdline: List[str],
+            success_exit_codes: Optional[List[int]] = None,
             verbose: bool = False,
             retry: int = 0):
         if cmdline is None:
@@ -244,12 +244,12 @@ class RunCommand:
             self.__success_exit_codes = success_exit_codes
 
     @property
-    def cmdline(self) -> list[str]:
+    def cmdline(self) -> List[str]:
         '''Command-line to use when starting the application.'''
         return self.__cmdline
 
     @property
-    def success_exit_codes(self) -> list[int]:
+    def success_exit_codes(self) -> List[int]:
         '''
         The successful exit codes that the associated process specifies when it
         terminated.
