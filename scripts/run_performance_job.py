@@ -415,6 +415,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
             "--cli-source-timestamp", "$PERFLAB_BUILDTIMESTAMP"
         ]
 
+    os.environ["DownloadFilesFromHelix"] = "true"
     perf_send_to_helix_args = PerfSendToHelixArgs(
         helix_source=f"{performance_setup_data.helix_source_prefix}/{args.build_repository_name}/{args.build_source_branch}",
         helix_type=f"test/performance/{performance_setup_data.kind}/{args.framework}/{performance_setup_data.architecture}/{args.helix_type_suffix}",
