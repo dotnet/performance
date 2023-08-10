@@ -272,30 +272,30 @@ def __process_arguments(args: List[str]):
 class CiSetupArgs:
     channel: str
     quiet: bool = False
-    commit_sha: str | None = None
-    repository: str | None = None
+    commit_sha: Optional[str] = None
+    repository: Optional[str] = None
     architecture: str = get_machine_architecture()
-    dotnet_path: str | None = None
+    dotnet_path: Optional[str] = None
     dotnet_versions: List[str] = field(default_factory=List[str])
-    install_dir: str | None = None
+    install_dir: Optional[str] = None
     build_configs: List[str] = field(default_factory=List[str])
-    pgo_status: str | None = None
+    pgo_status: Optional[str] = None
     get_perf_hash: bool = False
     perf_hash: str = 'testSha'
-    cli: str | None = None
-    commit_time: str | None = None
+    cli: Optional[str] = None
+    commit_time: Optional[str] = None
     local_build: bool = False
-    branch: str | None = None
+    branch: Optional[str] = None
     output_file: str = os.path.join(get_tools_directory(), 'machine-setup')
     not_in_lab: bool = False
     queue: str = 'testQueue'
     build_number: str = '1234.1'
     locale: str = 'en-US'
     maui_version: str = ''
-    affinity: str | None = None
-    run_env_vars: List[str] | None = None
+    affinity: Optional[str] = None
+    run_env_vars: Optional[str] = None
     target_windows: bool = True
-    physical_promotion: str | None = None
+    physical_promotion: Optional[str] = None
 
 def main(args: CiSetupArgs):
     verbose = not args.quiet
