@@ -9,7 +9,7 @@ jobs:
       runCategories: ''
       kind: ''
       runtimeRepoDir: '../runtime' # A guess that the performance repo is next to the runtime repo
-      osGroup: ''
+      osGroup: 'windows'
       osSubGroup: ''
       coreRootDir: '{{ runtimeRepoDir }}/artifacts/tests/coreclr/{{ osGroup }}.{{ architecture }}.Release/Tests/Core_Root' 
       performanceRepoDir: '.'
