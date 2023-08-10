@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Set
 
 class ChannelMap():
     channel_map = {
@@ -148,7 +148,7 @@ class ChannelMap():
         return list(ChannelMap.channel_map.keys())
 
     @staticmethod
-    def get_supported_frameworks() -> set[str]:
+    def get_supported_frameworks() -> Set[str]:
         '''List of supported frameworks'''
         frameworks = [ChannelMap.channel_map[channel]['tfm'] for channel in ChannelMap.channel_map]
         return set(frameworks)
