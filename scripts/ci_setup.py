@@ -276,9 +276,9 @@ class CiSetupArgs:
     repository: Optional[str] = None
     architecture: str = get_machine_architecture()
     dotnet_path: Optional[str] = None
-    dotnet_versions: List[str] = field(default_factory=List[str])
+    dotnet_versions: List[str] = field(default_factory=list)
     install_dir: Optional[str] = None
-    build_configs: List[str] = field(default_factory=List[str])
+    build_configs: List[str] = field(default_factory=list)
     pgo_status: Optional[str] = None
     get_perf_hash: bool = False
     perf_hash: str = 'testSha'
@@ -293,7 +293,7 @@ class CiSetupArgs:
     locale: str = 'en-US'
     maui_version: str = ''
     affinity: Optional[str] = None
-    run_env_vars: Optional[str] = None
+    run_env_vars: Optional[List[str]] = None
     target_windows: bool = True
     physical_promotion: Optional[str] = None
 
