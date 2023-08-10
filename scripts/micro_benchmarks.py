@@ -12,7 +12,7 @@ from logging import getLogger
 from os import path
 from subprocess import CalledProcessError
 from traceback import format_exc
-from typing import Any
+from typing import Any, List
 
 import csv
 import sys
@@ -28,7 +28,7 @@ from channel_map import ChannelMap
 import dotnet
 
 
-def get_supported_configurations() -> list[str]:
+def get_supported_configurations() -> List[str]:
     '''
     The configuration to use for building the project. The default for most
     projects is 'Release'
@@ -120,7 +120,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Full path to dotnet.exe',
     )
 
-    def __get_bdn_arguments(user_input: str) -> list[str]:
+    def __get_bdn_arguments(user_input: str) -> List[str]:
         file = StringIO(user_input)
         reader = csv.reader(file, delimiter=' ')
         for args in reader:
@@ -213,7 +213,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     return parser
 
 
-def __process_arguments(args: list[str]):
+def __process_arguments(args: List[str]):
     parser = ArgumentParser(
         description="Builds the benchmarks.",
         allow_abbrev=False)
@@ -230,8 +230,8 @@ def __process_arguments(args: list[str]):
     return parser.parse_args(args)
 
 
-def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> list[str]:
-    run_args: list[str] = []
+def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> List[str]:
+    run_args: List[str] = []
     if args.corerun:
         run_args += ['--coreRun'] + args.corerun
     if args.cli:
@@ -287,7 +287,7 @@ def get_bin_dir_to_use(csprojfile: dotnet.CSharpProjFile, bin_directory: str, ru
 def build(
         BENCHMARKS_CSPROJ: dotnet.CSharpProject,
         configuration: str,
-        target_framework_monikers: list[str],
+        target_framework_monikers: List[str],
         incremental: str,
         run_isolated: bool,
         for_wasm: bool,
@@ -309,7 +309,7 @@ def build(
     __log_script_header("Restoring .NET micro benchmarks")
     BENCHMARKS_CSPROJ.restore(packages_path=packages, verbose=verbose)
 
-    build_args: list[str] = []
+    build_args: List[str] = []
     if for_wasm:
         build_args += ['/p:BuildingForWasm=true']
 
@@ -376,7 +376,7 @@ def __log_script_header(message: str):
     getLogger().info('-' * len(message))
 
 
-def __main(argv: list[str]) -> int:
+def __main(argv: List[str]) -> int:
     try:
         validate_supported_runtime()
         args = __process_arguments(argv)

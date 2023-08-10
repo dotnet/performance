@@ -28,7 +28,7 @@ from logging import getLogger
 import os
 import shutil
 import sys
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from performance.common import validate_supported_runtime, get_artifacts_directory, helixuploadroot
 from performance.logger import setup_loggers
@@ -42,8 +42,8 @@ import micro_benchmarks
 
 def init_tools(
         architecture: str,
-        dotnet_versions: list[str],
-        target_framework_monikers: list[str],
+        dotnet_versions: List[str],
+        target_framework_monikers: List[str],
         verbose: bool,
         azure_feed_url: Optional[str] = None,
         internal_build_key: Optional[str] = None) -> None:
@@ -231,7 +231,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     return parser
 
 
-def __process_arguments(args: list[str]):
+def __process_arguments(args: List[str]):
     parser = ArgumentParser(
         description='Tool to run .NET micro benchmarks',
         allow_abbrev=False,
@@ -241,7 +241,7 @@ def __process_arguments(args: list[str]):
     add_arguments(parser)
     return parser.parse_args(args)
 
-def __main(argv: list[str]):
+def __main(argv: List[str]):
     validate_supported_runtime()
     args = __process_arguments(argv)
     verbose = not args.quiet
@@ -322,7 +322,7 @@ def __main(argv: list[str]):
 
             combined_file_prefix = "" if args.partition is None else f"Partition{args.partition}-"
             globpath = os.path.join(artifacts_dir, '**', '*perf-lab-report.json')
-            all_reports: list[Any] = []
+            all_reports: List[Any] = []
             for file in glob(globpath, recursive=True):
                 with open(file, 'r', encoding="utf8") as report_file:
                     all_reports.append(json.load(report_file))
