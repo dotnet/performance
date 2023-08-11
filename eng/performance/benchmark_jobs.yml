@@ -129,11 +129,6 @@ jobs:
         steps:
         - checkout: self
           clean: true
-        - ${{ if ne(parameters.osName, 'windows') }}:
-          - script: wget https://bootstrap.pypa.io/pip/3.6/get-pip.py && $(Python) get-pip.py --user
-            displayName: Ensure pip is installed
-        - script: $(Python) -m pip install --user dataclasses
-          displayName: Install dataclasses library used in ci_setup.py
         - script: $(Python) scripts/ci_setup.py --channel $(_Channel) --architecture ${{parameters.architecture}} --perf-hash $(Build.SourceVersion) --queue ${{parameters.queue}} --build-number $(Build.BuildNumber) --build-configs $(_Configs) $(AffinityParam) $(runEnvVarsParam) $(TargetsWindowsParam)
           displayName: Run ci_setup.py
         - ${{ if eq(parameters.osName, 'windows') }}:
