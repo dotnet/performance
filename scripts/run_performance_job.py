@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-import dataclasses
 from datetime import timedelta
 from glob import glob
 import json
@@ -265,7 +264,9 @@ def run_performance_job(args: RunPerformanceJobArgs):
     performance_setup_data = performance_setup.run(performance_setup_args)
     performance_setup_data.set_environment_variables(save_to_pipeline=False)
 
-    setup_arguments = dataclasses.replace(performance_setup_data.setup_arguments, **args.additional_ci_setup_parameters)
+    setup_arguments = performance_setup_data.setup_arguments
+    for k, v in args.additional_ci_setup_parameters.items():
+        setattr(setup_arguments, k, v)
     setup_arguments.local_build = args.local_build
 
     if args.affinity != "0":
