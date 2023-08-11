@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser, ArgumentTypeError
-from dataclasses import dataclass, field
 from logging import getLogger
 
 import os
@@ -9,7 +8,7 @@ import sys
 import datetime
 
 from subprocess import check_output
-from typing import Optional, List
+from typing import Any, Optional, List
 
 from performance.common import get_machine_architecture, get_repo_root_path, set_environment_variable
 from performance.common import get_tools_directory
@@ -268,36 +267,36 @@ def __process_arguments(args: List[str]):
     return parser.parse_args(args)
 
 
-@dataclass
-class CiSetupArgs:
-    channel: str
-    quiet: bool = False
-    commit_sha: Optional[str] = None
-    repository: Optional[str] = None
-    architecture: str = get_machine_architecture()
-    dotnet_path: Optional[str] = None
-    dotnet_versions: List[str] = field(default_factory=list)
-    install_dir: Optional[str] = None
-    build_configs: List[str] = field(default_factory=list)
-    pgo_status: Optional[str] = None
-    get_perf_hash: bool = False
-    perf_hash: str = 'testSha'
-    cli: Optional[str] = None
-    commit_time: Optional[str] = None
-    local_build: bool = False
-    branch: Optional[str] = None
-    output_file: str = os.path.join(get_tools_directory(), 'machine-setup')
-    not_in_lab: bool = False
-    queue: str = 'testQueue'
-    build_number: str = '1234.1'
-    locale: str = 'en-US'
-    maui_version: str = ''
-    affinity: Optional[str] = None
-    run_env_vars: Optional[List[str]] = None
-    target_windows: bool = True
-    physical_promotion: Optional[str] = None
+# @dataclass
+# class CiSetupArgs:
+#     channel: str
+#     quiet: bool = False
+#     commit_sha: Optional[str] = None
+#     repository: Optional[str] = None
+#     architecture: str = get_machine_architecture()
+#     dotnet_path: Optional[str] = None
+#     dotnet_versions: List[str] = field(default_factory=list)
+#     install_dir: Optional[str] = None
+#     build_configs: List[str] = field(default_factory=list)
+#     pgo_status: Optional[str] = None
+#     get_perf_hash: bool = False
+#     perf_hash: str = 'testSha'
+#     cli: Optional[str] = None
+#     commit_time: Optional[str] = None
+#     local_build: bool = False
+#     branch: Optional[str] = None
+#     output_file: str = os.path.join(get_tools_directory(), 'machine-setup')
+#     not_in_lab: bool = False
+#     queue: str = 'testQueue'
+#     build_number: str = '1234.1'
+#     locale: str = 'en-US'
+#     maui_version: str = ''
+#     affinity: Optional[str] = None
+#     run_env_vars: Optional[List[str]] = None
+#     target_windows: bool = True
+#     physical_promotion: Optional[str] = None
 
-def main(args: CiSetupArgs):
+def main(args: Any):
     verbose = not args.quiet
     setup_loggers(verbose=verbose)
 
@@ -454,7 +453,8 @@ def main(args: CiSetupArgs):
 def __main(argv: List[str]):
     validate_supported_runtime()
     args = __process_arguments(argv)
-    main(CiSetupArgs(**vars(args)))
+    # main(CiSetupArgs(**vars(args)))
+    main(args)
 
 
 if __name__ == "__main__":
