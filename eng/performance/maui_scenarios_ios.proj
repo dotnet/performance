@@ -3,6 +3,7 @@
 
   <PropertyGroup>
     <IncludeXHarnessCli>true</IncludeXHarnessCli>
+    <MicrosoftDotNetXHarnessCLIVersion>8.0.0-prerelease.23401.3</MicrosoftDotNetXHarnessCLIVersion>
   </PropertyGroup>
 
   <PropertyGroup>
