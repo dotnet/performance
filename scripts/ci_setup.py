@@ -305,6 +305,10 @@ def main(args: CiSetupArgs):
     # if repository is set, user needs to supply the commit_sha
     if not ((args.commit_sha is None) == (args.repository is None)):
         raise ValueError('Either both commit_sha and repository should be set or neither')
+    
+    # for CI pipelines, use the agent OS
+    if not args.local_build:
+        args.target_windows = sys.platform == 'win32'
 
     # Acquire necessary tools (dotnet)
     # For arm64 runs, download the x64 version so we can get the information we need, but set all variables
@@ -370,8 +374,11 @@ def main(args: CiSetupArgs):
 
     framework = ChannelMap.get_target_framework_moniker(args.channel)
 
-    extension = ".cmd" if args.target_windows else ".sh"
-    output_file = args.output_file + extension
+    # if the extension is already present, don't add it
+    output_file = args.output_file
+    if not output_file.endswith("cmd") and not output_file.endswith(".sh"):
+        extension = ".cmd" if args.target_windows else ".sh"
+        output_file += extension
 
     if not framework.startswith('net4'):
         target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(framework)
