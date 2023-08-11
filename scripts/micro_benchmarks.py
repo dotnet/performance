@@ -12,7 +12,7 @@ from logging import getLogger
 from os import path
 from subprocess import CalledProcessError
 from traceback import format_exc
-from typing import Tuple
+from typing import Any, List
 
 import csv
 import sys
@@ -28,7 +28,7 @@ from channel_map import ChannelMap
 import dotnet
 
 
-def get_supported_configurations() -> list:
+def get_supported_configurations() -> List[str]:
     '''
     The configuration to use for building the project. The default for most
     projects is 'Release'
@@ -120,7 +120,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Full path to dotnet.exe',
     )
 
-    def __get_bdn_arguments(user_input: str) -> list:
+    def __get_bdn_arguments(user_input: str) -> List[str]:
         file = StringIO(user_input)
         reader = csv.reader(file, delimiter=' ')
         for args in reader:
@@ -213,7 +213,7 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     return parser
 
 
-def __process_arguments(args: list) -> Tuple[list, bool]:
+def __process_arguments(args: List[str]):
     parser = ArgumentParser(
         description="Builds the benchmarks.",
         allow_abbrev=False)
@@ -230,8 +230,8 @@ def __process_arguments(args: list) -> Tuple[list, bool]:
     return parser.parse_args(args)
 
 
-def __get_benchmarkdotnet_arguments(framework: str, args: tuple) -> list:
-    run_args = []
+def __get_benchmarkdotnet_arguments(framework: str, args: Any) -> List[str]:
+    run_args: List[str] = []
     if args.corerun:
         run_args += ['--coreRun'] + args.corerun
     if args.cli:
@@ -287,7 +287,7 @@ def get_bin_dir_to_use(csprojfile: dotnet.CSharpProjFile, bin_directory: str, ru
 def build(
         BENCHMARKS_CSPROJ: dotnet.CSharpProject,
         configuration: str,
-        target_framework_monikers: list,
+        target_framework_monikers: List[str],
         incremental: str,
         run_isolated: bool,
         for_wasm: bool,
@@ -309,7 +309,7 @@ def build(
     __log_script_header("Restoring .NET micro benchmarks")
     BENCHMARKS_CSPROJ.restore(packages_path=packages, verbose=verbose)
 
-    build_args = []
+    build_args: List[str] = []
     if for_wasm:
         build_args += ['/p:BuildingForWasm=true']
 
@@ -338,14 +338,14 @@ def run(
         framework: str,
         run_isolated: bool,
         verbose: bool,
-        *args) -> bool:
+        args: Any) -> bool:
     '''Runs the benchmarks, returns True for a zero status code and False otherwise.'''
     __log_script_header("Running .NET micro benchmarks for '{}'".format(
         framework
     ))
 
     # dotnet exec
-    run_args = __get_benchmarkdotnet_arguments(framework, *args)
+    run_args = __get_benchmarkdotnet_arguments(framework, args)
     target_framework_moniker = dotnet.FrameworkAction.get_target_framework_moniker(
         framework
     )
@@ -376,10 +376,10 @@ def __log_script_header(message: str):
     getLogger().info('-' * len(message))
 
 
-def __main(args: list) -> int:
+def __main(argv: List[str]) -> int:
     try:
         validate_supported_runtime()
-        args = __process_arguments(args)
+        args = __process_arguments(argv)
 
         configuration = args.configuration
         frameworks = args.frameworks
@@ -393,7 +393,7 @@ def __main(args: list) -> int:
         # dotnet --info
         dotnet.info(verbose)
 
-        bin_dir_to_use=micro_benchmarks.get_bin_dir_to_use(args.csprojfile, args.bin_directory, args.run_isolated)
+        bin_dir_to_use=get_bin_dir_to_use(args.csprojfile, args.bin_directory, args.run_isolated)
         BENCHMARKS_CSPROJ = dotnet.CSharpProject(
             project=args.csprojfile,
             bin_directory=bin_dir_to_use

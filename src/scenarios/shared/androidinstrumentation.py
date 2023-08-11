@@ -134,8 +134,9 @@ class AndroidInstrumentationHelper(object):
             # rethrow the original exception 
             raise
 
-        if runninginlab():
-            copytree(TRACEDIR, os.path.join(helixuploaddir(), 'traces'))
+        helix_upload_dir = helixuploaddir()
+        if runninginlab() and helix_upload_dir is not None:
+            copytree(TRACEDIR, os.path.join(helix_upload_dir, 'traces'))
             if uploadtokenpresent():
                 import upload
                 globpath = os.path.join(

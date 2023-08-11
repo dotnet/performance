@@ -10,7 +10,7 @@ def remove_aab_files(output_dir="."):
         if file.endswith(".aab"):
             os.remove(os.path.join(output_dir, file))
 
-def install_versioned_maui(precommands):
+def install_versioned_maui(precommands: PreCommands):
     target_framework_wo_platform = precommands.framework.split('-')[0]
 
     # Download what we need

@@ -35,15 +35,15 @@
       <ScenarioDirectoryName>emptyvbconsoletemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </Scenario>
-    <UIScenario Include="WinForms Large" Condition="'$(TargetsWindows)' == 'true'">
+    <UIScenario Include="WinForms Large" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT'">
       <ScenarioDirectoryName>windowsformslarge</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </UIScenario>
-    <UIScenario Include="WPF Template" Condition="'$(TargetsWindows)' == 'true'">
+    <UIScenario Include="WPF Template" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT'">
       <ScenarioDirectoryName>wpf</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </UIScenario>
-    <UIScenario Include="WPF SFC" Condition="'$(TargetsWindows)' == 'true'">
+    <UIScenario Include="WPF SFC" Condition="'$(TargetsWindows)' == 'true' AND '$(OS)' == 'Windows_NT'">
       <ScenarioDirectoryName>wpfsfc</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </UIScenario>

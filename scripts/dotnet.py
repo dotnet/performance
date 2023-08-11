@@ -6,18 +6,16 @@ Contains the functionality around DotNet Cli.
 
 import ssl
 import datetime
-from argparse import Action, ArgumentParser, ArgumentTypeError, ArgumentError
-from collections import namedtuple
+from argparse import Action, ArgumentParser, ArgumentTypeError
 from glob import iglob
-from json import loads
 from logging import getLogger
 from os import chmod, environ, listdir, makedirs, path, pathsep, system
-from re import search, match, MULTILINE
+from re import search, MULTILINE
 from shutil import rmtree
 from stat import S_IRWXU
 from subprocess import CalledProcessError, check_output
 from sys import argv, platform
-from typing import Tuple
+from typing import Any, List, NamedTuple, Optional, Tuple
 from urllib.error import URLError
 from urllib.parse import urlparse
 from urllib.request import urlopen
@@ -41,14 +39,14 @@ def info(verbose: bool) -> None:
     cmdline = ['dotnet', '--info']
     RunCommand(cmdline, verbose=verbose).run()
 
-def exec(asm_path: str, success_exit_codes: list, verbose: bool, *args) -> int:
+def exec(asm_path: str, success_exit_codes: List[int], verbose: bool, *args: str) -> int:
     """
     Executes `dotnet exec` which can be used to execute assemblies
     """
     asm_path=path.abspath(asm_path)
     working_dir=path.dirname(asm_path)
     if not path.exists(asm_path):
-        raise ArgumentError('Cannot find assembly {} to exec'.format(asm_path))
+        raise ArgumentTypeError('Cannot find assembly {} to exec'.format(asm_path))
 
     cmdline = ['dotnet', 'exec', path.basename(asm_path)]
     cmdline += list(args)
@@ -61,10 +59,7 @@ def __log_script_header(message: str):
     getLogger().info('-' * message_length)
 
 
-CSharpProjFile = namedtuple('CSharpProjFile', [
-    'file_name',
-    'working_directory'
-])
+CSharpProjFile = NamedTuple('CSharpProjFile', file_name=str, working_directory=str)
 
 class FrameworkAction(Action):
     '''
@@ -93,7 +88,7 @@ class FrameworkAction(Action):
             return framework
 
     @staticmethod
-    def get_target_framework_monikers(frameworks: list) -> list:
+    def get_target_framework_monikers(frameworks: List[str]) -> List[str]:
         '''
         Translates framework names to target framework monikers (TFM)
         Required to run AOT benchmarks where the host process must be .NET
@@ -202,7 +197,7 @@ class CompilationAction(Action):
         return requested_mode
 
     @staticmethod
-    def modes() -> list:
+    def modes() -> List[str]:
         '''Available .NET Performance modes.'''
         return [
             CompilationAction.DEFAULT,
@@ -294,8 +289,8 @@ class CSharpProject:
     def restore(self, 
                 packages_path: str, 
                 verbose: bool,
-                runtime_identifier: str = None,
-                args: list = None) -> None:
+                runtime_identifier: Optional[str] = None,
+                args: Optional[List[str]] = None) -> None:
         '''
         Calls dotnet to restore the dependencies and tools of the specified
         project.
@@ -329,10 +324,10 @@ class CSharpProject:
               configuration: str,
               verbose: bool,
               packages_path: str,
-              target_framework_monikers: list = None,
+              target_framework_monikers: Optional[List[str]] = None,
               output_to_bindir: bool = False,
-              runtime_identifier: str = None,
-              args: list = None) -> None:
+              runtime_identifier: Optional[str] = None,
+              args: Optional[List[str]] = None) -> None:
         '''Calls dotnet to build the specified project.'''
         if not target_framework_monikers:  # Build all supported frameworks.
             cmdline = [
@@ -388,8 +383,8 @@ class CSharpProject:
             verbose: bool,
             working_directory: str,
             force: bool = False,
-            exename: str = None,
-            language: str = None,
+            exename: Optional[str] = None,
+            language: Optional[str] = None,
             no_https: bool = False,
             no_restore: bool = True
             ):
@@ -432,11 +427,11 @@ class CSharpProject:
                 configuration: str,
                 output_dir: str,
                 verbose: bool,
-                packages_path,
-                target_framework_moniker: str = None,
-                runtime_identifier: str = None,
-                msbuildprops: list = None,
-                *args
+                packages_path: str,
+                target_framework_moniker: Optional[str] = None,
+                runtime_identifier: Optional[str] = None,
+                msbuildprops: Optional[List[str]] = None,
+                *args: str
                 ) -> None:
         '''
         Invokes publish on the specified project
@@ -466,7 +461,7 @@ class CSharpProject:
             self.working_directory
         )
 
-    def __get_output_build_arg(self, outdir) -> list:
+    def __get_output_build_arg(self, outdir: str) -> List[str]:
         # dotnet build/publish does not support `--output` with sln files
         if path.splitext(self.csproj_file)[1] == '.sln':
             outdir = outdir if path.isabs(outdir) else path.abspath(outdir)
@@ -490,9 +485,9 @@ class CSharpProject:
     def run(self,
             configuration: str,
             target_framework_moniker: str,
-            success_exit_codes: list,
+            success_exit_codes: List[int],
             verbose: bool,
-            *args) -> int:
+            *args: str) -> int:
         '''
         Calls dotnet to run a .NET project output.
         '''
@@ -511,24 +506,25 @@ class CSharpProject:
             self.working_directory)
 
 
-def get_framework_version(framework: str) -> str:
+FrameworkVersion = NamedTuple('FrameworkVersion', major=int, minor=int)
+def get_framework_version(framework: str) -> FrameworkVersion:
     groups = search(r".*(\d)\.(\d)$", framework)
     if not groups:
         raise ValueError("Unknown target framework: {}".format(framework))
 
-    FrameworkVersion = namedtuple('FrameworkVersion', ['major', 'minor'])
     version = FrameworkVersion(int(groups.group(1)), int(groups.group(2)))
 
     return version
 
 
-def get_base_path(dotnet_path: str = None) -> str:
+def get_base_path(dotnet_path: Optional[str] = None) -> str:
     """Gets the dotnet Host version from the `dotnet --info` command."""
     if not dotnet_path:
         dotnet_path = 'dotnet'
 
     output = check_output([dotnet_path, '--info'])
 
+    groups = None
     for line in output.splitlines():
         decoded_line = line.decode('utf-8')
 
@@ -546,7 +542,7 @@ def get_base_path(dotnet_path: str = None) -> str:
 
     return groups.group(1)
 
-def get_sdk_path(dotnet_path: str = None) -> str:
+def get_sdk_path(dotnet_path: Optional[str] = None) -> str:
     base_path = get_base_path(dotnet_path)
     sdk_path = path.abspath(path.join(base_path, '..'))
     return sdk_path
@@ -559,8 +555,8 @@ def get_dotnet_path() -> str:
 
 def get_dotnet_version(
         framework: str,
-        dotnet_path: str = None,
-        sdk_path: str = None) -> str:
+        dotnet_path: Optional[str] = None,
+        sdk_path: Optional[str] = None) -> str:
     version = get_framework_version(framework)
 
     sdk_path = get_sdk_path(dotnet_path) if sdk_path is None else sdk_path
@@ -591,8 +587,8 @@ def get_dotnet_version(
 
 def get_dotnet_sdk(
         framework: str,
-        dotnet_path: str = None,
-        sdk: str = None) -> str:
+        dotnet_path: Optional[str] = None,
+        sdk: Optional[str] = None) -> str:
     """Gets the dotnet Host commit sha from the `dotnet --info` command."""
 
     sdk_path = get_sdk_path(dotnet_path)
@@ -618,7 +614,7 @@ def get_repository(repository: str) -> Tuple[str, str]:
 def get_commit_date(
         framework: str,
         commit_sha: str,
-        repository: str = None
+        repository: Optional[str] = None
 ) -> str:
     '''
     Gets the .NET Core committer date using the GitHub Web API from the
@@ -690,7 +686,7 @@ def get_build_directory(
         bin_directory: str,
         project_name: str,
         configuration: str,
-        target_framework_moniker: str) -> None:
+        target_framework_moniker: str) -> str:
     '''
     Gets the  output directory where the built artifacts are in with
     respect to the specified bin_directory.
@@ -733,7 +729,7 @@ def __get_directory(architecture: str) -> str:
     return path.join(get_tools_directory(), 'dotnet', architecture)
 
 
-def remove_dotnet(architecture: str) -> str:
+def remove_dotnet(architecture: str) -> None:
     '''
     Removes the dotnet installed in the tools directory associated with the
     specified architecture.
@@ -763,12 +759,12 @@ def shutdown_server(verbose:bool) -> None:
 
 def install(
         architecture: str,
-        channels: list,
-        versions: str,
+        channels: List[str],
+        versions: List[str],
         verbose: bool,
-        install_dir: str = None,
-        azure_feed_url: str = None,
-        internal_build_key: str = None) -> None:
+        install_dir: Optional[str] = None,
+        azure_feed_url: Optional[str] = None,
+        internal_build_key: Optional[str] = None) -> None:
     '''
     Downloads dotnet cli into the tools folder.
     '''
@@ -856,8 +852,9 @@ def install(
     if (not versions) and channels:
         for channel in channels:
             cmdline_args = common_cmdline_args + ['-Channel', ChannelMap.get_branch(channel)]
-            if ChannelMap.get_quality_from_channel(channel) is not None:
-                cmdline_args += ['-Quality', ChannelMap.get_quality_from_channel(channel)]
+            quality = ChannelMap.get_quality_from_channel(channel)
+            if quality is not None:
+                cmdline_args += ['-Quality', quality]
             RunCommand(cmdline_args, verbose=verbose, retry=1).run(
                 get_repo_root_path()
             )
@@ -919,25 +916,11 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
     '''
     Adds new arguments to the specified ArgumentParser object.
     '''
-
     parser = __add_arguments(parser)
-
-    # .NET Compilation modes.
-    parser.add_argument(
-        '--dotnet-compilation-mode',
-        dest='dotnet_compilation_mode',
-        required=False,
-        action=CompilationAction,
-        choices=CompilationAction.modes(),
-        default=CompilationAction.noenv(),
-        type=CompilationAction.validate,
-        help='{}'.format(CompilationAction.help_text())
-    )
-
     return parser
 
 
-def __process_arguments(args: list):
+def __process_arguments(args: List[str]) -> Any:
     parser = ArgumentParser(
         description='DotNet Cli wrapper.',
         allow_abbrev=False
@@ -983,12 +966,13 @@ def __process_arguments(args: list):
         action='store_true',
         help='Turns on verbosity (default "False")',
     )
+
     return parser.parse_args(args)
 
 
-def __main(args: list) -> int:
+def __main(argv: List[str]) -> None:
     validate_supported_runtime()
-    args = __process_arguments(args)
+    args = __process_arguments(argv)
     setup_loggers(verbose=args.verbose)
     install(
         architecture=args.architecture,

@@ -8,6 +8,7 @@ import shutil
 import subprocess
 from logging import getLogger
 from argparse import ArgumentParser
+from typing import List, Optional
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
 from shared.crossgen import CrossgenArguments
@@ -43,7 +44,7 @@ class PreCommands:
         parser = ArgumentParser()
 
         subparsers = parser.add_subparsers(title='Operations', 
-                                           description='Common preperation steps for perf tests. Should run under src\scenarios\<test asset folder>',
+                                           description='Common preperation steps for perf tests. Should run under src\\scenarios\\<test asset folder>',
                                            dest='operation')
 
         default_parser = subparsers.add_parser(DEFAULT, help='Default operation (placeholder command and no specific operation will be executed)' )
@@ -118,7 +119,7 @@ class PreCommands:
             bin_dir: str,
             exename: str,
             working_directory: str,
-            language: str = None,
+            language: Optional[str] = None,
             no_https: bool = False,
             no_restore: bool = True):
         'makes a new app with the given template'
@@ -194,7 +195,7 @@ class PreCommands:
         self.project = CSharpProject(csproj, const.BINDIR)
         self._updateframework(csproj.file_name)
 
-    def execute(self, build_args: list = []):
+    def execute(self, build_args: List[str] = []):
         'Parses args and runs precommands'
         if self.operation == DEFAULT:
             pass
@@ -210,6 +211,7 @@ class PreCommands:
             if self.nativeaot:
                 build_args.append('/p:PublishAot=true')
                 build_args.append('/p:PublishAotUsingRuntimePack=true')
+            build_args.append("/p:EnableWindowsTargeting=true")
             self._publish(configuration=self.configuration, runtime_identifier=self.runtime_identifier, framework=self.framework, output=self.output, build_args=build_args)
         if self.operation == CROSSGEN:
             startup_args = [
@@ -267,7 +269,7 @@ class PreCommands:
             staticpath = os.path.join(helixpayload(), "staticdeps")
         shutil.copyfile(os.path.join(staticpath, f"PerfLab.{language_file_extension}"), os.path.join(projpath, f"PerfLab.{language_file_extension}"))
 
-    def install_workload(self, workloadid: str, install_args: list = ["--skip-manifest-update"]):
+    def install_workload(self, workloadid: str, install_args: List[str] = ["--skip-manifest-update"]):
         'Installs the workload, if needed'
         if not self.has_workload:
             if self.readonly_dotnet:
@@ -303,7 +305,7 @@ class PreCommands:
             else:
                 replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
 
-    def _publish(self, configuration: str, framework: str = None, runtime_identifier: str = None, output: str = None, build_args: list = []):
+    def _publish(self, configuration: str, framework: str, runtime_identifier: Optional[str] = None, output: Optional[str] = None, build_args: List[str] = []):
         self.project.publish(configuration,
                              output or const.PUBDIR,
                              True,
@@ -314,12 +316,12 @@ class PreCommands:
                              *['-bl:%s' % self.binlog] if self.binlog else [],
                              *build_args)
 
-    def _restore(self):
+    def _restore(self, restore_args: List[str] = ["/p:EnableWindowsTargeting=true"]):
         self.project.restore(packages_path=get_packages_directory(),
                              verbose=True,
-                             args=['-bl:%s-restore.binlog' % self.binlog] if self.binlog else [])
+                             args=(['-bl:%s-restore.binlog' % self.binlog] if self.binlog else []) + restore_args)
 
-    def _build(self, configuration: str, framework: str = None, output: str = None, build_args: list = []):
+    def _build(self, configuration: str, framework: str, output: Optional[str] = None, build_args: List[str] = []):
         self.project.build(configuration,
                            True,
                            get_packages_directory(),

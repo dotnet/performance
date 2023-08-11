@@ -13,6 +13,7 @@
 
   <PropertyGroup>
     <FrameworkVersion>$(PERFLAB_Framework.Substring($([MSBuild]::Subtract($(PERFLAB_Framework.Length), 3))))</FrameworkVersion>
+    <HelixResultsDestinationDir>$(CorrelationPayloadDirectory)performance/artifacts/helix-results</HelixResultsDestinationDir>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">

@@ -1,47 +1,127 @@
 <Project Sdk="Microsoft.DotNet.Helix.Sdk" DefaultTargets="Test">
 
-  <PropertyGroup Condition="'$(TargetsWindows)' == 'true'">
+  <PropertyGroup Condition="'$(TargetsWindows)' == 'true' AND '$(UseCoreRun)' == 'true'">
+    <PerformanceDirectory>%HELIX_WORKITEM_ROOT%\performance</PerformanceDirectory>
+    <HelixPreCommands>$(HelixPreCommands) &amp;&amp; robocopy /np /nfl /e %HELIX_CORRELATION_PAYLOAD%\performance $(PerformanceDirectory) /XD %HELIX_CORRELATION_PAYLOAD%\performance\.git</HelixPreCommands>
+    <WorkItemCommand>$(PerformanceDirectory)\scripts\benchmarks_ci.py --csproj $(PerformanceDirectory)\$(TargetCsproj)</WorkItemCommand>
+    <Python>py -3</Python>
+    <CoreRun>%HELIX_CORRELATION_PAYLOAD%\Core_Root\CoreRun.exe</CoreRun>
+    <BaselineCoreRun>%HELIX_CORRELATION_PAYLOAD%\Baseline_Core_Root\CoreRun.exe</BaselineCoreRun>
+    <HelixPreCommands>$(HelixPreCommands);call $(PerformanceDirectory)\tools\machine-setup.cmd;set PYTHONPATH=%HELIX_WORKITEM_PAYLOAD%\scripts%3B%HELIX_WORKITEM_PAYLOAD%</HelixPreCommands>
+    <ArtifactsDirectory>%HELIX_WORKITEM_ROOT%\artifacts\BenchmarkDotNet.Artifacts</ArtifactsDirectory>
+    <BaselineArtifactsDirectory>%HELIX_WORKITEM_ROOT%\artifacts\BenchmarkDotNet.Artifacts_Baseline</BaselineArtifactsDirectory>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetsWindows)' != 'true' AND '$(UseCoreRun)' == 'true'">
+    <PerformanceDirectory>$HELIX_WORKITEM_ROOT/performance</PerformanceDirectory>
+    <HelixPreCommands>$(HelixPreCommands);cp -R $(BaseDirectory)/performance $(PerformanceDirectory)</HelixPreCommands>
+    <WorkItemCommand>$(PerformanceDirectory)/scripts/benchmarks_ci.py --csproj $(PerformanceDirectory)/$(TargetCsproj)</WorkItemCommand>
+    <Python>python3</Python>
+    <CoreRun>$HELIX_CORRELATION_PAYLOAD/Core_Root/corerun</CoreRun>
+    <BaselineCoreRun>$HELIX_CORRELATION_PAYLOAD/Baseline_Core_Root/corerun</BaselineCoreRun>
+    <HelixPreCommands>$(HelixPreCommands);cp -R $HELIX_CORRELATION_PAYLOAD/performance $(PerformanceDirectory);chmod +x $(PerformanceDirectory)/tools/machine-setup.sh;. $(PerformanceDirectory)/tools/machine-setup.sh</HelixPreCommands>
+    <ArtifactsDirectory>$HELIX_WORKITEM_ROOT/artifacts/BenchmarkDotNet.Artifacts</ArtifactsDirectory>
+    <BaselineArtifactsDirectory>$HELIX_WORKITEM_ROOT/artifacts/BenchmarkDotNet.Artifacts_Baseline</BaselineArtifactsDirectory>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetsWindows)' == 'true' AND '$(UseCoreRun)' != 'true'">
     <WorkItemCommand>%HELIX_CORRELATION_PAYLOAD%\scripts\benchmarks_ci.py --csproj %HELIX_CORRELATION_PAYLOAD%\$(TargetCsproj)</WorkItemCommand>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetsWindows)' != 'true'">
+  <PropertyGroup Condition="'$(TargetsWindows)' != 'true' AND '$(UseCoreRun)' != 'true'">
     <WorkItemCommand>scripts/benchmarks_ci.py --csproj $(TargetCsproj)</WorkItemCommand>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(WorkItemCommand)' != ''">
-    <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) -f $(PERFLAB_Framework) $(_PerfLabArguments)</WorkItemCommand>
+  <PropertyGroup Condition="'$(WasmDotnet)' == 'true'">
+    <CliArguments>$(CliArguments) --run-isolated --wasm --dotnet-path %24HELIX_CORRELATION_PAYLOAD/dotnet/</CliArguments>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(MonoDotnet)' == 'true' and '$(AGENT_OS)' == 'Windows_NT'">
+    <CoreRunArgument>--corerun %HELIX_CORRELATION_PAYLOAD%\dotnet-mono\shared\Microsoft.NETCore.App\$(ProductVersion)\corerun.exe</CoreRunArgument>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MonoDotnet)' == 'true' and '$(AGENT_OS)' != 'Windows_NT'">
+    <CoreRunArgument>--corerun $(BaseDirectory)/dotnet-mono/shared/Microsoft.NETCore.App/$(ProductVersion)/corerun</CoreRunArgument>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(UseCoreRun)' == 'true'">
+    <CoreRunArgument>--corerun $(CoreRun)</CoreRunArgument>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(UseBaselineCoreRun)' == 'true'">
+    <BaselineCoreRunArgument>--corerun $(BaselineCoreRun)</BaselineCoreRunArgument>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(WorkItemCommand)' != ''">
+    <WorkItemCommand>$(Python) $(WorkItemCommand) --incremental no --architecture $(Architecture) -f $(PERFLAB_Framework) $(PerfLabArguments) --bdn-artifacts $(ArtifactsDirectory) </WorkItemCommand>
+  </PropertyGroup>
+
+  <!-- TODO: Check for net462 and net461 -->
   <PropertyGroup Condition="'$(PERFLAB_Framework)' != 'net462'">
     <WorkItemCommand>$(WorkItemCommand) $(CliArguments)</WorkItemCommand>
   </PropertyGroup>
 
+  <!-- TODO: Take this property in using python-->
+  <PropertyGroup>
+    <WorkItemTimeout>6:00</WorkItemTimeout>
+    <WorkItemTimeout Condition="'$(OnlySanityCheck)' == 'true'">1:30</WorkItemTimeout>
+    <HelixResultsDestinationDir>$(CorrelationPayloadDirectory)/performance/artifacts/helix-results</HelixResultsDestinationDir>
+  </PropertyGroup>
+
   <ItemGroup>
-    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)">
+    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)/Core_Root" Condition="'$(UseCoreRun)' == 'true'">
+      <PayloadDirectory>%(Identity)</PayloadDirectory>
+      <Destination>Core_Root</Destination>
+    </HelixCorrelationPayload>
+    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)/performance" Condition="'$(UseCoreRun)' == 'true'">
+      <PayloadDirectory>%(Identity)</PayloadDirectory>
+      <Destination>performance</Destination>
+    </HelixCorrelationPayload>
+    <HelixCorrelationPayload Include="$(CorrelationPayloadDirectory)" Condition="'$(UseCoreRun)' != 'true'">
       <PayloadDirectory>%(Identity)</PayloadDirectory>
     </HelixCorrelationPayload>
   </ItemGroup>
 
   <PropertyGroup>
-    <PartitionCount>15</PartitionCount>
+    <PartitionCount Condition="'$(PartitionCount)' == ''">15</PartitionCount>
   </PropertyGroup>
   <ItemGroup>
-    <Partition Include="Partition0" Index="0" />
-    <Partition Include="Partition1" Index="1" />
-    <Partition Include="Partition2" Index="2" />
-    <Partition Include="Partition3" Index="3" />
-    <Partition Include="Partition4" Index="4" />
-    <Partition Include="Partition5" Index="5" />
-    <Partition Include="Partition6" Index="6" />
-    <Partition Include="Partition7" Index="7" />
-    <Partition Include="Partition8" Index="8" />
-    <Partition Include="Partition9" Index="9" />
-    <Partition Include="Partition10" Index="10" />
-    <Partition Include="Partition11" Index="11" />
-    <Partition Include="Partition12" Index="12" />
-    <Partition Include="Partition13" Index="13" />
-    <Partition Include="Partition14" Index="14" />
+    <Partition Include="Partition0" Index="0" Condition="$(PartitionCount) &gt; 0" />
+    <Partition Include="Partition1" Index="1" Condition="$(PartitionCount) &gt; 1" />
+    <Partition Include="Partition2" Index="2" Condition="$(PartitionCount) &gt; 2" />
+    <Partition Include="Partition3" Index="3" Condition="$(PartitionCount) &gt; 3" />
+    <Partition Include="Partition4" Index="4" Condition="$(PartitionCount) &gt; 4" />
+    <Partition Include="Partition5" Index="5" Condition="$(PartitionCount) &gt; 5" />
+    <Partition Include="Partition6" Index="6" Condition="$(PartitionCount) &gt; 6" />
+    <Partition Include="Partition7" Index="7" Condition="$(PartitionCount) &gt; 7" />
+    <Partition Include="Partition8" Index="8" Condition="$(PartitionCount) &gt; 8" />
+    <Partition Include="Partition9" Index="9" Condition="$(PartitionCount) &gt; 9" />
+    <Partition Include="Partition10" Index="10" Condition="$(PartitionCount) &gt; 10" />
+    <Partition Include="Partition11" Index="11" Condition="$(PartitionCount) &gt; 11" />
+    <Partition Include="Partition12" Index="12" Condition="$(PartitionCount) &gt; 12" />
+    <Partition Include="Partition13" Index="13" Condition="$(PartitionCount) &gt; 13" />
+    <Partition Include="Partition14" Index="14" Condition="$(PartitionCount) &gt; 14" />
+    <Partition Include="Partition15" Index="15" Condition="$(PartitionCount) &gt; 15" />
+    <Partition Include="Partition16" Index="16" Condition="$(PartitionCount) &gt; 16" />
+    <Partition Include="Partition17" Index="17" Condition="$(PartitionCount) &gt; 17" />
+    <Partition Include="Partition18" Index="18" Condition="$(PartitionCount) &gt; 18" />
+    <Partition Include="Partition19" Index="19" Condition="$(PartitionCount) &gt; 19" />
+    <Partition Include="Partition20" Index="20" Condition="$(PartitionCount) &gt; 20" />
+    <Partition Include="Partition21" Index="21" Condition="$(PartitionCount) &gt; 21" />
+    <Partition Include="Partition22" Index="22" Condition="$(PartitionCount) &gt; 22" />
+    <Partition Include="Partition23" Index="23" Condition="$(PartitionCount) &gt; 23" />
+    <Partition Include="Partition24" Index="24" Condition="$(PartitionCount) &gt; 24" />
+    <Partition Include="Partition25" Index="25" Condition="$(PartitionCount) &gt; 25" />
+    <Partition Include="Partition26" Index="26" Condition="$(PartitionCount) &gt; 26" />
+    <Partition Include="Partition27" Index="27" Condition="$(PartitionCount) &gt; 27" />
+    <Partition Include="Partition28" Index="28" Condition="$(PartitionCount) &gt; 28" />
+    <Partition Include="Partition29" Index="29" Condition="$(PartitionCount) &gt; 29" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <BenchmarkDotNetArguments>$(BenchmarkDotNetArguments) $(ExtraBenchmarkDotNetArguments) $(CoreRunArgument)</BenchmarkDotNetArguments>
+  </PropertyGroup>
+
+  <!-- TODO: Support Compare from runtime repo -->
 
   <!-- 
     Partition the MicroBenchmarks project, but nothing else
@@ -49,15 +129,17 @@
   <ItemGroup Condition="$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
     <HelixWorkItem Include="@(Partition)">
       <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
-      <Command>$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments) --partition-count $(PartitionCount) --partition-index %(HelixWorkItem.Index)"</Command>
-      <Timeout>4:00</Timeout>
+      <Command>$(WorkItemCommand) --partition=%(HelixWorkItem.Index) --bdn-arguments="$(BenchmarkDotNetArguments) --partition-count $(PartitionCount) --partition-index %(HelixWorkItem.Index)"</Command>
+      <Timeout>$(WorkItemTimeout)</Timeout>
+      <DownloadFilesFromResults Condition="'$(DownloadFilesFromHelix)' == 'true'">Partition%(HelixWorkItem.Index)-combined-perf-lab-report.json</DownloadFilesFromResults>
     </HelixWorkItem>
   </ItemGroup>
   <ItemGroup Condition="!$(TargetCsproj.Contains('MicroBenchmarks.csproj'))">
     <HelixWorkItem Include="WorkItem">
       <PayloadDirectory>$(WorkItemDirectory)</PayloadDirectory>
       <Command>$(WorkItemCommand) --bdn-arguments="$(BenchmarkDotNetArguments)"</Command>
-      <Timeout>4:00</Timeout>
+      <Timeout>$(WorkItemTimeout)</Timeout>
+      <DownloadFilesFromResults Condition="'$(DownloadFilesFromHelix)' == 'true'">combined-perf-lab-report.json</DownloadFilesFromResults>
     </HelixWorkItem>
   </ItemGroup>
 </Project>

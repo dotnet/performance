@@ -7,6 +7,7 @@ import os
 
 from logging import getLogger
 from argparse import ArgumentParser
+from typing import Any, Optional
 from shared import const
 
 class CrossgenArguments:
@@ -17,10 +18,10 @@ class CrossgenArguments:
     '''
 
     def __init__(self):
-        self.coreroot = None
-        self.singlefile = None
-        self.compositefile = None
-        self.singlethreaded = None
+        self.coreroot: str = None
+        self.singlefile: Optional[str] = None
+        self.compositefile: Optional[str] = None
+        self.singlethreaded: Optional[bool] = None
 
     def add_crossgen_arguments(self, parser: ArgumentParser):
         "Arguments to generate AOT code with Crossgen"
@@ -98,7 +99,7 @@ Suppress internal Crossgen2 parallelism
 '''
                             )
 
-    def parse_crossgen_args(self, args):
+    def parse_crossgen_args(self, args: Any):
         self.singlefile = args.single
         self.coreroot = args.coreroot
 
@@ -109,7 +110,7 @@ Suppress internal Crossgen2 parallelism
             getLogger().error('Specify an assembly to crossgen with --single <assembly name>')
             sys.exit(1)
     
-    def parse_crossgen2_args(self, args):
+    def parse_crossgen2_args(self, args: Any):
         self.coreroot = args.coreroot
         self.singlefile = args.single
         self.compositefile = args.composite
