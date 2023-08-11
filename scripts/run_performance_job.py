@@ -208,7 +208,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
                 f"{wasm_precommand} && "
                 f"export PERFLAB_UPLOAD_TOKEN=\"{args.perflab_upload_token}\" "
                 "|| export PERF_PREREQS_INSTALL_FAILED=1"),
-            'test "x$PERF_PREREQS_INSTALL_FAILED" = "x1" && echo "** Error: Failed to install prerequites **'
+            'test "x$PERF_PREREQS_INSTALL_FAILED" = "x1" && echo "** Error: Failed to install prerequites **"'
             ]
 
     mono_interpreter = False
@@ -258,6 +258,7 @@ def run_performance_job(args: RunPerformanceJobArgs):
         run_categories=args.run_categories,
         extra_bdn_args=[] if args.extra_bdn_args is None else args.extra_bdn_args.split(" "),
         python="py -3" if args.os_group == "windows" else "python3",
+        csproj="src\\benchmarks\\micro\\MicroBenchmarks.csproj" if args.os_group == "windows" else "src/benchmarks/micro/MicroBenchmarks.csproj",
         **args.additional_performance_setup_parameters
     )
 

@@ -9,6 +9,7 @@
   - [Building the runtime repository](#building-the-runtime-repository)
     - [Building for Windows on Windows](#building-for-windows-on-windows)
     - [Building for Linux on Windows](#building-for-linux-on-windows)
+    - [Building for Windows arm64 on Windows](#building-for-windows-arm64-on-windows)
   - [Using the Crank CLI](#using-the-crank-cli)
     - [Example: Run microbenchmarks on Windows x64](#example-run-microbenchmarks-on-windows-x64)
     - [Profiles](#profiles)
@@ -43,8 +44,10 @@ We have support and documentation today explaining how to run the performance te
   - Please see the [crank](https://github.com/dotnet/crank) GitHub repository for further information and documentation.
 - Microsoft's corporate VPN is required to be active to connect to the crank agent.
 - Corpnet access
-  - If your machine is not connected to corpnet, then [DevBox](https://devbox.microsoft.com) is our recommended alternative.
-  - If you are unable to use DevBox and can't get corpnet access, then please email dotnetperf so that we can give you an alternative.
+  - If you are working from home, it is likely that you are not on corpnet as corpnet usually requires that the machine is physically connected to a Microsoft Building.
+  - If your machine is not connected to corpnet, then [DevBox](https://devbox.microsoft.com) is our strongly recommended alternative.
+  - If you are unable to use DevBox and can't get corpnet access, then please email [dotnetperf@microsoft.com](mailto:dotnetperf@microsoft.com) so that we can give you an alternative.
+- Additional configurations such as Mono, WASM, iOS, and Android are also not currently supported, but will be supported in the future.
 
 ## Workflow
 
@@ -57,7 +60,8 @@ The crank configuration only supports builds that have been generated to the Cor
 Run the following in the cloned runtime repository
 
 ```cmd
-.\build.cmd clr+libs -c Release && .\src\tests\build.cmd release generatelayoutonly
+.\build.cmd clr+libs -c Release
+.\src\tests\build.cmd release generatelayoutonly
 ```
 
 #### Building for Linux on Windows
@@ -71,6 +75,15 @@ docker run --rm `
   -w /runtime `
   mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04 `
   ./build.sh clr+libs -c Release && ./src/tests/build.sh release generatelayoutonly
+```
+
+#### Building for Windows arm64 on Windows
+
+Run the following in the cloned runtime repository
+
+```cmd
+.\build.cmd clr+libs -c Release -arch arm64
+.\src\tests\build.cmd arm64 release generatelayoutonly
 ```
 
 ### Using the Crank CLI
@@ -96,7 +109,7 @@ An explanation for each argument:
 
 #### Profiles
 
-Profiles are a set of predefined variables that are given a name so it is easy to reuse. A list of profiles can be found in the [helix.yml](../helix.yml) at the bottom. Some of the profiles configure the crank agent endpoint, and other profiles configure what the target OS, architecture, and queue is. If you wish to run microbenchmarks on Ubuntu x64, just use `--profile ubuntu-x64`.
+Profiles are a set of predefined variables that are given a name so it is easy to reuse. Profiles are additive meaning that if you specify multiple profiles the variables will get merged together. A list of profiles can be found in [helix.yml](../helix.yml) at the bottom. Some of the profiles configure the crank agent endpoint, and other profiles configure what the target OS, architecture, and queue is. If you wish to run microbenchmarks on Ubuntu x64, just use `--profile ubuntu-x64`.
 
 #### Other useful arguments
 

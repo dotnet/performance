@@ -1,5 +1,6 @@
 jobs:
   run_performance_job:
+    runId: 'dotnetperf'
     isConsoleApp: true
     waitForExit: true
     variables:
@@ -110,6 +111,7 @@ profiles:
       benchmark:
         variables:
           osGroup: windows
+          architecture: arm64
           queue: Windows.11.Arm64.Perf.Surf
   
   win-arm64-ampere:
@@ -117,6 +119,7 @@ profiles:
       benchmark:
         variables:
           osGroup: windows
+          architecture: arm64
           queue: Windows.Server.Arm64.Perf
 
   ubuntu-x64-public:
@@ -139,6 +142,7 @@ profiles:
       benchmark:
         variables:
           osGroup: linux
+          architecture: arm64
           queue: Ubuntu.2004.Arm64.Perf
 
   osx-x64-ios-arm64:

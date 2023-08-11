@@ -13,7 +13,7 @@ class PerformanceSetupArgs:
     working_directory: str # Path to directory where the payload and work item directories will be created
     queue: str # The helix queue to run on
 
-    csproj: str = "src\\benchmarks\\micro\\MicroBenchmarks.csproj" # Path to benchmark project file
+    csproj: str # Path to benchmark project file
     runtime_directory: str | None = None # Path to local copy of runtime repository
     core_root_directory: str | None = None # Path to the core root directory so that pre-built versions of the runtime repo can be used
     baseline_core_root_directory: str | None = None
