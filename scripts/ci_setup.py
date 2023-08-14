@@ -267,34 +267,61 @@ def __process_arguments(args: List[str]):
     return parser.parse_args(args)
 
 
-# @dataclass
-# class CiSetupArgs:
-#     channel: str
-#     quiet: bool = False
-#     commit_sha: Optional[str] = None
-#     repository: Optional[str] = None
-#     architecture: str = get_machine_architecture()
-#     dotnet_path: Optional[str] = None
-#     dotnet_versions: List[str] = field(default_factory=list)
-#     install_dir: Optional[str] = None
-#     build_configs: List[str] = field(default_factory=list)
-#     pgo_status: Optional[str] = None
-#     get_perf_hash: bool = False
-#     perf_hash: str = 'testSha'
-#     cli: Optional[str] = None
-#     commit_time: Optional[str] = None
-#     local_build: bool = False
-#     branch: Optional[str] = None
-#     output_file: str = os.path.join(get_tools_directory(), 'machine-setup')
-#     not_in_lab: bool = False
-#     queue: str = 'testQueue'
-#     build_number: str = '1234.1'
-#     locale: str = 'en-US'
-#     maui_version: str = ''
-#     affinity: Optional[str] = None
-#     run_env_vars: Optional[List[str]] = None
-#     target_windows: bool = True
-#     physical_promotion: Optional[str] = None
+class CiSetupArgs:
+    def __init__(
+            self,
+            channel: str,
+            quiet: bool = False,
+            commit_sha: Optional[str] = None,
+            repository: Optional[str] = None,
+            architecture: str = get_machine_architecture(),
+            dotnet_path: Optional[str] = None,
+            dotnet_versions: List[str] = [],
+            install_dir: Optional[str] = None,
+            build_configs: List[str] = [],
+            pgo_status: Optional[str] = None,
+            get_perf_hash: bool = False,
+            perf_hash: str = 'testSha',
+            cli: Optional[str] = None,
+            commit_time: Optional[str] = None,
+            local_build: bool = False,
+            branch: Optional[str] = None,
+            output_file: str = os.path.join(get_tools_directory(), 'machine-setup'),
+            not_in_lab: bool = False,
+            queue: str = 'testQueue',
+            build_number: str = '1234.1',
+            locale: str = 'en-US',
+            maui_version: str = '',
+            affinity: Optional[str] = None,
+            run_env_vars: Optional[List[str]] = None,
+            target_windows: bool = True,
+            physical_promotion: Optional[str] = None):
+        self.channel = channel
+        self.quiet = quiet
+        self.commit_sha = commit_sha
+        self.repository = repository
+        self.architecture = architecture
+        self.dotnet_path = dotnet_path
+        self.dotnet_versions = dotnet_versions
+        self.install_dir = install_dir
+        self.build_configs = build_configs
+        self.pgo_status = pgo_status
+        self.get_perf_hash = get_perf_hash
+        self.perf_hash = perf_hash
+        self.cli = cli
+        self.commit_time = commit_time
+        self.local_build = local_build
+        self.branch = branch
+        self.output_file = output_file
+        self.not_in_lab = not_in_lab
+        self.queue = queue
+        self.build_number = build_number
+        self.locale = locale
+        self.maui_version = maui_version
+        self.affinity = affinity
+        self.run_env_vars = run_env_vars
+        self.target_windows = target_windows
+        self.physical_promotion = physical_promotion
 
 def main(args: Any):
     verbose = not args.quiet
@@ -453,8 +480,7 @@ def main(args: Any):
 def __main(argv: List[str]):
     validate_supported_runtime()
     args = __process_arguments(argv)
-    # main(CiSetupArgs(**vars(args)))
-    main(args)
+    main(CiSetupArgs(**vars(args)))
 
 
 if __name__ == "__main__":
