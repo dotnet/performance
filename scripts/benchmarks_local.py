@@ -13,7 +13,7 @@
 # * Adding a new run type:
 #   * Add the run type to the RunType enum
 #   * Add the build instructions to the generate_all_runtime_artifacts function
-#   * Add the BDN run arguments to the generate_benchmark_ci_args function
+#   * Add the BDN run arguments to the generate_combined_benchmark_ci_args function
 #
 # Prereqs:
 # Normal prereqs for building the target runtime: https://github.com/dotnet/runtime/blob/main/docs/workflow/requirements/linux-requirements.md
@@ -245,7 +245,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
 
     getLogger().info(f"Finished generating dependencies for {' '.join(map(str, parsed_args.run_type_names))} run types in {repo_path} and stored in {parsed_args.artifact_storage_path}.")
 
-def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, all_commits: list) -> list:
+def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, all_commits: list[str]) -> list:
     getLogger().info(f"Generating benchmark_ci.py arguments for {specific_run_type.name} run type using artifacts in {parsed_args.artifact_storage_path}.")
     benchmark_ci_args = []
     bdn_args_unescaped = []
@@ -313,11 +313,84 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
 
     # for commit in all_commits: There is not a way to run multiple Wasm's at once via CI, instead will split single run vs multi-run scenarios
     elif specific_run_type == RunType.WasmWasm:
+        raise TypeError("WasmWasm does not support combined benchmark ci arg generation, use single benchmark generation and loop the benchmark_ci.py calls.")
+
+    elif specific_run_type == RunType.WasmAOT:
+        raise TypeError("WasmWasm does not support combined benchmark ci arg generation, use single benchmark generation and loop the benchmark_ci.py calls.")
+
+    if parsed_args.bdn_arguments:
+        bdn_args_unescaped += [parsed_args.bdn_arguments]
+    benchmark_ci_args += [f'--bdn-arguments={" ".join(bdn_args_unescaped)}']
+    getLogger().info(f"Finished generating benchmark_ci.py arguments for {specific_run_type.name} run type using artifacts in {parsed_args.artifact_storage_path}.")
+    return benchmark_ci_args
+
+def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, commit: str) -> list:
+    getLogger().info(f"Generating benchmark_ci.py arguments for {specific_run_type.name} run type using artifacts in {parsed_args.artifact_storage_path}.")
+    benchmark_ci_args = []
+    bdn_args_unescaped = []
+    benchmark_ci_args += ['--architecture', parsed_args.architecture]
+    benchmark_ci_args += ['--frameworks', parsed_args.framework]
+    benchmark_ci_args += ['--filter', parsed_args.filter]
+    benchmark_ci_args += ['--dotnet-path', parsed_args.dotnet_dir_path]
+    benchmark_ci_args += ['--csproj', parsed_args.csproj]
+    benchmark_ci_args += ['--incremental', "no"]
+    benchmark_ci_args += ['--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, f"BenchmarkDotNet.Artifacts.{specific_run_type.name}.{start_time.strftime('%y%m%d_%H%M%S')}")]
+
+    if specific_run_type == RunType.CoreRun:
+        bdn_args_unescaped += [
+                                '--anyCategories', 'Libraries', 'Runtime',
+                                '--logBuildOutput',
+                                '--generateBinLog'
+                            ]
+        bdn_args_unescaped += [ '--corerun', os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commit), "Core_Root", f'corerun{".exe" if is_windows(parsed_args) else ""}') ]
+
+    elif specific_run_type == RunType.MonoAOTLLVM:
+        raise NotImplementedError("MonoAOTLLVM is not yet implemented.")
+    
+    elif specific_run_type == RunType.MonoInterpreter:
+        bdn_args_unescaped += [
+                                '--anyCategories', 'Libraries', 'Runtime', 
+                                '--category-exclusion-filter', 'NoInterpreter', 'NoMono',
+                                '--logBuildOutput',
+                                '--generateBinLog'
+                            ]
+        
+        # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
+        corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
+        if len(corerun_capture) == 0:
+            raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
+        elif len(corerun_capture) > 1:
+            raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
+        else:
+            corerun_path = corerun_capture[0]
+        bdn_args_unescaped += [ '--corerun', corerun_path ]
+        bdn_args_unescaped += ['--envVars', 'MONO_ENV_OPTIONS:--interpreter']
+
+    elif specific_run_type == RunType.MonoJIT:
+        bdn_args_unescaped += [ 
+                                '--anyCategories', 'Libraries', 'Runtime', 
+                                '--category-exclusion-filter', 'NoInterpreter', 'NoMono',
+                                '--logBuildOutput',
+                                '--generateBinLog'
+                            ]
+        
+        # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
+        corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
+        if len(corerun_capture) == 0:
+            raise Exception(f"Could not find corerun in {get_run_artifact_path(parsed_args, RunType.MonoJIT, commit)}")
+        elif len(corerun_capture) > 1:
+            raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoJIT, commit)}")
+        else:
+            corerun_path = corerun_capture[0]
+        bdn_args_unescaped += [ '--corerun', corerun_path ]
+
+    # for commit in all_commits: There is not a way to run multiple Wasm's at once via CI, instead will split single run vs multi-run scenarios
+    elif specific_run_type == RunType.WasmWasm:
         benchmark_ci_args += [ '--wasm' ]
         bdn_args_unescaped += [
                                 '--anyCategories', 'Libraries', 'Runtime',
                                 '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
-                                '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmWasm, all_commits[0]), "wasm_bundle", "wasm-data"),
+                                '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmWasm, commit), "wasm_bundle", "wasm-data"),
                                 '--wasmEngine', parsed_args.wasm_engine_path,
                                 '--wasmArgs', '\"--experimental-wasm-eh --expose_wasm --module\"',
                                 '--logBuildOutput',
@@ -329,7 +402,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
         bdn_args_unescaped += [
                                 '--anyCategories', 'Libraries', 'Runtime',
                                 '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
-                                '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, all_commits[0]), "wasm_bundle", "wasm-data"),
+                                '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle", "wasm-data"),
                                 '--wasmEngine', parsed_args.wasm_engine_path,
                                 '--wasmArgs', '\"--experimental-wasm-eh --expose_wasm --module\"',
                                 '--aotcompilermode', 'wasm',
@@ -340,7 +413,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
     if parsed_args.bdn_arguments:
         bdn_args_unescaped += [parsed_args.bdn_arguments]
     benchmark_ci_args += [f'--bdn-arguments={" ".join(bdn_args_unescaped)}']
-    getLogger().info(f"Finished generating benchmark_ci.py arguments for {specific_run_type.name} run type using artifacts in {parsed_args.artifact_storage_path}.")
+    getLogger().info(f"Finished generating benchmark_ci.py arguments for {specific_run_type.name} run type commit {commit} using artifacts in {parsed_args.artifact_storage_path}.")
     return benchmark_ci_args
 
 def generate_artifacts_for_commit(parsed_args: Namespace, repo_url: str, repo_dir: str, commit: str, is_local: bool = False) -> None:
@@ -374,10 +447,19 @@ def run_benchmarks(parsed_args: Namespace, commits: list) -> None:
     for run_type in enum_name_list_to_enum_list(RunType, parsed_args.run_type_names):
         # Run the benchmarks_ci.py test and save results
         try:
-            benchmark_ci_args = generate_benchmark_ci_args(parsed_args, run_type, commits)
-            getLogger().info(f"Running benchmarks_ci.py for {run_type} at {commits} with arguments \"{' '.join(benchmark_ci_args)}\".")
-            kill_dotnet_processes(parsed_args)
-            benchmarks_ci.__main(benchmark_ci_args) # Build the runtime includes a download of dotnet at this location
+            if run_type in [RunType.CoreRun, RunType.MonoInterpreter, RunType.MonoJIT]:
+                benchmark_ci_args = generate_combined_benchmark_ci_args(parsed_args, run_type, commits)
+                getLogger().info(f"Running benchmarks_ci.py for {run_type} at {commits} with arguments \"{' '.join(benchmark_ci_args)}\".")
+                kill_dotnet_processes(parsed_args)
+                benchmarks_ci.__main(benchmark_ci_args) # Build the runtime includes a download of dotnet at this location
+            elif run_type in [RunType.WasmWasm, RunType.WasmAOT]:
+                for commit in commits:
+                    benchmark_ci_args = generate_single_benchmark_ci_args(parsed_args, run_type, commit)
+                    getLogger().info(f"Running single benchmarks_ci.py for {run_type} at {commit} with arguments \"{' '.join(benchmark_ci_args)}\".")
+                    kill_dotnet_processes(parsed_args)
+                    benchmarks_ci.__main(benchmark_ci_args)
+            else:
+                raise TypeError(f"Run type {run_type} is not supported. Please check the run type and try again.")
         except CalledProcessError:
             getLogger().error('benchmarks_ci exited with non zero exit code, please check the log and report benchmark failure')
             raise
