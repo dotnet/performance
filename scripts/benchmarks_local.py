@@ -16,9 +16,10 @@
 #   * Add the BDN run arguments to the generate_benchmark_ci_args function
 #
 # Prereqs:
-# Normal prereqs for building the target runtime
+# Normal prereqs for building the target runtime: https://github.com/dotnet/runtime/blob/main/docs/workflow/requirements/linux-requirements.md
 # Python 3
 # gitpython (pip install gitpython)
+# Wasm need jsvu and https://github.com/dotnet/runtime/blob/main/docs/workflow/building/libraries/webassembly-instructions.md
 
 
 import ctypes
@@ -201,11 +202,8 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
     if check_for_runtype_specified(parsed_args, [RunType.MonoAOTLLVM]):
         raise NotImplementedError("MonoAOTLLVM is not yet implemented.") # TODO: Finish MonoAOTLLVM Build stuff
         build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['/p:CrossBuild=false' '/p:MonoLLVMUseCxx11Abi=false'])
-        # Clean up the build results
-        shutil.rmtree(os.path.join(repo_path, "artifacts"), ignore_errors=True) # TODO: Can we trust the build system to update these when necessary or do we need to clean them up ourselves?
 
     if check_for_runtype_specified(parsed_args, [RunType.WasmWasm, RunType.WasmAOT]):
-        # TODO: Figure out prereq check flow
         # Must have jsvu installed also
         dest_dir_wasm_wasm = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmWasm, commit), "wasm_bundle")
         dest_dir_wasm_aot = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle")
@@ -240,11 +238,10 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
             shutil.rmtree(dest_dir_wasm_aot, ignore_errors=True)
             copy_directory_contents(dotnet_wasm_path, dest_dir_wasm_aot)
 
-            # Add wasm-tools to dotnet instance: # TODO: Check if dotnet.exe is windows
+            # Add wasm-tools to dotnet instance
             RunCommand([os.path.join(parsed_args.dotnet_dir_path, f'dotnet{".exe" if is_windows(parsed_args) else ""}'), "workload", "install", "wasm-tools"], verbose=True).run()
         else:
             getLogger().info(f"wasm_bundle already exists in {dest_dir_wasm_wasm} and {dest_dir_wasm_aot}. Skipping generation.")
-
 
     getLogger().info(f"Finished generating dependencies for {' '.join(map(str, parsed_args.run_type_names))} run types in {repo_path} and stored in {parsed_args.artifact_storage_path}.")
 
@@ -314,6 +311,7 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                 corerun_path = corerun_capture[0]
             bdn_args_unescaped += [ corerun_path ]
 
+    # for commit in all_commits: There is not a way to run multiple Wasm's at once via CI, instead will split single run vs multi-run scenarios
     elif specific_run_type == RunType.WasmWasm:
         benchmark_ci_args += [ '--wasm' ]
         bdn_args_unescaped += [
@@ -325,9 +323,6 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                                 '--logBuildOutput',
                                 '--generateBinLog'
                             ]
-        
-        # for commit in all_commits: # TODO see if there is a way to run multiple Wasm's at once.
-        #     bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commit), "Core_Root", f'corerun{".exe" if is_windows(parsed_args) else ""}') ]
 
     elif specific_run_type == RunType.WasmAOT:
         benchmark_ci_args += [ '--wasm' ]
@@ -341,9 +336,6 @@ def generate_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunTyp
                                 '--logBuildOutput',
                                 '--generateBinLog'
                             ]
-        
-        # for commit in all_commits: # TODO see if there is a way to run multiple Wasm's at once.
-        #     bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commit), "Core_Root", f'corerun{".exe" if is_windows(parsed_args) else ""}') ]
 
     if parsed_args.bdn_arguments:
         bdn_args_unescaped += [parsed_args.bdn_arguments]
@@ -393,7 +385,7 @@ def run_benchmarks(parsed_args: Namespace, commits: list) -> None:
         getLogger().info(f"Finished running benchmark for {run_type} at {commits}.")
 
 def install_dotnet(parsed_args: Namespace) -> None:
-    if not os.path.exists(parsed_args.dotnet_dir_path): #TODO Do we want to just always install dotnet?
+    if not os.path.exists(parsed_args.dotnet_dir_path) or parsed_args.reinstall_dotnet:
         dotnet.install(parsed_args.architecture, ["main"], parsed_args.dotnet_versions, parsed_args.verbose, parsed_args.dotnet_dir_path)
     dotnet.setup_dotnet(parsed_args.dotnet_dir_path)
 
@@ -438,6 +430,7 @@ def add_arguments(parser):
     parser.add_argument('--repo-storage-path', type=str, default='.', help='The path to store the cloned repositories in.')
     parser.add_argument('--artifact-storage-path', type=str, default=os.path.join(os.getcwd(), "runtime-testing-artifacts"), help=f'The path to store the artifacts in (builds, results, etc). Default is {os.path.join(os.getcwd(), "runtime-testing-artifacts")}')
     parser.add_argument('--rebuild-artifacts', action='store_true', help='Whether to rebuild the artifacts for the specified commits before benchmarking.')
+    parser.add_argument('--reinstall-dotnet', action='store_true', help='Whether to reinstall dotnet for use in building the benchmarks before running the benchmarks.')
     parser.add_argument('--build-only', action='store_true', help='Whether to only build the artifacts for the specified commits and not run the benchmarks.')
     parser.add_argument('--skip-local-rebuild', action='store_true', help='Whether to skip rebuilding the local repo and use the already built version (if already built). Useful if you need to run against local changes again.')
     parser.add_argument('--allow-non-admin-execution', action='store_true', help='Whether to allow non-admin execution of the script. Admin execution is highly recommended as it minimizes the chance of encountering errors, but may not be possible in all cases.')
@@ -490,8 +483,6 @@ def __main(args: list):
             if any([run_type.name in folder for run_type in RunType]):
                 getLogger().info(folder)
         return
-
-    # TODO: Add check to make sure there is only one commit specified if running for wasm
 
     # Check to make sure we have something specified to test
     if parsed_args.commits or parsed_args.local_test_repo:
