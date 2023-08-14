@@ -68,7 +68,7 @@ jobs:
             value: 'export PYTHONPATH=$ORIGPYPATH'
           - name: Python
             value: python3
-          - ${{ if eq(parameters.osVersion, '1804')}}:
+          - ${{ if eq(parameters.osVersion, '2204')}}:
             - name: ArtifactsDirectory
               value: '$HELIX_WORKITEM_UPLOAD_ROOT/BenchmarkDotNet.Artifacts'
           - ${{ if or(eq(parameters.osVersion, '1604'), eq(parameters.architecture, 'arm64'))}}:
