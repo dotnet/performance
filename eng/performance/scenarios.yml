@@ -23,8 +23,8 @@ jobs:
     enablePublishBuildArtifacts: true
     helixRepo: dotnet/performance
     jobs:
-      - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}_${{ parameters.runtimeFlavor }}_${{ parameters.hybridGlobalization }}_${{ parameters.machinePool }}${{ parameters.additionalJobIdentifier }}'
-        displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.runtimeFlavor }} ${{ parameters.hybridGlobalization }} ${{ parameters.machinePool }} ${{ parameters.additionalJobIdentifier }}'
+      - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}_${{ parameters.runtimeFlavor }}_hybridGlobalization_${{ parameters.hybridGlobalization }}_${{ parameters.machinePool }}${{ parameters.additionalJobIdentifier }}'
+        displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.runtimeFlavor }} HybridGlobalization ${{ parameters.hybridGlobalization }} ${{ parameters.machinePool }} ${{ parameters.additionalJobIdentifier }}'
         timeoutInMinutes: 1260
         variables:
         - name: AffinityValue # Make the affinity value available to the csproj generation
