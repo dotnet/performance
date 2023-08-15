@@ -53,9 +53,9 @@ schedules:
 
 jobs:
 
-# ######################################################
-# # Public correctness jobs
-# ######################################################
+######################################################
+# Public correctness jobs
+######################################################
 
 - ${{ if or(eq(variables['System.TeamProject'], 'public'), parameters.runPublicJobs) }}:
 
