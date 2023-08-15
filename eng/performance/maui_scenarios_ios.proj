@@ -27,19 +27,19 @@
   </ItemDefinitionGroup>
 
   <ItemGroup>
-    <MAUIiOSScenario Include="Xamarin iOS Default $(RuntimeFlavor) HybridGlobalization=$(HybridGlobalization)">
+    <MAUIiOSScenario Include="Xamarin iOS Default $(RuntimeFlavor) HybridGlobalization $(HybridGlobalization)">
       <ScenarioDirectoryName>xamarinios</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>XamariniOSDefault</IPAName>
       <PackageName>com.companyname.XamariniOSDefault</PackageName>
     </MAUIiOSScenario>
-    <MAUIiOSScenario Include="Maui iOS Default $(RuntimeFlavor) HybridGlobalization=$(HybridGlobalization)">
+    <MAUIiOSScenario Include="Maui iOS Default $(RuntimeFlavor) HybridGlobalization $(HybridGlobalization)">
       <ScenarioDirectoryName>mauiios</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>MauiiOSDefault</IPAName>
       <PackageName>net.dot.mauitesting</PackageName>
     </MAUIiOSScenario>
-    <MAUIiOSScenario Include="Maui Blazor iOS Default $(RuntimeFlavor) HybridGlobalization=$(HybridGlobalization)">
+    <MAUIiOSScenario Include="Maui Blazor iOS Default $(RuntimeFlavor) HybridGlobalization $(HybridGlobalization)">
       <ScenarioDirectoryName>mauiblazorios</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <IPAName>MauiBlazoriOSDefault</IPAName>
@@ -70,7 +70,7 @@
       <PreCommands>cp -r $HELIX_CORRELATION_PAYLOAD/$(PreparePayloadOutDirectoryName)/%(HelixWorkItem.ScenarioDirectoryName) $HELIX_WORKITEM_ROOT/pub; mv $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).ipa $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; unzip -d $HELIX_WORKITEM_ROOT/pub $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip; rm $HELIX_WORKITEM_ROOT/pub/%(HelixWorkItem.IPAName).zip</PreCommands>
       <Command>$(Python) test.py sod --scenario-name &quot;%(Identity)&quot;</Command>
     </HelixWorkItem>
-    <XHarnessAppBundleToTest Include="Device Startup - iOS Xamarin Default $(RuntimeFlavor) HybridGlobalization=$(HybridGlobalization)">
+    <XHarnessAppBundleToTest Include="Device Startup - iOS Xamarin Default $(RuntimeFlavor) HybridGlobalization $(HybridGlobalization)">
       <AppBundlePath>$(ScenariosDir)xamarinios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
@@ -98,7 +98,7 @@
           ]]>
         </CustomCommands>
     </XHarnessAppBundleToTest>
-    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Default $(RuntimeFlavor) HybridGlobalization=$(HybridGlobalization)">
+    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Default $(RuntimeFlavor) HybridGlobalization $(HybridGlobalization)">
       <AppBundlePath>$(ScenariosDir)mauiios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>
@@ -126,7 +126,7 @@
           ]]>
         </CustomCommands>
     </XHarnessAppBundleToTest>
-    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Blazor Default $(RuntimeFlavor) HybridGlobalization=$(HybridGlobalization)">
+    <XHarnessAppBundleToTest Include="Device Startup - iOS Maui Blazor Default $(RuntimeFlavor) HybridGlobalization $(HybridGlobalization)">
       <AppBundlePath>$(ScenariosDir)mauiblazorios.zip</AppBundlePath>
       <WorkItemTimeout>00:15:00</WorkItemTimeout>
       <TestTarget>ios-device</TestTarget>

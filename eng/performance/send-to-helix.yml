@@ -24,7 +24,7 @@ parameters:
   continueOnError: false                 # optional -- determines whether to continue the build if the step errors; defaults to false
   ProjectFile: helix.proj                # optional -- override default project used to send benchmarks
   RuntimeFlavor: ''                      # optional -- runtime flavor used for scenarios
-  HybridGlobalization: ''                # optional -- globalization used for scenarios
+  HybridGlobalization: false             # optional -- globalization used for scenarios
 
 steps:
   - powershell: 'powershell "$env:BUILD_SOURCESDIRECTORY\eng\common\msbuild.ps1 -warnaserror 0 $env:BUILD_SOURCESDIRECTORY\eng\performance\${{ parameters.ProjectFile }} /restore /t:Test /p:RuntimeFlavor=${{ parameters.RuntimeFlavor }} /p:HybridGlolbalization=${{ parameters.HybridGlolbalization }} /bl:$env:BUILD_SOURCESDIRECTORY\artifacts\log\$env:BuildConfig\SendToHelix.binlog"'
