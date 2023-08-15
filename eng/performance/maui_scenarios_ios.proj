@@ -11,7 +11,8 @@
     <PreparePayloadOutDirectoryName>scenarios_out</PreparePayloadOutDirectoryName>
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' == 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)\</PreparePayloadWorkItemBaseDirectory>
     <PreparePayloadWorkItemBaseDirectory Condition="'$(TargetsWindows)' != 'true'">$(CorrelationPayloadDirectory)$(PreparePayloadOutDirectoryName)/</PreparePayloadWorkItemBaseDirectory>
-    <OptionalCommandProps Condition="'$(RuntimeFlavor)' == 'coreclr'">--nativeaot true</OptionalCommandProps>
+    <NativeAOTCommandProps Condition="'$(RuntimeFlavor)' == 'coreclr'">--nativeaot true</NativeAOTCommandProps>
+    <HybridGlobalizationCommandProps Condition="'$(HybridGlobalization)' == 'true'">--hybrid-globalization true</HybridGlobalizationCommandProps>
   </PropertyGroup>
 
   <Target Name="RemoveDotnetFromCorrelationStaging" BeforeTargets="BeforeTest">
@@ -55,7 +56,7 @@
 
   <ItemGroup>
     <PreparePayloadWorkItem Include="@(MAUIiOSScenario)">
-      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 $(OptionalCommandProps) --hybrid-globalization $(HybridGlobalization) -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
+      <Command>$(Python) pre.py publish -f $(PERFLAB_Framework)-ios --self-contained -c Release -r ios-arm64 $(NativeAOTCommandProps) $(HybridGlobalizationCommandProps) -o $(PreparePayloadWorkItemBaseDirectory)%(PreparePayloadWorkItem.ScenarioDirectoryName); cd ../; zip -r %(PreparePayloadWorkItem.ScenarioDirectoryName).zip %(PreparePayloadWorkItem.ScenarioDirectoryName)</Command>
       <WorkingDirectory>%(PreparePayloadWorkItem.PayloadDirectory)</WorkingDirectory>
     </PreparePayloadWorkItem>
   </ItemGroup>
