@@ -16,10 +16,10 @@
 #   * Add the BDN run arguments to the generate_combined_benchmark_ci_args function
 #
 # Prereqs:
-# Normal prereqs for building the target runtime: https://github.com/dotnet/runtime/blob/main/docs/workflow/requirements/linux-requirements.md
+# Normal prereqs for building the target runtime: https://github.com/dotnet/runtime/blob/main/docs/workflow/README.md#Build_Requirements
 # Python 3
 # gitpython (pip install gitpython)
-# Wasm need jsvu and https://github.com/dotnet/runtime/blob/main/docs/workflow/building/libraries/webassembly-instructions.md
+# Wasm need jsvu installed and setup (No need to setup EMSDK, the tool does that automatically when building)
 
 
 import ctypes
@@ -255,7 +255,7 @@ def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_typ
     benchmark_ci_args += ['--dotnet-path', parsed_args.dotnet_dir_path]
     benchmark_ci_args += ['--csproj', parsed_args.csproj]
     benchmark_ci_args += ['--incremental', "no"]
-    benchmark_ci_args += ['--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, f"BenchmarkDotNet.Artifacts.{specific_run_type.name}.{start_time.strftime('%y%m%d_%H%M%S')}")]
+    benchmark_ci_args += ['--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, f"BenchmarkDotNet.Artifacts.{specific_run_type.name}.{start_time.strftime('%y%m%d_%H%M%S')}")] # We don't include the commit hash in the artifact path because we are combining multiple runs into one
 
     if specific_run_type == RunType.CoreRun:
         bdn_args_unescaped += [
@@ -334,7 +334,7 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
     benchmark_ci_args += ['--dotnet-path', parsed_args.dotnet_dir_path]
     benchmark_ci_args += ['--csproj', parsed_args.csproj]
     benchmark_ci_args += ['--incremental', "no"]
-    benchmark_ci_args += ['--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, f"BenchmarkDotNet.Artifacts.{specific_run_type.name}.{start_time.strftime('%y%m%d_%H%M%S')}")]
+    benchmark_ci_args += ['--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, f"BenchmarkDotNet.Artifacts.{specific_run_type.name}.{commit}.{start_time.strftime('%y%m%d_%H%M%S')}")] # We add the commit hash to the artifact path because we are only running one commit at a time and they would clobber if running more than one commit perf type
 
     if specific_run_type == RunType.CoreRun:
         bdn_args_unescaped += [
