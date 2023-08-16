@@ -184,7 +184,7 @@ jobs:
               displayName: Stop dotnet.exe
             - script: del $(CorrelationStaging)dotnet\* /F /S /Q
               displayName: Delete old dotnet
-            - script: xcopy tools\dotnet\arm64\* $(CorrelationStaging)dotnet\/E /I /Y
+            - script: xcopy tools\dotnet\arm64\* $(CorrelationStaging)dotnet\ /E /I /Y
               displayName: Copy Arm64 Dotnet to Correlation Payload
         - ${{ if eq(parameters.osName, 'osx') }}:
           - script: cp ./NuGet.config $(CorrelationStaging);cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared;cp -r ./src/scenarios/staticdeps $(CorrelationStaging)staticdeps
