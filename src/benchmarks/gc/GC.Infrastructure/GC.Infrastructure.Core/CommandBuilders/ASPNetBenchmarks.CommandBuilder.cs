@@ -72,7 +72,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
                 commandStringBuilder.Append($" --application.options.traceOutput {Path.Combine(configuration.Output.Path, run.Key, (baseConfiguration.Key + "." + collectType)) + traceFileSuffix}");
             }
 
-            commandStringBuilder.Append($" --application.framework net8.0 ");
+            //commandStringBuilder.Append($" --application.framework net8.0 ");
 
             string corerunToSend = run.Value.corerun.EndsWith("\\") ? run.Value.corerun.Remove(run.Value.corerun.Length - 1) : run.Value.corerun;
             commandStringBuilder.Append($" --application.options.outputFiles {Path.Combine(Path.GetDirectoryName(corerunToSend), "*.*" )}");
