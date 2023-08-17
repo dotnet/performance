@@ -277,14 +277,25 @@ def _parse_heap_affinitize_ranges(s: str) -> HeapAffinitizeRanges:
     # Example 1,3,5,7-9,12
     parts = s.split(",")
     ranges = [_parse_heap_affinitize_range(part) for part in parts]
+    _assert_consistent_group_existence(ranges)
     _assert_sorted_and_non_overlapping(ranges)
     return HeapAffinitizeRanges(ranges)
 
 
+def _assert_consistent_group_existence(ranges: Sequence[HeapAffinitizeRange]) -> None:
+    number_with_group = len([r for r in ranges if r.group is not None])
+    assert number_with_group == 0 or number_with_group == len(ranges)
+
+
 def _assert_sorted_and_non_overlapping(ranges: Sequence[HeapAffinitizeRange]) -> None:
+    prev_group = None
     prev = -1
     for r in ranges:
-        assert r.lo > prev
+        assert prev_group is None or r.group is None or prev_group <= r.group
+        assert r.lo <= r.hi
+        assert r.group != prev_group or r.lo > prev
+
+        prev_group = r.group
         prev = r.hi
 
 
