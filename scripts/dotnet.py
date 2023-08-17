@@ -589,8 +589,6 @@ def get_dotnet_sdk(
         framework: str,
         dotnet_path: Optional[str] = None,
         sdk: Optional[str] = None) -> str:
-    """Gets the dotnet Host commit sha from the `dotnet --info` command."""
-
     sdk_path = get_sdk_path(dotnet_path)
     sdk = get_dotnet_version(framework, dotnet_path,
                              sdk_path) if sdk is None else sdk
