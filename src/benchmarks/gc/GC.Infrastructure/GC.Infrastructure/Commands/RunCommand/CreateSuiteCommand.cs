@@ -362,7 +362,8 @@ namespace GC.Infrastructure.Commands.RunCommand
         {
             GCPerfSimConfiguration largePagesServer = CreateNormalServerCase(inputConfiguration, name);
             largePagesServer.Environment.environment_variables["COMPlus_GCLargePages"] = "1";
-            largePagesServer.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x100000000";
+            // This is a particularly memory intensive test that needs to be revisited. (~40 GB needed)
+            largePagesServer.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x960000000";
             largePagesServer.Name = name;
             return largePagesServer;
         }
@@ -371,7 +372,8 @@ namespace GC.Infrastructure.Commands.RunCommand
         {
             GCPerfSimConfiguration largePagesWorkstation = GetBaseConfiguration(inputConfiguration, name);
             largePagesWorkstation.Environment.environment_variables["COMPlus_GCLargePages"] = "1";
-            largePagesWorkstation.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x100000000";
+            // This is a particularly memory intensive test that needs to be revisited. (~40 GB needed)
+            largePagesWorkstation.Environment.environment_variables["COMPlus_GCHeapHardLimit"] = "0x960000000";
             largePagesWorkstation.Name = name;
             return largePagesWorkstation;
         }
