@@ -46,7 +46,7 @@ from performance.logger import setup_loggers
 # Assumptions: We are only testing this Performance repo, should allow single run or multiple runs
 # For dotnet_version based runs, use the benchmarks_monthly .py script instead
 # Verify the input commands
-# What are supported default cases: MonoJIT, MonoInterpreter, Corerun, WasmWasm etc. (WIP: MONOAOTLLVM)
+# What are supported default cases: MonoJIT, MonoInterpreter, Corerun, WasmInterpreter etc. (WIP: MONOAOTLLVM)
 
 start_time = datetime.now()
 local_shared_string = "local"
@@ -56,7 +56,7 @@ class RunType(Enum):
     MonoAOTLLVM = 2
     MonoInterpreter = 3
     MonoJIT = 4
-    WasmWasm = 5
+    WasmInterpreter = 5
     WasmAOT = 6
 
 def is_windows(parsed_args: Namespace):
@@ -203,9 +203,9 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
         raise NotImplementedError("MonoAOTLLVM is not yet implemented.") # TODO: Finish MonoAOTLLVM Build stuff
         build_runtime_dependency(parsed_args, repo_path, "mono+libs+host+packs", additional_args=['/p:CrossBuild=false' '/p:MonoLLVMUseCxx11Abi=false'])
 
-    if check_for_runtype_specified(parsed_args, [RunType.WasmWasm, RunType.WasmAOT]):
+    if check_for_runtype_specified(parsed_args, [RunType.WasmInterpreter, RunType.WasmAOT]):
         # Must have jsvu installed also
-        dest_dir_wasm_wasm = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmWasm, commit), "wasm_bundle")
+        dest_dir_wasm_wasm = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmInterpreter, commit), "wasm_bundle")
         dest_dir_wasm_aot = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle")
         if force_regenerate or not os.path.exists(dest_dir_wasm_wasm) or not os.path.exists(dest_dir_wasm_aot):
             provision_wasm = [
@@ -312,11 +312,11 @@ def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_typ
             bdn_args_unescaped += [ corerun_path ]
 
     # for commit in all_commits: There is not a way to run multiple Wasm's at once via CI, instead will split single run vs multi-run scenarios
-    elif specific_run_type == RunType.WasmWasm:
-        raise TypeError("WasmWasm does not support combined benchmark ci arg generation, use single benchmark generation and loop the benchmark_ci.py calls.")
+    elif specific_run_type == RunType.WasmInterpreter:
+        raise TypeError("WasmInterpreter does not support combined benchmark ci arg generation, use single benchmark generation and loop the benchmark_ci.py calls.")
 
     elif specific_run_type == RunType.WasmAOT:
-        raise TypeError("WasmWasm does not support combined benchmark ci arg generation, use single benchmark generation and loop the benchmark_ci.py calls.")
+        raise TypeError("WasmInterpreter does not support combined benchmark ci arg generation, use single benchmark generation and loop the benchmark_ci.py calls.")
 
     if parsed_args.bdn_arguments:
         bdn_args_unescaped += [parsed_args.bdn_arguments]
@@ -385,12 +385,12 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
         bdn_args_unescaped += [ '--corerun', corerun_path ]
 
     # for commit in all_commits: There is not a way to run multiple Wasm's at once via CI, instead will split single run vs multi-run scenarios
-    elif specific_run_type == RunType.WasmWasm:
+    elif specific_run_type == RunType.WasmInterpreter:
         benchmark_ci_args += [ '--wasm' ]
         bdn_args_unescaped += [
                                 '--anyCategories', 'Libraries', 'Runtime',
                                 '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
-                                '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmWasm, commit), "wasm_bundle", "wasm-data"),
+                                '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmInterpreter, commit), "wasm_bundle", "wasm-data"),
                                 '--wasmEngine', parsed_args.wasm_engine_path,
                                 '--wasmArgs', '\"--experimental-wasm-eh --expose_wasm --module\"',
                                 '--logBuildOutput',
@@ -452,7 +452,7 @@ def run_benchmarks(parsed_args: Namespace, commits: list) -> None:
                 getLogger().info(f"Running benchmarks_ci.py for {run_type} at {commits} with arguments \"{' '.join(benchmark_ci_args)}\".")
                 kill_dotnet_processes(parsed_args)
                 benchmarks_ci.__main(benchmark_ci_args) # Build the runtime includes a download of dotnet at this location
-            elif run_type in [RunType.WasmWasm, RunType.WasmAOT]:
+            elif run_type in [RunType.WasmInterpreter, RunType.WasmAOT]:
                 for commit in commits:
                     benchmark_ci_args = generate_single_benchmark_ci_args(parsed_args, run_type, commit)
                     getLogger().info(f"Running single benchmarks_ci.py for {run_type} at {commit} with arguments \"{' '.join(benchmark_ci_args)}\".")
