@@ -1,4 +1,5 @@
 ﻿using GC.Infrastructure.Core.Analysis;
+using GC.Infrastructure.Core.Configurations;
 using GC.Infrastructure.Core.Configurations.ASPNetBenchmarks;
 using GC.Infrastructure.Core.Presentation;
 using Spectre.Console;
@@ -14,40 +15,30 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
         public sealed class AspNetBenchmarkAnalyzeSettings : CommandSettings
         {
             [Description("Path to Configuration.")]
-            [CommandOption("-o|--output")]
-            public string? OutputPath { get; init; } = "";
-
-            [Description("Path to Baseline Json.")]
-            [CommandOption("-b|--baseline")]
-            public string? BaselineJson { get; init; }
-
-            [Description("Path to Comparand Json.")]
-            [CommandOption("-p|--comparand")]
-            public string? ComparandJson { get; init; }
+            [CommandOption("-c|--configuration")]
+            public string? ConfigurationPath { get; init; }
         }
 
         public override int Execute([NotNull] CommandContext context, [NotNull] AspNetBenchmarkAnalyzeSettings settings)
         {
-            string output = null;
-            using (Process crankCompareProcess = new())
+            ConfigurationChecker.VerifyFile(settings.ConfigurationPath, nameof(AspNetBenchmarksCommand));
+            ASPNetBenchmarksConfiguration configuration = ASPNetBenchmarksConfigurationParser.Parse(settings.ConfigurationPath);
+            // Parse the CSV file for the information.
+            string[] lines = File.ReadAllLines(configuration.benchmark_settings.benchmark_file);
+            Dictionary<string, string> configurationToCommand = new(StringComparer.OrdinalIgnoreCase);
+            for (int lineIdx = 0; lineIdx < lines.Length; lineIdx++)
             {
-                crankCompareProcess.StartInfo.UseShellExecute = false;
-                crankCompareProcess.StartInfo.FileName = "crank";
-                crankCompareProcess.StartInfo.Arguments = $"compare {settings.BaselineJson} {settings.ComparandJson}";
-                crankCompareProcess.StartInfo.RedirectStandardOutput = true;
-                crankCompareProcess.StartInfo.RedirectStandardError = true;
-                crankCompareProcess.StartInfo.CreateNoWindow = true;
+                if (lineIdx == 0)
+                {
+                    continue;
+                }
 
-                // Grab the output and save it.
-                crankCompareProcess.Start();
-
-                output = crankCompareProcess.StandardOutput.ReadToEnd();
-                List<MetricResult> results = GetMetricResults(output, settings.OutputPath);
-
-                crankCompareProcess.WaitForExit();
+                string[] line = lines[lineIdx].Split(',', StringSplitOptions.TrimEntries);
+                Debug.Assert(line.Length == 2);
+                configurationToCommand[line[0]] = line[1];
             }
 
-            File.WriteAllText(Path.Combine(settings.OutputPath, "Results.md"), output);
+            Dictionary<string, List<MetricResult>> results = ExecuteAnalysis(configuration, configurationToCommand, new());
             return 0;
         }
 
@@ -113,17 +104,36 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             {
                 sw.WriteLine("# Summary");
 
-                var topLevelASP = new HashSet<string>(new List<string> { "Working Set (MB)", "Private Memory (MB)", "Requests/sec" });
-                sw.WriteLine($"|  | {string.Join("|", topLevelASP)}");
-                sw.WriteLine($"|--- | {string.Join( "", Enumerable.Repeat("---|", topLevelASP.Count ))}");
+                var topLevelSummarySet = new HashSet<string>(new List<string> { "Working Set (MB)", "Private Memory (MB)", "Requests/sec", "Mean Latency (MSec)", "Latency 50th (MSec)", "Latency 75th (MSec)", "Latency 90th (MSec)", "Latency 99th (MSec)" });
+                sw.WriteLine($"|  | {string.Join("|", topLevelSummarySet)}");
+                sw.WriteLine($"|--- | {string.Join( "", Enumerable.Repeat("---|", topLevelSummarySet.Count ))}");
 
                 foreach (var r in metricResults)
                 {
-                    double workingSet    = r.Value.FirstOrDefault(m => m.MetricName == "application_Working Set (MB)")?.DeltaPercent ?? double.NaN;
-                    double privateMemory = r.Value.FirstOrDefault(m => m.MetricName == "application_Private Memory (MB)")?.DeltaPercent ?? double.NaN;
-                    double rps           = r.Value.FirstOrDefault(m => m.MetricName == "load_Requests/sec")?.DeltaPercent ?? double.NaN;
+                    double workingSet = r.Value.FirstOrDefault(m => m.MetricName.Contains("Working Set (MB)") && m.MetricName.Contains("application"))?.DeltaPercent ?? double.NaN;
+                    workingSet = Math.Round(workingSet, 2);
+                    double privateMemory = r.Value.FirstOrDefault(m => m.MetricName.Contains("Private Memory (MB)") && m.MetricName.Contains("application"))?.DeltaPercent ?? double.NaN;
+                    privateMemory = Math.Round(privateMemory, 2);
 
-                    sw.WriteLine($"{r.Key} | {workingSet}% | {privateMemory}% | {rps}%");
+                    double rps = r.Value.FirstOrDefault(m => m.MetricName == "load_Requests/sec")?.DeltaPercent ?? double.NaN;
+                    rps = Math.Round(rps, 2);
+
+                    double meanLatency = r.Value.FirstOrDefault(m => m.MetricName.Contains("load_Mean latency"))?.DeltaPercent ?? double.NaN;
+                    meanLatency = Math.Round(meanLatency, 2);
+
+                    double latency50 = r.Value.FirstOrDefault(m => m.MetricName == "load_Latency 50th (ms)")?.DeltaPercent ?? double.NaN;
+                    latency50 = Math.Round(latency50, 2);
+
+                    double latency75 = r.Value.FirstOrDefault(m => m.MetricName == "load_Latency 75th (ms)")?.DeltaPercent ?? double.NaN;
+                    latency75 = Math.Round(latency75, 2);
+
+                    double latency90 = r.Value.FirstOrDefault(m => m.MetricName == "load_Latency 90th (ms)")?.DeltaPercent ?? double.NaN;
+                    latency90 = Math.Round(latency90, 2);
+
+                    double latency99 = r.Value.FirstOrDefault(m => m.MetricName == "load_Latency 99th (ms)")?.DeltaPercent ?? double.NaN;
+                    latency99 = Math.Round(latency99, 2);
+
+                    sw.WriteLine($"{r.Key} | {workingSet}% | {privateMemory}% | {rps}% | {meanLatency}% | {latency50}% | {latency75}% | {latency90}% | {latency99}% |");
                 }
 
                 sw.AddIncompleteTestsSection(executionDetails);
@@ -163,9 +173,9 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             {
                 // Split the two tables by "\r\n\r"
                 string[] splitTables = output.Split("\r\n\r", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                string applicationResults = splitTables[0];
+                string applicationResults = splitTables.FirstOrDefault(a => a.Contains("application"));
                 results.AddRange(GetMetricResultsFromTable(applicationResults, "application", configuration));
-                string loadResults = splitTables[1];
+                string loadResults = splitTables.FirstOrDefault(a => a.Contains("load"));
                 results.AddRange(GetMetricResultsFromTable(loadResults, "load", configuration));
             }
 
@@ -179,6 +189,11 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
         internal static List<MetricResult> GetMetricResultsFromTable(string table, string tableName, string configuration)
         {
+            if (string.IsNullOrEmpty(table))
+            {
+                return new();
+            }
+
             string[] resultsLineSplit = table.Split("\n", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
             List<MetricResult> results = new();
             string[] firstLineSplit = resultsLineSplit[0].Split("|", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);

@@ -373,7 +373,7 @@ def main(args: Any):
     which = 'where dotnet\n' if args.target_windows else 'which dotnet\n'
     dotnet_path = '%HELIX_CORRELATION_PAYLOAD%\\dotnet' if args.target_windows else '$HELIX_CORRELATION_PAYLOAD/dotnet'
     owner, repo = ('dotnet', 'core-sdk') if repo_url is None else (dotnet.get_repository(repo_url))
-    config_string = ';'.join(args.build_configs) if args.target_windows else '"%s"' % ';'.join(args.build_configs)
+    config_string = ';'.join(args.build_configs) if args.target_windows else "%s" % ';'.join(args.build_configs)
     pgo_config = ''
     physical_promotion_config = ''
     showenv = 'set' if args.target_windows else 'printenv'

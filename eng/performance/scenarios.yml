@@ -185,7 +185,7 @@ jobs:
               displayName: Stop dotnet.exe
             - script: del $(CorrelationStaging)dotnet\* /F /S /Q
               displayName: Delete old dotnet
-            - script: xcopy tools\dotnet\arm64\* $(CorrelationStaging)dotnet\/E /I /Y
+            - script: xcopy tools\dotnet\arm64\* $(CorrelationStaging)dotnet\ /E /I /Y
               displayName: Copy Arm64 Dotnet to Correlation Payload
         - ${{ if eq(parameters.osName, 'osx') }}:
           - script: cp ./NuGet.config $(CorrelationStaging);cp -r ./scripts $(CorrelationStaging)scripts;cp -r ./src/scenarios/shared $(CorrelationStaging)shared;cp -r ./src/scenarios/staticdeps $(CorrelationStaging)staticdeps
@@ -243,6 +243,13 @@ jobs:
               TargetsWindows: 'false'
               WorkItemDirectory: $(Build.SourcesDirectory)
               HelixTargetQueues: ${{ parameters.queue }}
+          - ${{ if eq(parameters.architecture, 'arm64') }}:
+            - script: killall -9 dotnet
+              displayName: Stop dotnet
+            - script: rm -rf $(CorrelationStaging)dotnet/*
+              displayName: Delete old dotnet
+            - script: cp -r tools/dotnet/arm64/* $(CorrelationStaging)dotnet/
+              displayName: Copy Arm64 Dotnet to Correlation Payload
         - template: /eng/performance/send-to-helix.yml
           parameters:
             HelixSource: '$(HelixSourcePrefix)/dotnet/performance/$(Build.SourceBranch)' # sources must start with pr/, official/, prodcon/, or agent/

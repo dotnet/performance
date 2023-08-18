@@ -22,7 +22,7 @@ jobs:
     jobs:
       - job: '${{ parameters.osName }}_${{ parameters.osVersion }}_${{ parameters.architecture }}_${{ parameters.kind }}_${{ parameters.machinePool }}'
         displayName: '${{ parameters.osName }} ${{ parameters.osVersion }} ${{ parameters.architecture }} ${{ parameters.kind }} ${{ parameters.machinePool }}'
-        timeoutInMinutes: 1260
+        timeoutInMinutes: 320
         variables:
         - name: AffinityParam
           ${{ if ne(parameters.affinity, '0')}}:
@@ -68,7 +68,7 @@ jobs:
             value: 'export PYTHONPATH=$ORIGPYPATH'
           - name: Python
             value: python3
-          - ${{ if eq(parameters.osVersion, '1804')}}:
+          - ${{ if eq(parameters.osVersion, '2204')}}:
             - name: ArtifactsDirectory
               value: '$HELIX_WORKITEM_UPLOAD_ROOT/BenchmarkDotNet.Artifacts'
           - ${{ if or(eq(parameters.osVersion, '1604'), eq(parameters.architecture, 'arm64'))}}:
