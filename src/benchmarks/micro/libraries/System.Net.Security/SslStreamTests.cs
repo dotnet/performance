@@ -201,10 +201,17 @@ namespace System.Net.Security.Tests
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
         [BenchmarkCategory(Categories.NoAOT)]
-        public async Task WriteReadAsync()
+        public Task WriteReadAsync() => WriteReadAsync(_clientBuffer, _serverBuffer);
+
+
+        [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
+        [BenchmarkCategory(Categories.NoAOT)]
+        public Task LargeWriteReadAsync() => WriteReadAsync(_largeClientBuffer, _largeServerBuffer);
+
+        private async Task WriteReadAsync(byte[] clientArray, byte[] serverArray)
         {
-            Memory<byte> clientBuffer = _clientBuffer;
-            Memory<byte> serverBuffer = _serverBuffer;
+            Memory<byte> clientBuffer = clientArray;
+            Memory<byte> serverBuffer = serverArray;
             for (int i = 0; i < ReadWriteIterations; i++)
             {
                 await _sslClient.WriteAsync(clientBuffer, default);
@@ -214,10 +221,16 @@ namespace System.Net.Security.Tests
 
         [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
         [BenchmarkCategory(Categories.NoAOT)]
-        public async Task ReadWriteAsync()
+        public Task ReadWriteAsync() => ReadWriteAsync(_clientBuffer, _serverBuffer);
+
+        [Benchmark(OperationsPerInvoke = ReadWriteIterations)]
+        [BenchmarkCategory(Categories.NoAOT)]
+        public Task LargeReadWriteAsync() => ReadWriteAsync(_largeClientBuffer, _largeServerBuffer);
+
+        private async Task ReadWriteAsync(byte[] clientArray, byte[] serverArray)
         {
-            Memory<byte> clientBuffer = _clientBuffer;
-            Memory<byte> serverBuffer = _serverBuffer;
+            Memory<byte> clientBuffer = clientArray;
+            Memory<byte> serverBuffer = serverArray;
             for (int i = 0; i < ReadWriteIterations; i++)
             {
                 ValueTask<int> read = _sslServer.ReadAsync(serverBuffer, default);
