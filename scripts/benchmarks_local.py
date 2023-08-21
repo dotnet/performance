@@ -215,7 +215,7 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
                 "provision-wasm"
             ]
             RunCommand(provision_wasm, verbose=True).run(os.path.join(repo_path))
-            os.environ["EMSDK_PATH"] =os.path.join(repo_path, 'src', 'mono', 'wasm', 'emsdk')
+            os.environ["EMSDK_PATH"] = os.path.join(repo_path, 'src', 'mono', 'wasm', 'emsdk')
 
             build_runtime_dependency(parsed_args, repo_path, "mono+libs", os_override="browser", arch_override="wasm", additional_args=[f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}'])
             src_dir = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "dotnet-latest")
