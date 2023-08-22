@@ -389,27 +389,27 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
     elif specific_run_type == RunType.WasmInterpreter:
         benchmark_ci_args += ['--wasm']
         bdn_args_unescaped += [
-                                '--anyCategories', 'Libraries', 'Runtime',
-                                '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
-                                '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmInterpreter, commit), "wasm_bundle", "wasm-data"),
-                                '--wasmEngine', parsed_args.wasm_engine_path,
-                                '--wasmArgs', '\"--experimental-wasm-eh --expose_wasm --module\"',
-                                '--logBuildOutput',
-                                '--generateBinLog'
-                            ]
+            '--anyCategories', 'Libraries', 'Runtime',
+            '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
+            '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmInterpreter, commit), "wasm_bundle", "wasm-data"),
+            '--wasmEngine', parsed_args.wasm_engine_path,
+            '--wasmArgs', '\"--experimental-wasm-eh --expose_wasm --module\"',
+            '--logBuildOutput',
+            '--generateBinLog'
+        ]
 
     elif specific_run_type == RunType.WasmAOT:
         benchmark_ci_args += ['--wasm']
         bdn_args_unescaped += [
-                                '--anyCategories', 'Libraries', 'Runtime',
-                                '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
-                                '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle", "wasm-data"),
-                                '--wasmEngine', parsed_args.wasm_engine_path,
-                                '--wasmArgs', '\"--experimental-wasm-eh --expose_wasm --module\"',
-                                '--aotcompilermode', 'wasm',
-                                '--logBuildOutput',
-                                '--generateBinLog'
-                            ]
+            '--anyCategories', 'Libraries', 'Runtime',
+            '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
+            '--wasmDataDir', os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle", "wasm-data"),
+            '--wasmEngine', parsed_args.wasm_engine_path,
+            '--wasmArgs', '\"--experimental-wasm-eh --expose_wasm --module\"',
+            '--aotcompilermode', 'wasm',
+            '--logBuildOutput',
+            '--generateBinLog'
+        ]
 
     if parsed_args.bdn_arguments:
         bdn_args_unescaped += [parsed_args.bdn_arguments]
