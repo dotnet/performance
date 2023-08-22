@@ -126,11 +126,10 @@ def build_runtime_dependency(parsed_args: Namespace, repo_path: str, subset: str
 def generate_layout(parsed_args: Namespace, repo_path: str, additional_args: list = []):
     # Run the command
     if is_windows(parsed_args):
-        build_script = "build.cmd"
+        generate_layout_command = ["build.cmd"]
     else:
-        build_script = "./build.sh"
-    generate_layout_command = [
-                build_script,
+        generate_layout_command = ["./build.sh"]
+    generate_layout_command += [
                 "release",
                 parsed_args.architecture,
                 "generatelayoutonly",
@@ -146,23 +145,23 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
     getLogger().info(f"Generating dependencies for {' '.join(map(str, parsed_args.run_type_names))} run types in {repo_path} and storing in {parsed_args.artifact_storage_path}.")
     
     if check_for_runtype_specified(parsed_args, [RunType.CoreRun]):
-        dest_dir = os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commit), "Core_Root")
+        artifact_core_root = os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commit), "Core_Root")
         
-        if force_regenerate or not os.path.exists(dest_dir):
+        if force_regenerate or not os.path.exists(artifact_core_root):
             build_runtime_dependency(parsed_args, repo_path)
             generate_layout(parsed_args, repo_path)
             # Store the corerun in the artifact storage path
-            core_root_path = os.path.join(repo_path, "artifacts", "tests", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", "Tests", "Core_Root")
-            shutil.rmtree(dest_dir, ignore_errors=True)
-            copy_directory_contents(core_root_path, dest_dir)
+            generated_core_root = os.path.join(repo_path, "artifacts", "tests", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", "Tests", "Core_Root")
+            shutil.rmtree(artifact_core_root, ignore_errors=True)
+            copy_directory_contents(generated_core_root, artifact_core_root)
         else:
-            getLogger().info(f"CoreRun already exists in {dest_dir}. Skipping generation.")
+            getLogger().info(f"CoreRun already exists in {artifact_core_root}. Skipping generation.")
 
     if check_for_runtype_specified(parsed_args, [RunType.MonoInterpreter, RunType.MonoJIT]):
-        dest_dir_mono_interpreter = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono")
-        dest_dir_mono_jit = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commit), "dotnet_mono")
+        artifact_mono_interpreter = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono")
+        artifact_mono_jit = os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commit), "dotnet_mono")
 
-        if force_regenerate or not os.path.exists(dest_dir_mono_interpreter) or not os.path.exists(dest_dir_mono_jit):
+        if force_regenerate or not os.path.exists(artifact_mono_interpreter) or not os.path.exists(artifact_mono_jit):
             build_runtime_dependency(parsed_args, repo_path, "clr+mono+libs")
             build_runtime_dependency(parsed_args, repo_path, "libs.pretest", additional_args=['-testscope', 'innerloop', '/p:RuntimeFlavor=mono', f"/p:RuntimeArtifactsPath={os.path.join(repo_path, 'artifacts', 'bin', 'mono', f'{parsed_args.os}.{parsed_args.architecture}.Release')}"])
 
@@ -179,25 +178,25 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
                 raise RuntimeError("ProductVersion or MajorVersion element not found in Versions.props file.")
                 
             # Create the mono-dotnet
-            src_dir = os.path.join(repo_path, "artifacts", "bin", "runtime", f"net{major_version}.0-{parsed_args.os}-Release-{parsed_args.architecture}")
-            dest_dir = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net{major_version}.0-{parsed_args.os}-Release-{parsed_args.architecture}", "shared", "Microsoft.NETCore.App", f"{product_version}") # Wrap product_version to force string type, otherwise we get warning: Argument of type "str | Any | None" cannot be assigned to parameter "paths" of type "BytesPath" in function "join"
-            copy_directory_contents(src_dir, dest_dir)
-            src_dir = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net{major_version}.0-{parsed_args.os}-Release-{parsed_args.architecture}")
-            dest_dir = os.path.join(repo_path, "artifacts", "dotnet_mono")
-            copy_directory_contents(src_dir, dest_dir)
-            src_file = os.path.join(repo_path, "artifacts", "bin", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", f"corerun{'.exe' if is_windows(parsed_args) else ''}")
-            dest_dir = os.path.join(repo_path, "artifacts", "dotnet_mono", "shared", "Microsoft.NETCore.App", f"{product_version}") # Wrap product_version to force string type, otherwise we get warning: Argument of type "str | Any | None" cannot be assigned to parameter "paths" of type "BytesPath" in function "join"
-            dest_file = os.path.join(dest_dir, f"corerun{'.exe' if is_windows(parsed_args) else ''}")
-            shutil.copy2(src_file, dest_file)
+            src_dir_runtime = os.path.join(repo_path, "artifacts", "bin", "runtime", f"net{major_version}.0-{parsed_args.os}-Release-{parsed_args.architecture}")
+            dest_dir_testhost_product = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net{major_version}.0-{parsed_args.os}-Release-{parsed_args.architecture}", "shared", "Microsoft.NETCore.App", f"{product_version}") # Wrap product_version to force string type, otherwise we get warning: Argument of type "str | Any | None" cannot be assigned to parameter "paths" of type "BytesPath" in function "join"
+            copy_directory_contents(src_dir_runtime, dest_dir_testhost_product)
+            src_dir_testhost = os.path.join(repo_path, "artifacts", "bin", "testhost", f"net{major_version}.0-{parsed_args.os}-Release-{parsed_args.architecture}")
+            dest_dir_dotnet_mono = os.path.join(repo_path, "artifacts", "dotnet_mono")
+            copy_directory_contents(src_dir_testhost, dest_dir_dotnet_mono)
+            src_file_corerun = os.path.join(repo_path, "artifacts", "bin", "coreclr", f"{parsed_args.os}.{parsed_args.architecture}.Release", f"corerun{'.exe' if is_windows(parsed_args) else ''}")
+            dest_dir_dotnet_mono_shared = os.path.join(repo_path, "artifacts", "dotnet_mono", "shared", "Microsoft.NETCore.App", f"{product_version}") # Wrap product_version to force string type, otherwise we get warning: Argument of type "str | Any | None" cannot be assigned to parameter "paths" of type "BytesPath" in function "join"
+            dest_file_corerun = os.path.join(dest_dir_dotnet_mono_shared, f"corerun{'.exe' if is_windows(parsed_args) else ''}")
+            shutil.copy2(src_file_corerun, dest_file_corerun)
 
             # Store the dotnet_mono in the artifact storage path
-            dotnet_mono_path = os.path.join(repo_path, "artifacts", "dotnet_mono")
-            shutil.rmtree(dest_dir_mono_interpreter, ignore_errors=True)
-            copy_directory_contents(dotnet_mono_path, dest_dir_mono_interpreter)
-            shutil.rmtree(dest_dir_mono_jit, ignore_errors=True)
-            copy_directory_contents(dotnet_mono_path, dest_dir_mono_jit)
+            src_dir_dotnet_mono = os.path.join(repo_path, "artifacts", "dotnet_mono")
+            shutil.rmtree(artifact_mono_interpreter, ignore_errors=True)
+            copy_directory_contents(src_dir_dotnet_mono, artifact_mono_interpreter)
+            shutil.rmtree(artifact_mono_jit, ignore_errors=True)
+            copy_directory_contents(src_dir_dotnet_mono, artifact_mono_jit)
         else:
-            getLogger().info(f"dotnet_mono already exists in {dest_dir_mono_interpreter} and {dest_dir_mono_jit}. Skipping generation.")
+            getLogger().info(f"dotnet_mono already exists in {artifact_mono_interpreter} and {artifact_mono_jit}. Skipping generation.")
 
     if check_for_runtype_specified(parsed_args, [RunType.MonoAOTLLVM]):
         raise NotImplementedError("MonoAOTLLVM is not yet implemented.") # TODO: Finish MonoAOTLLVM Build stuff
@@ -205,80 +204,80 @@ def generate_all_runtype_dependencies(parsed_args: Namespace, repo_path: str, co
 
     if check_for_runtype_specified(parsed_args, [RunType.WasmInterpreter, RunType.WasmAOT]):
         # Must have jsvu installed also
-        dest_dir_wasm_wasm = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmInterpreter, commit), "wasm_bundle")
-        dest_dir_wasm_aot = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle")
-        if force_regenerate or not os.path.exists(dest_dir_wasm_wasm) or not os.path.exists(dest_dir_wasm_aot):
-            provision_wasm = [
+        artifact_wasm_wasm = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmInterpreter, commit), "wasm_bundle")
+        artifact_wasm_aot = os.path.join(get_run_artifact_path(parsed_args, RunType.WasmAOT, commit), "wasm_bundle")
+        if force_regenerate or not os.path.exists(artifact_wasm_wasm) or not os.path.exists(artifact_wasm_aot):
+            provision_wasm_command = [
                 "make",
                 "-C",
                 os.path.join("src", "mono", "wasm"),
                 "provision-wasm"
             ]
-            RunCommand(provision_wasm, verbose=True).run(os.path.join(repo_path))
+            RunCommand(provision_wasm_command, verbose=True).run(os.path.join(repo_path))
             os.environ["EMSDK_PATH"] = os.path.join(repo_path, 'src', 'mono', 'wasm', 'emsdk')
 
             build_runtime_dependency(parsed_args, repo_path, "mono+libs", os_override="browser", arch_override="wasm", additional_args=[f'/p:AotHostArchitecture={parsed_args.architecture}', f'/p:AotHostOS={parsed_args.os}'])
-            src_dir = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "dotnet-latest")
-            dest_dir = os.path.join(repo_path, "artifacts", "bin", "wasm", "dotnet")
-            copy_directory_contents(src_dir, dest_dir)
-            src_dir = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "built-nugets")
-            dest_dir = os.path.join(repo_path, "artifacts", "bin", "wasm")
-            copy_directory_contents(src_dir, dest_dir)
-            src_file = os.path.join(repo_path, "src", "mono", "wasm", "test-main.js")
-            dest_dir = os.path.join(repo_path, "artifacts", "bin", "wasm", "wasm-data")
-            dest_file = os.path.join(dest_dir, "test-main.js")
-            if not os.path.exists(dest_dir):
-                os.makedirs(dest_dir)
-            shutil.copy2(src_file, dest_file)
+            src_dir_dotnet_latest = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "dotnet-latest")
+            dest_dir_wasm_dotnet = os.path.join(repo_path, "artifacts", "bin", "wasm", "dotnet")
+            copy_directory_contents(src_dir_dotnet_latest, dest_dir_wasm_dotnet)
+            src_dir_built_nugets = os.path.join(repo_path, "artifacts", "BrowserWasm", "staging", "built-nugets")
+            dest_dir_bin_wasm = os.path.join(repo_path, "artifacts", "bin", "wasm")
+            copy_directory_contents(src_dir_built_nugets, dest_dir_bin_wasm)
+            src_file_test_main = os.path.join(repo_path, "src", "mono", "wasm", "test-main.js")
+            dest_dir_wasm_data = os.path.join(repo_path, "artifacts", "bin", "wasm", "wasm-data")
+            dest_file_test_main = os.path.join(dest_dir_wasm_data, "test-main.js")
+            if not os.path.exists(dest_dir_wasm_data):
+                os.makedirs(dest_dir_wasm_data)
+            shutil.copy2(src_file_test_main, dest_file_test_main)
 
             # Store the dotnet_mono in the artifact storage path
-            dotnet_wasm_path = os.path.join(repo_path, "artifacts", "bin", "wasm")
-            shutil.rmtree(dest_dir_wasm_wasm, ignore_errors=True)
-            copy_directory_contents(dotnet_wasm_path, dest_dir_wasm_wasm)
-            shutil.rmtree(dest_dir_wasm_aot, ignore_errors=True)
-            copy_directory_contents(dotnet_wasm_path, dest_dir_wasm_aot)
+            src_dir_dotnet_wasm = os.path.join(repo_path, "artifacts", "bin", "wasm")
+            shutil.rmtree(artifact_wasm_wasm, ignore_errors=True)
+            copy_directory_contents(src_dir_dotnet_wasm, artifact_wasm_wasm)
+            shutil.rmtree(artifact_wasm_aot, ignore_errors=True)
+            copy_directory_contents(src_dir_dotnet_wasm, artifact_wasm_aot)
 
             # Add wasm-tools to dotnet instance
             RunCommand([os.path.join(parsed_args.dotnet_dir_path, f'dotnet{".exe" if is_windows(parsed_args) else ""}'), "workload", "install", "wasm-tools"], verbose=True).run()
         else:
-            getLogger().info(f"wasm_bundle already exists in {dest_dir_wasm_wasm} and {dest_dir_wasm_aot}. Skipping generation.")
+            getLogger().info(f"wasm_bundle already exists in {artifact_wasm_wasm} and {artifact_wasm_aot}. Skipping generation.")
 
     getLogger().info(f"Finished generating dependencies for {' '.join(map(str, parsed_args.run_type_names))} run types in {repo_path} and stored in {parsed_args.artifact_storage_path}.")
 
 def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, all_commits: list[str]) -> list:
     getLogger().info(f"Generating benchmark_ci.py arguments for {specific_run_type.name} run type using artifacts in {parsed_args.artifact_storage_path}.")
-    benchmark_ci_args = []
     bdn_args_unescaped = []
-    benchmark_ci_args += ['--architecture', parsed_args.architecture]
-    benchmark_ci_args += ['--frameworks', parsed_args.framework]
-    benchmark_ci_args += ['--filter', parsed_args.filter]
-    benchmark_ci_args += ['--dotnet-path', parsed_args.dotnet_dir_path]
-    benchmark_ci_args += ['--csproj', parsed_args.csproj]
-    benchmark_ci_args += ['--incremental', "no"]
-    benchmark_ci_args += ['--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, f"BenchmarkDotNet.Artifacts.{specific_run_type.name}.{start_time.strftime('%y%m%d_%H%M%S')}")] # We don't include the commit hash in the artifact path because we are combining multiple runs into one
+    benchmark_ci_args = [
+        '--architecture', parsed_args.architecture,
+        '--frameworks', parsed_args.framework,
+        '--filter', parsed_args.filter,
+        '--dotnet-path', parsed_args.dotnet_dir_path,
+        '--csproj', parsed_args.csproj,
+        '--incremental', "no",
+        '--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, f"BenchmarkDotNet.Artifacts.{specific_run_type.name}.{start_time.strftime('%y%m%d_%H%M%S')}") # We don't include the commit hash in the artifact path because we are combining multiple runs into on
+    ]
 
     if specific_run_type == RunType.CoreRun:
         bdn_args_unescaped += [
-                                '--anyCategories', 'Libraries', 'Runtime',
-                                '--logBuildOutput',
-                                '--generateBinLog'
-                            ]
-        
-        bdn_args_unescaped += [ '--corerun' ]
+            '--anyCategories', 'Libraries', 'Runtime',
+            '--logBuildOutput',
+            '--generateBinLog'
+        ]
+        bdn_args_unescaped += ['--corerun']
         for commit in all_commits:
-            bdn_args_unescaped += [ os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commit), "Core_Root", f'corerun{".exe" if is_windows(parsed_args) else ""}') ]
+            bdn_args_unescaped += [os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commit), "Core_Root", f'corerun{".exe" if is_windows(parsed_args) else ""}')]
 
     elif specific_run_type == RunType.MonoAOTLLVM:
         raise NotImplementedError("MonoAOTLLVM is not yet implemented.")
     
     elif specific_run_type == RunType.MonoInterpreter:
         bdn_args_unescaped += [
-                                '--anyCategories', 'Libraries', 'Runtime', 
-                                '--category-exclusion-filter', 'NoInterpreter', 'NoMono',
-                                '--logBuildOutput',
-                                '--generateBinLog'
-                            ]
-        bdn_args_unescaped += [ '--corerun' ]
+            '--anyCategories', 'Libraries', 'Runtime', 
+            '--category-exclusion-filter', 'NoInterpreter', 'NoMono',
+            '--logBuildOutput',
+            '--generateBinLog'
+        ]
+        bdn_args_unescaped += ['--corerun']
         for commit in all_commits:
             # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
             corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
@@ -288,18 +287,17 @@ def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_typ
                 raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
             else:
                 corerun_path = corerun_capture[0]
-            bdn_args_unescaped += [ corerun_path ]
-        
+            bdn_args_unescaped += [corerun_path]
         bdn_args_unescaped += ['--envVars', 'MONO_ENV_OPTIONS:--interpreter']
 
     elif specific_run_type == RunType.MonoJIT:
-        bdn_args_unescaped += [ 
-                                '--anyCategories', 'Libraries', 'Runtime', 
-                                '--category-exclusion-filter', 'NoInterpreter', 'NoMono',
-                                '--logBuildOutput',
-                                '--generateBinLog'
-                            ]
-        bdn_args_unescaped += [ '--corerun' ]
+        bdn_args_unescaped += [
+            '--anyCategories', 'Libraries', 'Runtime', 
+            '--category-exclusion-filter', 'NoInterpreter', 'NoMono',
+            '--logBuildOutput',
+            '--generateBinLog'
+        ]
+        bdn_args_unescaped += ['--corerun']
         for commit in all_commits:
             # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
             corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
@@ -309,7 +307,7 @@ def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_typ
                 raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoJIT, commit)}")
             else:
                 corerun_path = corerun_capture[0]
-            bdn_args_unescaped += [ corerun_path ]
+            bdn_args_unescaped += [corerun_path]
 
     # for commit in all_commits: There is not a way to run multiple Wasm's at once via CI, instead will split single run vs multi-run scenarios
     elif specific_run_type == RunType.WasmInterpreter:
@@ -326,34 +324,35 @@ def generate_combined_benchmark_ci_args(parsed_args: Namespace, specific_run_typ
 
 def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type: RunType, commit: str) -> list:
     getLogger().info(f"Generating benchmark_ci.py arguments for {specific_run_type.name} run type using artifacts in {parsed_args.artifact_storage_path}.")
-    benchmark_ci_args = []
     bdn_args_unescaped = []
-    benchmark_ci_args += ['--architecture', parsed_args.architecture]
-    benchmark_ci_args += ['--frameworks', parsed_args.framework]
-    benchmark_ci_args += ['--filter', parsed_args.filter]
-    benchmark_ci_args += ['--dotnet-path', parsed_args.dotnet_dir_path]
-    benchmark_ci_args += ['--csproj', parsed_args.csproj]
-    benchmark_ci_args += ['--incremental', "no"]
-    benchmark_ci_args += ['--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, f"BenchmarkDotNet.Artifacts.{specific_run_type.name}.{commit}.{start_time.strftime('%y%m%d_%H%M%S')}")] # We add the commit hash to the artifact path because we are only running one commit at a time and they would clobber if running more than one commit perf type
+    benchmark_ci_args = [
+        '--architecture', parsed_args.architecture,
+        '--frameworks', parsed_args.framework,
+        '--filter', parsed_args.filter,
+        '--dotnet-path', parsed_args.dotnet_dir_path,
+        '--csproj', parsed_args.csproj,
+        '--incremental', "no",
+        '--bdn-artifacts', os.path.join(parsed_args.artifact_storage_path, f"BenchmarkDotNet.Artifacts.{specific_run_type.name}.{commit}.{start_time.strftime('%y%m%d_%H%M%S')}") # We add the commit hash to the artifact path because we are only running one commit at a time and they would clobber if running more than one commit perf type
+    ]
 
     if specific_run_type == RunType.CoreRun:
         bdn_args_unescaped += [
-                                '--anyCategories', 'Libraries', 'Runtime',
-                                '--logBuildOutput',
-                                '--generateBinLog'
-                            ]
-        bdn_args_unescaped += [ '--corerun', os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commit), "Core_Root", f'corerun{".exe" if is_windows(parsed_args) else ""}') ]
+            '--anyCategories', 'Libraries', 'Runtime',
+            '--logBuildOutput',
+            '--generateBinLog',
+            '--corerun', os.path.join(get_run_artifact_path(parsed_args, RunType.CoreRun, commit), "Core_Root", f'corerun{".exe" if is_windows(parsed_args) else ""}')
+        ]
 
     elif specific_run_type == RunType.MonoAOTLLVM:
         raise NotImplementedError("MonoAOTLLVM is not yet implemented.")
     
     elif specific_run_type == RunType.MonoInterpreter:
         bdn_args_unescaped += [
-                                '--anyCategories', 'Libraries', 'Runtime', 
-                                '--category-exclusion-filter', 'NoInterpreter', 'NoMono',
-                                '--logBuildOutput',
-                                '--generateBinLog'
-                            ]
+            '--anyCategories', 'Libraries', 'Runtime', 
+            '--category-exclusion-filter', 'NoInterpreter', 'NoMono',
+            '--logBuildOutput',
+            '--generateBinLog'
+        ]
         
         # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
         corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
@@ -363,16 +362,18 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
             raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoInterpreter, commit)}")
         else:
             corerun_path = corerun_capture[0]
-        bdn_args_unescaped += [ '--corerun', corerun_path ]
-        bdn_args_unescaped += ['--envVars', 'MONO_ENV_OPTIONS:--interpreter']
+        bdn_args_unescaped += [
+            '--corerun', corerun_path,
+            '--envVars', 'MONO_ENV_OPTIONS:--interpreter'
+        ]
 
     elif specific_run_type == RunType.MonoJIT:
-        bdn_args_unescaped += [ 
-                                '--anyCategories', 'Libraries', 'Runtime', 
-                                '--category-exclusion-filter', 'NoInterpreter', 'NoMono',
-                                '--logBuildOutput',
-                                '--generateBinLog'
-                            ]
+        bdn_args_unescaped += [
+            '--anyCategories', 'Libraries', 'Runtime', 
+            '--category-exclusion-filter', 'NoInterpreter', 'NoMono',
+            '--logBuildOutput',
+            '--generateBinLog'
+        ]
         
         # We can force only one capture because the artifact_paths include the commit hash which is what we get the corerun from.
         corerun_capture = glob.glob(os.path.join(get_run_artifact_path(parsed_args, RunType.MonoJIT, commit), "dotnet_mono", "shared", "Microsoft.NETCore.App", "*", f'corerun{".exe" if is_windows(parsed_args) else ""}'))
@@ -382,11 +383,11 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
             raise Exception(f"Found multiple corerun in {get_run_artifact_path(parsed_args, RunType.MonoJIT, commit)}")
         else:
             corerun_path = corerun_capture[0]
-        bdn_args_unescaped += [ '--corerun', corerun_path ]
+        bdn_args_unescaped += ['--corerun', corerun_path]
 
     # for commit in all_commits: There is not a way to run multiple Wasm's at once via CI, instead will split single run vs multi-run scenarios
     elif specific_run_type == RunType.WasmInterpreter:
-        benchmark_ci_args += [ '--wasm' ]
+        benchmark_ci_args += ['--wasm']
         bdn_args_unescaped += [
                                 '--anyCategories', 'Libraries', 'Runtime',
                                 '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
@@ -398,7 +399,7 @@ def generate_single_benchmark_ci_args(parsed_args: Namespace, specific_run_type:
                             ]
 
     elif specific_run_type == RunType.WasmAOT:
-        benchmark_ci_args += [ '--wasm' ]
+        benchmark_ci_args += ['--wasm']
         bdn_args_unescaped += [
                                 '--anyCategories', 'Libraries', 'Runtime',
                                 '--category-exclusion-filter', 'NoInterpreter', 'NoWASM', 'NoMono',
