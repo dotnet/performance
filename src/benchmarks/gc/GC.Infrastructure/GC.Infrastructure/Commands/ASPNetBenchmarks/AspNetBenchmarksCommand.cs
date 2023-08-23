@@ -161,7 +161,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                             }
                         }
 
-                        AnsiConsole.Markup($"[red bold] Failed with the following errors:\n {Markup.Escape(error.ToString())} \n Check the log file for more information: {logfileOutput} [/]");
+                        AnsiConsole.Markup($"[red bold] Failed with the following errors:\n {Markup.Escape(error.ToString())} Check the log file for more information: {logfileOutput} \n[/]");
                     }
 
                     File.WriteAllText(logfileOutput, "Output: \n" + outputDetails + "\n Errors: \n" + error.ToString());

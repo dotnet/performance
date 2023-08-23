@@ -3,6 +3,7 @@ runs:
     corerun: C:\CoreRuns\Empty\
     environment_variables:
       COMPlus_GCServer: 1
+    framework_version: net6.0
   run:
     corerun: C:\CoreRuns\Empty\
     environment_variables:
@@ -12,6 +13,7 @@ environment:
   default_max_seconds: 300
 benchmark_settings:
   benchmark_file: C:\InfraRuns\RunNew_All\Suites\ASPNETBenchmarks\ASPNetBenchmarks.csv
+  additional_arguments: --chart
 output:
   path: C:\InfraRuns\RunNew_All\ASPNetBenchmarks
   columns: 
