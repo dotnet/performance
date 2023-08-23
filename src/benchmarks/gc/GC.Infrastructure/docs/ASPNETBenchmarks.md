@@ -26,4 +26,5 @@ Fix arguments by refering to [this](https://github.com/dotnet/crank/blob/main/sr
 The test failures could be as a result of either runtime failures or failures of running the benchmark on the managed side of things. For both of these issues examine the log file to identify the reasons.
 
 ### 4. Missing Artifacts
+
 For the case of missing artifacts such as missing traces, examine the log file for the exception reasons.
