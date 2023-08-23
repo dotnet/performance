@@ -106,7 +106,7 @@ namespace GC.Infrastructure.Core.CommandBuilders
             // Get the log.
             // TODO: Specify the path.
             commandStringBuilder.Append(" --application.options.downloadOutput true ");
-            commandStringBuilder.Append($" --application.options.downloadOutput {Path.Combine(configuration.Output.Path, run.Key, $"{baseConfiguration.Key}_{run.Key}.output")} ");
+            commandStringBuilder.Append($" --application.options.downloadOutputOutput {Path.Combine(configuration.Output.Path, run.Key, $"{baseConfiguration.Key}_{run.Key}.output")} ");
 
             commandStringBuilder.Append(" --application.options.downloadBuildLog true ");
             commandStringBuilder.Append($" --application.options.downloadBuildLogOutput {Path.Combine(configuration.Output.Path, run.Key, $"{baseConfiguration.Key}_{run.Key}.buildLog")} ");
