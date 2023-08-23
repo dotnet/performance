@@ -163,7 +163,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
                 foreach (var benchmark in benchmarkToComparisons)
                 {
-                    sw.WriteLine($"- [{benchmark.Key}](##{benchmark.Key})");
+                    sw.WriteLine($"- [{benchmark.Key}](#{benchmark.Key.ToLower().Replace(" ", "-")})");
                 }
 
                 sw.WriteLine();
