@@ -21,6 +21,9 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
         public override int Execute([NotNull] CommandContext context, [NotNull] AspNetBenchmarkAnalyzeSettings settings)
         {
+            AnsiConsole.Write(new Rule("ASP.NET Benchmarks Analyzer"));
+            AnsiConsole.WriteLine();
+
             ConfigurationChecker.VerifyFile(settings.ConfigurationPath, nameof(AspNetBenchmarksCommand));
             ASPNetBenchmarksConfiguration configuration = ASPNetBenchmarksConfigurationParser.Parse(settings.ConfigurationPath);
             // Parse the CSV file for the information.
