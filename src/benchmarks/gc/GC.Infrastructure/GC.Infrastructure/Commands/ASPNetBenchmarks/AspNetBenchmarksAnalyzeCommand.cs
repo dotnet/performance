@@ -41,7 +41,17 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 configurationToCommand[line[0]] = line[1];
             }
 
-            Dictionary<string, List<MetricResult>> results = ExecuteAnalysis(configuration, configurationToCommand, new());
+            Dictionary<string, List<MetricResult>> result = ExecuteAnalysis(configuration, configurationToCommand, new());
+            if (result.Count == 0)
+            {
+                AnsiConsole.MarkupLine($"[bold green] No report generated since there were no results to compare. [/]");
+            }
+
+            else
+            {
+                AnsiConsole.MarkupLine($"[bold green] Report generated at: {Path.Combine(configuration.Output.Path, "Results.md")} [/]");
+            }
+
             return 0;
         }
 
@@ -51,6 +61,11 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             Dictionary<string, List<string>> benchmarkToRunToPaths = new();
 
             bool singleRun = configuration.Runs.Count == 1;
+            // Don't generate a report in case of a single report.
+            if (singleRun)
+            {
+                return new();
+            }
 
             // For each Run, grab the paths of each of the benchmarks.
             string outputPath = configuration.Output.Path;
@@ -73,79 +88,73 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             Dictionary<string, List<MetricResult>> metricResults = new();
 
             // Compute the compare functionality if there is a single run.
-            if (!singleRun)
+            foreach (var benchmark in benchmarkToRunToPaths)
             {
-                foreach (var benchmark in benchmarkToRunToPaths)
+                List<string> paths = benchmark.Value;
+                using (Process crankCompareProcess = new())
                 {
-                    List<string> paths = benchmark.Value;
-                    using (Process crankCompareProcess = new())
+                    crankCompareProcess.StartInfo.UseShellExecute = false;
+                    crankCompareProcess.StartInfo.FileName = "crank";
+                    crankCompareProcess.StartInfo.Arguments = $"compare {string.Join(" ", paths)}";
+                    crankCompareProcess.StartInfo.RedirectStandardOutput = true;
+                    crankCompareProcess.StartInfo.RedirectStandardError = true;
+                    crankCompareProcess.StartInfo.CreateNoWindow = true;
+
+                    // Grab the output and save it.
+                    crankCompareProcess.Start();
+
+                    string output = crankCompareProcess.StandardOutput.ReadToEnd();
+                    crankCompareProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+
+                    if (crankCompareProcess.ExitCode == 0)
                     {
-                        crankCompareProcess.StartInfo.UseShellExecute = false;
-                        crankCompareProcess.StartInfo.FileName = "crank";
-                        crankCompareProcess.StartInfo.Arguments = $"compare {string.Join(" ", paths)}";
-                        crankCompareProcess.StartInfo.RedirectStandardOutput = true;
-                        crankCompareProcess.StartInfo.RedirectStandardError = true;
-                        crankCompareProcess.StartInfo.CreateNoWindow = true;
-
-                        // Grab the output and save it.
-                        crankCompareProcess.Start();
-
-                        string output = crankCompareProcess.StandardOutput.ReadToEnd();
-                        crankCompareProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
-
-                        if (crankCompareProcess.ExitCode == 0)
+                        if (!metricResults.TryGetValue(benchmark.Key, out var metrics ))
                         {
-                            if (!metricResults.TryGetValue(benchmark.Key, out var metrics ))
-                            {
-                                metrics = metricResults[benchmark.Key] = new();
-                            }
-
-                            metrics.AddRange(GetMetricResults(output, benchmark.Key));
+                            metrics = metricResults[benchmark.Key] = new();
                         }
 
-                        benchmarkToComparisons[benchmark.Key] = output;
+                        metrics.AddRange(GetMetricResults(output, benchmark.Key));
                     }
+
+                    benchmarkToComparisons[benchmark.Key] = output;
                 }
             }
 
             using (StreamWriter sw = new StreamWriter(Path.Combine(configuration.Output.Path, "Results.md")))
             {
                 // Ignore the summary section in case there is only one run.
-                if (!singleRun)
+                sw.WriteLine("# Summary");
+
+                var topLevelSummarySet = new HashSet<string>(new List<string> { "Working Set (MB)", "Private Memory (MB)", "Requests/sec", "Mean Latency (MSec)", "Latency 50th (MSec)", "Latency 75th (MSec)", "Latency 90th (MSec)", "Latency 99th (MSec)" });
+                sw.WriteLine($"|  | {string.Join("|", topLevelSummarySet)}");
+                sw.WriteLine($"|--- | {string.Join( "", Enumerable.Repeat("---|", topLevelSummarySet.Count ))}");
+
+                foreach (var r in metricResults)
                 {
-                    sw.WriteLine("# Summary");
+                    double workingSet = r.Value.FirstOrDefault(m => m.MetricName.Contains("Working Set (MB)") && m.MetricName.Contains("application"))?.DeltaPercent ?? double.NaN;
+                    workingSet = Math.Round(workingSet, 2);
+                    double privateMemory = r.Value.FirstOrDefault(m => m.MetricName.Contains("Private Memory (MB)") && m.MetricName.Contains("application"))?.DeltaPercent ?? double.NaN;
+                    privateMemory = Math.Round(privateMemory, 2);
 
-                    var topLevelSummarySet = new HashSet<string>(new List<string> { "Working Set (MB)", "Private Memory (MB)", "Requests/sec", "Mean Latency (MSec)", "Latency 50th (MSec)", "Latency 75th (MSec)", "Latency 90th (MSec)", "Latency 99th (MSec)" });
-                    sw.WriteLine($"|  | {string.Join("|", topLevelSummarySet)}");
-                    sw.WriteLine($"|--- | {string.Join( "", Enumerable.Repeat("---|", topLevelSummarySet.Count ))}");
+                    double rps = r.Value.FirstOrDefault(m => m.MetricName == "load_Requests/sec")?.DeltaPercent ?? double.NaN;
+                    rps = Math.Round(rps, 2);
 
-                    foreach (var r in metricResults)
-                    {
-                        double workingSet = r.Value.FirstOrDefault(m => m.MetricName.Contains("Working Set (MB)") && m.MetricName.Contains("application"))?.DeltaPercent ?? double.NaN;
-                        workingSet = Math.Round(workingSet, 2);
-                        double privateMemory = r.Value.FirstOrDefault(m => m.MetricName.Contains("Private Memory (MB)") && m.MetricName.Contains("application"))?.DeltaPercent ?? double.NaN;
-                        privateMemory = Math.Round(privateMemory, 2);
+                    double meanLatency = r.Value.FirstOrDefault(m => m.MetricName.Contains("load_Mean latency"))?.DeltaPercent ?? double.NaN;
+                    meanLatency = Math.Round(meanLatency, 2);
 
-                        double rps = r.Value.FirstOrDefault(m => m.MetricName == "load_Requests/sec")?.DeltaPercent ?? double.NaN;
-                        rps = Math.Round(rps, 2);
+                    double latency50 = r.Value.FirstOrDefault(m => m.MetricName == "load_Latency 50th (ms)")?.DeltaPercent ?? double.NaN;
+                    latency50 = Math.Round(latency50, 2);
 
-                        double meanLatency = r.Value.FirstOrDefault(m => m.MetricName.Contains("load_Mean latency"))?.DeltaPercent ?? double.NaN;
-                        meanLatency = Math.Round(meanLatency, 2);
+                    double latency75 = r.Value.FirstOrDefault(m => m.MetricName == "load_Latency 75th (ms)")?.DeltaPercent ?? double.NaN;
+                    latency75 = Math.Round(latency75, 2);
 
-                        double latency50 = r.Value.FirstOrDefault(m => m.MetricName == "load_Latency 50th (ms)")?.DeltaPercent ?? double.NaN;
-                        latency50 = Math.Round(latency50, 2);
+                    double latency90 = r.Value.FirstOrDefault(m => m.MetricName == "load_Latency 90th (ms)")?.DeltaPercent ?? double.NaN;
+                    latency90 = Math.Round(latency90, 2);
 
-                        double latency75 = r.Value.FirstOrDefault(m => m.MetricName == "load_Latency 75th (ms)")?.DeltaPercent ?? double.NaN;
-                        latency75 = Math.Round(latency75, 2);
+                    double latency99 = r.Value.FirstOrDefault(m => m.MetricName == "load_Latency 99th (ms)")?.DeltaPercent ?? double.NaN;
+                    latency99 = Math.Round(latency99, 2);
 
-                        double latency90 = r.Value.FirstOrDefault(m => m.MetricName == "load_Latency 90th (ms)")?.DeltaPercent ?? double.NaN;
-                        latency90 = Math.Round(latency90, 2);
-
-                        double latency99 = r.Value.FirstOrDefault(m => m.MetricName == "load_Latency 99th (ms)")?.DeltaPercent ?? double.NaN;
-                        latency99 = Math.Round(latency99, 2);
-
-                        sw.WriteLine($"{r.Key} | {workingSet}% | {privateMemory}% | {rps}% | {meanLatency}% | {latency50}% | {latency75}% | {latency90}% | {latency99}% |");
-                    }
+                    sw.WriteLine($"{r.Key} | {workingSet}% | {privateMemory}% | {rps}% | {meanLatency}% | {latency50}% | {latency75}% | {latency90}% | {latency99}% |");
                 }
 
                 sw.AddIncompleteTestsSection(executionDetails);
