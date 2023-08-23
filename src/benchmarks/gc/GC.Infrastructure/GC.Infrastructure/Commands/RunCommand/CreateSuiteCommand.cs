@@ -119,7 +119,7 @@ namespace GC.Infrastructure.Commands.RunCommand
             {
                 configuration.Runs.Add(r.Key, new Core.Configurations.ASPNetBenchmarks.Run
                 {
-                    corerun = r.Value.Path,
+                    corerun = Directory.GetParent(r.Value.Path).FullName,
                     environment_variables = r.Value.environment_variables,
                 });
             }
