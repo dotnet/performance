@@ -6,9 +6,9 @@ There are four main types of errors while running ASP.NET Benchmarks using crank
 
 ### 1. Inability To Connect To The Server
 
-The typical error message associated with this is of the following form: 
+The typical error message associated with this is of the following form:
 
-```
+```cmd
 The specified endpoint url 'http://asp-citrine-win:5001' for 'application' is invalid or not responsive: "No such host is known. (asp-citrine-win:5001)"
 ```
 
@@ -26,5 +26,4 @@ Fix arguments by refering to [this](https://github.com/dotnet/crank/blob/main/sr
 The test failures could be as a result of either runtime failures or failures of running the benchmark on the managed side of things. For both of these issues examine the log file to identify the reasons.
 
 ### 4. Missing Artifacts
-
 For the case of missing artifacts such as missing traces, examine the log file for the exception reasons.
