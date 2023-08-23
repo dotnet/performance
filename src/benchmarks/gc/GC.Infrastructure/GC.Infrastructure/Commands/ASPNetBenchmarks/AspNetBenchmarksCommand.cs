@@ -36,7 +36,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
         public override int Execute([NotNull] CommandContext context, [NotNull] AspNetBenchmarkSettings settings)
         {
-            AnsiConsole.Write(new Rule("ASPNet Benchmarks Orchestrator"));
+            AnsiConsole.Write(new Rule("ASP.NET Benchmarks Orchestrator"));
             AnsiConsole.WriteLine();
 
             ConfigurationChecker.VerifyFile(settings.ConfigurationPath, nameof(AspNetBenchmarksCommand));
@@ -67,12 +67,12 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 configurationToCommand[line[0]] = line[1];
             }
 
+            // For each benchmark, iterate over all specified runs.
             foreach (var c in configurationToCommand)
             {
                 foreach (var run in configuration.Runs)
                 {
                     OS os = !c.Key.Contains("Win") ? OS.Linux : OS.Windows; 
-                    // Build Commandline.
                     (string, string) commandLine = ASPNetBenchmarksCommandBuilder.Build(configuration, run, c, os);
 
                     string outputPath = Path.Combine(configuration.Output.Path, run.Key);
@@ -81,7 +81,13 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                         Directory.CreateDirectory(outputPath);
                     }
 
-                    // Launch new process.
+                    // There are 3 main ASP.NET errors:
+                    // 1. The server is unavailable - this could be because you aren't connected to CorpNet or the machine is down.
+                    // 2. The crank commands are incorrect.
+                    // 3. Test fails because of a test error.
+
+                    // Launch new crank process.
+                    int exitCode = -1;
                     StringBuilder output = new();
                     StringBuilder error = new();
 
@@ -94,7 +100,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                         crankProcess.StartInfo.RedirectStandardOutput = true;
                         crankProcess.StartInfo.CreateNoWindow = true;
 
-                        AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Running ASPNetBenchmark for Configuration {configuration.Name} {run.Key} {c.Key} [/]");
+                        AnsiConsole.MarkupLine($"[green bold] ({DateTime.Now}) Running ASP.NET Benchmark for Configuration {configuration.Name} {run.Key} {c.Key} [/]");
 
                         crankProcess.OutputDataReceived += (s, d) =>
                         {
@@ -110,16 +116,17 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                         crankProcess.BeginErrorReadLine();
 
                         bool exited = crankProcess.WaitForExit((int)configuration.Environment.default_max_seconds * 1000);
+                        exitCode = crankProcess.ExitCode;
                     }
 
-                    int exitCode = -1;
-
                     string outputFile = Path.Combine(configuration.Output.Path, run.Key, $"{c.Key}_{run.Key}.json");
+                    string outputDetails = output.ToString();
+
                     if (File.Exists(outputFile))
                     {
                         string[] outputLines =  File.ReadAllLines(outputFile);
 
-                        // In a quick and dirty way check the returnCode from the file.
+                        // In a quick and dirty way, check the returnCode from the file that'll tell us if the test failed.
                         foreach (var o in outputLines)
                         {
                             if (o.Contains("returnCode"))
@@ -132,27 +139,32 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                         }
                     }
 
-                    string outputDetails = output.ToString();
-                    File.WriteAllText(Path.Combine(outputPath, $"{GetKey(c.Key, run.Key)}.log"), "Output: \n" + outputDetails + "\n Errors: \n" + error.ToString());
+                    // For the case where the output file doesn't exist implies that was an issue connecting to the asp.net machines or error number 1.
+                    // This case also applies for incorrect crank arguments or error number 2.
+                    // Move the standard out to the standard error as the process failed.
+                    else
+                    {
+                        error.AppendLine(outputDetails);
+                    }
 
+                    string logfileOutput = Path.Combine(outputPath, $"{GetKey(c.Key, run.Key)}.log");
                     if (exitCode != 0)
                     {
-                        StringBuilder errorLines = new();
-
-                        errorLines.AppendLine(error.ToString());
                         string[] outputLines = outputDetails.Split("\n");
                         foreach (var o in outputLines)
                         {
                             // Crank provides the standard error from the test itself by this mechanism.
+                            // Error #3: Issues with test run.
                             if (o.StartsWith("[STDERR]"))
                             {
-                                errorLines.AppendLine(o);
+                                error.AppendLine(o.Replace("[STDERR]", ""));
                             }
                         }
 
-                        AnsiConsole.Markup($"[red bold] Failed with the following errors:\n {Markup.Escape(errorLines.ToString())} [/]");
+                        AnsiConsole.Markup($"[red bold] Failed with the following errors:\n {Markup.Escape(error.ToString())} \n Check the log file for more information: {logfileOutput} [/]");
                     }
 
+                    File.WriteAllText(logfileOutput, "Output: \n" + outputDetails + "\n Errors: \n" + error.ToString());
                     executionDetails[GetKey(c.Key, run.Key)] = new ProcessExecutionDetails(key: GetKey(c.Key, run.Key),
                                                                                           commandlineArgs: commandLine.Item1 + " " + commandLine.Item2,
                                                                                           environmentVariables: new(),

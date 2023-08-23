@@ -11,17 +11,20 @@
     public sealed class Run : RunBase
     {
         public string? corerun { get; set; }
+        public string? framework_version { get; set; }
     }
 
     public class Environment
     {
         public Dictionary<string, string> environment_variables { get; set; } = new();
         public uint default_max_seconds { get; set; } = 300;
+        public string framework_version { get; set; } = "net8.0";
     }
 
     public class BenchmarkSettings
     {
         public string benchmark_file { get; set; }
+        public string additional_arguments { get; set; } = "";
     }
 
     public class Output : OutputBase { }

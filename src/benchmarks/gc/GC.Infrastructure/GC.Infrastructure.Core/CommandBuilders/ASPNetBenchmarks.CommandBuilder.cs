@@ -72,14 +72,45 @@ namespace GC.Infrastructure.Core.CommandBuilders
                 commandStringBuilder.Append($" --application.options.traceOutput {Path.Combine(configuration.Output.Path, run.Key, (baseConfiguration.Key + "." + collectType)) + traceFileSuffix}");
             }
 
-            commandStringBuilder.Append($" --application.framework net8.0 ");
+            // Add any additional arguments specified.
+            if (!string.IsNullOrEmpty(configuration.benchmark_settings.additional_arguments))
+            {
+                commandStringBuilder.Append($" {configuration.benchmark_settings.additional_arguments} ");
+            }
 
-            string corerunToSend = run.Value.corerun.EndsWith("\\") ? run.Value.corerun.Remove(run.Value.corerun.Length - 1) : run.Value.corerun;
-            commandStringBuilder.Append($" --application.options.outputFiles {Path.Combine(Path.GetDirectoryName(corerunToSend), "*.*" )}");
+            // Add the Framework version.
+            string frameworkVersion = "net8.0";
+            // If the framework version at the top level is explicitly stated, use it.
+            if (!string.IsNullOrEmpty(configuration.Environment.framework_version))
+            {
+                frameworkVersion = configuration.Environment.framework_version;
+
+                // If the framework version is set at the run level, use it.
+                if (!string.IsNullOrEmpty(run.Value.framework_version))
+                {
+                    frameworkVersion = run.Value.framework_version;
+                }
+            }
+            commandStringBuilder.Append($" --application.framework {frameworkVersion} ");
+
+            string artifactsToUpload = run.Value.corerun!;
+
+            // If the corerun specified is a directory, upload the entire directory.
+            // Else, we upload just the file.
+            if (Directory.Exists(run.Value.corerun!))
+            {
+                artifactsToUpload = Path.Combine(artifactsToUpload, "*.*");
+            }
+            commandStringBuilder.Append($" --application.options.outputFiles {artifactsToUpload} ");
 
             // Get the log.
+            // TODO: Specify the path.
             commandStringBuilder.Append(" --application.options.downloadOutput true ");
+            commandStringBuilder.Append($" --application.options.downloadOutput {Path.Combine(configuration.Output.Path, run.Key, $"{baseConfiguration.Key}_{run.Key}.output")} ");
+
             commandStringBuilder.Append(" --application.options.downloadBuildLog true ");
+            commandStringBuilder.Append($" --application.options.downloadBuildLogOutput {Path.Combine(configuration.Output.Path, run.Key, $"{baseConfiguration.Key}_{run.Key}.buildLog")} ");
+
 
             commandStringBuilder.Append($" --json {Path.Combine(configuration.Output.Path, run.Key, $"{baseConfiguration.Key}_{run.Key}.json")}");
             return (processName, commandStringBuilder.ToString());
