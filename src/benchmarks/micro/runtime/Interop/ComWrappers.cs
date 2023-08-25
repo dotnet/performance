@@ -25,6 +25,7 @@ namespace Interop
             => s_instance.GetOrCreateObjectForComInstance(ptr, CreateObjectFlags.None);
 
         private List<nint> iterations;
+        private object targetRcw;
 
         public ComWrappersTests()
         {
@@ -45,7 +46,7 @@ namespace Interop
             nint rcwPtr = (nint)ptr;
 
             // Transfer ownership to RCW instance. This populates the RCW cache.
-            object rcw = s_instance.GetOrCreateObjectForComInstance((nint)ptr, CreateObjectFlags.None);
+            targetRcw = s_instance.GetOrCreateObjectForComInstance((nint)ptr, CreateObjectFlags.None);
 
             // Ownership was transferred.
             Marshal.Release((nint)ptr);
