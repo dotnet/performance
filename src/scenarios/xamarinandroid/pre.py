@@ -34,7 +34,7 @@ if precommands.output:
 remove_aab_files(output_dir)
 
 # Copy the xamarinVersion to a file so we have it on the machine
-xamarin_version = get_version_from_dll_powershell(rf".\{const.APPDIR}\obj\Release\{precommands.framework}-android\android-arm64\linked\Microsoft.Android.dll")
+xamarin_version = get_version_from_dll_powershell(rf".\{const.APPDIR}\obj\Release\{precommands.framework}\android-arm64\linked\Mono.Android.dll")
 version_dict = { "xamarinVersion": xamarin_version }
 versions_write_json(version_dict, rf"{output_dir}\versions.json")
-print(f"Versions: {version_dict} from location " + rf".\{const.APPDIR}\obj\Release\{precommands.framework}-android\android-arm64\linked\Microsoft.Android.dll")
+print(f"Versions: {version_dict} from location " + rf".\{const.APPDIR}\obj\Release\{precommands.framework}\android-arm64\linked\Mono.Android.dll")
