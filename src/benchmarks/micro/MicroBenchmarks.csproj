@@ -146,6 +146,7 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFrameworkIdentifier)' == '.NETFramework' Or ('$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(_TargetFrameworkVersionWithoutV)' &lt; '5.0')">
+    <Compile Remove="runtime\Interop\ComWrappers.cs" />
     <Compile Remove="libraries\System.Diagnostics\Perf_Activity.cs" />
     <Compile Remove="libraries\System.Text.Json\Serializer\ReadPreservedReferences.cs" />
     <Compile Remove="libraries\System.Text.Json\Serializer\WritePreservedReferences.cs" />
