@@ -18,8 +18,8 @@ namespace Interop
     {
         static readonly ComWrappers s_instance = new DummyComWrappers();
 
-        private nint ptr;
-        private object targetRcw;
+        private nint _ptr;
+        private object _targetRcw;
 
         public ComWrappersTests()
         {
@@ -27,17 +27,17 @@ namespace Interop
             // This can then be passed as an unmanaged instance since ComWrappers
             // doesn't unwrap by default.
             object tmp = new object();
-            ptr = s_instance.GetOrCreateComInterfaceForObject(tmp, CreateComInterfaceFlags.None);
+            _ptr = s_instance.GetOrCreateComInterfaceForObject(tmp, CreateComInterfaceFlags.None);
 
             // Transfer ownership to RCW instance. This populates the RCW cache.
-            targetRcw = s_instance.GetOrCreateObjectForComInstance(ptr, CreateObjectFlags.None);
-            if (tmp == targetRcw)
+            _targetRcw = s_instance.GetOrCreateObjectForComInstance(_ptr, CreateObjectFlags.None);
+            if (tmp == _targetRcw)
             {
                 throw new Exception("Test invariant violated. Assuming roundtrip for CCW to RCW doesn't unwrap.");
             }
 
             // Ownership was transferred.
-            Marshal.Release(ptr);
+            Marshal.Release(_ptr);
         }
 
         [Benchmark]
@@ -46,7 +46,7 @@ namespace Interop
             // Define a large number of iterations for parallel action.
             var count = 3_000_000;
             await Task.WhenAll(
-                Enumerable.Repeat(ptr, count)
+                Enumerable.Repeat(_ptr, count)
                     .Select(ptr =>
                         Task.Run(delegate
                         {
