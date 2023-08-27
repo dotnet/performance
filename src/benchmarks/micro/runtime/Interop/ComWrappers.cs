@@ -43,14 +43,16 @@ namespace Interop
         [Benchmark]
         public async Task ParallelRCWLookUp()
         {
-            // Define a large number of iterations for parallel action.
-            var count = 3_000_000;
             await Task.WhenAll(
-                Enumerable.Repeat(_ptr, count)
-                    .Select(ptr =>
+                Enumerable.Range(0, Environment.ProcessorCount)
+                    .Select(_ =>
                         Task.Run(delegate
                         {
-                            s_instance.GetOrCreateObjectForComInstance(ptr, CreateObjectFlags.None);
+                            // Define a large number of iterations for parallel action.
+                            for (int i = 0; i < 3_000_000; i++)
+                            {
+                                s_instance.GetOrCreateObjectForComInstance(_ptr, CreateObjectFlags.None);
+                            }
                         })));
         }
 
