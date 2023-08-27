@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Interop
 {
-    [BenchmarkCategory(Categories.Runtime, Categories.NoWASM)]
+    [BenchmarkCategory(Categories.Runtime, Categories.NoWASM, Categories.NoMono)]
     public class ComWrappersTests
     {
         static readonly ComWrappers s_instance = new DummyComWrappers();
