@@ -83,12 +83,12 @@ namespace Interop
         {
             if (!IID_IUnknown.Equals(*iid))
             {
-                return unchecked((int)0x80004002);
+                return unchecked((int)0x80004002 /* E_NOINTERFACE */);
             }
 
             *ppObj = _this;
             AddRef2(_this);
-            return 0;
+            return 0 /* S_OK */;
         }
 
         static int AddRef2(void* _this)
