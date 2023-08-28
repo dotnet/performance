@@ -12,7 +12,7 @@ parameters:
 resources:
   containers:
     - container: ubuntu_x64_build_container
-      image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-18.04
+      image: mcr.microsoft.com/dotnet-buildtools/prereqs:ubuntu-22.04
 
 # CI Trigger on main branch
 trigger:
