@@ -42,7 +42,7 @@ schedules:
   branches:
     include:
     - main
-    - release/7.0
+    #- release/7.0 #Removing release 7.0 while we wait for the queue to empty
   always: true
 - cron: "0 21 * * THU"
   displayName: Weekly Build
@@ -65,7 +65,7 @@ jobs:
       jobTemplate: /eng/performance/scenarios.yml
       buildMachines:
         - win-x64
-        - ubuntu-x64
+        - ubuntu-x64-1804
       isPublic: true
       jobParameters:
         kind: scenarios
@@ -108,7 +108,7 @@ jobs:
       buildMachines:
         - win-x64
         - win-x86
-        - ubuntu-x64
+        - ubuntu-x64-1804
       isPublic: true
       jobParameters:
         kind: sdk_scenarios
@@ -276,7 +276,7 @@ jobs:
       jobTemplate: /eng/performance/scenarios.yml
       buildMachines:
         - win-x64
-        - ubuntu-x64
+        - ubuntu-x64-1804
         - win-arm64
         - ubuntu-arm64-ampere
       isPublic: false
@@ -333,6 +333,21 @@ jobs:
         projectFile: maui_scenarios_ios.proj
         dotnetVersionsLinks:
           main: https://aka.ms/dotnet/sdk/maui/net8.0.json
+        runtimeFlavor: mono
+
+  # Maui iOS scenario benchmarks
+  - template: /eng/performance/build_machine_matrix.yml
+    parameters:
+      jobTemplate: /eng/performance/scenarios.yml
+      buildMachines:
+        - osx-x64-ios-arm64
+      isPublic: false
+      jobParameters:
+        kind: maui_scenarios_ios
+        projectFile: maui_scenarios_ios.proj
+        dotnetVersionsLinks:
+          main: https://aka.ms/dotnet/sdk/maui/net8.0.json
+        runtimeFlavor: coreclr
 
   ## Maui scenario benchmarks
   #- template: /eng/performance/build_machine_matrix.yml
@@ -379,7 +394,7 @@ jobs:
       buildMachines:
         - win-x64
         - win-x86
-        - ubuntu-x64
+        - ubuntu-x64-1804
       isPublic: false
       jobParameters:
         kind: sdk_scenarios

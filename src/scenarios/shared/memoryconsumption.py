@@ -3,14 +3,12 @@ Wrapper around memoryconsumption tool.
 '''
 import sys
 import os
-import platform
 from logging import getLogger
 from shutil import copytree
-from performance.logger import setup_loggers
-from performance.common import extension, iswin, helixpayload, runninginlab, get_artifacts_directory, get_packages_directory, RunCommand
+from performance.common import extension, helixpayload, runninginlab, get_artifacts_directory, get_packages_directory, RunCommand
 from performance.constants import UPLOAD_CONTAINER, UPLOAD_STORAGE_URI, UPLOAD_TOKEN_VAR, UPLOAD_QUEUE
 from dotnet import CSharpProject, CSharpProjFile
-from shared.util import helixworkitempayload, helixuploaddir, builtexe, publishedexe, uploadtokenpresent, getruntimeidentifier, iswin
+from shared.util import helixworkitempayload, helixuploaddir, uploadtokenpresent, getruntimeidentifier
 from shared.const import *
 from shared.testtraits import TestTraits
 from subprocess import CalledProcessError

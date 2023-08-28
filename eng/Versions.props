@@ -7,19 +7,13 @@
   </PropertyGroup>
   <!--Package versions-->
   <PropertyGroup>
-    <MicrosoftDotnetSdkInternalPackageVersion>5.0.104-servicing.21213.7</MicrosoftDotnetSdkInternalPackageVersion>
-    <MicrosoftDotNetXHarnessCLIVersion>1.0.0-prerelease.23157.1</MicrosoftDotNetXHarnessCLIVersion>
-    <MicrosoftNETCoreAppRuntimewinx64PackageVersion>5.0.4</MicrosoftNETCoreAppRuntimewinx64PackageVersion>
-    <MicrosoftNETSdkInternalPackageVersion>
-    </MicrosoftNETSdkInternalPackageVersion>
-    <MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>5.0.4</MicrosoftWindowsDesktopAppRuntimewinx64PackageVersion>
-    <MicrosoftAspNetCoreAppRuntimewinx64PackageVersion>5.0.4</MicrosoftAspNetCoreAppRuntimewinx64PackageVersion>
-    <MicrosoftNetILLinkTasksVersion>7.0.100-1.22057.1</MicrosoftNetILLinkTasksVersion>
-    <MicrosoftNetILLinkPackageVersion>7.0.100-1.22057.1</MicrosoftNetILLinkPackageVersion>
-    <BenchmarkDotNetVersion>0.13.2.2052</BenchmarkDotNetVersion>
+    <MicrosoftNETILLinkTasksVersion>8.0.0-rc.2.23426.4</MicrosoftNETILLinkTasksVersion>
+    <MicrosoftNETILLinkPackageVersion>8.0.0-rc.2.23426.4</MicrosoftNETILLinkPackageVersion>
+    <BenchmarkDotNetVersion>0.13.7-nightly.20230717.35</BenchmarkDotNetVersion>
+    <SystemThreadingChannelsPackageVersion>8.0.0-rc.2.23426.4</SystemThreadingChannelsPackageVersion>
+    <MicrosoftExtensionsLoggingPackageVersion>8.0.0-rc.2.23426.4</MicrosoftExtensionsLoggingPackageVersion>
   </PropertyGroup>
   <!--Package names-->
   <PropertyGroup>
-    <MicrosoftDotnetSdkInternalPackage>Microsoft.Dotnet.Sdk.Internal</MicrosoftDotnetSdkInternalPackage>
   </PropertyGroup>
 </Project>

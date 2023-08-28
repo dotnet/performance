@@ -7,7 +7,7 @@ EXENAME = 'emptyvbconsoletemplate'
 
 if __name__ == "__main__":
     traits = TestTraits(exename=EXENAME, 
-                        startupmetric='TimeToMain',
+                        startupmetric='TimeToMain2',
                         guiapp='false',
                         )
     Runner(traits).run()

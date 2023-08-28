@@ -5,15 +5,11 @@ using System.Collections.Generic;
 
 namespace ScenarioMeasurement;
 
-// [EventSource(Guid = "9bb228bd-1033-5cf0-1a56-c2dbbe0ebc86")]
-// class PerfLabGenericEventSource : EventSource
-// {
-//     public static PerfLabGenericEventSource Log = new PerfLabGenericEventSource();
-//     public void Startup() => WriteEvent(1);
-// }
-
 public class GenericStartupParser : IParser
 {
+    private const string EventSourceName = PerfLabValues.EventSourceName;
+    private const string StartupEventName = PerfLabValues.StartupEventName;
+
     public void EnableKernelProvider(ITraceSession kernel)
     {
         kernel.EnableKernelProvider(TraceSessionManager.KernelKeyword.Process, TraceSessionManager.KernelKeyword.Thread, TraceSessionManager.KernelKeyword.ContextSwitch);
@@ -21,7 +17,7 @@ public class GenericStartupParser : IParser
 
     public void EnableUserProviders(ITraceSession user)
     {
-        user.EnableUserProvider("PerfLabGenericEventSource", TraceEventLevel.Verbose);
+        user.EnableUserProvider(EventSourceName, TraceEventLevel.Verbose);
     }
 
     public IEnumerable<Counter> Parse(string mergeTraceFile, string processName, IList<int> pids, string commandLine)
@@ -71,7 +67,7 @@ public class GenericStartupParser : IParser
                 }
             };
 
-            source.Dynamic.AddCallbackForProviderEvent("PerfLabGenericEventSource", "Startup", evt =>
+            source.Dynamic.AddCallbackForProviderEvent(EventSourceName, StartupEventName, evt =>
             {
                 if (pid.HasValue && evt.ProcessID == pid && evt.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
                 {

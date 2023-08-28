@@ -1,5 +1,7 @@
 # GC.Infrastructure
 
+__NOTE__: We will be deleting the python infrastructure soon. Please switch over to this new infrastructure for running tests.
+
 This repository contains the code to invoke the GC Infrastructure that currently runs the following types of test suites for a specific baseline and a run for which you want to test the performance for:
 
 1. GCPerfSim

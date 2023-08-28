@@ -38,9 +38,9 @@ namespace System.Net.Primitives.Tests
             => new IPAddress(address);
 
         [Benchmark]
-        [ArgumentsSource(nameof(Addresses))]
-        public string ToString(IPAddress address)
-            => address.ToString();
+        [ArgumentsSource(nameof(ByteAddresses))]
+        public string CtorAndToString(byte[] address)
+            => new IPAddress(address).ToString();
 
         private static readonly long s_addr = IPAddress.Loopback.Address;
 

@@ -8,6 +8,7 @@ import shutil
 import subprocess
 from logging import getLogger
 from argparse import ArgumentParser
+from typing import List, Optional
 from dotnet import CSharpProject, CSharpProjFile
 from shared import const
 from shared.crossgen import CrossgenArguments
@@ -43,7 +44,7 @@ class PreCommands:
         parser = ArgumentParser()
 
         subparsers = parser.add_subparsers(title='Operations', 
-                                           description='Common preperation steps for perf tests. Should run under src\scenarios\<test asset folder>',
+                                           description='Common preperation steps for perf tests. Should run under src\\scenarios\\<test asset folder>',
                                            dest='operation')
 
         default_parser = subparsers.add_parser(DEFAULT, help='Default operation (placeholder command and no specific operation will be executed)' )
@@ -91,6 +92,7 @@ class PreCommands:
         self.operation = args.operation
         self.framework = args.framework
         self.runtime_identifier = args.runtime
+        self.nativeaot = args.nativeaot
         self.msbuild = args.msbuild
         print(self.msbuild)
         self.msbuildstatic = args.msbuildstatic
@@ -117,7 +119,7 @@ class PreCommands:
             bin_dir: str,
             exename: str,
             working_directory: str,
-            language: str = None,
+            language: Optional[str] = None,
             no_https: bool = False,
             no_restore: bool = True):
         'makes a new app with the given template'
@@ -149,6 +151,10 @@ class PreCommands:
                             dest='runtime',
                             metavar='runtime',
                             help='runtime for build or publish - ex: win-x64')
+        parser.add_argument('-n', '--nativeaot',
+                            dest='nativeaot',
+                            metavar='nativeaot',
+                            help='use Native AOT runtime for build or publish')
         parser.add_argument('--msbuild',
                             dest='msbuild',
                             metavar='msbuild',
@@ -189,7 +195,7 @@ class PreCommands:
         self.project = CSharpProject(csproj, const.BINDIR)
         self._updateframework(csproj.file_name)
 
-    def execute(self, build_args: list = []):
+    def execute(self, build_args: List[str] = []):
         'Parses args and runs precommands'
         if self.operation == DEFAULT:
             pass
@@ -202,6 +208,10 @@ class PreCommands:
                 build_args.append('--self-contained')
             elif self.no_self_contained:
                 build_args.append('--no-self-contained')
+            if self.nativeaot:
+                build_args.append('/p:PublishAot=true')
+                build_args.append('/p:PublishAotUsingRuntimePack=true')
+            build_args.append("/p:EnableWindowsTargeting=true")
             self._publish(configuration=self.configuration, runtime_identifier=self.runtime_identifier, framework=self.framework, output=self.output, build_args=build_args)
         if self.operation == CROSSGEN:
             startup_args = [
@@ -217,10 +227,29 @@ class PreCommands:
             startup_args += self.crossgen_arguments.get_crossgen2_command_line()
             RunCommand(startup_args, verbose=True).run(self.crossgen_arguments.coreroot)
 
-    def add_startup_logging(self, file: str, line: str):
-        self.add_event_source(file, line, "PerfLabGenericEventSource.Log.Startup();")
+    def add_startup_logging(self, file: str, line: str, language_file_extension: str = 'cs', indent: int = 0):
+        if language_file_extension == 'cs':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.Startup();"
+        elif language_file_extension == 'vb':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.Startup()"
+        elif language_file_extension == 'fs':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.Startup()"
+        else:
+            raise Exception(f"{language_file_extension} not supported.")
+        self.add_event_source(file, line, trace_statement, language_file_extension)
 
-    def add_event_source(self, file: str, line: str, trace_statement: str):
+    def add_onmain_logging(self, file: str, line: str, language_file_extension: str = 'cs', indent: int = 0):
+        if language_file_extension == 'cs':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.OnMain();"
+        elif language_file_extension == 'vb':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.OnMain()"
+        elif language_file_extension == 'fs':
+            trace_statement = f"{' ' * indent}PerfLabGenericEventSource.Log.OnMain()"
+        else:
+            raise Exception(f"{language_file_extension} not supported.")
+        self.add_event_source(file, line, trace_statement, language_file_extension)
+
+    def add_event_source(self, file: str, line: str, trace_statement: str, language_file_extension: str = 'cs'):
         '''
         Adds a copy of the event source to the project and inserts the correct call
         file: relative path to the root of the project (where the project file lives)
@@ -228,20 +257,24 @@ class PreCommands:
         trace_statement: Statement to insert
         '''
 
+        self.add_perflab_file(language_file_extension)
+        projpath = os.path.dirname(self.project.csproj_file)
+        filepath = os.path.join(projpath, file)
+        insert_after(filepath, line, trace_statement)
+
+    def add_perflab_file(self, language_file_extension: str = 'cs'):
         projpath = os.path.dirname(self.project.csproj_file)
         staticpath = os.path.join(get_repo_root_path(), "src", "scenarios", "staticdeps")
         if helixpayload():
             staticpath = os.path.join(helixpayload(), "staticdeps")
-        shutil.copyfile(os.path.join(staticpath, "PerfLab.cs"), os.path.join(projpath, "PerfLab.cs"))
-        filepath = os.path.join(projpath, file)
-        insert_after(filepath, line, trace_statement)
+        shutil.copyfile(os.path.join(staticpath, f"PerfLab.{language_file_extension}"), os.path.join(projpath, f"PerfLab.{language_file_extension}"))
 
-    def install_workload(self, workloadid: str, install_args: list = ["--skip-manifest-update"]):
+    def install_workload(self, workloadid: str, install_args: List[str] = ["--skip-manifest-update"]):
         'Installs the workload, if needed'
         if not self.has_workload:
             if self.readonly_dotnet:
                 raise Exception('workload needed to build, but has_workload=false, and readonly_dotnet=true')
-            subprocess.run(["dotnet", "workload", "install", workloadid] + install_args)
+            subprocess.run(["dotnet", "workload", "install", workloadid] + install_args, check=True)
 
     def uninstall_workload(self, workloadid: str):
         'Uninstalls the workload, if possible'
@@ -272,7 +305,7 @@ class PreCommands:
             else:
                 replace_line(projectfile, r'<TargetFramework>.*?</TargetFramework>', f'<TargetFramework>{self.framework}</TargetFramework>')
 
-    def _publish(self, configuration: str, framework: str = None, runtime_identifier: str = None, output: str = None, build_args: list = []):
+    def _publish(self, configuration: str, framework: str, runtime_identifier: Optional[str] = None, output: Optional[str] = None, build_args: List[str] = []):
         self.project.publish(configuration,
                              output or const.PUBDIR,
                              True,
@@ -283,10 +316,12 @@ class PreCommands:
                              *['-bl:%s' % self.binlog] if self.binlog else [],
                              *build_args)
 
-    def _restore(self):
-        self.project.restore(packages_path=get_packages_directory(), verbose=True)
+    def _restore(self, restore_args: List[str] = ["/p:EnableWindowsTargeting=true"]):
+        self.project.restore(packages_path=get_packages_directory(),
+                             verbose=True,
+                             args=(['-bl:%s-restore.binlog' % self.binlog] if self.binlog else []) + restore_args)
 
-    def _build(self, configuration: str, framework: str = None, output: str = None, build_args: list = []):
+    def _build(self, configuration: str, framework: str, output: Optional[str] = None, build_args: List[str] = []):
         self.project.build(configuration,
                            True,
                            get_packages_directory(),

@@ -43,10 +43,6 @@
       <ScenarioDirectoryName>aspwebtemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
     </SDKWorkItem>
-    <SDKWorkItem Include="SDK Blazor Server App Template">
-      <ScenarioDirectoryName>blazorservertemplate</ScenarioDirectoryName>
-      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-    </SDKWorkItem>
     <SDKWorkItem Include="SDK Class library Template">
       <ScenarioDirectoryName>classlibtemplate</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
@@ -156,13 +152,6 @@
     </HelixWorkItem>
     <HelixWorkItem Include="Inner Loop MVC">
       <ScenarioDirectoryName>mvcinnerloop</ScenarioDirectoryName>
-      <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
-      <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>
-      <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>
-      <PostCommands>$(Python) post.py</PostCommands>
-    </HelixWorkItem>
-    <HelixWorkItem Include="Inner Loop Blazor Server">
-      <ScenarioDirectoryName>blazorserverinnerloop</ScenarioDirectoryName>
       <PayloadDirectory>$(ScenariosDir)%(ScenarioDirectoryName)</PayloadDirectory>
       <PreCommands>$(Python) pre.py default -f net$(FrameworkVersion)</PreCommands>
       <Command>$(Python) test.py innerloop --scenario-name &quot;%(Identity)&quot;</Command>

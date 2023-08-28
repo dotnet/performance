@@ -1,0 +1,160 @@
+jobs:
+  run_performance_job:
+    runId: 'dotnetperf'
+    isConsoleApp: true
+    waitForExit: true
+    variables:
+      architecture: 'x64'
+      queue: ''
+      framework: 'net8.0'
+      runCategories: ''
+      kind: ''
+      runtimeRepoDir: '../runtime' # A guess that the performance repo is next to the runtime repo
+      osGroup: 'windows'
+      osSubGroup: ''
+      coreRootDir: '{{ runtimeRepoDir }}/artifacts/tests/coreclr/{{ osGroup }}.{{ architecture }}.Release/Tests/Core_Root' 
+      performanceRepoDir: '.'
+      runName: '{{ buildNumber }}-testing'
+      buildNumber: 'local'
+      buildSourceVersion: 'abc123'
+      buildSourceBranch: 'main'
+      internal: true
+      bdnArgs: ''
+      partitionCount: 5
+      projectFile: 'performance/eng/performance/helix.proj'
+      isScenario: false
+      isLocalBuild: true
+    sources:
+      coreRoot:
+        localFolder: '{{ coreRootDir }}'
+      performance:
+        localFolder: '{{ performanceRepoDir }}'
+    dockerfile: performance/eng/performance/helix_sender.Dockerfile
+    dockerImageName: helix_sender
+    dockerCommand: python ./performance/scripts/run_performance_job.py --queue {{ queue }} --framework {{ framework }} --run-kind {{ kind }} --core-root-dir /performance/coreRoot --performance-repo-dir /performance/performance --architecture {{ architecture }} --os-group {{ osGroup }} --os-sub-group {{ osSubGroup }} {% if internal %}--internal{% endif %} --run-categories "{{ runCategories }}" {% if bdnArgs != blank and bdnArgs != empty %} --extra-bdn-args "{{ bdnArgs }}" {% endif %} --partition-count {{ partitionCount }} --project-file {{ projectFile }} {% if isScenario %} --is-scenario {% endif %} {% if isLocalBuild %} --local-build {% endif %}
+    dockerContextDirectory: .
+    arguments: '--env HelixAccessToken --env SYSTEM_ACCESSTOKEN --env PerfCommandUploadToken --env PerfCommandUploadTokenLinux'
+    environmentVariables:
+      BUILD_BUILDNUMBER: '{{ buildNumber }}'
+      BUILD_SOURCEVERSION: '{{ buildSourceVersion }}'
+      BUILD_SOURCEBRANCH: '{{ buildSourceBranch }}'
+      BUILD_REPOSITORY_NAME: 'dotnet/performance'
+      SYSTEM_TEAMPROJECT: 'internal'
+      BUILD_REASON: 'manual'
+      PERFLAB_RUNNAME: '{{ runName }}'
+scenarios:
+  micro:
+    benchmark:
+      job: run_performance_job
+      variables:
+        kind: 'micro'
+        runCategories: 'runtime libraries'
+  
+  scenarios:
+    benchmark:
+      job: run_performance_job
+      variables:
+        kind: scenarios
+        isScenario: true
+        projectFile: 'performance/eng/performance/scenarios.proj'
+
+profiles:
+  local:
+    jobs:
+      benchmark:
+        endpoints: 
+          - http://localhost:5010
+
+  msft-internal:
+    jobs:
+      benchmark:
+        endpoints:
+          - http://dotnetperf-crankagent:5001
+
+  relay:
+    jobs:
+      benchmark:
+        endpoints: 
+          - https://dotnetperf-crankagent-relay.servicebus.windows.net/dotnetperf-crankagent
+  
+  win-x64-public:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: windows
+          queue: Windows.10.Amd64.Client.Open
+          internal: false
+
+  win-x64:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: windows
+          queue: Windows.11.Amd64.Tiger.Perf
+
+  win-x64-android-arm64-pixel:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: windows
+          queue: Windows.10.Amd64.Pixel.Perf
+    
+  win-x64-android-arm64-galaxy:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: windows
+          queue: Windows.10.Amd64.Galaxy.Perf
+  
+  win-arm64:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: windows
+          architecture: arm64
+          queue: Windows.11.Arm64.Perf.Surf
+  
+  win-arm64-ampere:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: windows
+          architecture: arm64
+          queue: Windows.Server.Arm64.Perf
+
+  ubuntu-x64-public:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: linux
+          queue: Ubuntu.2204.Amd64.Open
+          internal: false
+
+  ubuntu-x64:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: linux
+          queue: Ubuntu.2204.Amd64.Tiger.Perf
+
+  ubuntu-arm64-ampere:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: linux
+          architecture: arm64
+          queue: Ubuntu.2004.Arm64.Perf
+
+  osx-x64-ios-arm64:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: osx
+          queue: OSX.1015.Amd64.Iphone.Perf
+
+  alpine:
+    jobs:
+      benchmark:
+        variables:
+          osGroup: linux
+          queue: alpine.amd64.tiger.perf
