@@ -11,9 +11,10 @@ runs:
 environment:
   environment_variables: {}
   default_max_seconds: 300
+  framework_version: net8.0
 benchmark_settings:
   benchmark_file: C:\InfraRuns\RunNew_All\Suites\ASPNETBenchmarks\ASPNetBenchmarks.csv
-  additional_arguments: --chart
+  additional_arguments: --chart --chart-type hex
 output:
   path: C:\InfraRuns\RunNew_All\ASPNetBenchmarks
   columns: 
