@@ -334,7 +334,6 @@ jobs:
         dotnetVersionsLinks:
           main: https://aka.ms/dotnet/sdk/maui/net8.0.json
         runtimeFlavor: mono
-        hybridGlobalization: false
 
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
@@ -349,6 +348,7 @@ jobs:
           main: https://aka.ms/dotnet/sdk/maui/net8.0.json
         runtimeFlavor: mono
         hybridGlobalization: true
+        additionalJobIdentifier: 'HybridGlobalization_True'
 
   # Maui iOS Native AOT scenario benchmarks
   - template: /eng/performance/build_machine_matrix.yml
@@ -363,7 +363,6 @@ jobs:
         dotnetVersionsLinks:
           main: https://aka.ms/dotnet/sdk/maui/net8.0.json
         runtimeFlavor: coreclr
-        hybridGlobalization: false
 
   - template: /eng/performance/build_machine_matrix.yml
     parameters:
@@ -378,6 +377,7 @@ jobs:
           main: https://aka.ms/dotnet/sdk/maui/net8.0.json
         runtimeFlavor: coreclr
         hybridGlobalization: true
+        additionalJobIdentifier: 'HybridGlobalization_True'
 
   ## Maui scenario benchmarks
   #- template: /eng/performance/build_machine_matrix.yml
