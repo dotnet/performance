@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 // Define INTERNAL_DI on platforms that support emit.
-//#define INTERNAL_DI
+#define INTERNAL_DI
 
 using System;
 using System.Reflection;
