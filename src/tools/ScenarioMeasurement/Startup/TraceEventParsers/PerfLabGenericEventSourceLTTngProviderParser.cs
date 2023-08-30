@@ -88,7 +88,7 @@ public class PerfLabGenericEventSourceLTTngProviderParser : TraceEventParser
 
         public override string[] PayloadNames => Array.Empty<string>();
 
-        public override object PayloadValue(int index) => throw new NotSupportedException();
+        public override object PayloadValue(int index) => null;
     }
     public sealed class StartupTraceData : PerfLabTraceData<StartupTraceData>
     {
