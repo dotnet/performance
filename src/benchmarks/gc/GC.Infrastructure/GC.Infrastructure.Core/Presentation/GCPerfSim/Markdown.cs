@@ -340,7 +340,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                         string runKey = GetExecutionDetailKey(run.Key, corerun.Key);
                         if (executionDetails.TryGetValue(runKey, out var bped))
                         {
-                            ProcessExecutionDetails runDetails = executionDetails[$"{run.Key}.{baseCoreRun}.0"];
+                            ProcessExecutionDetails runDetails = executionDetails[$"{run.Key}.{corerun.Key}.0"];
                             foreach (var env in runDetails.EnvironmentVariables)
                             {
                                 sb.AppendLine($" ```set {env.Key}={env.Value}```\n");
