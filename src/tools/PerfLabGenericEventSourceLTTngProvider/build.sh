@@ -20,8 +20,8 @@ pushd $(dirname $(realpath $0)) > /dev/null
 
 # install liblttng-ust-dev
 
-gcc -c -I. -fpic PerfLabGenericEventSourceLTTngProvider.c && \
-gcc -o $OUTPUT/PerfLabGenericEventSourceLTTngProvider.so -shared PerfLabGenericEventSourceLTTngProvider.o -llttng-ust
+gcc -O2 -c -I. -fpic PerfLabGenericEventSourceLTTngProvider.c && \
+gcc -O2 -o $OUTPUT/PerfLabGenericEventSourceLTTngProvider.so -shared PerfLabGenericEventSourceLTTngProvider.o -llttng-ust
 
 BUILD_EXIT_CODE=$?
 
