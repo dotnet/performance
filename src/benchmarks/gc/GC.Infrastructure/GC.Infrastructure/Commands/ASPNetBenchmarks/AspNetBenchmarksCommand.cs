@@ -53,7 +53,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
             // Parse the CSV file for the information.
             string[] lines = File.ReadAllLines(configuration.benchmark_settings.benchmark_file);
-            Dictionary<string, string> configurationToCommand = new(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, string> benchmarkNameToCommand = new(StringComparer.OrdinalIgnoreCase);
 
             for (int lineIdx = 0; lineIdx < lines.Length; lineIdx++)
             {
@@ -64,11 +64,11 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
 
                 string[] line = lines[lineIdx].Split(',', StringSplitOptions.TrimEntries);
                 Debug.Assert(line.Length == 2);
-                configurationToCommand[line[0]] = line[1];
+                benchmarkNameToCommand[line[0]] = line[1];
             }
 
             // For each benchmark, iterate over all specified runs.
-            foreach (var c in configurationToCommand)
+            foreach (var c in benchmarkNameToCommand)
             {
                 foreach (var run in configuration.Runs)
                 {
@@ -139,11 +139,11 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                         }
                     }
 
-                    // For the case where the output file doesn't exist implies that was an issue connecting to the asp.net machines or error number 1.
-                    // This case also applies for incorrect crank arguments or error number 2.
-                    // Move the standard out to the standard error as the process failed.
                     else
                     {
+                        // For the case where the output file doesn't exist implies that was an issue connecting to the asp.net machines or error number 1.
+                        // This case also applies for incorrect crank arguments or error number 2.
+                        // Move the standard out to the standard error as the process failed.
                         error.AppendLine(outputDetails);
                     }
 
@@ -174,7 +174,7 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
                 }
             }
 
-            Dictionary<string, List<MetricResult>> results = AspNetBenchmarksAnalyzeCommand.ExecuteAnalysis(configuration, configurationToCommand, executionDetails);
+            Dictionary<string, List<MetricResult>> results = AspNetBenchmarksAnalyzeCommand.ExecuteAnalysis(configuration, benchmarkNameToCommand, executionDetails);
             return new AspNetBenchmarkResults(executionDetails, results);
         }
     }

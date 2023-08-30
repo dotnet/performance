@@ -87,7 +87,6 @@ namespace GC.Infrastructure.Commands.ASPNetBenchmarks
             Dictionary<string, string> benchmarkToComparisons = new();
             Dictionary<string, List<MetricResult>> metricResults = new();
 
-            // Compute the compare functionality if there is a single run.
             foreach (var benchmark in benchmarkToRunToPaths)
             {
                 List<string> paths = benchmark.Value;
