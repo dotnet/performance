@@ -296,7 +296,7 @@ namespace GC.Infrastructure.Core.Presentation.GCPerfSim
                         metric2_Comparand = Math.Round(comparandResultItem.PauseDurationMSec_MeanWhereIsBlockingGen2, 2);
                     }
 
-                    sw.WriteLine($"| {runName} | {metric1_Base:N2} | {metric1_Comparand:N2} | {((metric1_Comparand - metric1_Comparand) / metric1_Base) * 100:N2} | {metric2_Base} |  {metric2_Comparand:N2} | {((metric1_Comparand - metric1_Base) / metric1_Base * 100):N2}| ");
+                    sw.WriteLine($"| {runName} | {metric1_Base:N2} | {metric1_Comparand:N2} | {((metric1_Comparand - metric1_Base) / metric1_Base) * 100:N2} | {metric2_Base} |  {metric2_Comparand:N2} | {((metric2_Comparand - metric2_Base) / metric2_Base * 100):N2}| ");
                 }
                 sb.AppendLine();
 
