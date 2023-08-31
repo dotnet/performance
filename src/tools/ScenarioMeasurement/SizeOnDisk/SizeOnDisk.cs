@@ -148,10 +148,9 @@ class SizeOnDisk
             }
         }
 
-        var wasmFile = Directory.GetFiles(path, "dotnet.*.js.*", SearchOption.AllDirectories).FirstOrDefault();
-        if (wasmFile != null)
+        foreach (string wasmFile in Directory.GetFiles(path, "dotnet.*.js.*", SearchOption.AllDirectories))
         {
-            var groups = Regex.Match(wasmFile, @"-(?<versionWithHash>.*).js").Groups;
+            var groups = Regex.Match(wasmFile, @"dotnet.(?:native|runtime).\d\.\d\..+-(?<versionWithHash>.+)\.js").Groups;
             // e.g. dotnet.native.8.0.0-rc.1.23375.3.trarwnmzt5.js -> rc.1.23375.3.trarwnmzt5
             string versionWithHash = groups["versionWithHash"].Value;
             if (!string.IsNullOrEmpty(versionWithHash))
