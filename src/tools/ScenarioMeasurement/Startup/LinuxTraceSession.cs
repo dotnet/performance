@@ -48,6 +48,11 @@ public class LinuxTraceSession : ITraceSession
         }
     }
 
+    public void AddRawEvent(string name)
+    {
+        perfCollect.AddRawEvent(name);
+    }
+
     private void InitLinuxKeywordMaps()
     {
         // initialize linux kernel keyword map

@@ -166,6 +166,10 @@ jobs:
             displayName: Build MemoryConsumption tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
+          - script: $(CorrelationStaging)dotnet\dotnet publish -c Release -o $(CorrelationStaging)PerfLabGenericEventSourceForwarder -f $(PERFLAB_Framework) -r win-${{parameters.architecture}} $(Build.SourcesDirectory)\src\tools\PerfLabGenericEventSourceForwarder\PerfLabGenericEventSourceForwarder\PerfLabGenericEventSourceForwarder.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
+            displayName: Build PerfLabGenericEventSourceForwarder tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
           - ${{ if and(ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
             - powershell: |
                 mkdir $(CorrelationStaging)PDN
@@ -207,6 +211,10 @@ jobs:
             displayName: Build MemoryConsumption tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
+          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)PerfLabGenericEventSourceForwarder -f $(PERFLAB_Framework) -r osx-${{parameters.architecture}} $(Build.SourcesDirectory)/src/tools/PerfLabGenericEventSourceForwarder/PerfLabGenericEventSourceForwarder/PerfLabGenericEventSourceForwarder.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
+            displayName: Build PerfLabGenericEventSourceForwarder tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
           - script: |
               $(Python) -m pip install --user --upgrade pip
               $(Python) -m pip install --user urllib3==1.26.15
@@ -235,6 +243,12 @@ jobs:
             displayName: Build MemoryConsumption tool
             env:
               PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
+          - script: $(CorrelationStaging)dotnet/dotnet publish -c Release -o $(CorrelationStaging)PerfLabGenericEventSourceForwarder -f $(PERFLAB_Framework) -r linux-${{parameters.architecture}} $(Build.SourcesDirectory)/src/tools/PerfLabGenericEventSourceForwarder/PerfLabGenericEventSourceForwarder/PerfLabGenericEventSourceForwarder.csproj -p:DisableTransitiveFrameworkReferenceDownloads=true
+            displayName: Build PerfLabGenericEventSourceForwarder tool
+            env:
+              PERFLAB_TARGET_FRAMEWORKS: $(PERFLAB_Framework)
+          - script: $(Build.SourcesDirectory)/src/tools/PerfLabGenericEventSourceLTTngProvider/build.sh -o $(CorrelationStaging)PerfLabGenericEventSourceForwarder
+            displayName: Build PerfLabGenericEventSourceLTTngProvider tool
           - script: |
               $(Python) -m pip install --user --upgrade pip
               $(Python) -m pip install --user urllib3==1.26.15

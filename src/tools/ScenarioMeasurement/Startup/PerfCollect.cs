@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -17,6 +18,7 @@ public class PerfCollect : IDisposable
     public string TraceFilePath { get; private set; }
     private readonly List<KernelKeyword> KernelEvents = new();
     private readonly List<ClrKeyword> ClrEvents = new();
+    private readonly List<string> RawEvents = new();
     public PerfCollect(string traceName, Logger logger) : this(traceName, Environment.CurrentDirectory, logger)
     {
     }
@@ -60,23 +62,19 @@ public class PerfCollect : IDisposable
 
     public Result Start()
     {
-        var arguments = new StringBuilder($"start {TraceName} -events ");
+        var arguments = new StringBuilder();
+        arguments.Append($"start {TraceName} -events ");
+        var kernelEvents = KernelEvents.Select(x => x.ToString());
+        var clrEvents = ClrEvents.Select(x => x.ToString());
+        arguments.AppendJoin(',', kernelEvents.Concat(clrEvents));
 
-        foreach (var keyword in KernelEvents)
+        if (RawEvents.Any())
         {
-            arguments.Append(keyword.ToString());
-            arguments.Append(",");
+            arguments.Append(" -rawevents ");
+            arguments.AppendJoin(',', RawEvents);
         }
 
-        foreach (var keyword in ClrEvents)
-        {
-            arguments.Append(keyword.ToString());
-            arguments.Append(",");
-        }
-
-        var args = arguments.Remove(arguments.Length - 1, 1).ToString();
-
-        perfCollectProcess.Arguments = args;
+        perfCollectProcess.Arguments = arguments.ToString();
         return perfCollectProcess.Run().Result;
     }
 
@@ -112,16 +110,15 @@ public class PerfCollect : IDisposable
             Console.WriteLine("Lttng is already installed.");
             return Result.Success;
         }
-        perfCollectProcess.Arguments = "install -force";
-        perfCollectProcess.Run();
+        InstallImpl();
 
         var retry = 10;
-        for(var i=0; i<retry; i++)
+        for (var i = 0; i < retry; i++)
         {
             if (!LttngInstalled())
             {
                 Console.WriteLine($"Lttng not installed. Retry {i}...");
-                perfCollectProcess.Run();
+                InstallImpl();
             }
             else
             {
@@ -129,6 +126,18 @@ public class PerfCollect : IDisposable
             }
         }
         return Result.CloseFailed;
+
+
+        void InstallImpl()
+        {
+            if (IsUbuntu22())
+            {
+                Console.WriteLine("Installing for Ubuntu 22.");
+                InstallUbuntu22Manual();
+            }
+            perfCollectProcess.Arguments = "install -force";
+            perfCollectProcess.Run();
+        }
     }
 
     public void Dispose()
@@ -136,14 +145,43 @@ public class PerfCollect : IDisposable
         Stop();
     }
 
+    public void AddKernelKeyword(KernelKeyword keyword)
+    {
+        KernelEvents.Add(keyword);
+    }
+
     public void AddClrKeyword(ClrKeyword keyword)
     {
         ClrEvents.Add(keyword);
     }
 
-    public void AddKernelKeyword(KernelKeyword keyword)
+    public void AddRawEvent(string rawevent)
     {
-        KernelEvents.Add(keyword);
+        RawEvents.Add(rawevent);
+    }
+
+    private void InstallUbuntu22Manual()
+    {
+        var p = new ManagedProcessHelper(perfCollectProcess.Logger)
+        {
+            ProcessWillExit = true,
+            Executable = "apt",
+            Arguments = "install -y lttng-tools lttng-modules-dkms liblttng-ust1",
+            Timeout = perfCollectProcess.Timeout,
+            RootAccess = true,
+        };
+        p.Run();
+    }
+
+    private static bool IsUbuntu22()
+    {
+        var queue = Environment.GetEnvironmentVariable("PERFLAB_QUEUE");
+        if (string.IsNullOrWhiteSpace(queue))
+        {
+            return false;
+        }
+        return queue.Contains("ubuntu", StringComparison.OrdinalIgnoreCase)
+            && queue.Contains("22", StringComparison.Ordinal);
     }
 
     private static bool LttngInstalled()
