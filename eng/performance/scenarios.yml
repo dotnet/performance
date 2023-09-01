@@ -72,6 +72,8 @@ jobs:
             value: python3
           - name: ArtifactsDirectory
             value: '$HELIX_WORKITEM_UPLOAD_ROOT/Scenarios'
+          - name: TargetsWindowsParam
+            value: ''
         - ${{ if eq(variables['System.TeamProject'], 'public') }}:
           - name: HelixApiAccessToken
             value: ''
