@@ -40,8 +40,8 @@ namespace GC.Infrastructure.Core.CommandBuilders
                 if (string.CompareOrdinal(env.Key, "DOTNET_GCLogFile") == 0 ||
                     string.CompareOrdinal(env.Key, "COMPlus_GCLogFile") == 0)
                 {
-                    string extension = Path.GetExtension(env.Value);
-                    commandStringBuilder.Append( $" --application.options.downloadFiles \"*.*{extension.Replace(".", "")}\" " );
+                    string fileNameOfLog = Path.GetFileName(env.Value);
+                    commandStringBuilder.Append( $" --application.options.downloadFiles \"*.*{fileNameOfLog}.log\" " );
                     string fileName = Path.GetFileNameWithoutExtension(env.Value);
                     commandStringBuilder.Append( $" --application.options.downloadFilesOutput \"{Path.Combine(configuration.Output.Path, run.Key, $"{benchmarkNameToCommand.Key}_GCLog")}\" " );
                 }
