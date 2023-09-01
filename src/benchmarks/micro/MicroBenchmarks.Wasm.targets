@@ -29,5 +29,5 @@
     <Error Text="Cannot find WasmMainJSPath: $(WasmMainJSPath)" Condition="'$(WasmMainJSPath)' == '' or !Exists('$(WasmMainJSPath)')" />
   </Target>
 
-  <Import Project="$(MSBuildThisFileDirectory)WasmOverridePacks.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)..\..\scenarios\build-common\WasmOverridePacks.targets" />
 </Project>
