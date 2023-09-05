@@ -19,11 +19,30 @@ Additionally, the reason for the error could be because the associated machine i
 
 ### 2. Incorrect Crank Arguments
 
-Fix arguments by refering to [this](https://github.com/dotnet/crank/blob/main/src/Microsoft.Crank.Controller/README.md) document. If you are still experiencing issues even though you have checked that the crank commands are correct, ensure that you have the latest version of crank.
+Fix arguments by referring to [this](https://github.com/dotnet/crank/blob/main/src/Microsoft.Crank.Controller/README.md) document. If you are still experiencing issues even though you have checked that the crank commands are correct, ensure that you have the latest version of crank.
 
 ### 3. Test Failures
 
-The test failures could be as a result of either runtime failures or failures of running the benchmark on the managed side of things. For both of these issues examine the log file to identify the reasons.
+The test failures could be one of the following:
+
+#### 1. Build Failures
+
+To confirm this is the case, check the ``*build.log`` file associated with the run. The resolution here is to check with the test owners.
+
+#### 2. Runtime Test Failures
+
+These will show up in the following form: 
+
+```psh
+[STDERR] GC initialization failed with error 0x8007007E
+[STDERR] Failed to create CoreCLR, HRESULT: 0x8007007E
+```
+
+This issue specifically indicates a version mismatch between the uploaded binaries and the test binaries. If you are connected to CorpNet, ``errors/`` will shed light on the meaning of errors.
+
+#### 3. Test Failures from the Managed Side of Things
+
+To get more details, check the ``*output.log`` file associated with the run. The resolution is usually to check if the framework version you are trying to run matches with the run and if that doesn't turn out to be the case, reach out to the test owners.
 
 ### 4. Missing Artifacts
 
